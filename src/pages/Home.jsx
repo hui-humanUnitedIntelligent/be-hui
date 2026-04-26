@@ -454,11 +454,11 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
 // ══════════════════════════════════════════════════════════════════
 // WIRKER PROFIL PAGE
 // ══════════════════════════════════════════════════════════════════
-function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile }) {
+function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook }) {
   const p = mockWirkerProfiles[wirkerName];
   const [tab, setTab] = useState("werke");
   const [followed, setFollowed] = useState(false);
-  const [showBooking, setShowBooking] = useState(false);
+  const [showBooking, setShowBooking] = useState(!!autoBook);
   const [showAvailEditor, setShowAvailEditor] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
 
@@ -816,39 +816,77 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker }) {
   );
 }
 function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, onViewWirker }) {
+  const [added, setAdded] = useState(false);
+  const handleCart = (e) => {
+    e.stopPropagation();
+    onAddToCart(item);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  };
   return (
     <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px" }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
         <img src={item.img} style={{ width: "100%", height: 210, objectFit: "cover" }} alt={item.title} />
-        <div style={{ position: "absolute", top: 10, right: 10, background: CORAL, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 14 }}>{item.price}</div>
+        {/* Preis oben links */}
+        <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 15 }}>{item.price}</div>
+        {/* In den Korb – Overlay-Button unten */}
+        <button
+          onClick={handleCart}
+          style={{
+            position: "absolute", bottom: 10, right: 10,
+            background: added ? TEAL : CORAL,
+            color: "white", border: "none", borderRadius: 22,
+            padding: "8px 16px", fontWeight: 700, fontSize: 13,
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+            boxShadow: "0 2px 10px rgba(0,0,0,0.25)", transition: "background 0.25s"
+          }}
+        >
+          <ShoppingBasket size={14} color="white" />
+          {added ? "✓ Hinzugefügt" : "In den Korb"}
+        </button>
       </div>
-      <div style={{ padding: "12px 14px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <img src={item.creatorImg} onClick={() => onViewWirker(item.creator)} style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
-          <span onClick={() => onViewWirker(item.creator)} style={{ fontWeight: 600, fontSize: 13, color: TEAL, cursor: "pointer" }}>{item.creator}</span>
+      <div style={{ padding: "10px 14px 12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+          <img src={item.creatorImg} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
+          <span onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ fontWeight: 600, fontSize: 12, color: TEAL, cursor: "pointer" }}>{item.creator}</span>
           <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location}</span>
         </div>
-        <div onClick={() => onViewWerk(item.title)} style={{ fontWeight: 700, fontSize: 16, color: "#222", marginBottom: 10, cursor: "pointer" }}>{item.title}</div>
+        <div onClick={() => onViewWerk(item.title)} style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 8, cursor: "pointer" }}>{item.title}</div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: liked ? CORAL : "#999", padding: 0 }}><Heart size={18} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#999"} /><span style={{ fontSize: 13 }}>{item.likes + (liked ? 1 : 0)}</span></button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={18} color="#999" /></button>
-          <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Star size={18} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#999"} /></button>
-          <button onClick={() => onAddToCart(item)} style={{ marginLeft: "auto", background: CORAL, color: "white", border: "none", borderRadius: 10, padding: "7px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>In den Korb</button>
+          <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: liked ? CORAL : "#bbb", padding: 0 }}><Heart size={17} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#bbb"} /><span style={{ fontSize: 12, color: liked ? CORAL : "#bbb" }}>{item.likes + (liked ? 1 : 0)}</span></button>
+          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={17} color="#bbb" /></button>
+          <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Star size={17} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#bbb"} /></button>
+          <button onClick={() => onViewWerk(item.title)} style={{ marginLeft: "auto", background: "none", border: `1.5px solid ${CORAL}`, borderRadius: 10, padding: "5px 12px", fontWeight: 700, fontSize: 12, color: CORAL, cursor: "pointer" }}>Details →</button>
         </div>
       </div>
     </div>
   );
 }
-function WirkerCard({ item, onViewWirker }) {
+function WirkerCard({ item, onViewWirker, onBookWirker }) {
   return (
-    <div style={{ background: `linear-gradient(135deg, ${TEAL}12, #f0fdfb)`, border: `1.5px solid ${TEAL}40`, borderRadius: 16, margin: "8px 16px", padding: 16, display: "flex", gap: 14, alignItems: "center", boxShadow: `0 2px 14px ${TEAL}18` }}>
-      <img src={item.img} onClick={() => onViewWirker(item.name)} style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, cursor: "pointer" }} alt={item.name} />
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{item.name}</div>
-        <div style={{ fontSize: 12, color: TEAL, fontWeight: 600, marginBottom: 3 }}>{item.talent}</div>
-        <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location} · {item.recommendations} Empfehlungen</div>
+    <div style={{ background: `linear-gradient(135deg, ${TEAL}12, #f0fdfb)`, border: `1.5px solid ${TEAL}40`, borderRadius: 16, margin: "8px 16px", padding: 14, boxShadow: `0 2px 14px ${TEAL}18` }}>
+      {/* Obere Zeile: Foto + Info + Profil-Button */}
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+        <img src={item.img} onClick={() => onViewWirker(item.name)} style={{ width: 58, height: 58, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, cursor: "pointer", flexShrink: 0 }} alt={item.name} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{item.name}</div>
+          <div style={{ fontSize: 12, color: TEAL, fontWeight: 600, marginBottom: 2 }}>{item.talent}</div>
+          <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location} · ⭐ {item.recommendations} Empfehlungen</div>
+        </div>
+        <button onClick={() => onViewWirker(item.name)} style={{ background: "none", border: `1.5px solid ${TEAL}`, borderRadius: 10, padding: "6px 10px", fontWeight: 700, fontSize: 11, color: TEAL, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>Profil →</button>
       </div>
-      <button onClick={() => onViewWirker(item.name)} style={{ background: TEAL, color: "white", border: "none", borderRadius: 10, padding: "8px 12px", fontWeight: 700, fontSize: 12, cursor: "pointer", lineHeight: 1.4 }}>Talent<br />ansehen</button>
+      {/* Buchungs-Button – volle Breite */}
+      <button
+        onClick={() => onBookWirker(item.name)}
+        style={{
+          width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`,
+          color: "white", border: "none", borderRadius: 12,
+          padding: "10px 0", fontWeight: 700, fontSize: 14,
+          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7
+        }}
+      >
+        <Calendar size={15} color="white" /> Jetzt Termin buchen
+      </button>
     </div>
   );
 }
@@ -1290,12 +1328,13 @@ export default function App() {
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
+  const bookWirker = (name) => setDetailView({ type: "wirker", id: name, isOwn: false, autoBook: true });
   const viewWerk = (title) => setDetailView({ type: "werk", id: title });
   const goBack = () => setDetailView(null);
 
   if (detailView?.type === "wirker") return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} />
+      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} />
       <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
@@ -1317,7 +1356,7 @@ export default function App() {
             {mockFeed.map(item => {
               if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} />;
               if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} />;
-              if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} />;
+              if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />;
               if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
               return null;
             })}
