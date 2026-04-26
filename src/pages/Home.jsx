@@ -3379,34 +3379,197 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
   const radiusMarks = [5, 10, 25, 50, 100, 250, 9999];
 
-  // ── EINSTELLUNGEN-SUBPAGE ──────────────────────────────────────
+  // ── EINSTELLUNGEN STATE ───────────────────────────────────────
+  const [settingsSection, setSettingsSection] = React.useState(null);
+  const [notifSettings, setNotifSettings] = React.useState({
+    buchungen: true, empfehlungen: true, impact: true, follower: false, system: true, email: true, push: true
+  });
+  const [privSettings, setPrivSettings] = React.useState({
+    profilOeffentlich: true, standortZeigen: true, empfehlungenZeigen: true, onlineStatus: false
+  });
+  const toggleNotif = (k) => setNotifSettings(s => ({ ...s, [k]: !s[k] }));
+  const togglePriv = (k) => setPrivSettings(s => ({ ...s, [k]: !s[k] }));
+
+  const ToggleRow = ({ label, sub, value, onToggle, color }) => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderBottom: "1px solid #f5f5f3" }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{sub}</div>}
+      </div>
+      <div onClick={onToggle} style={{ width: 44, height: 26, borderRadius: 13, background: value ? (color || TEAL) : "#ddd", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+        <div style={{ position: "absolute", top: 3, left: value ? 21 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)", transition: "left 0.2s" }} />
+      </div>
+    </div>
+  );
+
+  // ── EINSTELLUNGEN UNTERSEITEN ─────────────────────────────────
+  if (activeSection === "einstellungen" && settingsSection === "benachrichtigungen") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <button onClick={() => setSettingsSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
+        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</div>
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Kanäle</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
+          <ToggleRow label="Push-Benachrichtigungen" sub="Direkt aufs Handy" value={notifSettings.push} onToggle={() => toggleNotif("push")} />
+          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Themen</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
+          <ToggleRow label="Buchungsanfragen & -bestätigungen" value={notifSettings.buchungen} onToggle={() => toggleNotif("buchungen")} color={CORAL} />
+          <ToggleRow label="Empfehlungen & Bewertungen" value={notifSettings.empfehlungen} onToggle={() => toggleNotif("empfehlungen")} color={TEAL} />
+          <ToggleRow label="Treuhand & Zahlungen" value={notifSettings.impact} onToggle={() => toggleNotif("impact")} color="#F5A623" />
+          <ToggleRow label="Neue Follower" value={notifSettings.follower} onToggle={() => toggleNotif("follower")} color="#8b5cf6" />
+          <ToggleRow label="System & Updates" value={notifSettings.system} onToggle={() => toggleNotif("system")} />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (activeSection === "einstellungen" && settingsSection === "privatsphare") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <button onClick={() => setSettingsSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
+        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Privatsphäre & Sicherheit</div>
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sichtbarkeit</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
+          <ToggleRow label="Profil öffentlich sichtbar" sub="Andere Nutzer können dich finden" value={privSettings.profilOeffentlich} onToggle={() => togglePriv("profilOeffentlich")} />
+          <ToggleRow label="Standort anzeigen" sub="Ungefährer Bereich sichtbar" value={privSettings.standortZeigen} onToggle={() => togglePriv("standortZeigen")} />
+          <ToggleRow label="Empfehlungen öffentlich" sub="Verifizierte Empfehlungen auf Profil" value={privSettings.empfehlungenZeigen} onToggle={() => togglePriv("empfehlungenZeigen")} />
+          <ToggleRow label="Online-Status anzeigen" sub="Zuletzt aktiv sichtbar" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sicherheit</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
+          {[
+            { icon: "🔑", label: "Passwort ändern", sub: "Zuletzt geändert: vor 3 Monaten" },
+            { icon: "📱", label: "Zwei-Faktor-Authentifizierung", sub: "Nicht aktiviert" },
+            { icon: "📋", label: "Aktive Sitzungen", sub: "2 Geräte eingeloggt" },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none", cursor: "pointer" }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          ))}
+        </div>
+        <button style={{ width: "100%", background: "#fff0ee", border: `1.5px solid ${CORAL}30`, borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>
+          🗑 Konto löschen
+        </button>
+      </div>
+    </div>
+  );
+
+  if (activeSection === "einstellungen" && settingsSection === "zahlung") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <button onClick={() => setSettingsSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
+        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Zahlungsmethoden</div>
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Gespeicherte Karten</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          {[
+            { icon: "💳", label: "Visa •••• 4242", sub: "Läuft ab 08/2027", badge: "Standard" },
+            { icon: "💳", label: "Mastercard •••• 1234", sub: "Läuft ab 03/2026", badge: null },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: i === 0 ? "1px solid #f5f5f3" : "none" }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</span>
+                  {item.badge && <span style={{ background: `${TEAL}18`, color: TEAL, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99 }}>{item.badge}</span>}
+                </div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          ))}
+        </div>
+        <button style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, #10b981)`, border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", color: "white", marginBottom: 12 }}>
+          + Zahlungsmethode hinzufügen
+        </button>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", margin: "16px 0 6px", textTransform: "uppercase", letterSpacing: 0.8 }}>Auszahlungskonto (als Wirker)</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", gap: 12, alignItems: "center" }}>
+          <span style={{ fontSize: 22 }}>🏦</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>IBAN hinterlegen</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>Für Treuhand-Auszahlungen</div>
+          </div>
+          <ChevronRight size={15} color="#ddd" />
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── EINSTELLUNGEN-ÜBERSICHT ────────────────────────────────────
   if (activeSection === "einstellungen") return (
-    <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh", background: "#fafaf8" }}>
-      <div style={{ padding: "16px 20px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
         <button onClick={() => setActiveSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
         <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Einstellungen</div>
       </div>
-      <div style={{ padding: "0 20px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        {/* Profil-Info oben */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, background: "white", borderRadius: 18, padding: "16px", marginBottom: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}>
+          <img src="https://i.pravatar.cc/150?img=52" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}` }} alt="Profil" />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>Lars M.</div>
+            <div style={{ fontSize: 12, color: "#aaa" }}>lars@hui.app</div>
+          </div>
+          <div style={{ background: `${TEAL}15`, color: TEAL, fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 99 }}>✓ Verifiziert</div>
+        </div>
+
+        {/* Gruppen */}
         {[
-          { icon: "👤", label: "Persönliche Daten", sub: "Name, Foto, Standort" },
-          { icon: "🔔", label: "Benachrichtigungen", sub: "Push, E-Mail, SMS" },
-          { icon: "🔒", label: "Privatsphäre & Sicherheit", sub: "Passwort, 2FA" },
-          { icon: "💳", label: "Zahlungsmethoden", sub: "Karte, PayPal, Bankdaten" },
-          { icon: "🌙", label: "Erscheinungsbild", sub: "Hell / Dunkel / System" },
-          { icon: "📄", label: "Datenschutz", sub: "" },
-          { icon: "📋", label: "AGB", sub: "" },
-          { icon: "ℹ️", label: "Impressum", sub: "" },
-        ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: "1px solid #f0f0f0", cursor: "pointer" }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: "#f0f0ee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{item.icon}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
-              {item.sub && <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>}
+          {
+            title: "Konto",
+            items: [
+              { icon: "🔔", label: "Benachrichtigungen", sub: "Push, E-Mail, Themen", key: "benachrichtigungen" },
+              { icon: "🔒", label: "Privatsphäre & Sicherheit", sub: "Passwort, 2FA, Sichtbarkeit", key: "privatsphare" },
+              { icon: "💳", label: "Zahlungsmethoden", sub: "Karten & Auszahlungskonto", key: "zahlung" },
+            ]
+          },
+          {
+            title: "App",
+            items: [
+              { icon: "🌍", label: "Sprache", sub: "Deutsch", key: null },
+              { icon: "🌙", label: "Erscheinungsbild", sub: "Hell / Dunkel", key: null },
+              { icon: "📦", label: "App-Version", sub: "HUI v0.9.1 Beta", key: null },
+            ]
+          },
+          {
+            title: "Rechtliches",
+            items: [
+              { icon: "📄", label: "Datenschutzerklärung", key: null },
+              { icon: "📋", label: "AGB", key: null },
+              { icon: "ℹ️", label: "Impressum", key: null },
+            ]
+          }
+        ].map((group, gi) => (
+          <div key={gi} style={{ marginBottom: 20 }}>
+            <div style={{ fontWeight: 700, fontSize: 11, color: "#bbb", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>{group.title}</div>
+            <div style={{ background: "white", borderRadius: 16, padding: "0 16px", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+              {group.items.map((item, i) => (
+                <div key={i} onClick={() => item.key && setSettingsSection(item.key)} style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 0", borderBottom: i < group.items.length - 1 ? "1px solid #f5f5f3" : "none", cursor: item.key ? "pointer" : "default" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "#f5f5f3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>{item.icon}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+                    {item.sub && <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{item.sub}</div>}
+                  </div>
+                  {item.key && <ChevronRight size={15} color="#ddd" />}
+                </div>
+              ))}
             </div>
-            <ChevronRight size={15} color="#ddd" />
           </div>
         ))}
-        <button style={{ width: "100%", background: "none", border: `1.5px solid ${CORAL}44`, borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 20, color: CORAL }}>
+
+        <button style={{ width: "100%", background: "none", border: `1.5px solid ${CORAL}44`, borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", color: CORAL, marginBottom: 30 }}>
           Abmelden
         </button>
       </div>
