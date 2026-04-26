@@ -2541,7 +2541,7 @@ function StoryCreateModal({ onClose }) {
   );
 }
 
-function CartOverlay({ cart, onClose, onRemove }) {
+/* v2 */ function CartOverlay({ cart, onClose, onRemove }) {
   const [step, setStep] = React.useState("cart"); // cart | address | payment | confirm | done
   const [adresse, setAdresse] = React.useState({ name: "Lars M.", strasse: "Leopoldstr. 42", plz: "80802", ort: "München" });
   const [zahlart, setZahlart] = React.useState("karte");
