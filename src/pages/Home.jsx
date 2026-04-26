@@ -3168,7 +3168,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   });
   const setP = (k, v) => setProfileForm(f => ({ ...f, [k]: v }));
 
-  const radiusMarks = [5, 10, 25, 50, 100, 250];
+  const radiusMarks = [5, 10, 25, 50, 100, 250, 9999];
 
   // ── EINSTELLUNGEN-SUBPAGE ──────────────────────────────────────
   if (activeSection === "einstellungen") return (
@@ -3359,7 +3359,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
                     <div style={{ fontSize: 11, color: "#aaa" }}>Wie weit bist du als Talent buchbar?</div>
                   </div>
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{radius} km</div>
+                <div style={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{radius === 9999 ? "🌍 Weltweit" : `${radius} km`}</div>
               </div>
               <input
                 type="range" min={0} max={5}
@@ -3368,10 +3368,11 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
                 style={{ width: "100%", accentColor: TEAL, height: 4, marginBottom: 6 }}
               />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#bbb" }}>
-                {radiusMarks.map(r => <span key={r} style={{ fontWeight: r === radius ? 700 : 400, color: r === radius ? TEAL : "#bbb" }}>{r} km</span>)}
+                {radiusMarks.map(r => <span key={r} style={{ fontWeight: r === radius ? 700 : 400, color: r === radius ? TEAL : "#bbb" }}>{r === 9999 ? "🌍" : `${r} km`}</span>)}
               </div>
               <div style={{ background: `${TEAL}0d`, borderRadius: 10, padding: "8px 12px", marginTop: 10, fontSize: 12, color: "#666" }}>
-                📍 Du bist für Suchende im Umkreis von <strong>{radius} km</strong> um München sichtbar.
+                📍 {radius === 9999 ? "Du bist weltweit für Suchende sichtbar." : <>Du bist für Suchende im Umkreis von <strong>{radius} km</strong> um München sichtbar.</>}
+                {radius === 9999 && " · Keine Einschränkung"}
                 {radius === 250 && " · Ganz Deutschland"}
                 {radius >= 100 && radius < 250 && " · Überregional"}
                 {radius < 25 && " · Nur Nachbarschaft"}
