@@ -39,10 +39,10 @@ const mockWirkerProfiles = {
     bio: "Ich forme aus Ton Dinge, die bleiben. Jedes Stück entsteht mit Bedacht, mit Liebe und mit den Händen. Meine Werkstatt in München-Schwabing ist mein zweites Zuhause.",
     skills: ["Töpfern", "Glasuren", "Raku-Brennen", "Workshops", "Auftragsarbeiten"],
     werke: [
-      { title: "Keramik-Tasse", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&h=300&fit=crop", price: "38 €" },
-      { title: "Vase Handgedreht", img: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=300&h=300&fit=crop", price: "65 €" },
-      { title: "Schüssel-Set", img: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=300&h=300&fit=crop", price: "89 €" },
-      { title: "Töpfer-Workshop", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&h=300&fit=crop", price: "75 €" },
+      { title: "Keramik-Tasse", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&h=300&fit=crop", price: "38 €", shipping: "4,50 €", shippingNote: "Versand innerhalb Deutschlands" },
+      { title: "Vase Handgedreht", img: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=300&h=300&fit=crop", price: "65 €", shipping: "5,90 €", shippingNote: "Versand innerhalb Deutschlands" },
+      { title: "Schüssel-Set", img: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=300&h=300&fit=crop", price: "89 €", shipping: "7,90 €", shippingNote: "Versand innerhalb Deutschlands" },
+      { title: "Töpfer-Workshop", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&h=300&fit=crop", price: "75 €", shipping: "0 €", shippingNote: "Vor Ort in München" },
     ],
   },
   "Marcus B.": {
@@ -55,9 +55,9 @@ const mockWirkerProfiles = {
     bio: "Ich halte Momente fest, die sonst verschwinden. Portraits, Events, Imagefilme – ich bringe deine Geschichte ans Licht. Mit Kamera und Herz seit 12 Jahren.",
     skills: ["Portrait", "Eventfotografie", "Imagefilm", "Drohne", "Retusche", "Social Media Content"],
     werke: [
-      { title: "Portrait-Shooting", img: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&h=300&fit=crop", price: "180 €" },
-      { title: "Event-Paket", img: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&h=300&fit=crop", price: "450 €" },
-      { title: "Imagefilm (1 Min)", img: "https://images.unsplash.com/photo-1536240478700-b869ad10e2ab?w=300&h=300&fit=crop", price: "890 €" },
+      { title: "Portrait-Shooting", img: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&h=300&fit=crop", price: "180 €", shipping: "0 €", shippingNote: "Digitale Lieferung per Download" },
+      { title: "Event-Paket", img: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&h=300&fit=crop", price: "450 €", shipping: "0 €", shippingNote: "Digitale Lieferung per Download" },
+      { title: "Imagefilm (1 Min)", img: "https://images.unsplash.com/photo-1536240478700-b869ad10e2ab?w=300&h=300&fit=crop", price: "890 €", shipping: "0 €", shippingNote: "Digitale Lieferung per Download" },
     ],
   },
   "Maria L.": {
@@ -70,9 +70,9 @@ const mockWirkerProfiles = {
     bio: "Yoga ist für mich kein Sport – es ist eine Haltung zum Leben. Ich begleite Menschen auf ihrem Weg zu mehr Ruhe, Kraft und Klarheit. Online und in Zürich.",
     skills: ["Hatha Yoga", "Vinyasa", "Meditation", "Atemarbeit", "Online-Coaching", "Retreats"],
     werke: [
-      { title: "Einzel-Yoga-Session", img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&h=300&fit=crop", price: "70 €" },
-      { title: "4er-Paket Yoga", img: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=300&h=300&fit=crop", price: "250 €" },
-      { title: "Achtsamkeits-Workshop", img: "https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=300&h=300&fit=crop", price: "120 €" },
+      { title: "Einzel-Yoga-Session", img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&h=300&fit=crop", price: "70 €", shipping: "0 €", shippingNote: "Online per Video-Call" },
+      { title: "4er-Paket Yoga", img: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=300&h=300&fit=crop", price: "250 €", shipping: "0 €", shippingNote: "Online per Video-Call" },
+      { title: "Achtsamkeits-Workshop", img: "https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=300&h=300&fit=crop", price: "120 €", shipping: "0 €", shippingNote: "Online per Video-Call" },
     ],
   },
 };
@@ -454,6 +454,174 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
 // ══════════════════════════════════════════════════════════════════
 // WIRKER PROFIL PAGE
 // ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// WERK EDITOR (Versandkosten & Details vom Wirker bearbeitbar)
+// ══════════════════════════════════════════════════════════════════
+function WerkEditor({ werk, wirkerName, onClose, onSave }) {
+  const [title, setTitle] = useState(werk ? werk.title : "");
+  const [price, setPrice] = useState(werk ? werk.price.replace(" €", "") : "");
+  const [shippingValue, setShippingValue] = useState(werk ? werk.shipping.replace(" €", "").replace(",", ".") : "0");
+  const [shippingNote, setShippingNote] = useState(werk ? (werk.shippingNote || "") : "");
+  const [shippingType, setShippingType] = useState(() => {
+    if (!werk) return "standard";
+    const s = parseFloat(werk.shipping.replace(" €","").replace(",","."));
+    if (s === 0) return "kostenlos";
+    return "standard";
+  });
+  const [saved, setSaved] = useState(false);
+
+  const shippingPresets = [
+    { label: "Kostenlos / Digital", value: "0", note: "Digitale Lieferung oder vor Ort" },
+    { label: "Brief (1,85 €)", value: "1.85", note: "DHL Brief national" },
+    { label: "Päckchen S (3,99 €)", value: "3.99", note: "DHL Päckchen S bis 2kg" },
+    { label: "Päckchen M (5,49 €)", value: "5.49", note: "DHL Päckchen M bis 5kg" },
+    { label: "Paket (6,99 €)", value: "6.99", note: "DHL Paket bis 10kg" },
+    { label: "Großes Paket (12,49 €)", value: "12.49", note: "DHL Paket bis 31,5kg" },
+    { label: "Expressversand (19,99 €)", value: "19.99", note: "DHL Express 1 Werktag" },
+    { label: "Eigener Betrag", value: "custom", note: "" },
+  ];
+
+  const [customShipping, setCustomShipping] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState(() => {
+    if (!werk) return "0";
+    const s = parseFloat(werk.shipping.replace(" €","").replace(",",".")).toFixed(2);
+    const found = shippingPresets.find(p => parseFloat(p.value).toFixed(2) === s);
+    return found ? found.value : "custom";
+  });
+
+  const applyPreset = (preset) => {
+    setSelectedPreset(preset.value);
+    if (preset.value === "custom") {
+      setCustomShipping(true);
+    } else {
+      setCustomShipping(false);
+      setShippingValue(preset.value);
+      if (preset.note) setShippingNote(preset.note);
+    }
+  };
+
+  const handleSave = () => {
+    const shippingNum = parseFloat(shippingValue) || 0;
+    const shippingStr = shippingNum === 0 ? "0 €" : shippingNum.toFixed(2).replace(".", ",") + " €";
+    onSave({ ...werk, title, price: price + " €", shipping: shippingStr, shippingNote });
+    setSaved(true);
+    setTimeout(() => { setSaved(false); onClose(); }, 1200);
+  };
+
+  const totalPreview = (parseFloat(price) || 0) + (parseFloat(shippingValue) || 0);
+  const provisionPreview = ((parseFloat(price) || 0) * 0.15);
+  const impactPreview = (provisionPreview * 0.03);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 600, display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "18px 20px 12px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 17, color: "#222" }}>{werk ? "Werk bearbeiten" : "Neues Werk"}</div>
+            <div style={{ fontSize: 12, color: "#aaa" }}>Preis & Versand selbst festlegen</div>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={22} color="#555" /></button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "18px 20px" }}>
+          {/* Werk-Name */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#888", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4 }}>Werkname</div>
+            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="z.B. Handgedrehte Keramik-Tasse" style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", color: "#222" }} />
+          </div>
+
+          {/* Preis */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#888", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4 }}>Verkaufspreis (€)</div>
+            <div style={{ display: "flex", alignItems: "center", background: "#f9f9f7", borderRadius: 12, border: "1.5px solid #e8e8e8", overflow: "hidden" }}>
+              <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="0,00" style={{ flex: 1, padding: "12px 14px", border: "none", background: "none", fontSize: 18, fontWeight: 700, outline: "none", color: "#222" }} />
+              <span style={{ paddingRight: 14, fontWeight: 700, fontSize: 16, color: "#aaa" }}>€</span>
+            </div>
+            {price && (
+              <div style={{ marginTop: 8, background: `${TEAL}0d`, borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#666" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                  <span>Du erhältst (nach 15% Provision)</span>
+                  <span style={{ fontWeight: 700, color: TEAL }}>{((parseFloat(price)||0) * 0.85).toFixed(2)} €</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                  <span>Provision HUI (15%)</span>
+                  <span style={{ color: "#888" }}>{provisionPreview.toFixed(2)} €</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>🌱 davon Impact Pool (3% der Prov.)</span>
+                  <span style={{ color: TEAL }}>{impactPreview.toFixed(2)} €</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* VERSANDKOSTEN */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#888", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4, display: "flex", alignItems: "center", gap: 6 }}>
+              <Package size={13} color="#888" /> Versandkosten
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+              {shippingPresets.map(preset => (
+                <button key={preset.value} onClick={() => applyPreset(preset)} style={{
+                  background: selectedPreset === preset.value ? `${TEAL}15` : "#f5f5f3",
+                  border: selectedPreset === preset.value ? `1.5px solid ${TEAL}` : "1.5px solid transparent",
+                  borderRadius: 10, padding: "9px 10px", cursor: "pointer", textAlign: "left", transition: "all 0.15s"
+                }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: selectedPreset === preset.value ? TEAL : "#333" }}>{preset.label}</div>
+                  {preset.value !== "custom" && <div style={{ fontSize: 10, color: "#aaa", marginTop: 1 }}>{preset.note}</div>}
+                </button>
+              ))}
+            </div>
+
+            {(customShipping || selectedPreset === "custom") && (
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: "#888", marginBottom: 5 }}>Eigener Betrag (€)</div>
+                <div style={{ display: "flex", alignItems: "center", background: "#f9f9f7", borderRadius: 12, border: "1.5px solid #e8e8e8", overflow: "hidden" }}>
+                  <input type="number" value={shippingValue} onChange={e => setShippingValue(e.target.value)} placeholder="0,00" style={{ flex: 1, padding: "10px 14px", border: "none", background: "none", fontSize: 15, fontWeight: 600, outline: "none", color: "#222" }} />
+                  <span style={{ paddingRight: 14, fontWeight: 600, fontSize: 14, color: "#aaa" }}>€</span>
+                </div>
+              </div>
+            )}
+
+            {/* Versandhinweis */}
+            <div style={{ marginBottom: 4 }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 5 }}>Versandhinweis für Käufer (optional)</div>
+              <input value={shippingNote} onChange={e => setShippingNote(e.target.value)} placeholder="z.B. Versand innerhalb 2-3 Werktagen" style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 13, outline: "none", color: "#333" }} />
+            </div>
+          </div>
+
+          {/* Preisvorschau für Käufer */}
+          {price && (
+            <div style={{ background: `${CORAL}08`, border: `1px solid ${CORAL}20`, borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 8 }}>👁 So sieht es für Käufer aus:</div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 4 }}><span>Werkpreis</span><span>{(parseFloat(price)||0).toFixed(2)} €</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 4 }}><span>Versand</span><span>{parseFloat(shippingValue) === 0 ? "Kostenlos" : (parseFloat(shippingValue)||0).toFixed(2) + " €"}</span></div>
+              {shippingNote && <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6, fontStyle: "italic" }}>ℹ️ {shippingNote}</div>}
+              <div style={{ borderTop: "1px solid #eee", paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 15 }}>
+                <span>Gesamtpreis</span>
+                <span style={{ color: CORAL }}>{totalPreview.toFixed(2)} €</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0" }}>
+          <button onClick={handleSave} disabled={!title || !price} style={{
+            width: "100%",
+            background: saved ? TEAL : (!title || !price ? "#e0e0e0" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`),
+            color: !title || !price ? "#aaa" : "white",
+            border: "none", borderRadius: 14, padding: "14px",
+            fontWeight: 700, fontSize: 16, cursor: !title || !price ? "default" : "pointer"
+          }}>
+            {saved ? "✓ Gespeichert!" : "Versand & Preis speichern"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook }) {
   const p = mockWirkerProfiles[wirkerName];
   const [tab, setTab] = useState("werke");
@@ -461,6 +629,26 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
   const [showBooking, setShowBooking] = useState(!!autoBook);
   const [showAvailEditor, setShowAvailEditor] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
+  const [werke, setWerke] = useState(p ? p.werke : []);
+  const [editingWerk, setEditingWerk] = useState(null); // null | werk-object
+  const [showWerkEditor, setShowWerkEditor] = useState(false);
+
+  const handleSaveWerk = (updatedWerk) => {
+    setWerke(prev => {
+      const idx = prev.findIndex(w => w.title === editingWerk?.title);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = updatedWerk;
+        if (p) p.werke = next; // persist in mock
+        return next;
+      }
+      const next = [...prev, updatedWerk];
+      if (p) p.werke = next;
+      return next;
+    });
+    setShowWerkEditor(false);
+    setEditingWerk(null);
+  };
 
   if (!p) return <div style={{ padding: 32, textAlign: "center" }}><button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: TEAL, fontWeight: 700 }}>← Zurück</button><p>Profil nicht gefunden</p></div>;
 
@@ -558,27 +746,50 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
       </div>
 
       {tab === "werke" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: "14px" }}>
-          {p.werke.map((w, i) => (
-            <div key={i} style={{ background: "linear-gradient(160deg,#fff8f7,#fff3f0)", borderRadius: 14, overflow: "hidden", boxShadow: `0 2px 10px ${CORAL}10`, border: `1px solid ${CORAL}18` }}>
-              <img src={w.img} style={{ width: "100%", height: 100, objectFit: "cover" }} alt={w.title} />
-              <div style={{ padding: "8px 10px" }}>
-                <div style={{ fontWeight: 700, fontSize: 12, color: "#222", marginBottom: 4 }}>{w.title}</div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: 700, color: CORAL, fontSize: 13 }}>{w.price}</span>
-                  <button onClick={() => onAddToCart({ title: w.title, price: w.price, img: w.img, creator: p.name })} style={{ background: CORAL, color: "white", border: "none", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>+ Korb</button>
+        <div style={{ padding: "14px" }}>
+          {/* Eigentümer: Neues Werk hinzufügen */}
+          {isOwnProfile && (
+            <button onClick={() => { setEditingWerk(null); setShowWerkEditor(true); }} style={{ width: "100%", background: `${TEAL}10`, border: `1.5px dashed ${TEAL}60`, borderRadius: 14, padding: "12px", marginBottom: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: TEAL, fontWeight: 700, fontSize: 14 }}>
+              <Plus size={16} color={TEAL} /> Neues Werk hinzufügen
+            </button>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {werke.map((w, i) => (
+              <div key={i} style={{ background: "linear-gradient(160deg,#fff8f7,#fff3f0)", borderRadius: 14, overflow: "hidden", boxShadow: `0 2px 10px ${CORAL}10`, border: `1px solid ${CORAL}18`, position: "relative" }}>
+                <img src={w.img} style={{ width: "100%", height: 100, objectFit: "cover" }} alt={w.title} />
+                {/* Edit-Button für Eigentümer */}
+                {isOwnProfile && (
+                  <button onClick={() => { setEditingWerk(w); setShowWerkEditor(true); }} style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                    <Edit3 size={13} color="white" />
+                  </button>
+                )}
+                <div style={{ padding: "8px 10px" }}>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: "#222", marginBottom: 2 }}>{w.title}</div>
+                  {/* Versandinfo */}
+                  {w.shipping && (
+                    <div style={{ fontSize: 10, color: "#aaa", marginBottom: 4 }}>
+                      📦 {w.shipping === "0 €" ? "Versandkostenfrei" : `+ ${w.shipping} Versand`}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontWeight: 700, color: CORAL, fontSize: 13 }}>{w.price}</span>
+                    {!isOwnProfile
+                      ? <button onClick={() => onAddToCart({ title: w.title, price: w.price, img: w.img, creator: p.name })} style={{ background: CORAL, color: "white", border: "none", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>+ Korb</button>
+                      : <span style={{ fontSize: 10, color: "#bbb" }}>Dein Werk</span>
+                    }
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {/* Buchungs-Karte */}
-          {!isOwnProfile && (
-            <div onClick={() => setShowBooking(true)} style={{ background: `linear-gradient(160deg,${TEAL}12,${TEAL}20)`, borderRadius: 14, border: `1.5px dashed ${TEAL}60`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 14, cursor: "pointer", minHeight: 130 }}>
-              <Calendar size={28} color={TEAL} style={{ marginBottom: 6 }} />
-              <div style={{ fontWeight: 700, fontSize: 12, color: TEAL, textAlign: "center" }}>Termin buchen</div>
-              <div style={{ fontSize: 10, color: `${TEAL}aa`, textAlign: "center", marginTop: 3 }}>{p.hourlyRate}</div>
-            </div>
-          )}
+            ))}
+            {/* Buchungs-Karte für Besucher */}
+            {!isOwnProfile && (
+              <div onClick={() => setShowBooking(true)} style={{ background: `linear-gradient(160deg,${TEAL}12,${TEAL}20)`, borderRadius: 14, border: `1.5px dashed ${TEAL}60`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 14, cursor: "pointer", minHeight: 130 }}>
+                <Calendar size={28} color={TEAL} style={{ marginBottom: 6 }} />
+                <div style={{ fontWeight: 700, fontSize: 12, color: TEAL, textAlign: "center" }}>Termin buchen</div>
+                <div style={{ fontSize: 10, color: `${TEAL}aa`, textAlign: "center", marginTop: 3 }}>{p.hourlyRate}</div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -604,6 +815,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
 
       {showBooking && <BookingFlow wirker={p} onClose={() => setShowBooking(false)} onSuccess={() => { setShowBooking(false); setBookingDone(true); }} />}
       {showAvailEditor && <AvailabilityEditor wirkerName={p.name} onClose={() => setShowAvailEditor(false)} />}
+      {showWerkEditor && <WerkEditor werk={editingWerk} wirkerName={p.name} onClose={() => { setShowWerkEditor(false); setEditingWerk(null); }} onSave={handleSaveWerk} />}
     </div>
   );
 }
@@ -668,7 +880,8 @@ function WerkDetailPage({ werkTitle, onBack, onAddToCart, onViewWirker }) {
         </div>
         <div style={{ background: "#f9f9f7", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 6 }}><span>Preis</span><span>{w.price}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 6 }}><span>Versand</span><span>{w.shipping}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: w.shippingNote ? 3 : 6 }}><span>Versand</span><span style={{ fontWeight: w.shipping === "0 €" ? 600 : 400, color: w.shipping === "0 €" ? TEAL : "#888" }}>{w.shipping === "0 €" ? "Kostenlos ✓" : w.shipping}</span></div>
+          {w.shippingNote && <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6, fontStyle: "italic" }}>ℹ️ {w.shippingNote}</div>}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 8 }}><span>🌱 3% der Provision gehen in den Impact Pool</span></div>
           <div style={{ borderTop: "1px solid #eee", paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 16 }}><span>Gesamt</span><span style={{ color: CORAL }}>{totalNum.toFixed(2)} €</span></div>
         </div>
