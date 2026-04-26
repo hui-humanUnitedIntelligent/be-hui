@@ -1352,12 +1352,192 @@ function ProjektVorschlagenPage({ onClose }) {
 // ══════════════════════════════════════════════════════════════════
 // IMPACT PAGE
 // ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// IMPACT PROJECT DETAIL MODAL
+// ══════════════════════════════════════════════════════════════════
+function ImpactProjectDetail({ project: p, onClose }) {
+  const [tab, setTab] = useState("info"); // info | updates | meilensteine
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "93vh", display: "flex", flexDirection: "column" }}>
+
+        {/* Hero-Bild */}
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
+          <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <X size={18} color="white" />
+          </button>
+          <div style={{ position: "absolute", bottom: 14, left: 14, right: 60 }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+              <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
+              <div style={{ background: "rgba(255,255,255,0.25)", color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 600, fontSize: 11 }}>📍 {p.land}</div>
+            </div>
+            <div style={{ fontWeight: 800, fontSize: 20, color: "white", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{p.title}</div>
+          </div>
+        </div>
+
+        {/* Fortschrittsbalken */}
+        <div style={{ padding: "14px 20px 0", flexShrink: 0 }}>
+          <div style={{ background: "#f0f0f0", borderRadius: 99, height: 9, marginBottom: 8 }}>
+            <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 9, borderRadius: 99, width: `${p.progress}%`, transition: "width 0.5s" }} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div>
+              <span style={{ fontWeight: 800, fontSize: 17, color: TEAL }}>{p.collected}</span>
+              <span style={{ fontSize: 12, color: "#aaa" }}> von {p.goal}</span>
+            </div>
+            <div style={{ display: "flex", gap: 14, fontSize: 12, color: "#aaa" }}>
+              <span>👥 {p.unterstuetzer} Unterstützer</span>
+              <span>⏱ {p.laufzeit}</span>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: 6, borderBottom: "2px solid #f0f0f0", marginBottom: 0 }}>
+            {[{id:"info",label:"📋 Info"},{id:"meilensteine",label:"🎯 Meilensteine"},{id:"updates",label:"📢 Updates"}].map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{
+                flex: 1, padding: "9px 6px", border: "none", background: "none", cursor: "pointer",
+                fontWeight: tab === t.id ? 700 : 500, fontSize: 12,
+                color: tab === t.id ? TEAL : "#aaa",
+                borderBottom: tab === t.id ? `2.5px solid ${TEAL}` : "2.5px solid transparent",
+                marginBottom: -2
+              }}>{t.label}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+
+          {tab === "info" && (
+            <>
+              <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 16, whiteSpace: "pre-line" }}>{p.longDesc}</div>
+              <div style={{ background: "#f9f9f7", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#333", marginBottom: 10 }}>Über die Organisation</div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #eee" }}>
+                  <span style={{ color: "#aaa" }}>Organisation</span>
+                  <span style={{ fontWeight: 600, color: "#333" }}>{p.organisation}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #eee" }}>
+                  <span style={{ color: "#aaa" }}>Gegründet</span>
+                  <span style={{ fontWeight: 600, color: "#333" }}>{p.gegründet}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0" }}>
+                  <span style={{ color: "#aaa" }}>Laufzeit</span>
+                  <span style={{ fontWeight: 600, color: "#333" }}>{p.laufzeit}</span>
+                </div>
+              </div>
+              <div style={{ background: `${TEAL}0d`, borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#555", display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <span style={{ fontSize: 16 }}>🌱</span>
+                <span>Dieses Projekt wird durch den <strong>HUI Impact Pool</strong> finanziert – 3% jeder Provision auf der Plattform fließt automatisch hierhin.</span>
+              </div>
+            </>
+          )}
+
+          {tab === "meilensteine" && (
+            <div>
+              {p.meilensteine.map((m, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, marginBottom: 14, alignItems: "flex-start" }}>
+                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: m.done ? TEAL : "#e8e8e8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                    {m.done ? <Check size={14} color="white" /> : <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ccc", display: "block" }} />}
+                  </div>
+                  {i < p.meilensteine.length - 1 && (
+                    <div style={{ position: "absolute", marginLeft: 12, marginTop: 27, width: 2, height: 14, background: m.done ? `${TEAL}40` : "#eee" }} />
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: m.done ? 700 : 500, fontSize: 14, color: m.done ? "#222" : "#aaa" }}>{m.label}</div>
+                    <div style={{ fontSize: 11, color: m.done ? TEAL : "#ccc", marginTop: 2 }}>{m.done ? "✓ Abgeschlossen" : "Ausstehend"}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{ marginTop: 10, background: "#f9f9f7", borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#888" }}>
+                {p.meilensteine.filter(m => m.done).length} von {p.meilensteine.length} Meilensteinen erreicht
+              </div>
+            </div>
+          )}
+
+          {tab === "updates" && (
+            <div>
+              {p.updates.map((u, i) => (
+                <div key={i} style={{ borderLeft: `3px solid ${TEAL}`, paddingLeft: 14, marginBottom: 18 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: TEAL, marginBottom: 4 }}>{u.datum}</div>
+                  <div style={{ fontSize: 14, color: "#444", lineHeight: 1.65 }}>{u.text}</div>
+                </div>
+              ))}
+              {p.updates.length === 0 && (
+                <div style={{ textAlign: "center", color: "#ccc", padding: "30px 0", fontSize: 14 }}>Noch keine Updates vorhanden.</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* CTA */}
+        <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
+          <button style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
+            🌱 Projekt unterstützen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImpactPage() {
   const [showVorschlag, setShowVorschlag] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const projects = [
-    { title: "Bäume für Kenia", desc: "Wir pflanzen 10.000 Bäume in trockenen Regionen Kenias und schaffen langfristige Lebensgrundlagen für lokale Gemeinschaften.", img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=300&fit=crop", progress: 47, collected: "2.340 €", goal: "5.000 €", kategorie: "Natur & Umwelt", land: "Kenia", laufzeit: "1 Jahr", stufe: "aktiv" },
-    { title: "Schule für alle", desc: "Bildung für 200 Kinder in ländlichen Gebieten – Schulbau, Materialien und Lehrergehälter für 2 Jahre.", img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=300&fit=crop", progress: 73, collected: "7.300 €", goal: "10.000 €", kategorie: "Kinder & Bildung", land: "Uganda", laufzeit: "2 Jahre", stufe: "aktiv" },
-    { title: "Tierheim Hamburg", desc: "Renovierung und Erweiterung für 150 Tiere – neue Gehege, Tierarzt-Ausstattung und Pfleger-Ausbildung.", img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=300&fit=crop", progress: 28, collected: "1.400 €", goal: "5.000 €", kategorie: "Tierschutz", land: "Deutschland", laufzeit: "6 Monate", stufe: "aktiv" },
+    {
+      title: "Bäume für Kenia", desc: "Wir pflanzen 10.000 Bäume in trockenen Regionen Kenias und schaffen langfristige Lebensgrundlagen für lokale Gemeinschaften.",
+      longDesc: "Die Abholzung in Kenia hat in den letzten Jahrzehnten zu Bodenerosion, Wasserknappheit und dem Verlust von Lebensräumen geführt. Unser Projekt arbeitet gemeinsam mit lokalen Gemeinschaften, um einheimische Baumarten zu pflanzen und zu pflegen.\n\nJeder gepflanzte Baum wird 5 Jahre lang betreut. Die Einwohner werden ausgebildet, um die Wälder langfristig selbst zu bewirtschaften. Ziel ist es, nicht nur die Umwelt zu schützen, sondern auch neue Einkommensquellen durch nachhaltige Forstwirtschaft zu schaffen.",
+      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
+      progress: 47, collected: "2.340 €", goal: "5.000 €", kategorie: "Natur & Umwelt", land: "Kenia", laufzeit: "1 Jahr", stufe: "aktiv",
+      organisation: "Green Earth Kenya e.V.", gegründet: "2018", unterstuetzer: 142,
+      meilensteine: [
+        { label: "Grundstücke gesichert", done: true },
+        { label: "4.700 Bäume gepflanzt", done: true },
+        { label: "10.000 Bäume gepflanzt", done: false },
+        { label: "Pflege-Ausbildung abgeschlossen", done: false },
+      ],
+      updates: [
+        { datum: "März 2026", text: "Die ersten 2.000 Setzlinge wurden erfolgreich eingepflanzt! Dank eurer Spenden." },
+        { datum: "Jan 2026", text: "Projektstart und Auswahl der Pflanzflächen in der Rift Valley Region." },
+      ]
+    },
+    {
+      title: "Schule für alle", desc: "Bildung für 200 Kinder in ländlichen Gebieten – Schulbau, Materialien und Lehrergehälter für 2 Jahre.",
+      longDesc: "In den ländlichen Gebieten Ugandas fehlen grundlegende Bildungseinrichtungen. Viele Kinder müssen stundenlange Fußwege auf sich nehmen oder erhalten gar keine Schulbildung.\n\nMit eurem Beitrag bauen wir ein vollständiges Schulgebäude mit 4 Klassenräumen, einem Lehrerzimmer und sanitären Anlagen. Zusätzlich finanzieren wir Schulmaterial und die Gehälter von 4 qualifizierten Lehrern für die ersten 2 Jahre.",
+      img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
+      progress: 73, collected: "7.300 €", goal: "10.000 €", kategorie: "Kinder & Bildung", land: "Uganda", laufzeit: "2 Jahre", stufe: "aktiv",
+      organisation: "Bildung Grenzenlos gGmbH", gegründet: "2014", unterstuetzer: 318,
+      meilensteine: [
+        { label: "Bauplatz genehmigt", done: true },
+        { label: "Fundament gelegt", done: true },
+        { label: "Rohbau fertiggestellt", done: true },
+        { label: "Innenausbau & Eröffnung", done: false },
+      ],
+      updates: [
+        { datum: "Apr 2026", text: "Der Rohbau steht! Nächster Schritt: Fenster, Türen und die Möblierung." },
+        { datum: "Feb 2026", text: "Das Fundament wurde erfolgreich gegossen. Ein großer Schritt für die Kinder!" },
+      ]
+    },
+    {
+      title: "Tierheim Hamburg", desc: "Renovierung und Erweiterung für 150 Tiere – neue Gehege, Tierarzt-Ausstattung und Pfleger-Ausbildung.",
+      longDesc: "Das Tierheim Hamburg-Süd betreut jährlich über 800 Tiere. Das Gebäude aus den 1970er Jahren ist dringend sanierungsbedürftig – Heizungsanlage, Gehege und die medizinische Ausstattung entsprechen nicht mehr modernen Standards.\n\nMit den gesammelten Mitteln renovieren wir 12 Hundegehege, schaffen einen neuen Behandlungsraum für den Tierarzt und schulen das Pfleger-Team in modernen Tierverhaltensmethoden. Jedes gespendete Euro kommt direkt den Tieren zugute.",
+      img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
+      progress: 28, collected: "1.400 €", goal: "5.000 €", kategorie: "Tierschutz", land: "Deutschland", laufzeit: "6 Monate", stufe: "aktiv",
+      organisation: "Tierheim Hamburg-Süd e.V.", gegründet: "1973", unterstuetzer: 87,
+      meilensteine: [
+        { label: "Finanzierungsplan genehmigt", done: true },
+        { label: "Gehege-Renovierung (Phase 1)", done: false },
+        { label: "Neuer Behandlungsraum", done: false },
+        { label: "Pfleger-Schulungen", done: false },
+      ],
+      updates: [
+        { datum: "Apr 2026", text: "Wir haben die ersten Spendengelder erhalten – danke! Die Planung läuft auf Hochtouren." },
+      ]
+    },
   ];
 
   return (
@@ -1418,7 +1598,7 @@ function ImpactPage() {
       <div style={{ padding: "0 16px" }}>
         <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 12 }}>Aktuelle Projekte</div>
         {projects.map((p, i) => (
-          <div key={i} style={{ background: `linear-gradient(160deg, #fffdf0, #fff8e1)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px ${GOLD}22`, border: `1px solid ${GOLD}30`, marginBottom: 16 }}>
+          <div key={i} onClick={() => setSelectedProject(p)} style={{ background: `linear-gradient(160deg, #fffdf0, #fff8e1)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px ${GOLD}22`, border: `1px solid ${GOLD}30`, marginBottom: 16, cursor: "pointer" }}>
             <div style={{ position: "relative" }}>
               <img src={p.img} style={{ width: "100%", height: 160, objectFit: "cover" }} alt={p.title} />
               <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
@@ -1440,8 +1620,8 @@ function ImpactPage() {
                 <span><strong style={{ color: TEAL }}>{p.collected}</strong> gesammelt</span>
                 <span style={{ fontWeight: 700, color: GOLD }}>{p.progress}%</span>
               </div>
-              <button style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                🌱 Jetzt spenden
+              <button onClick={e => { e.stopPropagation(); setSelectedProject(p); }} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                🌱 Mehr erfahren & spenden
               </button>
             </div>
           </div>
@@ -1467,6 +1647,7 @@ function ImpactPage() {
       </div>
 
       {showVorschlag && <ProjektVorschlagenPage onClose={() => setShowVorschlag(false)} />}
+      {selectedProject && <ImpactProjectDetail project={selectedProject} onClose={() => setSelectedProject(null)} />}
     </div>
   );
 }
