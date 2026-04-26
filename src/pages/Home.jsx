@@ -1674,7 +1674,11 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover" }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: TEAL, letterSpacing: 0.2 }}>Human United Intelligent</span>
+          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 0.2, color: "#444" }}>
+            <span style={{ color: "#FF8C00", fontWeight: 900, fontSize: 15 }}>H</span>uman{" "}
+            <span style={{ color: "#FF8C00", fontWeight: 900, fontSize: 15 }}>U</span>nited{" "}
+            <span style={{ color: "#FF8C00", fontWeight: 900, fontSize: 15 }}>I</span>ntelligent
+          </span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           <button onClick={onCartClick} style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 6 }}>
