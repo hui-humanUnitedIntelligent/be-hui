@@ -3514,10 +3514,10 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
         {/* ── NEUER NUTZER: CTA ─────────────────────────────────── */}
         {isNewUser && (
-          <div style={ background: `linear-gradient(135deg, ${CORAL}12, ${GOLD}10)`, border: `1.5px solid ${CORAL}25`, borderRadius: 18, padding: "18px 16px", marginBottom: 14 }>
-            <div style={ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }>
+          <div style={{ background: `linear-gradient(135deg, ${CORAL}12, ${GOLD}10)`, border: `1.5px solid ${CORAL}25`, borderRadius: 18, padding: "18px 16px", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
-              <div style={ fontWeight: 800, fontSize: 16, color: "#222" }>Werde Teil der HUI-Community</div>
+              <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>Werde Teil der HUI-Community</div>
             </div>
             <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 14 }}>
               Biete dein Talent, deine Werke oder Dienstleistungen an – lokal und authentisch. Nur echte Menschen, keine Algorithmen.
