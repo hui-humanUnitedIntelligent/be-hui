@@ -1801,6 +1801,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   return (
+    <>
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
       <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 150, objectFit: "cover" }} alt="header" />
       <div style={{ padding: "0 16px" }}>
@@ -1828,7 +1829,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
       </div>
     </div>
     {showTalentAnbieten && <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />}
-  );
+  </>;
 }
 function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser }) {
   return (
