@@ -2557,7 +2557,7 @@ export default function App() {
       )}
       {showWerkCreate && <WerkCreateModal onClose={() => setShowWerkCreate(false)} />}
       {showStoryCreate && <StoryCreateModal onClose={() => setShowStoryCreate(false)} />}
-      {/* dummy close}
+
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
 
