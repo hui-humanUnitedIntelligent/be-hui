@@ -1798,10 +1798,8 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
   );
 }
 
-function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
-  const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
+function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten }) {
   return (
-    <>
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
       <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 150, objectFit: "cover" }} alt="header" />
       <div style={{ padding: "0 16px" }}>
@@ -1814,7 +1812,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
           <div><div style={{ fontWeight: 800, fontSize: 22, color: GOLD }}>250 HUI-Punkte</div><div style={{ fontSize: 11, color: "#aaa" }}>= 12,50 € Rabatt verfügbar</div></div>
         </div>
         {isNewUser ? (
-          <button onClick={() => setShowTalentAnbieten(true)} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18 }}>✨ Mein Talent anbieten</button>
+          <button onClick={onTalentAnbieten} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18 }}>✨ Mein Talent anbieten</button>
         ) : (
           <button onClick={onViewOwnWirkerProfile} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Calendar size={18} /> Meine Verfügbarkeit verwalten
@@ -1828,8 +1826,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
         ))}
       </div>
     </div>
-    {showTalentAnbieten && <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />}
-  </>;
+  );
 }
 function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser }) {
   return (
@@ -1865,6 +1862,7 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const isNewUser = true;
+  const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -1905,11 +1903,12 @@ export default function App() {
       </>)}
       {page === "impact" && <ImpactPage />}
       {page === "favorites" && <FavoritesPage />}
-      {page === "profile" && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Sofia M.", true)} />}
+      {page === "profile" && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Sofia M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} />}
 
       <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} />
 
-      {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />}
+      {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />
+      }{showTalentAnbieten && <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />}
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
 
