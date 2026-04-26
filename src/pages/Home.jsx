@@ -2432,27 +2432,102 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
 }
 
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats }) {
-  return (
-    <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
-      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 150, objectFit: "cover" }} alt="header" />
-      <div style={{ padding: "0 16px" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: -32 }}>
-          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 68, height: 68, borderRadius: "50%", border: "3px solid white", objectFit: "cover" }} alt="profile" />
-          <div style={{ paddingBottom: 4 }}><div style={{ fontWeight: 800, fontSize: 17, color: "#222" }}>Lars M.</div><div style={{ fontSize: 12, color: "#aaa" }}>München, Deutschland</div></div>
-        </div>
-        <div style={{ marginTop: 14, background: `linear-gradient(135deg, ${GOLD}18, ${CORAL}0d)`, borderRadius: 14, padding: "13px 16px", display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <div style={{ fontSize: 28 }}>⭐</div>
-          <div><div style={{ fontWeight: 800, fontSize: 22, color: GOLD }}>250 HUI-Punkte</div><div style={{ fontSize: 11, color: "#aaa" }}>= 12,50 € Rabatt verfügbar</div></div>
-        </div>
-        {/* Chat-Button */}
-        <button onClick={onOpenChats} style={{ width: "100%", background: "white", border: `1.5px solid #eee`, borderRadius: 14, padding: "13px 16px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: `${CORAL}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <MessageCircle size={20} color={CORAL} />
+  const [radius, setRadius] = useState(25);
+  const [talentAktiv, setTalentAktiv] = useState(true);
+  const [showRadiusEditor, setShowRadiusEditor] = useState(false);
+  const [activeSection, setActiveSection] = useState(null); // "einstellungen"
+
+  const radiusMarks = [5, 10, 25, 50, 100, 250];
+
+  // ── EINSTELLUNGEN-SUBPAGE ──────────────────────────────────────
+  if (activeSection === "einstellungen") return (
+    <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh", background: "#fafaf8" }}>
+      <div style={{ padding: "16px 20px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <button onClick={() => setActiveSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
+        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Einstellungen</div>
+      </div>
+      <div style={{ padding: "0 20px" }}>
+        {[
+          { icon: "👤", label: "Persönliche Daten", sub: "Name, Foto, Standort" },
+          { icon: "🔔", label: "Benachrichtigungen", sub: "Push, E-Mail, SMS" },
+          { icon: "🔒", label: "Privatsphäre & Sicherheit", sub: "Passwort, 2FA" },
+          { icon: "💳", label: "Zahlungsmethoden", sub: "Karte, PayPal, Bankdaten" },
+          { icon: "🌙", label: "Erscheinungsbild", sub: "Hell / Dunkel / System" },
+          { icon: "📄", label: "Datenschutz", sub: "" },
+          { icon: "📋", label: "AGB", sub: "" },
+          { icon: "ℹ️", label: "Impressum", sub: "" },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: "1px solid #f0f0f0", cursor: "pointer" }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: "#f0f0ee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{item.icon}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+              {item.sub && <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>}
             </div>
+            <ChevronRight size={15} color="#ddd" />
+          </div>
+        ))}
+        <button style={{ width: "100%", background: "none", border: `1.5px solid ${CORAL}44`, borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 20, color: CORAL }}>
+          Abmelden
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── HAUPT-PROFIL ───────────────────────────────────────────────
+  return (
+    <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh", background: "#fafaf8" }}>
+
+      {/* Header-Bild */}
+      <div style={{ position: "relative" }}>
+        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 140, objectFit: "cover" }} alt="header" />
+        {!isNewUser && (
+          <button style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.88)", border: "none", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: "#444", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+            <Edit3 size={12} /> Titelbild
+          </button>
+        )}
+      </div>
+
+      <div style={{ padding: "0 16px" }}>
+        {/* Avatar + Name */}
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -32, marginBottom: 14 }}>
+          <div style={{ position: "relative" }}>
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }} alt="profile" />
+            <div style={{ position: "absolute", bottom: 2, right: 2, width: 20, height: 20, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
+          </div>
+          <button style={{ background: "white", border: "1.5px solid #e0e0e0", borderRadius: 20, padding: "7px 16px", fontSize: 13, fontWeight: 700, color: "#444", cursor: "pointer", marginBottom: 4 }}>
+            Profil bearbeiten
+          </button>
+        </div>
+        <div style={{ marginBottom: 4 }}>
+          <div style={{ fontWeight: 800, fontSize: 19, color: "#222", display: "flex", alignItems: "center", gap: 8 }}>
+            Lars M.
+            {!isNewUser && <span style={{ background: `${TEAL}18`, color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 8px" }}>✓ Talent</span>}
+          </div>
+          <div style={{ fontSize: 13, color: "#999", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+            <MapPin size={12} /> München, Deutschland
+          </div>
+          {!isNewUser && <div style={{ fontSize: 12, color: "#bbb", marginTop: 3 }}>Keramik-Künstler · seit März 2024</div>}
+        </div>
+
+        {/* HUI-Punkte */}
+        <div style={{ background: `linear-gradient(135deg, ${GOLD}18, ${CORAL}0d)`, borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ fontSize: 26 }}>⭐</div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 20, color: GOLD }}>250 HUI-Punkte</div>
+              <div style={{ fontSize: 11, color: "#aaa" }}>= 12,50 € Rabatt verfügbar</div>
+            </div>
+          </div>
+          <ChevronRight size={16} color={GOLD} />
+        </div>
+
+        {/* Chats-Button */}
+        <button onClick={onOpenChats} style={{ width: "100%", background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 16px", cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: `${CORAL}12`, display: "flex", alignItems: "center", justifyContent: "center" }}><MessageCircle size={20} color={CORAL} /></div>
             <div style={{ textAlign: "left" }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Meine Chats</div>
-              <div style={{ fontSize: 11, color: "#aaa", fontWeight: 400 }}>Buchungen & Treuhand-Status</div>
+              <div style={{ fontSize: 11, color: "#aaa" }}>Buchungen & Treuhand-Status</div>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -2460,19 +2535,134 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
             <ChevronRight size={16} color="#ddd" />
           </div>
         </button>
-        {isNewUser ? (
-          <button onClick={onTalentAnbieten} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18 }}>✨ Mein Talent anbieten</button>
-        ) : (
-          <button onClick={onViewOwnWirkerProfile} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            <Calendar size={18} /> Meine Verfügbarkeit verwalten
-          </button>
-        )}
-        <div style={{ fontWeight: 700, color: "#444", marginBottom: 6, fontSize: 14 }}>Einstellungen</div>
-        {["Persönliche Daten", "Push-Benachrichtigungen", "Nacht-Modus", "Impressum", "Datenschutz", "AGB", "Abmelden"].map((item, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 0", borderBottom: "1px solid #f0f0f0", color: item === "Abmelden" ? CORAL : "#333", fontWeight: item === "Abmelden" ? 700 : 400, cursor: "pointer", fontSize: 14 }}>
-            {item}{item !== "Abmelden" && <ChevronRight size={15} color="#ddd" />}
+
+        {/* ── NEUER NUTZER: CTA ─────────────────────────────────── */}
+        {isNewUser && (
+          <div style={{ background: `linear-gradient(135deg, ${CORAL}12, ${GOLD}10)`, border: `1.5px solid ${CORAL}25`, borderRadius: 18, padding: "18px 16px", marginBottom: 14 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: "#222", marginBottom: 6 }}>✨ Werde Teil der HUI-Community</div>
+            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 14 }}>
+              Biete dein Talent, deine Werke oder Dienstleistungen an – lokal und authentisch. Nur echte Menschen, keine Algorithmen.
+            </div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+              {[["🎨", "Kreatives"], ["🔧", "Handwerk"], ["💻", "Digital"], ["🧘", "Wellness"]].map(([e, l]) => (
+                <div key={l} style={{ flex: 1, background: "white", borderRadius: 12, padding: "8px 4px", textAlign: "center" }}>
+                  <div style={{ fontSize: 18 }}>{e}</div>
+                  <div style={{ fontSize: 10, color: "#999", marginTop: 2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={onTalentAnbieten} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+              🚀 Jetzt Talent anbieten
+            </button>
           </div>
-        ))}
+        )}
+
+        {/* ── TALENT-PROFIL: Stats + Radius + Werke ─────────────── */}
+        {!isNewUser && (
+          <>
+            {/* Stats-Leiste */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+              {[["41", "Buchungen"], ["34", "Empfehlungen"], ["218", "Follower"], ["124 €", "Impact"]].map(([v, l]) => (
+                <div key={l} style={{ flex: 1, background: "white", borderRadius: 14, padding: "10px 6px", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+                  <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>{v}</div>
+                  <div style={{ fontSize: 10, color: "#aaa", marginTop: 1 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Sichtbarkeitsradius */}
+            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: `${TEAL}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <MapPin size={17} color={TEAL} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Sichtbarkeitsradius</div>
+                    <div style={{ fontSize: 11, color: "#aaa" }}>Wie weit bist du buchbar?</div>
+                  </div>
+                </div>
+                <div style={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{radius} km</div>
+              </div>
+              <input
+                type="range" min={0} max={5}
+                value={radiusMarks.indexOf(radius) >= 0 ? radiusMarks.indexOf(radius) : 2}
+                onChange={e => setRadius(radiusMarks[parseInt(e.target.value)])}
+                style={{ width: "100%", accentColor: TEAL, height: 4, marginBottom: 6 }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#bbb" }}>
+                {radiusMarks.map(r => <span key={r} style={{ fontWeight: r === radius ? 700 : 400, color: r === radius ? TEAL : "#bbb" }}>{r} km</span>)}
+              </div>
+              <div style={{ background: `${TEAL}0d`, borderRadius: 10, padding: "8px 12px", marginTop: 10, fontSize: 12, color: "#666" }}>
+                📍 Du bist für Suchende im Umkreis von <strong>{radius} km</strong> um München sichtbar.
+                {radius === 250 && " · Ganz Deutschland"}
+                {radius >= 100 && radius < 250 && " · Überregional"}
+                {radius < 25 && " · Nur Nachbarschaft"}
+              </div>
+            </div>
+
+            {/* Talent-Status Toggle */}
+            <div style={{ background: "white", borderRadius: 16, padding: "13px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: talentAktiv ? `${CORAL}15` : "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 17 }}>{talentAktiv ? "🟢" : "⏸️"}</span>
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Talent aktiv</div>
+                  <div style={{ fontSize: 11, color: "#aaa" }}>{talentAktiv ? "Du bist buchbar & sichtbar" : "Derzeit nicht buchbar"}</div>
+                </div>
+              </div>
+              <div
+                onClick={() => setTalentAktiv(v => !v)}
+                style={{ width: 48, height: 26, borderRadius: 99, background: talentAktiv ? CORAL : "#ddd", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                <div style={{ position: "absolute", top: 3, left: talentAktiv ? 24 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }} />
+              </div>
+            </div>
+
+            {/* Verfügbarkeit */}
+            <button onClick={onViewOwnWirkerProfile} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <Calendar size={17} /> Verfügbarkeit & Kalender verwalten
+            </button>
+
+            {/* Meine Werke Vorschau */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>Meine Werke</div>
+                <span style={{ fontSize: 13, color: CORAL, fontWeight: 600, cursor: "pointer" }}>Alle anzeigen</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop",
+                  "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=200&h=200&fit=crop",
+                  "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=200&h=200&fit=crop",
+                ].map((src, i) => (
+                  <div key={i} style={{ aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "#f0f0ee" }}>
+                    <img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Impact */}
+            <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}22`, borderRadius: 16, padding: "12px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ fontSize: 28 }}>🌱</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>124 € Impact generiert</div>
+                <div style={{ fontSize: 12, color: "#888" }}>Durch deine Buchungen fließen 3% in lokale Projekte.</div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Einstellungen */}
+        <button onClick={() => setActiveSection("einstellungen")} style={{ width: "100%", background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 16px", cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: "#f0f0ee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⚙️</div>
+            <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>Einstellungen</div>
+          </div>
+          <ChevronRight size={15} color="#ddd" />
+        </button>
+
       </div>
     </div>
   );
