@@ -1,1 +1,3 @@
-// PLACEHOLDER - will be replaced
+export default function BookingFlow() {
+  return null;
+}
