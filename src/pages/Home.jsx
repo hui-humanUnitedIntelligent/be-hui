@@ -5,6 +5,18 @@ const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
 const GOLD = "#F5A623";
 
+// ─── NOTIFICATIONS ──────────────────────────────────────────────────────────
+const mockNotifications = [
+  { id: "n1", type: "empfehlung", read: false, time: "vor 2 Min.", title: "Neue Empfehlung 👍", text: "Jemand hat dich nach einem Töpfer-Workshop weiterempfohlen. Dein Geld wurde freigegeben.", icon: "👍", color: "#2ABFAC" },
+  { id: "n2", type: "buchung", read: false, time: "vor 18 Min.", title: "Neue Buchungsanfrage 📅", text: "Marcus B. möchte einen Fotoshooting-Termin mit dir buchen – Di, 28. April um 14:00 Uhr.", icon: "📅", color: "#FF6B5B" },
+  { id: "n3", type: "treuhand", read: false, time: "vor 1 Std.", title: "Treuhand freigegeben 🔓", text: "75 € wurden nach deiner Empfehlung an Sofia M. überwiesen.", icon: "🔓", color: "#F5A623" },
+  { id: "n4", type: "impact", read: true, time: "vor 3 Std.", title: "Impact Pool Beitrag 🌱", text: "Durch deine letzte Buchung flossen 2,25 € in den HUI Impact Pool. Danke!", icon: "🌱", color: "#10b981" },
+  { id: "n5", type: "follower", read: true, time: "gestern", title: "Neuer Follower ✨", text: "Anna K. folgt jetzt deinem Profil.", icon: "✨", color: "#8b5cf6" },
+  { id: "n6", type: "system", read: true, time: "gestern", title: "Profil geprüft ✅", text: "Dein Talent-Profil wurde erfolgreich verifiziert. Du bist jetzt als Wirker sichtbar.", icon: "✅", color: "#2ABFAC" },
+  { id: "n7", type: "empfehlung", read: true, time: "vor 2 Tagen", title: "Empfehlung auf deinem Profil", text: "Lena K. hat nach ihrer Aquarell-Bestellung eine Empfehlung hinterlassen.", icon: "👍", color: "#2ABFAC" },
+  { id: "n8", type: "buchung", read: true, time: "vor 3 Tagen", title: "Buchung bestätigt", text: "Dein Yoga-Workshop mit Maria L. am 25. April wurde bestätigt. 90 € im Treuhand.", icon: "📅", color: "#FF6B5B" },
+];
+
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 const shareItem = (title, type = "Inhalt") => {
   const text = `Schau dir das an auf HUI: "${title}"`;
@@ -1314,7 +1326,83 @@ function SearchOverlay({ onClose }) {
   );
 }
 
-function AppHeader({ cartCount, onCartClick }) {
+function NotificationsOverlay({ onClose }) {
+  const [notifs, setNotifs] = React.useState(mockNotifications);
+  const unreadCount = notifs.filter(n => !n.read).length;
+
+  const markAllRead = () => setNotifs(n => n.map(x => ({ ...x, read: true })));
+  const markRead = (id) => setNotifs(n => n.map(x => x.id === id ? { ...x, read: true } : x));
+
+  const filterTabs = [
+    { id: "alle", label: "Alle" },
+    { id: "buchung", label: "Buchungen" },
+    { id: "empfehlung", label: "Empfehlungen" },
+    { id: "treuhand", label: "Treuhand" },
+    { id: "impact", label: "Impact" },
+  ];
+  const [activeFilter, setActiveFilter] = React.useState("alle");
+  const filtered = activeFilter === "alle" ? notifs : notifs.filter(n => n.type === activeFilter);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#f7f7f5", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ background: "white", padding: "16px 16px 0", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+              <ArrowLeft size={22} color="#444" />
+            </button>
+            <div>
+              <span style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</span>
+              {unreadCount > 0 && <span style={{ marginLeft: 8, background: CORAL, color: "white", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{unreadCount} neu</span>}
+            </div>
+          </div>
+          {unreadCount > 0 && (
+            <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TEAL, fontWeight: 700 }}>Alle gelesen</button>
+          )}
+        </div>
+        {/* Filter Tabs */}
+        <div style={{ display: "flex", gap: 0, overflowX: "auto", paddingBottom: 0 }}>
+          {filterTabs.map(t => (
+            <button key={t.id} onClick={() => setActiveFilter(t.id)} style={{ background: "none", border: "none", borderBottom: activeFilter === t.id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "8px 14px", fontWeight: activeFilter === t.id ? 700 : 500, fontSize: 13, color: activeFilter === t.id ? CORAL : "#aaa", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Liste */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+        {filtered.length === 0 && (
+          <div style={{ textAlign: "center", padding: "60px 24px", color: "#bbb" }}>
+            <Bell size={40} color="#ddd" style={{ marginBottom: 12 }} />
+            <div style={{ fontWeight: 700, fontSize: 15, color: "#ccc" }}>Keine Benachrichtigungen</div>
+          </div>
+        )}
+        {filtered.map(n => (
+          <div key={n.id} onClick={() => markRead(n.id)} style={{ background: n.read ? "white" : `${n.color}08`, border: `1px solid ${n.read ? "#f0f0f0" : n.color + "30"}`, borderRadius: 16, padding: "14px 16px", marginBottom: 10, cursor: "pointer", display: "flex", gap: 13, alignItems: "flex-start", position: "relative" }}>
+            {/* Icon */}
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: n.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+              {n.icon}
+            </div>
+            {/* Content */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
+                <div style={{ fontWeight: n.read ? 600 : 800, fontSize: 13, color: "#222", lineHeight: 1.3 }}>{n.title}</div>
+                <div style={{ fontSize: 10, color: "#bbb", whiteSpace: "nowrap", marginLeft: 8, marginTop: 1 }}>{n.time}</div>
+              </div>
+              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>{n.text}</div>
+            </div>
+            {/* Unread dot */}
+            {!n.read && <div style={{ position: "absolute", top: 14, right: 14, width: 8, height: 8, borderRadius: "50%", background: CORAL }} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
   return (
     <div style={{ background: "white", padding: "14px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 100 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1327,7 +1415,10 @@ function AppHeader({ cartCount, onCartClick }) {
             <ShoppingBasket size={22} color="#444" />
             {cartCount > 0 && <span style={{ position: "absolute", top: 0, right: 0, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{cartCount}</span>}
           </button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 6 }}><Bell size={22} color="#444" /></button>
+          <button onClick={onNotifClick} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, position: "relative" }}>
+            <Bell size={22} color="#444" />
+            {notifCount > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifCount}</span>}
+          </button>
         </div>
       </div>
     </div>
@@ -3902,6 +3993,8 @@ export default function App() {
   const [showWerkCreate, setShowWerkCreate] = useState(false);
   const [showStoryCreate, setShowStoryCreate] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifCount = mockNotifications.filter(n => !n.read).length;
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -3931,7 +4024,7 @@ export default function App() {
   return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
       {page === "home" && (<>
-        <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} />
+        <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
         <SearchBar onClick={() => setShowSearch(true)} />
         <div>
           <StoryBar />
@@ -3992,6 +4085,7 @@ export default function App() {
 
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
+      {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
 
       <style>{`
         @keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } }
