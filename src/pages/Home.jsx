@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle } from "lucide-react";
+import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
@@ -89,6 +89,43 @@ const mockStories = [
   { id: 3, name: "Lena", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", hasNew: false },
   { id: 4, name: "Tom", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", hasNew: true },
   { id: 5, name: "Maria", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", hasNew: false },
+];
+
+// Eigene Stories des eingeloggten Talents (Lars)
+const myOwnStories = [
+  {
+    id: "own1",
+    img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=1000&fit=crop",
+    thumbnail: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=80&h=80&fit=crop",
+    text: "Neues Projekt frisch aus dem Ofen 🔥 Handgedrehte Schalen – jetzt im Atelier.",
+    time: "vor 3 Std.",
+    views: 47,
+    likes: 12,
+    type: "foto",
+    label: "Neues Werk",
+  },
+  {
+    id: "own2",
+    img: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=1000&fit=crop",
+    thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=80&h=80&fit=crop",
+    text: "Workshop-Plätze für Mai noch frei 🗓️ Töpfern für Anfänger – nur noch 3 Plätze!",
+    time: "vor 8 Std.",
+    views: 82,
+    likes: 21,
+    type: "angebot",
+    label: "Workshop",
+  },
+  {
+    id: "own3",
+    img: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=600&h=1000&fit=crop",
+    thumbnail: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=80&h=80&fit=crop",
+    text: "Behind the scenes: Glasur-Experimentierzeit 🎨 Heute teste ich 4 neue Farbtöne.",
+    time: "vor 14 Std.",
+    views: 119,
+    likes: 34,
+    type: "behind",
+    label: "Behind the Scenes",
+  },
 ];
 
 const mockFeed = [
@@ -1011,6 +1048,253 @@ function SearchBar({ onClick }) {
     </div>
   );
 }
+// ══════════════════════════════════════════════════════════════════
+// STORY VIEWER (Instagram-Style)
+// ══════════════════════════════════════════════════════════════════
+function StoryViewer({ stories, startIndex = 0, onClose, onCreateNew }) {
+  const [storyIndex, setStoryIndex] = useState(startIndex);
+  const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const DURATION = 5000; // 5s pro Story
+  const intervalRef = React.useRef(null);
+
+  const current = stories[storyIndex];
+
+  React.useEffect(() => {
+    setProgress(0);
+    if (paused) return;
+    const start = Date.now();
+    intervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const pct = Math.min((elapsed / DURATION) * 100, 100);
+      setProgress(pct);
+      if (pct >= 100) {
+        clearInterval(intervalRef.current);
+        if (storyIndex < stories.length - 1) setStoryIndex(i => i + 1);
+        else onClose();
+      }
+    }, 50);
+    return () => clearInterval(intervalRef.current);
+  }, [storyIndex, paused]);
+
+  const goNext = () => {
+    clearInterval(intervalRef.current);
+    if (storyIndex < stories.length - 1) setStoryIndex(i => i + 1);
+    else onClose();
+  };
+  const goPrev = () => {
+    clearInterval(intervalRef.current);
+    if (storyIndex > 0) setStoryIndex(i => i - 1);
+  };
+
+  const storyTypeColor = { foto: CORAL, angebot: GOLD, behind: TEAL };
+  const color = storyTypeColor[current.type] || CORAL;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "#000", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      {/* Hintergrundbild */}
+      <img src={current.img} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.92 }} alt="" />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.7) 100%)" }} />
+
+      {/* Fortschrittsbalken */}
+      <div style={{ position: "relative", zIndex: 10, display: "flex", gap: 4, padding: "14px 14px 8px" }}>
+        {stories.map((_, i) => (
+          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.35)", overflow: "hidden" }}>
+            <div style={{ height: "100%", borderRadius: 2, background: "white", width: i < storyIndex ? "100%" : i === storyIndex ? `${progress}%` : "0%", transition: i === storyIndex ? "none" : "none" }} />
+          </div>
+        ))}
+      </div>
+
+      {/* Header: Avatar + Name + Schließen */}
+      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", gap: 10, padding: "4px 14px 12px" }}>
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 38, height: 38, borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} alt="" />
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "white" }}>Lars M.</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>{current.time}</div>
+        </div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
+          <button onClick={() => setPaused(p => !p)} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", color: "white", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {paused ? "▶" : "⏸"}
+          </button>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={16} color="white" /></button>
+        </div>
+      </div>
+
+      {/* Tap-Zonen: links ← zurück, rechts → weiter */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 5, display: "flex" }}>
+        <div style={{ flex: 1 }} onClick={goPrev} />
+        <div style={{ flex: 1 }} onClick={goNext} />
+      </div>
+
+      {/* Label-Chip */}
+      <div style={{ position: "absolute", top: "40%", left: 14, zIndex: 11 }}>
+        <div style={{ background: color, color: "white", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>{current.label}</div>
+      </div>
+
+      {/* Story-Text unten */}
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10, padding: "0 16px 32px" }}>
+        <div style={{ fontSize: 15, color: "white", fontWeight: 500, lineHeight: 1.55, marginBottom: 14, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>{current.text}</div>
+
+        {/* Stats + Aktionen */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, color: "rgba(255,255,255,0.85)", fontSize: 13 }}>
+              <span>👁️</span><span>{current.views}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, color: "rgba(255,255,255,0.85)", fontSize: 13 }}>
+              <Heart size={14} color="white" fill="white" /><span>{current.likes}</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 20, padding: "7px 14px", color: "white", fontWeight: 700, fontSize: 12, cursor: "pointer", backdropFilter: "blur(4px)" }}>
+              🗑️ Löschen
+            </button>
+            <button style={{ background: "white", border: "none", borderRadius: 20, padding: "7px 14px", color: "#222", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+              <Share2 size={12} style={{ display: "inline", marginRight: 4 }} /> Teilen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STORY ERSTELLEN (Instagram-Style, vollständig)
+// ══════════════════════════════════════════════════════════════════
+function StoryCreateFull({ onClose, onPublished }) {
+  const [step, setStep] = useState("compose"); // compose | preview | done
+  const [text, setText] = useState("");
+  const [storyType, setStoryType] = useState("foto");
+  const [selectedImg, setSelectedImg] = useState(0);
+
+  const storyTypes = [
+    { id: "foto", icon: "📷", label: "Foto/Werk", color: CORAL },
+    { id: "angebot", icon: "🎁", label: "Angebot", color: GOLD },
+    { id: "behind", icon: "🎬", label: "Behind the Scenes", color: TEAL },
+    { id: "text", icon: "✍️", label: "Nur Text", color: "#7C3AED" },
+  ];
+
+  const sampleImgs = [
+    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=900&fit=crop",
+    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=900&fit=crop",
+    "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=600&h=900&fit=crop",
+  ];
+
+  const typeInfo = storyTypes.find(t => t.id === storyType);
+
+  if (step === "done") return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ background: "white", borderRadius: 24, padding: "36px 28px", textAlign: "center", width: "100%", maxWidth: 340 }}>
+        <div style={{ fontSize: 64, marginBottom: 14 }}>✨</div>
+        <div style={{ fontWeight: 800, fontSize: 22, color: "#222", marginBottom: 8 }}>Story ist live!</div>
+        <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 24 }}>Deine Story ist 24 Stunden für deine Follower und im HUI-Feed sichtbar.</div>
+        <button onClick={onPublished} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Zurück zum Profil</button>
+      </div>
+    </div>
+  );
+
+  if (step === "preview") return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "#000", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      <img src={sampleImgs[selectedImg]} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.88 }} alt="" />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.7) 100%)" }} />
+      {/* Header */}
+      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "48px 16px 12px" }}>
+        <button onClick={() => setStep("compose")} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={18} color="white" /></button>
+        <div style={{ fontWeight: 700, fontSize: 15, color: "white" }}>Vorschau</div>
+        <div style={{ width: 36 }} />
+      </div>
+      <div style={{ position: "absolute", top: "38%", left: 16, zIndex: 11 }}>
+        <div style={{ background: typeInfo.color, color: "white", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>{typeInfo.label}</div>
+      </div>
+      <div style={{ position: "absolute", bottom: 32, left: 16, right: 16, zIndex: 10 }}>
+        {text.trim() && <div style={{ fontSize: 15, color: "white", fontWeight: 500, lineHeight: 1.55, marginBottom: 20, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>{text}</div>}
+        <button onClick={() => setStep("done")} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+          🚀 Jetzt veröffentlichen
+        </button>
+      </div>
+    </div>
+  );
+
+  // Compose-Schritt
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ padding: "16px 20px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Story erstellen</div>
+          <button onClick={onClose} style={{ background: "#f0f0ee", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={16} /></button>
+        </div>
+
+        <div style={{ overflowY: "auto", flex: 1, padding: "0 20px 16px" }}>
+          {/* Story-Typ wählen */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 }}>Story-Typ</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {storyTypes.map(t => (
+                <button key={t.id} onClick={() => setStoryType(t.id)}
+                  style={{ flex: 1, background: storyType === t.id ? `${t.color}18` : "#f4f4f2", border: `1.5px solid ${storyType === t.id ? t.color : "transparent"}`, borderRadius: 14, padding: "10px 6px", cursor: "pointer", textAlign: "center" }}>
+                  <div style={{ fontSize: 20 }}>{t.icon}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: storyType === t.id ? t.color : "#999", marginTop: 4, lineHeight: 1.3 }}>{t.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bild wählen */}
+          {storyType !== "text" && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 }}>Bild / Werk</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {/* Hochladen */}
+                <div style={{ width: 78, height: 78, borderRadius: 14, border: "2px dashed #ddd", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                  <span style={{ fontSize: 22 }}>📷</span>
+                  <span style={{ fontSize: 9, color: "#bbb", marginTop: 3 }}>Upload</span>
+                </div>
+                {/* Eigene Werke als Thumbnails */}
+                {sampleImgs.map((src, i) => (
+                  <div key={i} onClick={() => setSelectedImg(i)} style={{ width: 78, height: 78, borderRadius: 14, overflow: "hidden", border: selectedImg === i ? `2.5px solid ${typeInfo.color}` : "2.5px solid transparent", cursor: "pointer", flexShrink: 0, position: "relative" }}>
+                    <img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+                    {selectedImg === i && <div style={{ position: "absolute", inset: 0, background: `${typeInfo.color}22`, display: "flex", alignItems: "center", justifyContent: "center" }}><Check size={18} color={typeInfo.color} /></div>}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: "#bbb", marginTop: 6 }}>Wähle eines deiner Werke oder lade ein neues Foto hoch</div>
+            </div>
+          )}
+
+          {/* Text */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 8 }}>Text / Caption</div>
+            <textarea value={text} onChange={e => setText(e.target.value)} rows={4}
+              placeholder={
+                storyType === "angebot" ? "Beschreibe dein Angebot – Preis, Verfügbarkeit, Details..." :
+                storyType === "behind" ? "Gib einen Blick hinter die Kulissen – was passiert gerade in deinem Atelier?" :
+                storyType === "text" ? "Deine Gedanken, eine Frage, ein Impuls..." :
+                "Was zeigst du? Ein neues Werk, eine Idee, ein Moment..."
+              }
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 14, border: "1.5px solid #e8e8e8", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
+            <div style={{ fontSize: 11, color: text.length > 250 ? CORAL : "#bbb", textAlign: "right", marginTop: 3 }}>{text.length}/280</div>
+          </div>
+
+          {/* Tipp */}
+          <div style={{ background: `${GOLD}0d`, borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#888", lineHeight: 1.55 }}>
+            ⏱ Stories sind <strong>24 Stunden</strong> sichtbar · erscheinen bei deinen Followern im Story-Bar · und bleiben in deinem Profil archiviert
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0, display: "flex", gap: 10 }}>
+          <button onClick={onClose} style={{ flex: 1, background: "#f5f5f3", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: "#666" }}>Abbrechen</button>
+          <button onClick={() => setStep("preview")} style={{ flex: 2, background: (storyType === "text" ? text.trim().length > 0 : true) ? `linear-gradient(135deg, ${typeInfo.color}, ${typeInfo.color}cc)` : "#e0e0e0", color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+            Vorschau →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StoryBar() {
   return (
     <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "12px 16px 8px" }}>
@@ -2437,6 +2721,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const [showRadiusEditor, setShowRadiusEditor] = useState(false);
   const [activeSection, setActiveSection] = useState(null); // "einstellungen"
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [viewingStoryIndex, setViewingStoryIndex] = useState(null); // null = kein Viewer
+  const [showStoryCreate, setShowStoryCreate] = useState(false);
   const [editTab, setEditTab] = useState("basis"); // "basis" | "talent" | "bio"
   const [profileForm, setProfileForm] = useState({
     vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
@@ -2517,6 +2803,42 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
             <MapPin size={12} /> München, Deutschland
           </div>
           {!isNewUser && <div style={{ fontSize: 12, color: "#bbb", marginTop: 3 }}>Keramik-Künstler · seit März 2024</div>}
+        </div>
+
+        {/* ── STORY-LEISTE ──────────────────────────────────── */}
+        <div style={{ margin: "12px -16px 8px", overflowX: "auto" }}>
+          <div style={{ display: "flex", gap: 10, padding: "4px 16px 10px" }}>
+            {/* Neue Story erstellen */}
+            <button onClick={() => setShowStoryCreate(true)}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}>
+              <div style={{ width: 62, height: 62, borderRadius: "50%", border: `2px dashed ${CORAL}`, display: "flex", alignItems: "center", justifyContent: "center", background: `${CORAL}08`, position: "relative" }}>
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", opacity: 0.5 }} alt="" />
+                <div style={{ position: "absolute", bottom: -2, right: -2, width: 22, height: 22, borderRadius: "50%", background: CORAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Plus size={12} color="white" strokeWidth={3} />
+                </div>
+              </div>
+              <span style={{ fontSize: 10, color: CORAL, fontWeight: 700 }}>Neu</span>
+            </button>
+
+            {/* Eigene Stories */}
+            {myOwnStories.map((s, i) => (
+              <button key={s.id} onClick={() => setViewingStoryIndex(i)}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}>
+                <div style={{ width: 62, height: 62, borderRadius: "50%", padding: 2, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, position: "relative" }}>
+                  <img src={s.thumbnail} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid white" }} alt={s.label} />
+                </div>
+                <span style={{ fontSize: 10, color: "#666", maxWidth: 64, textAlign: "center", lineHeight: 1.3 }}>{s.label}</span>
+              </button>
+            ))}
+
+            {/* Archiv-Eintrag (ausgegraut) */}
+            <button style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", flexShrink: 0, opacity: 0.5 }}>
+              <div style={{ width: 62, height: 62, borderRadius: "50%", border: "2px solid #ddd", display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f3" }}>
+                <Archive size={22} color="#bbb" />
+              </div>
+              <span style={{ fontSize: 10, color: "#bbb" }}>Archiv</span>
+            </button>
+          </div>
         </div>
 
         {/* HUI-Punkte */}
@@ -2674,6 +2996,23 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
         </button>
 
       </div>
+
+      {/* ── STORY VIEWER ─────────────────────────────────────── */}
+      {viewingStoryIndex !== null && (
+        <StoryViewer
+          stories={myOwnStories}
+          startIndex={viewingStoryIndex}
+          onClose={() => setViewingStoryIndex(null)}
+        />
+      )}
+
+      {/* ── STORY ERSTELLEN ────────────────────────────────────── */}
+      {showStoryCreate && (
+        <StoryCreateFull
+          onClose={() => setShowStoryCreate(false)}
+          onPublished={() => setShowStoryCreate(false)}
+        />
+      )}
 
       {/* ── PROFIL BEARBEITEN MODAL ─────────────────────────────── */}
       {showEditProfile && (
