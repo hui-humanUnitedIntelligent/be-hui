@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { Heart, Share2, Star, Search, Plus, Zap, User, Globe, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X } from "lucide-react";
+import { useState } from "react";
+import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
 const GOLD = "#F5A623";
 
-// Mock Data
 const mockStories = [
   { id: 1, name: "Sofia", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", hasNew: true },
   { id: 2, name: "Marcus", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", hasNew: true },
@@ -16,7 +15,18 @@ const mockStories = [
 
 const mockFeed = [
   {
-    id: 1, type: "werk",
+    id: 1, type: "media",
+    mediaType: "photo",
+    creator: "Sofia M.",
+    creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
+    talent: "Keramik-Künstlerin",
+    img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=700&fit=crop",
+    caption: "Meine neueste Kreation – jede Tasse ist ein Unikat. 🌿 Handgedreht, handglasiert, mit ganzem Herzen gemacht.",
+    likes: 142,
+    location: "München",
+  },
+  {
+    id: 2, type: "werk",
     title: "Handgemachte Keramik-Tasse",
     creator: "Sofia M.",
     creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
@@ -26,7 +36,7 @@ const mockFeed = [
     location: "München",
   },
   {
-    id: 2, type: "wirker",
+    id: 3, type: "wirker",
     name: "Marcus B.",
     img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     talent: "Fotograf & Videograf",
@@ -34,7 +44,18 @@ const mockFeed = [
     location: "Berlin",
   },
   {
-    id: 3, type: "werk",
+    id: 4, type: "media",
+    mediaType: "video",
+    creator: "Marcus B.",
+    creatorImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop",
+    talent: "Fotograf & Videograf",
+    img: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=600&h=700&fit=crop",
+    caption: "Behind the scenes meines letzten Portrait-Shootings. Licht, Geduld und ein bisschen Magie. 📷",
+    likes: 289,
+    location: "Berlin",
+  },
+  {
+    id: 5, type: "werk",
     title: "Aquarell-Portrait",
     creator: "Lena K.",
     creatorImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop",
@@ -44,7 +65,7 @@ const mockFeed = [
     location: "Hamburg",
   },
   {
-    id: 4, type: "impact",
+    id: 6, type: "impact",
     title: "Bäume für Kenia",
     img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=300&fit=crop",
     collected: "2.340 €",
@@ -52,7 +73,18 @@ const mockFeed = [
     progress: 47,
   },
   {
-    id: 5, type: "werk",
+    id: 7, type: "media",
+    mediaType: "photo",
+    creator: "Maria L.",
+    creatorImg: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
+    talent: "Yoga & Achtsamkeits-Coach",
+    img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=700&fit=crop",
+    caption: "Morgenroutine mit Aussicht. Wer braucht noch einen Grund für früh aufstehen? 🌅 Yoga-Sessions ab 7 Uhr buchbar.",
+    likes: 317,
+    location: "Zürich",
+  },
+  {
+    id: 8, type: "werk",
     title: "Handgenähter Leder-Rucksack",
     creator: "Tom H.",
     creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
@@ -62,7 +94,7 @@ const mockFeed = [
     location: "Wien",
   },
   {
-    id: 6, type: "wirker",
+    id: 9, type: "wirker",
     name: "Maria L.",
     img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop",
     talent: "Yoga & Achtsamkeits-Coach",
@@ -71,34 +103,26 @@ const mockFeed = [
   },
 ];
 
-function Header({ cartCount, onCartClick }) {
+// ─── HEADER ────────────────────────────────────────────────────────────────
+function AppHeader({ cartCount, onCartClick }) {
   return (
-    <div style={{
-      background: "white",
-      padding: "12px 16px 0",
-      boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
-      position: "sticky", top: 0, zIndex: 100,
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -1 }}>
+    <div style={{ background: "white", padding: "14px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 100 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: -0.5 }}>
           <span style={{ color: CORAL }}>H</span>
           <span style={{ color: CORAL }}>U</span>
           <span style={{ color: CORAL }}>I</span>
-          <span style={{ color: TEAL }}> – Human United Intelligent</span>
+          <span style={{ color: TEAL, fontSize: 13, fontWeight: 600, marginLeft: 4 }}>Human United Intelligent</span>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={onCartClick} style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 4 }}>
-            <ShoppingBasket size={24} color="#555" />
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={onCartClick} style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 6 }}>
+            <ShoppingBasket size={22} color="#444" />
             {cartCount > 0 && (
-              <span style={{
-                position: "absolute", top: -2, right: -2,
-                background: CORAL, color: "white", borderRadius: "50%",
-                width: 16, height: 16, fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700
-              }}>{cartCount}</span>
+              <span style={{ position: "absolute", top: 0, right: 0, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{cartCount}</span>
             )}
           </button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-            <Bell size={24} color="#555" />
+          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 6 }}>
+            <Bell size={22} color="#444" />
           </button>
         </div>
       </div>
@@ -106,345 +130,315 @@ function Header({ cartCount, onCartClick }) {
   );
 }
 
+// ─── SEARCH BAR ────────────────────────────────────────────────────────────
 function SearchBar({ onClick }) {
   return (
-    <div style={{
-      background: "white", padding: "8px 16px",
-      position: "sticky", top: 56, zIndex: 99,
-      borderBottom: "1px solid #f0f0f0"
-    }}>
-      <div
-        onClick={onClick}
-        style={{
-          background: "#f5f5f5", borderRadius: 12, padding: "10px 14px",
-          display: "flex", alignItems: "center", gap: 8, cursor: "pointer"
-        }}
-      >
-        <Search size={18} color="#aaa" />
-        <span style={{ color: "#aaa", fontSize: 15 }}>Suche nach Talent, Werk, Name…</span>
+    <div style={{ background: "white", padding: "8px 16px 10px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0" }}>
+      <div onClick={onClick} style={{ background: "#f3f3f3", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+        <Search size={16} color="#aaa" />
+        <span style={{ color: "#bbb", fontSize: 14 }}>Suche nach Talent, Werk, Name…</span>
       </div>
     </div>
   );
 }
 
+// ─── STORY BAR ─────────────────────────────────────────────────────────────
 function StoryBar() {
   return (
-    <div style={{ padding: "12px 0 4px", overflowX: "auto", display: "flex", gap: 12, paddingLeft: 16, paddingRight: 16 }}>
+    <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "12px 16px 8px" }}>
       {mockStories.map(s => (
-        <div key={s.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 60 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: "50%",
-            border: s.hasNew ? `2.5px solid ${CORAL}` : "2.5px solid #ddd",
-            padding: 2, cursor: "pointer"
-          }}>
+        <div key={s.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 58, cursor: "pointer" }}>
+          <div style={{ width: 54, height: 54, borderRadius: "50%", border: s.hasNew ? `2.5px solid ${CORAL}` : "2.5px solid #e0e0e0", padding: 2 }}>
             <img src={s.img} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} alt={s.name} />
           </div>
-          <span style={{ fontSize: 11, color: "#555", textAlign: "center" }}>{s.name}</span>
+          <span style={{ fontSize: 10, color: "#666" }}>{s.name}</span>
         </div>
       ))}
     </div>
   );
 }
 
-function WerkCard({ item, onLike, liked, onFav, faved, onAddToCart }) {
+// ─── MEDIA POST (Foto/Video vom Talent) ───────────────────────────────────
+function MediaCard({ item, liked, onLike, faved, onFav }) {
+  const [playing, setPlaying] = useState(false);
   return (
-    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", margin: "8px 16px" }}>
+    <div style={{ background: "white", marginBottom: 8 }}>
+      {/* Creator header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px 8px" }}>
+        <img src={item.creatorImg} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}` }} alt={item.creator} />
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{item.creator}</div>
+          <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{item.talent}</div>
+        </div>
+        <div style={{ marginLeft: "auto", fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}>
+          <MapPin size={10} color="#bbb" />{item.location}
+        </div>
+      </div>
+
+      {/* Media */}
+      <div style={{ position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }} onClick={() => item.mediaType === "video" && setPlaying(p => !p)}>
+        <img src={item.img} style={{ width: "100%", display: "block", maxHeight: 420, objectFit: "cover" }} alt="" />
+        {item.mediaType === "video" && !playing && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.2)" }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Play size={22} color={CORAL} fill={CORAL} style={{ marginLeft: 3 }} />
+            </div>
+          </div>
+        )}
+        {item.mediaType === "video" && playing && (
+          <div style={{ position: "absolute", bottom: 10, right: 10, background: CORAL, color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>▶ Läuft</div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div style={{ padding: "10px 14px" }}>
+        <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
+          <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: liked ? CORAL : "#888", fontSize: 13, padding: 0 }}>
+            <Heart size={20} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#888"} />
+            <span style={{ fontWeight: 600 }}>{item.likes + (liked ? 1 : 0)}</span>
+          </button>
+          <button style={{ background: "none", border: "none", cursor: "pointer", color: "#888", padding: 0 }}>
+            <Share2 size={20} color="#888" />
+          </button>
+          <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <Star size={20} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#888"} />
+          </button>
+          <button style={{ marginLeft: "auto", background: TEAL, color: "white", border: "none", borderRadius: 20, padding: "6px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+            Talent ansehen
+          </button>
+        </div>
+        <div style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>
+          <span style={{ fontWeight: 700 }}>{item.creator} </span>
+          {item.caption}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── WERK CARD ─────────────────────────────────────────────────────────────
+function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart }) {
+  return (
+    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", margin: "8px 16px" }}>
       <div style={{ position: "relative" }}>
-        <img src={item.img} style={{ width: "100%", height: 220, objectFit: "cover" }} alt={item.title} />
-        <div style={{
-          position: "absolute", top: 10, right: 10,
-          background: CORAL, color: "white", borderRadius: 20,
-          padding: "4px 10px", fontWeight: 700, fontSize: 14
-        }}>{item.price}</div>
+        <img src={item.img} style={{ width: "100%", height: 210, objectFit: "cover" }} alt={item.title} />
+        <div style={{ position: "absolute", top: 10, right: 10, background: CORAL, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 14 }}>{item.price}</div>
       </div>
       <div style={{ padding: "12px 14px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <img src={item.creatorImg} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt={item.creator} />
-          <span style={{ fontWeight: 600, fontSize: 13, color: "#333" }}>{item.creator}</span>
-          <span style={{ fontSize: 12, color: "#aaa", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}>
-            <MapPin size={11} color="#aaa" />{item.location}
+          <img src={item.creatorImg} style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} alt={item.creator} />
+          <span style={{ fontWeight: 600, fontSize: 13, color: "#555" }}>{item.creator}</span>
+          <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}>
+            <MapPin size={10} />{item.location}
           </span>
         </div>
         <div style={{ fontWeight: 700, fontSize: 16, color: "#222", marginBottom: 10 }}>{item.title}</div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button onClick={() => onLike(item.id)} style={{
-            background: "none", border: "none", cursor: "pointer",
-            display: "flex", alignItems: "center", gap: 4, color: liked ? CORAL : "#888", fontSize: 13
-          }}>
-            <Heart size={18} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#888"} />
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: liked ? CORAL : "#999", fontSize: 13, padding: 0 }}>
+            <Heart size={18} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#999"} />
             {item.likes + (liked ? 1 : 0)}
           </button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", color: "#888" }}>
-            <Share2 size={18} />
+          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <Share2 size={18} color="#999" />
           </button>
-          <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: faved ? GOLD : "#888" }}>
-            <Star size={18} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#888"} />
+          <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <Star size={18} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#999"} />
           </button>
-          <button onClick={() => onAddToCart(item)} style={{
-            marginLeft: "auto", background: CORAL, color: "white",
-            border: "none", borderRadius: 10, padding: "7px 14px",
-            fontWeight: 700, fontSize: 13, cursor: "pointer"
-          }}>In den Korb</button>
+          <button onClick={() => onAddToCart(item)} style={{ marginLeft: "auto", background: CORAL, color: "white", border: "none", borderRadius: 10, padding: "7px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            In den Korb
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
+// ─── WIRKER CARD ───────────────────────────────────────────────────────────
 function WirkerCard({ item }) {
   return (
-    <div style={{
-      background: `linear-gradient(135deg, ${TEAL}11, ${TEAL}22)`,
-      border: `1.5px solid ${TEAL}33`,
-      borderRadius: 16, margin: "8px 16px", padding: 16,
-      display: "flex", gap: 14, alignItems: "center"
-    }}>
-      <img src={item.img} style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}` }} alt={item.name} />
+    <div style={{ background: `linear-gradient(135deg, ${TEAL}0d, ${TEAL}1a)`, border: `1.5px solid ${TEAL}30`, borderRadius: 16, margin: "8px 16px", padding: 16, display: "flex", gap: 14, alignItems: "center" }}>
+      <img src={item.img} style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}` }} alt={item.name} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700, fontSize: 16, color: "#222" }}>{item.name}</div>
-        <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginBottom: 4 }}>{item.talent}</div>
-        <div style={{ fontSize: 12, color: "#888", display: "flex", alignItems: "center", gap: 4 }}>
-          <MapPin size={11} />{item.location} · {item.recommendations} Empfehlungen
+        <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{item.name}</div>
+        <div style={{ fontSize: 12, color: TEAL, fontWeight: 600, marginBottom: 3 }}>{item.talent}</div>
+        <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}>
+          <MapPin size={10} />{item.location} · {item.recommendations} Empfehlungen
         </div>
       </div>
-      <button style={{
-        background: TEAL, color: "white", border: "none",
-        borderRadius: 10, padding: "8px 12px", fontWeight: 700, fontSize: 12, cursor: "pointer"
-      }}>Talent<br/>ansehen</button>
+      <button style={{ background: TEAL, color: "white", border: "none", borderRadius: 10, padding: "8px 12px", fontWeight: 700, fontSize: 12, cursor: "pointer", lineHeight: 1.4 }}>
+        Talent<br />ansehen
+      </button>
     </div>
   );
 }
 
+// ─── IMPACT CARD ───────────────────────────────────────────────────────────
 function ImpactCard({ item }) {
   return (
-    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", margin: "8px 16px" }}>
+    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", margin: "8px 16px" }}>
       <div style={{ position: "relative" }}>
-        <img src={item.img} style={{ width: "100%", height: 160, objectFit: "cover" }} alt={item.title} />
-        <div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>
-          🌱 Impact-Projekt
-        </div>
+        <img src={item.img} style={{ width: "100%", height: 150, objectFit: "cover" }} alt={item.title} />
+        <div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div>
       </div>
       <div style={{ padding: "12px 14px" }}>
-        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6, color: "#222" }}>{item.title}</div>
-        <div style={{ background: "#f0f0f0", borderRadius: 99, height: 8, marginBottom: 6 }}>
-          <div style={{ background: `linear-gradient(90deg, ${GOLD}, ${CORAL})`, height: 8, borderRadius: 99, width: `${item.progress}%` }} />
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{item.title}</div>
+        <div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 6 }}>
+          <div style={{ background: `linear-gradient(90deg, ${GOLD}, ${CORAL})`, height: 7, borderRadius: 99, width: `${item.progress}%` }} />
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888" }}>
-          <span>{item.collected} gesammelt</span>
-          <span>Ziel: {item.goal}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999" }}>
+          <span>{item.collected} gesammelt</span><span>Ziel: {item.goal}</span>
         </div>
       </div>
     </div>
   );
 }
 
-export default function App() {
-  const [page, setPage] = useState("home");
-  const [liked, setLiked] = useState({});
-  const [faved, setFaved] = useState({});
-  const [cart, setCart] = useState([]);
-  const [showSearch, setShowSearch] = useState(false);
-  const [showCart, setShowCart] = useState(false);
-  const [isNewUser] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingStep, setOnboardingStep] = useState(0);
-
-  const toggleLike = (id) => setLiked(p => ({ ...p, [id]: !p[id] }));
-  const toggleFav = (id) => setFaved(p => ({ ...p, [id]: !p[id] }));
-  const addToCart = (item) => setCart(p => [...p, item]);
-
+// ─── TAB BAR ───────────────────────────────────────────────────────────────
+function TabBar({ page, setPage, showOnboarding, setShowOnboarding, setOnboardingStep, isNewUser }) {
   return (
-    <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', sans-serif", position: "relative", overflowX: "hidden" }}>
-      {page === "home" && (
-        <>
-          <Header cartCount={cart.length} onCartClick={() => setShowCart(true)} />
-          <SearchBar onClick={() => setShowSearch(true)} />
-          <StoryBar />
-          <div style={{ paddingBottom: 90 }}>
-            {mockFeed.map(item => {
-              if (item.type === "werk") return <WerkCard key={item.id} item={item} onLike={toggleLike} liked={!!liked[item.id]} onFav={toggleFav} faved={!!faved[item.id]} onAddToCart={addToCart} />;
-              if (item.type === "wirker") return <WirkerCard key={item.id} item={item} />;
-              if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
-              return null;
-            })}
+    <div style={{
+      position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+      width: "100%", maxWidth: 430, background: "white",
+      borderTop: `1px solid #eee`,
+      display: "flex", alignItems: "center", justifyContent: "space-around",
+      padding: "10px 0 18px", zIndex: 200,
+      boxShadow: "0 -2px 16px rgba(0,0,0,0.07)"
+    }}>
+      <TabButton label="Home" icon={<Home size={20} />} active={page === "home"} onClick={() => setPage("home")} />
+      <TabButton label="Impact" icon={<Leaf size={20} />} active={page === "impact"} onClick={() => setPage("impact")} />
+
+      {/* Center Button */}
+      {isNewUser ? (
+        <button
+          onClick={() => { setShowOnboarding(true); setOnboardingStep(0); }}
+          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -18 }}
+        >
+          <div style={{
+            width: 56, height: 56, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${GOLD}, ${CORAL})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: `0 4px 18px ${GOLD}66`,
+            animation: "huiPulse 2.4s ease-in-out infinite"
+          }}>
+            <span style={{ fontSize: 24 }}>☀️</span>
           </div>
-        </>
+          <span style={{ fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: 0.3 }}>Entdecke HUI</span>
+        </button>
+      ) : (
+        <button style={{
+          width: 54, height: 54, borderRadius: "50%",
+          background: CORAL, border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          marginTop: -18, boxShadow: `0 4px 16px ${CORAL}66`
+        }}>
+          <Plus size={26} color="white" strokeWidth={2.5} />
+        </button>
       )}
 
-      {page === "impact" && <ImpactPage onBack={() => setPage("home")} />}
-      {page === "favorites" && <FavoritesPage favorites={faved} onBack={() => setPage("home")} />}
-      {page === "profile" && <ProfilePage onBack={() => setPage("home")} isNewUser={isNewUser} />}
-
-      {/* Tab Bar */}
-      <div style={{
-        position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
-        width: "100%", maxWidth: 430, background: "white",
-        borderTop: "1px solid #eee", display: "flex", alignItems: "center",
-        justifyContent: "space-around", padding: "8px 0 16px", zIndex: 200,
-        boxShadow: "0 -4px 20px rgba(0,0,0,0.08)"
-      }}>
-        <TabBtn icon="🏠" label="Home" active={page === "home"} onClick={() => setPage("home")} />
-        <TabBtn icon="❤️" label="Impact" active={page === "impact"} onClick={() => setPage("impact")} />
-
-        {isNewUser ? (
-          <button onClick={() => { setShowOnboarding(true); setOnboardingStep(0); }} style={{
-            background: "none", border: "none", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-            marginTop: -20
-          }}>
-            <div style={{
-              width: 58, height: 58, borderRadius: "50%",
-              background: `radial-gradient(circle, ${GOLD}, ${CORAL})`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: `0 0 20px ${GOLD}88`,
-              animation: "pulse 2s infinite"
-            }}>
-              <span style={{ fontSize: 22 }}>☀️</span>
-            </div>
-            <span style={{ fontSize: 9, color: GOLD, fontWeight: 700 }}>Entdecke HUI</span>
-          </button>
-        ) : (
-          <button style={{
-            width: 58, height: 58, borderRadius: "50%",
-            background: CORAL, border: "none", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            marginTop: -20, boxShadow: `0 4px 16px ${CORAL}88`
-          }}>
-            <Plus size={28} color="white" strokeWidth={2.5} />
-          </button>
-        )}
-
-        <TabBtn icon="⭐" label="Favoriten" active={page === "favorites"} onClick={() => setPage("favorites")} />
-        <TabBtn icon="👤" label="Profil" active={page === "profile"} onClick={() => setPage("profile")} />
-      </div>
-
-      {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />}
-      {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={(i) => setCart(c => c.filter((_, idx) => idx !== i))} />}
-      {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
-
-      <style>{`
-        @keyframes pulse { 0%,100% { box-shadow: 0 0 16px ${GOLD}88; transform: scale(1); } 50% { box-shadow: 0 0 28px ${GOLD}cc; transform: scale(1.06); } }
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { display: none; }
-      `}</style>
+      <TabButton label="Favoriten" icon={<Star size={20} />} active={page === "favorites"} onClick={() => setPage("favorites")} />
+      <TabButton label="Profil" icon={<User size={20} />} active={page === "profile"} onClick={() => setPage("profile")} />
     </div>
   );
 }
 
-function TabBtn({ icon, label, active, onClick }) {
+function TabButton({ label, icon, active, onClick }) {
   return (
     <button onClick={onClick} style={{
       background: "none", border: "none", cursor: "pointer",
-      display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-      color: active ? CORAL : "#aaa", fontSize: 10, fontWeight: active ? 700 : 400, minWidth: 48
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+      color: active ? CORAL : "#AABBB8",
+      fontWeight: active ? 700 : 400, fontSize: 10, minWidth: 52,
+      transition: "color 0.2s"
     }}>
-      <span style={{ fontSize: 22 }}>{icon}</span>
+      <span style={{ color: active ? CORAL : "#AABBB8" }}>{icon}</span>
       {label}
     </button>
   );
 }
 
+// ─── SEARCH OVERLAY ────────────────────────────────────────────────────────
 function SearchOverlay({ onClose }) {
   const [radius, setRadius] = useState(50);
   const [activeFilters, setActiveFilters] = useState([]);
   const filters = ["Kategorien", "Wirker", "Werke", "Preisspanne", "Top-Empfohlen"];
-
   return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300,
-      display: "flex", flexDirection: "column", justifyContent: "flex-start"
-    }}>
-      <div style={{ background: "white", borderRadius: "0 0 24px 24px", padding: "20px 20px 28px", maxWidth: 430, margin: "0 auto", width: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <div style={{ flex: 1, background: "#f5f5f5", borderRadius: 14, padding: "12px 14px", display: "flex", gap: 8, alignItems: "center" }}>
-            <Search size={18} color={TEAL} />
-            <input autoFocus placeholder="Suche nach Talent, Werk, Name…" style={{ border: "none", background: "none", flex: 1, fontSize: 15, outline: "none" }} />
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 300 }}>
+      <div style={{ background: "white", borderRadius: "0 0 24px 24px", padding: "20px 20px 28px", maxWidth: 430, margin: "0 auto" }}>
+        <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+          <div style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "11px 14px", display: "flex", gap: 8, alignItems: "center" }}>
+            <Search size={16} color={TEAL} />
+            <input autoFocus placeholder="Suche nach Talent, Werk, Name…" style={{ border: "none", background: "none", flex: 1, fontSize: 14, outline: "none" }} />
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}>
-            <X size={22} color="#555" />
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <X size={20} color="#555" />
           </button>
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontWeight: 600, fontSize: 14, color: "#333" }}>Radius: {radius === 200 ? "Weltweit" : `${radius} km`}</span>
-            <button onClick={() => setRadius(200)} style={{ background: TEAL, border: "none", borderRadius: 8, padding: "4px 10px", color: "white", fontSize: 12, cursor: "pointer" }}>
-              🌍 Weltweit
-            </button>
+            <span style={{ fontWeight: 600, fontSize: 13, color: "#444" }}>Radius: {radius === 200 ? "Weltweit" : `${radius} km`}</span>
+            <button onClick={() => setRadius(200)} style={{ background: TEAL, border: "none", borderRadius: 8, padding: "4px 10px", color: "white", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>🌍 Weltweit</button>
           </div>
-          <input type="range" min={20} max={200} value={radius} onChange={e => setRadius(+e.target.value)}
-            style={{ width: "100%", accentColor: TEAL }} />
+          <input type="range" min={20} max={200} value={radius} onChange={e => setRadius(+e.target.value)} style={{ width: "100%", accentColor: TEAL }} />
         </div>
-
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {filters.map(f => (
             <button key={f} onClick={() => setActiveFilters(p => p.includes(f) ? p.filter(x => x !== f) : [...p, f])} style={{
               background: activeFilters.includes(f) ? TEAL : "#f0f0f0",
               color: activeFilters.includes(f) ? "white" : "#555",
-              border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 13, cursor: "pointer", fontWeight: 600
+              border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer"
             }}>{f}</button>
           ))}
         </div>
       </div>
-      <div onClick={onClose} style={{ flex: 1 }} />
+      <div onClick={onClose} style={{ flex: 1, height: "100%" }} />
     </div>
   );
 }
 
+// ─── CART OVERLAY ──────────────────────────────────────────────────────────
 function CartOverlay({ cart, onClose, onRemove }) {
   const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
-  const impactAmount = (total * 0.03).toFixed(2);
-
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "flex-end" }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 300, display: "flex", alignItems: "flex-end" }}>
       <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: 20, width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "80vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <ShoppingBasket size={22} color={CORAL} />
-            <span style={{ fontWeight: 800, fontSize: 20 }}>Mein Werkekorb</span>
+            <ShoppingBasket size={20} color={CORAL} />
+            <span style={{ fontWeight: 800, fontSize: 19 }}>Mein Werkekorb</span>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}>
-            <X size={22} color="#555" />
-          </button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#555" /></button>
         </div>
-
         {cart.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <div style={{ fontSize: 60, marginBottom: 12 }}>🧺</div>
-            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6, color: "#333" }}>Dein Werkekorb ist noch leer</div>
-            <div style={{ color: "#888", marginBottom: 20 }}>Entdecke wundervolle Werke und Talente</div>
-            <button onClick={onClose} style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-              Jetzt entdecken
-            </button>
+            <div style={{ fontSize: 56, marginBottom: 12 }}>🧺</div>
+            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6, color: "#333" }}>Dein Werkekorb ist noch leer</div>
+            <div style={{ color: "#999", marginBottom: 20, fontSize: 13 }}>Entdecke wundervolle Werke und Talente</div>
+            <button onClick={onClose} style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Jetzt entdecken</button>
           </div>
         ) : (
           <>
             {cart.map((item, i) => (
-              <div key={i} style={{ display: "flex", gap: 12, marginBottom: 14, background: "#fafaf8", borderRadius: 14, padding: 12 }}>
-                <img src={item.img} style={{ width: 70, height: 70, borderRadius: 10, objectFit: "cover" }} alt={item.title} />
+              <div key={i} style={{ display: "flex", gap: 12, marginBottom: 12, background: "#fafaf8", borderRadius: 12, padding: 10 }}>
+                <img src={item.img} style={{ width: 66, height: 66, borderRadius: 10, objectFit: "cover" }} alt={item.title} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{item.title}</div>
-                  <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>{item.creator}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{item.title}</div>
+                  <div style={{ fontSize: 12, color: "#999", marginBottom: 3 }}>{item.creator}</div>
                   <div style={{ fontWeight: 700, color: CORAL }}>{item.price}</div>
                 </div>
-                <button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc" }}>
-                  <X size={18} />
-                </button>
+                <button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc" }}><X size={16} /></button>
               </div>
             ))}
-            <div style={{ borderTop: "1px solid #eee", paddingTop: 14, marginTop: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 4 }}>
+            <div style={{ borderTop: "1px solid #eee", paddingTop: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#999", marginBottom: 4 }}>
                 <span>Zwischensumme</span><span>{total.toFixed(2)} €</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 10 }}>
-                <span>🌱 davon 3% in den Impact Pool</span><span>{impactAmount} €</span>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 12 }}>
+                <span>🌱 3 % gehen in den Impact Pool</span><span>{(total * 0.03).toFixed(2)} €</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18, marginBottom: 16 }}>
                 <span>Gesamt</span><span>{total.toFixed(2)} €</span>
               </div>
-              <button style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
-                Jetzt bezahlen
-              </button>
+              <button style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt bezahlen</button>
             </div>
           </>
         )}
@@ -453,133 +447,98 @@ function CartOverlay({ cart, onClose, onRemove }) {
   );
 }
 
+// ─── ONBOARDING ────────────────────────────────────────────────────────────
 function OnboardingOverlay({ step, setStep, onClose }) {
   const screens = [
-    {
-      img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=400&fit=crop",
-      title: "Willkommen bei HUI",
-      sub: "Ein Ort, an dem echte Talente, echte Menschen und echte Veränderung zusammenkommen."
-    },
-    {
-      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop",
-      title: "Hier leben echte Geschichten.",
-      sub: "Menschen mit besonderen Talenten schaffen Werke mit Herz – und du kannst Teil davon sein."
-    },
-    {
-      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
-      title: "Jede Entscheidung wirkt weiter.",
-      sub: "Mit jeder Buchung fließen automatisch 3 % in Projekte, die Menschen, Tieren und der Natur wirklich helfen."
-    },
-    {
-      img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-      title: "Bereit, Teil von etwas Größerem zu werden?",
-      sub: ""
-    },
+    { img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=400&fit=crop", title: "Willkommen bei HUI", sub: "Ein Ort, an dem echte Talente, echte Menschen und echte Veränderung zusammenkommen." },
+    { img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop", title: "Hier leben echte Geschichten.", sub: "Menschen mit besonderen Talenten schaffen Werke mit Herz – und du kannst Teil davon sein." },
+    { img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop", title: "Jede Entscheidung wirkt weiter.", sub: "Mit jeder Buchung fließen automatisch 3 % in Projekte, die Menschen, Tieren und der Natur wirklich helfen." },
+    { img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop", title: "Bereit, Teil von etwas Größerem zu werden?", sub: "" },
   ];
-
   const s = screens[step];
-
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000", display: "flex", flexDirection: "column" }}>
       <img src={s.img} style={{ width: "100%", height: "55%", objectFit: "cover", opacity: 0.85 }} alt="" />
-      <div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -24, padding: "28px 24px 40px", display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 20 }}>
+      <div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -24, padding: "26px 24px 36px", display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 18 }}>
           {screens.map((_, i) => (
-            <div key={i} style={{ width: i === step ? 22 : 8, height: 8, borderRadius: 4, background: i === step ? CORAL : "#ddd", transition: "all 0.3s" }} />
+            <div key={i} style={{ width: i === step ? 20 : 7, height: 7, borderRadius: 4, background: i === step ? CORAL : "#e0e0e0", transition: "all 0.3s" }} />
           ))}
         </div>
-        <div style={{ fontWeight: 800, fontSize: 24, color: "#222", marginBottom: 12, textAlign: "center" }}>{s.title}</div>
-        {s.sub && <div style={{ color: "#888", fontSize: 15, textAlign: "center", lineHeight: 1.6, marginBottom: 24 }}>{s.sub}</div>}
+        <div style={{ fontWeight: 800, fontSize: 22, color: "#222", textAlign: "center", marginBottom: 10 }}>{s.title}</div>
+        {s.sub && <div style={{ color: "#888", fontSize: 14, textAlign: "center", lineHeight: 1.6, marginBottom: 20 }}>{s.sub}</div>}
         <div style={{ flex: 1 }} />
         {step < 3 ? (
-          <button onClick={() => setStep(step + 1)} style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 700, fontSize: 17, cursor: "pointer" }}>
-            Weiter →
-          </button>
+          <button onClick={() => setStep(step + 1)} style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Weiter →</button>
         ) : (
-          <button onClick={onClose} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 700, fontSize: 17, cursor: "pointer" }}>
-            Jetzt loslegen ✨
-          </button>
+          <button onClick={onClose} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt loslegen ✨</button>
         )}
         {step < 3 && (
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#bbb", fontSize: 14, cursor: "pointer", marginTop: 12, textAlign: "center" }}>
-            Überspringen
-          </button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#ccc", fontSize: 13, cursor: "pointer", marginTop: 10, textAlign: "center" }}>Überspringen</button>
         )}
       </div>
     </div>
   );
 }
 
+// ─── IMPACT PAGE ───────────────────────────────────────────────────────────
 function ImpactPage() {
   const projects = [
     { title: "Bäume für Kenia", desc: "Wir pflanzen 10.000 Bäume in trockenen Regionen Kenias.", img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=300&fit=crop", progress: 47, collected: "2.340 €", goal: "5.000 €" },
     { title: "Schule für alle", desc: "Bildung für 200 Kinder in ländlichen Gebieten.", img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=300&fit=crop", progress: 73, collected: "7.300 €", goal: "10.000 €" },
     { title: "Tierheim Hamburg", desc: "Renovierung und Erweiterung für 150 Tiere.", img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=300&fit=crop", progress: 28, collected: "1.400 €", goal: "5.000 €" },
   ];
-
-  const monthlyAmount = 3847;
-  const yearlyAmount = 47832;
-
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
-      <div style={{ background: `linear-gradient(180deg, ${TEAL}22, transparent)`, padding: "24px 20px 20px" }}>
+      <div style={{ background: `linear-gradient(180deg, ${TEAL}18, transparent)`, padding: "24px 20px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontWeight: 800, fontSize: 22, color: "#222" }}>💚 Impact</div>
+          <div style={{ fontWeight: 800, fontSize: 22, color: "#222" }}>Impact</div>
           <button style={{ background: "none", border: `1.5px solid ${TEAL}`, borderRadius: 20, padding: "5px 12px", color: TEAL, fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-            <Plus size={14} /> Projekt vorschlagen
+            <Plus size={13} /> Projekt vorschlagen
           </button>
         </div>
-
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-          <div style={{ position: "relative", width: 160, height: 160 }}>
-            <svg width="160" height="160" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="80" cy="80" r="68" fill="none" stroke="#eee" strokeWidth="12" />
-              <circle cx="80" cy="80" r="68" fill="none" stroke={TEAL} strokeWidth="12" strokeDasharray="427" strokeDashoffset={427 * (1 - 0.47)} strokeLinecap="round" />
+          <div style={{ position: "relative", width: 150, height: 150 }}>
+            <svg width="150" height="150" style={{ transform: "rotate(-90deg)" }}>
+              <circle cx="75" cy="75" r="62" fill="none" stroke="#eee" strokeWidth="11" />
+              <circle cx="75" cy="75" r="62" fill="none" stroke={TEAL} strokeWidth="11" strokeDasharray="389" strokeDashoffset={389 * 0.53} strokeLinecap="round" />
             </svg>
             <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ fontWeight: 800, fontSize: 26, color: TEAL }}>{(monthlyAmount).toLocaleString("de")} €</div>
-              <div style={{ fontSize: 11, color: "#888" }}>diesen Monat</div>
+              <div style={{ fontWeight: 800, fontSize: 22, color: TEAL }}>3.847 €</div>
+              <div style={{ fontSize: 10, color: "#aaa" }}>diesen Monat</div>
             </div>
           </div>
         </div>
-
-        <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-          <div style={{ flex: 1, background: "white", borderRadius: 14, padding: "14px", textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontWeight: 800, fontSize: 20, color: GOLD }}>{yearlyAmount.toLocaleString("de")} €</div>
-            <div style={{ fontSize: 12, color: "#888" }}>Dieses Jahr gesammelt</div>
+        <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+          <div style={{ flex: 1, background: "white", borderRadius: 14, padding: 14, textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+            <div style={{ fontWeight: 800, fontSize: 19, color: GOLD }}>47.832 €</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>Dieses Jahr</div>
           </div>
-          <div style={{ flex: 1, background: "white", borderRadius: 14, padding: "14px", textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontWeight: 800, fontSize: 20, color: TEAL }}>{monthlyAmount.toLocaleString("de")} €</div>
-            <div style={{ fontSize: 12, color: "#888" }}>Dieser Monat</div>
+          <div style={{ flex: 1, background: "white", borderRadius: 14, padding: 14, textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+            <div style={{ fontWeight: 800, fontSize: 19, color: TEAL }}>3.847 €</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>Dieser Monat</div>
           </div>
         </div>
-
-        <div style={{ textAlign: "center", fontWeight: 700, fontSize: 18, color: "#333", marginBottom: 20 }}>
-          Gemeinsam haben wir schon so viel bewegt. 🌍
-        </div>
+        <div style={{ textAlign: "center", fontWeight: 700, fontSize: 17, color: "#333", marginBottom: 16 }}>Gemeinsam haben wir schon so viel bewegt. 🌍</div>
       </div>
-
       <div style={{ padding: "0 16px" }}>
-        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12, color: "#333" }}>Unsere aktuellen Impact-Projekte</div>
         {projects.map((p, i) => (
-          <div key={i} style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", marginBottom: 16 }}>
-            <img src={p.img} style={{ width: "100%", height: 160, objectFit: "cover" }} alt={p.title} />
-            <div style={{ padding: "14px" }}>
-              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{p.title}</div>
-              <div style={{ fontSize: 13, color: "#777", marginBottom: 10 }}>{p.desc}</div>
-              <div style={{ background: "#f0f0f0", borderRadius: 99, height: 8, marginBottom: 6 }}>
-                <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 8, borderRadius: 99, width: `${p.progress}%` }} />
+          <div key={i} style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", marginBottom: 16 }}>
+            <img src={p.img} style={{ width: "100%", height: 150, objectFit: "cover" }} alt={p.title} />
+            <div style={{ padding: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{p.title}</div>
+              <div style={{ fontSize: 13, color: "#888", marginBottom: 10 }}>{p.desc}</div>
+              <div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 6 }}>
+                <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 7, borderRadius: 99, width: `${p.progress}%` }} />
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 12 }}>
                 <span>{p.collected}</span><span>Ziel: {p.goal}</span>
               </div>
-              <button style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "11px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                🌱 Jetzt spenden
-              </button>
+              <button style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "11px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>🌱 Jetzt spenden</button>
             </div>
           </div>
         ))}
-        <div style={{ textAlign: "center", color: "#888", fontSize: 13, padding: "12px 0 20px", lineHeight: 1.6 }}>
+        <div style={{ textAlign: "center", color: "#aaa", fontSize: 12, padding: "10px 0 20px", lineHeight: 1.7 }}>
           Mit jeder Buchung und jedem Verkauf fließen automatisch 3 % in echte Impact-Projekte.
         </div>
       </div>
@@ -587,99 +546,115 @@ function ImpactPage() {
   );
 }
 
+// ─── FAVORITES PAGE ────────────────────────────────────────────────────────
 function FavoritesPage() {
   const [tab, setTab] = useState("wirker");
-
   return (
     <div style={{ paddingBottom: 90 }}>
-      <div style={{ padding: "20px 16px 0", background: "white", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-        <div style={{ fontWeight: 800, fontSize: 22, marginBottom: 16, color: "#222" }}>⭐ Meine Favoriten</div>
-        <div style={{ display: "flex", gap: 0 }}>
+      <div style={{ padding: "20px 16px 0", background: "white", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+        <div style={{ fontWeight: 800, fontSize: 21, marginBottom: 14, color: "#222" }}>Meine Favoriten</div>
+        <div style={{ display: "flex" }}>
           {["wirker", "werke"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              flex: 1, background: "none", border: "none",
-              borderBottom: tab === t ? `3px solid ${CORAL}` : "3px solid transparent",
-              padding: "10px 0", fontWeight: tab === t ? 700 : 400,
-              color: tab === t ? CORAL : "#aaa", fontSize: 15, cursor: "pointer",
-              textTransform: "capitalize"
-            }}>{t}</button>
+            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, background: "none", border: "none", borderBottom: tab === t ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "10px 0", fontWeight: tab === t ? 700 : 400, color: tab === t ? CORAL : "#bbb", fontSize: 14, cursor: "pointer", textTransform: "capitalize" }}>{t}</button>
           ))}
         </div>
       </div>
-
-      <div style={{ padding: "20px 16px", textAlign: "center" }}>
-        <div style={{ fontSize: 60, marginBottom: 12 }}>⭐</div>
-        <div style={{ fontWeight: 700, fontSize: 18, color: "#333", marginBottom: 6 }}>Hier landen deine Lieblings-{tab === "wirker" ? "Wirker" : "Werke"}</div>
-        <div style={{ color: "#888", marginBottom: 20, fontSize: 14 }}>Tippe auf den ⭐ bei einem {tab === "wirker" ? "Wirker" : "Werk"} um ihn zu speichern</div>
-        <button style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-          Jetzt entdecken
-        </button>
+      <div style={{ padding: "40px 20px", textAlign: "center" }}>
+        <div style={{ fontSize: 52, marginBottom: 10 }}>⭐</div>
+        <div style={{ fontWeight: 700, fontSize: 17, color: "#333", marginBottom: 6 }}>Hier landen deine Lieblings-{tab === "wirker" ? "Wirker" : "Werke"}</div>
+        <div style={{ color: "#aaa", marginBottom: 20, fontSize: 13 }}>Tippe auf den ⭐ um etwas zu speichern</div>
+        <button style={{ background: CORAL, color: "white", border: "none", borderRadius: 12, padding: "11px 26px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>Jetzt entdecken</button>
       </div>
     </div>
   );
 }
 
+// ─── PROFILE PAGE ──────────────────────────────────────────────────────────
 function ProfilePage({ isNewUser }) {
-  const [tab, setTab] = useState("werke");
-
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
-      <div style={{ position: "relative" }}>
-        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 160, objectFit: "cover" }} alt="header" />
-        <div style={{ padding: "0 16px" }}>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: -36 }}>
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover" }} alt="profile" />
-            <div style={{ paddingBottom: 4 }}>
-              <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Lars M.</div>
-              <div style={{ fontSize: 13, color: "#888" }}>München, Deutschland</div>
-            </div>
+      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 150, objectFit: "cover" }} alt="header" />
+      <div style={{ padding: "0 16px" }}>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: -32 }}>
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 68, height: 68, borderRadius: "50%", border: "3px solid white", objectFit: "cover" }} alt="profile" />
+          <div style={{ paddingBottom: 4 }}>
+            <div style={{ fontWeight: 800, fontSize: 17, color: "#222" }}>Lars M.</div>
+            <div style={{ fontSize: 12, color: "#aaa" }}>München, Deutschland</div>
           </div>
-
-          <div style={{ marginTop: 12, background: `linear-gradient(135deg, ${GOLD}22, ${CORAL}11)`, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <div style={{ fontSize: 32 }}>⭐</div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 24, color: GOLD }}>250 HUI-Punkte</div>
-              <div style={{ fontSize: 12, color: "#888" }}>= 12,50 € Rabatt verfügbar</div>
-            </div>
-          </div>
-
-          {isNewUser ? (
-            <button style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 700, fontSize: 16, cursor: "pointer", marginBottom: 20 }}>
-              ✨ Mein Talent anbieten
-            </button>
-          ) : (
-            <>
-              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                {["Werke", "Buchungen", "Chats", "Verfügbarkeit"].map(t => (
-                  <button key={t} onClick={() => setTab(t.toLowerCase())} style={{
-                    background: tab === t.toLowerCase() ? TEAL : "#f0f0f0",
-                    color: tab === t.toLowerCase() ? "white" : "#555",
-                    border: "none", borderRadius: 10, padding: "7px 12px", fontSize: 12, cursor: "pointer", fontWeight: 600
-                  }}>{t}</button>
-                ))}
-              </div>
-              <div style={{ textAlign: "center", padding: "30px 0", color: "#888" }}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>📦</div>
-                <div>Noch keine Einträge</div>
-              </div>
-            </>
-          )}
         </div>
-      </div>
-
-      <div style={{ padding: "0 16px", marginTop: 8 }}>
-        <div style={{ fontWeight: 700, color: "#333", marginBottom: 8, fontSize: 15 }}>Einstellungen</div>
+        <div style={{ marginTop: 14, background: `linear-gradient(135deg, ${GOLD}18, ${CORAL}0d)`, borderRadius: 14, padding: "13px 16px", display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <div style={{ fontSize: 28 }}>⭐</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 22, color: GOLD }}>250 HUI-Punkte</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>= 12,50 € Rabatt verfügbar</div>
+          </div>
+        </div>
+        {isNewUser && (
+          <button style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18 }}>
+            ✨ Mein Talent anbieten
+          </button>
+        )}
+        <div style={{ fontWeight: 700, color: "#444", marginBottom: 6, fontSize: 14 }}>Einstellungen</div>
         {["Persönliche Daten", "Push-Benachrichtigungen", "Nacht-Modus", "Impressum", "Datenschutz", "AGB", "Abmelden"].map((item, i) => (
-          <div key={i} style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "13px 0", borderBottom: "1px solid #f0f0f0",
-            color: item === "Abmelden" ? CORAL : "#333",
-            fontWeight: item === "Abmelden" ? 700 : 400, cursor: "pointer", fontSize: 15
-          }}>
-            {item} {item !== "Abmelden" && <ChevronRight size={16} color="#ccc" />}
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 0", borderBottom: "1px solid #f0f0f0", color: item === "Abmelden" ? CORAL : "#333", fontWeight: item === "Abmelden" ? 700 : 400, cursor: "pointer", fontSize: 14 }}>
+            {item} {item !== "Abmelden" && <ChevronRight size={15} color="#ddd" />}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ──────────────────────────────────────────────────────────────
+export default function App() {
+  const [page, setPage] = useState("home");
+  const [liked, setLiked] = useState({});
+  const [faved, setFaved] = useState({});
+  const [cart, setCart] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+  const isNewUser = true;
+
+  return (
+    <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
+      {page === "home" && (
+        <>
+          <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} />
+          <SearchBar onClick={() => setShowSearch(true)} />
+          <div style={{ overflowY: "auto" }}>
+            <StoryBar />
+            <div style={{ paddingBottom: 96 }}>
+              {mockFeed.map(item => {
+                if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} />;
+                if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={i => setCart(c => [...c, i])} />;
+                if (item.type === "wirker") return <WirkerCard key={item.id} item={item} />;
+                if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
+                return null;
+              })}
+            </div>
+          </div>
+        </>
+      )}
+      {page === "impact" && <ImpactPage />}
+      {page === "favorites" && <FavoritesPage />}
+      {page === "profile" && <ProfilePage isNewUser={isNewUser} />}
+
+      <TabBar page={page} setPage={setPage} isNewUser={isNewUser} showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} />
+
+      {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />}
+      {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
+      {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
+
+      <style>{`
+        @keyframes huiPulse {
+          0%, 100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); }
+          50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); }
+        }
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
