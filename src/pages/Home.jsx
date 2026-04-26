@@ -2723,6 +2723,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [viewingStoryIndex, setViewingStoryIndex] = useState(null); // null = kein Viewer
   const [showStoryCreate, setShowStoryCreate] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(null); // null | "avatar" | "header"
   const [editTab, setEditTab] = useState("basis"); // "basis" | "talent" | "bio"
   const [profileForm, setProfileForm] = useState({
     vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
@@ -2776,19 +2777,19 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
       {/* Header-Bild */}
       <div style={{ position: "relative" }}>
         <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 140, objectFit: "cover" }} alt="header" />
-        {!isNewUser && (
-          <button style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.88)", border: "none", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: "#444", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
-            <Edit3 size={12} /> Titelbild
-          </button>
-        )}
+        <button onClick={() => setShowImagePicker("header")} style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.88)", border: "none", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: "#444", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, backdropFilter: "blur(4px)" }}>
+          <Edit3 size={12} /> Titelbild ändern
+        </button>
       </div>
 
       <div style={{ padding: "0 16px" }}>
         {/* Avatar + Name */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -32, marginBottom: 14 }}>
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setShowImagePicker("avatar")}>
             <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }} alt="profile" />
-            <div style={{ position: "absolute", bottom: 2, right: 2, width: 20, height: 20, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
+            <div style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, borderRadius: "50%", background: CORAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Edit3 size={11} color="white" />
+            </div>
           </div>
           <button onClick={() => setShowEditProfile(true)} style={{ background: "white", border: "1.5px solid #e0e0e0", borderRadius: 20, padding: "7px 16px", fontSize: 13, fontWeight: 700, color: "#444", cursor: "pointer", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
             <Edit3 size={13} /> Profil bearbeiten
@@ -2997,6 +2998,60 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
       </div>
 
+      {/* ── BILD-PICKER MODAL (Profilbild & Titelbild) ─────── */}
+      {showImagePicker && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }} onClick={() => setShowImagePicker(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "20px 20px 36px" }}>
+            {/* Handle */}
+            <div style={{ width: 38, height: 4, borderRadius: 99, background: "#e0e0e0", margin: "0 auto 20px" }} />
+            <div style={{ fontWeight: 800, fontSize: 18, color: "#222", marginBottom: 4 }}>
+              {showImagePicker === "avatar" ? "🤳 Profilbild ändern" : "🖼️ Titelbild ändern"}
+            </div>
+            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 22 }}>
+              {showImagePicker === "avatar" ? "Wähle ein neues Profilbild für dein HUI-Profil" : "Gestalte deinen Profilkopf – sehen alle als erstes"}
+            </div>
+
+            {/* Vorschau des aktuellen Bildes */}
+            <div style={{ marginBottom: 18, borderRadius: 16, overflow: "hidden", background: "#f0f0ee" }}>
+              {showImagePicker === "avatar" ? (
+                <div style={{ display: "flex", justifyContent: "center", padding: "16px 0" }}>
+                  <div style={{ position: "relative" }}>
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 100, height: 100, borderRadius: "50%", objectFit: "cover", border: `3px solid ${CORAL}44` }} alt="" />
+                    <div style={{ position: "absolute", bottom: 2, right: 2, width: 26, height: 26, borderRadius: "50%", background: CORAL, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
+                      <Edit3 size={12} color="white" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=180&fit=crop" style={{ width: "100%", height: 100, objectFit: "cover" }} alt="" />
+              )}
+              <div style={{ textAlign: "center", padding: "8px 0 12px", fontSize: 12, color: "#aaa" }}>Aktuelles Bild</div>
+            </div>
+
+            {/* Optionen */}
+            {[
+              { icon: "📷", label: "Kamera öffnen", sub: "Jetzt ein Foto aufnehmen", action: () => setShowImagePicker(null) },
+              { icon: "🖼️", label: "Aus Galerie wählen", sub: "Foto von deinem Gerät hochladen", action: () => setShowImagePicker(null) },
+              ...(showImagePicker === "header" ? [
+                { icon: "🎨", label: "Farbe / Verlauf wählen", sub: "Einfarbig oder Gradient als Hintergrund", action: () => setShowImagePicker(null) },
+              ] : []),
+              { icon: "🗑️", label: showImagePicker === "avatar" ? "Profilbild entfernen" : "Titelbild entfernen", sub: "Zurück zum Standard", action: () => setShowImagePicker(null), danger: true },
+            ].map((o, i) => (
+              <button key={i} onClick={o.action}
+                style={{ width: "100%", background: o.danger ? `${CORAL}08` : "#f8f8f6", border: `1px solid ${o.danger ? CORAL + "22" : "transparent"}`, borderRadius: 14, padding: "13px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 14, cursor: "pointer", textAlign: "left" }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: o.danger ? `${CORAL}15` : "#eee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+                  {o.icon}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: o.danger ? CORAL : "#222" }}>{o.label}</div>
+                  <div style={{ fontSize: 12, color: "#aaa" }}>{o.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── STORY VIEWER ─────────────────────────────────────── */}
       {viewingStoryIndex !== null && (
         <StoryViewer
@@ -3077,8 +3132,16 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
                     </div>
                   </div>
                   <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Profilbild-URL</div>
-                    <input placeholder="https://..." style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", color: "#bbb" }} />
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Profilbild</div>
+                    <button onClick={() => { setShowEditProfile(false); setShowImagePicker("avatar"); }}
+                      style={{ width: "100%", background: `${CORAL}0d`, border: `1.5px solid ${CORAL}25`, borderRadius: 12, padding: "11px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, textAlign: "left" }}>
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} alt="" />
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: CORAL }}>Foto ändern</div>
+                        <div style={{ fontSize: 11, color: "#aaa" }}>Kamera oder Galerie</div>
+                      </div>
+                      <ChevronRight size={14} color={CORAL} style={{ marginLeft: "auto" }} />
+                    </button>
                   </div>
                 </div>
               )}
