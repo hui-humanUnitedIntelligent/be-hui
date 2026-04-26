@@ -1474,7 +1474,370 @@ function FavoritesPage() {
   const [tab, setTab] = useState("wirker");
   return (<div style={{ paddingBottom: 90 }}><div style={{ padding: "20px 16px 0", background: "white", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}><div style={{ fontWeight: 800, fontSize: 21, marginBottom: 14, color: "#222" }}>Meine Favoriten</div><div style={{ display: "flex" }}>{["wirker", "werke"].map(t => (<button key={t} onClick={() => setTab(t)} style={{ flex: 1, background: "none", border: "none", borderBottom: tab === t ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "10px 0", fontWeight: tab === t ? 700 : 400, color: tab === t ? CORAL : "#bbb", fontSize: 14, cursor: "pointer", textTransform: "capitalize" }}>{t}</button>))}</div></div><div style={{ padding: "40px 20px", textAlign: "center" }}><div style={{ fontSize: 52, marginBottom: 10 }}>⭐</div><div style={{ fontWeight: 700, fontSize: 17, color: "#333", marginBottom: 6 }}>Hier landen deine Lieblings-{tab === "wirker" ? "Wirker" : "Werke"}</div><div style={{ color: "#aaa", marginBottom: 20, fontSize: 13 }}>Tippe auf den ⭐ um etwas zu speichern</div><button style={{ background: CORAL, color: "white", border: "none", borderRadius: 12, padding: "11px 26px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>Jetzt entdecken</button></div></div>);
 }
+// ══════════════════════════════════════════════════════════════════
+// TALENT ANBIETEN – Bewerbungsformular
+// ══════════════════════════════════════════════════════════════════
+function TalentAnbietenPage({ onClose, onSuccess }) {
+  const [step, setStep] = useState(1); // 1=Typ, 2=Basis, 3=Talent, 4=Angebote, 5=Kontakt, 6=Danke
+  const [form, setForm] = useState({
+    typ: "",
+    // Basis
+    vorname: "", nachname: "", anzeigeName: "", standort: "", profilbild: null,
+    // Firma/Verein extra
+    orgName: "", orgTyp: "", steuernummer: "", website: "",
+    // Talent
+    kategorie: "", subKategorien: [], kurzbeschreibung: "", skills: "",
+    sprachen: [], erfahrung: "",
+    // Angebote
+    angebotstyp: [], stundensatz: "", mindestbuchung: "1",
+    versandMoeglich: false, onlineMoeglich: false, vorOrtMoeglich: false,
+    // Kontakt
+    email: "", telefon: "", instagram: "",
+    einverstanden: false, agb: false,
+  });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const toggle = (k, v) => setForm(f => ({ ...f, [k]: f[k].includes(v) ? f[k].filter(x => x !== v) : [...f[k], v] }));
+
+  const anbieterTypen = [
+    { id: "privat", icon: "🎨", titel: "Privatperson / Hobby", sub: "Du bietest dein Talent nebenbei an – keine Gewerbe nötig", color: CORAL },
+    { id: "selbststaendig", icon: "💼", titel: "Selbstständig / Freiberufler", sub: "Du arbeitest hauptberuflich oder nebenberuflich als Selbstständiger", color: TEAL },
+    { id: "verein", icon: "🤝", titel: "Verein / Organisation", sub: "Gemeinnützige Vereine, NGOs, Initiativen", color: GOLD },
+    { id: "firma", icon: "🏢", titel: "Unternehmen / Firma", sub: "Gewerblich tätige Unternehmen jeder Größe", color: "#7C3AED" },
+  ];
+
+  const kategorien = [
+    { icon: "🎨", label: "Kunst & Kreatives" }, { icon: "📷", label: "Foto & Video" },
+    { icon: "🎵", label: "Musik & Audio" }, { icon: "✍️", label: "Texte & Sprache" },
+    { icon: "💪", label: "Sport & Fitness" }, { icon: "🧘", label: "Wellness & Coaching" },
+    { icon: "🍳", label: "Kochen & Backen" }, { icon: "🪴", label: "Garten & Natur" },
+    { icon: "🔧", label: "Handwerk & Reparatur" }, { icon: "👗", label: "Mode & Beauty" },
+    { icon: "💻", label: "Digitales & Technik" }, { icon: "📚", label: "Bildung & Beratung" },
+    { icon: "🎭", label: "Events & Unterhaltung" }, { icon: "🏡", label: "Haus & Haushalt" },
+    { icon: "🐾", label: "Tiere" }, { icon: "🌍", label: "Sonstiges" },
+  ];
+
+  const sprachenListe = ["Deutsch", "Englisch", "Französisch", "Spanisch", "Italienisch", "Türkisch", "Arabisch", "Russisch", "Polnisch"];
+
+  const Input = ({ label, value, onChange, placeholder, type = "text", hint }) => (
+    <div style={{ marginBottom: 15 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", color: "#222" }} />
+      {hint && <div style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>{hint}</div>}
+    </div>
+  );
+  const Textarea = ({ label, value, onChange, placeholder, rows = 3 }) => (
+    <div style={{ marginBottom: 15 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+      <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows}
+        style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.55 }} />
+    </div>
+  );
+  const Chip = ({ label, active, onClick, color }) => (
+    <button onClick={onClick} style={{ background: active ? (color || TEAL) + "18" : "#f4f4f2", border: `1.5px solid ${active ? (color || TEAL) : "transparent"}`, borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: active ? (color || TEAL) : "#666", cursor: "pointer", transition: "all 0.15s" }}>{label}</button>
+  );
+
+  const selectedTyp = anbieterTypen.find(t => t.id === form.typ);
+  const stepValid = () => {
+    if (step === 1) return form.typ !== "";
+    if (step === 2) return form.vorname.length > 1 && form.nachname.length > 1 && form.standort.length > 2;
+    if (step === 3) return form.kategorie !== "" && form.kurzbeschreibung.length > 15;
+    if (step === 4) return form.angebotstyp.length > 0;
+    if (step === 5) return form.email.includes("@") && form.einverstanden && form.agb;
+    return true;
+  };
+
+  // ── DANKE ──
+  if (step === 6) return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", maxWidth: 430, margin: "0 auto" }}>
+      <div style={{ width: 100, height: 100, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}20, ${GOLD}20)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
+        <span style={{ fontSize: 52 }}>🎉</span>
+      </div>
+      <div style={{ fontWeight: 800, fontSize: 25, color: "#222", textAlign: "center", marginBottom: 10 }}>Willkommen in der Community!</div>
+      <div style={{ fontSize: 15, color: "#666", textAlign: "center", lineHeight: 1.7, marginBottom: 26 }}>
+        Deine Bewerbung ist bei uns eingegangen. Wir prüfen dein Profil und melden uns innerhalb von 48 Stunden per E-Mail.
+      </div>
+      <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${GOLD}08)`, borderRadius: 18, padding: "18px 20px", width: "100%", marginBottom: 26 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12 }}>Das passiert als nächstes:</div>
+        {[
+          { icon: "🔍", text: "HUI prüft deine Angaben & dein Talent (bis 48h)" },
+          { icon: "✅", text: "Du erhältst eine Bestätigungs-Mail mit Login-Zugang" },
+          { icon: "📸", text: "Du vervollständigst dein Profil mit Fotos & Beschreibung" },
+          { icon: "🚀", text: "Dein Profil geht live – Kunden können dich buchen!" },
+        ].map((r, i) => (
+          <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < 3 ? 10 : 0, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 18 }}>{r.icon}</span>
+            <span style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>{r.text}</span>
+          </div>
+        ))}
+      </div>
+      <button onClick={() => { onSuccess && onSuccess(); onClose(); }} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
+        Zurück zum Profil
+      </button>
+    </div>
+  );
+
+  const stepTitles = ["", "Wer bist du?", "Deine Basis-Infos", "Dein Talent", "Deine Angebote", "Kontakt & Abschluss"];
+  const stepSubs = ["", "Wie bietest du dein Talent an?", "Erzähl uns von dir", "Was kannst du besonders gut?", "Was bietest du konkret an?", "Fast geschafft!"];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ padding: "16px 20px 10px", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+          <button onClick={step > 1 ? () => setStep(s => s - 1) : onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <ArrowLeft size={20} color="#444" />
+          </button>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>{stepTitles[step]}</div>
+            <div style={{ fontSize: 12, color: "#aaa" }}>{stepSubs[step]}</div>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#bbb" /></button>
+        </div>
+        <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5 }}>
+          <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 5, borderRadius: 99, width: `${((step - 1) / 5) * 100}%`, transition: "width 0.3s" }} />
+        </div>
+        <div style={{ fontSize: 11, color: "#ccc", marginTop: 4, textAlign: "right" }}>Schritt {step} von 5</div>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 8px" }}>
+
+        {/* ── STEP 1: Anbieter-Typ ── */}
+        {step === 1 && (
+          <>
+            <div style={{ fontSize: 14, color: "#888", marginBottom: 18, lineHeight: 1.6 }}>
+              HUI ist für alle offen — egal ob du dein Hobby teilst oder professionell tätig bist. Wähle die passende Kategorie:
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {anbieterTypen.map(t => (
+                <button key={t.id} onClick={() => set("typ", t.id)} style={{
+                  background: form.typ === t.id ? t.color + "12" : "#f9f9f7",
+                  border: `2px solid ${form.typ === t.id ? t.color : "transparent"}`,
+                  borderRadius: 16, padding: "16px 18px", cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 14, transition: "all 0.15s"
+                }}>
+                  <div style={{ width: 50, height: 50, borderRadius: 14, background: t.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 26 }}>{t.icon}</span>
+                  </div>
+                  <div style={{ flex: 1, textAlign: "left" }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: form.typ === t.id ? t.color : "#222", marginBottom: 3 }}>{t.titel}</div>
+                    <div style={{ fontSize: 12, color: "#999", lineHeight: 1.45 }}>{t.sub}</div>
+                  </div>
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", border: `2px solid ${form.typ === t.id ? t.color : "#ddd"}`, background: form.typ === t.id ? t.color : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {form.typ === t.id && <Check size={12} color="white" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+            {form.typ && (
+              <div style={{ marginTop: 14, background: selectedTyp?.color + "0d", border: `1px solid ${selectedTyp?.color}30`, borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#666" }}>
+                {form.typ === "privat" && "✅ Keine Gewerbeanmeldung nötig. Du kannst sofort starten – bis zu den steuerlichen Freigrenzen ohne Mehrwertsteuer."}
+                {form.typ === "selbststaendig" && "✅ Gewerbe oder Freiberufler – wir benötigen deine Steuernummer für die korrekte Abrechnung."}
+                {form.typ === "verein" && "✅ Eingetragene Vereine und gemeinnützige Organisationen sind herzlich willkommen. Bitte Vereinsregisternummer bereithalten."}
+                {form.typ === "firma" && "✅ Unternehmen aller Größen können ihre Leistungen auf HUI anbieten. Wir benötigen Handelsregisternummer und USt-ID."}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── STEP 2: Basis-Infos ── */}
+        {step === 2 && (
+          <>
+            {(form.typ === "firma" || form.typ === "verein") && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #f0f0f0" }}>
+                  {form.typ === "firma" ? "🏢 Firmen-Infos" : "🤝 Organisations-Infos"}
+                </div>
+                <Input label={form.typ === "firma" ? "Firmenname" : "Name der Organisation"} value={form.orgName} onChange={v => set("orgName", v)} placeholder={form.typ === "firma" ? "Musterfirma GmbH" : "FC Beispiel e.V."} />
+                <Input label={form.typ === "firma" ? "Handelsregister / USt-ID (optional)" : "Vereinsregisternummer (optional)"} value={form.steuernummer} onChange={v => set("steuernummer", v)} placeholder={form.typ === "firma" ? "DE123456789" : "VR 12345"} />
+                <Input label="Website (optional)" value={form.website} onChange={v => set("website", v)} placeholder="https://..." />
+              </div>
+            )}
+
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #f0f0f0" }}>
+              👤 Ansprechpartner / Profil-Person
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <div style={{ flex: 1 }}><Input label="Vorname" value={form.vorname} onChange={v => set("vorname", v)} placeholder="Maria" /></div>
+              <div style={{ flex: 1 }}><Input label="Nachname" value={form.nachname} onChange={v => set("nachname", v)} placeholder="Müller" /></div>
+            </div>
+            <Input label="Anzeigename auf HUI" value={form.anzeigeName} onChange={v => set("anzeigeName", v)} placeholder="z.B. Maria M. oder Yoga mit Maria" hint="So wirst du in der App angezeigt" />
+            <Input label="Dein Standort" value={form.standort} onChange={v => set("standort", v)} placeholder="z.B. München, Bayern" />
+
+            <div style={{ marginBottom: 15 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Sprachen</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {sprachenListe.map(s => <Chip key={s} label={s} active={form.sprachen.includes(s)} onClick={() => toggle("sprachen", s)} />)}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── STEP 3: Talent ── */}
+        {step === 3 && (
+          <>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>Deine Hauptkategorie *</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {kategorien.map(k => (
+                  <button key={k.label} onClick={() => set("kategorie", k.label)} style={{
+                    background: form.kategorie === k.label ? TEAL + "15" : "#f5f5f3",
+                    border: `1.5px solid ${form.kategorie === k.label ? TEAL : "transparent"}`,
+                    borderRadius: 12, padding: "10px 12px", cursor: "pointer", textAlign: "left",
+                    display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s"
+                  }}>
+                    <span style={{ fontSize: 18 }}>{k.icon}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: form.kategorie === k.label ? TEAL : "#555" }}>{k.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Textarea label="Kurzbeschreibung deines Talents *" value={form.kurzbeschreibung} onChange={v => set("kurzbeschreibung", v)} placeholder="Beschreibe in 2–4 Sätzen, was du anbietest und was dich besonders macht..." rows={4} />
+            <Input label="Deine Top-Skills / Stichworte" value={form.skills} onChange={v => set("skills", v)} placeholder="z.B. Aquarell, Portraitzeichnung, Workshops" hint="Kommagetrennt – hilft bei der Suche" />
+
+            <div style={{ marginBottom: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Erfahrung</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {["Hobby / Anfänger", "1–3 Jahre", "3–5 Jahre", "5–10 Jahre", "10+ Jahre Profi"].map(e => (
+                  <Chip key={e} label={e} active={form.erfahrung === e} onClick={() => set("erfahrung", e)} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── STEP 4: Angebote ── */}
+        {step === 4 && (
+          <>
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>Was bietest du an? (mehrere möglich) *</div>
+              {[
+                { id: "buchung", icon: "📅", titel: "Buchbare Dienstleistung", sub: "Kunden buchen Zeitslots bei dir (z.B. Unterricht, Shooting, Coaching)" },
+                { id: "werk", icon: "🛍️", titel: "Physische Werke / Produkte", sub: "Du verkaufst handgefertigte Artikel die du versendest" },
+                { id: "digital", icon: "📥", titel: "Digitale Produkte", sub: "Downloads, Designs, Fotos, Audio, PDFs etc." },
+                { id: "workshop", icon: "🎓", titel: "Workshops & Kurse", sub: "Gruppen-Angebote vor Ort oder online" },
+              ].map(a => (
+                <button key={a.id} onClick={() => toggle("angebotstyp", a.id)} style={{
+                  width: "100%", background: form.angebotstyp.includes(a.id) ? CORAL + "0f" : "#f9f9f7",
+                  border: `2px solid ${form.angebotstyp.includes(a.id) ? CORAL : "transparent"}`,
+                  borderRadius: 14, padding: "13px 14px", cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 12, marginBottom: 8, transition: "all 0.15s"
+                }}>
+                  <span style={{ fontSize: 24 }}>{a.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: form.angebotstyp.includes(a.id) ? CORAL : "#222" }}>{a.titel}</div>
+                    <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>{a.sub}</div>
+                  </div>
+                  <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${form.angebotstyp.includes(a.id) ? CORAL : "#ddd"}`, background: form.angebotstyp.includes(a.id) ? CORAL : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {form.angebotstyp.includes(a.id) && <Check size={11} color="white" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {(form.angebotstyp.includes("buchung") || form.angebotstyp.includes("workshop")) && (
+              <div style={{ marginBottom: 16 }}>
+                <Input label="Dein Stundensatz (€) (optional)" value={form.stundensatz} onChange={v => set("stundensatz", v)} placeholder="z.B. 60" type="number" hint="Kann später noch geändert werden" />
+                {form.stundensatz && (
+                  <div style={{ background: TEAL + "0d", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#666" }}>
+                    Käufer zahlen <strong>{(parseFloat(form.stundensatz) * 1.15).toFixed(0)} €/Std.</strong> — du erhältst <strong style={{ color: TEAL }}>{(parseFloat(form.stundensatz) * 0.85).toFixed(0)} €</strong> nach 15% Provision
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ marginBottom: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>Wie erreichst du deine Kunden?</div>
+              {[
+                { key: "vorOrtMoeglich", icon: "📍", label: "Vor Ort / persönlich" },
+                { key: "onlineMoeglich", icon: "💻", label: "Online / Remote" },
+                { key: "versandMoeglich", icon: "📦", label: "Versand (Werkverkauf)" },
+              ].map(opt => (
+                <button key={opt.key} onClick={() => set(opt.key, !form[opt.key])} style={{
+                  width: "100%", background: form[opt.key] ? TEAL + "0f" : "#f5f5f3",
+                  border: `1.5px solid ${form[opt.key] ? TEAL : "transparent"}`,
+                  borderRadius: 12, padding: "11px 14px", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 10, marginBottom: 8, textAlign: "left"
+                }}>
+                  <span style={{ fontSize: 20 }}>{opt.icon}</span>
+                  <span style={{ flex: 1, fontWeight: 600, fontSize: 13, color: form[opt.key] ? TEAL : "#555" }}>{opt.label}</span>
+                  <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${form[opt.key] ? TEAL : "#ddd"}`, background: form[opt.key] ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {form[opt.key] && <Check size={11} color="white" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── STEP 5: Kontakt & Abschluss ── */}
+        {step === 5 && (
+          <>
+            <Input label="E-Mail-Adresse *" value={form.email} onChange={v => set("email", v)} placeholder="deine@email.de" type="email" />
+            <Input label="Telefon (optional)" value={form.telefon} onChange={v => set("telefon", v)} placeholder="+49 ..." type="tel" />
+            <Input label="Instagram / Social Media (optional)" value={form.instagram} onChange={v => set("instagram", v)} placeholder="@deinprofil" />
+
+            {/* Zusammenfassung */}
+            <div style={{ background: "#f9f9f7", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#333", marginBottom: 10 }}>📋 Deine Bewerbung</div>
+              {[
+                { label: "Typ", val: selectedTyp?.titel || "–" },
+                { label: "Name", val: form.anzeigeName || `${form.vorname} ${form.nachname}` || "–" },
+                { label: "Standort", val: form.standort || "–" },
+                { label: "Kategorie", val: form.kategorie || "–" },
+                { label: "Angebote", val: form.angebotstyp.join(", ") || "–" },
+                ...(form.stundensatz ? [{ label: "Stundensatz", val: `${form.stundensatz} €` }] : []),
+              ].map((r, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "5px 0", borderBottom: "1px solid #f0f0f0" }}>
+                  <span style={{ color: "#aaa" }}>{r.label}</span>
+                  <span style={{ fontWeight: 600, color: "#333", textAlign: "right", maxWidth: "60%" }}>{r.val}</span>
+                </div>
+              ))}
+            </div>
+
+            <div onClick={() => set("einverstanden", !form.einverstanden)} style={{ display: "flex", gap: 10, marginBottom: 10, cursor: "pointer" }}>
+              <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${form.einverstanden ? TEAL : "#ccc"}`, background: form.einverstanden ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                {form.einverstanden && <Check size={13} color="white" />}
+              </div>
+              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>Ich bestätige, dass alle Angaben korrekt sind und ich berechtigt bin, diese Leistungen anzubieten.</div>
+            </div>
+            <div onClick={() => set("agb", !form.agb)} style={{ display: "flex", gap: 10, marginBottom: 4, cursor: "pointer" }}>
+              <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${form.agb ? TEAL : "#ccc"}`, background: form.agb ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                {form.agb && <Check size={13} color="white" />}
+              </div>
+              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>Ich akzeptiere die <span style={{ color: TEAL, fontWeight: 600 }}>AGB</span> und <span style={{ color: TEAL, fontWeight: 600 }}>Datenschutzrichtlinien</span> von HUI.</div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Bottom Button */}
+      <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <button
+          onClick={() => stepValid() && setStep(s => s + 1)}
+          style={{
+            width: "100%",
+            background: stepValid() ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#e8e8e8",
+            color: stepValid() ? "white" : "#bbb",
+            border: "none", borderRadius: 14, padding: "14px",
+            fontWeight: 700, fontSize: 16,
+            cursor: stepValid() ? "pointer" : "default", transition: "all 0.2s"
+          }}
+        >
+          {step < 5 ? "Weiter →" : "🚀 Jetzt bewerben"}
+        </button>
+        {!stepValid() && step > 1 && (
+          <div style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 7 }}>Bitte alle Pflichtfelder (*) ausfüllen</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
+  const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
       <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 150, objectFit: "cover" }} alt="header" />
@@ -1488,7 +1851,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
           <div><div style={{ fontWeight: 800, fontSize: 22, color: GOLD }}>250 HUI-Punkte</div><div style={{ fontSize: 11, color: "#aaa" }}>= 12,50 € Rabatt verfügbar</div></div>
         </div>
         {isNewUser ? (
-          <button style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18 }}>✨ Mein Talent anbieten</button>
+          <button onClick={() => setShowTalentAnbieten(true)} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18 }}>✨ Mein Talent anbieten</button>
         ) : (
           <button onClick={onViewOwnWirkerProfile} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Calendar size={18} /> Meine Verfügbarkeit verwalten
@@ -1502,6 +1865,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile }) {
         ))}
       </div>
     </div>
+    {showTalentAnbieten && <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />}
   );
 }
 function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser }) {
