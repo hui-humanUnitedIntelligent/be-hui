@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "https://esm.sh/@base44/sdk@latest";
 
 const base44 = createClient({ appId: "69e91ff9d24a19ce6f9abd25" });
-const { HuiMessage, User } = base44.entities;
+const { HuiMessage } = base44.entities;
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye } from "lucide-react";
 
 const CORAL = "#FF6B5B";
@@ -1295,7 +1295,7 @@ function WerkDetailPage({ werkTitle, onBack, onAddToCart, onViewWirker }) {
 // ── (All other components unchanged below) ────────────────────────────────
 const mockSuchergebnisse = [
   { id: "s1", typ: "wirker", name: "Sofia M.", kategorie: "Keramik & Töpfern", ort: "München · 2 km", empfehlungen: 48, preis: "ab 35 €", bild: "https://i.pravatar.cc/150?img=47", badge: "⭐ Top Wirker", buchbar: true, kaufbar: false, online: false },
-  { id: "s2", typ: "werk", name: "Aquarell-Bild "Alpenglühen"", kategorie: "Kunst & Kreatives", ort: "München · 3 km", empfehlungen: 12, preis: "89 €", bild: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&q=80", badge: null, buchbar: false, kaufbar: true, online: false },
+  { id: "s2", typ: "werk", name: 'Aquarell-Bild "Alpenglühen"', kategorie: "Kunst & Kreatives", ort: "München · 3 km", empfehlungen: 12, preis: "89 €", bild: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&q=80", badge: null, buchbar: false, kaufbar: true, online: false },
   { id: "s3", typ: "wirker", name: "Marcus B.", kategorie: "Fotografie", ort: "München · 5 km", empfehlungen: 31, preis: "ab 80 €", bild: "https://i.pravatar.cc/150?img=33", badge: "📷 Profi", buchbar: true, kaufbar: false, online: true },
   { id: "s4", typ: "werk", name: "Handgemachte Schale (Set 2)", kategorie: "Keramik & Töpfern", ort: "München · 2 km", empfehlungen: 8, preis: "55 €", bild: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=80", badge: "🔥 Beliebt", buchbar: false, kaufbar: true, online: false },
   { id: "s5", typ: "wirker", name: "Lena K.", kategorie: "Coaching", ort: "München · 8 km", empfehlungen: 63, preis: "ab 120 €", bild: "https://i.pravatar.cc/150?img=25", badge: "✅ Verifiziert", buchbar: true, kaufbar: false, online: true },
