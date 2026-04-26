@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye } from "lucide-react";
 import { createClient } from "https://esm.sh/@base44/sdk@latest";
 
 const base44 = createClient({ appId: "69e91ff9d24a19ce6f9abd25" });
 const { HuiMessage } = base44.entities;
-import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
