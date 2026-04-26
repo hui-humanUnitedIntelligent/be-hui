@@ -1184,7 +1184,7 @@ const mockChats = [
   },
 ];
 
-function ChatListPage({ onOpenChat }) {
+function ChatListPage({ onOpenChat, onBack }) {
   const [chats] = useState(mockChats);
   const statusLabel = (c) => {
     if (c.status === "abgeschlossen") return { label: "✅ Abgeschlossen", color: TEAL };
@@ -1193,9 +1193,14 @@ function ChatListPage({ onOpenChat }) {
   };
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
-      <div style={{ padding: "24px 20px 12px" }}>
-        <div style={{ fontWeight: 800, fontSize: 22, color: "#222", marginBottom: 4 }}>💬 Meine Chats</div>
-        <div style={{ fontSize: 13, color: "#aaa" }}>Buchungen, Käufe & Treuhand-Status</div>
+      <div style={{ padding: "16px 20px 12px", display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <ArrowLeft size={20} color="#444" />
+        </button>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 22, color: "#222", marginBottom: 2 }}>💬 Meine Chats</div>
+          <div style={{ fontSize: 13, color: "#aaa" }}>Buchungen, Käufe & Treuhand-Status</div>
+        </div>
       </div>
 
       {chats.map(c => {
@@ -2426,7 +2431,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
   );
 }
 
-function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten }) {
+function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats }) {
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
       <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 150, objectFit: "cover" }} alt="header" />
@@ -2439,6 +2444,22 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten }) {
           <div style={{ fontSize: 28 }}>⭐</div>
           <div><div style={{ fontWeight: 800, fontSize: 22, color: GOLD }}>250 HUI-Punkte</div><div style={{ fontSize: 11, color: "#aaa" }}>= 12,50 € Rabatt verfügbar</div></div>
         </div>
+        {/* Chat-Button */}
+        <button onClick={onOpenChats} style={{ width: "100%", background: "white", border: `1.5px solid #eee`, borderRadius: 14, padding: "13px 16px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: `${CORAL}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <MessageCircle size={20} color={CORAL} />
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Meine Chats</div>
+              <div style={{ fontSize: 11, color: "#aaa", fontWeight: 400 }}>Buchungen & Treuhand-Status</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ background: GOLD, color: "white", borderRadius: 99, fontSize: 10, fontWeight: 800, padding: "2px 7px" }}>1</div>
+            <ChevronRight size={16} color="#ddd" />
+          </div>
+        </button>
         {isNewUser ? (
           <button onClick={onTalentAnbieten} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginBottom: 18 }}>✨ Mein Talent anbieten</button>
         ) : (
@@ -2470,10 +2491,6 @@ function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser
         <button onClick={onPlusClick} style={{ width: 54, height: 54, borderRadius: "50%", background: CORAL, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginTop: -18, boxShadow: `0 4px 16px ${CORAL}66` }}><Plus size={26} color="white" strokeWidth={2.5} /></button>
       )}
       <TabButton label="Favoriten" icon={<Star size={20} />} active={page === "favorites"} onClick={() => setPage("favorites")} />
-      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <TabButton label="Chats" icon={<MessageCircle size={20} />} active={page === "chats"} onClick={() => setPage("chats")} />
-        <div style={{ position: "absolute", top: 2, right: 6, width: 9, height: 9, borderRadius: "50%", background: GOLD, border: "2px solid white", display: page === "chats" ? "none" : "block" }} />
-      </div>
       <TabButton label="Profil" icon={<User size={20} />} active={page === "profile"} onClick={() => setPage("profile")} />
     </div>
   );
@@ -2539,9 +2556,9 @@ export default function App() {
       </>)}
       {page === "impact" && <ImpactPage />}
       {page === "favorites" && <FavoritesPage />}
-      {page === "chats" && !openChat && <ChatListPage onOpenChat={(c) => setOpenChat(c)} />}
+      {page === "chats" && !openChat && <ChatListPage onOpenChat={(c) => setOpenChat(c)} onBack={() => setPage("profile")} />}
       {page === "chats" && openChat && <ChatDetailPage chat={openChat} onBack={() => setOpenChat(null)} />}
-      {page === "profile" && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Sofia M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} />}
+      {page === "profile" && !openChat && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Sofia M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} onOpenChats={() => setPage("chats")} />}
 
       <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} onPlusClick={() => setShowCreateSheet(true)} />
 
