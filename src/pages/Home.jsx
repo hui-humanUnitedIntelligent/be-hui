@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive } from "lucide-react";
+import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
 const GOLD = "#F5A623";
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
+const shareItem = (title, type = "Inhalt") => {
+  const text = `Schau dir das an auf HUI: "${title}"`;
+  if (navigator.share) {
+    navigator.share({ title: `HUI – ${title}`, text, url: window.location.href }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(text + " " + window.location.href);
+    alert("Link kopiert! ✓");
+  }
+};
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const WEEKDAY_FULL = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
@@ -879,6 +888,70 @@ function WerkEditor({ werk, wirkerName, onClose, onSave }) {
   );
 }
 
+function EmpfehlungsBox({ wirkerName, initialCount }) {
+  const [voted, setVoted] = useState(null); // null | "yes" | "no"
+  const [count, setCount] = useState(initialCount || 0);
+  const [showForm, setShowForm] = useState(false);
+  const [text, setText] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleVote = (v) => {
+    if (voted) return;
+    setVoted(v);
+    if (v === "yes") setCount(c => c + 1);
+    setShowForm(true);
+  };
+  const handleSubmit = () => {
+    setShowForm(false);
+    setSubmitted(true);
+  };
+
+  return (
+    <div style={{ background: `linear-gradient(135deg, ${TEAL}0d, ${CORAL}08)`, borderRadius: 14, padding: "12px 14px", marginBottom: 12, border: `1px solid ${TEAL}20` }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: voted ? 10 : 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <ThumbsUp size={16} color={TEAL} />
+          <span style={{ fontWeight: 700, fontSize: 14, color: "#333" }}>{count} Empfehlungen</span>
+        </div>
+        {!voted && !submitted && (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => handleVote("yes")} style={{ display: "flex", alignItems: "center", gap: 5, background: `${TEAL}18`, border: `1.5px solid ${TEAL}40`, borderRadius: 20, padding: "6px 12px", fontWeight: 700, fontSize: 12, color: TEAL, cursor: "pointer" }}>
+              <ThumbsUp size={13} color={TEAL} /> Empfehlen
+            </button>
+            <button onClick={() => handleVote("no")} style={{ display: "flex", alignItems: "center", gap: 5, background: "#f5f5f5", border: "1.5px solid #ddd", borderRadius: 20, padding: "6px 12px", fontWeight: 700, fontSize: 12, color: "#888", cursor: "pointer" }}>
+              <ThumbsDown size={13} color="#aaa" /> Nicht empfehlen
+            </button>
+          </div>
+        )}
+        {voted && !submitted && (
+          <div style={{ fontSize: 12, color: voted === "yes" ? TEAL : CORAL, fontWeight: 700 }}>
+            {voted === "yes" ? "👍 Du empfiehlst" : "👎 Nicht empfohlen"}
+          </div>
+        )}
+        {submitted && (
+          <div style={{ fontSize: 12, color: TEAL, fontWeight: 700 }}>✓ Danke für dein Feedback</div>
+        )}
+      </div>
+      {showForm && (
+        <div style={{ marginTop: 8 }}>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder={voted === "yes" ? "Was hat dir besonders gut gefallen? (optional)" : "Was lief nicht gut? Dein Feedback bleibt anonym. (optional)"}
+            style={{ width: "100%", borderRadius: 10, border: "1.5px solid #e0e0e0", padding: "9px 12px", fontSize: 13, resize: "none", height: 72, outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+          />
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <button onClick={handleSubmit} style={{ flex: 1, background: voted === "yes" ? TEAL : CORAL, color: "white", border: "none", borderRadius: 10, padding: "9px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+              {voted === "yes" ? "👍 Empfehlung abgeben" : "Feedback senden"}
+            </button>
+            <button onClick={() => { setShowForm(false); setSubmitted(true); }} style={{ background: "#f0f0f0", border: "none", borderRadius: 10, padding: "9px 14px", fontSize: 13, color: "#888", cursor: "pointer" }}>Überspringen</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook }) {
   const p = mockWirkerProfiles[wirkerName];
   const [tab, setTab] = useState("werke");
@@ -921,15 +994,12 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
         <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: -36, marginBottom: 12 }}>
           <img src={p.img} style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }} alt={p.name} />
           <div style={{ paddingBottom: 4 }}>
-            <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>{p.fullName}</div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: "#222", display: "flex", alignItems: "center", gap: 6 }}>{p.fullName}<BadgeCheck size={18} color={TEAL} /></div>
             <div style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>{p.talent}</div>
           </div>
         </div>
 
-        <div style={{ background: `linear-gradient(135deg, ${CORAL}0d, ${GOLD}0d)`, borderRadius: 12, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 20 }}>⭐</span>
-          <span style={{ fontWeight: 700, fontSize: 14, color: "#333" }}>{p.recommendations} Menschen haben diesen Wirker weiterempfohlen</span>
-        </div>
+        <EmpfehlungsBox wirkerName={p.fullName} initialCount={p.recommendations} />
 
         <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
           {[{ label: "Werke", value: p.werke.length }, { label: "Buchungen", value: p.bookings }, { label: "Follower", value: p.followers }].map(s => (
@@ -1226,7 +1296,7 @@ function SearchOverlay({ onClose }) {
         <Section id="kategorien" title="Kategorien" icon="🎯"><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{allCategories.map(c => <Chip key={c.label} label={c.label} icon={c.icon} active={categories.includes(c.label)} onClick={() => toggleArr(categories, setCategories, c.label)} />)}</div></Section>
         <Section id="preis" title="Preisspanne" icon="💶"><div style={{ display: "flex", gap: 10, alignItems: "center" }}><div style={{ flex: 1, background: "#f3f3f3", borderRadius: 10, padding: "10px 12px", display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, color: "#aaa" }}>von</span><input value={priceMin} onChange={e => setPriceMin(e.target.value)} placeholder="0" type="number" style={{ border: "none", background: "none", fontSize: 14, outline: "none", width: "100%", color: "#222" }} /><span style={{ fontSize: 13, color: "#aaa" }}>€</span></div><span style={{ color: "#bbb" }}>–</span><div style={{ flex: 1, background: "#f3f3f3", borderRadius: 10, padding: "10px 12px", display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, color: "#aaa" }}>bis</span><input value={priceMax} onChange={e => setPriceMax(e.target.value)} placeholder="∞" type="number" style={{ border: "none", background: "none", fontSize: 14, outline: "none", width: "100%", color: "#222" }} /><span style={{ fontSize: 13, color: "#aaa" }}>€</span></div></div><div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>{[["bis 25 €","","25"],["25–100 €","25","100"],["100–300 €","100","300"],["300 €+","300",""]].map(([l,min,max]) => (<button key={l} onClick={() => { setPriceMin(min); setPriceMax(max); }} style={{ background: priceMin === min && priceMax === max ? TEAL : "#f3f3f3", color: priceMin === min && priceMax === max ? "white" : "#555", border: "none", borderRadius: 20, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{l}</button>))}</div></Section>
         <Section id="verfuegbarkeit" title="Verfügbarkeit" icon="📅"><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{availabilityOptions.map(a => <Chip key={a} label={a} active={availability.includes(a)} onClick={() => toggleArr(availability, setAvailability, a)} />)}</div></Section>
-        <Section id="empfehlungen" title="Mindest-Empfehlungen" icon="⭐"><div style={{ display: "flex", gap: 8 }}>{[0,5,10,25,50].map(n => (<button key={n} onClick={() => setMinRecommendations(n)} style={{ background: minRecommendations === n ? CORAL : "#f3f3f3", color: minRecommendations === n ? "white" : "#555", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{n === 0 ? "Alle" : `${n}+`}</button>))}</div></Section>
+        <Section id="empfehlungen" title="Mindest-Empfehlungen" icon="👍"><div style={{ display: "flex", gap: 8 }}>{[0,5,10,25,50].map(n => (<button key={n} onClick={() => setMinRecommendations(n)} style={{ background: minRecommendations === n ? CORAL : "#f3f3f3", color: minRecommendations === n ? "white" : "#555", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{n === 0 ? "Alle" : `${n}+`}</button>))}</div></Section>
         <Section id="sortierung" title="Sortieren nach" icon="↕️"><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{sortOptions.map(o => (<button key={o.value} onClick={() => setSortBy(o.value)} style={{ background: sortBy === o.value ? `${TEAL}15` : "none", border: sortBy === o.value ? `1.5px solid ${TEAL}` : "1.5px solid #eee", borderRadius: 10, padding: "10px 14px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", color: sortBy === o.value ? TEAL : "#444", fontWeight: sortBy === o.value ? 700 : 400, fontSize: 13 }}>{o.label}{sortBy === o.value && <Check size={15} color={TEAL} />}</button>))}</div></Section>
         <div style={{ height: 16 }} />
       </div>
@@ -1549,7 +1619,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
       <div style={{ padding: "10px 14px" }}>
         <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
           <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: liked ? CORAL : "#888", padding: 0 }}><Heart size={20} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#888"} /><span style={{ fontWeight: 600, fontSize: 13 }}>{item.likes + (liked ? 1 : 0)}</span></button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={20} color="#888" /></button>
+          <button onClick={() => shareItem(item.creator + "s Beitrag", "Post")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={20} color="#888" /></button>
           <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Star size={20} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#888"} /></button>
           <button onClick={() => onViewWirker(item.creator)} style={{ marginLeft: "auto", background: TEAL, color: "white", border: "none", borderRadius: 20, padding: "6px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Talent ansehen</button>
         </div>
@@ -1594,11 +1664,12 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
           <img src={item.creatorImg} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
           <span onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ fontWeight: 600, fontSize: 12, color: TEAL, cursor: "pointer" }}>{item.creator}</span>
           <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location}</span>
+          {(item.recommendations || 0) > 0 && <span style={{ fontSize: 11, color: TEAL, display: "flex", alignItems: "center", gap: 2 }}><ThumbsUp size={10} color={TEAL} />{item.recommendations}</span>}
         </div>
         <div onClick={() => onViewWerk(item.title)} style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 8, cursor: "pointer" }}>{item.title}</div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: liked ? CORAL : "#bbb", padding: 0 }}><Heart size={17} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#bbb"} /><span style={{ fontSize: 12, color: liked ? CORAL : "#bbb" }}>{item.likes + (liked ? 1 : 0)}</span></button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={17} color="#bbb" /></button>
+          <button onClick={(e) => { e.stopPropagation(); shareItem(item.title, "Werk"); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={17} color="#bbb" /></button>
           <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Star size={17} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#bbb"} /></button>
           <button onClick={() => onViewWerk(item.title)} style={{ marginLeft: "auto", background: "none", border: `1.5px solid ${CORAL}`, borderRadius: 10, padding: "5px 12px", fontWeight: 700, fontSize: 12, color: CORAL, cursor: "pointer" }}>Details →</button>
         </div>
@@ -1614,9 +1685,9 @@ function WirkerCard({ item, onViewWirker, onBookWirker }) {
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
         <img src={item.img} onClick={() => onViewWirker(item.name)} style={{ width: 58, height: 58, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, cursor: "pointer", flexShrink: 0 }} alt={item.name} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{item.name}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#222", display: "flex", alignItems: "center", gap: 5 }}>{item.name}<BadgeCheck size={15} color={TEAL} fill={`${TEAL}22`} /></div>
           <div style={{ fontSize: 12, color: TEAL, fontWeight: 600, marginBottom: 2 }}>{item.talent}</div>
-          <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location} · ⭐ {item.recommendations} Empfehlungen</div>
+          <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location} · <ThumbsUp size={10} color={TEAL} /> {item.recommendations} Empfehlungen</div>
         </div>
         <button onClick={() => onViewWirker(item.name)} style={{ background: "none", border: `1.5px solid ${TEAL}`, borderRadius: 10, padding: "6px 10px", fontWeight: 700, fontSize: 11, color: TEAL, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>Profil →</button>
       </div>
@@ -2713,7 +2784,7 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
                     <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{w.talent}</div>
                     <div style={{ display: "flex", gap: 10, marginTop: 3 }}>
                       <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{w.location}</span>
-                      <span style={{ fontSize: 11, color: "#bbb" }}>⭐ {w.recommendations}</span>
+                      <span style={{ fontSize: 11, color: TEAL, display: "flex", alignItems: "center", gap: 2 }}><ThumbsUp size={10} color={TEAL} /> {w.recommendations}</span>
                       <span style={{ fontSize: 11, color: "#bbb" }}>{w.rate}</span>
                     </div>
                   </div>
@@ -3327,6 +3398,17 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           </div>
         )}
 
+        {/* ── RECHTLICHES ────────────────────────────────────────── */}
+        <div style={{ background: "white", borderRadius: 16, padding: "13px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: "#bbb", marginBottom: 10, letterSpacing: 0.3, textTransform: "uppercase" }}>Rechtliches</div>
+          {[["📄 Impressum", "#"], ["🔒 Datenschutzerklärung", "#"], ["📋 AGB", "#"], ["🍪 Cookie-Einstellungen", "#"]].map(([label, href]) => (
+            <a key={label} href={href} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid #f5f5f5", textDecoration: "none", color: "#555", fontSize: 14 }}>
+              <span>{label}</span>
+              <ChevronRight size={15} color="#ddd" />
+            </a>
+          ))}
+        </div>
+
         {/* ── TALENT-PROFIL: Stats + Radius + Werke ─────────────── */}
         {!isNewUser && (
           <>
@@ -3736,8 +3818,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser, onPlusClick }) {
   return (
     <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "white", borderTop: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-around", padding: "10px 0 18px", zIndex: 200, boxShadow: "0 -2px 16px rgba(0,0,0,0.07)" }}>
-      <TabButton label="Home" icon={<Home size={20} />} active={page === "home"} onClick={() => setPage("home")} />
-      <TabButton label="Impact" icon={<Leaf size={20} />} active={page === "impact"} onClick={() => setPage("impact")} />
+      <TabButton label="Home" icon={<Home size={20} />} active={page === "home"} onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+      <TabButton label="Impact" icon={<Leaf size={20} />} active={page === "impact"} onClick={() => { setPage("impact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
       {isNewUser ? (
         <button onClick={() => { setShowOnboarding(true); setOnboardingStep(0); }} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -18 }}>
           <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", boxShadow: `0 4px 18px ${GOLD}66`, animation: "huiPulse 2.4s ease-in-out infinite" }}><img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>
@@ -3746,8 +3828,8 @@ function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser
       ) : (
         <button onClick={onPlusClick} style={{ width: 54, height: 54, borderRadius: "50%", background: CORAL, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginTop: -18, boxShadow: `0 4px 16px ${CORAL}66` }}><Plus size={26} color="white" strokeWidth={2.5} /></button>
       )}
-      <TabButton label="Favoriten" icon={<Star size={20} />} active={page === "favorites"} onClick={() => setPage("favorites")} />
-      <TabButton label="Profil" icon={<User size={20} />} active={page === "profile"} onClick={() => setPage("profile")} />
+      <TabButton label="Favoriten" icon={<Star size={20} />} active={page === "favorites"} onClick={() => { setPage("favorites"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+      <TabButton label="Profil" icon={<User size={20} />} active={page === "profile"} onClick={() => { setPage("profile"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
     </div>
   );
 }
@@ -3772,11 +3854,18 @@ export default function App() {
   const [showCreateSheet, setShowCreateSheet] = useState(false);
   const [showWerkCreate, setShowWerkCreate] = useState(false);
   const [showStoryCreate, setShowStoryCreate] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
   const bookWirker = (name) => setDetailView({ type: "wirker", id: name, isOwn: false, autoBook: true });
-  const viewWerk = (title) => setDetailView({ type: "werk", id: title });
+  const viewWerk = (title) => {
+    setDetailView({ type: "werk", id: title });
+    setRecentlyViewed(prev => {
+      const filtered = prev.filter(t => t !== title);
+      return [title, ...filtered].slice(0, 6);
+    });
+  };
   const goBack = () => setDetailView(null);
 
   if (detailView?.type === "wirker") return (
@@ -3799,6 +3888,29 @@ export default function App() {
         <SearchBar onClick={() => setShowSearch(true)} />
         <div>
           <StoryBar />
+          {recentlyViewed.length > 0 && (
+            <div style={{ padding: "12px 16px 0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                <Eye size={14} color={TEAL} />
+                <span style={{ fontWeight: 700, fontSize: 13, color: "#444" }}>Zuletzt angesehen</span>
+              </div>
+              <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+                {recentlyViewed.map(title => {
+                  const werk = Object.values({
+                    ...Object.fromEntries(mockFeed.filter(i => i.type === "werk").map(i => [i.title, i])),
+                  })[0];
+                  const feedItem = mockFeed.find(i => i.type === "werk" && i.title === title);
+                  if (!feedItem) return null;
+                  return (
+                    <button key={title} onClick={() => viewWerk(title)} style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", textAlign: "center", width: 72 }}>
+                      <img src={feedItem.img} alt={title} style={{ width: 64, height: 64, borderRadius: 14, objectFit: "cover", border: `2px solid ${TEAL}22` }} />
+                      <div style={{ fontSize: 10, color: "#666", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 70 }}>{title}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div style={{ paddingBottom: 96 }}>
             {mockFeed.map(item => {
               if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
