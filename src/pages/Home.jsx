@@ -1655,18 +1655,18 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
 // ══════════════════════════════════════════════════════════════════
 // CREATE SHEET — Plus-Button Aktionen
 // ══════════════════════════════════════════════════════════════════
-function CreateSheet({ onClose, onNewWerk, onNewStory, onNewTalentUpdate }) {
+function CreateSheet({ onClose, onNewWerk, onNewStory, onNewTalentUpdate, isNewUser }) {
   const options = [
     {
       icon: "🎁", label: "Neues Werk veröffentlichen",
       sub: "Foto, Produkt oder digitales Angebot", color: CORAL,
       action: onNewWerk
     },
-    {
+    ...(!isNewUser ? [{
       icon: "📖", label: "Story teilen",
       sub: "Zeig was du gerade machst oder erlebt hast", color: GOLD,
       action: onNewStory
-    },
+    }] : []),
     {
       icon: "✨", label: "Talent-Profil aktualisieren",
       sub: "Kategorie, Bio, Stundensatz anpassen", color: TEAL,
@@ -2805,8 +2805,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           {!isNewUser && <div style={{ fontSize: 12, color: "#bbb", marginTop: 3 }}>Keramik-Künstler · seit März 2024</div>}
         </div>
 
-        {/* ── STORY-LEISTE ──────────────────────────────────── */}
-        <div style={{ margin: "12px -16px 8px", overflowX: "auto" }}>
+        {/* ── STORY-LEISTE (nur für Talente) ───────────────── */}
+        {!isNewUser && <div style={{ margin: "12px -16px 8px", overflowX: "auto" }}>
           <div style={{ display: "flex", gap: 10, padding: "4px 16px 10px" }}>
             {/* Neue Story erstellen */}
             <button onClick={() => setShowStoryCreate(true)}
@@ -2839,7 +2839,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
               <span style={{ fontSize: 10, color: "#bbb" }}>Archiv</span>
             </button>
           </div>
-        </div>
+        </div>}
 
         {/* HUI-Punkte */}
         <div style={{ background: `linear-gradient(135deg, ${GOLD}18, ${CORAL}0d)`, borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -3272,6 +3272,7 @@ export default function App() {
       }{showTalentAnbieten && <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />}
       {showCreateSheet && (
         <CreateSheet
+          isNewUser={isNewUser}
           onClose={() => setShowCreateSheet(false)}
           onNewWerk={() => { setShowCreateSheet(false); setShowWerkCreate(true); }}
           onNewStory={() => { setShowCreateSheet(false); setShowStoryCreate(true); }}
