@@ -1543,12 +1543,12 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
     if (step === 2) return form.vorname.length > 1 && form.nachname.length > 1 && form.standort.length > 2;
     if (step === 3) return form.kategorie !== "" && form.kurzbeschreibung.length > 15;
     if (step === 4) return form.angebotstyp.length > 0;
-    if (step === 5) return form.email.includes("@") && form.einverstanden && form.agb;
+    if (step === 5) return true; // nicht mehr genutzt
     return true;
   };
 
   // ── DANKE ──
-  if (step === 6) return (
+  if (step === 5) return (
     <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", maxWidth: 430, margin: "0 auto" }}>
       <div style={{ width: 100, height: 100, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}20, ${GOLD}20)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
         <span style={{ fontSize: 52 }}>🎉</span>
@@ -1577,8 +1577,8 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
     </div>
   );
 
-  const stepTitles = ["", "Wer bist du?", "Deine Basis-Infos", "Dein Talent", "Deine Angebote", "Kontakt & Abschluss"];
-  const stepSubs = ["", "Wie bietest du dein Talent an?", "Erzähl uns von dir", "Was kannst du besonders gut?", "Was bietest du konkret an?", "Fast geschafft!"];
+  const stepTitles = ["", "Wer bist du?", "Deine Basis-Infos", "Dein Talent", "Deine Angebote"];
+  const stepSubs = ["", "Wie bietest du dein Talent an?", "Erzähl uns von dir", "Was kannst du besonders gut?", "Was bietest du konkret an?"];
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
@@ -1595,9 +1595,9 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#bbb" /></button>
         </div>
         <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5 }}>
-          <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 5, borderRadius: 99, width: `${((step - 1) / 5) * 100}%`, transition: "width 0.3s" }} />
+          <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 5, borderRadius: 99, width: `${((step - 1) / 4) * 100}%`, transition: "width 0.3s" }} />
         </div>
-        <div style={{ fontSize: 11, color: "#ccc", marginTop: 4, textAlign: "right" }}>Schritt {step} von 5</div>
+        <div style={{ fontSize: 11, color: "#ccc", marginTop: 4, textAlign: "right" }}>Schritt {step} von 4</div>
       </div>
 
       {/* Content */}
@@ -1772,45 +1772,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
           </>
         )}
 
-        {/* ── STEP 5: Kontakt & Abschluss ── */}
-        {step === 5 && (
-          <>
-            <Input label="E-Mail-Adresse *" value={form.email} onChange={v => set("email", v)} placeholder="deine@email.de" type="email" />
-            <Input label="Telefon (optional)" value={form.telefon} onChange={v => set("telefon", v)} placeholder="+49 ..." type="tel" />
-            <Input label="Instagram / Social Media (optional)" value={form.instagram} onChange={v => set("instagram", v)} placeholder="@deinprofil" />
 
-            {/* Zusammenfassung */}
-            <div style={{ background: "#f9f9f7", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#333", marginBottom: 10 }}>📋 Deine Bewerbung</div>
-              {[
-                { label: "Typ", val: selectedTyp?.titel || "–" },
-                { label: "Name", val: form.anzeigeName || `${form.vorname} ${form.nachname}` || "–" },
-                { label: "Standort", val: form.standort || "–" },
-                { label: "Kategorie", val: form.kategorie || "–" },
-                { label: "Angebote", val: form.angebotstyp.join(", ") || "–" },
-                ...(form.stundensatz ? [{ label: "Stundensatz", val: `${form.stundensatz} €` }] : []),
-              ].map((r, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "5px 0", borderBottom: "1px solid #f0f0f0" }}>
-                  <span style={{ color: "#aaa" }}>{r.label}</span>
-                  <span style={{ fontWeight: 600, color: "#333", textAlign: "right", maxWidth: "60%" }}>{r.val}</span>
-                </div>
-              ))}
-            </div>
-
-            <div onClick={() => set("einverstanden", !form.einverstanden)} style={{ display: "flex", gap: 10, marginBottom: 10, cursor: "pointer" }}>
-              <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${form.einverstanden ? TEAL : "#ccc"}`, background: form.einverstanden ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                {form.einverstanden && <Check size={13} color="white" />}
-              </div>
-              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>Ich bestätige, dass alle Angaben korrekt sind und ich berechtigt bin, diese Leistungen anzubieten.</div>
-            </div>
-            <div onClick={() => set("agb", !form.agb)} style={{ display: "flex", gap: 10, marginBottom: 4, cursor: "pointer" }}>
-              <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${form.agb ? TEAL : "#ccc"}`, background: form.agb ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                {form.agb && <Check size={13} color="white" />}
-              </div>
-              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>Ich akzeptiere die <span style={{ color: TEAL, fontWeight: 600 }}>AGB</span> und <span style={{ color: TEAL, fontWeight: 600 }}>Datenschutzrichtlinien</span> von HUI.</div>
-            </div>
-          </>
-        )}
       </div>
 
       {/* Bottom Button */}
@@ -1826,7 +1788,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
             cursor: stepValid() ? "pointer" : "default", transition: "all 0.2s"
           }}
         >
-          {step < 5 ? "Weiter →" : "🚀 Jetzt bewerben"}
+          {step < 4 ? "Weiter →" : "🚀 Jetzt bewerben"}
         </button>
         {!stepValid() && step > 1 && (
           <div style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 7 }}>Bitte alle Pflichtfelder (*) ausfüllen</div>
