@@ -1877,7 +1877,7 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
 // ══════════════════════════════════════════════════════════════════
 // CREATE SHEET — Plus-Button Aktionen
 // ══════════════════════════════════════════════════════════════════
-function CreateSheet({ onClose, onNewWerk, onNewStory, onNewTalentUpdate, isNewUser }) {
+function CreateSheet({ onClose, onNewWerk, onNewStory, isNewUser }) {
   const options = [
     {
       icon: "🎁", label: "Neues Werk veröffentlichen",
@@ -1889,11 +1889,7 @@ function CreateSheet({ onClose, onNewWerk, onNewStory, onNewTalentUpdate, isNewU
       sub: "Zeig was du gerade machst oder erlebt hast", color: GOLD,
       action: onNewStory
     }] : []),
-    {
-      icon: "✨", label: "Talent-Profil aktualisieren",
-      sub: "Kategorie, Bio, Stundensatz anpassen", color: TEAL,
-      action: onNewTalentUpdate
-    },
+
   ];
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end" }} onClick={onClose}>
@@ -3323,7 +3319,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
               ))}
             </div>
             <button onClick={onTalentAnbieten} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-              🚀 Jetzt Talent anbieten
+              🚀 Jetzt Talent werden
             </button>
           </div>
         )}
@@ -3340,6 +3336,12 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
                 </div>
               ))}
             </div>
+
+            {/* Talent-Profil bearbeiten Button */}
+            <button onClick={onTalentAnbieten}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
+              <Edit3 size={16} /> Talent-Profil bearbeiten
+            </button>
 
             {/* Sichtbarkeitsradius – NUR Talent */}
             <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.04)", border: `1px solid ${TEAL}18` }}>
@@ -3812,7 +3814,6 @@ export default function App() {
           onClose={() => setShowCreateSheet(false)}
           onNewWerk={() => { setShowCreateSheet(false); setShowWerkCreate(true); }}
           onNewStory={() => { setShowCreateSheet(false); setShowStoryCreate(true); }}
-          onNewTalentUpdate={() => { setShowCreateSheet(false); setShowTalentAnbieten(true); }}
         />
       )}
       {showWerkCreate && <WerkCreateModal onClose={() => setShowWerkCreate(false)} />}
