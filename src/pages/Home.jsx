@@ -3359,7 +3359,15 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
                     <div style={{ fontSize: 11, color: "#aaa" }}>Wie weit bist du als Talent buchbar?</div>
                   </div>
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{radius === 9999 ? "🌍 Weltweit" : `${radius} km`}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{radius === 9999 ? "🌍 Weltweit" : `${radius} km`}</div>
+                  <button
+                    onClick={() => setRadius(radius === 9999 ? 50 : 9999)}
+                    title={radius === 9999 ? "Radius einschränken" : "Weltweit stellen"}
+                    style={{ width: 34, height: 34, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, background: radius === 9999 ? TEAL : `${TEAL}18`, transition: "background 0.2s", flexShrink: 0 }}>
+                    🌍
+                  </button>
+                </div>
               </div>
               <input
                 type="range" min={0} max={5}
