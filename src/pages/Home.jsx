@@ -78,9 +78,9 @@ const mockWirkerProfiles = {
 };
 
 const mockWerkDetails = {
-  "Handgemachte Keramik-Tasse": { title: "Handgemachte Keramik-Tasse", price: "38 €", creator: "Sofia M.", creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=500&fit=crop", extraImgs: ["https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=200&h=200&fit=crop","https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=200&h=200&fit=crop"], location: "München", likes: 124, category: "Kunst & Kreatives", description: "Eine von Hand gedrehte Keramik-Tasse aus feinstem Steinzeugton. Jede Tasse ist ein Unikat – leicht unterschiedlich in Form, Textur und Glasur.\n\nGröße: ca. 250ml · Höhe: ~9cm", shipping: "4,50 €", deliveryDays: "5–7", tags: ["Handgemacht", "Keramik", "Unikat", "Geschenk"], impactHint: "3% dieses Kaufs (1,14 €) fließen in den Impact Pool" },
-  "Aquarell-Portrait": { title: "Aquarell-Portrait", price: "120 €", creator: "Lena K.", creatorImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=600&h=500&fit=crop", extraImgs: [], location: "Hamburg", likes: 89, category: "Kunst & Kreatives", description: "Ein handgemaltes Aquarell-Portrait nach deinem Foto. Format: A4 · Lieferzeit: 10–14 Werktage", shipping: "6,00 €", deliveryDays: "10–14", tags: ["Aquarell", "Portrait", "Auftragsarbeit"], impactHint: "3% dieses Kaufs (3,60 €) fließen in den Impact Pool" },
-  "Handgenähter Leder-Rucksack": { title: "Handgenähter Leder-Rucksack", price: "195 €", creator: "Tom H.", creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=500&fit=crop", extraImgs: [], location: "Wien", likes: 203, category: "Handwerk", description: "Handgefertigter Rucksack aus vegetabil gegerbtem Vollnarbenleder. Maße: 35x28x12cm", shipping: "8,00 €", deliveryDays: "21–28", tags: ["Leder", "Handarbeit", "Nachhaltig"], impactHint: "3% dieses Kaufs (5,85 €) fließen in den Impact Pool" },
+  "Handgemachte Keramik-Tasse": { title: "Handgemachte Keramik-Tasse", price: "38 €", creator: "Sofia M.", creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=500&fit=crop", extraImgs: ["https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=200&h=200&fit=crop","https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=200&h=200&fit=crop"], location: "München", likes: 124, category: "Kunst & Kreatives", description: "Eine von Hand gedrehte Keramik-Tasse aus feinstem Steinzeugton. Jede Tasse ist ein Unikat – leicht unterschiedlich in Form, Textur und Glasur.\n\nGröße: ca. 250ml · Höhe: ~9cm", shipping: "4,50 €", deliveryDays: "5–7", tags: ["Handgemacht", "Keramik", "Unikat", "Geschenk"], impactHint: "3% der Provision (0,17 €) fließen in den Impact Pool" },
+  "Aquarell-Portrait": { title: "Aquarell-Portrait", price: "120 €", creator: "Lena K.", creatorImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=600&h=500&fit=crop", extraImgs: [], location: "Hamburg", likes: 89, category: "Kunst & Kreatives", description: "Ein handgemaltes Aquarell-Portrait nach deinem Foto. Format: A4 · Lieferzeit: 10–14 Werktage", shipping: "6,00 €", deliveryDays: "10–14", tags: ["Aquarell", "Portrait", "Auftragsarbeit"], impactHint: "3% der Provision (0,54 €) fließen in den Impact Pool" },
+  "Handgenähter Leder-Rucksack": { title: "Handgenähter Leder-Rucksack", price: "195 €", creator: "Tom H.", creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=500&fit=crop", extraImgs: [], location: "Wien", likes: 203, category: "Handwerk", description: "Handgefertigter Rucksack aus vegetabil gegerbtem Vollnarbenleder. Maße: 35x28x12cm", shipping: "8,00 €", deliveryDays: "21–28", tags: ["Leder", "Handarbeit", "Nachhaltig"], impactHint: "3% der Provision (0,88 €) fließen in den Impact Pool" },
 };
 
 const mockStories = [
@@ -238,7 +238,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
   const availableSlots = selectedDate ? (availability[selectedDate.weekday] || []) : [];
   const pricePerHour = wirker.pricePerHour || 60;
   const provision = Math.round(pricePerHour * 0.15 * 100) / 100;
-  const impact = Math.round(pricePerHour * 0.03 * 100) / 100;
+  const impact = Math.round(provision * 0.03 * 100) / 100; // 3% der Provision
   const total = pricePerHour + provision;
 
   const formatDate = (d) => d ? `${WEEKDAY_FULL[WEEKDAYS.indexOf(d.weekday)]}, ${d.day}. ${MONTHS[d.month]} ${d.year}` : "";
@@ -264,7 +264,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
         <div style={{ fontSize: 13, color: "#666" }}>📅 {formatDate(selectedDate)}</div>
         <div style={{ fontSize: 13, color: "#666" }}>🕐 {selectedTime} Uhr</div>
         <div style={{ fontSize: 13, color: "#666" }}>💶 {total.toFixed(2)} € bezahlt (inkl. Provision)</div>
-        <div style={{ fontSize: 12, color: TEAL, marginTop: 6 }}>🌱 {impact.toFixed(2)} € sind in den Impact Pool geflossen</div>
+        <div style={{ fontSize: 12, color: TEAL, marginTop: 6 }}>🌱 {impact.toFixed(2)} € (3% der Provision) fließen in den Impact Pool</div>
       </div>
       <div style={{ background: `${TEAL}12`, borderRadius: 14, padding: "12px 16px", width: "100%", marginBottom: 24, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
         💬 Der Chat mit {wirker.name} wurde freigeschaltet. Eine automatische Nachricht wurde bereits gesendet.
@@ -340,7 +340,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
             </div>
 
             <div style={{ background: `${GOLD}12`, borderRadius: 12, padding: "12px 14px", marginTop: 20, fontSize: 13, color: "#777" }}>
-              💶 Stundensatz: <strong style={{ color: "#333" }}>{wirker.hourlyRate}</strong> · 15% Provision + 3% Impact Pool
+              💶 Stundensatz: <strong style={{ color: "#333" }}>{wirker.hourlyRate}</strong> · 15% Provision (davon 3% in den Impact Pool)
             </div>
           </>
         )}
@@ -418,7 +418,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
                 <span>Plattformprovision (15%)</span><span style={{ fontWeight: 600, color: "#444" }}>{provision.toFixed(2)} €</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 10 }}>
-                <span>🌱 davon 3% Impact Pool</span><span>{impact.toFixed(2)} €</span>
+                <span>🌱 davon 3% der Provision → Impact Pool</span><span>{impact.toFixed(2)} €</span>
               </div>
               <div style={{ borderTop: "1px solid #eee", paddingTop: 10, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18 }}>
                 <span>Gesamt</span><span style={{ color: CORAL }}>{total.toFixed(2)} €</span>
@@ -669,7 +669,7 @@ function WerkDetailPage({ werkTitle, onBack, onAddToCart, onViewWirker }) {
         <div style={{ background: "#f9f9f7", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 6 }}><span>Preis</span><span>{w.price}</span></div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 6 }}><span>Versand</span><span>{w.shipping}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 8 }}><span>🌱 3% gehen in den Impact Pool</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 8 }}><span>🌱 3% der Provision gehen in den Impact Pool</span></div>
           <div style={{ borderTop: "1px solid #eee", paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 16 }}><span>Gesamt</span><span style={{ color: CORAL }}>{totalNum.toFixed(2)} €</span></div>
         </div>
         <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${GOLD}10)`, borderRadius: 12, padding: "12px 14px", fontSize: 13, color: "#555", lineHeight: 1.6 }}>
@@ -904,7 +904,7 @@ function CartOverlay({ cart, onClose, onRemove }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 300, display: "flex", alignItems: "flex-end" }}>
       <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: 20, width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "80vh", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><ShoppingBasket size={20} color={CORAL} /><span style={{ fontWeight: 800, fontSize: 19 }}>Mein Werkekorb</span></div><button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#555" /></button></div>
-        {cart.length === 0 ? (<div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: 56, marginBottom: 12 }}>🧺</div><div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6, color: "#333" }}>Dein Werkekorb ist noch leer</div><div style={{ color: "#999", marginBottom: 20, fontSize: 13 }}>Entdecke wundervolle Werke und Talente</div><button onClick={onClose} style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Jetzt entdecken</button></div>) : (<>{cart.map((item, i) => (<div key={i} style={{ display: "flex", gap: 12, marginBottom: 12, background: "#fafaf8", borderRadius: 12, padding: 10 }}><img src={item.img} style={{ width: 66, height: 66, borderRadius: 10, objectFit: "cover" }} alt={item.title} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{item.title}</div><div style={{ fontSize: 12, color: "#999", marginBottom: 3 }}>{item.creator}</div><div style={{ fontWeight: 700, color: CORAL }}>{item.price}</div></div><button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc" }}><X size={16} /></button></div>))}<div style={{ borderTop: "1px solid #eee", paddingTop: 14 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#999", marginBottom: 4 }}><span>Zwischensumme</span><span>{total.toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 12 }}><span>🌱 3 % gehen in den Impact Pool</span><span>{(total * 0.03).toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18, marginBottom: 16 }}><span>Gesamt</span><span>{total.toFixed(2)} €</span></div><button style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt bezahlen</button></div></>)}
+        {cart.length === 0 ? (<div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: 56, marginBottom: 12 }}>🧺</div><div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6, color: "#333" }}>Dein Werkekorb ist noch leer</div><div style={{ color: "#999", marginBottom: 20, fontSize: 13 }}>Entdecke wundervolle Werke und Talente</div><button onClick={onClose} style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Jetzt entdecken</button></div>) : (<>{cart.map((item, i) => (<div key={i} style={{ display: "flex", gap: 12, marginBottom: 12, background: "#fafaf8", borderRadius: 12, padding: 10 }}><img src={item.img} style={{ width: 66, height: 66, borderRadius: 10, objectFit: "cover" }} alt={item.title} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{item.title}</div><div style={{ fontSize: 12, color: "#999", marginBottom: 3 }}>{item.creator}</div><div style={{ fontWeight: 700, color: CORAL }}>{item.price}</div></div><button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc" }}><X size={16} /></button></div>))}<div style={{ borderTop: "1px solid #eee", paddingTop: 14 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#999", marginBottom: 4 }}><span>Zwischensumme</span><span>{total.toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 12 }}><span>🌱 3% der Provision → Impact Pool</span><span>{(total * 0.15 * 0.03).toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18, marginBottom: 16 }}><span>Gesamt</span><span>{total.toFixed(2)} €</span></div><button style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt bezahlen</button></div></>)}
       </div>
     </div>
   );
@@ -1071,7 +1071,7 @@ function ProjektVorschlagenPage({ onClose }) {
                 <div style={{ fontWeight: 700, fontSize: 13, color: TEAL, marginBottom: 6 }}>Hochrechnung:</div>
                 <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>
                   Bei {parseFloat(form.budgetZiel || 0).toLocaleString("de")} € Ziel und 3% Impact-Anteil:<br />
-                  → ca. <strong>{Math.round(parseFloat(form.budgetZiel || 0) / 75).toLocaleString("de")} Buchungen</strong> auf HUI nötig
+                  → ca. <strong>{Math.round(parseFloat(form.budgetZiel || 0) / (75 * 0.15 * 0.03)).toLocaleString("de")} Buchungen</strong> (à 75€) auf HUI nötig
                 </div>
               </div>
             )}
@@ -1185,7 +1185,7 @@ function ImpactPage() {
 
         <div style={{ textAlign: "center", fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 8 }}>Gemeinsam haben wir schon so viel bewegt. 🌍</div>
         <div style={{ textAlign: "center", fontSize: 13, color: "#aaa", lineHeight: 1.6, marginBottom: 8 }}>
-          3% jeder Buchung und jedes Kaufs fließen automatisch in diese Projekte.
+          3% der Provision (15%) jeder Buchung und jedes Kaufs fließen automatisch in diese Projekte.
         </div>
       </div>
 
@@ -1239,7 +1239,7 @@ function ImpactPage() {
           <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 14 }}>Wie der Impact Pool funktioniert</div>
           {[
             { icon: "🛒", step: "1", text: "Du buchst oder kaufst etwas auf HUI" },
-            { icon: "💰", step: "2", text: "3% des Betrags fließen automatisch in den Impact Pool" },
+            { icon: "💰", step: "2", text: "3% der 15% Provision fließen automatisch in den Impact Pool" },
             { icon: "🗳️", step: "3", text: "Die Community stimmt ab, welche Projekte gefördert werden" },
             { icon: "✅", step: "4", text: "Gelder werden monatlich transparent ausgezahlt" },
           ].map((r, i) => (
