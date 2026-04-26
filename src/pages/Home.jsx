@@ -1674,10 +1674,10 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover" }} />
-          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 0.2, color: "#444" }}>
-            <span style={{ color: "#FF8C00", fontWeight: 900, fontSize: 15 }}>H</span>uman{" "}
-            <span style={{ color: "#FF8C00", fontWeight: 900, fontSize: 15 }}>U</span>nited{" "}
-            <span style={{ color: "#FF8C00", fontWeight: 900, fontSize: 15 }}>I</span>ntelligent
+          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.2, color: "#888" }}>
+            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>H</span>uman{" "}
+            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>U</span>nited{" "}
+            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>I</span>ntelligent
           </span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
