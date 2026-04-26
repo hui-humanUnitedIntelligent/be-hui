@@ -159,89 +159,189 @@ const mockComments = {
   ],
 };
 
-// Kommentar-Bereich Komponente (Instagram-Style)
-function CommentSection({ itemId, initialCount }) {
+// Kommentar-Bereich Komponente
+// creator = Name des Talent-Erstellers des Posts
+// isTalent = true wenn aktuell eingeloggter User = Ersteller (kann mit Talent-Badge antworten)
+function CommentSection({ itemId, creator, isTalent }) {
   const [open, setOpen] = useState(false);
   const [comments, setComments] = useState(mockComments[itemId] || []);
   const [input, setInput] = useState("");
   const [likedComments, setLikedComments] = useState({});
+  const [replyingTo, setReplyingTo] = useState(null); // { id, user }
   const inputRef = React.useRef(null);
 
-  const total = comments.length;
+  // Talent-Profil für den Ersteller des Posts
+  const talentImg = creator === "Sofia M."
+    ? "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop"
+    : creator === "Marcus B."
+    ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop"
+    : creator === "Maria L."
+    ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop"
+    : creator === "Tom H."
+    ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop"
+    : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop";
 
+  // Mein Profil (eingeloggter User = Lars M. als Demo-Talent)
+  const myName = isTalent ? creator : "Lars M.";
+  const myImg = isTalent ? talentImg : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop";
+
+  const total = comments.length;
   const toggleLike = (cid) => setLikedComments(p => ({ ...p, [cid]: !p[cid] }));
 
+  const handleReply = (c) => {
+    setReplyingTo(c);
+    setInput(`@${c.user} `);
+    setOpen(true);
+    setTimeout(() => { inputRef.current?.focus(); inputRef.current?.setSelectionRange(999,999); }, 80);
+  };
+
   const submit = () => {
-    if (!input.trim()) return;
-    setComments(p => [...p, {
+    const txt = input.trim();
+    if (!txt) return;
+    const newComment = {
       id: "new_" + Date.now(),
-      user: "Lars M.",
-      img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop",
-      text: input.trim(),
+      user: myName,
+      img: myImg,
+      text: txt,
       time: "gerade eben",
       likes: 0,
-    }]);
+      isTalent,
+      replyTo: replyingTo?.user || null,
+    };
+    if (replyingTo) {
+      // Als Antwort direkt nach dem kommentierten Eintrag einfügen
+      setComments(p => {
+        const idx = p.findIndex(c => c.id === replyingTo.id);
+        const copy = [...p];
+        copy.splice(idx + 1, 0, newComment);
+        return copy;
+      });
+    } else {
+      setComments(p => [...p, newComment]);
+    }
     setInput("");
+    setReplyingTo(null);
   };
+
+  // Neue Kommentare für das Talent hervorheben (ungelesen)
+  const unreadCount = isTalent ? comments.filter(c => !c.isTalent && c.time === "gerade eben").length : 0;
 
   return (
     <div style={{ borderTop: "1px solid #f0f0ee" }}>
-      {/* Kommentar-Button + Anzahl */}
-      <button onClick={() => { setOpen(o => !o); setTimeout(() => open || inputRef.current?.focus(), 100); }}
-        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", color: open ? CORAL : "#888" }}>
-        <MessageCircle size={19} fill={open ? `${CORAL}20` : "none"} color={open ? CORAL : "#888"} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: open ? CORAL : "#888" }}>
-          {total > 0 ? `${total} Kommentar${total !== 1 ? "e" : ""}` : "Kommentieren"}
-        </span>
-      </button>
+      {/* Kommentar-Toggle-Button */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px" }}>
+        <button onClick={() => { setOpen(o => !o); setTimeout(() => !open && inputRef.current?.focus(), 100); }}
+          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: "9px 0", color: open ? CORAL : "#888" }}>
+          <MessageCircle size={19} fill={open ? `${CORAL}18` : "none"} color={open ? CORAL : "#888"} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: open ? CORAL : "#888" }}>
+            {total > 0 ? `${total} Kommentar${total !== 1 ? "e" : ""}` : "Kommentieren"}
+          </span>
+        </button>
+        {/* Talent: Benachrichtigungs-Hinweis */}
+        {isTalent && total > 0 && (
+          <button onClick={() => setOpen(true)}
+            style={{ background: `${TEAL}12`, border: "none", borderRadius: 20, padding: "4px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: TEAL }}>✨ Als Talent antworten</span>
+          </button>
+        )}
+      </div>
 
-      {/* Aufgeklappter Bereich */}
       {open && (
-        <div style={{ padding: "0 14px 12px" }}>
+        <div style={{ padding: "0 14px 14px" }}>
+
           {/* Kommentar-Liste */}
           {comments.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              {comments.map((c) => (
-                <div key={c.id} style={{ display: "flex", gap: 9, marginBottom: 12, alignItems: "flex-start" }}>
-                  <img src={c.img} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0, marginTop: 1 }} alt={c.user} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ background: "#f5f5f3", borderRadius: "0 14px 14px 14px", padding: "8px 11px" }}>
-                      <span style={{ fontWeight: 700, fontSize: 12, color: "#222" }}>{c.user} </span>
-                      <span style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>{c.text}</span>
+              {comments.map((c) => {
+                const isCreatorComment = c.isTalent || c.user === creator;
+                return (
+                  <div key={c.id} style={{ display: "flex", gap: 9, marginBottom: 10, alignItems: "flex-start",
+                    ...(c.replyTo ? { paddingLeft: 28 } : {}) }}>
+                    {/* Avatar mit optionalem Talent-Ring */}
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      <img src={c.img} style={{
+                        width: 32, height: 32, borderRadius: "50%", objectFit: "cover", marginTop: 1,
+                        border: isCreatorComment ? `2px solid ${TEAL}` : "2px solid transparent"
+                      }} alt={c.user} />
+                      {isCreatorComment && (
+                        <div style={{ position: "absolute", bottom: -2, right: -2, background: TEAL, borderRadius: "50%", width: 13, height: 13, border: "1.5px solid white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7 }}>✨</div>
+                      )}
                     </div>
-                    <div style={{ display: "flex", gap: 12, marginTop: 4, alignItems: "center" }}>
-                      <span style={{ fontSize: 11, color: "#bbb" }}>{c.time}</span>
-                      <button onClick={() => toggleLike(c.id)}
-                        style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3, color: likedComments[c.id] ? CORAL : "#bbb" }}>
-                        <Heart size={12} fill={likedComments[c.id] ? CORAL : "none"} color={likedComments[c.id] ? CORAL : "#bbb"} />
-                        <span style={{ fontSize: 11, fontWeight: 600 }}>{c.likes + (likedComments[c.id] ? 1 : 0)}</span>
-                      </button>
-                      <button style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 11, color: "#bbb", fontWeight: 600 }}>Antworten</button>
+
+                    <div style={{ flex: 1 }}>
+                      {/* Kommentar-Bubble */}
+                      <div style={{
+                        background: isCreatorComment ? `${TEAL}0e` : "#f5f5f3",
+                        border: isCreatorComment ? `1px solid ${TEAL}25` : "1px solid transparent",
+                        borderRadius: "0 14px 14px 14px", padding: "8px 11px"
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                          <span style={{ fontWeight: 700, fontSize: 12, color: isCreatorComment ? TEAL : "#222" }}>{c.user}</span>
+                          {isCreatorComment && (
+                            <span style={{ background: TEAL, color: "white", fontSize: 9, fontWeight: 800, borderRadius: 20, padding: "1px 6px" }}>✨ Talent</span>
+                          )}
+                        </div>
+                        {c.replyTo && (
+                          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>↩ Antwort auf <span style={{ fontWeight: 700 }}>@{c.replyTo}</span></div>
+                        )}
+                        <span style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>{c.text}</span>
+                      </div>
+
+                      {/* Aktionen */}
+                      <div style={{ display: "flex", gap: 12, marginTop: 4, alignItems: "center" }}>
+                        <span style={{ fontSize: 11, color: "#bbb" }}>{c.time}</span>
+                        <button onClick={() => toggleLike(c.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3, color: likedComments[c.id] ? CORAL : "#bbb" }}>
+                          <Heart size={12} fill={likedComments[c.id] ? CORAL : "none"} color={likedComments[c.id] ? CORAL : "#bbb"} />
+                          <span style={{ fontSize: 11, fontWeight: 600 }}>{c.likes + (likedComments[c.id] ? 1 : 0)}</span>
+                        </button>
+                        <button onClick={() => handleReply(c)}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 11, color: isTalent ? TEAL : "#bbb", fontWeight: isTalent ? 700 : 600 }}>
+                          {isTalent ? "↩ Antworten als Talent" : "Antworten"}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
+            </div>
+          )}
+
+          {/* Antwort-Kontext */}
+          {replyingTo && (
+            <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 10, padding: "6px 12px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: TEAL }}>↩ Antworte auf <strong>@{replyingTo.user}</strong></span>
+              <button onClick={() => { setReplyingTo(null); setInput(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#bbb", fontSize: 16, lineHeight: 1 }}>×</button>
             </div>
           )}
 
           {/* Eingabe */}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} alt="me" />
-            <div style={{ flex: 1, display: "flex", alignItems: "center", background: "#f5f5f3", borderRadius: 22, padding: "0 4px 0 12px" }}>
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <img src={myImg} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: isTalent ? `2px solid ${TEAL}` : "2px solid #eee" }} alt="me" />
+              {isTalent && <div style={{ position: "absolute", bottom: -1, right: -1, background: TEAL, borderRadius: "50%", width: 11, height: 11, border: "1.5px solid white", fontSize: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>✨</div>}
+            </div>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", background: isTalent ? `${TEAL}0a` : "#f5f5f3", border: isTalent ? `1px solid ${TEAL}30` : "1px solid transparent", borderRadius: 22, padding: "0 4px 0 12px", transition: "all 0.2s" }}>
               <input
                 ref={inputRef}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && submit()}
-                placeholder="Kommentieren..."
-                style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 13, padding: "9px 4px 9px 0", fontFamily: "inherit" }}
+                placeholder={isTalent ? "Als Talent antworten..." : "Kommentieren..."}
+                style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 13, padding: "9px 4px 9px 0", fontFamily: "inherit", color: "#333" }}
               />
               <button onClick={submit} disabled={!input.trim()}
-                style={{ background: input.trim() ? CORAL : "transparent", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: input.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.2s" }}>
+                style={{ background: input.trim() ? (isTalent ? TEAL : CORAL) : "transparent", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: input.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.2s" }}>
                 <Send size={14} color={input.trim() ? "white" : "#ccc"} />
               </button>
             </div>
           </div>
+
+          {isTalent && (
+            <div style={{ textAlign: "center", marginTop: 8, fontSize: 11, color: TEAL, fontWeight: 600 }}>
+              ✨ Deine Antworten erscheinen mit Talent-Badge
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1429,7 +1529,7 @@ function StoryBar() {
     </div>
   );
 }
-function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker }) {
+function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
   const [playing, setPlaying] = useState(false);
   return (
     <div style={{ background: "white", marginBottom: 8, borderLeft: `3px solid ${TEAL}`, borderRight: `3px solid ${TEAL}22` }}>
@@ -1455,11 +1555,11 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker }) {
         </div>
         <div style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}><span style={{ fontWeight: 700 }}>{item.creator} </span>{item.caption}</div>
       </div>
-      <CommentSection itemId={item.id} />
+      <CommentSection itemId={item.id} creator={item.creator} isTalent={isTalentUser && item.creator === "Sofia M."} />
     </div>
   );
 }
-function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, onViewWirker }) {
+function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, onViewWirker, isTalentUser }) {
   const [added, setAdded] = useState(false);
   const handleCart = (e) => {
     e.stopPropagation();
@@ -1503,7 +1603,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
           <button onClick={() => onViewWerk(item.title)} style={{ marginLeft: "auto", background: "none", border: `1.5px solid ${CORAL}`, borderRadius: 10, padding: "5px 12px", fontWeight: 700, fontSize: 12, color: CORAL, cursor: "pointer" }}>Details →</button>
         </div>
       </div>
-      <CommentSection itemId={item.id} />
+      <CommentSection itemId={item.id} creator={item.creator} isTalent={isTalentUser && item.creator === "Sofia M."} />
     </div>
   );
 }
@@ -3616,7 +3716,7 @@ export default function App() {
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = true;
+  const isNewUser = false; // false = Talent-Modus (Demo)
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
   const [showCreateSheet, setShowCreateSheet] = useState(false);
@@ -3651,8 +3751,8 @@ export default function App() {
           <StoryBar />
           <div style={{ paddingBottom: 96 }}>
             {mockFeed.map(item => {
-              if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} />;
-              if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} />;
+              if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
+              if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
               if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />;
               if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
               return null;
