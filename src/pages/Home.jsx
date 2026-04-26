@@ -2436,6 +2436,16 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const [talentAktiv, setTalentAktiv] = useState(true);
   const [showRadiusEditor, setShowRadiusEditor] = useState(false);
   const [activeSection, setActiveSection] = useState(null); // "einstellungen"
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editTab, setEditTab] = useState("basis"); // "basis" | "talent" | "bio"
+  const [profileForm, setProfileForm] = useState({
+    vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
+    standort: "München, Deutschland", bio: "Ich forme aus Ton Dinge, die bleiben.",
+    website: "", instagram: "", kategorie: "Keramik & Töpfern",
+    sprachen: ["Deutsch"], erfahrung: "3 Jahre",
+    kurzbeschreibung: "Keramik-Künstler aus München – handgemachte Unikate und Workshops.",
+  });
+  const setP = (k, v) => setProfileForm(f => ({ ...f, [k]: v }));
 
   const radiusMarks = [5, 10, 25, 50, 100, 250];
 
@@ -2494,8 +2504,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
             <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }} alt="profile" />
             <div style={{ position: "absolute", bottom: 2, right: 2, width: 20, height: 20, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
           </div>
-          <button style={{ background: "white", border: "1.5px solid #e0e0e0", borderRadius: 20, padding: "7px 16px", fontSize: 13, fontWeight: 700, color: "#444", cursor: "pointer", marginBottom: 4 }}>
-            Profil bearbeiten
+          <button onClick={() => setShowEditProfile(true)} style={{ background: "white", border: "1.5px solid #e0e0e0", borderRadius: 20, padding: "7px 16px", fontSize: 13, fontWeight: 700, color: "#444", cursor: "pointer", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+            <Edit3 size={13} /> Profil bearbeiten
           </button>
         </div>
         <div style={{ marginBottom: 4 }}>
@@ -2664,6 +2674,173 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
         </button>
 
       </div>
+
+      {/* ── PROFIL BEARBEITEN MODAL ─────────────────────────────── */}
+      {showEditProfile && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end" }}>
+          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxHeight: "88vh", display: "flex", flexDirection: "column" }}>
+            {/* Header */}
+            <div style={{ padding: "16px 20px 0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Profil bearbeiten</div>
+              <button onClick={() => setShowEditProfile(false)} style={{ background: "#f0f0ee", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={16} /></button>
+            </div>
+
+            {/* Profilbild oben */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 20px 12px", flexShrink: 0 }}>
+              <div style={{ position: "relative", marginBottom: 8 }}>
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 78, height: 78, borderRadius: "50%", objectFit: "cover", border: `3px solid ${CORAL}33` }} alt="" />
+                <div style={{ position: "absolute", bottom: 0, right: 0, width: 26, height: 26, borderRadius: "50%", background: CORAL, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white", cursor: "pointer" }}>
+                  <Edit3 size={11} color="white" />
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: "#aaa" }}>Tippe um Foto zu ändern</div>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ display: "flex", borderBottom: "1px solid #f0f0f0", padding: "0 20px", flexShrink: 0 }}>
+              {[["basis", "Basis"], ["bio", "Bio & Links"], ...(isNewUser ? [] : [["talent", "Talent"]])].map(([id, label]) => (
+                <button key={id} onClick={() => setEditTab(id)}
+                  style={{ background: "none", border: "none", borderBottom: editTab === id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "10px 14px", fontSize: 13, fontWeight: editTab === id ? 700 : 500, color: editTab === id ? CORAL : "#999", cursor: "pointer", marginBottom: -1 }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab-Inhalte */}
+            <div style={{ overflowY: "auto", flex: 1, padding: "18px 20px 24px" }}>
+
+              {editTab === "basis" && (
+                <div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Vorname</div>
+                      <input value={profileForm.vorname} onChange={e => setP("vorname", e.target.value)}
+                        style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Nachname</div>
+                      <input value={profileForm.nachname} onChange={e => setP("nachname", e.target.value)}
+                        style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Anzeigename</div>
+                    <input value={profileForm.anzeigeName} onChange={e => setP("anzeigeName", e.target.value)}
+                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                    <div style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>Dieser Name ist für andere sichtbar</div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Standort</div>
+                    <div style={{ position: "relative" }}>
+                      <input value={profileForm.standort} onChange={e => setP("standort", e.target.value)}
+                        style={{ width: "100%", padding: "11px 13px 11px 36px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                      <MapPin size={14} color="#bbb" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Profilbild-URL</div>
+                    <input placeholder="https://..." style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", color: "#bbb" }} />
+                  </div>
+                </div>
+              )}
+
+              {editTab === "bio" && (
+                <div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Über mich</div>
+                    <textarea value={profileForm.bio} onChange={e => setP("bio", e.target.value)} rows={4}
+                      placeholder="Beschreibe dich in ein paar Sätzen..."
+                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
+                    <div style={{ fontSize: 11, color: profileForm.bio.length > 280 ? CORAL : "#bbb", marginTop: 3, textAlign: "right" }}>{profileForm.bio.length}/300</div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Website</div>
+                    <input value={profileForm.website} onChange={e => setP("website", e.target.value)}
+                      placeholder="https://meineseite.de"
+                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Instagram</div>
+                    <div style={{ position: "relative" }}>
+                      <span style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#bbb" }}>@</span>
+                      <input value={profileForm.instagram} onChange={e => setP("instagram", e.target.value)}
+                        placeholder="dein_handle"
+                        style={{ width: "100%", padding: "11px 13px 11px 28px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Sprachen</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {["Deutsch", "Englisch", "Französisch", "Spanisch", "Türkisch", "Arabisch"].map(lang => {
+                        const active = profileForm.sprachen.includes(lang);
+                        return (
+                          <button key={lang} onClick={() => setP("sprachen", active ? profileForm.sprachen.filter(l => l !== lang) : [...profileForm.sprachen, lang])}
+                            style={{ background: active ? `${TEAL}18` : "#f4f4f2", border: `1.5px solid ${active ? TEAL : "transparent"}`, borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: active ? TEAL : "#666", cursor: "pointer" }}>
+                            {lang}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {editTab === "talent" && !isNewUser && (
+                <div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kategorie</div>
+                    <input value={profileForm.kategorie} onChange={e => setP("kategorie", e.target.value)}
+                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kurzvorstellung</div>
+                    <textarea value={profileForm.kurzbeschreibung} onChange={e => setP("kurzbeschreibung", e.target.value)} rows={3}
+                      placeholder="Was machst du, wie arbeitest du?"
+                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Erfahrung</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {["< 1 Jahr", "1–2 Jahre", "3–5 Jahre", "5–10 Jahre", "10+ Jahre"].map(e => (
+                        <button key={e} onClick={() => setP("erfahrung", e)}
+                          style={{ background: profileForm.erfahrung === e ? `${CORAL}18` : "#f4f4f2", border: `1.5px solid ${profileForm.erfahrung === e ? CORAL : "transparent"}`, borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: profileForm.erfahrung === e ? CORAL : "#666", cursor: "pointer" }}>
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Stundensatz (€)</div>
+                    <input type="number" defaultValue="45" min="5"
+                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Angebotsform</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {[["📍", "Vor Ort"], ["🚗", "Beim Kunden"], ["💻", "Online"]].map(([icon, label]) => (
+                        <div key={label} style={{ flex: 1, minWidth: 80, background: `${TEAL}12`, border: `1.5px solid ${TEAL}33`, borderRadius: 12, padding: "10px 8px", textAlign: "center", cursor: "pointer" }}>
+                          <div style={{ fontSize: 20 }}>{icon}</div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: TEAL, marginTop: 4 }}>{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Speichern-Button */}
+            <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
+              <button onClick={() => setShowEditProfile(false)}
+                style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                ✓ Änderungen speichern
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
