@@ -799,7 +799,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>Über {p.fullName}</div>
             <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, margin: 0 }}>{p.bio}</p>
           </div>
-          <div style={{ background: "white", borderRadius: 16, padding: 16 }}>
+          <div style={{ background: "white", borderRadius: 16, padding: 16, marginBottom: 12 }}>
             {[{ icon: "📍", label: "Standort", val: `${p.location} (${p.distance} entfernt)` }, { icon: "📅", label: "Mitglied seit", val: p.memberSince }, { icon: "🎯", label: "Buchungen", val: `${p.bookings} erfolgreiche Buchungen` }, { icon: "🌱", label: "Impact", val: `${p.impactEur} € in Impact Pool` }, { icon: "💶", label: "Stundensatz", val: p.hourlyRate }].map((row, i, arr) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "9px 0", borderBottom: i < arr.length - 1 ? "1px solid #f5f5f5" : "none" }}>
                 <span style={{ fontSize: 18 }}>{row.icon}</span>
@@ -807,6 +807,32 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
                   <div style={{ fontSize: 11, color: "#aaa", fontWeight: 600 }}>{row.label.toUpperCase()}</div>
                   <div style={{ fontSize: 14, color: "#333" }}>{row.val}</div>
                 </div>
+              </div>
+            ))}
+          </div>
+          {/* Empfehlungen */}
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+              👍 Empfehlungen
+              <span style={{ background: TEAL + "15", color: TEAL, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 700 }}>
+                {(p.empfehlungen || []).length} verifiziert
+              </span>
+            </div>
+            {(p.empfehlungen || [
+              { name: "Anna K.", text: "Wirklich unglaublich talentiert! Der Workshop hat meine Erwartungen weit übertroffen. Sehr empfehlenswert!", datum: "März 2026", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop" },
+              { name: "Marc B.", text: "Die Keramik-Tasse ist ein echtes Kunstwerk. Schneller Versand, liebevolle Verpackung. Gerne wieder!", datum: "Feb 2026", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop" },
+              { name: "Lisa M.", text: "Hat uns nach dem Kauf sofort kontaktiert und alles erklärt. Professionell und herzlich.", datum: "Jan 2026", avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop" },
+            ]).map((e, i) => (
+              <div key={i} style={{ background: "white", borderRadius: 14, padding: "14px 16px", marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 8 }}>
+                  <img src={e.avatar} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} alt={e.name} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{e.name}</div>
+                    <div style={{ fontSize: 11, color: "#bbb" }}>{e.datum}</div>
+                  </div>
+                  <div style={{ background: `${TEAL}15`, borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: TEAL }}>✓ Verifiziert</div>
+                </div>
+                <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, fontStyle: "italic" }}>"{e.text}"</div>
               </div>
             ))}
           </div>
@@ -1111,13 +1137,242 @@ function ImpactCard({ item }) {
     </div>
   );
 }
+// ══════════════════════════════════════════════════════════════════
+// CHAT + TREUHAND + EMPFEHLUNGS-FLOW
+// ══════════════════════════════════════════════════════════════════
+
+// Mock Chats (Käufer-Sicht)
+const mockChats = [
+  {
+    id: "chat1", type: "buchung", status: "aktiv", // aktiv | abgeschlossen | gemeldet
+    wirker: "Sofia M.", wirkerImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
+    item: "Töpfer-Workshop", date: "28. April 2026", betrag: "75 €",
+    treuhand: "offen", // offen | freigegeben
+    bewertung: null,
+    messages: [
+      { from: "system", text: "🔒 Buchung bestätigt! Dein Geld liegt sicher im Treuhandkonto. Es wird erst nach deiner Bestätigung an Sofia freigegeben.", time: "10:00" },
+      { from: "wirker", text: "Hallo! Ich freue mich auf unseren Töpfer-Workshop 🎨 Bitte bring bequeme Kleidung mit.", time: "10:05" },
+      { from: "ich", text: "Super, ich freu mich auch! Gibt es etwas, das ich vorbereiten soll?", time: "10:12" },
+      { from: "wirker", text: "Nein, alles da! Bis Dienstag 👋", time: "10:14" },
+    ]
+  },
+  {
+    id: "chat2", type: "werk", status: "empfehlung_ausstehend",
+    wirker: "Tom H.", wirkerImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
+    item: "Handgenähter Leder-Rucksack", date: "20. April 2026", betrag: "195 €",
+    treuhand: "offen",
+    bewertung: null,
+    messages: [
+      { from: "system", text: "🔒 Kauf bestätigt! Dein Geld liegt sicher im Treuhandkonto.", time: "14:00" },
+      { from: "wirker", text: "Hallo! Dein Rucksack ist fertig genäht 🎒 Ich versende ihn morgen per DHL.", time: "16:30" },
+      { from: "ich", text: "Wunderbar, danke für die schnelle Arbeit!", time: "17:00" },
+      { from: "system", text: "📦 Ware wurde als geliefert markiert. Bitte bestätige den Erhalt und gib eine Empfehlung ab.", time: "23. April", isPrompt: true },
+    ]
+  },
+  {
+    id: "chat3", type: "buchung", status: "abgeschlossen",
+    wirker: "Lena K.", wirkerImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop",
+    item: "Aquarell-Portrait", date: "10. April 2026", betrag: "120 €",
+    treuhand: "freigegeben",
+    bewertung: { empfohlen: true, text: "Lena ist unglaublich talentiert! Das Portrait hat mich zu Tränen gerührt." },
+    messages: [
+      { from: "system", text: "🔒 Buchung bestätigt! Dein Geld liegt sicher im Treuhandkonto.", time: "09:00" },
+      { from: "wirker", text: "Ich habe das Portrait fertiggestellt! Hier ein Foto 🎨", time: "12:00" },
+      { from: "ich", text: "Es ist wunderschön! Vielen Dank Lena!", time: "12:30" },
+      { from: "system", text: "✅ Empfehlung abgegeben. Geld wurde an Lena freigegeben. Chat archiviert.", time: "12:35", isDone: true },
+    ]
+  },
+];
+
+function ChatListPage({ onOpenChat }) {
+  const [chats] = useState(mockChats);
+  const statusLabel = (c) => {
+    if (c.status === "abgeschlossen") return { label: "✅ Abgeschlossen", color: TEAL };
+    if (c.status === "empfehlung_ausstehend") return { label: "⚠️ Empfehlung ausstehend", color: GOLD };
+    return { label: "💬 Aktiv", color: CORAL };
+  };
+  return (
+    <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
+      <div style={{ padding: "24px 20px 12px" }}>
+        <div style={{ fontWeight: 800, fontSize: 22, color: "#222", marginBottom: 4 }}>💬 Meine Chats</div>
+        <div style={{ fontSize: 13, color: "#aaa" }}>Buchungen, Käufe & Treuhand-Status</div>
+      </div>
+
+      {chats.map(c => {
+        const sl = statusLabel(c);
+        return (
+          <div key={c.id} onClick={() => onOpenChat(c)} style={{ margin: "0 16px 12px", background: "white", borderRadius: 16, padding: "14px 16px", boxShadow: "0 2px 10px rgba(0,0,0,0.06)", border: `1px solid ${c.status === "empfehlung_ausstehend" ? GOLD + "50" : "#f0f0f0"}`, cursor: "pointer", display: "flex", gap: 12, alignItems: "center" }}>
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <img src={c.wirkerImg} style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover" }} alt={c.wirker} />
+              {c.status === "empfehlung_ausstehend" && <div style={{ position: "absolute", bottom: 0, right: 0, width: 16, height: 16, borderRadius: "50%", background: GOLD, border: "2px solid white" }} />}
+              {c.status === "aktiv" && <div style={{ position: "absolute", bottom: 0, right: 0, width: 16, height: 16, borderRadius: "50%", background: "#4ade80", border: "2px solid white" }} />}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{c.wirker}</div>
+                <div style={{ fontSize: 11, color: "#ccc" }}>{c.date}</div>
+              </div>
+              <div style={{ fontSize: 13, color: "#666", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 5 }}>{c.item}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: sl.color }}>{sl.label}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: CORAL }}>🔒 {c.betrag}</div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {chats.length === 0 && (
+        <div style={{ textAlign: "center", padding: "60px 24px" }}>
+          <div style={{ fontSize: 56, marginBottom: 14 }}>💬</div>
+          <div style={{ fontWeight: 700, fontSize: 17, color: "#333", marginBottom: 6 }}>Noch keine Chats</div>
+          <div style={{ fontSize: 13, color: "#aaa" }}>Nach einer Buchung oder einem Kauf öffnet sich hier automatisch ein Chat.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChatDetailPage({ chat: initialChat, onBack }) {
+  const [chat, setChat] = useState(initialChat);
+  const [message, setMessage] = useState("");
+  const [showEmpfehlung, setShowEmpfehlung] = useState(chat.status === "empfehlung_ausstehend");
+  const [empfehlungText, setEmpfehlungText] = useState("");
+  const [empfehlungAbgegeben, setEmpfehlungAbgegeben] = useState(false);
+  const messagesEndRef = React.useRef(null);
+
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat.messages]);
+
+  const sendMessage = () => {
+    if (!message.trim()) return;
+    const newMsg = { from: "ich", text: message.trim(), time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) };
+    setChat(c => ({ ...c, messages: [...c.messages, newMsg] }));
+    setMessage("");
+  };
+
+  const handleEmpfehlung = (empfohlen) => {
+    const sysMsg = empfohlen
+      ? { from: "system", text: `✅ Du hast ${chat.wirker} weiterempfohlen. Die Empfehlung wird in ihrem Profil veröffentlicht. Das Geld (${chat.betrag}) wurde freigegeben und überwiesen. Chat wird archiviert.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isDone: true }
+      : { from: "system", text: `⚠️ Dein Feedback wurde vertraulich an HUI-Admin und ${chat.wirker} weitergeleitet. Kein öffentlicher Eintrag. Ein Mitarbeiter meldet sich bei dir.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isWarning: true };
+    setChat(c => ({
+      ...c,
+      status: empfohlen ? "abgeschlossen" : "gemeldet",
+      treuhand: empfohlen ? "freigegeben" : "eingefroren",
+      bewertung: { empfohlen, text: empfehlungText },
+      messages: [...c.messages, sysMsg]
+    }));
+    setShowEmpfehlung(false);
+    setEmpfehlungAbgegeben(true);
+  };
+
+  const treuhandColor = chat.treuhand === "freigegeben" ? TEAL : chat.treuhand === "eingefroren" ? "#f59e0b" : CORAL;
+  const treuhandLabel = chat.treuhand === "freigegeben" ? "✅ Freigegeben" : chat.treuhand === "eingefroren" ? "⏸ Eingefroren" : "🔒 Im Treuhand";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#f7f7f5" }}>
+      {/* Header */}
+      <div style={{ background: "white", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <ArrowLeft size={20} color="#444" />
+        </button>
+        <img src={chat.wirkerImg} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} alt={chat.wirker} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{chat.wirker}</div>
+          <div style={{ fontSize: 11, color: "#aaa" }}>{chat.item}</div>
+        </div>
+        <div style={{ background: treuhandColor + "18", border: `1px solid ${treuhandColor}40`, borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700, color: treuhandColor }}>
+          {treuhandLabel}
+        </div>
+      </div>
+
+      {/* Treuhand-Info-Banner */}
+      {chat.treuhand === "offen" && !empfehlungAbgegeben && (
+        <div style={{ background: `${CORAL}0d`, borderBottom: `1px solid ${CORAL}20`, padding: "8px 16px", flexShrink: 0, display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{ fontSize: 16 }}>🔒</span>
+          <span style={{ fontSize: 12, color: "#666" }}><strong style={{ color: CORAL }}>{chat.betrag}</strong> liegen sicher im Treuhandkonto — werden erst nach deiner Empfehlung freigegeben.</span>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+        {chat.messages.map((m, i) => {
+          if (m.from === "system") return (
+            <div key={i} style={{ textAlign: "center", margin: "10px 0" }}>
+              <div style={{ display: "inline-block", background: m.isDone ? `${TEAL}15` : m.isWarning ? `${GOLD}15` : m.isPrompt ? `${GOLD}15` : "#f0f0f0", borderRadius: 12, padding: "8px 14px", fontSize: 12, color: m.isDone ? TEAL : m.isWarning ? "#b45309" : "#666", maxWidth: "88%", lineHeight: 1.55 }}>
+                {m.text}
+              </div>
+              <div style={{ fontSize: 10, color: "#ccc", marginTop: 3 }}>{m.time}</div>
+            </div>
+          );
+          const isMe = m.from === "ich";
+          return (
+            <div key={i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: 10 }}>
+              {!isMe && <img src={chat.wirkerImg} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 8, marginTop: 2, flexShrink: 0 }} alt="" />}
+              <div style={{ maxWidth: "72%" }}>
+                <div style={{ background: isMe ? CORAL : "white", color: isMe ? "white" : "#222", borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.55, boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                  {m.text}
+                </div>
+                <div style={{ fontSize: 10, color: "#ccc", marginTop: 3, textAlign: isMe ? "right" : "left" }}>{m.time}</div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Empfehlungs-Prompt */}
+      {showEmpfehlung && (
+        <div style={{ background: "white", borderTop: `2px solid ${GOLD}50`, padding: "16px 16px 8px", flexShrink: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 4 }}>📦 Alles angekommen?</div>
+          <div style={{ fontSize: 13, color: "#888", marginBottom: 12, lineHeight: 1.55 }}>
+            Bitte gib eine kurze Empfehlung ab. Das entscheidet über die Freigabe des Geldes an {chat.wirker}.
+          </div>
+          <textarea value={empfehlungText} onChange={e => setEmpfehlungText(e.target.value)} placeholder="Optional: Was hat dich begeistert oder enttäuscht?" rows={2}
+            style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 13, resize: "none", fontFamily: "inherit", marginBottom: 10, outline: "none" }} />
+          <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+            <button onClick={() => handleEmpfehlung(true)} style={{ flex: 1, background: `linear-gradient(135deg, ${TEAL}, #10b981)`, color: "white", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+              👍 Weiterempfehlen
+            </button>
+            <button onClick={() => handleEmpfehlung(false)} style={{ flex: 1, background: "#f5f5f3", color: "#888", border: "1.5px solid #e0e0e0", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+              👎 Nicht empfehlen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Abgeschlossener Chat */}
+      {(chat.status === "abgeschlossen" || chat.status === "gemeldet") && !showEmpfehlung && (
+        <div style={{ background: chat.status === "abgeschlossen" ? `${TEAL}10` : `${GOLD}10`, borderTop: `1px solid ${chat.status === "abgeschlossen" ? TEAL : GOLD}30`, padding: "12px 16px", flexShrink: 0, textAlign: "center", fontSize: 12, color: chat.status === "abgeschlossen" ? TEAL : "#b45309", fontWeight: 600 }}>
+          {chat.status === "abgeschlossen" ? "✅ Abgeschlossen – Geld wurde freigegeben" : "⚠️ Feedback weitergeleitet – HUI meldet sich"}
+        </div>
+      )}
+
+      {/* Input */}
+      {chat.status === "aktiv" && (
+        <div style={{ background: "white", padding: "10px 16px 24px", borderTop: "1px solid #f0f0f0", flexShrink: 0, display: "flex", gap: 10, alignItems: "flex-end" }}>
+          <input value={message} onChange={e => setMessage(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Nachricht schreiben..."
+            style={{ flex: 1, padding: "11px 16px", borderRadius: 24, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", background: "#f9f9f7" }} />
+          <button onClick={sendMessage} disabled={!message.trim()} style={{ width: 42, height: 42, borderRadius: "50%", background: message.trim() ? CORAL : "#e8e8e8", border: "none", cursor: message.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Send size={17} color={message.trim() ? "white" : "#bbb"} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CartOverlay({ cart, onClose, onRemove }) {
   const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 300, display: "flex", alignItems: "flex-end" }}>
       <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: 20, width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "80vh", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><ShoppingBasket size={20} color={CORAL} /><span style={{ fontWeight: 800, fontSize: 19 }}>Mein Werkekorb</span></div><button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#555" /></button></div>
-        {cart.length === 0 ? (<div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: 56, marginBottom: 12 }}>🧺</div><div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6, color: "#333" }}>Dein Werkekorb ist noch leer</div><div style={{ color: "#999", marginBottom: 20, fontSize: 13 }}>Entdecke wundervolle Werke und Talente</div><button onClick={onClose} style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Jetzt entdecken</button></div>) : (<>{cart.map((item, i) => (<div key={i} style={{ display: "flex", gap: 12, marginBottom: 12, background: "#fafaf8", borderRadius: 12, padding: 10 }}><img src={item.img} style={{ width: 66, height: 66, borderRadius: 10, objectFit: "cover" }} alt={item.title} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{item.title}</div><div style={{ fontSize: 12, color: "#999", marginBottom: 3 }}>{item.creator}</div><div style={{ fontWeight: 700, color: CORAL }}>{item.price}</div></div><button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc" }}><X size={16} /></button></div>))}<div style={{ borderTop: "1px solid #eee", paddingTop: 14 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#999", marginBottom: 4 }}><span>Zwischensumme</span><span>{total.toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 12 }}><span>🌱 3% der Provision → Impact Pool</span><span>{(total * 0.15 * 0.03).toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18, marginBottom: 16 }}><span>Gesamt</span><span>{total.toFixed(2)} €</span></div><button style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt bezahlen</button></div></>)}
+        {cart.length === 0 ? (<div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: 56, marginBottom: 12 }}>🧺</div><div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6, color: "#333" }}>Dein Werkekorb ist noch leer</div><div style={{ color: "#999", marginBottom: 20, fontSize: 13 }}>Entdecke wundervolle Werke und Talente</div><button onClick={onClose} style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Jetzt entdecken</button></div>) : (<>{cart.map((item, i) => (<div key={i} style={{ display: "flex", gap: 12, marginBottom: 12, background: "#fafaf8", borderRadius: 12, padding: 10 }}><img src={item.img} style={{ width: 66, height: 66, borderRadius: 10, objectFit: "cover" }} alt={item.title} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{item.title}</div><div style={{ fontSize: 12, color: "#999", marginBottom: 3 }}>{item.creator}</div><div style={{ fontWeight: 700, color: CORAL }}>{item.price}</div></div><button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc" }}><X size={16} /></button></div>))}<div style={{ borderTop: "1px solid #eee", paddingTop: 14 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#999", marginBottom: 4 }}><span>Zwischensumme</span><span>{total.toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 12 }}><span>🌱 3% der Provision → Impact Pool</span><span>{(total * 0.15 * 0.03).toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18, marginBottom: 16 }}><span>Gesamt</span><span>{total.toFixed(2)} €</span></div><div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 12, padding: "9px 12px", marginBottom: 10, fontSize: 12, color: "#555" }}>
+              💬 Nach dem Kauf öffnet sich ein Chat mit dem Talent. Geld wird sicher im Treuhand verwahrt.
+            </div>
+            <button style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt bezahlen & Chat öffnen</button></div></>)}
       </div>
     </div>
   );
@@ -2023,6 +2278,10 @@ function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser
         <button style={{ width: 54, height: 54, borderRadius: "50%", background: CORAL, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginTop: -18, boxShadow: `0 4px 16px ${CORAL}66` }}><Plus size={26} color="white" strokeWidth={2.5} /></button>
       )}
       <TabButton label="Favoriten" icon={<Star size={20} />} active={page === "favorites"} onClick={() => setPage("favorites")} />
+      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <TabButton label="Chats" icon={<MessageCircle size={20} />} active={page === "chats"} onClick={() => setPage("chats")} />
+        <div style={{ position: "absolute", top: 2, right: 6, width: 9, height: 9, borderRadius: "50%", background: GOLD, border: "2px solid white", display: page === "chats" ? "none" : "block" }} />
+      </div>
       <TabButton label="Profil" icon={<User size={20} />} active={page === "profile"} onClick={() => setPage("profile")} />
     </div>
   );
@@ -2044,6 +2303,7 @@ export default function App() {
   const [onboardingStep, setOnboardingStep] = useState(0);
   const isNewUser = true;
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
+  const [openChat, setOpenChat] = useState(null);
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -2084,6 +2344,8 @@ export default function App() {
       </>)}
       {page === "impact" && <ImpactPage />}
       {page === "favorites" && <FavoritesPage />}
+      {page === "chats" && !openChat && <ChatListPage onOpenChat={(c) => setOpenChat(c)} />}
+      {page === "chats" && openChat && <ChatDetailPage chat={openChat} onBack={() => setOpenChat(null)} />}
       {page === "profile" && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Sofia M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} />}
 
       <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} />
