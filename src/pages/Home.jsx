@@ -999,7 +999,13 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
           </div>
         </div>
 
-        <EmpfehlungsBox wirkerName={p.fullName} initialCount={p.recommendations} />
+        <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
+          <ThumbsUp size={18} color={TEAL} />
+          <div>
+            <span style={{ fontWeight: 700, fontSize: 15, color: "#333" }}>{p.recommendations} verifizierte Empfehlungen</span>
+            <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Nur Kunden nach abgeschlossener Buchung können empfehlen</div>
+          </div>
+        </div>
 
         <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
           {[{ label: "Werke", value: p.werke.length }, { label: "Buchungen", value: p.bookings }, { label: "Follower", value: p.followers }].map(s => (
@@ -1904,22 +1910,47 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Empfehlungs-Prompt */}
+      {/* Empfehlungs-Modal – öffnet sich nach Leistungserbringung */}
       {showEmpfehlung && (
-        <div style={{ background: "white", borderTop: `2px solid ${GOLD}50`, padding: "16px 16px 8px", flexShrink: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 4 }}>📦 Alles angekommen?</div>
-          <div style={{ fontSize: 13, color: "#888", marginBottom: 12, lineHeight: 1.55 }}>
-            Bitte gib eine kurze Empfehlung ab. Das entscheidet über die Freigabe des Geldes an {chat.wirker}.
-          </div>
-          <textarea value={empfehlungText} onChange={e => setEmpfehlungText(e.target.value)} placeholder="Optional: Was hat dich begeistert oder enttäuscht?" rows={2}
-            style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 13, resize: "none", fontFamily: "inherit", marginBottom: 10, outline: "none" }} />
-          <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
-            <button onClick={() => handleEmpfehlung(true)} style={{ flex: 1, background: `linear-gradient(135deg, ${TEAL}, #10b981)`, color: "white", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-              👍 Weiterempfehlen
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 430, boxShadow: "0 -8px 40px rgba(0,0,0,0.18)" }}>
+            {/* Wirker-Avatar + Name */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
+              <img src={chat.wirkerImg} alt={chat.wirker} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: `3px solid ${TEAL}`, marginBottom: 10 }} />
+              <div style={{ fontWeight: 800, fontSize: 20, color: "#222", textAlign: "center" }}>
+                {chat.type === "werk" ? "Ware angekommen?" : "Leistung abgeschlossen?"}
+              </div>
+              <div style={{ fontSize: 14, color: "#888", marginTop: 6, textAlign: "center", lineHeight: 1.55 }}>
+                Möchtest du <strong style={{ color: "#333" }}>{chat.wirker}</strong> weiterempfehlen?<br />
+                <span style={{ fontSize: 12, color: "#bbb" }}>Deine Empfehlung gibt das Geld frei und erscheint verifiziert im Profil.</span>
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <textarea
+              value={empfehlungText}
+              onChange={e => setEmpfehlungText(e.target.value)}
+              placeholder={`Was hat dich an ${chat.wirker} begeistert? (optional, wird öffentlich angezeigt)`}
+              rows={3}
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 14, border: `1.5px solid ${TEAL}30`, fontSize: 13, resize: "none", fontFamily: "inherit", marginBottom: 16, outline: "none", background: "#f9fffe", boxSizing: "border-box" }}
+            />
+
+            {/* Buttons */}
+            <button
+              onClick={() => handleEmpfehlung(true)}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, #10b981)`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
+            >
+              <ThumbsUp size={20} color="white" /> Ja, ich empfehle {chat.wirker}!
             </button>
-            <button onClick={() => handleEmpfehlung(false)} style={{ flex: 1, background: "#f5f5f3", color: "#888", border: "1.5px solid #e0e0e0", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-              👎 Nicht empfehlen
+            <button
+              onClick={() => handleEmpfehlung(false)}
+              style={{ width: "100%", background: "#f5f5f3", color: "#666", border: "1.5px solid #e0e0e0", borderRadius: 16, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            >
+              <ThumbsDown size={16} color="#aaa" /> Nicht empfehlen / Problem melden
             </button>
+            <div style={{ textAlign: "center", marginTop: 10, fontSize: 11, color: "#bbb" }}>
+              🔒 Deine Antwort ist anonym für andere Nutzer — nur HUI sieht dein Feedback intern.
+            </div>
           </div>
         </div>
       )}
@@ -1933,12 +1964,28 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
 
       {/* Input */}
       {chat.status === "aktiv" && (
-        <div style={{ background: "white", padding: "10px 16px 24px", borderTop: "1px solid #f0f0f0", flexShrink: 0, display: "flex", gap: 10, alignItems: "flex-end" }}>
+        <div style={{ background: "white", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
+          {/* Leistung-abgeschlossen Button */}
+          {chat.treuhand === "offen" && !empfehlungAbgegeben && (
+            <div style={{ padding: "10px 16px 0" }}>
+              <button
+                onClick={() => setShowEmpfehlung(true)}
+                style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}18, ${TEAL}08)`, border: `1.5px solid ${TEAL}40`, borderRadius: 12, padding: "11px 14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", marginBottom: 6 }}
+              >
+                <Check size={16} color={TEAL} />
+                <span style={{ fontWeight: 700, fontSize: 13, color: TEAL }}>
+                  {chat.type === "werk" ? "📦 Ware erhalten – Empfehlung abgeben" : "✅ Leistung erhalten – Empfehlung abgeben"}
+                </span>
+              </button>
+            </div>
+          )}
+          <div style={{ padding: "8px 16px 24px", display: "flex", gap: 10, alignItems: "flex-end" }}>
           <input value={message} onChange={e => setMessage(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Nachricht schreiben..."
             style={{ flex: 1, padding: "11px 16px", borderRadius: 24, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", background: "#f9f9f7" }} />
           <button onClick={sendMessage} disabled={!message.trim()} style={{ width: 42, height: 42, borderRadius: "50%", background: message.trim() ? CORAL : "#e8e8e8", border: "none", cursor: message.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <Send size={17} color={message.trim() ? "white" : "#bbb"} />
           </button>
+          </div>
         </div>
       )}
     </div>
