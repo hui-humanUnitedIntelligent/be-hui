@@ -2542,15 +2542,221 @@ function StoryCreateModal({ onClose }) {
 }
 
 function CartOverlay({ cart, onClose, onRemove }) {
-  const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+  const [step, setStep] = React.useState("cart"); // cart | address | payment | confirm | done
+  const [adresse, setAdresse] = React.useState({ name: "Lars M.", strasse: "Leopoldstr. 42", plz: "80802", ort: "München" });
+  const [zahlart, setZahlart] = React.useState("karte");
+  const [huiPunkte, setHuiPunkte] = React.useState(false);
+
+  const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.price.replace(" €","").replace(",",".")), 0);
+  const versand = cart.length > 0 ? 4.50 : 0;
+  const rabatt = huiPunkte ? 5 : 0;
+  const impactBetrag = (subtotal * 0.15 * 0.03).toFixed(2);
+  const total = Math.max(0, subtotal + versand - rabatt);
+
+  const steps = ["cart","address","payment","confirm"];
+  const stepIdx = steps.indexOf(step);
+
+  if (step === "done") return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "white", borderRadius: 24, padding: "40px 28px", maxWidth: 340, width: "90%", textAlign: "center" }}>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+        <div style={{ fontWeight: 900, fontSize: 22, color: "#222", marginBottom: 8 }}>Zahlung erfolgreich!</div>
+        <div style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 20 }}>
+          Dein Kauf ist im <strong style={{ color: TEAL }}>Treuhand</strong> gesichert. Das Geld wird erst nach deiner Bestätigung ans Talent freigegeben.
+        </div>
+        <div style={{ background: `${TEAL}12`, borderRadius: 14, padding: "14px", marginBottom: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: TEAL, marginBottom: 4 }}>💬 Chat wurde geöffnet</div>
+          <div style={{ fontSize: 12, color: "#666" }}>Du kannst jetzt direkt mit dem Talent kommunizieren.</div>
+        </div>
+        <div style={{ background: `${GOLD}12`, borderRadius: 14, padding: "10px", marginBottom: 20, fontSize: 12, color: "#666" }}>
+          ⭐ +25 HUI-Punkte für deinen Kauf gutgeschrieben!
+        </div>
+        <button onClick={onClose} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+          Zum Chat →
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 300, display: "flex", alignItems: "flex-end" }}>
-      <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: 20, width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "80vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><ShoppingBasket size={20} color={CORAL} /><span style={{ fontWeight: 800, fontSize: 19 }}>Mein Werkekorb</span></div><button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#555" /></button></div>
-        {cart.length === 0 ? (<div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: 56, marginBottom: 12 }}>🧺</div><div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6, color: "#333" }}>Dein Werkekorb ist noch leer</div><div style={{ color: "#999", marginBottom: 20, fontSize: 13 }}>Entdecke wundervolle Werke und Talente</div><button onClick={onClose} style={{ background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "12px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Jetzt entdecken</button></div>) : (<>{cart.map((item, i) => (<div key={i} style={{ display: "flex", gap: 12, marginBottom: 12, background: "#fafaf8", borderRadius: 12, padding: 10 }}><img src={item.img} style={{ width: 66, height: 66, borderRadius: 10, objectFit: "cover" }} alt={item.title} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{item.title}</div><div style={{ fontSize: 12, color: "#999", marginBottom: 3 }}>{item.creator}</div><div style={{ fontWeight: 700, color: CORAL }}>{item.price}</div></div><button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc" }}><X size={16} /></button></div>))}<div style={{ borderTop: "1px solid #eee", paddingTop: 14 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#999", marginBottom: 4 }}><span>Zwischensumme</span><span>{total.toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 12 }}><span>🌱 3% der Provision → Impact Pool</span><span>{(total * 0.15 * 0.03).toFixed(2)} €</span></div><div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18, marginBottom: 16 }}><span>Gesamt</span><span>{total.toFixed(2)} €</span></div><div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 12, padding: "9px 12px", marginBottom: 10, fontSize: 12, color: "#555" }}>
-              💬 Nach dem Kauf öffnet sich ein Chat mit dem Talent. Geld wird sicher im Treuhand verwahrt.
+      <div style={{ background: "#fafaf8", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
+
+        {/* Header */}
+        <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: "18px 20px 12px", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: step !== "cart" ? 14 : 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {step !== "cart" && <button onClick={() => setStep(steps[stepIdx-1])} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={18} color="#444" /></button>}
+              <span style={{ fontWeight: 800, fontSize: 18 }}>
+                {step === "cart" ? "🧺 Werkekorb" : step === "address" ? "📦 Lieferadresse" : step === "payment" ? "💳 Zahlung" : "✅ Bestätigen"}
+              </span>
             </div>
-            <button style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt bezahlen & Chat öffnen</button></div></>)}
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#555" /></button>
+          </div>
+          {/* Schritt-Anzeige */}
+          {cart.length > 0 && (
+            <div style={{ display: "flex", gap: 4, marginTop: step !== "cart" ? 0 : 10 }}>
+              {steps.map((s, i) => (
+                <div key={s} style={{ flex: 1, height: 3, borderRadius: 99, background: i <= stepIdx ? CORAL : "#eee" }} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+
+          {/* ── SCHRITT 1: WARENKORB ── */}
+          {step === "cart" && <>
+            {cart.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "50px 20px" }}>
+                <div style={{ fontSize: 60, marginBottom: 16 }}>🧺</div>
+                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 8, color: "#333" }}>Dein Werkekorb ist leer</div>
+                <div style={{ color: "#aaa", fontSize: 13, marginBottom: 24 }}>Entdecke wundervolle Werke und Talente</div>
+                <button onClick={onClose} style={{ background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "13px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Jetzt entdecken ✨</button>
+              </div>
+            ) : (
+              <>
+                {cart.map((item, i) => (
+                  <div key={i} style={{ display: "flex", gap: 12, marginBottom: 10, background: "white", borderRadius: 14, padding: "12px", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                    <img src={item.img} style={{ width: 70, height: 70, borderRadius: 12, objectFit: "cover", flexShrink: 0 }} alt={item.title} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "#222", marginBottom: 3 }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: "#aaa", marginBottom: 6 }}>von {item.creator}</div>
+                      <div style={{ fontWeight: 800, color: CORAL, fontSize: 16 }}>{item.price}</div>
+                    </div>
+                    <button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ddd", padding: 4, alignSelf: "flex-start" }}>
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+
+                {/* HUI-Punkte einlösen */}
+                <div style={{ background: "white", borderRadius: 14, padding: "13px 16px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 22 }}>⭐</span>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>100 HUI-Punkte einlösen</div>
+                      <div style={{ fontSize: 11, color: "#aaa" }}>= 5 € Rabatt</div>
+                    </div>
+                  </div>
+                  <div onClick={() => setHuiPunkte(h => !h)} style={{ width: 44, height: 26, borderRadius: 13, background: huiPunkte ? GOLD : "#ddd", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
+                    <div style={{ position: "absolute", top: 3, left: huiPunkte ? 21 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)", transition: "left 0.2s" }} />
+                  </div>
+                </div>
+
+                {/* Preisübersicht */}
+                <div style={{ background: "white", borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 6 }}><span>Zwischensumme</span><span>{subtotal.toFixed(2)} €</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 6 }}><span>Versand</span><span>{versand.toFixed(2)} €</span></div>
+                  {huiPunkte && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: GOLD, marginBottom: 6 }}><span>⭐ HUI-Rabatt</span><span>−5,00 €</span></div>}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 10 }}><span>🌱 Impact Pool Beitrag</span><span>{impactBetrag} €</span></div>
+                  <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 10, display: "flex", justifyContent: "space-between", fontWeight: 900, fontSize: 18 }}>
+                    <span>Gesamt</span><span style={{ color: CORAL }}>{total.toFixed(2)} €</span>
+                  </div>
+                </div>
+
+                <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 12, padding: "11px 14px", fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+                  🔒 Dein Geld wird sicher im <strong>Treuhand</strong> verwahrt und erst nach deiner Bestätigung ans Talent freigegeben.
+                </div>
+              </>
+            )}
+          </>}
+
+          {/* ── SCHRITT 2: ADRESSE ── */}
+          {step === "address" && (
+            <div>
+              <div style={{ background: "white", borderRadius: 16, padding: "16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                {[["Name","name"],["Straße & Nr.","strasse"],["PLZ","plz"],["Ort","ort"]].map(([label,key]) => (
+                  <div key={key} style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 5 }}>{label}</div>
+                    <input value={adresse[key]} onChange={e => setAdresse(a => ({...a, [key]: e.target.value}))}
+                      style={{ width: "100%", background: "#f7f7f5", border: "1.5px solid #eee", borderRadius: 10, padding: "11px 13px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 12, padding: "11px 14px", fontSize: 12, color: "#555" }}>
+                📦 Lieferung in 5–7 Werktagen · Sendungsverfolgung per E-Mail
+              </div>
+            </div>
+          )}
+
+          {/* ── SCHRITT 3: ZAHLUNG ── */}
+          {step === "payment" && (
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>Zahlungsmethode wählen</div>
+              {[
+                { id: "karte", icon: "💳", label: "Kreditkarte", sub: "Visa •••• 4242" },
+                { id: "paypal", icon: "🅿️", label: "PayPal", sub: "lars@hui.app" },
+                { id: "sepa", icon: "🏦", label: "SEPA Lastschrift", sub: "DE•• •••• •••• 4567" },
+              ].map(z => (
+                <div key={z.id} onClick={() => setZahlart(z.id)} style={{ display: "flex", alignItems: "center", gap: 14, background: "white", borderRadius: 14, padding: "15px 16px", marginBottom: 10, border: zahlart === z.id ? `2px solid ${CORAL}` : "2px solid transparent", boxShadow: "0 1px 6px rgba(0,0,0,0.05)", cursor: "pointer" }}>
+                  <span style={{ fontSize: 26 }}>{z.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{z.label}</div>
+                    <div style={{ fontSize: 12, color: "#aaa" }}>{z.sub}</div>
+                  </div>
+                  <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${zahlart === z.id ? CORAL : "#ddd"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {zahlart === z.id && <div style={{ width: 10, height: 10, borderRadius: "50%", background: CORAL }} />}
+                  </div>
+                </div>
+              ))}
+              <div style={{ background: `${GOLD}12`, borderRadius: 12, padding: "11px 14px", fontSize: 12, color: "#666", marginTop: 4 }}>
+                ⭐ Nach dem Kauf erhältst du +25 HUI-Punkte
+              </div>
+            </div>
+          )}
+
+          {/* ── SCHRITT 4: BESTÄTIGEN ── */}
+          {step === "confirm" && (
+            <div>
+              {cart.map((item,i) => (
+                <div key={i} style={{ display: "flex", gap: 12, background: "white", borderRadius: 14, padding: "12px", marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                  <img src={item.img} style={{ width: 56, height: 56, borderRadius: 10, objectFit: "cover" }} alt="" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>{item.title}</div>
+                    <div style={{ fontSize: 11, color: "#aaa" }}>von {item.creator}</div>
+                    <div style={{ fontWeight: 800, color: CORAL, fontSize: 14, marginTop: 3 }}>{item.price}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{ background: "white", borderRadius: 14, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, color: "#555" }}>📦 Lieferadresse</div>
+                <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6 }}>{adresse.name}<br/>{adresse.strasse}<br/>{adresse.plz} {adresse.ort}</div>
+              </div>
+              <div style={{ background: "white", borderRadius: 14, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, color: "#555" }}>💳 Zahlung</div>
+                <div style={{ fontSize: 13, color: "#333" }}>{zahlart === "karte" ? "💳 Visa •••• 4242" : zahlart === "paypal" ? "🅿️ PayPal" : "🏦 SEPA Lastschrift"}</div>
+              </div>
+              <div style={{ background: "white", borderRadius: 14, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 5 }}><span>Zwischensumme</span><span>{subtotal.toFixed(2)} €</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 5 }}><span>Versand</span><span>{versand.toFixed(2)} €</span></div>
+                {huiPunkte && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: GOLD, marginBottom: 5 }}><span>⭐ HUI-Rabatt</span><span>−5,00 €</span></div>}
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 8 }}><span>🌱 Impact Pool</span><span>{impactBetrag} €</span></div>
+                <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 10, display: "flex", justifyContent: "space-between", fontWeight: 900, fontSize: 18 }}>
+                  <span>Gesamt</span><span style={{ color: CORAL }}>{total.toFixed(2)} €</span>
+                </div>
+              </div>
+              <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 12, padding: "11px 14px", fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+                🔒 Dein Geld liegt im <strong>HUI-Treuhand</strong>. Es wird erst nach deiner Bestätigung der Lieferung freigegeben.
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Button */}
+        {cart.length > 0 && (
+          <div style={{ padding: "12px 16px 28px", background: "white", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
+            <button onClick={() => {
+              if (step === "cart") setStep("address");
+              else if (step === "address") setStep("payment");
+              else if (step === "payment") setStep("confirm");
+              else setStep("done");
+            }} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
+              {step === "cart" ? `Weiter → ${total.toFixed(2)} €` : step === "address" ? "Weiter zur Zahlung →" : step === "payment" ? "Weiter zur Übersicht →" : "💳 Jetzt kaufen & Treuhand öffnen"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2790,6 +2996,9 @@ function ProjektVorschlagenPage({ onClose }) {
 // ══════════════════════════════════════════════════════════════════
 function ImpactProjectDetail({ project: p, onClose }) {
   const [tab, setTab] = useState("info"); // info | updates | meilensteine
+  const [showSpende, setShowSpende] = React.useState(false);
+  const [spendeBetrag, setSpendeBetrag] = React.useState(10);
+  const [spendeDone, setSpendeDone] = React.useState(false);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
@@ -2908,9 +3117,37 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* CTA */}
         <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
-          <button style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
-            🌱 Projekt unterstützen
-          </button>
+          {!showSpende ? (
+            <button onClick={() => setShowSpende(true)} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
+              🌱 Projekt unterstützen
+            </button>
+          ) : spendeDone ? (
+            <div style={{ textAlign: "center", padding: "6px 0" }}>
+              <div style={{ fontSize: 36, marginBottom: 8 }}>🌿</div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: TEAL, marginBottom: 4 }}>Danke für deine Unterstützung!</div>
+              <div style={{ fontSize: 13, color: "#888", marginBottom: 12 }}>+30 HUI-Punkte wurden gutgeschrieben ⭐</div>
+              <button onClick={onClose} style={{ background: TEAL, color: "white", border: "none", borderRadius: 12, padding: "11px 28px", fontWeight: 700, cursor: "pointer" }}>Schließen</button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10 }}>Betrag wählen</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                {[5, 10, 25, 50].map(b => (
+                  <button key={b} onClick={() => setSpendeBetrag(b)} style={{ flex: 1, padding: "11px 0", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer", background: spendeBetrag === b ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#f0f0f0", color: spendeBetrag === b ? "white" : "#555" }}>
+                    {b} €
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => setShowSpende(false)} style={{ flex: 1, background: "none", border: "1.5px solid #ddd", borderRadius: 12, padding: "12px", fontWeight: 600, fontSize: 14, color: "#888", cursor: "pointer" }}>
+                  Abbrechen
+                </button>
+                <button onClick={() => setSpendeDone(true)} style={{ flex: 2, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "white", cursor: "pointer" }}>
+                  🌱 {spendeBetrag} € spenden
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
