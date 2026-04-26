@@ -335,8 +335,8 @@ function StoryBar() {
 function MediaCard({ item, liked, onLike, faved, onFav }) {
   const [playing, setPlaying] = useState(false);
   return (
-    <div style={{ background: "white", marginBottom: 8 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px 8px" }}>
+    <div style={{ background: "white", marginBottom: 8, borderLeft: `3px solid ${TEAL}`, borderRight: `3px solid ${TEAL}22` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px 8px", background: `linear-gradient(90deg, ${TEAL}08, transparent)` }}>
         <img src={item.creatorImg} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}` }} alt={item.creator} />
         <div>
           <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{item.creator}</div>
@@ -379,7 +379,7 @@ function MediaCard({ item, liked, onLike, faved, onFav }) {
 
 function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart }) {
   return (
-    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", margin: "8px 16px" }}>
+    <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px" }}>
       <div style={{ position: "relative" }}>
         <img src={item.img} style={{ width: "100%", height: 210, objectFit: "cover" }} alt={item.title} />
         <div style={{ position: "absolute", top: 10, right: 10, background: CORAL, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 14 }}>{item.price}</div>
@@ -409,7 +409,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart }) {
 
 function WirkerCard({ item }) {
   return (
-    <div style={{ background: `linear-gradient(135deg, ${TEAL}0d, ${TEAL}1a)`, border: `1.5px solid ${TEAL}30`, borderRadius: 16, margin: "8px 16px", padding: 16, display: "flex", gap: 14, alignItems: "center" }}>
+    <div style={{ background: `linear-gradient(135deg, ${TEAL}12, #f0fdfb)`, border: `1.5px solid ${TEAL}40`, borderRadius: 16, margin: "8px 16px", padding: 16, display: "flex", gap: 14, alignItems: "center", boxShadow: `0 2px 14px ${TEAL}18` }}>
       <img src={item.img} style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}` }} alt={item.name} />
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{item.name}</div>
@@ -423,7 +423,7 @@ function WirkerCard({ item }) {
 
 function ImpactCard({ item }) {
   return (
-    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", margin: "8px 16px" }}>
+    <div style={{ background: `linear-gradient(160deg, #fffdf0, #fff8e1)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px ${GOLD}22`, border: `1px solid ${GOLD}30`, margin: "8px 16px" }}>
       <div style={{ position: "relative" }}>
         <img src={item.img} style={{ width: "100%", height: 150, objectFit: "cover" }} alt={item.title} />
         <div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div>
