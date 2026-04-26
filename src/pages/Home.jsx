@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { createClient } from "https://esm.sh/@base44/sdk@latest";
+
+const base44 = createClient({ appId: "69e91ff9d24a19ce6f9abd25" });
+const { HuiMessage, User } = base44.entities;
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye } from "lucide-react";
 
 const CORAL = "#FF6B5B";
@@ -1668,7 +1672,7 @@ function NotificationsOverlay({ onClose }) {
   );
 }
 
-function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
+function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount, onLogout }) {
   return (
     <div style={{ background: "white", padding: "14px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 100 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1689,19 +1693,23 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
             <Bell size={22} color="#444" />
             {notifCount > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifCount}</span>}
           </button>
+          {onLogout && <button onClick={onLogout} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 18 }} title="Abmelden">👋</button>}
         </div>
       </div>
     </div>
   );
 }
-function SearchBar({ onClick }) {
+function SearchBar({ onClick, onKarteClick }) {
   return (
-    <div style={{ background: "white", padding: "8px 16px 10px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0" }}>
-      <div onClick={onClick} style={{ background: "#f3f3f3", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+    <div style={{ background: "white", padding: "8px 16px 10px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0", display: "flex", gap: 8 }}>
+      <div onClick={onClick} style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
         <Search size={16} color="#aaa" />
         <span style={{ color: "#bbb", fontSize: 14, flex: 1 }}>Suche nach Talent, Werk, Name…</span>
         <div style={{ background: `${TEAL}18`, borderRadius: 8, padding: "3px 8px", display: "flex", alignItems: "center", gap: 4 }}><SlidersHorizontal size={13} color={TEAL} /><span style={{ fontSize: 11, color: TEAL, fontWeight: 700 }}>Filter</span></div>
       </div>
+      <button onClick={onKarteClick} style={{ background: `${TEAL}15`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 700, fontSize: 12, color: TEAL, minHeight: 40 }}>
+        🗺
+      </button>
     </div>
   );
 }
@@ -2188,15 +2196,38 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
   const [showEmpfehlung, setShowEmpfehlung] = useState(chat.status === "empfehlung_ausstehend");
   const [empfehlungText, setEmpfehlungText] = useState("");
   const [empfehlungAbgegeben, setEmpfehlungAbgegeben] = useState(false);
+  const [dbMessages, setDbMessages] = useState([]);
   const messagesEndRef = React.useRef(null);
+  const chatId = `chat_${initialChat.id}`;
+
+  // Nachrichten aus DB laden
+  useEffect(() => {
+    HuiMessage.filter({ chat_id: chatId }).then(msgs => {
+      setDbMessages(msgs.sort((a,b) => new Date(a.created_date) - new Date(b.created_date)));
+    }).catch(() => {});
+    // Alle 5 Sek. neu laden
+    const interval = setInterval(() => {
+      HuiMessage.filter({ chat_id: chatId }).then(msgs => {
+        setDbMessages(msgs.sort((a,b) => new Date(a.created_date) - new Date(b.created_date)));
+      }).catch(() => {});
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [chatId]);
 
   React.useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chat.messages]);
+  }, [chat.messages, dbMessages]);
 
   const sendMessage = () => {
     if (!message.trim()) return;
-    const newMsg = { from: "ich", text: message.trim(), time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) };
+    const text = message.trim();
+    setMessage("");
+    // In DB speichern
+    HuiMessage.create({ chat_id: chatId, sender_name: "Ich", text, message_type: "text", read: false })
+      .then(() => HuiMessage.filter({ chat_id: chatId }))
+      .then(msgs => setDbMessages(msgs.sort((a,b) => new Date(a.created_date) - new Date(b.created_date))))
+      .catch(() => {});
+    const newMsg = { from: "ich", text, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) };
     setChat(c => ({ ...c, messages: [...c.messages, newMsg] }));
     setMessage("");
   };
@@ -4650,6 +4681,221 @@ function TabButton({ label, icon, active, onClick }) {
 }
 
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
+// ─── LOGIN SCREEN ────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [mode, setMode] = React.useState("login"); // login | register
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handleAuth = async () => {
+    if (!email || !password) { setError("Bitte E-Mail und Passwort eingeben"); return; }
+    setLoading(true); setError("");
+    try {
+      if (mode === "login") {
+        await base44.auth.loginWithEmail({ email, password });
+      } else {
+        if (!name) { setError("Bitte Name eingeben"); setLoading(false); return; }
+        await base44.auth.signupWithEmail({ email, password, full_name: name });
+      }
+      onLogin();
+    } catch (e) {
+      setError(e.message || "Fehler beim Anmelden");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      {/* Logo */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 80, height: 80, borderRadius: 22, objectFit: "cover", boxShadow: "0 8px 32px rgba(255,107,91,0.25)", marginBottom: 16 }} />
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#888", letterSpacing: 0.3 }}>
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>H</span>uman{" "}
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>U</span>nited{" "}
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>I</span>ntelligent
+        </div>
+        <div style={{ fontSize: 13, color: "#bbb", marginTop: 4 }}>Echte Talente. Echte Verbindungen.</div>
+      </div>
+
+      {/* Card */}
+      <div style={{ background: "white", borderRadius: 24, padding: "28px 24px", width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
+        {/* Tab */}
+        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 24 }}>
+          {["login","register"].map(m => (
+            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 14, cursor: "pointer", background: mode === m ? "white" : "transparent", color: mode === m ? "#222" : "#aaa", boxShadow: mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
+              {m === "login" ? "Anmelden" : "Registrieren"}
+            </button>
+          ))}
+        </div>
+
+        {mode === "register" && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>VOLLSTÄNDIGER NAME</div>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="z.B. Sofia Mayer"
+              style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
+          </div>
+        )}
+
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>E-MAIL</div>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="deine@email.de"
+            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>PASSWORT</div>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }}
+            onKeyDown={e => e.key === "Enter" && handleAuth()} />
+        </div>
+
+        {error && <div style={{ background: "#fff0f0", border: "1px solid #fcd", borderRadius: 10, padding: "10px 13px", fontSize: 13, color: "#e33", marginBottom: 14 }}>{error}</div>}
+
+        <button onClick={handleAuth} disabled={loading} style={{ width: "100%", background: loading ? "#ddd" : "linear-gradient(135deg, #FF6B5B, #F5A623)", color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: loading ? "not-allowed" : "pointer" }}>
+          {loading ? "Laden..." : mode === "login" ? "Anmelden →" : "Account erstellen →"}
+        </button>
+
+        {mode === "login" && (
+          <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "#aaa", cursor: "pointer" }}>
+            Passwort vergessen?
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 28, textAlign: "center", fontSize: 12, color: "#ccc", lineHeight: 1.6 }}>
+        Mit der Anmeldung stimmst du den{" "}
+        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Nutzungsbedingungen</span>{" "}
+        und der{" "}
+        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Datenschutzerklärung</span>{" "}
+        zu.
+      </div>
+    </div>
+  );
+}
+
+// ─── KARTEN-ANSICHT ────────────────────────────────────────────────────────────
+function KarteOverlay({ onClose, onViewWirker }) {
+  const [selected, setSelected] = React.useState(null);
+  const [filter, setFilter] = React.useState("alle");
+
+  const pins = [
+    { id: 1, name: "Sofia M.", talent: "Keramik-Künstlerin", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", x: 34, y: 42, empf: 34, rate: "45 €/Std.", kategorie: "handwerk" },
+    { id: 2, name: "Marcus B.", talent: "Fotograf", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", x: 58, y: 28, empf: 47, rate: "90 €/Std.", kategorie: "foto" },
+    { id: 3, name: "Maria L.", talent: "Yoga-Coach", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", x: 72, y: 55, empf: 93, rate: "70 €/Std.", kategorie: "coaching" },
+    { id: 4, name: "Tom H.", talent: "Leder-Handwerk", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", x: 22, y: 63, empf: 28, rate: "55 €/Std.", kategorie: "handwerk" },
+    { id: 5, name: "Lena K.", talent: "Aquarell-Illustratorin", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", x: 45, y: 70, empf: 61, rate: "60 €/Std.", kategorie: "kunst" },
+    { id: 6, name: "Jan W.", talent: "Musiker & Produzent", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop", x: 65, y: 38, empf: 19, rate: "80 €/Std.", kategorie: "musik" },
+  ];
+
+  const kategorien = [
+    { id: "alle", label: "Alle" },
+    { id: "handwerk", label: "🛠 Handwerk" },
+    { id: "kunst", label: "🎨 Kunst" },
+    { id: "foto", label: "📷 Foto" },
+    { id: "coaching", label: "🧘 Coaching" },
+    { id: "musik", label: "🎵 Musik" },
+  ];
+
+  const sichtbarePins = filter === "alle" ? pins : pins.filter(p => p.kategorie === filter);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#fafaf8", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      {/* Header */}
+      <div style={{ background: "white", padding: "16px 16px 12px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <ArrowLeft size={20} color="#444" />
+          </button>
+          <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>🗺 Wirker in deiner Nähe</div>
+        </div>
+        {/* Kategorie-Filter */}
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+          {kategorien.map(k => (
+            <button key={k.id} onClick={() => setFilter(k.id)} style={{ flexShrink: 0, background: filter === k.id ? "linear-gradient(135deg, #2ABFAC, #F5A623)" : "#f3f3f3", color: filter === k.id ? "white" : "#666", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              {k.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Karte (stilisierte Ansicht) */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        {/* Hintergrund-Karte */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(145deg, #e8f5e9 0%, #e3f2fd 40%, #f3e5f5 70%, #fce4ec 100%)" }}>
+          {/* Straßen-Imitation */}
+          <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, opacity: 0.3 }}>
+            <line x1="0" y1="35%" x2="100%" y2="40%" stroke="#bbb" strokeWidth="3" />
+            <line x1="0" y1="65%" x2="100%" y2="60%" stroke="#bbb" strokeWidth="2" />
+            <line x1="30%" y1="0" x2="28%" y2="100%" stroke="#bbb" strokeWidth="3" />
+            <line x1="65%" y1="0" x2="67%" y2="100%" stroke="#bbb" strokeWidth="2" />
+            <line x1="0" y1="50%" x2="100%" y2="52%" stroke="#ddd" strokeWidth="1.5" />
+            <line x1="50%" y1="0" x2="48%" y2="100%" stroke="#ddd" strokeWidth="1.5" />
+            <circle cx="30%" cy="38%" r="8%" fill="none" stroke="#ccc" strokeWidth="1.5" />
+            <circle cx="65%" cy="60%" r="5%" fill="none" stroke="#ccc" strokeWidth="1" />
+            <rect x="35%" y="20%" width="8%" height="6%" fill="#d4edda" rx="4" />
+            <rect x="55%" y="65%" width="10%" height="7%" fill="#d4edda" rx="4" />
+          </svg>
+          {/* Stadtname */}
+          <div style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 700, color: "#bbb", letterSpacing: 1, textTransform: "uppercase" }}>München</div>
+          <div style={{ position: "absolute", bottom: "15%", right: "8%", fontSize: 11, color: "#ccc" }}>Schwabing</div>
+          <div style={{ position: "absolute", top: "45%", left: "8%", fontSize: 11, color: "#ccc" }}>Maxvorstadt</div>
+          <div style={{ position: "absolute", top: "25%", right: "12%", fontSize: 11, color: "#ccc" }}>Bogenhausen</div>
+        </div>
+
+        {/* Pins */}
+        {sichtbarePins.map(p => (
+          <button key={p.id} onClick={() => setSelected(selected?.id === p.id ? null : p)}
+            style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ background: selected?.id === p.id ? "#FF6B5B" : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
+                <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
+                <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
+              </div>
+              <div style={{ width: 8, height: 8, background: selected?.id === p.id ? "#FF6B5B" : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
+            </div>
+          </button>
+        ))}
+
+        {/* Mein Standort */}
+        <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: "#2ABFAC", border: "3px solid white", boxShadow: "0 0 0 6px rgba(42,191,172,0.2)", zIndex: 5 }} />
+
+        {/* Anzahl-Badge */}
+        <div style={{ position: "absolute", top: 12, right: 12, background: "white", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#333", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
+          {sichtbarePins.length} Wirker
+        </div>
+      </div>
+
+      {/* Ausgewählter Wirker */}
+      {selected && (
+        <div style={{ background: "white", padding: "16px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 14 }}>
+            <img src={selected.img} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover" }} alt="" />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: 17, color: "#222", display: "flex", alignItems: "center", gap: 6 }}>
+                {selected.name} <BadgeCheck size={16} color="#2ABFAC" />
+              </div>
+              <div style={{ fontSize: 13, color: "#2ABFAC", fontWeight: 600 }}>{selected.talent}</div>
+              <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>👍 {selected.empf} Empfehlungen · {selected.rate}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => { onViewWirker(selected.name); onClose(); }} style={{ flex: 1, background: "#f3f3f3", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "#333", cursor: "pointer" }}>
+              Profil ansehen
+            </button>
+            <button style={{ flex: 1, background: "linear-gradient(135deg, #FF6B5B, #F5A623)", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "white", cursor: "pointer" }}>
+              📅 Jetzt buchen
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
@@ -4668,7 +4914,29 @@ export default function App() {
   const [showStoryCreate, setShowStoryCreate] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showKarte, setShowKarte] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
+
+  // Auth prüfen
+  useEffect(() => {
+    base44.auth.getUser().then(u => {
+      setAuthUser(u);
+      setAuthChecked(true);
+    }).catch(() => setAuthChecked(true));
+  }, []);
+
+  if (!authChecked) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg, #fff8f6, #f0fffe)", fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ textAlign: "center" }}>
+        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 64, height: 64, borderRadius: 18, marginBottom: 16, opacity: 0.7 }} />
+        <div style={{ fontSize: 14, color: "#aaa" }}>Wird geladen...</div>
+      </div>
+    </div>
+  );
+
+  if (!authUser) return <LoginScreen onLogin={() => { base44.auth.getUser().then(u => setAuthUser(u)); }} />;
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -4698,8 +4966,8 @@ export default function App() {
   return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
       {page === "home" && (<>
-        <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
-        <SearchBar onClick={() => setShowSearch(true)} />
+        <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} onLogout={() => { base44.auth.logout(); setAuthUser(null); }} />
+        <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} />
         <div>
           <StoryBar />
           {recentlyViewed.length > 0 && (
@@ -4760,6 +5028,7 @@ export default function App() {
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
+      {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
 
       <style>{`
         @keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } }
