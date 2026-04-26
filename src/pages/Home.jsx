@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye } from "lucide-react";
-import { createClient } from "https://esm.sh/@base44/sdk@latest";
-
-const base44 = createClient({ appId: "69e91ff9d24a19ce6f9abd25" });
-const { HuiMessage } = base44.entities;
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
@@ -1672,7 +1668,7 @@ function NotificationsOverlay({ onClose }) {
   );
 }
 
-function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount, onLogout }) {
+function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
   return (
     <div style={{ background: "white", padding: "14px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 100 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1693,7 +1689,7 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount, onLogout 
             <Bell size={22} color="#444" />
             {notifCount > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifCount}</span>}
           </button>
-          {onLogout && <button onClick={onLogout} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 18 }} title="Abmelden">👋</button>}
+
         </div>
       </div>
     </div>
@@ -2200,18 +2196,12 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
   const messagesEndRef = React.useRef(null);
   const chatId = `chat_${initialChat.id}`;
 
-  // Nachrichten aus DB laden
+  // Nachrichten aus localStorage laden
   useEffect(() => {
-    HuiMessage.filter({ chat_id: chatId }).then(msgs => {
-      setDbMessages(msgs.sort((a,b) => new Date(a.created_date) - new Date(b.created_date)));
-    }).catch(() => {});
-    // Alle 5 Sek. neu laden
-    const interval = setInterval(() => {
-      HuiMessage.filter({ chat_id: chatId }).then(msgs => {
-        setDbMessages(msgs.sort((a,b) => new Date(a.created_date) - new Date(b.created_date)));
-      }).catch(() => {});
-    }, 5000);
-    return () => clearInterval(interval);
+    try {
+      const stored = JSON.parse(localStorage.getItem(chatId) || "[]");
+      setDbMessages(stored);
+    } catch(e) {}
   }, [chatId]);
 
   React.useEffect(() => {
@@ -2222,11 +2212,13 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
     if (!message.trim()) return;
     const text = message.trim();
     setMessage("");
-    // In DB speichern
-    HuiMessage.create({ chat_id: chatId, sender_name: "Ich", text, message_type: "text", read: false })
-      .then(() => HuiMessage.filter({ chat_id: chatId }))
-      .then(msgs => setDbMessages(msgs.sort((a,b) => new Date(a.created_date) - new Date(b.created_date))))
-      .catch(() => {});
+    // In localStorage speichern
+    try {
+      const stored = JSON.parse(localStorage.getItem(chatId) || "[]");
+      const newStored = [...stored, { id: Date.now(), sender_name: "Ich", text, message_type: "text", created_date: new Date().toISOString() }];
+      localStorage.setItem(chatId, JSON.stringify(newStored));
+      setDbMessages(newStored);
+    } catch(e) {}
     const newMsg = { from: "ich", text, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) };
     setChat(c => ({ ...c, messages: [...c.messages, newMsg] }));
     setMessage("");
@@ -4690,21 +4682,16 @@ function LoginScreen({ onLogin }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  const handleAuth = async () => {
+  const handleAuth = () => {
     if (!email || !password) { setError("Bitte E-Mail und Passwort eingeben"); return; }
+    if (mode === "register" && !name) { setError("Bitte Name eingeben"); return; }
     setLoading(true); setError("");
-    try {
-      if (mode === "login") {
-        await base44.auth.loginWithEmail({ email, password });
-      } else {
-        if (!name) { setError("Bitte Name eingeben"); setLoading(false); return; }
-        await base44.auth.signupWithEmail({ email, password, full_name: name });
-      }
+    // Demo-Login: nach 800ms einloggen
+    setTimeout(() => {
+      localStorage.setItem("hui_user", JSON.stringify({ email, name: name || email.split("@")[0] }));
       onLogin();
-    } catch (e) {
-      setError(e.message || "Fehler beim Anmelden");
-    }
-    setLoading(false);
+      setLoading(false);
+    }, 800);
   };
 
   return (
@@ -4915,28 +4902,7 @@ export default function App() {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showKarte, setShowKarte] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
-
-  // Auth prüfen
-  useEffect(() => {
-    base44.auth.getUser().then(u => {
-      setAuthUser(u);
-      setAuthChecked(true);
-    }).catch(() => setAuthChecked(true));
-  }, []);
-
-  if (!authChecked) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg, #fff8f6, #f0fffe)", fontFamily: "'Inter', sans-serif" }}>
-      <div style={{ textAlign: "center" }}>
-        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 64, height: 64, borderRadius: 18, marginBottom: 16, opacity: 0.7 }} />
-        <div style={{ fontSize: 14, color: "#aaa" }}>Wird geladen...</div>
-      </div>
-    </div>
-  );
-
-  if (!authUser) return <LoginScreen onLogin={() => { base44.auth.getUser().then(u => setAuthUser(u)); }} />;
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -4966,7 +4932,7 @@ export default function App() {
   return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
       {page === "home" && (<>
-        <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} onLogout={() => { base44.auth.logout(); setAuthUser(null); }} />
+        <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
         <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} />
         <div>
           <StoryBar />
