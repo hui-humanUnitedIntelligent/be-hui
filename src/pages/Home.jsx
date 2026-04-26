@@ -128,6 +128,126 @@ const myOwnStories = [
   },
 ];
 
+// Mock-Kommentare pro Feed-Item
+const mockComments = {
+  1: [
+    { id: "c1", user: "Tom H.", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", text: "Wunderschön! Die Glasur ist so besonders 😍", time: "vor 12 Min.", likes: 4 },
+    { id: "c2", user: "Lena K.", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", text: "Machst du auch Sonderanfertigungen? Würde mir sowas in Blau wünschen 💙", time: "vor 28 Min.", likes: 2 },
+    { id: "c3", user: "Maria L.", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", text: "Einfach toll. Echte Handarbeit spürt man!", time: "vor 1 Std.", likes: 7 },
+  ],
+  2: [
+    { id: "c4", user: "Marcus B.", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", text: "Hätte gerne eine in Dunkelgrün 🌿 Bestellbar?", time: "vor 5 Min.", likes: 1 },
+    { id: "c5", user: "Tom H.", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", text: "Preis ist absolut fair für Handarbeit dieser Qualität!", time: "vor 45 Min.", likes: 9 },
+  ],
+  4: [
+    { id: "c6", user: "Sofia M.", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", text: "Das Licht in diesem Shot ist unglaublich 📷✨", time: "vor 8 Min.", likes: 14 },
+    { id: "c7", user: "Lena K.", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", text: "Schickst du mir mal deine Kamera-Settings? 🙏", time: "vor 22 Min.", likes: 3 },
+    { id: "c8", user: "Tom H.", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", text: "Traumhaft. So soll Fotografie aussehen.", time: "vor 2 Std.", likes: 21 },
+    { id: "c9", user: "Maria L.", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", text: "Ich brauche definitiv einen Termin für ein Portrait! 😍", time: "vor 3 Std.", likes: 6 },
+  ],
+  5: [
+    { id: "c10", user: "Marcus B.", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", text: "Was für ein besonderes Geschenk das wäre!", time: "vor 1 Std.", likes: 5 },
+  ],
+  7: [
+    { id: "c11", user: "Sofia M.", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", text: "Diese Morgenroutine inspiriert mich jeden Tag neu 🌅", time: "vor 3 Min.", likes: 18 },
+    { id: "c12", user: "Tom H.", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", text: "Habe letzte Woche meine erste Session bei dir gebucht – absolute Empfehlung!", time: "vor 35 Min.", likes: 11 },
+    { id: "c13", user: "Lena K.", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", text: "7 Uhr morgens – du bist verrückt 😂 Aber ich liebe es!", time: "vor 1 Std.", likes: 8 },
+  ],
+  8: [
+    { id: "c14", user: "Maria L.", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", text: "Das Leder sieht traumhaft aus. Hält das wirklich ein Leben lang?", time: "vor 20 Min.", likes: 3 },
+    { id: "c15", user: "Marcus B.", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", text: "Definitiv mein nächster Kauf. Einfach nachhaltig und schön! 🌿", time: "vor 2 Std.", likes: 12 },
+  ],
+};
+
+// Kommentar-Bereich Komponente (Instagram-Style)
+function CommentSection({ itemId, initialCount }) {
+  const [open, setOpen] = useState(false);
+  const [comments, setComments] = useState(mockComments[itemId] || []);
+  const [input, setInput] = useState("");
+  const [likedComments, setLikedComments] = useState({});
+  const inputRef = React.useRef(null);
+
+  const total = comments.length;
+
+  const toggleLike = (cid) => setLikedComments(p => ({ ...p, [cid]: !p[cid] }));
+
+  const submit = () => {
+    if (!input.trim()) return;
+    setComments(p => [...p, {
+      id: "new_" + Date.now(),
+      user: "Lars M.",
+      img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop",
+      text: input.trim(),
+      time: "gerade eben",
+      likes: 0,
+    }]);
+    setInput("");
+  };
+
+  return (
+    <div style={{ borderTop: "1px solid #f0f0ee" }}>
+      {/* Kommentar-Button + Anzahl */}
+      <button onClick={() => { setOpen(o => !o); setTimeout(() => open || inputRef.current?.focus(), 100); }}
+        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", color: open ? CORAL : "#888" }}>
+        <MessageCircle size={19} fill={open ? `${CORAL}20` : "none"} color={open ? CORAL : "#888"} />
+        <span style={{ fontSize: 13, fontWeight: 600, color: open ? CORAL : "#888" }}>
+          {total > 0 ? `${total} Kommentar${total !== 1 ? "e" : ""}` : "Kommentieren"}
+        </span>
+      </button>
+
+      {/* Aufgeklappter Bereich */}
+      {open && (
+        <div style={{ padding: "0 14px 12px" }}>
+          {/* Kommentar-Liste */}
+          {comments.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              {comments.map((c) => (
+                <div key={c.id} style={{ display: "flex", gap: 9, marginBottom: 12, alignItems: "flex-start" }}>
+                  <img src={c.img} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0, marginTop: 1 }} alt={c.user} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ background: "#f5f5f3", borderRadius: "0 14px 14px 14px", padding: "8px 11px" }}>
+                      <span style={{ fontWeight: 700, fontSize: 12, color: "#222" }}>{c.user} </span>
+                      <span style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>{c.text}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 12, marginTop: 4, alignItems: "center" }}>
+                      <span style={{ fontSize: 11, color: "#bbb" }}>{c.time}</span>
+                      <button onClick={() => toggleLike(c.id)}
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3, color: likedComments[c.id] ? CORAL : "#bbb" }}>
+                        <Heart size={12} fill={likedComments[c.id] ? CORAL : "none"} color={likedComments[c.id] ? CORAL : "#bbb"} />
+                        <span style={{ fontSize: 11, fontWeight: 600 }}>{c.likes + (likedComments[c.id] ? 1 : 0)}</span>
+                      </button>
+                      <button style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 11, color: "#bbb", fontWeight: 600 }}>Antworten</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Eingabe */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} alt="me" />
+            <div style={{ flex: 1, display: "flex", alignItems: "center", background: "#f5f5f3", borderRadius: 22, padding: "0 4px 0 12px" }}>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && submit()}
+                placeholder="Kommentieren..."
+                style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 13, padding: "9px 4px 9px 0", fontFamily: "inherit" }}
+              />
+              <button onClick={submit} disabled={!input.trim()}
+                style={{ background: input.trim() ? CORAL : "transparent", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: input.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.2s" }}>
+                <Send size={14} color={input.trim() ? "white" : "#ccc"} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const mockFeed = [
   { id: 1, type: "media", mediaType: "photo", creator: "Sofia M.", creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", talent: "Keramik-Künstlerin", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=700&fit=crop", caption: "Meine neueste Kreation – jede Tasse ist ein Unikat. 🌿 Handgedreht, handglasiert, mit ganzem Herzen gemacht.", likes: 142, location: "München" },
   { id: 2, type: "werk", title: "Handgemachte Keramik-Tasse", creator: "Sofia M.", creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=400&fit=crop", price: "38 €", likes: 124, location: "München" },
@@ -1335,6 +1455,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker }) {
         </div>
         <div style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}><span style={{ fontWeight: 700 }}>{item.creator} </span>{item.caption}</div>
       </div>
+      <CommentSection itemId={item.id} />
     </div>
   );
 }
@@ -1382,6 +1503,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
           <button onClick={() => onViewWerk(item.title)} style={{ marginLeft: "auto", background: "none", border: `1.5px solid ${CORAL}`, borderRadius: 10, padding: "5px 12px", fontWeight: 700, fontSize: 12, color: CORAL, cursor: "pointer" }}>Details →</button>
         </div>
       </div>
+      <CommentSection itemId={item.id} />
     </div>
   );
 }
