@@ -3164,7 +3164,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const [editTab, setEditTab] = useState("basis"); // "basis" | "talent" | "bio"
   const [profileForm, setProfileForm] = useState({
     vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
-    standort: "München, Deutschland", bio: "Ich forme aus Ton Dinge, die bleiben.",
+    standort: "München, Deutschland", suchRadius: 50,
+    bio: "Ich forme aus Ton Dinge, die bleiben.",
     website: "", instagram: "", kategorie: "Keramik & Töpfern",
     sprachen: ["Deutsch"], erfahrung: "3 Jahre",
     kurzbeschreibung: "Keramik-Künstler aus München – handgemachte Unikate und Workshops.",
@@ -3340,8 +3341,12 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
               ))}
             </div>
 
-            {/* Sichtbarkeitsradius */}
-            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+            {/* Sichtbarkeitsradius – NUR Talent */}
+            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.04)", border: `1px solid ${TEAL}18` }}>
+              <div style={{ background: `${TEAL}0d`, borderRadius: 10, padding: "7px 12px", marginBottom: 12, display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{ fontSize: 14 }}>✨</span>
+                <span style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>Nur für Talente · Steuert wie weit du in der Suche erscheinst</span>
+              </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 34, height: 34, borderRadius: 10, background: `${TEAL}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -3349,7 +3354,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
                   </div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Sichtbarkeitsradius</div>
-                    <div style={{ fontSize: 11, color: "#aaa" }}>Wie weit bist du buchbar?</div>
+                    <div style={{ fontSize: 11, color: "#aaa" }}>Wie weit bist du als Talent buchbar?</div>
                   </div>
                 </div>
                 <div style={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{radius} km</div>
@@ -3564,10 +3569,41 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Standort</div>
                     <div style={{ position: "relative" }}>
                       <input value={profileForm.standort} onChange={e => setP("standort", e.target.value)}
+                        placeholder="z.B. München oder Maximilianstr. 12, München"
                         style={{ width: "100%", padding: "11px 13px 11px 36px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
                       <MapPin size={14} color="#bbb" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
                     </div>
+                    <div style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>Stadt oder Adresse – wird für die Suche verwendet</div>
                   </div>
+
+                  {/* Suchradius – für alle Nutzer (steuert welche Inhalte im Feed & Suche erscheinen) */}
+                  <div style={{ marginTop: 16, background: "#f7f7f5", borderRadius: 14, padding: "14px 16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>📍 Suchradius</div>
+                        <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>Zeige mir Inhalte im Umkreis von</div>
+                      </div>
+                      <div style={{ background: `${CORAL}15`, borderRadius: 20, padding: "4px 12px" }}>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: CORAL }}>
+                          {profileForm.suchRadius >= 200 ? "🌍 Weltweit" : `${profileForm.suchRadius} km`}
+                        </span>
+                      </div>
+                    </div>
+                    <input type="range" min={5} max={200} step={5}
+                      value={profileForm.suchRadius || 50}
+                      onChange={e => setP("suchRadius", Number(e.target.value))}
+                      style={{ width: "100%", accentColor: CORAL, cursor: "pointer" }} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ccc", marginTop: 3 }}>
+                      <span>5 km</span><span>50 km</span><span>100 km</span><span>🌍</span>
+                    </div>
+                    <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, background: `${CORAL}08`, borderRadius: 10, padding: "8px 12px" }}>
+                      <MapPin size={13} color={CORAL} />
+                      <span style={{ fontSize: 12, color: "#555", lineHeight: 1.5 }}>
+                        Du siehst Talente & Werke aus <strong>{profileForm.standort || "deinem Standort"}</strong> im Umkreis von <strong style={{ color: CORAL }}>{profileForm.suchRadius >= 200 ? "weltweit" : `${profileForm.suchRadius || 50} km`}</strong>
+                      </span>
+                    </div>
+                  </div>
+
                   <div style={{ marginTop: 12 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Profilbild</div>
                     <button onClick={() => { setShowEditProfile(false); setShowImagePicker("avatar"); }}
