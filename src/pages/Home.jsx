@@ -1363,6 +1363,198 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
   );
 }
 
+// ══════════════════════════════════════════════════════════════════
+// CREATE SHEET — Plus-Button Aktionen
+// ══════════════════════════════════════════════════════════════════
+function CreateSheet({ onClose, onNewWerk, onNewStory, onNewTalentUpdate }) {
+  const options = [
+    {
+      icon: "🎁", label: "Neues Werk veröffentlichen",
+      sub: "Foto, Produkt oder digitales Angebot", color: CORAL,
+      action: onNewWerk
+    },
+    {
+      icon: "📖", label: "Story teilen",
+      sub: "Zeig was du gerade machst oder erlebt hast", color: GOLD,
+      action: onNewStory
+    },
+    {
+      icon: "✨", label: "Talent-Profil aktualisieren",
+      sub: "Kategorie, Bio, Stundensatz anpassen", color: TEAL,
+      action: onNewTalentUpdate
+    },
+  ];
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "20px 20px 36px" }}>
+        {/* Handle */}
+        <div style={{ width: 38, height: 4, borderRadius: 99, background: "#e0e0e0", margin: "0 auto 20px" }} />
+        <div style={{ fontWeight: 800, fontSize: 18, color: "#222", marginBottom: 4 }}>Was möchtest du teilen?</div>
+        <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Veröffentliche direkt auf HUI</div>
+        {options.map((o, i) => (
+          <button key={i} onClick={o.action} style={{ width: "100%", background: `${o.color}0d`, border: `1.5px solid ${o.color}25`, borderRadius: 16, padding: "14px 16px", marginBottom: 12, display: "flex", gap: 14, alignItems: "center", cursor: "pointer", textAlign: "left" }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: `${o.color}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
+              {o.icon}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#222", marginBottom: 2 }}>{o.label}</div>
+              <div style={{ fontSize: 12, color: "#999" }}>{o.sub}</div>
+            </div>
+            <ChevronRight size={17} color="#ddd" />
+          </button>
+        ))}
+        <button onClick={onClose} style={{ width: "100%", background: "none", border: "none", color: "#bbb", fontSize: 14, cursor: "pointer", marginTop: 4, padding: "8px 0" }}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+function WerkCreateModal({ onClose }) {
+  const [step, setStep] = useState(1); // 1=Typ, 2=Details, 3=Preis, 4=Danke
+  const [form, setForm] = useState({ typ: "", titel: "", beschreibung: "", preis: "", einheit: "Stück", versand: "", bild: null, digital: false });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const werkTypen = [
+    { id: "physisch", icon: "📦", label: "Physisches Werk", sub: "Handgemacht, Kunst, Produkt" },
+    { id: "digital", icon: "💻", label: "Digitales Werk", sub: "Datei, Design, Musik, PDF" },
+    { id: "service", icon: "🤝", label: "Dienstleistung / Buchbar", sub: "Stunde, Session, Workshop" },
+  ];
+
+  if (step === 4) return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ background: "white", borderRadius: 24, padding: 32, textAlign: "center", maxWidth: 340, width: "100%" }}>
+        <div style={{ fontSize: 60, marginBottom: 16 }}>🎉</div>
+        <div style={{ fontWeight: 800, fontSize: 21, color: "#222", marginBottom: 8 }}>Werk veröffentlicht!</div>
+        <div style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 24 }}>"{form.titel}" ist jetzt auf deinem Profil und im Feed sichtbar.</div>
+        <button onClick={onClose} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Super! →</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "18px 20px 0", flexShrink: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>🎁 Neues Werk</div>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#aaa" /></button>
+          </div>
+          <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5, marginBottom: 18 }}>
+            <div style={{ background: `linear-gradient(90deg, ${CORAL}, ${GOLD})`, height: 5, borderRadius: 99, width: `${(step / 3) * 100}%`, transition: "width 0.3s" }} />
+          </div>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 20px" }}>
+          {step === 1 && (
+            <>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 14 }}>Was für ein Werk ist es?</div>
+              {werkTypen.map(t => (
+                <div key={t.id} onClick={() => { set("typ", t.id); set("digital", t.id === "digital"); }} style={{ border: `2px solid ${form.typ === t.id ? CORAL : "#eee"}`, background: form.typ === t.id ? `${CORAL}08` : "white", borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer", display: "flex", gap: 12, alignItems: "center" }}>
+                  <span style={{ fontSize: 24 }}>{t.icon}</span>
+                  <div><div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{t.label}</div><div style={{ fontSize: 12, color: "#aaa" }}>{t.sub}</div></div>
+                  {form.typ === t.id && <Check size={18} color={CORAL} style={{ marginLeft: "auto" }} />}
+                </div>
+              ))}
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 14 }}>Details zum Werk</div>
+              <div style={{ border: "2px dashed #e0e0e0", borderRadius: 14, height: 130, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 14, cursor: "pointer", background: "#fafaf8" }}>
+                <span style={{ fontSize: 28, marginBottom: 6 }}>📷</span>
+                <span style={{ fontSize: 13, color: "#aaa" }}>Foto hinzufügen</span>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 5 }}>Titel *</div>
+                <input value={form.titel} onChange={e => set("titel", e.target.value)} placeholder="z.B. Handgenähte Leder-Tasche" style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", fontFamily: "inherit" }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 5 }}>Beschreibung</div>
+                <textarea value={form.beschreibung} onChange={e => set("beschreibung", e.target.value)} rows={3} placeholder="Was steckt dahinter? Material, Entstehung, Besonderheiten..." style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit" }} />
+              </div>
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 14 }}>Preis & Details</div>
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 5 }}>Preis (€) *</div>
+                <input value={form.preis} onChange={e => set("preis", e.target.value)} type="number" placeholder="z.B. 49" style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", fontFamily: "inherit" }} />
+              </div>
+              {form.typ === "physisch" && (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 5 }}>Versandkosten (€)</div>
+                  <input value={form.versand} onChange={e => set("versand", e.target.value)} type="number" placeholder="z.B. 4.90 (0 = kostenlos)" style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", fontFamily: "inherit" }} />
+                </div>
+              )}
+              {form.preis && (
+                <div style={{ background: "#f9f9f7", borderRadius: 12, padding: "12px 14px", fontSize: 12, color: "#777" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span>Preis</span><span style={{ fontWeight: 700 }}>{parseFloat(form.preis || 0).toFixed(2)} €</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, color: "#aaa" }}>
+                    <span>HUI-Provision (15%)</span><span>- {(parseFloat(form.preis || 0) * 0.15).toFixed(2)} €</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: TEAL, marginBottom: 4 }}>
+                    <span>🌱 Impact Pool (3% der Provision)</span><span>- {(parseFloat(form.preis || 0) * 0.15 * 0.03).toFixed(2)} €</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: 13, color: "#222", borderTop: "1px solid #eee", paddingTop: 6, marginTop: 6 }}>
+                    <span>Du erhältst</span><span style={{ color: CORAL }}>{(parseFloat(form.preis || 0) * 0.85).toFixed(2)} €</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0, display: "flex", gap: 10 }}>
+          {step > 1 && <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, background: "#f5f5f3", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", color: "#666" }}>← Zurück</button>}
+          <button onClick={() => step < 3 ? setStep(s => s + 1) : setStep(4)} disabled={step === 1 && !form.typ || step === 2 && !form.titel || step === 3 && !form.preis}
+            style={{ flex: 2, background: (step === 1 && !form.typ) || (step === 2 && !form.titel) || (step === 3 && !form.preis) ? "#e0e0e0" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+            {step < 3 ? "Weiter →" : "🎁 Jetzt veröffentlichen"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StoryCreateModal({ onClose }) {
+  const [text, setText] = useState("");
+  const [published, setPublished] = useState(false);
+
+  if (published) return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ background: "white", borderRadius: 24, padding: 32, textAlign: "center", maxWidth: 340, width: "100%" }}>
+        <div style={{ fontSize: 60, marginBottom: 16 }}>✨</div>
+        <div style={{ fontWeight: 800, fontSize: 21, color: "#222", marginBottom: 8 }}>Story live!</div>
+        <div style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 24 }}>Deine Story ist jetzt im Feed sichtbar und 24h lang im Story-Bar oben.</div>
+        <button onClick={onClose} style={{ width: "100%", background: `linear-gradient(135deg, ${GOLD}, ${CORAL})`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Super! →</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "20px 20px 32px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>📖 Story teilen</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#aaa" /></button>
+        </div>
+        <div style={{ border: "2px dashed #e0e0e0", borderRadius: 14, height: 110, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 14, cursor: "pointer", background: "#fafaf8" }}>
+          <span style={{ fontSize: 28, marginBottom: 6 }}>📷</span>
+          <span style={{ fontSize: 13, color: "#aaa" }}>Foto oder Video (optional)</span>
+        </div>
+        <textarea value={text} onChange={e => setText(e.target.value)} rows={4} placeholder="Was bewegst du gerade? Ein Einblick hinter die Kulissen, eine neue Idee, ein fertiges Werk..." style={{ width: "100%", padding: "12px 14px", borderRadius: 14, border: "1.5px solid #e8e8e8", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit", marginBottom: 14 }} />
+        <div style={{ background: `${GOLD}0d`, borderRadius: 12, padding: "9px 13px", fontSize: 12, color: "#888", marginBottom: 16 }}>
+          ⏱ Stories sind <strong>24 Stunden</strong> sichtbar und erscheinen oben im Story-Bar deiner Follower.
+        </div>
+        <button onClick={() => text.trim() && setPublished(true)} disabled={!text.trim()} style={{ width: "100%", background: text.trim() ? `linear-gradient(135deg, ${GOLD}, ${CORAL})` : "#e0e0e0", color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: text.trim() ? "pointer" : "default" }}>
+          ✨ Story veröffentlichen
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CartOverlay({ cart, onClose, onRemove }) {
   const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
   return (
@@ -2264,7 +2456,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten }) {
     </div>
   );
 }
-function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser }) {
+function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser, onPlusClick }) {
   return (
     <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "white", borderTop: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-around", padding: "10px 0 18px", zIndex: 200, boxShadow: "0 -2px 16px rgba(0,0,0,0.07)" }}>
       <TabButton label="Home" icon={<Home size={20} />} active={page === "home"} onClick={() => setPage("home")} />
@@ -2275,7 +2467,7 @@ function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser
           <span style={{ fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: 0.3 }}>Entdecke HUI</span>
         </button>
       ) : (
-        <button style={{ width: 54, height: 54, borderRadius: "50%", background: CORAL, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginTop: -18, boxShadow: `0 4px 16px ${CORAL}66` }}><Plus size={26} color="white" strokeWidth={2.5} /></button>
+        <button onClick={onPlusClick} style={{ width: 54, height: 54, borderRadius: "50%", background: CORAL, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginTop: -18, boxShadow: `0 4px 16px ${CORAL}66` }}><Plus size={26} color="white" strokeWidth={2.5} /></button>
       )}
       <TabButton label="Favoriten" icon={<Star size={20} />} active={page === "favorites"} onClick={() => setPage("favorites")} />
       <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -2304,6 +2496,9 @@ export default function App() {
   const isNewUser = true;
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [showWerkCreate, setShowWerkCreate] = useState(false);
+  const [showStoryCreate, setShowStoryCreate] = useState(false);
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -2348,10 +2543,21 @@ export default function App() {
       {page === "chats" && openChat && <ChatDetailPage chat={openChat} onBack={() => setOpenChat(null)} />}
       {page === "profile" && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Sofia M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} />}
 
-      <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} />
+      <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} onPlusClick={() => setShowCreateSheet(true)} />
 
       {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />
       }{showTalentAnbieten && <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />}
+      {showCreateSheet && (
+        <CreateSheet
+          onClose={() => setShowCreateSheet(false)}
+          onNewWerk={() => { setShowCreateSheet(false); setShowWerkCreate(true); }}
+          onNewStory={() => { setShowCreateSheet(false); setShowStoryCreate(true); }}
+          onNewTalentUpdate={() => { setShowCreateSheet(false); setShowTalentAnbieten(true); }}
+        />
+      )}
+      {showWerkCreate && <WerkCreateModal onClose={() => setShowWerkCreate(false)} />}
+      {showStoryCreate && <StoryCreateModal onClose={() => setShowStoryCreate(false)} />}
+      {/* dummy close}
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
 
