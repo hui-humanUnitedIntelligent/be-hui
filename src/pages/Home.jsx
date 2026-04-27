@@ -1695,7 +1695,7 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
     </div>
   );
 }
-function SearchBar({ onClick, onKarteClick }) {
+function SearchBar({ onClick, onKarteClick, onMatchClick }) {
   return (
     <div style={{ background: "white", padding: "8px 16px 10px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0", display: "flex", gap: 8 }}>
       <div onClick={onClick} style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
@@ -1703,6 +1703,9 @@ function SearchBar({ onClick, onKarteClick }) {
         <span style={{ color: "#bbb", fontSize: 14, flex: 1 }}>Suche nach Talent, Werk, Name…</span>
         <div style={{ background: `${TEAL}18`, borderRadius: 8, padding: "3px 8px", display: "flex", alignItems: "center", gap: 4 }}><SlidersHorizontal size={13} color={TEAL} /><span style={{ fontSize: 11, color: TEAL, fontWeight: 700 }}>Filter</span></div>
       </div>
+      <button onClick={onMatchClick} style={{ background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 800, fontSize: 13, color: "white", minHeight: 40, boxShadow: `0 4px 14px ${CORAL}55` }}>
+        ✨
+      </button>
       <button onClick={onKarteClick} style={{ background: `${TEAL}15`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 700, fontSize: 12, color: TEAL, minHeight: 40 }}>
         🗺
       </button>
@@ -4764,6 +4767,232 @@ function LoginScreen({ onLogin }) {
   );
 }
 
+// ══════════════════════════════════════════════════════════════════
+// HUI-MATCH — KI-gestütztes Talent-Matching
+// ══════════════════════════════════════════════════════════════════
+const MATCH_WIRKER = [
+  { id: 1, name: "Sofia M.", talent: "Keramik-Künstlerin", location: "München", rating: 4.9, reviews: 47, rate: "38€/h", img: null, skills: ["handgedreht", "glasiert", "Unikate", "nachhaltig", "kreativ"], bio: "Ich forme Alltagskunst aus Ton — jedes Stück ein Unikat mit Seele." },
+  { id: 2, name: "Tom K.", talent: "Garten-Designer", location: "12 km entfernt", rating: 4.8, reviews: 31, rate: "55€/h", img: null, skills: ["Naturgarten", "Permakultur", "nachhaltig", "Planung", "Bepflanzung"], bio: "Natürliche Gärten die atmen. Kein Kunstrasen, nur echtes Leben." },
+  { id: 3, name: "Lena B.", talent: "Illustratorin", location: "Berlin", rating: 5.0, reviews: 89, rate: "60€/h", img: null, skills: ["Aquarell", "digital", "Portraits", "kreativ", "Unikate"], bio: "Farbe, Form und Gefühl — ich male was du fühlst aber nicht ausdrücken kannst." },
+  { id: 4, name: "Marcus W.", talent: "Schreiner", location: "Hamburg", rating: 4.7, reviews: 24, rate: "65€/h", img: null, skills: ["Massivholz", "Möbel", "nachhaltig", "Maßanfertigung", "kreativ"], bio: "Möbel die Generationen überdauern. Keine Spanplatten, nur echtes Holz." },
+  { id: 5, name: "Anna S.", talent: "Yoga-Lehrerin", location: "Wien", rating: 4.9, reviews: 112, rate: "45€/h", img: null, skills: ["Hatha", "Vinyasa", "Meditation", "online", "persönlich"], bio: "Bewegung, Atem, Stille — ich begleite dich auf deinem Weg." },
+  { id: 6, name: "Felix R.", talent: "Fotograf", location: "Zürich", rating: 4.8, reviews: 58, rate: "90€/h", img: null, skills: ["Portrait", "Event", "Natur", "kreativ", "nachhaltig"], bio: "Ich halte Momente fest die sonst vergehen — ehrlich, lebendig, echt." },
+];
+
+function scoreMatch(wirker, query) {
+  const q = query.toLowerCase();
+  let score = 0;
+  const reasons = [];
+  wirker.skills.forEach(s => {
+    if (q.includes(s.toLowerCase()) || s.toLowerCase().split("").some(c => q.includes(c) && c.length > 2)) {
+      score += 2;
+    }
+  });
+  // Keyword matching
+  const keywords = q.split(/\s+/);
+  keywords.forEach(kw => {
+    if (kw.length < 3) return;
+    wirker.skills.forEach(s => { if (s.toLowerCase().includes(kw)) { score += 3; reasons.push(s); } });
+    if (wirker.talent.toLowerCase().includes(kw)) { score += 5; }
+    if (wirker.bio.toLowerCase().includes(kw)) { score += 1; }
+  });
+  // Budget check
+  const budgetMatch = query.match(/(\d+)\s*€/);
+  if (budgetMatch) {
+    const budget = parseInt(budgetMatch[1]);
+    const rate = parseInt(wirker.rate);
+    if (rate <= budget) { score += 4; reasons.push("im Budget"); }
+  }
+  // Nachhaltig bonus
+  if (q.includes("nachhaltig") && wirker.skills.includes("nachhaltig")) { score += 5; reasons.push("nachhaltig"); }
+  if (q.includes("kreativ") && wirker.skills.includes("kreativ")) { score += 3; reasons.push("kreativ"); }
+  // Unique reasons
+  const uniqueReasons = [...new Set(reasons)].slice(0, 3);
+  if (uniqueReasons.length === 0) {
+    uniqueReasons.push(wirker.talent, `${wirker.reviews} Bewertungen`);
+  }
+  return { score, reasons: uniqueReasons };
+}
+
+function getMatches(query) {
+  const scored = MATCH_WIRKER.map(w => {
+    const { score, reasons } = scoreMatch(w, query);
+    return { ...w, score, reasons };
+  }).sort((a, b) => b.score - a.score);
+  // Top 3, immer mindestens 3 zurückgeben
+  return scored.slice(0, 3).map((w, i) => ({
+    ...w,
+    reasons: w.reasons.length > 0 ? w.reasons : [w.talent, `${w.rating}★ Bewertung`, `${w.reviews} Empfehlungen`]
+  }));
+}
+
+const AVATARS = ["🧑‍🎨","🌿","🎨","🪚","🧘","📸"];
+const LOAD_PHRASES = [
+  "HUI analysiert deine Anfrage…",
+  "Vergleiche Talente und Skills…",
+  "Prüfe Verfügbarkeit & Budget…",
+  "Finde die besten 3 Matches…",
+];
+
+function HuiMatchOverlay({ onClose, onViewWirker }) {
+  const [step, setStep] = useState("input"); // input | loading | result
+  const [query, setQuery] = useState("");
+  const [matches, setMatches] = useState([]);
+  const [loadPhrase, setLoadPhrase] = useState(0);
+  const textRef = useRef(null);
+
+  const startMatch = () => {
+    if (!query.trim()) return;
+    setStep("loading");
+    setLoadPhrase(0);
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      setLoadPhrase(i);
+      if (i >= LOAD_PHRASES.length - 1) clearInterval(interval);
+    }, 700);
+    setTimeout(() => {
+      clearInterval(interval);
+      const results = getMatches(query);
+      setMatches(results);
+      setStep("result");
+    }, 3000);
+  };
+
+  const suggestions = [
+    "Ich suche jemanden für meinen Garten, nachhaltig, Budget 500€",
+    "Kreative Illustration für mein Buchprojekt gesucht",
+    "Yoga-Kurse online, 2x pro Woche",
+    "Maßgefertigte Holzmöbel für mein Wohnzimmer",
+  ];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+      <div style={{ background: "white", borderRadius: "28px 28px 0 0", width: "100%", maxWidth: 430, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #f0f0f0", display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 14, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, boxShadow: `0 4px 14px ${CORAL}44` }}>✨</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: 17, color: "#222" }}>HUI-Match</div>
+            <div style={{ fontSize: 12, color: "#aaa" }}>KI findet dein perfektes Talent</div>
+          </div>
+          <button onClick={onClose} style={{ background: "#f3f3f3", border: "none", borderRadius: 10, width: 34, height: 34, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 32px" }}>
+
+          {/* INPUT STEP */}
+          {step === "input" && (<>
+            <div style={{ fontSize: 14, color: "#666", marginBottom: 14, lineHeight: 1.6 }}>
+              Beschreib einfach was du brauchst — die KI findet die <strong>3 besten Talente</strong> für dich.
+            </div>
+            <textarea
+              ref={textRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="z.B. Ich suche einen kreativen Gärtner für meinen Balkon, nachhaltig, Budget 300€…"
+              style={{ width: "100%", minHeight: 110, borderRadius: 16, border: "2px solid #f0f0f0", padding: "14px", fontSize: 14, fontFamily: "inherit", resize: "none", outline: "none", color: "#333", lineHeight: 1.6, transition: "border 0.2s", boxSizing: "border-box" }}
+              onFocus={e => e.target.style.border = `2px solid ${CORAL}`}
+              onBlur={e => e.target.style.border = "2px solid #f0f0f0"}
+            />
+            {/* Suggestions */}
+            <div style={{ marginTop: 12, marginBottom: 20 }}>
+              <div style={{ fontSize: 11, color: "#bbb", fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Beispiele</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {suggestions.map((s, i) => (
+                  <button key={i} onClick={() => setQuery(s)} style={{ background: "#f7f7f5", border: "none", borderRadius: 10, padding: "9px 12px", textAlign: "left", fontSize: 13, color: "#555", cursor: "pointer", lineHeight: 1.4 }}>
+                    💡 {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={startMatch}
+              disabled={!query.trim()}
+              style={{ width: "100%", background: query.trim() ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#e0e0e0", color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 800, fontSize: 16, cursor: query.trim() ? "pointer" : "default", boxShadow: query.trim() ? `0 6px 20px ${CORAL}44` : "none", transition: "all 0.2s" }}
+            >
+              ✨ HUI-Match starten
+            </button>
+          </>)}
+
+          {/* LOADING STEP */}
+          {step === "loading" && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 0" }}>
+              <div style={{ position: "relative", width: 80, height: 80, marginBottom: 28 }}>
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: `linear-gradient(135deg, ${CORAL}33, ${GOLD}33)`, animation: "matchPulse 1.2s ease-in-out infinite" }} />
+                <div style={{ position: "absolute", inset: 8, borderRadius: "50%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>✨</div>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 8, textAlign: "center" }}>
+                {LOAD_PHRASES[Math.min(loadPhrase, LOAD_PHRASES.length - 1)]}
+              </div>
+              <div style={{ fontSize: 13, color: "#aaa", textAlign: "center" }}>Einen Moment…</div>
+              <div style={{ display: "flex", gap: 6, marginTop: 24 }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i === loadPhrase % 3 ? CORAL : "#e0e0e0", transition: "background 0.3s" }} />
+                ))}
+              </div>
+              <style>{`@keyframes matchPulse { 0%,100%{transform:scale(1);opacity:0.6} 50%{transform:scale(1.15);opacity:1} }`}</style>
+            </div>
+          )}
+
+          {/* RESULT STEP */}
+          {step === "result" && (<>
+            <div style={{ fontSize: 13, color: "#888", marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ background: `${TEAL}18`, color: TEAL, fontWeight: 700, fontSize: 11, padding: "3px 8px", borderRadius: 8 }}>✓ 3 Matches gefunden</span>
+              <span>für: <em>"{query.length > 40 ? query.slice(0,40)+"…" : query}"</em></span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {matches.map((w, idx) => (
+                <div key={w.id} style={{ background: idx === 0 ? `linear-gradient(135deg, ${CORAL}08, ${GOLD}08)` : "white", border: `2px solid ${idx === 0 ? CORAL+"33" : "#f0f0f0"}`, borderRadius: 18, padding: "16px", position: "relative" }}>
+                  {idx === 0 && (
+                    <div style={{ position: "absolute", top: -10, left: 16, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 20, letterSpacing: 0.5 }}>
+                      🏆 BESTER MATCH
+                    </div>
+                  )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 15, background: `linear-gradient(135deg, ${CORAL}22, ${GOLD}22)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
+                      {AVATARS[w.id - 1] || "👤"}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800, fontSize: 15, color: "#222" }}>{w.name}</div>
+                      <div style={{ fontSize: 12, color: CORAL, fontWeight: 600 }}>{w.talent}</div>
+                      <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>📍 {w.location} · ⭐ {w.rating} ({w.reviews}) · {w.rate}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5, marginBottom: 10 }}>
+                    "{w.bio}"
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, color: "#aaa", fontWeight: 600, marginBottom: 6 }}>✅ PASST WEIL</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {w.reasons.map((r, i) => (
+                        <span key={i} style={{ background: `${TEAL}15`, color: TEAL, fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 20 }}>{r}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => onViewWirker(w.name)} style={{ flex: 1, background: "white", border: `1.5px solid ${CORAL}44`, borderRadius: 12, padding: "10px", fontWeight: 700, fontSize: 13, color: CORAL, cursor: "pointer" }}>
+                      Profil ansehen
+                    </button>
+                    <button style={{ flex: 1, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "10px", fontWeight: 700, fontSize: 13, color: "white", cursor: "pointer", boxShadow: `0 4px 12px ${CORAL}33` }}>
+                      Direkt buchen →
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => { setStep("input"); setQuery(""); setMatches([]); }} style={{ width: "100%", background: "#f7f7f5", border: "none", borderRadius: 14, padding: "13px", fontWeight: 600, fontSize: 14, color: "#888", cursor: "pointer", marginTop: 16 }}>
+              🔄 Neue Suche starten
+            </button>
+          </>)}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 // ─── KARTEN-ANSICHT ────────────────────────────────────────────────────────────
 function KarteOverlay({ onClose, onViewWirker }) {
   const [selected, setSelected] = React.useState(null);
@@ -4902,6 +5131,7 @@ export default function App() {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showKarte, setShowKarte] = useState(false);
+  const [showHuiMatch, setShowHuiMatch] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
 
   const addToCart = (item) => setCart(c => [...c, item]);
@@ -4933,7 +5163,7 @@ export default function App() {
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
       {page === "home" && (<>
         <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
-        <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} />
+        <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} onMatchClick={() => setShowHuiMatch(true)} />
         <div>
           <StoryBar />
           {recentlyViewed.length > 0 && (
@@ -4995,6 +5225,7 @@ export default function App() {
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
+      {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
 
       <style>{`
         @keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } }
