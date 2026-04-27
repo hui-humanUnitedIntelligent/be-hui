@@ -10,7 +10,7 @@ const mockNotifications = [
   { id: "n1", type: "empfehlung", read: false, time: "vor 2 Min.", title: "Neue Empfehlung 👍", text: "Jemand hat dich nach einem Töpfer-Workshop weiterempfohlen. Dein Geld wurde freigegeben.", icon: "👍", color: "#2ABFAC" },
   { id: "n2", type: "buchung", read: false, time: "vor 18 Min.", title: "Neue Buchungsanfrage 📅", text: "Marcus B. möchte einen Fotoshooting-Termin mit dir buchen – Di, 28. April um 14:00 Uhr.", icon: "📅", color: "#FF6B5B" },
   { id: "n3", type: "treuhand", read: false, time: "vor 1 Std.", title: "Treuhand freigegeben 🔓", text: "75 € wurden nach deiner Empfehlung an Sofia M. überwiesen.", icon: "🔓", color: "#F5A623" },
-  { id: "n4", type: "impact", read: true, time: "vor 3 Std.", title: "Impact Pool Beitrag 🌱", text: "Durch deine letzte Buchung flossen 2,25 € in den HUI Impact Pool. Danke!", icon: "🌱", color: "#10b981" },
+  { id: "n4", type: "impact", read: true, time: "vor 3 Std.", title: "Impact Pool Beitrag 🌱", text: "Durch deine letzte Buchung flossen 2,25 € in den HUI Impact Pool (15% unserer Provision). Danke!", icon: "🌱", color: "#10b981" },
   { id: "n5", type: "follower", read: true, time: "gestern", title: "Neuer Follower ✨", text: "Anna K. folgt jetzt deinem Profil.", icon: "✨", color: "#8b5cf6" },
   { id: "n6", type: "system", read: true, time: "gestern", title: "Profil geprüft ✅", text: "Dein Talent-Profil wurde erfolgreich verifiziert. Du bist jetzt als Wirker sichtbar.", icon: "✅", color: "#2ABFAC" },
   { id: "n7", type: "empfehlung", read: true, time: "vor 2 Tagen", title: "Empfehlung auf deinem Profil", text: "Lena K. hat nach ihrer Aquarell-Bestellung eine Empfehlung hinterlassen.", icon: "👍", color: "#2ABFAC" },
@@ -118,9 +118,9 @@ const mockWirkerProfiles = {
 };
 
 const mockWerkDetails = {
-  "Handgemachte Keramik-Tasse": { title: "Handgemachte Keramik-Tasse", price: "38 €", creator: "Sofia M.", creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=500&fit=crop", extraImgs: ["https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=200&h=200&fit=crop","https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=200&h=200&fit=crop"], location: "München", likes: 124, category: "Kunst & Kreatives", description: "Eine von Hand gedrehte Keramik-Tasse aus feinstem Steinzeugton. Jede Tasse ist ein Unikat – leicht unterschiedlich in Form, Textur und Glasur.\n\nGröße: ca. 250ml · Höhe: ~9cm", shipping: "4,50 €", deliveryDays: "5–7", tags: ["Handgemacht", "Keramik", "Unikat", "Geschenk"], impactHint: "3% der Provision (0,17 €) fließen in den Impact Pool" },
-  "Aquarell-Portrait": { title: "Aquarell-Portrait", price: "120 €", creator: "Lena K.", creatorImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=600&h=500&fit=crop", extraImgs: [], location: "Hamburg", likes: 89, category: "Kunst & Kreatives", description: "Ein handgemaltes Aquarell-Portrait nach deinem Foto. Format: A4 · Lieferzeit: 10–14 Werktage", shipping: "6,00 €", deliveryDays: "10–14", tags: ["Aquarell", "Portrait", "Auftragsarbeit"], impactHint: "3% der Provision (0,54 €) fließen in den Impact Pool" },
-  "Handgenähter Leder-Rucksack": { title: "Handgenähter Leder-Rucksack", price: "195 €", creator: "Tom H.", creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=500&fit=crop", extraImgs: [], location: "Wien", likes: 203, category: "Handwerk", description: "Handgefertigter Rucksack aus vegetabil gegerbtem Vollnarbenleder. Maße: 35x28x12cm", shipping: "8,00 €", deliveryDays: "21–28", tags: ["Leder", "Handarbeit", "Nachhaltig"], impactHint: "3% der Provision (0,88 €) fließen in den Impact Pool" },
+  "Handgemachte Keramik-Tasse": { title: "Handgemachte Keramik-Tasse", price: "38 €", creator: "Sofia M.", creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=500&fit=crop", extraImgs: ["https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=200&h=200&fit=crop","https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=200&h=200&fit=crop"], location: "München", likes: 124, category: "Kunst & Kreatives", description: "Eine von Hand gedrehte Keramik-Tasse aus feinstem Steinzeugton. Jede Tasse ist ein Unikat – leicht unterschiedlich in Form, Textur und Glasur.\n\nGröße: ca. 250ml · Höhe: ~9cm", shipping: "4,50 €", deliveryDays: "5–7", tags: ["Handgemacht", "Keramik", "Unikat", "Geschenk"], impactHint: "15% der Provision (0,17 €) fließen in den Impact Pool" },
+  "Aquarell-Portrait": { title: "Aquarell-Portrait", price: "120 €", creator: "Lena K.", creatorImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=600&h=500&fit=crop", extraImgs: [], location: "Hamburg", likes: 89, category: "Kunst & Kreatives", description: "Ein handgemaltes Aquarell-Portrait nach deinem Foto. Format: A4 · Lieferzeit: 10–14 Werktage", shipping: "6,00 €", deliveryDays: "10–14", tags: ["Aquarell", "Portrait", "Auftragsarbeit"], impactHint: "15% der Provision (0,54 €) fließen in den Impact Pool" },
+  "Handgenähter Leder-Rucksack": { title: "Handgenähter Leder-Rucksack", price: "195 €", creator: "Tom H.", creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=500&fit=crop", extraImgs: [], location: "Wien", likes: 203, category: "Handwerk", description: "Handgefertigter Rucksack aus vegetabil gegerbtem Vollnarbenleder. Maße: 35x28x12cm", shipping: "8,00 €", deliveryDays: "21–28", tags: ["Leder", "Handarbeit", "Nachhaltig"], impactHint: "15% der Provision (0,88 €) fließen in den Impact Pool" },
 };
 
 const mockStories = [
@@ -535,7 +535,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
   const availableSlots = selectedDate ? (availability[selectedDate.weekday] || []) : [];
   const pricePerHour = wirker.pricePerHour || 60;
   const provision = Math.round(pricePerHour * 0.15 * 100) / 100;
-  const impact = Math.round(provision * 0.03 * 100) / 100; // 3% der Provision
+  const impact = Math.round(provision * 0.15 * 100) / 100; // 15% der Provision
   const total = pricePerHour + provision;
 
   const formatDate = (d) => d ? `${WEEKDAY_FULL[WEEKDAYS.indexOf(d.weekday)]}, ${d.day}. ${MONTHS[d.month]} ${d.year}` : "";
@@ -561,7 +561,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
         <div style={{ fontSize: 13, color: "#666" }}>📅 {formatDate(selectedDate)}</div>
         <div style={{ fontSize: 13, color: "#666" }}>🕐 {selectedTime} Uhr</div>
         <div style={{ fontSize: 13, color: "#666" }}>💶 {total.toFixed(2)} € bezahlt (inkl. Provision)</div>
-        <div style={{ fontSize: 12, color: TEAL, marginTop: 6 }}>🌱 {impact.toFixed(2)} € (3% der Provision) fließen in den Impact Pool</div>
+        <div style={{ fontSize: 12, color: TEAL, marginTop: 6 }}>🌱 {impact.toFixed(2)} € (15% der Provision) fließen in den Impact Pool</div>
       </div>
       <div style={{ background: `${TEAL}12`, borderRadius: 14, padding: "12px 16px", width: "100%", marginBottom: 24, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
         💬 Der Chat mit {wirker.name} wurde freigeschaltet. Eine automatische Nachricht wurde bereits gesendet.
@@ -637,7 +637,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
             </div>
 
             <div style={{ background: `${GOLD}12`, borderRadius: 12, padding: "12px 14px", marginTop: 20, fontSize: 13, color: "#777" }}>
-              💶 Stundensatz: <strong style={{ color: "#333" }}>{wirker.hourlyRate}</strong> · 15% Provision (davon 3% in den Impact Pool)
+              💶 Stundensatz: <strong style={{ color: "#333" }}>{wirker.hourlyRate}</strong> · 15% Provision (davon 15% → Impact Pool)
             </div>
           </>
         )}
@@ -715,7 +715,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
                 <span>Plattformprovision (15%)</span><span style={{ fontWeight: 600, color: "#444" }}>{provision.toFixed(2)} €</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 10 }}>
-                <span>🌱 davon 3% der Provision → Impact Pool</span><span>{impact.toFixed(2)} €</span>
+                <span>🌱 davon 15% der Provision → Impact Pool</span><span>{impact.toFixed(2)} €</span>
               </div>
               <div style={{ borderTop: "1px solid #eee", paddingTop: 10, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18 }}>
                 <span>Gesamt</span><span style={{ color: CORAL }}>{total.toFixed(2)} €</span>
@@ -845,7 +845,7 @@ function WerkEditor({ werk, wirkerName, onClose, onSave }) {
                   <span style={{ color: "#888" }}>{provisionPreview.toFixed(2)} €</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>🌱 davon Impact Pool (3% der Prov.)</span>
+                  <span>🌱 davon Impact Pool (15% der Prov.)</span>
                   <span style={{ color: TEAL }}>{impactPreview.toFixed(2)} €</span>
                 </div>
               </div>
@@ -1272,7 +1272,7 @@ function WerkDetailPage({ werkTitle, onBack, onAddToCart, onViewWirker }) {
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 6 }}><span>Preis</span><span>{w.price}</span></div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: w.shippingNote ? 3 : 6 }}><span>Versand</span><span style={{ fontWeight: w.shipping === "0 €" ? 600 : 400, color: w.shipping === "0 €" ? TEAL : "#888" }}>{w.shipping === "0 €" ? "Kostenlos ✓" : w.shipping}</span></div>
           {w.shippingNote && <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6, fontStyle: "italic" }}>ℹ️ {w.shippingNote}</div>}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 8 }}><span>🌱 3% der Provision gehen in den Impact Pool</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: TEAL, marginBottom: 8 }}><span>🌱 15% der Provision gehen in den Impact Pool</span></div>
           <div style={{ borderTop: "1px solid #eee", paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 16 }}><span>Gesamt</span><span style={{ color: CORAL }}>{totalNum.toFixed(2)} €</span></div>
         </div>
         <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${GOLD}10)`, borderRadius: 12, padding: "12px 14px", fontSize: 13, color: "#555", lineHeight: 1.6 }}>
@@ -2507,7 +2507,7 @@ function WerkCreateModal({ onClose }) {
                     <span>HUI-Provision (15%)</span><span>- {(parseFloat(form.preis || 0) * 0.15).toFixed(2)} €</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", color: TEAL, marginBottom: 4 }}>
-                    <span>🌱 Impact Pool (3% der Provision)</span><span>- {(parseFloat(form.preis || 0) * 0.15 * 0.03).toFixed(2)} €</span>
+                    <span>🌱 Impact Pool (15% der Provision)</span><span>- {(parseFloat(form.preis || 0) * 0.15 * 0.15).toFixed(2)} €</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: 13, color: "#222", borderTop: "1px solid #eee", paddingTop: 6, marginTop: 6 }}>
                     <span>Du erhältst</span><span style={{ color: CORAL }}>{(parseFloat(form.preis || 0) * 0.85).toFixed(2)} €</span>
@@ -2576,7 +2576,7 @@ function StoryCreateModal({ onClose }) {
   const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.price.replace(" €","").replace(",",".")), 0);
   const versand = cart.length > 0 ? 4.50 : 0;
   const rabatt = huiPunkte ? 5 : 0;
-  const impactBetrag = (subtotal * 0.15 * 0.03).toFixed(2);
+  const impactBetrag = (subtotal * 0.15 * 0.15).toFixed(2);
   const total = Math.max(0, subtotal + versand - rabatt);
 
   const steps = ["cart","address","payment","confirm"];
@@ -2949,7 +2949,7 @@ function ProjektVorschlagenPage({ onClose }) {
                 <div style={{ fontWeight: 700, fontSize: 13, color: TEAL, marginBottom: 6 }}>Hochrechnung:</div>
                 <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>
                   Bei {parseFloat(form.budgetZiel || 0).toLocaleString("de")} € Ziel und 3% Impact-Anteil:<br />
-                  → ca. <strong>{Math.round(parseFloat(form.budgetZiel || 0) / (75 * 0.15 * 0.03)).toLocaleString("de")} Buchungen</strong> (à 75€) auf HUI nötig
+                  → ca. <strong>{Math.round(parseFloat(form.budgetZiel || 0) / (75 * 0.15 * 0.15)).toLocaleString("de")} Buchungen</strong> (à 75€) auf HUI nötig
                 </div>
               </div>
             )}
@@ -3099,7 +3099,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
               </div>
               <div style={{ background: `${TEAL}0d`, borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#555", display: "flex", gap: 8, alignItems: "flex-start" }}>
                 <span style={{ fontSize: 16 }}>🌱</span>
-                <span>Dieses Projekt wird durch den <strong>HUI Impact Pool</strong> finanziert – 3% jeder Provision auf der Plattform fließt automatisch hierhin.</span>
+                <span>Dieses Projekt wird durch den <strong>HUI Impact Pool</strong> finanziert – 15% der HUI-Provision fließt automatisch in ausgewählte Projekte. Jedes Projekt, das wir unterstützen, trägt HUIs Mission in die Welt.</span>
               </div>
             </>
           )}
@@ -3274,10 +3274,15 @@ function ImpactPage() {
 
         <div style={{ textAlign: "center", fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 8 }}>Gemeinsam haben wir schon so viel bewegt. 🌍</div>
         <div style={{ textAlign: "center", fontSize: 13, color: "#aaa", lineHeight: 1.6, marginBottom: 8 }}>
-          3% der Provision (15%) jeder Buchung und jedes Kaufs fließen automatisch in diese Projekte.
+          15% unserer Provision fließt automatisch in ausgewählte Projekte.
         </div>
       </div>
 
+      {/* Botschafter-Banner */}
+      <div style={{ margin: "0 16px 16px", background: "linear-gradient(135deg, #0d9488, #f59e0b)", borderRadius: 16, padding: "16px 18px", color: "white" }}>
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 5 }}>🤝 Projekte werden zu Botschaftern</div>
+        <div style={{ fontSize: 12, lineHeight: 1.6, opacity: 0.92 }}>Jedes Projekt das wir unterstützen, trägt die HUI-Mission in die Welt weiter — öffentlich, authentisch und mit echter Wirkung.</div>
+      </div>
       {/* Aufruf Projekt vorschlagen */}
       <div onClick={() => setShowVorschlag(true)} style={{ margin: "0 16px 20px", background: `linear-gradient(135deg, ${TEAL}15, ${GOLD}10)`, border: `1.5px dashed ${TEAL}60`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", display: "flex", gap: 14, alignItems: "center" }}>
         <div style={{ width: 48, height: 48, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -3328,7 +3333,7 @@ function ImpactPage() {
           <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 14 }}>Wie der Impact Pool funktioniert</div>
           {[
             { icon: "🛒", step: "1", text: "Du buchst oder kaufst etwas auf HUI" },
-            { icon: "💰", step: "2", text: "3% der 15% Provision fließen automatisch in den Impact Pool" },
+            { icon: "💰", step: "2", text: "15% der Provision fließen automatisch in den Impact Pool" },
             { icon: "🗳️", step: "3", text: "Die Community stimmt ab, welche Projekte gefördert werden" },
             { icon: "✅", step: "4", text: "Gelder werden monatlich transparent ausgezahlt" },
           ].map((r, i) => (
