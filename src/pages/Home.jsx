@@ -3457,6 +3457,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
 function ImpactPage() {
   const [showVorschlag, setShowVorschlag] = useState(false);
+  const [showSpendenModal, setShowSpendenModal] = useState(null); // null | project
   const [selectedProject, setSelectedProject] = useState(null);
   const [votedFor, setVotedFor] = useState(null); // null | project title
   const [showVoteConfirm, setShowVoteConfirm] = useState(null);
@@ -3752,37 +3753,90 @@ function ImpactPage() {
 
           {/* Nominierte */}
           <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10 }}>🗳 Diese Monat nominiert</div>
-          {nominiert.map((p, i) => (
-            <div key={i} onClick={() => setSelectedProject(p)}
-              style={{ display: "flex", gap: 12, alignItems: "center", background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", cursor: "pointer" }}>
-              <div style={{ fontSize: 32, flexShrink: 0 }}>{p.emoji}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.title}</div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>{p.land} · Wunschbetrag: {p.wunschbetrag.toLocaleString("de-DE")} €</div>
-                <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5, marginTop: 6 }}>
-                  <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 5, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%` }} />
+          {nominiert.map((p, i) => {
+            const pct = Math.round(p.gesammelt / p.wunschbetrag * 100);
+            return (
+              <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                {/* Bild */}
+                <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
+                  <img src={p.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
+                  <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
+                    <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
+                    <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
+                  </div>
+                  <div style={{ position: "absolute", top: 10, right: 10, background: TEAL, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>🗳 Nominiert</div>
+                  <div style={{ position: "absolute", bottom: 10, left: 12 }}>
+                    <div style={{ fontWeight: 800, fontSize: 17, color: "white" }}>{p.emoji} {p.title}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>{p.organisation}</div>
+                  </div>
+                </div>
+                {/* Body */}
+                <div style={{ padding: "12px 14px" }}>
+                  <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>{p.desc}</div>
+                  {/* Fortschritt */}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#aaa", marginBottom: 5 }}>
+                    <span>{p.gesammelt.toLocaleString("de-DE")} € gesammelt</span>
+                    <span style={{ fontWeight: 700, color: TEAL }}>Ziel: {p.wunschbetrag.toLocaleString("de-DE")} €</span>
+                  </div>
+                  <div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 12 }}>
+                    <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 7, borderRadius: 99, width: `${pct}%` }} />
+                  </div>
+                  {/* Buttons */}
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => setSelectedProject(p)}
+                      style={{ flex: 1, padding: "10px", border: "1.5px solid #e8e8e8", borderRadius: 12, background: "white", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#555" }}>
+                      Mehr erfahren
+                    </button>
+                    <button onClick={() => setShowSpendenModal(p)}
+                      style={{ flex: 1, padding: "10px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, fontWeight: 800, fontSize: 13, cursor: "pointer", color: "white" }}>
+                      ❤️ Direkt spenden
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div style={{ fontWeight: 800, fontSize: 13, color: TEAL, flexShrink: 0 }}>{Math.round(p.gesammelt / p.wunschbetrag * 100)}%</div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Weitere Projekte */}
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10, marginTop: 18 }}>🌱 Weitere laufende Projekte</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 6, marginTop: 8 }}>🌱 Weitere laufende Projekte</div>
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.6 }}>Diese Projekte erhalten den Restbetrag nach der Abstimmung und bleiben aktiv bis zur vollständigen Finanzierung.</div>
-          {weitiereProjekte.map((p, i) => (
-            <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-              <div style={{ fontSize: 32, flexShrink: 0 }}>{p.emoji}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.title}</div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>{p.land} · Ziel: {p.wunschbetrag.toLocaleString("de-DE")} €</div>
-                <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5, marginTop: 6 }}>
-                  <div style={{ background: "#ccc", height: 5, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%` }} />
+          {weitiereProjekte.map((p, i) => {
+            const pct = Math.round(p.gesammelt / p.wunschbetrag * 100);
+            return (
+              <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <div style={{ position: "relative" }}>
+                  <img src={p.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
+                  <div style={{ position: "absolute", top: 10, left: 10 }}>
+                    <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
+                  </div>
+                  <div style={{ position: "absolute", bottom: 10, left: 12 }}>
+                    <div style={{ fontWeight: 800, fontSize: 16, color: "white" }}>{p.emoji} {p.title}</div>
+                  </div>
+                </div>
+                <div style={{ padding: "12px 14px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#aaa", marginBottom: 5 }}>
+                    <span>{p.gesammelt.toLocaleString("de-DE")} € gesammelt</span>
+                    <span style={{ fontWeight: 700, color: "#aaa" }}>Ziel: {p.wunschbetrag.toLocaleString("de-DE")} €</span>
+                  </div>
+                  <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6, marginBottom: 12 }}>
+                    <div style={{ background: "#ccc", height: 6, borderRadius: 99, width: `${pct}%` }} />
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => setSelectedProject(p)}
+                      style={{ flex: 1, padding: "10px", border: "1.5px solid #e8e8e8", borderRadius: 12, background: "white", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#555" }}>
+                      Mehr erfahren
+                    </button>
+                    <button onClick={() => setShowSpendenModal(p)}
+                      style={{ flex: 1, padding: "10px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, fontWeight: 800, fontSize: 13, cursor: "pointer", color: "white" }}>
+                      ❤️ Direkt spenden
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div style={{ fontWeight: 800, fontSize: 13, color: "#aaa", flexShrink: 0 }}>{Math.round(p.gesammelt / p.wunschbetrag * 100)}%</div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Projekt vorschlagen */}
           <div onClick={() => setShowVorschlag(true)} style={{ margin: "16px 0 20px", background: `linear-gradient(135deg, ${TEAL}12, ${GOLD}08)`, border: `1.5px dashed ${TEAL}50`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", display: "flex", gap: 14, alignItems: "center" }}>
@@ -3843,6 +3897,45 @@ function ImpactPage() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Spenden-Modal */}
+      {showSpendenModal && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
+          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "28px 24px 36px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>❤️ Direkt spenden</div>
+              <button onClick={() => setShowSpendenModal(null)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#aaa" /></button>
+            </div>
+            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>{showSpendenModal.emoji} {showSpendenModal.title} · {showSpendenModal.land}</div>
+
+            {/* Betrag-Auswahl */}
+            <div style={{ fontWeight: 700, fontSize: 13, color: "#444", marginBottom: 10 }}>Betrag wählen</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+              {[5, 10, 25, 50, 100].map(b => (
+                <button key={b} style={{ flex: "1 1 calc(33% - 8px)", minWidth: 60, padding: "11px 6px", border: `1.5px solid ${TEAL}40`, borderRadius: 12, background: "white", fontWeight: 700, fontSize: 14, color: TEAL, cursor: "pointer" }}>
+                  {b} €
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", border: "1.5px solid #e8e8e8", borderRadius: 12, padding: "4px 14px", marginBottom: 20, gap: 6 }}>
+              <span style={{ fontSize: 14, color: "#aaa" }}>€</span>
+              <input placeholder="Eigener Betrag..." type="number" min="1"
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 15, fontWeight: 700, color: "#222", padding: "9px 0", background: "transparent" }} />
+            </div>
+
+            {/* Wirkung */}
+            <div style={{ background: `${TEAL}0d`, borderRadius: 12, padding: "12px 16px", marginBottom: 20, fontSize: 12, color: "#555", lineHeight: 1.7 }}>
+              💡 <strong>100% deiner Spende</strong> fließen direkt in das Projekt — zusätzlich zum monatlichen Impact Pool.
+            </div>
+
+            <button onClick={() => { setShowSpendenModal(null); }}
+              style={{ width: "100%", padding: "15px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", fontWeight: 900, fontSize: 16, cursor: "pointer", boxShadow: `0 4px 20px ${CORAL}44` }}>
+              ❤️ Jetzt spenden
+            </button>
+            <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 10 }}>Sichere Zahlung · 100% direkt ans Projekt</div>
           </div>
         </div>
       )}
