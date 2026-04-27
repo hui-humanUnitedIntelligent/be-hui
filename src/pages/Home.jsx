@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye } from "lucide-react";
+import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
@@ -3891,16 +3891,11 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
 }
 
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats }) {
-  const [radius, setRadius] = useState(25);
-  const [talentAktiv, setTalentAktiv] = useState(true);
-  const [showRadiusEditor, setShowRadiusEditor] = useState(false);
-  const [activeSection, setActiveSection] = useState(null); // "einstellungen"
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [viewingStoryIndex, setViewingStoryIndex] = useState(null); // null = kein Viewer
-  const [showStoryCreate, setShowStoryCreate] = useState(false);
-  const [showImagePicker, setShowImagePicker] = useState(null); // null | "avatar" | "header"
-  const [editTab, setEditTab] = useState("basis"); // "basis" | "talent" | "bio"
-  const [profileForm, setProfileForm] = useState({
+  const [activeSection, setActiveSection] = React.useState(null); // null | "einstellungen" | "editProfile"
+  const [settingsSection, setSettingsSection] = React.useState(null); // null | "benachrichtigungen" | "privatsphare" | "zahlung" | "rechtliches"
+  const [showHuiPunkte, setShowHuiPunkte] = React.useState(false);
+  const [editTab, setEditTab] = React.useState("basis"); // "basis" | "bio" | "talent"
+  const [profileForm, setProfileForm] = React.useState({
     vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
     standort: "München, Deutschland", suchRadius: 50,
     bio: "Ich forme aus Ton Dinge, die bleiben.",
@@ -3910,11 +3905,6 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   });
   const setP = (k, v) => setProfileForm(f => ({ ...f, [k]: v }));
 
-  const radiusMarks = [5, 10, 25, 50, 100, 250, 9999];
-  const [showHuiPunkte, setShowHuiPunkte] = React.useState(false);
-
-  // ── EINSTELLUNGEN STATE ───────────────────────────────────────
-  const [settingsSection, setSettingsSection] = React.useState(null);
   const [notifSettings, setNotifSettings] = React.useState({
     buchungen: true, empfehlungen: true, impact: true, follower: false, system: true, email: true, push: true
   });
@@ -3924,8 +3914,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const toggleNotif = (k) => setNotifSettings(s => ({ ...s, [k]: !s[k] }));
   const togglePriv = (k) => setPrivSettings(s => ({ ...s, [k]: !s[k] }));
 
-  const ToggleRow = ({ label, sub, value, onToggle, color }) => (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderBottom: "1px solid #f5f5f3" }}>
+  const ToggleRow = ({ label, sub, value, onToggle, color, last }) => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderBottom: last ? "none" : "1px solid #f5f5f3" }}>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{label}</div>
         {sub && <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{sub}</div>}
@@ -3936,53 +3926,70 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
     </div>
   );
 
-  // ── EINSTELLUNGEN UNTERSEITEN ─────────────────────────────────
+  const SectionHeader = ({ title, onBack }) => (
+    <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}>
+        <ArrowLeft size={20} color="#444" />
+      </button>
+      <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>{title}</div>
+    </div>
+  );
+
+  const MenuRow = ({ icon, label, sub, onClick, last, color }) => (
+    <div onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
+      <div style={{ width: 38, height: 38, borderRadius: 12, background: (color || CORAL) + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>
+        {icon}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{sub}</div>}
+      </div>
+      <ChevronRight size={15} color="#ddd" />
+    </div>
+  );
+
+  // EINSTELLUNGEN > BENACHRICHTIGUNGEN
   if (activeSection === "einstellungen" && settingsSection === "benachrichtigungen") return (
     <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
-      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
-        <button onClick={() => setSettingsSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
-        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</div>
-      </div>
+      <SectionHeader title="Benachrichtigungen" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Kanäle</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Kanäle</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           <ToggleRow label="Push-Benachrichtigungen" sub="Direkt aufs Handy" value={notifSettings.push} onToggle={() => toggleNotif("push")} />
-          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} />
+          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} last />
         </div>
-        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Themen</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Themen</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           <ToggleRow label="Buchungsanfragen & -bestätigungen" value={notifSettings.buchungen} onToggle={() => toggleNotif("buchungen")} color={CORAL} />
           <ToggleRow label="Empfehlungen & Bewertungen" value={notifSettings.empfehlungen} onToggle={() => toggleNotif("empfehlungen")} color={TEAL} />
           <ToggleRow label="Treuhand & Zahlungen" value={notifSettings.impact} onToggle={() => toggleNotif("impact")} color="#F5A623" />
           <ToggleRow label="Neue Follower" value={notifSettings.follower} onToggle={() => toggleNotif("follower")} color="#8b5cf6" />
-          <ToggleRow label="System & Updates" value={notifSettings.system} onToggle={() => toggleNotif("system")} />
+          <ToggleRow label="System & Updates" value={notifSettings.system} onToggle={() => toggleNotif("system")} last />
         </div>
       </div>
     </div>
   );
 
+  // EINSTELLUNGEN > PRIVATSPHÄRE
   if (activeSection === "einstellungen" && settingsSection === "privatsphare") return (
     <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
-      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
-        <button onClick={() => setSettingsSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
-        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Privatsphäre & Sicherheit</div>
-      </div>
+      <SectionHeader title="Privatsphäre & Sicherheit" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sichtbarkeit</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
-          <ToggleRow label="Profil öffentlich sichtbar" sub="Andere Nutzer können dich finden" value={privSettings.profilOeffentlich} onToggle={() => togglePriv("profilOeffentlich")} />
-          <ToggleRow label="Standort anzeigen" sub="Ungefährer Bereich sichtbar" value={privSettings.standortZeigen} onToggle={() => togglePriv("standortZeigen")} />
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sichtbarkeit</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <ToggleRow label="Profil öffentlich sichtbar" sub="Andere können dich finden" value={privSettings.profilOeffentlich} onToggle={() => togglePriv("profilOeffentlich")} />
+          <ToggleRow label="Standort anzeigen" sub="Ungefährer Bereich" value={privSettings.standortZeigen} onToggle={() => togglePriv("standortZeigen")} />
           <ToggleRow label="Empfehlungen öffentlich" sub="Verifizierte Empfehlungen auf Profil" value={privSettings.empfehlungenZeigen} onToggle={() => togglePriv("empfehlungenZeigen")} />
-          <ToggleRow label="Online-Status anzeigen" sub="Zuletzt aktiv sichtbar" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} />
+          <ToggleRow label="Online-Status anzeigen" sub="Zuletzt aktiv sichtbar" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} last />
         </div>
-        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sicherheit</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sicherheit</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           {[
             { icon: "🔑", label: "Passwort ändern", sub: "Zuletzt geändert: vor 3 Monaten" },
             { icon: "📱", label: "Zwei-Faktor-Authentifizierung", sub: "Nicht aktiviert" },
-            { icon: "📋", label: "Aktive Sitzungen", sub: "2 Geräte eingeloggt" },
+            { icon: "📋", label: "Aktive Sitzungen", sub: "2 Geräte eingeloggt", last: true },
           ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none", cursor: "pointer" }}>
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
               <span style={{ fontSize: 20 }}>{item.icon}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
@@ -3992,32 +3999,30 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
             </div>
           ))}
         </div>
-        <button style={{ width: "100%", background: "#fff0ee", border: `1.5px solid ${CORAL}30`, borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>
+        <button style={{ width: "100%", background: "#fff0ee", border: "1.5px solid rgba(255,90,90,0.3)", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>
           🗑 Konto löschen
         </button>
       </div>
     </div>
   );
 
+  // EINSTELLUNGEN > ZAHLUNG
   if (activeSection === "einstellungen" && settingsSection === "zahlung") return (
     <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
-      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
-        <button onClick={() => setSettingsSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
-        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Zahlungsmethoden</div>
-      </div>
+      <SectionHeader title="Zahlungsmethoden" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Gespeicherte Karten</div>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Gespeicherte Karten</div>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           {[
             { icon: "💳", label: "Visa •••• 4242", sub: "Läuft ab 08/2027", badge: "Standard" },
-            { icon: "💳", label: "Mastercard •••• 1234", sub: "Läuft ab 03/2026", badge: null },
+            { icon: "💳", label: "Mastercard •••• 1234", sub: "Läuft ab 03/2026", last: true },
           ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: i === 0 ? "1px solid #f5f5f3" : "none" }}>
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3" }}>
               <span style={{ fontSize: 22 }}>{item.icon}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</span>
-                  {item.badge && <span style={{ background: `${TEAL}18`, color: TEAL, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99 }}>{item.badge}</span>}
+                  {item.badge && <span style={{ background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "2px 7px" }}>{item.badge}</span>}
                 </div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
               </div>
@@ -4025,182 +4030,281 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
             </div>
           ))}
         </div>
-        <button style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, #10b981)`, border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", color: "white", marginBottom: 12 }}>
-          + Zahlungsmethode hinzufügen
+        <button style={{ width: "100%", background: TEAL + "12", border: "1.5px solid " + TEAL + "30", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: TEAL }}>
+          + Neue Karte hinzufügen
         </button>
-        <div style={{ fontWeight: 700, fontSize: 12, color: "#aaa", margin: "16px 0 6px", textTransform: "uppercase", letterSpacing: 0.8 }}>Auszahlungskonto (als Wirker)</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", gap: 12, alignItems: "center" }}>
-          <span style={{ fontSize: 22 }}>🏦</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>IBAN hinterlegen</div>
-            <div style={{ fontSize: 11, color: "#aaa" }}>Für Treuhand-Auszahlungen</div>
-          </div>
-          <ChevronRight size={15} color="#ddd" />
-        </div>
+        {!isNewUser && (
+          <>
+            <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", margin: "20px 0 6px", textTransform: "uppercase", letterSpacing: 0.8 }}>Auszahlungskonto</div>
+            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+              <span style={{ fontSize: 24 }}>🏦</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>IBAN •••• 4321</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>Sparkasse München</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 
-  // ── EINSTELLUNGEN-ÜBERSICHT ────────────────────────────────────
+  // EINSTELLUNGEN > RECHTLICHES
+  if (activeSection === "einstellungen" && settingsSection === "rechtliches") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Rechtliches" onBack={() => setSettingsSection(null)} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          {[
+            { icon: "📄", label: "Impressum", sub: "Anbieterkennzeichnung" },
+            { icon: "🔒", label: "Datenschutzerklärung", sub: "Wie wir deine Daten verwenden" },
+            { icon: "📋", label: "AGB", sub: "Allgemeine Geschäftsbedingungen" },
+            { icon: "🍪", label: "Cookie-Einstellungen", sub: "Deine Präferenzen verwalten", last: true },
+          ].map((item, i) => (
+            <a key={i} href="#" style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", textDecoration: "none" }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </a>
+          ))}
+        </div>
+        <div style={{ textAlign: "center", fontSize: 11, color: "#ccc", marginTop: 8 }}>HUI – Human United Intelligent · v1.0.0</div>
+      </div>
+    </div>
+  );
+
+  // EINSTELLUNGEN HAUPTSEITE
   if (activeSection === "einstellungen") return (
     <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
-      <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
-        <button onClick={() => setActiveSection(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={20} color="#444" /></button>
-        <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Einstellungen</div>
+      <SectionHeader title="Einstellungen" onBack={() => setActiveSection(null)} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Konto</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <MenuRow icon="🔔" label="Benachrichtigungen" sub="Push & E-Mail konfigurieren" color={CORAL} onClick={() => setSettingsSection("benachrichtigungen")} />
+          <MenuRow icon="🔒" label="Privatsphäre & Sicherheit" sub="Sichtbarkeit & Passwort" color={TEAL} onClick={() => setSettingsSection("privatsphare")} />
+          <MenuRow icon="💳" label="Zahlungsmethoden" sub="Karten & Auszahlungskonto" color="#8b5cf6" onClick={() => setSettingsSection("zahlung")} last />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Info</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <MenuRow icon="📋" label="Rechtliches" sub="AGB, Datenschutz, Impressum" color="#999" onClick={() => setSettingsSection("rechtliches")} last />
+        </div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px" }}>
+          <div onClick={() => {}} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", cursor: "pointer" }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: "#fff0ee", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>🚪</div>
+            <div style={{ flex: 1, fontWeight: 700, fontSize: 14, color: CORAL }}>Ausloggen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // PROFIL BEARBEITEN
+  if (activeSection === "editProfile") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Profil bearbeiten" onBack={() => setActiveSection(null)} />
+      <div style={{ display: "flex", gap: 0, background: "white", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        {[["basis", "Basis"], ["bio", "Bio & Links"], ...(isNewUser ? [] : [["talent", "Talent"]])].map(([k, l]) => (
+          <button key={k} onClick={() => setEditTab(k)}
+            style={{ flex: 1, padding: "12px 8px", border: "none", background: "none", cursor: "pointer", fontWeight: editTab === k ? 800 : 500, fontSize: 13, color: editTab === k ? CORAL : "#aaa", borderBottom: editTab === k ? "2px solid " + CORAL : "2px solid transparent" }}>
+            {l}
+          </button>
+        ))}
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        {/* Profil-Info oben */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14, background: "white", borderRadius: 18, padding: "16px", marginBottom: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}>
-          <img src="https://i.pravatar.cc/150?img=52" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}` }} alt="Profil" />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>Lars M.</div>
-            <div style={{ fontSize: 12, color: "#aaa" }}>lars@hui.app</div>
-          </div>
-          <div style={{ background: `${TEAL}15`, color: TEAL, fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 99 }}>✓ Verifiziert</div>
-        </div>
-
-        {/* Gruppen */}
-        {[
-          {
-            title: "Konto",
-            items: [
-              { icon: "🔔", label: "Benachrichtigungen", sub: "Push, E-Mail, Themen", key: "benachrichtigungen" },
-              { icon: "🔒", label: "Privatsphäre & Sicherheit", sub: "Passwort, 2FA, Sichtbarkeit", key: "privatsphare" },
-              { icon: "💳", label: "Zahlungsmethoden", sub: "Karten & Auszahlungskonto", key: "zahlung" },
-            ]
-          },
-          {
-            title: "App",
-            items: [
-              { icon: "🌍", label: "Sprache", sub: "Deutsch", key: null },
-              { icon: "🌙", label: "Erscheinungsbild", sub: "Hell / Dunkel", key: null },
-              { icon: "📦", label: "App-Version", sub: "HUI v0.9.1 Beta", key: null },
-            ]
-          },
-          {
-            title: "Rechtliches",
-            items: [
-              { icon: "📄", label: "Datenschutzerklärung", key: null },
-              { icon: "📋", label: "AGB", key: null },
-              { icon: "ℹ️", label: "Impressum", key: null },
-            ]
-          }
-        ].map((group, gi) => (
-          <div key={gi} style={{ marginBottom: 20 }}>
-            <div style={{ fontWeight: 700, fontSize: 11, color: "#bbb", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>{group.title}</div>
-            <div style={{ background: "white", borderRadius: 16, padding: "0 16px", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
-              {group.items.map((item, i) => (
-                <div key={i} onClick={() => item.key && setSettingsSection(item.key)} style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 0", borderBottom: i < group.items.length - 1 ? "1px solid #f5f5f3" : "none", cursor: item.key ? "pointer" : "default" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "#f5f5f3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>{item.icon}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
-                    {item.sub && <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{item.sub}</div>}
-                  </div>
-                  {item.key && <ChevronRight size={15} color="#ddd" />}
+        {editTab === "basis" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+              <div style={{ position: "relative" }}>
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop"
+                  style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid #f0f0f0" }} alt="" />
+                <div style={{ position: "absolute", bottom: 0, right: 0, width: 20, height: 20, borderRadius: "50%", background: CORAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Edit3 size={10} color="white" />
                 </div>
-              ))}
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Profilbild</div>
+                <div style={{ fontSize: 12, color: CORAL, marginTop: 2 }}>Foto ändern</div>
+              </div>
+            </div>
+            {[
+              { label: "Anzeigename", key: "anzeigeName", placeholder: "z.B. Lars M." },
+              { label: "Vorname", key: "vorname", placeholder: "Vorname" },
+              { label: "Nachname", key: "nachname", placeholder: "Nachname" },
+              { label: "Standort", key: "standort", placeholder: "z.B. München, Deutschland" },
+            ].map(({ label, key, placeholder }) => (
+              <div key={key} style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+                <input value={profileForm[key]} onChange={e => setP(key, e.target.value)} placeholder={placeholder}
+                  style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#222", background: "transparent", fontFamily: "inherit" }} />
+              </div>
+            ))}
+            <div style={{ background: "white", borderRadius: 14, padding: "14px 16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.4 }}>Suchradius</div>
+                <span style={{ fontWeight: 800, fontSize: 13, color: CORAL }}>{profileForm.suchRadius >= 200 ? "🌍 Weltweit" : profileForm.suchRadius + " km"}</span>
+              </div>
+              <input type="range" min={5} max={200} step={5} value={profileForm.suchRadius} onChange={e => setP("suchRadius", Number(e.target.value))}
+                style={{ width: "100%", accentColor: CORAL, cursor: "pointer" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ccc", marginTop: 2 }}>
+                <span>5 km</span><span>50 km</span><span>100 km</span><span>🌍</span>
+              </div>
             </div>
           </div>
-        ))}
-
-        <button style={{ width: "100%", background: "none", border: `1.5px solid ${CORAL}44`, borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", color: CORAL, marginBottom: 30 }}>
-          Abmelden
+        )}
+        {editTab === "bio" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Über mich</div>
+              <textarea value={profileForm.bio} onChange={e => setP("bio", e.target.value)} rows={4} placeholder="Beschreibe dich in ein paar Sätzen..."
+                style={{ width: "100%", border: "none", outline: "none", fontSize: 14, resize: "none", fontFamily: "inherit", lineHeight: 1.6, color: "#222", background: "transparent" }} />
+              <div style={{ fontSize: 11, color: profileForm.bio.length > 280 ? CORAL : "#ccc", textAlign: "right" }}>{profileForm.bio.length}/300</div>
+            </div>
+            {[
+              { label: "Website", key: "website", placeholder: "https://meineseite.de" },
+              { label: "Instagram", key: "instagram", placeholder: "@dein_handle" },
+            ].map(({ label, key, placeholder }) => (
+              <div key={key} style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+                <input value={profileForm[key]} onChange={e => setP(key, e.target.value)} placeholder={placeholder}
+                  style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#222", background: "transparent", fontFamily: "inherit" }} />
+              </div>
+            ))}
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Sprachen</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {["Deutsch", "Englisch", "Französisch", "Spanisch", "Türkisch", "Arabisch"].map(lang => {
+                  const active = profileForm.sprachen.includes(lang);
+                  return (
+                    <button key={lang} onClick={() => setP("sprachen", active ? profileForm.sprachen.filter(l => l !== lang) : [...profileForm.sprachen, lang])}
+                      style={{ background: active ? TEAL + "18" : "#f4f4f2", border: "1.5px solid " + (active ? TEAL : "transparent"), borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: active ? TEAL : "#666", cursor: "pointer" }}>
+                      {lang}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+        {editTab === "talent" && !isNewUser && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kategorie</div>
+              <input value={profileForm.kategorie} onChange={e => setP("kategorie", e.target.value)}
+                style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#222", background: "transparent", fontFamily: "inherit" }} />
+            </div>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kurzvorstellung</div>
+              <textarea value={profileForm.kurzbeschreibung} onChange={e => setP("kurzbeschreibung", e.target.value)} rows={3} placeholder="Was machst du, wie arbeitest du?"
+                style={{ width: "100%", border: "none", outline: "none", fontSize: 14, resize: "none", fontFamily: "inherit", lineHeight: 1.6, color: "#222", background: "transparent" }} />
+            </div>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Erfahrung</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {["< 1 Jahr", "1–2 Jahre", "3–5 Jahre", "5–10 Jahre", "10+ Jahre"].map(e => (
+                  <button key={e} onClick={() => setP("erfahrung", e)}
+                    style={{ background: profileForm.erfahrung === e ? CORAL + "18" : "#f4f4f2", border: "1.5px solid " + (profileForm.erfahrung === e ? CORAL : "transparent"), borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: profileForm.erfahrung === e ? CORAL : "#666", cursor: "pointer" }}>
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: "white", borderRadius: 14, padding: "14px 16px", border: "1px solid " + TEAL + "20" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.4 }}>Sichtbarkeitsradius</div>
+                  <div style={{ fontSize: 11, color: TEAL, marginTop: 2 }}>Wie weit erscheinst du in der Suche?</div>
+                </div>
+                <span style={{ fontWeight: 800, fontSize: 13, color: TEAL }}>50 km</span>
+              </div>
+              <input type="range" min={5} max={250} step={5} defaultValue={50} style={{ width: "100%", accentColor: TEAL, cursor: "pointer" }} />
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ padding: "12px 20px 28px", background: "white", borderTop: "1px solid #f0f0f0" }}>
+        <button onClick={() => setActiveSection(null)}
+          style={{ width: "100%", background: "linear-gradient(135deg, " + CORAL + ", " + GOLD + ")", color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+          Änderungen speichern
         </button>
       </div>
     </div>
   );
 
-  // ── HAUPT-PROFIL ───────────────────────────────────────────────
+  // HAUPT-PROFIL
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh", background: "#fafaf8" }}>
+      {showHuiPunkte && <HuiPunktePage onClose={() => setShowHuiPunkte(false)} />}
 
-      {/* Header-Bild */}
+      {/* Header */}
       <div style={{ position: "relative" }}>
-        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop" style={{ width: "100%", height: 140, objectFit: "cover" }} alt="header" />
-        <button onClick={() => setShowImagePicker("header")} style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.88)", border: "none", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: "#444", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, backdropFilter: "blur(4px)" }}>
-          <Edit3 size={12} /> Titelbild ändern
-        </button>
+        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop"
+          style={{ width: "100%", height: 130, objectFit: "cover" }} alt="header" />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.25))" }} />
       </div>
 
       <div style={{ padding: "0 16px" }}>
-        {/* Avatar + Name */}
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -32, marginBottom: 14 }}>
-          <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setShowImagePicker("avatar")}>
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }} alt="profile" />
-            <div style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, borderRadius: "50%", background: CORAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Edit3 size={11} color="white" />
-            </div>
+        {/* Avatar + Buttons */}
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -34, marginBottom: 14 }}>
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop"
+            style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.15)" }} alt="profile" />
+          <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+            <button onClick={() => { setActiveSection("editProfile"); setEditTab("basis"); }}
+              style={{ background: "white", border: "1.5px solid #e0e0e0", borderRadius: 20, padding: "7px 14px", fontSize: 13, fontWeight: 700, color: "#444", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+              <Edit3 size={13} /> Bearbeiten
+            </button>
+            <button onClick={() => { setActiveSection("einstellungen"); setSettingsSection(null); }}
+              style={{ background: "white", border: "1.5px solid #e0e0e0", borderRadius: 20, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+              <Settings size={15} color="#666" />
+            </button>
           </div>
-          <button onClick={() => setShowEditProfile(true)} style={{ background: "white", border: "1.5px solid #e0e0e0", borderRadius: 20, padding: "7px 16px", fontSize: 13, fontWeight: 700, color: "#444", cursor: "pointer", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
-            <Edit3 size={13} /> Profil bearbeiten
-          </button>
         </div>
-        <div style={{ marginBottom: 4 }}>
-          <div style={{ fontWeight: 800, fontSize: 19, color: "#222", display: "flex", alignItems: "center", gap: 8 }}>
+
+        {/* Name */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontWeight: 800, fontSize: 20, color: "#222", display: "flex", alignItems: "center", gap: 8 }}>
             Lars M.
-            {!isNewUser && <span style={{ background: `${TEAL}18`, color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 8px" }}>✓ Talent</span>}
+            {!isNewUser && <span style={{ background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 8px" }}>✓ Talent</span>}
           </div>
-          <div style={{ fontSize: 13, color: "#999", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+          <div style={{ fontSize: 13, color: "#999", display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
             <MapPin size={12} /> München, Deutschland
           </div>
-          {!isNewUser && <div style={{ fontSize: 12, color: "#bbb", marginTop: 3 }}>Keramik-Künstler · seit März 2024</div>}
+          {!isNewUser && <div style={{ fontSize: 12, color: "#bbb", marginTop: 2 }}>Keramik-Künstler · seit März 2024</div>}
         </div>
 
-        {/* ── STORY-LEISTE (nur für Talente) ───────────────── */}
-        {!isNewUser && <div style={{ margin: "12px -16px 8px", overflowX: "auto" }}>
-          <div style={{ display: "flex", gap: 10, padding: "4px 16px 10px" }}>
-            {/* Neue Story erstellen */}
-            <button onClick={() => setShowStoryCreate(true)}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}>
-              <div style={{ width: 62, height: 62, borderRadius: "50%", border: `2px dashed ${CORAL}`, display: "flex", alignItems: "center", justifyContent: "center", background: `${CORAL}08`, position: "relative" }}>
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", opacity: 0.5 }} alt="" />
-                <div style={{ position: "absolute", bottom: -2, right: -2, width: 22, height: 22, borderRadius: "50%", background: CORAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Plus size={12} color="white" strokeWidth={3} />
-                </div>
+        {/* Stats */}
+        {!isNewUser && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            {[["41", "Buchungen"], ["34", "Empfehlungen"], ["218", "Follower"], ["124 €", "Impact"]].map(([v, l]) => (
+              <div key={l} style={{ flex: 1, background: "white", borderRadius: 14, padding: "10px 4px", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+                <div style={{ fontWeight: 800, fontSize: 15, color: "#222" }}>{v}</div>
+                <div style={{ fontSize: 10, color: "#aaa", marginTop: 1 }}>{l}</div>
               </div>
-              <span style={{ fontSize: 10, color: CORAL, fontWeight: 700 }}>Neu</span>
-            </button>
-
-            {/* Eigene Stories */}
-            {myOwnStories.map((s, i) => (
-              <button key={s.id} onClick={() => setViewingStoryIndex(i)}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}>
-                <div style={{ width: 62, height: 62, borderRadius: "50%", padding: 2, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, position: "relative" }}>
-                  <img src={s.thumbnail} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid white" }} alt={s.label} />
-                </div>
-                <span style={{ fontSize: 10, color: "#666", maxWidth: 64, textAlign: "center", lineHeight: 1.3 }}>{s.label}</span>
-              </button>
             ))}
-
-            {/* Archiv-Eintrag (ausgegraut) */}
-            <button style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", flexShrink: 0, opacity: 0.5 }}>
-              <div style={{ width: 62, height: 62, borderRadius: "50%", border: "2px solid #ddd", display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f3" }}>
-                <Archive size={22} color="#bbb" />
-              </div>
-              <span style={{ fontSize: 10, color: "#bbb" }}>Archiv</span>
-            </button>
           </div>
-        </div>}
+        )}
 
         {/* HUI-Punkte */}
-        {showHuiPunkte && <HuiPunktePage onClose={() => setShowHuiPunkte(false)} />}
-        <div onClick={() => setShowHuiPunkte(true)} style={{ background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, borderRadius: 18, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, cursor: "pointer", boxShadow: "0 4px 16px rgba(245,166,35,0.3)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontSize: 32 }}>⭐</div>
+        <div onClick={() => setShowHuiPunkte(true)} style={{ background: "linear-gradient(135deg, " + GOLD + ", #f59e0b)", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, cursor: "pointer", boxShadow: "0 4px 16px rgba(245,166,35,0.25)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 28 }}>⭐</span>
             <div>
-              <div style={{ fontWeight: 900, fontSize: 22, color: "white" }}>250 HUI-Punkte</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>= 12,50 € · Jetzt einlösen →</div>
+              <div style={{ fontWeight: 900, fontSize: 20, color: "white" }}>250 HUI-Punkte</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>= 12,50 € · Jetzt einlösen →</div>
             </div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.25)", borderRadius: 10, padding: "6px 10px" }}>
-            <ChevronRight size={18} color="white" />
-          </div>
+          <ChevronRight size={18} color="white" />
         </div>
 
-        {/* Chats-Button */}
-        <button onClick={onOpenChats} style={{ width: "100%", background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 16px", cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+        {/* Chats */}
+        <button onClick={onOpenChats} style={{ width: "100%", background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "12px 16px", cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: `${CORAL}12`, display: "flex", alignItems: "center", justifyContent: "center" }}><MessageCircle size={20} color={CORAL} /></div>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <MessageCircle size={18} color={CORAL} />
+            </div>
             <div style={{ textAlign: "left" }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Meine Chats</div>
               <div style={{ fontSize: 11, color: "#aaa" }}>Buchungen & Treuhand-Status</div>
@@ -4212,444 +4316,27 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           </div>
         </button>
 
-        {/* ── NEUER NUTZER: CTA ─────────────────────────────────── */}
+        {/* Talent-Profil ansehen */}
+        {!isNewUser && (
+          <button onClick={onViewOwnWirkerProfile}
+            style={{ width: "100%", background: "linear-gradient(135deg, " + TEAL + ", " + TEAL + "cc)", color: "white", border: "none", borderRadius: 14, padding: "13px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <Eye size={16} /> Mein Talent-Profil ansehen
+          </button>
+        )}
+
+        {/* Neuer Nutzer CTA */}
         {isNewUser && (
-          <div style={{ background: `linear-gradient(135deg, ${CORAL}12, ${GOLD}10)`, border: `1.5px solid ${CORAL}25`, borderRadius: 18, padding: "18px 16px", marginBottom: 14 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
-              <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>Werde Teil der HUI-Community</div>
+          <div style={{ background: "linear-gradient(135deg, " + CORAL + "10, " + GOLD + "08)", border: "1.5px solid " + CORAL + "20", borderRadius: 16, padding: "16px", marginBottom: 10 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, color: "#222", marginBottom: 6 }}>Werde Teil der HUI-Community</div>
+            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 12 }}>
+              Biete dein Talent lokal an — nur echte Menschen, keine Algorithmen.
             </div>
-            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 14 }}>
-              Biete dein Talent, deine Werke oder Dienstleistungen an – lokal und authentisch. Nur echte Menschen, keine Algorithmen.
-            </div>
-            <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-              {[["🎨", "Kreatives"], ["🔧", "Handwerk"], ["💻", "Digital"], ["🧘", "Wellness"]].map(([e, l]) => (
-                <div key={l} style={{ flex: 1, background: "white", borderRadius: 12, padding: "8px 4px", textAlign: "center" }}>
-                  <div style={{ fontSize: 18 }}>{e}</div>
-                  <div style={{ fontSize: 10, color: "#999", marginTop: 2 }}>{l}</div>
-                </div>
-              ))}
-            </div>
-            <button onClick={onTalentAnbieten} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+            <button onClick={onTalentAnbieten} style={{ width: "100%", background: "linear-gradient(135deg, " + CORAL + ", " + GOLD + ")", color: "white", border: "none", borderRadius: 13, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
               🚀 Jetzt Talent werden
             </button>
           </div>
         )}
-
-        {/* ── RECHTLICHES ────────────────────────────────────────── */}
-        <div style={{ background: "white", borderRadius: 16, padding: "13px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: "#bbb", marginBottom: 10, letterSpacing: 0.3, textTransform: "uppercase" }}>Rechtliches</div>
-          {[["📄 Impressum", "#"], ["🔒 Datenschutzerklärung", "#"], ["📋 AGB", "#"], ["🍪 Cookie-Einstellungen", "#"]].map(([label, href]) => (
-            <a key={label} href={href} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid #f5f5f5", textDecoration: "none", color: "#555", fontSize: 14 }}>
-              <span>{label}</span>
-              <ChevronRight size={15} color="#ddd" />
-            </a>
-          ))}
-        </div>
-
-        {/* ── TALENT-PROFIL: Stats + Radius + Werke ─────────────── */}
-        {!isNewUser && (
-          <>
-            {/* Stats-Leiste */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-              {[["41", "Buchungen"], ["34", "Empfehlungen"], ["218", "Follower"], ["124 €", "Impact"]].map(([v, l]) => (
-                <div key={l} style={{ flex: 1, background: "white", borderRadius: 14, padding: "10px 6px", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
-                  <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>{v}</div>
-                  <div style={{ fontSize: 10, color: "#aaa", marginTop: 1 }}>{l}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Talent-Profil bearbeiten Button */}
-            <button onClick={onTalentAnbieten}
-              style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
-              <Edit3 size={16} /> Talent-Profil bearbeiten
-            </button>
-
-            {/* Sichtbarkeitsradius – NUR Talent */}
-            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.04)", border: `1px solid ${TEAL}18` }}>
-              <div style={{ background: `${TEAL}0d`, borderRadius: 10, padding: "7px 12px", marginBottom: 12, display: "flex", alignItems: "center", gap: 7 }}>
-                <span style={{ fontSize: 14 }}>✨</span>
-                <span style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>Nur für Talente · Steuert wie weit du in der Suche erscheinst</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 10, background: `${TEAL}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <MapPin size={17} color={TEAL} />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Sichtbarkeitsradius</div>
-                    <div style={{ fontSize: 11, color: "#aaa" }}>Wie weit bist du als Talent buchbar?</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{radius === 9999 ? "🌍 Weltweit" : `${radius} km`}</div>
-                  <button
-                    onClick={() => setRadius(radius === 9999 ? 50 : 9999)}
-                    title={radius === 9999 ? "Radius einschränken" : "Weltweit stellen"}
-                    style={{ width: 34, height: 34, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, background: radius === 9999 ? TEAL : `${TEAL}18`, transition: "background 0.2s", flexShrink: 0 }}>
-                    🌍
-                  </button>
-                </div>
-              </div>
-              <input
-                type="range" min={0} max={5}
-                value={radiusMarks.indexOf(radius) >= 0 ? radiusMarks.indexOf(radius) : 2}
-                onChange={e => setRadius(radiusMarks[parseInt(e.target.value)])}
-                style={{ width: "100%", accentColor: TEAL, height: 4, marginBottom: 6 }}
-              />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#bbb" }}>
-                {radiusMarks.map(r => <span key={r} style={{ fontWeight: r === radius ? 700 : 400, color: r === radius ? TEAL : "#bbb" }}>{r === 9999 ? "🌍" : `${r} km`}</span>)}
-              </div>
-              <div style={{ background: `${TEAL}0d`, borderRadius: 10, padding: "8px 12px", marginTop: 10, fontSize: 12, color: "#666" }}>
-                📍 {radius === 9999 ? "Du bist weltweit für Suchende sichtbar." : <>Du bist für Suchende im Umkreis von <strong>{radius} km</strong> um München sichtbar.</>}
-                {radius === 9999 && " · Keine Einschränkung"}
-                {radius === 250 && " · Ganz Deutschland"}
-                {radius >= 100 && radius < 250 && " · Überregional"}
-                {radius < 25 && " · Nur Nachbarschaft"}
-              </div>
-            </div>
-
-            {/* Talent-Status Toggle */}
-            <div style={{ background: "white", borderRadius: 16, padding: "13px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: talentAktiv ? `${CORAL}15` : "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 17 }}>{talentAktiv ? "🟢" : "⏸️"}</span>
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Talent aktiv</div>
-                  <div style={{ fontSize: 11, color: "#aaa" }}>{talentAktiv ? "Du bist buchbar & sichtbar" : "Derzeit nicht buchbar"}</div>
-                </div>
-              </div>
-              <div
-                onClick={() => setTalentAktiv(v => !v)}
-                style={{ width: 48, height: 26, borderRadius: 99, background: talentAktiv ? CORAL : "#ddd", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
-                <div style={{ position: "absolute", top: 3, left: talentAktiv ? 24 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }} />
-              </div>
-            </div>
-
-            {/* Verfügbarkeit */}
-            <button onClick={onViewOwnWirkerProfile} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              <Calendar size={17} /> Verfügbarkeit & Kalender verwalten
-            </button>
-
-            {/* Meine Werke Vorschau */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>Meine Werke</div>
-                <span style={{ fontSize: 13, color: CORAL, fontWeight: 600, cursor: "pointer" }}>Alle anzeigen</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                {[
-                  "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop",
-                  "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=200&h=200&fit=crop",
-                  "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=200&h=200&fit=crop",
-                ].map((src, i) => (
-                  <div key={i} style={{ aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "#f0f0ee" }}>
-                    <img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Impact */}
-            <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}22`, borderRadius: 16, padding: "12px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ fontSize: 28 }}>🌱</div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>124 € Impact generiert</div>
-                <div style={{ fontSize: 12, color: "#888" }}>Durch deine Buchungen fließen 3% in lokale Projekte.</div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Einstellungen */}
-        <button onClick={() => setActiveSection("einstellungen")} style={{ width: "100%", background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 16px", cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: "#f0f0ee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⚙️</div>
-            <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>Einstellungen</div>
-          </div>
-          <ChevronRight size={15} color="#ddd" />
-        </button>
-
       </div>
-
-      {/* ── BILD-PICKER MODAL (Profilbild & Titelbild) ─────── */}
-      {showImagePicker && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }} onClick={() => setShowImagePicker(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "20px 20px 36px" }}>
-            {/* Handle */}
-            <div style={{ width: 38, height: 4, borderRadius: 99, background: "#e0e0e0", margin: "0 auto 20px" }} />
-            <div style={{ fontWeight: 800, fontSize: 18, color: "#222", marginBottom: 4 }}>
-              {showImagePicker === "avatar" ? "🤳 Profilbild ändern" : "🖼️ Titelbild ändern"}
-            </div>
-            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 22 }}>
-              {showImagePicker === "avatar" ? "Wähle ein neues Profilbild für dein HUI-Profil" : "Gestalte deinen Profilkopf – sehen alle als erstes"}
-            </div>
-
-            {/* Vorschau des aktuellen Bildes */}
-            <div style={{ marginBottom: 18, borderRadius: 16, overflow: "hidden", background: "#f0f0ee" }}>
-              {showImagePicker === "avatar" ? (
-                <div style={{ display: "flex", justifyContent: "center", padding: "16px 0" }}>
-                  <div style={{ position: "relative" }}>
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 100, height: 100, borderRadius: "50%", objectFit: "cover", border: `3px solid ${CORAL}44` }} alt="" />
-                    <div style={{ position: "absolute", bottom: 2, right: 2, width: 26, height: 26, borderRadius: "50%", background: CORAL, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
-                      <Edit3 size={12} color="white" />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=180&fit=crop" style={{ width: "100%", height: 100, objectFit: "cover" }} alt="" />
-              )}
-              <div style={{ textAlign: "center", padding: "8px 0 12px", fontSize: 12, color: "#aaa" }}>Aktuelles Bild</div>
-            </div>
-
-            {/* Optionen */}
-            {[
-              { icon: "📷", label: "Kamera öffnen", sub: "Jetzt ein Foto aufnehmen", action: () => setShowImagePicker(null) },
-              { icon: "🖼️", label: "Aus Galerie wählen", sub: "Foto von deinem Gerät hochladen", action: () => setShowImagePicker(null) },
-              ...(showImagePicker === "header" ? [
-                { icon: "🎨", label: "Farbe / Verlauf wählen", sub: "Einfarbig oder Gradient als Hintergrund", action: () => setShowImagePicker(null) },
-              ] : []),
-              { icon: "🗑️", label: showImagePicker === "avatar" ? "Profilbild entfernen" : "Titelbild entfernen", sub: "Zurück zum Standard", action: () => setShowImagePicker(null), danger: true },
-            ].map((o, i) => (
-              <button key={i} onClick={o.action}
-                style={{ width: "100%", background: o.danger ? `${CORAL}08` : "#f8f8f6", border: `1px solid ${o.danger ? CORAL + "22" : "transparent"}`, borderRadius: 14, padding: "13px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 14, cursor: "pointer", textAlign: "left" }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: o.danger ? `${CORAL}15` : "#eee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-                  {o.icon}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: o.danger ? CORAL : "#222" }}>{o.label}</div>
-                  <div style={{ fontSize: 12, color: "#aaa" }}>{o.sub}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── STORY VIEWER ─────────────────────────────────────── */}
-      {viewingStoryIndex !== null && (
-        <StoryViewer
-          stories={myOwnStories}
-          startIndex={viewingStoryIndex}
-          onClose={() => setViewingStoryIndex(null)}
-        />
-      )}
-
-      {/* ── STORY ERSTELLEN ────────────────────────────────────── */}
-      {showStoryCreate && (
-        <StoryCreateFull
-          onClose={() => setShowStoryCreate(false)}
-          onPublished={() => setShowStoryCreate(false)}
-        />
-      )}
-
-      {/* ── PROFIL BEARBEITEN MODAL ─────────────────────────────── */}
-      {showEditProfile && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end" }}>
-          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxHeight: "88vh", display: "flex", flexDirection: "column" }}>
-            {/* Header */}
-            <div style={{ padding: "16px 20px 0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Profil bearbeiten</div>
-              <button onClick={() => setShowEditProfile(false)} style={{ background: "#f0f0ee", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={16} /></button>
-            </div>
-
-            {/* Profilbild oben */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 20px 12px", flexShrink: 0 }}>
-              <div style={{ position: "relative", marginBottom: 8 }}>
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" style={{ width: 78, height: 78, borderRadius: "50%", objectFit: "cover", border: `3px solid ${CORAL}33` }} alt="" />
-                <div style={{ position: "absolute", bottom: 0, right: 0, width: 26, height: 26, borderRadius: "50%", background: CORAL, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white", cursor: "pointer" }}>
-                  <Edit3 size={11} color="white" />
-                </div>
-              </div>
-              <div style={{ fontSize: 12, color: "#aaa" }}>Tippe um Foto zu ändern</div>
-            </div>
-
-            {/* Tabs */}
-            <div style={{ display: "flex", borderBottom: "1px solid #f0f0f0", padding: "0 20px", flexShrink: 0 }}>
-              {[["basis", "Basis"], ["bio", "Bio & Links"], ...(isNewUser ? [] : [["talent", "Talent"]])].map(([id, label]) => (
-                <button key={id} onClick={() => setEditTab(id)}
-                  style={{ background: "none", border: "none", borderBottom: editTab === id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "10px 14px", fontSize: 13, fontWeight: editTab === id ? 700 : 500, color: editTab === id ? CORAL : "#999", cursor: "pointer", marginBottom: -1 }}>
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab-Inhalte */}
-            <div style={{ overflowY: "auto", flex: 1, padding: "18px 20px 24px" }}>
-
-              {editTab === "basis" && (
-                <div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Vorname</div>
-                      <input value={profileForm.vorname} onChange={e => setP("vorname", e.target.value)}
-                        style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Nachname</div>
-                      <input value={profileForm.nachname} onChange={e => setP("nachname", e.target.value)}
-                        style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Anzeigename</div>
-                    <input value={profileForm.anzeigeName} onChange={e => setP("anzeigeName", e.target.value)}
-                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                    <div style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>Dieser Name ist für andere sichtbar</div>
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Standort</div>
-                    <div style={{ position: "relative" }}>
-                      <input value={profileForm.standort} onChange={e => setP("standort", e.target.value)}
-                        placeholder="z.B. München oder Maximilianstr. 12, München"
-                        style={{ width: "100%", padding: "11px 13px 11px 36px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                      <MapPin size={14} color="#bbb" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
-                    </div>
-                    <div style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>Stadt oder Adresse – wird für die Suche verwendet</div>
-                  </div>
-
-                  {/* Suchradius – für alle Nutzer (steuert welche Inhalte im Feed & Suche erscheinen) */}
-                  <div style={{ marginTop: 16, background: "#f7f7f5", borderRadius: 14, padding: "14px 16px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>📍 Suchradius</div>
-                        <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>Zeige mir Inhalte im Umkreis von</div>
-                      </div>
-                      <div style={{ background: `${CORAL}15`, borderRadius: 20, padding: "4px 12px" }}>
-                        <span style={{ fontWeight: 800, fontSize: 14, color: CORAL }}>
-                          {profileForm.suchRadius >= 200 ? "🌍 Weltweit" : `${profileForm.suchRadius} km`}
-                        </span>
-                      </div>
-                    </div>
-                    <input type="range" min={5} max={200} step={5}
-                      value={profileForm.suchRadius || 50}
-                      onChange={e => setP("suchRadius", Number(e.target.value))}
-                      style={{ width: "100%", accentColor: CORAL, cursor: "pointer" }} />
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ccc", marginTop: 3 }}>
-                      <span>5 km</span><span>50 km</span><span>100 km</span><span>🌍</span>
-                    </div>
-                    <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, background: `${CORAL}08`, borderRadius: 10, padding: "8px 12px" }}>
-                      <MapPin size={13} color={CORAL} />
-                      <span style={{ fontSize: 12, color: "#555", lineHeight: 1.5 }}>
-                        Du siehst Talente & Werke aus <strong>{profileForm.standort || "deinem Standort"}</strong> im Umkreis von <strong style={{ color: CORAL }}>{profileForm.suchRadius >= 200 ? "weltweit" : `${profileForm.suchRadius || 50} km`}</strong>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Profilbild</div>
-                    <button onClick={() => { setShowEditProfile(false); setShowImagePicker("avatar"); }}
-                      style={{ width: "100%", background: `${CORAL}0d`, border: `1.5px solid ${CORAL}25`, borderRadius: 12, padding: "11px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, textAlign: "left" }}>
-                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} alt="" />
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: CORAL }}>Foto ändern</div>
-                        <div style={{ fontSize: 11, color: "#aaa" }}>Kamera oder Galerie</div>
-                      </div>
-                      <ChevronRight size={14} color={CORAL} style={{ marginLeft: "auto" }} />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {editTab === "bio" && (
-                <div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Über mich</div>
-                    <textarea value={profileForm.bio} onChange={e => setP("bio", e.target.value)} rows={4}
-                      placeholder="Beschreibe dich in ein paar Sätzen..."
-                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
-                    <div style={{ fontSize: 11, color: profileForm.bio.length > 280 ? CORAL : "#bbb", marginTop: 3, textAlign: "right" }}>{profileForm.bio.length}/300</div>
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Website</div>
-                    <input value={profileForm.website} onChange={e => setP("website", e.target.value)}
-                      placeholder="https://meineseite.de"
-                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Instagram</div>
-                    <div style={{ position: "relative" }}>
-                      <span style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#bbb" }}>@</span>
-                      <input value={profileForm.instagram} onChange={e => setP("instagram", e.target.value)}
-                        placeholder="dein_handle"
-                        style={{ width: "100%", padding: "11px 13px 11px 28px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Sprachen</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {["Deutsch", "Englisch", "Französisch", "Spanisch", "Türkisch", "Arabisch"].map(lang => {
-                        const active = profileForm.sprachen.includes(lang);
-                        return (
-                          <button key={lang} onClick={() => setP("sprachen", active ? profileForm.sprachen.filter(l => l !== lang) : [...profileForm.sprachen, lang])}
-                            style={{ background: active ? `${TEAL}18` : "#f4f4f2", border: `1.5px solid ${active ? TEAL : "transparent"}`, borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: active ? TEAL : "#666", cursor: "pointer" }}>
-                            {lang}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {editTab === "talent" && !isNewUser && (
-                <div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kategorie</div>
-                    <input value={profileForm.kategorie} onChange={e => setP("kategorie", e.target.value)}
-                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kurzvorstellung</div>
-                    <textarea value={profileForm.kurzbeschreibung} onChange={e => setP("kurzbeschreibung", e.target.value)} rows={3}
-                      placeholder="Was machst du, wie arbeitest du?"
-                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Erfahrung</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {["< 1 Jahr", "1–2 Jahre", "3–5 Jahre", "5–10 Jahre", "10+ Jahre"].map(e => (
-                        <button key={e} onClick={() => setP("erfahrung", e)}
-                          style={{ background: profileForm.erfahrung === e ? `${CORAL}18` : "#f4f4f2", border: `1.5px solid ${profileForm.erfahrung === e ? CORAL : "transparent"}`, borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: profileForm.erfahrung === e ? CORAL : "#666", cursor: "pointer" }}>
-                          {e}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Stundensatz (€)</div>
-                    <input type="number" defaultValue="45" min="5"
-                      style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none" }} />
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Angebotsform</div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      {[["📍", "Vor Ort"], ["🚗", "Beim Kunden"], ["💻", "Online"]].map(([icon, label]) => (
-                        <div key={label} style={{ flex: 1, minWidth: 80, background: `${TEAL}12`, border: `1.5px solid ${TEAL}33`, borderRadius: 12, padding: "10px 8px", textAlign: "center", cursor: "pointer" }}>
-                          <div style={{ fontSize: 20 }}>{icon}</div>
-                          <div style={{ fontSize: 11, fontWeight: 600, color: TEAL, marginTop: 4 }}>{label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            </div>
-
-            {/* Speichern-Button */}
-            <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
-              <button onClick={() => setShowEditProfile(false)}
-                style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-                ✓ Änderungen speichern
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
