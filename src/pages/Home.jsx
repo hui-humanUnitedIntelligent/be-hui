@@ -3458,210 +3458,418 @@ function ImpactProjectDetail({ project: p, onClose }) {
 function ImpactPage() {
   const [showVorschlag, setShowVorschlag] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const projects = [
+  const [votedFor, setVotedFor] = useState(null); // null | project title
+  const [showVoteConfirm, setShowVoteConfirm] = useState(null);
+  const [showErgebnis, setShowErgebnis] = useState(false);
+  const [activeTab, setActiveTab] = useState("abstimmung"); // "abstimmung" | "projekte"
+
+  // Pool-Daten
+  const poolGesamt = 3847;
+  const daysLeft = 4; // Tage bis Monatsende
+
+  // Die 3 nominierten Projekte (vom HUI-Team ausgewählt)
+  const nominiert = [
     {
-      title: "Bäume für Kenia", desc: "Wir pflanzen 10.000 Bäume in trockenen Regionen Kenias und schaffen langfristige Lebensgrundlagen für lokale Gemeinschaften.",
-      longDesc: "Die Abholzung in Kenia hat in den letzten Jahrzehnten zu Bodenerosion, Wasserknappheit und dem Verlust von Lebensräumen geführt. Unser Projekt arbeitet gemeinsam mit lokalen Gemeinschaften, um einheimische Baumarten zu pflanzen und zu pflegen.\n\nJeder gepflanzte Baum wird 5 Jahre lang betreut. Die Einwohner werden ausgebildet, um die Wälder langfristig selbst zu bewirtschaften. Ziel ist es, nicht nur die Umwelt zu schützen, sondern auch neue Einkommensquellen durch nachhaltige Forstwirtschaft zu schaffen.",
-      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
-      progress: 47, collected: "2.340 €", goal: "5.000 €", kategorie: "Natur & Umwelt", land: "Kenia", laufzeit: "1 Jahr", stufe: "aktiv",
-      organisation: "Green Earth Kenya e.V.", gegründet: "2018", unterstuetzer: 142,
-      meilensteine: [
-        { label: "Grundstücke gesichert", done: true },
-        { label: "4.700 Bäume gepflanzt", done: true },
-        { label: "10.000 Bäume gepflanzt", done: false },
-        { label: "Pflege-Ausbildung abgeschlossen", done: false },
-      ],
-      updates: [
-        { datum: "März 2026", text: "Die ersten 2.000 Setzlinge wurden erfolgreich eingepflanzt! Dank eurer Spenden." },
-        { datum: "Jan 2026", text: "Projektstart und Auswahl der Pflanzflächen in der Rift Valley Region." },
-      ]
-    },
-    {
-      title: "Schule für alle", desc: "Bildung für 200 Kinder in ländlichen Gebieten – Schulbau, Materialien und Lehrergehälter für 2 Jahre.",
-      longDesc: "In den ländlichen Gebieten Ugandas fehlen grundlegende Bildungseinrichtungen. Viele Kinder müssen stundenlange Fußwege auf sich nehmen oder erhalten gar keine Schulbildung.\n\nMit eurem Beitrag bauen wir ein vollständiges Schulgebäude mit 4 Klassenräumen, einem Lehrerzimmer und sanitären Anlagen. Zusätzlich finanzieren wir Schulmaterial und die Gehälter von 4 qualifizierten Lehrern für die ersten 2 Jahre.",
+      title: "Schule für alle",
+      desc: "Bildung für 200 Kinder in ländlichen Gebieten – Schulbau, Materialien und Lehrergehälter für 2 Jahre.",
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
-      progress: 73, collected: "7.300 €", goal: "10.000 €", kategorie: "Kinder & Bildung", land: "Uganda", laufzeit: "2 Jahre", stufe: "aktiv",
-      organisation: "Bildung Grenzenlos gGmbH", gegründet: "2014", unterstuetzer: 318,
-      meilensteine: [
-        { label: "Bauplatz genehmigt", done: true },
-        { label: "Fundament gelegt", done: true },
-        { label: "Rohbau fertiggestellt", done: true },
-        { label: "Innenausbau & Eröffnung", done: false },
-      ],
-      updates: [
-        { datum: "Apr 2026", text: "Der Rohbau steht! Nächster Schritt: Fenster, Türen und die Möblierung." },
-        { datum: "Feb 2026", text: "Das Fundament wurde erfolgreich gegossen. Ein großer Schritt für die Kinder!" },
-      ]
+      kategorie: "Kinder & Bildung", land: "Uganda",
+      wunschbetrag: 3500, gesammelt: 2100,
+      stimmen: 847, emoji: "🏫",
+      organisation: "Bildung Grenzenlos gGmbH",
+      warum: "Dieses Projekt kann mit dem aktuellen Pool komplett finanziert werden. Der Schulbau steht kurz vor dem Abschluss.",
     },
     {
-      title: "Tierheim Hamburg", desc: "Renovierung und Erweiterung für 150 Tiere – neue Gehege, Tierarzt-Ausstattung und Pfleger-Ausbildung.",
-      longDesc: "Das Tierheim Hamburg-Süd betreut jährlich über 800 Tiere. Das Gebäude aus den 1970er Jahren ist dringend sanierungsbedürftig – Heizungsanlage, Gehege und die medizinische Ausstattung entsprechen nicht mehr modernen Standards.\n\nMit den gesammelten Mitteln renovieren wir 12 Hundegehege, schaffen einen neuen Behandlungsraum für den Tierarzt und schulen das Pfleger-Team in modernen Tierverhaltensmethoden. Jedes gespendete Euro kommt direkt den Tieren zugute.",
+      title: "Bäume für Kenia",
+      desc: "Wir pflanzen 10.000 Bäume in trockenen Regionen Kenias und schaffen langfristige Lebensgrundlagen.",
+      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
+      kategorie: "Natur & Umwelt", land: "Kenia",
+      wunschbetrag: 3200, gesammelt: 1400,
+      stimmen: 612, emoji: "🌳",
+      organisation: "Green Earth Kenya e.V.",
+      warum: "Der Restbedarf liegt im Bereich des aktuellen Pools. Eine Finanzierung würde 5.300 Bäume sichern.",
+    },
+    {
+      title: "Tierheim Hamburg",
+      desc: "Renovierung für 150 Tiere – neue Gehege, Tierarzt-Ausstattung und Pfleger-Ausbildung.",
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
-      progress: 28, collected: "1.400 €", goal: "5.000 €", kategorie: "Tierschutz", land: "Deutschland", laufzeit: "6 Monate", stufe: "aktiv",
-      organisation: "Tierheim Hamburg-Süd e.V.", gegründet: "1973", unterstuetzer: 87,
-      meilensteine: [
-        { label: "Finanzierungsplan genehmigt", done: true },
-        { label: "Gehege-Renovierung (Phase 1)", done: false },
-        { label: "Neuer Behandlungsraum", done: false },
-        { label: "Pfleger-Schulungen", done: false },
-      ],
-      updates: [
-        { datum: "Apr 2026", text: "Wir haben die ersten Spendengelder erhalten – danke! Die Planung läuft auf Hochtouren." },
-      ]
+      kategorie: "Tierschutz", land: "Deutschland",
+      wunschbetrag: 3600, gesammelt: 1200,
+      stimmen: 389, emoji: "🐾",
+      organisation: "Tierheim Hamburg-Süd e.V.",
+      warum: "Das Tierheim ist auf Förderung angewiesen. Eine vollständige Auszahlung würde die Renovierung starten.",
     },
   ];
 
+  // Alle anderen laufenden Projekte (bekommen den Rest)
+  const weitiereProjekte = [
+    {
+      title: "Sauberes Wasser in Mali",
+      img: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&h=400&fit=crop",
+      kategorie: "Wasser & Gesundheit", land: "Mali", emoji: "💧",
+      wunschbetrag: 8000, gesammelt: 1230, stimmen: 0,
+    },
+    {
+      title: "Frauen-Kooperative Äthiopien",
+      img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&h=400&fit=crop",
+      kategorie: "Gleichberechtigung", land: "Äthiopien", emoji: "👩",
+      wunschbetrag: 5000, gesammelt: 890, stimmen: 0,
+    },
+  ];
+
+  const totalStimmen = nominiert.reduce((s, p) => s + p.stimmen, 0);
+  const gewinner = nominiert.reduce((a, b) => a.stimmen > b.stimmen ? a : b);
+
+  // Abstimmungs-Confirm Modal
+  if (showVoteConfirm) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
+        <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "28px 24px 36px" }}>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ fontSize: 52, marginBottom: 12 }}>{showVoteConfirm.emoji}</div>
+            <div style={{ fontWeight: 900, fontSize: 20, color: "#222", marginBottom: 8 }}>Für "{showVoteConfirm.title}" stimmen?</div>
+            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>
+              Du hast nur <strong>eine Stimme</strong> pro Monat. Diese Entscheidung kann nicht rückgängig gemacht werden.
+            </div>
+          </div>
+          <div style={{ background: `${TEAL}0d`, borderRadius: 14, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
+            🌱 Wenn dieses Projekt gewinnt, erhält es <strong>{showVoteConfirm.wunschbetrag.toLocaleString("de-DE")} €</strong> aus dem Impact Pool — vollständig ausgezahlt.
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setShowVoteConfirm(null)}
+              style={{ flex: 1, padding: "14px", border: "1.5px solid #e8e8e8", borderRadius: 14, background: "white", fontWeight: 700, fontSize: 15, cursor: "pointer", color: "#666" }}>
+              Abbrechen
+            </button>
+            <button onClick={() => { setVotedFor(showVoteConfirm.title); setShowVoteConfirm(null); }}
+              style={{ flex: 2, padding: "14px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, fontWeight: 800, fontSize: 15, cursor: "pointer", color: "white" }}>
+              ✓ Jetzt abstimmen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Ergebnis-Modal (wie letzter Monat ausgegangen ist)
+  if (showErgebnis) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
+        <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "90vh", overflowY: "auto", padding: "0 0 36px" }}>
+          <div style={{ background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, padding: "28px 24px 24px", borderRadius: "24px 24px 0 0", position: "relative" }}>
+            <button onClick={() => setShowErgebnis(false)} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <X size={16} color="white" />
+            </button>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Ergebnis März 2026</div>
+            <div style={{ fontWeight: 900, fontSize: 22, color: "white", marginBottom: 4 }}>🏆 Community hat entschieden!</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>3.210 € wurden aus dem Impact Pool verteilt</div>
+          </div>
+
+          <div style={{ padding: "20px 20px 0" }}>
+            {/* Gewinner */}
+            <div style={{ background: `${TEAL}0d`, border: `1.5px solid ${TEAL}40`, borderRadius: 16, padding: "16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: TEAL, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>🥇 Gewinner</div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
+                <div style={{ fontSize: 32 }}>🏫</div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>Schule für alle</div>
+                  <div style={{ fontSize: 12, color: "#aaa" }}>Uganda · 847 Stimmen (46%)</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "white", borderRadius: 12, padding: "10px 14px" }}>
+                <div style={{ fontSize: 13, color: "#555" }}>Ausgezahlt</div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: TEAL }}>3.000 € 🎉</div>
+              </div>
+            </div>
+
+            {/* Rest-Verteilung */}
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10 }}>💸 Rest verteilt an laufende Projekte</div>
+            {[
+              { name: "Bäume für Kenia", betrag: "118 €", emoji: "🌳" },
+              { name: "Tierheim Hamburg", betrag: "56 €", emoji: "🐾" },
+              { name: "Sauberes Wasser Mali", betrag: "36 €", emoji: "💧" },
+            ].map((p, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
+                <div style={{ fontSize: 24 }}>{p.emoji}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
+                <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
+              </div>
+            ))}
+
+            <div style={{ marginTop: 20, background: "#f9f9f7", borderRadius: 14, padding: "14px", textAlign: "center" }}>
+              <div style={{ fontSize: 13, color: "#888" }}>Nächste Abstimmung endet in</div>
+              <div style={{ fontWeight: 900, fontSize: 24, color: TEAL, marginTop: 4 }}>{daysLeft} Tagen</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // HAUPT-VIEW
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
+
       {/* Header */}
       <div style={{ background: `linear-gradient(180deg, ${TEAL}18, transparent)`, padding: "24px 20px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ fontWeight: 800, fontSize: 22, color: "#222" }}>💚 Impact</div>
-          <button onClick={() => setShowVorschlag(true)} style={{ background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, border: "none", borderRadius: 20, padding: "7px 14px", color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, boxShadow: `0 3px 12px ${TEAL}44` }}>
-            <Plus size={13} /> Projekt vorschlagen
+          <button onClick={() => setShowErgebnis(true)}
+            style={{ background: "white", border: `1.5px solid ${TEAL}40`, borderRadius: 20, padding: "7px 14px", color: TEAL, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            📊 Letztes Ergebnis
           </button>
         </div>
 
-        {/* Ring */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-          <div style={{ position: "relative", width: 150, height: 150 }}>
-            <svg width="150" height="150" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="75" cy="75" r="62" fill="none" stroke="#eee" strokeWidth="11" />
-              <circle cx="75" cy="75" r="62" fill="none" stroke={TEAL} strokeWidth="11" strokeDasharray="389" strokeDashoffset={389 * 0.53} strokeLinecap="round" />
-            </svg>
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ fontWeight: 800, fontSize: 22, color: TEAL }}>3.847 €</div>
-              <div style={{ fontSize: 10, color: "#aaa" }}>diesen Monat</div>
+        {/* Pool-Anzeige */}
+        <div style={{ background: `linear-gradient(135deg, ${TEAL}, #0d9488)`, borderRadius: 20, padding: "20px", marginBottom: 16, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+          <div style={{ position: "absolute", bottom: -30, left: -10, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>🌍 Aktueller Impact Pool</div>
+          <div style={{ fontWeight: 900, fontSize: 42, color: "white", lineHeight: 1, marginBottom: 4 }}>{poolGesamt.toLocaleString("de-DE")} €</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginBottom: 14 }}>gesammelt diesen Monat · 15% jeder Provision</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "rgba(255,255,255,0.18)", borderRadius: 10, padding: "6px 12px", fontSize: 12, color: "white", fontWeight: 700 }}>
+              ⏳ Abstimmung endet in {daysLeft} Tagen
             </div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>30. April 2026</div>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-          <div style={{ flex: 1, background: "white", borderRadius: 14, padding: 14, textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontWeight: 800, fontSize: 19, color: GOLD }}>47.832 €</div>
-            <div style={{ fontSize: 11, color: "#aaa" }}>Dieses Jahr</div>
-          </div>
-          <div style={{ flex: 1, background: "white", borderRadius: 14, padding: 14, textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontWeight: 800, fontSize: 19, color: TEAL }}>3.847 €</div>
-            <div style={{ fontSize: 11, color: "#aaa" }}>Dieser Monat</div>
-          </div>
-        </div>
-
-        <div style={{ textAlign: "center", fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 8 }}>Gemeinsam haben wir schon so viel bewegt. 🌍</div>
-        <div style={{ textAlign: "center", fontSize: 13, color: "#aaa", lineHeight: 1.6, marginBottom: 8 }}>
-          15% unserer Provision fließt automatisch in ausgewählte Projekte.
-        </div>
-      </div>
-
-      {/* Botschafter-Banner */}
-      <div style={{ margin: "0 16px 16px", background: "linear-gradient(135deg, #0d9488, #f59e0b)", borderRadius: 16, padding: "16px 18px", color: "white" }}>
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 5 }}>🤝 Projekte werden zu Botschaftern</div>
-        <div style={{ fontSize: 12, lineHeight: 1.6, opacity: 0.92 }}>Jedes Projekt das wir unterstützen, trägt die HUI-Mission in die Welt weiter — öffentlich, authentisch und mit echter Wirkung.</div>
-      </div>
-      {/* Aufruf Projekt vorschlagen */}
-      <div onClick={() => setShowVorschlag(true)} style={{ margin: "0 16px 20px", background: `linear-gradient(135deg, ${TEAL}15, ${GOLD}10)`, border: `1.5px dashed ${TEAL}60`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", display: "flex", gap: 14, alignItems: "center" }}>
-        <div style={{ width: 48, height: 48, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <span style={{ fontSize: 22 }}>🌱</span>
-        </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#222", marginBottom: 3 }}>Hast du ein Projekt, das die Welt besser macht?</div>
-          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>Reiche es ein – die HUI-Community entscheidet, welche Projekte Unterstützung erhalten.</div>
-        </div>
-        <ChevronRight size={18} color={TEAL} style={{ flexShrink: 0 }} />
-      </div>
-
-      {/* Projekte */}
-      <div style={{ padding: "0 16px" }}>
-        <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 12 }}>Aktuelle Projekte</div>
-        {projects.map((p, i) => (
-          <div key={i} onClick={() => setSelectedProject(p)} style={{ background: `linear-gradient(160deg, #fffdf0, #fff8e1)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px ${GOLD}22`, border: `1px solid ${GOLD}30`, marginBottom: 16, cursor: "pointer" }}>
-            <div style={{ position: "relative" }}>
-              <img src={p.img} style={{ width: "100%", height: 160, objectFit: "cover" }} alt={p.title} />
-              <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
-                <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "4px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
-                <div style={{ background: "rgba(0,0,0,0.45)", color: "white", borderRadius: 20, padding: "4px 10px", fontWeight: 600, fontSize: 11 }}>📍 {p.land}</div>
-              </div>
-            </div>
-            <div style={{ padding: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 5 }}>{p.title}</div>
-              <div style={{ fontSize: 13, color: "#777", marginBottom: 10, lineHeight: 1.55 }}>{p.desc}</div>
-              <div style={{ display: "flex", gap: 10, marginBottom: 10, fontSize: 11, color: "#aaa" }}>
-                <span>⏱ {p.laufzeit}</span>
-                <span>🎯 Ziel: {p.goal}</span>
-              </div>
-              <div style={{ background: "#f0f0f0", borderRadius: 99, height: 8, marginBottom: 6 }}>
-                <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 8, borderRadius: 99, width: `${p.progress}%`, transition: "width 0.5s" }} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999", marginBottom: 14 }}>
-                <span><strong style={{ color: TEAL }}>{p.collected}</strong> gesammelt</span>
-                <span style={{ fontWeight: 700, color: GOLD }}>{p.progress}%</span>
-              </div>
-              <button onClick={e => { e.stopPropagation(); setSelectedProject(p); }} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                🌱 Mehr erfahren & spenden
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {/* Wie es funktioniert */}
-        <div style={{ background: "white", borderRadius: 16, padding: 16, marginBottom: 20 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#333", marginBottom: 14 }}>Wie der Impact Pool funktioniert</div>
-          {[
-            { icon: "🛒", step: "1", text: "Du buchst oder kaufst etwas auf HUI" },
-            { icon: "💰", step: "2", text: "15% der Provision fließen automatisch in den Impact Pool" },
-            { icon: "🗳️", step: "3", text: "Die Community stimmt ab, welche Projekte gefördert werden" },
-            { icon: "✅", step: "4", text: "Gelder werden monatlich transparent ausgezahlt" },
-          ].map((r, i) => (
-            <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: i < 3 ? 10 : 0 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${TEAL}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <span style={{ fontSize: 17 }}>{r.icon}</span>
-              </div>
-              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>{r.text}</div>
-            </div>
+        {/* Tabs */}
+        <div style={{ display: "flex", background: "#f0f0ee", borderRadius: 12, padding: 3, marginBottom: 4 }}>
+          {[{ id: "abstimmung", label: "🗳 Abstimmung" }, { id: "projekte", label: "🌱 Alle Projekte" }].map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
+              flex: 1, padding: "9px", border: "none", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 13,
+              background: activeTab === t.id ? "white" : "transparent",
+              color: activeTab === t.id ? "#222" : "#aaa",
+              boxShadow: activeTab === t.id ? "0 1px 6px rgba(0,0,0,0.08)" : "none",
+              transition: "all 0.2s"
+            }}>{t.label}</button>
           ))}
         </div>
       </div>
 
-      {showVorschlag && <ProjektVorschlagenPage onClose={() => setShowVorschlag(false)} />}
-      {selectedProject && <ImpactProjectDetail project={selectedProject} onClose={() => setSelectedProject(null)} />}
+      {/* TAB: ABSTIMMUNG */}
+      {activeTab === "abstimmung" && (
+        <div style={{ padding: "0 16px" }}>
+
+          {/* Erklärungs-Banner */}
+          <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${GOLD}08)`, border: `1px solid ${TEAL}25`, borderRadius: 16, padding: "14px 16px", marginBottom: 16 }}>
+            <div style={{ fontWeight: 800, fontSize: 14, color: "#222", marginBottom: 5 }}>So funktioniert die Abstimmung</div>
+            <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>
+              Das HUI-Team hat <strong>3 Projekte</strong> ausgewählt, die mit dem aktuellen Pool komplett finanziert werden können. Als Talent hast du <strong>1 Stimme</strong> pro Monat. Das Projekt mit den meisten Stimmen bekommt seinen <strong>Wunschbetrag komplett ausgezahlt</strong> — der Rest fließt anteilig an alle anderen laufenden Projekte.
+            </div>
+          </div>
+
+          {/* Bereits abgestimmt? */}
+          {votedFor && (
+            <div style={{ background: `${TEAL}12`, border: `1.5px solid ${TEAL}40`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
+              <div style={{ fontSize: 22 }}>✅</div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: TEAL }}>Deine Stimme wurde gezählt!</div>
+                <div style={{ fontSize: 12, color: "#666" }}>Du hast für <strong>"{votedFor}"</strong> gestimmt.</div>
+              </div>
+            </div>
+          )}
+
+          {/* 3 nominierte Projekte */}
+          {nominiert.map((p, i) => {
+            const prozent = Math.round((p.stimmen / totalStimmen) * 100);
+            const isVoted = votedFor === p.title;
+            const isLeading = p.stimmen === Math.max(...nominiert.map(x => x.stimmen));
+            return (
+              <div key={i} onClick={() => setSelectedProject(p)}
+                style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
+                {/* Bild */}
+                <div style={{ position: "relative" }}>
+                  <img src={p.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
+                  <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
+                    <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
+                    <div style={{ background: "rgba(0,0,0,0.4)", color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 600, fontSize: 11 }}>📍 {p.land}</div>
+                  </div>
+                  {isLeading && !votedFor && (
+                    <div style={{ position: "absolute", top: 10, right: 10, background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 800, fontSize: 11 }}>🔥 Führend</div>
+                  )}
+                  {isVoted && (
+                    <div style={{ position: "absolute", top: 10, right: 10, background: TEAL, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 800, fontSize: 11 }}>✓ Deine Wahl</div>
+                  )}
+                  <div style={{ position: "absolute", bottom: 10, left: 12 }}>
+                    <div style={{ fontWeight: 800, fontSize: 17, color: "white" }}>{p.emoji} {p.title}</div>
+                  </div>
+                </div>
+
+                <div style={{ padding: "12px 14px" }}>
+                  <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>{p.desc}</div>
+
+                  {/* Wunschbetrag */}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 6 }}>
+                    <span>Wunschbetrag</span>
+                    <span style={{ fontWeight: 700, color: TEAL }}>{p.wunschbetrag.toLocaleString("de-DE")} €</span>
+                  </div>
+                  <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6, marginBottom: 10 }}>
+                    <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 6, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%` }} />
+                  </div>
+
+                  {/* Stimmen-Balken */}
+                  {votedFor && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#aaa", marginBottom: 4 }}>
+                        <span>👥 {p.stimmen.toLocaleString("de-DE")} Stimmen</span>
+                        <span style={{ fontWeight: 700, color: isVoted ? TEAL : "#aaa" }}>{prozent}%</span>
+                      </div>
+                      <div style={{ background: "#f0f0f0", borderRadius: 99, height: 7 }}>
+                        <div style={{ background: isVoted ? `linear-gradient(90deg, ${TEAL}, ${GOLD})` : "#ccc", height: 7, borderRadius: 99, width: `${prozent}%`, transition: "width 0.8s ease" }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Vote Button */}
+                  {!votedFor ? (
+                    <button onClick={e => { e.stopPropagation(); setShowVoteConfirm(p); }}
+                      style={{ width: "100%", padding: "11px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
+                      🗳 Für dieses Projekt stimmen
+                    </button>
+                  ) : (
+                    <div style={{ textAlign: "center", fontSize: 12, color: isVoted ? TEAL : "#bbb", fontWeight: isVoted ? 700 : 400, padding: "6px 0" }}>
+                      {isVoted ? "✓ Du hast für dieses Projekt gestimmt" : "Du hast bereits abgestimmt"}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* TAB: ALLE PROJEKTE */}
+      {activeTab === "projekte" && (
+        <div style={{ padding: "0 16px" }}>
+
+          {/* Info */}
+          <div style={{ background: `${GOLD}12`, border: `1px solid ${GOLD}30`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, fontSize: 12, color: "#666", lineHeight: 1.7 }}>
+            💸 Projekte die nicht gewinnen, erhalten den <strong>Rest des Impact Pools</strong> anteilig — und bleiben aktiv bis ihr Wunschbetrag vollständig erreicht ist.
+          </div>
+
+          {/* Nominierte */}
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10 }}>🗳 Diese Monat nominiert</div>
+          {nominiert.map((p, i) => (
+            <div key={i} onClick={() => setSelectedProject(p)}
+              style={{ display: "flex", gap: 12, alignItems: "center", background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", cursor: "pointer" }}>
+              <div style={{ fontSize: 32, flexShrink: 0 }}>{p.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.title}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{p.land} · Wunschbetrag: {p.wunschbetrag.toLocaleString("de-DE")} €</div>
+                <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5, marginTop: 6 }}>
+                  <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 5, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%` }} />
+                </div>
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 13, color: TEAL, flexShrink: 0 }}>{Math.round(p.gesammelt / p.wunschbetrag * 100)}%</div>
+            </div>
+          ))}
+
+          {/* Weitere Projekte */}
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10, marginTop: 18 }}>🌱 Weitere laufende Projekte</div>
+          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.6 }}>Diese Projekte erhalten den Restbetrag nach der Abstimmung und bleiben aktiv bis zur vollständigen Finanzierung.</div>
+          {weitiereProjekte.map((p, i) => (
+            <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 32, flexShrink: 0 }}>{p.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.title}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{p.land} · Ziel: {p.wunschbetrag.toLocaleString("de-DE")} €</div>
+                <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5, marginTop: 6 }}>
+                  <div style={{ background: "#ccc", height: 5, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%` }} />
+                </div>
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 13, color: "#aaa", flexShrink: 0 }}>{Math.round(p.gesammelt / p.wunschbetrag * 100)}%</div>
+            </div>
+          ))}
+
+          {/* Projekt vorschlagen */}
+          <div onClick={() => setShowVorschlag(true)} style={{ margin: "16px 0 20px", background: `linear-gradient(135deg, ${TEAL}12, ${GOLD}08)`, border: `1.5px dashed ${TEAL}50`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", display: "flex", gap: 14, alignItems: "center" }}>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ fontSize: 20 }}>🌱</span>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#222", marginBottom: 3 }}>Hast du ein Projekt?</div>
+              <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>Schlage es vor — das HUI-Team prüft es für die nächste Abstimmung.</div>
+            </div>
+            <ChevronRight size={18} color={TEAL} />
+          </div>
+        </div>
+      )}
+
+      {/* Botschafter-Banner */}
+      <div style={{ margin: "0 16px 20px", background: `linear-gradient(135deg, #0d9488, #f59e0b)`, borderRadius: 16, padding: "16px 18px", color: "white" }}>
+        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 5 }}>🤝 Projekte werden zu Botschaftern</div>
+        <div style={{ fontSize: 12, lineHeight: 1.6, opacity: 0.92 }}>Jedes Projekt das wir unterstützen, trägt die HUI-Mission in die Welt — öffentlich, authentisch und mit echter Wirkung.</div>
+      </div>
+
+      {/* Projekt-Detail Modal (wiederverwendet) */}
+      {selectedProject && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
+          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ position: "relative" }}>
+              <img src={selectedProject.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={selectedProject.title} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
+              <button onClick={() => setSelectedProject(null)} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <X size={18} color="white" />
+              </button>
+              <div style={{ position: "absolute", bottom: 14, left: 14 }}>
+                <div style={{ fontWeight: 800, fontSize: 20, color: "white" }}>{selectedProject.emoji} {selectedProject.title}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>📍 {selectedProject.land} · {selectedProject.organisation}</div>
+              </div>
+            </div>
+            <div style={{ padding: "18px 20px 32px" }}>
+              <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 16 }}>{selectedProject.desc}</div>
+              <div style={{ background: `${TEAL}0d`, borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
+                <span style={{ fontWeight: 700 }}>💡 Warum nominiert?</span><br />{selectedProject.warum}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
+                <span style={{ color: "#aaa" }}>Wunschbetrag</span>
+                <span style={{ fontWeight: 800, color: TEAL }}>{selectedProject.wunschbetrag?.toLocaleString("de-DE")} €</span>
+              </div>
+              <div style={{ background: "#f0f0f0", borderRadius: 99, height: 8, marginBottom: 16 }}>
+                <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 8, borderRadius: 99, width: `${Math.round((selectedProject.gesammelt / selectedProject.wunschbetrag) * 100)}%` }} />
+              </div>
+              {!votedFor ? (
+                <button onClick={() => { setSelectedProject(null); setShowVoteConfirm(selectedProject); }}
+                  style={{ width: "100%", padding: "14px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
+                  🗳 Für dieses Projekt stimmen
+                </button>
+              ) : (
+                <button onClick={() => setSelectedProject(null)}
+                  style={{ width: "100%", padding: "14px", border: `1.5px solid ${TEAL}40`, borderRadius: 14, background: "white", color: TEAL, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                  Schließen
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Projekt vorschlagen Modal */}
+      {showVorschlag && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
+          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "28px 24px 36px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>🌱 Projekt vorschlagen</div>
+              <button onClick={() => setShowVorschlag(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#aaa" /></button>
+            </div>
+            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.7, marginBottom: 20 }}>
+              Hast du ein Projekt im Kopf das die Welt besser macht? Schick uns eine kurze Beschreibung — das HUI-Team prüft es und nominiert es gegebenenfalls für die nächste monatliche Abstimmung.
+            </div>
+            <input placeholder="Projektname" style={{ width: "100%", padding: "12px 14px", border: "1.5px solid #e8e8e8", borderRadius: 12, fontSize: 14, marginBottom: 10, boxSizing: "border-box" }} />
+            <textarea placeholder="Kurze Beschreibung & Wunschbetrag..." style={{ width: "100%", padding: "12px 14px", border: "1.5px solid #e8e8e8", borderRadius: 12, fontSize: 14, height: 90, resize: "none", boxSizing: "border-box", marginBottom: 16 }} />
+            <button onClick={() => setShowVorschlag(false)}
+              style={{ width: "100%", padding: "14px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+              Vorschlag einreichen ✓
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-// Mock-Daten für Favoriten
-const mockFavWirker = [
-  { id: "w1", name: "Sofia M.", talent: "Keramik-Künstlerin", location: "München",
-    img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop",
-    recommendations: 34, rate: "45 €/Std.", online: true, nextFree: "Di, 28. Apr" },
-  { id: "w2", name: "Marcus B.", talent: "Fotograf & Videograf", location: "Berlin",
-    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-    recommendations: 47, rate: "90 €/Std.", online: false, nextFree: "Mo, 27. Apr" },
-  { id: "w3", name: "Maria L.", talent: "Yoga-Coach", location: "Zürich",
-    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop",
-    recommendations: 93, rate: "70 €/Std.", online: true, nextFree: "Heute" },
-];
-const mockFavWerke = [
-  { id: "p1", title: "Handgemachte Keramik-Tasse", creator: "Sofia M.", price: "38 €",
-    img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=400&fit=crop",
-    creatorImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop" },
-  { id: "p2", title: "Aquarell-Portrait", creator: "Lena K.", price: "120 €",
-    img: "https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=400&h=400&fit=crop",
-    creatorImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop" },
-  { id: "p3", title: "Handgenähter Leder-Rucksack", creator: "Tom H.", price: "195 €",
-    img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop",
-    creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop" },
-  { id: "p4", title: "4er-Paket Yoga", creator: "Maria L.", price: "250 €",
-    img: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400&h=400&fit=crop",
-    creatorImg: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop" },
-];
-const mockFavImpact = [
-  { id: "i1", title: "Bäume für Kenia", emoji: "🌳", tag: "Natur",
-    img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=300&fit=crop",
-    collected: 2340, goal: 5000, backers: 78, daysLeft: 14 },
-  { id: "i2", title: "Bildung für Kinder in Nepal", emoji: "📚", tag: "Menschen",
-    img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&h=300&fit=crop",
-    collected: 1820, goal: 3000, backers: 54, daysLeft: 7 },
-];
-
 function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) {
   const [tab, setTab] = useState("wirker");
   const [favWirker, setFavWirker] = useState(mockFavWirker.map(w => w.id));
