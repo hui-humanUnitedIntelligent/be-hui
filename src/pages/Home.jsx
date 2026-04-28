@@ -3963,6 +3963,33 @@ function ImpactPage() {
     </div>
   );
 }
+const mockFavWirker = [
+  { id: "w1", name: "Lena K.", talent: "Keramik & Töpfern", location: "München", rate: "45 €/h", recommendations: 34, online: true, nextFree: "Morgen, 10:00",
+    img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop" },
+  { id: "w2", name: "Marco B.", talent: "Gitarrenunterricht", location: "Berlin", rate: "55 €/h", recommendations: 21, online: false, nextFree: "Fr, 16:00",
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" },
+  { id: "w3", name: "Sophie M.", talent: "Yoga & Meditation", location: "Hamburg", rate: "40 €/h", recommendations: 58, online: true, nextFree: "Heute, 18:00",
+    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop" },
+];
+const mockFavWerke = [
+  { id: "wk1", title: "Handgefertigte Keramikschale", price: "38 €", creator: "Lena K.", creatorImg: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop",
+    img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=300&fit=crop" },
+  { id: "wk2", title: "Aquarell Stadtansicht", price: "120 €", creator: "Paul R.", creatorImg: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop",
+    img: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=300&fit=crop" },
+  { id: "wk3", title: "Makramee Wanddeko", price: "65 €", creator: "Mia T.", creatorImg: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop",
+    img: "https://images.unsplash.com/photo-1615529328331-f8917597711f?w=400&h=300&fit=crop" },
+  { id: "wk4", title: "Handgebundenes Notizbuch", price: "28 €", creator: "Jonas K.", creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
+    img: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400&h=300&fit=crop" },
+];
+const mockFavImpact = [
+  { id: "i1", title: "Bäume für Kenia", emoji: "🌳", tag: "Natur",
+    img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=300&fit=crop",
+    collected: 2340, goal: 5000, backers: 78, daysLeft: 14 },
+  { id: "i2", title: "Schule für alle", emoji: "🏫", tag: "Bildung",
+    img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=300&fit=crop",
+    collected: 2100, goal: 3500, backers: 54, daysLeft: 4 },
+];
+
 function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) {
   const [tab, setTab] = useState("wirker");
   const [favWirker, setFavWirker] = useState(mockFavWirker.map(w => w.id));
