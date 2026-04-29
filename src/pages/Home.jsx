@@ -2268,7 +2268,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
   return (
     <div style={{ background: "white", margin: "8px 16px", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, borderLeft: `3.5px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
       {/* Header — kompakt */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px 8px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px 6px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <img src={item.creatorImg} onClick={() => onViewWirker(item.creator)}
             style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}30`, cursor: "pointer" }} alt={item.creator} />
@@ -2292,10 +2292,10 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
       {/* Bild — etwas weniger hoch, mit abgerundeten Ecken im Container */}
       <div style={{ overflow: "hidden", position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }}
         onClick={() => item.mediaType === "video" && setPlaying(p => !p)}>
-        <img src={item.img} style={{ width: "100%", display: "block", height: 160, objectFit: "cover" }} alt="" />
+        <img src={item.img} style={{ width: "100%", display: "block", height: 140, objectFit: "cover" }} alt="" />
         {item.mediaType === "video" && !playing && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
-            <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.92)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 14px rgba(0,0,0,0.18)" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.92)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.18)" }}>
               <Play size={20} color={CORAL} fill={CORAL} style={{ marginLeft: 2 }} />
             </div>
           </div>
@@ -2306,7 +2306,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
       </div>
 
       {/* Caption + Actions — kompakter */}
-      <div style={{ padding: "8px 14px 10px" }}>
+      <div style={{ padding: "6px 12px 8px" }}>
         <div style={{ fontSize: 12.5, color: "#444", lineHeight: 1.55, marginBottom: 8 }}>
           <span style={{ fontWeight: 700, color: "#222" }}>{item.creator} </span>{item.caption}
         </div>
