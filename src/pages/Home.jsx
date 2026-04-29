@@ -6016,7 +6016,7 @@ export default function App() {
     return !seen;
   });
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = false; // false = Talent-Modus (Demo)
+  const isNewUser = true; // false = Talent-Modus (Demo)
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
   const [showCreateSheet, setShowCreateSheet] = useState(false);
