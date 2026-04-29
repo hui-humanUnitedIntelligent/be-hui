@@ -2266,7 +2266,7 @@ function StoryBar() {
 function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
   const [playing, setPlaying] = useState(false);
   return (
-    <div style={{ background: "white", marginBottom: 2, borderBottom: "1px solid #f2f2f0", borderLeft: `3.5px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
+    <div style={{ background: "white", margin: "8px 16px", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, borderLeft: `3.5px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
       {/* Header — kompakt */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px 8px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
@@ -2290,9 +2290,9 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
       </div>
 
       {/* Bild — etwas weniger hoch, mit abgerundeten Ecken im Container */}
-      <div style={{ margin: "0 12px", borderRadius: 14, overflow: "hidden", position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }}
+      <div style={{ overflow: "hidden", position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }}
         onClick={() => item.mediaType === "video" && setPlaying(p => !p)}>
-        <img src={item.img} style={{ width: "100%", display: "block", height: 180, objectFit: "cover" }} alt="" />
+        <img src={item.img} style={{ width: "100%", display: "block", height: 160, objectFit: "cover" }} alt="" />
         {item.mediaType === "video" && !playing && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
             <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.92)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 14px rgba(0,0,0,0.18)" }}>
