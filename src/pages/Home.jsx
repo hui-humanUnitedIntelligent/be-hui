@@ -400,6 +400,21 @@ const mockFeed = [
   { id: 9, type: "wirker", name: "Maria L.", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop", talent: "Yoga & Achtsamkeits-Coach", recommendations: 93, location: "Zürich" },
 ];
 
+// Featured Wirker (Hero-Karte oben im Feed)
+const featuredWirker = [
+  { id: "f1", name: "Sofia M.", talent: "Keramik-Künstlerin", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=500&fit=crop", coverImg: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=300&fit=crop", location: "München", recommendations: 58, rate: "45 €/h", tag: "🔥 Trending" },
+  { id: "f2", name: "Marcus B.", talent: "Fotograf & Videograf", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop", coverImg: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=600&h=300&fit=crop", location: "Berlin", recommendations: 47, rate: "70 €/h", tag: "✨ Neu" },
+  { id: "f3", name: "Maria L.", talent: "Yoga & Achtsamkeit", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=500&fit=crop", coverImg: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=300&fit=crop", location: "Zürich", recommendations: 93, rate: "40 €/h", tag: "⭐ Top bewertet" },
+];
+
+// Top Werke (horizontale Scroll-Section)
+const featuredWerke = [
+  { id: "fw1", title: "Keramik-Tasse", creator: "Sofia M.", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&h=300&fit=crop", price: "38 €", likes: 124 },
+  { id: "fw2", title: "Aquarell-Portrait", creator: "Lena K.", img: "https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=300&h=300&fit=crop", price: "120 €", likes: 89 },
+  { id: "fw3", title: "Leder-Rucksack", creator: "Tom H.", img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=300&fit=crop", price: "195 €", likes: 203 },
+  { id: "fw4", title: "Makramee Deko", creator: "Mia T.", img: "https://images.unsplash.com/photo-1615529328331-f8917597711f?w=300&h=300&fit=crop", price: "65 €", likes: 77 },
+];
+
 // ══════════════════════════════════════════════════════════════════
 // VERFÜGBARKEITS-EINSTELLUNG (Wirker-Sicht)
 // ══════════════════════════════════════════════════════════════════
@@ -2251,28 +2266,66 @@ function StoryBar() {
 function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
   const [playing, setPlaying] = useState(false);
   return (
-    <div style={{ background: "white", marginBottom: 8, borderLeft: `3px solid ${TEAL}`, borderRight: `3px solid ${TEAL}22` }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px 8px", background: `linear-gradient(90deg, ${TEAL}08, transparent)` }}>
-        <img src={item.creatorImg} onClick={() => onViewWirker(item.creator)} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}`, cursor: "pointer" }} alt={item.creator} />
-        <div style={{ cursor: "pointer" }} onClick={() => onViewWirker(item.creator)}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{item.creator}</div>
-          <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{item.talent}</div>
+    <div style={{ background: "white", marginBottom: 12, borderRadius: 0, boxShadow: "0 1px 0 #f0f0ee" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px 10px" }}>
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <img src={item.creatorImg} onClick={() => onViewWirker(item.creator)}
+            style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, cursor: "pointer" }} alt={item.creator} />
+          <div style={{ position: "absolute", bottom: 0, right: 0, width: 12, height: 12, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
         </div>
-        <div style={{ marginLeft: "auto", fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} color="#bbb" />{item.location}</div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => onViewWirker(item.creator)}>
+          <div style={{ fontWeight: 800, fontSize: 14, color: "#222", display: "flex", alignItems: "center", gap: 5 }}>
+            {item.creator} <BadgeCheck size={13} color={TEAL} />
+          </div>
+          <div style={{ fontSize: 11, color: "#aaa", display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
+            <span style={{ color: TEAL, fontWeight: 600 }}>{item.talent}</span>
+            <span>·</span><MapPin size={9} color="#bbb" /><span>{item.location}</span>
+          </div>
+        </div>
+        <button onClick={() => onViewWirker(item.creator)}
+          style={{ background: `${TEAL}12`, border: "none", borderRadius: 20, padding: "6px 12px", fontWeight: 700, fontSize: 11, color: TEAL, cursor: "pointer" }}>
+          Folgen
+        </button>
       </div>
+      {/* Bild */}
       <div style={{ position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }} onClick={() => item.mediaType === "video" && setPlaying(p => !p)}>
-        <img src={item.img} style={{ width: "100%", display: "block", maxHeight: 420, objectFit: "cover" }} alt="" />
-        {item.mediaType === "video" && !playing && (<div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.2)" }}><div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}><Play size={22} color={CORAL} fill={CORAL} style={{ marginLeft: 3 }} /></div></div>)}
-        {item.mediaType === "video" && playing && <div style={{ position: "absolute", bottom: 10, right: 10, background: CORAL, color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>▶ Läuft</div>}
+        <img src={item.img} style={{ width: "100%", display: "block", maxHeight: 400, objectFit: "cover" }} alt="" />
+        {item.mediaType === "video" && !playing && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.18)" }}>
+            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.95)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+              <Play size={24} color={CORAL} fill={CORAL} style={{ marginLeft: 3 }} />
+            </div>
+          </div>
+        )}
+        {item.mediaType === "video" && playing && (
+          <div style={{ position: "absolute", bottom: 10, right: 10, background: CORAL, color: "white", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>▶ Läuft</div>
+        )}
+        {item.mediaType === "video" && (
+          <div style={{ position: "absolute", top: 10, right: 10, background: "rgba(0,0,0,0.5)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 700 }}>🎬 VIDEO</div>
+        )}
       </div>
-      <div style={{ padding: "10px 14px" }}>
-        <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
-          <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: liked ? CORAL : "#888", padding: 0 }}><Heart size={20} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#888"} /><span style={{ fontWeight: 600, fontSize: 13 }}>{item.likes + (liked ? 1 : 0)}</span></button>
-          <button onClick={() => shareItem(item.creator + "s Beitrag", "Post")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={20} color="#888" /></button>
-          <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Star size={20} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#888"} /></button>
-          <button onClick={() => onViewWirker(item.creator)} style={{ marginLeft: "auto", background: TEAL, color: "white", border: "none", borderRadius: 20, padding: "6px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Talent ansehen</button>
+      {/* Actions */}
+      <div style={{ padding: "10px 14px 4px" }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 10 }}>
+          <button onClick={() => onLike(item.id)} style={{ background: liked ? `${CORAL}12` : "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: liked ? CORAL : "#888", padding: "6px 10px", borderRadius: 20, transition: "all 0.2s" }}>
+            <Heart size={19} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#888"} />
+            <span style={{ fontWeight: 700, fontSize: 13 }}>{item.likes + (liked ? 1 : 0)}</span>
+          </button>
+          <button onClick={() => shareItem(item.creator + "s Beitrag", "Post")} style={{ background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 20 }}>
+            <Share2 size={19} color="#aaa" />
+          </button>
+          <button onClick={() => onFav(item.id)} style={{ background: faved ? `${GOLD}15` : "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 20, transition: "all 0.2s" }}>
+            <Star size={19} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#aaa"} />
+          </button>
+          <button onClick={() => onViewWirker(item.creator)}
+            style={{ marginLeft: "auto", background: `linear-gradient(135deg, ${TEAL}, #0d9488)`, color: "white", border: "none", borderRadius: 20, padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", boxShadow: `0 2px 10px ${TEAL}44` }}>
+            Talent ansehen →
+          </button>
         </div>
-        <div style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}><span style={{ fontWeight: 700 }}>{item.creator} </span>{item.caption}</div>
+        <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6, paddingBottom: 2 }}>
+          <span style={{ fontWeight: 800 }}>{item.creator} </span>{item.caption}
+        </div>
       </div>
       <CommentSection itemId={item.id} creator={item.creator} isTalent={isTalentUser && item.creator === "Sofia M."} />
     </div>
@@ -2329,29 +2382,43 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
 }
 function WirkerCard({ item, onViewWirker, onBookWirker }) {
   return (
-    <div style={{ background: `linear-gradient(135deg, ${TEAL}12, #f0fdfb)`, border: `1.5px solid ${TEAL}40`, borderRadius: 16, margin: "8px 16px", padding: 14, boxShadow: `0 2px 14px ${TEAL}18` }}>
-      {/* Obere Zeile: Foto + Info + Profil-Button */}
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
-        <img src={item.img} onClick={() => onViewWirker(item.name)} style={{ width: 58, height: 58, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, cursor: "pointer", flexShrink: 0 }} alt={item.name} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#222", display: "flex", alignItems: "center", gap: 5 }}>{item.name}<BadgeCheck size={15} color={TEAL} fill={`${TEAL}22`} /></div>
-          <div style={{ fontSize: 12, color: TEAL, fontWeight: 600, marginBottom: 2 }}>{item.talent}</div>
-          <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location} · <ThumbsUp size={10} color={TEAL} /> {item.recommendations} Empfehlungen</div>
+    <div style={{ margin: "8px 16px", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.09)", background: "white" }}>
+      {/* Farbiger Banner oben */}
+      <div style={{ background: `linear-gradient(135deg, ${TEAL}, #0d9488)`, padding: "14px 16px 36px", position: "relative" }}>
+        <div style={{ position: "absolute", top: 10, right: 12, background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "white" }}>
+          👍 {item.recommendations} Empfehlungen
         </div>
-        <button onClick={() => onViewWirker(item.name)} style={{ background: "none", border: `1.5px solid ${TEAL}`, borderRadius: 10, padding: "6px 10px", fontWeight: 700, fontSize: 11, color: TEAL, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>Profil →</button>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8 }}>Talent entdecken</div>
+        <div style={{ fontWeight: 900, fontSize: 17, color: "white", marginTop: 2 }}>{item.talent}</div>
       </div>
-      {/* Buchungs-Button – volle Breite */}
-      <button
-        onClick={() => onBookWirker(item.name)}
-        style={{
-          width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`,
-          color: "white", border: "none", borderRadius: 12,
-          padding: "10px 0", fontWeight: 700, fontSize: 14,
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7
-        }}
-      >
-        <Calendar size={15} color="white" /> Jetzt Termin buchen
-      </button>
+      {/* Profilbild überlappt Banner */}
+      <div style={{ padding: "0 16px 14px", marginTop: -24 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-end", marginBottom: 12 }}>
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <img src={item.img} onClick={() => onViewWirker(item.name)}
+              style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "3px solid white", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }} alt={item.name} />
+            <div style={{ position: "absolute", bottom: 2, right: 2, width: 13, height: 13, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
+          </div>
+          <div style={{ flex: 1, paddingBottom: 2 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: "#222", display: "flex", alignItems: "center", gap: 5 }}>
+              {item.name} <BadgeCheck size={15} color={TEAL} />
+            </div>
+            <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}>
+              <MapPin size={10} />{item.location}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => onViewWirker(item.name)}
+            style={{ flex: 1, background: "#f5f5f3", border: "none", borderRadius: 12, padding: "10px 0", fontWeight: 700, fontSize: 13, color: "#444", cursor: "pointer" }}>
+            Profil ansehen
+          </button>
+          <button onClick={() => onBookWirker(item.name)}
+            style={{ flex: 2, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "10px 0", fontWeight: 800, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `0 3px 12px ${CORAL}44` }}>
+            <Calendar size={14} color="white" /> Termin buchen
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -5462,19 +5529,50 @@ export default function App() {
       {page === "home" && (<>
         <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
         <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} onMatchClick={() => setShowHuiMatch(true)} />
-        <div>
+        <div style={{ paddingBottom: 96 }}>
+          {/* STORIES */}
           <StoryBar />
+
+          {/* ── FEATURED TALENTE (Hero-Karussell) ── */}
+          <div style={{ padding: "18px 0 4px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px 10px" }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>✨ Featured Talente</div>
+                <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Handverlesen · Diese Woche im Spotlight</div>
+              </div>
+              <button style={{ background: "none", border: "none", color: TEAL, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Alle →</button>
+            </div>
+            <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "0 16px 8px", scrollSnapType: "x mandatory" }}>
+              {featuredWirker.map(w => (
+                <div key={w.id} onClick={() => viewWirker(w.name)}
+                  style={{ flexShrink: 0, width: 200, borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", cursor: "pointer", scrollSnapAlign: "start", position: "relative" }}>
+                  <img src={w.coverImg} style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} alt={w.name} />
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 120, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.55))" }} />
+                  <div style={{ position: "absolute", top: 10, left: 10, background: CORAL, color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 800 }}>{w.tag}</div>
+                  <div style={{ background: "white", padding: "10px 12px 14px", display: "flex", gap: 10, alignItems: "center" }}>
+                    <img src={w.img} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, flexShrink: 0 }} alt={w.name} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>{w.name} <BadgeCheck size={13} color={TEAL} /></div>
+                      <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.talent}</div>
+                      <div style={{ fontSize: 10, color: "#aaa", marginTop: 2, display: "flex", gap: 6 }}>
+                        <span>👍 {w.recommendations}</span><span>·</span><span>{w.rate}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── ZULETZT ANGESEHEN ── */}
           {recentlyViewed.length > 0 && (
-            <div style={{ padding: "12px 16px 0" }}>
+            <div style={{ padding: "4px 16px 12px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                <Eye size={14} color={TEAL} />
-                <span style={{ fontWeight: 700, fontSize: 13, color: "#444" }}>Zuletzt angesehen</span>
+                <Eye size={13} color="#aaa" />
+                <span style={{ fontWeight: 700, fontSize: 13, color: "#888" }}>Zuletzt angesehen</span>
               </div>
               <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
                 {recentlyViewed.map(title => {
-                  const werk = Object.values({
-                    ...Object.fromEntries(mockFeed.filter(i => i.type === "werk").map(i => [i.title, i])),
-                  })[0];
                   const feedItem = mockFeed.find(i => i.type === "werk" && i.title === title);
                   if (!feedItem) return null;
                   return (
@@ -5487,15 +5585,50 @@ export default function App() {
               </div>
             </div>
           )}
-          <div style={{ paddingBottom: 96 }}>
-            {mockFeed.map(item => {
-              if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
-              if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
-              if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />;
-              if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
-              return null;
-            })}
+
+          {/* ── TOP WERKE (horizontaler Scroll) ── */}
+          <div style={{ padding: "4px 0 16px", background: "white", borderTop: "1px solid #f0f0ee", borderBottom: "1px solid #f0f0ee" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px 10px" }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>🎁 Top Werke</div>
+                <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Handgemachtes von echten Talenten</div>
+              </div>
+              <button style={{ background: "none", border: "none", color: CORAL, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Alle →</button>
+            </div>
+            <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "0 16px 4px", scrollSnapType: "x mandatory" }}>
+              {featuredWerke.map(w => (
+                <div key={w.id} onClick={() => viewWerk(w.title)}
+                  style={{ flexShrink: 0, width: 148, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", cursor: "pointer", scrollSnapAlign: "start", background: "white", border: `1px solid ${CORAL}15` }}>
+                  <div style={{ position: "relative" }}>
+                    <img src={w.img} style={{ width: "100%", height: 148, objectFit: "cover" }} alt={w.title} />
+                    <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.55)", color: "white", borderRadius: 20, padding: "3px 9px", fontWeight: 800, fontSize: 12 }}>{w.price}</div>
+                  </div>
+                  <div style={{ padding: "8px 10px 10px" }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: "#222", marginBottom: 3, lineHeight: 1.3 }}>{w.title}</div>
+                    <div style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>{w.creator}</div>
+                    <div style={{ fontSize: 10, color: "#bbb", marginTop: 3 }}>❤️ {w.likes}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* ── TRENNLINIE & SECTION-TITEL ── */}
+          <div style={{ padding: "16px 16px 4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>📰 Neuigkeiten</div>
+              <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Was die Community gerade bewegt</div>
+            </div>
+          </div>
+
+          {/* ── HAUPT-FEED ── */}
+          {mockFeed.map(item => {
+            if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
+            if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
+            if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />;
+            if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
+            return null;
+          })}
         </div>
       </>)}
       {page === "impact" && <ImpactPage />}
