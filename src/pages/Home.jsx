@@ -2266,7 +2266,7 @@ function StoryBar() {
 function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
   const [playing, setPlaying] = useState(false);
   return (
-    <div style={{ background: "white", marginBottom: 2, borderBottom: "1px solid #f2f2f0" }}>
+    <div style={{ background: "white", marginBottom: 2, borderBottom: "1px solid #f2f2f0", borderLeft: `3.5px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
       {/* Header — kompakt */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px 8px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
@@ -2340,7 +2340,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
     setTimeout(() => setAdded(false), 1800);
   };
   return (
-    <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px" }}>
+    <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px", borderLeft: `3.5px solid ${GOLD}` }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
         <img src={item.img} style={{ width: "100%", height: 210, objectFit: "cover" }} alt={item.title} />
         {/* Preis oben links */}
@@ -2382,7 +2382,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
 }
 function WirkerCard({ item, onViewWirker, onBookWirker }) {
   return (
-    <div style={{ margin: "8px 16px", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.09)", background: "white" }}>
+    <div style={{ margin: "8px 16px", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.09)", background: "white", borderLeft: `3.5px solid ${TEAL}` }}>
       {/* Farbiger Banner oben */}
       <div style={{ background: `linear-gradient(135deg, ${TEAL}, #0d9488)`, padding: "14px 16px 36px", position: "relative" }}>
         <div style={{ position: "absolute", top: 10, right: 12, background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "white" }}>
