@@ -4597,329 +4597,401 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
   );
 }
 // ══════════════════════════════════════════════════════════════════
-// TALENT ANBIETEN – Bewerbungsformular
+// TALENT ANBIETEN – Onboarding Flow
 // ══════════════════════════════════════════════════════════════════
 function TalentAnbietenPage({ onClose, onSuccess }) {
-  const [step, setStep] = useState(1); // 1=Typ, 2=Basis, 3=Talent, 4=Angebote, 5=Kontakt, 6=Danke
+  const TOTAL_STEPS = 6;
+  const [step, setStep] = useState(0); // 0=Willkommen, 1=Angebot, 2=Talent, 3=Profil, 4=Ersteswerk, 5=Fertig
   const [form, setForm] = useState({
-    typ: "",
-    // Basis
-    vorname: "", nachname: "", anzeigeName: "", standort: "", profilbild: null,
-    // Firma/Verein extra
-    orgName: "", orgTyp: "", steuernummer: "", website: "",
-    // Talent
-    kategorie: "", subKategorien: [], kurzbeschreibung: "", skills: "",
-    sprachen: [], erfahrung: "",
-    // Angebote
-    angebotstyp: [], stundensatz: "", mindestbuchung: "1",
-    versandMoeglich: false, onlineMoeglich: false, vorOrtMoeglich: false,
-    // Kontakt
-    email: "", telefon: "", instagram: "",
-    einverstanden: false, agb: false,
+    angebotstyp: [], // "dienstleistung" | "werk" | "beides"
+    kategorie: "",
+    bio: "",
+    bioRoh: "", // Rohtext des Nutzers für KI
+    vorname: "Lars",
+    nachname: "M.",
+    standort: "München",
+    stundensatz: "",
+    profilbild: null,
+    verfuegbarkeit: [],
+    erstesWerkTitel: "",
+    erstesWerkPreis: "",
+    erstesWerkBeschreibung: "",
   });
+  const [bioLoading, setBioLoading] = useState(false);
+  const [bioGenerated, setBioGenerated] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const toggle = (k, v) => setForm(f => ({ ...f, [k]: f[k].includes(v) ? f[k].filter(x => x !== v) : [...f[k], v] }));
-
-  const anbieterTypen = [
-    { id: "privat", icon: "🎨", titel: "Privatperson / Hobby", sub: "Du bietest dein Talent nebenbei an – keine Gewerbe nötig", color: CORAL },
-    { id: "selbststaendig", icon: "💼", titel: "Selbstständig / Freiberufler", sub: "Du arbeitest hauptberuflich oder nebenberuflich als Selbstständiger", color: TEAL },
-    { id: "verein", icon: "🤝", titel: "Verein / Organisation", sub: "Gemeinnützige Vereine, NGOs, Initiativen", color: GOLD },
-    { id: "firma", icon: "🏢", titel: "Unternehmen / Firma", sub: "Gewerblich tätige Unternehmen jeder Größe", color: "#7C3AED" },
-  ];
 
   const kategorien = [
     { icon: "🎨", label: "Kunst & Kreatives" }, { icon: "📷", label: "Foto & Video" },
     { icon: "🎵", label: "Musik & Audio" }, { icon: "✍️", label: "Texte & Sprache" },
     { icon: "💪", label: "Sport & Fitness" }, { icon: "🧘", label: "Wellness & Coaching" },
-    { icon: "🍳", label: "Kochen & Backen" }, { icon: "🪴", label: "Garten & Natur" },
-    { icon: "🔧", label: "Handwerk & Reparatur" }, { icon: "👗", label: "Mode & Beauty" },
+    { icon: "🍳", label: "Kochen & Backen" }, { icon: "🔧", label: "Handwerk & Reparatur" },
     { icon: "💻", label: "Digitales & Technik" }, { icon: "📚", label: "Bildung & Beratung" },
-    { icon: "🎭", label: "Events & Unterhaltung" }, { icon: "🏡", label: "Haus & Haushalt" },
-    { icon: "🐾", label: "Tiere" }, { icon: "🌍", label: "Sonstiges" },
+    { icon: "🏡", label: "Haus & Haushalt" }, { icon: "🌍", label: "Sonstiges" },
   ];
 
-  const sprachenListe = ["Deutsch", "Englisch", "Französisch", "Spanisch", "Italienisch", "Türkisch", "Arabisch", "Russisch", "Polnisch"];
+  const wochentage = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
-  const Input = ({ label, value, onChange, placeholder, type = "text", hint }) => (
-    <div style={{ marginBottom: 15 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", color: "#222" }} />
-      {hint && <div style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>{hint}</div>}
-    </div>
-  );
-  const Textarea = ({ label, value, onChange, placeholder, rows = 3 }) => (
-    <div style={{ marginBottom: 15 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
-      <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows}
-        style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.55 }} />
-    </div>
-  );
-  const Chip = ({ label, active, onClick, color }) => (
-    <button onClick={onClick} style={{ background: active ? (color || TEAL) + "18" : "#f4f4f2", border: `1.5px solid ${active ? (color || TEAL) : "transparent"}`, borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: active ? (color || TEAL) : "#666", cursor: "pointer", transition: "all 0.15s" }}>{label}</button>
-  );
-
-  const selectedTyp = anbieterTypen.find(t => t.id === form.typ);
-  const stepValid = () => {
-    if (step === 1) return form.typ !== "";
-    if (step === 2) return form.vorname.length > 1 && form.nachname.length > 1 && form.standort.length > 2;
-    if (step === 3) return form.kategorie !== "" && form.kurzbeschreibung.length > 15;
-    if (step === 4) return form.angebotstyp.length > 0;
-    if (step === 5) return true; // nicht mehr genutzt
-    return true;
+  // KI Bio generieren (simuliert mit realistischer Verzögerung)
+  const generateBio = async () => {
+    if (!form.bioRoh.trim()) return;
+    setBioLoading(true);
+    setBioGenerated(false);
+    await new Promise(r => setTimeout(r, 1800));
+    const kat = form.kategorie || "mein Talent";
+    const templates = [
+      `${form.vorname} ist ${kat}-Spezialist aus ${form.standort || "Deutschland"} mit echter Leidenschaft für das Handwerk. ${form.bioRoh.trim()} – jedes Projekt wird mit vollem Herzen umgesetzt.`,
+      `Als ${kat}-Profi aus ${form.standort || "Deutschland"} bringe ich Ideen zum Leben. ${form.bioRoh.trim()} Ich freue mich auf echte Begegnungen und gemeinsame Projekte.`,
+      `${form.bioRoh.trim()} Als ${kat}-Enthusiast aus ${form.standort || "Deutschland"} glaube ich: Das Beste entsteht, wenn Menschen mit Leidenschaft arbeiten.`,
+    ];
+    const generated = templates[Math.floor(Math.random() * templates.length)];
+    set("bio", generated);
+    setBioLoading(false);
+    setBioGenerated(true);
   };
 
-  // ── DANKE ──
-  if (step === 5) return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", maxWidth: 430, margin: "0 auto" }}>
-      <div style={{ width: 100, height: 100, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}20, ${GOLD}20)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
-        <span style={{ fontSize: 52 }}>🎉</span>
-      </div>
-      <div style={{ fontWeight: 800, fontSize: 25, color: "#222", textAlign: "center", marginBottom: 10 }}>Willkommen in der Community!</div>
-      <div style={{ fontSize: 15, color: "#666", textAlign: "center", lineHeight: 1.7, marginBottom: 26 }}>
-        Deine Bewerbung ist bei uns eingegangen. Wir prüfen dein Profil und melden uns innerhalb von 48 Stunden per E-Mail.
-      </div>
-      <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${GOLD}08)`, borderRadius: 18, padding: "18px 20px", width: "100%", marginBottom: 26 }}>
-        <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12 }}>Das passiert als nächstes:</div>
-        {[
-          { icon: "🔍", text: "HUI prüft deine Angaben & dein Talent (bis 48h)" },
-          { icon: "✅", text: "Du erhältst eine Bestätigungs-Mail mit Login-Zugang" },
-          { icon: "📸", text: "Du vervollständigst dein Profil mit Fotos & Beschreibung" },
-          { icon: "🚀", text: "Dein Profil geht live – Kunden können dich buchen!" },
-        ].map((r, i) => (
-          <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < 3 ? 10 : 0, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 18 }}>{r.icon}</span>
-            <span style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>{r.text}</span>
-          </div>
+  // Progress Bar
+  const ProgressBar = () => (
+    <div style={{ padding: "12px 20px 0", flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: 4 }}>
+        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+          <div key={i} style={{ flex: 1, height: 3, borderRadius: 99, background: i < step ? TEAL : i === step ? TEAL + "60" : "#eee", transition: "background 0.3s" }} />
         ))}
       </div>
-      <button onClick={() => { onSuccess && onSuccess(); onClose(); }} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
-        Zurück zum Profil
+      <div style={{ fontSize: 11, color: "#bbb", marginTop: 5, textAlign: "right" }}>
+        {step === 0 ? "Los geht's" : `Schritt ${step} von ${TOTAL_STEPS - 1}`}
+      </div>
+    </div>
+  );
+
+  // ── STEP 0: WILLKOMMEN ──
+  if (step === 0) return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
+        <X size={22} color="#bbb" />
+      </button>
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 28px", textAlign: "center" }}>
+        {/* Animiertes Logo */}
+        <div style={{ width: 110, height: 110, borderRadius: "50%", overflow: "hidden", marginBottom: 28, boxShadow: `0 8px 32px ${TEAL}44` }}>
+          <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="HUI" />
+        </div>
+
+        <div style={{ fontWeight: 900, fontSize: 26, color: "#1a1a1a", marginBottom: 10, letterSpacing: -0.5 }}>
+          Werde Teil von HUI ✨
+        </div>
+        <div style={{ fontSize: 15, color: "#666", lineHeight: 1.7, marginBottom: 32, maxWidth: 300 }}>
+          Du hast ein Talent, das die Welt braucht. Hier findest du echte Menschen, die genau das suchen — ganz ohne Algorithmus.
+        </div>
+
+        {/* Was dich erwartet */}
+        <div style={{ background: "#f9f9f7", borderRadius: 18, padding: "18px 20px", width: "100%", marginBottom: 28, textAlign: "left" }}>
+          {[
+            { icon: "⚡", text: "In 5 Minuten fertig" },
+            { icon: "🤖", text: "KI hilft dir beim Bio-Text" },
+            { icon: "🌱", text: "Jede Buchung hat echten Impact" },
+            { icon: "🔓", text: "Kostenlos starten" },
+          ].map(({ icon, text }) => (
+            <div key={text} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+              <span style={{ fontSize: 20, width: 28, textAlign: "center" }}>{icon}</span>
+              <span style={{ fontSize: 14, color: "#444", fontWeight: 500 }}>{text}</span>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={() => setStep(1)}
+          style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 20px ${CORAL}44` }}>
+          Jetzt starten →
+        </button>
+        <div style={{ fontSize: 12, color: "#bbb", marginTop: 12 }}>Kein Risiko — du kannst jederzeit aufhören</div>
+      </div>
+    </div>
+  );
+
+  // ── STEP 5: FERTIG ──
+  if (step === 5) return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", maxWidth: 430, margin: "0 auto" }}>
+      <div style={{ fontSize: 72, marginBottom: 20 }}>🎉</div>
+      <div style={{ fontWeight: 900, fontSize: 26, color: "#1a1a1a", textAlign: "center", marginBottom: 10, letterSpacing: -0.4 }}>
+        Du bist jetzt Wirker!
+      </div>
+      <div style={{ fontSize: 15, color: "#666", textAlign: "center", lineHeight: 1.7, marginBottom: 28 }}>
+        Willkommen in der HUI-Community, {form.vorname}! Dein Profil wird gerade eingerichtet — du bist live innerhalb von 24 Stunden.
+      </div>
+
+      {/* Impact Versprechen */}
+      <div style={{ background: `linear-gradient(135deg, ${TEAL}12, #ede9fe)`, border: `1px solid ${TEAL}25`, borderRadius: 18, padding: "18px 20px", width: "100%", marginBottom: 20 }}>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#1a1a1a", marginBottom: 10 }}>Dein erstes Impact-Versprechen 🌱</div>
+        <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>
+          Mit jeder Buchung die du erhältst fließen <strong>2,25%</strong> direkt in echte Herzensprojekte — ausgewählt von der Community.
+        </div>
+      </div>
+
+      {/* Teilen */}
+      <div style={{ background: "#f9f9f7", borderRadius: 18, padding: "16px 20px", width: "100%", marginBottom: 24 }}>
+        <div style={{ fontSize: 13, color: "#888", marginBottom: 10, textAlign: "center" }}>Teile deine Aufnahme mit der Welt:</div>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+          {[
+            { icon: "📸", label: "Instagram" },
+            { icon: "💬", label: "WhatsApp" },
+            { icon: "🔗", label: "Link kopieren" },
+          ].map(({ icon, label }) => (
+            <button key={label} style={{ flex: 1, background: "white", border: "1.5px solid #eee", borderRadius: 12, padding: "10px 4px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <span style={{ fontSize: 20 }}>{icon}</span>
+              <span style={{ fontSize: 11, color: "#666", fontWeight: 600 }}>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={() => { onSuccess && onSuccess(); onClose(); }}
+        style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}bb)`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
+        Mein Profil ansehen →
       </button>
     </div>
   );
 
-  const stepTitles = ["", "Wer bist du?", "Deine Basis-Infos", "Dein Talent", "Deine Angebote"];
-  const stepSubs = ["", "Wie bietest du dein Talent an?", "Erzähl uns von dir", "Was kannst du besonders gut?", "Was bietest du konkret an?"];
+  // ── STEPS 1–4 LAYOUT ──
+  const stepConfig = [
+    null, // 0 = Willkommen (eigene Seite)
+    { title: "Was möchtest du anbieten?", sub: "Dienstleistungen, Werke oder beides — du entscheidest." },
+    { title: "Was ist dein Talent?", sub: "Zeig der Welt worin du richtig gut bist." },
+    { title: "Dein Profil", sub: "Ein paar Infos damit Kunden dich besser kennenlernen." },
+    { title: "Dein erstes Angebot", sub: "Starte direkt durch — leg dein erstes Angebot an." },
+  ];
+
+  const canNext = () => {
+    if (step === 1) return form.angebotstyp.length > 0;
+    if (step === 2) return form.kategorie !== "" && form.bio.length > 10;
+    if (step === 3) return form.vorname.length > 1 && form.standort.length > 2;
+    if (step === 4) return true; // optional, kann übersprungen werden
+    return true;
+  };
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 700, background: "white", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ padding: "16px 20px 10px", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-          <button onClick={step > 1 ? () => setStep(s => s - 1) : onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+      <div style={{ padding: "14px 20px 0", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <button onClick={() => step > 1 ? setStep(s => s - 1) : setStep(0)}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}>
             <ArrowLeft size={20} color="#444" />
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>{stepTitles[step]}</div>
-            <div style={{ fontSize: 12, color: "#aaa" }}>{stepSubs[step]}</div>
+            <div style={{ fontWeight: 800, fontSize: 16, color: "#1a1a1a" }}>{stepConfig[step]?.title}</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>{stepConfig[step]?.sub}</div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#bbb" /></button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#ccc" /></button>
         </div>
-        <div style={{ background: "#f0f0f0", borderRadius: 99, height: 5 }}>
-          <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 5, borderRadius: 99, width: `${((step - 1) / 4) * 100}%`, transition: "width 0.3s" }} />
-        </div>
-        <div style={{ fontSize: 11, color: "#ccc", marginTop: 4, textAlign: "right" }}>Schritt {step} von 4</div>
+        <ProgressBar />
       </div>
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 8px" }}>
 
-        {/* ── STEP 1: Anbieter-Typ ── */}
+        {/* ── STEP 1: Was anbietest du? ── */}
         {step === 1 && (
-          <>
-            <div style={{ fontSize: 14, color: "#888", marginBottom: 18, lineHeight: 1.6 }}>
-              HUI ist für alle offen — egal ob du dein Hobby teilst oder professionell tätig bist. Wähle die passende Kategorie:
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {anbieterTypen.map(t => (
-                <button key={t.id} onClick={() => set("typ", t.id)} style={{
-                  background: form.typ === t.id ? t.color + "12" : "#f9f9f7",
-                  border: `2px solid ${form.typ === t.id ? t.color : "transparent"}`,
-                  borderRadius: 16, padding: "16px 18px", cursor: "pointer", textAlign: "left",
-                  display: "flex", alignItems: "center", gap: 14, transition: "all 0.15s"
-                }}>
-                  <div style={{ width: 50, height: 50, borderRadius: 14, background: t.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 26 }}>{t.icon}</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[
+              { id: "dienstleistung", icon: "🤝", titel: "Dienstleistung", sub: "Buchbare Zeit — Workshops, Beratung, Coaching, Fotoshootings..." },
+              { id: "werk", icon: "🎁", titel: "Werk verkaufen", sub: "Physische oder digitale Produkte — Kunst, Keramik, Texte..." },
+              { id: "beides", icon: "✨", titel: "Beides", sub: "Ich biete sowohl Dienstleistungen als auch Werke an" },
+            ].map(opt => {
+              const active = form.angebotstyp.includes(opt.id);
+              return (
+                <button key={opt.id} onClick={() => set("angebotstyp", active ? form.angebotstyp.filter(x => x !== opt.id) : [...form.angebotstyp, opt.id])}
+                  style={{ background: active ? TEAL + "0f" : "#f9f9f7", border: `2px solid ${active ? TEAL : "transparent"}`, borderRadius: 18, padding: "18px 20px", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 16, transition: "all 0.15s" }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: active ? TEAL + "20" : "#eee", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 26 }}>{opt.icon}</span>
                   </div>
-                  <div style={{ flex: 1, textAlign: "left" }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: form.typ === t.id ? t.color : "#222", marginBottom: 3 }}>{t.titel}</div>
-                    <div style={{ fontSize: 12, color: "#999", lineHeight: 1.45 }}>{t.sub}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: active ? TEAL : "#1a1a1a", marginBottom: 3 }}>{opt.titel}</div>
+                    <div style={{ fontSize: 12, color: "#999", lineHeight: 1.45 }}>{opt.sub}</div>
                   </div>
-                  <div style={{ width: 22, height: 22, borderRadius: "50%", border: `2px solid ${form.typ === t.id ? t.color : "#ddd"}`, background: form.typ === t.id ? t.color : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {form.typ === t.id && <Check size={12} color="white" />}
-                  </div>
+                  {active && <div style={{ marginLeft: "auto", width: 24, height: 24, borderRadius: "50%", background: TEAL, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ color: "white", fontSize: 13, fontWeight: 800 }}>✓</span>
+                  </div>}
                 </button>
-              ))}
-            </div>
-            {form.typ && (
-              <div style={{ marginTop: 14, background: selectedTyp?.color + "0d", border: `1px solid ${selectedTyp?.color}30`, borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#666" }}>
-                {form.typ === "privat" && "✅ Keine Gewerbeanmeldung nötig. Du kannst sofort starten – bis zu den steuerlichen Freigrenzen ohne Mehrwertsteuer."}
-                {form.typ === "selbststaendig" && "✅ Gewerbe oder Freiberufler – wir benötigen deine Steuernummer für die korrekte Abrechnung."}
-                {form.typ === "verein" && "✅ Eingetragene Vereine und gemeinnützige Organisationen sind herzlich willkommen. Bitte Vereinsregisternummer bereithalten."}
-                {form.typ === "firma" && "✅ Unternehmen aller Größen können ihre Leistungen auf HUI anbieten. Wir benötigen Handelsregisternummer und USt-ID."}
-              </div>
-            )}
-          </>
+              );
+            })}
+          </div>
         )}
 
-        {/* ── STEP 2: Basis-Infos ── */}
+        {/* ── STEP 2: Talent & Bio ── */}
         {step === 2 && (
-          <>
-            {(form.typ === "firma" || form.typ === "verein") && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #f0f0f0" }}>
-                  {form.typ === "firma" ? "🏢 Firmen-Infos" : "🤝 Organisations-Infos"}
-                </div>
-                <Input label={form.typ === "firma" ? "Firmenname" : "Name der Organisation"} value={form.orgName} onChange={v => set("orgName", v)} placeholder={form.typ === "firma" ? "Musterfirma GmbH" : "FC Beispiel e.V."} />
-                <Input label={form.typ === "firma" ? "Handelsregister / USt-ID (optional)" : "Vereinsregisternummer (optional)"} value={form.steuernummer} onChange={v => set("steuernummer", v)} placeholder={form.typ === "firma" ? "DE123456789" : "VR 12345"} />
-                <Input label="Website (optional)" value={form.website} onChange={v => set("website", v)} placeholder="https://..." />
-              </div>
-            )}
-
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #f0f0f0" }}>
-              👤 Ansprechpartner / Profil-Person
-            </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ flex: 1 }}><Input label="Vorname" value={form.vorname} onChange={v => set("vorname", v)} placeholder="Maria" /></div>
-              <div style={{ flex: 1 }}><Input label="Nachname" value={form.nachname} onChange={v => set("nachname", v)} placeholder="Müller" /></div>
-            </div>
-            <Input label="Anzeigename auf HUI" value={form.anzeigeName} onChange={v => set("anzeigeName", v)} placeholder="z.B. Maria M. oder Yoga mit Maria" hint="So wirst du in der App angezeigt" />
-            <Input label="Dein Standort" value={form.standort} onChange={v => set("standort", v)} placeholder="z.B. München, Bayern" />
-
-            <div style={{ marginBottom: 15 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Sprachen</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {sprachenListe.map(s => <Chip key={s} label={s} active={form.sprachen.includes(s)} onClick={() => toggle("sprachen", s)} />)}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* ── STEP 3: Talent ── */}
-        {step === 3 && (
-          <>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>Deine Hauptkategorie *</div>
+          <div>
+            {/* Kategorie */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#666", marginBottom: 10 }}>Deine Kategorie</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {kategorien.map(k => (
-                  <button key={k.label} onClick={() => set("kategorie", k.label)} style={{
-                    background: form.kategorie === k.label ? TEAL + "15" : "#f5f5f3",
-                    border: `1.5px solid ${form.kategorie === k.label ? TEAL : "transparent"}`,
-                    borderRadius: 12, padding: "10px 12px", cursor: "pointer", textAlign: "left",
-                    display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s"
-                  }}>
-                    <span style={{ fontSize: 18 }}>{k.icon}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: form.kategorie === k.label ? TEAL : "#555" }}>{k.label}</span>
-                  </button>
-                ))}
+                {kategorien.map(k => {
+                  const active = form.kategorie === k.label;
+                  return (
+                    <button key={k.label} onClick={() => set("kategorie", k.label)}
+                      style={{ background: active ? TEAL + "12" : "#f9f9f7", border: `2px solid ${active ? TEAL : "transparent"}`, borderRadius: 14, padding: "12px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s" }}>
+                      <span style={{ fontSize: 20 }}>{k.icon}</span>
+                      <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? TEAL : "#555" }}>{k.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <Textarea label="Kurzbeschreibung deines Talents *" value={form.kurzbeschreibung} onChange={v => set("kurzbeschreibung", v)} placeholder="Beschreibe in 2–4 Sätzen, was du anbietest und was dich besonders macht..." rows={4} />
-            <Input label="Deine Top-Skills / Stichworte" value={form.skills} onChange={v => set("skills", v)} placeholder="z.B. Aquarell, Portraitzeichnung, Workshops" hint="Kommagetrennt – hilft bei der Suche" />
-
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Erfahrung</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {["Hobby / Anfänger", "1–3 Jahre", "3–5 Jahre", "5–10 Jahre", "10+ Jahre Profi"].map(e => (
-                  <Chip key={e} label={e} active={form.erfahrung === e} onClick={() => set("erfahrung", e)} />
-                ))}
+            {/* KI-Bio */}
+            <div style={{ background: `${TEAL}08`, border: `1.5px solid ${TEAL}25`, borderRadius: 18, padding: "16px 18px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 18 }}>🤖</span>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>KI schreibt deinen Bio-Text</div>
               </div>
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 12, lineHeight: 1.5 }}>
+                Beschreib dich in einem Satz — die KI macht daraus einen schönen Profiltext:
+              </div>
+              <textarea
+                value={form.bioRoh}
+                onChange={e => set("bioRoh", e.target.value)}
+                placeholder="z.B. Ich mache handgemachte Keramik und liebe es, Workshops zu geben..."
+                rows={3}
+                style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: "1.5px solid #e0e0e0", fontSize: 13, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.55, background: "white", boxSizing: "border-box" }}
+              />
+              <button onClick={generateBio} disabled={bioLoading || !form.bioRoh.trim()}
+                style={{ width: "100%", marginTop: 10, background: bioLoading || !form.bioRoh.trim() ? "#f0f0f0" : `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: bioLoading || !form.bioRoh.trim() ? "#bbb" : "white", border: "none", borderRadius: 12, padding: "11px", fontWeight: 700, fontSize: 14, cursor: bioLoading ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.2s" }}>
+                {bioLoading ? <><span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> Wird generiert...</> : "✨ Bio generieren"}
+              </button>
+
+              {/* Generierter Text */}
+              {(form.bio && bioGenerated) && (
+                <div style={{ marginTop: 14, background: "white", borderRadius: 12, padding: "12px 14px", border: `1px solid ${TEAL}30` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: TEAL, marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>✨ Generierter Text — du kannst ihn noch anpassen:</div>
+                  <textarea
+                    value={form.bio}
+                    onChange={e => set("bio", e.target.value)}
+                    rows={4}
+                    style={{ width: "100%", border: "none", outline: "none", fontSize: 13, resize: "none", fontFamily: "inherit", lineHeight: 1.6, color: "#333", background: "transparent", boxSizing: "border-box" }}
+                  />
+                </div>
+              )}
+              {/* Manuell eingeben falls kein KI */}
+              {!bioGenerated && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginBottom: 6 }}>— oder direkt eintippen —</div>
+                  <textarea
+                    value={form.bio}
+                    onChange={e => set("bio", e.target.value)}
+                    placeholder="Dein Bio-Text..."
+                    rows={3}
+                    style={{ width: "100%", padding: "10px 13px", borderRadius: 12, border: "1.5px solid #eee", fontSize: 13, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.55, boxSizing: "border-box" }}
+                  />
+                </div>
+              )}
             </div>
-          </>
+          </div>
         )}
 
-        {/* ── STEP 4: Angebote ── */}
+        {/* ── STEP 3: Profil-Infos ── */}
+        {step === 3 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* Profilbild */}
+            <div style={{ background: "#f9f9f7", borderRadius: 18, padding: "18px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+              <div style={{ position: "relative" }}>
+                <div style={{ width: 80, height: 80, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}30, ${GOLD}20)`, display: "flex", alignItems: "center", justifyContent: "center", border: "3px solid white", boxShadow: "0 4px 14px rgba(0,0,0,0.1)" }}>
+                  <span style={{ fontSize: 34 }}>😊</span>
+                </div>
+                <div style={{ position: "absolute", bottom: 0, right: 0, width: 26, height: 26, borderRadius: "50%", background: CORAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <span style={{ fontSize: 13 }}>📷</span>
+                </div>
+              </div>
+              <div style={{ fontSize: 13, color: "#888", textAlign: "center" }}>Profilbild hochladen<br/><span style={{ fontSize: 11, color: "#bbb" }}>Wird später angezeigt</span></div>
+            </div>
+
+            {[
+              { label: "Vorname", key: "vorname", placeholder: "Dein Vorname" },
+              { label: "Nachname", key: "nachname", placeholder: "Nachname" },
+              { label: "Standort", key: "standort", placeholder: "z.B. München, Berlin..." },
+              { label: "Stundensatz / Preis (optional)", key: "stundensatz", placeholder: "z.B. ab 45 €/h oder ab 30 €" },
+            ].map(({ label, key, placeholder }) => (
+              <div key={key} style={{ background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+                <input
+                  value={form[key]}
+                  onChange={e => set(key, e.target.value)}
+                  placeholder={placeholder}
+                  style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#1a1a1a", background: "transparent", fontFamily: "inherit" }}
+                />
+              </div>
+            ))}
+
+            {/* Verfügbarkeit */}
+            <div style={{ background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "14px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>Wann bist du buchbar?</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {wochentage.map(d => {
+                  const active = form.verfuegbarkeit.includes(d);
+                  return (
+                    <button key={d} onClick={() => set("verfuegbarkeit", active ? form.verfuegbarkeit.filter(x => x !== d) : [...form.verfuegbarkeit, d])}
+                      style={{ flex: 1, aspectRatio: "1", borderRadius: "50%", background: active ? TEAL : "#f0f0f0", color: active ? "white" : "#bbb", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {d}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 4: Erstes Angebot ── */}
         {step === 4 && (
-          <>
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>Was bietest du an? (mehrere möglich) *</div>
-              {[
-                { id: "buchung", icon: "📅", titel: "Buchbare Dienstleistung", sub: "Kunden buchen Zeitslots bei dir (z.B. Unterricht, Shooting, Coaching)" },
-                { id: "werk", icon: "🛍️", titel: "Physische Werke / Produkte", sub: "Du verkaufst handgefertigte Artikel die du versendest" },
-                { id: "digital", icon: "📥", titel: "Digitale Produkte", sub: "Downloads, Designs, Fotos, Audio, PDFs etc." },
-                { id: "workshop", icon: "🎓", titel: "Workshops & Kurse", sub: "Gruppen-Angebote vor Ort oder online" },
-              ].map(a => (
-                <button key={a.id} onClick={() => toggle("angebotstyp", a.id)} style={{
-                  width: "100%", background: form.angebotstyp.includes(a.id) ? CORAL + "0f" : "#f9f9f7",
-                  border: `2px solid ${form.angebotstyp.includes(a.id) ? CORAL : "transparent"}`,
-                  borderRadius: 14, padding: "13px 14px", cursor: "pointer", textAlign: "left",
-                  display: "flex", alignItems: "center", gap: 12, marginBottom: 8, transition: "all 0.15s"
-                }}>
-                  <span style={{ fontSize: 24 }}>{a.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: form.angebotstyp.includes(a.id) ? CORAL : "#222" }}>{a.titel}</div>
-                    <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>{a.sub}</div>
-                  </div>
-                  <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${form.angebotstyp.includes(a.id) ? CORAL : "#ddd"}`, background: form.angebotstyp.includes(a.id) ? CORAL : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {form.angebotstyp.includes(a.id) && <Check size={11} color="white" />}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {(form.angebotstyp.includes("buchung") || form.angebotstyp.includes("workshop")) && (
-              <div style={{ marginBottom: 16 }}>
-                <Input label="Dein Stundensatz (€) (optional)" value={form.stundensatz} onChange={v => set("stundensatz", v)} placeholder="z.B. 60" type="number" hint="Kann später noch geändert werden" />
-                {form.stundensatz && (
-                  <div style={{ background: TEAL + "0d", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#666" }}>
-                    Käufer zahlen <strong>{(parseFloat(form.stundensatz) * 1.15).toFixed(0)} €/Std.</strong> — du erhältst <strong style={{ color: TEAL }}>{(parseFloat(form.stundensatz) * 0.85).toFixed(0)} €</strong> nach 15% Provision
-                  </div>
-                )}
+          <div>
+            <div style={{ background: `${GOLD}12`, border: `1px solid ${GOLD}30`, borderRadius: 16, padding: "14px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 20 }}>💡</span>
+              <div style={{ fontSize: 13, color: "#666", lineHeight: 1.55 }}>
+                Ein leeres Profil bekommt selten Anfragen. Leg direkt dein erstes Angebot an — du kannst es danach noch bearbeiten.
               </div>
-            )}
-
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#777", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>Wie erreichst du deine Kunden?</div>
-              {[
-                { key: "vorOrtMoeglich", icon: "📍", label: "Vor Ort / persönlich" },
-                { key: "onlineMoeglich", icon: "💻", label: "Online / Remote" },
-                { key: "versandMoeglich", icon: "📦", label: "Versand (Werkverkauf)" },
-              ].map(opt => (
-                <button key={opt.key} onClick={() => set(opt.key, !form[opt.key])} style={{
-                  width: "100%", background: form[opt.key] ? TEAL + "0f" : "#f5f5f3",
-                  border: `1.5px solid ${form[opt.key] ? TEAL : "transparent"}`,
-                  borderRadius: 12, padding: "11px 14px", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 10, marginBottom: 8, textAlign: "left"
-                }}>
-                  <span style={{ fontSize: 20 }}>{opt.icon}</span>
-                  <span style={{ flex: 1, fontWeight: 600, fontSize: 13, color: form[opt.key] ? TEAL : "#555" }}>{opt.label}</span>
-                  <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${form[opt.key] ? TEAL : "#ddd"}`, background: form[opt.key] ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {form[opt.key] && <Check size={11} color="white" />}
-                  </div>
-                </button>
-              ))}
             </div>
-          </>
+            {[
+              { label: "Titel deines Angebots", key: "erstesWerkTitel", placeholder: "z.B. Keramik-Workshop für Einsteiger" },
+              { label: "Preis", key: "erstesWerkPreis", placeholder: "z.B. 75 € / Person oder 45 €" },
+            ].map(({ label, key, placeholder }) => (
+              <div key={key} style={{ background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "12px 16px", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+                <input
+                  value={form[key]}
+                  onChange={e => set(key, e.target.value)}
+                  placeholder={placeholder}
+                  style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#1a1a1a", background: "transparent", fontFamily: "inherit" }}
+                />
+              </div>
+            ))}
+            <div style={{ background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "12px 16px", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kurze Beschreibung</div>
+              <textarea
+                value={form.erstesWerkBeschreibung}
+                onChange={e => set("erstesWerkBeschreibung", e.target.value)}
+                placeholder="Was erwartet den Kunden? Was ist dabei? Was macht dein Angebot besonders?"
+                rows={4}
+                style={{ width: "100%", border: "none", outline: "none", fontSize: 14, resize: "none", fontFamily: "inherit", lineHeight: 1.6, background: "transparent" }}
+              />
+            </div>
+            <button onClick={() => setStep(5)}
+              style={{ width: "100%", background: "none", border: `1.5px dashed ${TEAL}60`, borderRadius: 14, padding: "12px", cursor: "pointer", fontSize: 13, color: TEAL, fontWeight: 600 }}>
+              Erstmal überspringen →
+            </button>
+          </div>
         )}
-
-
       </div>
 
-      {/* Bottom Button */}
+      {/* Footer Button */}
       <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
         <button
-          onClick={() => stepValid() && setStep(s => s + 1)}
-          style={{
-            width: "100%",
-            background: stepValid() ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#e8e8e8",
-            color: stepValid() ? "white" : "#bbb",
-            border: "none", borderRadius: 14, padding: "14px",
-            fontWeight: 700, fontSize: 16,
-            cursor: stepValid() ? "pointer" : "default", transition: "all 0.2s"
-          }}
-        >
-          {step < 4 ? "Weiter →" : "🚀 Jetzt bewerben"}
+          onClick={() => setStep(s => s + 1)}
+          disabled={!canNext()}
+          style={{ width: "100%", background: canNext() ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#eee", color: canNext() ? "white" : "#bbb", border: "none", borderRadius: 16, padding: "15px", fontWeight: 700, fontSize: 16, cursor: canNext() ? "pointer" : "default", transition: "all 0.2s", boxShadow: canNext() ? `0 4px 16px ${CORAL}44` : "none" }}>
+          {step === 4 ? "Profil erstellen 🚀" : "Weiter →"}
         </button>
-        {!stepValid() && step > 1 && (
-          <div style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 7 }}>Bitte alle Pflichtfelder (*) ausfüllen</div>
-        )}
       </div>
     </div>
   );
 }
-
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats }) {
   const [activeSection, setActiveSection] = React.useState(null); // null | "einstellungen" | "editProfile"
   const [settingsSection, setSettingsSection] = React.useState(null); // null | "benachrichtigungen" | "privatsphare" | "zahlung" | "rechtliches"
