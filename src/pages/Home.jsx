@@ -595,7 +595,8 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
   const pricePerHour = wirker.pricePerHour || 60;
   const provision = Math.round(pricePerHour * 0.15 * 100) / 100;
   const impact = Math.round(provision * 0.15 * 100) / 100;
-  const total = pricePerHour + provision;
+  const talentEarns = Math.round((pricePerHour - provision) * 100) / 100;
+  const total = pricePerHour;
   const formatDate = (d) => d ? `${WEEKDAY_FULL[WEEKDAYS.indexOf(d.weekday)]}, ${d.day}. ${MONTHS[d.month]} ${d.year}` : "";
   const stepLabels = ["Datum", "Uhrzeit", "Bestätigen"];
   const stepIcons = ["\u{1F4C5}", "\u{1F550}", "\u2705"];
@@ -707,7 +708,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
               <span style={{ fontSize: 24 }}>💶</span>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: "#333" }}>{wirker.hourlyRate}</div>
-                <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>+ 15% Provision · davon 15% fließen in Impact-Projekte</div>
+                <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>inkl. HUI-Provision · davon 15% fließen in Impact-Projekte</div>
               </div>
             </div>
           </>
@@ -763,18 +764,13 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#222" }}>{selectedTime} Uhr</span>
                 </div>
                 <div style={{ height: 1, background: "#f0f0ee" }} />
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 13, color: "#888" }}>Stundensatz</span>
-                  <span style={{ fontSize: 13, color: "#444" }}>{pricePerHour.toFixed(2)} €</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 13, color: "#888" }}>Provision (15%)</span>
-                  <span style={{ fontSize: 13, color: "#444" }}>{provision.toFixed(2)} €</span>
-                </div>
-                <div style={{ height: 1, background: "#f0f0ee" }} />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a" }}>Gesamt</span>
-                  <span style={{ fontSize: 16, fontWeight: 900, color: CORAL }}>{total.toFixed(2)} €</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a" }}>Du zahlst</span>
+                  <span style={{ fontSize: 18, fontWeight: 900, color: CORAL }}>{total.toFixed(2)} €</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 12, color: "#aaa" }}>Talent erhält</span>
+                  <span style={{ fontSize: 12, color: "#aaa" }}>{talentEarns.toFixed(2)} € (nach 15% HUI-Provision)</span>
                 </div>
               </div>
             </div>
