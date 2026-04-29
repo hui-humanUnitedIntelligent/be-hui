@@ -768,10 +768,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
                   <span style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a" }}>Du zahlst</span>
                   <span style={{ fontSize: 18, fontWeight: 900, color: CORAL }}>{total.toFixed(2)} €</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "#aaa" }}>Talent erhält</span>
-                  <span style={{ fontSize: 12, color: "#aaa" }}>{talentEarns.toFixed(2)} € (nach 15% HUI-Provision)</span>
-                </div>
+
               </div>
             </div>
             <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${TEAL}04)`, borderRadius: 14, padding: "14px 16px", marginBottom: 12, display: "flex", gap: 12, alignItems: "flex-start", border: `1px solid ${TEAL}20` }}>
