@@ -2292,7 +2292,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
       {/* Bild — etwas weniger hoch, mit abgerundeten Ecken im Container */}
       <div style={{ margin: "0 12px", borderRadius: 14, overflow: "hidden", position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }}
         onClick={() => item.mediaType === "video" && setPlaying(p => !p)}>
-        <img src={item.img} style={{ width: "100%", display: "block", maxHeight: 300, objectFit: "cover" }} alt="" />
+        <img src={item.img} style={{ width: "100%", display: "block", height: 200, objectFit: "cover" }} alt="" />
         {item.mediaType === "video" && !playing && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
             <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.92)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 14px rgba(0,0,0,0.18)" }}>
@@ -2342,7 +2342,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
   return (
     <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px", borderLeft: `3.5px solid ${GOLD}` }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
-        <img src={item.img} style={{ width: "100%", height: 160, objectFit: "cover" }} alt={item.title} />
+        <img src={item.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={item.title} />
         {/* Preis oben links */}
         <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 15 }}>{item.price}</div>
         {/* In den Korb – Overlay-Button unten */}
@@ -2425,7 +2425,7 @@ function WirkerCard({ item, onViewWirker, onBookWirker }) {
 function ImpactCard({ item }) {
   return (
     <div style={{ background: `linear-gradient(160deg, #f0fdf6, #e8faf2)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px rgba(16,185,129,0.12)`, border: `1px solid rgba(16,185,129,0.18)`, margin: "8px 16px", borderLeft: `3.5px solid #10b981` }}>
-      <div style={{ position: "relative" }}><img src={item.img} style={{ width: "100%", height: 110, objectFit: "cover" }} alt={item.title} /><div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div></div>
+      <div style={{ position: "relative" }}><img src={item.img} style={{ width: "100%", height: 90, objectFit: "cover" }} alt={item.title} /><div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div></div>
       <div style={{ padding: "12px 14px" }}><div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{item.title}</div><div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 6 }}><div style={{ background: `linear-gradient(90deg, ${GOLD}, ${CORAL})`, height: 7, borderRadius: 99, width: `${item.progress}%` }} /></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999" }}><span>{item.collected} gesammelt</span><span>Ziel: {item.goal}</span></div></div>
     </div>
   );
