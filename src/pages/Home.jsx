@@ -5383,55 +5383,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
         </div>
       )}
 
-      {/* MENÜ */}
-      <div style={{ margin: "0 16px 10px" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, paddingLeft: 4 }}>Konto</div>
-        <div style={{ background: "white", borderRadius: 18, overflow: "hidden" }}>
-          {[
-            { icon: "🔔", label: "Benachrichtigungen", sub: "Push & E-Mail", color: "#f97316", action: () => { setActiveSection("einstellungen"); setSettingsSection("benachrichtigungen"); } },
-            { icon: "🔒", label: "Privatsphäre", sub: "Sichtbarkeit & Sicherheit", color: TEAL, action: () => { setActiveSection("einstellungen"); setSettingsSection("privatsphare"); } },
-            { icon: "💳", label: "Zahlungsmethoden", sub: "Karten & Auszahlung", color: "#8b5cf6", action: () => { setActiveSection("einstellungen"); setSettingsSection("zahlung"); }, last: true },
-          ].map(({ icon, label, sub, color, action, last }) => (
-            <div key={label} onClick={action}
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: color + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>{icon}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "#1a1a1a" }}>{label}</div>
-                <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{sub}</div>
-              </div>
-              <ChevronRight size={15} color="#ddd" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ margin: "0 16px 10px" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, paddingLeft: 4 }}>Info</div>
-        <div style={{ background: "white", borderRadius: 18, overflow: "hidden" }}>
-          {[
-            { icon: "📋", label: "Rechtliches", sub: "AGB, Datenschutz, Impressum", color: "#94a3b8", action: () => { setActiveSection("einstellungen"); setSettingsSection("rechtliches"); } },
-            { icon: "✨", label: "Intro nochmal sehen", sub: "HUI-Onboarding wiederholen", color: GOLD, action: () => { localStorage.removeItem("hui_onboarding_seen"); window.location.reload(); }, last: true },
-          ].map(({ icon, label, sub, color, action, last }) => (
-            <div key={label} onClick={action}
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>{icon}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "#1a1a1a" }}>{label}</div>
-                <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{sub}</div>
-              </div>
-              <ChevronRight size={15} color="#ddd" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* AUSLOGGEN */}
-      <div style={{ margin: "0 16px 20px", background: "white", borderRadius: 18, overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", cursor: "pointer" }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "10", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>🚪</div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: CORAL }}>Ausloggen</div>
-        </div>
-      </div>
+      {/* SPACER */}
+      <div style={{ height: 10 }} />
     </div>
   );
 }
