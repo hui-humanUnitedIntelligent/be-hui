@@ -548,6 +548,8 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [confirming, setConfirming] = useState(false);
   const [confetti, setConfetti] = useState([]);
+  const [locationType, setLocationType] = useState(null); // "kunde" | "talent" | "andere"
+  const [locationAddress, setLocationAddress] = useState("");
 
   const availability = defaultAvailability[wirker.name] || {};
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
@@ -743,6 +745,44 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
 
         {step === 3 && (
           <>
+            <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>Wo findet es statt?</div>
+            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Wähle den Treffpunkt für die Buchung.</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[
+                { key: "talent", emoji: "🏠", label: "Beim Talent", desc: `Bei ${wirker.fullName} (${wirker.location})` },
+                { key: "kunde", emoji: "📍", label: "Bei mir zu Hause", desc: "Adresse eingeben" },
+                { key: "andere", emoji: "📌", label: "Anderer Ort", desc: "Eigene Adresse angeben" },
+              ].map(opt => (
+                <div key={opt.key} onClick={() => setLocationType(opt.key)}
+                  style={{ borderRadius: 16, border: `2px solid ${locationType === opt.key ? TEAL : "#f0f0ee"}`, background: locationType === opt.key ? `${TEAL}08` : "white", padding: "14px 16px", cursor: "pointer", display: "flex", gap: 14, alignItems: "flex-start", transition: "all 0.15s" }}>
+                  <span style={{ fontSize: 24 }}>{opt.emoji}</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{opt.label}</div>
+                    <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{opt.desc}</div>
+                  </div>
+                  {locationType === opt.key && <span style={{ marginLeft: "auto", color: TEAL, fontSize: 18 }}>✓</span>}
+                </div>
+              ))}
+            </div>
+            {(locationType === "kunde" || locationType === "andere") && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#444", marginBottom: 8 }}>
+                  {locationType === "kunde" ? "Deine Adresse" : "Adresse des Treffpunkts"}
+                </div>
+                <textarea
+                  value={locationAddress}
+                  onChange={e => setLocationAddress(e.target.value)}
+                  placeholder="Straße, Hausnummer, PLZ, Ort"
+                  rows={3}
+                  style={{ width: "100%", borderRadius: 12, border: "1.5px solid #e0e0de", padding: "12px 14px", fontSize: 14, fontFamily: "inherit", resize: "none", outline: "none", boxSizing: "border-box", color: "#1a1a1a" }}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {step === 4 && (
+          <>
             <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>Deine Buchung</div>
             <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Bitte überprüfe alles und bestätige.</div>
             <div style={{ background: "#fafaf8", borderRadius: 18, overflow: "hidden", border: "1px solid #f0f0ee", marginBottom: 16 }}>
@@ -762,6 +802,12 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: 13, color: "#888" }}>🕐 Uhrzeit</span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#222" }}>{selectedTime} Uhr</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 13, color: "#888" }}>📍 Treffpunkt</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#222", textAlign: "right", maxWidth: "60%" }}>
+                    {locationType === "talent" ? wirker.location : locationAddress}
+                  </span>
                 </div>
                 <div style={{ height: 1, background: "#f0f0ee" }} />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -790,10 +836,18 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
         {step === 1 && <div style={{ textAlign: "center", color: "#bbb", fontSize: 13 }}>Wähle einen grün markierten Tag</div>}
         {step === 2 && (
           <button onClick={() => selectedTime && goTo(3)} disabled={!selectedTime} style={{ width: "100%", background: selectedTime ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#f0f0ee", color: selectedTime ? "white" : "#bbb", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: selectedTime ? "pointer" : "default", boxShadow: selectedTime ? `0 4px 16px ${CORAL}33` : "none", transition: "all 0.25s" }}>
-            Weiter → Buchung prüfen
+            Weiter → Treffpunkt wählen
           </button>
         )}
         {step === 3 && (
+          <button
+            onClick={() => locationType && (locationType === "talent" || locationAddress.trim()) && goTo(4)}
+            disabled={!locationType || ((locationType === "kunde" || locationType === "andere") && !locationAddress.trim())}
+            style={{ width: "100%", background: (locationType && (locationType === "talent" || locationAddress.trim())) ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#f0f0ee", color: (locationType && (locationType === "talent" || locationAddress.trim())) ? "white" : "#bbb", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: (locationType && (locationType === "talent" || locationAddress.trim())) ? `0 4px 16px ${CORAL}33` : "none", transition: "all 0.25s" }}>
+            Weiter → Buchung prüfen
+          </button>
+        )}
+        {step === 4 && (
           <div>
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
