@@ -5598,15 +5598,15 @@ export default function App() {
             <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "0 16px 4px", scrollSnapType: "x mandatory" }}>
               {featuredWerke.map(w => (
                 <div key={w.id} onClick={() => viewWerk(w.title)}
-                  style={{ flexShrink: 0, width: 130, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", cursor: "pointer", scrollSnapAlign: "start", background: "white", border: `1px solid ${CORAL}15` }}>
+                  style={{ flexShrink: 0, width: 110, borderRadius: 14, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", cursor: "pointer", scrollSnapAlign: "start", background: "white", border: `1px solid ${CORAL}15` }}>
                   <div style={{ position: "relative" }}>
-                    <img src={w.img} style={{ width: "100%", height: 110, objectFit: "cover" }} alt={w.title} />
+                    <img src={w.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={w.title} />
                     <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.55)", color: "white", borderRadius: 20, padding: "3px 9px", fontWeight: 800, fontSize: 12 }}>{w.price}</div>
                   </div>
-                  <div style={{ padding: "8px 10px 10px" }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: "#222", marginBottom: 3, lineHeight: 1.3 }}>{w.title}</div>
-                    <div style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>{w.creator}</div>
-                    <div style={{ fontSize: 10, color: "#bbb", marginTop: 3 }}>❤️ {w.likes}</div>
+                  <div style={{ padding: "6px 8px 8px" }}>
+                    <div style={{ fontWeight: 700, fontSize: 11, color: "#222", marginBottom: 2, lineHeight: 1.3 }}>{w.title}</div>
+                    <div style={{ fontSize: 10, color: TEAL, fontWeight: 600 }}>{w.creator}</div>
+                    <div style={{ fontSize: 10, color: "#bbb", marginTop: 2 }}>❤️ {w.likes}</div>
                   </div>
                 </div>
               ))}
