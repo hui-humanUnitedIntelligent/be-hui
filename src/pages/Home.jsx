@@ -2424,7 +2424,7 @@ function WirkerCard({ item, onViewWirker, onBookWirker }) {
 }
 function ImpactCard({ item }) {
   return (
-    <div style={{ background: `linear-gradient(160deg, #fffdf0, #fff8e1)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px ${GOLD}22`, border: `1px solid ${GOLD}30`, margin: "8px 16px" }}>
+    <div style={{ background: `linear-gradient(160deg, #f0fdf6, #e8faf2)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px rgba(16,185,129,0.12)`, border: `1px solid rgba(16,185,129,0.18)`, margin: "8px 16px", borderLeft: `3.5px solid #10b981` }}>
       <div style={{ position: "relative" }}><img src={item.img} style={{ width: "100%", height: 150, objectFit: "cover" }} alt={item.title} /><div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div></div>
       <div style={{ padding: "12px 14px" }}><div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{item.title}</div><div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 6 }}><div style={{ background: `linear-gradient(90deg, ${GOLD}, ${CORAL})`, height: 7, borderRadius: 99, width: `${item.progress}%` }} /></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999" }}><span>{item.collected} gesammelt</span><span>Ziel: {item.goal}</span></div></div>
     </div>
