@@ -1029,97 +1029,85 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
   if (!p) return <div style={{ padding: 32, textAlign: "center" }}><button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: TEAL, fontWeight: 700 }}>← Zurück</button><p>Profil nicht gefunden</p></div>;
 
   return (
-    <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh", background: "#fafaf8" }}>
+    <div style={{ paddingBottom: 100, overflowY: "auto", height: "100vh", background: "#f5f5f3" }}>
+
+      {/* ── HERO ── */}
       <div style={{ position: "relative" }}>
-        <img src={p.header} style={{ width: "100%", height: 180, objectFit: "cover" }} alt="" />
-        <button onClick={onBack} style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.35)", border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><ArrowLeft size={18} color="white" /></button>
-        <button style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.35)", border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><Share2 size={16} color="white" /></button>
+        <img src={p.header} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} alt="" />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)" }} />
+        <button onClick={onBack} style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(6px)", border: "none", borderRadius: "50%", width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          <ArrowLeft size={18} color="white" />
+        </button>
+        <button style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(6px)", border: "none", borderRadius: "50%", width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          <Share2 size={16} color="white" />
+        </button>
+        {/* Avatar überlappend */}
+        <div style={{ position: "absolute", bottom: -40, left: 20 }}>
+          <img src={p.img} style={{ width: 80, height: 80, borderRadius: "50%", border: "4px solid white", objectFit: "cover", boxShadow: "0 4px 14px rgba(0,0,0,0.2)", display: "block" }} alt={p.name} />
+        </div>
       </div>
 
-      <div style={{ background: "white", padding: "0 16px 16px" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: -36, marginBottom: 12 }}>
-          <img src={p.img} style={{ width: 72, height: 72, borderRadius: "50%", border: "3px solid white", objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }} alt={p.name} />
-          <div style={{ paddingBottom: 4 }}>
-            <div style={{ fontWeight: 800, fontSize: 18, color: "#222", display: "flex", alignItems: "center", gap: 6 }}>{p.fullName}<BadgeCheck size={18} color={TEAL} /></div>
-            <div style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>{p.talent}</div>
-          </div>
-        </div>
-
-        <div style={{ background: `${TEAL}0d`, border: `1px solid ${TEAL}20`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
-          <ThumbsUp size={18} color={TEAL} />
+      {/* ── NAME & KURZ-INFOS ── */}
+      <div style={{ background: "white", padding: "50px 20px 18px", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
           <div>
-            <span style={{ fontWeight: 700, fontSize: 15, color: "#333" }}>{p.recommendations} verifizierte Empfehlungen</span>
-            <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Nur Kunden nach abgeschlossener Buchung können empfehlen</div>
+            <div style={{ fontWeight: 900, fontSize: 20, color: "#1a1a1a", display: "flex", alignItems: "center", gap: 6, letterSpacing: -0.3 }}>
+              {p.fullName} <BadgeCheck size={17} color={TEAL} />
+            </div>
+            <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 2 }}>{p.talent}</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginTop: 4, display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><MapPin size={11} />{p.location}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Clock size={11} />{p.hourlyRate}</span>
+            </div>
           </div>
+          {/* Folgen-Button oben rechts */}
+          {!isOwnProfile && (
+            <button onClick={() => setFollowed(f => !f)}
+              style={{ background: followed ? TEAL : "white", border: `2px solid ${TEAL}`, borderRadius: 22, padding: "8px 16px", fontWeight: 700, fontSize: 13, color: followed ? "white" : TEAL, cursor: "pointer", flexShrink: 0, transition: "all 0.2s" }}>
+              {followed ? "✓ Folge ich" : "+ Folgen"}
+            </button>
+          )}
         </div>
 
-        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {[{ label: "Werke", value: p.werke.length }, { label: "Buchungen", value: p.bookings }, { label: "Follower", value: p.followers }].map(s => (
-            <div key={s.label} style={{ flex: 1, background: "#f7f7f5", borderRadius: 10, padding: "10px 6px", textAlign: "center" }}>
-              <div style={{ fontWeight: 800, fontSize: 17, color: "#222" }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: "#aaa" }}>{s.label}</div>
+        {/* Stats */}
+        <div style={{ display: "flex", gap: 0, paddingTop: 14, borderTop: "1px solid #f0f0ee" }}>
+          {[
+            { v: p.werke.length, l: "Werke" },
+            { v: p.bookings, l: "Buchungen" },
+            { v: p.followers, l: "Follower" },
+            { v: p.recommendations, l: "Empf. ✓" },
+          ].map(({ v, l }, i, arr) => (
+            <div key={l} style={{ flex: 1, textAlign: "center", borderRight: i < arr.length - 1 ? "1px solid #f0f0ee" : "none" }}>
+              <div style={{ fontWeight: 900, fontSize: 17, color: "#1a1a1a" }}>{v}</div>
+              <div style={{ fontSize: 10, color: "#aaa", marginTop: 2 }}>{l}</div>
             </div>
           ))}
         </div>
-
-        <p style={{ fontSize: 14, color: "#555", lineHeight: 1.65, margin: "0 0 12px" }}>{p.bio}</p>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14, fontSize: 12, color: "#888" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 4 }}><MapPin size={12} color={TEAL} />{p.location} · {p.distance}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Clock size={12} color={TEAL} />{p.hourlyRate}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Award size={12} color={GOLD} />Mitglied seit {p.memberSince}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Leaf size={12} color={TEAL} />{p.impactEur} € Impact</span>
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 16 }}>
-          {p.skills.map(s => <span key={s} style={{ background: `${TEAL}15`, color: TEAL, borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 600 }}>{s}</span>)}
-        </div>
-
-        {/* Verfügbarkeits-Übersicht */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 12, color: "#aaa", fontWeight: 600 }}>VERFÜGBARKEIT</div>
-            {isOwnProfile && (
-              <button onClick={() => setShowAvailEditor(true)} style={{ background: "none", border: `1px solid ${TEAL}`, borderRadius: 8, padding: "3px 10px", color: TEAL, fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                <Edit3 size={11} /> Bearbeiten
-              </button>
-            )}
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {WEEKDAYS.map(d => {
-              const hasSlots = (defaultAvailability[p.name]?.[d]?.length || 0) > 0;
-              return (
-                <div key={d} style={{ flex: 1, textAlign: "center" }}>
-                  <div style={{ width: "100%", aspectRatio: "1", borderRadius: "50%", background: hasSlots ? TEAL : "#f0f0f0", color: hasSlots ? "white" : "#ccc", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, marginBottom: 2 }}>{d}</div>
-                  {hasSlots && <div style={{ fontSize: 9, color: TEAL, fontWeight: 600 }}>{defaultAvailability[p.name][d].length}×</div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Buttons */}
-        {isOwnProfile ? (
-          <button onClick={() => setShowAvailEditor(true)} style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}cc)`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            <Calendar size={18} /> Verfügbarkeit einstellen
-          </button>
-        ) : (
-          <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => setShowBooking(true)} style={{ flex: 1, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-              📅 Jetzt buchen
-            </button>
-            <button onClick={() => setFollowed(f => !f)} style={{ background: followed ? `${TEAL}18` : "none", border: `2px solid ${TEAL}`, borderRadius: 14, padding: "13px 18px", fontWeight: 700, fontSize: 14, color: TEAL, cursor: "pointer" }}>
-              {followed ? "✓ Folge ich" : "Folgen"}
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Tabs */}
-      <div style={{ background: "white", display: "flex", borderTop: "1px solid #f0f0f0", marginTop: 10 }}>
+      {/* ── BUCHEN BUTTON (fixiert unten, aber auch hier als Card) ── */}
+      {isOwnProfile ? (
+        <div style={{ margin: "0 16px 8px" }}>
+          <button onClick={() => setShowAvailEditor(true)}
+            style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}bb)`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <Calendar size={17} /> Verfügbarkeit bearbeiten
+          </button>
+        </div>
+      ) : (
+        <div style={{ margin: "0 16px 8px" }}>
+          <button onClick={() => setShowBooking(true)}
+            style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+            📅 Jetzt buchen
+          </button>
+        </div>
+      )}
+
+      {/* ── TABS ── */}
+      <div style={{ background: "white", display: "flex", borderBottom: "1px solid #f0f0ee", marginBottom: 0 }}>
         {["werke", "über"].map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, background: "none", border: "none", borderBottom: tab === t ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "12px 0", fontWeight: tab === t ? 700 : 400, color: tab === t ? CORAL : "#bbb", fontSize: 14, cursor: "pointer" }}>
-            {t === "werke" ? "Werke & Angebote" : "Über diesen Wirker"}
+          <button key={t} onClick={() => setTab(t)}
+            style={{ flex: 1, background: "none", border: "none", borderBottom: tab === t ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "13px 0", fontWeight: tab === t ? 700 : 400, color: tab === t ? CORAL : "#bbb", fontSize: 14, cursor: "pointer" }}>
+            {t === "werke" ? "Werke & Angebote" : "Über mich"}
           </button>
         ))}
       </div>
