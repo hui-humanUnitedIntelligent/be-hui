@@ -2414,9 +2414,9 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
   );
 }
 function WirkerCard({ item, onViewWirker, onBookWirker }) {
-  // Find cover image from mockWirkers if available
-  const wirkerData = mockWirkers.find(w => w.name === item.name);
-  const coverImg = wirkerData?.coverImg || item.img;
+  // Find cover image from mockWirkerProfiles if available
+  const wirkerData = mockWirkerProfiles[item.name];
+  const coverImg = wirkerData?.header || item.img;
   return (
     <div style={{ margin: "8px 16px", borderRadius: 18, background: "white", boxShadow: "0 2px 16px rgba(0,0,0,0.08)", overflow: "hidden", border: `1px solid #f0f0ee`, borderLeft: `3.5px solid ${TEAL}` }}>
       {/* Cover image */}
