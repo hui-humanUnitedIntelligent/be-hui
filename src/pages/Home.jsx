@@ -5537,7 +5537,7 @@ export default function App() {
           <div style={{ padding: "18px 0 4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px 10px" }}>
               <div>
-                <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>✨ Featured Talente</div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>✨ Ausgewählte Talente</div>
                 <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Handverlesen · Diese Woche im Spotlight</div>
               </div>
               <button style={{ background: "none", border: "none", color: TEAL, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Alle →</button>
