@@ -5819,7 +5819,12 @@ export default function App() {
   const [showSearch, setShowSearch] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
-    // Show onboarding automatically on first visit
+    // Show onboarding if not seen yet, or if ?onboarding=1 is in URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("onboarding") === "1") {
+      localStorage.removeItem("hui_onboarding_seen");
+      return true;
+    }
     const seen = localStorage.getItem("hui_onboarding_seen");
     return !seen;
   });
