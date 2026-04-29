@@ -2342,7 +2342,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
   return (
     <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px", borderLeft: `3.5px solid ${GOLD}` }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
-        <img src={item.img} style={{ width: "100%", height: 210, objectFit: "cover" }} alt={item.title} />
+        <img src={item.img} style={{ width: "100%", height: 160, objectFit: "cover" }} alt={item.title} />
         {/* Preis oben links */}
         <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 15 }}>{item.price}</div>
         {/* In den Korb – Overlay-Button unten */}
@@ -2425,7 +2425,7 @@ function WirkerCard({ item, onViewWirker, onBookWirker }) {
 function ImpactCard({ item }) {
   return (
     <div style={{ background: `linear-gradient(160deg, #f0fdf6, #e8faf2)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px rgba(16,185,129,0.12)`, border: `1px solid rgba(16,185,129,0.18)`, margin: "8px 16px", borderLeft: `3.5px solid #10b981` }}>
-      <div style={{ position: "relative" }}><img src={item.img} style={{ width: "100%", height: 150, objectFit: "cover" }} alt={item.title} /><div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div></div>
+      <div style={{ position: "relative" }}><img src={item.img} style={{ width: "100%", height: 110, objectFit: "cover" }} alt={item.title} /><div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div></div>
       <div style={{ padding: "12px 14px" }}><div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{item.title}</div><div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 6 }}><div style={{ background: `linear-gradient(90deg, ${GOLD}, ${CORAL})`, height: 7, borderRadius: 99, width: `${item.progress}%` }} /></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999" }}><span>{item.collected} gesammelt</span><span>Ziel: {item.goal}</span></div></div>
     </div>
   );
@@ -5546,8 +5546,8 @@ export default function App() {
               {featuredWirker.map(w => (
                 <div key={w.id} onClick={() => viewWirker(w.name)}
                   style={{ flexShrink: 0, width: 200, borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", cursor: "pointer", scrollSnapAlign: "start", position: "relative" }}>
-                  <img src={w.coverImg} style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} alt={w.name} />
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 120, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.55))" }} />
+                  <img src={w.coverImg} style={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} alt={w.name} />
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 90, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.55))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, background: CORAL, color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 800 }}>{w.tag}</div>
                   <div style={{ background: "white", padding: "10px 12px 14px", display: "flex", gap: 10, alignItems: "center" }}>
                     <img src={w.img} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, flexShrink: 0 }} alt={w.name} />
@@ -5598,9 +5598,9 @@ export default function App() {
             <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "0 16px 4px", scrollSnapType: "x mandatory" }}>
               {featuredWerke.map(w => (
                 <div key={w.id} onClick={() => viewWerk(w.title)}
-                  style={{ flexShrink: 0, width: 148, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", cursor: "pointer", scrollSnapAlign: "start", background: "white", border: `1px solid ${CORAL}15` }}>
+                  style={{ flexShrink: 0, width: 130, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", cursor: "pointer", scrollSnapAlign: "start", background: "white", border: `1px solid ${CORAL}15` }}>
                   <div style={{ position: "relative" }}>
-                    <img src={w.img} style={{ width: "100%", height: 148, objectFit: "cover" }} alt={w.title} />
+                    <img src={w.img} style={{ width: "100%", height: 110, objectFit: "cover" }} alt={w.title} />
                     <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.55)", color: "white", borderRadius: 20, padding: "3px 9px", fontWeight: 800, fontSize: 12 }}>{w.price}</div>
                   </div>
                   <div style={{ padding: "8px 10px 10px" }}>
