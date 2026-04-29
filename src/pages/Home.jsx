@@ -2382,43 +2382,23 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
 }
 function WirkerCard({ item, onViewWirker, onBookWirker }) {
   return (
-    <div style={{ margin: "8px 16px", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.09)", background: "white", borderLeft: `3.5px solid ${TEAL}` }}>
-      {/* Farbiger Banner oben */}
-      <div style={{ background: `linear-gradient(135deg, ${TEAL}, #0d9488)`, padding: "14px 16px 36px", position: "relative" }}>
-        <div style={{ position: "absolute", top: 10, right: 12, background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "white" }}>
-          👍 {item.recommendations} Empfehlungen
-        </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8 }}>Talent entdecken</div>
-        <div style={{ fontWeight: 900, fontSize: 17, color: "white", marginTop: 2 }}>{item.talent}</div>
+    <div style={{ margin: "6px 16px", borderRadius: 14, background: "white", boxShadow: "0 1px 8px rgba(0,0,0,0.07)", borderLeft: `3.5px solid ${TEAL}`, display: "flex", alignItems: "center", gap: 12, padding: "10px 12px" }}>
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        <img src={item.img} onClick={() => onViewWirker(item.name)}
+          style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}30`, cursor: "pointer" }} alt={item.name} />
+        <div style={{ position: "absolute", bottom: 1, right: 1, width: 11, height: 11, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
       </div>
-      {/* Profilbild überlappt Banner */}
-      <div style={{ padding: "0 16px 14px", marginTop: -24 }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-end", marginBottom: 12 }}>
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <img src={item.img} onClick={() => onViewWirker(item.name)}
-              style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "3px solid white", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }} alt={item.name} />
-            <div style={{ position: "absolute", bottom: 2, right: 2, width: 13, height: 13, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
-          </div>
-          <div style={{ flex: 1, paddingBottom: 2 }}>
-            <div style={{ fontWeight: 800, fontSize: 16, color: "#222", display: "flex", alignItems: "center", gap: 5 }}>
-              {item.name} <BadgeCheck size={15} color={TEAL} />
-            </div>
-            <div style={{ fontSize: 11, color: "#999", display: "flex", alignItems: "center", gap: 3 }}>
-              <MapPin size={10} />{item.location}
-            </div>
-          </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
+          {item.name} <BadgeCheck size={12} color={TEAL} />
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => onViewWirker(item.name)}
-            style={{ flex: 1, background: "#f5f5f3", border: "none", borderRadius: 12, padding: "10px 0", fontWeight: 700, fontSize: 13, color: "#444", cursor: "pointer" }}>
-            Profil ansehen
-          </button>
-          <button onClick={() => onBookWirker(item.name)}
-            style={{ flex: 2, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "10px 0", fontWeight: 800, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `0 3px 12px ${CORAL}44` }}>
-            <Calendar size={14} color="white" /> Termin buchen
-          </button>
-        </div>
+        <div style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>{item.talent}</div>
+        <div style={{ fontSize: 10, color: "#bbb", marginTop: 1 }}><MapPin size={9} style={{ display: "inline", marginRight: 2 }} />{item.location} · 👍 {item.recommendations}</div>
       </div>
+      <button onClick={() => onBookWirker(item.name)}
+        style={{ flexShrink: 0, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 10, padding: "7px 12px", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
+        Buchen
+      </button>
     </div>
   );
 }
