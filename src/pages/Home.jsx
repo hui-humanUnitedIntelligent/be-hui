@@ -3110,9 +3110,200 @@ function StoryCreateModal({ onClose }) {
   );
 }
 function OnboardingOverlay({ step, setStep, onClose }) {
-  const screens = [{ img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=400&fit=crop", title: "Willkommen bei HUI", sub: "Ein Ort, an dem echte Talente, echte Menschen und echte Veränderung zusammenkommen." }, { img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop", title: "Hier leben echte Geschichten.", sub: "Menschen mit besonderen Talenten schaffen Werke mit Herz – und du kannst Teil davon sein." }, { img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop", title: "Jede Entscheidung wirkt weiter.", sub: "Mit jeder Buchung fließen automatisch 3 % in Projekte, die Menschen, Tieren und der Natur wirklich helfen." }, { img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop", title: "Bereit, Teil von etwas Größerem zu werden?", sub: "" }];
+  const screens = [
+    {
+      img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop",
+      gradient: `linear-gradient(160deg, #FF6B5B22 0%, #F5A62322 100%)`,
+      emoji: "✨",
+      tag: "Willkommen",
+      title: "Hey, schön dass du da bist.",
+      sub: "HUI ist ein Ort, an dem echte Talente, echte Menschen und echte Veränderung zusammenkommen.",
+      features: null,
+    },
+    {
+      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
+      gradient: `linear-gradient(160deg, #2ABFAC22 0%, #3B82F622 100%)`,
+      emoji: "🎨",
+      tag: "Talente & Werke",
+      title: "Hier leben echte Geschichten.",
+      sub: "Menschen mit besonderen Talenten schaffen Werke mit Herz – und du kannst Teil davon sein.",
+      features: ["Fotografen, Künstler, Coaches & mehr", "Werke kaufen oder Talente buchen", "Verifizierte Profile, echte Empfehlungen"],
+    },
+    {
+      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=600&fit=crop",
+      gradient: `linear-gradient(160deg, #10b98122 0%, #2ABFAC22 100%)`,
+      emoji: "🌱",
+      tag: "Impact",
+      title: "Jede Buchung wirkt weiter.",
+      sub: "Mit jeder Transaktion fließen automatisch 2,25 % in echte Projekte – von der Community gewählt.",
+      features: ["Impact Pool für NGOs & Sozialprojekte", "Community stimmt monatlich ab", "Du siehst, was dein Geld bewirkt"],
+    },
+    {
+      img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      gradient: `linear-gradient(160deg, #F5A62322 0%, #FF6B5B22 100%)`,
+      emoji: "🚀",
+      tag: "Los geht's",
+      title: "Bereit, Teil von HUI zu sein?",
+      sub: "Entdecke Talente in deiner Nähe, kaufe einzigartige Werke oder werde selbst Wirker.",
+      features: null,
+      isFinal: true,
+    },
+  ];
+
+  const touchStartX = React.useRef(null);
+  const [animDir, setAnimDir] = React.useState(null); // "left" | "right" | null
+  const [visible, setVisible] = React.useState(true);
+
+  const goTo = (next, dir) => {
+    if (next < 0 || next >= screens.length) return;
+    setVisible(false);
+    setAnimDir(dir);
+    setTimeout(() => {
+      setStep(next);
+      setAnimDir(null);
+      setVisible(true);
+    }, 200);
+  };
+
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (dx < -50 && step < screens.length - 1) goTo(step + 1, "left");
+    if (dx > 50 && step > 0) goTo(step - 1, "right");
+  };
+
   const s = screens[step];
-  return (<div style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000", display: "flex", flexDirection: "column" }}><img src={s.img} style={{ width: "100%", height: "55%", objectFit: "cover", opacity: 0.85 }} alt="" /><div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -24, padding: "26px 24px 36px", display: "flex", flexDirection: "column" }}><div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 18 }}>{screens.map((_, i) => <div key={i} style={{ width: i === step ? 20 : 7, height: 7, borderRadius: 4, background: i === step ? CORAL : "#e0e0e0", transition: "all 0.3s" }} />)}</div><div style={{ fontWeight: 800, fontSize: 22, color: "#222", textAlign: "center", marginBottom: 10 }}>{s.title}</div>{step === 0 && <div style={{ display: "flex", justifyContent: "center", margin: "-8px 0 12px" }}><img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 64, height: 64, borderRadius: 18, objectFit: "cover", boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }} /></div>}{s.sub && <div style={{ color: "#888", fontSize: 14, textAlign: "center", lineHeight: 1.6, marginBottom: 20 }}>{s.sub}</div>}<div style={{ flex: 1 }} />{step < 3 ? <button onClick={() => setStep(step + 1)} style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Weiter →</button> : <button onClick={onClose} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>Jetzt loslegen ✨</button>}{step < 3 && <button onClick={onClose} style={{ background: "none", border: "none", color: "#ccc", fontSize: 13, cursor: "pointer", marginTop: 10, textAlign: "center" }}>Überspringen</button>}</div></div>);
+
+  const slideStyle = {
+    opacity: visible ? 1 : 0,
+    transform: visible ? "translateX(0)" : animDir === "left" ? "translateX(40px)" : "translateX(-40px)",
+    transition: "opacity 0.22s ease, transform 0.22s ease",
+  };
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Image with gradient overlay */}
+      <div style={{ position: "relative", width: "100%", height: "52%", overflow: "hidden" }}>
+        <img
+          src={s.img}
+          style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.88, transition: "opacity 0.4s ease" }}
+          alt=""
+        />
+        {/* Dark gradient at bottom for bleed into card */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
+        {/* Tag badge */}
+        <div style={{ ...slideStyle, position: "absolute", top: 54, left: 20 }}>
+          <div style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 14 }}>{s.emoji}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "white", letterSpacing: 0.5 }}>{s.tag}</span>
+          </div>
+        </div>
+        {/* Skip button */}
+        {step < screens.length - 1 && (
+          <button onClick={onClose} style={{ position: "absolute", top: 54, right: 20, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", color: "white", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            Überspringen
+          </button>
+        )}
+      </div>
+
+      {/* Bottom card */}
+      <div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -28, padding: "24px 24px 40px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
+
+        {/* Dot indicators */}
+        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 22 }}>
+          {screens.map((_, i) => (
+            <button key={i} onClick={() => goTo(i, i > step ? "left" : "right")} style={{ border: "none", cursor: "pointer", padding: 0, background: "none" }}>
+              <div style={{ width: i === step ? 24 : 7, height: 7, borderRadius: 4, background: i === step ? CORAL : "#e8e8e8", transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)" }} />
+            </button>
+          ))}
+        </div>
+
+        {/* HUI Logo on first screen */}
+        {step === 0 && (
+          <div style={{ ...slideStyle, display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            <div style={{ position: "relative" }}>
+              <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 72, height: 72, borderRadius: 20, objectFit: "cover", boxShadow: "0 8px 24px rgba(255,107,91,0.3)" }} />
+              <div style={{ position: "absolute", bottom: -4, right: -4, width: 22, height: 22, background: TEAL, borderRadius: "50%", border: "2.5px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 11 }}>✓</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Title & Sub */}
+        <div style={slideStyle}>
+          <div style={{ fontWeight: 900, fontSize: 24, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{s.title}</div>
+          <div style={{ color: "#888", fontSize: 14, textAlign: "center", lineHeight: 1.65, marginBottom: s.features ? 20 : 0 }}>{s.sub}</div>
+        </div>
+
+        {/* Feature list */}
+        {s.features && (
+          <div style={{ ...slideStyle, background: s.gradient || "#f9f9f9", borderRadius: 16, padding: "14px 16px", marginBottom: 4 }}>
+            {s.features.map((f, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: i < s.features.length - 1 ? 10 : 0 }}>
+                <div style={{ width: 22, height: 22, borderRadius: "50%", background: CORAL, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Check size={12} color="white" strokeWidth={3} />
+                </div>
+                <span style={{ fontSize: 13, color: "#444", fontWeight: 500 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Final screen CTA options */}
+        {s.isFinal && (
+          <div style={{ ...slideStyle, display: "flex", gap: 10, marginBottom: 8, marginTop: 4 }}>
+            <div style={{ flex: 1, background: `${CORAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 22, marginBottom: 4 }}>🛍️</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Entdecken</div>
+              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Talente & Werke</div>
+            </div>
+            <div style={{ flex: 1, background: `${TEAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 22, marginBottom: 4 }}>⚡</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Wirker werden</div>
+              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Talent anbieten</div>
+            </div>
+            <div style={{ flex: 1, background: `${GOLD}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 22, marginBottom: 4 }}>🌱</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Impact</div>
+              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Projekte wählen</div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ flex: 1 }} />
+
+        {/* CTA Button */}
+        {step < screens.length - 1 ? (
+          <button
+            onClick={() => goTo(step + 1, "left")}
+            style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 20px ${CORAL}44`, transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
+            onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = `0 2px 8px ${CORAL}33`; }}
+            onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
+            onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
+          >
+            Weiter →
+          </button>
+        ) : (
+          <button
+            onClick={onClose}
+            style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${CORAL}55`, transition: "transform 0.15s ease" }}
+            onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; }}
+            onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+          >
+            Jetzt loslegen ✨
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 // ══════════════════════════════════════════════════════════════════
 // PROJEKT VORSCHLAGEN – Formular (Overlay)
@@ -4746,7 +4937,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
         </div>
         <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Info</div>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
-          <MenuRow icon="📋" label="Rechtliches" sub="AGB, Datenschutz, Impressum" color="#999" onClick={() => setSettingsSection("rechtliches")} last />
+          <MenuRow icon="📋" label="Rechtliches" sub="AGB, Datenschutz, Impressum" color="#999" onClick={() => setSettingsSection("rechtliches")} />
+          <MenuRow icon="✨" label="Intro erneut anzeigen" sub="HUI-Onboarding nochmal sehen" color={GOLD} onClick={() => { localStorage.removeItem("hui_onboarding_seen"); window.location.reload(); }} last />
         </div>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px" }}>
           <div onClick={() => {}} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", cursor: "pointer" }}>
@@ -5531,7 +5723,11 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
   const [showCart, setShowCart] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Show onboarding automatically on first visit
+    const seen = localStorage.getItem("hui_onboarding_seen");
+    return !seen;
+  });
   const [onboardingStep, setOnboardingStep] = useState(0);
   const isNewUser = false; // false = Talent-Modus (Demo)
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
@@ -5699,7 +5895,7 @@ export default function App() {
       {showStoryCreate && <StoryCreateModal onClose={() => setShowStoryCreate(false)} />}
 
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
-      {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => setShowOnboarding(false)} />}
+      {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => { setShowOnboarding(false); localStorage.setItem("hui_onboarding_seen", "1"); }} />}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
       {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
