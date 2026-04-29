@@ -4999,25 +4999,91 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   );
 }
 function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser, onPlusClick }) {
+  const [plusPressed, setPlusPressed] = React.useState(false);
   return (
-    <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "white", borderTop: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-around", padding: "10px 0 18px", zIndex: 200, boxShadow: "0 -2px 16px rgba(0,0,0,0.07)" }}>
-      <TabButton label="Home" icon={<Home size={20} />} active={page === "home"} onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
-      <TabButton label="Impact" icon={<Leaf size={20} />} active={page === "impact"} onClick={() => { setPage("impact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+    <div style={{
+      position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+      width: "100%", maxWidth: 430, background: "white",
+      borderTop: "1px solid #eee", display: "flex", alignItems: "center",
+      justifyContent: "space-around", padding: "6px 0 20px", zIndex: 200,
+      boxShadow: "0 -2px 24px rgba(0,0,0,0.09)",
+    }}>
+      <TabButton label="Home" icon={<Home size={22} />} active={page === "home"} onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+      <TabButton label="Impact" icon={<Leaf size={22} />} active={page === "impact"} onClick={() => { setPage("impact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
       {isNewUser ? (
-        <button onClick={() => { setShowOnboarding(true); setOnboardingStep(0); }} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -18 }}>
-          <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", boxShadow: `0 4px 18px ${GOLD}66`, animation: "huiPulse 2.4s ease-in-out infinite" }}><img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>
+        <button onClick={() => { setShowOnboarding(true); setOnboardingStep(0); }} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -22, WebkitTapHighlightColor: "transparent" }}>
+          <div style={{ width: 58, height: 58, borderRadius: "50%", overflow: "hidden", boxShadow: `0 4px 18px ${GOLD}66`, animation: "huiPulse 2.4s ease-in-out infinite" }}>
+            <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
           <span style={{ fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: 0.3 }}>Entdecke HUI</span>
         </button>
       ) : (
-        <button onClick={onPlusClick} style={{ width: 54, height: 54, borderRadius: "50%", background: CORAL, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginTop: -18, boxShadow: `0 4px 16px ${CORAL}66` }}><Plus size={26} color="white" strokeWidth={2.5} /></button>
+        <button
+          onClick={onPlusClick}
+          onPointerDown={() => setPlusPressed(true)}
+          onPointerUp={() => setPlusPressed(false)}
+          onPointerLeave={() => setPlusPressed(false)}
+          style={{
+            width: 56, height: 56, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${CORAL}, #FF8C5A)`,
+            border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            marginTop: -22,
+            boxShadow: plusPressed ? `0 2px 8px ${CORAL}55` : `0 6px 20px ${CORAL}66`,
+            transform: plusPressed ? "scale(0.88)" : "scale(1)",
+            transition: "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease",
+            WebkitTapHighlightColor: "transparent", outline: "none",
+          }}
+        >
+          <Plus size={26} color="white" strokeWidth={2.5} style={{
+            transform: plusPressed ? "rotate(45deg)" : "rotate(0deg)",
+            transition: "transform 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+          }} />
+        </button>
       )}
-      <TabButton label="Favoriten" icon={<Star size={20} />} active={page === "favorites"} onClick={() => { setPage("favorites"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
-      <TabButton label="Profil" icon={<User size={20} />} active={page === "profile"} onClick={() => { setPage("profile"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+      <TabButton label="Favoriten" icon={<Star size={22} />} active={page === "favorites"} onClick={() => { setPage("favorites"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+      <TabButton label="Profil" icon={<User size={22} />} active={page === "profile"} onClick={() => { setPage("profile"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
     </div>
   );
 }
 function TabButton({ label, icon, active, onClick }) {
-  return (<button onClick={onClick} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: active ? CORAL : "#AABBB8", fontWeight: active ? 700 : 400, fontSize: 10, minWidth: 52 }}><span style={{ color: active ? CORAL : "#AABBB8" }}>{icon}</span>{label}</button>);
+  const [pressed, setPressed] = React.useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      style={{
+        background: "none", border: "none", cursor: "pointer",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+        minWidth: 52, padding: "2px 0",
+        transform: pressed ? "scale(0.82)" : active ? "scale(1.08)" : "scale(1)",
+        transition: "transform 0.18s cubic-bezier(0.34,1.56,0.64,1)",
+        WebkitTapHighlightColor: "transparent",
+        outline: "none",
+      }}
+    >
+      <span style={{
+        color: active ? CORAL : "#AABBB8",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        width: 36, height: 36, borderRadius: 12,
+        background: active ? `${CORAL}14` : "transparent",
+        transition: "background 0.22s ease, color 0.22s ease",
+      }}>{icon}</span>
+      <span style={{
+        fontSize: 10, fontWeight: active ? 700 : 400,
+        color: active ? CORAL : "#AABBB8",
+        transition: "color 0.22s ease, font-weight 0.22s ease",
+      }}>{label}</span>
+      <span style={{
+        width: active ? 18 : 0, height: 3, borderRadius: 2,
+        background: CORAL,
+        transition: "width 0.28s cubic-bezier(0.34,1.56,0.64,1)",
+        marginTop: 1,
+      }} />
+    </button>
+  );
 }
 
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
