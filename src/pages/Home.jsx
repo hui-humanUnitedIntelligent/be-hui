@@ -3109,49 +3109,126 @@ function StoryCreateModal({ onClose }) {
     </div>
   );
 }
+function OnboardingCardDetail({ card, onClose }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", fontFamily: "'Inter', -apple-system, sans-serif" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 430, margin: "0 auto", background: "white", borderRadius: "28px 28px 0 0", padding: "28px 24px 48px" }}>
+        <div style={{ width: 40, height: 4, background: "#e0e0e0", borderRadius: 2, margin: "0 auto 24px" }} />
+        <div style={{ fontSize: 42, textAlign: "center", marginBottom: 12 }}>{card.emoji}</div>
+        <div style={{ fontWeight: 900, fontSize: 22, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{card.title}</div>
+        <div style={{ fontSize: 14, color: "#666", textAlign: "center", lineHeight: 1.75, marginBottom: 20 }}>{card.detail}</div>
+        {card.bullets && (
+          <div style={{ background: card.bg, borderRadius: 16, padding: "14px 16px", marginBottom: 8 }}>
+            {card.bullets.map((b, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: i < card.bullets.length - 1 ? 10 : 0 }}>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>{b.icon}</span>
+                <span style={{ fontSize: 13, color: "#444", lineHeight: 1.5 }}>{b.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <button onClick={onClose} style={{ width: "100%", background: card.color, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 12 }}>
+          Verstanden ✓
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function OnboardingOverlay({ step, setStep, onClose }) {
+  const [activeCard, setActiveCard] = React.useState(null);
+
+  const cardDetails = {
+    entdecken: {
+      emoji: "🛍️", title: "Entdecke echte Talente",
+      color: CORAL, bg: `${CORAL}10`,
+      detail: "Töpferinnen, Fotografen, Coaches, Musiker – bei HUI triffst du Menschen, die mit Leidenschaft etwas schaffen. Nicht irgendwelche Profile. Echte Gesichter, echte Werke, echte Verbindungen.",
+      bullets: [
+        { icon: "🎨", text: "Einzigartige Werke direkt vom Schöpfer kaufen" },
+        { icon: "📅", text: "Talente buchen – für Workshops, Sessions oder Aufträge" },
+        { icon: "🗺️", text: "Wirker in deiner Nähe entdecken" },
+      ]
+    },
+    wirker: {
+      emoji: "⚡", title: "Werde Wirker",
+      color: TEAL, bg: `${TEAL}10`,
+      detail: "Du hast ein Talent? Dann gehörst du zu uns. Teile deine Leidenschaft, biete deine Fähigkeiten an und werde Teil einer Community, die dich wirklich sieht.",
+      bullets: [
+        { icon: "✨", text: "Profil erstellen und dein Talent zeigen" },
+        { icon: "💸", text: "Buchungen annehmen – sicher über das HUI-Treuhandsystem" },
+        { icon: "🏅", text: "Verifizierte Empfehlungen aufbauen" },
+      ]
+    },
+    impact: {
+      emoji: "🌱", title: "Dein Herz macht den Unterschied",
+      color: "#10b981", bg: "#10b98110",
+      detail: "Von jeder Buchung fließen 2,25 % automatisch in Projekte, die wirklich etwas bewegen – lokal, menschlich, mit Herz. Keine Konzerne, keine anonymen Spenden. Die ganze HUI-Community stimmt gemeinsam ab, welches Projekt gefördert wird.",
+      bullets: [
+        { icon: "💚", text: "Projekte mit echtem Herz und echter Wirkung" },
+        { icon: "🗳️", text: "Alle Wirker wählen monatlich gemeinsam" },
+        { icon: "👀", text: "Du siehst genau, was dein Beitrag bewirkt hat" },
+      ]
+    },
+    punkte: {
+      emoji: "⭐", title: "HUI-Punkte – dein Dankeschön",
+      color: "#8b5cf6", bg: "#8b5cf610",
+      detail: "Bei HUI wird jede gute Tat belohnt. Buchst du, empfiehlst du, oder hilfst du jemandem? Du sammelst HUI-Punkte – und die kannst du gegen echte Vorteile einlösen.",
+      bullets: [
+        { icon: "📅", text: "Punkte für Buchungen, Empfehlungen & mehr" },
+        { icon: "🎁", text: "Rabatte, Gratis-Buchungen oder Boost deines Profils" },
+        { icon: "🌱", text: "Punkte direkt in den Impact Pool spenden" },
+      ]
+    },
+  };
+
   const screens = [
     {
       img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop",
-      gradient: `linear-gradient(160deg, #FF6B5B22 0%, #F5A62322 100%)`,
-      emoji: "✨",
-      tag: "Willkommen",
-      title: "Hey, schön dass du da bist.",
-      sub: "HUI ist ein Ort, an dem echte Talente, echte Menschen und echte Veränderung zusammenkommen.",
+      emoji: "🤍",
+      tag: "Willkommen bei HUI",
+      title: "Schön, dass du hier bist.",
+      sub: "HUI steht für Human United Intelligent – und das meinst du wörtlich. Hier trifft Menschlichkeit auf echte Talente. Kein Algorithmus entscheidet. Die Menschen machen den Unterschied.",
       features: null,
     },
     {
       img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
-      gradient: `linear-gradient(160deg, #2ABFAC22 0%, #3B82F622 100%)`,
       emoji: "🎨",
       tag: "Talente & Werke",
-      title: "Hier leben echte Geschichten.",
-      sub: "Menschen mit besonderen Talenten schaffen Werke mit Herz – und du kannst Teil davon sein.",
-      features: ["Fotografen, Künstler, Coaches & mehr", "Werke kaufen oder Talente buchen", "Verifizierte Profile, echte Empfehlungen"],
+      title: "Jedes Talent hat eine Geschichte.",
+      sub: "Hinter jedem Profil steckt ein Mensch mit Leidenschaft. Töpferin, Fotograf, Yoga-Coach, Musiker – sie alle bringen etwas mit, das die Welt ein bisschen schöner macht.",
+      features: [
+        "Werke mit Seele – direkt vom Schöpfer",
+        "Talente buchen, die wirklich für dich da sind",
+        "Empfehlungen, die du wirklich vertrauen kannst",
+      ],
+      gradient: `linear-gradient(160deg, ${CORAL}15 0%, ${GOLD}10 100%)`,
     },
     {
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=600&fit=crop",
-      gradient: `linear-gradient(160deg, #10b98122 0%, #2ABFAC22 100%)`,
       emoji: "🌱",
-      tag: "Impact",
-      title: "Jede Buchung wirkt weiter.",
-      sub: "Mit jeder Transaktion fließen automatisch 2,25 % in echte Projekte – von der Community gewählt.",
-      features: ["Impact Pool für NGOs & Sozialprojekte", "Community stimmt monatlich ab", "Du siehst, was dein Geld bewirkt"],
+      tag: "Mit Herz dabei",
+      title: "Dein Handeln hinterlässt Spuren.",
+      sub: "Jedes Mal, wenn du bei HUI buchst oder kaufst, fließt ein kleiner Teil automatisch in Projekte, die etwas bewegen. Nicht irgendwo. Sondern da, wo es wirklich gebraucht wird.",
+      features: [
+        "Projekte mit Herz – von der Community gewählt",
+        "Alle Wirker stimmen gemeinsam ab",
+        "Du siehst, was dein Beitrag bewirkt",
+      ],
+      gradient: `linear-gradient(160deg, #10b98115 0%, ${TEAL}10 100%)`,
     },
     {
       img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-      gradient: `linear-gradient(160deg, #F5A62322 0%, #FF6B5B22 100%)`,
       emoji: "🚀",
       tag: "Los geht's",
-      title: "Bereit, Teil von HUI zu sein?",
-      sub: "Entdecke Talente in deiner Nähe, kaufe einzigartige Werke oder werde selbst Wirker.",
+      title: "Was magst du als Erstes entdecken?",
+      sub: "Tippe auf eine Karte um mehr zu erfahren – oder leg einfach los.",
       features: null,
       isFinal: true,
     },
   ];
 
   const touchStartX = React.useRef(null);
-  const [animDir, setAnimDir] = React.useState(null); // "left" | "right" | null
+  const [animDir, setAnimDir] = React.useState(null);
   const [visible, setVisible] = React.useState(true);
 
   const goTo = (next, dir) => {
@@ -3170,6 +3247,7 @@ function OnboardingOverlay({ step, setStep, onClose }) {
     if (touchStartX.current === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     touchStartX.current = null;
+    if (Math.abs(dx) < 5) return;
     if (dx < -50 && step < screens.length - 1) goTo(step + 1, "left");
     if (dx > 50 && step > 0) goTo(step - 1, "right");
   };
@@ -3178,136 +3256,148 @@ function OnboardingOverlay({ step, setStep, onClose }) {
 
   const slideStyle = {
     opacity: visible ? 1 : 0,
-    transform: visible ? "translateX(0)" : animDir === "left" ? "translateX(40px)" : "translateX(-40px)",
+    transform: visible ? "translateX(0)" : animDir === "left" ? "translateX(36px)" : "translateX(-36px)",
     transition: "opacity 0.22s ease, transform 0.22s ease",
   };
 
+  const FinalCard = ({ cardKey, emoji, label, sub, color, bg }) => {
+    const [pressed, setPressed] = React.useState(false);
+    return (
+      <button
+        onClick={() => setActiveCard(cardDetails[cardKey])}
+        onPointerDown={() => setPressed(true)}
+        onPointerUp={() => setPressed(false)}
+        onPointerLeave={() => setPressed(false)}
+        style={{
+          background: pressed ? bg.replace("10", "22") : bg,
+          borderRadius: 18, padding: "16px 12px", textAlign: "center",
+          border: `1.5px solid ${color}33`,
+          cursor: "pointer", outline: "none",
+          transform: pressed ? "scale(0.94)" : "scale(1)",
+          transition: "transform 0.15s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
+          WebkitTapHighlightColor: "transparent",
+          display: "flex", flexDirection: "column", alignItems: "center",
+        }}
+      >
+        <div style={{ fontSize: 26, marginBottom: 6 }}>{emoji}</div>
+        <div style={{ fontWeight: 800, fontSize: 13, color: "#222" }}>{label}</div>
+        <div style={{ fontSize: 11, color: "#999", marginTop: 3, lineHeight: 1.4 }}>{sub}</div>
+        <div style={{ fontSize: 10, color: color, fontWeight: 700, marginTop: 6, display: "flex", alignItems: "center", gap: 2 }}>
+          Mehr erfahren <span style={{ fontSize: 12 }}>→</span>
+        </div>
+      </button>
+    );
+  };
+
   return (
-    <div
-      style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Image with gradient overlay */}
-      <div style={{ position: "relative", width: "100%", height: "52%", overflow: "hidden" }}>
-        <img
-          src={s.img}
-          style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.88, transition: "opacity 0.4s ease" }}
-          alt=""
-        />
-        {/* Dark gradient at bottom for bleed into card */}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
-        {/* Tag badge */}
-        <div style={{ ...slideStyle, position: "absolute", top: 54, left: 20 }}>
-          <div style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 14 }}>{s.emoji}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "white", letterSpacing: 0.5 }}>{s.tag}</span>
-          </div>
-        </div>
-        {/* Skip button */}
-        {step < screens.length - 1 && (
-          <button onClick={onClose} style={{ position: "absolute", top: 54, right: 20, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", color: "white", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-            Überspringen
-          </button>
-        )}
-      </div>
-
-      {/* Bottom card */}
-      <div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -28, padding: "24px 24px 40px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
-
-        {/* Dot indicators */}
-        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 22 }}>
-          {screens.map((_, i) => (
-            <button key={i} onClick={() => goTo(i, i > step ? "left" : "right")} style={{ border: "none", cursor: "pointer", padding: 0, background: "none" }}>
-              <div style={{ width: i === step ? 24 : 7, height: 7, borderRadius: 4, background: i === step ? CORAL : "#e8e8e8", transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)" }} />
-            </button>
-          ))}
-        </div>
-
-        {/* HUI Logo on first screen */}
-        {step === 0 && (
-          <div style={{ ...slideStyle, display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <div style={{ position: "relative" }}>
-              <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 72, height: 72, borderRadius: 20, objectFit: "cover", boxShadow: "0 8px 24px rgba(255,107,91,0.3)" }} />
-              <div style={{ position: "absolute", bottom: -4, right: -4, width: 22, height: 22, background: TEAL, borderRadius: "50%", border: "2.5px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 11 }}>✓</span>
-              </div>
+    <>
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Image */}
+        <div style={{ position: "relative", width: "100%", height: "48%", overflow: "hidden" }}>
+          <img src={s.img} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85, transition: "opacity 0.4s ease" }} alt="" />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%)" }} />
+          {/* Tag */}
+          <div style={{ ...slideStyle, position: "absolute", top: 52, left: 20 }}>
+            <div style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 14 }}>{s.emoji}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "white", letterSpacing: 0.4 }}>{s.tag}</span>
             </div>
           </div>
-        )}
-
-        {/* Title & Sub */}
-        <div style={slideStyle}>
-          <div style={{ fontWeight: 900, fontSize: 24, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{s.title}</div>
-          <div style={{ color: "#888", fontSize: 14, textAlign: "center", lineHeight: 1.65, marginBottom: s.features ? 20 : 0 }}>{s.sub}</div>
+          {/* Skip */}
+          {step < screens.length - 1 && (
+            <button onClick={onClose} style={{ position: "absolute", top: 52, right: 20, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 16px", color: "white", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+              Überspringen
+            </button>
+          )}
         </div>
 
-        {/* Feature list */}
-        {s.features && (
-          <div style={{ ...slideStyle, background: s.gradient || "#f9f9f9", borderRadius: 16, padding: "14px 16px", marginBottom: 4 }}>
-            {s.features.map((f, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: i < s.features.length - 1 ? 10 : 0 }}>
-                <div style={{ width: 22, height: 22, borderRadius: "50%", background: CORAL, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Check size={12} color="white" strokeWidth={3} />
-                </div>
-                <span style={{ fontSize: 13, color: "#444", fontWeight: 500 }}>{f}</span>
-              </div>
+        {/* Bottom card */}
+        <div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -28, padding: "22px 22px 36px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
+          {/* Dots */}
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 20 }}>
+            {screens.map((_, i) => (
+              <button key={i} onClick={() => goTo(i, i > step ? "left" : "right")} style={{ border: "none", cursor: "pointer", padding: 0, background: "none" }}>
+                <div style={{ width: i === step ? 24 : 7, height: 7, borderRadius: 4, background: i === step ? CORAL : "#e8e8e8", transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)" }} />
+              </button>
             ))}
           </div>
-        )}
 
-        {/* Final screen CTA options */}
-        {s.isFinal && (
-          <div style={{ ...slideStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8, marginTop: 4 }}>
-            <div style={{ background: `${CORAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 24, marginBottom: 4 }}>🛍️</div>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Entdecken</div>
-              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Talente & Werke</div>
+          {/* Logo on first screen */}
+          {step === 0 && (
+            <div style={{ ...slideStyle, display: "flex", justifyContent: "center", marginBottom: 14 }}>
+              <div style={{ position: "relative" }}>
+                <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 70, height: 70, borderRadius: 20, objectFit: "cover", boxShadow: "0 8px 28px rgba(255,107,91,0.28)" }} />
+                <div style={{ position: "absolute", bottom: -5, right: -5, width: 22, height: 22, background: TEAL, borderRadius: "50%", border: "2.5px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 11 }}>✓</span>
+                </div>
+              </div>
             </div>
-            <div style={{ background: `${TEAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 24, marginBottom: 4 }}>⚡</div>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Wirker werden</div>
-              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Talent anbieten</div>
-            </div>
-            <div style={{ background: `${GOLD}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 24, marginBottom: 4 }}>🌱</div>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Impact</div>
-              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Projekte wählen</div>
-            </div>
-            <div style={{ background: `#8b5cf612`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 24, marginBottom: 4 }}>⭐</div>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>HUI-Punkte</div>
-              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Sammeln & einlösen</div>
-            </div>
+          )}
+
+          {/* Title & Sub */}
+          <div style={slideStyle}>
+            <div style={{ fontWeight: 900, fontSize: 23, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{s.title}</div>
+            <div style={{ color: "#777", fontSize: 14, textAlign: "center", lineHeight: 1.7, marginBottom: s.features ? 18 : 0 }}>{s.sub}</div>
           </div>
-        )}
 
-        <div style={{ flex: 1 }} />
+          {/* Feature list */}
+          {s.features && (
+            <div style={{ ...slideStyle, background: s.gradient || "#f9f9f7", borderRadius: 16, padding: "14px 16px", marginBottom: 4 }}>
+              {s.features.map((f, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: i < s.features.length - 1 ? 11 : 0 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Check size={12} color="white" strokeWidth={3} />
+                  </div>
+                  <span style={{ fontSize: 13, color: "#333", fontWeight: 500 }}>{f}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {/* CTA Button */}
-        {step < screens.length - 1 ? (
-          <button
-            onClick={() => goTo(step + 1, "left")}
-            style={{ width: "100%", background: CORAL, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 20px ${CORAL}44`, transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
-            onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = `0 2px 8px ${CORAL}33`; }}
-            onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
-            onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
-          >
-            Weiter →
-          </button>
-        ) : (
-          <button
-            onClick={onClose}
-            style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${CORAL}55`, transition: "transform 0.15s ease" }}
-            onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; }}
-            onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-            onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
-          >
-            Jetzt loslegen ✨
-          </button>
-        )}
+          {/* Final screen – clickable cards */}
+          {s.isFinal && (
+            <div style={{ ...slideStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8, marginTop: 4 }}>
+              <FinalCard cardKey="entdecken" emoji="🛍️" label="Entdecken" sub="Talente & Werke" color={CORAL} bg={`${CORAL}10`} />
+              <FinalCard cardKey="wirker" emoji="⚡" label="Wirker werden" sub="Talent anbieten" color={TEAL} bg={`${TEAL}10`} />
+              <FinalCard cardKey="impact" emoji="🌱" label="Mit Herz dabei" sub="Projekte mit Wirkung" color="#10b981" bg="#10b98110" />
+              <FinalCard cardKey="punkte" emoji="⭐" label="HUI-Punkte" sub="Sammeln & einlösen" color="#8b5cf6" bg="#8b5cf610" />
+            </div>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* CTA */}
+          {step < screens.length - 1 ? (
+            <button
+              onClick={() => goTo(step + 1, "left")}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, #FF8C5A)`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 20px ${CORAL}44`, transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
+              onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = `0 2px 8px ${CORAL}33`; }}
+              onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
+              onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
+            >
+              Weiter →
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${CORAL}55`, transition: "transform 0.15s ease" }}
+              onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
+              onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              Jetzt loslegen ✨
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Card Detail Modal */}
+      {activeCard && <OnboardingCardDetail card={activeCard} onClose={() => setActiveCard(null)} />}
+    </>
   );
 }
 // ══════════════════════════════════════════════════════════════════
