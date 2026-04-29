@@ -2264,14 +2264,34 @@ function StoryBar() {
   );
 }
 function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
-  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = React.useState(true);
+  const videoRef = React.useRef(null);
+  const containerRef = React.useRef(null);
+
+  // Autoplay when scrolled into view
+  React.useEffect(() => {
+    if (item.mediaType !== "video") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) { videoRef.current?.play().catch(() => {}); }
+        else { videoRef.current?.pause(); }
+      },
+      { threshold: 0.5 }
+    );
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [item.mediaType]);
+
+  // Demo video URL — in production this would be item.videoUrl
+  const demoVideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
+
   return (
-    <div style={{ background: "white", margin: "8px 16px", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, borderLeft: `3.5px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
-      {/* Header — kompakt */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px 6px" }}>
+    <div style={{ background: "white", margin: "8px 16px", borderRadius: 18, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.08)", border: `1px solid #f0f0ee`, borderLeft: `3.5px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px 8px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <img src={item.creatorImg} onClick={() => onViewWirker(item.creator)}
-            style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}30`, cursor: "pointer" }} alt={item.creator} />
+            style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}30`, cursor: "pointer" }} alt={item.creator} />
           <div style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
         </div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => onViewWirker(item.creator)}>
@@ -2284,42 +2304,55 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
           </div>
         </div>
         <button onClick={() => onViewWirker(item.creator)}
-          style={{ background: "none", border: `1px solid ${TEAL}40`, borderRadius: 20, padding: "4px 11px", fontWeight: 600, fontSize: 11, color: TEAL, cursor: "pointer" }}>
+          style={{ background: "none", border: `1px solid ${TEAL}40`, borderRadius: 20, padding: "4px 12px", fontWeight: 600, fontSize: 11, color: TEAL, cursor: "pointer" }}>
           Folgen
         </button>
       </div>
 
-      {/* Bild — etwas weniger hoch, mit abgerundeten Ecken im Container */}
-      <div style={{ margin: "0 10px", borderRadius: 12, overflow: "hidden", position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }}
-        onClick={() => item.mediaType === "video" && setPlaying(p => !p)}>
-        <img src={item.img} style={{ width: "100%", display: "block", height: 140, objectFit: "cover" }} alt="" />
-        {item.mediaType === "video" && !playing && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.92)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.18)" }}>
-              <Play size={20} color={CORAL} fill={CORAL} style={{ marginLeft: 2 }} />
+      {/* Media — full width, tall */}
+      <div ref={containerRef} style={{ position: "relative", width: "100%", lineHeight: 0 }}>
+        {item.mediaType === "video" ? (
+          <>
+            <video
+              ref={videoRef}
+              src={demoVideoUrl}
+              muted={muted}
+              loop
+              playsInline
+              style={{ width: "100%", height: 280, objectFit: "cover", display: "block" }}
+            />
+            {/* Mute toggle */}
+            <button
+              onClick={() => setMuted(m => !m)}
+              style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+            >
+              <span style={{ fontSize: 15 }}>{muted ? "🔇" : "🔊"}</span>
+            </button>
+            {/* Video badge */}
+            <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+              🎬 Video
             </div>
-          </div>
-        )}
-        {item.mediaType === "video" && (
-          <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.45)", color: "white", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700 }}>🎬 Video</div>
+          </>
+        ) : (
+          <img src={item.img} style={{ width: "100%", height: 260, objectFit: "cover", display: "block" }} alt="" />
         )}
       </div>
 
-      {/* Caption + Actions — kompakter */}
-      <div style={{ padding: "6px 12px 8px" }}>
-        <div style={{ fontSize: 12.5, color: "#444", lineHeight: 1.55, marginBottom: 8 }}>
+      {/* Caption + Actions */}
+      <div style={{ padding: "8px 14px 10px" }}>
+        <div style={{ fontSize: 13, color: "#444", lineHeight: 1.6, marginBottom: 8 }}>
           <span style={{ fontWeight: 700, color: "#222" }}>{item.creator} </span>{item.caption}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
           <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, padding: "4px 8px 4px 0", color: liked ? CORAL : "#aaa" }}>
-            <Heart size={16} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#aaa"} />
+            <Heart size={17} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#aaa"} />
             <span style={{ fontSize: 12, fontWeight: 600 }}>{item.likes + (liked ? 1 : 0)}</span>
           </button>
           <button onClick={() => shareItem(item.creator + "s Beitrag")} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 8px", color: "#aaa" }}>
-            <Share2 size={16} color="#bbb" />
+            <Share2 size={17} color="#bbb" />
           </button>
           <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 8px", color: faved ? GOLD : "#aaa" }}>
-            <Star size={16} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#bbb"} />
+            <Star size={17} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#bbb"} />
           </button>
           <button onClick={() => onViewWirker(item.creator)}
             style={{ marginLeft: "auto", background: "none", border: "none", color: TEAL, fontWeight: 700, fontSize: 12, cursor: "pointer", padding: "4px 0" }}>
@@ -2342,7 +2375,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
   return (
     <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px", borderLeft: `3.5px solid ${GOLD}` }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
-        <img src={item.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={item.title} />
+        <img src={item.img} style={{ width: "100%", height: 240, objectFit: "cover" }} alt={item.title} />
         {/* Preis oben links */}
         <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 15 }}>{item.price}</div>
         {/* In den Korb – Overlay-Button unten */}
@@ -2381,24 +2414,42 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
   );
 }
 function WirkerCard({ item, onViewWirker, onBookWirker }) {
+  // Find cover image from mockWirkers if available
+  const wirkerData = mockWirkers.find(w => w.name === item.name);
+  const coverImg = wirkerData?.coverImg || item.img;
   return (
-    <div style={{ margin: "6px 16px", borderRadius: 14, background: "white", boxShadow: "0 1px 8px rgba(0,0,0,0.07)", borderLeft: `3.5px solid ${TEAL}`, display: "flex", alignItems: "center", gap: 12, padding: "10px 12px" }}>
-      <div style={{ position: "relative", flexShrink: 0 }}>
-        <img src={item.img} onClick={() => onViewWirker(item.name)}
-          style={{ width: 46, height: 46, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}30`, cursor: "pointer" }} alt={item.name} />
-        <div style={{ position: "absolute", bottom: 1, right: 1, width: 11, height: 11, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-          {item.name} <BadgeCheck size={12} color={TEAL} />
+    <div style={{ margin: "8px 16px", borderRadius: 18, background: "white", boxShadow: "0 2px 16px rgba(0,0,0,0.08)", overflow: "hidden", border: `1px solid #f0f0ee`, borderLeft: `3.5px solid ${TEAL}` }}>
+      {/* Cover image */}
+      <div style={{ position: "relative", cursor: "pointer", height: 120 }} onClick={() => onViewWirker(item.name)}>
+        <img src={coverImg} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} alt="" />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)" }} />
+        {/* Name overlay */}
+        <div style={{ position: "absolute", bottom: 10, left: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ position: "relative" }}>
+            <img src={item.img} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid white" }} alt={item.name} />
+            <div style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: "white", display: "flex", alignItems: "center", gap: 4 }}>
+              {item.name} <BadgeCheck size={12} color="white" />
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>{item.talent}</div>
+          </div>
         </div>
-        <div style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>{item.talent}</div>
-        <div style={{ fontSize: 10, color: "#bbb", marginTop: 1 }}><MapPin size={9} style={{ display: "inline", marginRight: 2 }} />{item.location} · 👍 {item.recommendations}</div>
       </div>
-      <button onClick={() => onBookWirker(item.name)}
-        style={{ flexShrink: 0, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 10, padding: "7px 12px", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
-        Buchen
-      </button>
+      {/* Info row */}
+      <div style={{ padding: "10px 14px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 4 }}>
+            <MapPin size={9} />{item.location}
+            <span style={{ color: TEAL, fontWeight: 600, marginLeft: 4 }}>👍 {item.recommendations}</span>
+          </div>
+        </div>
+        <button onClick={() => onBookWirker(item.name)}
+          style={{ flexShrink: 0, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 10, padding: "7px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+          Buchen
+        </button>
+      </div>
     </div>
   );
 }
