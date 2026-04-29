@@ -2290,7 +2290,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
       </div>
 
       {/* Bild — etwas weniger hoch, mit abgerundeten Ecken im Container */}
-      <div style={{ overflow: "hidden", position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }}
+      <div style={{ margin: "0 10px", borderRadius: 12, overflow: "hidden", position: "relative", cursor: item.mediaType === "video" ? "pointer" : "default" }}
         onClick={() => item.mediaType === "video" && setPlaying(p => !p)}>
         <img src={item.img} style={{ width: "100%", display: "block", height: 140, objectFit: "cover" }} alt="" />
         {item.mediaType === "video" && !playing && (
