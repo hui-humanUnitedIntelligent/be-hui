@@ -3258,21 +3258,26 @@ function OnboardingOverlay({ step, setStep, onClose }) {
 
         {/* Final screen CTA options */}
         {s.isFinal && (
-          <div style={{ ...slideStyle, display: "flex", gap: 10, marginBottom: 8, marginTop: 4 }}>
-            <div style={{ flex: 1, background: `${CORAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>🛍️</div>
+          <div style={{ ...slideStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8, marginTop: 4 }}>
+            <div style={{ background: `${CORAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>🛍️</div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Entdecken</div>
               <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Talente & Werke</div>
             </div>
-            <div style={{ flex: 1, background: `${TEAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>⚡</div>
+            <div style={{ background: `${TEAL}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>⚡</div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Wirker werden</div>
               <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Talent anbieten</div>
             </div>
-            <div style={{ flex: 1, background: `${GOLD}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>🌱</div>
+            <div style={{ background: `${GOLD}12`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>🌱</div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>Impact</div>
               <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Projekte wählen</div>
+            </div>
+            <div style={{ background: `#8b5cf612`, borderRadius: 16, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>⭐</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#333" }}>HUI-Punkte</div>
+              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Sammeln & einlösen</div>
             </div>
           </div>
         )}
