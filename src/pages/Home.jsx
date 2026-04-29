@@ -5545,18 +5545,18 @@ export default function App() {
             <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "0 16px 8px", scrollSnapType: "x mandatory" }}>
               {featuredWirker.map(w => (
                 <div key={w.id} onClick={() => viewWirker(w.name)}
-                  style={{ flexShrink: 0, width: 200, borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.12)", cursor: "pointer", scrollSnapAlign: "start", position: "relative" }}>
-                  <img src={w.coverImg} style={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} alt={w.name} />
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 90, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.55))" }} />
-                  <div style={{ position: "absolute", top: 10, left: 10, background: CORAL, color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 800 }}>{w.tag}</div>
-                  <div style={{ background: "white", padding: "10px 12px 14px", display: "flex", gap: 10, alignItems: "center" }}>
-                    <img src={w.img} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}`, flexShrink: 0 }} alt={w.name} />
+                  style={{ flexShrink: 0, width: 155, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.09)", cursor: "pointer", scrollSnapAlign: "start", position: "relative", background: "white", borderLeft: `3px solid ${TEAL}` }}>
+                  <div style={{ position: "relative" }}>
+                    <img src={w.coverImg} style={{ width: "100%", height: 70, objectFit: "cover", display: "block" }} alt={w.name} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.45))" }} />
+                    <div style={{ position: "absolute", top: 6, left: 7, background: CORAL, color: "white", borderRadius: 20, padding: "2px 7px", fontSize: 9, fontWeight: 800 }}>{w.tag}</div>
+                  </div>
+                  <div style={{ padding: "8px 10px 10px", display: "flex", gap: 8, alignItems: "center" }}>
+                    <img src={w.img} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}`, flexShrink: 0 }} alt={w.name} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>{w.name} <BadgeCheck size={13} color={TEAL} /></div>
-                      <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.talent}</div>
-                      <div style={{ fontSize: 10, color: "#aaa", marginTop: 2, display: "flex", gap: 6 }}>
-                        <span>👍 {w.recommendations}</span><span>·</span><span>{w.rate}</span>
-                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: "#222", display: "flex", alignItems: "center", gap: 3 }}>{w.name} <BadgeCheck size={11} color={TEAL} /></div>
+                      <div style={{ fontSize: 10, color: TEAL, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.talent}</div>
+                      <div style={{ fontSize: 9, color: "#bbb", marginTop: 1 }}>👍 {w.recommendations} · {w.rate}</div>
                     </div>
                   </div>
                 </div>
