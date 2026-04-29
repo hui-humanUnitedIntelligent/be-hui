@@ -2373,7 +2373,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
     setTimeout(() => setAdded(false), 1800);
   };
   return (
-    <div style={{ background: "linear-gradient(160deg, #fff8f7, #fff3f0)", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(255,107,91,0.10)", border: `1px solid ${CORAL}18`, margin: "8px 16px", borderLeft: `3.5px solid ${GOLD}` }}>
+    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, margin: "8px 16px", borderLeft: `3.5px solid ${GOLD}` }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
         <img src={item.img} style={{ width: "100%", height: 240, objectFit: "cover" }} alt={item.title} />
         {/* Preis oben links */}
@@ -2454,10 +2454,36 @@ function WirkerCard({ item, onViewWirker, onBookWirker }) {
   );
 }
 function ImpactCard({ item }) {
+  const IMPACT_PURPLE = "#7c3aed";
+  const IMPACT_PURPLE_LIGHT = "#ede9fe";
   return (
-    <div style={{ background: `linear-gradient(160deg, #f0fdf6, #e8faf2)`, borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 14px rgba(16,185,129,0.12)`, border: `1px solid rgba(16,185,129,0.18)`, margin: "8px 16px", borderLeft: `3.5px solid #10b981` }}>
-      <div style={{ position: "relative" }}><img src={item.img} style={{ width: "100%", height: 90, objectFit: "cover" }} alt={item.title} /><div style={{ position: "absolute", top: 10, left: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontWeight: 700, fontSize: 12 }}>🌱 Impact-Projekt</div></div>
-      <div style={{ padding: "12px 14px" }}><div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{item.title}</div><div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 6 }}><div style={{ background: `linear-gradient(90deg, ${GOLD}, ${CORAL})`, height: 7, borderRadius: 99, width: `${item.progress}%` }} /></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999" }}><span>{item.collected} gesammelt</span><span>Ziel: {item.goal}</span></div></div>
+    <div style={{ background: `linear-gradient(160deg, #faf5ff, #ede9fe)`, borderRadius: 18, overflow: "hidden", boxShadow: `0 4px 18px rgba(124,58,237,0.13)`, border: `1px solid rgba(124,58,237,0.18)`, margin: "8px 16px", borderLeft: `3.5px solid ${IMPACT_PURPLE}` }}>
+      {/* Cover Image mit Overlay */}
+      <div style={{ position: "relative" }}>
+        <img src={item.img} style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} alt={item.title} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(124,58,237,0.15) 0%, rgba(0,0,0,0.5) 100%)" }} />
+        {/* Badge */}
+        <div style={{ position: "absolute", top: 12, left: 12, background: IMPACT_PURPLE, color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
+          🌱 Herzensprojekt
+        </div>
+        {/* Fortschritt als Overlay unten */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "10px 14px 8px", background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(255,255,255,0.85)", marginBottom: 5, fontWeight: 600 }}>
+            <span>{item.collected} gesammelt</span>
+            <span>Ziel: {item.goal}</span>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.25)", borderRadius: 99, height: 5 }}>
+            <div style={{ background: `linear-gradient(90deg, #a78bfa, ${IMPACT_PURPLE})`, height: 5, borderRadius: 99, width: `${item.progress}%`, transition: "width 0.6s ease" }} />
+          </div>
+        </div>
+      </div>
+      {/* Content */}
+      <div style={{ padding: "12px 14px 14px" }}>
+        <div style={{ fontWeight: 800, fontSize: 15, color: "#1e1b4b", marginBottom: 4 }}>{item.title}</div>
+        <div style={{ fontSize: 12, color: "#7c3aed", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+          🗳️ Community stimmt gerade ab
+        </div>
+      </div>
     </div>
   );
 }
