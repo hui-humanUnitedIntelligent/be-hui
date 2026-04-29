@@ -3162,11 +3162,11 @@ function OnboardingOverlay({ step, setStep, onClose }) {
     impact: {
       emoji: "🌱", title: "Dein Herz macht den Unterschied",
       color: "#10b981", bg: "#10b98110",
-      detail: "Von jeder Buchung fließen 2,25 % automatisch in Projekte, die wirklich etwas bewegen – lokal, menschlich, mit Herz. Keine Konzerne, keine anonymen Spenden. Die ganze HUI-Community stimmt gemeinsam ab, welches Projekt gefördert wird.",
+      detail: "Jedes Mal, wenn bei HUI etwas gebucht oder gekauft wird, fließt automatisch ein Teil unserer Einnahmen in Projekte, die wirklich etwas bewegen. Kein Konzern entscheidet. Keine anonymen Spenden. Die HUI-Community wählt gemeinsam – jeden Monat.",
       bullets: [
-        { icon: "💚", text: "Projekte mit echtem Herz und echter Wirkung" },
-        { icon: "🗳️", text: "Alle Wirker wählen monatlich gemeinsam" },
-        { icon: "👀", text: "Du siehst genau, was dein Beitrag bewirkt hat" },
+        { icon: "💚", text: "Echte Projekte mit Herz – lokal, menschlich, spürbar" },
+        { icon: "🗳️", text: "Alle Wirker stimmen gemeinsam ab, wer gefördert wird" },
+        { icon: "👀", text: "Du siehst, was durch dein Handeln entstanden ist" },
       ]
     },
     punkte: {
@@ -3208,11 +3208,11 @@ function OnboardingOverlay({ step, setStep, onClose }) {
       emoji: "🌱",
       tag: "Mit Herz dabei",
       title: "Dein Handeln hinterlässt Spuren.",
-      sub: "Jedes Mal, wenn du bei HUI buchst oder kaufst, fließt ein kleiner Teil automatisch in Projekte, die etwas bewegen. Nicht irgendwo. Sondern da, wo es wirklich gebraucht wird.",
+      sub: "Bei HUI bleibt kein Kauf ohne Wirkung. Ein Teil unserer Einnahmen fließt automatisch in Herzens-Projekte – ausgewählt von der ganzen Community. Nicht wir entscheiden. Ihr.",
       features: [
         "Projekte mit Herz – von der Community gewählt",
         "Alle Wirker stimmen gemeinsam ab",
-        "Du siehst, was dein Beitrag bewirkt",
+        "Du siehst, was durch dich entstanden ist",
       ],
       gradient: `linear-gradient(160deg, #10b98115 0%, ${TEAL}10 100%)`,
     },
