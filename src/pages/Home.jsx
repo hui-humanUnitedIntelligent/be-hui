@@ -576,21 +576,34 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
     setTimeout(() => goTo(2), 120);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setConfirming(true);
-    setTimeout(() => {
+    try {
+      const amountCents = Math.round(total * 100); // Kunde zahlt nur den Stundensatz
+      const res = await fetch('/api/functions/createCheckout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemName: `${wirker.talent} – 1 Stunde mit ${wirker.fullName}`,
+          amountCents,
+          itemType: 'buchung',
+          wirkerName: wirker.fullName || wirker.name,
+          imageUrl: wirker.img,
+          successUrl: window.location.href + '?payment=success',
+          cancelUrl: window.location.href + '?payment=cancelled',
+        }),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Fehler beim Erstellen der Zahlung: ' + (data.error || 'Unbekannt'));
+        setConfirming(false);
+      }
+    } catch (err) {
+      alert('Verbindungsfehler: ' + err.message);
       setConfirming(false);
-      const pieces = Array.from({ length: 32 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        color: [CORAL, GOLD, TEAL, "#b388ff", "#80cbc4"][Math.floor(Math.random() * 5)],
-        delay: Math.random() * 0.6,
-        size: 6 + Math.random() * 8,
-        rotation: Math.random() * 360,
-      }));
-      setConfetti(pieces);
-      goTo(4);
-    }, 1200);
+    }
   };
 
   const availableSlots = selectedDate ? (availability[selectedDate.weekday] || []) : [];
