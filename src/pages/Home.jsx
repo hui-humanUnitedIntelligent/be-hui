@@ -69,6 +69,30 @@ const defaultAvailability = {
 
 // ─── MOCK DATA ─────────────────────────────────────────────────────────────
 const mockWirkerProfiles = {
+  "Lars M.": {
+    name: "Lars M.", fullName: "Lars Müller",
+    talent: "Keramik-Künstler",
+    location: "München", distance: "0 km",
+    hourlyRate: "ab 45 €/h",
+    memberSince: "März 2024",
+    bookings: 41,
+    followers: 218,
+    recommendations: 34,
+    impactEur: 47.25,
+    bio: "Ich forme aus Ton Dinge, die bleiben. Handgemachte Keramik und Workshops – jedes Stück ein Unikat, jeder Workshop ein echtes Erlebnis.",
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+    header: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
+    skills: ["Keramik", "Töpfern", "Workshops", "Handgemacht", "Unikate"],
+    werke: [
+      { title: "Handgemachte Schale", price: "55 €", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=80", likes: 89, type: "Werk" },
+      { title: "Keramik-Workshop", price: "75 €/Person", img: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=300&q=80", likes: 64, type: "Dienstleistung" },
+      { title: "Tassen-Set (2er)", price: "69 €", img: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=300&q=80", likes: 112, type: "Werk" },
+    ],
+    empfehlungen: [
+      { name: "Anna K.", text: "Lars ist ein unglaublich talentierter Keramiker. Der Workshop war das Highlight meines Jahres!", datum: "Apr 2026", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop" },
+      { name: "Marc B.", text: "Die Schale ist ein echtes Kunstwerk. Schnelle Lieferung, tolle Verpackung — sehr empfehlenswert!", datum: "Mär 2026", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop" },
+    ],
+  },
   "Sofia M.": {
     name: "Sofia M.", fullName: "Sofia Mayer",
     img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop",
@@ -6068,7 +6092,7 @@ export default function App() {
       {page === "favorites" && <FavoritesPage onViewWirker={viewWirker} onBookWirker={bookWirker} onViewWerk={viewWerk} onAddToCart={addToCart} />}
       {page === "chats" && !openChat && <ChatListPage onOpenChat={(c) => setOpenChat(c)} onBack={() => setPage("profile")} />}
       {page === "chats" && openChat && <ChatDetailPage chat={openChat} onBack={() => setOpenChat(null)} />}
-      {page === "profile" && !openChat && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Sofia M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} onOpenChats={() => setPage("chats")} />}
+      {page === "profile" && !openChat && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Lars M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} onOpenChats={() => setPage("chats")} />}
 
       <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} onPlusClick={() => setShowCreateSheet(true)} />
 
