@@ -7,7 +7,8 @@ const COLORS = {
   bg: "#0F172A", card: "#1E293B", border: "#334155",
   text: "#F1F5F9", muted: "#64748B", sub: "#94A3B8",
   orange: "#F97316", green: "#10B981", purple: "#8B5CF6",
-  blue: "#0EA5E9", red: "#EF4444", yellow: "#F59E0B"
+  blue: "#0EA5E9", red: "#EF4444", yellow: "#F59E0B",
+  teal: "#0D9488", gold: "#F59E0B"
 };
 
 // ── Mock-Daten (Fallback) ────────────────────────────────────────────────────
