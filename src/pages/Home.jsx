@@ -627,8 +627,9 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
   const talentEarns = Math.round((pricePerHour - provision) * 100) / 100;
   const total = pricePerHour;
   const formatDate = (d) => d ? `${WEEKDAY_FULL[WEEKDAYS.indexOf(d.weekday)]}, ${d.day}. ${MONTHS[d.month]} ${d.year}` : "";
-  const stepLabels = ["Datum", "Uhrzeit", "Bestätigen"];
-  const stepIcons = ["\u{1F4C5}", "\u{1F550}", "\u2705"];
+  const stepLabels = ["Datum", "Uhrzeit", "Ort", "Zahlung"];
+  const stepIcons = ["\u{1F4C5}", "\u{1F550}", "\u{1F4CD}", "\u{1F4B3}"];
+  const [zahlart, setZahlart] = React.useState("karte");
 
   if (step === 4) return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", maxWidth: 430, margin: "0 auto", overflow: "hidden" }}>
@@ -685,7 +686,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
             <div style={{ fontWeight: 800, fontSize: 15, color: "#1a1a1a", lineHeight: 1.2 }}>{wirker.fullName}</div>
             <div style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>{wirker.talent}</div>
           </div>
-          <div style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>{step}/3</div>
+          <div style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>{Math.min(step,4)}/4</div>
         </div>
         <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
           {stepLabels.map((label, i) => {
@@ -810,6 +811,56 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
 
         {step === 4 && (
           <>
+            <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>Wie möchtest du zahlen?</div>
+            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Dein Geld liegt sicher im HUI-Treuhand bis du die Leistung bestätigst.</div>
+
+            {/* Zahlungsoptionen */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+              {[
+                { key: "karte", emoji: "💳", label: "Kredit- oder Debitkarte", desc: "Visa, Mastercard, Amex" },
+                { key: "paypal", emoji: "🅿️", label: "PayPal", desc: "Schnell & bekannt" },
+                { key: "sepa", emoji: "🏦", label: "SEPA-Lastschrift", desc: "Direkt vom Bankkonto" },
+              ].map(opt => (
+                <div key={opt.key} onClick={() => setZahlart(opt.key)}
+                  style={{ borderRadius: 16, border: `2px solid ${zahlart === opt.key ? TEAL : "#f0f0ee"}`, background: zahlart === opt.key ? `${TEAL}08` : "white", padding: "14px 16px", cursor: "pointer", display: "flex", gap: 14, alignItems: "center", transition: "all 0.15s" }}>
+                  <span style={{ fontSize: 26 }}>{opt.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{opt.label}</div>
+                    <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{opt.desc}</div>
+                  </div>
+                  <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${zahlart === opt.key ? TEAL : "#ddd"}`, background: zahlart === opt.key ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {zahlart === opt.key && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "white" }} />}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Betrag Übersicht */}
+            <div style={{ background: "#fafaf8", borderRadius: 16, padding: "14px 18px", border: "1px solid #f0f0ee" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: "#888" }}>1 Std. mit {wirker.fullName || wirker.name}</span>
+                <span style={{ fontSize: 13, fontWeight: 700 }}>{total.toFixed(2)} €</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: TEAL }}>🌱 davon Impact</span>
+                <span style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{impact.toFixed(2)} €</span>
+              </div>
+              <div style={{ height: 1, background: "#f0f0ee", marginBottom: 8 }} />
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 15, fontWeight: 800 }}>Gesamt</span>
+                <span style={{ fontSize: 16, fontWeight: 900, color: CORAL }}>{total.toFixed(2)} €</span>
+              </div>
+            </div>
+
+            <div style={{ background: `${TEAL}08`, borderRadius: 14, padding: "12px 16px", marginTop: 16, display: "flex", gap: 10, alignItems: "center", border: `1px solid ${TEAL}15` }}>
+              <span style={{ fontSize: 18 }}>🔒</span>
+              <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>Zahlung über <strong>Stripe</strong> gesichert. Du wirst weitergeleitet.</div>
+            </div>
+          </>
+        )}
+
+        {step === 5 && (
+          <>
             <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>Deine Buchung</div>
             <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Bitte überprüfe alles und bestätige.</div>
             <div style={{ background: "#fafaf8", borderRadius: 18, overflow: "hidden", border: "1px solid #f0f0ee", marginBottom: 16 }}>
@@ -871,10 +922,15 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
             onClick={() => locationType && (locationType === "talent" || locationAddress.trim()) && goTo(4)}
             disabled={!locationType || ((locationType === "kunde" || locationType === "andere") && !locationAddress.trim())}
             style={{ width: "100%", background: (locationType && (locationType === "talent" || locationAddress.trim())) ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#f0f0ee", color: (locationType && (locationType === "talent" || locationAddress.trim())) ? "white" : "#bbb", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: (locationType && (locationType === "talent" || locationAddress.trim())) ? `0 4px 16px ${CORAL}33` : "none", transition: "all 0.25s" }}>
-            Weiter → Buchung prüfen
+            Weiter → Zahlung wählen
           </button>
         )}
         {step === 4 && (
+          <button onClick={() => goTo(5)} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 4px 16px ${CORAL}33` }}>
+            Weiter → Buchung prüfen
+          </button>
+        )}
+        {step === 5 && (
           <div>
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
