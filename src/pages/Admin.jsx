@@ -465,6 +465,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+          </div>
         )}
 
         {/* ═══════════════════ ZAHLUNGEN ═══════════════════ */}
@@ -675,223 +676,92 @@ export default function AdminDashboard() {
                           <Badge status={p.status} />
                         </div>
                       </div>
-          {tab === "impact" && (
-          <div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+        )}
+
+        {tab === "impact" && (
+          <div style={{ padding: "0 32px 32px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h1 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 4px" }}>Impact Pool</h1>
-                <p style={{ color: COLORS.muted, margin: 0, fontSize: 14 }}>Gesammelte Mittel, Projektabstimmung & Ausschüttungshistorie</p>
+                <h2 style={{ fontWeight: 800, fontSize: 22, color: COLORS.text, margin: 0 }}>🌱 Impact Pool</h2>
+                <p style={{ color: COLORS.muted, fontSize: 14, margin: "4px 0 0" }}>Gesammelte Mittel &amp; Projektabstimmung</p>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => setShowNewProject(true)} style={{ background: COLORS.green, color: "#fff", border: "none", padding: "10px 18px", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>+ Projekt hinzufügen</button>
+              <button onClick={() => setEditProject({ name: "", category: "Soziales", description: "", status: "active", votes: 0, awarded_eur: 0, month: new Date().toISOString().slice(0,7) })} style={{ background: "linear-gradient(135deg,#10B981,#059669)", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 12, cursor: "pointer", fontWeight: 700, fontSize: 14 }}>+ Projekt hinzufügen</button>
+            </div>
+
+            {/* Stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 28 }}>
+              <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
+                <div style={{ fontSize: 28 }}>💰</div>
+                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.gold, marginTop: 8 }}>{totalImpact.toFixed(2)} €</div>
+                <div style={{ color: COLORS.muted, fontSize: 13, marginTop: 4 }}>Aktueller Pool</div>
+              </div>
+              <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
+                <div style={{ fontSize: 28 }}>🗳️</div>
+                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.blue, marginTop: 8 }}>{impactProjects.filter(p => p.status === "active").length}</div>
+                <div style={{ color: COLORS.muted, fontSize: 13, marginTop: 4 }}>Aktive Projekte</div>
+              </div>
+              <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
+                <div style={{ fontSize: 28 }}>👥</div>
+                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.teal, marginTop: 8 }}>{impactProjects.reduce((s, p) => s + (p.votes || 0), 0)}</div>
+                <div style={{ color: COLORS.muted, fontSize: 13, marginTop: 4 }}>Gesamte Stimmen</div>
               </div>
             </div>
 
-            {/* Sub-Navigation */}
-            <div style={{ display: "flex", gap: 0, background: COLORS.card, borderRadius: 12, padding: 4, marginBottom: 24, width: "fit-content", border: `1px solid ${COLORS.border}` }}>
-              {[{ key: "aktiv", label: "🗳️ Aktuelle Runde" }, { key: "historie", label: "📜 Ausschüttungshistorie" }].map(v => (
-                <button key={v.key} onClick={() => setImpactView(v.key)} style={{
-                  background: impactView === v.key ? COLORS.orange : "none",
-                  color: impactView === v.key ? "#fff" : COLORS.muted,
-                  border: "none", padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, transition: "all 0.15s"
-                }}>{v.label}</button>
+            {/* Sub-Nav */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+              {["active","won","all"].map(s => (
+                <button key={s} onClick={() => setImpactFilter(s)} style={{ padding: "7px 16px", borderRadius: 20, border: `1px solid ${impactFilter === s ? COLORS.teal : COLORS.border}`, background: impactFilter === s ? COLORS.teal + "22" : "transparent", color: impactFilter === s ? COLORS.teal : COLORS.muted, cursor: "pointer", fontWeight: 600, fontSize: 13 }}>
+                  {s === "active" ? "🗳️ Aktiv" : s === "won" ? "🏆 Gewinner" : "📋 Alle"}
+                </button>
               ))}
             </div>
 
-            {/* ── Aktuelle Runde ── */}
-            {impactView === "aktiv" && (
-              <div>
-                {/* KPIs */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14, marginBottom: 24 }}>
-                  {[
-                    { label: "Aktueller Pool", value: `${fmt(totalImpact)} €`, icon: "💰", color: COLORS.green, desc: "Bereit zur Ausschüttung" },
-                    { label: "Aktive Projekte", value: activeProjects.length, icon: "🗳️", color: COLORS.blue, desc: "In laufender Abstimmung" },
-                    { label: "Stimmen gesamt", value: totalVotes, icon: "👥", color: COLORS.purple, desc: "Von der Community" },
-                    { label: "Bereits vergeben", value: `${fmt(projects.filter(p=>p.status==="gewonnen").reduce((s,p)=>s+(p.awarded_eur||0),0))} €`, icon: "🏆", color: COLORS.yellow, desc: "Alle Runden gesamt" },
-                  ].map((k, i) => (
-                    <div key={i} style={{ background: COLORS.card, borderRadius: 16, padding: "20px", border: `1px solid ${COLORS.border}`, position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: -12, right: -12, width: 72, height: 72, borderRadius: "50%", background: k.color, opacity: 0.12 }} />
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>{k.icon}</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: k.color, marginBottom: 2 }}>{k.value}</div>
-                      <div style={{ fontSize: 13, color: COLORS.sub, fontWeight: 600, marginBottom: 2 }}>{k.label}</div>
-                      <div style={{ fontSize: 11, color: COLORS.muted }}>{k.desc}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Aktive Projekte */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 }}>
-                  {activeProjects.length === 0 && (
-                    <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 40, textAlign: "center", color: COLORS.muted }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>🌱</div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: COLORS.sub, marginBottom: 8 }}>Keine aktiven Projekte</div>
-                      <div style={{ fontSize: 13 }}>Füge Projekte für die nächste Abstimmungsrunde hinzu.</div>
-                    </div>
-                  )}
-                  {[...activeProjects].sort((a, b) => (b.votes||0) - (a.votes||0)).map((proj, i) => {
-                    const pct = totalVotes > 0 ? Math.round((proj.votes||0) / totalVotes * 100) : 0;
-                    const isLeading = i === 0;
-                    return (
-                      <div key={proj.id} style={{ background: COLORS.card, borderRadius: 16, border: `2px solid ${isLeading ? proj.color || COLORS.orange : COLORS.border}`, overflow: "hidden" }}>
-                        <div style={{ padding: "20px 24px", display: "flex", alignItems: "flex-start", gap: 16 }}>
-                          <div style={{ fontSize: 44, flexShrink: 0 }}>{proj.icon}</div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
-                              <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.text }}>{proj.name}</div>
-                              {isLeading && <span style={{ background: COLORS.orange, color: "#fff", fontSize: 10, padding: "2px 10px", borderRadius: 99, fontWeight: 800 }}>🏆 FÜHREND</span>}
-                              <span style={{ background: "#0F172A", color: COLORS.muted, fontSize: 10, padding: "2px 10px", borderRadius: 99, fontWeight: 700 }}>{proj.category}</span>
-                              {proj.month && <span style={{ background: "#0F172A", color: COLORS.muted, fontSize: 10, padding: "2px 10px", borderRadius: 99 }}>📅 {proj.month}</span>}
-                            </div>
-                            <div style={{ fontSize: 13, color: COLORS.sub, marginBottom: 12, lineHeight: 1.5 }}>{proj.description}</div>
-                            {proj.tags?.length > 0 && (
-                              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-                                {proj.tags.map((t,ti) => <span key={ti} style={{ background: "#0F172A", color: COLORS.muted, padding: "2px 8px", borderRadius: 99, fontSize: 11 }}>#{t}</span>)}
-                              </div>
-                            )}
-                            <div style={{ height: 10, background: "#0F172A", borderRadius: 99, marginBottom: 8 }}>
-                              <div style={{ height: 10, background: proj.color || COLORS.green, borderRadius: 99, width: `${pct}%`, transition: "width 0.6s" }} />
-                            </div>
-                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                              <span style={{ color: COLORS.muted }}><strong style={{ color: COLORS.text }}>{proj.votes||0}</strong> Stimmen · <strong style={{ color: COLORS.text }}>{pct}%</strong></span>
-                              <span style={{ color: proj.color || COLORS.green, fontWeight: 700 }}>→ würde <strong>{fmt(totalImpact * pct / 100)} €</strong> erhalten</span>
-                            </div>
-                            {proj.website && <div style={{ marginTop: 8, fontSize: 12 }}><a href={proj.website} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.blue, textDecoration: "none" }}>🔗 {proj.website}</a></div>}
-                            {proj.contact_name && <div style={{ marginTop: 4, fontSize: 12, color: COLORS.muted }}>👤 {proj.contact_name}{proj.contact_email ? ` · ${proj.contact_email}` : ""}</div>}
-                          </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-                            <button onClick={() => setEditProject({ ...proj })} style={{ background: "#1E3A5F", color: COLORS.blue, border: `1px solid ${COLORS.blue}`, padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 700 }}>✏️ Bearbeiten</button>
-                            <button onClick={() => deleteProject(proj)} style={{ background: "#450A0A", color: COLORS.red, border: `1px solid ${COLORS.red}`, padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 700 }}>🗑️ Löschen</button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Ausschüttungs-Banner */}
-                {activeProjects.length > 0 && (
-                  <div style={{ background: "linear-gradient(135deg,#064E3B,#065F46)", borderRadius: 16, padding: "24px 28px", border: `1px solid ${COLORS.green}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-                    <div>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.text, marginBottom: 4 }}>🎉 Abstimmung beenden & ausschütten</div>
-                      <div style={{ fontSize: 13, color: "#6EE7B7" }}>
-                        {leadingProject
-                          ? `„${leadingProject.name}" führt mit ${leadingProject.votes||0} Stimmen · ${fmt(totalImpact)} € im Pool`
-                          : "Noch keine Stimmen abgegeben"}
-                      </div>
-                    </div>
-                    <button onClick={distributePool} style={{ background: COLORS.green, color: "#fff", border: "none", padding: "13px 30px", borderRadius: 12, cursor: "pointer", fontSize: 15, fontWeight: 800, boxShadow: "0 4px 20px rgba(16,185,129,0.4)", whiteSpace: "nowrap" }}>
-                      Jetzt ausschütten →
-                    </button>
-                  </div>
-                )}
+            {/* Project list */}
+            {impactProjects.length === 0 ? (
+              <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 40, textAlign: "center", color: COLORS.muted }}>
+                Noch keine Projekte. Füge das erste Projekt hinzu!
               </div>
-            )}
-
-            {/* ── Historie ── */}
-            {impactView === "historie" && (
-              <div>
-                {/* Gesamt-Stats */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14, marginBottom: 24 }}>
-                  {(() => {
-                    const won = projects.filter(p => p.status === "gewonnen");
-                    const totalAwarded = won.reduce((s,p) => s+(p.awarded_eur||0), 0);
-                    const rounds = [...new Set(won.map(p => p.month))].length;
-                    return [
-                      { label: "Gesamt vergeben", value: `${fmt(totalAwarded)} €`, icon: "💸", color: COLORS.green },
-                      { label: "Runden abgeschlossen", value: rounds, icon: "📅", color: COLORS.blue },
-                      { label: "Geförderte Projekte", value: won.length, icon: "🏆", color: COLORS.yellow },
-                      { label: "Ø pro Runde", value: rounds > 0 ? `${fmt(totalAwarded/rounds)} €` : "–", icon: "📊", color: COLORS.purple },
-                    ];
-                  })().map((k, i) => (
-                    <div key={i} style={{ background: COLORS.card, borderRadius: 16, padding: "20px", border: `1px solid ${COLORS.border}`, position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: -12, right: -12, width: 72, height: 72, borderRadius: "50%", background: k.color, opacity: 0.12 }} />
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>{k.icon}</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: k.color, marginBottom: 2 }}>{k.value}</div>
-                      <div style={{ fontSize: 13, color: COLORS.sub, fontWeight: 600 }}>{k.label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Vergangene Runden gruppiert nach Monat */}
-                {(() => {
-                  const allMonths = [...new Set(projects.filter(p => p.status !== "aktiv").map(p => p.month))].sort().reverse();
-                  if (allMonths.length === 0) return (
-                    <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 40, textAlign: "center", color: COLORS.muted }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>📜</div>
-                      <div>Noch keine abgeschlossenen Runden.</div>
-                    </div>
-                  );
-                  return allMonths.map(month => {
-                    const monthProjects = projects.filter(p => p.month === month && p.status !== "aktiv");
-                    const winner = monthProjects.find(p => p.status === "gewonnen");
-                    const monthLabel = (() => { try { const [y,m] = month.split("-"); return new Date(parseInt(y), parseInt(m)-1).toLocaleDateString("de-DE",{month:"long",year:"numeric"}); } catch { return month; } })();
-                    return (
-                      <div key={month} style={{ marginBottom: 20 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.text }}>📅 {monthLabel}</div>
-                          {winner && <div style={{ fontSize: 12, color: COLORS.green, fontWeight: 700 }}>· {fmt(winner.awarded_eur||0)} € ausgeschüttet</div>}
-                          <div style={{ flex: 1, height: 1, background: COLORS.border }} />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {impactProjects
+                  .filter(p => impactFilter === "all" ? true : impactFilter === "won" ? p.status === "won" : p.status === "active")
+                  .map(proj => (
+                  <div key={proj.id} style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+                      <div style={{ flex: 1, minWidth: 200 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                          <span style={{ fontSize: 22 }}>{proj.icon || "🌱"}</span>
+                          <span style={{ fontWeight: 700, fontSize: 16, color: COLORS.text }}>{proj.name}</span>
+                          <span style={{ background: proj.status === "won" ? COLORS.gold + "22" : COLORS.teal + "22", color: proj.status === "won" ? COLORS.gold : COLORS.teal, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, border: `1px solid ${proj.status === "won" ? COLORS.gold : COLORS.teal}` }}>{proj.status === "won" ? "🏆 Gewinner" : "🗳️ Aktiv"}</span>
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                          {monthProjects.map((proj, i) => {
-                            const isWon = proj.status === "gewonnen";
-                            return (
-                              <div key={proj.id} style={{ background: COLORS.card, borderRadius: 14, border: `1px solid ${isWon ? COLORS.green : COLORS.border}`, padding: "18px 22px", opacity: isWon ? 1 : 0.65 }}>
-                                <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                                  <div style={{ fontSize: 36, flexShrink: 0 }}>{proj.icon}</div>
-                                  <div style={{ flex: 1 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-                                      <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.text }}>{proj.name}</div>
-                                      {isWon && <span style={{ background: "#064E3B", color: COLORS.green, fontSize: 10, padding: "2px 10px", borderRadius: 99, fontWeight: 800 }}>🏆 GEWINNER</span>}
-                                      {!isWon && <span style={{ background: COLORS.border, color: COLORS.muted, fontSize: 10, padding: "2px 10px", borderRadius: 99, fontWeight: 700 }}>Nicht gewählt</span>}
-                                      <span style={{ background: "#0F172A", color: COLORS.muted, fontSize: 10, padding: "2px 10px", borderRadius: 99 }}>{proj.category}</span>
-                                    </div>
-                                    <div style={{ fontSize: 13, color: COLORS.muted, marginBottom: 8 }}>{proj.description}</div>
-                                    <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 13 }}>
-                                      <span style={{ color: COLORS.sub }}>👥 {proj.votes||0} Stimmen</span>
-                                      {isWon && <span style={{ color: COLORS.green, fontWeight: 700 }}>💸 {fmt(proj.awarded_eur||0)} € erhalten</span>}
-                                      {proj.distributed_at && <span style={{ color: COLORS.muted }}>📆 {fmtDate(proj.distributed_at)}</span>}
-                                    </div>
-                                    {isWon && proj.impact_report && (
-                                      <div style={{ marginTop: 12, background: "#0F172A", borderRadius: 10, padding: "12px 16px", borderLeft: `3px solid ${COLORS.green}` }}>
-                                        <div style={{ fontSize: 11, color: COLORS.green, fontWeight: 700, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8 }}>Impact Report</div>
-                                        <div style={{ fontSize: 13, color: COLORS.sub, lineHeight: 1.6 }}>{proj.impact_report}</div>
-                                      </div>
-                                    )}
-                                    {isWon && !proj.impact_report && (
-                                      <button onClick={() => setEditProject({ ...proj })} style={{ marginTop: 10, background: "none", border: `1px dashed ${COLORS.border}`, color: COLORS.muted, padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
-                                        + Impact Report hinzufügen
-                                      </button>
-                                    )}
-                                  </div>
-                                  {isWon && (
-                                    <button onClick={() => setEditProject({ ...proj })} style={{ background: "#1E3A5F", color: COLORS.blue, border: `1px solid ${COLORS.blue}`, padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>✏️ Bearbeiten</button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                        <p style={{ color: COLORS.muted, fontSize: 13, margin: "0 0 10px" }}>{proj.description}</p>
+                        <div style={{ display: "flex", gap: 16, fontSize: 12, color: COLORS.muted, flexWrap: "wrap" }}>
+                          <span>📅 {proj.month}</span>
+                          <span>🗳️ {proj.votes || 0} Stimmen</span>
+                          {proj.awarded_eur > 0 && <span style={{ color: COLORS.gold }}>💰 {proj.awarded_eur} € vergeben</span>}
+                          {proj.website && <a href={proj.website} target="_blank" rel="noreferrer" style={{ color: COLORS.blue, textDecoration: "none" }}>🌐 Website</a>}
                         </div>
                       </div>
-                    );
-                  });
-                })()}
+                      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                        {proj.status === "active" && (
+                          <button onClick={() => handleDistribute(proj)} style={{ background: COLORS.gold + "22", color: COLORS.gold, border: `1px solid ${COLORS.gold}`, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 12 }}>🏆 Vergeben</button>
+                        )}
+                        <button onClick={() => setEditProject({ ...proj })} style={{ background: "#1E3A5F", color: COLORS.blue, border: `1px solid ${COLORS.blue}`, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 12 }}>✏️ Edit</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
 
-            {/* ── Modals ── */}
+        {/* ── Modals ── */}
 
       {/* Wirker bearbeiten */}
       {editWirker && (
@@ -1044,6 +914,7 @@ export default function AdminDashboard() {
         input::placeholder, textarea::placeholder { color: #475569; }
         select option { background: #0F172A; color: #F1F5F9; }
       `}</style>
+    </div>
     </div>
   </div>
   );
