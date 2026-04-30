@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home';
+import Admin from './pages/Admin';
 import BookingFlow from './pages/BookingFlow';
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/Home" replace />} />
         <Route path="/Home" element={<Home />} />
+        <Route path="/Admin" element={<Admin />} />
         <Route path="/BookingFlow" element={<BookingFlow />} />
       </Routes>
     </BrowserRouter>
