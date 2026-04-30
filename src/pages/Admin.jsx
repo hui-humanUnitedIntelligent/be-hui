@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState("overview");
   const [payments, setPayments] = useState([]);
   const [wirker, setWirker] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState(MOCK_PROJECTS);
   const [loading, setLoading] = useState(true);
   const [usingMock, setUsingMock] = useState(false);
 
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
       ]);
       if (w.length) { setWirker(w); } else { setWirker(MOCK_WIRKER); setUsingMock(true); }
       if (p.length) { setPayments(p); } else { setPayments(MOCK_PAYMENTS); }
-      if (proj.length) { setProjects(proj); } else { setProjects(MOCK_PROJECTS); }
+      setProjects(proj.length ? proj : MOCK_PROJECTS);
     } catch(e) {
       console.error("loadData error:", e);
       setWirker(MOCK_WIRKER); setPayments(MOCK_PAYMENTS); setProjects(MOCK_PROJECTS); setUsingMock(true);
