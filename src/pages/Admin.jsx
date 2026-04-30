@@ -75,7 +75,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   // Impact Pool state
-  const [votingOpen, setVotingOpen] = useState(true);
+  const [votingOpen, setVotingOpen] = useState(false);
+  const [votingStart, setVotingStart] = useState("");
+  const [votingEnd, setVotingEnd] = useState("");
+  const [uploadingImg, setUploadingImg] = useState(false);
   const [nominatedIds, setNominatedIds] = useState(["mp1", "mp2", "mp3"]);
   const [distributeTarget, setDistributeTarget] = useState(null);
 
@@ -84,7 +87,7 @@ export default function AdminPage() {
   const [editProject, setEditProject] = useState(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNominateModal, setShowNominateModal] = useState(false);
-  const [newProject, setNewProject] = useState({ name: "", category: "Soziales", description: "", icon: "🌱", website: "", contact_name: "", contact_email: "" });
+  const [newProject, setNewProject] = useState({ name: "", category: "Soziales", description: "", icon: "🌱", website: "", contact_name: "", contact_email: "", img: "" });
 
   const [toast, setToast] = useState(null);
 
@@ -121,6 +124,21 @@ export default function AdminPage() {
   const totalImpact = payments.filter(p => p.payment_status === "paid").reduce((s, p) => s + parseFloat(p.impact_eur || 0), 0);
   const huiEarnings = payments.filter(p => p.payment_status === "paid").reduce((s, p) => s + parseFloat(p.amount_eur || 0) * 0.1275, 0);
   const escrowCount = payments.filter(p => p.status === "escrow").length;
+
+  async function uploadProjectImage(file, setter) {
+    setUploadingImg(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        // Store as base64 data URL for mock, or upload for real
+        setter(prev => ({ ...prev, img: e.target.result }));
+        setUploadingImg(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploadingImg(false);
+    }
+  }
 
   async function saveWirker(w) {
     try {
@@ -408,17 +426,42 @@ export default function AdminPage() {
             {impactTab === "runde" && (
               <div>
                 <div style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: 24, marginBottom: 20 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 16 }}>Abstimmungsrunde April 2026</div>
-                      <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>Deadline: <span style={{ color: C.orange }}>30. April 2026</span></div>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Abstimmungszeitraum festlegen</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+                      <div>
+                        <label style={{ fontSize: 11, color: C.muted, fontWeight: 700, display: "block", marginBottom: 6 }}>START</label>
+                        <input type="datetime-local" value={votingStart} onChange={e => setVotingStart(e.target.value)}
+                          style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, color: C.text, padding: "9px 12px", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, color: C.muted, fontWeight: 700, display: "block", marginBottom: 6 }}>ENDE</label>
+                        <input type="datetime-local" value={votingEnd} onChange={e => setVotingEnd(e.target.value)}
+                          style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, color: C.text, padding: "9px 12px", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                      </div>
                     </div>
-                    <button onClick={() => setVotingOpen(v => !v)} style={{
-                      background: votingOpen ? "#064E3B" : "#450A0A",
-                      color: votingOpen ? C.green : C.red,
-                      border: `1px solid ${votingOpen ? C.green : C.red}`,
-                      padding: "9px 20px", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 13
-                    }}>{votingOpen ? "⏸ Pausieren" : "▶ Starten"}</button>
+                    {votingStart && votingEnd && (
+                      <div style={{ background: C.bg, borderRadius: 10, padding: "10px 14px", fontSize: 13, color: C.sub, marginBottom: 16 }}>
+                        📅 Abstimmung läuft vom <strong style={{ color: C.text }}>{new Date(votingStart).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" })}</strong> bis <strong style={{ color: C.text }}>{new Date(votingEnd).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" })}</strong>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: votingOpen ? C.green : C.muted }}>
+                          {votingOpen ? "🟢 Abstimmung läuft" : "🔴 Abstimmung nicht aktiv"}
+                        </div>
+                        {!votingStart && !votingEnd && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>Zeitraum oben festlegen</div>}
+                      </div>
+                      <button onClick={() => {
+                        if (!votingOpen && (!votingStart || !votingEnd)) { showToast("Bitte Start- und Enddatum setzen", "error"); return; }
+                        setVotingOpen(v => !v);
+                      }} style={{
+                        background: votingOpen ? "#064E3B" : "#1E3A5F",
+                        color: votingOpen ? C.green : C.blue,
+                        border: `1px solid ${votingOpen ? C.green : C.blue}`,
+                        padding: "9px 20px", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 13
+                      }}>{votingOpen ? "⏸ Pausieren" : "▶ Abstimmung starten"}</button>
+                    </div>
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
                     <button onClick={() => setShowNominateModal(true)} style={{ flex: 1, background: C.teal + "22", color: C.teal, border: `1px solid ${C.teal}`, padding: "10px 0", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 13 }}>📌 Projekte nominieren</button>
@@ -472,7 +515,10 @@ export default function AdminPage() {
                 {projects.map(proj => (
                   <div key={proj.id} style={{ background: C.card, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                      <span style={{ fontSize: 28 }}>{proj.icon}</span>
+                      {proj.img
+                        ? <img src={proj.img} alt={proj.name} style={{ width: 56, height: 56, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+                        : <span style={{ fontSize: 28 }}>{proj.icon}</span>
+                      }
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
                           <span style={{ fontWeight: 700, fontSize: 15 }}>{proj.name}</span>
@@ -663,6 +709,21 @@ export default function AdminPage() {
               }
             </div>
           ))}
+          {/* Projektbild Upload */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 12, color: C.muted, fontWeight: 700, display: "block", marginBottom: 6 }}>PROJEKTBILD</label>
+            {newProject.img ? (
+              <div style={{ position: "relative", marginBottom: 8 }}>
+                <img src={newProject.img} alt="Preview" style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 10, border: `1px solid ${C.border}` }} />
+                <button onClick={() => setNewProject(p => ({ ...p, img: "" }))} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", color: "#fff", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", fontSize: 14, fontWeight: 700 }}>×</button>
+              </div>
+            ) : (
+              <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 100, background: C.bg, border: `2px dashed ${C.border}`, borderRadius: 10, cursor: "pointer", color: C.muted, fontSize: 13, gap: 6 }}>
+                {uploadingImg ? "⏳ Wird hochgeladen..." : <><span style={{ fontSize: 24 }}>🖼️</span><span>Bild auswählen</span></>}
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => e.target.files[0] && uploadProjectImage(e.target.files[0], setNewProject)} />
+              </label>
+            )}
+          </div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, color: C.muted, fontWeight: 700, display: "block", marginBottom: 6 }}>KATEGORIE</label>
             <select value={newProject.category} onChange={e => setNewProject(p => ({ ...p, category: e.target.value }))} style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, color: C.text, padding: "9px 12px", borderRadius: 8, fontSize: 13, outline: "none" }}>
@@ -696,6 +757,20 @@ export default function AdminPage() {
               }
             </div>
           ))}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 12, color: C.muted, fontWeight: 700, display: "block", marginBottom: 6 }}>PROJEKTBILD</label>
+            {editProject.img ? (
+              <div style={{ position: "relative", marginBottom: 8 }}>
+                <img src={editProject.img} alt="Preview" style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 10, border: `1px solid ${C.border}` }} />
+                <button onClick={() => setEditProject(p => ({ ...p, img: "" }))} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", color: "#fff", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", fontSize: 14, fontWeight: 700 }}>×</button>
+              </div>
+            ) : (
+              <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 100, background: C.bg, border: `2px dashed ${C.border}`, borderRadius: 10, cursor: "pointer", color: C.muted, fontSize: 13, gap: 6 }}>
+                {uploadingImg ? "⏳ Wird hochgeladen..." : <><span style={{ fontSize: 24 }}>🖼️</span><span>Bild auswählen</span></>}
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => e.target.files[0] && uploadProjectImage(e.target.files[0], setEditProject)} />
+              </label>
+            )}
+          </div>
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
             <button onClick={() => setEditProject(null)} style={{ flex: 1, background: C.border, color: C.sub, border: "none", padding: "11px 0", borderRadius: 10, cursor: "pointer", fontWeight: 700 }}>Abbrechen</button>
             <button onClick={() => saveProject(editProject)} style={{ flex: 2, background: C.orange, color: "#fff", border: "none", padding: "11px 0", borderRadius: 10, cursor: "pointer", fontWeight: 800, fontSize: 15 }}>Speichern ✓</button>
