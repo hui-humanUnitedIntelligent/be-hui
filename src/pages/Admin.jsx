@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-// build: 2026-04-30-v6
+// build: 2026-04-30-v7
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject, User } from "@/api/entities";
 
 // ── Farben & Konstanten ──────────────────────────────────────────────────────
@@ -138,7 +138,10 @@ export default function AdminDashboard() {
       ]);
       if (w.length) { setWirker(w); } else { setWirker(MOCK_WIRKER); setUsingMock(true); }
       if (p.length) { setPayments(p); } else { setPayments(MOCK_PAYMENTS); }
-      setProjects(proj.length ? proj : MOCK_PROJECTS);
+      // Always show projects — use DB if available, else mock
+      const validProjects = Array.isArray(proj) ? proj : [];
+      console.log("[HUI Admin] projects loaded:", validProjects.length, validProjects);
+      setProjects(validProjects.length > 0 ? validProjects : MOCK_PROJECTS);
     } catch(e) {
       console.error("loadData error:", e);
       setWirker(MOCK_WIRKER); setPayments(MOCK_PAYMENTS); setProjects(MOCK_PROJECTS); setUsingMock(true);
@@ -730,7 +733,11 @@ export default function AdminDashboard() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {projects
-                  .filter(p => impactFilter === "all" ? true : impactFilter === "won" ? (p.status === "won" || p.status === "gewonnen") : (p.status === "active" || p.status === "aktiv"))
+                  .filter(p => {
+                    if (impactFilter === "all") return true;
+                    if (impactFilter === "won") return p.status === "won" || p.status === "gewonnen";
+                    return p.status === "active" || p.status === "aktiv";
+                  })
                   .map(proj => (
                   <div key={proj.id} style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
