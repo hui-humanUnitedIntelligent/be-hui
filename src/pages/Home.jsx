@@ -1320,10 +1320,10 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
         {/* Stats */}
         <div style={{ display: "flex", gap: 0, paddingTop: 14, borderTop: "1px solid #f0f0ee" }}>
           {[
-            { v: p.werke.length, l: "Werke" },
-            { v: p.bookings, l: "Buchungen" },
-            { v: p.followers, l: "Follower" },
-            { v: p.recommendations, l: "Empf. ✓" },
+            { v: profile.werke.length, l: "Werke" },
+            { v: profile.bookings, l: "Buchungen" },
+            { v: profile.followers, l: "Follower" },
+            { v: profile.recommendations, l: "Empf. ✓" },
           ].map(({ v, l }, i, arr) => (
             <div key={l} style={{ flex: 1, textAlign: "center", borderRight: i < arr.length - 1 ? "1px solid #f0f0ee" : "none" }}>
               <div style={{ fontWeight: 900, fontSize: 17, color: "#1a1a1a" }}>{v}</div>
@@ -1389,7 +1389,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontWeight: 700, color: CORAL, fontSize: 13 }}>{w.price}</span>
                     {!isOwnProfile
-                      ? <button onClick={() => onAddToCart({ title: w.title, price: w.price, img: w.img, creator: p.name })} style={{ background: CORAL, color: "white", border: "none", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>+ Korb</button>
+                      ? <button onClick={() => onAddToCart({ title: w.title, price: w.price, img: w.img, creator: profile.name })} style={{ background: CORAL, color: "white", border: "none", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>+ Korb</button>
                       : <span style={{ fontSize: 10, color: "#bbb" }}>Dein Werk</span>
                     }
                   </div>
@@ -1415,7 +1415,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
             <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, margin: 0 }}>{profile.bio}</p>
           </div>
           <div style={{ background: "white", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-            {[{ icon: "📍", label: "Standort", val: `${profile.location} (${p.distance} entfernt)` }, { icon: "📅", label: "Mitglied seit", val: p.memberSince }, { icon: "🎯", label: "Buchungen", val: `${profile.bookings} erfolgreiche Buchungen` }, { icon: "🌱", label: "Impact", val: `${profile.impactEur} € in Impact Pool` }, { icon: "💶", label: "Stundensatz", val: p.hourlyRate }].map((row, i, arr) => (
+            {[{ icon: "📍", label: "Standort", val: `${profile.location} (${p.distance} entfernt)` }, { icon: "📅", label: "Mitglied seit", val: profile.memberSince }, { icon: "🎯", label: "Buchungen", val: `${profile.bookings} erfolgreiche Buchungen` }, { icon: "🌱", label: "Impact", val: `${profile.impactEur} € in Impact Pool` }, { icon: "💶", label: "Stundensatz", val: profile.hourlyRate }].map((row, i, arr) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "9px 0", borderBottom: i < arr.length - 1 ? "1px solid #f5f5f5" : "none" }}>
                 <span style={{ fontSize: 18 }}>{row.icon}</span>
                 <div>
