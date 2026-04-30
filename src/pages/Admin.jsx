@@ -125,9 +125,11 @@ export default function AdminDashboard() {
   const [editProject, setEditProject] = useState(null);
   const [impactView, setImpactView] = useState("aktiv");
   const [impactTab, setImpactTab] = useState("runde");
-  const [votingOpen, setVotingOpen] = useState(true);
+  const [votingOpen, setVotingOpen] = useState(false);
+  const [votingStart, setVotingStart] = useState("");
+  const [votingEnd, setVotingEnd] = useState("");
   const [votingDeadline, setVotingDeadline] = useState("2026-04-30");
-  const [nominatedIds, setNominatedIds] = useState(["mp1","mp2","mp3"]);
+  const [nominatedIds, setNominatedIds] = useState([]);
   const [distributeTarget, setDistributeTarget] = useState(null);
   const [showNominateModal, setShowNominateModal] = useState(false);
   const [showRoundSettings, setShowRoundSettings] = useState(false); // "aktiv" | "historie"
@@ -1036,12 +1038,12 @@ export default function AdminDashboard() {
                   cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
                 }}>
                   <div style={{ width: 26, height: 26, borderRadius: "50%", background: sel ? COLORS.teal : COLORS.border, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {sel && <span style={{ color: "#fff", fontSize: 13, fontWeight: 800 }}>✓</span>}
+                    {sel && <span style={{ color: "#fff", fontSize: 13, fontWeight: 800 }}>&#10003;</span>}
                   </div>
                   <span style={{ fontSize: 20 }}>{proj.icon}</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: 14 }}>{proj.name}</div>
-                    <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>{proj.category} · {proj.votes||0} Stimmen</div>
+                    <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>{proj.category} &middot; {proj.votes||0} Stimmen</div>
                   </div>
                 </div>
               );
@@ -1049,7 +1051,7 @@ export default function AdminDashboard() {
           </div>
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
             <div onClick={() => { setNominatedIds([]); setShowNominateModal(false); }} style={{ flex: 1, background: COLORS.border, color: COLORS.sub, padding: "12px 0", borderRadius: 10, cursor: "pointer", fontWeight: 700, textAlign: "center", fontSize: 14 }}>Zurücksetzen</div>
-            <div onClick={() => { setShowNominateModal(false); showToast(nominatedIds.length > 0 ? nominatedIds.length+" Projekte nominiert ✓" : "Keine Projekte ausgewählt"); }} style={{ flex: 2, background: nominatedIds.length > 0 ? COLORS.teal : COLORS.border, color: nominatedIds.length > 0 ? "#fff" : COLORS.muted, padding: "12px 0", borderRadius: 10, cursor: "pointer", fontWeight: 800, fontSize: 15, textAlign: "center" }}>Bestätigen ✓</div>
+            <div onClick={() => { setShowNominateModal(false); showToast(nominatedIds.length > 0 ? nominatedIds.length+" Projekte nominiert" : "Keine Projekte ausgewählt"); }} style={{ flex: 2, background: nominatedIds.length > 0 ? COLORS.teal : COLORS.border, color: nominatedIds.length > 0 ? "#fff" : COLORS.muted, padding: "12px 0", borderRadius: 10, cursor: "pointer", fontWeight: 800, fontSize: 15, textAlign: "center" }}>Bestaetigen</div>
           </div>
         </Modal>
       )}
