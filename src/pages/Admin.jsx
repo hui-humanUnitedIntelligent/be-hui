@@ -837,28 +837,36 @@ export default function AdminPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 380, overflowY: "auto" }}>
             {projects.filter(p => p.status === "aktiv").map(proj => {
               const sel = nominatedIds.includes(proj.id);
+              const toggle = () => {
+                if (sel) setNominatedIds(ids => ids.filter(id => id !== proj.id));
+                else if (nominatedIds.length < 3) setNominatedIds(ids => [...ids, proj.id]);
+                else showToast("Maximal 3 Projekte auswählbar", "error");
+              };
               return (
-                <button key={proj.id} onClick={() => {
-                  if (sel) setNominatedIds(ids => ids.filter(id => id !== proj.id));
-                  else if (nominatedIds.length < 3) setNominatedIds(ids => [...ids, proj.id]);
-                  else showToast("Maximal 3 Projekte", "error");
-                }} style={{
-                  background: sel ? C.teal + "22" : C.bg,
-                  border: `1px solid ${sel ? C.teal : C.border}`,
-                  color: C.text, borderRadius: 10, padding: "12px 16px", cursor: "pointer",
-                  textAlign: "left", display: "flex", alignItems: "center", gap: 12,
+                <div key={proj.id} onClick={toggle} style={{
+                  background: sel ? C.teal + "33" : C.bg,
+                  border: `2px solid ${sel ? C.teal : C.border}`,
+                  color: C.text, borderRadius: 12, padding: "14px 16px", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 12,
+                  WebkitTapHighlightColor: "transparent",
+                  userSelect: "none",
                 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: sel ? C.teal : C.border, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.15s" }}>
+                    {sel && <span style={{ color: "#fff", fontSize: 14, fontWeight: 800 }}>✓</span>}
+                  </div>
                   <span style={{ fontSize: 20 }}>{proj.icon}</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>{proj.name}</div>
-                    <div style={{ fontSize: 11, color: C.muted }}>{proj.category} · {proj.votes||0} Stimmen</div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{proj.name}</div>
+                    <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{proj.category} · {proj.votes||0} Stimmen</div>
                   </div>
-                  {sel && <span style={{ color: C.teal, fontSize: 18, fontWeight: 800 }}>✓</span>}
-                </button>
+                </div>
               );
             })}
           </div>
-          <button onClick={() => { setShowNominateModal(false); showToast(`${nominatedIds.length} Projekte nominiert ✓`); }} style={{ width: "100%", marginTop: 20, background: C.teal, color: "#fff", border: "none", padding: "12px 0", borderRadius: 10, cursor: "pointer", fontWeight: 800, fontSize: 15 }}>Bestätigen ✓</button>
+          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+            <div onClick={() => { setNominatedIds([]); setShowNominateModal(false); }} style={{ flex: 1, background: C.border, color: C.sub, padding: "12px 0", borderRadius: 10, cursor: "pointer", fontWeight: 700, textAlign: "center", userSelect: "none" }}>Zurücksetzen</div>
+            <div onClick={() => { setShowNominateModal(false); showToast(nominatedIds.length > 0 ? `${nominatedIds.length} Projekte nominiert ✓` : "Keine Projekte ausgewählt"); }} style={{ flex: 2, background: nominatedIds.length > 0 ? C.teal : C.border, color: nominatedIds.length > 0 ? "#fff" : C.muted, padding: "12px 0", borderRadius: 10, cursor: "pointer", fontWeight: 800, fontSize: 15, textAlign: "center", userSelect: "none" }}>Bestätigen ✓</div>
+          </div>
         </Modal>
       )}
 
