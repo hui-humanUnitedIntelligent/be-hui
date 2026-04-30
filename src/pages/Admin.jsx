@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-// build: 2026-04-30-v4
+// build: 2026-04-30-v5
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject, User } from "@/api/entities";
 
 // ── Farben & Konstanten ──────────────────────────────────────────────────────
@@ -123,6 +123,7 @@ export default function AdminDashboard() {
   const [newProject, setNewProject] = useState({ name: "", category: "Umwelt", description: "", icon: "🌱", color: "#10B981" });
   const [editProject, setEditProject] = useState(null);
   const [impactView, setImpactView] = useState("aktiv"); // "aktiv" | "historie"
+  const [impactFilter, setImpactFilter] = useState("active");
   const [selectedProject, setSelectedProject] = useState(null);
 
   useEffect(() => { loadData(); }, []);
@@ -702,12 +703,12 @@ export default function AdminDashboard() {
               </div>
               <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
                 <div style={{ fontSize: 28 }}>🗳️</div>
-                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.blue, marginTop: 8 }}>{impactProjects.filter(p => p.status === "active").length}</div>
+                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.blue, marginTop: 8 }}>{projects.filter(p => p.status === "active").length}</div>
                 <div style={{ color: COLORS.muted, fontSize: 13, marginTop: 4 }}>Aktive Projekte</div>
               </div>
               <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
                 <div style={{ fontSize: 28 }}>👥</div>
-                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.teal, marginTop: 8 }}>{impactProjects.reduce((s, p) => s + (p.votes || 0), 0)}</div>
+                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.teal, marginTop: 8 }}>{projects.reduce((s, p) => s + (p.votes || 0), 0)}</div>
                 <div style={{ color: COLORS.muted, fontSize: 13, marginTop: 4 }}>Gesamte Stimmen</div>
               </div>
             </div>
@@ -722,13 +723,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* Project list */}
-            {impactProjects.length === 0 ? (
+            {projects.length === 0 ? (
               <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 40, textAlign: "center", color: COLORS.muted }}>
                 Noch keine Projekte. Füge das erste Projekt hinzu!
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {impactProjects
+                {projects
                   .filter(p => impactFilter === "all" ? true : impactFilter === "won" ? p.status === "won" : p.status === "active")
                   .map(proj => (
                   <div key={proj.id} style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
@@ -749,7 +750,7 @@ export default function AdminDashboard() {
                       </div>
                       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                         {proj.status === "active" && (
-                          <button onClick={() => handleDistribute(proj)} style={{ background: COLORS.gold + "22", color: COLORS.gold, border: `1px solid ${COLORS.gold}`, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 12 }}>🏆 Vergeben</button>
+                          <button onClick={() => distributePool()} style={{ background: COLORS.gold + "22", color: COLORS.gold, border: `1px solid ${COLORS.gold}`, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 12 }}>🏆 Vergeben</button>
                         )}
                         <button onClick={() => setEditProject({ ...proj })} style={{ background: "#1E3A5F", color: COLORS.blue, border: `1px solid ${COLORS.blue}`, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 12 }}>✏️ Edit</button>
                       </div>
