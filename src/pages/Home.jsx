@@ -1,12 +1,10 @@
-// HUI App v3.0-LIVE
 import React, { useState, useEffect, useRef } from "react";
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "@/api/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 import HuiSearchBar from "../components/HuiSearchBar";
 import WirkerVergleich from "../components/WirkerVergleich";
+import SearchOverlay from "../components/SearchOverlay";
 const CORAL = "#FF6B5B"; const TEAL = "#2ABFAC"; const GOLD = "#F5A623";
-
-// ─── NOTIFICATIONS ──────────────────────────────────────────────────────────
 const mockNotifications = [
   { id: "n1", type: "empfehlung", read: false, time: "vor 2 Min.", title: "Neue Empfehlung 👍", text: "Jemand hat dich nach einem Töpfer-Workshop weiterempfohlen. Dein Geld wurde freigegeben.", icon: "👍", color: "#2ABFAC" },
   { id: "n2", type: "buchung", read: false, time: "vor 18 Min.", title: "Neue Buchungsanfrage 📅", text: "Marcus B. möchte einen Fotoshooting-Termin mit dir buchen – Di, 28. April um 14:00 Uhr.", icon: "📅", color: "#FF6B5B" },
@@ -1539,188 +1537,6 @@ function WerkDetailPage({ werkTitle, onBack, onAddToCart, onViewWirker }) {
 }
 
 // ── (All other components unchanged below) ────────────────────────────────
-const mockSuchergebnisse = [
-  { id: "s1", typ: "wirker", name: "Sofia M.", kategorie: "Keramik & Töpfern", ort: "München · 2 km", empfehlungen: 48, preis: "ab 35 €", bild: "https://i.pravatar.cc/150?img=47", badge: "⭐ Top Wirker", buchbar: true, kaufbar: false, online: false },
-  { id: "s2", typ: "werk", name: 'Aquarell-Bild "Alpenglühen"', kategorie: "Kunst & Kreatives", ort: "München · 3 km", empfehlungen: 12, preis: "89 €", bild: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&q=80", badge: null, buchbar: false, kaufbar: true, online: false },
-  { id: "s3", typ: "wirker", name: "Marcus B.", kategorie: "Fotografie", ort: "München · 5 km", empfehlungen: 31, preis: "ab 80 €", bild: "https://i.pravatar.cc/150?img=33", badge: "📷 Profi", buchbar: true, kaufbar: false, online: true },
-  { id: "s4", typ: "werk", name: "Handgemachte Schale (Set 2)", kategorie: "Keramik & Töpfern", ort: "München · 2 km", empfehlungen: 8, preis: "55 €", bild: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=80", badge: "🔥 Beliebt", buchbar: false, kaufbar: true, online: false },
-  { id: "s5", typ: "wirker", name: "Lena K.", kategorie: "Coaching", ort: "München · 8 km", empfehlungen: 63, preis: "ab 120 €", bild: "https://i.pravatar.cc/150?img=25", badge: "✅ Verifiziert", buchbar: true, kaufbar: false, online: true },
-  { id: "s6", typ: "wirker", name: "Jonas W.", kategorie: "Musik", ort: "München · 4 km", empfehlungen: 22, preis: "ab 60 €", bild: "https://i.pravatar.cc/150?img=12", badge: null, buchbar: true, kaufbar: false, online: false },
-  { id: "s7", typ: "werk", name: "Yoga-Kurs Aufzeichnung (3x)", kategorie: "Wellness & Yoga", ort: "Online", empfehlungen: 19, preis: "29 €", bild: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&q=80", badge: "💻 Online", buchbar: false, kaufbar: true, online: true },
-  { id: "s8", typ: "wirker", name: "Anna P.", kategorie: "Kulinarik", ort: "München · 6 km", empfehlungen: 37, preis: "ab 45 €", bild: "https://i.pravatar.cc/150?img=44", badge: null, buchbar: true, kaufbar: false, online: false },
-];
-
-function SearchOverlay({ onClose }) {
-  const [query, setQuery] = useState("");
-  const [radius, setRadius] = useState(50);
-  const [contentType, setContentType] = useState("alles");
-  const [categories, setCategories] = useState([]);
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [sortBy, setSortBy] = useState("relevanz");
-  const [availability, setAvailability] = useState([]);
-  const [offerType, setOfferType] = useState([]);
-  const [minRecommendations, setMinRecommendations] = useState(0);
-  const [onlineOnly, setOnlineOnly] = useState(false);
-  const [expandedSection, setExpandedSection] = useState("typ");
-  const [showResults, setShowResults] = useState(false);
-
-  const [dbWirkerSuche, setDbWirkerSuche] = useState([]);
-  useEffect(() => {
-    HuiWirker.list().then(data => {
-      if (data && data.length > 0) {
-        const mapped = data.map(w => ({
-          id: w.id, typ: "wirker",
-          name: w.name || w.full_name || "",
-          kategorie: w.talent || "",
-          ort: (w.location || "") + (w.location ? " · 0 km" : ""),
-          empfehlungen: w.recommendations || w.bookings || 0,
-          preis: w.hourly_rate ? `ab ${w.hourly_rate} €` : "",
-          bild: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80",
-          badge: w.verified ? "✅ Verifiziert" : null,
-          buchbar: true, kaufbar: false, online: false
-        }));
-        setDbWirkerSuche(mapped);
-      }
-    }).catch(() => {});
-  }, []);
-
-  // Filtern & Suchen
-  const gefilterteErgebnisse = React.useMemo(() => {
-    const allResults = [...dbWirkerSuche, ...mockSuchergebnisse];
-    // Deduplizieren nach name
-    const seen = new Set();
-    let res = allResults.filter(r => { if (seen.has(r.name)) return false; seen.add(r.name); return true; });
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      res = res.filter(r => r.name.toLowerCase().includes(q) || r.kategorie.toLowerCase().includes(q));
-    }
-    if (contentType !== "alles") res = res.filter(r => r.typ === contentType);
-    if (categories.length > 0) res = res.filter(r => categories.includes(r.kategorie));
-    if (offerType.includes("buchbar")) res = res.filter(r => r.buchbar);
-    if (offerType.includes("kaufbar")) res = res.filter(r => r.kaufbar);
-    if (onlineOnly) res = res.filter(r => r.online);
-    if (minRecommendations > 0) res = res.filter(r => r.empfehlungen >= minRecommendations);
-    if (sortBy === "empfehlungen") res.sort((a,b) => b.empfehlungen - a.empfehlungen);
-    return res;
-  }, [query, contentType, categories, offerType, onlineOnly, minRecommendations, sortBy, dbWirkerSuche]);
-  const allCategories = [{ label: "Kunst & Kreatives", icon: "🎨" }, { label: "Musik", icon: "🎵" }, { label: "Fotografie", icon: "📷" }, { label: "Coaching", icon: "💡" }, { label: "Handwerk", icon: "🔨" }, { label: "Fitness & Sport", icon: "🏋️" }, { label: "Wellness & Yoga", icon: "🧘" }, { label: "Kulinarik", icon: "🍳" }, { label: "Schreiben & Text", icon: "✍️" }, { label: "Technik & IT", icon: "💻" }, { label: "Mode & Styling", icon: "👗" }, { label: "Natur & Garten", icon: "🌿" }];
-  const availabilityOptions = ["Heute", "Diese Woche", "Dieses Wochenende", "Nächste Woche"];
-  const sortOptions = [{ value: "relevanz", label: "Relevanz" }, { value: "empfehlungen", label: "Meiste Empfehlungen" }, { value: "neu", label: "Neueste zuerst" }, { value: "preis_asc", label: "Preis: günstig → teuer" }, { value: "preis_desc", label: "Preis: teuer → günstig" }];
-  const toggleArr = (arr, setArr, val) => setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
-  const activeFilterCount = [contentType !== "alles", categories.length > 0, priceMin || priceMax, availability.length > 0, offerType.length > 0, minRecommendations > 0, onlineOnly, sortBy !== "relevanz"].filter(Boolean).length;
-  const Section = ({ id, title, icon, children }) => { const open = expandedSection === id; return (<div style={{ borderBottom: "1px solid #f0f0f0" }}><button onClick={() => setExpandedSection(open ? null : id)} style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "13px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}><span style={{ fontWeight: 600, fontSize: 14, color: "#333", display: "flex", alignItems: "center", gap: 7 }}><span>{icon}</span>{title}</span>{open ? <ChevronUp size={16} color="#aaa" /> : <ChevronDown size={16} color="#aaa" />}</button>{open && <div style={{ paddingBottom: 14 }}>{children}</div>}</div>); };
-  const Chip = ({ label, active, onClick, icon }) => (<button onClick={onClick} style={{ background: active ? TEAL : "#f3f3f3", color: active ? "white" : "#555", border: "none", borderRadius: 20, padding: "7px 13px", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>{icon && <span style={{ fontSize: 13 }}>{icon}</span>}{label}{active && <Check size={11} color="white" />}</button>);
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 300, display: "flex", flexDirection: "column" }}>
-      <div style={{ background: "white", padding: "16px 16px 0", maxWidth: 430, width: "100%", margin: "0 auto" }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-          <div style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "11px 14px", display: "flex", gap: 8, alignItems: "center" }}>
-            <Search size={16} color={TEAL} />
-            <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Suche nach Talent, Werk, Name…" style={{ border: "none", background: "none", flex: 1, fontSize: 14, outline: "none", color: "#222" }} />
-            {query && <button onClick={() => setQuery("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><X size={14} color="#aaa" /></button>}
-          </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: CORAL, fontWeight: 700, fontSize: 14 }}>Fertig</button>
-        </div>
-        {activeFilterCount > 0 && <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><SlidersHorizontal size={13} color={CORAL} /><span style={{ fontSize: 12, color: CORAL, fontWeight: 600 }}>{activeFilterCount} Filter aktiv</span><button onClick={() => { setContentType("alles"); setCategories([]); setPriceMin(""); setPriceMax(""); setAvailability([]); setOfferType([]); setMinRecommendations(0); setOnlineOnly(false); setSortBy("relevanz"); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 12, marginLeft: 4 }}>Alle zurücksetzen</button></div>}
-      </div>
-      <div style={{ flex: 1, overflowY: "auto", background: "white", maxWidth: 430, width: "100%", margin: "0 auto", padding: "0 16px" }}>
-        <div style={{ borderBottom: "1px solid #f0f0f0", padding: "13px 0" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}><span style={{ fontWeight: 600, fontSize: 14, color: "#333" }}>📍 Umkreis: <span style={{ color: TEAL }}>{radius === 200 ? "Weltweit" : `${radius} km`}</span></span><button onClick={() => setRadius(200)} style={{ background: radius === 200 ? TEAL : "#f0f0f0", border: "none", borderRadius: 8, padding: "4px 10px", color: radius === 200 ? "white" : "#555", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>🌍 Weltweit</button></div>
-          <input type="range" min={20} max={200} step={10} value={radius} onChange={e => setRadius(+e.target.value)} style={{ width: "100%", accentColor: TEAL }} />
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#bbb", marginTop: 4 }}><span>20km</span><span>50km</span><span>100km</span><span>200km</span><span>Welt</span></div>
-        </div>
-        <Section id="typ" title="Was suchst du?" icon="🔍"><div style={{ display: "flex", gap: 8 }}>{[{ v: "alles", l: "Alles" }, { v: "wirker", l: "Wirker" }, { v: "werke", l: "Werke" }].map(o => (<button key={o.v} onClick={() => setContentType(o.v)} style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: contentType === o.v ? CORAL : "#f3f3f3", color: contentType === o.v ? "white" : "#555" }}>{o.l}</button>))}</div></Section>
-        <Section id="angebot" title="Art des Angebots" icon="📦"><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><Chip label="Buchbar" active={offerType.includes("buchbar")} onClick={() => toggleArr(offerType, setOfferType, "buchbar")} icon="📅" /><Chip label="Kaufbar" active={offerType.includes("kaufbar")} onClick={() => toggleArr(offerType, setOfferType, "kaufbar")} icon="🛒" /><Chip label="Online möglich" active={onlineOnly} onClick={() => setOnlineOnly(p => !p)} icon="💻" /></div></Section>
-        <Section id="kategorien" title="Kategorien" icon="🎯"><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{allCategories.map(c => <Chip key={c.label} label={c.label} icon={c.icon} active={categories.includes(c.label)} onClick={() => toggleArr(categories, setCategories, c.label)} />)}</div></Section>
-        <Section id="preis" title="Preisspanne" icon="💶"><div style={{ display: "flex", gap: 10, alignItems: "center" }}><div style={{ flex: 1, background: "#f3f3f3", borderRadius: 10, padding: "10px 12px", display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, color: "#aaa" }}>von</span><input value={priceMin} onChange={e => setPriceMin(e.target.value)} placeholder="0" type="number" style={{ border: "none", background: "none", fontSize: 14, outline: "none", width: "100%", color: "#222" }} /><span style={{ fontSize: 13, color: "#aaa" }}>€</span></div><span style={{ color: "#bbb" }}>–</span><div style={{ flex: 1, background: "#f3f3f3", borderRadius: 10, padding: "10px 12px", display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, color: "#aaa" }}>bis</span><input value={priceMax} onChange={e => setPriceMax(e.target.value)} placeholder="∞" type="number" style={{ border: "none", background: "none", fontSize: 14, outline: "none", width: "100%", color: "#222" }} /><span style={{ fontSize: 13, color: "#aaa" }}>€</span></div></div><div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>{[["bis 25 €","","25"],["25–100 €","25","100"],["100–300 €","100","300"],["300 €+","300",""]].map(([l,min,max]) => (<button key={l} onClick={() => { setPriceMin(min); setPriceMax(max); }} style={{ background: priceMin === min && priceMax === max ? TEAL : "#f3f3f3", color: priceMin === min && priceMax === max ? "white" : "#555", border: "none", borderRadius: 20, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{l}</button>))}</div></Section>
-        <Section id="verfuegbarkeit" title="Verfügbarkeit" icon="📅"><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{availabilityOptions.map(a => <Chip key={a} label={a} active={availability.includes(a)} onClick={() => toggleArr(availability, setAvailability, a)} />)}</div></Section>
-        <Section id="empfehlungen" title="Mindest-Empfehlungen" icon="👍"><div style={{ display: "flex", gap: 8 }}>{[0,5,10,25,50].map(n => (<button key={n} onClick={() => setMinRecommendations(n)} style={{ background: minRecommendations === n ? CORAL : "#f3f3f3", color: minRecommendations === n ? "white" : "#555", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{n === 0 ? "Alle" : `${n}+`}</button>))}</div></Section>
-        <Section id="sortierung" title="Sortieren nach" icon="↕️"><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{sortOptions.map(o => (<button key={o.value} onClick={() => setSortBy(o.value)} style={{ background: sortBy === o.value ? `${TEAL}15` : "none", border: sortBy === o.value ? `1.5px solid ${TEAL}` : "1.5px solid #eee", borderRadius: 10, padding: "10px 14px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", color: sortBy === o.value ? TEAL : "#444", fontWeight: sortBy === o.value ? 700 : 400, fontSize: 13 }}>{o.label}{sortBy === o.value && <Check size={15} color={TEAL} />}</button>))}</div></Section>
-        <div style={{ height: 16 }} />
-      </div>
-      <div style={{ background: "white", padding: "12px 16px 24px", borderTop: "1px solid #f0f0f0", maxWidth: 430, width: "100%", margin: "0 auto" }}>
-        <button onClick={() => setShowResults(true)} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>{activeFilterCount > 0 ? `${activeFilterCount} Filter anwenden` : "Suchen"}</button>
-      </div>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: -1 }} />
-
-      {/* ── SUCHERGEBNISSE ──────────────────────────────────────── */}
-      {showResults && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "#fafaf8", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
-          {/* Header */}
-          <div style={{ background: "white", padding: "14px 16px", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <button onClick={() => setShowResults(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-                <ArrowLeft size={20} color="#444" />
-              </button>
-              <div style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "9px 13px", display: "flex", gap: 8, alignItems: "center" }}>
-                <Search size={15} color={TEAL} />
-                <span style={{ fontSize: 14, color: query ? "#222" : "#bbb" }}>{query || "Alle Ergebnisse"}</span>
-              </div>
-              <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: CORAL, fontWeight: 700, fontSize: 14 }}>Fertig</button>
-            </div>
-            {/* Filter-Chips aktive */}
-            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
-              <div style={{ background: `${TEAL}15`, borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: TEAL, whiteSpace: "nowrap", flexShrink: 0 }}>
-                📍 {radius === 200 ? "Weltweit" : `${radius} km`}
-              </div>
-              {contentType !== "alles" && <div style={{ background: `${CORAL}15`, borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: CORAL, whiteSpace: "nowrap", flexShrink: 0 }}>{contentType === "wirker" ? "👤 Wirker" : "🛍 Werke"}</div>}
-              {categories.slice(0,2).map(c => <div key={c} style={{ background: "#f0f0ee", borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "#555", whiteSpace: "nowrap", flexShrink: 0 }}>{c}</div>)}
-              {activeFilterCount > 0 && <button onClick={() => setShowResults(false)} style={{ background: "none", border: "1px solid #eee", borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "#aaa", whiteSpace: "nowrap", flexShrink: 0, cursor: "pointer" }}>✏️ Filtern</button>}
-            </div>
-          </div>
-
-          {/* Ergebnis-Info */}
-          <div style={{ padding: "10px 16px 4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>{gefilterteErgebnisse.length} Ergebnisse gefunden</span>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ fontSize: 12, border: "1px solid #eee", borderRadius: 8, padding: "4px 8px", color: "#555", background: "white", cursor: "pointer" }}>
-              {[{value:"relevanz",label:"Relevanz"},{value:"empfehlungen",label:"Meiste Empfehlungen"},{value:"neu",label:"Neueste"},{value:"preis_asc",label:"Preis ↑"},{value:"preis_desc",label:"Preis ↓"}].map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </div>
-
-          {/* Liste */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "8px 16px 24px" }}>
-            {gefilterteErgebnisse.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 24px" }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 6 }}>Keine Ergebnisse</div>
-                <div style={{ fontSize: 13, color: "#aaa" }}>Versuch andere Filter oder einen anderen Suchbegriff.</div>
-                <button onClick={() => setShowResults(false)} style={{ marginTop: 20, background: TEAL, color: "white", border: "none", borderRadius: 12, padding: "11px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>Filter anpassen</button>
-              </div>
-            ) : gefilterteErgebnisse.map(item => (
-              <div key={item.id} style={{ background: "white", borderRadius: 18, marginBottom: 12, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.06)" }}>
-                <div style={{ display: "flex", gap: 0 }}>
-                  {/* Bild */}
-                  <div style={{ width: 90, flexShrink: 0, position: "relative" }}>
-                    <img src={item.bild} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", minHeight: 100 }} />
-                    {item.badge && <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(0,0,0,0.6)", borderRadius: 99, padding: "2px 7px", fontSize: 9, fontWeight: 700, color: "white", whiteSpace: "nowrap" }}>{item.badge}</div>}
-                  </div>
-                  {/* Info */}
-                  <div style={{ flex: 1, padding: "12px 14px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 14, color: "#222", lineHeight: 1.3 }}>{item.name}</div>
-                        <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, marginTop: 1 }}>{item.kategorie}</div>
-                      </div>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: CORAL, flexShrink: 0, marginLeft: 8 }}>{item.preis}</div>
-                    </div>
-                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 8 }}>📍 {item.ort} · 👍 {item.empfehlungen} Empfehlungen</div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {item.buchbar && <button style={{ flex: 1, background: `linear-gradient(135deg, ${TEAL}, #10b981)`, border: "none", borderRadius: 10, padding: "8px 0", fontSize: 12, fontWeight: 700, color: "white", cursor: "pointer" }}>📅 Buchen</button>}
-                      {item.kaufbar && <button style={{ flex: 1, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 10, padding: "8px 0", fontSize: 12, fontWeight: 700, color: "white", cursor: "pointer" }}>🛒 Kaufen</button>}
-                      {item.online && <div style={{ background: `${TEAL}15`, borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, color: TEAL }}>💻</div>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════════
 // IMPACT TRACKER PAGE
 // ══════════════════════════════════════════════════════════════════
@@ -2195,7 +2011,6 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
     </div>
   );
 }
-// SearchBar extracted to components/HuiSearchBar.jsx
 // ══════════════════════════════════════════════════════════════════
 // STORY VIEWER (Instagram-Style)
 // ══════════════════════════════════════════════════════════════════
