@@ -1,19 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Admin from './pages/Admin';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
-import BookingFlow from './pages/BookingFlow';
+import Admin from './pages/Admin';
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/Home" replace />} />
-        <Route path="/Admin" element={<Admin />} />
         <Route path="/Home" element={<Home />} />
-        <Route path="/BookingFlow" element={<BookingFlow />} />
+        <Route path="/Admin" element={<Admin />} />
+        <Route path="*" element={<Navigate to="/Home" replace />} />
       </Routes>
-    </BrowserRouter>
-  )
+    </Router>
+  );
 }
 
-export default App
+export default App;
