@@ -423,6 +423,8 @@ const mockFeed = [
   { id: 7, type: "media", mediaType: "photo", creator: "Maria L.", creatorImg: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", talent: "Yoga & Achtsamkeits-Coach", img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=700&fit=crop", caption: "Morgenroutine mit Aussicht. Wer braucht noch einen Grund für früh aufstehen? 🌅 Yoga-Sessions ab 7 Uhr buchbar.", likes: 317, location: "Zürich" },
   { id: 8, type: "werk", title: "Handgenähter Leder-Rucksack", creator: "Tom H.", creatorImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=400&fit=crop", price: "195 €", likes: 203, location: "Wien" },
   { id: 9, type: "wirker", name: "Maria L.", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop", talent: "Yoga & Achtsamkeits-Coach", recommendations: 93, location: "Zürich" },
+  { id: 10, type: "service", title: "1:1 Yoga-Session (60 Min.)", creator: "Maria L.", creatorImg: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=400&fit=crop", price: "75 €/Std.", caption: "Individuelle Yoga-Session für Anfänger & Fortgeschrittene. Komm zu mir nach Zürich oder per Video-Call. 🌅", likes: 58, location: "Zürich" },
+  { id: 11, type: "service", title: "Foto-Shooting (2 Std.)", creator: "Marcus B.", creatorImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", img: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=600&h=400&fit=crop", price: "180 €", caption: "Portrait, Business oder Lifestyle — ich fange deinen Moment ein. Inkl. 20 bearbeiteter Fotos. 📷", likes: 112, location: "Berlin" },
 ];
 
 // Featured Wirker (Hero-Karte oben im Feed)
@@ -2523,6 +2525,93 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
     </div>
   );
 }
+
+function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookService, isTalentUser }) {
+  const [booking, setBooking] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
+
+  const handleBook = async (e) => {
+    e.stopPropagation();
+    setConfirming(true);
+    try {
+      const price = parseFloat((item.price || "60 €").replace(/[^0-9.,]/g, "").replace(",", ".")) || 60;
+      const amountCents = Math.round(price * 100);
+      const res = await fetch('https://michi-6f9abd25.base44.app/functions/createCheckout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemName: item.title || item.service,
+          amountCents,
+          itemType: 'buchung',
+          wirkerName: item.creator,
+          imageUrl: item.img,
+          successUrl: window.location.href + '?payment=success',
+          cancelUrl: window.location.href + '?payment=cancelled',
+        }),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        try {
+          localStorage.setItem("hui_last_booking", JSON.stringify({
+            wirkerName: item.creator,
+            wirkerImg: item.creatorImg,
+            itemName: item.title || item.service,
+            totalEur: data.totalEur,
+            impactEur: data.impactEur,
+          }));
+        } catch(e) {}
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Fehler: ' + (data.error || 'Unbekannt'));
+        setConfirming(false);
+      }
+    } catch(err) {
+      alert('Verbindungsfehler: ' + err.message);
+      setConfirming(false);
+    }
+  };
+
+  return (
+    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(0,0,0,0.07)", border: "1px solid #f0f0ee", margin: "8px 16px", borderLeft: `3.5px solid ${TEAL}` }}>
+      <div style={{ position: "relative" }}>
+        <img src={item.img} style={{ width: "100%", height: 220, objectFit: "cover" }} alt={item.title} />
+        <div style={{ position: "absolute", top: 10, left: 10, background: `${TEAL}ee`, backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
+          🤝 {item.price}
+        </div>
+        <button
+          onClick={handleBook}
+          disabled={confirming}
+          style={{
+            position: "absolute", bottom: 10, right: 10,
+            background: confirming ? "#aaa" : TEAL,
+            color: "white", border: "none", borderRadius: 22,
+            padding: "8px 16px", fontWeight: 700, fontSize: 13,
+            cursor: confirming ? "default" : "pointer", display: "flex", alignItems: "center", gap: 6,
+            boxShadow: "0 2px 10px rgba(0,0,0,0.25)", transition: "background 0.25s"
+          }}
+        >
+          {confirming ? "Lädt…" : "📅 Jetzt buchen"}
+        </button>
+      </div>
+      <div style={{ padding: "10px 14px 12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+          <img src={item.creatorImg} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
+          <span onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ fontWeight: 600, fontSize: 12, color: TEAL, cursor: "pointer" }}>{item.creator}</span>
+          <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location}</span>
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 4 }}>{item.title}</div>
+        {item.caption && <div style={{ fontSize: 13, color: "#888", marginBottom: 8, lineHeight: 1.5 }}>{item.caption}</div>}
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: liked ? CORAL : "#bbb", padding: 0 }}><Heart size={17} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#bbb"} /><span style={{ fontSize: 12, color: liked ? CORAL : "#bbb" }}>{item.likes + (liked ? 1 : 0)}</span></button>
+          <button onClick={(e) => { e.stopPropagation(); shareItem(item.title, "Dienstleistung"); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={17} color="#bbb" /></button>
+          <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Star size={17} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#bbb"} /></button>
+        </div>
+      </div>
+      <CommentSection itemId={item.id} creator={item.creator} isTalent={false} />
+    </div>
+  );
+}
+
 function WirkerCard({ item, onViewWirker, onBookWirker }) {
   // Find cover image from mockWirkerProfiles if available
   const wirkerData = mockWirkerProfiles[item.name];
@@ -3087,11 +3176,51 @@ function StoryCreateModal({ onClose }) {
   );
 }
 
-/* v2 */ function CartOverlay({ cart, onClose, onRemove }) {
+/* v2 */ function CartOverlay({ cart, onClose, onRemove, onGoToChats }) {
   const [step, setStep] = React.useState("cart"); // cart | address | payment | confirm | done
   const [adresse, setAdresse] = React.useState({ name: "Lars M.", strasse: "Leopoldstr. 42", plz: "80802", ort: "München" });
   const [zahlart, setZahlart] = React.useState("karte");
   const [huiPunkte, setHuiPunkte] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
+
+  const handleStripeCheckout = async () => {
+    setConfirming(true);
+    try {
+      const amountCents = Math.round(total * 100);
+      const itemNames = cart.map(i => i.title).join(", ");
+      const res = await fetch('https://michi-6f9abd25.base44.app/functions/createCheckout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemName: itemNames.substring(0, 80),
+          amountCents,
+          itemType: 'werk',
+          wirkerName: cart[0]?.creator || 'Talent',
+          successUrl: window.location.href + '?payment=success',
+          cancelUrl: window.location.href + '?payment=cancelled',
+        }),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        try {
+          localStorage.setItem("hui_last_booking", JSON.stringify({
+            wirkerName: cart[0]?.creator || 'Talent',
+            wirkerImg: cart[0]?.creatorImg || '',
+            itemName: itemNames,
+            totalEur: data.totalEur,
+            impactEur: data.impactEur,
+          }));
+        } catch(e) {}
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Fehler: ' + (data.error || 'Unbekannt'));
+        setConfirming(false);
+      }
+    } catch(err) {
+      alert('Verbindungsfehler: ' + err.message);
+      setConfirming(false);
+    }
+  };
 
   const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.price.replace(" €","").replace(",",".")), 0);
   const versand = cart.length > 0 ? 4.50 : 0;
@@ -3117,7 +3246,7 @@ function StoryCreateModal({ onClose }) {
         <div style={{ background: `${GOLD}12`, borderRadius: 14, padding: "10px", marginBottom: 20, fontSize: 12, color: "#666" }}>
           ⭐ +25 HUI-Punkte für deinen Kauf gutgeschrieben!
         </div>
-        <button onClick={onClose} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+        <button onClick={() => { onClose(); if (onGoToChats) onGoToChats(); }} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
           Zum Chat →
         </button>
       </div>
@@ -3297,9 +3426,9 @@ function StoryCreateModal({ onClose }) {
               if (step === "cart") setStep("address");
               else if (step === "address") setStep("payment");
               else if (step === "payment") setStep("confirm");
-              else setStep("done");
-            }} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
-              {step === "cart" ? `Weiter → ${total.toFixed(2)} €` : step === "address" ? "Weiter zur Zahlung →" : step === "payment" ? "Weiter zur Übersicht →" : "💳 Jetzt kaufen & Treuhand öffnen"}
+              else handleStripeCheckout();
+            }} disabled={confirming} style={{ width: "100%", background: confirming ? "#ccc" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              {confirming ? (<><div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #fff6", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} />Weiter zu Stripe…</>) : (step === "cart" ? `Weiter → ${total.toFixed(2)} €` : step === "address" ? "Weiter zur Zahlung →" : step === "payment" ? "Weiter zur Übersicht →" : "💳 Jetzt kaufen & Treuhand öffnen")}
             </button>
           </div>
         )}
@@ -6295,6 +6424,7 @@ export default function App() {
             if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
             if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
             if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />;
+            if (item.type === "service") return <ServiceCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
             if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
             return null;
           })}
@@ -6321,7 +6451,7 @@ export default function App() {
       {showWerkCreate && <WerkCreateModal onClose={() => setShowWerkCreate(false)} />}
       {showStoryCreate && <StoryCreateModal onClose={() => setShowStoryCreate(false)} />}
 
-      {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} />}
+      {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} onGoToChats={() => { setShowCart(false); setPage("chats"); }} />}
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => { setShowOnboarding(false); localStorage.setItem("hui_onboarding_seen", "1"); }} />}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
