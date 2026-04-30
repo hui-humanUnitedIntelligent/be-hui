@@ -175,20 +175,43 @@ export default function AdminPage() {
 
   async function distributePool() {
     if (!distributeTarget) return;
-    const amount = parseFloat(totalImpact.toFixed(2));
-    if (!window.confirm(`${fmt(amount)} € an "${distributeTarget.name}" ausschütten?`)) return;
+    const totalAmount = parseFloat(totalImpact.toFixed(2));
+
+    // 70% geht an den Gewinner, 30% wird gleichmäßig auf alle anderen aktiven Projekte verteilt
+    const winnerShare = parseFloat((totalAmount * 0.7).toFixed(2));
+    const restAmount = parseFloat((totalAmount * 0.3).toFixed(2));
+    const otherActives = projects.filter(p => p.status === "aktiv" && p.id !== distributeTarget.id);
+    const restPerProject = otherActives.length > 0 ? parseFloat((restAmount / otherActives.length).toFixed(2)) : 0;
+
+    const confirmMsg = otherActives.length > 0
+      ? \`\${fmt(winnerShare)} € → "\${distributeTarget.name}" (Gewinner)\n\${fmt(restPerProject)} € → \${otherActives.length} weitere aktive Projekte (je gleich)\n\nGesamt: \${fmt(totalAmount)} €\`
+      : \`\${fmt(totalAmount)} € → "\${distributeTarget.name}"\n\nKeine weiteren aktiven Projekte vorhanden.\`;
+
+    if (!window.confirm(confirmMsg)) return;
     try {
-      const updated = { ...distributeTarget, status: "gewonnen", awarded_eur: amount, distributed_at: new Date().toISOString() };
-      if (!usingMock) await HuiImpactProject.update(distributeTarget.id, updated);
+      const winner = { ...distributeTarget, status: "gewonnen", awarded_eur: winnerShare, distributed_at: new Date().toISOString() };
+      if (!usingMock) await HuiImpactProject.update(distributeTarget.id, winner);
+
       setProjects(prev => prev.map(p => {
-        if (p.id === distributeTarget.id) return updated;
+        if (p.id === distributeTarget.id) return winner;
+        // Andere aktive Projekte bekommen ihren Anteil als Startguthaben
+        if (p.status === "aktiv" && restPerProject > 0) {
+          const updated = { ...p, awarded_eur: parseFloat(((p.awarded_eur || 0) + restPerProject).toFixed(2)) };
+          if (!usingMock) HuiImpactProject.update(p.id, updated);
+          return updated;
+        }
+        // Andere nominierte aber nicht gewonnene → archivieren
         if (nominatedIds.includes(p.id)) return { ...p, status: "archiviert" };
         return p;
       }));
+
       setNominatedIds([]);
       setDistributeTarget(null);
       setVotingOpen(false);
-      showToast(`💸 ${fmt(amount)} € ausgeschüttet!`);
+      const toastMsg = restPerProject > 0
+        ? \`💸 \${fmt(winnerShare)} € an \${distributeTarget.name} + \${fmt(restPerProject)} € an \${otherActives.length} Projekte!\`
+        : \`💸 \${fmt(totalAmount)} € an \${distributeTarget.name} ausgeschüttet!\`;
+      showToast(toastMsg);
     } catch { showToast("Fehler bei Ausschüttung", "error"); }
   }
 
@@ -594,12 +617,41 @@ export default function AdminPage() {
                       ))
                     }
                   </div>
+                  {/* Vorschau der Aufteilung */}
+                  {distributeTarget && (() => {
+                    const total = parseFloat(totalImpact.toFixed(2));
+                    const winnerShare = parseFloat((total * 0.7).toFixed(2));
+                    const restAmount = parseFloat((total * 0.3).toFixed(2));
+                    const others = projects.filter(p => p.status === "aktiv" && p.id !== distributeTarget.id);
+                    const perProject = others.length > 0 ? parseFloat((restAmount / others.length).toFixed(2)) : 0;
+                    return (
+                      <div style={{ background: C.bg, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                        <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, marginBottom: 10 }}>VORSCHAU AUFTEILUNG</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                          <span style={{ fontSize: 18 }}>{distributeTarget.icon}</span>
+                          <div style={{ flex: 1, fontSize: 13, fontWeight: 700 }}>{distributeTarget.name} <span style={{ color: C.gold }}>(Gewinner)</span></div>
+                          <div style={{ fontWeight: 800, color: C.gold }}>{fmt(winnerShare)} €</div>
+                        </div>
+                        {others.length > 0 && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
+                            <span style={{ fontSize: 18 }}>🌱</span>
+                            <div style={{ flex: 1, fontSize: 13, color: C.sub }}>{others.length} weitere aktive Projekte <span style={{ color: C.teal }}>(je gleich)</span></div>
+                            <div style={{ fontWeight: 700, color: C.teal }}>{fmt(perProject)} € / Projekt</div>
+                          </div>
+                        )}
+                        <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 10, marginTop: 8, borderTop: `1px solid ${C.border}`, fontSize: 13, fontWeight: 700 }}>
+                          <span style={{ color: C.muted }}>Gesamt</span>
+                          <span style={{ color: C.text }}>{fmt(total)} €</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <button onClick={distributePool} disabled={!distributeTarget} style={{
                     width: "100%", background: distributeTarget ? `linear-gradient(135deg,${C.gold},#F97316)` : C.border,
                     color: distributeTarget ? "#fff" : C.muted, border: "none",
                     padding: "14px 0", borderRadius: 12, cursor: distributeTarget ? "pointer" : "not-allowed",
                     fontWeight: 800, fontSize: 15
-                  }}>{distributeTarget ? `💸 ${fmt(totalImpact)} € an ${distributeTarget.name} ausschütten` : "Zuerst ein Projekt auswählen"}</button>
+                  }}>{distributeTarget ? `💸 Jetzt ausschütten` : "Zuerst ein Projekt auswählen"}</button>
                 </div>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>Vergangene Ausschüttungen</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
