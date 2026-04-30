@@ -1,6 +1,6 @@
-// HUI App v2.9
+// HUI App v3.0-LIVE
 import React, { useState, useEffect, useRef } from "react";
-import { HuiPayment } from "@/api/entities";
+import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "@/api/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
 const CORAL = "#FF6B5B";
@@ -1196,15 +1196,40 @@ function EmpfehlungsBox({ wirkerName, initialCount }) {
 }
 
 function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, returnStep6, onGoToChats }) {
-  const p = mockWirkerProfiles[wirkerName];
+  const [dbWirker, setDbWirker] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [tab, setTab] = useState("werke");
   const [followed, setFollowed] = useState(false);
   const [showBooking, setShowBooking] = useState(!!autoBook);
   const [showAvailEditor, setShowAvailEditor] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
-  const [werke, setWerke] = useState(p ? p.werke : []);
-  const [editingWerk, setEditingWerk] = useState(null); // null | werk-object
+  const [werke, setWerke] = useState([]);
+  const [editingWerk, setEditingWerk] = useState(null);
   const [showWerkEditor, setShowWerkEditor] = useState(false);
+
+  useEffect(() => {
+    async function loadWirker() {
+      setLoadingProfile(true);
+      try {
+        // Try DB first
+        const all = await HuiWirker.list().catch(() => []);
+        const found = all.find(w => w.name === wirkerName || w.full_name === wirkerName);
+        if (found) {
+          setDbWirker(found);
+          setWerke(found.werke || []);
+        } else {
+          // Fallback to mock
+          const mock = mockWirkerProfiles[wirkerName];
+          if (mock) { setDbWirker(mock); setWerke(mock.werke || []); }
+        }
+      } catch(e) {
+        const mock = mockWirkerProfiles[wirkerName];
+        if (mock) { setDbWirker(mock); setWerke(mock.werke || []); }
+      }
+      setLoadingProfile(false);
+    }
+    loadWirker();
+  }, [wirkerName]);
 
   const handleSaveWerk = (updatedWerk) => {
     setWerke(prev => {
@@ -1212,25 +1237,51 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
       if (idx >= 0) {
         const next = [...prev];
         next[idx] = updatedWerk;
-        if (p) p.werke = next; // persist in mock
         return next;
       }
-      const next = [...prev, updatedWerk];
-      if (p) p.werke = next;
-      return next;
+      return [...prev, updatedWerk];
     });
     setShowWerkEditor(false);
     setEditingWerk(null);
   };
 
+  if (loadingProfile) return (
+    <div style={{ padding: 32, textAlign: "center", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+      <div style={{ fontSize: 32 }}>✨</div>
+      <div style={{ color: TEAL, fontWeight: 600, fontSize: 15 }}>Lade Profil…</div>
+    </div>
+  );
+
+  const p = dbWirker || mockWirkerProfiles[wirkerName];
   if (!p) return <div style={{ padding: 32, textAlign: "center" }}><button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: TEAL, fontWeight: 700 }}>← Zurück</button><p>Profil nicht gefunden</p></div>;
+  
+  // Normalize DB vs mock fields
+  const profile = {
+    name: p.name || wirkerName,
+    fullName: p.full_name || p.fullName || p.name || wirkerName,
+    talent: p.talent || "",
+    location: p.location || "",
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
+    memberSince: p.memberSince || "2024",
+    bookings: p.bookings || 0,
+    followers: p.followers || 0,
+    recommendations: p.recommendations || 0,
+    impactEur: p.impact_eur || profile.impactEur || 0,
+    bio: p.bio || "",
+    img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+    header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
+    skills: p.skills || [],
+    werke: werke,
+    empfehlungen: profile.empfehlungen || [],
+    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
+  };
 
   return (
     <div style={{ paddingBottom: 100, overflowY: "auto", height: "100vh", background: "#f5f5f3" }}>
 
       {/* ── HERO ── */}
       <div style={{ position: "relative" }}>
-        <img src={p.header} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} alt="" />
+        <img src={profile.header} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} alt="" />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)" }} />
         <button onClick={onBack} style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(6px)", border: "none", borderRadius: "50%", width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <ArrowLeft size={18} color="white" />
@@ -1240,7 +1291,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
         </button>
         {/* Avatar überlappend */}
         <div style={{ position: "absolute", bottom: -40, left: 20 }}>
-          <img src={p.img} style={{ width: 80, height: 80, borderRadius: "50%", border: "4px solid white", objectFit: "cover", boxShadow: "0 4px 14px rgba(0,0,0,0.2)", display: "block" }} alt={p.name} />
+          <img src={profile.img} style={{ width: 80, height: 80, borderRadius: "50%", border: "4px solid white", objectFit: "cover", boxShadow: "0 4px 14px rgba(0,0,0,0.2)", display: "block" }} alt={profile.name} />
         </div>
       </div>
 
@@ -1249,12 +1300,12 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
           <div>
             <div style={{ fontWeight: 900, fontSize: 20, color: "#1a1a1a", display: "flex", alignItems: "center", gap: 6, letterSpacing: -0.3 }}>
-              {p.fullName} <BadgeCheck size={17} color={TEAL} />
+              {profile.fullName} <BadgeCheck size={17} color={TEAL} />
             </div>
-            <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 2 }}>{p.talent}</div>
+            <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 2 }}>{profile.talent}</div>
             <div style={{ fontSize: 12, color: "#aaa", marginTop: 4, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><MapPin size={11} />{p.location}</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Clock size={11} />{p.hourlyRate}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><MapPin size={11} />{profile.location}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Clock size={11} />{profile.hourlyRate}</span>
             </div>
           </div>
           {/* Folgen-Button oben rechts */}
@@ -1350,7 +1401,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
               <div onClick={() => setShowBooking(true)} style={{ background: `linear-gradient(160deg,${TEAL}12,${TEAL}20)`, borderRadius: 14, border: `1.5px dashed ${TEAL}60`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 14, cursor: "pointer", minHeight: 130 }}>
                 <Calendar size={28} color={TEAL} style={{ marginBottom: 6 }} />
                 <div style={{ fontWeight: 700, fontSize: 12, color: TEAL, textAlign: "center" }}>Termin buchen</div>
-                <div style={{ fontSize: 10, color: `${TEAL}aa`, textAlign: "center", marginTop: 3 }}>{p.hourlyRate}</div>
+                <div style={{ fontSize: 10, color: `${TEAL}aa`, textAlign: "center", marginTop: 3 }}>{profile.hourlyRate}</div>
               </div>
             )}
           </div>
@@ -1360,11 +1411,11 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
       {tab === "über" && (
         <div style={{ padding: 16 }}>
           <div style={{ background: "white", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>Über {p.fullName}</div>
-            <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, margin: 0 }}>{p.bio}</p>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>Über {profile.fullName}</div>
+            <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, margin: 0 }}>{profile.bio}</p>
           </div>
           <div style={{ background: "white", borderRadius: 16, padding: 16, marginBottom: 12 }}>
-            {[{ icon: "📍", label: "Standort", val: `${p.location} (${p.distance} entfernt)` }, { icon: "📅", label: "Mitglied seit", val: p.memberSince }, { icon: "🎯", label: "Buchungen", val: `${p.bookings} erfolgreiche Buchungen` }, { icon: "🌱", label: "Impact", val: `${p.impactEur} € in Impact Pool` }, { icon: "💶", label: "Stundensatz", val: p.hourlyRate }].map((row, i, arr) => (
+            {[{ icon: "📍", label: "Standort", val: `${profile.location} (${p.distance} entfernt)` }, { icon: "📅", label: "Mitglied seit", val: p.memberSince }, { icon: "🎯", label: "Buchungen", val: `${profile.bookings} erfolgreiche Buchungen` }, { icon: "🌱", label: "Impact", val: `${profile.impactEur} € in Impact Pool` }, { icon: "💶", label: "Stundensatz", val: p.hourlyRate }].map((row, i, arr) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "9px 0", borderBottom: i < arr.length - 1 ? "1px solid #f5f5f5" : "none" }}>
                 <span style={{ fontSize: 18 }}>{row.icon}</span>
                 <div>
@@ -1379,10 +1430,10 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
             <div style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
               👍 Empfehlungen
               <span style={{ background: TEAL + "15", color: TEAL, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 700 }}>
-                {(p.empfehlungen || []).length} verifiziert
+                {(profile.empfehlungen || []).length} verifiziert
               </span>
             </div>
-            {(p.empfehlungen || [
+            {(profile.empfehlungen || [
               { name: "Anna K.", text: "Wirklich unglaublich talentiert! Der Workshop hat meine Erwartungen weit übertroffen. Sehr empfehlenswert!", datum: "März 2026", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop" },
               { name: "Marc B.", text: "Die Keramik-Tasse ist ein echtes Kunstwerk. Schneller Versand, liebevolle Verpackung. Gerne wieder!", datum: "Feb 2026", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop" },
               { name: "Lisa M.", text: "Hat uns nach dem Kauf sofort kontaktiert und alles erklärt. Professionell und herzlich.", datum: "Jan 2026", avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop" },
@@ -1403,9 +1454,9 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
         </div>
       )}
 
-      {showBooking && <BookingFlow wirker={p} onClose={() => setShowBooking(false)} returnStep6={returnStep6} onSuccess={() => { setShowBooking(false); setBookingDone(true); if (onGoToChats) onGoToChats(); }} />}
-      {showAvailEditor && <AvailabilityEditor wirkerName={p.name} onClose={() => setShowAvailEditor(false)} />}
-      {showWerkEditor && <WerkEditor werk={editingWerk} wirkerName={p.name} onClose={() => { setShowWerkEditor(false); setEditingWerk(null); }} onSave={handleSaveWerk} />}
+      {showBooking && <BookingFlow wirker={profile} onClose={() => setShowBooking(false)} returnStep6={returnStep6} onSuccess={() => { setShowBooking(false); setBookingDone(true); if (onGoToChats) onGoToChats(); }} />}
+      {showAvailEditor && <AvailabilityEditor wirkerName={profile.name} onClose={() => setShowAvailEditor(false)} />}
+      {showWerkEditor && <WerkEditor werk={editingWerk} wirkerName={profile.name} onClose={() => { setShowWerkEditor(false); setEditingWerk(null); }} onSave={handleSaveWerk} />}
     </div>
   );
 }
@@ -1515,9 +1566,32 @@ function SearchOverlay({ onClose }) {
   const [expandedSection, setExpandedSection] = useState("typ");
   const [showResults, setShowResults] = useState(false);
 
+  const [dbWirkerSuche, setDbWirkerSuche] = useState([]);
+  useEffect(() => {
+    HuiWirker.list().then(data => {
+      if (data && data.length > 0) {
+        const mapped = data.map(w => ({
+          id: w.id, typ: "wirker",
+          name: w.name || w.full_name || "",
+          kategorie: w.talent || "",
+          ort: (w.location || "") + (w.location ? " · 0 km" : ""),
+          empfehlungen: w.recommendations || w.bookings || 0,
+          preis: w.hourly_rate ? `ab ${w.hourly_rate} €` : "",
+          bild: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80",
+          badge: w.verified ? "✅ Verifiziert" : null,
+          buchbar: true, kaufbar: false, online: false
+        }));
+        setDbWirkerSuche(mapped);
+      }
+    }).catch(() => {});
+  }, []);
+
   // Filtern & Suchen
   const gefilterteErgebnisse = React.useMemo(() => {
-    let res = [...mockSuchergebnisse];
+    const allResults = [...dbWirkerSuche, ...mockSuchergebnisse];
+    // Deduplizieren nach name
+    const seen = new Set();
+    let res = allResults.filter(r => { if (seen.has(r.name)) return false; seen.add(r.name); return true; });
     if (query.trim()) {
       const q = query.toLowerCase();
       res = res.filter(r => r.name.toLowerCase().includes(q) || r.kategorie.toLowerCase().includes(q));
@@ -1530,7 +1604,7 @@ function SearchOverlay({ onClose }) {
     if (minRecommendations > 0) res = res.filter(r => r.empfehlungen >= minRecommendations);
     if (sortBy === "empfehlungen") res.sort((a,b) => b.empfehlungen - a.empfehlungen);
     return res;
-  }, [query, contentType, categories, offerType, onlineOnly, minRecommendations, sortBy]);
+  }, [query, contentType, categories, offerType, onlineOnly, minRecommendations, sortBy, dbWirkerSuche]);
   const allCategories = [{ label: "Kunst & Kreatives", icon: "🎨" }, { label: "Musik", icon: "🎵" }, { label: "Fotografie", icon: "📷" }, { label: "Coaching", icon: "💡" }, { label: "Handwerk", icon: "🔨" }, { label: "Fitness & Sport", icon: "🏋️" }, { label: "Wellness & Yoga", icon: "🧘" }, { label: "Kulinarik", icon: "🍳" }, { label: "Schreiben & Text", icon: "✍️" }, { label: "Technik & IT", icon: "💻" }, { label: "Mode & Styling", icon: "👗" }, { label: "Natur & Garten", icon: "🌿" }];
   const availabilityOptions = ["Heute", "Diese Woche", "Dieses Wochenende", "Nächste Woche"];
   const sortOptions = [{ value: "relevanz", label: "Relevanz" }, { value: "empfehlungen", label: "Meiste Empfehlungen" }, { value: "neu", label: "Neueste zuerst" }, { value: "preis_asc", label: "Preis: günstig → teuer" }, { value: "preis_desc", label: "Preis: teuer → günstig" }];
@@ -1881,7 +1955,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -2808,7 +2882,41 @@ const mockChats = [
 ];
 
 function ChatListPage({ onOpenChat, onBack }) {
-  const [chats] = useState(mockChats);
+  const [chats, setChats] = useState(mockChats);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Load real chats from HuiPayment (each payment = a chat thread)
+    async function loadChats() {
+      setLoading(true);
+      try {
+        const payments = await HuiPayment.list().catch(() => []);
+        if (payments && payments.length > 0) {
+          const realChats = payments.map(p => ({
+            id: p.id,
+            type: p.item_type === "werk" ? "werk" : "buchung",
+            status: p.empfehlung === "empfohlen" ? "abgeschlossen" : p.empfehlung === "ausstehend" ? "empfehlung_ausstehend" : "aktiv",
+            wirker: p.wirker_name || "Unbekannt",
+            wirkerImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop",
+            item: p.item_name || "Buchung",
+            date: new Date(p.created_date || p.created_at || Date.now()).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" }),
+            betrag: parseFloat(p.amount_eur || 0).toFixed(2) + " €",
+            treuhand: p.status === "ausgezahlt" ? "freigegeben" : "offen",
+            bewertung: p.empfehlung === "empfohlen" ? { empfohlen: true, text: "" } : null,
+            paymentId: p.id,
+            messages: [
+              { from: "system", text: "🔒 Buchung bestätigt! Dein Geld liegt sicher im Treuhandkonto. Es wird erst nach deiner Bestätigung freigegeben.", time: new Date(p.created_date || Date.now()).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) },
+            ]
+          }));
+          // Merge with mock chats for demo richness
+          setChats([...realChats, ...mockChats]);
+        }
+      } catch(e) {}
+      setLoading(false);
+    }
+    loadChats();
+  }, []);
+
   const statusLabel = (c) => {
     if (c.status === "abgeschlossen") return { label: "✅ Abgeschlossen", color: TEAL };
     if (c.status === "empfehlung_ausstehend") return { label: "⚠️ Empfehlung ausstehend", color: GOLD };
@@ -4041,7 +4149,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4197,13 +4305,36 @@ function ImpactPage() {
   const [showVoteConfirm, setShowVoteConfirm] = useState(null);
   const [showErgebnis, setShowErgebnis] = useState(false);
   const [activeTab, setActiveTab] = useState("abstimmung"); // "abstimmung" | "projekte"
+  const [dbProjects, setDbProjects] = useState([]);
+
+  useEffect(() => {
+    HuiImpactProject.list().then(data => {
+      if (data && data.length > 0) setDbProjects(data);
+    }).catch(() => {});
+  }, []);
 
   // Pool-Daten
   const poolGesamt = 3847;
   const daysLeft = 4; // Tage bis Monatsende
 
+  // Die 3 nominierten Projekte — aus DB wenn verfügbar, sonst mock
+  const dbNominiert = dbProjects.filter(p => p.status === "aktiv" || p.status === "active").slice(0, 3).map(p => ({
+    title: p.name,
+    desc: p.description || "",
+    img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
+    kategorie: p.category || "",
+    land: "Deutschland",
+    wunschbetrag: p.awarded_eur || 3500,
+    gesammelt: Math.floor(poolGesamt * 0.6),
+    stimmen: p.votes || 0,
+    emoji: p.icon || "🌱",
+    organisation: p.contact_name || "HUI Partner",
+    warum: p.description || "",
+    website: p.website || "",
+  }));
+
   // Die 3 nominierten Projekte (vom HUI-Team ausgewählt)
-  const nominiert = [
+  const nominiert = dbNominiert.length >= 2 ? dbNominiert : [
     {
       title: "Schule für alle",
       desc: "Bildung für 200 Kinder in ländlichen Gebieten – Schulbau, Materialien und Lehrergehälter für 2 Jahre.",
@@ -4325,7 +4456,7 @@ function ImpactPage() {
             ].map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
                 <div style={{ fontSize: 24 }}>{p.emoji}</div>
-                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{profile.name}</div>
                 <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
               </div>
             ))}
@@ -4416,7 +4547,7 @@ function ImpactPage() {
                 style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={p.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4493,7 +4624,7 @@ function ImpactPage() {
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 {/* Bild */}
                 <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={p.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4540,7 +4671,7 @@ function ImpactPage() {
             return (
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ position: "relative" }}>
-                  <img src={p.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10 }}>
                     <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
@@ -6036,7 +6167,24 @@ function HuiMatchOverlay({ onClose, onViewWirker }) {
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState([]);
   const [loadPhrase, setLoadPhrase] = useState(0);
+  const [dbWirkerForMatch, setDbWirkerForMatch] = useState([]);
   const textRef = useRef(null);
+
+  useEffect(() => {
+    HuiWirker.list().then(data => {
+      if (data && data.length > 0) {
+        const mapped = data.map(w => ({
+          id: w.id, name: w.name || w.full_name,
+          talent: w.talent || "", location: w.location || "",
+          bio: w.bio || "", skills: w.skills || [],
+          rate: w.hourly_rate || 0, reviews: w.recommendations || w.bookings || 0,
+          rating: 4.8, img: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80",
+          verified: w.verified || false,
+        }));
+        setDbWirkerForMatch(mapped);
+      }
+    }).catch(() => {});
+  }, []);
 
   const startMatch = () => {
     if (!query.trim()) return;
@@ -6050,7 +6198,16 @@ function HuiMatchOverlay({ onClose, onViewWirker }) {
     }, 700);
     setTimeout(() => {
       clearInterval(interval);
-      const results = getMatches(query);
+      // Use DB wirker if available, otherwise mock
+      const wirkerPool = dbWirkerForMatch.length > 0 ? [...dbWirkerForMatch, ...MATCH_WIRKER] : MATCH_WIRKER;
+      const scored = wirkerPool.map(w => {
+        const { score, reasons } = scoreMatch(w, query);
+        return { ...w, score, reasons };
+      }).sort((a, b) => b.score - a.score);
+      const results = scored.slice(0, 3).map(w => ({
+        ...w,
+        reasons: w.reasons.length > 0 ? w.reasons : [w.talent, `${w.reviews} Empfehlungen`]
+      }));
       setMatches(results);
       setStep("result");
     }, 3000);
@@ -6265,7 +6422,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
             style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ background: selected?.id === p.id ? "#FF6B5B" : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
-                <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
+                <img src={profile.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
               </div>
               <div style={{ width: 8, height: 8, background: selected?.id === p.id ? "#FF6B5B" : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
@@ -6332,6 +6489,76 @@ export default function App() {
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
   const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
+
+  // ── LIVE DATA STATE ──────────────────────────────────────────────────────
+  const [liveWirker, setLiveWirker] = useState([]);
+  const [liveImpact, setLiveImpact] = useState([]);
+  const [liveFeed, setLiveFeed] = useState(mockFeed);
+
+  useEffect(() => {
+    async function loadLiveData() {
+      try {
+        const [wirkerData, impactData] = await Promise.all([
+          HuiWirker.list().catch(() => []),
+          HuiImpactProject.list().catch(() => []),
+        ]);
+        
+        if (wirkerData && wirkerData.length > 0) {
+          setLiveWirker(wirkerData);
+          
+          // Build feed from real DB data
+          const feedItems = [];
+          let id = 1000;
+          
+          wirkerData.forEach((w, i) => {
+            // Wirker card every 3rd item
+            if (i % 3 === 0) {
+              feedItems.push({
+                id: id++, type: "wirker",
+                name: w.name, img: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+                talent: w.talent, recommendations: w.recommendations || w.bookings || 0,
+                location: w.location || ""
+              });
+            }
+            // Service card
+            if (w.hourly_rate) {
+              feedItems.push({
+                id: id++, type: "service",
+                title: w.talent,
+                creator: w.name,
+                creatorImg: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+                img: w.header_img || w.img || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
+                price: w.hourly_rate + " €/Std.",
+                caption: w.bio || w.talent,
+                likes: w.followers || 0,
+                location: w.location || ""
+              });
+            }
+          });
+          
+          // Mix with original mock feed
+          const combined = [];
+          const mockItems = mockFeed.slice(0, 6);
+          mockItems.forEach((item, i) => {
+            combined.push(item);
+            if (feedItems[i]) combined.push(feedItems[i]);
+          });
+          combined.push(...mockFeed.slice(6));
+          combined.push(...feedItems.slice(6));
+          
+          setLiveFeed(combined.length > 0 ? combined : mockFeed);
+        }
+
+        if (impactData && impactData.length > 0) {
+          setLiveImpact(impactData.filter(p => p.status === "aktiv" || p.status === "active"));
+        }
+      } catch(e) {
+        console.log("Live data load error:", e);
+        setLiveFeed(mockFeed);
+      }
+    }
+    loadLiveData();
+  }, []);
 
   // Nach Stripe-Rückkehr: payment=success → WirkerProfil mit BookingFlow (Step 6) öffnen
   useEffect(() => {
@@ -6478,7 +6705,7 @@ export default function App() {
           </div>
 
           {/* ── HAUPT-FEED ── */}
-          {mockFeed.map(item => {
+          {liveFeed.map(item => {
             if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
             if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
             if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />;
