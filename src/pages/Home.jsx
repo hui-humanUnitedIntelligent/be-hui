@@ -2532,22 +2532,23 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
   const [confirming, setConfirming] = React.useState(false);
 
   const handleBook = async (e) => {
-    e.stopPropagation();
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (confirming) return;
     setConfirming(true);
     try {
-      const price = parseFloat((item.price || "60 €").replace(/[^0-9.,]/g, "").replace(",", ".")) || 60;
+      const rawPrice = (item.price || "60 €").replace(/[^0-9,\.]/g, "").replace(",", ".").trim();
+      const price = parseFloat(rawPrice) || 60;
       const amountCents = Math.round(price * 100);
       const res = await fetch('https://michi-6f9abd25.base44.app/functions/createCheckout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          itemName: item.title || item.service,
+          itemName: item.title || item.service || "Buchung",
           amountCents,
           itemType: 'buchung',
-          wirkerName: item.creator,
-          imageUrl: item.img,
-          successUrl: window.location.href + '?payment=success',
-          cancelUrl: window.location.href + '?payment=cancelled',
+          wirkerName: item.creator || "Talent",
+          successUrl: window.location.href.split('?')[0] + '?payment=success',
+          cancelUrl: window.location.href.split('?')[0] + '?payment=cancelled',
         }),
       });
       const data = await res.json();
@@ -2560,10 +2561,10 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
             totalEur: data.totalEur,
             impactEur: data.impactEur,
           }));
-        } catch(e) {}
-        window.location.href = data.checkoutUrl;
+        } catch(ex) {}
+        window.open(data.checkoutUrl, '_self');
       } else {
-        alert('Fehler: ' + (data.error || 'Unbekannt'));
+        alert('Stripe-Fehler: ' + (data.error || 'Unbekannt'));
         setConfirming(false);
       }
     } catch(err) {
@@ -2575,24 +2576,10 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
   return (
     <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(0,0,0,0.07)", border: "1px solid #f0f0ee", margin: "8px 16px", borderLeft: `3.5px solid ${TEAL}` }}>
       <div style={{ position: "relative" }}>
-        <img src={item.img} style={{ width: "100%", height: 220, objectFit: "cover" }} alt={item.title} />
+        <img src={item.img} style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }} alt={item.title} />
         <div style={{ position: "absolute", top: 10, left: 10, background: `${TEAL}ee`, backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
           🤝 {item.price}
         </div>
-        <button
-          onClick={handleBook}
-          disabled={confirming}
-          style={{
-            position: "absolute", bottom: 10, right: 10,
-            background: confirming ? "#aaa" : TEAL,
-            color: "white", border: "none", borderRadius: 22,
-            padding: "8px 16px", fontWeight: 700, fontSize: 13,
-            cursor: confirming ? "default" : "pointer", display: "flex", alignItems: "center", gap: 6,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.25)", transition: "background 0.25s"
-          }}
-        >
-          {confirming ? "Lädt…" : "📅 Jetzt buchen"}
-        </button>
       </div>
       <div style={{ padding: "10px 14px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
@@ -2602,10 +2589,24 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
         </div>
         <div style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 4 }}>{item.title}</div>
         {item.caption && <div style={{ fontSize: 13, color: "#888", marginBottom: 8, lineHeight: 1.5 }}>{item.caption}</div>}
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 6 }}>
           <button onClick={() => onLike(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: liked ? CORAL : "#bbb", padding: 0 }}><Heart size={17} fill={liked ? CORAL : "none"} color={liked ? CORAL : "#bbb"} /><span style={{ fontSize: 12, color: liked ? CORAL : "#bbb" }}>{item.likes + (liked ? 1 : 0)}</span></button>
           <button onClick={(e) => { e.stopPropagation(); shareItem(item.title, "Dienstleistung"); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Share2 size={17} color="#bbb" /></button>
           <button onClick={() => onFav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><Star size={17} fill={faved ? GOLD : "none"} color={faved ? GOLD : "#bbb"} /></button>
+          <button
+            onClick={handleBook}
+            disabled={confirming}
+            style={{
+              marginLeft: "auto",
+              background: confirming ? "#aaa" : TEAL,
+              color: "white", border: "none", borderRadius: 22,
+              padding: "8px 18px", fontWeight: 700, fontSize: 13,
+              cursor: confirming ? "default" : "pointer",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            }}
+          >
+            {confirming ? "⏳ Lädt…" : "📅 Buchen"}
+          </button>
         </div>
       </div>
       <CommentSection itemId={item.id} creator={item.creator} isTalent={false} />
