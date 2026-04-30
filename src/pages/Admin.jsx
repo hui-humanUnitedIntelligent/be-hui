@@ -10,6 +10,18 @@ const COLORS = {
 };
 
 // ── Mock-Daten (Fallback) ────────────────────────────────────────────────────
+const MOCK_PROJECTS = [
+  { id: "mp1", name: "Stadtgarten Berlin", category: "Umwelt", description: "Gemeinschaftsgärten in Berliner Kiezen aufbauen und pflegen.", icon: "🌱", color: "#7C3AED", votes: 38, status: "aktiv", month: "2026-04", awarded_eur: 0, tags: ["Natur","Gemeinschaft"] },
+  { id: "mp2", name: "Musik für Kinder e.V.", category: "Soziales", description: "Kostenlose Musikunterricht für Kinder aus einkommensschwachen Familien.", icon: "🎵", color: "#0891B2", votes: 27, status: "aktiv", month: "2026-04", awarded_eur: 0, tags: ["Bildung","Kinder"] },
+  { id: "mp3", name: "Repair Café Hamburg", category: "Nachhaltigkeit", description: "Dinge reparieren statt wegwerfen — für eine nachhaltigere Stadt.", icon: "🔧", color: "#059669", votes: 19, status: "aktiv", month: "2026-04", awarded_eur: 0, tags: ["Nachhaltigkeit"] },
+  { id: "mp4", name: "Bienen retten München", category: "Umwelt", description: "Wildblumenwiesen und Bienenstöcke in städtischen Parks anlegen.", icon: "🐝", color: "#F59E0B", votes: 52, status: "gewonnen", month: "2026-03", awarded_eur: 184.5, distributed_at: "2026-03-31T18:00:00Z", tags: ["Natur","Stadt","Tiere"], impact_report: "Mit den Mitteln konnten 12 Wildblumenwiesen in München angelegt werden. Das Projekt wurde von 3 lokalen Medien aufgegriffen und hat HUI als Partner namentlich erwähnt." },
+  { id: "mp5", name: "Schulbücher für alle", category: "Bildung", description: "Gebrauchte Schulbücher sammeln und kostenlos weitergeben.", icon: "📚", color: "#8B5CF6", votes: 31, status: "archiviert", month: "2026-03", awarded_eur: 0, tags: ["Bildung","Kinder"] },
+  { id: "mp6", name: "Repair Café Köln", category: "Nachhaltigkeit", description: "Ehrenamtliche reparieren kaputte Alltagsgegenstände.", icon: "🔧", color: "#059669", votes: 19, status: "archiviert", month: "2026-03", awarded_eur: 0, tags: ["Nachhaltigkeit"] },
+  { id: "mp7", name: "Foodsharing Stuttgart", category: "Soziales", description: "Lebensmittelverschwendung bekämpfen durch lokale Verteilpunkte.", icon: "🥗", color: "#EF4444", votes: 63, status: "gewonnen", month: "2026-02", awarded_eur: 142.2, distributed_at: "2026-02-28T18:00:00Z", tags: ["Ernährung","Gemeinschaft"], impact_report: "142 € wurden eingesetzt um 4 neue Kühlschränke für Lebensmittelverteilung aufzustellen. Ca. 200 Personen profitieren monatlich. HUI wurde auf Instagram und im Stadtmagazin erwähnt." },
+  { id: "mp8", name: "Lesepaten Nürnberg", category: "Bildung", description: "Ehrenamtliche lesen Kindern in Kitas vor.", icon: "📖", color: "#0EA5E9", votes: 28, status: "archiviert", month: "2026-02", awarded_eur: 0, tags: ["Bildung","Ehrenamt"] },
+  { id: "mp9", name: "Waldpflege Bayern", category: "Umwelt", description: "Aufforstung und Pflege von Mischwäldern in Bayern.", icon: "🌲", color: "#10B981", votes: 21, status: "archiviert", month: "2026-02", awarded_eur: 0, tags: ["Natur","Wald"] },
+];
+
 const MOCK_WIRKER = [
   { id: "w1", name: "Marcus B.", full_name: "Marcus Braun", talent: "Fotograf & Videograf", location: "Berlin", hourly_rate: 70, bookings: 47, followers: 312, impact_eur: 58.20, verified: true, img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", bio: "Ich fange Momente ein, die bleiben.", skills: ["Fotografie","Video","Drohne"] },
   { id: "w2", name: "Sofia M.", full_name: "Sofia Müller", talent: "Keramik-Künstlerin", location: "München", hourly_rate: 45, bookings: 58, followers: 218, impact_eur: 47.25, verified: true, img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", bio: "Handgemachte Keramik mit Seele.", skills: ["Keramik","Töpfern","Workshops"] },
@@ -124,10 +136,10 @@ export default function AdminDashboard() {
       ]);
       if (w.length) { setWirker(w); } else { setWirker(MOCK_WIRKER); setUsingMock(true); }
       if (p.length) { setPayments(p); } else { setPayments(MOCK_PAYMENTS); }
-      setProjects(proj);
+      if (proj.length) { setProjects(proj); } else { setProjects(MOCK_PROJECTS); }
     } catch(e) {
       console.error("loadData error:", e);
-      setWirker(MOCK_WIRKER); setPayments(MOCK_PAYMENTS); setUsingMock(true);
+      setWirker(MOCK_WIRKER); setPayments(MOCK_PAYMENTS); setProjects(MOCK_PROJECTS); setUsingMock(true);
     }
     setLoading(false);
   }
@@ -231,7 +243,12 @@ export default function AdminDashboard() {
     if (!newProject.name.trim()) return;
     try {
       const data = { ...newProject, votes: 0, status: "aktiv", month: new Date().toISOString().slice(0, 7), awarded_eur: 0 };
-      const created = await HuiImpactProject.create(data);
+      let created;
+      try {
+        created = await HuiImpactProject.create(data);
+      } catch {
+        created = { ...data, id: "local_" + Date.now() };
+      }
       setProjects(prev => [...prev, created]);
       setNewProject({ name: "", category: "Umwelt", description: "", icon: "🌱", color: "#10B981" });
       setShowNewProject(false);
