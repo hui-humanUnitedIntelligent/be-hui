@@ -79,7 +79,7 @@ export default function AdminPage() {
   const [votingStart, setVotingStart] = useState("");
   const [votingEnd, setVotingEnd] = useState("");
   const [uploadingImg, setUploadingImg] = useState(false);
-  const [nominatedIds, setNominatedIds] = useState(["mp1", "mp2", "mp3"]);
+  const [nominatedIds, setNominatedIds] = useState([]);
   const [distributeTarget, setDistributeTarget] = useState(null);
 
   // Modals
