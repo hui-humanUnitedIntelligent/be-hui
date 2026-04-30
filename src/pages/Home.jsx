@@ -615,7 +615,8 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
         // Booking-Daten für Chat nach Rückkehr speichern
         try {
           localStorage.setItem("hui_last_booking", JSON.stringify({
-            wirkerName: wirker.fullName || wirker.name,
+            wirkerName: wirker.name,
+            wirkerFullName: wirker.fullName || wirker.name,
             wirkerImg: wirker.img,
             itemName: `${wirker.talent} – 1 Stunde mit ${wirker.fullName || wirker.name}`,
             totalEur: data.totalEur,
