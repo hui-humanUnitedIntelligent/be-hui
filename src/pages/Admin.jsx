@@ -881,6 +881,15 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
 
             {/* ── Modals ── */}
 
@@ -1036,5 +1045,6 @@ export default function AdminDashboard() {
         select option { background: #0F172A; color: #F1F5F9; }
       `}</style>
     </div>
+  </div>
   );
 }
