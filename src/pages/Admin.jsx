@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-// build: 2026-04-30-v7
+// build: 2026-04-30-v8
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject, User } from "@/api/entities";
 
 // ── Farben & Konstanten ──────────────────────────────────────────────────────
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState("overview");
   const [payments, setPayments] = useState([]);
   const [wirker, setWirker] = useState([]);
-  const [projects, setProjects] = useState(MOCK_PROJECTS);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [usingMock, setUsingMock] = useState(false);
 
@@ -140,8 +140,10 @@ export default function AdminDashboard() {
       if (p.length) { setPayments(p); } else { setPayments(MOCK_PAYMENTS); }
       // Always show projects — use DB if available, else mock
       const validProjects = Array.isArray(proj) ? proj : [];
-      console.log("[HUI Admin] projects loaded:", validProjects.length, validProjects);
+      console.log("[HUI Admin] projects loaded from DB:", validProjects.length, validProjects.map(p=>p.name));
+      // Always use MOCK if DB empty
       setProjects(validProjects.length > 0 ? validProjects : MOCK_PROJECTS);
+      if (validProjects.length === 0) console.warn("[HUI Admin] DB projects empty, using mock");
     } catch(e) {
       console.error("loadData error:", e);
       setWirker(MOCK_WIRKER); setPayments(MOCK_PAYMENTS); setProjects(MOCK_PROJECTS); setUsingMock(true);
@@ -726,9 +728,10 @@ export default function AdminDashboard() {
             </div>
 
             {/* Project list */}
+            {(() => { console.log("[HUI render] projects:", projects.length, "filter:", impactFilter); return null; })()}
             {projects.length === 0 ? (
               <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 40, textAlign: "center", color: COLORS.muted }}>
-                Noch keine Projekte. Füge das erste Projekt hinzu!
+                Laden... (0 Projekte)
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
