@@ -2,10 +2,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "@/api/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
-
-const CORAL = "#FF6B5B";
-const TEAL = "#2ABFAC";
-const GOLD = "#F5A623";
+import HuiSearchBar from "../components/HuiSearchBar";
+import WirkerVergleich from "../components/WirkerVergleich";
+const CORAL = "#FF6B5B"; const TEAL = "#2ABFAC"; const GOLD = "#F5A623";
 
 // ─── NOTIFICATIONS ──────────────────────────────────────────────────────────
 const mockNotifications = [
@@ -1955,7 +1954,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -1997,16 +1996,16 @@ function ImpactTrackerPage({ onClose }) {
 }
 
 
+// HuiPunktePage moved to components/HuiPunktePage.jsx
 function HuiPunktePage({ onClose }) {
   const totalPunkte = 250;
   const naechsteStufe = 500;
   const progress = totalPunkte / naechsteStufe;
-  const [activeTab, setActiveTab] = React.useState("verlauf"); // verlauf | einloesen | sammeln
+  const [activeTab, setActiveTab] = React.useState("verlauf");
   const [eingeloest, setEingeloest] = React.useState(null);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#fafaf8", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
-      {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, padding: "20px 20px 0", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,0.25)", border: "none", borderRadius: 10, cursor: "pointer", padding: "6px 8px", display: "flex" }}>
@@ -2144,71 +2143,34 @@ function HuiPunktePage({ onClose }) {
 function NotificationsOverlay({ onClose }) {
   const [notifs, setNotifs] = React.useState(mockNotifications);
   const unreadCount = notifs.filter(n => !n.read).length;
-
   const markAllRead = () => setNotifs(n => n.map(x => ({ ...x, read: true })));
   const markRead = (id) => setNotifs(n => n.map(x => x.id === id ? { ...x, read: true } : x));
-
-  const filterTabs = [
-    { id: "alle", label: "Alle" },
-    { id: "buchung", label: "Buchungen" },
-    { id: "empfehlung", label: "Empfehlungen" },
-    { id: "treuhand", label: "Treuhand" },
-    { id: "impact", label: "Impact" },
-  ];
+  const filterTabs = [{ id: "alle", label: "Alle" },{ id: "buchung", label: "Buchungen" },{ id: "empfehlung", label: "Empfehlungen" },{ id: "treuhand", label: "Treuhand" },{ id: "impact", label: "Impact" }];
   const [activeFilter, setActiveFilter] = React.useState("alle");
   const filtered = activeFilter === "alle" ? notifs : notifs.filter(n => n.type === activeFilter);
-
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#f7f7f5", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
-      {/* Header */}
       <div style={{ background: "white", padding: "16px 16px 0", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-              <ArrowLeft size={22} color="#444" />
-            </button>
-            <div>
-              <span style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</span>
-              {unreadCount > 0 && <span style={{ marginLeft: 8, background: CORAL, color: "white", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{unreadCount} neu</span>}
-            </div>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={22} color="#444" /></button>
+            <div><span style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</span>{unreadCount > 0 && <span style={{ marginLeft: 8, background: CORAL, color: "white", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{unreadCount} neu</span>}</div>
           </div>
-          {unreadCount > 0 && (
-            <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TEAL, fontWeight: 700 }}>Alle gelesen</button>
-          )}
+          {unreadCount > 0 && <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TEAL, fontWeight: 700 }}>Alle gelesen</button>}
         </div>
-        {/* Filter Tabs */}
-        <div style={{ display: "flex", gap: 0, overflowX: "auto", paddingBottom: 0 }}>
-          {filterTabs.map(t => (
-            <button key={t.id} onClick={() => setActiveFilter(t.id)} style={{ background: "none", border: "none", borderBottom: activeFilter === t.id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "8px 14px", fontWeight: activeFilter === t.id ? 700 : 500, fontSize: 13, color: activeFilter === t.id ? CORAL : "#aaa", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-              {t.label}
-            </button>
-          ))}
+        <div style={{ display: "flex", gap: 0, overflowX: "auto" }}>
+          {filterTabs.map(t => (<button key={t.id} onClick={() => setActiveFilter(t.id)} style={{ background: "none", border: "none", borderBottom: activeFilter === t.id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "8px 14px", fontWeight: activeFilter === t.id ? 700 : 500, fontSize: 13, color: activeFilter === t.id ? CORAL : "#aaa", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>{t.label}</button>))}
         </div>
       </div>
-
-      {/* Liste */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
-        {filtered.length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px 24px", color: "#bbb" }}>
-            <Bell size={40} color="#ddd" style={{ marginBottom: 12 }} />
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#ccc" }}>Keine Benachrichtigungen</div>
-          </div>
-        )}
+        {filtered.length === 0 && (<div style={{ textAlign: "center", padding: "60px 24px", color: "#bbb" }}><Bell size={40} color="#ddd" style={{ marginBottom: 12 }} /><div style={{ fontWeight: 700, fontSize: 15, color: "#ccc" }}>Keine Benachrichtigungen</div></div>)}
         {filtered.map(n => (
           <div key={n.id} onClick={() => markRead(n.id)} style={{ background: n.read ? "white" : `${n.color}08`, border: `1px solid ${n.read ? "#f0f0f0" : n.color + "30"}`, borderRadius: 16, padding: "14px 16px", marginBottom: 10, cursor: "pointer", display: "flex", gap: 13, alignItems: "flex-start", position: "relative" }}>
-            {/* Icon */}
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: n.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-              {n.icon}
-            </div>
-            {/* Content */}
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: n.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{n.icon}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
-                <div style={{ fontWeight: n.read ? 600 : 800, fontSize: 13, color: "#222", lineHeight: 1.3 }}>{n.title}</div>
-                <div style={{ fontSize: 10, color: "#bbb", whiteSpace: "nowrap", marginLeft: 8, marginTop: 1 }}>{n.time}</div>
-              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}><div style={{ fontWeight: n.read ? 600 : 800, fontSize: 13, color: "#222", lineHeight: 1.3 }}>{n.title}</div><div style={{ fontSize: 10, color: "#bbb", whiteSpace: "nowrap", marginLeft: 8, marginTop: 1 }}>{n.time}</div></div>
               <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>{n.text}</div>
             </div>
-            {/* Unread dot */}
             {!n.read && <div style={{ position: "absolute", top: 14, right: 14, width: 8, height: 8, borderRadius: "50%", background: CORAL }} />}
           </div>
         ))}
@@ -2223,44 +2185,17 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover" }} />
-          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.2, color: "#888" }}>
-            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>H</span>uman{" "}
-            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>U</span>nited{" "}
-            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>I</span>ntelligent
-          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.2, color: "#888" }}><span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>H</span>uman <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>U</span>nited <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>I</span>ntelligent</span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={onCartClick} style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 6 }}>
-            <ShoppingBasket size={22} color="#444" />
-            {cartCount > 0 && <span style={{ position: "absolute", top: 0, right: 0, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{cartCount}</span>}
-          </button>
-          <button onClick={onNotifClick} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, position: "relative" }}>
-            <Bell size={22} color="#444" />
-            {notifCount > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifCount}</span>}
-          </button>
-
+          <button onClick={onCartClick} style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 6 }}><ShoppingBasket size={22} color="#444" />{cartCount > 0 && <span style={{ position: "absolute", top: 0, right: 0, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{cartCount}</span>}</button>
+          <button onClick={onNotifClick} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, position: "relative" }}><Bell size={22} color="#444" />{notifCount > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifCount}</span>}</button>
         </div>
       </div>
     </div>
   );
 }
-function SearchBar({ onClick, onKarteClick, onMatchClick }) {
-  return (
-    <div style={{ background: "white", padding: "8px 16px 10px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0", display: "flex", gap: 8 }}>
-      <div onClick={onClick} style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-        <Search size={16} color="#aaa" />
-        <span style={{ color: "#bbb", fontSize: 14, flex: 1 }}>Suche nach Talent, Werk, Name…</span>
-        <div style={{ background: `${TEAL}18`, borderRadius: 8, padding: "3px 8px", display: "flex", alignItems: "center", gap: 4 }}><SlidersHorizontal size={13} color={TEAL} /><span style={{ fontSize: 11, color: TEAL, fontWeight: 700 }}>Filter</span></div>
-      </div>
-      <button onClick={onMatchClick} style={{ background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 800, fontSize: 13, color: "white", minHeight: 40, boxShadow: `0 4px 14px ${CORAL}55` }}>
-        ✨
-      </button>
-      <button onClick={onKarteClick} style={{ background: `${TEAL}15`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 700, fontSize: 12, color: TEAL, minHeight: 40 }}>
-        🗺
-      </button>
-    </div>
-  );
-}
+// SearchBar extracted to components/HuiSearchBar.jsx
 // ══════════════════════════════════════════════════════════════════
 // STORY VIEWER (Instagram-Style)
 // ══════════════════════════════════════════════════════════════════
@@ -4149,7 +4084,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4456,7 +4391,7 @@ function ImpactPage() {
             ].map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
                 <div style={{ fontSize: 24 }}>{p.emoji}</div>
-                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{profile.name}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
                 <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
               </div>
             ))}
@@ -4547,7 +4482,7 @@ function ImpactPage() {
                 style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={profile.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4624,7 +4559,7 @@ function ImpactPage() {
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 {/* Bild */}
                 <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={profile.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4671,7 +4606,7 @@ function ImpactPage() {
             return (
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ position: "relative" }}>
-                  <img src={profile.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10 }}>
                     <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
@@ -6422,7 +6357,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
             style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ background: selected?.id === p.id ? "#FF6B5B" : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
-                <img src={profile.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
+                <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
               </div>
               <div style={{ width: 8, height: 8, background: selected?.id === p.id ? "#FF6B5B" : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
@@ -6580,7 +6515,7 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showKarte, setShowKarte] = useState(false);
   const [showHuiMatch, setShowHuiMatch] = useState(false);
-  const notifCount = mockNotifications.filter(n => !n.read).length;
+  const [showVergleich, setShowVergleich] = useState(false);  const notifCount = mockNotifications.filter(n => !n.read).length;
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -6611,7 +6546,7 @@ export default function App() {
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
       {page === "home" && (<>
         <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
-        <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} onMatchClick={() => setShowHuiMatch(true)} />
+        <HuiSearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} onMatchClick={() => setShowHuiMatch(true)} onVergleichClick={() => setShowVergleich(true)} />
         <div style={{ paddingBottom: 96 }}>
           {/* STORIES */}
           <StoryBar />
@@ -6741,11 +6676,8 @@ export default function App() {
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
       {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
-
-      <style>{`
-        @keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } }
-        * { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }
-      `}</style>
+      {showVergleich && <WirkerVergleich onClose={() => setShowVergleich(false)} onViewWirker={v => { setShowVergleich(false); viewWirker(v); }} onBookWirker={v => { setShowVergleich(false); bookWirker(v); }} />}
+      <style>{`@keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } } * { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
 }
