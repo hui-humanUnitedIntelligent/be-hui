@@ -581,7 +581,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
     setConfirming(true);
     try {
       const amountCents = Math.round(total * 100); // Kunde zahlt nur den Stundensatz
-      const res = await fetch('/api/functions/createCheckout', {
+      const res = await fetch('https://michi-6f9abd25.base44.app/functions/createCheckout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
