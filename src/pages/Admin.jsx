@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-// build: 2026-04-30-v4
+// build: 2026-04-30-v6-FORCE
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject, User } from "@/api/entities";
 
 // ── Farben & Konstanten ──────────────────────────────────────────────────────
