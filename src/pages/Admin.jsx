@@ -117,11 +117,16 @@ export default function AdminDashboard() {
   async function loadData() {
     setLoading(true);
     try {
-      const [p, w, proj] = await Promise.all([HuiPayment.list(), HuiWirker.list(), HuiImpactProject.list()]);
+      const [p, w, proj] = await Promise.all([
+        HuiPayment.list().catch(() => []),
+        HuiWirker.list().catch(() => []),
+        HuiImpactProject.list().catch(() => [])
+      ]);
       if (w.length) { setWirker(w); } else { setWirker(MOCK_WIRKER); setUsingMock(true); }
       if (p.length) { setPayments(p); } else { setPayments(MOCK_PAYMENTS); }
-      setProjects(proj.length ? proj : []);
-    } catch {
+      setProjects(proj);
+    } catch(e) {
+      console.error("loadData error:", e);
       setWirker(MOCK_WIRKER); setPayments(MOCK_PAYMENTS); setUsingMock(true);
     }
     setLoading(false);
