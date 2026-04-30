@@ -596,6 +596,16 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
       });
       const data = await res.json();
       if (data.checkoutUrl) {
+        // Booking-Daten für Chat nach Rückkehr speichern
+        try {
+          localStorage.setItem("hui_last_booking", JSON.stringify({
+            wirkerName: wirker.fullName || wirker.name,
+            wirkerImg: wirker.img,
+            itemName: `${wirker.talent} – 1 Stunde mit ${wirker.fullName || wirker.name}`,
+            totalEur: data.totalEur,
+            impactEur: data.impactEur,
+          }));
+        } catch(e) {}
         window.location.href = data.checkoutUrl;
       } else {
         alert('Fehler beim Erstellen der Zahlung: ' + (data.error || 'Unbekannt'));
@@ -1110,7 +1120,7 @@ function EmpfehlungsBox({ wirkerName, initialCount }) {
   );
 }
 
-function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook }) {
+function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, onGoToChats }) {
   const p = mockWirkerProfiles[wirkerName];
   const [tab, setTab] = useState("werke");
   const [followed, setFollowed] = useState(false);
@@ -1318,7 +1328,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
         </div>
       )}
 
-      {showBooking && <BookingFlow wirker={p} onClose={() => setShowBooking(false)} onSuccess={() => { setShowBooking(false); setBookingDone(true); }} />}
+      {showBooking && <BookingFlow wirker={p} onClose={() => setShowBooking(false)} onSuccess={() => { setShowBooking(false); setBookingDone(true); if (onGoToChats) onGoToChats(); }} />}
       {showAvailEditor && <AvailabilityEditor wirkerName={p.name} onClose={() => setShowAvailEditor(false)} />}
       {showWerkEditor && <WerkEditor werk={editingWerk} wirkerName={p.name} onClose={() => { setShowWerkEditor(false); setEditingWerk(null); }} onSave={handleSaveWerk} />}
     </div>
@@ -6120,40 +6130,32 @@ export default function App() {
   const [openChat, setOpenChat] = useState(null);
   const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
 
-  // Nach Stripe-Rückkehr: payment=success → Chat mit Treuhand öffnen
+  // Nach Stripe-Rückkehr: payment=success → Chat öffnen
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
-      // Letzte HuiPayment laden und Chat daraus aufbauen
-      HuiPayment.filter({ status: "escrow" }, { sort: "-created_at", limit: 1 })
-        .then(payments => {
-          if (payments && payments.length > 0) {
-            const p = payments[0];
-            const chat = {
-              id: p.id,
-              type: p.item_type || "buchung",
-              status: "aktiv",
-              wirker: p.wirker_name,
-              wirkerImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
-              item: p.item_name,
-              date: new Date(p.created_at || p.created_date).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }),
-              betrag: parseFloat(p.amount_eur).toFixed(2).replace(".", ",") + " €",
-              impact: parseFloat(p.impact_eur || 0).toFixed(2).replace(".", ",") + " €",
-              treuhand: "offen",
-              paymentId: p.id,
-              bewertung: null,
-              messages: [
-                { from: "system", text: `🔒 Zahlung erfolgreich! Dein Geld (${parseFloat(p.amount_eur).toFixed(2).replace(".", ",")} €) liegt sicher im Treuhandkonto. Es wird erst nach deiner Bestätigung an ${p.wirker_name} freigegeben.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) },
-                { from: "system", text: `🌱 ${parseFloat(p.impact_eur || 0).toFixed(2).replace(".", ",")} € aus deiner Buchung fließen in echte Impact-Projekte.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) },
-              ]
-            };
-            setPaymentChat(chat);
-            setPage("chats");
-            setOpenChat(chat);
-          }
-        })
-        .catch(err => console.log("Payment load error:", err));
-      // URL bereinigen
+      // Letzten gebuchten Wirker aus localStorage holen (wird beim Buchen gespeichert)
+      let lastBooking = null;
+      try { lastBooking = JSON.parse(localStorage.getItem("hui_last_booking") || "null"); } catch(e) {}
+      const now = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+      const chat = {
+        id: "payment_" + Date.now(),
+        type: "buchung",
+        status: "aktiv",
+        wirker: lastBooking?.wirkerName || "Dein Talent",
+        wirkerImg: lastBooking?.wirkerImg || "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
+        item: lastBooking?.itemName || "Buchung",
+        date: new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }),
+        betrag: lastBooking?.totalEur ? lastBooking.totalEur.replace(".", ",") + " €" : "–",
+        treuhand: "offen",
+        bewertung: null,
+        messages: [
+          { from: "system", text: `🔒 Zahlung erfolgreich! Dein Geld liegt sicher im Treuhandkonto. Es wird erst nach deiner Bestätigung freigegeben.`, time: now },
+          { from: "system", text: `🌱 Ein Teil deiner Buchung fließt automatisch in echte Impact-Projekte.`, time: now },
+        ]
+      };
+      setPage("chats");
+      setOpenChat(chat);
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -6180,7 +6182,7 @@ export default function App() {
 
   if (detailView?.type === "wirker") return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} />
+      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} onGoToChats={() => { setDetailView(null); setPage("chats"); }} />
       <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
