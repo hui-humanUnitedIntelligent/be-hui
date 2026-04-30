@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { HuiPayment } from "@/api/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
 const CORAL = "#FF6B5B";
@@ -2725,10 +2726,21 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
     setMessage("");
   };
 
-  const handleEmpfehlung = (empfohlen) => {
+  const handleEmpfehlung = async (empfohlen) => {
     const sysMsg = empfohlen
       ? { from: "system", text: `✅ Du hast ${chat.wirker} weiterempfohlen. Die Empfehlung wird in ihrem Profil veröffentlicht. Das Geld (${chat.betrag}) wurde freigegeben und überwiesen. Chat wird archiviert.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isDone: true }
       : { from: "system", text: `⚠️ Dein Feedback wurde vertraulich an HUI-Admin und ${chat.wirker} weitergeleitet. Kein öffentlicher Eintrag. Ein Mitarbeiter meldet sich bei dir.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isWarning: true };
+
+    // Echte HuiPayment in der DB aktualisieren
+    if (chat.paymentId) {
+      try {
+        await HuiPayment.update(chat.paymentId, {
+          status: empfohlen ? "freigegeben" : "eingefroren",
+          empfehlung: empfehlungText || (empfohlen ? "Empfohlen" : "Nicht empfohlen"),
+        });
+      } catch(e) { console.log("Payment update error:", e); }
+    }
+
     setChat(c => ({
       ...c,
       status: empfohlen ? "abgeschlossen" : "gemeldet",
@@ -6106,6 +6118,45 @@ export default function App() {
   const isNewUser = true; // false = Talent-Modus (Demo)
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
+  const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
+
+  // Nach Stripe-Rückkehr: payment=success → Chat mit Treuhand öffnen
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success") {
+      // Letzte HuiPayment laden und Chat daraus aufbauen
+      HuiPayment.filter({ status: "escrow" }, { sort: "-created_at", limit: 1 })
+        .then(payments => {
+          if (payments && payments.length > 0) {
+            const p = payments[0];
+            const chat = {
+              id: p.id,
+              type: p.item_type || "buchung",
+              status: "aktiv",
+              wirker: p.wirker_name,
+              wirkerImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
+              item: p.item_name,
+              date: new Date(p.created_at || p.created_date).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }),
+              betrag: parseFloat(p.amount_eur).toFixed(2).replace(".", ",") + " €",
+              impact: parseFloat(p.impact_eur || 0).toFixed(2).replace(".", ",") + " €",
+              treuhand: "offen",
+              paymentId: p.id,
+              bewertung: null,
+              messages: [
+                { from: "system", text: `🔒 Zahlung erfolgreich! Dein Geld (${parseFloat(p.amount_eur).toFixed(2).replace(".", ",")} €) liegt sicher im Treuhandkonto. Es wird erst nach deiner Bestätigung an ${p.wirker_name} freigegeben.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) },
+                { from: "system", text: `🌱 ${parseFloat(p.impact_eur || 0).toFixed(2).replace(".", ",")} € aus deiner Buchung fließen in echte Impact-Projekte.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) },
+              ]
+            };
+            setPaymentChat(chat);
+            setPage("chats");
+            setOpenChat(chat);
+          }
+        })
+        .catch(err => console.log("Payment load error:", err));
+      // URL bereinigen
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
   const [showCreateSheet, setShowCreateSheet] = useState(false);
   const [showWerkCreate, setShowWerkCreate] = useState(false);
   const [showStoryCreate, setShowStoryCreate] = useState(false);
