@@ -543,7 +543,7 @@ function AvailabilityEditor({ wirkerName, onClose }) {
 // ══════════════════════════════════════════════════════════════════
 // BUCHUNGS-FLOW (Kalender → Uhrzeit → Zusammenfassung → Danke)
 // ══════════════════════════════════════════════════════════════════
-function BookingFlow({ wirker, onClose, onSuccess }) {
+function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -555,6 +555,19 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
   const [locationType, setLocationType] = useState(null); // "kunde" | "talent" | "andere"
   const [locationAddress, setLocationAddress] = useState("");
 
+
+  // Nach Stripe-Rückkehr: direkt Step 6 zeigen (via returnStep6 prop)
+  React.useEffect(() => {
+    if (returnStep6) {
+      // Buchungsdaten aus localStorage wiederherstellen
+      try {
+        const lastBooking = JSON.parse(localStorage.getItem("hui_last_booking") || "null");
+        if (lastBooking?.selectedDate) setSelectedDate(lastBooking.selectedDate);
+        if (lastBooking?.selectedTime) setSelectedTime(lastBooking.selectedTime);
+      } catch(e) {}
+      setStep(6);
+    }
+  }, [returnStep6]);
   const availability = defaultAvailability[wirker.name] || {};
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstWeekday = getFirstWeekday(viewYear, viewMonth);
@@ -607,6 +620,8 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
             itemName: `${wirker.talent} – 1 Stunde mit ${wirker.fullName || wirker.name}`,
             totalEur: data.totalEur,
             impactEur: data.impactEur,
+            selectedDate,
+            selectedTime,
           }));
         } catch(e) {}
         window.location.href = data.checkoutUrl;
@@ -631,7 +646,7 @@ function BookingFlow({ wirker, onClose, onSuccess }) {
   const stepIcons = ["\u{1F4C5}", "\u{1F550}", "\u{1F4CD}", "\u{1F4B3}"];
   const [zahlart, setZahlart] = React.useState("karte");
 
-  if (step === 4) return (
+  if (step === 6) return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", maxWidth: 430, margin: "0 auto", overflow: "hidden" }}>
       <style>{`
         @keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; } }
@@ -1179,7 +1194,7 @@ function EmpfehlungsBox({ wirkerName, initialCount }) {
   );
 }
 
-function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, onGoToChats }) {
+function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, returnStep6, onGoToChats }) {
   const p = mockWirkerProfiles[wirkerName];
   const [tab, setTab] = useState("werke");
   const [followed, setFollowed] = useState(false);
@@ -1387,7 +1402,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
         </div>
       )}
 
-      {showBooking && <BookingFlow wirker={p} onClose={() => setShowBooking(false)} onSuccess={() => { setShowBooking(false); setBookingDone(true); if (onGoToChats) onGoToChats(); }} />}
+      {showBooking && <BookingFlow wirker={p} onClose={() => setShowBooking(false)} returnStep6={returnStep6} onSuccess={() => { setShowBooking(false); setBookingDone(true); if (onGoToChats) onGoToChats(); }} />}
       {showAvailEditor && <AvailabilityEditor wirkerName={p.name} onClose={() => setShowAvailEditor(false)} />}
       {showWerkEditor && <WerkEditor werk={editingWerk} wirkerName={p.name} onClose={() => { setShowWerkEditor(false); setEditingWerk(null); }} onSave={handleSaveWerk} />}
     </div>
@@ -6317,32 +6332,16 @@ export default function App() {
   const [openChat, setOpenChat] = useState(null);
   const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
 
-  // Nach Stripe-Rückkehr: payment=success → Chat öffnen
+  // Nach Stripe-Rückkehr: payment=success → WirkerProfil mit BookingFlow (Step 6) öffnen
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
-      // Letzten gebuchten Wirker aus localStorage holen (wird beim Buchen gespeichert)
       let lastBooking = null;
       try { lastBooking = JSON.parse(localStorage.getItem("hui_last_booking") || "null"); } catch(e) {}
-      const now = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-      const chat = {
-        id: "payment_" + Date.now(),
-        type: "buchung",
-        status: "aktiv",
-        wirker: lastBooking?.wirkerName || "Dein Talent",
-        wirkerImg: lastBooking?.wirkerImg || "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
-        item: lastBooking?.itemName || "Buchung",
-        date: new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }),
-        betrag: lastBooking?.totalEur ? lastBooking.totalEur.replace(".", ",") + " €" : "–",
-        treuhand: "offen",
-        bewertung: null,
-        messages: [
-          { from: "system", text: `🔒 Zahlung erfolgreich! Dein Geld liegt sicher im Treuhandkonto. Es wird erst nach deiner Bestätigung freigegeben.`, time: now },
-          { from: "system", text: `🌱 Ein Teil deiner Buchung fließt automatisch in echte Impact-Projekte.`, time: now },
-        ]
-      };
-      setPage("chats");
-      setOpenChat(chat);
+      if (lastBooking?.wirkerName) {
+        // WirkerProfil öffnen mit autoBook=true damit BookingFlow aktiv ist
+        setDetailView({ type: "wirker", id: lastBooking.wirkerName, isOwn: false, autoBook: true, returnStep6: true });
+      }
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -6369,7 +6368,7 @@ export default function App() {
 
   if (detailView?.type === "wirker") return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} onGoToChats={() => { setDetailView(null); setPage("chats"); }} />
+      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} returnStep6={detailView.returnStep6} onGoToChats={() => { setDetailView(null); setPage("chats"); }} />
       <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
