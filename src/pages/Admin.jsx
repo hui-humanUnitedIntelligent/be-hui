@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-// build: 2026-04-30-v5
+// build: 2026-04-30-v6
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject, User } from "@/api/entities";
 
 // ── Farben & Konstanten ──────────────────────────────────────────────────────
@@ -703,7 +703,7 @@ export default function AdminDashboard() {
               </div>
               <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
                 <div style={{ fontSize: 28 }}>🗳️</div>
-                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.blue, marginTop: 8 }}>{projects.filter(p => p.status === "active").length}</div>
+                <div style={{ fontWeight: 800, fontSize: 24, color: COLORS.blue, marginTop: 8 }}>{projects.filter(p => p.status === "active" || p.status === "aktiv").length}</div>
                 <div style={{ color: COLORS.muted, fontSize: 13, marginTop: 4 }}>Aktive Projekte</div>
               </div>
               <div style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
@@ -730,7 +730,7 @@ export default function AdminDashboard() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {projects
-                  .filter(p => impactFilter === "all" ? true : impactFilter === "won" ? p.status === "won" : p.status === "active")
+                  .filter(p => impactFilter === "all" ? true : impactFilter === "won" ? (p.status === "won" || p.status === "gewonnen") : (p.status === "active" || p.status === "aktiv"))
                   .map(proj => (
                   <div key={proj.id} style={{ background: COLORS.card, borderRadius: 16, border: `1px solid ${COLORS.border}`, padding: 20 }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
@@ -738,7 +738,7 @@ export default function AdminDashboard() {
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                           <span style={{ fontSize: 22 }}>{proj.icon || "🌱"}</span>
                           <span style={{ fontWeight: 700, fontSize: 16, color: COLORS.text }}>{proj.name}</span>
-                          <span style={{ background: proj.status === "won" ? COLORS.gold + "22" : COLORS.teal + "22", color: proj.status === "won" ? COLORS.gold : COLORS.teal, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, border: `1px solid ${proj.status === "won" ? COLORS.gold : COLORS.teal}` }}>{proj.status === "won" ? "🏆 Gewinner" : "🗳️ Aktiv"}</span>
+                          <span style={{ background: proj.status === "won" ? COLORS.gold + "22" : COLORS.teal + "22", color: proj.status === "won" ? COLORS.gold : COLORS.teal, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, border: `1px solid ${proj.status === "won" ? COLORS.gold : COLORS.teal}` }}>{(proj.status === "won" || proj.status === "gewonnen") ? "🏆 Gewinner" : "🗳️ Aktiv"}</span>
                         </div>
                         <p style={{ color: COLORS.muted, fontSize: 13, margin: "0 0 10px" }}>{proj.description}</p>
                         <div style={{ display: "flex", gap: 16, fontSize: 12, color: COLORS.muted, flexWrap: "wrap" }}>
@@ -749,7 +749,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                        {proj.status === "active" && (
+                        {(proj.status === "active" || proj.status === "aktiv") && (
                           <button onClick={() => distributePool()} style={{ background: COLORS.gold + "22", color: COLORS.gold, border: `1px solid ${COLORS.gold}`, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 12 }}>🏆 Vergeben</button>
                         )}
                         <button onClick={() => setEditProject({ ...proj })} style={{ background: "#1E3A5F", color: COLORS.blue, border: `1px solid ${COLORS.blue}`, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 12 }}>✏️ Edit</button>
