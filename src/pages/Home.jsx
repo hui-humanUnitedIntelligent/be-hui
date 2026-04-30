@@ -5371,11 +5371,11 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
   );
 }
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats }) {
-  const [activeSection, setActiveSection] = React.useState(null); // null | "einstellungen" | "editProfile"
-  const [settingsSection, setSettingsSection] = React.useState(null); // null | "benachrichtigungen" | "privatsphare" | "zahlung" | "rechtliches"
+  const [activeSection, setActiveSection] = React.useState(null);
+  const [settingsSection, setSettingsSection] = React.useState(null);
   const [showHuiPunkte, setShowHuiPunkte] = React.useState(false);
   const [showImpactTracker, setShowImpactTracker] = React.useState(false);
-  const [editTab, setEditTab] = React.useState("basis"); // "basis" | "bio" | "talent"
+  const [editTab, setEditTab] = React.useState("basis");
   const [profileForm, setProfileForm] = React.useState({
     vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
     standort: "München, Deutschland", suchRadius: 50,
@@ -5429,19 +5429,25 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
     </div>
   );
 
+  // Dashboard-Routes
+  if (activeSection === "wirkerDashboard") {
+    const WirkerDash = React.lazy(() => import("../components/WirkerProfileDashboard"));
+    return <React.Suspense fallback={<div style={{padding:40,textAlign:"center",color:TEAL}}>Lädt…</div>}><WirkerDash onBack={() => setActiveSection(null)} onViewPublicProfile={() => { setActiveSection(null); onViewOwnWirkerProfile && onViewOwnWirkerProfile(); }} /></React.Suspense>;
+  }
+  if (activeSection === "buyerDashboard") {
+    const BuyerDash = React.lazy(() => import("../components/BuyerProfileDashboard"));
+    return <React.Suspense fallback={<div style={{padding:40,textAlign:"center",color:TEAL}}>Lädt…</div>}><BuyerDash onBack={() => setActiveSection(null)} /></React.Suspense>;
+  }
+
   // EINSTELLUNGEN > BENACHRICHTIGUNGEN
   if (activeSection === "einstellungen" && settingsSection === "benachrichtigungen") return (
-    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Benachrichtigungen" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Kanäle</div>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           <ToggleRow label="Push-Benachrichtigungen" sub="Direkt aufs Handy" value={notifSettings.push} onToggle={() => toggleNotif("push")} />
-          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} last />
-        </div>
-        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Themen</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
-          <ToggleRow label="Buchungsanfragen & -bestätigungen" value={notifSettings.buchungen} onToggle={() => toggleNotif("buchungen")} color={CORAL} />
+          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} />
+          <ToggleRow label="Buchungsanfragen" value={notifSettings.buchungen} onToggle={() => toggleNotif("buchungen")} color={CORAL} />
           <ToggleRow label="Empfehlungen & Bewertungen" value={notifSettings.empfehlungen} onToggle={() => toggleNotif("empfehlungen")} color={TEAL} />
           <ToggleRow label="Treuhand & Zahlungen" value={notifSettings.impact} onToggle={() => toggleNotif("impact")} color="#F5A623" />
           <ToggleRow label="Neue Follower" value={notifSettings.follower} onToggle={() => toggleNotif("follower")} color="#8b5cf6" />
@@ -5453,107 +5459,47 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
   // EINSTELLUNGEN > PRIVATSPHÄRE
   if (activeSection === "einstellungen" && settingsSection === "privatsphare") return (
-    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Privatsphäre & Sicherheit" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sichtbarkeit</div>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           <ToggleRow label="Profil öffentlich sichtbar" sub="Andere können dich finden" value={privSettings.profilOeffentlich} onToggle={() => togglePriv("profilOeffentlich")} />
           <ToggleRow label="Standort anzeigen" sub="Ungefährer Bereich" value={privSettings.standortZeigen} onToggle={() => togglePriv("standortZeigen")} />
-          <ToggleRow label="Empfehlungen öffentlich" sub="Verifizierte Empfehlungen auf Profil" value={privSettings.empfehlungenZeigen} onToggle={() => togglePriv("empfehlungenZeigen")} />
-          <ToggleRow label="Online-Status anzeigen" sub="Zuletzt aktiv sichtbar" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} last />
+          <ToggleRow label="Empfehlungen öffentlich" value={privSettings.empfehlungenZeigen} onToggle={() => togglePriv("empfehlungenZeigen")} />
+          <ToggleRow label="Online-Status anzeigen" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} last />
         </div>
-        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sicherheit</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
-          {[
-            { icon: "🔑", label: "Passwort ändern", sub: "Zuletzt geändert: vor 3 Monaten" },
-            { icon: "📱", label: "Zwei-Faktor-Authentifizierung", sub: "Nicht aktiviert" },
-            { icon: "📋", label: "Aktive Sitzungen", sub: "2 Geräte eingeloggt", last: true },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
-              <span style={{ fontSize: 20 }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
-              </div>
-              <ChevronRight size={15} color="#ddd" />
-            </div>
-          ))}
-        </div>
-        <button style={{ width: "100%", background: "#fff0ee", border: "1.5px solid rgba(255,90,90,0.3)", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>
-          🗑 Konto löschen
-        </button>
+        <button style={{ width: "100%", background: "#fff0ee", border: "1.5px solid rgba(255,90,90,0.3)", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>🗑 Konto löschen</button>
       </div>
     </div>
   );
 
   // EINSTELLUNGEN > ZAHLUNG
   if (activeSection === "einstellungen" && settingsSection === "zahlung") return (
-    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Zahlungsmethoden" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Gespeicherte Karten</div>
-        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
-          {[
-            { icon: "💳", label: "Visa •••• 4242", sub: "Läuft ab 08/2027", badge: "Standard" },
-            { icon: "💳", label: "Mastercard •••• 1234", sub: "Läuft ab 03/2026", last: true },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3" }}>
-              <span style={{ fontSize: 22 }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</span>
-                  {item.badge && <span style={{ background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "2px 7px" }}>{item.badge}</span>}
-                </div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
-              </div>
-              <ChevronRight size={15} color="#ddd" />
-            </div>
-          ))}
+        <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+          <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>💳 Visa •••• 4242 <span style={{ background: TEAL+"18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "2px 7px" }}>Standard</span></div>
+          <div style={{ fontSize: 11, color: "#aaa" }}>Läuft ab 08/2027</div>
         </div>
-        <button style={{ width: "100%", background: TEAL + "12", border: "1.5px solid " + TEAL + "30", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: TEAL }}>
-          + Neue Karte hinzufügen
-        </button>
-        {!isNewUser && (
-          <>
-            <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", margin: "20px 0 6px", textTransform: "uppercase", letterSpacing: 0.8 }}>Auszahlungskonto</div>
-            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
-              <span style={{ fontSize: 24 }}>🏦</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>IBAN •••• 4321</div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>Sparkasse München</div>
-              </div>
-              <ChevronRight size={15} color="#ddd" />
-            </div>
-          </>
-        )}
+        <button style={{ width: "100%", background: TEAL+"12", border: "1.5px solid "+TEAL+"30", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: TEAL }}>+ Neue Karte hinzufügen</button>
       </div>
     </div>
   );
 
   // EINSTELLUNGEN > RECHTLICHES
   if (activeSection === "einstellungen" && settingsSection === "rechtliches") return (
-    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Rechtliches" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
-          {[
-            { icon: "📄", label: "Impressum", sub: "Anbieterkennzeichnung" },
-            { icon: "🔒", label: "Datenschutzerklärung", sub: "Wie wir deine Daten verwenden" },
-            { icon: "📋", label: "AGB", sub: "Allgemeine Geschäftsbedingungen" },
-            { icon: "🍪", label: "Cookie-Einstellungen", sub: "Deine Präferenzen verwalten", last: true },
-          ].map((item, i) => (
-            <a key={i} href="#" style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", textDecoration: "none" }}>
-              <span style={{ fontSize: 20 }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
-              </div>
-              <ChevronRight size={15} color="#ddd" />
-            </a>
+          {[["📄","Impressum","AGB & Rechtliches"],["🔒","Datenschutzerklärung","Wie wir deine Daten verwenden"],["📋","AGB","Allgemeine Geschäftsbedingungen"],["🍪","Cookie-Einstellungen","Deine Präferenzen",true]].map(([icon,label,sub,last],i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
+              <span style={{ fontSize: 18 }}>{icon}</span><div style={{ flex: 1 }}><div style={{ fontWeight: 600, fontSize: 13, color: "#222" }}>{label}</div><div style={{ fontSize: 11, color: "#aaa" }}>{sub}</div></div><ChevronRight size={14} color="#ddd" />
+            </div>
           ))}
         </div>
-        <div style={{ textAlign: "center", fontSize: 11, color: "#ccc", marginTop: 8 }}>HUI – Human United Intelligent · v1.0.0</div>
+        <div style={{ textAlign: "center", fontSize: 11, color: "#ccc" }}>HUI – Human United Intelligent · v1.0.0</div>
       </div>
     </div>
   );
@@ -5799,33 +5745,29 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
       {/* AKTIONEN */}
       <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
-        {/* Chats */}
-        <div onClick={onOpenChats}
-          style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <MessageCircle size={19} color={CORAL} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Meine Chats</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Buchungen & Treuhand-Status</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ background: CORAL, color: "white", borderRadius: 99, fontSize: 10, fontWeight: 800, padding: "2px 8px", minWidth: 20, textAlign: "center" }}>1</div>
+        <div onClick={onOpenChats} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><MessageCircle size={19} color={CORAL} /></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Meine Chats</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Buchungen & Treuhand-Status</div></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ background: CORAL, color: "white", borderRadius: 99, fontSize: 10, fontWeight: 800, padding: "2px 8px" }}>1</div><ChevronRight size={15} color="#ddd" /></div>
+        </div>
+        {/* Buyer Dashboard */}
+        <div onClick={() => setActiveSection("buyerDashboard")} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>🛒</div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Meine Bestellungen & Buchungen</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Käufe, HUI-Punkte, Gespeichertes</div></div>
+          <ChevronRight size={15} color="#ddd" />
+        </div>
+        {/* Wirker Dashboard */}
+        {!isNewUser && (
+          <div onClick={() => setActiveSection("wirkerDashboard")} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: TEAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>⚡</div>
+            <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Wirker-Dashboard</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Angebote, Buchungen, Verfügbarkeit</div></div>
             <ChevronRight size={15} color="#ddd" />
           </div>
-        </div>
-
-        {/* Talent-Profil */}
+        )}
         {!isNewUser && (
-          <div onClick={onViewOwnWirkerProfile}
-            style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: TEAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Eye size={19} color={TEAL} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Mein Talent-Profil</div>
-              <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>So sehen dich andere</div>
-            </div>
+          <div onClick={onViewOwnWirkerProfile} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: TEAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Eye size={19} color={TEAL} /></div>
+            <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Öffentliches Profil</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>So sehen dich andere</div></div>
             <ChevronRight size={15} color="#ddd" />
           </div>
         )}
