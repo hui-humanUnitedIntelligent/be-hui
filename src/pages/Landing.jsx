@@ -1,163 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Heart, Star, Leaf, Users, ArrowRight, Globe, ChevronDown, Play, Check, Sparkles } from "lucide-react";
-
-const TEAL = "#2ABFAC";
-const CORAL = "#FF6B5B";
-const GOLD = "#F5A623";
-const PURPLE = "#8b5cf6";
-
-const translations = {
-  de: {
-    nav_about: "Was ist HUI?",
-    nav_wirker: "Für Wirker",
-    nav_impact: "Impact",
-    nav_join: "Mitmachen",
-    hero_tag: "Eine Bewegung. Eine Plattform. Ein Herz.",
-    hero_title: "Human United Intelligent",
-    hero_sub: "HUI verbindet echte Menschen, inspirierende Talente und bedeutungsvolle Werke — und jede Transaktion verändert die Welt ein kleines Stück.",
-    hero_cta: "Jetzt Teil werden",
-    hero_cta2: "Mehr entdecken",
-    what_tag: "Was ist HUI?",
-    what_title: "Mehr als ein Marktplatz",
-    what_sub: "HUI ist ein Ort, an dem Menschen zusammenkommen — nicht nur um zu kaufen und zu verkaufen, sondern um etwas zu bewegen.",
-    card1_title: "Echte Talente",
-    card1_text: "Fotografen, Köche, Künstler, Handwerker — Menschen mit echten Fähigkeiten, die du direkt buchen kannst.",
-    card2_title: "Echte Werke",
-    card2_text: "Handgemachtes, Kunst, Unikate — Dinge mit Geschichte und Seele, direkt von den Menschen die sie erschaffen.",
-    card3_title: "Echter Impact",
-    card3_text: "Von jeder Transaktion fließt ein Teil in soziale Projekte — transparent, gemeinschaftlich, bedeutungsvoll.",
-    how_tag: "Wie es funktioniert",
-    how_title: "Einfach. Transparent. Bedeutungsvoll.",
-    step1_title: "Entdecke",
-    step1_text: "Durchstöbere Talente und Werke in deiner Nähe oder weltweit.",
-    step2_title: "Buche & kaufe",
-    step2_text: "Sicher per Treuhand-System — du zahlst erst wenn du zufrieden bist.",
-    step3_title: "Verändere",
-    step3_text: "15% unserer Provision fließt direkt in Projekte die ihr als Community wählt.",
-    impact_tag: "Impact",
-    impact_title: "Jede Buchung zählt",
-    impact_sub: "Bei HUI ist Impact kein Marketingversprechen — es ist die Grundlage unseres Modells. Die Community entscheidet jeden Monat, welches Projekt gefördert wird.",
-    impact_stat1: "Jeder Buchung",
-    impact_stat1_sub: "fließt in den Impact Pool",
-    impact_stat2: "Projekte",
-    impact_stat2_sub: "werden monatlich gefördert",
-    impact_stat3: "Community",
-    impact_stat3_sub: "entscheidet gemeinsam",
-    wirker_tag: "Für Wirker",
-    wirker_title: "Zeig der Welt was du kannst",
-    wirker_sub: "Du hast ein Talent, ein Handwerk, eine Leidenschaft? Dann gehörst du zu HUI. Werde Wirker und verdiene Geld mit dem was du liebst — während du gleichzeitig etwas Gutes tust.",
-    wirker_1: "Kostenlos registrieren & Profil erstellen",
-    wirker_2: "KI hilft dir deinen Bio zu schreiben",
-    wirker_3: "Buchungen & Verkäufe sicher verwalten",
-    wirker_4: "Teil einer wachsenden Community sein",
-    wirker_cta: "Als Wirker starten",
-    testimonials_tag: "Stimmen",
-    testimonials_title: "Was Menschen über HUI sagen",
-    t1_text: "\"Ich habe durch HUI nicht nur Kunden gefunden — ich habe Menschen gefunden die wirklich verstehen was ich tue.\"",
-    t1_name: "Sofia M.",
-    t1_role: "Keramik-Künstlerin",
-    t2_text: "\"Endlich eine Plattform die sich nicht wie eine kalte Transaktion anfühlt. HUI fühlt sich menschlich an.\"",
-    t2_name: "Marcus B.",
-    t2_role: "Fotograf",
-    t3_text: "\"Ich buche hier bewusst — weil ich weiß dass mein Geld nicht nur dem Talent hilft, sondern auch etwas Größerem.\"",
-    t3_name: "Anna K.",
-    t3_role: "HUI-Kundin",
-    join_title: "Werde Teil von etwas Echtem",
-    join_sub: "HUI ist mehr als eine App. Es ist eine Gemeinschaft von Menschen die glauben, dass Wirtschaft und Herz zusammenpassen.",
-    join_cta: "Jetzt mitmachen",
-    join_cta2: "Ich bin Wirker",
-    footer_tagline: "Human. United. Intelligent.",
-    footer_impact: "Impact",
-    footer_community: "Community",
-    footer_wirker: "Wirker werden",
-    footer_contact: "Kontakt",
-  },
-  en: {
-    nav_about: "What is HUI?",
-    nav_wirker: "For Makers",
-    nav_impact: "Impact",
-    nav_join: "Join",
-    hero_tag: "A movement. A platform. A heart.",
-    hero_title: "Human United Intelligent",
-    hero_sub: "HUI connects real people, inspiring talents and meaningful creations — and every transaction changes the world just a little bit.",
-    hero_cta: "Join now",
-    hero_cta2: "Discover more",
-    what_tag: "What is HUI?",
-    what_title: "More than a marketplace",
-    what_sub: "HUI is a place where people come together — not just to buy and sell, but to make a difference.",
-    card1_title: "Real Talents",
-    card1_text: "Photographers, chefs, artists, craftspeople — real people with real skills you can book directly.",
-    card2_title: "Real Creations",
-    card2_text: "Handmade goods, art, one-of-a-kind pieces — things with story and soul, directly from the people who made them.",
-    card3_title: "Real Impact",
-    card3_text: "A portion of every transaction goes to social projects — transparently, collectively, meaningfully.",
-    how_tag: "How it works",
-    how_title: "Simple. Transparent. Meaningful.",
-    step1_title: "Discover",
-    step1_text: "Browse talents and creations near you or worldwide.",
-    step2_title: "Book & buy",
-    step2_text: "Safe via escrow system — you only pay when you're satisfied.",
-    step3_title: "Change",
-    step3_text: "15% of our commission goes directly to projects chosen by the community.",
-    impact_tag: "Impact",
-    impact_title: "Every booking counts",
-    impact_sub: "At HUI, impact isn't a marketing promise — it's the foundation of our model. The community decides every month which project gets funded.",
-    impact_stat1: "of every booking",
-    impact_stat1_sub: "goes to the Impact Pool",
-    impact_stat2: "Projects",
-    impact_stat2_sub: "funded every month",
-    impact_stat3: "Community",
-    impact_stat3_sub: "decides together",
-    wirker_tag: "For Makers",
-    wirker_title: "Show the world what you can do",
-    wirker_sub: "You have a talent, a craft, a passion? Then you belong at HUI. Become a Maker and earn money doing what you love — while doing something good at the same time.",
-    wirker_1: "Register for free & create your profile",
-    wirker_2: "AI helps you write your bio",
-    wirker_3: "Manage bookings & sales securely",
-    wirker_4: "Be part of a growing community",
-    wirker_cta: "Start as a Maker",
-    testimonials_tag: "Voices",
-    testimonials_title: "What people say about HUI",
-    t1_text: "\"Through HUI I didn't just find clients — I found people who truly understand what I do.\"",
-    t1_name: "Sofia M.",
-    t1_role: "Ceramic Artist",
-    t2_text: "\"Finally a platform that doesn't feel like a cold transaction. HUI feels human.\"",
-    t2_name: "Marcus B.",
-    t2_role: "Photographer",
-    t3_text: "\"I book here consciously — because I know my money not only helps the talent, but something bigger.\"",
-    t3_name: "Anna K.",
-    t3_role: "HUI Customer",
-    join_title: "Become part of something real",
-    join_sub: "HUI is more than an app. It's a community of people who believe that business and heart belong together.",
-    join_cta: "Join now",
-    join_cta2: "I'm a Maker",
-    footer_tagline: "Human. United. Intelligent.",
-    footer_impact: "Impact",
-    footer_community: "Community",
-    footer_wirker: "Become a Maker",
-    footer_contact: "Contact",
-  }
-};
-
-const wirkerProfiles = [
-  { name: "Sofia M.", role: "Keramik · Ceramic", img: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=face", rating: 4.9, location: "München" },
-  { name: "Marcus B.", role: "Fotograf · Photographer", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face", rating: 5.0, location: "Berlin" },
-  { name: "Lena K.", role: "Aquarell · Watercolor", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face", rating: 4.8, location: "Hamburg" },
-  { name: "Tom R.", role: "Yoga · Wellness", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face", rating: 4.9, location: "Wien" },
-  { name: "Maria L.", role: "Koch · Chef", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face", rating: 5.0, location: "Zürich" },
-];
-
-const impactProjects = [
-  { icon: "🌱", name: "Stadtgarten München", desc: "Urban gardening für alle", amount: "1.240 €", color: "#10b981" },
-  { icon: "🐾", name: "Tierheim Hilfe", desc: "Futter & Pflege für Tiere in Not", amount: "890 €", color: CORAL },
-  { icon: "📚", name: "Bildung für Alle", desc: "Schulmaterial für Kinder", amount: "2.100 €", color: GOLD },
-];
 
 export default function LandingPage() {
   const [lang, setLang] = useState("de");
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState(0);
-  const t = translations[lang];
+
+  const TEAL = "#2ABFAC";
+  const CORAL = "#FF6B5B";
+  const GOLD = "#F5A623";
+  const PURPLE = "#8b5cf6";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -165,197 +15,162 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const de = {
+    hero_tag: "Eine Bewegung. Eine Plattform. Ein Herz.",
+    hero_title: "Human United Intelligent",
+    hero_sub: "HUI verbindet echte Menschen, inspirierende Talente und bedeutungsvolle Werke — und jede Transaktion verändert die Welt ein kleines Stück.",
+    hero_cta: "Jetzt Teil werden",
+    what_title: "Mehr als ein Marktplatz",
+    what_sub: "HUI ist ein Ort, an dem Menschen zusammenkommen — nicht nur um zu kaufen und zu verkaufen, sondern um etwas zu bewegen.",
+    c1: "Echte Talente", c1t: "Fotografen, Köche, Künstler, Handwerker — Menschen mit echten Fähigkeiten, die du direkt buchen kannst.",
+    c2: "Echte Werke", c2t: "Handgemachtes, Kunst, Unikate — Dinge mit Geschichte und Seele, direkt von den Menschen die sie erschaffen.",
+    c3: "Echter Impact", c3t: "Von jeder Transaktion fließt ein Teil in soziale Projekte — transparent, gemeinschaftlich, bedeutungsvoll.",
+    how_title: "Wie es funktioniert",
+    s1: "Entdecke", s1t: "Durchstöbere Talente und Werke in deiner Nähe.",
+    s2: "Buche sicher", s2t: "Per Treuhand-System — du zahlst erst wenn du zufrieden bist.",
+    s3: "Verändere die Welt", s3t: "15% unserer Provision fließt in Projekte die ihr als Community wählt.",
+    impact_title: "Jede Buchung zählt 🌱",
+    impact_sub: "Bei HUI ist Impact kein Marketingversprechen — es ist die Grundlage unseres Modells. Die Community entscheidet jeden Monat, welches Projekt gefördert wird.",
+    wirker_title: "Zeig der Welt was du kannst",
+    wirker_sub: "Du hast ein Talent, ein Handwerk, eine Leidenschaft? Werde Wirker und verdiene Geld mit dem was du liebst — während du gleichzeitig etwas Gutes tust.",
+    join_title: "Werde Teil von etwas Echtem 💛",
+    join_sub: "HUI ist mehr als eine App. Es ist eine Gemeinschaft von Menschen die glauben, dass Wirtschaft und Herz zusammenpassen.",
+    join_cta: "Jetzt mitmachen ✨",
+    join_cta2: "Ich bin Wirker 💫",
+    btn_lang: "EN",
   };
 
+  const en = {
+    hero_tag: "A movement. A platform. A heart.",
+    hero_title: "Human United Intelligent",
+    hero_sub: "HUI connects real people, inspiring talents and meaningful creations — and every transaction changes the world just a little bit.",
+    hero_cta: "Join now",
+    what_title: "More than a marketplace",
+    what_sub: "HUI is a place where people come together — not just to buy and sell, but to make a difference.",
+    c1: "Real Talents", c1t: "Photographers, chefs, artists, craftspeople — real people with real skills you can book directly.",
+    c2: "Real Creations", c2t: "Handmade goods, art, one-of-a-kind pieces — things with story and soul, directly from the people who made them.",
+    c3: "Real Impact", c3t: "A portion of every transaction goes to social projects — transparently, collectively, meaningfully.",
+    how_title: "How it works",
+    s1: "Discover", s1t: "Browse talents and creations near you.",
+    s2: "Book safely", s2t: "Via escrow system — you only pay when you're satisfied.",
+    s3: "Change the world", s3t: "15% of our commission goes to projects chosen by the community.",
+    impact_title: "Every booking counts 🌱",
+    impact_sub: "At HUI, impact isn't a marketing promise — it's the foundation of our model. The community decides every month which project gets funded.",
+    wirker_title: "Show the world what you can do",
+    wirker_sub: "You have a talent, a craft, a passion? Become a Maker and earn money doing what you love — while doing something good at the same time.",
+    join_title: "Become part of something real 💛",
+    join_sub: "HUI is more than an app. It's a community of people who believe that business and heart belong together.",
+    join_cta: "Join now ✨",
+    join_cta2: "I'm a Maker 💫",
+    btn_lang: "DE",
+  };
+
+  const t = lang === "de" ? de : en;
+
+  const wirker = [
+    { name: "Sofia M.", role: lang === "de" ? "Keramik-Künstlerin" : "Ceramic Artist", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=120&h=120&fit=crop&crop=face", rating: 4.9 },
+    { name: "Marcus B.", role: lang === "de" ? "Fotograf" : "Photographer", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face", rating: 5.0 },
+    { name: "Lena K.", role: lang === "de" ? "Aquarell-Künstlerin" : "Watercolor Artist", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=face", rating: 4.8 },
+    { name: "Tom R.", role: "Yoga & Wellness", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face", rating: 4.9 },
+  ];
+
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
   return (
-    <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "#fafaf8", color: "#1a1a1a", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: "#fafaf8", color: "#1a1a1a", overflowX: "hidden" }}>
 
       {/* NAV */}
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: scrolled ? "rgba(255,255,255,0.95)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "none",
-        transition: "all 0.3s ease",
-        padding: "0 24px",
-      }}>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? "rgba(255,255,255,0.95)" : "transparent", backdropFilter: scrolled ? "blur(20px)" : "none", borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "none", transition: "all 0.3s", padding: "0 24px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Heart size={18} color="white" fill="white" />
-            </div>
-            <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.5px" }}>HUI</span>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>❤️</div>
+            <span style={{ fontWeight: 800, fontSize: 20, color: scrolled ? "#1a1a1a" : "white" }}>HUI</span>
           </div>
-
-          <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
-            <button onClick={() => scrollTo("what")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: scrolled ? "#1a1a1a" : "white", fontWeight: 500 }}>{t.nav_about}</button>
-            <button onClick={() => scrollTo("wirker")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: scrolled ? "#1a1a1a" : "white", fontWeight: 500 }}>{t.nav_wirker}</button>
-            <button onClick={() => scrollTo("impact")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: scrolled ? "#1a1a1a" : "white", fontWeight: 500 }}>{t.nav_impact}</button>
-            <button
-              onClick={() => setLang(lang === "de" ? "en" : "de")}
-              style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 20, padding: "4px 12px", cursor: "pointer", fontSize: 13, color: scrolled ? "#1a1a1a" : "white", display: "flex", alignItems: "center", gap: 4 }}
-            >
-              <Globe size={13} /> {lang === "de" ? "EN" : "DE"}
-            </button>
-            <button
-              onClick={() => scrollTo("join")}
-              style={{ background: TEAL, color: "white", border: "none", borderRadius: 24, padding: "8px 20px", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
-            >
-              {t.nav_join}
-            </button>
+          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+            <button onClick={() => scrollTo("impact")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: scrolled ? "#555" : "rgba(255,255,255,0.8)", fontWeight: 500 }}>Impact</button>
+            <button onClick={() => setLang(lang === "de" ? "en" : "de")} style={{ background: scrolled ? "#f0f0f0" : "rgba(255,255,255,0.15)", border: "none", borderRadius: 20, padding: "4px 14px", cursor: "pointer", fontSize: 13, color: scrolled ? "#333" : "white", fontWeight: 600 }}>{t.btn_lang}</button>
+            <button onClick={() => scrollTo("join")} style={{ background: TEAL, color: "white", border: "none", borderRadius: 24, padding: "8px 20px", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>{t.join_cta.split(" ")[0]}</button>
           </div>
         </div>
       </nav>
 
       {/* HERO */}
-      <section style={{
-        minHeight: "100vh",
-        background: `linear-gradient(135deg, #0f1923 0%, #1a2d3a 40%, #0d2a25 100%)`,
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        textAlign: "center", padding: "120px 24px 80px", position: "relative", overflow: "hidden"
-      }}>
-        {/* Background orbs */}
-        <div style={{ position: "absolute", top: "20%", left: "10%", width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${TEAL}22, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "20%", right: "10%", width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${CORAL}22, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 600, height: 600, borderRadius: "50%", background: `radial-gradient(circle, ${PURPLE}11, transparent 70%)`, pointerEvents: "none" }} />
+      <section style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f1923 0%, #1a2d3a 50%, #0d2a25 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px 80px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "20%", left: "8%", width: 350, height: 350, borderRadius: "50%", background: `radial-gradient(circle, ${TEAL}25, transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "20%", right: "8%", width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${CORAL}20, transparent 70%)`, pointerEvents: "none" }} />
 
-        {/* Floating wirker avatars */}
-        {wirkerProfiles.map((w, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            top: `${[15, 70, 25, 60, 80][i]}%`,
-            left: `${[5, 3, 88, 85, 45][i]}%`,
-            opacity: 0.6,
-            animation: `float${i} 6s ease-in-out infinite`,
-            animationDelay: `${i * 0.8}s`,
-          }}>
-            <img src={w.img} alt={w.name} style={{ width: [48, 40, 52, 44, 36][i], height: [48, 40, 52, 44, 36][i], borderRadius: "50%", border: `2px solid ${[TEAL, CORAL, GOLD, PURPLE, TEAL][i]}`, objectFit: "cover" }} />
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 680 }}>
+          <div style={{ display: "inline-block", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 24, padding: "6px 18px", marginBottom: 28, fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
+            ✨ {t.hero_tag}
           </div>
-        ))}
+          <h1 style={{ fontSize: "clamp(56px, 10vw, 96px)", fontWeight: 900, color: "white", margin: "0 0 8px", letterSpacing: "-3px", lineHeight: 1 }}>HUI</h1>
+          <h2 style={{ fontSize: "clamp(13px, 2vw, 18px)", fontWeight: 400, color: "rgba(255,255,255,0.5)", margin: "0 0 28px", letterSpacing: "5px", textTransform: "uppercase" }}>{t.hero_title}</h2>
+          <p style={{ fontSize: "clamp(16px, 2.5vw, 20px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, marginBottom: 44, maxWidth: 560, margin: "0 auto 44px" }}>{t.hero_sub}</p>
 
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 700 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 24, padding: "6px 16px", marginBottom: 24 }}>
-            <Sparkles size={14} color={GOLD} />
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>{t.hero_tag}</span>
-          </div>
-
-          <h1 style={{ fontSize: "clamp(48px, 8vw, 88px)", fontWeight: 900, color: "white", margin: "0 0 8px", letterSpacing: "-2px", lineHeight: 1 }}>
-            HUI
-          </h1>
-          <h2 style={{ fontSize: "clamp(16px, 3vw, 24px)", fontWeight: 400, color: "rgba(255,255,255,0.6)", margin: "0 0 24px", letterSpacing: "4px", textTransform: "uppercase" }}>
-            {t.hero_title}
-          </h2>
-
-          <p style={{ fontSize: "clamp(16px, 2.5vw, 20px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, marginBottom: 40, maxWidth: 580, margin: "0 auto 40px" }}>
-            {t.hero_sub}
-          </p>
-
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <button
-              onClick={() => scrollTo("join")}
-              style={{ background: `linear-gradient(135deg, ${TEAL}, #1da893)`, color: "white", border: "none", borderRadius: 32, padding: "16px 32px", cursor: "pointer", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, boxShadow: `0 8px 32px ${TEAL}44` }}
-            >
-              {t.hero_cta} <ArrowRight size={18} />
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={() => scrollTo("join")} style={{ background: `linear-gradient(135deg, ${TEAL}, #1da893)`, color: "white", border: "none", borderRadius: 32, padding: "16px 34px", cursor: "pointer", fontSize: 16, fontWeight: 700, boxShadow: `0 8px 32px ${TEAL}44` }}>
+              {t.hero_cta} →
             </button>
-            <button
-              onClick={() => scrollTo("what")}
-              style={{ background: "rgba(255,255,255,0.1)", color: "white", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 32, padding: "16px 32px", cursor: "pointer", fontSize: 16, fontWeight: 600 }}
-            >
-              {t.hero_cta2}
+            <button onClick={() => scrollTo("what")} style={{ background: "rgba(255,255,255,0.1)", color: "white", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 32, padding: "16px 34px", cursor: "pointer", fontSize: 16, fontWeight: 500 }}>
+              {lang === "de" ? "Mehr entdecken" : "Learn more"}
             </button>
           </div>
 
           {/* Stats */}
-          <div style={{ display: "flex", gap: 48, justifyContent: "center", marginTop: 64, flexWrap: "wrap" }}>
-            {[
-              { value: "500+", label: lang === "de" ? "Wirker" : "Makers" },
-              { value: "2.400+", label: lang === "de" ? "Buchungen" : "Bookings" },
-              { value: "12.000 €", label: "Impact" },
-            ].map((s, i) => (
+          <div style={{ display: "flex", gap: 48, justifyContent: "center", marginTop: 72, flexWrap: "wrap" }}>
+            {[["500+", lang === "de" ? "Wirker" : "Makers"], ["2.400+", lang === "de" ? "Buchungen" : "Bookings"], ["12.000 €", "Impact"]].map(([v, l], i) => (
               <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: "white" }}>{s.value}</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>{s.label}</div>
+                <div style={{ fontSize: 30, fontWeight: 800, color: "white" }}>{v}</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>{l}</div>
               </div>
             ))}
           </div>
-        </div>
-
-        <div style={{ position: "absolute", bottom: 32, left: "50%", transform: "translateX(-50%)", animation: "bounce 2s infinite" }}>
-          <ChevronDown size={24} color="rgba(255,255,255,0.4)" />
         </div>
       </section>
 
       {/* WHAT IS HUI */}
-      <section id="what" style={{ padding: "100px 24px", background: "white" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${TEAL}15`, borderRadius: 24, padding: "6px 16px", marginBottom: 16 }}>
-            <span style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>{t.what_tag}</span>
-          </div>
-          <h2 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 800, margin: "0 0 16px", letterSpacing: "-1px" }}>{t.what_title}</h2>
-          <p style={{ fontSize: 18, color: "#666", maxWidth: 600, margin: "0 auto 64px", lineHeight: 1.7 }}>{t.what_sub}</p>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
-            {[
-              { icon: <Users size={28} color={TEAL} />, title: t.card1_title, text: t.card1_text, color: TEAL, bg: `${TEAL}10` },
-              { icon: <Star size={28} color={GOLD} />, title: t.card2_title, text: t.card2_text, color: GOLD, bg: `${GOLD}10` },
-              { icon: <Leaf size={28} color="#10b981" />, title: t.card3_title, text: t.card3_text, color: "#10b981", bg: "#10b98110" },
-            ].map((c, i) => (
-              <div key={i} style={{ background: c.bg, borderRadius: 24, padding: 32, textAlign: "left", border: `1px solid ${c.color}22` }}>
-                <div style={{ width: 56, height: 56, borderRadius: 16, background: "white", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, boxShadow: `0 4px 12px ${c.color}22` }}>
-                  {c.icon}
-                </div>
-                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>{c.title}</h3>
-                <p style={{ fontSize: 15, color: "#666", lineHeight: 1.6, margin: 0 }}>{c.text}</p>
+      <section id="what" style={{ padding: "90px 24px", background: "white" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(26px, 5vw, 46px)", fontWeight: 800, margin: "0 0 14px", letterSpacing: "-1px" }}>{t.what_title}</h2>
+          <p style={{ fontSize: 17, color: "#666", maxWidth: 560, margin: "0 auto 56px", lineHeight: 1.7 }}>{t.what_sub}</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 22 }}>
+            {[[t.c1, t.c1t, "👥", TEAL, `${TEAL}12`], [t.c2, t.c2t, "⭐", GOLD, `${GOLD}12`], [t.c3, t.c3t, "🌱", "#10b981", "#10b98112"]].map(([title, text, icon, color, bg], i) => (
+              <div key={i} style={{ background: bg, borderRadius: 22, padding: 30, textAlign: "left", border: `1px solid ${color}25` }}>
+                <div style={{ fontSize: 36, marginBottom: 16 }}>{icon}</div>
+                <h3 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 8px" }}>{title}</h3>
+                <p style={{ fontSize: 14, color: "#666", lineHeight: 1.6, margin: 0 }}>{text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* WIRKER CAROUSEL */}
-      <section style={{ padding: "80px 0", background: "#f8f8f6", overflow: "hidden" }}>
-        <div style={{ textAlign: "center", marginBottom: 48, padding: "0 24px" }}>
-          <h3 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: "#1a1a1a" }}>
-            {lang === "de" ? "Echte Menschen. Echte Talente." : "Real people. Real talents."}
-          </h3>
-        </div>
-        <div style={{ display: "flex", gap: 20, padding: "0 24px", overflowX: "auto", scrollbarWidth: "none" }}>
-          {[...wirkerProfiles, ...wirkerProfiles].map((w, i) => (
-            <div key={i} style={{ minWidth: 200, background: "white", borderRadius: 20, padding: 20, textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", flexShrink: 0 }}>
-              <img src={w.img} alt={w.name} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", marginBottom: 12, border: `3px solid ${TEAL}33` }} />
-              <div style={{ fontWeight: 700, fontSize: 15 }}>{w.name}</div>
+      {/* WIRKER */}
+      <section style={{ padding: "70px 0", background: "#f5f5f2", overflow: "hidden" }}>
+        <h3 style={{ textAlign: "center", fontSize: 22, fontWeight: 700, margin: "0 0 36px", padding: "0 24px" }}>{lang === "de" ? "Echte Menschen. Echte Talente." : "Real people. Real talents."}</h3>
+        <div style={{ display: "flex", gap: 18, padding: "0 24px", overflowX: "auto", scrollbarWidth: "none" }}>
+          {[...wirker, ...wirker].map((w, i) => (
+            <div key={i} style={{ minWidth: 180, background: "white", borderRadius: 18, padding: 18, textAlign: "center", boxShadow: "0 4px 18px rgba(0,0,0,0.06)", flexShrink: 0 }}>
+              <img src={w.img} alt={w.name} style={{ width: 68, height: 68, borderRadius: "50%", objectFit: "cover", marginBottom: 10, border: `3px solid ${TEAL}44` }} />
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{w.name}</div>
               <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>{w.role}</div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginTop: 8 }}>
-                <Star size={12} color={GOLD} fill={GOLD} />
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{w.rating}</span>
-                <span style={{ fontSize: 12, color: "#999" }}>· {w.location}</span>
-              </div>
+              <div style={{ marginTop: 8, fontSize: 13, color: GOLD }}>{"★".repeat(5)} {w.rating}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section style={{ padding: "100px 24px", background: "white" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${CORAL}15`, borderRadius: 24, padding: "6px 16px", marginBottom: 16 }}>
-            <span style={{ fontSize: 13, color: CORAL, fontWeight: 600 }}>{t.how_tag}</span>
-          </div>
-          <h2 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 800, margin: "0 0 64px", letterSpacing: "-1px" }}>{t.how_title}</h2>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 32, position: "relative" }}>
-            {[
-              { num: "01", title: t.step1_title, text: t.step1_text, icon: "🔍", color: TEAL },
-              { num: "02", title: t.step2_title, text: t.step2_text, icon: "🔒", color: CORAL },
-              { num: "03", title: t.step3_title, text: t.step3_text, icon: "🌱", color: "#10b981" },
-            ].map((s, i) => (
+      <section style={{ padding: "90px 24px", background: "white" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(26px, 5vw, 46px)", fontWeight: 800, margin: "0 0 56px", letterSpacing: "-1px" }}>{t.how_title}</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 40 }}>
+            {[["🔍", "01", t.s1, t.s1t, TEAL], ["🔒", "02", t.s2, t.s2t, CORAL], ["🌱", "03", t.s3, t.s3t, "#10b981"]].map(([icon, num, title, text, color], i) => (
               <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>{s.icon}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: s.color, letterSpacing: "2px", marginBottom: 8 }}>{s.num}</div>
-                <h3 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 12px" }}>{s.title}</h3>
-                <p style={{ fontSize: 15, color: "#666", lineHeight: 1.7, margin: 0 }}>{s.text}</p>
+                <div style={{ fontSize: 44, marginBottom: 12 }}>{icon}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color, letterSpacing: "2px", marginBottom: 8 }}>{num}</div>
+                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 10px" }}>{title}</h3>
+                <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, margin: 0 }}>{text}</p>
               </div>
             ))}
           </div>
@@ -363,47 +178,33 @@ export default function LandingPage() {
       </section>
 
       {/* IMPACT */}
-      <section id="impact" style={{ padding: "100px 24px", background: `linear-gradient(135deg, #0f1923, #0d2a25)`, color: "white" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(16,185,129,0.2)", borderRadius: 24, padding: "6px 16px", marginBottom: 16 }}>
-              <Leaf size={14} color="#10b981" />
-              <span style={{ fontSize: 13, color: "#10b981", fontWeight: 600 }}>{t.impact_tag}</span>
-            </div>
-            <h2 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 800, margin: "0 0 16px", letterSpacing: "-1px" }}>{t.impact_title}</h2>
-            <p style={{ fontSize: 18, color: "rgba(255,255,255,0.65)", maxWidth: 600, margin: "0 auto", lineHeight: 1.7 }}>{t.impact_sub}</p>
-          </div>
+      <section id="impact" style={{ padding: "90px 24px", background: "linear-gradient(135deg, #0f1923, #0d2a25)", color: "white", textAlign: "center" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <h2 style={{ fontSize: "clamp(26px, 5vw, 46px)", fontWeight: 800, margin: "0 0 16px", letterSpacing: "-1px" }}>{t.impact_title}</h2>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, marginBottom: 56, maxWidth: 580, margin: "0 auto 56px" }}>{t.impact_sub}</p>
 
-          {/* Impact Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24, marginBottom: 64 }}>
-            {[
-              { value: "2,25%", label: t.impact_stat1, sub: t.impact_stat1_sub, color: "#10b981" },
-              { value: "1", label: t.impact_stat2, sub: t.impact_stat2_sub, color: GOLD },
-              { value: "100%", label: t.impact_stat3, sub: t.impact_stat3_sub, color: TEAL },
-            ].map((s, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${s.color}33`, borderRadius: 20, padding: 28, textAlign: "center" }}>
-                <div style={{ fontSize: 40, fontWeight: 800, color: s.color }}>{s.value}</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "white", marginTop: 4 }}>{s.label}</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{s.sub}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20, marginBottom: 56 }}>
+            {[["2,25%", lang === "de" ? "jeder Buchung" : "of every booking", lang === "de" ? "fließt in Impact" : "goes to Impact", "#10b981"], ["1", lang === "de" ? "Projekt" : "Project", lang === "de" ? "wird monatlich gefördert" : "funded every month", GOLD], ["100%", "Community", lang === "de" ? "entscheidet gemeinsam" : "decides together", TEAL]].map(([val, label, sub, color], i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${color}33`, borderRadius: 18, padding: 26 }}>
+                <div style={{ fontSize: 36, fontWeight: 800, color }}>{val}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "white", marginTop: 4 }}>{label}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>{sub}</div>
               </div>
             ))}
           </div>
 
-          {/* Impact Projects */}
-          <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24, textAlign: "center", color: "rgba(255,255,255,0.8)" }}>
-            {lang === "de" ? "Aktuelle Projekte" : "Current Projects"}
-          </h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-            {impactProjects.map((p, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 24, border: `1px solid ${p.color}33` }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>{p.icon}</div>
-                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 4 }}>{p.name}</div>
-                <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 16 }}>{p.desc}</div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ height: 4, flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 4, marginRight: 12, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${[65, 45, 80][i]}%`, background: p.color, borderRadius: 4 }} />
+          {/* Projects */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18 }}>
+            {[["🌱", "Stadtgarten München", lang === "de" ? "Urban gardening für alle" : "Urban gardening for all", "1.240 €", 65, "#10b981"], ["🐾", "Tierheim Hilfe", lang === "de" ? "Futter & Pflege für Tiere in Not" : "Food & care for animals in need", "890 €", 45, CORAL], ["📚", lang === "de" ? "Bildung für Alle" : "Education for All", lang === "de" ? "Schulmaterial für Kinder" : "School supplies for children", "2.100 €", 80, GOLD]].map(([icon, name, desc, amount, pct, color], i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 18, padding: 22, textAlign: "left", border: `1px solid ${color}33` }}>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>{icon}</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{name}</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14 }}>{desc}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 4 }}>
+                    <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 4 }} />
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.amount}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color }}>{amount}</span>
                 </div>
               </div>
             ))}
@@ -412,78 +213,41 @@ export default function LandingPage() {
       </section>
 
       {/* FOR WIRKER */}
-      <section id="wirker" style={{ padding: "100px 24px", background: "white" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 64, alignItems: "center" }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${PURPLE}15`, borderRadius: 24, padding: "6px 16px", marginBottom: 16 }}>
-              <span style={{ fontSize: 13, color: PURPLE, fontWeight: 600 }}>{t.wirker_tag}</span>
-            </div>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, margin: "0 0 16px", letterSpacing: "-1px", lineHeight: 1.2 }}>{t.wirker_title}</h2>
-            <p style={{ fontSize: 17, color: "#666", lineHeight: 1.7, marginBottom: 32 }}>{t.wirker_sub}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 40 }}>
-              {[t.wirker_1, t.wirker_2, t.wirker_3, t.wirker_4].map((item, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${TEAL}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Check size={14} color={TEAL} />
-                  </div>
-                  <span style={{ fontSize: 15, color: "#444" }}>{item}</span>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => scrollTo("join")}
-              style={{ background: `linear-gradient(135deg, ${PURPLE}, #7c3aed)`, color: "white", border: "none", borderRadius: 32, padding: "16px 32px", cursor: "pointer", fontSize: 16, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 8 }}
-            >
-              {t.wirker_cta} <ArrowRight size={18} />
-            </button>
-          </div>
-
-          {/* Visual */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            {wirkerProfiles.slice(0, 4).map((w, i) => (
-              <div key={i} style={{
-                background: `linear-gradient(135deg, ${["#0f1923", "#1a2d3a", "#0d2a25", "#1a1a2e"][i]}, ${["#1a2d3a", "#0d2a25", "#1a1a2e", "#0f1923"][i]})`,
-                borderRadius: 20, padding: 20, textAlign: "center",
-                transform: i === 1 ? "translateY(20px)" : i === 3 ? "translateY(-20px)" : "none"
-              }}>
-                <img src={w.img} alt={w.name} style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", marginBottom: 10, border: `2px solid ${[TEAL, CORAL, GOLD, PURPLE][i]}` }} />
-                <div style={{ fontWeight: 700, fontSize: 14, color: "white" }}>{w.name}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>{w.role.split(" · ")[0]}</div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, marginTop: 6 }}>
-                  <Star size={10} color={GOLD} fill={GOLD} />
-                  <span style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}>{w.rating}</span>
-                </div>
+      <section style={{ padding: "90px 24px", background: "#f5f5f2" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(26px, 5vw, 46px)", fontWeight: 800, margin: "0 0 16px", letterSpacing: "-1px" }}>{t.wirker_title}</h2>
+          <p style={{ fontSize: 17, color: "#666", lineHeight: 1.7, marginBottom: 40, maxWidth: 560, margin: "0 auto 40px" }}>{t.wirker_sub}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 420, margin: "0 auto 36px", textAlign: "left" }}>
+            {[lang === "de" ? "Kostenlos registrieren & Profil erstellen" : "Register for free & create your profile", lang === "de" ? "KI hilft dir deinen Bio zu schreiben" : "AI helps you write your bio", lang === "de" ? "Buchungen sicher per Treuhand verwalten" : "Manage bookings safely via escrow", lang === "de" ? "Teil einer wachsenden Community sein" : "Be part of a growing community"].map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: `${TEAL}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13 }}>✓</div>
+                <span style={{ fontSize: 15, color: "#444" }}>{item}</span>
               </div>
             ))}
           </div>
+          <button onClick={() => scrollTo("join")} style={{ background: `linear-gradient(135deg, ${PURPLE}, #7c3aed)`, color: "white", border: "none", borderRadius: 32, padding: "15px 32px", cursor: "pointer", fontSize: 15, fontWeight: 700 }}>
+            {lang === "de" ? "Als Wirker starten →" : "Start as a Maker →"}
+          </button>
         </div>
       </section>
 
       {/* TESTIMONIALS */}
-      <section style={{ padding: "100px 24px", background: "#f8f8f6" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${GOLD}20`, borderRadius: 24, padding: "6px 16px", marginBottom: 16 }}>
-            <Star size={14} color={GOLD} />
-            <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>{t.testimonials_tag}</span>
-          </div>
-          <h2 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 800, margin: "0 0 48px", letterSpacing: "-1px" }}>{t.testimonials_title}</h2>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
-            {[
-              { text: t.t1_text, name: t.t1_name, role: t.t1_role, img: wirkerProfiles[0].img, color: TEAL },
-              { text: t.t2_text, name: t.t2_name, role: t.t2_role, img: wirkerProfiles[1].img, color: CORAL },
-              { text: t.t3_text, name: t.t3_name, role: t.t3_role, img: wirkerProfiles[2].img, color: PURPLE },
-            ].map((t2, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 24, padding: 32, textAlign: "left", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", border: `1px solid ${t2.color}22` }}>
-                <div style={{ display: "flex", gap: 2, marginBottom: 16 }}>
-                  {[1,2,3,4,5].map(s => <Star key={s} size={14} color={GOLD} fill={GOLD} />)}
-                </div>
-                <p style={{ fontSize: 15, color: "#444", lineHeight: 1.7, margin: "0 0 20px", fontStyle: "italic" }}>{t2.text}</p>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <img src={t2.img} alt={t2.name} style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: `2px solid ${t2.color}` }} />
+      <section style={{ padding: "90px 24px", background: "white" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(26px, 5vw, 46px)", fontWeight: 800, margin: "0 0 48px", letterSpacing: "-1px" }}>{lang === "de" ? "Was Menschen über HUI sagen" : "What people say about HUI"}</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 22 }}>
+            {[[lang === "de" ? "\"Ich habe durch HUI nicht nur Kunden gefunden — ich habe Menschen gefunden die wirklich verstehen was ich tue.\"" : "\"Through HUI I didn't just find clients — I found people who truly understand what I do.\"", "Sofia M.", lang === "de" ? "Keramik-Künstlerin" : "Ceramic Artist", wirker[0].img, TEAL],
+              [lang === "de" ? "\"Endlich eine Plattform die sich nicht wie eine kalte Transaktion anfühlt. HUI fühlt sich menschlich an.\"" : "\"Finally a platform that doesn't feel like a cold transaction. HUI feels human.\"", "Marcus B.", lang === "de" ? "Fotograf" : "Photographer", wirker[1].img, CORAL],
+              [lang === "de" ? "\"Ich buche hier bewusst — weil ich weiß dass mein Geld nicht nur dem Talent hilft, sondern auch etwas Größerem.\"" : "\"I book here consciously — because I know my money not only helps the talent, but something bigger.\"", "Anna K.", lang === "de" ? "HUI-Kundin" : "HUI Customer", wirker[2].img, PURPLE]
+            ].map(([text, name, role, img, color], i) => (
+              <div key={i} style={{ background: "#fafaf8", borderRadius: 22, padding: 28, textAlign: "left", border: `1px solid ${color}22` }}>
+                <div style={{ fontSize: 13, color: GOLD, marginBottom: 12 }}>★★★★★</div>
+                <p style={{ fontSize: 14, color: "#444", lineHeight: 1.7, margin: "0 0 20px", fontStyle: "italic" }}>{text}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <img src={img} alt={name} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2px solid ${color}` }} />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 14 }}>{t2.name}</div>
-                    <div style={{ fontSize: 12, color: "#999" }}>{t2.role}</div>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>{name}</div>
+                    <div style={{ fontSize: 11, color: "#999" }}>{role}</div>
                   </div>
                 </div>
               </div>
@@ -492,47 +256,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* JOIN CTA */}
-      <section id="join" style={{ padding: "100px 24px", background: `linear-gradient(135deg, ${TEAL}, #1da893)`, textAlign: "center", color: "white" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🌍</div>
-          <h2 style={{ fontSize: "clamp(28px, 5vw, 52px)", fontWeight: 900, margin: "0 0 16px", letterSpacing: "-1px" }}>{t.join_title}</h2>
-          <p style={{ fontSize: 18, opacity: 0.85, lineHeight: 1.7, marginBottom: 48 }}>{t.join_sub}</p>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <button style={{ background: "white", color: TEAL, border: "none", borderRadius: 32, padding: "16px 36px", cursor: "pointer", fontSize: 16, fontWeight: 800, boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
-              {t.join_cta} ✨
-            </button>
-            <button style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "2px solid rgba(255,255,255,0.5)", borderRadius: 32, padding: "16px 36px", cursor: "pointer", fontSize: 16, fontWeight: 700 }}>
-              {t.join_cta2} 💫
-            </button>
+      {/* JOIN */}
+      <section id="join" style={{ padding: "90px 24px", background: `linear-gradient(135deg, ${TEAL}, #1da893)`, textAlign: "center", color: "white" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          <div style={{ fontSize: 52, marginBottom: 14 }}>🌍</div>
+          <h2 style={{ fontSize: "clamp(26px, 5vw, 50px)", fontWeight: 900, margin: "0 0 14px", letterSpacing: "-1px" }}>{t.join_title}</h2>
+          <p style={{ fontSize: 17, opacity: 0.85, lineHeight: 1.7, marginBottom: 44 }}>{t.join_sub}</p>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <button style={{ background: "white", color: TEAL, border: "none", borderRadius: 32, padding: "15px 34px", cursor: "pointer", fontSize: 16, fontWeight: 800, boxShadow: "0 8px 28px rgba(0,0,0,0.12)" }}>{t.join_cta}</button>
+            <button style={{ background: "rgba(255,255,255,0.18)", color: "white", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 32, padding: "15px 34px", cursor: "pointer", fontSize: 16, fontWeight: 700 }}>{t.join_cta2}</button>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer style={{ background: "#0f1923", color: "rgba(255,255,255,0.6)", padding: "48px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 24 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Heart size={16} color="white" fill="white" />
-            </div>
-            <span style={{ fontWeight: 800, fontSize: 18, color: "white" }}>HUI</span>
-          </div>
-          <p style={{ fontSize: 14, margin: "0 0 24px", color: "rgba(255,255,255,0.4)" }}>{t.footer_tagline}</p>
-          <div style={{ display: "flex", gap: 32, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
-            {[t.footer_impact, t.footer_community, t.footer_wirker, t.footer_contact].map((link, i) => (
-              <button key={i} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 14 }}>{link}</button>
-            ))}
-          </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", margin: 0 }}>© 2025 HUI — Human United Intelligent. {lang === "de" ? "Mit ❤️ gemacht." : "Made with ❤️"}</p>
+      <footer style={{ background: "#0f1923", color: "rgba(255,255,255,0.5)", padding: "44px 24px", textAlign: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+          <div style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>❤️</div>
+          <span style={{ fontWeight: 800, fontSize: 17, color: "white" }}>HUI</span>
         </div>
+        <p style={{ fontSize: 13, margin: "0 0 20px", color: "rgba(255,255,255,0.35)" }}>Human. United. Intelligent.</p>
+        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>© 2025 HUI — {lang === "de" ? "Mit ❤️ gemacht." : "Made with ❤️"}</p>
       </footer>
 
-      <style>{`
-        @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(8px); } }
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { display: none; }
-      `}</style>
+      <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
 }
