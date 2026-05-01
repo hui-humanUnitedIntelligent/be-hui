@@ -1,12 +1,15 @@
+// HUI App v3.0-LIVE
 import React, { useState, useEffect, useRef } from "react";
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "@/api/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
-import HuiSearchBar from "../components/HuiSearchBar";
-import WirkerVergleich from "../components/WirkerVergleich";
-import SearchOverlay from "../components/SearchOverlay";
-import ChatDetailPage from "../components/ChatDetailPage";
-const CORAL = "#FF6B5B"; const TEAL = "#2ABFAC"; const GOLD = "#F5A623";
-const mockNotifications = [{ id: "n1", type: "empfehlung", read: false, time: "vor 2 Min.", title: "Neue Empfehlung 👍", text: "Jemand hat dich nach einem Töpfer-Workshop weiterempfohlen. Dein Geld wurde freigegeben.", icon: "👍", color: "#2ABFAC" },
+
+const CORAL = "#FF6B5B";
+const TEAL = "#2ABFAC";
+const GOLD = "#F5A623";
+
+// ─── NOTIFICATIONS ──────────────────────────────────────────────────────────
+const mockNotifications = [
+  { id: "n1", type: "empfehlung", read: false, time: "vor 2 Min.", title: "Neue Empfehlung 👍", text: "Jemand hat dich nach einem Töpfer-Workshop weiterempfohlen. Dein Geld wurde freigegeben.", icon: "👍", color: "#2ABFAC" },
   { id: "n2", type: "buchung", read: false, time: "vor 18 Min.", title: "Neue Buchungsanfrage 📅", text: "Marcus B. möchte einen Fotoshooting-Termin mit dir buchen – Di, 28. April um 14:00 Uhr.", icon: "📅", color: "#FF6B5B" },
   { id: "n3", type: "treuhand", read: false, time: "vor 1 Std.", title: "Treuhand freigegeben 🔓", text: "75 € wurden nach deiner Empfehlung an Sofia M. überwiesen.", icon: "🔓", color: "#F5A623" },
   { id: "n4", type: "impact", read: true, time: "vor 3 Std.", title: "Impact Pool Beitrag 🌱", text: "Durch deine letzte Buchung flossen 2,25 € in den HUI Impact Pool (15% unserer Provision). Danke!", icon: "🌱", color: "#10b981" },
@@ -16,6 +19,7 @@ const mockNotifications = [{ id: "n1", type: "empfehlung", read: false, time: "v
   { id: "n8", type: "buchung", read: true, time: "vor 3 Tagen", title: "Buchung bestätigt", text: "Dein Yoga-Workshop mit Maria L. am 25. April wurde bestätigt. 90 € im Treuhand.", icon: "📅", color: "#FF6B5B" },
 ];
 
+// ─── HUI-PUNKTE DATEN ────────────────────────────────────────────────────────
 const huiPunkteVerlauf = [
   { id: 1, type: "gewonnen", icon: "📅", label: "Buchung abgeschlossen", sub: "Yoga-Workshop mit Maria L.", punkte: +50, datum: "Heute" },
   { id: 2, type: "gewonnen", icon: "👍", label: "Empfehlung abgegeben", sub: "Nach Keramik-Bestellung", punkte: +20, datum: "Gestern" },
@@ -26,13 +30,15 @@ const huiPunkteVerlauf = [
   { id: 7, type: "gewonnen", icon: "🛒", label: "Erstes Werk gekauft", sub: "Aquarell-Bild von Lena K.", punkte: +25, datum: "vor 2 Wochen" },
 ];
 
-const huiPraemien=[{ icon: "💸", label: "5 € Rabatt", sub: "Auf nächste Buchung oder Kauf", kosten: 100, verfuegbar: true },
+const huiPraemien = [
+  { icon: "💸", label: "5 € Rabatt", sub: "Auf nächste Buchung oder Kauf", kosten: 100, verfuegbar: true },
   { icon: "💸", label: "10 € Rabatt", sub: "Auf nächste Buchung oder Kauf", kosten: 200, verfuegbar: true },
   { icon: "🎟", label: "Gratis Buchung", sub: "Bis 30 € — einmalig einlösbar", kosten: 600, verfuegbar: false },
   { icon: "⭐", label: "Wirker-Boost", sub: "Dein Profil 7 Tage ganz oben", kosten: 400, verfuegbar: false },
   { icon: "🌱", label: "Impact-Spende", sub: "50 Punkte → 2,50 € in Impact Pool", kosten: 50, verfuegbar: true },
 ];
 
+// ─── HELPERS ───────────────────────────────────────────────────────────────
 const shareItem = (title, type = "Inhalt") => {
   const text = `Schau dir das an auf HUI: "${title}"`;
   if (navigator.share) {
@@ -55,6 +61,8 @@ function getFirstWeekday(year, month) {
 }
 function dateKey(y, m, d) { return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
 
+// ─── MOCK AVAILABILITY DATA (per wirker) ──────────────────────────────────
+// slotsByDay: { "Mo": ["09:00","10:00","11:00","14:00","15:00"], ... }
 const defaultAvailability = {
   "Sofia M.":  { "Mo": ["09:00","10:00","11:00","14:00","15:00"], "Di": ["10:00","11:00","14:00","16:00"], "Mi": ["09:00","10:00","11:00"], "Fr": ["13:00","14:00","15:00","16:00","17:00"] },
   "Marcus B.": { "Mi": ["10:00","11:00","12:00"], "Do": ["09:00","10:00","14:00","15:00"], "Fr": ["09:00","10:00","11:00","14:00"], "Sa": ["10:00","11:00","12:00","13:00"], "So": ["11:00","12:00"] },
@@ -1253,19 +1261,19 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
     recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || p.impactEur || 0,
+    impactEur: p.impact_eur || profile.impactEur || 0,
     bio: p.bio || "",
     img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: p.empfehlungen || [],
-    pricePerHour: p.hourly_rate || p.pricePerHour || 0,
+    empfehlungen: profile.empfehlungen || [],
+    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
   };
 
   return (
@@ -1531,6 +1539,189 @@ function WerkDetailPage({ werkTitle, onBack, onAddToCart, onViewWirker }) {
   );
 }
 
+// ── (All other components unchanged below) ────────────────────────────────
+const mockSuchergebnisse = [
+  { id: "s1", typ: "wirker", name: "Sofia M.", kategorie: "Keramik & Töpfern", ort: "München · 2 km", empfehlungen: 48, preis: "ab 35 €", bild: "https://i.pravatar.cc/150?img=47", badge: "⭐ Top Wirker", buchbar: true, kaufbar: false, online: false },
+  { id: "s2", typ: "werk", name: 'Aquarell-Bild "Alpenglühen"', kategorie: "Kunst & Kreatives", ort: "München · 3 km", empfehlungen: 12, preis: "89 €", bild: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&q=80", badge: null, buchbar: false, kaufbar: true, online: false },
+  { id: "s3", typ: "wirker", name: "Marcus B.", kategorie: "Fotografie", ort: "München · 5 km", empfehlungen: 31, preis: "ab 80 €", bild: "https://i.pravatar.cc/150?img=33", badge: "📷 Profi", buchbar: true, kaufbar: false, online: true },
+  { id: "s4", typ: "werk", name: "Handgemachte Schale (Set 2)", kategorie: "Keramik & Töpfern", ort: "München · 2 km", empfehlungen: 8, preis: "55 €", bild: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=80", badge: "🔥 Beliebt", buchbar: false, kaufbar: true, online: false },
+  { id: "s5", typ: "wirker", name: "Lena K.", kategorie: "Coaching", ort: "München · 8 km", empfehlungen: 63, preis: "ab 120 €", bild: "https://i.pravatar.cc/150?img=25", badge: "✅ Verifiziert", buchbar: true, kaufbar: false, online: true },
+  { id: "s6", typ: "wirker", name: "Jonas W.", kategorie: "Musik", ort: "München · 4 km", empfehlungen: 22, preis: "ab 60 €", bild: "https://i.pravatar.cc/150?img=12", badge: null, buchbar: true, kaufbar: false, online: false },
+  { id: "s7", typ: "werk", name: "Yoga-Kurs Aufzeichnung (3x)", kategorie: "Wellness & Yoga", ort: "Online", empfehlungen: 19, preis: "29 €", bild: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&q=80", badge: "💻 Online", buchbar: false, kaufbar: true, online: true },
+  { id: "s8", typ: "wirker", name: "Anna P.", kategorie: "Kulinarik", ort: "München · 6 km", empfehlungen: 37, preis: "ab 45 €", bild: "https://i.pravatar.cc/150?img=44", badge: null, buchbar: true, kaufbar: false, online: false },
+];
+
+function SearchOverlay({ onClose }) {
+  const [query, setQuery] = useState("");
+  const [radius, setRadius] = useState(50);
+  const [contentType, setContentType] = useState("alles");
+  const [categories, setCategories] = useState([]);
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [sortBy, setSortBy] = useState("relevanz");
+  const [availability, setAvailability] = useState([]);
+  const [offerType, setOfferType] = useState([]);
+  const [minRecommendations, setMinRecommendations] = useState(0);
+  const [onlineOnly, setOnlineOnly] = useState(false);
+  const [expandedSection, setExpandedSection] = useState("typ");
+  const [showResults, setShowResults] = useState(false);
+
+  const [dbWirkerSuche, setDbWirkerSuche] = useState([]);
+  useEffect(() => {
+    HuiWirker.list().then(data => {
+      if (data && data.length > 0) {
+        const mapped = data.map(w => ({
+          id: w.id, typ: "wirker",
+          name: w.name || w.full_name || "",
+          kategorie: w.talent || "",
+          ort: (w.location || "") + (w.location ? " · 0 km" : ""),
+          empfehlungen: w.recommendations || w.bookings || 0,
+          preis: w.hourly_rate ? `ab ${w.hourly_rate} €` : "",
+          bild: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80",
+          badge: w.verified ? "✅ Verifiziert" : null,
+          buchbar: true, kaufbar: false, online: false
+        }));
+        setDbWirkerSuche(mapped);
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Filtern & Suchen
+  const gefilterteErgebnisse = React.useMemo(() => {
+    const allResults = [...dbWirkerSuche, ...mockSuchergebnisse];
+    // Deduplizieren nach name
+    const seen = new Set();
+    let res = allResults.filter(r => { if (seen.has(r.name)) return false; seen.add(r.name); return true; });
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      res = res.filter(r => r.name.toLowerCase().includes(q) || r.kategorie.toLowerCase().includes(q));
+    }
+    if (contentType !== "alles") res = res.filter(r => r.typ === contentType);
+    if (categories.length > 0) res = res.filter(r => categories.includes(r.kategorie));
+    if (offerType.includes("buchbar")) res = res.filter(r => r.buchbar);
+    if (offerType.includes("kaufbar")) res = res.filter(r => r.kaufbar);
+    if (onlineOnly) res = res.filter(r => r.online);
+    if (minRecommendations > 0) res = res.filter(r => r.empfehlungen >= minRecommendations);
+    if (sortBy === "empfehlungen") res.sort((a,b) => b.empfehlungen - a.empfehlungen);
+    return res;
+  }, [query, contentType, categories, offerType, onlineOnly, minRecommendations, sortBy, dbWirkerSuche]);
+  const allCategories = [{ label: "Kunst & Kreatives", icon: "🎨" }, { label: "Musik", icon: "🎵" }, { label: "Fotografie", icon: "📷" }, { label: "Coaching", icon: "💡" }, { label: "Handwerk", icon: "🔨" }, { label: "Fitness & Sport", icon: "🏋️" }, { label: "Wellness & Yoga", icon: "🧘" }, { label: "Kulinarik", icon: "🍳" }, { label: "Schreiben & Text", icon: "✍️" }, { label: "Technik & IT", icon: "💻" }, { label: "Mode & Styling", icon: "👗" }, { label: "Natur & Garten", icon: "🌿" }];
+  const availabilityOptions = ["Heute", "Diese Woche", "Dieses Wochenende", "Nächste Woche"];
+  const sortOptions = [{ value: "relevanz", label: "Relevanz" }, { value: "empfehlungen", label: "Meiste Empfehlungen" }, { value: "neu", label: "Neueste zuerst" }, { value: "preis_asc", label: "Preis: günstig → teuer" }, { value: "preis_desc", label: "Preis: teuer → günstig" }];
+  const toggleArr = (arr, setArr, val) => setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
+  const activeFilterCount = [contentType !== "alles", categories.length > 0, priceMin || priceMax, availability.length > 0, offerType.length > 0, minRecommendations > 0, onlineOnly, sortBy !== "relevanz"].filter(Boolean).length;
+  const Section = ({ id, title, icon, children }) => { const open = expandedSection === id; return (<div style={{ borderBottom: "1px solid #f0f0f0" }}><button onClick={() => setExpandedSection(open ? null : id)} style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "13px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}><span style={{ fontWeight: 600, fontSize: 14, color: "#333", display: "flex", alignItems: "center", gap: 7 }}><span>{icon}</span>{title}</span>{open ? <ChevronUp size={16} color="#aaa" /> : <ChevronDown size={16} color="#aaa" />}</button>{open && <div style={{ paddingBottom: 14 }}>{children}</div>}</div>); };
+  const Chip = ({ label, active, onClick, icon }) => (<button onClick={onClick} style={{ background: active ? TEAL : "#f3f3f3", color: active ? "white" : "#555", border: "none", borderRadius: 20, padding: "7px 13px", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>{icon && <span style={{ fontSize: 13 }}>{icon}</span>}{label}{active && <Check size={11} color="white" />}</button>);
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 300, display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "white", padding: "16px 16px 0", maxWidth: 430, width: "100%", margin: "0 auto" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
+          <div style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "11px 14px", display: "flex", gap: 8, alignItems: "center" }}>
+            <Search size={16} color={TEAL} />
+            <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Suche nach Talent, Werk, Name…" style={{ border: "none", background: "none", flex: 1, fontSize: 14, outline: "none", color: "#222" }} />
+            {query && <button onClick={() => setQuery("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}><X size={14} color="#aaa" /></button>}
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: CORAL, fontWeight: 700, fontSize: 14 }}>Fertig</button>
+        </div>
+        {activeFilterCount > 0 && <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><SlidersHorizontal size={13} color={CORAL} /><span style={{ fontSize: 12, color: CORAL, fontWeight: 600 }}>{activeFilterCount} Filter aktiv</span><button onClick={() => { setContentType("alles"); setCategories([]); setPriceMin(""); setPriceMax(""); setAvailability([]); setOfferType([]); setMinRecommendations(0); setOnlineOnly(false); setSortBy("relevanz"); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 12, marginLeft: 4 }}>Alle zurücksetzen</button></div>}
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", background: "white", maxWidth: 430, width: "100%", margin: "0 auto", padding: "0 16px" }}>
+        <div style={{ borderBottom: "1px solid #f0f0f0", padding: "13px 0" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}><span style={{ fontWeight: 600, fontSize: 14, color: "#333" }}>📍 Umkreis: <span style={{ color: TEAL }}>{radius === 200 ? "Weltweit" : `${radius} km`}</span></span><button onClick={() => setRadius(200)} style={{ background: radius === 200 ? TEAL : "#f0f0f0", border: "none", borderRadius: 8, padding: "4px 10px", color: radius === 200 ? "white" : "#555", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>🌍 Weltweit</button></div>
+          <input type="range" min={20} max={200} step={10} value={radius} onChange={e => setRadius(+e.target.value)} style={{ width: "100%", accentColor: TEAL }} />
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#bbb", marginTop: 4 }}><span>20km</span><span>50km</span><span>100km</span><span>200km</span><span>Welt</span></div>
+        </div>
+        <Section id="typ" title="Was suchst du?" icon="🔍"><div style={{ display: "flex", gap: 8 }}>{[{ v: "alles", l: "Alles" }, { v: "wirker", l: "Wirker" }, { v: "werke", l: "Werke" }].map(o => (<button key={o.v} onClick={() => setContentType(o.v)} style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: contentType === o.v ? CORAL : "#f3f3f3", color: contentType === o.v ? "white" : "#555" }}>{o.l}</button>))}</div></Section>
+        <Section id="angebot" title="Art des Angebots" icon="📦"><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><Chip label="Buchbar" active={offerType.includes("buchbar")} onClick={() => toggleArr(offerType, setOfferType, "buchbar")} icon="📅" /><Chip label="Kaufbar" active={offerType.includes("kaufbar")} onClick={() => toggleArr(offerType, setOfferType, "kaufbar")} icon="🛒" /><Chip label="Online möglich" active={onlineOnly} onClick={() => setOnlineOnly(p => !p)} icon="💻" /></div></Section>
+        <Section id="kategorien" title="Kategorien" icon="🎯"><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{allCategories.map(c => <Chip key={c.label} label={c.label} icon={c.icon} active={categories.includes(c.label)} onClick={() => toggleArr(categories, setCategories, c.label)} />)}</div></Section>
+        <Section id="preis" title="Preisspanne" icon="💶"><div style={{ display: "flex", gap: 10, alignItems: "center" }}><div style={{ flex: 1, background: "#f3f3f3", borderRadius: 10, padding: "10px 12px", display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, color: "#aaa" }}>von</span><input value={priceMin} onChange={e => setPriceMin(e.target.value)} placeholder="0" type="number" style={{ border: "none", background: "none", fontSize: 14, outline: "none", width: "100%", color: "#222" }} /><span style={{ fontSize: 13, color: "#aaa" }}>€</span></div><span style={{ color: "#bbb" }}>–</span><div style={{ flex: 1, background: "#f3f3f3", borderRadius: 10, padding: "10px 12px", display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, color: "#aaa" }}>bis</span><input value={priceMax} onChange={e => setPriceMax(e.target.value)} placeholder="∞" type="number" style={{ border: "none", background: "none", fontSize: 14, outline: "none", width: "100%", color: "#222" }} /><span style={{ fontSize: 13, color: "#aaa" }}>€</span></div></div><div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>{[["bis 25 €","","25"],["25–100 €","25","100"],["100–300 €","100","300"],["300 €+","300",""]].map(([l,min,max]) => (<button key={l} onClick={() => { setPriceMin(min); setPriceMax(max); }} style={{ background: priceMin === min && priceMax === max ? TEAL : "#f3f3f3", color: priceMin === min && priceMax === max ? "white" : "#555", border: "none", borderRadius: 20, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{l}</button>))}</div></Section>
+        <Section id="verfuegbarkeit" title="Verfügbarkeit" icon="📅"><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{availabilityOptions.map(a => <Chip key={a} label={a} active={availability.includes(a)} onClick={() => toggleArr(availability, setAvailability, a)} />)}</div></Section>
+        <Section id="empfehlungen" title="Mindest-Empfehlungen" icon="👍"><div style={{ display: "flex", gap: 8 }}>{[0,5,10,25,50].map(n => (<button key={n} onClick={() => setMinRecommendations(n)} style={{ background: minRecommendations === n ? CORAL : "#f3f3f3", color: minRecommendations === n ? "white" : "#555", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{n === 0 ? "Alle" : `${n}+`}</button>))}</div></Section>
+        <Section id="sortierung" title="Sortieren nach" icon="↕️"><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{sortOptions.map(o => (<button key={o.value} onClick={() => setSortBy(o.value)} style={{ background: sortBy === o.value ? `${TEAL}15` : "none", border: sortBy === o.value ? `1.5px solid ${TEAL}` : "1.5px solid #eee", borderRadius: 10, padding: "10px 14px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", color: sortBy === o.value ? TEAL : "#444", fontWeight: sortBy === o.value ? 700 : 400, fontSize: 13 }}>{o.label}{sortBy === o.value && <Check size={15} color={TEAL} />}</button>))}</div></Section>
+        <div style={{ height: 16 }} />
+      </div>
+      <div style={{ background: "white", padding: "12px 16px 24px", borderTop: "1px solid #f0f0f0", maxWidth: 430, width: "100%", margin: "0 auto" }}>
+        <button onClick={() => setShowResults(true)} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>{activeFilterCount > 0 ? `${activeFilterCount} Filter anwenden` : "Suchen"}</button>
+      </div>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: -1 }} />
+
+      {/* ── SUCHERGEBNISSE ──────────────────────────────────────── */}
+      {showResults && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "#fafaf8", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+          {/* Header */}
+          <div style={{ background: "white", padding: "14px 16px", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <button onClick={() => setShowResults(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <ArrowLeft size={20} color="#444" />
+              </button>
+              <div style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "9px 13px", display: "flex", gap: 8, alignItems: "center" }}>
+                <Search size={15} color={TEAL} />
+                <span style={{ fontSize: 14, color: query ? "#222" : "#bbb" }}>{query || "Alle Ergebnisse"}</span>
+              </div>
+              <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: CORAL, fontWeight: 700, fontSize: 14 }}>Fertig</button>
+            </div>
+            {/* Filter-Chips aktive */}
+            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+              <div style={{ background: `${TEAL}15`, borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: TEAL, whiteSpace: "nowrap", flexShrink: 0 }}>
+                📍 {radius === 200 ? "Weltweit" : `${radius} km`}
+              </div>
+              {contentType !== "alles" && <div style={{ background: `${CORAL}15`, borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: CORAL, whiteSpace: "nowrap", flexShrink: 0 }}>{contentType === "wirker" ? "👤 Wirker" : "🛍 Werke"}</div>}
+              {categories.slice(0,2).map(c => <div key={c} style={{ background: "#f0f0ee", borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "#555", whiteSpace: "nowrap", flexShrink: 0 }}>{c}</div>)}
+              {activeFilterCount > 0 && <button onClick={() => setShowResults(false)} style={{ background: "none", border: "1px solid #eee", borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "#aaa", whiteSpace: "nowrap", flexShrink: 0, cursor: "pointer" }}>✏️ Filtern</button>}
+            </div>
+          </div>
+
+          {/* Ergebnis-Info */}
+          <div style={{ padding: "10px 16px 4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>{gefilterteErgebnisse.length} Ergebnisse gefunden</span>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ fontSize: 12, border: "1px solid #eee", borderRadius: 8, padding: "4px 8px", color: "#555", background: "white", cursor: "pointer" }}>
+              {[{value:"relevanz",label:"Relevanz"},{value:"empfehlungen",label:"Meiste Empfehlungen"},{value:"neu",label:"Neueste"},{value:"preis_asc",label:"Preis ↑"},{value:"preis_desc",label:"Preis ↓"}].map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+
+          {/* Liste */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "8px 16px 24px" }}>
+            {gefilterteErgebnisse.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 24px" }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 6 }}>Keine Ergebnisse</div>
+                <div style={{ fontSize: 13, color: "#aaa" }}>Versuch andere Filter oder einen anderen Suchbegriff.</div>
+                <button onClick={() => setShowResults(false)} style={{ marginTop: 20, background: TEAL, color: "white", border: "none", borderRadius: 12, padding: "11px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>Filter anpassen</button>
+              </div>
+            ) : gefilterteErgebnisse.map(item => (
+              <div key={item.id} style={{ background: "white", borderRadius: 18, marginBottom: 12, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.06)" }}>
+                <div style={{ display: "flex", gap: 0 }}>
+                  {/* Bild */}
+                  <div style={{ width: 90, flexShrink: 0, position: "relative" }}>
+                    <img src={item.bild} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", minHeight: 100 }} />
+                    {item.badge && <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(0,0,0,0.6)", borderRadius: 99, padding: "2px 7px", fontSize: 9, fontWeight: 700, color: "white", whiteSpace: "nowrap" }}>{item.badge}</div>}
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, padding: "12px 14px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 14, color: "#222", lineHeight: 1.3 }}>{item.name}</div>
+                        <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, marginTop: 1 }}>{item.kategorie}</div>
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: CORAL, flexShrink: 0, marginLeft: 8 }}>{item.preis}</div>
+                    </div>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 8 }}>📍 {item.ort} · 👍 {item.empfehlungen} Empfehlungen</div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {item.buchbar && <button style={{ flex: 1, background: `linear-gradient(135deg, ${TEAL}, #10b981)`, border: "none", borderRadius: 10, padding: "8px 0", fontSize: 12, fontWeight: 700, color: "white", cursor: "pointer" }}>📅 Buchen</button>}
+                      {item.kaufbar && <button style={{ flex: 1, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 10, padding: "8px 0", fontSize: 12, fontWeight: 700, color: "white", cursor: "pointer" }}>🛒 Kaufen</button>}
+                      {item.online && <div style={{ background: `${TEAL}15`, borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, color: TEAL }}>💻</div>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════
 // IMPACT TRACKER PAGE
 // ══════════════════════════════════════════════════════════════════
@@ -1764,7 +1955,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -1810,11 +2001,12 @@ function HuiPunktePage({ onClose }) {
   const totalPunkte = 250;
   const naechsteStufe = 500;
   const progress = totalPunkte / naechsteStufe;
-  const [activeTab, setActiveTab] = React.useState("verlauf");
+  const [activeTab, setActiveTab] = React.useState("verlauf"); // verlauf | einloesen | sammeln
   const [eingeloest, setEingeloest] = React.useState(null);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#fafaf8", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, padding: "20px 20px 0", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,0.25)", border: "none", borderRadius: 10, cursor: "pointer", padding: "6px 8px", display: "flex" }}>
@@ -1952,34 +2144,71 @@ function HuiPunktePage({ onClose }) {
 function NotificationsOverlay({ onClose }) {
   const [notifs, setNotifs] = React.useState(mockNotifications);
   const unreadCount = notifs.filter(n => !n.read).length;
+
   const markAllRead = () => setNotifs(n => n.map(x => ({ ...x, read: true })));
   const markRead = (id) => setNotifs(n => n.map(x => x.id === id ? { ...x, read: true } : x));
-  const filterTabs = [{ id: "alle", label: "Alle" },{ id: "buchung", label: "Buchungen" },{ id: "empfehlung", label: "Empfehlungen" },{ id: "treuhand", label: "Treuhand" },{ id: "impact", label: "Impact" }];
+
+  const filterTabs = [
+    { id: "alle", label: "Alle" },
+    { id: "buchung", label: "Buchungen" },
+    { id: "empfehlung", label: "Empfehlungen" },
+    { id: "treuhand", label: "Treuhand" },
+    { id: "impact", label: "Impact" },
+  ];
   const [activeFilter, setActiveFilter] = React.useState("alle");
   const filtered = activeFilter === "alle" ? notifs : notifs.filter(n => n.type === activeFilter);
+
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#f7f7f5", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      {/* Header */}
       <div style={{ background: "white", padding: "16px 16px 0", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ArrowLeft size={22} color="#444" /></button>
-            <div><span style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</span>{unreadCount > 0 && <span style={{ marginLeft: 8, background: CORAL, color: "white", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{unreadCount} neu</span>}</div>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+              <ArrowLeft size={22} color="#444" />
+            </button>
+            <div>
+              <span style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</span>
+              {unreadCount > 0 && <span style={{ marginLeft: 8, background: CORAL, color: "white", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{unreadCount} neu</span>}
+            </div>
           </div>
-          {unreadCount > 0 && <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TEAL, fontWeight: 700 }}>Alle gelesen</button>}
+          {unreadCount > 0 && (
+            <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TEAL, fontWeight: 700 }}>Alle gelesen</button>
+          )}
         </div>
-        <div style={{ display: "flex", gap: 0, overflowX: "auto" }}>
-          {filterTabs.map(t => (<button key={t.id} onClick={() => setActiveFilter(t.id)} style={{ background: "none", border: "none", borderBottom: activeFilter === t.id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "8px 14px", fontWeight: activeFilter === t.id ? 700 : 500, fontSize: 13, color: activeFilter === t.id ? CORAL : "#aaa", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>{t.label}</button>))}
+        {/* Filter Tabs */}
+        <div style={{ display: "flex", gap: 0, overflowX: "auto", paddingBottom: 0 }}>
+          {filterTabs.map(t => (
+            <button key={t.id} onClick={() => setActiveFilter(t.id)} style={{ background: "none", border: "none", borderBottom: activeFilter === t.id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "8px 14px", fontWeight: activeFilter === t.id ? 700 : 500, fontSize: 13, color: activeFilter === t.id ? CORAL : "#aaa", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Liste */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
-        {filtered.length === 0 && (<div style={{ textAlign: "center", padding: "60px 24px", color: "#bbb" }}><Bell size={40} color="#ddd" style={{ marginBottom: 12 }} /><div style={{ fontWeight: 700, fontSize: 15, color: "#ccc" }}>Keine Benachrichtigungen</div></div>)}
+        {filtered.length === 0 && (
+          <div style={{ textAlign: "center", padding: "60px 24px", color: "#bbb" }}>
+            <Bell size={40} color="#ddd" style={{ marginBottom: 12 }} />
+            <div style={{ fontWeight: 700, fontSize: 15, color: "#ccc" }}>Keine Benachrichtigungen</div>
+          </div>
+        )}
         {filtered.map(n => (
           <div key={n.id} onClick={() => markRead(n.id)} style={{ background: n.read ? "white" : `${n.color}08`, border: `1px solid ${n.read ? "#f0f0f0" : n.color + "30"}`, borderRadius: 16, padding: "14px 16px", marginBottom: 10, cursor: "pointer", display: "flex", gap: 13, alignItems: "flex-start", position: "relative" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: n.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{n.icon}</div>
+            {/* Icon */}
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: n.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+              {n.icon}
+            </div>
+            {/* Content */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}><div style={{ fontWeight: n.read ? 600 : 800, fontSize: 13, color: "#222", lineHeight: 1.3 }}>{n.title}</div><div style={{ fontSize: 10, color: "#bbb", whiteSpace: "nowrap", marginLeft: 8, marginTop: 1 }}>{n.time}</div></div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
+                <div style={{ fontWeight: n.read ? 600 : 800, fontSize: 13, color: "#222", lineHeight: 1.3 }}>{n.title}</div>
+                <div style={{ fontSize: 10, color: "#bbb", whiteSpace: "nowrap", marginLeft: 8, marginTop: 1 }}>{n.time}</div>
+              </div>
               <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>{n.text}</div>
             </div>
+            {/* Unread dot */}
             {!n.read && <div style={{ position: "absolute", top: 14, right: 14, width: 8, height: 8, borderRadius: "50%", background: CORAL }} />}
           </div>
         ))}
@@ -1994,13 +2223,41 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover" }} />
-          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.2, color: "#888" }}><span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>H</span>uman <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>U</span>nited <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>I</span>ntelligent</span>
+          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.2, color: "#888" }}>
+            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>H</span>uman{" "}
+            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>U</span>nited{" "}
+            <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17, textShadow: "0 0 8px rgba(255,107,0,0.3)" }}>I</span>ntelligent
+          </span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={onCartClick} style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 6 }}><ShoppingBasket size={22} color="#444" />{cartCount > 0 && <span style={{ position: "absolute", top: 0, right: 0, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{cartCount}</span>}</button>
-          <button onClick={onNotifClick} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, position: "relative" }}><Bell size={22} color="#444" />{notifCount > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifCount}</span>}</button>
+          <button onClick={onCartClick} style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 6 }}>
+            <ShoppingBasket size={22} color="#444" />
+            {cartCount > 0 && <span style={{ position: "absolute", top: 0, right: 0, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{cartCount}</span>}
+          </button>
+          <button onClick={onNotifClick} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, position: "relative" }}>
+            <Bell size={22} color="#444" />
+            {notifCount > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: CORAL, color: "white", borderRadius: "50%", width: 15, height: 15, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifCount}</span>}
+          </button>
+
         </div>
       </div>
+    </div>
+  );
+}
+function SearchBar({ onClick, onKarteClick, onMatchClick }) {
+  return (
+    <div style={{ background: "white", padding: "8px 16px 10px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0", display: "flex", gap: 8 }}>
+      <div onClick={onClick} style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+        <Search size={16} color="#aaa" />
+        <span style={{ color: "#bbb", fontSize: 14, flex: 1 }}>Suche nach Talent, Werk, Name…</span>
+        <div style={{ background: `${TEAL}18`, borderRadius: 8, padding: "3px 8px", display: "flex", alignItems: "center", gap: 4 }}><SlidersHorizontal size={13} color={TEAL} /><span style={{ fontSize: 11, color: TEAL, fontWeight: 700 }}>Filter</span></div>
+      </div>
+      <button onClick={onMatchClick} style={{ background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 800, fontSize: 13, color: "white", minHeight: 40, boxShadow: `0 4px 14px ${CORAL}55` }}>
+        ✨
+      </button>
+      <button onClick={onKarteClick} style={{ background: `${TEAL}15`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 700, fontSize: 12, color: TEAL, minHeight: 40 }}>
+        🗺
+      </button>
     </div>
   );
 }
@@ -2706,6 +2963,207 @@ function ChatListPage({ onOpenChat, onBack }) {
           <div style={{ fontSize: 56, marginBottom: 14 }}>💬</div>
           <div style={{ fontWeight: 700, fontSize: 17, color: "#333", marginBottom: 6 }}>Noch keine Chats</div>
           <div style={{ fontSize: 13, color: "#aaa" }}>Nach einer Buchung oder einem Kauf öffnet sich hier automatisch ein Chat.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChatDetailPage({ chat: initialChat, onBack }) {
+  const [chat, setChat] = useState(initialChat);
+  const [message, setMessage] = useState("");
+  const [showEmpfehlung, setShowEmpfehlung] = useState(chat.status === "empfehlung_ausstehend");
+  const [empfehlungText, setEmpfehlungText] = useState("");
+  const [empfehlungAbgegeben, setEmpfehlungAbgegeben] = useState(false);
+  const [dbMessages, setDbMessages] = useState([]);
+  const messagesEndRef = React.useRef(null);
+  const chatId = `chat_${initialChat.id}`;
+
+  // Nachrichten aus localStorage laden
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(chatId) || "[]");
+      setDbMessages(stored);
+    } catch(e) {}
+  }, [chatId]);
+
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat.messages, dbMessages]);
+
+  const sendMessage = () => {
+    if (!message.trim()) return;
+    const text = message.trim();
+    setMessage("");
+    // In localStorage speichern
+    try {
+      const stored = JSON.parse(localStorage.getItem(chatId) || "[]");
+      const newStored = [...stored, { id: Date.now(), sender_name: "Ich", text, message_type: "text", created_date: new Date().toISOString() }];
+      localStorage.setItem(chatId, JSON.stringify(newStored));
+      setDbMessages(newStored);
+    } catch(e) {}
+    const newMsg = { from: "ich", text, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) };
+    setChat(c => ({ ...c, messages: [...c.messages, newMsg] }));
+    setMessage("");
+  };
+
+  const handleEmpfehlung = async (empfohlen) => {
+    const sysMsg = empfohlen
+      ? { from: "system", text: `✅ Du hast ${chat.wirker} weiterempfohlen. Die Empfehlung wird in ihrem Profil veröffentlicht. Das Geld (${chat.betrag}) wurde freigegeben und überwiesen. Chat wird archiviert.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isDone: true }
+      : { from: "system", text: `⚠️ Dein Feedback wurde vertraulich an HUI-Admin und ${chat.wirker} weitergeleitet. Kein öffentlicher Eintrag. Ein Mitarbeiter meldet sich bei dir.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isWarning: true };
+
+    // Echte HuiPayment in der DB aktualisieren
+    if (chat.paymentId) {
+      try {
+        await HuiPayment.update(chat.paymentId, {
+          status: empfohlen ? "freigegeben" : "eingefroren",
+          empfehlung: empfehlungText || (empfohlen ? "Empfohlen" : "Nicht empfohlen"),
+        });
+      } catch(e) { console.log("Payment update error:", e); }
+    }
+
+    setChat(c => ({
+      ...c,
+      status: empfohlen ? "abgeschlossen" : "gemeldet",
+      treuhand: empfohlen ? "freigegeben" : "eingefroren",
+      bewertung: { empfohlen, text: empfehlungText },
+      messages: [...c.messages, sysMsg]
+    }));
+    setShowEmpfehlung(false);
+    setEmpfehlungAbgegeben(true);
+  };
+
+  const treuhandColor = chat.treuhand === "freigegeben" ? TEAL : chat.treuhand === "eingefroren" ? "#f59e0b" : CORAL;
+  const treuhandLabel = chat.treuhand === "freigegeben" ? "✅ Freigegeben" : chat.treuhand === "eingefroren" ? "⏸ Eingefroren" : "🔒 Im Treuhand";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#f7f7f5" }}>
+      {/* Header */}
+      <div style={{ background: "white", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <ArrowLeft size={20} color="#444" />
+        </button>
+        <img src={chat.wirkerImg} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} alt={chat.wirker} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{chat.wirker}</div>
+          <div style={{ fontSize: 11, color: "#aaa" }}>{chat.item}</div>
+        </div>
+        <div style={{ background: treuhandColor + "18", border: `1px solid ${treuhandColor}40`, borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700, color: treuhandColor }}>
+          {treuhandLabel}
+        </div>
+      </div>
+
+      {/* Treuhand-Info-Banner */}
+      {chat.treuhand === "offen" && !empfehlungAbgegeben && (
+        <div style={{ background: `${CORAL}0d`, borderBottom: `1px solid ${CORAL}20`, padding: "8px 16px", flexShrink: 0, display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{ fontSize: 16 }}>🔒</span>
+          <span style={{ fontSize: 12, color: "#666" }}><strong style={{ color: CORAL }}>{chat.betrag}</strong> liegen sicher im Treuhandkonto — werden erst nach deiner Empfehlung freigegeben.</span>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+        {chat.messages.map((m, i) => {
+          if (m.from === "system") return (
+            <div key={i} style={{ textAlign: "center", margin: "10px 0" }}>
+              <div style={{ display: "inline-block", background: m.isDone ? `${TEAL}15` : m.isWarning ? `${GOLD}15` : m.isPrompt ? `${GOLD}15` : "#f0f0f0", borderRadius: 12, padding: "8px 14px", fontSize: 12, color: m.isDone ? TEAL : m.isWarning ? "#b45309" : "#666", maxWidth: "88%", lineHeight: 1.55 }}>
+                {m.text}
+              </div>
+              <div style={{ fontSize: 10, color: "#ccc", marginTop: 3 }}>{m.time}</div>
+            </div>
+          );
+          const isMe = m.from === "ich";
+          return (
+            <div key={i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: 10 }}>
+              {!isMe && <img src={chat.wirkerImg} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 8, marginTop: 2, flexShrink: 0 }} alt="" />}
+              <div style={{ maxWidth: "72%" }}>
+                <div style={{ background: isMe ? CORAL : "white", color: isMe ? "white" : "#222", borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.55, boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                  {m.text}
+                </div>
+                <div style={{ fontSize: 10, color: "#ccc", marginTop: 3, textAlign: isMe ? "right" : "left" }}>{m.time}</div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Empfehlungs-Modal – öffnet sich nach Leistungserbringung */}
+      {showEmpfehlung && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 430, boxShadow: "0 -8px 40px rgba(0,0,0,0.18)" }}>
+            {/* Wirker-Avatar + Name */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
+              <img src={chat.wirkerImg} alt={chat.wirker} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: `3px solid ${TEAL}`, marginBottom: 10 }} />
+              <div style={{ fontWeight: 800, fontSize: 20, color: "#222", textAlign: "center" }}>
+                {chat.type === "werk" ? "Ware angekommen?" : "Leistung abgeschlossen?"}
+              </div>
+              <div style={{ fontSize: 14, color: "#888", marginTop: 6, textAlign: "center", lineHeight: 1.55 }}>
+                Möchtest du <strong style={{ color: "#333" }}>{chat.wirker}</strong> weiterempfehlen?<br />
+                <span style={{ fontSize: 12, color: "#bbb" }}>Deine Empfehlung gibt das Geld frei und erscheint verifiziert im Profil.</span>
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <textarea
+              value={empfehlungText}
+              onChange={e => setEmpfehlungText(e.target.value)}
+              placeholder={`Was hat dich an ${chat.wirker} begeistert? (optional, wird öffentlich angezeigt)`}
+              rows={3}
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 14, border: `1.5px solid ${TEAL}30`, fontSize: 13, resize: "none", fontFamily: "inherit", marginBottom: 16, outline: "none", background: "#f9fffe", boxSizing: "border-box" }}
+            />
+
+            {/* Buttons */}
+            <button
+              onClick={() => handleEmpfehlung(true)}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, #10b981)`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
+            >
+              <ThumbsUp size={20} color="white" /> Ja, ich empfehle {chat.wirker}!
+            </button>
+            <button
+              onClick={() => handleEmpfehlung(false)}
+              style={{ width: "100%", background: "#f5f5f3", color: "#666", border: "1.5px solid #e0e0e0", borderRadius: 16, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            >
+              <ThumbsDown size={16} color="#aaa" /> Nicht empfehlen / Problem melden
+            </button>
+            <div style={{ textAlign: "center", marginTop: 10, fontSize: 11, color: "#bbb" }}>
+              🔒 Deine Antwort ist anonym für andere Nutzer — nur HUI sieht dein Feedback intern.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Abgeschlossener Chat */}
+      {(chat.status === "abgeschlossen" || chat.status === "gemeldet") && !showEmpfehlung && (
+        <div style={{ background: chat.status === "abgeschlossen" ? `${TEAL}10` : `${GOLD}10`, borderTop: `1px solid ${chat.status === "abgeschlossen" ? TEAL : GOLD}30`, padding: "12px 16px", flexShrink: 0, textAlign: "center", fontSize: 12, color: chat.status === "abgeschlossen" ? TEAL : "#b45309", fontWeight: 600 }}>
+          {chat.status === "abgeschlossen" ? "✅ Abgeschlossen – Geld wurde freigegeben" : "⚠️ Feedback weitergeleitet – HUI meldet sich"}
+        </div>
+      )}
+
+      {/* Input */}
+      {chat.status === "aktiv" && (
+        <div style={{ background: "white", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
+          {/* Leistung-abgeschlossen Button */}
+          {chat.treuhand === "offen" && !empfehlungAbgegeben && (
+            <div style={{ padding: "10px 16px 0" }}>
+              <button
+                onClick={() => setShowEmpfehlung(true)}
+                style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}18, ${TEAL}08)`, border: `1.5px solid ${TEAL}40`, borderRadius: 12, padding: "11px 14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", marginBottom: 6 }}
+              >
+                <Check size={16} color={TEAL} />
+                <span style={{ fontWeight: 700, fontSize: 13, color: TEAL }}>
+                  {chat.type === "werk" ? "📦 Ware erhalten – Empfehlung abgeben" : "✅ Leistung erhalten – Empfehlung abgeben"}
+                </span>
+              </button>
+            </div>
+          )}
+          <div style={{ padding: "8px 16px 24px", display: "flex", gap: 10, alignItems: "flex-end" }}>
+          <input value={message} onChange={e => setMessage(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Nachricht schreiben..."
+            style={{ flex: 1, padding: "11px 16px", borderRadius: 24, border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none", background: "#f9f9f7" }} />
+          <button onClick={sendMessage} disabled={!message.trim()} style={{ width: 42, height: 42, borderRadius: "50%", background: message.trim() ? CORAL : "#e8e8e8", border: "none", cursor: message.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Send size={17} color={message.trim() ? "white" : "#bbb"} />
+          </button>
+          </div>
         </div>
       )}
     </div>
@@ -3691,7 +4149,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -3998,7 +4456,7 @@ function ImpactPage() {
             ].map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
                 <div style={{ fontSize: 24 }}>{p.emoji}</div>
-                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{profile.name}</div>
                 <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
               </div>
             ))}
@@ -4089,7 +4547,7 @@ function ImpactPage() {
                 style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4166,7 +4624,7 @@ function ImpactPage() {
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 {/* Bild */}
                 <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4213,7 +4671,7 @@ function ImpactPage() {
             return (
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ position: "relative" }}>
-                  <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10 }}>
                     <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
@@ -4978,11 +5436,11 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
   );
 }
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats }) {
-  const [activeSection, setActiveSection] = React.useState(null);
-  const [settingsSection, setSettingsSection] = React.useState(null);
+  const [activeSection, setActiveSection] = React.useState(null); // null | "einstellungen" | "editProfile"
+  const [settingsSection, setSettingsSection] = React.useState(null); // null | "benachrichtigungen" | "privatsphare" | "zahlung" | "rechtliches"
   const [showHuiPunkte, setShowHuiPunkte] = React.useState(false);
   const [showImpactTracker, setShowImpactTracker] = React.useState(false);
-  const [editTab, setEditTab] = React.useState("basis");
+  const [editTab, setEditTab] = React.useState("basis"); // "basis" | "bio" | "talent"
   const [profileForm, setProfileForm] = React.useState({
     vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
     standort: "München, Deutschland", suchRadius: 50,
@@ -5036,25 +5494,19 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
     </div>
   );
 
-  // Dashboard-Routes
-  if (activeSection === "wirkerDashboard") {
-    const WirkerDash = React.lazy(() => import("../components/WirkerProfileDashboard"));
-    return <React.Suspense fallback={<div style={{padding:40,textAlign:"center",color:TEAL}}>Lädt…</div>}><WirkerDash onBack={() => setActiveSection(null)} onViewPublicProfile={() => { setActiveSection(null); onViewOwnWirkerProfile && onViewOwnWirkerProfile(); }} /></React.Suspense>;
-  }
-  if (activeSection === "buyerDashboard") {
-    const BuyerDash = React.lazy(() => import("../components/BuyerProfileDashboard"));
-    return <React.Suspense fallback={<div style={{padding:40,textAlign:"center",color:TEAL}}>Lädt…</div>}><BuyerDash onBack={() => setActiveSection(null)} /></React.Suspense>;
-  }
-
   // EINSTELLUNGEN > BENACHRICHTIGUNGEN
   if (activeSection === "einstellungen" && settingsSection === "benachrichtigungen") return (
-    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Benachrichtigungen" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Kanäle</div>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           <ToggleRow label="Push-Benachrichtigungen" sub="Direkt aufs Handy" value={notifSettings.push} onToggle={() => toggleNotif("push")} />
-          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} />
-          <ToggleRow label="Buchungsanfragen" value={notifSettings.buchungen} onToggle={() => toggleNotif("buchungen")} color={CORAL} />
+          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} last />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Themen</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <ToggleRow label="Buchungsanfragen & -bestätigungen" value={notifSettings.buchungen} onToggle={() => toggleNotif("buchungen")} color={CORAL} />
           <ToggleRow label="Empfehlungen & Bewertungen" value={notifSettings.empfehlungen} onToggle={() => toggleNotif("empfehlungen")} color={TEAL} />
           <ToggleRow label="Treuhand & Zahlungen" value={notifSettings.impact} onToggle={() => toggleNotif("impact")} color="#F5A623" />
           <ToggleRow label="Neue Follower" value={notifSettings.follower} onToggle={() => toggleNotif("follower")} color="#8b5cf6" />
@@ -5066,47 +5518,107 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
   // EINSTELLUNGEN > PRIVATSPHÄRE
   if (activeSection === "einstellungen" && settingsSection === "privatsphare") return (
-    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Privatsphäre & Sicherheit" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sichtbarkeit</div>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
           <ToggleRow label="Profil öffentlich sichtbar" sub="Andere können dich finden" value={privSettings.profilOeffentlich} onToggle={() => togglePriv("profilOeffentlich")} />
           <ToggleRow label="Standort anzeigen" sub="Ungefährer Bereich" value={privSettings.standortZeigen} onToggle={() => togglePriv("standortZeigen")} />
-          <ToggleRow label="Empfehlungen öffentlich" value={privSettings.empfehlungenZeigen} onToggle={() => togglePriv("empfehlungenZeigen")} />
-          <ToggleRow label="Online-Status anzeigen" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} last />
+          <ToggleRow label="Empfehlungen öffentlich" sub="Verifizierte Empfehlungen auf Profil" value={privSettings.empfehlungenZeigen} onToggle={() => togglePriv("empfehlungenZeigen")} />
+          <ToggleRow label="Online-Status anzeigen" sub="Zuletzt aktiv sichtbar" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} last />
         </div>
-        <button style={{ width: "100%", background: "#fff0ee", border: "1.5px solid rgba(255,90,90,0.3)", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>🗑 Konto löschen</button>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sicherheit</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          {[
+            { icon: "🔑", label: "Passwort ändern", sub: "Zuletzt geändert: vor 3 Monaten" },
+            { icon: "📱", label: "Zwei-Faktor-Authentifizierung", sub: "Nicht aktiviert" },
+            { icon: "📋", label: "Aktive Sitzungen", sub: "2 Geräte eingeloggt", last: true },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          ))}
+        </div>
+        <button style={{ width: "100%", background: "#fff0ee", border: "1.5px solid rgba(255,90,90,0.3)", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>
+          🗑 Konto löschen
+        </button>
       </div>
     </div>
   );
 
   // EINSTELLUNGEN > ZAHLUNG
   if (activeSection === "einstellungen" && settingsSection === "zahlung") return (
-    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Zahlungsmethoden" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-        <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>💳 Visa •••• 4242 <span style={{ background: TEAL+"18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "2px 7px" }}>Standard</span></div>
-          <div style={{ fontSize: 11, color: "#aaa" }}>Läuft ab 08/2027</div>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Gespeicherte Karten</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          {[
+            { icon: "💳", label: "Visa •••• 4242", sub: "Läuft ab 08/2027", badge: "Standard" },
+            { icon: "💳", label: "Mastercard •••• 1234", sub: "Läuft ab 03/2026", last: true },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3" }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</span>
+                  {item.badge && <span style={{ background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "2px 7px" }}>{item.badge}</span>}
+                </div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          ))}
         </div>
-        <button style={{ width: "100%", background: TEAL+"12", border: "1.5px solid "+TEAL+"30", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: TEAL }}>+ Neue Karte hinzufügen</button>
+        <button style={{ width: "100%", background: TEAL + "12", border: "1.5px solid " + TEAL + "30", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: TEAL }}>
+          + Neue Karte hinzufügen
+        </button>
+        {!isNewUser && (
+          <>
+            <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", margin: "20px 0 6px", textTransform: "uppercase", letterSpacing: 0.8 }}>Auszahlungskonto</div>
+            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+              <span style={{ fontSize: 24 }}>🏦</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>IBAN •••• 4321</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>Sparkasse München</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 
   // EINSTELLUNGEN > RECHTLICHES
   if (activeSection === "einstellungen" && settingsSection === "rechtliches") return (
-    <div style={{ height: "100vh", background: "#fafal8", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
       <SectionHeader title="Rechtliches" onBack={() => setSettingsSection(null)} />
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
         <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
-          {[["📄","Impressum","AGB & Rechtliches"],["🔒","Datenschutzerklärung","Wie wir deine Daten verwenden"],["📋","AGB","Allgemeine Geschäftsbedingungen"],["🍪","Cookie-Einstellungen","Deine Präferenzen",true]].map(([icon,label,sub,last],i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
-              <span style={{ fontSize: 18 }}>{icon}</span><div style={{ flex: 1 }}><div style={{ fontWeight: 600, fontSize: 13, color: "#222" }}>{label}</div><div style={{ fontSize: 11, color: "#aaa" }}>{sub}</div></div><ChevronRight size={14} color="#ddd" />
-            </div>
+          {[
+            { icon: "📄", label: "Impressum", sub: "Anbieterkennzeichnung" },
+            { icon: "🔒", label: "Datenschutzerklärung", sub: "Wie wir deine Daten verwenden" },
+            { icon: "📋", label: "AGB", sub: "Allgemeine Geschäftsbedingungen" },
+            { icon: "🍪", label: "Cookie-Einstellungen", sub: "Deine Präferenzen verwalten", last: true },
+          ].map((item, i) => (
+            <a key={i} href="#" style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", textDecoration: "none" }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </a>
           ))}
         </div>
-        <div style={{ textAlign: "center", fontSize: 11, color: "#ccc" }}>HUI – Human United Intelligent · v1.0.0</div>
+        <div style={{ textAlign: "center", fontSize: 11, color: "#ccc", marginTop: 8 }}>HUI – Human United Intelligent · v1.0.0</div>
       </div>
     </div>
   );
@@ -5352,29 +5864,33 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
       {/* AKTIONEN */}
       <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
-        <div onClick={onOpenChats} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><MessageCircle size={19} color={CORAL} /></div>
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Meine Chats</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Buchungen & Treuhand-Status</div></div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ background: CORAL, color: "white", borderRadius: 99, fontSize: 10, fontWeight: 800, padding: "2px 8px" }}>1</div><ChevronRight size={15} color="#ddd" /></div>
-        </div>
-        {/* Buyer Dashboard */}
-        <div onClick={() => setActiveSection("buyerDashboard")} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>🛒</div>
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Meine Bestellungen & Buchungen</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Käufe, HUI-Punkte, Gespeichertes</div></div>
-          <ChevronRight size={15} color="#ddd" />
-        </div>
-        {/* Wirker Dashboard */}
-        {!isNewUser && (
-          <div onClick={() => setActiveSection("wirkerDashboard")} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: TEAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>⚡</div>
-            <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Wirker-Dashboard</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Angebote, Buchungen, Verfügbarkeit</div></div>
+        {/* Chats */}
+        <div onClick={onOpenChats}
+          style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <MessageCircle size={19} color={CORAL} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Meine Chats</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Buchungen & Treuhand-Status</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ background: CORAL, color: "white", borderRadius: 99, fontSize: 10, fontWeight: 800, padding: "2px 8px", minWidth: 20, textAlign: "center" }}>1</div>
             <ChevronRight size={15} color="#ddd" />
           </div>
-        )}
+        </div>
+
+        {/* Talent-Profil */}
         {!isNewUser && (
-          <div onClick={onViewOwnWirkerProfile} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: TEAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Eye size={19} color={TEAL} /></div>
-            <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Öffentliches Profil</div><div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>So sehen dich andere</div></div>
+          <div onClick={onViewOwnWirkerProfile}
+            style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: TEAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Eye size={19} color={TEAL} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Mein Talent-Profil</div>
+              <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>So sehen dich andere</div>
+            </div>
             <ChevronRight size={15} color="#ddd" />
           </div>
         )}
@@ -5906,7 +6422,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
             style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ background: selected?.id === p.id ? "#FF6B5B" : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
-                <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
+                <img src={profile.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
               </div>
               <div style={{ width: 8, height: 8, background: selected?.id === p.id ? "#FF6B5B" : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
@@ -5974,7 +6490,8 @@ export default function App() {
   const [openChat, setOpenChat] = useState(null);
   const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
 
-    const [liveWirker, setLiveWirker] = useState([]);
+  // ── LIVE DATA STATE ──────────────────────────────────────────────────────
+  const [liveWirker, setLiveWirker] = useState([]);
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
 
@@ -6063,7 +6580,7 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showKarte, setShowKarte] = useState(false);
   const [showHuiMatch, setShowHuiMatch] = useState(false);
-  const [showVergleich, setShowVergleich] = useState(false);  const notifCount = mockNotifications.filter(n => !n.read).length;
+  const notifCount = mockNotifications.filter(n => !n.read).length;
 
   const addToCart = (item) => setCart(c => [...c, item]);
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
@@ -6094,7 +6611,7 @@ export default function App() {
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
       {page === "home" && (<>
         <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
-        <HuiSearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} onMatchClick={() => setShowHuiMatch(true)} onVergleichClick={() => setShowVergleich(true)} />
+        <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} onMatchClick={() => setShowHuiMatch(true)} />
         <div style={{ paddingBottom: 96 }}>
           {/* STORIES */}
           <StoryBar />
@@ -6224,8 +6741,11 @@ export default function App() {
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
       {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
-      {showVergleich && <WirkerVergleich onClose={() => setShowVergleich(false)} onViewWirker={v => { setShowVergleich(false); viewWirker(v); }} onBookWirker={v => { setShowVergleich(false); bookWirker(v); }} />}
-      <style>{`@keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } } * { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
+
+      <style>{`
+        @keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } }
+        * { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
