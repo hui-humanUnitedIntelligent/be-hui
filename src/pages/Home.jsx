@@ -6377,12 +6377,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
 
 export default function App() {
   // ── AUTH STATE ──────────────────────────────────────────
-  const [authState, setAuthState] = useState(() => {
-    try {
-      const u = localStorage.getItem("hui_user");
-      return u ? "app" : "onboarding";
-    } catch { return "onboarding"; }
-  });
+  const [authState, setAuthState] = useState("app");
   // authState: "onboarding" | "auth" | "app"
 
   const [page, setPage] = useState("home");
