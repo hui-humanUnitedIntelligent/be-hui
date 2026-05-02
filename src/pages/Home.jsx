@@ -958,7 +958,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1268,19 +1278,19 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
     recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || p.impactEur || 0,
+    impactEur: p.impact_eur || profile.impactEur || 0,
     bio: p.bio || "",
     img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: p.empfehlungen || [],
-    pricePerHour: p.hourly_rate || p.pricePerHour || 60,
+    empfehlungen: profile.empfehlungen || [],
+    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
   };
 
   return (
@@ -1986,7 +1996,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -2397,6 +2407,142 @@ function StoryViewer({ stories, startIndex = 0, onClose, onCreateNew }) {
               <Share2 size={12} style={{ display: "inline", marginRight: 4 }} /> Teilen
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STORY ERSTELLEN (Instagram-Style, vollständig)
+// ══════════════════════════════════════════════════════════════════
+function StoryCreateFull({ onClose, onPublished }) {
+  const [step, setStep] = useState("compose"); // compose | preview | done
+  const [text, setText] = useState("");
+  const [storyType, setStoryType] = useState("foto");
+  const [selectedImg, setSelectedImg] = useState(0);
+
+  const storyTypes = [
+    { id: "foto", icon: "📷", label: "Foto/Werk", color: CORAL },
+    { id: "angebot", icon: "🎁", label: "Angebot", color: GOLD },
+    { id: "behind", icon: "🎬", label: "Behind the Scenes", color: TEAL },
+    { id: "text", icon: "✍️", label: "Nur Text", color: "#7C3AED" },
+  ];
+
+  const sampleImgs = [
+    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=900&fit=crop",
+    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=900&fit=crop",
+    "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=600&h=900&fit=crop",
+  ];
+
+  const typeInfo = storyTypes.find(t => t.id === storyType);
+
+  if (step === "done") return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ background: "white", borderRadius: 24, padding: "36px 28px", textAlign: "center", width: "100%", maxWidth: 340 }}>
+        <div style={{ fontSize: 64, marginBottom: 14 }}>✨</div>
+        <div style={{ fontWeight: 800, fontSize: 22, color: "#222", marginBottom: 8 }}>Story ist live!</div>
+        <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 24 }}>Deine Story ist 24 Stunden für deine Follower und im HUI-Feed sichtbar.</div>
+        <button onClick={onPublished} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Zurück zum Profil</button>
+      </div>
+    </div>
+  );
+
+  if (step === "preview") return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "#000", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+      <img src={sampleImgs[selectedImg]} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.88 }} alt="" />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.7) 100%)" }} />
+      {/* Header */}
+      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "48px 16px 12px" }}>
+        <button onClick={() => setStep("compose")} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={18} color="white" /></button>
+        <div style={{ fontWeight: 700, fontSize: 15, color: "white" }}>Vorschau</div>
+        <div style={{ width: 36 }} />
+      </div>
+      <div style={{ position: "absolute", top: "38%", left: 16, zIndex: 11 }}>
+        <div style={{ background: typeInfo.color, color: "white", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>{typeInfo.label}</div>
+      </div>
+      <div style={{ position: "absolute", bottom: 32, left: 16, right: 16, zIndex: 10 }}>
+        {text.trim() && <div style={{ fontSize: 15, color: "white", fontWeight: 500, lineHeight: 1.55, marginBottom: 20, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>{text}</div>}
+        <button onClick={() => setStep("done")} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+          🚀 Jetzt veröffentlichen
+        </button>
+      </div>
+    </div>
+  );
+
+  // Compose-Schritt
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ padding: "16px 20px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Story erstellen</div>
+          <button onClick={onClose} style={{ background: "#f0f0ee", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={16} /></button>
+        </div>
+
+        <div style={{ overflowY: "auto", flex: 1, padding: "0 20px 16px" }}>
+          {/* Story-Typ wählen */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 }}>Story-Typ</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {storyTypes.map(t => (
+                <button key={t.id} onClick={() => setStoryType(t.id)}
+                  style={{ flex: 1, background: storyType === t.id ? `${t.color}18` : "#f4f4f2", border: `1.5px solid ${storyType === t.id ? t.color : "transparent"}`, borderRadius: 14, padding: "10px 6px", cursor: "pointer", textAlign: "center" }}>
+                  <div style={{ fontSize: 20 }}>{t.icon}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: storyType === t.id ? t.color : "#999", marginTop: 4, lineHeight: 1.3 }}>{t.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bild wählen */}
+          {storyType !== "text" && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 }}>Bild / Werk</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {/* Hochladen */}
+                <div style={{ width: 78, height: 78, borderRadius: 14, border: "2px dashed #ddd", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                  <span style={{ fontSize: 22 }}>📷</span>
+                  <span style={{ fontSize: 9, color: "#bbb", marginTop: 3 }}>Upload</span>
+                </div>
+                {/* Eigene Werke als Thumbnails */}
+                {sampleImgs.map((src, i) => (
+                  <div key={i} onClick={() => setSelectedImg(i)} style={{ width: 78, height: 78, borderRadius: 14, overflow: "hidden", border: selectedImg === i ? `2.5px solid ${typeInfo.color}` : "2.5px solid transparent", cursor: "pointer", flexShrink: 0, position: "relative" }}>
+                    <img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+                    {selectedImg === i && <div style={{ position: "absolute", inset: 0, background: `${typeInfo.color}22`, display: "flex", alignItems: "center", justifyContent: "center" }}><Check size={18} color={typeInfo.color} /></div>}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: "#bbb", marginTop: 6 }}>Wähle eines deiner Werke oder lade ein neues Foto hoch</div>
+            </div>
+          )}
+
+          {/* Text */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 8 }}>Text / Caption</div>
+            <textarea value={text} onChange={e => setText(e.target.value)} rows={4}
+              placeholder={
+                storyType === "angebot" ? "Beschreibe dein Angebot – Preis, Verfügbarkeit, Details..." :
+                storyType === "behind" ? "Gib einen Blick hinter die Kulissen – was passiert gerade in deinem Atelier?" :
+                storyType === "text" ? "Deine Gedanken, eine Frage, ein Impuls..." :
+                "Was zeigst du? Ein neues Werk, eine Idee, ein Moment..."
+              }
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 14, border: "1.5px solid #e8e8e8", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
+            <div style={{ fontSize: 11, color: text.length > 250 ? CORAL : "#bbb", textAlign: "right", marginTop: 3 }}>{text.length}/280</div>
+          </div>
+
+          {/* Tipp */}
+          <div style={{ background: `${GOLD}0d`, borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#888", lineHeight: 1.55 }}>
+            ⏱ Stories sind <strong>24 Stunden</strong> sichtbar · erscheinen bei deinen Followern im Story-Bar · und bleiben in deinem Profil archiviert
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0, display: "flex", gap: 10 }}>
+          <button onClick={onClose} style={{ flex: 1, background: "#f5f5f3", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: "#666" }}>Abbrechen</button>
+          <button onClick={() => setStep("preview")} style={{ flex: 2, background: (storyType === "text" ? text.trim().length > 0 : true) ? `linear-gradient(135deg, ${typeInfo.color}, ${typeInfo.color}cc)` : "#e0e0e0", color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+            Vorschau →
+          </button>
         </div>
       </div>
     </div>
@@ -3517,6 +3663,297 @@ function StoryCreateModal({ onClose }) {
     </div>
   );
 }
+function OnboardingCardDetail({ card, onClose }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", fontFamily: "'Inter', -apple-system, sans-serif" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 430, margin: "0 auto", background: "white", borderRadius: "28px 28px 0 0", padding: "28px 24px 48px" }}>
+        <div style={{ width: 40, height: 4, background: "#e0e0e0", borderRadius: 2, margin: "0 auto 24px" }} />
+        <div style={{ fontSize: 42, textAlign: "center", marginBottom: 12 }}>{card.emoji}</div>
+        <div style={{ fontWeight: 900, fontSize: 22, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{card.title}</div>
+        <div style={{ fontSize: 14, color: "#666", textAlign: "center", lineHeight: 1.75, marginBottom: 20 }}>{card.detail}</div>
+        {card.bullets && (
+          <div style={{ background: card.bg, borderRadius: 16, padding: "14px 16px", marginBottom: 8 }}>
+            {card.bullets.map((b, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: i < card.bullets.length - 1 ? 10 : 0 }}>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>{b.icon}</span>
+                <span style={{ fontSize: 13, color: "#444", lineHeight: 1.5 }}>{b.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <button onClick={onClose} style={{ width: "100%", background: card.color, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 12 }}>
+          Verstanden ✓
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function OnboardingOverlay({ step, setStep, onClose }) {
+  const [activeCard, setActiveCard] = React.useState(null);
+
+  const cardDetails = {
+    entdecken: {
+      emoji: "🛍️", title: "Entdecke echte Talente",
+      color: CORAL, bg: `${CORAL}10`,
+      detail: "Töpferinnen, Fotografen, Coaches, Musiker – bei HUI triffst du Menschen, die mit Leidenschaft etwas schaffen. Nicht irgendwelche Profile. Echte Gesichter, echte Werke, echte Verbindungen.",
+      bullets: [
+        { icon: "🎨", text: "Einzigartige Werke direkt vom Schöpfer kaufen" },
+        { icon: "📅", text: "Talente buchen – für Workshops, Sessions oder Aufträge" },
+        { icon: "🗺️", text: "Wirker in deiner Nähe entdecken" },
+      ]
+    },
+    wirker: {
+      emoji: "⚡", title: "Werde Wirker",
+      color: TEAL, bg: `${TEAL}10`,
+      detail: "Du hast ein Talent? Dann gehörst du zu uns. Teile deine Leidenschaft, biete deine Fähigkeiten an und werde Teil einer Community, die dich wirklich sieht.",
+      bullets: [
+        { icon: "✨", text: "Profil erstellen und dein Talent zeigen" },
+        { icon: "💸", text: "Buchungen annehmen – sicher über das HUI-Treuhandsystem" },
+        { icon: "🏅", text: "Verifizierte Empfehlungen aufbauen" },
+      ]
+    },
+    impact: {
+      emoji: "🌱", title: "Dein Herz macht den Unterschied",
+      color: "#10b981", bg: "#10b98110",
+      detail: "Jedes Mal, wenn bei HUI etwas gebucht oder gekauft wird, fließt automatisch ein Teil unserer Einnahmen in Projekte, die wirklich etwas bewegen. Kein Konzern entscheidet. Keine anonymen Spenden. Die HUI-Community wählt gemeinsam – jeden Monat.",
+      bullets: [
+        { icon: "💚", text: "Echte Projekte mit Herz – lokal, menschlich, spürbar" },
+        { icon: "🗳️", text: "Alle Wirker stimmen gemeinsam ab, wer gefördert wird" },
+        { icon: "👀", text: "Du siehst, was durch dein Handeln entstanden ist" },
+      ]
+    },
+    punkte: {
+      emoji: "⭐", title: "HUI-Punkte – dein Dankeschön",
+      color: "#8b5cf6", bg: "#8b5cf610",
+      detail: "Bei HUI wird jede gute Tat belohnt. Buchst du, empfiehlst du, oder hilfst du jemandem? Du sammelst HUI-Punkte – und die kannst du gegen echte Vorteile einlösen.",
+      bullets: [
+        { icon: "📅", text: "Punkte für Buchungen, Empfehlungen & mehr" },
+        { icon: "🎁", text: "Rabatte, Gratis-Buchungen oder Boost deines Profils" },
+        { icon: "🌱", text: "Punkte direkt in den Impact Pool spenden" },
+      ]
+    },
+  };
+
+  const screens = [
+    {
+      img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop",
+      emoji: "🤍",
+      tag: "Willkommen bei HUI",
+      title: "Schön, dass du hier bist.",
+      sub: "HUI steht für Human United Intelligent – und das meinst du wörtlich. Hier trifft Menschlichkeit auf echte Talente. Kein Algorithmus entscheidet. Die Menschen machen den Unterschied.",
+      features: null,
+    },
+    {
+      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
+      emoji: "🎨",
+      tag: "Talente & Werke",
+      title: "Jedes Talent hat eine Geschichte.",
+      sub: "Hinter jedem Profil steckt ein Mensch mit Leidenschaft. Töpferin, Fotograf, Yoga-Coach, Musiker – sie alle bringen etwas mit, das die Welt ein bisschen schöner macht.",
+      features: [
+        "Werke mit Seele – direkt vom Schöpfer",
+        "Talente buchen, die wirklich für dich da sind",
+        "Empfehlungen, die du wirklich vertrauen kannst",
+      ],
+      gradient: `linear-gradient(160deg, ${CORAL}15 0%, ${GOLD}10 100%)`,
+    },
+    {
+      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=600&fit=crop",
+      emoji: "🌱",
+      tag: "Mit Herz dabei",
+      title: "Dein Handeln hinterlässt Spuren.",
+      sub: "Bei HUI bleibt kein Kauf ohne Wirkung. Ein Teil unserer Einnahmen fließt automatisch in Herzens-Projekte – ausgewählt von der ganzen Community. Nicht wir entscheiden. Ihr.",
+      features: [
+        "Projekte mit Herz – von der Community gewählt",
+        "Alle Wirker stimmen gemeinsam ab",
+        "Du siehst, was durch dich entstanden ist",
+      ],
+      gradient: `linear-gradient(160deg, #10b98115 0%, ${TEAL}10 100%)`,
+    },
+    {
+      img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      emoji: "🚀",
+      tag: "Los geht's",
+      title: "Was magst du als Erstes entdecken?",
+      sub: "Tippe auf eine Karte um mehr zu erfahren – oder leg einfach los.",
+      features: null,
+      isFinal: true,
+    },
+  ];
+
+  const touchStartX = React.useRef(null);
+  const [animDir, setAnimDir] = React.useState(null);
+  const [visible, setVisible] = React.useState(true);
+
+  const goTo = (next, dir) => {
+    if (next < 0 || next >= screens.length) return;
+    setVisible(false);
+    setAnimDir(dir);
+    setTimeout(() => {
+      setStep(next);
+      setAnimDir(null);
+      setVisible(true);
+    }, 200);
+  };
+
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 5) return;
+    if (dx < -50 && step < screens.length - 1) goTo(step + 1, "left");
+    if (dx > 50 && step > 0) goTo(step - 1, "right");
+  };
+
+  const s = screens[step];
+
+  const slideStyle = {
+    opacity: visible ? 1 : 0,
+    transform: visible ? "translateX(0)" : animDir === "left" ? "translateX(36px)" : "translateX(-36px)",
+    transition: "opacity 0.22s ease, transform 0.22s ease",
+  };
+
+  const FinalCard = ({ cardKey, emoji, label, sub, color, bg }) => {
+    const [pressed, setPressed] = React.useState(false);
+    return (
+      <button
+        onClick={() => setActiveCard(cardDetails[cardKey])}
+        onPointerDown={() => setPressed(true)}
+        onPointerUp={() => setPressed(false)}
+        onPointerLeave={() => setPressed(false)}
+        style={{
+          background: pressed ? bg.replace("10", "22") : bg,
+          borderRadius: 18, padding: "16px 12px", textAlign: "center",
+          border: `1.5px solid ${color}33`,
+          cursor: "pointer", outline: "none",
+          transform: pressed ? "scale(0.94)" : "scale(1)",
+          transition: "transform 0.15s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
+          WebkitTapHighlightColor: "transparent",
+          display: "flex", flexDirection: "column", alignItems: "center",
+        }}
+      >
+        <div style={{ fontSize: 26, marginBottom: 6 }}>{emoji}</div>
+        <div style={{ fontWeight: 800, fontSize: 13, color: "#222" }}>{label}</div>
+        <div style={{ fontSize: 11, color: "#999", marginTop: 3, lineHeight: 1.4 }}>{sub}</div>
+        <div style={{ fontSize: 10, color: color, fontWeight: 700, marginTop: 6, display: "flex", alignItems: "center", gap: 2 }}>
+          Mehr erfahren <span style={{ fontSize: 12 }}>→</span>
+        </div>
+      </button>
+    );
+  };
+
+  return (
+    <>
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Image */}
+        <div style={{ position: "relative", width: "100%", height: "48%", overflow: "hidden" }}>
+          <img src={s.img} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85, transition: "opacity 0.4s ease" }} alt="" />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%)" }} />
+          {/* Tag */}
+          <div style={{ ...slideStyle, position: "absolute", top: 52, left: 20 }}>
+            <div style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 14 }}>{s.emoji}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "white", letterSpacing: 0.4 }}>{s.tag}</span>
+            </div>
+          </div>
+          {/* Skip */}
+          {step < screens.length - 1 && (
+            <button onClick={onClose} style={{ position: "absolute", top: 52, right: 20, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 16px", color: "white", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+              Überspringen
+            </button>
+          )}
+        </div>
+
+        {/* Bottom card */}
+        <div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -28, padding: "22px 22px 36px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
+          {/* Dots */}
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 20 }}>
+            {screens.map((_, i) => (
+              <button key={i} onClick={() => goTo(i, i > step ? "left" : "right")} style={{ border: "none", cursor: "pointer", padding: 0, background: "none" }}>
+                <div style={{ width: i === step ? 24 : 7, height: 7, borderRadius: 4, background: i === step ? CORAL : "#e8e8e8", transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)" }} />
+              </button>
+            ))}
+          </div>
+
+          {/* Logo on first screen */}
+          {step === 0 && (
+            <div style={{ ...slideStyle, display: "flex", justifyContent: "center", marginBottom: 14 }}>
+              <div style={{ position: "relative" }}>
+                <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 70, height: 70, borderRadius: 20, objectFit: "cover", boxShadow: "0 8px 28px rgba(255,107,91,0.28)" }} />
+                <div style={{ position: "absolute", bottom: -5, right: -5, width: 22, height: 22, background: TEAL, borderRadius: "50%", border: "2.5px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 11 }}>✓</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Title & Sub */}
+          <div style={slideStyle}>
+            <div style={{ fontWeight: 900, fontSize: 23, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{s.title}</div>
+            <div style={{ color: "#777", fontSize: 14, textAlign: "center", lineHeight: 1.7, marginBottom: s.features ? 18 : 0 }}>{s.sub}</div>
+          </div>
+
+          {/* Feature list */}
+          {s.features && (
+            <div style={{ ...slideStyle, background: s.gradient || "#f9f9f7", borderRadius: 16, padding: "14px 16px", marginBottom: 4 }}>
+              {s.features.map((f, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: i < s.features.length - 1 ? 11 : 0 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Check size={12} color="white" strokeWidth={3} />
+                  </div>
+                  <span style={{ fontSize: 13, color: "#333", fontWeight: 500 }}>{f}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Final screen – clickable cards */}
+          {s.isFinal && (
+            <div style={{ ...slideStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8, marginTop: 4 }}>
+              <FinalCard cardKey="entdecken" emoji="🛍️" label="Entdecken" sub="Talente & Werke" color={CORAL} bg={`${CORAL}10`} />
+              <FinalCard cardKey="wirker" emoji="⚡" label="Wirker werden" sub="Talent anbieten" color={TEAL} bg={`${TEAL}10`} />
+              <FinalCard cardKey="impact" emoji="🌱" label="Mit Herz dabei" sub="Projekte mit Wirkung" color="#10b981" bg="#10b98110" />
+              <FinalCard cardKey="punkte" emoji="⭐" label="HUI-Punkte" sub="Sammeln & einlösen" color="#8b5cf6" bg="#8b5cf610" />
+            </div>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* CTA */}
+          {step < screens.length - 1 ? (
+            <button
+              onClick={() => goTo(step + 1, "left")}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, #FF8C5A)`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 20px ${CORAL}44`, transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
+              onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = `0 2px 8px ${CORAL}33`; }}
+              onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
+              onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
+            >
+              Weiter →
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${CORAL}55`, transition: "transform 0.15s ease" }}
+              onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
+              onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              Jetzt loslegen ✨
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Card Detail Modal */}
+      {activeCard && <OnboardingCardDetail card={activeCard} onClose={() => setActiveCard(null)} />}
+    </>
+  );
+}
 // ══════════════════════════════════════════════════════════════════
 // PROJEKT VORSCHLAGEN – Formular (Overlay)
 // ══════════════════════════════════════════════════════════════════
@@ -3757,7 +4194,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -3906,116 +4343,119 @@ function ImpactProjectDetail({ project: p, onClose }) {
 }
 
 function ImpactPage() {
-  const [showVorschlag, setShowVorschlag] = useState(false);
-  const [showSpendenModal, setShowSpendenModal] = useState(null); // null | project
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [votedFor, setVotedFor] = useState(null); // null | project title
+  const [activeTab, setActiveTab] = useState("abstimmung"); // "abstimmung" | "projekte" | "bewerben"
+  const [votedFor, setVotedFor] = useState(() => localStorage.getItem("hui_vote_" + new Date().getMonth()) || null);
   const [showVoteConfirm, setShowVoteConfirm] = useState(null);
+  const [voteSuccess, setVoteSuccess] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [showErgebnis, setShowErgebnis] = useState(false);
-  const [activeTab, setActiveTab] = useState("abstimmung"); // "abstimmung" | "projekte"
-  const [dbProjects, setDbProjects] = useState([]);
+  const [bewerbungSent, setBewerbungSent] = useState(false);
+  const [bewerbung, setBewerbung] = useState({ name: "", org: "", desc: "", betrag: "", email: "" });
 
-  useEffect(() => {
-    HuiImpactProject.list().then(data => {
-      if (data && data.length > 0) setDbProjects(data);
-    }).catch(() => {});
-  }, []);
-
-  // Pool-Daten
+  // ── Pool & Timing ──────────────────────────────────────────────
   const poolGesamt = 3847;
-  const daysLeft = 4; // Tage bis Monatsende
+  const today = new Date();
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const daysLeft = Math.ceil((endOfMonth - today) / (1000 * 60 * 60 * 24));
+  const currentMonth = today.toLocaleString("de-DE", { month: "long", year: "numeric" });
 
-  // Die 3 nominierten Projekte — aus DB wenn verfügbar, sonst mock
-  const dbNominiert = dbProjects.filter(p => p.status === "aktiv" || p.status === "active").slice(0, 3).map(p => ({
-    title: p.name,
-    desc: p.description || "",
-    img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
-    kategorie: p.category || "",
-    land: "Deutschland",
-    wunschbetrag: p.awarded_eur || 3500,
-    gesammelt: Math.floor(poolGesamt * 0.6),
-    stimmen: p.votes || 0,
-    emoji: p.icon || "🌱",
-    organisation: p.contact_name || "HUI Partner",
-    warum: p.description || "",
-    website: p.website || "",
-  }));
-
-  // Die 3 nominierten Projekte (vom HUI-Team ausgewählt)
-  const nominiert = dbNominiert.length >= 2 ? dbNominiert : [
+  // ── Die 3 nominierten Projekte für diese Abstimmung ───────────
+  const nominiert = [
     {
-      title: "Schule für alle",
-      desc: "Bildung für 200 Kinder in ländlichen Gebieten – Schulbau, Materialien und Lehrergehälter für 2 Jahre.",
+      id: "p1", emoji: "🏫", title: "Schule für alle",
+      org: "Bildung Grenzenlos gGmbH", kategorie: "Kinder & Bildung", land: "Uganda",
+      desc: "Bildung für 200 Kinder in ländlichen Gebieten – Schulbau, Materialien und Lehrergehälter.",
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
-      kategorie: "Kinder & Bildung", land: "Uganda",
-      wunschbetrag: 3500, gesammelt: 2100,
-      stimmen: 847, emoji: "🏫",
-      organisation: "Bildung Grenzenlos gGmbH",
-      warum: "Dieses Projekt kann mit dem aktuellen Pool komplett finanziert werden. Der Schulbau steht kurz vor dem Abschluss.",
+      wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
+      warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
     },
     {
-      title: "Bäume für Kenia",
-      desc: "Wir pflanzen 10.000 Bäume in trockenen Regionen Kenias und schaffen langfristige Lebensgrundlagen.",
+      id: "p2", emoji: "🌳", title: "Bäume für Kenia",
+      org: "Green Earth Kenya e.V.", kategorie: "Natur & Umwelt", land: "Kenia",
+      desc: "10.000 Bäume in trockenen Regionen — Aufforstung, Lebensgrundlagen, Klimaschutz.",
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
-      kategorie: "Natur & Umwelt", land: "Kenia",
-      wunschbetrag: 3200, gesammelt: 1400,
-      stimmen: 612, emoji: "🌳",
-      organisation: "Green Earth Kenya e.V.",
-      warum: "Der Restbedarf liegt im Bereich des aktuellen Pools. Eine Finanzierung würde 5.300 Bäume sichern.",
+      wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
+      warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
     },
     {
-      title: "Tierheim Hamburg",
-      desc: "Renovierung für 150 Tiere – neue Gehege, Tierarzt-Ausstattung und Pfleger-Ausbildung.",
+      id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
+      org: "Tierheim Hamburg-Süd e.V.", kategorie: "Tierschutz", land: "Deutschland",
+      desc: "Neue Gehege, Tierarzt-Ausstattung und Pfleger-Ausbildung für 150 Tiere.",
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
-      kategorie: "Tierschutz", land: "Deutschland",
-      wunschbetrag: 3600, gesammelt: 1200,
-      stimmen: 389, emoji: "🐾",
-      organisation: "Tierheim Hamburg-Süd e.V.",
-      warum: "Das Tierheim ist auf Förderung angewiesen. Eine vollständige Auszahlung würde die Renovierung starten.",
+      wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
+      warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
     },
   ];
 
-  // Alle anderen laufenden Projekte (bekommen den Rest)
-  const weitiereProjekte = [
-    {
-      title: "Sauberes Wasser in Mali",
-      img: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&h=400&fit=crop",
-      kategorie: "Wasser & Gesundheit", land: "Mali", emoji: "💧",
-      wunschbetrag: 8000, gesammelt: 1230, stimmen: 0,
-    },
-    {
-      title: "Frauen-Kooperative Äthiopien",
-      img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&h=400&fit=crop",
-      kategorie: "Gleichberechtigung", land: "Äthiopien", emoji: "👩",
-      wunschbetrag: 5000, gesammelt: 890, stimmen: 0,
-    },
+  // ── Alle weiteren laufenden Projekte ──────────────────────────
+  const weitereProjekte = [
+    { id: "wp1", emoji: "💧", title: "Sauberes Wasser in Mali", org: "WaterForAll e.V.", kategorie: "Wasser & Gesundheit", land: "Mali", img: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&h=400&fit=crop", wunschbetrag: 8000, gesammelt: 1230 },
+    { id: "wp2", emoji: "👩", title: "Frauen-Kooperative Äthiopien", org: "Empowerment Africa", kategorie: "Gleichberechtigung", land: "Äthiopien", img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&h=400&fit=crop", wunschbetrag: 5000, gesammelt: 890 },
+    { id: "wp3", emoji: "🧒", title: "Spielplatz Marseille", org: "Quartier Vivant", kategorie: "Kinder & Soziales", land: "Frankreich", img: "https://images.unsplash.com/photo-1473773508845-188df298d2d1?w=600&h=400&fit=crop", wunschbetrag: 2200, gesammelt: 640 },
   ];
 
-  const totalStimmen = nominiert.reduce((s, p) => s + p.stimmen, 0);
-  const gewinner = nominiert.reduce((a, b) => a.stimmen > b.stimmen ? a : b);
+  const totalStimmen = nominiert.reduce((s, p) => s + p.stimmen, 0) + (votedFor ? 1 : 0);
+  const votedProject = nominiert.find(p => p.id === votedFor);
+  const gewinner = [...nominiert].sort((a, b) => b.stimmen - a.stimmen)[0];
 
-  // Abstimmungs-Confirm Modal
+  // ── Pool-Verteilungs-Simulation ────────────────────────────────
+  const gewinnerBekommt = Math.min(poolGesamt, gewinner.wunschbetrag);
+  const restPool = poolGesamt - gewinnerBekommt;
+  const alleAnderenProjekte = [...nominiert.filter(p => p.id !== gewinner.id), ...weitereProjekte];
+  const restProProjekt = alleAnderenProjekte.length > 0 ? Math.round(restPool / alleAnderenProjekte.length) : 0;
+
+  const handleVote = (project) => {
+    setVotedFor(project.id);
+    localStorage.setItem("hui_vote_" + new Date().getMonth(), project.id);
+    setShowVoteConfirm(null);
+    setVoteSuccess(true);
+    setTimeout(() => setVoteSuccess(false), 3000);
+  };
+
+  // ── Vote Success Toast ─────────────────────────────────────────
+  if (voteSuccess) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ background: "white", borderRadius: 28, padding: "36px 28px", textAlign: "center", maxWidth: 340, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>🗳️</div>
+          <div style={{ fontWeight: 900, fontSize: 22, color: "#1a1a1a", marginBottom: 8 }}>Stimme abgegeben!</div>
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.7, marginBottom: 20 }}>
+            Du hast für <strong style={{ color: TEAL }}>{nominiert.find(p => p.id === votedFor)?.title}</strong> gestimmt.
+            Das Ergebnis siehst du am <strong>{endOfMonth.toLocaleDateString("de-DE", { day: "numeric", month: "long" })}</strong>.
+          </div>
+          <div style={{ background: `${TEAL}12`, borderRadius: 14, padding: "12px 16px", fontSize: 13, color: "#555", lineHeight: 1.6, marginBottom: 20 }}>
+            🌱 Egal wer gewinnt — alle Projekte profitieren vom Impact Pool. Jede Buchung zählt.
+          </div>
+          <button onClick={() => setVoteSuccess(false)} style={{ width: "100%", padding: "14px", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+            Danke! 💚
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Vote Confirm Modal ─────────────────────────────────────────
   if (showVoteConfirm) {
     return (
-      <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
-        <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "28px 24px 36px" }}>
+      <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
+        <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "28px 24px 40px" }}>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 52, marginBottom: 12 }}>{showVoteConfirm.emoji}</div>
+            <div style={{ fontSize: 56, marginBottom: 12 }}>{showVoteConfirm.emoji}</div>
             <div style={{ fontWeight: 900, fontSize: 20, color: "#222", marginBottom: 8 }}>Für "{showVoteConfirm.title}" stimmen?</div>
             <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>
-              Du hast nur <strong>eine Stimme</strong> pro Monat. Diese Entscheidung kann nicht rückgängig gemacht werden.
+              Du hast <strong>eine Stimme</strong> pro Monat — diese kann nicht rückgängig gemacht werden.
             </div>
           </div>
-          <div style={{ background: `${TEAL}0d`, borderRadius: 14, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
-            🌱 Wenn dieses Projekt gewinnt, erhält es <strong>{showVoteConfirm.wunschbetrag.toLocaleString("de-DE")} €</strong> aus dem Impact Pool — vollständig ausgezahlt.
+          <div style={{ background: `${TEAL}0d`, borderRadius: 16, padding: "14px 16px", marginBottom: 22, fontSize: 13, color: "#555", lineHeight: 1.7 }}>
+            <div style={{ fontWeight: 700, color: TEAL, marginBottom: 6 }}>Was passiert wenn dieses Projekt gewinnt?</div>
+            <div>✅ Es erhält <strong>{showVoteConfirm.wunschbetrag.toLocaleString("de-DE")} €</strong> vollständig ausgezahlt</div>
+            <div style={{ marginTop: 4 }}>💸 Der Rest (~{restProProjekt} €) geht gleichmäßig an alle anderen Projekte</div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => setShowVoteConfirm(null)}
-              style={{ flex: 1, padding: "14px", border: "1.5px solid #e8e8e8", borderRadius: 14, background: "white", fontWeight: 700, fontSize: 15, cursor: "pointer", color: "#666" }}>
+            <button onClick={() => setShowVoteConfirm(null)} style={{ flex: 1, padding: "14px", border: "1.5px solid #e8e8e8", borderRadius: 14, background: "white", fontWeight: 700, fontSize: 15, cursor: "pointer", color: "#666" }}>
               Abbrechen
             </button>
-            <button onClick={() => { setVotedFor(showVoteConfirm.title); setShowVoteConfirm(null); }}
-              style={{ flex: 2, padding: "14px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, fontWeight: 800, fontSize: 15, cursor: "pointer", color: "white" }}>
+            <button onClick={() => handleVote(showVoteConfirm)} style={{ flex: 2, padding: "14px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, fontWeight: 800, fontSize: 15, cursor: "pointer", color: "white" }}>
               ✓ Jetzt abstimmen
             </button>
           </div>
@@ -4024,230 +4464,239 @@ function ImpactPage() {
     );
   }
 
-  // Ergebnis-Modal (wie letzter Monat ausgegangen ist)
+  // ── Ergebnis letzten Monat ─────────────────────────────────────
   if (showErgebnis) {
     return (
-      <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
-        <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "90vh", overflowY: "auto", padding: "0 0 36px" }}>
-          <div style={{ background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, padding: "28px 24px 24px", borderRadius: "24px 24px 0 0", position: "relative" }}>
-            <button onClick={() => setShowErgebnis(false)} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+      <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
+        <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "88vh", overflowY: "auto" }}>
+          <div style={{ background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, padding: "28px 24px 24px", borderRadius: "24px 24px 0 0", position: "sticky", top: 0 }}>
+            <button onClick={() => setShowErgebnis(false)} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,0.25)", border: "none", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <X size={16} color="white" />
             </button>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Ergebnis März 2026</div>
-            <div style={{ fontWeight: 900, fontSize: 22, color: "white", marginBottom: 4 }}>🏆 Community hat entschieden!</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>3.210 € wurden aus dem Impact Pool verteilt</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Ergebnis April 2026</div>
+            <div style={{ fontWeight: 900, fontSize: 22, color: "white", marginBottom: 4 }}>🏆 Die Community hat gesprochen!</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>3.210 € wurden verteilt — an alle Projekte</div>
           </div>
-
-          <div style={{ padding: "20px 20px 0" }}>
+          <div style={{ padding: "20px 20px 40px" }}>
             {/* Gewinner */}
-            <div style={{ background: `${TEAL}0d`, border: `1.5px solid ${TEAL}40`, borderRadius: 16, padding: "16px", marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: TEAL, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>🥇 Gewinner</div>
-              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 32 }}>🏫</div>
+            <div style={{ background: `${TEAL}0d`, border: `1.5px solid ${TEAL}33`, borderRadius: 18, padding: "16px", marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: TEAL, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>🥇 Gewinner des Monats</div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
+                <div style={{ fontSize: 36 }}>🏫</div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>Schule für alle</div>
+                  <div style={{ fontWeight: 800, fontSize: 17, color: "#222" }}>Schule für alle</div>
                   <div style={{ fontSize: 12, color: "#aaa" }}>Uganda · 847 Stimmen (46%)</div>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "white", borderRadius: 12, padding: "10px 14px" }}>
-                <div style={{ fontSize: 13, color: "#555" }}>Ausgezahlt</div>
-                <div style={{ fontWeight: 900, fontSize: 18, color: TEAL }}>3.000 € 🎉</div>
+              <div style={{ background: "white", borderRadius: 12, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 12, color: "#aaa" }}>Vollständig ausgezahlt</div>
+                  <div style={{ fontWeight: 900, fontSize: 20, color: TEAL }}>3.000 € 🎉</div>
+                </div>
+                <div style={{ fontSize: 28 }}>✅</div>
               </div>
             </div>
-
             {/* Rest-Verteilung */}
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10 }}>💸 Rest verteilt an laufende Projekte</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12 }}>💸 Rest gleichmäßig verteilt</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.6 }}>
+              Die verbleibenden 210 € wurden gleichmäßig auf alle laufenden Projekte aufgeteilt — jedes bekommt ein Stück.
+            </div>
             {[
-              { name: "Bäume für Kenia", betrag: "118 €", emoji: "🌳" },
-              { name: "Tierheim Hamburg", betrag: "56 €", emoji: "🐾" },
-              { name: "Sauberes Wasser Mali", betrag: "36 €", emoji: "💧" },
-            ].map((p, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
-                <div style={{ fontSize: 24 }}>{p.emoji}</div>
+              { name: "Bäume für Kenia", betrag: "52 €", emoji: "🌳" },
+              { name: "Tierheim Hamburg", betrag: "52 €", emoji: "🐾" },
+              { name: "Sauberes Wasser Mali", betrag: "52 €", emoji: "💧" },
+              { name: "Frauen-Kooperative Äthiopien", betrag: "54 €", emoji: "👩" },
+            ].map((p, i, arr) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: i < arr.length - 1 ? "1px solid #f0f0f0" : "none" }}>
+                <div style={{ fontSize: 26 }}>{p.emoji}</div>
                 <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
-                <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
+                <div style={{ fontWeight: 800, fontSize: 15, color: GOLD }}>+{p.betrag}</div>
               </div>
             ))}
-
-            <div style={{ marginTop: 20, background: "#f9f9f7", borderRadius: 14, padding: "14px", textAlign: "center" }}>
-              <div style={{ fontSize: 13, color: "#888" }}>Nächste Abstimmung endet in</div>
-              <div style={{ fontWeight: 900, fontSize: 24, color: TEAL, marginTop: 4 }}>{daysLeft} Tagen</div>
-            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // HAUPT-VIEW
+  // ── HAUPT-VIEW ─────────────────────────────────────────────────
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
 
-      {/* Header */}
-      <div style={{ background: `linear-gradient(180deg, ${TEAL}18, transparent)`, padding: "24px 20px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div style={{ fontWeight: 800, fontSize: 22, color: "#222" }}>💚 Impact</div>
-          <button onClick={() => window.open('/ImpactPool', '_self')}
-            style={{ background: `linear-gradient(135deg, ${TEAL}, #10b981)`, border: "none", borderRadius: 20, padding: "7px 14px", color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-            📊 6-Monats-Analyse
-          </button>
-        </div>
+      {/* Hero Header */}
+      <div style={{ background: `linear-gradient(135deg, ${TEAL}ee, ${GOLD}cc)`, padding: "28px 20px 20px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: -30, right: -20, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
+        <div style={{ position: "absolute", bottom: -40, left: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+        <div style={{ position: "relative" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.75)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>🌱 Impact Pool {currentMonth}</div>
+          <div style={{ fontWeight: 900, fontSize: 32, color: "white", marginBottom: 4 }}>{poolGesamt.toLocaleString("de-DE")} €</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 14 }}>bereit für echte Projekte — durch echte Buchungen</div>
 
-        {/* Pool-Anzeige */}
-        <div style={{ background: `linear-gradient(135deg, ${TEAL}, #0d9488)`, borderRadius: 20, padding: "20px", marginBottom: 16, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-          <div style={{ position: "absolute", bottom: -30, left: -10, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
-          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>🌍 Aktueller Impact Pool</div>
-          <div style={{ fontWeight: 900, fontSize: 42, color: "white", lineHeight: 1, marginBottom: 4 }}>{poolGesamt.toLocaleString("de-DE")} €</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginBottom: 14 }}>gesammelt diesen Monat · 15% jeder Provision</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ background: "rgba(255,255,255,0.18)", borderRadius: 10, padding: "6px 12px", fontSize: 12, color: "white", fontWeight: 700 }}>
-              ⏳ Abstimmung endet in {daysLeft} Tagen
-            </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>30. April 2026</div>
+          {/* Stats row */}
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { label: "Noch", val: `${daysLeft} Tage`, icon: "⏳" },
+              { label: "Abstimmungen", val: totalStimmen.toLocaleString("de-DE"), icon: "🗳️" },
+              { label: "Projekte", val: `${nominiert.length + weitereProjekte.length}`, icon: "💚" },
+            ].map((s, i) => (
+              <div key={i} style={{ flex: 1, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", borderRadius: 14, padding: "10px 8px", textAlign: "center" }}>
+                <div style={{ fontSize: 16 }}>{s.icon}</div>
+                <div style={{ fontWeight: 900, fontSize: 15, color: "white" }}>{s.val}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{s.label}</div>
+              </div>
+            ))}
           </div>
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: "flex", background: "#f0f0ee", borderRadius: 12, padding: 3, marginBottom: 4 }}>
-          {[{ id: "abstimmung", label: "🗳 Abstimmung" }, { id: "projekte", label: "🌱 Alle Projekte" }].map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
-              flex: 1, padding: "9px", border: "none", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 13,
-              background: activeTab === t.id ? "white" : "transparent",
-              color: activeTab === t.id ? "#222" : "#aaa",
-              boxShadow: activeTab === t.id ? "0 1px 6px rgba(0,0,0,0.08)" : "none",
-              transition: "all 0.2s"
-            }}>{t.label}</button>
-          ))}
         </div>
       </div>
 
-      {/* TAB: ABSTIMMUNG */}
+      {/* Letzten Monat Banner */}
+      <div style={{ margin: "12px 16px 0", background: "white", borderRadius: 16, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.07)", cursor: "pointer" }} onClick={() => setShowErgebnis(true)}>
+        <div style={{ fontSize: 28 }}>🏆</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>April-Ergebnis ansehen</div>
+          <div style={{ fontSize: 12, color: "#aaa" }}>3.210 € verteilt · "Schule für alle" hat gewonnen</div>
+        </div>
+        <ChevronRight size={16} color="#ccc" />
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 0, margin: "14px 16px 0", background: "#f5f5f3", borderRadius: 16, padding: 4 }}>
+        {[["abstimmung", "🗳️ Abstimmen"], ["projekte", "🌍 Projekte"], ["bewerben", "📝 Bewerben"]].map(([tab, label]) => (
+          <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: "10px 4px", border: "none", borderRadius: 13, fontWeight: 700, fontSize: 12, cursor: "pointer", background: activeTab === tab ? "white" : "transparent", color: activeTab === tab ? "#222" : "#aaa", boxShadow: activeTab === tab ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s", whiteSpace: "nowrap" }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── TAB: ABSTIMMUNG ── */}
       {activeTab === "abstimmung" && (
-        <div style={{ padding: "0 16px" }}>
-
-          {/* Erklärungs-Banner */}
-          <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${GOLD}08)`, border: `1px solid ${TEAL}25`, borderRadius: 16, padding: "14px 16px", marginBottom: 16 }}>
-            <div style={{ fontWeight: 800, fontSize: 14, color: "#222", marginBottom: 5 }}>So funktioniert die Abstimmung</div>
-            <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>
-              Das HUI-Team hat <strong>3 Projekte</strong> ausgewählt, die mit dem aktuellen Pool komplett finanziert werden können. Als Talent hast du <strong>1 Stimme</strong> pro Monat. Das Projekt mit den meisten Stimmen bekommt seinen <strong>Wunschbetrag komplett ausgezahlt</strong> — der Rest fließt anteilig an alle anderen laufenden Projekte.
+        <div style={{ padding: "14px 16px 0" }}>
+          {!votedFor ? (
+            <div style={{ background: `${CORAL}0f`, border: `1px solid ${CORAL}30`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
+              🗳️ <strong>Wähle dein Herzensprojekt für {currentMonth}!</strong> Du hast eine Stimme. Stimm sorgfältig ab — das Ergebnis entscheidet wer zuerst den vollen Förderbetrag bekommt.
             </div>
-          </div>
-
-          {/* Bereits abgestimmt? */}
-          {votedFor && (
-            <div style={{ background: `${TEAL}12`, border: `1.5px solid ${TEAL}40`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
-              <div style={{ fontSize: 22 }}>✅</div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: TEAL }}>Deine Stimme wurde gezählt!</div>
-                <div style={{ fontSize: 12, color: "#666" }}>Du hast für <strong>"{votedFor}"</strong> gestimmt.</div>
-              </div>
+          ) : (
+            <div style={{ background: `${TEAL}0f`, border: `1px solid ${TEAL}30`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
+              ✅ <strong>Du hast abgestimmt!</strong> Ergebnis am {endOfMonth.toLocaleDateString("de-DE", { day: "numeric", month: "long" })}. Danke dass du den Unterschied machst 💚
             </div>
           )}
 
-          {/* 3 nominierte Projekte */}
-          {nominiert.map((p, i) => {
-            const prozent = Math.round((p.stimmen / totalStimmen) * 100);
-            const isVoted = votedFor === p.title;
-            const isLeading = p.stimmen === Math.max(...nominiert.map(x => x.stimmen));
+          {nominiert.map((p) => {
+            const isVoted = votedFor === p.id;
+            const stimmenMit = p.stimmen + (isVoted ? 1 : 0);
+            const prozent = totalStimmen > 0 ? Math.round(stimmenMit / totalStimmen * 100) : 0;
+            const isLeading = p.id === gewinner.id;
+
             return (
-              <div key={i} onClick={() => setSelectedProject(p)}
-                style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
+              <div key={p.id} style={{ background: "white", borderRadius: 20, overflow: "hidden", marginBottom: 16, boxShadow: isVoted ? `0 4px 20px ${TEAL}33` : "0 2px 12px rgba(0,0,0,0.07)", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent", transition: "all 0.3s" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={p.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
+                  <img src={p.img} alt={p.title} style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.6) 100%)" }} />
+                  {/* Badges */}
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
-                    <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
-                    <div style={{ background: "rgba(0,0,0,0.4)", color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 600, fontSize: 11 }}>📍 {p.land}</div>
+                    <div style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700 }}>{p.kategorie}</div>
+                    <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "4px 10px", fontSize: 11 }}>📍 {p.land}</div>
                   </div>
-                  {isLeading && !votedFor && (
-                    <div style={{ position: "absolute", top: 10, right: 10, background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 800, fontSize: 11 }}>🔥 Führend</div>
-                  )}
-                  {isVoted && (
-                    <div style={{ position: "absolute", top: 10, right: 10, background: TEAL, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 800, fontSize: 11 }}>✓ Deine Wahl</div>
-                  )}
-                  <div style={{ position: "absolute", bottom: 10, left: 12 }}>
-                    <div style={{ fontWeight: 800, fontSize: 17, color: "white" }}>{p.emoji} {p.title}</div>
+                  {isVoted && <div style={{ position: "absolute", top: 10, right: 10, background: TEAL, color: "white", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 800 }}>✓ Deine Wahl</div>}
+                  {!votedFor && isLeading && <div style={{ position: "absolute", top: 10, right: 10, background: GOLD, color: "white", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 800 }}>🔥 Führend</div>}
+                  <div style={{ position: "absolute", bottom: 10, left: 14 }}>
+                    <div style={{ fontWeight: 900, fontSize: 18, color: "white" }}>{p.emoji} {p.title}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>{p.org}</div>
                   </div>
                 </div>
 
-                <div style={{ padding: "12px 14px" }}>
-                  <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>{p.desc}</div>
+                {/* Body */}
+                <div style={{ padding: "14px 16px" }}>
+                  <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6, marginBottom: 12 }}>{p.desc}</div>
 
                   {/* Wunschbetrag */}
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 6 }}>
-                    <span>Wunschbetrag</span>
-                    <span style={{ fontWeight: 700, color: TEAL }}>{p.wunschbetrag.toLocaleString("de-DE")} €</span>
-                  </div>
-                  <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6, marginBottom: 10 }}>
-                    <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 6, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%` }} />
+                  <div style={{ background: "#f8f8f6", borderRadius: 12, padding: "10px 12px", marginBottom: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
+                      <span style={{ color: "#aaa" }}>Förderbedarf</span>
+                      <span style={{ fontWeight: 800, color: TEAL }}>{p.wunschbetrag.toLocaleString("de-DE")} €</span>
+                    </div>
+                    <div style={{ background: "#e8e8e8", borderRadius: 99, height: 7 }}>
+                      <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 7, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%`, transition: "width 0.8s ease" }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: "#aaa", marginTop: 5 }}>{p.gesammelt.toLocaleString("de-DE")} € bereits gesammelt</div>
                   </div>
 
-                  {/* Stimmen-Balken */}
+                  {/* Stimmen-Balken (sichtbar nach eigenem Vote) */}
                   {votedFor && (
-                    <div style={{ marginBottom: 10 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#aaa", marginBottom: 4 }}>
-                        <span>👥 {p.stimmen.toLocaleString("de-DE")} Stimmen</span>
-                        <span style={{ fontWeight: 700, color: isVoted ? TEAL : "#aaa" }}>{prozent}%</span>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 5 }}>
+                        <span>👥 {stimmenMit.toLocaleString("de-DE")} Stimmen</span>
+                        <span style={{ fontWeight: 800, color: isVoted ? TEAL : "#bbb" }}>{prozent}%</span>
                       </div>
-                      <div style={{ background: "#f0f0f0", borderRadius: 99, height: 7 }}>
-                        <div style={{ background: isVoted ? `linear-gradient(90deg, ${TEAL}, ${GOLD})` : "#ccc", height: 7, borderRadius: 99, width: `${prozent}%`, transition: "width 0.8s ease" }} />
+                      <div style={{ background: "#eee", borderRadius: 99, height: 8, overflow: "hidden" }}>
+                        <div style={{ background: isVoted ? `linear-gradient(90deg, ${TEAL}, ${GOLD})` : "#ccc", height: 8, borderRadius: 99, width: `${prozent}%`, transition: "width 1s ease" }} />
                       </div>
                     </div>
                   )}
 
+                  {/* Warum info */}
+                  <div style={{ fontSize: 12, color: "#888", background: `${GOLD}0d`, borderRadius: 10, padding: "8px 12px", marginBottom: 14, lineHeight: 1.6 }}>
+                    💡 {p.warum}
+                  </div>
+
                   {/* Vote Button */}
                   {!votedFor ? (
-                    <button onClick={e => { e.stopPropagation(); setShowVoteConfirm(p); }}
-                      style={{ width: "100%", padding: "11px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
-                      🗳 Für dieses Projekt stimmen
+                    <button onClick={() => setShowVoteConfirm(p)} style={{ width: "100%", padding: "13px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: `0 4px 16px ${TEAL}44` }}>
+                      🗳️ Für dieses Projekt stimmen
                     </button>
                   ) : (
-                    <div style={{ textAlign: "center", fontSize: 12, color: isVoted ? TEAL : "#bbb", fontWeight: isVoted ? 700 : 400, padding: "6px 0" }}>
-                      {isVoted ? "✓ Du hast für dieses Projekt gestimmt" : "Du hast bereits abgestimmt"}
+                    <div style={{ textAlign: "center", fontSize: 13, color: isVoted ? TEAL : "#ccc", fontWeight: isVoted ? 700 : 400, padding: "6px 0" }}>
+                      {isVoted ? "💚 Du hast für dieses Projekt gestimmt" : "Du hast bereits abgestimmt"}
                     </div>
                   )}
                 </div>
               </div>
             );
           })}
+
+          {/* Pool-Verteilung Erklärung */}
+          <div style={{ background: "white", borderRadius: 18, padding: "16px", marginTop: 4, boxShadow: "0 2px 10px rgba(0,0,0,0.06)" }}>
+            <div style={{ fontWeight: 800, fontSize: 14, color: "#222", marginBottom: 10 }}>📊 So wird der Pool verteilt</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${TEAL}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 14 }}>1</div>
+                <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>Das Projekt mit den meisten Stimmen bekommt seinen <strong>vollen Förderbedarf</strong> zuerst ausgezahlt</div>
+              </div>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${GOLD}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 14 }}>2</div>
+                <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>Der <strong>Rest</strong> wird gleichmäßig auf <strong>alle</strong> laufenden Projekte verteilt — niemand geht leer aus</div>
+              </div>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${CORAL}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 14 }}>3</div>
+                <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>Projekte die ihren Betrag erreicht haben sind fertig — so gewinnt früher oder später <strong>jeder</strong></div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* TAB: ALLE PROJEKTE */}
+      {/* ── TAB: ALLE PROJEKTE ── */}
       {activeTab === "projekte" && (
-        <div style={{ padding: "0 16px" }}>
-
-          {/* Info */}
-          <div style={{ background: `${GOLD}12`, border: `1px solid ${GOLD}30`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, fontSize: 12, color: "#666", lineHeight: 1.7 }}>
-            💸 Projekte die nicht gewinnen, erhalten den <strong>Rest des Impact Pools</strong> anteilig — und bleiben aktiv bis ihr Wunschbetrag vollständig erreicht ist.
-          </div>
-
-          {/* Nominierte */}
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 10 }}>🗳 Diese Monat nominiert</div>
+        <div style={{ padding: "14px 16px 0" }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 12 }}>🗳️ Diesen Monat nominiert</div>
           {nominiert.map((p, i) => {
             const pct = Math.round(p.gesammelt / p.wunschbetrag * 100);
             return (
-              <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-                {/* Bild */}
-                <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={p.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
-                  <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
-                    <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
-                    <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
+              <div key={p.id} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <div style={{ position: "relative" }}>
+                  <img src={p.img} alt={p.title} style={{ width: "100%", height: 130, objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
+                  <div style={{ position: "absolute", top: 8, left: 10 }}>
+                    <div style={{ background: TEAL, color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>🗳 Nominiert</div>
                   </div>
-                  <div style={{ position: "absolute", top: 10, right: 10, background: TEAL, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>🗳 Nominiert</div>
-                  <div style={{ position: "absolute", bottom: 10, left: 12 }}>
-                    <div style={{ fontWeight: 800, fontSize: 17, color: "white" }}>{p.emoji} {p.title}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>{p.organisation}</div>
+                  <div style={{ position: "absolute", bottom: 8, left: 12 }}>
+                    <div style={{ fontWeight: 800, fontSize: 16, color: "white" }}>{p.emoji} {p.title}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>{p.org} · {p.land}</div>
                   </div>
                 </div>
-                {/* Body */}
                 <div style={{ padding: "12px 14px" }}>
-                  <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>{p.desc}</div>
-                  {/* Fortschritt */}
+                  <div style={{ fontSize: 12, color: "#777", lineHeight: 1.5, marginBottom: 10 }}>{p.desc}</div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#aaa", marginBottom: 5 }}>
                     <span>{p.gesammelt.toLocaleString("de-DE")} € gesammelt</span>
                     <span style={{ fontWeight: 700, color: TEAL }}>Ziel: {p.wunschbetrag.toLocaleString("de-DE")} €</span>
@@ -4255,182 +4704,95 @@ function ImpactPage() {
                   <div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 12 }}>
                     <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 7, borderRadius: 99, width: `${pct}%` }} />
                   </div>
-                  {/* Buttons */}
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => setSelectedProject(p)}
-                      style={{ flex: 1, padding: "10px", border: "1.5px solid #e8e8e8", borderRadius: 12, background: "white", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#555" }}>
-                      Mehr erfahren
-                    </button>
-                    <button onClick={() => setShowSpendenModal(p)}
-                      style={{ flex: 1, padding: "10px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, fontWeight: 800, fontSize: 13, cursor: "pointer", color: "white" }}>
-                      ❤️ Direkt spenden
-                    </button>
-                  </div>
+                  <button onClick={() => setActiveTab("abstimmung")} style={{ width: "100%", padding: "10px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                    🗳️ Jetzt abstimmen
+                  </button>
                 </div>
               </div>
             );
           })}
 
-          {/* Weitere Projekte */}
           <div style={{ fontWeight: 700, fontSize: 14, color: "#333", marginBottom: 6, marginTop: 8 }}>🌱 Weitere laufende Projekte</div>
-          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.6 }}>Diese Projekte erhalten den Restbetrag nach der Abstimmung und bleiben aktiv bis zur vollständigen Finanzierung.</div>
-          {weitiereProjekte.map((p, i) => {
+          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.6 }}>Diese Projekte erhalten automatisch den Rest nach der Auszahlung — und bleiben aktiv bis ihr Ziel erreicht ist.</div>
+          {weitereProjekte.map((p, i) => {
             const pct = Math.round(p.gesammelt / p.wunschbetrag * 100);
             return (
-              <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div key={p.id} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 10px rgba(0,0,0,0.06)" }}>
                 <div style={{ position: "relative" }}>
-                  <img src={p.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
-                  <div style={{ position: "absolute", top: 10, left: 10 }}>
-                    <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
-                  </div>
-                  <div style={{ position: "absolute", bottom: 10, left: 12 }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, color: "white" }}>{p.emoji} {p.title}</div>
+                  <img src={p.img} alt={p.title} style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))" }} />
+                  <div style={{ position: "absolute", bottom: 8, left: 12 }}>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: "white" }}>{p.emoji} {p.title}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)" }}>{p.org} · {p.land}</div>
                   </div>
                 </div>
-                <div style={{ padding: "12px 14px" }}>
+                <div style={{ padding: "10px 14px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#aaa", marginBottom: 5 }}>
                     <span>{p.gesammelt.toLocaleString("de-DE")} € gesammelt</span>
-                    <span style={{ fontWeight: 700, color: "#aaa" }}>Ziel: {p.wunschbetrag.toLocaleString("de-DE")} €</span>
+                    <span style={{ fontWeight: 700, color: "#999" }}>Ziel: {p.wunschbetrag.toLocaleString("de-DE")} €</span>
                   </div>
-                  <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6, marginBottom: 12 }}>
-                    <div style={{ background: "#ccc", height: 6, borderRadius: 99, width: `${pct}%` }} />
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => setSelectedProject(p)}
-                      style={{ flex: 1, padding: "10px", border: "1.5px solid #e8e8e8", borderRadius: 12, background: "white", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#555" }}>
-                      Mehr erfahren
-                    </button>
-                    <button onClick={() => setShowSpendenModal(p)}
-                      style={{ flex: 1, padding: "10px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, fontWeight: 800, fontSize: 13, cursor: "pointer", color: "white" }}>
-                      ❤️ Direkt spenden
-                    </button>
+                  <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6 }}>
+                    <div style={{ background: "#bbb", height: 6, borderRadius: 99, width: `${pct}%` }} />
                   </div>
                 </div>
               </div>
             );
           })}
-
-          {/* Projekt vorschlagen */}
-          <div onClick={() => setShowVorschlag(true)} style={{ margin: "16px 0 20px", background: `linear-gradient(135deg, ${TEAL}12, ${GOLD}08)`, border: `1.5px dashed ${TEAL}50`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", display: "flex", gap: 14, alignItems: "center" }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <span style={{ fontSize: 20 }}>🌱</span>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "#222", marginBottom: 3 }}>Hast du ein Projekt?</div>
-              <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>Schlage es vor — das HUI-Team prüft es für die nächste Abstimmung.</div>
-            </div>
-            <ChevronRight size={18} color={TEAL} />
-          </div>
         </div>
       )}
 
-      {/* Botschafter-Banner */}
-      <div style={{ margin: "0 16px 20px", background: `linear-gradient(135deg, #0d9488, #f59e0b)`, borderRadius: 16, padding: "16px 18px", color: "white" }}>
-        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 5 }}>🤝 Projekte werden zu Botschaftern</div>
-        <div style={{ fontSize: 12, lineHeight: 1.6, opacity: 0.92 }}>Jedes Projekt das wir unterstützen, trägt die HUI-Mission in die Welt — öffentlich, authentisch und mit echter Wirkung.</div>
-      </div>
-
-      {/* Projekt-Detail Modal (wiederverwendet) */}
-      {selectedProject && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
-          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ position: "relative" }}>
-              <img src={selectedProject.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={selectedProject.title} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
-              <button onClick={() => setSelectedProject(null)} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                <X size={18} color="white" />
+      {/* ── TAB: BEWERBEN ── */}
+      {activeTab === "bewerben" && (
+        <div style={{ padding: "14px 16px 0" }}>
+          {bewerbungSent ? (
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+              <div style={{ fontWeight: 900, fontSize: 22, color: "#222", marginBottom: 8 }}>Bewerbung eingegangen!</div>
+              <div style={{ fontSize: 14, color: "#666", lineHeight: 1.7, marginBottom: 20 }}>Das HUI-Team meldet sich innerhalb von 3-5 Werktagen bei dir. Danke dass ihr mit eurem Projekt etwas bewegt.</div>
+              <button onClick={() => { setBewerbungSent(false); setBewerbung({ name: "", org: "", desc: "", betrag: "", email: "" }); }} style={{ padding: "12px 28px", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                Neue Bewerbung
               </button>
-              <div style={{ position: "absolute", bottom: 14, left: 14 }}>
-                <div style={{ fontWeight: 800, fontSize: 20, color: "white" }}>{selectedProject.emoji} {selectedProject.title}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>📍 {selectedProject.land} · {selectedProject.organisation}</div>
-              </div>
             </div>
-            <div style={{ padding: "18px 20px 32px" }}>
-              <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 16 }}>{selectedProject.desc}</div>
-              <div style={{ background: `${TEAL}0d`, borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#555", lineHeight: 1.6 }}>
-                <span style={{ fontWeight: 700 }}>💡 Warum nominiert?</span><br />{selectedProject.warum}
+          ) : (
+            <>
+              <div style={{ background: `${TEAL}0d`, borderRadius: 16, padding: "14px 16px", marginBottom: 18, fontSize: 13, color: "#555", lineHeight: 1.7 }}>
+                💚 <strong>Euer Projekt macht etwas Gutes?</strong> Bewirbt euch für den monatlichen Impact Pool. Das HUI-Team prüft alle Bewerbungen und wählt drei Projekte für die nächste Abstimmung aus.
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
-                <span style={{ color: "#aaa" }}>Wunschbetrag</span>
-                <span style={{ fontWeight: 800, color: TEAL }}>{selectedProject.wunschbetrag?.toLocaleString("de-DE")} €</span>
-              </div>
-              <div style={{ background: "#f0f0f0", borderRadius: 99, height: 8, marginBottom: 16 }}>
-                <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 8, borderRadius: 99, width: `${Math.round((selectedProject.gesammelt / selectedProject.wunschbetrag) * 100)}%` }} />
-              </div>
-              {!votedFor ? (
-                <button onClick={() => { setSelectedProject(null); setShowVoteConfirm(selectedProject); }}
-                  style={{ width: "100%", padding: "14px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
-                  🗳 Für dieses Projekt stimmen
-                </button>
-              ) : (
-                <button onClick={() => setSelectedProject(null)}
-                  style={{ width: "100%", padding: "14px", border: `1.5px solid ${TEAL}40`, borderRadius: 14, background: "white", color: TEAL, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-                  Schließen
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Spenden-Modal */}
-      {showSpendenModal && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
-          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "28px 24px 36px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>❤️ Direkt spenden</div>
-              <button onClick={() => setShowSpendenModal(null)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#aaa" /></button>
-            </div>
-            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>{showSpendenModal.emoji} {showSpendenModal.title} · {showSpendenModal.land}</div>
-
-            {/* Betrag-Auswahl */}
-            <div style={{ fontWeight: 700, fontSize: 13, color: "#444", marginBottom: 10 }}>Betrag wählen</div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-              {[5, 10, 25, 50, 100].map(b => (
-                <button key={b} style={{ flex: "1 1 calc(33% - 8px)", minWidth: 60, padding: "11px 6px", border: `1.5px solid ${TEAL}40`, borderRadius: 12, background: "white", fontWeight: 700, fontSize: 14, color: TEAL, cursor: "pointer" }}>
-                  {b} €
-                </button>
+              {[
+                { key: "name", label: "Projektname", placeholder: "z.B. Stadtgarten München", emoji: "🌱" },
+                { key: "org", label: "Organisation / Verein", placeholder: "z.B. Grüne Nachbarschaft e.V.", emoji: "🏢" },
+                { key: "email", label: "Kontakt E-Mail", placeholder: "kontakt@euer-projekt.de", emoji: "✉️" },
+                { key: "betrag", label: "Förderbedarf in €", placeholder: "z.B. 2500", emoji: "💶" },
+              ].map(({ key, label, placeholder, emoji }) => (
+                <div key={key} style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>{emoji} {label.toUpperCase()}</div>
+                  <input
+                    value={bewerbung[key]}
+                    onChange={e => setBewerbung(b => ({ ...b, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    type={key === "email" ? "email" : key === "betrag" ? "number" : "text"}
+                    style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222", fontFamily: "inherit" }}
+                  />
+                </div>
               ))}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", border: "1.5px solid #e8e8e8", borderRadius: 12, padding: "4px 14px", marginBottom: 20, gap: 6 }}>
-              <span style={{ fontSize: 14, color: "#aaa" }}>€</span>
-              <input placeholder="Eigener Betrag..." type="number" min="1"
-                style={{ flex: 1, border: "none", outline: "none", fontSize: 15, fontWeight: 700, color: "#222", padding: "9px 0", background: "transparent" }} />
-            </div>
-
-            {/* Wirkung */}
-            <div style={{ background: `${TEAL}0d`, borderRadius: 12, padding: "12px 16px", marginBottom: 20, fontSize: 12, color: "#555", lineHeight: 1.7 }}>
-              💡 <strong>100% deiner Spende</strong> fließen direkt in das Projekt — zusätzlich zum monatlichen Impact Pool.
-            </div>
-
-            <button onClick={() => { setShowSpendenModal(null); }}
-              style={{ width: "100%", padding: "15px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", fontWeight: 900, fontSize: 16, cursor: "pointer", boxShadow: `0 4px 20px ${CORAL}44` }}>
-              ❤️ Jetzt spenden
-            </button>
-            <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 10 }}>Sichere Zahlung · 100% direkt ans Projekt</div>
-          </div>
-        </div>
-      )}
-
-      {/* Projekt vorschlagen Modal */}
-      {showVorschlag && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
-          <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "28px 24px 36px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>🌱 Projekt vorschlagen</div>
-              <button onClick={() => setShowVorschlag(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#aaa" /></button>
-            </div>
-            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.7, marginBottom: 20 }}>
-              Hast du ein Projekt im Kopf das die Welt besser macht? Schick uns eine kurze Beschreibung — das HUI-Team prüft es und nominiert es gegebenenfalls für die nächste monatliche Abstimmung.
-            </div>
-            <input placeholder="Projektname" style={{ width: "100%", padding: "12px 14px", border: "1.5px solid #e8e8e8", borderRadius: 12, fontSize: 14, marginBottom: 10, boxSizing: "border-box" }} />
-            <textarea placeholder="Kurze Beschreibung & Wunschbetrag..." style={{ width: "100%", padding: "12px 14px", border: "1.5px solid #e8e8e8", borderRadius: 12, fontSize: 14, height: 90, resize: "none", boxSizing: "border-box", marginBottom: 16 }} />
-            <button onClick={() => setShowVorschlag(false)}
-              style={{ width: "100%", padding: "14px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
-              Vorschlag einreichen ✓
-            </button>
-          </div>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>📝 BESCHREIBUNG</div>
+                <textarea
+                  value={bewerbung.desc}
+                  onChange={e => setBewerbung(b => ({ ...b, desc: e.target.value }))}
+                  placeholder="Was macht euer Projekt? Wen oder was unterstützt ihr? Was würdet ihr mit dem Geld machen?"
+                  rows={4}
+                  style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222", fontFamily: "inherit", resize: "none" }}
+                />
+              </div>
+              <button
+                onClick={() => { if (bewerbung.name && bewerbung.email && bewerbung.desc) setBewerbungSent(true); }}
+                style={{ width: "100%", padding: "15px", background: bewerbung.name && bewerbung.email && bewerbung.desc ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#ddd", color: bewerbung.name && bewerbung.email && bewerbung.desc ? "white" : "#aaa", border: "none", borderRadius: 16, fontWeight: 800, fontSize: 16, cursor: "pointer", marginBottom: 20 }}
+              >
+                Bewerbung absenden →
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -4647,31 +5009,58 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
     </div>
   );
 }
+// ══════════════════════════════════════════════════════════════════
+// TALENT ANBIETEN – Onboarding Flow
+// ══════════════════════════════════════════════════════════════════
 function TalentAnbietenPage({ onClose, onSuccess }) {
-  const TOTAL_STEPS = 5;
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState({ angebotstyp: [], kategorie: "", bio: "", bioRoh: "", vorname: "", nachname: "", standort: "", stundensatz: "", verfuegbarkeit: [], erstesWerkTitel: "", erstesWerkPreis: "", erstesWerkBeschreibung: "" });
+  const TOTAL_STEPS = 6;
+  const [step, setStep] = useState(0); // 0=Willkommen, 1=Angebot, 2=Talent, 3=Profil, 4=Ersteswerk, 5=Fertig
+  const [form, setForm] = useState({
+    angebotstyp: [], // "dienstleistung" | "werk" | "beides"
+    kategorie: "",
+    bio: "",
+    bioRoh: "", // Rohtext des Nutzers für KI
+    vorname: "Lars",
+    nachname: "M.",
+    standort: "München",
+    stundensatz: "",
+    profilbild: null,
+    verfuegbarkeit: [],
+    erstesWerkTitel: "",
+    erstesWerkPreis: "",
+    erstesWerkBeschreibung: "",
+  });
   const [bioLoading, setBioLoading] = useState(false);
   const [bioGenerated, setBioGenerated] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
   const kategorien = [
-    { icon: "🎨", label: "Kunst & Kreatives" }, { icon: "📷", label: "Foto & Video" }, { icon: "🎵", label: "Musik & Audio" }, { icon: "✍️", label: "Texte & Sprache" },
-    { icon: "💪", label: "Sport & Fitness" }, { icon: "🧘", label: "Wellness & Coaching" }, { icon: "🍳", label: "Kochen & Backen" }, { icon: "🔧", label: "Handwerk & Reparatur" },
-    { icon: "💻", label: "Digitales & Technik" }, { icon: "📚", label: "Bildung & Beratung" }, { icon: "🏡", label: "Haus & Haushalt" }, { icon: "🌍", label: "Sonstiges" },
+    { icon: "🎨", label: "Kunst & Kreatives" }, { icon: "📷", label: "Foto & Video" },
+    { icon: "🎵", label: "Musik & Audio" }, { icon: "✍️", label: "Texte & Sprache" },
+    { icon: "💪", label: "Sport & Fitness" }, { icon: "🧘", label: "Wellness & Coaching" },
+    { icon: "🍳", label: "Kochen & Backen" }, { icon: "🔧", label: "Handwerk & Reparatur" },
+    { icon: "💻", label: "Digitales & Technik" }, { icon: "📚", label: "Bildung & Beratung" },
+    { icon: "🏡", label: "Haus & Haushalt" }, { icon: "🌍", label: "Sonstiges" },
   ];
+
   const wochentage = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+  // KI Bio generieren (simuliert mit realistischer Verzögerung)
   const generateBio = async () => {
     if (!form.bioRoh.trim()) return;
-    setBioLoading(true); setBioGenerated(false);
+    setBioLoading(true);
+    setBioGenerated(false);
     await new Promise(r => setTimeout(r, 1800));
     const kat = form.kategorie || "mein Talent";
     const templates = [
-      `${form.vorname} ist ${kat}-Spezialist aus ${form.standort || "Deutschland"} mit echter Leidenschaft. ${form.bioRoh.trim()} – jedes Projekt wird mit Herz umgesetzt.`,
-      `Als ${kat}-Profi aus ${form.standort || "Deutschland"} bringe ich Ideen zum Leben. ${form.bioRoh.trim()} Ich freue mich auf echte Begegnungen.`,
+      `${form.vorname} ist ${kat}-Spezialist aus ${form.standort || "Deutschland"} mit echter Leidenschaft für das Handwerk. ${form.bioRoh.trim()} – jedes Projekt wird mit vollem Herzen umgesetzt.`,
+      `Als ${kat}-Profi aus ${form.standort || "Deutschland"} bringe ich Ideen zum Leben. ${form.bioRoh.trim()} Ich freue mich auf echte Begegnungen und gemeinsame Projekte.`,
       `${form.bioRoh.trim()} Als ${kat}-Enthusiast aus ${form.standort || "Deutschland"} glaube ich: Das Beste entsteht, wenn Menschen mit Leidenschaft arbeiten.`,
     ];
-    set("bio", templates[Math.floor(Math.random() * templates.length)]);
-    setBioLoading(false); setBioGenerated(true);
+    const generated = templates[Math.floor(Math.random() * templates.length)];
+    set("bio", generated);
+    setBioLoading(false);
+    setBioGenerated(true);
   };
 
   // Progress Bar
@@ -5703,7 +6092,7 @@ function HuiOnboarding({ onDone }) {
           onClick={() => isLast ? onDone() : goTo(step + 1)}
           style={{ width: "100%", background: `linear-gradient(135deg, ${s.accent}, ${s.accent}cc)`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${s.accent}44`, transition: "all 0.2s" }}
         >
-          {isLast ? "HUI entdecken →" : "Weiter"}
+          {isLast ? "Jetzt kostenlos registrieren →" : "Weiter"}
         </button>
       </div>
     </div>
@@ -5899,6 +6288,98 @@ function HuiAuthScreen({ onLogin }) {
   );
 }
 
+// ─── MAIN APP ──────────────────────────────────────────────────────────────
+// ─── LOGIN SCREEN ────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [mode, setMode] = React.useState("login"); // login | register
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handleAuth = () => {
+    if (!email || !password) { setError("Bitte E-Mail und Passwort eingeben"); return; }
+    if (mode === "register" && !name) { setError("Bitte Name eingeben"); return; }
+    setLoading(true); setError("");
+    // Demo-Login: nach 800ms einloggen
+    setTimeout(() => {
+      localStorage.setItem("hui_user", JSON.stringify({ email, name: name || email.split("@")[0] }));
+      onLogin();
+      setLoading(false);
+    }, 800);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      {/* Logo */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 80, height: 80, borderRadius: 22, objectFit: "cover", boxShadow: "0 8px 32px rgba(255,107,91,0.25)", marginBottom: 16 }} />
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#888", letterSpacing: 0.3 }}>
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>H</span>uman{" "}
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>U</span>nited{" "}
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>I</span>ntelligent
+        </div>
+        <div style={{ fontSize: 13, color: "#bbb", marginTop: 4 }}>Echte Talente. Echte Verbindungen.</div>
+      </div>
+
+      {/* Card */}
+      <div style={{ background: "white", borderRadius: 24, padding: "28px 24px", width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
+        {/* Tab */}
+        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 24 }}>
+          {["login","register"].map(m => (
+            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 14, cursor: "pointer", background: mode === m ? "white" : "transparent", color: mode === m ? "#222" : "#aaa", boxShadow: mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
+              {m === "login" ? "Anmelden" : "Registrieren"}
+            </button>
+          ))}
+        </div>
+
+        {mode === "register" && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>VOLLSTÄNDIGER NAME</div>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="z.B. Sofia Mayer"
+              style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
+          </div>
+        )}
+
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>E-MAIL</div>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="deine@email.de"
+            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>PASSWORT</div>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }}
+            onKeyDown={e => e.key === "Enter" && handleAuth()} />
+        </div>
+
+        {error && <div style={{ background: "#fff0f0", border: "1px solid #fcd", borderRadius: 10, padding: "10px 13px", fontSize: 13, color: "#e33", marginBottom: 14 }}>{error}</div>}
+
+        <button onClick={handleAuth} disabled={loading} style={{ width: "100%", background: loading ? "#ddd" : "linear-gradient(135deg, #FF6B5B, #F5A623)", color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: loading ? "not-allowed" : "pointer" }}>
+          {loading ? "Laden..." : mode === "login" ? "Anmelden →" : "Account erstellen →"}
+        </button>
+
+        {mode === "login" && (
+          <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "#aaa", cursor: "pointer" }}>
+            Passwort vergessen?
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 28, textAlign: "center", fontSize: 12, color: "#ccc", lineHeight: 1.6 }}>
+        Mit der Anmeldung stimmst du den{" "}
+        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Nutzungsbedingungen</span>{" "}
+        und der{" "}
+        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Datenschutzerklärung</span>{" "}
+        zu.
+      </div>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════
 // HUI-MATCH — KI-gestütztes Talent-Matching
 // ══════════════════════════════════════════════════════════════════
@@ -5944,6 +6425,18 @@ function scoreMatch(wirker, query) {
     uniqueReasons.push(wirker.talent, `${wirker.reviews} Bewertungen`);
   }
   return { score, reasons: uniqueReasons };
+}
+
+function getMatches(query) {
+  const scored = MATCH_WIRKER.map(w => {
+    const { score, reasons } = scoreMatch(w, query);
+    return { ...w, score, reasons };
+  }).sort((a, b) => b.score - a.score);
+  // Top 3, immer mindestens 3 zurückgeben
+  return scored.slice(0, 3).map((w, i) => ({
+    ...w,
+    reasons: w.reasons.length > 0 ? w.reasons : [w.talent, `${w.rating}★ Bewertung`, `${w.reviews} Empfehlungen`]
+  }));
 }
 
 const AVATARS = ["🧑‍🎨","🌿","🎨","🪚","🧘","📸"];
@@ -6377,8 +6870,20 @@ function KarteOverlay({ onClose, onViewWirker }) {
 
 export default function App() {
   // ── AUTH STATE ──────────────────────────────────────────
-  const [authState, setAuthState] = useState("app");
+  const [authState, setAuthState] = useState(() => {
+    try {
+      const u = localStorage.getItem("hui_user");
+      return u ? "app" : "onboarding";
+    } catch { return "onboarding"; }
+  });
   // authState: "onboarding" | "auth" | "app"
+
+  if (authState === "onboarding") {
+    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  }
+  if (authState === "auth") {
+    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+  }
 
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
@@ -6392,9 +6897,10 @@ export default function App() {
     localStorage.setItem("hui_cart", JSON.stringify(cart));
   }, [cart]);
   const [showSearch, setShowSearch] = useState(false);
-  const [storyViewer, setStoryViewer] = useState(null);
+  const [storyViewer, setStoryViewer] = useState(null); // { startIndex: number }
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Show onboarding if not seen yet, or if ?onboarding=1 is in URL
     const params = new URLSearchParams(window.location.search);
     if (params.get("onboarding") === "1") {
       localStorage.removeItem("hui_onboarding_seen");
@@ -6404,29 +6910,33 @@ export default function App() {
     return !seen;
   });
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = true;
+  const isNewUser = true; // false = Talent-Modus (Demo)
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
-  const [paymentChat, setPaymentChat] = useState(null);
-  const [recentlyViewed, setRecentlyViewed] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showKarte, setShowKarte] = useState(false);
-  const [showHuiMatch, setShowHuiMatch] = useState(false);
-  const [showCreateSheet, setShowCreateSheet] = useState(false);
-  const [showWerkCreate, setShowWerkCreate] = useState(false);
-  const [showStoryCreate, setShowStoryCreate] = useState(false);
+  const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
+
+  // ── LIVE DATA STATE ──────────────────────────────────────────────────────
   const [liveWirker, setLiveWirker] = useState([]);
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
+
   useEffect(() => {
     async function loadLiveData() {
       try {
-        const [wirkerData, impactData] = await Promise.all([HuiWirker.list().catch(() => []), HuiImpactProject.list().catch(() => [])]);
+        const [wirkerData, impactData] = await Promise.all([
+          HuiWirker.list().catch(() => []),
+          HuiImpactProject.list().catch(() => []),
+        ]);
+        
         if (wirkerData && wirkerData.length > 0) {
           setLiveWirker(wirkerData);
+          
+          // Build feed from real DB data
           const feedItems = [];
           let id = 1000;
+          
           wirkerData.forEach((w, i) => {
+            // Wirker card every 3rd item
             if (i % 3 === 0) {
               feedItems.push({
                 id: id++, type: "wirker",
@@ -6488,10 +6998,14 @@ export default function App() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
-
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [showWerkCreate, setShowWerkCreate] = useState(false);
+  const [showStoryCreate, setShowStoryCreate] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showKarte, setShowKarte] = useState(false);
+  const [showHuiMatch, setShowHuiMatch] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
-
-  if (authState === "onboarding") return <HuiOnboarding onDone={() => setAuthState("app")} />;
 
   const addToCart = (item) => {
     setCart(c => [...c, item]);
