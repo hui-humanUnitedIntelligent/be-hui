@@ -1268,7 +1268,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -6919,13 +6919,6 @@ export default function App() {
   });
   // authState: "onboarding" | "auth" | "app"
 
-  if (authState === "onboarding") {
-    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
-  }
-  if (authState === "auth") {
-    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
-  }
-
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
   const [liked, setLiked] = useState({});
@@ -6938,10 +6931,9 @@ export default function App() {
     localStorage.setItem("hui_cart", JSON.stringify(cart));
   }, [cart]);
   const [showSearch, setShowSearch] = useState(false);
-  const [storyViewer, setStoryViewer] = useState(null); // { startIndex: number }
+  const [storyViewer, setStoryViewer] = useState(null);
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
-    // Show onboarding if not seen yet, or if ?onboarding=1 is in URL
     const params = new URLSearchParams(window.location.search);
     if (params.get("onboarding") === "1") {
       localStorage.removeItem("hui_onboarding_seen");
@@ -6951,16 +6943,15 @@ export default function App() {
     return !seen;
   });
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = true; // false = Talent-Modus (Demo)
+  const isNewUser = true;
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
-  const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
+  const [paymentChat, setPaymentChat] = useState(null);
 
   // ── LIVE DATA STATE ──────────────────────────────────────────────────────
   const [liveWirker, setLiveWirker] = useState([]);
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
-
   useEffect(() => {
     async function loadLiveData() {
       try {
@@ -7039,14 +7030,11 @@ export default function App() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
-  const [showCreateSheet, setShowCreateSheet] = useState(false);
-  const [showWerkCreate, setShowWerkCreate] = useState(false);
-  const [showStoryCreate, setShowStoryCreate] = useState(false);
-  const [recentlyViewed, setRecentlyViewed] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showKarte, setShowKarte] = useState(false);
-  const [showHuiMatch, setShowHuiMatch] = useState(false);
+
   const notifCount = mockNotifications.filter(n => !n.read).length;
+
+  if (authState === "onboarding") return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  if (authState === "auth") return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
 
   const addToCart = (item) => {
     setCart(c => [...c, item]);
