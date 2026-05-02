@@ -951,7 +951,11 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{"@keyframes spin { to { transform: rotate(360deg); } }"}</style>
+            <style>{"@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1261,7 +1265,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? (p.hourly_rate + " €/h") : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -6472,6 +6476,7 @@ export default function App() {
   const [liked, setLiked] = useState({});
   const [faved, setFaved] = useState({});
   const [cart, setCart] = useState([]);
+  const [toast, setToast] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -6582,7 +6587,11 @@ export default function App() {
   const [showHuiMatch, setShowHuiMatch] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
 
-  const addToCart = (item) => setCart(c => [...c, item]);
+  const addToCart = (item) => {
+    setCart(c => [...c, item]);
+    setToast(item);
+    setTimeout(() => setToast(null), 2800);
+  };
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
   const bookWirker = (name) => setDetailView({ type: "wirker", id: name, isOwn: false, autoBook: true });
   const viewWerk = (title) => {
@@ -6736,6 +6745,32 @@ export default function App() {
       {showWerkCreate && <WerkCreateModal onClose={() => setShowWerkCreate(false)} />}
       {showStoryCreate && <StoryCreateModal onClose={() => setShowStoryCreate(false)} />}
 
+      {/* ── TOAST ── */}
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)",
+          background: "#1a1a1a", color: "white",
+          borderRadius: 20, padding: "12px 20px",
+          display: "flex", alignItems: "center", gap: 12,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+          zIndex: 9999, animation: "toastIn 0.3s ease",
+          maxWidth: "calc(100vw - 40px)", minWidth: 240,
+          border: "1px solid rgba(255,255,255,0.08)"
+        }}>
+          {toast.img && <img src={toast.img} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />}
+          <div style={{ flex: 1, overflow: "hidden" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {toast.title || toast.name || "Artikel"}
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 1 }}>In den Warenkorb gelegt</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <div style={{ background: "#2ABFAC", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Check size={13} color="white" strokeWidth={3} />
+            </div>
+          </div>
+        </div>
+      )}
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} onGoToChats={() => { setShowCart(false); setPage("chats"); }} />}
       {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => { setShowOnboarding(false); localStorage.setItem("hui_onboarding_seen", "1"); }} />}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
