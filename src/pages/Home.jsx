@@ -1273,14 +1273,14 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     bookings: p.bookings || 0,
     followers: p.followers || 0,
     recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || profile.impactEur || 0,
+    impactEur: p.impact_eur || p.impactEur || 0,
     bio: p.bio || "",
     img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: profile.empfehlungen || [],
-    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
+    empfehlungen: p.empfehlungen || [],
+    pricePerHour: p.hourly_rate || p.pricePerHour || 0,
   };
 
   return (
