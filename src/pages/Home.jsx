@@ -958,17 +958,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{"@keyframes heartPop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.45); }
-  70%  { transform: scale(0.9); }
-  100% { transform: scale(1); }
-}
-@keyframes toastIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-@keyframes spin { to { transform: rotate(360deg); } }"}</style>
+            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -4524,9 +4514,9 @@ function ImpactPage() {
       <div style={{ background: `linear-gradient(180deg, ${TEAL}18, transparent)`, padding: "24px 20px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ fontWeight: 800, fontSize: 22, color: "#222" }}>💚 Impact</div>
-          <button onClick={() => setShowErgebnis(true)}
-            style={{ background: "white", border: `1.5px solid ${TEAL}40`, borderRadius: 20, padding: "7px 14px", color: TEAL, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-            📊 Letztes Ergebnis
+          <button onClick={() => window.open('/ImpactPool', '_self')}
+            style={{ background: `linear-gradient(135deg, ${TEAL}, #10b981)`, border: "none", borderRadius: 20, padding: "7px 14px", color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            📊 6-Monats-Analyse
           </button>
         </div>
 
@@ -5084,30 +5074,7 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
     </div>
   );
 }
-// ══════════════════════════════════════════════════════════════════
-// TALENT ANBIETEN – Onboarding Flow
-// ══════════════════════════════════════════════════════════════════
-function TalentAnbietenPage({ onClose, onSuccess }) {
-  const TOTAL_STEPS = 6;
-  const [step, setStep] = useState(0); // 0=Willkommen, 1=Angebot, 2=Talent, 3=Profil, 4=Ersteswerk, 5=Fertig
-  const [form, setForm] = useState({
-    angebotstyp: [], // "dienstleistung" | "werk" | "beides"
-    kategorie: "",
-    bio: "",
-    bioRoh: "", // Rohtext des Nutzers für KI
-    vorname: "Lars",
-    nachname: "M.",
-    standort: "München",
-    stundensatz: "",
-    profilbild: null,
-    verfuegbarkeit: [],
-    erstesWerkTitel: "",
-    erstesWerkPreis: "",
-    erstesWerkBeschreibung: "",
-  });
-  const [bioLoading, setBioLoading] = useState(false);
-  const [bioGenerated, setBioGenerated] = useState(false);
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+// (TalentAnbietenPage defined above)
 
   const kategorien = [
     { icon: "🎨", label: "Kunst & Kreatives" }, { icon: "📷", label: "Foto & Video" },
@@ -6363,7 +6330,6 @@ function HuiAuthScreen({ onLogin }) {
   );
 }
 
-// ─── MAIN APP ──────────────────────────────────────────────────────────────
 // ─── LOGIN SCREEN ────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
   const [mode, setMode] = React.useState("login"); // login | register
