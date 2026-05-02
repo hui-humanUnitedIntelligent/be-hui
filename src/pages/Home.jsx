@@ -6475,8 +6475,13 @@ export default function App() {
   const [detailView, setDetailView] = useState(null);
   const [liked, setLiked] = useState({});
   const [faved, setFaved] = useState({});
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("hui_cart") || "[]"); } catch { return []; }
+  });
   const [toast, setToast] = useState(null);
+  useEffect(() => {
+    localStorage.setItem("hui_cart", JSON.stringify(cart));
+  }, [cart]);
   const [showSearch, setShowSearch] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
