@@ -5703,7 +5703,7 @@ function HuiOnboarding({ onDone }) {
           onClick={() => isLast ? onDone() : goTo(step + 1)}
           style={{ width: "100%", background: `linear-gradient(135deg, ${s.accent}, ${s.accent}cc)`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${s.accent}44`, transition: "all 0.2s" }}
         >
-          {isLast ? "Jetzt kostenlos registrieren →" : "Weiter"}
+          {isLast ? "HUI entdecken →" : "Weiter"}
         </button>
       </div>
     </div>
@@ -6491,8 +6491,7 @@ export default function App() {
 
   const notifCount = mockNotifications.filter(n => !n.read).length;
 
-  if (authState === "onboarding") return <HuiOnboarding onDone={() => setAuthState("auth")} />;
-  if (authState === "auth") return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+  if (authState === "onboarding") return <HuiOnboarding onDone={() => setAuthState("app")} />;
 
   const addToCart = (item) => {
     setCart(c => [...c, item]);
