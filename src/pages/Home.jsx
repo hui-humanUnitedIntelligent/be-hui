@@ -7,6 +7,13 @@ const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
 const GOLD = "#F5A623";
 
+function getWirkerBadge(recommendations) {
+  if (recommendations >= 50) return { label: "✨ Community Liebling", color: "#8B5CF6" };
+  if (recommendations >= 10) return { label: "🏆 Top Wirker", color: CORAL };
+  if (recommendations < 3)   return { label: "🚀 Neu dabei", color: TEAL };
+  return null;
+}
+
 // ─── NOTIFICATIONS ──────────────────────────────────────────────────────────
 const mockNotifications = [
   { id: "n1", type: "empfehlung", read: false, time: "vor 2 Min.", title: "Neue Empfehlung 👍", text: "Jemand hat dich nach einem Töpfer-Workshop weiterempfohlen. Dein Geld wurde freigegeben.", icon: "👍", color: "#2ABFAC" },
@@ -951,7 +958,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1261,7 +1278,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -1303,6 +1320,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
               {profile.fullName} <BadgeCheck size={17} color={TEAL} />
             </div>
             <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 2 }}>{profile.talent}</div>
+            {(() => { const b = getWirkerBadge(profile.recommendations); return b ? <span style={{ display: "inline-block", marginTop: 5, background: b.color + "18", color: b.color, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 700 }}>{b.label}</span> : null; })()}
             <div style={{ fontSize: 12, color: "#aaa", marginTop: 4, display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ display: "flex", alignItems: "center", gap: 3 }}><MapPin size={11} />{profile.location}</span>
               <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Clock size={11} />{profile.hourlyRate}</span>
@@ -1323,11 +1341,11 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
             { v: profile.werke.length, l: "Werke" },
             { v: profile.bookings, l: "Buchungen" },
             { v: profile.followers, l: "Follower" },
-            { v: profile.recommendations, l: "Empf. ✓" },
-          ].map(({ v, l }, i, arr) => (
+            { v: profile.recommendations, l: "empfehlen ✓", highlight: true },
+          ].map(({ v, l, highlight }, i, arr) => (
             <div key={l} style={{ flex: 1, textAlign: "center", borderRight: i < arr.length - 1 ? "1px solid #f0f0ee" : "none" }}>
-              <div style={{ fontWeight: 900, fontSize: 17, color: "#1a1a1a" }}>{v}</div>
-              <div style={{ fontSize: 10, color: "#aaa", marginTop: 2 }}>{l}</div>
+              <div style={{ fontWeight: 900, fontSize: 17, color: highlight ? TEAL : "#1a1a1a" }}>{v}</div>
+              <div style={{ fontSize: 10, color: highlight ? TEAL : "#aaa", marginTop: 2, fontWeight: highlight ? 700 : 400 }}>{l}</div>
             </div>
           ))}
         </div>
@@ -1425,29 +1443,50 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
               </div>
             ))}
           </div>
-          {/* Empfehlungen */}
+          {/* Empfehlungen — Story-Style */}
           <div style={{ marginBottom: 4 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-              👍 Empfehlungen
-              <span style={{ background: TEAL + "15", color: TEAL, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 700 }}>
-                {(profile.empfehlungen || []).length} verifiziert
-              </span>
-            </div>
-            {(profile.empfehlungen || [
-              { name: "Anna K.", text: "Wirklich unglaublich talentiert! Der Workshop hat meine Erwartungen weit übertroffen. Sehr empfehlenswert!", datum: "März 2026", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop" },
-              { name: "Marc B.", text: "Die Keramik-Tasse ist ein echtes Kunstwerk. Schneller Versand, liebevolle Verpackung. Gerne wieder!", datum: "Feb 2026", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop" },
-              { name: "Lisa M.", text: "Hat uns nach dem Kauf sofort kontaktiert und alles erklärt. Professionell und herzlich.", datum: "Jan 2026", avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop" },
-            ]).map((e, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 14, padding: "14px 16px", marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 8 }}>
-                  <img src={e.avatar} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} alt={e.name} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{e.name}</div>
-                    <div style={{ fontSize: 11, color: "#bbb" }}>{e.datum}</div>
-                  </div>
-                  <div style={{ background: `${TEAL}15`, borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: TEAL }}>✓ Verifiziert</div>
+            {/* Header with count */}
+            <div style={{ background: `linear-gradient(135deg, ${TEAL}12, ${TEAL}06)`, borderRadius: 16, padding: "14px 16px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", border: `1px solid ${TEAL}20` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: TEAL, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <ThumbsUp size={18} color="white" fill="white" />
                 </div>
-                <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, fontStyle: "italic" }}>"{e.text}"</div>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 22, color: TEAL, lineHeight: 1 }}>{profile.recommendations}</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>Menschen empfehlen {profile.name.split(" ")[0]}</div>
+                </div>
+              </div>
+              {(() => { const b = getWirkerBadge(profile.recommendations); return b ? <span style={{ background: b.color + "18", color: b.color, borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 700 }}>{b.label}</span> : null; })()}
+            </div>
+
+            {/* Story-Bewertungen */}
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#444", marginBottom: 10 }}>Erfahrungen</div>
+            {(profile.empfehlungen || [
+              { name: "Anna K.", text: "Wirklich unglaublich talentiert! Der Workshop hat meine Erwartungen weit übertroffen.", datum: "März 2026", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop", resultImg: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=400&h=300&fit=crop" },
+              { name: "Marc B.", text: "Die Keramik-Tasse ist ein echtes Kunstwerk. Schneller Versand, liebevolle Verpackung.", datum: "Feb 2026", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop", resultImg: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=400&h=300&fit=crop" },
+              { name: "Lisa M.", text: "Professionell und herzlich. Hat uns alles erklärt und war immer erreichbar.", datum: "Jan 2026", avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop", resultImg: null },
+            ]).map((e, i) => (
+              <div key={i} style={{ background: "white", borderRadius: 16, marginBottom: 10, boxShadow: "0 2px 10px rgba(0,0,0,0.06)", overflow: "hidden", border: "1px solid #f0f0ee" }}>
+                {/* Result Photo if available */}
+                {e.resultImg && (
+                  <div style={{ position: "relative" }}>
+                    <img src={e.resultImg} style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }} alt="Ergebnis" />
+                    <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "white" }}>📸 Ergebnis-Foto</div>
+                  </div>
+                )}
+                <div style={{ padding: "12px 14px" }}>
+                  <div style={{ display: "flex", gap: 9, alignItems: "center", marginBottom: 8 }}>
+                    <img src={e.avatar} style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}30` }} alt={e.name} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{e.name}</div>
+                      <div style={{ fontSize: 11, color: "#bbb" }}>{e.datum}</div>
+                    </div>
+                    <div style={{ background: `${TEAL}15`, borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: TEAL, display: "flex", alignItems: "center", gap: 3 }}>
+                      <ThumbsUp size={10} color={TEAL} fill={TEAL} /> Empfohlen
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.65, fontStyle: "italic" }}>"{e.text}"</div>
+                </div>
               </div>
             ))}
           </div>
@@ -2662,7 +2701,8 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
           <img src={item.creatorImg} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
           <span onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ fontWeight: 600, fontSize: 12, color: TEAL, cursor: "pointer" }}>{item.creator}</span>
           <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location}</span>
-          {(item.recommendations || 0) > 0 && <span style={{ fontSize: 11, color: TEAL, display: "flex", alignItems: "center", gap: 2 }}><ThumbsUp size={10} color={TEAL} />{item.recommendations}</span>}
+          {(item.recommendations || 0) > 0 && <span style={{ fontSize: 11, color: TEAL, display: "flex", alignItems: "center", gap: 2, fontWeight: 700 }}><ThumbsUp size={10} color={TEAL} fill={TEAL} />{item.recommendations} empfehlen</span>}
+              {item.recommendations >= 10 && <span style={{ fontSize: 10, background: item.recommendations >= 50 ? "#8B5CF615" : `${CORAL}15`, color: item.recommendations >= 50 ? "#8B5CF6" : CORAL, borderRadius: 20, padding: "1px 7px", fontWeight: 700 }}>{item.recommendations >= 50 ? "✨ Community Liebling" : "🏆 Top Wirker"}</span>}
         </div>
         <div onClick={() => onViewWerk(item.title)} style={{ fontWeight: 700, fontSize: 15, color: "#222", marginBottom: 8, cursor: "pointer" }}>{item.title}</div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -2793,7 +2833,8 @@ function WirkerCard({ item, onViewWirker, onBookWirker }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 4 }}>
             <MapPin size={9} />{item.location}
-            <span style={{ color: TEAL, fontWeight: 600, marginLeft: 4 }}>👍 {item.recommendations}</span>
+            <span style={{ color: TEAL, fontWeight: 700, marginLeft: 4, display: "flex", alignItems: "center", gap: 3 }}><ThumbsUp size={11} color={TEAL} fill={TEAL} /> {item.recommendations} empfehlen</span>
+                {item.recommendations >= 10 && <span style={{ fontSize: 10, background: item.recommendations >= 50 ? "#8B5CF615" : `${CORAL}15`, color: item.recommendations >= 50 ? "#8B5CF6" : CORAL, borderRadius: 20, padding: "1px 8px", fontWeight: 700, marginLeft: 4 }}>{item.recommendations >= 50 ? "✨ Community Liebling" : "🏆 Top Wirker"}</span>}
           </div>
         </div>
         <button onClick={() => onBookWirker(item.name)}
