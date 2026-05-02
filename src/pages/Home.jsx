@@ -1724,425 +1724,9 @@ function SearchOverlay({ onClose }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// IMPACT TRACKER PAGE
-// ══════════════════════════════════════════════════════════════════
-function ImpactTrackerPage({ onClose }) {
-  const [displayValue, setDisplayValue] = React.useState(0);
-  const [showWrapped, setShowWrapped] = React.useState(false);
-  const [wrappedSlide, setWrappedSlide] = React.useState(0);
-  const [counterDone, setCounterDone] = React.useState(false);
-
-  const TARGET = 47.25; // Gesamter persönlicher Impact in €
-
-  // Animierter Counter beim Mount
-  React.useEffect(() => {
-    let start = null;
-    const duration = 2200;
-    const step = (timestamp) => {
-      if (!start) start = timestamp;
-      const progress = Math.min((timestamp - start) / duration, 1);
-      // Ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(parseFloat((TARGET * eased).toFixed(2)));
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else {
-        setDisplayValue(TARGET);
-        setCounterDone(true);
-      }
-    };
-    const frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  // Persönliche Impact-Daten
-  const stats = {
-    total: 47.25,
-    diesesJahr: 34.50,
-    dieserMonat: 8.25,
-    buchungen: 12,
-    kaeufe: 7,
-    lieblingsKategorie: "Kinder & Bildung",
-    unterstuetzteProjekte: 3,
-    baeumePflanzung: 4,
-    co2: "18 kg",
-    kinderUnterstuetzt: 2,
-    streak: 5, // Monate in Folge mit Impact
-  };
-
-  const verlauf = [
-    { monat: "Nov", wert: 2.10 },
-    { monat: "Dez", wert: 5.40 },
-    { monat: "Jan", wert: 3.20 },
-    { monat: "Feb", wert: 6.75 },
-    { monat: "Mär", wert: 9.30 },
-    { monat: "Apr", wert: 8.25 },
-  ];
-  const maxVerlauf = Math.max(...verlauf.map(v => v.wert));
-
-  const projekte = [
-    { name: "Schule für alle", land: "Uganda", beitrag: "18,75 €", emoji: "🏫", color: TEAL },
-    { name: "Bäume für Kenia", land: "Kenia", beitrag: "15,00 €", emoji: "🌳", color: "#16a34a" },
-    { name: "Tierheim Hamburg", land: "Deutschland", beitrag: "13,50 €", emoji: "🐾", color: GOLD },
-  ];
-
-  // Wrapped Slides
-  const wrappedSlides = [
-    {
-      bg: `linear-gradient(160deg, ${TEAL}, #0d9488)`,
-      emoji: "🌍",
-      headline: "Dein Impact 2026",
-      sub: "Du hast etwas bewegt.",
-      value: `${stats.total} €`,
-      desc: "So viel ist durch deine Buchungen in echte Projekte geflossen.",
-    },
-    {
-      bg: `linear-gradient(160deg, #7c3aed, #a855f7)`,
-      emoji: "🔥",
-      headline: `${stats.streak} Monate`,
-      sub: "am Stück mit Impact.",
-      value: `${stats.streak}`,
-      unit: "Monate in Folge",
-      desc: "Du bist seit 5 Monaten dabei — jede Buchung zählt.",
-    },
-    {
-      bg: `linear-gradient(160deg, ${CORAL}, #f97316)`,
-      emoji: "❤️",
-      headline: "Lieblingsthema",
-      sub: "Wo dein Herz schlägt.",
-      value: "Kinder & Bildung",
-      desc: "Die meisten deiner Buchungen unterstützten Bildungsprojekte.",
-    },
-    {
-      bg: `linear-gradient(160deg, #16a34a, #4ade80)`,
-      emoji: "🌳",
-      headline: `${stats.baeumePflanzung} Bäume`,
-      sub: "durch dich gepflanzt.",
-      value: `${stats.baeumePflanzung}`,
-      unit: "Bäume in Kenia",
-      desc: "Dein Beitrag hat direkt zur Aufforstung beigetragen.",
-    },
-    {
-      bg: `linear-gradient(160deg, ${GOLD}, #f59e0b)`,
-      emoji: "⭐",
-      headline: "Danke, Lars!",
-      sub: "Du bist ein HUI-Botschafter.",
-      value: "Top 12%",
-      desc: "Du gehörst zu den aktivsten Impact-Nutzern auf HUI.",
-    },
-  ];
-
-  // WRAPPED OVERLAY
-  if (showWrapped) {
-    const slide = wrappedSlides[wrappedSlide];
-    return (
-      <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: slide.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32 }}
-        onClick={() => {
-          if (wrappedSlide < wrappedSlides.length - 1) setWrappedSlide(s => s + 1);
-          else { setShowWrapped(false); setWrappedSlide(0); }
-        }}>
-        {/* Progress dots */}
-        <div style={{ position: "absolute", top: 24, left: 0, right: 0, display: "flex", gap: 6, justifyContent: "center" }}>
-          {wrappedSlides.map((_, i) => (
-            <div key={i} style={{ height: 4, borderRadius: 99, background: i <= wrappedSlide ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)", flex: i === wrappedSlide ? 2 : 1, transition: "flex 0.3s" }} />
-          ))}
-        </div>
-        {/* Close */}
-        <button onClick={e => { e.stopPropagation(); setShowWrapped(false); setWrappedSlide(0); }}
-          style={{ position: "absolute", top: 18, right: 18, background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          <X size={18} color="white" />
-        </button>
-
-        <div style={{ textAlign: "center", maxWidth: 320 }}>
-          <div style={{ fontSize: 80, marginBottom: 20, filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.2))" }}>{slide.emoji}</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.75)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1.5 }}>{slide.sub}</div>
-          <div style={{ fontSize: slide.value.length > 6 ? 32 : 56, fontWeight: 900, color: "white", lineHeight: 1.1, marginBottom: 12, textShadow: "0 2px 20px rgba(0,0,0,0.2)" }}>
-            {slide.value}
-            {slide.unit && <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.8, marginTop: 4 }}>{slide.unit}</div>}
-          </div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: 32 }}>{slide.desc}</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
-            {wrappedSlide < wrappedSlides.length - 1 ? "Tippen um weiterzugehen →" : "Tippen zum Schließen ✓"}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // HAUPT-TRACKER
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "#fafaf8", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <div style={{ background: `linear-gradient(160deg, ${TEAL}22, transparent)`, padding: "20px 20px 0", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}>
-            <ArrowLeft size={22} color="#444" />
-          </button>
-          <div style={{ fontWeight: 900, fontSize: 20, color: "#222" }}>Mein Impact</div>
-        </div>
-
-        {/* Animierter Haupt-Counter */}
-        <div style={{ textAlign: "center", paddingBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: TEAL, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-            🌍 Du hast bisher bewegt
-          </div>
-          <div style={{ position: "relative", display: "inline-block" }}>
-            <div style={{ fontSize: 64, fontWeight: 900, color: TEAL, lineHeight: 1, letterSpacing: -2 }}>
-              {displayValue.toFixed(2)} €
-            </div>
-            {counterDone && (
-              <div style={{ position: "absolute", top: -8, right: -28, fontSize: 22, animation: "bounce 0.5s ease" }}>✨</div>
-            )}
-          </div>
-          <div style={{ fontSize: 13, color: "#aaa", marginTop: 6 }}>durch deine Buchungen & Käufe</div>
-
-          {/* Wrapped CTA */}
-          {counterDone && (
-            <button onClick={() => setShowWrapped(true)}
-              style={{ marginTop: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, border: "none", borderRadius: 20, padding: "9px 20px", color: "white", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: `0 4px 16px ${TEAL}44`, display: "inline-flex", alignItems: "center", gap: 7 }}>
-              🎬 Dein Impact Rückblick 2026
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Scrollbarer Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 100px" }}>
-
-        {/* Schnellstats */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-          {[
-            { val: `${stats.diesesJahr} €`, label: "Dieses Jahr", color: TEAL, emoji: "📅" },
-            { val: `${stats.dieserMonat} €`, label: "Dieser Monat", color: GOLD, emoji: "🗓" },
-            { val: `${stats.unterstuetzteProjekte}`, label: "Projekte", color: CORAL, emoji: "🎯" },
-          ].map(({ val, label, color, emoji }) => (
-            <div key={label} style={{ flex: 1, background: "white", borderRadius: 16, padding: "14px 8px", textAlign: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
-              <div style={{ fontSize: 18, marginBottom: 4 }}>{emoji}</div>
-              <div style={{ fontWeight: 900, fontSize: 16, color }}>{val}</div>
-              <div style={{ fontSize: 10, color: "#aaa", marginTop: 2 }}>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Verlaufs-Chart */}
-        <div style={{ background: "white", borderRadius: 18, padding: "16px", marginBottom: 14, boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: "#222" }}>📈 Verlauf</div>
-            <div style={{ fontSize: 11, color: "#aaa" }}>letzte 6 Monate</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 80 }}>
-            {verlauf.map(({ monat, wert }) => (
-              <div key={monat} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: TEAL }}>{wert} €</div>
-                <div style={{
-                  width: "100%", borderRadius: "6px 6px 0 0",
-                  background: monat === "Apr" ? `linear-gradient(180deg, ${TEAL}, ${GOLD})` : `${TEAL}30`,
-                  height: `${(wert / maxVerlauf) * 58}px`,
-                  transition: "height 0.8s ease",
-                  minHeight: 4,
-                }} />
-                <div style={{ fontSize: 10, color: monat === "Apr" ? TEAL : "#bbb", fontWeight: monat === "Apr" ? 800 : 400 }}>{monat}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Unterstützte Projekte */}
-        <div style={{ background: "white", borderRadius: 18, padding: "16px", marginBottom: 14, boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontWeight: 800, fontSize: 15, color: "#222", marginBottom: 14 }}>🌱 Deine Projekte</div>
-          {projekte.map((p, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < projekte.length - 1 ? "1px solid #f5f5f3" : "none" }}>
-              <div style={{ width: 42, height: 42, borderRadius: 13, background: p.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
-                {p.emoji}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
-              </div>
-              <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Streak & Extras */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-          <div style={{ flex: 1, background: `linear-gradient(135deg, #7c3aed18, #a855f710)`, border: "1px solid #a855f730", borderRadius: 16, padding: "14px", textAlign: "center" }}>
-            <div style={{ fontSize: 28, marginBottom: 4 }}>🔥</div>
-            <div style={{ fontWeight: 900, fontSize: 22, color: "#7c3aed" }}>{stats.streak}</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>Monate Streak</div>
-          </div>
-          <div style={{ flex: 1, background: `linear-gradient(135deg, #16a34a18, #4ade8010)`, border: "1px solid #16a34a30", borderRadius: 16, padding: "14px", textAlign: "center" }}>
-            <div style={{ fontSize: 28, marginBottom: 4 }}>🌳</div>
-            <div style={{ fontWeight: 900, fontSize: 22, color: "#16a34a" }}>{stats.baeumePflanzung}</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>Bäume gepflanzt</div>
-          </div>
-          <div style={{ flex: 1, background: `linear-gradient(135deg, ${CORAL}18, ${GOLD}10)`, border: `1px solid ${CORAL}30`, borderRadius: 16, padding: "14px", textAlign: "center" }}>
-            <div style={{ fontSize: 28, marginBottom: 4 }}>🏫</div>
-            <div style={{ fontWeight: 900, fontSize: 22, color: CORAL }}>{stats.kinderUnterstuetzt}</div>
-            <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>Kinder gefördert</div>
-          </div>
-        </div>
-
-        {/* Badge */}
-        <div style={{ background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, borderRadius: 18, padding: "16px 20px", display: "flex", gap: 14, alignItems: "center", boxShadow: "0 4px 20px rgba(245,166,35,0.3)" }}>
-          <div style={{ fontSize: 40 }}>🏆</div>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: 16, color: "white", marginBottom: 3 }}>HUI Impact Champion</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>Du gehörst zu den aktivsten Impact-Nutzern — Top 12% der Community!</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-}
-
-
-function HuiPunktePage({ onClose }) {
-  const totalPunkte = 250;
-  const naechsteStufe = 500;
-  const progress = totalPunkte / naechsteStufe;
-  const [activeTab, setActiveTab] = React.useState("verlauf"); // verlauf | einloesen | sammeln
-  const [eingeloest, setEingeloest] = React.useState(null);
-
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#fafaf8", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${GOLD}, #f59e0b)`, padding: "20px 20px 0", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.25)", border: "none", borderRadius: 10, cursor: "pointer", padding: "6px 8px", display: "flex" }}>
-            <ArrowLeft size={20} color="white" />
-          </button>
-          <span style={{ fontWeight: 800, fontSize: 18, color: "white" }}>Meine HUI-Punkte</span>
-        </div>
-
-        {/* Punkte-Karte */}
-        <div style={{ background: "rgba(255,255,255,0.18)", borderRadius: 20, padding: "20px", marginBottom: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-            <div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginBottom: 4 }}>Dein Guthaben</div>
-              <div style={{ fontSize: 42, fontWeight: 900, color: "white", lineHeight: 1 }}>250</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>HUI-Punkte = 12,50 € Wert</div>
-            </div>
-            <div style={{ fontSize: 48 }}>⭐</div>
-          </div>
-          {/* Progress zur nächsten Stufe */}
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
-            Noch 250 Punkte bis Stufe Gold 🥇
-          </div>
-          <div style={{ background: "rgba(255,255,255,0.25)", borderRadius: 99, height: 8, overflow: "hidden" }}>
-            <div style={{ width: `${progress * 100}%`, height: "100%", background: "white", borderRadius: 99 }} />
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>0</span>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>500 (Gold)</span>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: "flex", marginTop: 14 }}>
-          {[["verlauf","📋 Verlauf"],["einloesen","🎁 Einlösen"],["sammeln","➕ Sammeln"]].map(([id, label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, background: "none", border: "none", borderBottom: activeTab === id ? "2.5px solid white" : "2.5px solid transparent", padding: "10px 4px", fontWeight: activeTab === id ? 800 : 500, fontSize: 13, color: activeTab === id ? "white" : "rgba(255,255,255,0.6)", cursor: "pointer" }}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
-
-        {/* ── VERLAUF ── */}
-        {activeTab === "verlauf" && (
-          <div>
-            {huiPunkteVerlauf.map((e, i) => (
-              <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 13, background: "white", borderRadius: 14, padding: "13px 16px", marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-                <div style={{ width: 42, height: 42, borderRadius: 13, background: e.type === "gewonnen" ? `${TEAL}15` : `${CORAL}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-                  {e.icon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{e.label}</div>
-                  <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{e.sub}</div>
-                  <div style={{ fontSize: 10, color: "#ccc", marginTop: 1 }}>{e.datum}</div>
-                </div>
-                <div style={{ fontWeight: 800, fontSize: 16, color: e.type === "gewonnen" ? TEAL : CORAL }}>
-                  {e.punkte > 0 ? `+${e.punkte}` : e.punkte}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── EINLÖSEN ── */}
-        {activeTab === "einloesen" && (
-          <div>
-            <div style={{ background: `${GOLD}15`, borderRadius: 14, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
-              <span style={{ fontSize: 20 }}>⭐</span>
-              <div style={{ fontSize: 13, color: "#666" }}>Du hast <strong style={{ color: GOLD }}>250 Punkte</strong> — wähle eine Prämie:</div>
-            </div>
-            {huiPraemien.map((p, i) => {
-              const kannEinloesen = totalPunkte >= p.kosten;
-              const istEingeloest = eingeloest === i;
-              return (
-                <div key={i} style={{ background: "white", borderRadius: 16, padding: "16px", marginBottom: 12, boxShadow: "0 1px 8px rgba(0,0,0,0.06)", opacity: kannEinloesen ? 1 : 0.5, border: istEingeloest ? `2px solid ${TEAL}` : "1.5px solid #f0f0f0" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                    <div style={{ fontSize: 28 }}>{p.icon}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 800, fontSize: 15, color: "#222" }}>{p.label}</div>
-                      <div style={{ fontSize: 12, color: "#aaa" }}>{p.sub}</div>
-                    </div>
-                    <div style={{ background: `${GOLD}18`, borderRadius: 99, padding: "4px 10px", fontWeight: 800, fontSize: 12, color: GOLD }}>{p.kosten} Pkt.</div>
-                  </div>
-                  {istEingeloest ? (
-                    <div style={{ background: `${TEAL}12`, borderRadius: 10, padding: "10px", textAlign: "center", fontSize: 13, fontWeight: 700, color: TEAL }}>
-                      ✅ Eingelöst! Wird bei nächster Transaktion angewendet.
-                    </div>
-                  ) : (
-                    <button onClick={() => kannEinloesen && setEingeloest(i)} disabled={!kannEinloesen} style={{ width: "100%", background: kannEinloesen ? `linear-gradient(135deg, ${GOLD}, #f59e0b)` : "#e8e8e8", border: "none", borderRadius: 12, padding: "11px", fontWeight: 700, fontSize: 14, color: kannEinloesen ? "white" : "#bbb", cursor: kannEinloesen ? "pointer" : "not-allowed" }}>
-                      {kannEinloesen ? "Jetzt einlösen" : `Noch ${p.kosten - totalPunkte} Punkte fehlen`}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ── SAMMELN ── */}
-        {activeTab === "sammeln" && (
-          <div>
-            <div style={{ fontSize: 13, color: "#888", marginBottom: 14, lineHeight: 1.6 }}>
-              So verdienst du HUI-Punkte — jede Aktion stärkt die Community:
-            </div>
-            {[
-              { icon: "📅", label: "Buchung abschließen", punkte: "+50 Pkt.", sub: "Pro abgeschlossener Buchung", done: true },
-              { icon: "👍", label: "Empfehlung abgeben", punkte: "+20 Pkt.", sub: "Nach verifiziertem Kauf", done: true },
-              { icon: "🛒", label: "Werk kaufen", punkte: "+25 Pkt.", sub: "Pro Kauf eines Werkes", done: false },
-              { icon: "🌱", label: "Impact-Projekt unterstützen", punkte: "+30 Pkt.", sub: "Bei Teilnahme oder Spende", done: false },
-              { icon: "👥", label: "Freund einladen", punkte: "+75 Pkt.", sub: "Pro registriertem Freund", done: false },
-              { icon: "✨", label: "Profil vervollständigen", punkte: "+100 Pkt.", sub: "Einmalig bei 100% Completion", done: true },
-              { icon: "📸", label: "Story posten", punkte: "+10 Pkt.", sub: "Maximal 1x pro Tag", done: false },
-              { icon: "💬", label: "Kommentar hinterlassen", punkte: "+5 Pkt.", sub: "Maximal 3x pro Tag", done: false },
-            ].map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, background: "white", borderRadius: 14, padding: "13px 16px", marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.05)", opacity: item.done ? 0.6 : 1 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 13, background: item.done ? "#f0f0ee" : `${GOLD}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-                  {item.done ? "✅" : item.icon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: item.done ? "#aaa" : "#222", textDecoration: item.done ? "line-through" : "none" }}>{item.label}</div>
-                  <div style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}>{item.sub}</div>
-                </div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: item.done ? "#ccc" : GOLD }}>{item.punkte}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
+import HuiPunktePage from "@/components/HuiPunktePageComponent";
+import AppHeader from "@/components/AppHeader";
+import ImpactTrackerPage from "@/components/ImpactTrackerPage";
 function NotificationsOverlay({ onClose }) {
   const [notifs, setNotifs] = React.useState(mockNotifications);
   const unreadCount = notifs.filter(n => !n.read).length;
@@ -4124,7 +3708,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={p.img || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop"} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4431,7 +4015,7 @@ function ImpactPage() {
             ].map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
                 <div style={{ fontSize: 24 }}>{p.emoji}</div>
-                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{profile.name}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
                 <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
               </div>
             ))}
@@ -4522,7 +4106,7 @@ function ImpactPage() {
                 style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={profile.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop"} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4599,7 +4183,7 @@ function ImpactPage() {
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 {/* Bild */}
                 <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={profile.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop"} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4646,7 +4230,7 @@ function ImpactPage() {
             return (
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ position: "relative" }}>
-                  <img src={profile.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop"} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10 }}>
                     <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
@@ -6397,7 +5981,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
             style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ background: selected?.id === p.id ? "#FF6B5B" : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
-                <img src={profile.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
+                <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
               </div>
               <div style={{ width: 8, height: 8, background: selected?.id === p.id ? "#FF6B5B" : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
