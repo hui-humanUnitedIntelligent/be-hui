@@ -958,7 +958,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop {
+            <style>{"@keyframes heartPop {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.45); }
   70%  { transform: scale(0.9); }
@@ -968,7 +968,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1278,7 +1278,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -4351,6 +4351,11 @@ function ImpactPage() {
   const [showErgebnis, setShowErgebnis] = useState(false);
   const [bewerbungSent, setBewerbungSent] = useState(false);
   const [bewerbung, setBewerbung] = useState({ name: "", org: "", desc: "", betrag: "", email: "" });
+  const [bewerbungFoto, setBewerbungFoto] = useState(null); // { file, preview }
+  const [showSpenden, setShowSpenden] = useState(null); // project
+  const [showStory, setShowStory] = useState(null); // project
+  const [spendenBetrag, setSpendenBetrag] = useState(""); 
+  const [spendenSent, setSpendenSent] = useState(false);
 
   // ── Pool & Timing ──────────────────────────────────────────────
   const poolGesamt = 3847;
@@ -4368,6 +4373,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
+
+Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
+
+Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4376,6 +4386,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
+
+Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
+
+Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4384,6 +4399,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
+
+Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
+
+Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
@@ -4519,6 +4539,138 @@ function ImpactPage() {
     );
   }
 
+  // ── Story Modal ───────────────────────────────────────────────
+  if (showStory) {
+    const p = showStory;
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 910, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "flex-end" }}>
+        <div style={{ background: "white", borderRadius: "28px 28px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
+          {/* Hero Bild */}
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <img src={p.img} alt={p.title} style={{ width: "100%", height: 220, objectFit: "cover", borderRadius: "28px 28px 0 0", display: "block" }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 30%, rgba(0,0,0,0.65) 100%)", borderRadius: "28px 28px 0 0" }} />
+            <button onClick={() => setShowStory(null)} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <X size={16} color="white" />
+            </button>
+            <div style={{ position: "absolute", bottom: 14, left: 18 }}>
+              <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                <div style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(6px)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{p.kategorie}</div>
+                <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
+              </div>
+              <div style={{ fontWeight: 900, fontSize: 22, color: "white" }}>{p.emoji} {p.title}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>{p.org}</div>
+            </div>
+          </div>
+
+          {/* Scrollbarer Content */}
+          <div style={{ overflowY: "auto", flex: 1, padding: "20px 20px 0" }}>
+            {/* Fortschrittsanzeige */}
+            <div style={{ background: "#f8f8f6", borderRadius: 16, padding: "14px 16px", marginBottom: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 20, color: TEAL }}>{p.gesammelt.toLocaleString("de-DE")} €</div>
+                  <div style={{ fontSize: 11, color: "#aaa" }}>von {p.wunschbetrag.toLocaleString("de-DE")} € gesammelt</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontWeight: 800, fontSize: 18, color: GOLD }}>{Math.round(p.gesammelt / p.wunschbetrag * 100)}%</div>
+                  <div style={{ fontSize: 11, color: "#aaa" }}>erreicht</div>
+                </div>
+              </div>
+              <div style={{ background: "#e8e8e8", borderRadius: 99, height: 8 }}>
+                <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 8, borderRadius: 99, width: `${Math.round(p.gesammelt / p.wunschbetrag * 100)}%` }} />
+              </div>
+            </div>
+
+            {/* Story Text */}
+            <div style={{ fontWeight: 800, fontSize: 16, color: "#222", marginBottom: 10 }}>✨ Ihre Geschichte</div>
+            {(p.story || p.desc).split("\n\n").map((para, i) => (
+              <p key={i} style={{ fontSize: 14, color: "#555", lineHeight: 1.8, marginBottom: 14, margin: "0 0 14px" }}>{para}</p>
+            ))}
+            <div style={{ height: 20 }} />
+          </div>
+
+          {/* Sticky Bottom Buttons */}
+          <div style={{ padding: "14px 20px 32px", borderTop: "1px solid #f0f0f0", background: "white", flexShrink: 0, display: "flex", gap: 10 }}>
+            <button onClick={() => { setShowStory(null); setShowSpenden(p); }} style={{ flex: 2, padding: "14px", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+              ❤️ Direkt spenden
+            </button>
+            <button onClick={() => { setShowStory(null); setActiveTab("abstimmung"); }} style={{ flex: 1, padding: "14px", background: "#f3f3f3", color: "#555", border: "none", borderRadius: 16, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+              🗳️ Abstimmen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Spenden Modal ──────────────────────────────────────────────
+  if (showSpenden) {
+    const p = showSpenden;
+    const schnellbetraege = [5, 10, 25, 50];
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 910, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "flex-end" }}>
+        <div style={{ background: "white", borderRadius: "28px 28px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "24px 22px 40px" }}>
+          {!spendenSent ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <div style={{ fontSize: 36 }}>{p.emoji}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>Direkt spenden</div>
+                  <div style={{ fontSize: 13, color: "#aaa" }}>{p.title} · {p.org}</div>
+                </div>
+                <button onClick={() => { setShowSpenden(null); setSpendenBetrag(""); }} style={{ background: "#f3f3f3", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <X size={16} color="#666" />
+                </button>
+              </div>
+
+              {/* Schnellbetraege */}
+              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                {schnellbetraege.map(b => (
+                  <button key={b} onClick={() => setSpendenBetrag(String(b))} style={{ flex: 1, padding: "11px 0", border: `2px solid ${spendenBetrag === String(b) ? CORAL : "#eee"}`, borderRadius: 14, background: spendenBetrag === String(b) ? `${CORAL}12` : "white", fontWeight: 800, fontSize: 14, color: spendenBetrag === String(b) ? CORAL : "#555", cursor: "pointer", transition: "all 0.15s" }}>
+                    {b} €
+                  </button>
+                ))}
+              </div>
+
+              {/* Eigener Betrag */}
+              <div style={{ position: "relative", marginBottom: 20 }}>
+                <input
+                  type="number"
+                  placeholder="Eigener Betrag in €"
+                  value={spendenBetrag}
+                  onChange={e => setSpendenBetrag(e.target.value)}
+                  style={{ width: "100%", border: "2px solid #eee", borderRadius: 14, padding: "13px 46px 13px 14px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "inherit", color: "#222" }}
+                />
+                <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontWeight: 800, color: "#bbb" }}>€</span>
+              </div>
+
+              <div style={{ background: `${TEAL}0d`, borderRadius: 14, padding: "11px 14px", marginBottom: 20, fontSize: 12, color: "#666", lineHeight: 1.6 }}>
+                💚 100% deiner Spende geht direkt an das Projekt — keine versteckten Kosten.
+              </div>
+
+              <button
+                onClick={() => { if (spendenBetrag && parseFloat(spendenBetrag) > 0) setSpendenSent(true); }}
+                style={{ width: "100%", padding: "15px", background: spendenBetrag && parseFloat(spendenBetrag) > 0 ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#ddd", color: spendenBetrag && parseFloat(spendenBetrag) > 0 ? "white" : "#aaa", border: "none", borderRadius: 16, fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
+                ❤️ {spendenBetrag ? `${parseFloat(spendenBetrag).toFixed(2)} € spenden` : "Betrag eingeben"}
+              </button>
+            </>
+          ) : (
+            <div style={{ textAlign: "center", padding: "20px 0 10px" }}>
+              <div style={{ fontSize: 64, marginBottom: 16 }}>💚</div>
+              <div style={{ fontWeight: 900, fontSize: 22, color: "#222", marginBottom: 8 }}>Danke für dein Herz!</div>
+              <div style={{ fontSize: 14, color: "#666", lineHeight: 1.7, marginBottom: 22 }}>
+                Deine Spende von <strong style={{ color: CORAL }}>{parseFloat(spendenBetrag).toFixed(2)} €</strong> geht direkt an <strong>{p.title}</strong>. Du machst einen echten Unterschied.
+              </div>
+              <button onClick={() => { setShowSpenden(null); setSpendenBetrag(""); setSpendenSent(false); }} style={{ padding: "13px 32px", background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+                Zurück zur App
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // ── HAUPT-VIEW ─────────────────────────────────────────────────
   return (
     <div style={{ paddingBottom: 90, overflowY: "auto", height: "100vh" }}>
@@ -4590,7 +4742,7 @@ function ImpactPage() {
             return (
               <div key={p.id} style={{ background: "white", borderRadius: 20, overflow: "hidden", marginBottom: 16, boxShadow: isVoted ? `0 4px 20px ${TEAL}33` : "0 2px 12px rgba(0,0,0,0.07)", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent", transition: "all 0.3s" }}>
                 {/* Bild */}
-                <div style={{ position: "relative" }}>
+                <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setShowStory(p)}>
                   <img src={p.img} alt={p.title} style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.6) 100%)" }} />
                   {/* Badges */}
@@ -4640,14 +4792,24 @@ function ImpactPage() {
                     💡 {p.warum}
                   </div>
 
-                  {/* Vote Button */}
+                  {/* Vote + Spenden Buttons */}
                   {!votedFor ? (
-                    <button onClick={() => setShowVoteConfirm(p)} style={{ width: "100%", padding: "13px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: `0 4px 16px ${TEAL}44` }}>
-                      🗳️ Für dieses Projekt stimmen
-                    </button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={() => setShowVoteConfirm(p)} style={{ flex: 2, padding: "13px", border: "none", borderRadius: 14, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: `0 4px 16px ${TEAL}44` }}>
+                        🗳️ Abstimmen
+                      </button>
+                      <button onClick={() => setShowSpenden(p)} style={{ flex: 1, padding: "13px", border: `2px solid ${CORAL}`, borderRadius: 14, background: "white", color: CORAL, fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
+                        ❤️ Spenden
+                      </button>
+                    </div>
                   ) : (
-                    <div style={{ textAlign: "center", fontSize: 13, color: isVoted ? TEAL : "#ccc", fontWeight: isVoted ? 700 : 400, padding: "6px 0" }}>
-                      {isVoted ? "💚 Du hast für dieses Projekt gestimmt" : "Du hast bereits abgestimmt"}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ textAlign: "center", fontSize: 13, color: isVoted ? TEAL : "#ccc", fontWeight: isVoted ? 700 : 400, padding: "4px 0" }}>
+                        {isVoted ? "💚 Du hast für dieses Projekt gestimmt" : "Du hast bereits abgestimmt"}
+                      </div>
+                      <button onClick={() => setShowSpenden(p)} style={{ width: "100%", padding: "12px", border: `2px solid ${CORAL}`, borderRadius: 14, background: "white", color: CORAL, fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
+                        ❤️ Direkt spenden
+                      </button>
                     </div>
                   )}
                 </div>
@@ -4684,7 +4846,7 @@ function ImpactPage() {
             const pct = Math.round(p.gesammelt / p.wunschbetrag * 100);
             return (
               <div key={p.id} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-                <div style={{ position: "relative" }}>
+                <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setShowStory(p)}>
                   <img src={p.img} alt={p.title} style={{ width: "100%", height: 130, objectFit: "cover", display: "block" }} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
                   <div style={{ position: "absolute", top: 8, left: 10 }}>
@@ -4704,9 +4866,17 @@ function ImpactPage() {
                   <div style={{ background: "#f0f0f0", borderRadius: 99, height: 7, marginBottom: 12 }}>
                     <div style={{ background: `linear-gradient(90deg, ${TEAL}, ${GOLD})`, height: 7, borderRadius: 99, width: `${pct}%` }} />
                   </div>
-                  <button onClick={() => setActiveTab("abstimmung")} style={{ width: "100%", padding: "10px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
-                    🗳️ Jetzt abstimmen
-                  </button>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => { setShowStory(p); }} style={{ flex: 1, padding: "10px", border: "1.5px solid #e8e8e8", borderRadius: 12, background: "white", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#555" }}>
+                      ✨ Story
+                    </button>
+                    <button onClick={() => setShowSpenden(p)} style={{ flex: 1, padding: "10px", border: `2px solid ${CORAL}`, borderRadius: 12, background: "white", color: CORAL, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                      ❤️ Spenden
+                    </button>
+                    <button onClick={() => setActiveTab("abstimmung")} style={{ flex: 1, padding: "10px", border: "none", borderRadius: 12, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                      🗳️ Wählen
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -4785,6 +4955,35 @@ function ImpactPage() {
                   style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222", fontFamily: "inherit", resize: "none" }}
                 />
               </div>
+              {/* Foto Upload */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>📸 PROJEKTFOTO (optional)</div>
+                <label style={{ display: "block", cursor: "pointer" }}>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = ev => setBewerbungFoto({ file, preview: ev.target.result });
+                      reader.readAsDataURL(file);
+                    }
+                  }} />
+                  {bewerbungFoto ? (
+                    <div style={{ position: "relative", borderRadius: 16, overflow: "hidden" }}>
+                      <img src={bewerbungFoto.preview} alt="Vorschau" style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
+                      <button onClick={e => { e.preventDefault(); setBewerbungFoto(null); }} style={{ position: "absolute", top: 10, right: 10, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                        <X size={14} color="white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ border: "2px dashed #ddd", borderRadius: 16, padding: "28px 20px", textAlign: "center", background: "#fafafa" }}>
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>📷</div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "#555", marginBottom: 4 }}>Foto hochladen</div>
+                      <div style={{ fontSize: 12, color: "#aaa" }}>Zeigt euer Projekt von der schönsten Seite</div>
+                    </div>
+                  )}
+                </label>
+              </div>
+
               <button
                 onClick={() => { if (bewerbung.name && bewerbung.email && bewerbung.desc) setBewerbungSent(true); }}
                 style={{ width: "100%", padding: "15px", background: bewerbung.name && bewerbung.email && bewerbung.desc ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#ddd", color: bewerbung.name && bewerbung.email && bewerbung.desc ? "white" : "#aaa", border: "none", borderRadius: 16, fontWeight: 800, fontSize: 16, cursor: "pointer", marginBottom: 20 }}
