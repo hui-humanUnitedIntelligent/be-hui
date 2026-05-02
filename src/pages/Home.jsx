@@ -958,7 +958,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1268,19 +1278,19 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? (p.hourly_rate + " €/h") : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
     recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || p.impactEur || 0,
+    impactEur: p.impact_eur || profile.impactEur || 0,
     bio: p.bio || "",
     img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: p.empfehlungen || [],
-    pricePerHour: p.hourly_rate || p.pricePerHour || 0,
+    empfehlungen: profile.empfehlungen || [],
+    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
   };
 
   return (
@@ -1986,7 +1996,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -6298,6 +6308,48 @@ function HuiAuthScreen({ onLogin }) {
             Passwort vergessen?
           </div>
         )}
+
+        {/* Divider */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "20px 0 16px" }}>
+          <div style={{ flex: 1, height: 1, background: "#eee" }} />
+          <span style={{ fontSize: 12, color: "#bbb", fontWeight: 600, whiteSpace: "nowrap" }}>oder weiter mit</span>
+          <div style={{ flex: 1, height: 1, background: "#eee" }} />
+        </div>
+
+        {/* Social Buttons */}
+        <div style={{ display: "flex", gap: 10 }}>
+          {/* Google */}
+          <button
+            onClick={() => setError("Google-Login kommt bald 🔜")}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "white", border: "1.5px solid #eee", borderRadius: 14, padding: "13px 10px", cursor: "pointer", fontWeight: 700, fontSize: 14, color: "#333", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", transition: "all 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = "#4285F4"}
+            onMouseLeave={e => e.currentTarget.style.borderColor = "#eee"}
+          >
+            {/* Google SVG */}
+            <svg width="18" height="18" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              <path fill="none" d="M0 0h48v48H0z"/>
+            </svg>
+            Google
+          </button>
+
+          {/* Apple */}
+          <button
+            onClick={() => setError("Apple-Login kommt bald 🔜")}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#000", border: "1.5px solid #000", borderRadius: 14, padding: "13px 10px", cursor: "pointer", fontWeight: 700, fontSize: 14, color: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", transition: "all 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.background = "#222"}
+            onMouseLeave={e => e.currentTarget.style.background = "#000"}
+          >
+            {/* Apple SVG */}
+            <svg width="16" height="18" viewBox="0 0 814 1000" fill="white">
+              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 69.7 0 127.9 45.5 170.5 45.5 40.8 0 106-48.5 183.5-48.5 29.5 0 108.2 2.6 168.5 69.5zm-174.3-51.3c-3.5-17.6-10.6-41.3-25.4-61.2-22.4-29.5-53.4-50.9-86.9-50.9-2.9 0-5.8.3-8.7.6 1.3 19.6 8.4 39.1 21.5 57.4 14.4 19.8 47.5 44.7 99.5 54.1z"/>
+            </svg>
+            Apple
+          </button>
+        </div>
       </div>
 
       {/* Footer */}
