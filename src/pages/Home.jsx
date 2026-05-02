@@ -2403,142 +2403,6 @@ function StoryViewer({ stories, startIndex = 0, onClose, onCreateNew }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// STORY ERSTELLEN (Instagram-Style, vollständig)
-// ══════════════════════════════════════════════════════════════════
-function StoryCreateFull({ onClose, onPublished }) {
-  const [step, setStep] = useState("compose"); // compose | preview | done
-  const [text, setText] = useState("");
-  const [storyType, setStoryType] = useState("foto");
-  const [selectedImg, setSelectedImg] = useState(0);
-
-  const storyTypes = [
-    { id: "foto", icon: "📷", label: "Foto/Werk", color: CORAL },
-    { id: "angebot", icon: "🎁", label: "Angebot", color: GOLD },
-    { id: "behind", icon: "🎬", label: "Behind the Scenes", color: TEAL },
-    { id: "text", icon: "✍️", label: "Nur Text", color: "#7C3AED" },
-  ];
-
-  const sampleImgs = [
-    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=900&fit=crop",
-    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=900&fit=crop",
-    "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=600&h=900&fit=crop",
-  ];
-
-  const typeInfo = storyTypes.find(t => t.id === storyType);
-
-  if (step === "done") return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ background: "white", borderRadius: 24, padding: "36px 28px", textAlign: "center", width: "100%", maxWidth: 340 }}>
-        <div style={{ fontSize: 64, marginBottom: 14 }}>✨</div>
-        <div style={{ fontWeight: 800, fontSize: 22, color: "#222", marginBottom: 8 }}>Story ist live!</div>
-        <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 24 }}>Deine Story ist 24 Stunden für deine Follower und im HUI-Feed sichtbar.</div>
-        <button onClick={onPublished} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>Zurück zum Profil</button>
-      </div>
-    </div>
-  );
-
-  if (step === "preview") return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "#000", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
-      <img src={sampleImgs[selectedImg]} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.88 }} alt="" />
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.7) 100%)" }} />
-      {/* Header */}
-      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "48px 16px 12px" }}>
-        <button onClick={() => setStep("compose")} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={18} color="white" /></button>
-        <div style={{ fontWeight: 700, fontSize: 15, color: "white" }}>Vorschau</div>
-        <div style={{ width: 36 }} />
-      </div>
-      <div style={{ position: "absolute", top: "38%", left: 16, zIndex: 11 }}>
-        <div style={{ background: typeInfo.color, color: "white", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>{typeInfo.label}</div>
-      </div>
-      <div style={{ position: "absolute", bottom: 32, left: 16, right: 16, zIndex: 10 }}>
-        {text.trim() && <div style={{ fontSize: 15, color: "white", fontWeight: 500, lineHeight: 1.55, marginBottom: 20, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}>{text}</div>}
-        <button onClick={() => setStep("done")} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-          🚀 Jetzt veröffentlichen
-        </button>
-      </div>
-    </div>
-  );
-
-  // Compose-Schritt
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end" }}>
-      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
-        {/* Header */}
-        <div style={{ padding: "16px 20px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Story erstellen</div>
-          <button onClick={onClose} style={{ background: "#f0f0ee", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={16} /></button>
-        </div>
-
-        <div style={{ overflowY: "auto", flex: 1, padding: "0 20px 16px" }}>
-          {/* Story-Typ wählen */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 }}>Story-Typ</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {storyTypes.map(t => (
-                <button key={t.id} onClick={() => setStoryType(t.id)}
-                  style={{ flex: 1, background: storyType === t.id ? `${t.color}18` : "#f4f4f2", border: `1.5px solid ${storyType === t.id ? t.color : "transparent"}`, borderRadius: 14, padding: "10px 6px", cursor: "pointer", textAlign: "center" }}>
-                  <div style={{ fontSize: 20 }}>{t.icon}</div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: storyType === t.id ? t.color : "#999", marginTop: 4, lineHeight: 1.3 }}>{t.label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Bild wählen */}
-          {storyType !== "text" && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 }}>Bild / Werk</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {/* Hochladen */}
-                <div style={{ width: 78, height: 78, borderRadius: 14, border: "2px dashed #ddd", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                  <span style={{ fontSize: 22 }}>📷</span>
-                  <span style={{ fontSize: 9, color: "#bbb", marginTop: 3 }}>Upload</span>
-                </div>
-                {/* Eigene Werke als Thumbnails */}
-                {sampleImgs.map((src, i) => (
-                  <div key={i} onClick={() => setSelectedImg(i)} style={{ width: 78, height: 78, borderRadius: 14, overflow: "hidden", border: selectedImg === i ? `2.5px solid ${typeInfo.color}` : "2.5px solid transparent", cursor: "pointer", flexShrink: 0, position: "relative" }}>
-                    <img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
-                    {selectedImg === i && <div style={{ position: "absolute", inset: 0, background: `${typeInfo.color}22`, display: "flex", alignItems: "center", justifyContent: "center" }}><Check size={18} color={typeInfo.color} /></div>}
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize: 11, color: "#bbb", marginTop: 6 }}>Wähle eines deiner Werke oder lade ein neues Foto hoch</div>
-            </div>
-          )}
-
-          {/* Text */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 8 }}>Text / Caption</div>
-            <textarea value={text} onChange={e => setText(e.target.value)} rows={4}
-              placeholder={
-                storyType === "angebot" ? "Beschreibe dein Angebot – Preis, Verfügbarkeit, Details..." :
-                storyType === "behind" ? "Gib einen Blick hinter die Kulissen – was passiert gerade in deinem Atelier?" :
-                storyType === "text" ? "Deine Gedanken, eine Frage, ein Impuls..." :
-                "Was zeigst du? Ein neues Werk, eine Idee, ein Moment..."
-              }
-              style={{ width: "100%", padding: "12px 14px", borderRadius: 14, border: "1.5px solid #e8e8e8", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
-            <div style={{ fontSize: 11, color: text.length > 250 ? CORAL : "#bbb", textAlign: "right", marginTop: 3 }}>{text.length}/280</div>
-          </div>
-
-          {/* Tipp */}
-          <div style={{ background: `${GOLD}0d`, borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#888", lineHeight: 1.55 }}>
-            ⏱ Stories sind <strong>24 Stunden</strong> sichtbar · erscheinen bei deinen Followern im Story-Bar · und bleiben in deinem Profil archiviert
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div style={{ padding: "12px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0, display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, background: "#f5f5f3", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: "#666" }}>Abbrechen</button>
-          <button onClick={() => setStep("preview")} style={{ flex: 2, background: (storyType === "text" ? text.trim().length > 0 : true) ? `linear-gradient(135deg, ${typeInfo.color}, ${typeInfo.color}cc)` : "#e0e0e0", color: "white", border: "none", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-            Vorschau →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function StoryBar({ onStoryClick }) {
   return (
     <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "12px 16px 8px" }}>
@@ -3653,297 +3517,6 @@ function StoryCreateModal({ onClose }) {
     </div>
   );
 }
-function OnboardingCardDetail({ card, onClose }) {
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", fontFamily: "'Inter', -apple-system, sans-serif" }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 430, margin: "0 auto", background: "white", borderRadius: "28px 28px 0 0", padding: "28px 24px 48px" }}>
-        <div style={{ width: 40, height: 4, background: "#e0e0e0", borderRadius: 2, margin: "0 auto 24px" }} />
-        <div style={{ fontSize: 42, textAlign: "center", marginBottom: 12 }}>{card.emoji}</div>
-        <div style={{ fontWeight: 900, fontSize: 22, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{card.title}</div>
-        <div style={{ fontSize: 14, color: "#666", textAlign: "center", lineHeight: 1.75, marginBottom: 20 }}>{card.detail}</div>
-        {card.bullets && (
-          <div style={{ background: card.bg, borderRadius: 16, padding: "14px 16px", marginBottom: 8 }}>
-            {card.bullets.map((b, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: i < card.bullets.length - 1 ? 10 : 0 }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{b.icon}</span>
-                <span style={{ fontSize: 13, color: "#444", lineHeight: 1.5 }}>{b.text}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <button onClick={onClose} style={{ width: "100%", background: card.color, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 12 }}>
-          Verstanden ✓
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function OnboardingOverlay({ step, setStep, onClose }) {
-  const [activeCard, setActiveCard] = React.useState(null);
-
-  const cardDetails = {
-    entdecken: {
-      emoji: "🛍️", title: "Entdecke echte Talente",
-      color: CORAL, bg: `${CORAL}10`,
-      detail: "Töpferinnen, Fotografen, Coaches, Musiker – bei HUI triffst du Menschen, die mit Leidenschaft etwas schaffen. Nicht irgendwelche Profile. Echte Gesichter, echte Werke, echte Verbindungen.",
-      bullets: [
-        { icon: "🎨", text: "Einzigartige Werke direkt vom Schöpfer kaufen" },
-        { icon: "📅", text: "Talente buchen – für Workshops, Sessions oder Aufträge" },
-        { icon: "🗺️", text: "Wirker in deiner Nähe entdecken" },
-      ]
-    },
-    wirker: {
-      emoji: "⚡", title: "Werde Wirker",
-      color: TEAL, bg: `${TEAL}10`,
-      detail: "Du hast ein Talent? Dann gehörst du zu uns. Teile deine Leidenschaft, biete deine Fähigkeiten an und werde Teil einer Community, die dich wirklich sieht.",
-      bullets: [
-        { icon: "✨", text: "Profil erstellen und dein Talent zeigen" },
-        { icon: "💸", text: "Buchungen annehmen – sicher über das HUI-Treuhandsystem" },
-        { icon: "🏅", text: "Verifizierte Empfehlungen aufbauen" },
-      ]
-    },
-    impact: {
-      emoji: "🌱", title: "Dein Herz macht den Unterschied",
-      color: "#10b981", bg: "#10b98110",
-      detail: "Jedes Mal, wenn bei HUI etwas gebucht oder gekauft wird, fließt automatisch ein Teil unserer Einnahmen in Projekte, die wirklich etwas bewegen. Kein Konzern entscheidet. Keine anonymen Spenden. Die HUI-Community wählt gemeinsam – jeden Monat.",
-      bullets: [
-        { icon: "💚", text: "Echte Projekte mit Herz – lokal, menschlich, spürbar" },
-        { icon: "🗳️", text: "Alle Wirker stimmen gemeinsam ab, wer gefördert wird" },
-        { icon: "👀", text: "Du siehst, was durch dein Handeln entstanden ist" },
-      ]
-    },
-    punkte: {
-      emoji: "⭐", title: "HUI-Punkte – dein Dankeschön",
-      color: "#8b5cf6", bg: "#8b5cf610",
-      detail: "Bei HUI wird jede gute Tat belohnt. Buchst du, empfiehlst du, oder hilfst du jemandem? Du sammelst HUI-Punkte – und die kannst du gegen echte Vorteile einlösen.",
-      bullets: [
-        { icon: "📅", text: "Punkte für Buchungen, Empfehlungen & mehr" },
-        { icon: "🎁", text: "Rabatte, Gratis-Buchungen oder Boost deines Profils" },
-        { icon: "🌱", text: "Punkte direkt in den Impact Pool spenden" },
-      ]
-    },
-  };
-
-  const screens = [
-    {
-      img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop",
-      emoji: "🤍",
-      tag: "Willkommen bei HUI",
-      title: "Schön, dass du hier bist.",
-      sub: "HUI steht für Human United Intelligent – und das meinst du wörtlich. Hier trifft Menschlichkeit auf echte Talente. Kein Algorithmus entscheidet. Die Menschen machen den Unterschied.",
-      features: null,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
-      emoji: "🎨",
-      tag: "Talente & Werke",
-      title: "Jedes Talent hat eine Geschichte.",
-      sub: "Hinter jedem Profil steckt ein Mensch mit Leidenschaft. Töpferin, Fotograf, Yoga-Coach, Musiker – sie alle bringen etwas mit, das die Welt ein bisschen schöner macht.",
-      features: [
-        "Werke mit Seele – direkt vom Schöpfer",
-        "Talente buchen, die wirklich für dich da sind",
-        "Empfehlungen, die du wirklich vertrauen kannst",
-      ],
-      gradient: `linear-gradient(160deg, ${CORAL}15 0%, ${GOLD}10 100%)`,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=600&fit=crop",
-      emoji: "🌱",
-      tag: "Mit Herz dabei",
-      title: "Dein Handeln hinterlässt Spuren.",
-      sub: "Bei HUI bleibt kein Kauf ohne Wirkung. Ein Teil unserer Einnahmen fließt automatisch in Herzens-Projekte – ausgewählt von der ganzen Community. Nicht wir entscheiden. Ihr.",
-      features: [
-        "Projekte mit Herz – von der Community gewählt",
-        "Alle Wirker stimmen gemeinsam ab",
-        "Du siehst, was durch dich entstanden ist",
-      ],
-      gradient: `linear-gradient(160deg, #10b98115 0%, ${TEAL}10 100%)`,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-      emoji: "🚀",
-      tag: "Los geht's",
-      title: "Was magst du als Erstes entdecken?",
-      sub: "Tippe auf eine Karte um mehr zu erfahren – oder leg einfach los.",
-      features: null,
-      isFinal: true,
-    },
-  ];
-
-  const touchStartX = React.useRef(null);
-  const [animDir, setAnimDir] = React.useState(null);
-  const [visible, setVisible] = React.useState(true);
-
-  const goTo = (next, dir) => {
-    if (next < 0 || next >= screens.length) return;
-    setVisible(false);
-    setAnimDir(dir);
-    setTimeout(() => {
-      setStep(next);
-      setAnimDir(null);
-      setVisible(true);
-    }, 200);
-  };
-
-  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
-  const handleTouchEnd = (e) => {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(dx) < 5) return;
-    if (dx < -50 && step < screens.length - 1) goTo(step + 1, "left");
-    if (dx > 50 && step > 0) goTo(step - 1, "right");
-  };
-
-  const s = screens[step];
-
-  const slideStyle = {
-    opacity: visible ? 1 : 0,
-    transform: visible ? "translateX(0)" : animDir === "left" ? "translateX(36px)" : "translateX(-36px)",
-    transition: "opacity 0.22s ease, transform 0.22s ease",
-  };
-
-  const FinalCard = ({ cardKey, emoji, label, sub, color, bg }) => {
-    const [pressed, setPressed] = React.useState(false);
-    return (
-      <button
-        onClick={() => setActiveCard(cardDetails[cardKey])}
-        onPointerDown={() => setPressed(true)}
-        onPointerUp={() => setPressed(false)}
-        onPointerLeave={() => setPressed(false)}
-        style={{
-          background: pressed ? bg.replace("10", "22") : bg,
-          borderRadius: 18, padding: "16px 12px", textAlign: "center",
-          border: `1.5px solid ${color}33`,
-          cursor: "pointer", outline: "none",
-          transform: pressed ? "scale(0.94)" : "scale(1)",
-          transition: "transform 0.15s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
-          WebkitTapHighlightColor: "transparent",
-          display: "flex", flexDirection: "column", alignItems: "center",
-        }}
-      >
-        <div style={{ fontSize: 26, marginBottom: 6 }}>{emoji}</div>
-        <div style={{ fontWeight: 800, fontSize: 13, color: "#222" }}>{label}</div>
-        <div style={{ fontSize: 11, color: "#999", marginTop: 3, lineHeight: 1.4 }}>{sub}</div>
-        <div style={{ fontSize: 10, color: color, fontWeight: 700, marginTop: 6, display: "flex", alignItems: "center", gap: 2 }}>
-          Mehr erfahren <span style={{ fontSize: 12 }}>→</span>
-        </div>
-      </button>
-    );
-  };
-
-  return (
-    <>
-      <div
-        style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* Image */}
-        <div style={{ position: "relative", width: "100%", height: "48%", overflow: "hidden" }}>
-          <img src={s.img} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85, transition: "opacity 0.4s ease" }} alt="" />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%)" }} />
-          {/* Tag */}
-          <div style={{ ...slideStyle, position: "absolute", top: 52, left: 20 }}>
-            <div style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 14 }}>{s.emoji}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "white", letterSpacing: 0.4 }}>{s.tag}</span>
-            </div>
-          </div>
-          {/* Skip */}
-          {step < screens.length - 1 && (
-            <button onClick={onClose} style={{ position: "absolute", top: 52, right: 20, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 16px", color: "white", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-              Überspringen
-            </button>
-          )}
-        </div>
-
-        {/* Bottom card */}
-        <div style={{ flex: 1, background: "white", borderRadius: "28px 28px 0 0", marginTop: -28, padding: "22px 22px 36px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
-          {/* Dots */}
-          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 20 }}>
-            {screens.map((_, i) => (
-              <button key={i} onClick={() => goTo(i, i > step ? "left" : "right")} style={{ border: "none", cursor: "pointer", padding: 0, background: "none" }}>
-                <div style={{ width: i === step ? 24 : 7, height: 7, borderRadius: 4, background: i === step ? CORAL : "#e8e8e8", transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)" }} />
-              </button>
-            ))}
-          </div>
-
-          {/* Logo on first screen */}
-          {step === 0 && (
-            <div style={{ ...slideStyle, display: "flex", justifyContent: "center", marginBottom: 14 }}>
-              <div style={{ position: "relative" }}>
-                <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 70, height: 70, borderRadius: 20, objectFit: "cover", boxShadow: "0 8px 28px rgba(255,107,91,0.28)" }} />
-                <div style={{ position: "absolute", bottom: -5, right: -5, width: 22, height: 22, background: TEAL, borderRadius: "50%", border: "2.5px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 11 }}>✓</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Title & Sub */}
-          <div style={slideStyle}>
-            <div style={{ fontWeight: 900, fontSize: 23, color: "#111", textAlign: "center", marginBottom: 10, lineHeight: 1.25 }}>{s.title}</div>
-            <div style={{ color: "#777", fontSize: 14, textAlign: "center", lineHeight: 1.7, marginBottom: s.features ? 18 : 0 }}>{s.sub}</div>
-          </div>
-
-          {/* Feature list */}
-          {s.features && (
-            <div style={{ ...slideStyle, background: s.gradient || "#f9f9f7", borderRadius: 16, padding: "14px 16px", marginBottom: 4 }}>
-              {s.features.map((f, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: i < s.features.length - 1 ? 11 : 0 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Check size={12} color="white" strokeWidth={3} />
-                  </div>
-                  <span style={{ fontSize: 13, color: "#333", fontWeight: 500 }}>{f}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Final screen – clickable cards */}
-          {s.isFinal && (
-            <div style={{ ...slideStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8, marginTop: 4 }}>
-              <FinalCard cardKey="entdecken" emoji="🛍️" label="Entdecken" sub="Talente & Werke" color={CORAL} bg={`${CORAL}10`} />
-              <FinalCard cardKey="wirker" emoji="⚡" label="Wirker werden" sub="Talent anbieten" color={TEAL} bg={`${TEAL}10`} />
-              <FinalCard cardKey="impact" emoji="🌱" label="Mit Herz dabei" sub="Projekte mit Wirkung" color="#10b981" bg="#10b98110" />
-              <FinalCard cardKey="punkte" emoji="⭐" label="HUI-Punkte" sub="Sammeln & einlösen" color="#8b5cf6" bg="#8b5cf610" />
-            </div>
-          )}
-
-          <div style={{ flex: 1 }} />
-
-          {/* CTA */}
-          {step < screens.length - 1 ? (
-            <button
-              onClick={() => goTo(step + 1, "left")}
-              style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, #FF8C5A)`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 20px ${CORAL}44`, transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
-              onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = `0 2px 8px ${CORAL}33`; }}
-              onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
-              onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 6px 20px ${CORAL}44`; }}
-            >
-              Weiter →
-            </button>
-          ) : (
-            <button
-              onClick={onClose}
-              style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${CORAL}55`, transition: "transform 0.15s ease" }}
-              onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; }}
-              onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-              onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
-            >
-              Jetzt loslegen ✨
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Card Detail Modal */}
-      {activeCard && <OnboardingCardDetail card={activeCard} onClose={() => setActiveCard(null)} />}
-    </>
-  );
-}
 // ══════════════════════════════════════════════════════════════════
 // PROJEKT VORSCHLAGEN – Formular (Overlay)
 // ══════════════════════════════════════════════════════════════════
@@ -4184,7 +3757,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4491,7 +4064,7 @@ function ImpactPage() {
             ].map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
                 <div style={{ fontSize: 24 }}>{p.emoji}</div>
-                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{profile.name}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
                 <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
               </div>
             ))}
@@ -4582,7 +4155,7 @@ function ImpactPage() {
                 style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={profile.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4659,7 +4232,7 @@ function ImpactPage() {
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 {/* Bild */}
                 <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={profile.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4706,7 +4279,7 @@ function ImpactPage() {
             return (
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ position: "relative" }}>
-                  <img src={profile.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
+                  <img src={p.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10 }}>
                     <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
@@ -5074,35 +4647,31 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
     </div>
   );
 }
-// (TalentAnbietenPage defined above)
-
+function TalentAnbietenPage({ onClose, onSuccess }) {
+  const TOTAL_STEPS = 5;
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({ angebotstyp: [], kategorie: "", bio: "", bioRoh: "", vorname: "", nachname: "", standort: "", stundensatz: "", verfuegbarkeit: [], erstesWerkTitel: "", erstesWerkPreis: "", erstesWerkBeschreibung: "" });
+  const [bioLoading, setBioLoading] = useState(false);
+  const [bioGenerated, setBioGenerated] = useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const kategorien = [
-    { icon: "🎨", label: "Kunst & Kreatives" }, { icon: "📷", label: "Foto & Video" },
-    { icon: "🎵", label: "Musik & Audio" }, { icon: "✍️", label: "Texte & Sprache" },
-    { icon: "💪", label: "Sport & Fitness" }, { icon: "🧘", label: "Wellness & Coaching" },
-    { icon: "🍳", label: "Kochen & Backen" }, { icon: "🔧", label: "Handwerk & Reparatur" },
-    { icon: "💻", label: "Digitales & Technik" }, { icon: "📚", label: "Bildung & Beratung" },
-    { icon: "🏡", label: "Haus & Haushalt" }, { icon: "🌍", label: "Sonstiges" },
+    { icon: "🎨", label: "Kunst & Kreatives" }, { icon: "📷", label: "Foto & Video" }, { icon: "🎵", label: "Musik & Audio" }, { icon: "✍️", label: "Texte & Sprache" },
+    { icon: "💪", label: "Sport & Fitness" }, { icon: "🧘", label: "Wellness & Coaching" }, { icon: "🍳", label: "Kochen & Backen" }, { icon: "🔧", label: "Handwerk & Reparatur" },
+    { icon: "💻", label: "Digitales & Technik" }, { icon: "📚", label: "Bildung & Beratung" }, { icon: "🏡", label: "Haus & Haushalt" }, { icon: "🌍", label: "Sonstiges" },
   ];
-
   const wochentage = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-  // KI Bio generieren (simuliert mit realistischer Verzögerung)
   const generateBio = async () => {
     if (!form.bioRoh.trim()) return;
-    setBioLoading(true);
-    setBioGenerated(false);
+    setBioLoading(true); setBioGenerated(false);
     await new Promise(r => setTimeout(r, 1800));
     const kat = form.kategorie || "mein Talent";
     const templates = [
-      `${form.vorname} ist ${kat}-Spezialist aus ${form.standort || "Deutschland"} mit echter Leidenschaft für das Handwerk. ${form.bioRoh.trim()} – jedes Projekt wird mit vollem Herzen umgesetzt.`,
-      `Als ${kat}-Profi aus ${form.standort || "Deutschland"} bringe ich Ideen zum Leben. ${form.bioRoh.trim()} Ich freue mich auf echte Begegnungen und gemeinsame Projekte.`,
+      `${form.vorname} ist ${kat}-Spezialist aus ${form.standort || "Deutschland"} mit echter Leidenschaft. ${form.bioRoh.trim()} – jedes Projekt wird mit Herz umgesetzt.`,
+      `Als ${kat}-Profi aus ${form.standort || "Deutschland"} bringe ich Ideen zum Leben. ${form.bioRoh.trim()} Ich freue mich auf echte Begegnungen.`,
       `${form.bioRoh.trim()} Als ${kat}-Enthusiast aus ${form.standort || "Deutschland"} glaube ich: Das Beste entsteht, wenn Menschen mit Leidenschaft arbeiten.`,
     ];
-    const generated = templates[Math.floor(Math.random() * templates.length)];
-    set("bio", generated);
-    setBioLoading(false);
-    setBioGenerated(true);
+    set("bio", templates[Math.floor(Math.random() * templates.length)]);
+    setBioLoading(false); setBioGenerated(true);
   };
 
   // Progress Bar
@@ -6330,97 +5899,6 @@ function HuiAuthScreen({ onLogin }) {
   );
 }
 
-// ─── LOGIN SCREEN ────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
-  const [mode, setMode] = React.useState("login"); // login | register
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [name, setName] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
-
-  const handleAuth = () => {
-    if (!email || !password) { setError("Bitte E-Mail und Passwort eingeben"); return; }
-    if (mode === "register" && !name) { setError("Bitte Name eingeben"); return; }
-    setLoading(true); setError("");
-    // Demo-Login: nach 800ms einloggen
-    setTimeout(() => {
-      localStorage.setItem("hui_user", JSON.stringify({ email, name: name || email.split("@")[0] }));
-      onLogin();
-      setLoading(false);
-    }, 800);
-  };
-
-  return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      {/* Logo */}
-      <div style={{ textAlign: "center", marginBottom: 40 }}>
-        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 80, height: 80, borderRadius: 22, objectFit: "cover", boxShadow: "0 8px 32px rgba(255,107,91,0.25)", marginBottom: 16 }} />
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#888", letterSpacing: 0.3 }}>
-          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>H</span>uman{" "}
-          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>U</span>nited{" "}
-          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>I</span>ntelligent
-        </div>
-        <div style={{ fontSize: 13, color: "#bbb", marginTop: 4 }}>Echte Talente. Echte Verbindungen.</div>
-      </div>
-
-      {/* Card */}
-      <div style={{ background: "white", borderRadius: 24, padding: "28px 24px", width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
-        {/* Tab */}
-        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 24 }}>
-          {["login","register"].map(m => (
-            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 14, cursor: "pointer", background: mode === m ? "white" : "transparent", color: mode === m ? "#222" : "#aaa", boxShadow: mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
-              {m === "login" ? "Anmelden" : "Registrieren"}
-            </button>
-          ))}
-        </div>
-
-        {mode === "register" && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>VOLLSTÄNDIGER NAME</div>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="z.B. Sofia Mayer"
-              style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
-          </div>
-        )}
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>E-MAIL</div>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="deine@email.de"
-            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
-        </div>
-
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>PASSWORT</div>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }}
-            onKeyDown={e => e.key === "Enter" && handleAuth()} />
-        </div>
-
-        {error && <div style={{ background: "#fff0f0", border: "1px solid #fcd", borderRadius: 10, padding: "10px 13px", fontSize: 13, color: "#e33", marginBottom: 14 }}>{error}</div>}
-
-        <button onClick={handleAuth} disabled={loading} style={{ width: "100%", background: loading ? "#ddd" : "linear-gradient(135deg, #FF6B5B, #F5A623)", color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: loading ? "not-allowed" : "pointer" }}>
-          {loading ? "Laden..." : mode === "login" ? "Anmelden →" : "Account erstellen →"}
-        </button>
-
-        {mode === "login" && (
-          <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "#aaa", cursor: "pointer" }}>
-            Passwort vergessen?
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div style={{ marginTop: 28, textAlign: "center", fontSize: 12, color: "#ccc", lineHeight: 1.6 }}>
-        Mit der Anmeldung stimmst du den{" "}
-        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Nutzungsbedingungen</span>{" "}
-        und der{" "}
-        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Datenschutzerklärung</span>{" "}
-        zu.
-      </div>
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════════
 // HUI-MATCH — KI-gestütztes Talent-Matching
 // ══════════════════════════════════════════════════════════════════
@@ -6466,18 +5944,6 @@ function scoreMatch(wirker, query) {
     uniqueReasons.push(wirker.talent, `${wirker.reviews} Bewertungen`);
   }
   return { score, reasons: uniqueReasons };
-}
-
-function getMatches(query) {
-  const scored = MATCH_WIRKER.map(w => {
-    const { score, reasons } = scoreMatch(w, query);
-    return { ...w, score, reasons };
-  }).sort((a, b) => b.score - a.score);
-  // Top 3, immer mindestens 3 zurückgeben
-  return scored.slice(0, 3).map((w, i) => ({
-    ...w,
-    reasons: w.reasons.length > 0 ? w.reasons : [w.talent, `${w.rating}★ Bewertung`, `${w.reviews} Empfehlungen`]
-  }));
 }
 
 const AVATARS = ["🧑‍🎨","🌿","🎨","🪚","🧘","📸"];
@@ -6947,28 +6413,25 @@ export default function App() {
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
   const [paymentChat, setPaymentChat] = useState(null);
-
-  // ── LIVE DATA STATE ──────────────────────────────────────────────────────
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showKarte, setShowKarte] = useState(false);
+  const [showHuiMatch, setShowHuiMatch] = useState(false);
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [showWerkCreate, setShowWerkCreate] = useState(false);
+  const [showStoryCreate, setShowStoryCreate] = useState(false);
   const [liveWirker, setLiveWirker] = useState([]);
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
   useEffect(() => {
     async function loadLiveData() {
       try {
-        const [wirkerData, impactData] = await Promise.all([
-          HuiWirker.list().catch(() => []),
-          HuiImpactProject.list().catch(() => []),
-        ]);
-        
+        const [wirkerData, impactData] = await Promise.all([HuiWirker.list().catch(() => []), HuiImpactProject.list().catch(() => [])]);
         if (wirkerData && wirkerData.length > 0) {
           setLiveWirker(wirkerData);
-          
-          // Build feed from real DB data
           const feedItems = [];
           let id = 1000;
-          
           wirkerData.forEach((w, i) => {
-            // Wirker card every 3rd item
             if (i % 3 === 0) {
               feedItems.push({
                 id: id++, type: "wirker",
