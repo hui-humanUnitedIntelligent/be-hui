@@ -958,7 +958,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1268,7 +1278,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? (p.hourly_rate + " €/h") : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -4184,7 +4194,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop"} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4491,7 +4501,7 @@ function ImpactPage() {
             ].map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
                 <div style={{ fontSize: 24 }}>{p.emoji}</div>
-                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{profile.name}</div>
                 <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
               </div>
             ))}
@@ -4582,7 +4592,7 @@ function ImpactPage() {
                 style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={p.img || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop"} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4659,7 +4669,7 @@ function ImpactPage() {
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 {/* Bild */}
                 <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={p.img || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop"} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -6701,6 +6711,14 @@ function HuiMatchOverlay({ onClose, onViewWirker }) {
 function KarteOverlay({ onClose, onViewWirker }) {
   const [selected, setSelected] = React.useState(null);
   const [filter, setFilter] = React.useState("alle");
+  const [mapMode, setMapMode] = React.useState("wirker"); // "wirker" | "impact"
+  const [pulseFrame, setPulseFrame] = React.useState(0);
+
+  // Animate pulse for impact pins
+  React.useEffect(() => {
+    const t = setInterval(() => setPulseFrame(f => f + 1), 1200);
+    return () => clearInterval(t);
+  }, []);
 
   const pins = [
     { id: 1, name: "Sofia M.", talent: "Keramik-Künstlerin", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", x: 34, y: 42, empf: 34, rate: "45 €/Std.", kategorie: "handwerk" },
@@ -6709,6 +6727,14 @@ function KarteOverlay({ onClose, onViewWirker }) {
     { id: 4, name: "Tom H.", talent: "Leder-Handwerk", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", x: 22, y: 63, empf: 28, rate: "55 €/Std.", kategorie: "handwerk" },
     { id: 5, name: "Lena K.", talent: "Aquarell-Illustratorin", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", x: 45, y: 70, empf: 61, rate: "60 €/Std.", kategorie: "kunst" },
     { id: 6, name: "Jan W.", talent: "Musiker & Produzent", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop", x: 65, y: 38, empf: 19, rate: "80 €/Std.", kategorie: "musik" },
+  ];
+
+  const impactPins = [
+    { id: "ip1", name: "Stadtgarten München", city: "München", category: "🌿 Umwelt", desc: "Urbane Gemeinschaftsgärten für alle – 3 neue Beete im Westend.", awarded: "420 €", color: "#10b981", x: 34, y: 42 },
+    { id: "ip2", name: "Repair Café Berlin", city: "Berlin", category: "♻️ Nachhaltigkeit", desc: "Elektronik reparieren statt wegwerfen – monatlich 60 Geräte gerettet.", awarded: "380 €", color: "#8B5CF6", x: 58, y: 28 },
+    { id: "ip3", name: "Kinderchor Zürich", city: "Zürich", category: "🎵 Bildung", desc: "Kostenlose Musikförderung für Kinder aus einkommensschwachen Familien.", awarded: "290 €", color: "#F59E0B", x: 72, y: 55 },
+    { id: "ip4", name: "Tafelhilfe Hamburg", city: "Hamburg", category: "🤝 Soziales", desc: "Lebensmittel retten, Menschen stärken – 200 Mahlzeiten pro Woche.", awarded: "510 €", color: CORAL, x: 22, y: 63 },
+    { id: "ip5", name: "Wildblumen Wien", city: "Wien", category: "🌸 Natur", desc: "Bienenfreundliche Wildblumenwiesen auf städtischen Brachflächen.", awarded: "190 €", color: "#EC4899", x: 45, y: 70 },
   ];
 
   const kategorien = [
@@ -6725,21 +6751,46 @@ function KarteOverlay({ onClose, onViewWirker }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#fafaf8", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}>
       {/* Header */}
-      <div style={{ background: "white", padding: "16px 16px 12px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", flexShrink: 0 }}>
+      <div style={{ background: "white", padding: "16px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
             <ArrowLeft size={20} color="#444" />
           </button>
-          <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>🗺 Wirker in deiner Nähe</div>
+          <div style={{ fontWeight: 800, fontSize: 18, color: "#222", flex: 1 }}>
+            {mapMode === "wirker" ? "🗺 Wirker in deiner Nähe" : "🌱 Impact-Karte"}
+          </div>
         </div>
-        {/* Kategorie-Filter */}
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-          {kategorien.map(k => (
-            <button key={k.id} onClick={() => setFilter(k.id)} style={{ flexShrink: 0, background: filter === k.id ? "linear-gradient(135deg, #2ABFAC, #F5A623)" : "#f3f3f3", color: filter === k.id ? "white" : "#666", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-              {k.label}
+
+        {/* Mode Toggle */}
+        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 10 }}>
+          {[["wirker", "👥 Wirker"], ["impact", "🌱 Impact"]].map(([m, label]) => (
+            <button key={m} onClick={() => { setMapMode(m); setSelected(null); }} style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 13, cursor: "pointer", background: mapMode === m ? (m === "impact" ? "#10b981" : TEAL) : "transparent", color: mapMode === m ? "white" : "#aaa", boxShadow: mapMode === m ? "0 2px 8px rgba(0,0,0,0.12)" : "none", transition: "all 0.2s" }}>
+              {label}
             </button>
           ))}
         </div>
+
+        {/* Kategorie-Filter (only in wirker mode) */}
+        {mapMode === "wirker" && (
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+            {kategorien.map(k => (
+              <button key={k.id} onClick={() => setFilter(k.id)} style={{ flexShrink: 0, background: filter === k.id ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#f3f3f3", color: filter === k.id ? "white" : "#666", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                {k.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Impact stats bar */}
+        {mapMode === "impact" && (
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+            {[["🏙️", "5 Städte"], ["💚", "1.790 € verteilt"], ["🗳️", "Mai 2026"]].map(([icon, text]) => (
+              <div key={text} style={{ flexShrink: 0, background: "#10b98112", borderRadius: 20, padding: "6px 12px", fontSize: 12, fontWeight: 700, color: "#10b981", display: "flex", alignItems: "center", gap: 5 }}>
+                {icon} {text}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Karte (stilisierte Ansicht) */}
@@ -6766,39 +6817,85 @@ function KarteOverlay({ onClose, onViewWirker }) {
           <div style={{ position: "absolute", top: "25%", right: "12%", fontSize: 11, color: "#ccc" }}>Bogenhausen</div>
         </div>
 
-        {/* Pins */}
-        {sichtbarePins.map(p => (
+        {/* WIRKER PINS */}
+        {mapMode === "wirker" && sichtbarePins.map(p => (
           <button key={p.id} onClick={() => setSelected(selected?.id === p.id ? null : p)}
             style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ background: selected?.id === p.id ? "#FF6B5B" : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
+              <div style={{ background: selected?.id === p.id ? CORAL : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
                 <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
               </div>
-              <div style={{ width: 8, height: 8, background: selected?.id === p.id ? "#FF6B5B" : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
+              <div style={{ width: 8, height: 8, background: selected?.id === p.id ? CORAL : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
             </div>
           </button>
         ))}
 
+        {/* IMPACT PINS with pulse animation */}
+        {mapMode === "impact" && impactPins.map((p, idx) => {
+          const isSelected = selected?.id === p.id;
+          const pulseDelay = (idx * 240) % 1200;
+          return (
+            <button key={p.id} onClick={() => setSelected(isSelected ? null : p)}
+              style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -50%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
+              {/* Pulse rings */}
+              <div style={{ position: "relative", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{
+                  position: "absolute", borderRadius: "50%",
+                  width: isSelected ? 48 : 44, height: isSelected ? 48 : 44,
+                  background: p.color + "20",
+                  animation: "impactPulse 1.8s ease-out infinite",
+                  animationDelay: `${pulseDelay}ms`,
+                }} />
+                <div style={{
+                  position: "absolute", borderRadius: "50%",
+                  width: isSelected ? 36 : 32, height: isSelected ? 36 : 32,
+                  background: p.color + "30",
+                  animation: "impactPulse 1.8s ease-out infinite",
+                  animationDelay: `${pulseDelay + 300}ms`,
+                }} />
+                {/* Core dot */}
+                <div style={{
+                  width: isSelected ? 24 : 20, height: isSelected ? 24 : 20,
+                  borderRadius: "50%", background: p.color,
+                  border: "3px solid white",
+                  boxShadow: `0 2px 12px ${p.color}66`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, transition: "all 0.2s",
+                  zIndex: 1,
+                }}>
+                  {isSelected ? "✓" : ""}
+                </div>
+              </div>
+              {/* Label bubble */}
+              {isSelected && (
+                <div style={{ position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", background: p.color, color: "white", borderRadius: 10, padding: "4px 10px", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap", marginBottom: 4, boxShadow: `0 4px 12px ${p.color}44` }}>
+                  {p.name}
+                </div>
+              )}
+            </button>
+          );
+        })}
+
         {/* Mein Standort */}
-        <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: "#2ABFAC", border: "3px solid white", boxShadow: "0 0 0 6px rgba(42,191,172,0.2)", zIndex: 5 }} />
+        <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: TEAL, border: "3px solid white", boxShadow: "0 0 0 6px rgba(42,191,172,0.2)", zIndex: 5 }} />
 
         {/* Anzahl-Badge */}
         <div style={{ position: "absolute", top: 12, right: 12, background: "white", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#333", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-          {sichtbarePins.length} Wirker
+          {mapMode === "wirker" ? `${sichtbarePins.length} Wirker` : `${impactPins.length} Projekte`}
         </div>
       </div>
 
       {/* Ausgewählter Wirker */}
-      {selected && (
+      {selected && mapMode === "wirker" && (
         <div style={{ background: "white", padding: "16px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 14 }}>
             <img src={selected.img} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover" }} alt="" />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800, fontSize: 17, color: "#222", display: "flex", alignItems: "center", gap: 6 }}>
-                {selected.name} <BadgeCheck size={16} color="#2ABFAC" />
+                {selected.name} <BadgeCheck size={16} color={TEAL} />
               </div>
-              <div style={{ fontSize: 13, color: "#2ABFAC", fontWeight: 600 }}>{selected.talent}</div>
+              <div style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>{selected.talent}</div>
               <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>👍 {selected.empf} Empfehlungen · {selected.rate}</div>
             </div>
           </div>
@@ -6806,12 +6903,42 @@ function KarteOverlay({ onClose, onViewWirker }) {
             <button onClick={() => { onViewWirker(selected.name); onClose(); }} style={{ flex: 1, background: "#f3f3f3", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "#333", cursor: "pointer" }}>
               Profil ansehen
             </button>
-            <button style={{ flex: 1, background: "linear-gradient(135deg, #FF6B5B, #F5A623)", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "white", cursor: "pointer" }}>
+            <button style={{ flex: 1, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "white", cursor: "pointer" }}>
               📅 Jetzt buchen
             </button>
           </div>
         </div>
       )}
+
+      {/* Ausgewähltes Impact-Projekt */}
+      {selected && mapMode === "impact" && (
+        <div style={{ background: "white", padding: "16px 20px 28px", borderTop: `3px solid ${selected.color}`, flexShrink: 0, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 10 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: selected.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
+              {selected.category.split(" ")[0]}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>{selected.name}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: selected.color, marginTop: 2 }}>{selected.category} · 📍 {selected.city}</div>
+            </div>
+            <div style={{ background: selected.color + "18", borderRadius: 12, padding: "6px 12px", textAlign: "center", flexShrink: 0 }}>
+              <div style={{ fontWeight: 900, fontSize: 15, color: selected.color }}>{selected.awarded}</div>
+              <div style={{ fontSize: 10, color: "#aaa", fontWeight: 600 }}>gefördert</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6, background: "#f9f9f9", borderRadius: 12, padding: "10px 12px" }}>
+            {selected.desc}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes impactPulse {
+          0% { transform: scale(0.8); opacity: 0.8; }
+          70% { transform: scale(2.2); opacity: 0; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -6824,6 +6951,14 @@ export default function App() {
       return u ? "app" : "onboarding";
     } catch { return "onboarding"; }
   });
+  // authState: "onboarding" | "auth" | "app"
+
+  if (authState === "onboarding") {
+    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  }
+  if (authState === "auth") {
+    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+  }
 
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
@@ -6837,9 +6972,10 @@ export default function App() {
     localStorage.setItem("hui_cart", JSON.stringify(cart));
   }, [cart]);
   const [showSearch, setShowSearch] = useState(false);
-  const [storyViewer, setStoryViewer] = useState(null);
+  const [storyViewer, setStoryViewer] = useState(null); // { startIndex: number }
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Show onboarding if not seen yet, or if ?onboarding=1 is in URL
     const params = new URLSearchParams(window.location.search);
     if (params.get("onboarding") === "1") {
       localStorage.removeItem("hui_onboarding_seen");
@@ -6849,10 +6985,10 @@ export default function App() {
     return !seen;
   });
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = true;
+  const isNewUser = true; // false = Talent-Modus (Demo)
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
-  const [paymentChat, setPaymentChat] = useState(null);
+  const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
 
   // ── LIVE DATA STATE ──────────────────────────────────────────────────────
   const [liveWirker, setLiveWirker] = useState([]);
@@ -6945,12 +7081,21 @@ export default function App() {
   const [showKarte, setShowKarte] = useState(false);
   const [showHuiMatch, setShowHuiMatch] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
-  if (authState === "onboarding") return <HuiOnboarding onDone={() => setAuthState("auth")} />;
-  if (authState === "auth") return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
-  const addToCart = (item) => { setCart(c => [...c, item]); setToast(item); setTimeout(() => setToast(null), 2800); };
+
+  const addToCart = (item) => {
+    setCart(c => [...c, item]);
+    setToast(item);
+    setTimeout(() => setToast(null), 2800);
+  };
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
   const bookWirker = (name) => setDetailView({ type: "wirker", id: name, isOwn: false, autoBook: true });
-  const viewWerk = (title) => { setDetailView({ type: "werk", id: title }); setRecentlyViewed(prev => { const filtered = prev.filter(t => t !== title); return [title, ...filtered].slice(0, 6); }); };
+  const viewWerk = (title) => {
+    setDetailView({ type: "werk", id: title });
+    setRecentlyViewed(prev => {
+      const filtered = prev.filter(t => t !== title);
+      return [title, ...filtered].slice(0, 6);
+    });
+  };
   const goBack = () => setDetailView(null);
 
   if (detailView?.type === "wirker") return (
