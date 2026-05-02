@@ -958,7 +958,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1268,19 +1278,19 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
     recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || p.impactEur || 0,
+    impactEur: p.impact_eur || profile.impactEur || 0,
     bio: p.bio || "",
     img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: p.empfehlungen || [],
-    pricePerHour: p.hourly_rate || p.pricePerHour || 0,
+    empfehlungen: profile.empfehlungen || [],
+    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
   };
 
   return (
@@ -1986,7 +1996,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -4184,7 +4194,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4491,7 +4501,7 @@ function ImpactPage() {
             ].map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < 2 ? "1px solid #f5f5f3" : "none" }}>
                 <div style={{ fontSize: 24 }}>{p.emoji}</div>
-                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{p.name}</div>
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#444" }}>{profile.name}</div>
                 <div style={{ fontWeight: 800, color: GOLD }}>{p.betrag}</div>
               </div>
             ))}
@@ -4582,7 +4592,7 @@ function ImpactPage() {
                 style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: isVoted ? `0 0 0 2.5px ${TEAL}, 0 4px 20px ${TEAL}22` : "0 2px 12px rgba(0,0,0,0.06)", cursor: "pointer", border: isVoted ? `2px solid ${TEAL}` : "2px solid transparent" }}>
                 {/* Bild */}
                 <div style={{ position: "relative" }}>
-                  <img src={p.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.45))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4659,7 +4669,7 @@ function ImpactPage() {
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 {/* Bild */}
                 <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setSelectedProject(p)}>
-                  <img src={p.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 140, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
                     <div style={{ background: GOLD, color: "white", borderRadius: 20, padding: "3px 10px", fontWeight: 700, fontSize: 11 }}>{p.kategorie}</div>
@@ -4706,7 +4716,7 @@ function ImpactPage() {
             return (
               <div key={i} style={{ background: "white", borderRadius: 18, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ position: "relative" }}>
-                  <img src={p.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
+                  <img src={profile.img} style={{ width: "100%", height: 120, objectFit: "cover" }} alt={p.title} />
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.5))" }} />
                   <div style={{ position: "absolute", top: 10, left: 10 }}>
                     <div style={{ background: "rgba(0,0,0,0.35)", color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 11 }}>📍 {p.land}</div>
@@ -6038,6 +6048,279 @@ function TabButton({ label, icon, active, onClick }) {
   );
 }
 
+// ══════════════════════════════════════════════════════════════════
+// HUI ONBOARDING — 3 screens shown ONCE before registration
+// ══════════════════════════════════════════════════════════════════
+function HuiOnboarding({ onDone }) {
+  const [step, setStep] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const touchStartX = React.useRef(null);
+
+  const slides = [
+    {
+      bg: `linear-gradient(160deg, #fff8f6 0%, #fff3ee 100%)`,
+      img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=500&fit=crop",
+      emoji: "🤍",
+      tag: "Willkommen bei HUI",
+      title: "Schön, dass du hier bist.",
+      sub: "HUI verbindet echte Menschen mit echten Talenten. Hier entscheiden nicht Algorithmen — sondern du.",
+      accent: CORAL,
+    },
+    {
+      bg: `linear-gradient(160deg, #f0fffe 0%, #e8fff9 100%)`,
+      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=500&fit=crop",
+      emoji: "🎨",
+      tag: "Talente & Werke",
+      title: "Jedes Talent hat eine Geschichte.",
+      sub: "Töpfer, Fotografen, Coaches, Musiker — buche echte Menschen oder kaufe einzigartige Werke direkt vom Schöpfer.",
+      accent: TEAL,
+      features: ["Werke mit Seele – direkt vom Schöpfer", "Talente buchen, die wirklich für dich da sind", "Empfehlungen von echten Menschen"],
+    },
+    {
+      bg: `linear-gradient(160deg, #f0fff8 0%, #e8f8ff 100%)`,
+      img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=500&fit=crop",
+      emoji: "🌱",
+      tag: "Dein Impact",
+      title: "Jede Buchung bewegt etwas.",
+      sub: "Ein Teil jeder Transaktion fließt automatisch in Herzensprojekte — ausgewählt von der Community. Nicht wir entscheiden. Ihr.",
+      accent: "#10b981",
+      features: ["Projekte mit Herz – von der Community gewählt", "Wirker stimmen monatlich gemeinsam ab", "Du siehst was durch dich entstanden ist"],
+    },
+  ];
+
+  const goTo = (next) => {
+    if (animating || next < 0 || next >= slides.length) return;
+    setAnimating(true);
+    setVisible(false);
+    setTimeout(() => {
+      setStep(next);
+      setVisible(true);
+      setAnimating(false);
+    }, 220);
+  };
+
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e) => {
+    if (!touchStartX.current) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (dx < -50 && step < slides.length - 1) goTo(step + 1);
+    if (dx > 50 && step > 0) goTo(step - 1);
+  };
+
+  const s = slides[step];
+  const isLast = step === slides.length - 1;
+
+  return (
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      style={{ minHeight: "100vh", background: s.bg, display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto", fontFamily: "'Inter', -apple-system, sans-serif", transition: "background 0.4s ease", overflow: "hidden" }}
+    >
+      {/* Skip */}
+      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 20px 0" }}>
+        <button onClick={onDone} style={{ background: "none", border: "none", color: "#aaa", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Überspringen</button>
+      </div>
+
+      {/* Image */}
+      <div style={{ position: "relative", margin: "8px 20px 0", borderRadius: 24, overflow: "hidden", flexShrink: 0 }}>
+        <img
+          src={s.img}
+          alt=""
+          style={{ width: "100%", height: 240, objectFit: "cover", display: "block", opacity: visible ? 1 : 0, transform: visible ? "scale(1)" : "scale(1.03)", transition: "opacity 0.25s ease, transform 0.25s ease" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.35) 100%)" }} />
+        <div style={{ position: "absolute", top: 12, left: 14, background: "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: s.accent }}>
+          {s.emoji} {s.tag}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div
+        style={{ flex: 1, padding: "24px 24px 0", opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(10px)", transition: "opacity 0.25s ease, transform 0.25s ease" }}
+      >
+        <div style={{ fontSize: 26, fontWeight: 900, color: "#1a1a1a", lineHeight: 1.2, marginBottom: 10, letterSpacing: -0.5 }}>{s.title}</div>
+        <div style={{ fontSize: 14, color: "#666", lineHeight: 1.7, marginBottom: 18 }}>{s.sub}</div>
+        {s.features && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {s.features.map((f, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, background: "white", borderRadius: 12, padding: "10px 14px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.accent, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: "#333", fontWeight: 500 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom */}
+      <div style={{ padding: "24px 24px 40px" }}>
+        {/* Dots */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 7, marginBottom: 20 }}>
+          {slides.map((_, i) => (
+            <button key={i} onClick={() => goTo(i)} style={{ width: i === step ? 22 : 8, height: 8, borderRadius: 4, background: i === step ? s.accent : "#ddd", border: "none", padding: 0, cursor: "pointer", transition: "all 0.3s cubic-bezier(0.34,1.56,0.64,1)" }} />
+          ))}
+        </div>
+        {/* CTA */}
+        <button
+          onClick={() => isLast ? onDone() : goTo(step + 1)}
+          style={{ width: "100%", background: `linear-gradient(135deg, ${s.accent}, ${s.accent}cc)`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 6px 24px ${s.accent}44`, transition: "all 0.2s" }}
+        >
+          {isLast ? "Jetzt kostenlos registrieren →" : "Weiter"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HUI AUTH SCREEN — Clean Login / Register
+// ══════════════════════════════════════════════════════════════════
+function HuiAuthScreen({ onLogin }) {
+  const [mode, setMode] = useState("register");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [focused, setFocused] = useState(null);
+
+  const handleAuth = () => {
+    setError("");
+    if (!email.trim()) { setError("Bitte E-Mail eingeben"); return; }
+    if (!password || password.length < 6) { setError("Passwort muss mindestens 6 Zeichen haben"); return; }
+    if (mode === "register" && !name.trim()) { setError("Bitte deinen Namen eingeben"); return; }
+    setLoading(true);
+    setTimeout(() => {
+      localStorage.setItem("hui_user", JSON.stringify({ email, name: name || email.split("@")[0] }));
+      localStorage.setItem("hui_onboarding_seen", "1");
+      onLogin();
+      setLoading(false);
+    }, 900);
+  };
+
+  const inputStyle = (field) => ({
+    width: "100%",
+    border: `1.5px solid ${focused === field ? TEAL : "#eee"}`,
+    borderRadius: 14,
+    padding: "14px 44px 14px 14px",
+    fontSize: 15,
+    outline: "none",
+    boxSizing: "border-box",
+    color: "#222",
+    background: focused === field ? `${TEAL}06` : "white",
+    transition: "border 0.2s, background 0.2s",
+    fontFamily: "inherit",
+  });
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px", fontFamily: "'Inter', -apple-system, sans-serif", maxWidth: 430, margin: "0 auto" }}>
+
+      {/* Logo */}
+      <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 72, height: 72, borderRadius: 20, objectFit: "cover", boxShadow: `0 8px 32px ${CORAL}33`, marginBottom: 14 }} />
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#1a1a1a", letterSpacing: -0.5 }}>
+          {mode === "register" ? "Konto erstellen" : "Willkommen zurück"}
+        </div>
+        <div style={{ fontSize: 13, color: "#aaa", marginTop: 4 }}>
+          {mode === "register" ? "Kostenlos & in 30 Sekunden" : "Schön, dass du wieder da bist 🤍"}
+        </div>
+      </div>
+
+      {/* Card */}
+      <div style={{ background: "white", borderRadius: 24, padding: "24px 22px", width: "100%", boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
+
+        {/* Mode toggle */}
+        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 22 }}>
+          {[["register","Registrieren"],["login","Anmelden"]].map(([m, label]) => (
+            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 14, cursor: "pointer", background: mode === m ? "white" : "transparent", color: mode === m ? "#222" : "#aaa", boxShadow: mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Name (register only) */}
+        {mode === "register" && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>DEIN NAME</div>
+            <div style={{ position: "relative" }}>
+              <input
+                value={name} onChange={e => setName(e.target.value)}
+                placeholder="z.B. Sofia Mayer"
+                onFocus={() => setFocused("name")} onBlur={() => setFocused(null)}
+                style={inputStyle("name")}
+              />
+              <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16 }}>👤</span>
+            </div>
+          </div>
+        )}
+
+        {/* Email */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>E-MAIL</div>
+          <div style={{ position: "relative" }}>
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="deine@email.de"
+              onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
+              style={inputStyle("email")}
+            />
+            <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16 }}>✉️</span>
+          </div>
+        </div>
+
+        {/* Password */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>PASSWORT</div>
+          <div style={{ position: "relative" }}>
+            <input
+              type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="Mindestens 6 Zeichen"
+              onFocus={() => setFocused("pw")} onBlur={() => setFocused(null)}
+              onKeyDown={e => e.key === "Enter" && handleAuth()}
+              style={{ ...inputStyle("pw"), paddingRight: 44 }}
+            />
+            <button onClick={() => setShowPw(p => !p)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 0 }}>
+              {showPw ? "🙈" : "👁️"}
+            </button>
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{ background: "#fff0f0", border: "1px solid #fcd", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#e33", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+            ⚠️ {error}
+          </div>
+        )}
+
+        {/* Submit */}
+        <button
+          onClick={handleAuth} disabled={loading}
+          style={{ width: "100%", background: loading ? "#ddd" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: loading ? "#aaa" : "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: loading ? "not-allowed" : "pointer", boxShadow: loading ? "none" : `0 6px 24px ${CORAL}44`, transition: "all 0.2s" }}
+        >
+          {loading ? "⏳ Einen Moment..." : mode === "register" ? "Konto erstellen →" : "Anmelden →"}
+        </button>
+
+        {mode === "login" && (
+          <div style={{ textAlign: "center", marginTop: 14, fontSize: 13, color: TEAL, fontWeight: 600, cursor: "pointer" }}>
+            Passwort vergessen?
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 22, textAlign: "center", fontSize: 11, color: "#ccc", lineHeight: 1.7, padding: "0 10px" }}>
+        Mit der Registrierung stimmst du den{" "}
+        <span style={{ color: CORAL, cursor: "pointer", fontWeight: 600 }}>Nutzungsbedingungen</span>{" "}
+        und der{" "}
+        <span style={{ color: CORAL, cursor: "pointer", fontWeight: 600 }}>Datenschutzerklärung</span> zu.
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 // ─── LOGIN SCREEN ────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
@@ -6457,7 +6740,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
             style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ background: selected?.id === p.id ? "#FF6B5B" : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
-                <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
+                <img src={profile.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
               </div>
               <div style={{ width: 8, height: 8, background: selected?.id === p.id ? "#FF6B5B" : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
@@ -6502,6 +6785,22 @@ function KarteOverlay({ onClose, onViewWirker }) {
 }
 
 export default function App() {
+  // ── AUTH STATE ──────────────────────────────────────────
+  const [authState, setAuthState] = useState(() => {
+    try {
+      const u = localStorage.getItem("hui_user");
+      return u ? "app" : "onboarding";
+    } catch { return "onboarding"; }
+  });
+  // authState: "onboarding" | "auth" | "app"
+
+  if (authState === "onboarding") {
+    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  }
+  if (authState === "auth") {
+    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+  }
+
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
   const [liked, setLiked] = useState({});
@@ -6827,7 +7126,7 @@ export default function App() {
         </div>
       )}
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} onGoToChats={() => { setShowCart(false); setPage("chats"); }} />}
-      {showOnboarding && <OnboardingOverlay step={onboardingStep} setStep={setOnboardingStep} onClose={() => { setShowOnboarding(false); localStorage.setItem("hui_onboarding_seen", "1"); }} />}
+      {/* Onboarding now handled pre-auth in HuiOnboarding component */}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
       {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
