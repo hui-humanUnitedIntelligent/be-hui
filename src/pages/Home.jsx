@@ -1996,7 +1996,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -4194,7 +4194,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -7075,15 +7075,8 @@ export default function App() {
       return u ? "app" : "onboarding";
     } catch { return "onboarding"; }
   });
-  // authState: "onboarding" | "auth" | "app"
 
-  if (authState === "onboarding") {
-    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
-  }
-  if (authState === "auth") {
-    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
-  }
-
+  // All hooks must be declared before any early return
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
   const [liked, setLiked] = useState({});
@@ -7096,10 +7089,9 @@ export default function App() {
     localStorage.setItem("hui_cart", JSON.stringify(cart));
   }, [cart]);
   const [showSearch, setShowSearch] = useState(false);
-  const [storyViewer, setStoryViewer] = useState(null); // { startIndex: number }
+  const [storyViewer, setStoryViewer] = useState(null);
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
-    // Show onboarding if not seen yet, or if ?onboarding=1 is in URL
     const params = new URLSearchParams(window.location.search);
     if (params.get("onboarding") === "1") {
       localStorage.removeItem("hui_onboarding_seen");
@@ -7109,15 +7101,20 @@ export default function App() {
     return !seen;
   });
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = true; // false = Talent-Modus (Demo)
+  const isNewUser = true;
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
-  const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
-
-  // ── LIVE DATA STATE ──────────────────────────────────────────────────────
+  const [paymentChat, setPaymentChat] = useState(null);
   const [liveWirker, setLiveWirker] = useState([]);
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [showWerkCreate, setShowWerkCreate] = useState(false);
+  const [showStoryCreate, setShowStoryCreate] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showKarte, setShowKarte] = useState(false);
+  const [showHuiMatch, setShowHuiMatch] = useState(false);
 
   useEffect(() => {
     async function loadLiveData() {
@@ -7197,13 +7194,6 @@ export default function App() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
-  const [showCreateSheet, setShowCreateSheet] = useState(false);
-  const [showWerkCreate, setShowWerkCreate] = useState(false);
-  const [showStoryCreate, setShowStoryCreate] = useState(false);
-  const [recentlyViewed, setRecentlyViewed] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showKarte, setShowKarte] = useState(false);
-  const [showHuiMatch, setShowHuiMatch] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
 
   const addToCart = (item) => {
