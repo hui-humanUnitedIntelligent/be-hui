@@ -1562,7 +1562,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: profile.empfehlungen || [],
+    empfehlungen: p.empfehlungen || p.recommendations_list || [],
     pricePerHour: p.hourly_rate || p.pricePerHour || 0,
   };
 
