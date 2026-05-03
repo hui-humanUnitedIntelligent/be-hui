@@ -2296,8 +2296,8 @@ function SearchBar({ onClick, onKarteClick, onMatchClick }) {
       <button onClick={onMatchClick} style={{ background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 800, fontSize: 13, color: "white", minHeight: 40, boxShadow: `0 4px 14px ${CORAL}55` }}>
         ✨
       </button>
-      <button onClick={onKarteClick} style={{ background: `${TEAL}15`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 700, fontSize: 12, color: TEAL, minHeight: 40 }}>
-        🗺
+      <button onClick={onKarteClick} style={{ background: `linear-gradient(135deg, #0D9488, #06B6D4)`, border: "none", borderRadius: 99, padding: "0 16px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 13, color: "white", minHeight: 40, boxShadow: "0 4px 12px rgba(13,148,136,0.4)" }}>
+        <MapPin size={14} color="white" strokeWidth={2.5} /> Karte
       </button>
     </div>
   );
