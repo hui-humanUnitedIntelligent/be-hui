@@ -2908,7 +2908,7 @@ function StoryBar({ onStoryClick }) {
     </div>
   );
 }
-function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
+function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser, following, toggleFollow }) {
   const [muted, setMuted] = React.useState(true);
   const videoRef = React.useRef(null);
   const containerRef = React.useRef(null);
