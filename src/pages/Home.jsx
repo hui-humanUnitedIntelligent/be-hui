@@ -7044,30 +7044,30 @@ function HuiMatchOverlay({ onClose, onViewWirker }) {
 function KarteOverlay({ onClose, onViewWirker }) {
   const [selected, setSelected] = React.useState(null);
   const [filter, setFilter] = React.useState("alle");
-  const [mapMode, setMapMode] = React.useState("wirker"); // "wirker" | "impact"
-  const [pulseFrame, setPulseFrame] = React.useState(0);
+  const [mapMode, setMapMode] = React.useState("wirker");
+  const [radius, setRadius] = React.useState(10); // km
+  const [showRadiusSlider, setShowRadiusSlider] = React.useState(false);
+  const mapRef = React.useRef(null);
+  const leafletMapRef = React.useRef(null);
+  const markersRef = React.useRef([]);
+  const circleRef = React.useRef(null);
+  const CENTER = [48.1351, 11.582]; // München
 
-  // Animate pulse for impact pins
-  React.useEffect(() => {
-    const t = setInterval(() => setPulseFrame(f => f + 1), 1200);
-    return () => clearInterval(t);
-  }, []);
-
-  const pins = [
-    { id: 1, name: "Sofia M.", talent: "Keramik-Künstlerin", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", x: 34, y: 42, empf: 34, rate: "45 €/Std.", kategorie: "handwerk" },
-    { id: 2, name: "Marcus B.", talent: "Fotograf", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", x: 58, y: 28, empf: 47, rate: "90 €/Std.", kategorie: "foto" },
-    { id: 3, name: "Maria L.", talent: "Yoga-Coach", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", x: 72, y: 55, empf: 93, rate: "70 €/Std.", kategorie: "coaching" },
-    { id: 4, name: "Tom H.", talent: "Leder-Handwerk", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", x: 22, y: 63, empf: 28, rate: "55 €/Std.", kategorie: "handwerk" },
-    { id: 5, name: "Lena K.", talent: "Aquarell-Illustratorin", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", x: 45, y: 70, empf: 61, rate: "60 €/Std.", kategorie: "kunst" },
-    { id: 6, name: "Jan W.", talent: "Musiker & Produzent", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop", x: 65, y: 38, empf: 19, rate: "80 €/Std.", kategorie: "musik" },
+  const wirkerData = [
+    { id: 1, name: "Sofia M.", talent: "Keramik-Künstlerin", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop", lat: 48.150, lng: 11.557, empf: 34, rate: "45 €/Std.", kategorie: "handwerk" },
+    { id: 2, name: "Marcus B.", talent: "Fotograf", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop", lat: 48.162, lng: 11.613, empf: 47, rate: "90 €/Std.", kategorie: "foto" },
+    { id: 3, name: "Maria L.", talent: "Yoga-Coach", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop", lat: 48.118, lng: 11.602, empf: 93, rate: "70 €/Std.", kategorie: "coaching" },
+    { id: 4, name: "Tom H.", talent: "Leder-Handwerk", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop", lat: 48.143, lng: 11.539, empf: 28, rate: "55 €/Std.", kategorie: "handwerk" },
+    { id: 5, name: "Lena K.", talent: "Aquarell-Illustratorin", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop", lat: 48.127, lng: 11.572, empf: 61, rate: "60 €/Std.", kategorie: "kunst" },
+    { id: 6, name: "Jan W.", talent: "Musiker & Produzent", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop", lat: 48.157, lng: 11.595, empf: 19, rate: "80 €/Std.", kategorie: "musik" },
   ];
 
-  const impactPins = [
-    { id: "ip1", name: "Stadtgarten München", city: "München", category: "🌿 Umwelt", desc: "Urbane Gemeinschaftsgärten für alle – 3 neue Beete im Westend.", awarded: "420 €", color: "#10b981", x: 34, y: 42 },
-    { id: "ip2", name: "Repair Café Berlin", city: "Berlin", category: "♻️ Nachhaltigkeit", desc: "Elektronik reparieren statt wegwerfen – monatlich 60 Geräte gerettet.", awarded: "380 €", color: "#8B5CF6", x: 58, y: 28 },
-    { id: "ip3", name: "Kinderchor Zürich", city: "Zürich", category: "🎵 Bildung", desc: "Kostenlose Musikförderung für Kinder aus einkommensschwachen Familien.", awarded: "290 €", color: "#F59E0B", x: 72, y: 55 },
-    { id: "ip4", name: "Tafelhilfe Hamburg", city: "Hamburg", category: "🤝 Soziales", desc: "Lebensmittel retten, Menschen stärken – 200 Mahlzeiten pro Woche.", awarded: "510 €", color: CORAL, x: 22, y: 63 },
-    { id: "ip5", name: "Wildblumen Wien", city: "Wien", category: "🌸 Natur", desc: "Bienenfreundliche Wildblumenwiesen auf städtischen Brachflächen.", awarded: "190 €", color: "#EC4899", x: 45, y: 70 },
+  const impactData = [
+    { id: "ip1", name: "Stadtgarten München", city: "München", category: "🌿 Umwelt", desc: "Urbane Gemeinschaftsgärten für alle – 3 neue Beete im Westend.", awarded: "420 €", color: "#10b981", lat: 48.141, lng: 11.556 },
+    { id: "ip2", name: "Repair Café Berlin", city: "Berlin", category: "♻️ Nachhaltigkeit", desc: "Elektronik reparieren statt wegwerfen – monatlich 60 Geräte gerettet.", awarded: "380 €", color: "#8B5CF6", lat: 52.520, lng: 13.405 },
+    { id: "ip3", name: "Kinderchor Zürich", city: "Zürich", category: "🎵 Bildung", desc: "Kostenlose Musikförderung für Kinder aus einkommensschwachen Familien.", awarded: "290 €", color: "#F59E0B", lat: 47.376, lng: 8.541 },
+    { id: "ip4", name: "Tafelhilfe Hamburg", city: "Hamburg", category: "🤝 Soziales", desc: "Lebensmittel retten, Menschen stärken – 200 Mahlzeiten pro Woche.", awarded: "510 €", color: "#FF6B5B", lat: 53.550, lng: 9.993 },
+    { id: "ip5", name: "Wildblumen Wien", city: "Wien", category: "🌸 Natur", desc: "Bienenfreundliche Wildblumenwiesen auf städtischen Brachflächen.", awarded: "190 €", color: "#EC4899", lat: 48.208, lng: 16.373 },
   ];
 
   const kategorien = [
@@ -7079,161 +7079,213 @@ function KarteOverlay({ onClose, onViewWirker }) {
     { id: "musik", label: "🎵 Musik" },
   ];
 
-  const sichtbarePins = filter === "alle" ? pins : pins.filter(p => p.kategorie === filter);
+  // Haversine-Distanz in km
+  const distKm = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  };
+
+  const sichtbareWirker = wirkerData.filter(w =>
+    (filter === "alle" || w.kategorie === filter) &&
+    distKm(CENTER[0], CENTER[1], w.lat, w.lng) <= radius
+  );
+
+  // Leaflet laden + Karte initialisieren
+  React.useEffect(() => {
+    if (leafletMapRef.current) return;
+    const loadLeaflet = () => {
+      if (window.L) { initMap(); return; }
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      script.onload = initMap;
+      document.head.appendChild(script);
+    };
+
+    const initMap = () => {
+      if (!mapRef.current || leafletMapRef.current) return;
+      const L = window.L;
+      const map = L.map(mapRef.current, {
+        center: CENTER,
+        zoom: 13,
+        zoomControl: true,
+        attributionControl: false,
+      });
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+      }).addTo(map);
+      leafletMapRef.current = map;
+      renderMarkers(map);
+    };
+    loadLeaflet();
+    return () => {
+      if (leafletMapRef.current) { leafletMapRef.current.remove(); leafletMapRef.current = null; }
+    };
+  }, []);
+
+  // Markers & Radius-Kreis neu rendern wenn sich Filter/Radius/Mode ändert
+  React.useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map) return;
+    renderMarkers(map);
+  }, [filter, radius, mapMode, selected]);
+
+  const renderMarkers = (map) => {
+    const L = window.L;
+    if (!L) return;
+
+    // Alte Marker entfernen
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+    if (circleRef.current) { circleRef.current.remove(); circleRef.current = null; }
+
+    if (mapMode === "wirker") {
+      // Radius-Kreis
+      circleRef.current = L.circle(CENTER, {
+        radius: radius * 1000,
+        color: TEAL,
+        fillColor: TEAL,
+        fillOpacity: 0.07,
+        weight: 2,
+      }).addTo(map);
+
+      // Mein Standort
+      const meIcon = L.divIcon({
+        className: "",
+        html: `<div style="width:16px;height:16px;background:${TEAL};border:3px solid white;border-radius:50%;box-shadow:0 0 0 6px rgba(42,191,172,0.2)"></div>`,
+        iconAnchor: [8, 8],
+      });
+      const meMarker = L.marker(CENTER, { icon: meIcon }).addTo(map);
+      markersRef.current.push(meMarker);
+
+      // Wirker-Marker
+      sichtbareWirker.forEach(w => {
+        const isSelected = selected?.id === w.id;
+        const icon = L.divIcon({
+          className: "",
+          html: `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer">
+            <div style="background:${isSelected ? CORAL : "white"};border-radius:99px;padding:3px 10px 3px 5px;display:flex;align-items:center;gap:5px;box-shadow:0 3px 14px rgba(0,0,0,0.18);border:${isSelected ? "none" : "1.5px solid #eee"}">
+              <img src="${w.img}" style="width:26px;height:26px;border-radius:50%;object-fit:cover" />
+              <span style="font-size:11px;font-weight:700;color:${isSelected ? "white" : "#333"};white-space:nowrap">${w.rate}</span>
+            </div>
+            <div style="width:8px;height:8px;background:${isSelected ? CORAL : "white"};transform:rotate(45deg);margin-top:-4px;box-shadow:1px 1px 3px rgba(0,0,0,0.1)"></div>
+          </div>`,
+          iconAnchor: [40, 42],
+        });
+        const marker = L.marker([w.lat, w.lng], { icon }).addTo(map);
+        marker.on("click", () => setSelected(prev => prev?.id === w.id ? null : w));
+        markersRef.current.push(marker);
+      });
+    } else {
+      // Impact-Marker
+      impactData.forEach(p => {
+        const isSelected = selected?.id === p.id;
+        const icon = L.divIcon({
+          className: "",
+          html: `<div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center">
+            <div style="position:absolute;border-radius:50%;width:${isSelected?44:36}px;height:${isSelected?44:36}px;background:${p.color};opacity:0.25;animation:impactPulse 1.5s ease-out infinite"></div>
+            <div style="width:28px;height:28px;border-radius:50%;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 3px 10px ${p.color}66;border:2px solid white">
+              ${p.category.split(" ")[0]}
+            </div>
+          </div>`,
+          iconAnchor: [22, 22],
+        });
+        const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
+        marker.on("click", () => setSelected(prev => prev?.id === p.id ? null : p));
+        markersRef.current.push(marker);
+      });
+    }
+  };
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#fafaf8", display: "flex", flexDirection: "column", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+
       {/* Header */}
-      <div style={{ background: "white", padding: "16px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+      <div style={{ background: "white", padding: "14px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", flexShrink: 0, zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
             <ArrowLeft size={20} color="#444" />
           </button>
-          <div style={{ fontWeight: 800, fontSize: 18, color: "#222", flex: 1 }}>
+          <div style={{ fontWeight: 800, fontSize: 17, color: "#222", flex: 1 }}>
             {mapMode === "wirker" ? "🗺 Wirker in deiner Nähe" : "🌱 Impact-Karte"}
           </div>
+          {/* Radius Button — nur im Wirker-Modus */}
+          {mapMode === "wirker" && (
+            <button onClick={() => setShowRadiusSlider(r => !r)}
+              style={{ background: showRadiusSlider ? TEAL : `${TEAL}15`, border: "none", borderRadius: 20, padding: "6px 12px", fontSize: 12, fontWeight: 700, color: showRadiusSlider ? "white" : TEAL, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+              📍 {radius} km
+            </button>
+          )}
         </div>
+
+        {/* Radius Slider */}
+        {showRadiusSlider && mapMode === "wirker" && (
+          <div style={{ background: `${TEAL}0d`, borderRadius: 14, padding: "12px 14px", marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: TEAL }}>Suchradius</span>
+              <span style={{ fontSize: 14, fontWeight: 900, color: TEAL }}>{radius >= 100 ? "🌍 Überall" : `${radius} km`}</span>
+            </div>
+            <input type="range" min={1} max={100} step={1} value={radius} onChange={e => setRadius(Number(e.target.value))}
+              style={{ width: "100%", accentColor: TEAL, cursor: "pointer" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#bbb", marginTop: 4 }}>
+              <span>1 km</span><span>10 km</span><span>25 km</span><span>50 km</span><span>🌍</span>
+            </div>
+            <div style={{ marginTop: 10, fontSize: 12, color: "#666", textAlign: "center" }}>
+              {sichtbareWirker.length === 0
+                ? "Keine Wirker in diesem Radius — vergrößere den Bereich"
+                : `${sichtbareWirker.length} Wirker im Umkreis von ${radius} km`}
+            </div>
+          </div>
+        )}
 
         {/* Mode Toggle */}
         <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 10 }}>
           {[["wirker", "👥 Wirker"], ["impact", "🌱 Impact"]].map(([m, label]) => (
-            <button key={m} onClick={() => { setMapMode(m); setSelected(null); }} style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 13, cursor: "pointer", background: mapMode === m ? (m === "impact" ? "#10b981" : TEAL) : "transparent", color: mapMode === m ? "white" : "#aaa", boxShadow: mapMode === m ? "0 2px 8px rgba(0,0,0,0.12)" : "none", transition: "all 0.2s" }}>
+            <button key={m} onClick={() => { setMapMode(m); setSelected(null); setShowRadiusSlider(false); }}
+              style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 13, cursor: "pointer", background: mapMode === m ? (m === "impact" ? "#10b981" : TEAL) : "transparent", color: mapMode === m ? "white" : "#aaa", transition: "all 0.2s" }}>
               {label}
             </button>
           ))}
         </div>
 
-        {/* Kategorie-Filter (only in wirker mode) */}
+        {/* Kategorie-Filter */}
         {mapMode === "wirker" && (
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+          <div style={{ display: "flex", gap: 7, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
             {kategorien.map(k => (
-              <button key={k.id} onClick={() => setFilter(k.id)} style={{ flexShrink: 0, background: filter === k.id ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#f3f3f3", color: filter === k.id ? "white" : "#666", border: "none", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              <button key={k.id} onClick={() => setFilter(k.id)}
+                style={{ flexShrink: 0, background: filter === k.id ? "#1a1a1a" : "#f3f3f1", color: filter === k.id ? "white" : "#777", border: "none", borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                 {k.label}
               </button>
             ))}
           </div>
         )}
-
-        {/* Impact stats bar */}
-        {mapMode === "impact" && (
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-            {[["🏙️", "5 Städte"], ["💚", "1.790 € verteilt"], ["🗳️", "Mai 2026"]].map(([icon, text]) => (
-              <div key={text} style={{ flexShrink: 0, background: "#10b98112", borderRadius: 20, padding: "6px 12px", fontSize: 12, fontWeight: 700, color: "#10b981", display: "flex", alignItems: "center", gap: 5 }}>
-                {icon} {text}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Karte (stilisierte Ansicht) */}
-      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-        {/* Hintergrund-Karte */}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(145deg, #e8f5e9 0%, #e3f2fd 40%, #f3e5f5 70%, #fce4ec 100%)" }}>
-          {/* Straßen-Imitation */}
-          <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, opacity: 0.3 }}>
-            <line x1="0" y1="35%" x2="100%" y2="40%" stroke="#bbb" strokeWidth="3" />
-            <line x1="0" y1="65%" x2="100%" y2="60%" stroke="#bbb" strokeWidth="2" />
-            <line x1="30%" y1="0" x2="28%" y2="100%" stroke="#bbb" strokeWidth="3" />
-            <line x1="65%" y1="0" x2="67%" y2="100%" stroke="#bbb" strokeWidth="2" />
-            <line x1="0" y1="50%" x2="100%" y2="52%" stroke="#ddd" strokeWidth="1.5" />
-            <line x1="50%" y1="0" x2="48%" y2="100%" stroke="#ddd" strokeWidth="1.5" />
-            <circle cx="30%" cy="38%" r="8%" fill="none" stroke="#ccc" strokeWidth="1.5" />
-            <circle cx="65%" cy="60%" r="5%" fill="none" stroke="#ccc" strokeWidth="1" />
-            <rect x="35%" y="20%" width="8%" height="6%" fill="#d4edda" rx="4" />
-            <rect x="55%" y="65%" width="10%" height="7%" fill="#d4edda" rx="4" />
-          </svg>
-          {/* Stadtname */}
-          <div style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 700, color: "#bbb", letterSpacing: 1, textTransform: "uppercase" }}>München</div>
-          <div style={{ position: "absolute", bottom: "15%", right: "8%", fontSize: 11, color: "#ccc" }}>Schwabing</div>
-          <div style={{ position: "absolute", top: "45%", left: "8%", fontSize: 11, color: "#ccc" }}>Maxvorstadt</div>
-          <div style={{ position: "absolute", top: "25%", right: "12%", fontSize: 11, color: "#ccc" }}>Bogenhausen</div>
-        </div>
-
-        {/* WIRKER PINS */}
-        {mapMode === "wirker" && sichtbarePins.map(p => (
-          <button key={p.id} onClick={() => setSelected(selected?.id === p.id ? null : p)}
-            style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ background: selected?.id === p.id ? CORAL : "white", borderRadius: 99, padding: "3px 10px 3px 6px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 14px rgba(0,0,0,0.18)", border: selected?.id === p.id ? "none" : "1.5px solid #eee" }}>
-                <img src={p.img} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt="" />
-                <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === p.id ? "white" : "#333", whiteSpace: "nowrap" }}>{p.rate}</span>
-              </div>
-              <div style={{ width: 8, height: 8, background: selected?.id === p.id ? CORAL : "white", transform: "rotate(45deg)", marginTop: -4, boxShadow: "1px 1px 3px rgba(0,0,0,0.1)" }} />
-            </div>
-          </button>
-        ))}
-
-        {/* IMPACT PINS with pulse animation */}
-        {mapMode === "impact" && impactPins.map((p, idx) => {
-          const isSelected = selected?.id === p.id;
-          const pulseDelay = (idx * 240) % 1200;
-          return (
-            <button key={p.id} onClick={() => setSelected(isSelected ? null : p)}
-              style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -50%)", background: "none", border: "none", cursor: "pointer", zIndex: 10 }}>
-              {/* Pulse rings */}
-              <div style={{ position: "relative", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{
-                  position: "absolute", borderRadius: "50%",
-                  width: isSelected ? 48 : 44, height: isSelected ? 48 : 44,
-                  background: p.color + "20",
-                  animation: "impactPulse 1.8s ease-out infinite",
-                  animationDelay: `${pulseDelay}ms`,
-                }} />
-                <div style={{
-                  position: "absolute", borderRadius: "50%",
-                  width: isSelected ? 36 : 32, height: isSelected ? 36 : 32,
-                  background: p.color + "30",
-                  animation: "impactPulse 1.8s ease-out infinite",
-                  animationDelay: `${pulseDelay + 300}ms`,
-                }} />
-                {/* Core dot */}
-                <div style={{
-                  width: isSelected ? 24 : 20, height: isSelected ? 24 : 20,
-                  borderRadius: "50%", background: p.color,
-                  border: "3px solid white",
-                  boxShadow: `0 2px 12px ${p.color}66`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, transition: "all 0.2s",
-                  zIndex: 1,
-                }}>
-                  {isSelected ? "✓" : ""}
-                </div>
-              </div>
-              {/* Label bubble */}
-              {isSelected && (
-                <div style={{ position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", background: p.color, color: "white", borderRadius: 10, padding: "4px 10px", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap", marginBottom: 4, boxShadow: `0 4px 12px ${p.color}44` }}>
-                  {p.name}
-                </div>
-              )}
-            </button>
-          );
-        })}
-
-        {/* Mein Standort */}
-        <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: TEAL, border: "3px solid white", boxShadow: "0 0 0 6px rgba(42,191,172,0.2)", zIndex: 5 }} />
-
-        {/* Anzahl-Badge */}
-        <div style={{ position: "absolute", top: 12, right: 12, background: "white", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#333", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-          {mapMode === "wirker" ? `${sichtbarePins.length} Wirker` : `${impactPins.length} Projekte`}
-        </div>
-      </div>
+      {/* Echte Karte */}
+      <div ref={mapRef} style={{ flex: 1, zIndex: 1 }} />
 
       {/* Ausgewählter Wirker */}
       {selected && mapMode === "wirker" && (
-        <div style={{ background: "white", padding: "16px 20px 28px", borderTop: "1px solid #f0f0f0", flexShrink: 0, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}>
+        <div style={{ background: "white", padding: "16px 20px 32px", borderTop: "1px solid #f0f0f0", flexShrink: 0, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)", zIndex: 10 }}>
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 14 }}>
-            <img src={selected.img} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover" }} alt="" />
+            <img src={selected.img} style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover" }} alt="" />
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 17, color: "#222", display: "flex", alignItems: "center", gap: 6 }}>
-                {selected.name} <BadgeCheck size={16} color={TEAL} />
+              <div style={{ fontWeight: 800, fontSize: 16, color: "#222", display: "flex", alignItems: "center", gap: 6 }}>
+                {selected.name} <BadgeCheck size={15} color={TEAL} />
               </div>
-              <div style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>{selected.talent}</div>
-              <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>👍 {selected.empf} Empfehlungen · {selected.rate}</div>
+              <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 1 }}>{selected.talent}</div>
+              <div style={{ fontSize: 12, color: "#aaa", marginTop: 3 }}>👍 {selected.empf} Empfehlungen · {selected.rate}</div>
             </div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => { onViewWirker(selected.name); onClose(); }} style={{ flex: 1, background: "#f3f3f3", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "#333", cursor: "pointer" }}>
+            <button onClick={() => { onViewWirker(selected.name); onClose(); }}
+              style={{ flex: 1, background: "#f3f3f1", border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "#444", cursor: "pointer" }}>
               Profil ansehen
             </button>
             <button style={{ flex: 1, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "12px", fontWeight: 700, fontSize: 14, color: "white", cursor: "pointer" }}>
@@ -7245,17 +7297,17 @@ function KarteOverlay({ onClose, onViewWirker }) {
 
       {/* Ausgewähltes Impact-Projekt */}
       {selected && mapMode === "impact" && (
-        <div style={{ background: "white", padding: "16px 20px 28px", borderTop: `3px solid ${selected.color}`, flexShrink: 0, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}>
+        <div style={{ background: "white", padding: "16px 20px 32px", borderTop: `3px solid ${selected.color}`, flexShrink: 0, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)", zIndex: 10 }}>
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 10 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: selected.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
+            <div style={{ width: 50, height: 50, borderRadius: 14, background: selected.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
               {selected.category.split(" ")[0]}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>{selected.name}</div>
+              <div style={{ fontWeight: 800, fontSize: 15, color: "#222" }}>{selected.name}</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: selected.color, marginTop: 2 }}>{selected.category} · 📍 {selected.city}</div>
             </div>
-            <div style={{ background: selected.color + "18", borderRadius: 12, padding: "6px 12px", textAlign: "center", flexShrink: 0 }}>
-              <div style={{ fontWeight: 900, fontSize: 15, color: selected.color }}>{selected.awarded}</div>
+            <div style={{ background: selected.color + "15", borderRadius: 12, padding: "6px 12px", textAlign: "center", flexShrink: 0 }}>
+              <div style={{ fontWeight: 900, fontSize: 14, color: selected.color }}>{selected.awarded}</div>
               <div style={{ fontSize: 10, color: "#aaa", fontWeight: 600 }}>gefördert</div>
             </div>
           </div>
@@ -7267,7 +7319,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
 
       <style>{`
         @keyframes impactPulse {
-          0% { transform: scale(0.8); opacity: 0.8; }
+          0% { transform: scale(0.8); opacity: 0.6; }
           70% { transform: scale(2.2); opacity: 0; }
           100% { transform: scale(2.2); opacity: 0; }
         }
