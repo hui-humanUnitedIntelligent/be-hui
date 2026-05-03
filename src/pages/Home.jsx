@@ -53,7 +53,7 @@ const mockNotifications = [
     id: "n5", type: "nachricht", read: true, group: "Gestern",
     time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
     title: "Neue Nachricht",
-    text: 'Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"',
+    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
     actions: [{ label: "Antworten", style: "primary" }],
   },
@@ -68,7 +68,7 @@ const mockNotifications = [
     id: "n7", type: "abstimmung", read: true, group: "Gestern",
     time: "gestern 10:00", icon: "🗳️", color: "#10b981",
     title: "Impact-Abstimmung läuft!",
-    text: 'Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.',
+    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.",
     actions: [{ label: "Jetzt abstimmen", style: "primary" }],
   },
   // DIESE WOCHE
@@ -83,7 +83,7 @@ const mockNotifications = [
     id: "n9", type: "system", read: true, group: "Diese Woche",
     time: "vor 4 Tagen", icon: "🏆", color: "#F5A623",
     title: "Badge freigeschaltet",
-    text: 'Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!',
+    text: "Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
     actions: [],
   },
   {
@@ -1028,7 +1028,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1338,7 +1348,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -2056,7 +2066,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -3161,7 +3171,7 @@ function ChatListPage({ onOpenChat, onBack }) {
       {chats.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 24px" }}>
           <div style={{ fontSize: 56, marginBottom: 14 }}>💬</div>
-          <div style={{ fontWeight: 700, fontSize: 17, color: "#333", marginBottom: 6 }}>Noch keine Chats</div>
+          <div style={{ fontWeight: 800, fontSize: 17, color: "#333", marginBottom: 6 }}>Noch keine Chats</div>
           <div style={{ fontSize: 13, color: "#aaa" }}>Nach einer Buchung oder einem Kauf öffnet sich hier automatisch ein Chat.</div>
         </div>
       )}
@@ -4452,7 +4462,11 @@ function ImpactProjectDetail({ project: p, onClose }) {
                 </div>
               ))}
               {p.updates.length === 0 && (
-                <div style={{ textAlign: "center", color: "#ccc", padding: "30px 0", fontSize: 14 }}>Noch keine Updates vorhanden.</div>
+                <div style={{ textAlign: "center", padding: "36px 20px" }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🌱</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#ccc", marginBottom: 6 }}>Noch keine Updates</div>
+          <div style={{ fontSize: 12, color: "#ddd", lineHeight: 1.6 }}>Sobald dein Impact Pool wächst, erscheinen hier die Neuigkeiten der geförderten Projekte.</div>
+        </div>
               )}
             </div>
           )}
@@ -4528,7 +4542,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
-      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.\n\nMit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.\n\nJedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
+
+Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
+
+Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4537,7 +4555,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
-      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.\n\nGreen Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.\n\nMit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
+
+Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
+
+Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4546,7 +4568,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
-      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.\n\nDas Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.\n\nJede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
+
+Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
+
+Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
@@ -5186,11 +5212,16 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
     { id: "impact", label: "Impact", count: favImpact.length, icon: "🌱" },
   ];
 
-  const EmptyState = ({ icon, label, sub }) => (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "56px 24px", textAlign: "center" }}>
-      <div style={{ fontSize: 56, marginBottom: 14 }}>{icon}</div>
-      <div style={{ fontWeight: 700, fontSize: 17, color: "#333", marginBottom: 8 }}>{label}</div>
-      <div style={{ color: "#aaa", fontSize: 13, lineHeight: 1.6, maxWidth: 260 }}>{sub}</div>
+  const EmptyState = ({ icon, label, sub, action, actionLabel }) => (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "52px 28px", textAlign: "center" }}>
+      <div style={{ width: 80, height: 80, borderRadius: 24, background: "#f5f5f3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, marginBottom: 16, boxShadow: "inset 0 2px 8px rgba(0,0,0,0.05)" }}>{icon}</div>
+      <div style={{ fontWeight: 800, fontSize: 16, color: "#333", marginBottom: 8 }}>{label}</div>
+      <div style={{ color: "#bbb", fontSize: 13, lineHeight: 1.65, maxWidth: 240 }}>{sub}</div>
+      {action && (
+        <button onClick={action} style={{ marginTop: 18, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "12px 24px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+          {actionLabel}
+        </button>
+      )}
     </div>
   );
 
@@ -5224,7 +5255,7 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
       {tab === "wirker" && (
         <div style={{ padding: "10px 0" }}>
           {favWirker.length === 0
-            ? <EmptyState icon="✨" label="Noch keine Wirker gespeichert" sub="Tippe auf ⭐ im Profil eines Talents um es hier zu speichern" />
+            ? <EmptyState icon="✨" label="Noch keine Talente gespeichert" sub="Tippe auf ⭐ im Profil eines Talents um es hier zu speichern" />
             : mockFavWirker.filter(w => favWirker.includes(w.id)).map(w => (
               <div key={w.id} style={{ background: "white", margin: "0 0 8px", padding: "14px 16px", borderLeft: `4px solid ${TEAL}` }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -5309,7 +5340,7 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
       {tab === "impact" && (
         <div style={{ padding: "10px 0" }}>
           {favImpact.length === 0
-            ? <EmptyState icon="🌱" label="Noch keine Impact-Projekte gespeichert" sub="Entdecke Projekte die dir am Herzen liegen und speichere sie hier" />
+            ? <EmptyState icon="🌱" label="Noch keine Projekte gespeichert" sub="Entdecke Impact-Projekte und speichere sie hier — sie liegen dir am Herzen" />
             : mockFavImpact.filter(i => favImpact.includes(i.id)).map(proj => (
               <div key={proj.id} style={{ background: "white", margin: "0 0 8px", overflow: "hidden", borderLeft: `4px solid ${GOLD}` }}>
                 <div style={{ position: "relative" }}>
@@ -6132,11 +6163,14 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           <div>
             <div style={{ fontWeight: 900, fontSize: 22, color: "#1a1a1a", letterSpacing: -0.3 }}>
               Lars M.
-              {!isNewUser && <span style={{ marginLeft: 8, background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "3px 9px", verticalAlign: "middle" }}>Talent</span>}
+              {!isNewUser && <span style={{ marginLeft: 8, background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "3px 9px", verticalAlign: "middle" }}>Wirker</span>}
             </div>
-            {!isNewUser && <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 2 }}>Keramik-Künstlerin</div>}
-            <div style={{ fontSize: 12, color: "#aaa", display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
-              <MapPin size={11} /> München · Mitglied seit März 2024
+            {!isNewUser
+              ? <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 2 }}>Keramik-Künstler · München</div>
+              : <div style={{ fontSize: 13, color: "#aaa", fontWeight: 500, marginTop: 2 }}>Mitglied der HUI Community</div>
+            }
+            <div style={{ fontSize: 12, color: "#bbb", display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+              <MapPin size={11} /> München · dabei seit März 2024
             </div>
           </div>
           <button onClick={() => { setActiveSection("editProfile"); setEditTab("basis"); }}
@@ -6145,18 +6179,19 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           </button>
         </div>
 
-        {/* Stats Zeile — nur für Talente */}
-        {!isNewUser && (
-          <div style={{ display: "flex", gap: 0, marginTop: 18, paddingTop: 16, borderTop: "1px solid #f0f0ee" }}>
-            {[["41", "Buchungen", null], ["34", "Empfehl.", null], ["218", "Follower", null], ["47 €", "Impact 🌱", () => setShowImpactTracker(true)]].map(([v, l, action], i, arr) => (
-              <div key={l} onClick={action || undefined}
-                style={{ flex: 1, textAlign: "center", cursor: action ? "pointer" : "default", borderRight: i < arr.length - 1 ? "1px solid #f0f0ee" : "none", padding: "0 4px" }}>
-                <div style={{ fontWeight: 900, fontSize: 17, color: action ? TEAL : "#1a1a1a" }}>{v}</div>
-                <div style={{ fontSize: 10, color: action ? TEAL : "#aaa", marginTop: 2, fontWeight: action ? 700 : 400 }}>{l}</div>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Stats Zeile */}
+        <div style={{ display: "flex", gap: 0, marginTop: 18, paddingTop: 16, borderTop: "1px solid #f0f0ee" }}>
+          {(isNewUser
+            ? [["0", "Buchungen", null], ["0", "Empfehl.", null], ["0,00 €", "Impact 🌱", () => setShowImpactTracker(true)]]
+            : [["41", "Buchungen", null], ["34", "Empfehl.", null], ["218", "Follower", null], ["47 €", "Impact 🌱", () => setShowImpactTracker(true)]]
+          ).map(([v, l, action], i, arr) => (
+            <div key={l} onClick={action || undefined}
+              style={{ flex: 1, textAlign: "center", cursor: action ? "pointer" : "default", borderRight: i < arr.length - 1 ? "1px solid #f0f0ee" : "none", padding: "0 4px" }}>
+              <div style={{ fontWeight: 900, fontSize: 17, color: action ? TEAL : (v === "0" || v === "0,00 €" ? "#ccc" : "#1a1a1a") }}>{v}</div>
+              <div style={{ fontSize: 10, color: action ? TEAL : "#aaa", marginTop: 2, fontWeight: action ? 700 : 400 }}>{l}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* HUI-PUNKTE BANNER */}
@@ -6208,17 +6243,48 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
         )}
       </div>
 
-      {/* CTA für neue Nutzer */}
+      {/* Talent CTA — nur wenn noch kein Talent */}
       {isNewUser && (
-        <div style={{ margin: "0 16px 10px", background: `linear-gradient(135deg, ${CORAL}10, ${GOLD}08)`, border: `1.5px solid ${CORAL}20`, borderRadius: 18, padding: "18px" }}>
-          <div style={{ fontWeight: 800, fontSize: 16, color: "#1a1a1a", marginBottom: 6 }}>Werde Teil der Community 🤝</div>
-          <div style={{ fontSize: 13, color: "#888", lineHeight: 1.65, marginBottom: 14 }}>
-            Biete dein Talent an — nur echte Menschen, kein Algorithmus entscheidet.
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, padding: "18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: `${GOLD}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🌟</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: 14, color: "#1a1a1a", marginBottom: 3 }}>Hast du ein Talent zu teilen?</div>
+              <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.5 }}>Werde Wirker — biete deine Fähigkeiten an und verdiene.</div>
+            </div>
           </div>
           <button onClick={onTalentAnbieten}
-            style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-            🚀 Jetzt Talent werden
+            style={{ width: "100%", marginTop: 14, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+            Talent anbieten →
           </button>
+        </div>
+      )}
+
+      {/* Meine Buchungen — für Kunden */}
+      {isNewUser && (
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid #f5f5f3" }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>📅 Meine Buchungen</div>
+          </div>
+          <div style={{ padding: "28px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>📭</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#555", marginBottom: 4 }}>Noch keine Buchungen</div>
+            <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.6 }}>Buche ein Talent im Feed — deine Buchungen erscheinen dann hier</div>
+          </div>
+        </div>
+      )}
+
+      {/* Meine Empfehlungen — für Kunden */}
+      {isNewUser && (
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid #f5f5f3" }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>👍 Meine Empfehlungen</div>
+          </div>
+          <div style={{ padding: "28px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>✨</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#555", marginBottom: 4 }}>Noch keine Empfehlungen</div>
+            <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.6 }}>Nach Abschluss einer Buchung kannst du das Talent weiterempfehlen — das macht den Unterschied.</div>
+          </div>
         </div>
       )}
 
