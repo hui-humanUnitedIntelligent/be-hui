@@ -16,14 +16,84 @@ function getWirkerBadge(recommendations) {
 
 // ─── NOTIFICATIONS ──────────────────────────────────────────────────────────
 const mockNotifications = [
-  { id: "n1", type: "empfehlung", read: false, time: "vor 2 Min.", title: "Neue Empfehlung 👍", text: "Jemand hat dich nach einem Töpfer-Workshop weiterempfohlen. Dein Geld wurde freigegeben.", icon: "👍", color: "#2ABFAC" },
-  { id: "n2", type: "buchung", read: false, time: "vor 18 Min.", title: "Neue Buchungsanfrage 📅", text: "Marcus B. möchte einen Fotoshooting-Termin mit dir buchen – Di, 28. April um 14:00 Uhr.", icon: "📅", color: "#FF6B5B" },
-  { id: "n3", type: "treuhand", read: false, time: "vor 1 Std.", title: "Treuhand freigegeben 🔓", text: "75 € wurden nach deiner Empfehlung an Sofia M. überwiesen.", icon: "🔓", color: "#F5A623" },
-  { id: "n4", type: "impact", read: true, time: "vor 3 Std.", title: "Impact Pool Beitrag 🌱", text: "Durch deine letzte Buchung flossen 2,25 € in den HUI Impact Pool (15% unserer Provision). Danke!", icon: "🌱", color: "#10b981" },
-  { id: "n5", type: "follower", read: true, time: "gestern", title: "Neuer Follower ✨", text: "Anna K. folgt jetzt deinem Profil.", icon: "✨", color: "#8b5cf6" },
-  { id: "n6", type: "system", read: true, time: "gestern", title: "Profil geprüft ✅", text: "Dein Talent-Profil wurde erfolgreich verifiziert. Du bist jetzt als Wirker sichtbar.", icon: "✅", color: "#2ABFAC" },
-  { id: "n7", type: "empfehlung", read: true, time: "vor 2 Tagen", title: "Empfehlung auf deinem Profil", text: "Lena K. hat nach ihrer Aquarell-Bestellung eine Empfehlung hinterlassen.", icon: "👍", color: "#2ABFAC" },
-  { id: "n8", type: "buchung", read: true, time: "vor 3 Tagen", title: "Buchung bestätigt", text: "Dein Yoga-Workshop mit Maria L. am 25. April wurde bestätigt. 90 € im Treuhand.", icon: "📅", color: "#FF6B5B" },
+  // HEUTE
+  {
+    id: "n1", type: "buchung", read: false, group: "Heute",
+    time: "vor 2 Min.", icon: "📅", color: "#FF6B5B",
+    title: "Neue Buchungsanfrage",
+    text: "Marcus B. möchte einen Fotoshooting-Termin – Di, 5. Mai um 14:00 Uhr.",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop",
+    actions: [{ label: "Annehmen", style: "primary" }, { label: "Ablehnen", style: "danger" }],
+  },
+  {
+    id: "n2", type: "treuhand", read: false, group: "Heute",
+    time: "vor 45 Min.", icon: "🔓", color: "#F5A623",
+    title: "Treuhand freigegeben",
+    text: "Sofia M. hat ihre Keramik-Bestellung bestätigt — 75 € wurden dir ausgezahlt.",
+    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop",
+    actions: [{ label: "Details ansehen", style: "ghost" }],
+  },
+  {
+    id: "n3", type: "empfehlung", read: false, group: "Heute",
+    time: "vor 2 Std.", icon: "👍", color: "#2ABFAC",
+    title: "Neue Empfehlung erhalten",
+    text: "Lena K. hat dich nach dem Töpfer-Workshop weiterempfohlen und einen Kommentar hinterlassen.",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop",
+    actions: [{ label: "Empfehlung ansehen", style: "ghost" }],
+  },
+  {
+    id: "n4", type: "impact", read: false, group: "Heute",
+    time: "vor 3 Std.", icon: "🌱", color: "#10b981",
+    title: "Dein Impact wächst",
+    text: "Durch deine letzte Buchung flossen 2,25 € in den HUI Impact Pool. Insgesamt hast du schon 47,25 € bewegt! 💚",
+    actions: [{ label: "Impact ansehen", style: "ghost" }],
+  },
+  // GESTERN
+  {
+    id: "n5", type: "nachricht", read: true, group: "Gestern",
+    time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
+    title: "Neue Nachricht",
+    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
+    actions: [{ label: "Antworten", style: "primary" }],
+  },
+  {
+    id: "n6", type: "follower", read: true, group: "Gestern",
+    time: "gestern 14:10", icon: "✨", color: "#8b5cf6",
+    title: "3 neue Follower",
+    text: "Anna K., Tom H. und eine weitere Person folgen jetzt deinem Profil.",
+    actions: [{ label: "Profil ansehen", style: "ghost" }],
+  },
+  {
+    id: "n7", type: "abstimmung", read: true, group: "Gestern",
+    time: "gestern 10:00", icon: "🗳️", color: "#10b981",
+    title: "Impact-Abstimmung läuft!",
+    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.",
+    actions: [{ label: "Jetzt abstimmen", style: "primary" }],
+  },
+  // DIESE WOCHE
+  {
+    id: "n8", type: "buchung", read: true, group: "Diese Woche",
+    time: "vor 3 Tagen", icon: "✅", color: "#FF6B5B",
+    title: "Buchung abgeschlossen",
+    text: "Dein Yoga-Workshop mit Maria L. am 30. April ist abgeschlossen. Bitte gib eine Empfehlung ab!",
+    actions: [{ label: "Empfehlung abgeben", style: "primary" }],
+  },
+  {
+    id: "n9", type: "system", read: true, group: "Diese Woche",
+    time: "vor 4 Tagen", icon: "🏆", color: "#F5A623",
+    title: "Badge freigeschaltet",
+    text: "Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
+    actions: [],
+  },
+  {
+    id: "n10", type: "empfehlung", read: true, group: "Diese Woche",
+    time: "vor 5 Tagen", icon: "👍", color: "#2ABFAC",
+    title: "Empfehlung auf deinem Profil",
+    text: "Jan W. hat nach seinem Musik-Workshop eine Empfehlung mit Foto hinterlassen.",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop",
+    actions: [{ label: "Ansehen", style: "ghost" }],
+  },
 ];
 
 // ─── HUI-PUNKTE DATEN ────────────────────────────────────────────────────────
@@ -958,7 +1028,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1268,7 +1348,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -2174,73 +2254,161 @@ function HuiPunktePage({ onClose }) {
 
 function NotificationsOverlay({ onClose }) {
   const [notifs, setNotifs] = React.useState(mockNotifications);
-  const unreadCount = notifs.filter(n => !n.read).length;
+  const [activeFilter, setActiveFilter] = React.useState("alle");
+  const [dismissed, setDismissed] = React.useState({});
 
+  const unreadCount = notifs.filter(n => !n.read).length;
   const markAllRead = () => setNotifs(n => n.map(x => ({ ...x, read: true })));
   const markRead = (id) => setNotifs(n => n.map(x => x.id === id ? { ...x, read: true } : x));
+  const dismiss = (id, e) => { e.stopPropagation(); setDismissed(d => ({ ...d, [id]: true })); };
+  const handleAction = (n, action, e) => { e.stopPropagation(); markRead(n.id); };
 
   const filterTabs = [
-    { id: "alle", label: "Alle" },
-    { id: "buchung", label: "Buchungen" },
-    { id: "empfehlung", label: "Empfehlungen" },
-    { id: "treuhand", label: "Treuhand" },
-    { id: "impact", label: "Impact" },
+    { id: "alle", label: "Alle", emoji: "" },
+    { id: "buchung", label: "Buchungen", emoji: "📅" },
+    { id: "empfehlung", label: "Empfehlungen", emoji: "👍" },
+    { id: "nachricht", label: "Nachrichten", emoji: "💬" },
+    { id: "impact", label: "Impact", emoji: "🌱" },
   ];
-  const [activeFilter, setActiveFilter] = React.useState("alle");
-  const filtered = activeFilter === "alle" ? notifs : notifs.filter(n => n.type === activeFilter);
+
+  const visible = notifs.filter(n => !dismissed[n.id] && (activeFilter === "alle" || n.type === activeFilter));
+
+  // Gruppieren nach group
+  const groups = ["Heute", "Gestern", "Diese Woche"];
+  const grouped = groups.map(g => ({ label: g, items: visible.filter(n => n.group === g) })).filter(g => g.items.length > 0);
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#f7f7f5", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#f7f7f5", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+
       {/* Header */}
       <div style={{ background: "white", padding: "16px 16px 0", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-              <ArrowLeft size={22} color="#444" />
+              <ArrowLeft size={20} color="#444" />
             </button>
-            <div>
-              <span style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>Benachrichtigungen</span>
-              {unreadCount > 0 && <span style={{ marginLeft: 8, background: CORAL, color: "white", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{unreadCount} neu</span>}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontWeight: 900, fontSize: 19, color: "#1a1a1a" }}>Benachrichtigungen</span>
+              {unreadCount > 0 && (
+                <span style={{ background: CORAL, color: "white", borderRadius: 20, padding: "2px 9px", fontSize: 11, fontWeight: 800 }}>{unreadCount} neu</span>
+              )}
             </div>
           </div>
           {unreadCount > 0 && (
-            <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TEAL, fontWeight: 700 }}>Alle gelesen</button>
+            <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TEAL, fontWeight: 700, padding: "4px 0" }}>
+              Alle gelesen
+            </button>
           )}
         </div>
-        {/* Filter Tabs */}
-        <div style={{ display: "flex", gap: 0, overflowX: "auto", paddingBottom: 0 }}>
-          {filterTabs.map(t => (
-            <button key={t.id} onClick={() => setActiveFilter(t.id)} style={{ background: "none", border: "none", borderBottom: activeFilter === t.id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "8px 14px", fontWeight: activeFilter === t.id ? 700 : 500, fontSize: 13, color: activeFilter === t.id ? CORAL : "#aaa", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-              {t.label}
-            </button>
-          ))}
+
+        {/* Filter Chips */}
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" }}>
+          {filterTabs.map(t => {
+            const active = activeFilter === t.id;
+            return (
+              <button key={t.id} onClick={() => setActiveFilter(t.id)} style={{
+                flexShrink: 0, border: "none", borderRadius: 20,
+                padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                background: active ? "#1a1a1a" : "#f3f3f1",
+                color: active ? "white" : "#888",
+                transition: "all 0.15s",
+              }}>
+                {t.emoji ? `${t.emoji} ${t.label}` : t.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Liste */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
-        {filtered.length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px 24px", color: "#bbb" }}>
-            <Bell size={40} color="#ddd" style={{ marginBottom: 12 }} />
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#ccc" }}>Keine Benachrichtigungen</div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "8px 14px 24px" }}>
+        {visible.length === 0 && (
+          <div style={{ textAlign: "center", padding: "70px 24px", color: "#ccc" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🔔</div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: "#ccc", marginBottom: 6 }}>Alles erledigt!</div>
+            <div style={{ fontSize: 13, color: "#ddd" }}>Keine neuen Benachrichtigungen</div>
           </div>
         )}
-        {filtered.map(n => (
-          <div key={n.id} onClick={() => markRead(n.id)} style={{ background: n.read ? "white" : `${n.color}08`, border: `1px solid ${n.read ? "#f0f0f0" : n.color + "30"}`, borderRadius: 16, padding: "14px 16px", marginBottom: 10, cursor: "pointer", display: "flex", gap: 13, alignItems: "flex-start", position: "relative" }}>
-            {/* Icon */}
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: n.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-              {n.icon}
+
+        {grouped.map(({ label, items }) => (
+          <div key={label}>
+            {/* Gruppen-Header */}
+            <div style={{ fontSize: 11, fontWeight: 800, color: "#bbb", textTransform: "uppercase", letterSpacing: 1, padding: "12px 2px 8px" }}>
+              {label}
             </div>
-            {/* Content */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
-                <div style={{ fontWeight: n.read ? 600 : 800, fontSize: 13, color: "#222", lineHeight: 1.3 }}>{n.title}</div>
-                <div style={{ fontSize: 10, color: "#bbb", whiteSpace: "nowrap", marginLeft: 8, marginTop: 1 }}>{n.time}</div>
+
+            {items.map(n => (
+              <div key={n.id} onClick={() => markRead(n.id)}
+                style={{
+                  background: n.read ? "white" : `${n.color}08`,
+                  border: `1px solid ${n.read ? "#efefed" : n.color + "28"}`,
+                  borderRadius: 18,
+                  marginBottom: 8,
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  boxShadow: n.read ? "none" : `0 2px 12px ${n.color}14`,
+                }}>
+
+                {/* Main row */}
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "13px 14px 10px", position: "relative" }}>
+                  {/* Avatar or Icon */}
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    {n.avatar ? (
+                      <>
+                        <img src={n.avatar} alt="" style={{ width: 44, height: 44, borderRadius: 14, objectFit: "cover" }} />
+                        <div style={{ position: "absolute", bottom: -2, right: -2, width: 20, height: 20, borderRadius: "50%", background: n.color, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>
+                          {n.icon}
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ width: 44, height: 44, borderRadius: 14, background: n.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
+                        {n.icon}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 3 }}>
+                      <div style={{ fontWeight: n.read ? 600 : 800, fontSize: 13, color: "#1a1a1a", lineHeight: 1.3 }}>{n.title}</div>
+                      <div style={{ fontSize: 10, color: "#bbb", whiteSpace: "nowrap", flexShrink: 0 }}>{n.time}</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: n.read ? "#888" : "#555", lineHeight: 1.6 }}>{n.text}</div>
+                  </div>
+
+                  {/* Unread dot */}
+                  {!n.read && (
+                    <div style={{ position: "absolute", top: 14, right: 14, width: 8, height: 8, borderRadius: "50%", background: n.color }} />
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                {n.actions && n.actions.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, padding: "0 14px 13px" }}>
+                    {n.actions.map((a, i) => (
+                      <button key={i} onClick={e => handleAction(n, a, e)} style={{
+                        flex: a.style === "primary" ? 2 : 1,
+                        padding: "9px 12px",
+                        border: a.style === "ghost" ? "1.5px solid #e8e8e8" : "none",
+                        borderRadius: 12,
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: "pointer",
+                        background: a.style === "primary" ? n.color : a.style === "danger" ? "#fee2e2" : "white",
+                        color: a.style === "primary" ? "white" : a.style === "danger" ? "#ef4444" : "#555",
+                        transition: "opacity 0.15s",
+                      }}>
+                        {a.label}
+                      </button>
+                    ))}
+                    <button onClick={e => dismiss(n.id, e)} style={{ padding: "9px 10px", border: "1.5px solid #eee", borderRadius: 12, background: "white", cursor: "pointer", fontSize: 12, color: "#ccc", fontWeight: 600 }}>
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
-              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>{n.text}</div>
-            </div>
-            {/* Unread dot */}
-            {!n.read && <div style={{ position: "absolute", top: 14, right: 14, width: 8, height: 8, borderRadius: "50%", background: CORAL }} />}
+            ))}
           </div>
         ))}
       </div>
