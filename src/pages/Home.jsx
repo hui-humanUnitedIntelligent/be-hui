@@ -3,6 +3,29 @@ import React, { useState, useEffect, useRef } from "react";
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "@/api/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
+
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  componentDidCatch(error, info) { console.error("HUI CRASH:", error, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 32, fontFamily: "monospace", fontSize: 13 }}>
+          <div style={{ fontWeight: 700, color: "red", marginBottom: 12 }}>💥 HUI Crash gefangen:</div>
+          <pre style={{ background: "#f5f5f5", padding: 16, borderRadius: 8, overflow: "auto", whiteSpace: "pre-wrap" }}>
+            {this.state.error?.message}
+          </pre>
+          <pre style={{ background: "#f5f5f5", padding: 16, borderRadius: 8, overflow: "auto", whiteSpace: "pre-wrap", marginTop: 8, fontSize: 11 }}>
+            {this.state.error?.stack?.slice(0, 800)}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
 const GOLD = "#F5A623";
@@ -7537,7 +7560,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
   );
 }
 
-export default function App() {
+function AppInner() {
   // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
 
   // Auth state
@@ -7991,5 +8014,13 @@ export default function App() {
         ::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppInner />
+    </ErrorBoundary>
   );
 }
