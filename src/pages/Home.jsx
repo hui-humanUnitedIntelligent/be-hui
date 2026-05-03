@@ -1,11 +1,137 @@
 // HUI App v3.0-LIVE
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "@/api/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
 const GOLD = "#F5A623";
+
+// ─── MISSING HELPER COMPONENTS ──────────────────────────────────────────────
+
+function Section({ id, title, icon, children }) {
+  return (
+    <div style={{ borderBottom: "1px solid #f5f5f5", padding: "14px 0" }}>
+      <div style={{ fontWeight: 700, fontSize: 13, color: "#555", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+        <span>{icon}</span>{title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Chip({ label, icon, active, onClick }) {
+  const CORAL = "#FF6B5B", TEAL = "#2ABFAC";
+  return (
+    <button onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 5,
+      padding: "7px 13px", borderRadius: 20,
+      border: active ? `1.5px solid ${CORAL}` : "1.5px solid #e8e8e8",
+      background: active ? `${CORAL}12` : "white",
+      color: active ? CORAL : "#555",
+      fontWeight: active ? 700 : 400,
+      fontSize: 13, cursor: "pointer"
+    }}>
+      {icon && <span>{icon}</span>}{label}
+    </button>
+  );
+}
+
+function FinalCard({ cardKey, emoji, label, sub, color, bg, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      background: bg || "#f5f5f5", border: `1.5px solid ${color || "#eee"}`,
+      borderRadius: 16, padding: "16px 12px",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      gap: 6, cursor: "pointer", width: "100%"
+    }}>
+      <span style={{ fontSize: 28 }}>{emoji}</span>
+      <span style={{ fontWeight: 800, fontSize: 13, color: color || "#222" }}>{label}</span>
+      <span style={{ fontSize: 11, color: "#888" }}>{sub}</span>
+    </button>
+  );
+}
+
+function Input({ label, value, onChange, placeholder, type = "text", multiline }) {
+  const baseStyle = {
+    width: "100%", padding: "11px 14px", borderRadius: 12,
+    border: "1.5px solid #e8e8e8", fontSize: 14, outline: "none",
+    fontFamily: "inherit", background: "#fafaf8", color: "#222"
+  };
+  return (
+    <div style={{ marginBottom: 12 }}>
+      {label && <div style={{ fontSize: 12, fontWeight: 600, color: "#777", marginBottom: 5 }}>{label}</div>}
+      {multiline
+        ? <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3}
+            style={{ ...baseStyle, resize: "none" }} />
+        : <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+            style={baseStyle} />
+      }
+    </div>
+  );
+}
+
+function EmptyState({ icon, label, sub }) {
+  return (
+    <div style={{ textAlign: "center", padding: "48px 24px" }}>
+      <div style={{ fontSize: 44, marginBottom: 12 }}>{icon}</div>
+      <div style={{ fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 6 }}>{label}</div>
+      {sub && <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.5 }}>{sub}</div>}
+    </div>
+  );
+}
+
+function SectionHeader({ title, onBack }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 0 12px", borderBottom: "1px solid #f0f0f0", marginBottom: 8 }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span style={{ fontWeight: 800, fontSize: 17, color: "#1a1a1a" }}>{title}</span>
+    </div>
+  );
+}
+
+function ToggleRow({ label, sub, value, onToggle }) {
+  const TEAL = "#2ABFAC";
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderBottom: "1px solid #f5f5f5" }}>
+      <div>
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{label}</div>
+        {sub && <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{sub}</div>}
+      </div>
+      <button onClick={onToggle} style={{
+        width: 44, height: 24, borderRadius: 12,
+        background: value ? TEAL : "#ddd",
+        border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s"
+      }}>
+        <div style={{
+          width: 18, height: 18, borderRadius: "50%", background: "white",
+          position: "absolute", top: 3, left: value ? 23 : 3, transition: "left 0.2s"
+        }} />
+      </button>
+    </div>
+  );
+}
+
+function MenuRow({ icon, label, sub, color, onClick, danger }) {
+  return (
+    <button onClick={onClick} style={{
+      width: "100%", display: "flex", alignItems: "center", gap: 13,
+      padding: "14px 0", borderBottom: "1px solid #f5f5f5",
+      background: "none", border: "none", cursor: "pointer", textAlign: "left"
+    }}>
+      <span style={{ fontSize: 20, width: 28, textAlign: "center" }}>{icon}</span>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, color: danger ? "#ef4444" : color || "#222" }}>{label}</div>
+        {sub && <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>{sub}</div>}
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  );
+}
+
+
 
 function getWirkerBadge(recommendations) {
   if (recommendations >= 50) return { label: "✨ Community Liebling", color: "#8B5CF6" };
@@ -53,7 +179,7 @@ const mockNotifications = [
     id: "n5", type: "nachricht", read: true, group: "Gestern",
     time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
     title: "Neue Nachricht",
-    text: "Maria L.: \u201eSuperl, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘\u201c",
+    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
     actions: [{ label: "Antworten", style: "primary" }],
   },
@@ -217,7 +343,7 @@ const mockWirkerProfiles = {
       { title: "4er-Paket Yoga", img: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=300&h=300&fit=crop", price: "250 €", shipping: "0 €", shippingNote: "Online per Video-Call" },
       { title: "Achtsamkeits-Workshop", img: "https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=300&h=300&fit=crop", price: "120 €", shipping: "0 €", shippingNote: "Online per Video-Call" },
     ],
-  },
+  },,
   "Tom H.": {
     name: "Tom H.", fullName: "Tom Hartmann",
     talent: "Leder-Handwerker",
@@ -1346,7 +1472,10 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [tab, setTab] = useState("werke");
   const [followed, setFollowed] = useState(false);
-  // Sync wird nach Laden des Profils in loadWirker() gesetzt
+  // Sync mit globalem following State
+  React.useEffect(() => {
+    if (following && profile) setFollowed(following.has(profile.name));
+  }, [following, profile]);
   const [showBooking, setShowBooking] = useState(!!autoBook);
   const [showAvailEditor, setShowAvailEditor] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
@@ -1408,19 +1537,19 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
     recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || p.impactEur || 0,
+    impactEur: p.impact_eur || profile.impactEur || 0,
     bio: p.bio || "",
     img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: p.empfehlungen || [],
-    pricePerHour: p.hourly_rate || p.pricePerHour || 0,
+    empfehlungen: profile.empfehlungen || [],
+    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
   };
 
   return (
@@ -2126,7 +2255,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -2789,7 +2918,7 @@ function StoryBar({ onStoryClick }) {
     </div>
   );
 }
-function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser, following, toggleFollow }) {
+function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
   const [muted, setMuted] = React.useState(true);
   const videoRef = React.useRef(null);
   const containerRef = React.useRef(null);
@@ -4424,7 +4553,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4607,7 +4736,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
-      story: `In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.\n\nMit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.\n\nJedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.`,
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
+
+Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
+
+Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4616,7 +4749,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
-      story: `Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.\n\nGreen Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.\n\nMit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.`,
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
+
+Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
+
+Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4625,7 +4762,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
-      story: `150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.\n\nDas Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.\n\nJede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.`,
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
+
+Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
+
+Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
@@ -5623,7 +5764,9 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} color="#ccc" /></button>
         </div>
-        <ProgressBar />
+        <div style={{ height: 4, background: "#f0f0f0", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: "100%", width: `${stepConfig[step] ? Math.round(step / (stepConfig.length - 1) * 100) : 0}%`, background: "linear-gradient(90deg, " + TEAL + ", " + CORAL + ")", borderRadius: 2, transition: "width 0.3s" }} />
+        </div>
       </div>
 
       {/* Content */}
@@ -7742,7 +7885,7 @@ export default function App() {
       {page === "chats" && (
         openChat
           ? <ChatDetailPage chat={typeof openChat === "object" ? openChat : mockChats.find(c => c.wirker === openChat) || mockChats[0]} onBack={() => setOpenChat(null)} />
-          : <ChatListPage onOpenChat={setOpenChat} onBack={() => setPage("home")} />
+          : <ChatListPage onOpenChat={setOpenChat} />
       )}
 
       {/* ── PROFIL ── */}
@@ -7760,7 +7903,7 @@ export default function App() {
 
       {/* ── TAB BAR ── */}
       {!detailView && (
-        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} isNewUser={isNewUser} onPlusClick={() => setShowCreateSheet(true)} />
+        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} />
       )}
 
       {/* ── OVERLAYS ── */}
