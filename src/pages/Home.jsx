@@ -1487,8 +1487,9 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
   const [followed, setFollowed] = useState(false);
   // Sync mit globalem following State
   React.useEffect(() => {
-    if (following && profile) setFollowed(following.has(profile.name));
-  }, [following, profile]);
+    const name = dbWirker?.name || wirkerName;
+    if (following && name) setFollowed(following.has(name));
+  }, [following, dbWirker, wirkerName]);
   const [showBooking, setShowBooking] = useState(!!autoBook);
   const [showAvailEditor, setShowAvailEditor] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
@@ -1550,7 +1551,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `\${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -7906,7 +7907,7 @@ function AppInner() {
 
       {/* ── TAB BAR ── */}
       {!detailView && (
-        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} />
+        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} isNewUser={isNewUser} onPlusClick={() => setShowCreateSheet(true)} />
       )}
 
       {/* ── OVERLAYS ── */}
