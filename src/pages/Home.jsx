@@ -2711,7 +2711,7 @@ function StoryBar({ onStoryClick }) {
   return (
     <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "12px 16px 8px" }}>
       {mockStories.map((s, idx) => (
-        <div key={s.id} onClick={() => onStoryClick && onStoryClick(idx)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 58, cursor: "pointer" }}>
+        <div key={s.id} onClick={() => onStoryClick && onStoryClick(s)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 58, cursor: "pointer" }}>
           <div style={{ width: 54, height: 54, borderRadius: "50%", background: s.hasNew ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "transparent", padding: s.hasNew ? 2.5 : 0, border: s.hasNew ? "none" : "2.5px solid #e0e0e0" }}>
             <div style={{ borderRadius: "50%", overflow: "hidden", width: "100%", height: "100%", border: s.hasNew ? "2px solid white" : "none" }}>
               <img src={s.img} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} alt={s.name} />
@@ -7745,18 +7745,13 @@ export default function App() {
       )}
 
       {/* ── STORY VIEWER ── */}
-      {storyViewer !== null && storyViewer.story && (
-        <StoryViewer
-          stories={storyViewer.story.slides.map(slide => ({
-            ...slide,
-            name: storyViewer.story.name,
-            creatorImg: storyViewer.story.img,
-          }))}
-          startIndex={storyViewer.startIndex || 0}
-          onClose={() => setStoryViewer(null)}
-          onCreateNew={() => { setStoryViewer(null); setShowStoryCreate(true); }}
-        />
-      )}
+      {storyViewer !== null && storyViewer.story && (() => {
+        const s = storyViewer.story;
+        const slides = s.slides
+          ? s.slides.map(sl => ({ ...sl, name: s.name, creatorImg: s.img }))
+          : [{ img: s.img, text: s.text || s.name, label: "Story", type: "foto", time: "Jetzt", views: 0, likes: 0, name: s.name, creatorImg: s.img }];
+        return <StoryViewer stories={slides} startIndex={storyViewer.startIndex || 0} onClose={() => setStoryViewer(null)} onCreateNew={() => { setStoryViewer(null); setShowStoryCreate(true); }} />;
+      })()}
 
       {/* ── TOAST ── */}
       {toast && (
