@@ -83,7 +83,7 @@ const mockNotifications = [
     id: "n9", type: "system", read: true, group: "Diese Woche",
     time: "vor 4 Tagen", icon: "🏆", color: "#F5A623",
     title: "Badge freigeschaltet",
-    text: "Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
+    text: "Du hast das Badge \u201eTop Wirker\u201c erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
     actions: [],
   },
   {
@@ -1028,7 +1028,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{"@keyframes heartPop {
+            <style>{`@keyframes heartPop {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.45); }
   70%  { transform: scale(0.9); }
@@ -1038,7 +1038,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-@keyframes spin { to { transform: rotate(360deg); } }"}</style>
+@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
