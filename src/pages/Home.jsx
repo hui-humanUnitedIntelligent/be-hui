@@ -958,7 +958,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop {
+            <style>{"@keyframes heartPop {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.45); }
   70%  { transform: scale(0.9); }
@@ -968,7 +968,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1278,7 +1278,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -1996,7 +1996,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -2287,17 +2287,23 @@ function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
 }
 function SearchBar({ onClick, onKarteClick, onMatchClick }) {
   return (
-    <div style={{ background: "white", padding: "8px 16px 10px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0", display: "flex", gap: 8 }}>
-      <div onClick={onClick} style={{ flex: 1, background: "#f3f3f3", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-        <Search size={16} color="#aaa" />
-        <span style={{ color: "#bbb", fontSize: 14, flex: 1 }}>Suche nach Talent, Werk, Name…</span>
-        <div style={{ background: `${TEAL}18`, borderRadius: 8, padding: "3px 8px", display: "flex", alignItems: "center", gap: 4 }}><SlidersHorizontal size={13} color={TEAL} /><span style={{ fontSize: 11, color: TEAL, fontWeight: 700 }}>Filter</span></div>
+    <div style={{ background: "white", padding: "8px 12px 9px", position: "sticky", top: 54, zIndex: 99, borderBottom: "1px solid #f0f0f0", display: "flex", gap: 6, alignItems: "center" }}>
+      {/* Suchfeld */}
+      <div onClick={onClick} style={{ flex: 1, background: "#f4f4f2", borderRadius: 12, padding: "9px 12px", display: "flex", alignItems: "center", gap: 7, cursor: "pointer", minWidth: 0 }}>
+        <Search size={15} color="#bbb" style={{ flexShrink: 0 }} />
+        <span style={{ color: "#bbb", fontSize: 13, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Talent, Werk, Name…</span>
+        <div style={{ background: `${TEAL}15`, borderRadius: 7, padding: "2px 7px", display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+          <SlidersHorizontal size={11} color={TEAL} />
+          <span style={{ fontSize: 10, color: TEAL, fontWeight: 700 }}>Filter</span>
+        </div>
       </div>
-      <button onClick={onMatchClick} style={{ background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 12, padding: "0 13px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 5, fontWeight: 800, fontSize: 13, color: "white", minHeight: 40, boxShadow: `0 4px 14px ${CORAL}55` }}>
+      {/* Match-Button */}
+      <button onClick={onMatchClick} style={{ background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, border: "none", borderRadius: 11, width: 38, height: 38, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, boxShadow: `0 3px 10px ${CORAL}44` }}>
         ✨
       </button>
-      <button onClick={onKarteClick} style={{ background: `linear-gradient(135deg, #0D9488, #06B6D4)`, border: "none", borderRadius: 99, padding: "0 16px", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 13, color: "white", minHeight: 40, boxShadow: "0 4px 12px rgba(13,148,136,0.4)" }}>
-        <MapPin size={14} color="white" strokeWidth={2.5} /> Karte
+      {/* Karte-Button */}
+      <button onClick={onKarteClick} style={{ background: `${TEAL}15`, border: "none", borderRadius: 11, width: 38, height: 38, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+        🗺
       </button>
     </div>
   );
@@ -2588,25 +2594,26 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
   const demoVideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
 
   return (
-    <div style={{ background: "white", margin: "8px 16px", borderRadius: 18, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.08)", border: `1px solid #f0f0ee`, borderLeft: `3.5px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
+    <div style={{ background: "white", margin: "6px 12px", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, borderLeft: `3px solid ${item.mediaType === "video" ? CORAL : TEAL}` }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px 8px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px 6px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <img src={item.creatorImg} onClick={() => onViewWirker(item.creator)}
-            style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}30`, cursor: "pointer" }} alt={item.creator} />
-          <div style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
+            style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}25`, cursor: "pointer" }} alt={item.creator} />
+          <div style={{ position: "absolute", bottom: 0, right: 0, width: 9, height: 9, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
         </div>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => onViewWirker(item.creator)}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-            {item.creator} <BadgeCheck size={12} color={TEAL} />
+        <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => onViewWirker(item.creator)}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: "#222", display: "flex", alignItems: "center", gap: 3 }}>
+            {item.creator} <BadgeCheck size={11} color={TEAL} />
           </div>
-          <div style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3, marginTop: 1 }}>
-            <span style={{ color: TEAL, fontWeight: 600 }}>{item.talent}</span>
-            <span>·</span><span>{item.location}</span>
+          <div style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3, marginTop: 1, overflow: "hidden" }}>
+            <span style={{ color: TEAL, fontWeight: 600, flexShrink: 0 }}>{item.talent}</span>
+            <span style={{ flexShrink: 0 }}>·</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.location}</span>
           </div>
         </div>
         <button onClick={() => onViewWirker(item.creator)}
-          style={{ background: "none", border: `1px solid ${TEAL}40`, borderRadius: 20, padding: "4px 12px", fontWeight: 600, fontSize: 11, color: TEAL, cursor: "pointer" }}>
+          style={{ background: `${TEAL}12`, border: "none", borderRadius: 20, padding: "5px 11px", fontWeight: 700, fontSize: 11, color: TEAL, cursor: "pointer", flexShrink: 0 }}>
           Folgen
         </button>
       </div>
@@ -2621,7 +2628,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
               muted={muted}
               loop
               playsInline
-              style={{ width: "100%", height: 280, objectFit: "cover", display: "block" }}
+              style={{ width: "100%", height: 240, objectFit: "cover", display: "block" }}
             />
             {/* Mute toggle */}
             <button
@@ -2636,12 +2643,12 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
             </div>
           </>
         ) : (
-          <img src={item.img} style={{ width: "100%", height: 260, objectFit: "cover", display: "block" }} alt="" />
+          <img src={item.img} style={{ width: "100%", height: 230, objectFit: "cover", display: "block" }} alt="" />
         )}
       </div>
 
       {/* Caption + Actions */}
-      <div style={{ padding: "8px 14px 10px" }}>
+      <div style={{ padding: "7px 12px 8px" }}>
         <div style={{ fontSize: 13, color: "#444", lineHeight: 1.6, marginBottom: 8 }}>
           <span style={{ fontWeight: 700, color: "#222" }}>{item.creator} </span>{item.caption}
         </div>
@@ -2675,9 +2682,9 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
     setTimeout(() => setAdded(false), 1800);
   };
   return (
-    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, margin: "8px 16px", borderLeft: `3.5px solid ${GOLD}` }}>
+    <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, margin: "6px 12px", borderLeft: `3px solid ${GOLD}` }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
-        <img src={item.img} style={{ width: "100%", height: 240, objectFit: "cover" }} alt={item.title} />
+        <img src={item.img} style={{ width: "100%", height: 175, objectFit: "cover" }} alt={item.title} />
         {/* Preis oben links */}
         <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 15 }}>{item.price}</div>
         {/* In den Korb – Overlay-Button unten */}
@@ -4194,7 +4201,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop"} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4373,11 +4380,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
-      story: `In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
 
 Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
 
-Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.`,
+Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4386,11 +4393,11 @@ Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben.
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
-      story: `Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
 
 Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
 
-Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.`,
+Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4399,11 +4406,11 @@ Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.`,
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
-      story: `150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
 
 Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
 
-Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.`,
+Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
@@ -7075,8 +7082,15 @@ export default function App() {
       return u ? "app" : "onboarding";
     } catch { return "onboarding"; }
   });
+  // authState: "onboarding" | "auth" | "app"
 
-  // All hooks must be declared before any early return
+  if (authState === "onboarding") {
+    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  }
+  if (authState === "auth") {
+    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+  }
+
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
   const [liked, setLiked] = useState({});
@@ -7089,9 +7103,10 @@ export default function App() {
     localStorage.setItem("hui_cart", JSON.stringify(cart));
   }, [cart]);
   const [showSearch, setShowSearch] = useState(false);
-  const [storyViewer, setStoryViewer] = useState(null);
+  const [storyViewer, setStoryViewer] = useState(null); // { startIndex: number }
   const [showCart, setShowCart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Show onboarding if not seen yet, or if ?onboarding=1 is in URL
     const params = new URLSearchParams(window.location.search);
     if (params.get("onboarding") === "1") {
       localStorage.removeItem("hui_onboarding_seen");
@@ -7101,20 +7116,15 @@ export default function App() {
     return !seen;
   });
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = true;
+  const isNewUser = true; // false = Talent-Modus (Demo)
   const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
   const [openChat, setOpenChat] = useState(null);
-  const [paymentChat, setPaymentChat] = useState(null);
+  const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
+
+  // ── LIVE DATA STATE ──────────────────────────────────────────────────────
   const [liveWirker, setLiveWirker] = useState([]);
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
-  const [showCreateSheet, setShowCreateSheet] = useState(false);
-  const [showWerkCreate, setShowWerkCreate] = useState(false);
-  const [showStoryCreate, setShowStoryCreate] = useState(false);
-  const [recentlyViewed, setRecentlyViewed] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showKarte, setShowKarte] = useState(false);
-  const [showHuiMatch, setShowHuiMatch] = useState(false);
 
   useEffect(() => {
     async function loadLiveData() {
@@ -7194,6 +7204,13 @@ export default function App() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [showWerkCreate, setShowWerkCreate] = useState(false);
+  const [showStoryCreate, setShowStoryCreate] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showKarte, setShowKarte] = useState(false);
+  const [showHuiMatch, setShowHuiMatch] = useState(false);
   const notifCount = mockNotifications.filter(n => !n.read).length;
 
   const addToCart = (item) => {
