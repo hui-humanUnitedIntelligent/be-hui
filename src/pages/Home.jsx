@@ -7537,27 +7537,7 @@ function KarteOverlay({ onClose, onViewWirker }) {
   );
 }
 
-
-class ErrorBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { error: null, info: null }; }
-  componentDidCatch(error, info) { this.setState({ error, info }); }
-  render() {
-    if (this.state.error) {
-      return (
-        <div style={{ padding: 24, fontFamily: "sans-serif", maxWidth: 430, margin: "0 auto" }}>
-          <h2 style={{ color: "red" }}>⚠️ Fehler gefunden!</h2>
-          <pre style={{ background: "#fee", padding: 12, borderRadius: 8, fontSize: 11, overflow: "auto", whiteSpace: "pre-wrap" }}>
-            {this.state.error.toString()}
-            {this.state.info?.componentStack?.substring(0, 800)}
-          </pre>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-function AppCore() {
+export default function App() {
   // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
 
   // Auth state
@@ -7901,7 +7881,7 @@ function AppCore() {
 
       {/* ── TAB BAR ── */}
       {!detailView && (
-        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} />
+        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} isNewUser={isNewUser} onPlusClick={() => setShowCreateSheet(true)} />
       )}
 
       {/* ── OVERLAYS ── */}
@@ -8011,13 +7991,5 @@ function AppCore() {
         ::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <ErrorBoundary>
-      <AppCore />
-    </ErrorBoundary>
   );
 }
