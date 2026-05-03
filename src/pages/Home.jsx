@@ -2915,7 +2915,7 @@ function StoryCreateFull({ onClose, onPublished }) {
   );
 }
 
-function StoryBar({ onStoryClick }) {
+function StoryBar({ onStoryClick, following, toggleFollow }) {
   return (
     <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "12px 16px 8px" }}>
       {mockStories.map((s, idx) => (
@@ -2931,7 +2931,7 @@ function StoryBar({ onStoryClick }) {
     </div>
   );
 }
-function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
+function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser, following, toggleFollow }) {
   const [muted, setMuted] = React.useState(true);
   const videoRef = React.useRef(null);
   const containerRef = React.useRef(null);
@@ -3089,7 +3089,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
   );
 }
 
-function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookService, isTalentUser }) {
+function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookService, isTalentUser, following, toggleFollow }) {
   const [booking, setBooking] = React.useState(false);
   const [confirming, setConfirming] = React.useState(false);
 
@@ -7804,6 +7804,8 @@ function AppInner() {
             {/* Stories — only from followed */}
             <StoryBar
               onStoryClick={(idx) => setStoryViewer({ story: mockStories[idx], storyIdx: idx })}
+              following={following}
+              toggleFollow={toggleFollow}
             />
 
             {/* Featured Talente */}
