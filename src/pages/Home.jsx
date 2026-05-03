@@ -2056,7 +2056,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.title}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -4349,7 +4349,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -7117,13 +7117,6 @@ export default function App() {
   });
   // authState: "onboarding" | "auth" | "app"
 
-  if (authState === "onboarding") {
-    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
-  }
-  if (authState === "auth") {
-    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
-  }
-
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
   const [liked, setLiked] = useState({});
@@ -7253,15 +7246,10 @@ export default function App() {
   };
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
   const bookWirker = (name) => setDetailView({ type: "wirker", id: name, isOwn: false, autoBook: true });
-  const viewWerk = (title) => {
-    setDetailView({ type: "werk", id: title });
-    setRecentlyViewed(prev => {
-      const filtered = prev.filter(t => t !== title);
-      return [title, ...filtered].slice(0, 6);
-    });
-  };
+  const viewWerk = (title) => { setDetailView({ type: "werk", id: title }); setRecentlyViewed(prev => { const filtered = prev.filter(t => t !== title); return [title, ...filtered].slice(0, 6); }); };
   const goBack = () => setDetailView(null);
-
+  if (authState === "onboarding") return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  if (authState === "auth") return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
   if (detailView?.type === "wirker") return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
       <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} returnStep6={detailView.returnStep6} onGoToChats={() => { setDetailView(null); setPage("chats"); }} />
@@ -7449,7 +7437,6 @@ export default function App() {
         </div>
       )}
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} onGoToChats={() => { setShowCart(false); setPage("chats"); }} />}
-      {/* Onboarding now handled pre-auth in HuiOnboarding component */}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
       {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
