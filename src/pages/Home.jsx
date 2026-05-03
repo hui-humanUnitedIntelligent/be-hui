@@ -53,7 +53,7 @@ const mockNotifications = [
     id: "n5", type: "nachricht", read: true, group: "Gestern",
     time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
     title: "Neue Nachricht",
-    text: 'Maria L.: \u201eSuperr, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘\u201c',
+    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
     actions: [{ label: "Antworten", style: "primary" }],
   },
@@ -68,7 +68,7 @@ const mockNotifications = [
     id: "n7", type: "abstimmung", read: true, group: "Gestern",
     time: "gestern 10:00", icon: "🗳️", color: "#10b981",
     title: "Impact-Abstimmung läuft!",
-    text: 'Noch 4 Tage um dein Herzensprojekt zu wählen. \u201eSchule f\u00fcr alle\u201c liegt gerade vorne.',
+    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.",
     actions: [{ label: "Jetzt abstimmen", style: "primary" }],
   },
   // DIESE WOCHE
@@ -83,7 +83,7 @@ const mockNotifications = [
     id: "n9", type: "system", read: true, group: "Diese Woche",
     time: "vor 4 Tagen", icon: "🏆", color: "#F5A623",
     title: "Badge freigeschaltet",
-    text: 'Du hast das Badge \u201eTop Wirker\u201c erreicht \u2014 10 Empfehlungen erhalten. Herzlichen Gl\u00fcckwunsch!',
+    text: "Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
     actions: [],
   },
   {
@@ -683,8 +683,8 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
           itemType: 'buchung',
           wirkerName: wirker.fullName || wirker.name,
           imageUrl: wirker.img,
-          successUrl: window.location.href + '?payment=success',
-          cancelUrl: window.location.href + '?payment=cancelled',
+          successUrl: 'https://be-hui.base44.app?payment=success',
+          cancelUrl: 'https://be-hui.base44.app',
         }),
       });
       const data = await res.json();
@@ -1028,7 +1028,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1342,7 +1352,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? (p.hourly_rate + " €/h") : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -2060,7 +2070,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -2711,7 +2721,7 @@ function StoryBar({ onStoryClick }) {
   return (
     <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "12px 16px 8px" }}>
       {mockStories.map((s, idx) => (
-        <div key={s.id} onClick={() => onStoryClick && onStoryClick(s)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 58, cursor: "pointer" }}>
+        <div key={s.id} onClick={() => onStoryClick && onStoryClick(idx)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 58, cursor: "pointer" }}>
           <div style={{ width: 54, height: 54, borderRadius: "50%", background: s.hasNew ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "transparent", padding: s.hasNew ? 2.5 : 0, border: s.hasNew ? "none" : "2.5px solid #e0e0e0" }}>
             <div style={{ borderRadius: "50%", overflow: "hidden", width: "100%", height: "100%", border: s.hasNew ? "2px solid white" : "none" }}>
               <img src={s.img} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} alt={s.name} />
@@ -2723,7 +2733,7 @@ function StoryBar({ onStoryClick }) {
     </div>
   );
 }
-function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser, following, toggleFollow }) {
+function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser }) {
   const [muted, setMuted] = React.useState(true);
   const videoRef = React.useRef(null);
   const containerRef = React.useRef(null);
@@ -2901,8 +2911,8 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
           amountCents,
           itemType: 'buchung',
           wirkerName: item.creator || "Talent",
-          successUrl: window.location.href.split('?')[0] + '?payment=success',
-          cancelUrl: window.location.href.split('?')[0] + '?payment=cancelled',
+          successUrl: 'https://be-hui.base44.app?payment=success',
+          cancelUrl: 'https://be-hui.base44.app',
         }),
       });
       const data = await res.json();
@@ -3587,8 +3597,8 @@ function StoryCreateModal({ onClose }) {
           amountCents,
           itemType: 'werk',
           wirkerName: cart[0]?.creator || 'Talent',
-          successUrl: window.location.href + '?payment=success',
-          cancelUrl: window.location.href + '?payment=cancelled',
+          successUrl: 'https://be-hui.base44.app?payment=success',
+          cancelUrl: 'https://be-hui.base44.app',
         }),
       });
       const data = await res.json();
@@ -4358,7 +4368,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4541,7 +4551,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
-      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.\n\nMit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.\n\nJedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
+
+Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
+
+Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4550,7 +4564,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
-      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.\n\nGreen Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.\n\nMit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
+
+Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
+
+Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4559,7 +4577,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
-      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.\n\nDas Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.\n\nJede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
+
+Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
+
+Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
@@ -6285,17 +6307,17 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           {following && following.size > 0 ? (
             <div style={{ padding: "10px 14px 14px" }}>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {mockStories.filter(s => following && following.has(s.name)).map((s, idx) => (
-                  <div key={s.id} onClick={() => onViewWirker && onViewWirker(s.name)}
-                   style={{ display: "flex", alignItems: "center", gap: 8, background: "#f7f7f5", borderRadius: 22, padding: "6px 12px 6px 6px", cursor: "pointer" }}>
-                   <img src={s.img} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} alt={s.name} />
-                   <div>
-                     <div style={{ fontWeight: 700, fontSize: 12, color: "#222" }}>{s.name}</div>
-                   </div>
-                   <button onClick={e => { e.stopPropagation(); toggleFollow && toggleFollow(s.name); }}
-                     style={{ marginLeft: 4, background: "none", border: "1px solid #eee", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: "#aaa", cursor: "pointer" }}>
-                     Entfolgen
-                   </button>
+                {allWirkerStories.filter(s => following.has(s.wirkerKey)).map(s => (
+                  <div key={s.id} onClick={() => onViewWirker && onViewWirker(s.wirkerKey)}
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "#f7f7f5", borderRadius: 22, padding: "6px 12px 6px 6px", cursor: "pointer" }}>
+                    <img src={s.img} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} alt={s.name} />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: "#222" }}>{s.name}</div>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); toggleFollow && toggleFollow(s.wirkerKey); }}
+                      style={{ marginLeft: 4, background: "none", border: "1px solid #eee", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: "#aaa", cursor: "pointer" }}>
+                      Entfolgen
+                    </button>
                   </div>
                 ))}
               </div>
@@ -7745,13 +7767,18 @@ export default function App() {
       )}
 
       {/* ── STORY VIEWER ── */}
-      {storyViewer !== null && storyViewer.story && (() => {
-        const s = storyViewer.story;
-        const slides = s.slides
-          ? s.slides.map(sl => ({ ...sl, name: s.name, creatorImg: s.img }))
-          : [{ img: s.img, text: s.text || s.name, label: "Story", type: "foto", time: "Jetzt", views: 0, likes: 0, name: s.name, creatorImg: s.img }];
-        return <StoryViewer stories={slides} startIndex={storyViewer.startIndex || 0} onClose={() => setStoryViewer(null)} onCreateNew={() => { setStoryViewer(null); setShowStoryCreate(true); }} />;
-      })()}
+      {storyViewer !== null && storyViewer.story && (
+        <StoryViewer
+          stories={storyViewer.story.slides.map(slide => ({
+            ...slide,
+            name: storyViewer.story.name,
+            creatorImg: storyViewer.story.img,
+          }))}
+          startIndex={storyViewer.startIndex || 0}
+          onClose={() => setStoryViewer(null)}
+          onCreateNew={() => { setStoryViewer(null); setShowStoryCreate(true); }}
+        />
+      )}
 
       {/* ── TOAST ── */}
       {toast && (
