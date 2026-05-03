@@ -4512,14 +4512,11 @@ function ImpactPage() {
   const [spendenBetrag, setSpendenBetrag] = useState(""); 
   const [spendenSent, setSpendenSent] = useState(false);
 
-  // ── Pool & Timing ──────────────────────────────────────────────
   const poolGesamt = 3847;
   const today = new Date();
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const daysLeft = Math.ceil((endOfMonth - today) / (1000 * 60 * 60 * 24));
   const currentMonth = today.toLocaleString("de-DE", { month: "long", year: "numeric" });
-
-  // ── Die 3 nominierten Projekte für diese Abstimmung ───────────
   const nominiert = [
     {
       id: "p1", emoji: "🏫", title: "Schule für alle",
@@ -4528,11 +4525,7 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
-      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
-
-Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
-
-Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.\n\nMit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.\n\nJedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4541,11 +4534,7 @@ Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben.
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
-      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
-
-Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
-
-Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.\n\nGreen Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.\n\nMit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4554,15 +4543,10 @@ Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
-      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
-
-Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
-
-Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.\n\nDas Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.\n\nJede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
-  // ── Alle weiteren laufenden Projekte ──────────────────────────
   const weitereProjekte = [
     { id: "wp1", emoji: "💧", title: "Sauberes Wasser in Mali", org: "WaterForAll e.V.", kategorie: "Wasser & Gesundheit", land: "Mali", img: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&h=400&fit=crop", wunschbetrag: 8000, gesammelt: 1230 },
     { id: "wp2", emoji: "👩", title: "Frauen-Kooperative Äthiopien", org: "Empowerment Africa", kategorie: "Gleichberechtigung", land: "Äthiopien", img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&h=400&fit=crop", wunschbetrag: 5000, gesammelt: 890 },
@@ -4570,10 +4554,7 @@ Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
   ];
 
   const totalStimmen = nominiert.reduce((s, p) => s + p.stimmen, 0) + (votedFor ? 1 : 0);
-  const votedProject = nominiert.find(p => p.id === votedFor);
   const gewinner = [...nominiert].sort((a, b) => b.stimmen - a.stimmen)[0];
-
-  // ── Pool-Verteilungs-Simulation ────────────────────────────────
   const gewinnerBekommt = Math.min(poolGesamt, gewinner.wunschbetrag);
   const restPool = poolGesamt - gewinnerBekommt;
   const alleAnderenProjekte = [...nominiert.filter(p => p.id !== gewinner.id), ...weitereProjekte];
@@ -4587,7 +4568,6 @@ Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     setTimeout(() => setVoteSuccess(false), 3000);
   };
 
-  // ── Vote Success Toast ─────────────────────────────────────────
   if (voteSuccess) {
     return (
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -4609,7 +4589,6 @@ Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     );
   }
 
-  // ── Vote Confirm Modal ─────────────────────────────────────────
   if (showVoteConfirm) {
     return (
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
@@ -4639,7 +4618,6 @@ Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     );
   }
 
-  // ── Ergebnis letzten Monat ─────────────────────────────────────
   if (showErgebnis) {
     return (
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
@@ -4694,7 +4672,6 @@ Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     );
   }
 
-  // ── Story Modal ───────────────────────────────────────────────
   if (showStory) {
     const p = showStory;
     return (
@@ -6637,98 +6614,6 @@ function HuiAuthScreen({ onLogin }) {
         <span style={{ color: CORAL, cursor: "pointer", fontWeight: 600 }}>Nutzungsbedingungen</span>{" "}
         und der{" "}
         <span style={{ color: CORAL, cursor: "pointer", fontWeight: 600 }}>Datenschutzerklärung</span> zu.
-      </div>
-    </div>
-  );
-}
-
-// ─── MAIN APP ──────────────────────────────────────────────────────────────
-// ─── LOGIN SCREEN ────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
-  const [mode, setMode] = React.useState("login"); // login | register
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [name, setName] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
-
-  const handleAuth = () => {
-    if (!email || !password) { setError("Bitte E-Mail und Passwort eingeben"); return; }
-    if (mode === "register" && !name) { setError("Bitte Name eingeben"); return; }
-    setLoading(true); setError("");
-    // Demo-Login: nach 800ms einloggen
-    setTimeout(() => {
-      localStorage.setItem("hui_user", JSON.stringify({ email, name: name || email.split("@")[0] }));
-      onLogin();
-      setLoading(false);
-    }, 800);
-  };
-
-  return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      {/* Logo */}
-      <div style={{ textAlign: "center", marginBottom: 40 }}>
-        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 80, height: 80, borderRadius: 22, objectFit: "cover", boxShadow: "0 8px 32px rgba(255,107,91,0.25)", marginBottom: 16 }} />
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#888", letterSpacing: 0.3 }}>
-          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>H</span>uman{" "}
-          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>U</span>nited{" "}
-          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>I</span>ntelligent
-        </div>
-        <div style={{ fontSize: 13, color: "#bbb", marginTop: 4 }}>Echte Talente. Echte Verbindungen.</div>
-      </div>
-
-      {/* Card */}
-      <div style={{ background: "white", borderRadius: 24, padding: "28px 24px", width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
-        {/* Tab */}
-        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 24 }}>
-          {["login","register"].map(m => (
-            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 14, cursor: "pointer", background: mode === m ? "white" : "transparent", color: mode === m ? "#222" : "#aaa", boxShadow: mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
-              {m === "login" ? "Anmelden" : "Registrieren"}
-            </button>
-          ))}
-        </div>
-
-        {mode === "register" && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>VOLLSTÄNDIGER NAME</div>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="z.B. Sofia Mayer"
-              style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
-          </div>
-        )}
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>E-MAIL</div>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="deine@email.de"
-            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
-        </div>
-
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>PASSWORT</div>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }}
-            onKeyDown={e => e.key === "Enter" && handleAuth()} />
-        </div>
-
-        {error && <div style={{ background: "#fff0f0", border: "1px solid #fcd", borderRadius: 10, padding: "10px 13px", fontSize: 13, color: "#e33", marginBottom: 14 }}>{error}</div>}
-
-        <button onClick={handleAuth} disabled={loading} style={{ width: "100%", background: loading ? "#ddd" : "linear-gradient(135deg, #FF6B5B, #F5A623)", color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: loading ? "not-allowed" : "pointer" }}>
-          {loading ? "Laden..." : mode === "login" ? "Anmelden →" : "Account erstellen →"}
-        </button>
-
-        {mode === "login" && (
-          <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "#aaa", cursor: "pointer" }}>
-            Passwort vergessen?
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div style={{ marginTop: 28, textAlign: "center", fontSize: 12, color: "#ccc", lineHeight: 1.6 }}>
-        Mit der Anmeldung stimmst du den{" "}
-        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Nutzungsbedingungen</span>{" "}
-        und der{" "}
-        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Datenschutzerklärung</span>{" "}
-        zu.
       </div>
     </div>
   );
