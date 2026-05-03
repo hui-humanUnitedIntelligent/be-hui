@@ -53,7 +53,7 @@ const mockNotifications = [
     id: "n5", type: "nachricht", read: true, group: "Gestern",
     time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
     title: "Neue Nachricht",
-    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
+    text: "Maria L.: \u201eSuper, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘\u201c",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
     actions: [{ label: "Antworten", style: "primary" }],
   },
@@ -68,7 +68,7 @@ const mockNotifications = [
     id: "n7", type: "abstimmung", read: true, group: "Gestern",
     time: "gestern 10:00", icon: "🗳️", color: "#10b981",
     title: "Impact-Abstimmung läuft!",
-    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.",
+    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. \u201eSchule für alle\u201c liegt gerade vorne.",
     actions: [{ label: "Jetzt abstimmen", style: "primary" }],
   },
   // DIESE WOCHE
