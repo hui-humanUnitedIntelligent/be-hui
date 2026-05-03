@@ -53,7 +53,7 @@ const mockNotifications = [
     id: "n5", type: "nachricht", read: true, group: "Gestern",
     time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
     title: "Neue Nachricht",
-    text: "Maria L.: \u201cSuper, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘\u201d",
+    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
     actions: [{ label: "Antworten", style: "primary" }],
   },
@@ -68,7 +68,7 @@ const mockNotifications = [
     id: "n7", type: "abstimmung", read: true, group: "Gestern",
     time: "gestern 10:00", icon: "🗳️", color: "#10b981",
     title: "Impact-Abstimmung läuft!",
-    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. \u201eSchule für alle\u201c liegt gerade vorne.",
+    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.",
     actions: [{ label: "Jetzt abstimmen", style: "primary" }],
   },
   // DIESE WOCHE
@@ -83,7 +83,7 @@ const mockNotifications = [
     id: "n9", type: "system", read: true, group: "Diese Woche",
     time: "vor 4 Tagen", icon: "🏆", color: "#F5A623",
     title: "Badge freigeschaltet",
-    text: "Du hast das Badge \u201eTop Wirker\u201c erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
+    text: "Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
     actions: [],
   },
   {
@@ -1028,7 +1028,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{"@keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } } @keyframes spin { to { transform: rotate(360deg); } }"}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -7363,57 +7373,90 @@ function KarteOverlay({ onClose, onViewWirker }) {
 }
 
 export default function App() {
-  // ── AUTH STATE ──────────────────────────────────────────
+  // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
+
+  // Auth state
   const [authState, setAuthState] = useState(() => {
     try {
       const u = localStorage.getItem("hui_user");
       return u ? "app" : "onboarding";
     } catch { return "onboarding"; }
   });
-  // authState: "onboarding" | "auth" | "app"
 
-  if (authState === "onboarding") {
-    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
-  }
-  if (authState === "auth") {
-    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
-  }
-
+  // Navigation & views
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
+
+  // Interactions
   const [liked, setLiked] = useState({});
   const [faved, setFaved] = useState({});
+
+  // Cart
   const [cart, setCart] = useState(() => {
     try { return JSON.parse(localStorage.getItem("hui_cart") || "[]"); } catch { return []; }
   });
-  const [toast, setToast] = useState(null);
   useEffect(() => {
     localStorage.setItem("hui_cart", JSON.stringify(cart));
   }, [cart]);
-  const [showSearch, setShowSearch] = useState(false);
-  const [storyViewer, setStoryViewer] = useState(null); // { startIndex: number }
-  const [showCart, setShowCart] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    // Show onboarding if not seen yet, or if ?onboarding=1 is in URL
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("onboarding") === "1") {
-      localStorage.removeItem("hui_onboarding_seen");
-      return true;
-    }
-    const seen = localStorage.getItem("hui_onboarding_seen");
-    return !seen;
-  });
-  const [onboardingStep, setOnboardingStep] = useState(0);
-  const isNewUser = true; // false = Talent-Modus (Demo)
-  const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
-  const [openChat, setOpenChat] = useState(null);
-  const [paymentChat, setPaymentChat] = useState(null); // Chat nach Stripe-Zahlung
 
-  // ── LIVE DATA STATE ──────────────────────────────────────────────────────
+  // Toast
+  const [toast, setToast] = useState(null);
+
+  // Following — global, persisted
+  const [following, setFollowing] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("hui_following") || "[]")); } catch { return new Set(); }
+  });
+  const toggleFollow = (wirkerKey) => {
+    setFollowing(prev => {
+      const next = new Set(prev);
+      if (next.has(wirkerKey)) { next.delete(wirkerKey); } else { next.add(wirkerKey); }
+      localStorage.setItem("hui_following", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  // Overlays & modals
+  const [showSearch, setShowSearch] = useState(false);
+  const [storyViewer, setStoryViewer] = useState(null);
+  const [showCart, setShowCart] = useState(false);
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [showWerkCreate, setShowWerkCreate] = useState(false);
+  const [showStoryCreate, setShowStoryCreate] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showKarte, setShowKarte] = useState(false);
+  const [showHuiMatch, setShowHuiMatch] = useState(false);
+  const [showTalentAnbieten, setShowTalentAnbieten] = useState(false);
+
+  // Chat
+  const [openChat, setOpenChat] = useState(null);
+  const [paymentChat, setPaymentChat] = useState(null);
+
+  // Onboarding
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("onboarding") === "1") {
+        localStorage.removeItem("hui_onboarding_seen");
+        return true;
+      }
+      return !localStorage.getItem("hui_onboarding_seen");
+    } catch { return false; }
+  });
+
+  // Recently viewed
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+
+  // Live data from DB
   const [liveWirker, setLiveWirker] = useState([]);
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
 
+  const isNewUser = true; // Kunde-Modus (Demo)
+  const notifCount = mockNotifications.filter(n => !n.read).length;
+
+  // ── EFFECTS ─────────────────────────────────────────────────────────────
+
+  // Load live data from DB
   useEffect(() => {
     async function loadLiveData() {
       try {
@@ -7421,25 +7464,22 @@ export default function App() {
           HuiWirker.list().catch(() => []),
           HuiImpactProject.list().catch(() => []),
         ]);
-        
+
         if (wirkerData && wirkerData.length > 0) {
           setLiveWirker(wirkerData);
-          
-          // Build feed from real DB data
           const feedItems = [];
           let id = 1000;
-          
           wirkerData.forEach((w, i) => {
-            // Wirker card every 3rd item
             if (i % 3 === 0) {
               feedItems.push({
                 id: id++, type: "wirker",
-                name: w.name, img: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-                talent: w.talent, recommendations: w.recommendations || w.bookings || 0,
+                name: w.name,
+                img: w.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+                talent: w.talent,
+                recommendations: w.recommendations || w.bookings || 0,
                 location: w.location || ""
               });
             }
-            // Service card
             if (w.hourly_rate) {
               feedItems.push({
                 id: id++, type: "service",
@@ -7454,8 +7494,6 @@ export default function App() {
               });
             }
           });
-          
-          // Mix with original mock feed
           const combined = [];
           const mockItems = mockFeed.slice(0, 6);
           mockItems.forEach((item, i) => {
@@ -7464,7 +7502,6 @@ export default function App() {
           });
           combined.push(...mockFeed.slice(6));
           combined.push(...feedItems.slice(6));
-          
           setLiveFeed(combined.length > 0 ? combined : mockFeed);
         }
 
@@ -7472,185 +7509,251 @@ export default function App() {
           setLiveImpact(impactData.filter(p => p.status === "aktiv" || p.status === "active"));
         }
       } catch(e) {
-        console.log("Live data load error:", e);
         setLiveFeed(mockFeed);
       }
     }
     loadLiveData();
   }, []);
 
-  // Nach Stripe-Rückkehr: payment=success → WirkerProfil mit BookingFlow (Step 6) öffnen
+  // Handle Stripe payment return
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("payment") === "success") {
-      let lastBooking = null;
-      try { lastBooking = JSON.parse(localStorage.getItem("hui_last_booking") || "null"); } catch(e) {}
-      if (lastBooking?.wirkerName) {
-        // WirkerProfil öffnen mit autoBook=true damit BookingFlow aktiv ist
-        setDetailView({ type: "wirker", id: lastBooking.wirkerName, isOwn: false, autoBook: true, returnStep6: true });
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("payment") === "success") {
+        let lastBooking = null;
+        try { lastBooking = JSON.parse(localStorage.getItem("hui_last_booking") || "null"); } catch(e) {}
+        if (lastBooking?.wirkerName) {
+          setDetailView({ type: "wirker", id: lastBooking.wirkerName, isOwn: false, autoBook: true, returnStep6: true });
+        }
+        window.history.replaceState({}, "", window.location.pathname);
       }
-      window.history.replaceState({}, "", window.location.pathname);
-    }
+    } catch(e) {}
   }, []);
-  const [showCreateSheet, setShowCreateSheet] = useState(false);
-  const [showWerkCreate, setShowWerkCreate] = useState(false);
-  const [showStoryCreate, setShowStoryCreate] = useState(false);
-  const [recentlyViewed, setRecentlyViewed] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showKarte, setShowKarte] = useState(false);
-  const [showHuiMatch, setShowHuiMatch] = useState(false);
-  const notifCount = mockNotifications.filter(n => !n.read).length;
+
+  // ── ACTIONS ─────────────────────────────────────────────────────────────
 
   const addToCart = (item) => {
     setCart(c => [...c, item]);
     setToast(item);
     setTimeout(() => setToast(null), 2800);
   };
+
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
   const bookWirker = (name) => setDetailView({ type: "wirker", id: name, isOwn: false, autoBook: true });
+
   const viewWerk = (title) => {
     setDetailView({ type: "werk", id: title });
-    setRecentlyViewed(prev => {
-      const filtered = prev.filter(t => t !== title);
-      return [title, ...filtered].slice(0, 6);
-    });
+    setRecentlyViewed(prev => [title, ...prev.filter(t => t !== title)].slice(0, 6));
   };
+
   const goBack = () => setDetailView(null);
 
-  if (detailView?.type === "wirker") return (
-    <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} returnStep6={detailView.returnStep6} onGoToChats={() => { setDetailView(null); setPage("chats"); }} following={following} toggleFollow={toggleFollow} />
-      <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
-    </div>
-  );
-  if (detailView?.type === "werk") return (
-    <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <WerkDetailPage werkTitle={detailView.id} onBack={goBack} onAddToCart={addToCart} onViewWirker={viewWirker} />
-      <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
-    </div>
-  );
+  const openChatWith = (wirkerName) => {
+    setOpenChat(wirkerName);
+    setPage("chats");
+    setDetailView(null);
+  };
+
+  // ── CONDITIONAL RENDERS — after all hooks ────────────────────────────────
+
+  // Auth screens (rendered inside return via conditional)
+  if (authState === "onboarding") {
+    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  }
+  if (authState === "auth") {
+    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+  }
+
+  // Detail views (full-screen pages)
+  if (detailView?.type === "wirker") {
+    return (
+      <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+        <WirkerProfilePage
+          wirkerName={detailView.id}
+          isOwnProfile={detailView.isOwn}
+          onBack={goBack}
+          onAddToCart={addToCart}
+          autoBook={detailView.autoBook}
+          returnStep6={detailView.returnStep6}
+          onGoToChats={() => { setDetailView(null); setPage("chats"); }}
+          following={following}
+          toggleFollow={toggleFollow}
+        />
+      </div>
+    );
+  }
+
+  if (detailView?.type === "werk") {
+    return (
+      <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+        <WerkDetailPage werkTitle={detailView.id} onBack={goBack} onAddToCart={addToCart} onViewWirker={viewWirker} />
+      </div>
+    );
+  }
+
+  // ── MAIN APP SHELL ───────────────────────────────────────────────────────
+
+  const currentFeed = liveFeed.length > 0 ? liveFeed : mockFeed;
 
   return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f7f7f5", fontFamily: "'Inter', -apple-system, sans-serif", position: "relative" }}>
-      {page === "home" && (<>
-        <AppHeader cartCount={cart.length} onCartClick={() => setShowCart(true)} onNotifClick={() => setShowNotifications(true)} notifCount={notifCount} />
-        <SearchBar onClick={() => setShowSearch(true)} onKarteClick={() => setShowKarte(true)} onMatchClick={() => setShowHuiMatch(true)} />
-        <div style={{ paddingBottom: 96 }}>
-          {/* STORIES */}
-          <StoryBar onStoryClick={(idx) => setStoryViewer({ startIndex: idx })} />
 
-          {/* ── FEATURED TALENTE (Hero-Karussell) ── */}
-          <div style={{ padding: "18px 0 4px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px 10px" }}>
-              <div>
-                <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>✨ Ausgewählte Talente</div>
-                <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Handverlesen · Diese Woche im Spotlight</div>
+      {/* ── HOME FEED ── */}
+      {page === "home" && (
+        <>
+          <AppHeader
+            cartCount={cart.length}
+            onCartClick={() => setShowCart(true)}
+            onNotifClick={() => setShowNotifications(true)}
+            notifCount={notifCount}
+          />
+          <SearchBar
+            onClick={() => setShowSearch(true)}
+            onKarteClick={() => setShowKarte(true)}
+            onMatchClick={() => setShowHuiMatch(true)}
+          />
+          <div style={{ paddingBottom: 96 }}>
+            {/* Stories — only from followed */}
+            <StoryBar
+              following={following}
+              onStoryClick={(s) => setStoryViewer({ story: s, startIndex: 0 })}
+            />
+
+            {/* Featured Talente */}
+            <div style={{ padding: "16px 0 4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px 10px" }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>✨ Ausgewählte Talente</div>
+                  <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Handverlesen · Diese Woche im Spotlight</div>
+                </div>
+                <button style={{ background: "none", border: "none", color: TEAL, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Alle →</button>
               </div>
-              <button style={{ background: "none", border: "none", color: TEAL, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Alle →</button>
-            </div>
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "0 16px 8px", scrollSnapType: "x mandatory" }}>
-              {featuredWirker.map(w => (
-                <div key={w.id} onClick={() => viewWirker(w.name)}
-                  style={{ flexShrink: 0, width: 155, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.09)", cursor: "pointer", scrollSnapAlign: "start", position: "relative", background: "white", borderLeft: `3px solid ${TEAL}` }}>
-                  <div style={{ position: "relative" }}>
-                    <img src={w.coverImg} style={{ width: "100%", height: 70, objectFit: "cover", display: "block" }} alt={w.name} />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.45))" }} />
-                    <div style={{ position: "absolute", top: 6, left: 7, background: CORAL, color: "white", borderRadius: 20, padding: "2px 7px", fontSize: 9, fontWeight: 800 }}>{w.tag}</div>
-                  </div>
-                  <div style={{ padding: "8px 10px 10px", display: "flex", gap: 8, alignItems: "center" }}>
-                    <img src={w.img} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}`, flexShrink: 0 }} alt={w.name} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 12, color: "#222", display: "flex", alignItems: "center", gap: 3 }}>{w.name} <BadgeCheck size={11} color={TEAL} /></div>
-                      <div style={{ fontSize: 10, color: TEAL, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.talent}</div>
-                      <div style={{ fontSize: 9, color: "#bbb", marginTop: 1 }}>👍 {w.recommendations} · {w.rate}</div>
+              <div style={{ display: "flex", gap: 14, overflowX: "auto", padding: "0 16px 8px", scrollbarWidth: "none" }}>
+                {featuredWirker.map(w => (
+                  <div key={w.id} onClick={() => viewWirker(w.name)}
+                    style={{ flexShrink: 0, width: 140, cursor: "pointer", background: "white", borderRadius: 18, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+                    <img src={w.img} style={{ width: "100%", height: 100, objectFit: "cover", display: "block" }} alt={w.name} />
+                    <div style={{ padding: "8px 10px 10px" }}>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
+                        {w.name} <BadgeCheck size={11} color={TEAL} />
+                      </div>
+                      <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, marginTop: 1 }}>{w.talent}</div>
+                      <div style={{ fontSize: 10, color: "#bbb", marginTop: 3 }}>👍 {w.recommendations}</div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── ZULETZT ANGESEHEN ── */}
-          {recentlyViewed.length > 0 && (
-            <div style={{ padding: "4px 16px 12px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                <Eye size={13} color="#aaa" />
-                <span style={{ fontWeight: 700, fontSize: 13, color: "#888" }}>Zuletzt angesehen</span>
-              </div>
-              <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
-                {recentlyViewed.map(title => {
-                  const feedItem = mockFeed.find(i => i.type === "werk" && i.title === title);
-                  if (!feedItem) return null;
-                  return (
-                    <button key={title} onClick={() => viewWerk(title)} style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", textAlign: "center", width: 72 }}>
-                      <img src={feedItem.img} alt={title} style={{ width: 64, height: 64, borderRadius: 14, objectFit: "cover", border: `2px solid ${TEAL}22` }} />
-                      <div style={{ fontSize: 10, color: "#666", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 70 }}>{title}</div>
-                    </button>
-                  );
-                })}
+                ))}
               </div>
             </div>
-          )}
 
-          {/* ── TOP WERKE (horizontaler Scroll) ── */}
-          <div style={{ padding: "4px 0 16px", background: "white", borderTop: "1px solid #f0f0ee", borderBottom: "1px solid #f0f0ee" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px 10px" }}>
-              <div>
-                <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>🎁 Top Werke</div>
-                <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Handgemachtes von echten Talenten</div>
-              </div>
-              <button style={{ background: "none", border: "none", color: CORAL, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Alle →</button>
-            </div>
-            <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "0 16px 4px", scrollSnapType: "x mandatory" }}>
-              {featuredWerke.map(w => (
-                <div key={w.id} onClick={() => viewWerk(w.title)}
-                  style={{ flexShrink: 0, width: 110, borderRadius: 14, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", cursor: "pointer", scrollSnapAlign: "start", background: "white", border: `1px solid ${CORAL}15` }}>
-                  <div style={{ position: "relative" }}>
-                    <img src={w.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={w.title} />
-                    <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.55)", color: "white", borderRadius: 20, padding: "3px 9px", fontWeight: 800, fontSize: 12 }}>{w.price}</div>
-                  </div>
-                  <div style={{ padding: "6px 8px 8px" }}>
-                    <div style={{ fontWeight: 700, fontSize: 11, color: "#222", marginBottom: 2, lineHeight: 1.3 }}>{w.title}</div>
-                    <div style={{ fontSize: 10, color: TEAL, fontWeight: 600 }}>{w.creator}</div>
-                    <div style={{ fontSize: 10, color: "#bbb", marginTop: 2 }}>❤️ {w.likes}</div>
-                  </div>
-                </div>
-              ))}
+            {/* Feed */}
+            <div style={{ padding: "8px 0 0" }}>
+              {currentFeed.map(item => {
+                if (item.type === "media") return (
+                  <MediaCard key={item.id} item={item}
+                    liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))}
+                    faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))}
+                    onViewWirker={viewWirker} isTalentUser={!isNewUser}
+                    following={following} toggleFollow={toggleFollow}
+                  />
+                );
+                if (item.type === "werk") return (
+                  <WerkCard key={item.id} item={item}
+                    liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))}
+                    faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))}
+                    onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} isTalentUser={!isNewUser}
+                  />
+                );
+                if (item.type === "wirker") return (
+                  <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />
+                );
+                if (item.type === "service") return (
+                  <ServiceCard key={item.id} item={item}
+                    liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))}
+                    faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))}
+                    onViewWirker={viewWirker} isTalentUser={!isNewUser}
+                    following={following} toggleFollow={toggleFollow}
+                  />
+                );
+                if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
+                return null;
+              })}
             </div>
           </div>
+        </>
+      )}
 
-          {/* ── TRENNLINIE & SECTION-TITEL ── */}
-          <div style={{ padding: "16px 16px 4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>📰 Neuigkeiten</div>
-              <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Was die Community gerade bewegt</div>
-            </div>
-          </div>
-
-          {/* ── HAUPT-FEED ── */}
-          {liveFeed.map(item => {
-            if (item.type === "media") return <MediaCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
-            if (item.type === "werk") return <WerkCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onAddToCart={addToCart} onViewWerk={viewWerk} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
-            if (item.type === "wirker") return <WirkerCard key={item.id} item={item} onViewWirker={viewWirker} onBookWirker={bookWirker} />;
-            if (item.type === "service") return <ServiceCard key={item.id} item={item} liked={!!liked[item.id]} onLike={id => setLiked(p => ({ ...p, [id]: !p[id] }))} faved={!!faved[item.id]} onFav={id => setFaved(p => ({ ...p, [id]: !p[id] }))} onViewWirker={viewWirker} isTalentUser={!isNewUser} />;
-            if (item.type === "impact") return <ImpactCard key={item.id} item={item} />;
-            return null;
-          })}
-        </div>
-      </>)}
+      {/* ── IMPACT PAGE ── */}
       {page === "impact" && <ImpactPage />}
-      {page === "favorites" && <FavoritesPage onViewWirker={viewWirker} onBookWirker={bookWirker} onViewWerk={viewWerk} onAddToCart={addToCart} />}
-      {page === "chats" && !openChat && <ChatListPage onOpenChat={(c) => setOpenChat(c)} onBack={() => setPage("profile")} />}
-      {page === "chats" && openChat && <ChatDetailPage chat={openChat} onBack={() => setOpenChat(null)} />}
-      {page === "profile" && !openChat && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Lars M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} onOpenChats={() => setPage("chats")} following={following} toggleFollow={toggleFollow} onViewWirker={viewWirker} />}
 
-      <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} onPlusClick={() => setShowCreateSheet(true)} />
+      {/* ── FAVORITES ── */}
+      {page === "favorites" && (
+        <FavoritesPage
+          onViewWirker={viewWirker}
+          onBookWirker={bookWirker}
+          onViewWerk={viewWerk}
+          onAddToCart={addToCart}
+        />
+      )}
 
-      {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />
-      }{showTalentAnbieten && <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />}
+      {/* ── CHATS ── */}
+      {page === "chats" && (
+        openChat
+          ? <ChatDetailPage chat={typeof openChat === "object" ? openChat : mockChats.find(c => c.wirker === openChat) || mockChats[0]} onBack={() => setOpenChat(null)} />
+          : <ChatListPage onOpenChat={setOpenChat} />
+      )}
+
+      {/* ── PROFIL ── */}
+      {page === "profile" && !openChat && (
+        <ProfilePage
+          isNewUser={isNewUser}
+          onViewOwnWirkerProfile={() => viewWirker("Lars M.", true)}
+          onTalentAnbieten={() => setShowTalentAnbieten(true)}
+          onOpenChats={() => setPage("chats")}
+          following={following}
+          toggleFollow={toggleFollow}
+          onViewWirker={viewWirker}
+        />
+      )}
+
+      {/* ── TAB BAR ── */}
+      {!detailView && (
+        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} />
+      )}
+
+      {/* ── OVERLAYS ── */}
+      {showSearch && (
+        <SearchOverlay onClose={() => setShowSearch(false)} />
+      )}
+
+      {showCart && (
+        <CartOverlay
+          cart={cart}
+          onClose={() => setShowCart(false)}
+          onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))}
+          onGoToChats={() => { setShowCart(false); setPage("chats"); }}
+        />
+      )}
+
+      {showNotifications && (
+        <NotificationsOverlay onClose={() => setShowNotifications(false)} />
+      )}
+
+      {showKarte && (
+        <KarteOverlay
+          onClose={() => setShowKarte(false)}
+          onViewWirker={viewWirker}
+        />
+      )}
+
+      {showHuiMatch && (
+        <HuiMatchOverlay
+          onClose={() => setShowHuiMatch(false)}
+          onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }}
+        />
+      )}
+
       {showCreateSheet && (
         <CreateSheet
-          isNewUser={isNewUser}
           onClose={() => setShowCreateSheet(false)}
           onNewWerk={() => { setShowCreateSheet(false); setShowWerkCreate(true); }}
           onNewStory={() => { setShowCreateSheet(false); setShowStoryCreate(true); }}
@@ -7659,24 +7762,24 @@ export default function App() {
       {showWerkCreate && <WerkCreateModal onClose={() => setShowWerkCreate(false)} />}
       {showStoryCreate && <StoryCreateModal onClose={() => setShowStoryCreate(false)} />}
 
+      {showTalentAnbieten && (
+        <TalentAnbietenPage onClose={() => setShowTalentAnbieten(false)} onSuccess={() => setShowTalentAnbieten(false)} />
+      )}
+
       {/* ── STORY VIEWER ── */}
-      {storyViewer !== null && (
+      {storyViewer !== null && storyViewer.story && (
         <StoryViewer
-          stories={mockStories.map(s => ({
-            ...s,
-            img: s.img.replace("w=80&h=80", "w=600&h=1000"),
-            text: s.name + "'s Story",
-            time: "vor kurzem",
-            views: Math.floor(Math.random() * 100) + 10,
-            likes: Math.floor(Math.random() * 30) + 1,
-            type: "foto",
-            label: s.name,
+          stories={storyViewer.story.slides.map(slide => ({
+            ...slide,
+            name: storyViewer.story.name,
+            creatorImg: storyViewer.story.img,
           }))}
-          startIndex={storyViewer.startIndex}
+          startIndex={storyViewer.startIndex || 0}
           onClose={() => setStoryViewer(null)}
           onCreateNew={() => { setStoryViewer(null); setShowStoryCreate(true); }}
         />
       )}
+
       {/* ── TOAST ── */}
       {toast && (
         <div style={{
@@ -7685,33 +7788,32 @@ export default function App() {
           borderRadius: 20, padding: "12px 20px",
           display: "flex", alignItems: "center", gap: 12,
           boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-          zIndex: 9999, animation: "toastIn 0.3s ease",
+          zIndex: 9999,
           maxWidth: "calc(100vw - 40px)", minWidth: 240,
           border: "1px solid rgba(255,255,255,0.08)"
         }}>
-          {toast.img && <img src={toast.img} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />}
+          {toast.img && (
+            <img src={toast.img} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+          )}
           <div style={{ flex: 1, overflow: "hidden" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {toast.title || toast.name || "Artikel"}
+              {toast.title || toast.name || "Zum Warenkorb hinzugefügt"}
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 1 }}>In den Warenkorb gelegt</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>
+              {toast.price || ""} · Im Warenkorb
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            <div style={{ background: "#2ABFAC", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Check size={13} color="white" strokeWidth={3} />
-            </div>
+          <div style={{ background: TEAL, borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Check size={13} color="white" strokeWidth={3} />
           </div>
         </div>
       )}
-      {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} onGoToChats={() => { setShowCart(false); setPage("chats"); }} />}
-      {/* Onboarding now handled pre-auth in HuiOnboarding component */}
-      {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
-      {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
-      {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
 
       <style>{`
         @keyframes huiPulse { 0%,100% { box-shadow: 0 4px 16px ${GOLD}55; transform: scale(1); } 50% { box-shadow: 0 6px 26px ${GOLD}99; transform: scale(1.07); } }
-        * { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
   );
