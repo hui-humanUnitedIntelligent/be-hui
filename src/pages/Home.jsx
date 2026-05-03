@@ -53,7 +53,7 @@ const mockNotifications = [
     id: "n5", type: "nachricht", read: true, group: "Gestern",
     time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
     title: "Neue Nachricht",
-    text: "Maria L.: \u201eSuperDann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘\u201c",
+    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
     actions: [{ label: "Antworten", style: "primary" }],
   },
@@ -68,7 +68,7 @@ const mockNotifications = [
     id: "n7", type: "abstimmung", read: true, group: "Gestern",
     time: "gestern 10:00", icon: "🗳️", color: "#10b981",
     title: "Impact-Abstimmung läuft!",
-    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. \u201eSchule für alle\u201c liegt gerade vorne.",
+    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.",
     actions: [{ label: "Jetzt abstimmen", style: "primary" }],
   },
   // DIESE WOCHE
@@ -83,7 +83,7 @@ const mockNotifications = [
     id: "n9", type: "system", read: true, group: "Diese Woche",
     time: "vor 4 Tagen", icon: "🏆", color: "#F5A623",
     title: "Badge freigeschaltet",
-    text: "Du hast das Badge \u201eTop Wirker\u201c erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
+    text: "Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
     actions: [],
   },
   {
@@ -1028,7 +1028,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop {
+            <style>{"@keyframes heartPop {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.45); }
   70%  { transform: scale(0.9); }
@@ -1038,7 +1038,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1282,11 +1282,15 @@ function EmpfehlungsBox({ wirkerName, initialCount }) {
   );
 }
 
-function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, returnStep6, onGoToChats }) {
+function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, returnStep6, onGoToChats, following, toggleFollow }) {
   const [dbWirker, setDbWirker] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [tab, setTab] = useState("werke");
   const [followed, setFollowed] = useState(false);
+  // Sync mit globalem following State
+  React.useEffect(() => {
+    if (following && profile) setFollowed(following.has(profile.name));
+  }, [following, profile]);
   const [showBooking, setShowBooking] = useState(!!autoBook);
   const [showAvailEditor, setShowAvailEditor] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
@@ -1348,7 +1352,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
@@ -1398,9 +1402,9 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
           </div>
           {/* Folgen-Button oben rechts */}
           {!isOwnProfile && (
-            <button onClick={() => setFollowed(f => !f)}
-              style={{ background: followed ? TEAL : "white", border: `2px solid ${TEAL}`, borderRadius: 22, padding: "8px 16px", fontWeight: 700, fontSize: 13, color: followed ? "white" : TEAL, cursor: "pointer", flexShrink: 0, transition: "all 0.2s" }}>
-              {followed ? "✓ Folge ich" : "+ Folgen"}
+            <button onClick={() => { const next = !followed; setFollowed(next); if(toggleFollow) toggleFollow(profile.name); }}
+              style={{ background: followed ? TEAL : "white", border: `2px solid ${TEAL}`, borderRadius: 22, padding: "8px 18px", fontWeight: 700, fontSize: 13, color: followed ? "white" : TEAL, cursor: "pointer", flexShrink: 0, transition: "all 0.25s", display: "flex", alignItems: "center", gap: 5 }}>
+              {followed ? <><Check size={13} />{"  Folge ich"}</> : <>{"+ Folgen"}</>}
             </button>
           )}
         </div>
@@ -2770,10 +2774,15 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.location}</span>
           </div>
         </div>
-        <button onClick={() => onViewWirker(item.creator)}
-          style={{ background: `${TEAL}12`, border: "none", borderRadius: 20, padding: "5px 11px", fontWeight: 700, fontSize: 11, color: TEAL, cursor: "pointer", flexShrink: 0 }}>
-          Folgen
-        </button>
+        {(() => {
+          const isFollowed = following && following.has(item.creator);
+          return (
+            <button onClick={() => toggleFollow && toggleFollow(item.creator)}
+              style={{ background: isFollowed ? TEAL : `${TEAL}12`, border: "none", borderRadius: 20, padding: "5px 11px", fontWeight: 700, fontSize: 11, color: isFollowed ? "white" : TEAL, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 3, transition: "all 0.2s" }}>
+              {isFollowed ? <><Check size={10} /> Folge ich</> : <>+ Folgen</>}
+            </button>
+          );
+        })()}
       </div>
 
       {/* Media — full width, tall */}
@@ -4542,7 +4551,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
-      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.\n\nMit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.\n\nJedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
+
+Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
+
+Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4551,7 +4564,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
-      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.\n\nGreen Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.\n\nMit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
+
+Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
+
+Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4560,7 +4577,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
-      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.\n\nDas Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.\n\nJede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
+
+Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
+
+Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
@@ -5766,7 +5787,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
     </div>
   );
 }
-function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats }) {
+function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats, following, toggleFollow, onViewWirker }) {
   const [activeSection, setActiveSection] = React.useState(null); // null | "einstellungen" | "editProfile"
   const [settingsSection, setSettingsSection] = React.useState(null); // null | "benachrichtigungen" | "privatsphare" | "zahlung" | "rechtliches"
   const [showHuiPunkte, setShowHuiPunkte] = React.useState(false);
@@ -6273,6 +6294,41 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
             <div style={{ fontWeight: 700, fontSize: 14, color: "#555", marginBottom: 4 }}>Noch keine Empfehlungen</div>
             <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.6 }}>Nach Abschluss einer Buchung kannst du das Talent weiterempfehlen — das macht den Unterschied.</div>
           </div>
+        </div>
+      )}
+
+      {/* WEN ICH FOLGE */}
+      {isNewUser && (
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid #f5f5f3", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>✨ Ich folge</div>
+            <span style={{ fontSize: 12, color: "#bbb", fontWeight: 600 }}>{following ? following.size : 0} Talente</span>
+          </div>
+          {following && following.size > 0 ? (
+            <div style={{ padding: "10px 14px 14px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {allWirkerStories.filter(s => following.has(s.wirkerKey)).map(s => (
+                  <div key={s.id} onClick={() => onViewWirker && onViewWirker(s.wirkerKey)}
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "#f7f7f5", borderRadius: 22, padding: "6px 12px 6px 6px", cursor: "pointer" }}>
+                    <img src={s.img} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} alt={s.name} />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: "#222" }}>{s.name}</div>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); toggleFollow && toggleFollow(s.wirkerKey); }}
+                      style={{ marginLeft: 4, background: "none", border: "1px solid #eee", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: "#aaa", cursor: "pointer" }}>
+                      Entfolgen
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ padding: "24px 20px", textAlign: "center" }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>👀</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#ccc", marginBottom: 4 }}>Noch niemanden</div>
+              <div style={{ fontSize: 12, color: "#ddd", lineHeight: 1.6 }}>Tippe auf "+ Folgen" bei einem Talent um ihnen zu folgen</div>
+            </div>
+          )}
         </div>
       )}
 
@@ -7473,7 +7529,7 @@ export default function App() {
 
   if (detailView?.type === "wirker") return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} returnStep6={detailView.returnStep6} onGoToChats={() => { setDetailView(null); setPage("chats"); }} />
+      <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} returnStep6={detailView.returnStep6} onGoToChats={() => { setDetailView(null); setPage("chats"); }} following={following} toggleFollow={toggleFollow} />
       <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
@@ -7596,7 +7652,7 @@ export default function App() {
       {page === "favorites" && <FavoritesPage onViewWirker={viewWirker} onBookWirker={bookWirker} onViewWerk={viewWerk} onAddToCart={addToCart} />}
       {page === "chats" && !openChat && <ChatListPage onOpenChat={(c) => setOpenChat(c)} onBack={() => setPage("profile")} />}
       {page === "chats" && openChat && <ChatDetailPage chat={openChat} onBack={() => setOpenChat(null)} />}
-      {page === "profile" && !openChat && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Lars M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} onOpenChats={() => setPage("chats")} />}
+      {page === "profile" && !openChat && <ProfilePage isNewUser={isNewUser} onViewOwnWirkerProfile={() => viewWirker("Lars M.", true)} onTalentAnbieten={() => setShowTalentAnbieten(true)} onOpenChats={() => setPage("chats")} following={following} toggleFollow={toggleFollow} onViewWirker={viewWirker} />}
 
       <TabBar page={page} setPage={setPage} isNewUser={isNewUser} setShowOnboarding={setShowOnboarding} setOnboardingStep={setOnboardingStep} onPlusClick={() => setShowCreateSheet(true)} />
 
