@@ -53,7 +53,7 @@ const mockNotifications = [
     id: "n5", type: "nachricht", read: true, group: "Gestern",
     time: "gestern 18:32", icon: "💬", color: "#8b5cf6",
     title: "Neue Nachricht",
-    text: "Maria L.: Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘",
+    text: "Maria L.: "Super, dann sehen wir uns am Montag! Bitte bring bequeme Kleidung mit 🧘"",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop",
     actions: [{ label: "Antworten", style: "primary" }],
   },
@@ -68,7 +68,7 @@ const mockNotifications = [
     id: "n7", type: "abstimmung", read: true, group: "Gestern",
     time: "gestern 10:00", icon: "🗳️", color: "#10b981",
     title: "Impact-Abstimmung läuft!",
-    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. Schule für alle liegt gerade vorne.",
+    text: "Noch 4 Tage um dein Herzensprojekt zu wählen. "Schule für alle" liegt gerade vorne.",
     actions: [{ label: "Jetzt abstimmen", style: "primary" }],
   },
   // DIESE WOCHE
@@ -83,7 +83,7 @@ const mockNotifications = [
     id: "n9", type: "system", read: true, group: "Diese Woche",
     time: "vor 4 Tagen", icon: "🏆", color: "#F5A623",
     title: "Badge freigeschaltet",
-    text: "Du hast das Badge Top Wirker erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
+    text: "Du hast das Badge "Top Wirker" erreicht — 10 Empfehlungen erhalten. Herzlichen Glückwunsch!",
     actions: [],
   },
   {
@@ -1028,7 +1028,17 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
             <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
             </button>
-            <style>{`@keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            <style>{"@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }"}</style>
             <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
           </div>
         )}
@@ -1338,19 +1348,19 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     fullName: p.full_name || p.fullName || p.name || wirkerName,
     talent: p.talent || "",
     location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
+    hourlyRate: p.hourly_rate ? \`\${p.hourly_rate} €/h\` : (p.hourlyRate || ""),
     memberSince: p.memberSince || "2024",
     bookings: p.bookings || 0,
     followers: p.followers || 0,
     recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || p.impactEur || 0,
+    impactEur: p.impact_eur || profile.impactEur || 0,
     bio: p.bio || "",
     img: p.img || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     header: p.header_img || p.header || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop",
     skills: p.skills || [],
     werke: werke,
-    empfehlungen: p.empfehlungen || [],
-    pricePerHour: p.hourly_rate || p.pricePerHour || 0,
+    empfehlungen: profile.empfehlungen || [],
+    pricePerHour: p.hourly_rate || profile.pricePerHour || 0,
   };
 
   return (
@@ -2056,7 +2066,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.title}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -4349,7 +4359,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -4512,11 +4522,14 @@ function ImpactPage() {
   const [spendenBetrag, setSpendenBetrag] = useState(""); 
   const [spendenSent, setSpendenSent] = useState(false);
 
+  // ── Pool & Timing ──────────────────────────────────────────────
   const poolGesamt = 3847;
   const today = new Date();
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const daysLeft = Math.ceil((endOfMonth - today) / (1000 * 60 * 60 * 24));
   const currentMonth = today.toLocaleString("de-DE", { month: "long", year: "numeric" });
+
+  // ── Die 3 nominierten Projekte für diese Abstimmung ───────────
   const nominiert = [
     {
       id: "p1", emoji: "🏫", title: "Schule für alle",
@@ -4525,7 +4538,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&h=400&fit=crop",
       wunschbetrag: 3500, gesammelt: 2100, stimmen: 847,
       warum: "Der Schulbau steht kurz vor dem Abschluss — mit diesem Monat könnte er fertiggestellt werden.",
-      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.\n\nMit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.\n\nJedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
+      story: "In einem kleinen Dorf im Norden Ugandas lernen 200 Kinder unter freiem Himmel — weil es kein Schulgebäude gibt. Bei Regen fällt der Unterricht aus. Bei großer Hitze auch. Bildung Grenzenlos hat die Gemeinde 2023 kennengelernt und beschlossen: Das muss sich ändern.
+
+Mit eurem Support bauen wir ein echtes Schulgebäude mit 4 Klassenräumen, Büchern und ausgebildeten Lehrern für zwei Jahre. Der Bau hat schon begonnen — uns fehlt nur noch der letzte Schritt bis zur Fertigstellung.
+
+Jedes Kind das hier lernt, trägt den Gedanken weiter: Bildung verändert Leben. Und HUI macht es möglich.",
     },
     {
       id: "p2", emoji: "🌳", title: "Bäume für Kenia",
@@ -4534,7 +4551,11 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop",
       wunschbetrag: 3200, gesammelt: 1400, stimmen: 612,
       warum: "Eine vollständige Finanzierung sichert 5.300 Bäume und schafft 12 dauerhafte Arbeitsplätze.",
-      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.\n\nGreen Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.\n\nMit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
+      story: "Die Böden im Norden Kenias sind ausgetrocknet. Jahrzehntelange Abholzung und der Klimawandel haben Felder und Weiden unfruchtbar gemacht. Familien verlieren ihre Lebensgrundlage.
+
+Green Earth Kenya setzt auf eine einfache, bewährte Lösung: Bäume pflanzen, Gemeinschaften stärken. Jede gepflanzte Pflanze schützt den Boden, spendet Schatten und gibt Früchte. 12 lokale Familien werden als Baumpfleger ausgebildet — dauerhafter Job, dauerhafter Impact.
+
+Mit den HUI-Geldern pflanzen wir 5.300 weitere Bäume. Jeder einzelne zählt.",
     },
     {
       id: "p3", emoji: "🐾", title: "Tierheim Hamburg",
@@ -4543,10 +4564,15 @@ function ImpactPage() {
       img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop",
       wunschbetrag: 3600, gesammelt: 1200, stimmen: 389,
       warum: "Das Tierheim ist dringend auf Sanierung angewiesen — die Tiere brauchen euch.",
-      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.\n\nDas Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.\n\nJede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
+      story: "150 Hunde, Katzen und Kleintiere leben im Tierheim Hamburg-Süd — viele davon seit Monaten. Die Gehege sind alt, Tierarztgeräte veraltet, und die ehrenamtlichen Pfleger stoßen an ihre Grenzen.
+
+Das Tierheim bekommt keine staatlichen Gelder. Es lebt von Spenden und Herz. Mit eurem Beitrag sanieren wir die Außengehege, kaufen neue medizinische Ausstattung und bilden 3 neue Pfleger aus — damit mehr Tiere Platz und Fürsorge bekommen.
+
+Jede Buchung auf HUI bringt uns ein Stückchen näher. Danke für euer Herz.",
     },
   ];
 
+  // ── Alle weiteren laufenden Projekte ──────────────────────────
   const weitereProjekte = [
     { id: "wp1", emoji: "💧", title: "Sauberes Wasser in Mali", org: "WaterForAll e.V.", kategorie: "Wasser & Gesundheit", land: "Mali", img: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&h=400&fit=crop", wunschbetrag: 8000, gesammelt: 1230 },
     { id: "wp2", emoji: "👩", title: "Frauen-Kooperative Äthiopien", org: "Empowerment Africa", kategorie: "Gleichberechtigung", land: "Äthiopien", img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&h=400&fit=crop", wunschbetrag: 5000, gesammelt: 890 },
@@ -4554,7 +4580,10 @@ function ImpactPage() {
   ];
 
   const totalStimmen = nominiert.reduce((s, p) => s + p.stimmen, 0) + (votedFor ? 1 : 0);
+  const votedProject = nominiert.find(p => p.id === votedFor);
   const gewinner = [...nominiert].sort((a, b) => b.stimmen - a.stimmen)[0];
+
+  // ── Pool-Verteilungs-Simulation ────────────────────────────────
   const gewinnerBekommt = Math.min(poolGesamt, gewinner.wunschbetrag);
   const restPool = poolGesamt - gewinnerBekommt;
   const alleAnderenProjekte = [...nominiert.filter(p => p.id !== gewinner.id), ...weitereProjekte];
@@ -4568,6 +4597,7 @@ function ImpactPage() {
     setTimeout(() => setVoteSuccess(false), 3000);
   };
 
+  // ── Vote Success Toast ─────────────────────────────────────────
   if (voteSuccess) {
     return (
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -4589,6 +4619,7 @@ function ImpactPage() {
     );
   }
 
+  // ── Vote Confirm Modal ─────────────────────────────────────────
   if (showVoteConfirm) {
     return (
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
@@ -4618,6 +4649,7 @@ function ImpactPage() {
     );
   }
 
+  // ── Ergebnis letzten Monat ─────────────────────────────────────
   if (showErgebnis) {
     return (
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
@@ -4672,6 +4704,7 @@ function ImpactPage() {
     );
   }
 
+  // ── Story Modal ───────────────────────────────────────────────
   if (showStory) {
     const p = showStory;
     return (
@@ -6229,7 +6262,7 @@ function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser
       <TabButton label="Home" icon={<Home size={22} />} active={page === "home"} onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
       <TabButton label="Impact" icon={<Leaf size={22} />} active={page === "impact"} onClick={() => { setPage("impact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
       {isNewUser ? (
-        <button onClick={() => { setShowOnboarding(true); setOnboardingStep(0); }} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -22, WebkitTapHighlightColor: "transparent" }}>
+        <button onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -22, WebkitTapHighlightColor: "transparent" }}>
           <div style={{ width: 58, height: 58, borderRadius: "50%", overflow: "hidden", boxShadow: `0 4px 18px ${GOLD}66`, animation: "huiPulse 2.4s ease-in-out infinite" }}>
             <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
@@ -6614,6 +6647,98 @@ function HuiAuthScreen({ onLogin }) {
         <span style={{ color: CORAL, cursor: "pointer", fontWeight: 600 }}>Nutzungsbedingungen</span>{" "}
         und der{" "}
         <span style={{ color: CORAL, cursor: "pointer", fontWeight: 600 }}>Datenschutzerklärung</span> zu.
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ──────────────────────────────────────────────────────────────
+// ─── LOGIN SCREEN ────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [mode, setMode] = React.useState("login"); // login | register
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handleAuth = () => {
+    if (!email || !password) { setError("Bitte E-Mail und Passwort eingeben"); return; }
+    if (mode === "register" && !name) { setError("Bitte Name eingeben"); return; }
+    setLoading(true); setError("");
+    // Demo-Login: nach 800ms einloggen
+    setTimeout(() => {
+      localStorage.setItem("hui_user", JSON.stringify({ email, name: name || email.split("@")[0] }));
+      onLogin();
+      setLoading(false);
+    }, 800);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      {/* Logo */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 80, height: 80, borderRadius: 22, objectFit: "cover", boxShadow: "0 8px 32px rgba(255,107,91,0.25)", marginBottom: 16 }} />
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#888", letterSpacing: 0.3 }}>
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>H</span>uman{" "}
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>U</span>nited{" "}
+          <span style={{ color: "#FF6B00", fontWeight: 900, fontSize: 17 }}>I</span>ntelligent
+        </div>
+        <div style={{ fontSize: 13, color: "#bbb", marginTop: 4 }}>Echte Talente. Echte Verbindungen.</div>
+      </div>
+
+      {/* Card */}
+      <div style={{ background: "white", borderRadius: 24, padding: "28px 24px", width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
+        {/* Tab */}
+        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 24 }}>
+          {["login","register"].map(m => (
+            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 11, fontWeight: 700, fontSize: 14, cursor: "pointer", background: mode === m ? "white" : "transparent", color: mode === m ? "#222" : "#aaa", boxShadow: mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
+              {m === "login" ? "Anmelden" : "Registrieren"}
+            </button>
+          ))}
+        </div>
+
+        {mode === "register" && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>VOLLSTÄNDIGER NAME</div>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="z.B. Sofia Mayer"
+              style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
+          </div>
+        )}
+
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>E-MAIL</div>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="deine@email.de"
+            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }} />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>PASSWORT</div>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+            style={{ width: "100%", border: "1.5px solid #eee", borderRadius: 12, padding: "13px 14px", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#222" }}
+            onKeyDown={e => e.key === "Enter" && handleAuth()} />
+        </div>
+
+        {error && <div style={{ background: "#fff0f0", border: "1px solid #fcd", borderRadius: 10, padding: "10px 13px", fontSize: 13, color: "#e33", marginBottom: 14 }}>{error}</div>}
+
+        <button onClick={handleAuth} disabled={loading} style={{ width: "100%", background: loading ? "#ddd" : "linear-gradient(135deg, #FF6B5B, #F5A623)", color: "white", border: "none", borderRadius: 14, padding: "15px", fontWeight: 800, fontSize: 16, cursor: loading ? "not-allowed" : "pointer" }}>
+          {loading ? "Laden..." : mode === "login" ? "Anmelden →" : "Account erstellen →"}
+        </button>
+
+        {mode === "login" && (
+          <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "#aaa", cursor: "pointer" }}>
+            Passwort vergessen?
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 28, textAlign: "center", fontSize: 12, color: "#ccc", lineHeight: 1.6 }}>
+        Mit der Anmeldung stimmst du den{" "}
+        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Nutzungsbedingungen</span>{" "}
+        und der{" "}
+        <span style={{ color: "#FF6B00", cursor: "pointer" }}>Datenschutzerklärung</span>{" "}
+        zu.
       </div>
     </div>
   );
@@ -7117,6 +7242,13 @@ export default function App() {
   });
   // authState: "onboarding" | "auth" | "app"
 
+  if (authState === "onboarding") {
+    return <HuiOnboarding onDone={() => setAuthState("auth")} />;
+  }
+  if (authState === "auth") {
+    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+  }
+
   const [page, setPage] = useState("home");
   const [detailView, setDetailView] = useState(null);
   const [liked, setLiked] = useState({});
@@ -7246,10 +7378,15 @@ export default function App() {
   };
   const viewWirker = (name, isOwn = false) => setDetailView({ type: "wirker", id: name, isOwn });
   const bookWirker = (name) => setDetailView({ type: "wirker", id: name, isOwn: false, autoBook: true });
-  const viewWerk = (title) => { setDetailView({ type: "werk", id: title }); setRecentlyViewed(prev => { const filtered = prev.filter(t => t !== title); return [title, ...filtered].slice(0, 6); }); };
+  const viewWerk = (title) => {
+    setDetailView({ type: "werk", id: title });
+    setRecentlyViewed(prev => {
+      const filtered = prev.filter(t => t !== title);
+      return [title, ...filtered].slice(0, 6);
+    });
+  };
   const goBack = () => setDetailView(null);
-  if (authState === "onboarding") return <HuiOnboarding onDone={() => setAuthState("auth")} />;
-  if (authState === "auth") return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+
   if (detailView?.type === "wirker") return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#fafaf8", fontFamily: "'Inter', -apple-system, sans-serif" }}>
       <WirkerProfilePage wirkerName={detailView.id} onBack={goBack} onAddToCart={addToCart} isOwnProfile={detailView.isOwn} autoBook={detailView.autoBook} returnStep6={detailView.returnStep6} onGoToChats={() => { setDetailView(null); setPage("chats"); }} />
@@ -7437,6 +7574,7 @@ export default function App() {
         </div>
       )}
       {showCart && <CartOverlay cart={cart} onClose={() => setShowCart(false)} onRemove={i => setCart(c => c.filter((_, idx) => idx !== i))} onGoToChats={() => { setShowCart(false); setPage("chats"); }} />}
+      {/* Onboarding now handled pre-auth in HuiOnboarding component */}
       {showNotifications && <NotificationsOverlay onClose={() => setShowNotifications(false)} />}
       {showKarte && <KarteOverlay onClose={() => setShowKarte(false)} onViewWirker={viewWirker} />}
       {showHuiMatch && <HuiMatchOverlay onClose={() => setShowHuiMatch(false)} onViewWirker={(w) => { setShowHuiMatch(false); viewWirker(w); }} />}
