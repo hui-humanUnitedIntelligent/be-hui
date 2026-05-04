@@ -6058,12 +6058,17 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
     </div>
   );
 
-  const SectionHeader = ({ title, onBack }) => (
+  const SectionHeader = ({ title, onBack, actionLabel, onAction }) => (
     <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
       <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}>
         <ArrowLeft size={20} color="#444" />
       </button>
-      <div style={{ fontWeight: 800, fontSize: 18, color: "#222" }}>{title}</div>
+      <div style={{ fontWeight: 800, fontSize: 18, color: "#222", flex: 1 }}>{title}</div>
+      {actionLabel && (
+        <button onClick={onAction} style={{ background: CORAL, color: "white", border: "none", borderRadius: 20, padding: "7px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>
+          {actionLabel}
+        </button>
+      )}
     </div>
   );
 
