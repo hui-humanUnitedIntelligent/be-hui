@@ -1,5 +1,6 @@
 // HUI App v3.0-LIVE
 import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "../lib/AuthContext";
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "../lib/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
@@ -533,7 +534,7 @@ function CommentSection({ itemId, creator, isTalent }) {
     : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop";
 
   // Mein Profil (eingeloggter User = Lars M. als Demo-Talent)
-  const myName = isTalent ? creator : "Lars M.";
+  const myName = isTalent ? creator : (supabaseUserName || "Lars M.");
   const myImg = isTalent ? talentImg : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop";
 
   const total = comments.length;
@@ -5983,7 +5984,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const [showImpactTracker, setShowImpactTracker] = React.useState(false);
   const [editTab, setEditTab] = React.useState("basis"); // "basis" | "bio" | "talent"
   const [profileForm, setProfileForm] = React.useState({
-    vorname: "Lars", nachname: "M.", anzeigeName: "Lars M.",
+    vorname: supabaseUserName?.split(" ")[0] || "Lars", nachname: supabaseUserName?.split(" ")[1] || "M.", anzeigeName: supabaseUserName || "Lars M.",
     standort: "München, Deutschland", suchRadius: 50,
     bio: "Ich forme aus Ton Dinge, die bleiben.",
     website: "", instagram: "", kategorie: "Keramik & Töpfern",
@@ -7564,13 +7565,12 @@ function KarteOverlay({ onClose, onViewWirker }) {
 function AppInner() {
   // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
 
+  // Supabase Auth
+  const { user, signOut } = useAuth();
+  const supabaseUserName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || null;
+
   // Auth state
-  const [authState, setAuthState] = useState(() => {
-    try {
-      const u = localStorage.getItem("hui_user");
-      return u ? "app" : "onboarding";
-    } catch { return "onboarding"; }
-  });
+  const [authState, setAuthState] = useState("app");
 
   // Navigation & views
   const [page, setPage] = useState("home");
