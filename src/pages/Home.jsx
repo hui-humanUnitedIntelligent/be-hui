@@ -3779,7 +3779,7 @@ function StoryCreateModal({ onClose }) {
 
 /* v2 */ function CartOverlay({ cart, onClose, onRemove, onGoToChats }) {
   const [step, setStep] = React.useState("cart"); // cart | address | payment | confirm | done
-  const [adresse, setAdresse] = React.useState({ name: "Lars M.", strasse: "Leopoldstr. 42", plz: "80802", ort: "München" });
+  const [adresse, setAdresse] = React.useState({ name: supabaseUserName || "Lars M.", strasse: "Leopoldstr. 42", plz: "80802", ort: "München" });
   const [zahlart, setZahlart] = React.useState("karte");
   const [huiPunkte, setHuiPunkte] = React.useState(false);
   const [confirming, setConfirming] = React.useState(false);
@@ -5590,7 +5590,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
     kategorie: "",
     bio: "",
     bioRoh: "", // Rohtext des Nutzers für KI
-    vorname: "Lars",
+    vorname: supabaseUserName?.split(" ")[0] || "Lars",
     nachname: "M.",
     standort: "München",
     stundensatz: "",
@@ -7923,7 +7923,7 @@ function AppInner() {
       {page === "profile" && !openChat && (
         <ProfilePage
           isNewUser={isNewUser}
-          onViewOwnWirkerProfile={() => viewWirker("Lars M.", true)}
+          onViewOwnWirkerProfile={() => viewWirker(supabaseUserName || "Lars M.", true)}
           onTalentAnbieten={() => setShowTalentAnbieten(true)}
           onOpenChats={() => setPage("chats")}
           following={following}
