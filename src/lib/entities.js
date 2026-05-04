@@ -1,42 +1,29 @@
-import { supabase } from "./supabaseClient";
-
-// Adapter: macht Supabase-Calls genauso wie Base44 entities
-// So muss der bestehende Code nicht geändert werden
+import { supabaseProxy } from "@/functions/supabaseProxy";
 
 const makeAdapter = (tableName) => ({
   list: async () => {
-    const { data, error } = await supabase.from(tableName).select("*");
-    if (error) { console.error(tableName, error); return []; }
-    return data || [];
+    const res = await supabaseProxy({ table: tableName, action: "list" });
+    return res.data?.data || [];
   },
   get: async (id) => {
-    const { data, error } = await supabase.from(tableName).select("*").eq("id", id).single();
-    if (error) { console.error(tableName, error); return null; }
-    return data;
+    const res = await supabaseProxy({ table: tableName, action: "list", query: { id } });
+    return (res.data?.data || [])[0] || null;
   },
   create: async (payload) => {
-    const { data, error } = await supabase.from(tableName).insert(payload).select().single();
-    if (error) { console.error(tableName, error); return null; }
-    return data;
+    const res = await supabaseProxy({ table: tableName, action: "create", data: payload });
+    return res.data?.data;
   },
   update: async (id, payload) => {
-    const { data, error } = await supabase.from(tableName).update(payload).eq("id", id).select().single();
-    if (error) { console.error(tableName, error); return null; }
-    return data;
+    const res = await supabaseProxy({ table: tableName, action: "update", id, data: payload });
+    return res.data?.data;
   },
   delete: async (id) => {
-    const { error } = await supabase.from(tableName).delete().eq("id", id);
-    if (error) { console.error(tableName, error); return false; }
-    return true;
+    const res = await supabaseProxy({ table: tableName, action: "delete", id });
+    return res.data?.data;
   },
   filter: async (params) => {
-    let query = supabase.from(tableName).select("*");
-    Object.entries(params).forEach(([key, value]) => {
-      query = query.eq(key, value);
-    });
-    const { data, error } = await query;
-    if (error) { console.error(tableName, error); return []; }
-    return data || [];
+    const res = await supabaseProxy({ table: tableName, action: "list", query: params });
+    return res.data?.data || [];
   },
 });
 
