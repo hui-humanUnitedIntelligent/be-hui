@@ -1886,7 +1886,7 @@ function SearchOverlay({ onClose }) {
 
   const [dbWirkerSuche, setDbWirkerSuche] = useState([]);
   useEffect(() => {
-    HuiWirker.list().then(data => {
+    supabase.from('wirker').select('*').then(({ data }) => {
       if (data && data.length > 0) {
         const mapped = data.map(w => ({
           id: w.id, typ: "wirker",
@@ -7101,7 +7101,7 @@ function HuiMatchOverlay({ onClose, onViewWirker }) {
   const textRef = useRef(null);
 
   useEffect(() => {
-    HuiWirker.list().then(data => {
+    supabase.from('wirker').select('*').then(({ data }) => {
       if (data && data.length > 0) {
         const mapped = data.map(w => ({
           id: w.id, name: w.name || w.full_name,
