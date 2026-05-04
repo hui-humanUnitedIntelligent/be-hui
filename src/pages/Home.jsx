@@ -1502,10 +1502,13 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     async function loadWirker() {
       setLoadingProfile(true);
       try {
-        // Try DB first
-        const all = await HuiWirker.list().catch(() => []);
-        const found = all.find(w => w.name === wirkerName || w.full_name === wirkerName);
-        if (found) {
+        // Supabase: Wirker direkt laden
+        const { data: found, error } = await supabase
+          .from('wirker')
+          .select('*')
+          .or(`name.eq.${wirkerName},full_name.eq.${wirkerName}`)
+          .single();
+        if (found && !error) {
           setDbWirker(found);
           setWerke(found.werke || []);
         } else {
