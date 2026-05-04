@@ -2269,7 +2269,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -4567,7 +4567,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
@@ -7829,6 +7829,33 @@ function AppInner() {
                       </div>
                       <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, marginTop: 1 }}>{w.talent}</div>
                       <div style={{ fontSize: 10, color: "#bbb", marginTop: 3 }}>👍 {w.recommendations}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Top Werke */}
+            <div style={{ padding: "16px 0 4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px 10px" }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 18, color: "#222" }}>🎨 Top Werke</div>
+                  <div style={{ fontSize: 12, color: "#aaa", marginTop: 1 }}>Handgefertigtes · Unikate zum Verlieben</div>
+                </div>
+                <button style={{ background: "none", border: "none", color: GOLD, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Alle →</button>
+              </div>
+              <div style={{ display: "flex", gap: 14, overflowX: "auto", padding: "0 16px 8px", scrollbarWidth: "none" }}>
+                {featuredWerke.map(w => (
+                  <div key={w.id}
+                    style={{ flexShrink: 0, width: 140, cursor: "pointer", background: "white", borderRadius: 18, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", border: `1.5px solid ${GOLD}30` }}>
+                    <div style={{ position: "relative" }}>
+                      <img src={w.img} style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }} alt={w.title} />
+                      <div style={{ position: "absolute", top: 7, right: 7, background: "rgba(0,0,0,0.45)", borderRadius: 10, padding: "2px 8px", fontSize: 11, color: "white", fontWeight: 700 }}>{w.price}</div>
+                    </div>
+                    <div style={{ padding: "8px 10px 10px" }}>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: "#222" }}>{w.title}</div>
+                      <div style={{ fontSize: 11, color: GOLD, fontWeight: 600, marginTop: 1 }}>{w.creator}</div>
+                      <div style={{ fontSize: 10, color: "#bbb", marginTop: 3 }}>❤️ {w.likes}</div>
                     </div>
                   </div>
                 ))}
