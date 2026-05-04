@@ -1,6 +1,6 @@
 // HUI App v3.0-LIVE
 import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from "../lib/AuthContext";
+import { supabase } from "../lib/supabaseClient";
 import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "../lib/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
@@ -7565,9 +7565,15 @@ function KarteOverlay({ onClose, onViewWirker }) {
 function AppInner() {
   // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
 
-  // Supabase Auth
-  const { user, signOut } = useAuth();
-  const supabaseUserName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || null;
+  // Supabase Auth direkt
+  const [supabaseUser, setSupabaseUser] = React.useState(null);
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setSupabaseUser(data.user);
+    });
+  }, []);
+  const supabaseUserName = supabaseUser?.user_metadata?.full_name || supabaseUser?.email?.split("@")[0] || null;
+  const signOut = () => supabase.auth.signOut().then(() => window.location.href = "/login");
 
   // Auth state
   const [authState, setAuthState] = useState("app");
