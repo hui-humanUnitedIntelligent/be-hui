@@ -6238,7 +6238,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   // PROFIL BEARBEITEN
   if (activeSection === "editProfile") return (
     <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
-      <SectionHeader title="Profil bearbeiten" onBack={() => setActiveSection(null)} />
+      <SectionHeader title="Profil bearbeiten" onBack={() => setActiveSection(null)} actionLabel="Speichern" onAction={() => setActiveSection(null)} actionColor={CORAL} />
       <div style={{ display: "flex", gap: 0, background: "white", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
         {[["basis", "Basis"], ["bio", "Bio & Links"], ...(isNewUser ? [] : [["talent", "Talent"]])].map(([k, l]) => (
           <button key={k} onClick={() => setEditTab(k)}
