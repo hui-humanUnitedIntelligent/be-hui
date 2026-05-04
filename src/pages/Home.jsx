@@ -6410,10 +6410,11 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 
         {/* Stats Zeile */}
         <div style={{ display: "flex", gap: 0, marginTop: 18, paddingTop: 16, borderTop: "1px solid #f0f0ee" }}>
-          {(isNewUser
-            ? [["0", "Buchungen", null], ["0", "Empfehl.", null], ["0,00 €", "Impact 🌱", () => setShowImpactTracker(true)]]
-            : [["41", "Buchungen", null], ["34", "Empfehl.", null], ["218", "Follower", null], ["47 €", "Impact 🌱", () => setShowImpactTracker(true)]]
-          ).map(([v, l, action], i, arr) => (
+          {[
+            [String(myBookingCount), "Buchungen", null],
+            [String(myFavoriteCount), "Favoriten", null],
+            ["0,00 €", "Impact 🌱", () => setShowImpactTracker(true)]
+          ].map(([v, l, action], i, arr) => (
             <div key={l} onClick={action || undefined}
               style={{ flex: 1, textAlign: "center", cursor: action ? "pointer" : "default", borderRight: i < arr.length - 1 ? "1px solid #f0f0ee" : "none", padding: "0 4px" }}>
               <div style={{ fontWeight: 900, fontSize: 17, color: action ? TEAL : (v === "0" || v === "0,00 €" ? "#ccc" : "#1a1a1a") }}>{v}</div>
@@ -7598,6 +7599,9 @@ function AppInner() {
   // Supabase Auth direkt
   const [supabaseUser, setSupabaseUser] = React.useState(null);
   const [showEditProfile, setShowEditProfile] = React.useState(false);
+  const [myBookingCount, setMyBookingCount] = React.useState(0);
+  const [myFavoriteCount, setMyFavoriteCount] = React.useState(0);
+  const [myImpactEur, setMyImpactEur] = React.useState(0);
   React.useEffect(() => {
     // Sofort prüfen
     supabase.auth.getUser().then(({ data }) => {
@@ -7607,13 +7611,19 @@ function AppInner() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setSupabaseUser(session.user);
-        // Favoriten aus DB laden
-        supabase.from('favorites').select('wirker_name').eq('user_id', session.user.id)
+        const uid = session.user.id;
+        // Favoriten laden
+        supabase.from('favorites').select('wirker_name').eq('user_id', uid)
           .then(({ data }) => {
-            if (data && data.length > 0) {
+            if (data) {
               setLiked(new Set(data.map(f => f.wirker_name)));
+              setMyFavoriteCount(data.length);
             }
           }).catch(() => {});
+        // Buchungsanzahl laden
+        supabase.from('bookings').select('id', { count: 'exact' }).eq('user_id', uid)
+          .then(({ count }) => { if (count !== null) setMyBookingCount(count); })
+          .catch(() => {});
       } else setSupabaseUser(null);
     });
     return () => subscription.unsubscribe();
