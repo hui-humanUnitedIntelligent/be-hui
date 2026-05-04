@@ -534,7 +534,7 @@ function CommentSection({ itemId, creator, isTalent }) {
     : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop";
 
   // Mein Profil (eingeloggter User = Lars M. als Demo-Talent)
-  const myName = isTalent ? creator : (supabaseUserName || "Lars M.");
+  const myName = isTalent ? creator : "Lars M.";  // TODO: pass as prop
   const myImg = isTalent ? talentImg : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop";
 
   const total = comments.length;
@@ -3779,7 +3779,7 @@ function StoryCreateModal({ onClose }) {
 
 /* v2 */ function CartOverlay({ cart, onClose, onRemove, onGoToChats }) {
   const [step, setStep] = React.useState("cart"); // cart | address | payment | confirm | done
-  const [adresse, setAdresse] = React.useState({ name: supabaseUserName || "Lars M.", strasse: "Leopoldstr. 42", plz: "80802", ort: "München" });
+  const [adresse, setAdresse] = React.useState({ name: window.__huiUserName || "Lars M.", strasse: "Leopoldstr. 42", plz: "80802", ort: "München" });
   const [zahlart, setZahlart] = React.useState("karte");
   const [huiPunkte, setHuiPunkte] = React.useState(false);
   const [confirming, setConfirming] = React.useState(false);
@@ -5590,7 +5590,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
     kategorie: "",
     bio: "",
     bioRoh: "", // Rohtext des Nutzers für KI
-    vorname: supabaseUserName?.split(" ")[0] || "Lars",
+    vorname: window.__huiUserName?.split(" ")[0] || "Lars",
     nachname: "M.",
     standort: "München",
     stundensatz: "",
@@ -5984,7 +5984,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const [showImpactTracker, setShowImpactTracker] = React.useState(false);
   const [editTab, setEditTab] = React.useState("basis"); // "basis" | "bio" | "talent"
   const [profileForm, setProfileForm] = React.useState({
-    vorname: supabaseUserName?.split(" ")[0] || "Lars", nachname: supabaseUserName?.split(" ")[1] || "M.", anzeigeName: supabaseUserName || "Lars M.",
+    vorname: window.__huiUserName?.split(" ")[0] || "Lars", nachname: window.__huiUserName?.split(" ")[1] || "M.", anzeigeName: window.__huiUserName || "Lars M.",
     standort: "München, Deutschland", suchRadius: 50,
     bio: "Ich forme aus Ton Dinge, die bleiben.",
     website: "", instagram: "", kategorie: "Keramik & Töpfern",
@@ -7573,6 +7573,7 @@ function AppInner() {
     });
   }, []);
   const supabaseUserName = supabaseUser?.user_metadata?.full_name || supabaseUser?.email?.split("@")[0] || null;
+  if (supabaseUserName) window.__huiUserName = supabaseUserName;
   const signOut = () => supabase.auth.signOut().then(() => window.location.href = "/login");
 
   // Auth state
