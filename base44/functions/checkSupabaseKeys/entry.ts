@@ -19,16 +19,22 @@ Deno.serve(async (req) => {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
       const keys = await keysRes.json();
+      const supabaseUrl = `https://${project.ref}.supabase.co`;
+      const keyMap = {};
+      if (Array.isArray(keys)) {
+        keys.forEach(k => {
+          if (k.name === 'anon') keyMap.anon_key = k.api_key;
+          if (k.name === 'service_role') keyMap.service_role_key = k.api_key;
+        });
+      }
       return {
         project_name: project.name,
         project_ref: project.ref,
         region: project.region,
         status: project.status,
-        api_keys: Array.isArray(keys) ? keys.map(k => ({
-          name: k.name,
-          key_preview: k.api_key ? `${k.api_key.slice(0, 8)}...${k.api_key.slice(-4)}` : "—",
-          tags: k.tags || []
-        })) : { error: "Fehler beim Laden", raw: keys }
+        supabase_url: supabaseUrl,
+        anon_key: keyMap.anon_key || null,
+        service_role_key: keyMap.service_role_key || null,
       };
     }));
 
