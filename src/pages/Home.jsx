@@ -763,6 +763,18 @@ function AvailabilityEditor({ wirkerName, onClose }) {
     setTimeout(() => { setSaved(false); onClose(); }, 1200);
   };
 
+  // EditProfile Modal
+  if (showEditProfile) return (
+    <EditProfile
+      user={supabaseUser}
+      onClose={() => setShowEditProfile(false)}
+      onSave={(updated) => {
+        window.__huiUserName = updated.full_name;
+        setShowEditProfile(false);
+      }}
+    />
+  );
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 500, display: "flex", alignItems: "flex-end" }}>
       <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
@@ -7570,6 +7582,7 @@ function AppInner() {
 
   // Supabase Auth direkt
   const [supabaseUser, setSupabaseUser] = React.useState(null);
+  const [showEditProfile, setShowEditProfile] = React.useState(false);
   React.useEffect(() => {
     // Sofort prüfen
     supabase.auth.getUser().then(({ data }) => {
@@ -7577,8 +7590,16 @@ function AppInner() {
     });
     // Auf Auth-Änderungen reagieren (Login/Logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) setSupabaseUser(session.user);
-      else setSupabaseUser(null);
+      if (session?.user) {
+        setSupabaseUser(session.user);
+        // Favoriten aus DB laden
+        supabase.from('favorites').select('wirker_name').eq('user_id', session.user.id)
+          .then(({ data }) => {
+            if (data && data.length > 0) {
+              setLiked(new Set(data.map(f => f.wirker_name)));
+            }
+          }).catch(() => {});
+      } else setSupabaseUser(null);
     });
     return () => subscription.unsubscribe();
   }, []);
