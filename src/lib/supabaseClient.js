@@ -1,59 +1,29 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = 'https://gxztrhvhcxhmunhhkfjd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Helper functions to match Base44 entity API pattern
-export const SupabaseEntity = (tableName) => ({
-  list: async (orderBy = 'created_at', limit) => {
-    let q = supabase.from(tableName).select('*').order(orderBy.replace('-', ''), { ascending: !orderBy.startsWith('-') });
-    if (limit) q = q.limit(limit);
-    const { data, error } = await q;
-    if (error) throw new Error(error.message);
-    return data || [];
-  },
+export const wirkerAPI = {
+  getAll: () => supabase.from('wirker').select('*'),
+  getById: (id) => supabase.from('wirker').select('*').eq('id', id).single(),
+  search: (query) => supabase.from('wirker').select('*').ilike('name', `%${query}%`),
+  getVerified: () => supabase.from('wirker').select('*').eq('verified', true),
+}
 
-  filter: async (filters, orderBy = 'created_at', limit) => {
-    let q = supabase.from(tableName).select('*');
-    Object.entries(filters).forEach(([key, value]) => {
-      q = q.eq(key, value);
-    });
-    q = q.order(orderBy.replace('-', ''), { ascending: !orderBy.startsWith('-') });
-    if (limit) q = q.limit(limit);
-    const { data, error } = await q;
-    if (error) throw new Error(error.message);
-    return data || [];
-  },
+export const projectsAPI = {
+  getAll: () => supabase.from('impact_projects').select('*'),
+  getActive: () => supabase.from('impact_projects').select('*').eq('status', 'active'),
+  vote: (id) => supabase.rpc('increment_votes', { project_id: id }),
+}
 
-  get: async (id) => {
-    const { data, error } = await supabase.from(tableName).select('*').eq('id', id).single();
-    if (error) throw new Error(error.message);
-    return data;
-  },
+export const paymentsAPI = {
+  create: (data) => supabase.from('payments').insert(data),
+  getByUser: (userId) => supabase.from('payments').select('*').eq('user_id', userId),
+}
 
-  create: async (record) => {
-    const { data, error } = await supabase.from(tableName).insert(record).select().single();
-    if (error) throw new Error(error.message);
-    return data;
-  },
-
-  update: async (id, updates) => {
-    const { data, error } = await supabase.from(tableName).update(updates).eq('id', id).select().single();
-    if (error) throw new Error(error.message);
-    return data;
-  },
-
-  delete: async (id) => {
-    const { error } = await supabase.from(tableName).delete().eq('id', id);
-    if (error) throw new Error(error.message);
-    return { success: true };
-  },
-});
-
-// Supabase-backed entities
-export const HuiWirkerDB = SupabaseEntity('hui_wirker');
-export const HuiPaymentDB = SupabaseEntity('hui_payment');
-export const HuiMessageDB = SupabaseEntity('hui_message');
-export const HuiImpactProjectDB = SupabaseEntity('hui_impact_project');
+export const messagesAPI = {
+  getByChat: (chatId) => supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at'),
+  send: (data) => supabase.from('messages').insert(data),
+}
