@@ -6013,6 +6013,20 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const [showHuiPunkte, setShowHuiPunkte] = React.useState(false);
   const [showImpactTracker, setShowImpactTracker] = React.useState(false);
   const [editTab, setEditTab] = React.useState("basis"); // "basis" | "bio" | "talent"
+  const [myBookingCount, setMyBookingCount] = React.useState(0);
+  const [myFavoriteCount, setMyFavoriteCount] = React.useState(0);
+
+  // Echte Zahlen aus Supabase laden
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return;
+      const uid = session.user.id;
+      supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('user_id', uid)
+        .then(({ count }) => { if (count !== null) setMyBookingCount(count); });
+      supabase.from('favorites').select('id', { count: 'exact', head: true }).eq('user_id', uid)
+        .then(({ count }) => { if (count !== null) setMyFavoriteCount(count); });
+    });
+  }, []);
   const [profileForm, setProfileForm] = React.useState({
     vorname: window.__huiUserName?.split(" ")[0] || "Lars", nachname: window.__huiUserName?.split(" ")[1] || "M.", anzeigeName: window.__huiUserName || "Lars M.",
     standort: "München, Deutschland", suchRadius: 50,
@@ -7599,9 +7613,6 @@ function AppInner() {
   // Supabase Auth direkt
   const [supabaseUser, setSupabaseUser] = React.useState(null);
   const [showEditProfile, setShowEditProfile] = React.useState(false);
-  const [myBookingCount, setMyBookingCount] = React.useState(0);
-  const [myFavoriteCount, setMyFavoriteCount] = React.useState(0);
-  const [myImpactEur, setMyImpactEur] = React.useState(0);
   React.useEffect(() => {
     // Sofort prüfen
     supabase.auth.getUser().then(({ data }) => {
@@ -7615,15 +7626,8 @@ function AppInner() {
         // Favoriten laden
         supabase.from('favorites').select('wirker_name').eq('user_id', uid)
           .then(({ data }) => {
-            if (data) {
-              setLiked(new Set(data.map(f => f.wirker_name)));
-              setMyFavoriteCount(data.length);
-            }
+            if (data) setLiked(new Set(data.map(f => f.wirker_name)));
           }).catch(() => {});
-        // Buchungsanzahl laden
-        supabase.from('bookings').select('id', { count: 'exact' }).eq('user_id', uid)
-          .then(({ count }) => { if (count !== null) setMyBookingCount(count); })
-          .catch(() => {});
       } else setSupabaseUser(null);
     });
     return () => subscription.unsubscribe();
