@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, TrendingUp, Users, Calendar, Award, ChevronDown, ChevronUp } from "lucide-react";
-import { HuiImpactProject, HuiPayment } from "@/api/entities";
+import { supabase } from "../lib/supabaseClient";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
@@ -340,13 +340,27 @@ export default function ImpactPoolVisualization({ onClose }) {
 
   useEffect(() => {
     setTimeout(() => setAnimatedBars(true), 200);
-    // Try to load real data
-    HuiImpactProject.list().catch(() => []).then(data => {
-      if (data && data.length > 0) {
-        const won = data.filter(p => p.status === "gewonnen" || p.status === "won");
-        if (won.length > 0) setLiveData(won);
-      }
-    });
+    // Echte Supabase Daten laden
+    supabase.from('impact_projects').select('*').order('votes', { ascending: false })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setLiveData(data);
+          // Won projects als echte History anzeigen
+          const won = data.filter(p => p.status === "won" || p.status === "gewonnen");
+          if (won.length > 0) {
+            const mapped = won.map(p => ({
+              ...p,
+              awarded_eur: p.awarded_eur || 0,
+              votes: p.votes || 0,
+              emoji: p.icon || "🌱",
+              monthlyData: [0, 0, 0, 0, 0, p.awarded_eur || 0],
+              timeline: [],
+              impactMetrics: [],
+            }));
+            setProjects(prev => mapped.length > 0 ? mapped : prev);
+          }
+        }
+      });
   }, []);
 
   const totalPool = projects.reduce((s, p) => s + p.awarded_eur, 0);
