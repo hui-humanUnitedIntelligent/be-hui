@@ -1,6 +1,6 @@
 // HUI App v3.0-LIVE
 import React, { useState, useEffect, useRef } from "react";
-import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "@/api/entities";
+import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject } from "../lib/entities";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
 
