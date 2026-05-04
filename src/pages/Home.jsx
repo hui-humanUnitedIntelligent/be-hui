@@ -6358,12 +6358,6 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           </div>
         )}
       </div>
-      <div style={{ padding: "12px 20px 28px", background: "white", borderTop: "1px solid #f0f0f0" }}>
-        <button onClick={() => setActiveSection(null)}
-          style={{ width: "100%", background: "linear-gradient(135deg, " + CORAL + ", " + GOLD + ")", color: "white", border: "none", borderRadius: 14, padding: "14px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-          Änderungen speichern
-        </button>
-      </div>
     </div>
   );
 
