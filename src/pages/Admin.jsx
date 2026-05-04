@@ -1,8 +1,6 @@
 // build: v7-LIVE-2026-04-30
 import { useState, useEffect } from "react";
-import { HuiWirkerDB as HuiWirker, HuiPaymentDB as HuiPayment, HuiImpactProjectDB as HuiImpactProject } from "@/lib/supabaseClient";
-import { base44 } from "@/api/base44Client";
-const User = { list: () => base44.entities.User.list() };
+import { HuiPayment, HuiWirker, HuiMessage, HuiImpactProject, User } from "@/api/entities";
 
 const C = {
   bg: "#0A0F1E", card: "#111827", card2: "#1A2235", border: "#1E2D45",
