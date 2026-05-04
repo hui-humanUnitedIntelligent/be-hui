@@ -895,7 +895,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   const handleConfirm = async () => {
     setConfirming(true);
     try {
-      const amountCents = Math.round(total * 100); // Kunde zahlt nur den Stundensatz
+      const amountCents = Math.round(total * 100);
       const res = await fetch('https://michi-6f9abd25.base44.app/functions/createCheckout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -905,13 +905,28 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
           itemType: 'buchung',
           wirkerName: wirker.fullName || wirker.name,
           imageUrl: wirker.img,
-          successUrl: 'https://be-hui.base44.app?payment=success',
-          cancelUrl: 'https://be-hui.base44.app',
+          successUrl: 'https://be-hui.vercel.app?payment=success',
+          cancelUrl: 'https://be-hui.vercel.app',
         }),
       });
       const data = await res.json();
       if (data.checkoutUrl) {
-        // Booking-Daten für Chat nach Rückkehr speichern
+        // Booking in Supabase speichern
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            await supabase.from('bookings').insert({
+              user_id: session.user.id,
+              wirker_name: wirker.name || wirker.fullName,
+              service: `${wirker.talent} – 1 Stunde`,
+              date: selectedDate ? `${selectedDate.day}.${selectedDate.month+1}.${selectedDate.year}` : null,
+              time: selectedTime || null,
+              location: selectedLocation || null,
+              price_eur: total,
+              status: 'pending',
+            });
+          }
+        } catch(e) {}
         try {
           localStorage.setItem("hui_last_booking", JSON.stringify({
             wirkerName: wirker.name,
@@ -3126,8 +3141,8 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
           amountCents,
           itemType: 'buchung',
           wirkerName: item.creator || "Talent",
-          successUrl: 'https://be-hui.base44.app?payment=success',
-          cancelUrl: 'https://be-hui.base44.app',
+          successUrl: 'https://be-hui.vercel.app?payment=success',
+          cancelUrl: 'https://be-hui.vercel.app',
         }),
       });
       const data = await res.json();
@@ -3812,8 +3827,8 @@ function StoryCreateModal({ onClose }) {
           amountCents,
           itemType: 'werk',
           wirkerName: cart[0]?.creator || 'Talent',
-          successUrl: 'https://be-hui.base44.app?payment=success',
-          cancelUrl: 'https://be-hui.base44.app',
+          successUrl: 'https://be-hui.vercel.app?payment=success',
+          cancelUrl: 'https://be-hui.vercel.app',
         }),
       });
       const data = await res.json();
