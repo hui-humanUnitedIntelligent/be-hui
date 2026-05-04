@@ -2269,7 +2269,7 @@ function ImpactTrackerPage({ onClose }) {
                 {p.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{profile.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{p.name}</div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>📍 {p.land}</div>
               </div>
               <div style={{ fontWeight: 800, fontSize: 14, color: p.color }}>{p.beitrag}</div>
@@ -4567,7 +4567,7 @@ function ImpactProjectDetail({ project: p, onClose }) {
 
         {/* Hero-Bild */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={profile.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
+          <img src={p.img} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "24px 24px 0 0" }} alt={p.title} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6))", borderRadius: "24px 24px 0 0" }} />
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <X size={18} color="white" />
