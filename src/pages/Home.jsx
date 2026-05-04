@@ -1529,7 +1529,6 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
     async function loadWirker() {
       setLoadingProfile(true);
       try {
-        // Supabase: Wirker direkt laden
         const { data: found, error } = await supabase
           .from('wirker')
           .select('*')
@@ -1539,9 +1538,35 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
           setDbWirker(found);
           setWerke(found.werke || []);
         } else {
-          // Fallback to mock
           const mock = mockWirkerProfiles[wirkerName];
-          if (mock) { setDbWirker(mock); setWerke(mock.werke || []); }
+          if (mock) {
+            setDbWirker(mock);
+            setWerke(mock.werke || []);
+          } else if (isOwnProfile) {
+            // Eigenes Profil: Daten aus Auth + profiles Tabelle
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+              const u = session.user;
+              const name = u.user_metadata?.full_name || u.email?.split('@')[0] || 'Ich';
+              const { data: profile } = await supabase.from('profiles').select('*').eq('id', u.id).single();
+              setDbWirker({
+                name: name,
+                full_name: name,
+                talent: profile?.talent || 'Talent',
+                location: profile?.location || 'München',
+                bio: profile?.bio || 'Füge eine Beschreibung in deinen Einstellungen hinzu.',
+                img: profile?.avatar_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=2ABFAC&color=fff&size=200'),
+                header_img: null,
+                hourly_rate: profile?.hourly_rate || 60,
+                skills: profile?.skills || [],
+                recommendations: 0,
+                bookings: 0,
+                impact_eur: 0,
+                verified: false,
+              });
+              setWerke([]);
+            }
+          }
         }
       } catch(e) {
         const mock = mockWirkerProfiles[wirkerName];
@@ -1550,7 +1575,7 @@ function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, auto
       setLoadingProfile(false);
     }
     loadWirker();
-  }, [wirkerName]);
+  }, [wirkerName, isOwnProfile]);
 
   const handleSaveWerk = (updatedWerk) => {
     setWerke(prev => {
