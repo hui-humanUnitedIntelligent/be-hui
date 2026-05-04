@@ -763,17 +763,6 @@ function AvailabilityEditor({ wirkerName, onClose }) {
     setTimeout(() => { setSaved(false); onClose(); }, 1200);
   };
 
-  // EditProfile Modal
-  if (showEditProfile) return (
-    <EditProfile
-      user={supabaseUser}
-      onClose={() => setShowEditProfile(false)}
-      onSave={(updated) => {
-        window.__huiUserName = updated.full_name;
-        setShowEditProfile(false);
-      }}
-    />
-  );
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 500, display: "flex", alignItems: "flex-end" }}>
