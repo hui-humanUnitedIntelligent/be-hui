@@ -7654,7 +7654,7 @@ function AppInner() {
   const [liveImpact, setLiveImpact] = useState([]);
   const [liveFeed, setLiveFeed] = useState(mockFeed);
 
-  const isNewUser = true; // Kunde-Modus (Demo)
+  const isNewUser = !supabaseUser; // false wenn eingeloggt
   const notifCount = mockNotifications.filter(n => !n.read).length;
 
   // ── EFFECTS ─────────────────────────────────────────────────────────────
@@ -7663,10 +7663,12 @@ function AppInner() {
   useEffect(() => {
     async function loadLiveData() {
       try {
-        const [wirkerData, impactData] = await Promise.all([
-          HuiWirker.list().catch(() => []),
-          HuiImpactProject.list().catch(() => []),
+        const [wirkerRes, impactRes] = await Promise.all([
+          supabase.from('wirker').select('*').order('bookings', { ascending: false }),
+          supabase.from('impact_projects').select('*').order('votes', { ascending: false }),
         ]);
+        const wirkerData = wirkerRes.data || [];
+        const impactData = impactRes.data || [];
 
         if (wirkerData && wirkerData.length > 0) {
           setLiveWirker(wirkerData);
@@ -7709,7 +7711,7 @@ function AppInner() {
         }
 
         if (impactData && impactData.length > 0) {
-          setLiveImpact(impactData.filter(p => p.status === "aktiv" || p.status === "active"));
+          setLiveImpact(impactData.filter(p => p.status === "active" || p.status === "aktiv" || p.status === "won"));
         }
       } catch(e) {
         setLiveFeed(mockFeed);
