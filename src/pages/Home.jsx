@@ -2731,7 +2731,7 @@ function StoryViewer({ stories, startIndex = 0, onClose, onCreateNew }) {
       <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", gap: 10, padding: "4px 14px 12px" }}>
         <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" style={{ width: 38, height: 38, borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} alt="" />
         <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "white" }}>Lars M.</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "white" }}>{window.__huiUserName || "Lars M."}</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>{current.time}</div>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
@@ -6361,7 +6361,7 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div>
             <div style={{ fontWeight: 900, fontSize: 22, color: "#1a1a1a", letterSpacing: -0.3 }}>
-              Lars M.
+              {window.__huiUserName || "Lars M."}
               {!isNewUser && <span style={{ marginLeft: 8, background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "3px 9px", verticalAlign: "middle" }}>Wirker</span>}
             </div>
             {!isNewUser
@@ -7568,9 +7568,16 @@ function AppInner() {
   // Supabase Auth direkt
   const [supabaseUser, setSupabaseUser] = React.useState(null);
   React.useEffect(() => {
+    // Sofort prüfen
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user) setSupabaseUser(data.user);
     });
+    // Auf Auth-Änderungen reagieren (Login/Logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) setSupabaseUser(session.user);
+      else setSupabaseUser(null);
+    });
+    return () => subscription.unsubscribe();
   }, []);
   const supabaseUserName = supabaseUser?.user_metadata?.full_name || supabaseUser?.email?.split("@")[0] || null;
   if (supabaseUserName) window.__huiUserName = supabaseUserName;
