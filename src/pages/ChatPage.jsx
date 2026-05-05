@@ -1,3 +1,4 @@
+import { mockChats } from "../lib/mockData";
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Check, ArrowLeft, Send, MessageCircle, ThumbsUp, ThumbsDown, Info } from "lucide-react";
 
