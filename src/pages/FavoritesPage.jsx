@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import EmptyState from "../components/EmptyState";
 import { Heart, Star, MapPin, Calendar, Clock, ThumbsUp } from "lucide-react";
 
 const CORAL = "#FF6B5B";
