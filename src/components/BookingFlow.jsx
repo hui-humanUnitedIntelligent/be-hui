@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { MapPin, Check, ArrowLeft, Calendar, Clock } from "lucide-react";
+import { MapPin, Check, ArrowLeft, Calendar, Clock, Tag } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
