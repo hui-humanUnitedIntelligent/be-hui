@@ -5542,11 +5542,9 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
 
   const options = [
   const options = [
-    { key: "wirker", icon: "🤝", label: "Wirker", sub: "Biete deine Fähigkeiten an — Coaching, Handwerk, Musik, Beratung und mehr.", color: TEAL },
     { key: "werke", icon: "🎨", label: "Werke", sub: "Zeige und verkaufe deine Werke — Kunst, Fotos, Design, Produkte und mehr.", color: CORAL },
-    { key: "erlebnisse", icon: "🌟", label: "Erlebnisse", sub: "Biete einzigartige Erlebnisse an — Workshops, Events, Reisen und unvergessliche Momente.", color: "#A78BFA" },
-    { key: "beides", icon: "✨", label: "Alles davon", sub: "Du möchtest Fähigkeiten, Werke und Erlebnisse anbieten.", color: "#F59E0B" },
-
+    { key: "wirker_erlebnisse", icon: "🤝", label: "Wirker / Erlebnisse", sub: "Biete deine Fähigkeiten und einzigartige Erlebnisse an — Coaching, Workshops, Events und mehr.", color: TEAL },
+    { key: "beides", icon: "✨", label: "Beides", sub: "Du möchtest Werke verkaufen und gleichzeitig als Wirker oder mit Erlebnissen aktiv sein.", color: "#A78BFA" },
   const handleSelect = async (key) => {
     setSelected(key);
     setSaving(true);
