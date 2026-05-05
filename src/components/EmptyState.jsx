@@ -1,5 +1,6 @@
 import React from "react";
 
+function EmptyState({ icon, label, sub }) {
   return (
     <div style={{ textAlign: "center", padding: "48px 24px" }}>
       <div style={{ fontSize: 44, marginBottom: 12 }}>{icon}</div>
@@ -8,7 +9,5 @@ import React from "react";
     </div>
   );
 }
-
-function SectionHeader({ title, onBack }) {
 
 export default EmptyState;
