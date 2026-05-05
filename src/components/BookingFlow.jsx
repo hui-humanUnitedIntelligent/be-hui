@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { MapPin, Check, ArrowLeft, Calendar, Clock } from "lucide-react";
 
