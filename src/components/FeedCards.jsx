@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import CommentSection from "./CommentSection";
 import { Heart, Share2, Star, ShoppingBasket, MapPin, Play, Check, ThumbsUp, BadgeCheck } from "lucide-react";
 
