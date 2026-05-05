@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Check, ArrowLeft, Send, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Plus, Check, ArrowLeft, Send, MessageCircle, ThumbsUp, ThumbsDown, Info } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
