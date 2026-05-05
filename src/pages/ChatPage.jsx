@@ -96,6 +96,8 @@ function ChatListPage({ onOpenChat, onBack }) {
 }
 
 function ChatDetailPage({ chat: initialChat, onBack }) {
+  // Kompatibilität mit wirkerName und wirker
+  const chatWirkerName = chat.wirkerName || chatWirkerName || "Wirker";
   const [chat, setChat] = useState(initialChat);
   const [message, setMessage] = useState("");
   const [showEmpfehlung, setShowEmpfehlung] = useState(chat.status === "empfehlung_ausstehend");
@@ -135,8 +137,8 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
 
   const handleEmpfehlung = async (empfohlen) => {
     const sysMsg = empfohlen
-      ? { from: "system", text: `✅ Du hast ${chat.wirker} weiterempfohlen. Die Empfehlung wird in ihrem Profil veröffentlicht. Das Geld (${chat.betrag}) wurde freigegeben und überwiesen. Chat wird archiviert.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isDone: true }
-      : { from: "system", text: `⚠️ Dein Feedback wurde vertraulich an HUI-Admin und ${chat.wirker} weitergeleitet. Kein öffentlicher Eintrag. Ein Mitarbeiter meldet sich bei dir.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isWarning: true };
+      ? { from: "system", text: `✅ Du hast ${chatWirkerName} weiterempfohlen. Die Empfehlung wird in ihrem Profil veröffentlicht. Das Geld (${chat.betrag}) wurde freigegeben und überwiesen. Chat wird archiviert.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isDone: true }
+      : { from: "system", text: `⚠️ Dein Feedback wurde vertraulich an HUI-Admin und ${chatWirkerName} weitergeleitet. Kein öffentlicher Eintrag. Ein Mitarbeiter meldet sich bei dir.`, time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), isWarning: true };
 
     // Echte HuiPayment in der DB aktualisieren
     if (chat.paymentId) {
@@ -169,9 +171,9 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
         <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
           <ArrowLeft size={20} color="#444" />
         </button>
-        <img src={chat.wirkerImg} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} alt={chat.wirker} />
+        <img src={chatWirkerNameImg} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} alt={chatWirkerName} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{chat.wirker}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{chatWirkerName}</div>
           <div style={{ fontSize: 11, color: "#aaa" }}>{chat.item}</div>
         </div>
         <div style={{ background: treuhandColor + "18", border: `1px solid ${treuhandColor}40`, borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700, color: treuhandColor }}>
@@ -201,7 +203,7 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
           const isMe = m.from === "ich";
           return (
             <div key={i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: 10 }}>
-              {!isMe && <img src={chat.wirkerImg} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 8, marginTop: 2, flexShrink: 0 }} alt="" />}
+              {!isMe && <img src={chatWirkerNameImg} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 8, marginTop: 2, flexShrink: 0 }} alt="" />}
               <div style={{ maxWidth: "72%" }}>
                 <div style={{ background: isMe ? CORAL : "white", color: isMe ? "white" : "#222", borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.55, boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
                   {m.text}
@@ -220,12 +222,12 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
           <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 430, boxShadow: "0 -8px 40px rgba(0,0,0,0.18)" }}>
             {/* Wirker-Avatar + Name */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
-              <img src={chat.wirkerImg} alt={chat.wirker} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: `3px solid ${TEAL}`, marginBottom: 10 }} />
+              <img src={chatWirkerNameImg} alt={chatWirkerName} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: `3px solid ${TEAL}`, marginBottom: 10 }} />
               <div style={{ fontWeight: 800, fontSize: 20, color: "#222", textAlign: "center" }}>
                 {chat.type === "werk" ? "Ware angekommen?" : "Leistung abgeschlossen?"}
               </div>
               <div style={{ fontSize: 14, color: "#888", marginTop: 6, textAlign: "center", lineHeight: 1.55 }}>
-                Möchtest du <strong style={{ color: "#333" }}>{chat.wirker}</strong> weiterempfehlen?<br />
+                Möchtest du <strong style={{ color: "#333" }}>{chatWirkerName}</strong> weiterempfehlen?<br />
                 <span style={{ fontSize: 12, color: "#bbb" }}>Deine Empfehlung gibt das Geld frei und erscheint verifiziert im Profil.</span>
               </div>
             </div>
@@ -234,7 +236,7 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
             <textarea
               value={empfehlungText}
               onChange={e => setEmpfehlungText(e.target.value)}
-              placeholder={`Was hat dich an ${chat.wirker} begeistert? (optional, wird öffentlich angezeigt)`}
+              placeholder={`Was hat dich an ${chatWirkerName} begeistert? (optional, wird öffentlich angezeigt)`}
               rows={3}
               style={{ width: "100%", padding: "12px 14px", borderRadius: 14, border: `1.5px solid ${TEAL}30`, fontSize: 13, resize: "none", fontFamily: "inherit", marginBottom: 16, outline: "none", background: "#f9fffe", boxSizing: "border-box" }}
             />
@@ -244,7 +246,7 @@ function ChatDetailPage({ chat: initialChat, onBack }) {
               onClick={() => handleEmpfehlung(true)}
               style={{ width: "100%", background: `linear-gradient(135deg, ${TEAL}, #10b981)`, color: "white", border: "none", borderRadius: 16, padding: "15px", fontWeight: 800, fontSize: 16, cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
             >
-              <ThumbsUp size={20} color="white" /> Ja, ich empfehle {chat.wirker}!
+              <ThumbsUp size={20} color="white" /> Ja, ich empfehle {chatWirkerName}!
             </button>
             <button
               onClick={() => handleEmpfehlung(false)}
