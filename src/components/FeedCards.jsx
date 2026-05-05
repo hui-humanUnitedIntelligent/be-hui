@@ -1,6 +1,10 @@
 import React from "react";
-import { CORAL, TEAL, GOLD, PURPLE } from "../lib/constants";
-import { Heart, Share2, MapPin, Play, Star } from "lucide-react";
+import { Heart, Share2, Star, ShoppingBasket, MapPin, Play, Check, ThumbsUp, BadgeCheck } from "lucide-react";
+
+const CORAL = "#FF6B5B";
+const TEAL = "#2ABFAC";
+const GOLD = "#F5A623";
+const PURPLE = "#A78BFA";
 
 function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUser, following, toggleFollow }) {
   const [muted, setMuted] = React.useState(true);
