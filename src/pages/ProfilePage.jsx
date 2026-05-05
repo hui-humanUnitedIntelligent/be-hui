@@ -1,6 +1,6 @@
 import React from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Home } from "lucide-react";
+import { Home, Video, Upload, Grid } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
