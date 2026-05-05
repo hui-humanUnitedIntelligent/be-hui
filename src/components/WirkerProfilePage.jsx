@@ -1,5 +1,6 @@
 import mockWirkerProfiles from "../lib/mockData";
 import React, { useState, useEffect } from "react";
+import BookingFlow from "./BookingFlow";
 import { supabase } from "../lib/supabaseClient";
 import { Heart, Star, MapPin, ArrowLeft } from "lucide-react";
 
