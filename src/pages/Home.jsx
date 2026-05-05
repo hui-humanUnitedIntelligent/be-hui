@@ -5638,8 +5638,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
       if (!session?.user) { setLoading(false); return; }
       const u = session.user;
       setSupaUser(u);
-      const name = u.user_metadata?.full_name || u.email?.split("@")[0] || "Ich";
       const { data: prof } = await supabase.from("profiles").select("*").eq("id", u.id).single();
+      const name = prof?.full_name || u.user_metadata?.full_name || u.email?.split("@")[0] || "Ich";
       const merged = {
         name,
         avatar_url: prof?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2ABFAC&color=fff&size=200`,
@@ -5662,6 +5662,13 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
       setRadius(merged.radius);
       setVerfuegbarkeit(merged.verfuegbarkeit);
       setStundensatz(merged.stundensatz);
+      // Lade Beiträge aus DB
+      const { data: dbBeitraege } = await supabase
+        .from("beitraege")
+        .select("*")
+        .eq("user_id", u.id)
+        .order("created_at", { ascending: false });
+      if (dbBeitraege && dbBeitraege.length > 0) setBeitraege(dbBeitraege);
       setLoading(false);
     }
     load();
@@ -5727,7 +5734,8 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
         created_at: new Date().toISOString()
       }).select().single();
       // Lokalen Placeholder ersetzen
-      setBeitraege(prev => prev.map(b => b.id === tempId ? { ...beitrag, src: publicUrl, uploading: false } : b));
+      const finalItem = { ...(beitrag || {}), id: beitrag?.id || tempId, src: publicUrl, type: mediaType, uploading: false };
+      setBeitraege(prev => prev.map(b => b.id === tempId ? finalItem : b));
     } catch(err) {
       console.error("Upload Fehler:", err);
       // Fallback: Datei bleibt lokal sichtbar aber ohne persistenz
@@ -7185,6 +7193,36 @@ function AppInner() {
         if (impactData && impactData.length > 0) {
           setLiveImpact(impactData.filter(p => p.status === "active" || p.status === "aktiv" || p.status === "won"));
         }
+
+        // Lade echte Beiträge aus beitraege-Tabelle
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const { data: userBeitraege } = await supabase
+              .from("beitraege")
+              .select("*, profiles(full_name, avatar_url)")
+              .order("created_at", { ascending: false })
+              .limit(20);
+            if (userBeitraege && userBeitraege.length > 0) {
+              const beitragFeedItems = userBeitraege.map(b => ({
+                id: "b_" + b.id,
+                type: b.type === "video" ? "video" : "foto",
+                src: b.src,
+                img: b.src,
+                creator: b.profiles?.full_name || "HUI Wirker",
+                creatorImg: b.profiles?.avatar_url || "https://ui-avatars.com/api/?name=HUI&background=2ABFAC&color=fff",
+                caption: b.caption || "",
+                likes: 0,
+                location: ""
+              }));
+              setLiveFeed(prev => {
+                const withoutBeitraege = prev.filter(i => !String(i.id).startsWith("b_"));
+                return [...beitragFeedItems, ...withoutBeitraege];
+              });
+            }
+          }
+        } catch(e2) { console.log("beitraege feed:", e2); }
+
       } catch(e) {
         setLiveFeed(mockFeed);
       }
