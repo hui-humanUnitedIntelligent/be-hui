@@ -1,7 +1,11 @@
 import React from "react";
 import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../lib/AuthContext";
-import { CORAL, TEAL, GOLD, PURPLE } from "../lib/constants";
+import { Home } from "lucide-react";
+
+const CORAL = "#FF6B5B";
+const TEAL = "#2ABFAC";
+const GOLD = "#F5A623";
+const PURPLE = "#A78BFA";
 
 function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats, following, toggleFollow, showTalentWelcomeHint }) {
   const TEAL = "#2ABFAC";
