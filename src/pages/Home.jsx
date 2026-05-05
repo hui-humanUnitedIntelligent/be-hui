@@ -2190,6 +2190,154 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
 }
 
 
+
+// ═══════════════════════════════════════════════════════
+// WELCOME ONBOARDING
+// ═══════════════════════════════════════════════════════
+function WelcomeOnboarding({ onDone }) {
+  const TEAL = "#2ABFAC";
+  const CORAL = "#FF6B6B";
+  const [selected, setSelected] = React.useState(null);
+  const [leaving, setLeaving] = React.useState(false);
+
+  const handleSelect = async (choice) => {
+    setSelected(choice);
+    setLeaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase.from("profiles").upsert({ id: session.user.id, role: choice === "entdecker" ? "entdecker" : "talent", updated_at: new Date().toISOString() });
+      }
+    } catch(e) {}
+    setTimeout(() => onDone(choice), 400);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px", opacity: leaving ? 0 : 1, transition: "opacity 0.4s ease" }}>
+      <div style={{ textAlign: "center", marginBottom: 40, maxWidth: 340 }}>
+        <div style={{ fontSize: 52, marginBottom: 16 }}>❤️</div>
+        <div style={{ fontSize: 26, fontWeight: 900, color: "#1a1a1a", letterSpacing: -0.5, lineHeight: 1.25, marginBottom: 10 }}>Herzlich willkommen<br/>bei HUI</div>
+        <div style={{ fontSize: 15, color: "#999", lineHeight: 1.6 }}>Was möchtest du hier tun?</div>
+      </div>
+      <div style={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div onClick={() => handleSelect("entdecker")} style={{ background: "white", borderRadius: 24, padding: "28px 24px", border: `2.5px solid ${selected === "entdecker" ? TEAL : "#f0f0f0"}`, cursor: "pointer", boxShadow: selected === "entdecker" ? `0 8px 32px ${TEAL}30` : "0 2px 16px rgba(0,0,0,0.06)", transform: selected === "entdecker" ? "scale(1.02)" : "scale(1)", transition: "all 0.2s ease" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: `${TEAL}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>🌍</div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: "#1a1a1a", marginBottom: 5 }}>Ich möchte entdecken</div>
+              <div style={{ fontSize: 13, color: "#999", lineHeight: 1.55 }}>Werke finden, Künstler entdecken und Projekte unterstützen</div>
+              <div style={{ marginTop: 12, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {["🎨 Kunst", "🎵 Musik", "🌱 Impact"].map(tag => <span key={tag} style={{ background: `${TEAL}12`, color: TEAL, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{tag}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div onClick={() => handleSelect("talent")} style={{ background: "white", borderRadius: 24, padding: "28px 24px", border: `2.5px solid ${selected === "talent" ? CORAL : "#f0f0f0"}`, cursor: "pointer", boxShadow: selected === "talent" ? `0 8px 32px ${CORAL}30` : "0 2px 16px rgba(0,0,0,0.06)", transform: selected === "talent" ? "scale(1.02)" : "scale(1)", transition: "all 0.2s ease" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: `${CORAL}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>✨</div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: "#1a1a1a", marginBottom: 5 }}>Ich möchte mein Talent teilen</div>
+              <div style={{ fontSize: 13, color: "#999", lineHeight: 1.55 }}>Meine Werke und Fähigkeiten mit anderen Menschen teilen</div>
+              <div style={{ marginTop: 12, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {["💼 Aufträge", "🌟 Sichtbarkeit", "💛 Community"].map(tag => <span key={tag} style={{ background: `${CORAL}12`, color: CORAL, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{tag}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ fontSize: 12, color: "#ccc", marginTop: 24 }}>Du kannst das jederzeit in deinem Profil ändern</div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH SCREEN
+// ═══════════════════════════════════════════════════════
+function HuiAuthScreen({ onLogin }) {
+  const TEAL = "#2ABFAC";
+  const CORAL = "#FF6B6B";
+  const [mode, setMode] = useState("register");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [focused, setFocused] = useState(null);
+
+  const handleAuth = async () => {
+    setError("");
+    if (!email.trim()) { setError("Bitte E-Mail eingeben"); return; }
+    if (!password || password.length < 6) { setError("Passwort muss mindestens 6 Zeichen haben"); return; }
+    if (mode === "register" && !name.trim()) { setError("Bitte deinen Namen eingeben"); return; }
+    setLoading(true);
+    try {
+      if (mode === "register") {
+        const { data, error: signUpError } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { full_name: name.trim() } } });
+        if (signUpError) { setError(signUpError.message); setLoading(false); return; }
+        localStorage.setItem("hui_user", JSON.stringify({ email, name: name.trim() }));
+        onLogin("welcome");
+      } else {
+        const { error: loginError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (loginError) { setError("E-Mail oder Passwort falsch"); setLoading(false); return; }
+        localStorage.setItem("hui_user", JSON.stringify({ email, name: email.split("@")[0] }));
+        onLogin("app");
+      }
+    } catch(e) { setError("Verbindungsfehler. Bitte nochmal versuchen."); }
+    setLoading(false);
+  };
+
+  const inputStyle = (field) => ({ width: "100%", border: `1.5px solid ${focused === field ? TEAL : "#eee"}`, borderRadius: 14, padding: "14px 44px 14px 14px", fontSize: 15, outline: "none", boxSizing: "border-box", color: "#222", background: focused === field ? `${TEAL}06` : "white", transition: "border 0.2s, background 0.2s", fontFamily: "inherit" });
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
+      <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 72, height: 72, borderRadius: 20, objectFit: "cover", marginBottom: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.12)" }} />
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#1a1a1a" }}>{mode === "register" ? "Konto erstellen ✨" : "Willkommen zurück"}</div>
+        <div style={{ fontSize: 13, color: "#aaa", marginTop: 4 }}>{mode === "register" ? "Human United Intelligent" : "Schön, dass du wieder da bist 🤍"}</div>
+      </div>
+      <div style={{ background: "white", borderRadius: 24, padding: "24px 22px", width: "100%", maxWidth: 380, boxShadow: "0 4px 32px rgba(0,0,0,0.08)" }}>
+        <div style={{ display: "flex", background: "#f5f5f3", borderRadius: 14, padding: 4, marginBottom: 22 }}>
+          {[["register","Registrieren"],["login","Anmelden"]].map(([m, label]) => (
+            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, padding: "10px 0", background: mode === m ? "white" : "transparent", border: "none", borderRadius: 11, fontWeight: mode === m ? 700 : 500, fontSize: 14, color: mode === m ? "#1a1a1a" : "#888", cursor: "pointer", boxShadow: mode === m ? "0 1px 4px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>{label}</button>
+          ))}
+        </div>
+        {mode === "register" && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>DEIN NAME</div>
+            <div style={{ position: "relative" }}>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="z.B. Sofia Mayer" onFocus={() => setFocused("name")} onBlur={() => setFocused(null)} style={inputStyle("name")} />
+              <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16 }}>👤</span>
+            </div>
+          </div>
+        )}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>E-MAIL</div>
+          <div style={{ position: "relative" }}>
+            <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="deine@email.de" onFocus={() => setFocused("email")} onBlur={() => setFocused(null)} style={inputStyle("email")} />
+            <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16 }}>✉️</span>
+          </div>
+        </div>
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 6 }}>PASSWORT</div>
+          <div style={{ position: "relative" }}>
+            <input value={password} onChange={e => setPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder="Mindestens 6 Zeichen" onFocus={() => setFocused("pw")} onBlur={() => setFocused(null)} style={inputStyle("pw")} />
+            <button onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 16 }}>{showPw ? "🙈" : "👁️"}</button>
+          </div>
+        </div>
+        {error && <div style={{ background: "#fff0f0", border: "1px solid #ffcdd2", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#e53935", marginBottom: 16 }}>{error}</div>}
+        <button onClick={handleAuth} disabled={loading} style={{ width: "100%", background: loading ? "#ccc" : `linear-gradient(135deg, ${CORAL}, ${TEAL})`, color: "white", border: "none", borderRadius: 14, padding: "16px", fontSize: 16, fontWeight: 800, cursor: loading ? "default" : "pointer", boxShadow: loading ? "none" : `0 6px 20px ${TEAL}40`, transition: "all 0.2s" }}>
+          {loading ? "⏳ Bitte warten..." : mode === "register" ? "Registrieren" : "Anmelden"}
+        </button>
+        <div style={{ textAlign: "center", marginTop: 16, fontSize: 13, color: "#aaa" }}>
+          {mode === "register" ? "Schon dabei? " : "Neu hier? "}
+          <span onClick={() => { setMode(mode === "register" ? "login" : "register"); setError(""); }} style={{ color: CORAL, fontWeight: 700, cursor: "pointer" }}>{mode === "register" ? "Einloggen" : "Registrieren"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AppInner() {
   // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
 
