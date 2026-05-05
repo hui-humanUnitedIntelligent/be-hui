@@ -5782,7 +5782,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
   // ── STEPS 1–4 LAYOUT ──
   const stepConfig = [
     null, // 0 = Willkommen (eigene Seite)
-    { title: "Was möchtest du anbieten?", sub: "Dienstleistungen, Werke oder beides — du entscheidest." },
+    { title: "Was möchtest du anbieten?", sub: "Wirker, Werke oder beides — du entscheidest." },
     { title: "Was ist dein Talent?", sub: "Zeig der Welt worin du richtig gut bist." },
     { title: "Dein Profil", sub: "Ein paar Infos damit Kunden dich besser kennenlernen." },
     { title: "Dein erstes Angebot", sub: "Starte direkt durch — leg dein erstes Angebot an." },
@@ -5825,7 +5825,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
             {[
               { id: "dienstleistung", icon: "🤝", titel: "Dienstleistung", sub: "Buchbare Zeit — Workshops, Beratung, Coaching, Fotoshootings..." },
               { id: "werk", icon: "🎁", titel: "Werk verkaufen", sub: "Physische oder digitale Produkte — Kunst, Keramik, Texte..." },
-              { id: "beides", icon: "✨", titel: "Beides", sub: "Ich biete sowohl Dienstleistungen als auch Werke an" },
+              { id: "beides", icon: "✨", titel: "Beides", sub: "Ich biete sowohl Wirker als auch Werke an" },
             ].map(opt => {
               const active = form.angebotstyp.includes(opt.id);
               return (
@@ -6937,8 +6937,8 @@ function WelcomeOnboarding({ onDone }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {[
             { key: "werke", icon: "🎨", label: "Werke", sub: "Bilder, Fotos, Skulpturen, Designs..." },
-            { key: "dienstleistungen", icon: "🤝", label: "Dienstleistungen", sub: "Coaching, Beratung, Unterricht, Handwerk..." },
-            { key: "beides", icon: "✨", label: "Beides", sub: "Ich biete Werke und Dienstleistungen an" },
+            { key: "dienstleistungen", icon: "🤝", label: "Wirker", sub: "Coaching, Beratung, Unterricht, Handwerk..." },
+            { key: "beides", icon: "✨", label: "Beides", sub: "Ich biete Werke und Wirker an" },
           ].map(opt => (
             <div key={opt.key} onClick={() => { setTalentType(opt.key); setStep("name"); }} style={{ ...cardStyle(talentType === opt.key), display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ fontSize: 28, width: 44, height: 44, background: `${TEAL}15`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{opt.icon}</div>
