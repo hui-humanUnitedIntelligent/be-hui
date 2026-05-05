@@ -6802,6 +6802,322 @@ function HuiOnboarding({ onDone }) {
 // ══════════════════════════════════════════════════════════════════
 // HUI AUTH SCREEN — Clean Login / Register
 // ══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
+// WELCOME ONBOARDING — Rolle wählen + Talent Setup
+// ═══════════════════════════════════════════════════════
+function WelcomeOnboarding({ onDone }) {
+  const [step, setStep] = useState("role"); // role | talent_type | name | bio | photo | works | done
+  const [role, setRole] = useState(null);
+  const [talentType, setTalentType] = useState(null);
+  const [artistName, setArtistName] = useState("");
+  const [bio, setBio] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [works, setWorks] = useState([]);
+  const [saving, setSaving] = useState(false);
+
+  const TEAL = "#2ABFAC";
+  const CORAL = "#FF6B6B";
+
+  const handleRoleSelect = async (selectedRole) => {
+    setRole(selectedRole);
+    if (selectedRole === "entdecker") {
+      // Speichern und direkt in App
+      await saveRole("entdecker");
+      onDone();
+    } else {
+      setStep("talent_type");
+    }
+  };
+
+  const saveRole = async (r) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase.from("profiles").upsert({
+          id: session.user.id,
+          role: r,
+          updated_at: new Date().toISOString()
+        });
+      }
+    } catch(e) {}
+  };
+
+  const handleFinish = async () => {
+    setSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase.from("profiles").upsert({
+          id: session.user.id,
+          role: "talent",
+          talent_type: talentType,
+          artist_name: artistName,
+          bio: bio,
+          updated_at: new Date().toISOString()
+        });
+      }
+    } catch(e) {}
+    setSaving(false);
+    onDone();
+  };
+
+  const cardStyle = (selected) => ({
+    background: "white",
+    borderRadius: 24,
+    padding: "24px 20px",
+    border: `2.5px solid ${selected ? TEAL : "#f0f0f0"}`,
+    cursor: "pointer",
+    transition: "all 0.25s",
+    boxShadow: selected ? `0 8px 32px ${TEAL}25` : "0 2px 12px rgba(0,0,0,0.06)",
+    transform: selected ? "scale(1.02)" : "scale(1)",
+  });
+
+  // Progress bar
+  const steps = ["role", "talent_type", "name", "bio", "photo", "works", "done"];
+  const stepIdx = steps.indexOf(step);
+  const progress = stepIdx / (steps.length - 1);
+
+  if (step === "role") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
+      <div style={{ textAlign: "center", marginBottom: 36 }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>❤️</div>
+        <div style={{ fontSize: 26, fontWeight: 900, color: "#1a1a1a", letterSpacing: -0.5, lineHeight: 1.2, marginBottom: 10 }}>
+          Herzlich willkommen<br/>bei HUI
+        </div>
+        <div style={{ fontSize: 15, color: "#888", lineHeight: 1.5 }}>
+          Was möchtest du hier erleben?
+        </div>
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Entdecker Card */}
+        <div onClick={() => handleRoleSelect("entdecker")} style={cardStyle(false)}>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>🌍</div>
+          <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>
+            Ich möchte entdecken
+          </div>
+          <div style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>
+            Werke finden, Künstler entdecken und Impact-Projekte unterstützen
+          </div>
+          <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {["🎨 Kunst", "🎵 Musik", "🌱 Impact"].map(tag => (
+              <span key={tag} style={{ background: `${TEAL}12`, color: TEAL, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>{tag}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Talent Card */}
+        <div onClick={() => handleRoleSelect("talent")} style={cardStyle(false)}>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>✨</div>
+          <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>
+            Ich möchte mein Talent teilen
+          </div>
+          <div style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>
+            Meine Werke und Fähigkeiten mit der Welt teilen
+          </div>
+          <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {["💼 Aufträge", "🌟 Sichtbarkeit", "💛 Community"].map(tag => (
+              <span key={tag} style={{ background: `${CORAL}12`, color: CORAL, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>{tag}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (step === "talent_type") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", padding: "48px 20px 32px" }}>
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
+        <div style={{ height: 4, background: "#f0f0f0", borderRadius: 4, marginBottom: 32 }}>
+          <div style={{ height: 4, background: `linear-gradient(90deg, ${CORAL}, ${TEAL})`, borderRadius: 4, width: "20%", transition: "width 0.4s" }} />
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#1a1a1a", marginBottom: 8 }}>Was möchtest du anbieten?</div>
+        <div style={{ fontSize: 14, color: "#888", marginBottom: 28 }}>Du kannst das später jederzeit ändern</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {[
+            { key: "werke", icon: "🎨", label: "Werke", sub: "Bilder, Fotos, Skulpturen, Designs..." },
+            { key: "dienstleistungen", icon: "🤝", label: "Dienstleistungen", sub: "Coaching, Beratung, Unterricht, Handwerk..." },
+            { key: "beides", icon: "✨", label: "Beides", sub: "Ich biete Werke und Dienstleistungen an" },
+          ].map(opt => (
+            <div key={opt.key} onClick={() => { setTalentType(opt.key); setStep("name"); }} style={{ ...cardStyle(talentType === opt.key), display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ fontSize: 28, width: 44, height: 44, background: `${TEAL}15`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{opt.icon}</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: "#1a1a1a" }}>{opt.label}</div>
+                <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{opt.sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (step === "name") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", padding: "48px 20px 32px" }}>
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
+        <div style={{ height: 4, background: "#f0f0f0", borderRadius: 4, marginBottom: 32 }}>
+          <div style={{ height: 4, background: `linear-gradient(90deg, ${CORAL}, ${TEAL})`, borderRadius: 4, width: "40%", transition: "width 0.4s" }} />
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#1a1a1a", marginBottom: 8 }}>Wie heißt du?</div>
+        <div style={{ fontSize: 14, color: "#888", marginBottom: 28 }}>Dein Name oder Künstlername — so kennen dich andere auf HUI</div>
+        <input
+          value={artistName}
+          onChange={e => setArtistName(e.target.value)}
+          placeholder="z.B. Sofia Mayer oder Studio Licht"
+          style={{ width: "100%", border: "2px solid #f0f0f0", borderRadius: 16, padding: "16px 18px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "inherit", color: "#222" }}
+          autoFocus
+        />
+        <button
+          onClick={() => artistName.trim() && setStep("bio")}
+          style={{ width: "100%", marginTop: 20, background: artistName.trim() ? `linear-gradient(135deg, ${CORAL}, ${TEAL})` : "#eee", color: artistName.trim() ? "white" : "#aaa", border: "none", borderRadius: 16, padding: "16px", fontSize: 16, fontWeight: 700, cursor: artistName.trim() ? "pointer" : "default", transition: "all 0.2s" }}
+        >Weiter →</button>
+      </div>
+    </div>
+  );
+
+  if (step === "bio") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", padding: "48px 20px 32px" }}>
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
+        <div style={{ height: 4, background: "#f0f0f0", borderRadius: 4, marginBottom: 32 }}>
+          <div style={{ height: 4, background: `linear-gradient(90deg, ${CORAL}, ${TEAL})`, borderRadius: 4, width: "60%", transition: "width 0.4s" }} />
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#1a1a1a", marginBottom: 8 }}>Erzähl uns von dir ✍️</div>
+        <div style={{ fontSize: 14, color: "#888", marginBottom: 28 }}>Was macht dein Talent besonders? Was liebst du an deiner Arbeit?</div>
+        <textarea
+          value={bio}
+          onChange={e => setBio(e.target.value)}
+          placeholder="Ich bin leidenschaftliche Fotografin aus München. Meine Stärke liegt in natürlichem Licht und echten Momenten..."
+          rows={5}
+          style={{ width: "100%", border: "2px solid #f0f0f0", borderRadius: 16, padding: "16px 18px", fontSize: 15, outline: "none", boxSizing: "border-box", fontFamily: "inherit", color: "#222", resize: "none", lineHeight: 1.6 }}
+          autoFocus
+        />
+        <div style={{ fontSize: 12, color: "#ccc", textAlign: "right", marginTop: 4 }}>{bio.length}/300</div>
+        <button
+          onClick={() => bio.trim().length >= 20 && setStep("photo")}
+          style={{ width: "100%", marginTop: 16, background: bio.trim().length >= 20 ? `linear-gradient(135deg, ${CORAL}, ${TEAL})` : "#eee", color: bio.trim().length >= 20 ? "white" : "#aaa", border: "none", borderRadius: 16, padding: "16px", fontSize: 16, fontWeight: 700, cursor: bio.trim().length >= 20 ? "pointer" : "default", transition: "all 0.2s" }}
+        >Weiter →</button>
+        <button onClick={() => setStep("photo")} style={{ width: "100%", marginTop: 10, background: "none", border: "none", color: "#aaa", fontSize: 13, cursor: "pointer" }}>Überspringen</button>
+      </div>
+    </div>
+  );
+
+  if (step === "photo") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", padding: "48px 20px 32px" }}>
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
+        <div style={{ height: 4, background: "#f0f0f0", borderRadius: 4, marginBottom: 32 }}>
+          <div style={{ height: 4, background: `linear-gradient(90deg, ${CORAL}, ${TEAL})`, borderRadius: 4, width: "80%", transition: "width 0.4s" }} />
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#1a1a1a", marginBottom: 8 }}>Dein Profilfoto 📸</div>
+        <div style={{ fontSize: 14, color: "#888", marginBottom: 28 }}>Ein echtes Foto schafft Vertrauen und macht dich sichtbar</div>
+
+        <label style={{ cursor: "pointer", display: "block" }}>
+          <div style={{ width: 120, height: 120, borderRadius: "50%", background: profilePhoto ? "transparent" : `${TEAL}15`, border: `3px dashed ${profilePhoto ? TEAL : "#ddd"}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", overflow: "hidden", transition: "all 0.2s" }}>
+            {profilePhoto
+              ? <img src={profilePhoto} alt="Profil" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <div style={{ textAlign: "center" }}><div style={{ fontSize: 32 }}>📷</div><div style={{ fontSize: 11, color: TEAL, fontWeight: 600, marginTop: 4 }}>Foto wählen</div></div>
+            }
+          </div>
+          <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+            const file = e.target.files[0];
+            if (file) { const reader = new FileReader(); reader.onload = ev => setProfilePhoto(ev.target.result); reader.readAsDataURL(file); }
+          }} />
+        </label>
+
+        <button onClick={() => setStep("works")} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${TEAL})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>
+          {profilePhoto ? "Weiter →" : "Ohne Foto weiter"}
+        </button>
+        <button onClick={() => setStep("works")} style={{ width: "100%", marginTop: 10, background: "none", border: "none", color: "#aaa", fontSize: 13, cursor: "pointer" }}>Überspringen</button>
+      </div>
+    </div>
+  );
+
+  if (step === "works") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", padding: "48px 20px 32px" }}>
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
+        <div style={{ height: 4, background: "#f0f0f0", borderRadius: 4, marginBottom: 32 }}>
+          <div style={{ height: 4, background: `linear-gradient(90deg, ${CORAL}, ${TEAL})`, borderRadius: 4, width: "95%", transition: "width 0.4s" }} />
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#1a1a1a", marginBottom: 8 }}>Zeig deine Arbeit 🌟</div>
+        <div style={{ fontSize: 14, color: "#888", marginBottom: 28 }}>Lade mindestens 3 Fotos oder Videos hoch — dein erstes Schaufenster für die Welt</div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
+          {works.map((w, i) => (
+            <div key={i} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", position: "relative" }}>
+              <img src={w} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <button onClick={() => setWorks(prev => prev.filter((_, j) => j !== i))} style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 22, height: 22, color: "white", fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+            </div>
+          ))}
+          {works.length < 9 && (
+            <label style={{ cursor: "pointer" }}>
+              <div style={{ aspectRatio: "1", borderRadius: 14, background: `${TEAL}10`, border: `2px dashed ${TEAL}50`, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 4 }}>
+                <div style={{ fontSize: 24 }}>+</div>
+                <div style={{ fontSize: 10, color: TEAL, fontWeight: 600 }}>Hinzufügen</div>
+              </div>
+              <input type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={e => {
+                Array.from(e.target.files).forEach(file => {
+                  const reader = new FileReader();
+                  reader.onload = ev => setWorks(prev => [...prev, ev.target.result].slice(0, 9));
+                  reader.readAsDataURL(file);
+                });
+              }} />
+            </label>
+          )}
+        </div>
+
+        <div style={{ fontSize: 12, color: works.length >= 3 ? TEAL : "#aaa", fontWeight: 600, textAlign: "center", marginBottom: 16 }}>
+          {works.length >= 3 ? `✅ ${works.length} Fotos bereit` : `${works.length}/3 Fotos hochgeladen`}
+        </div>
+
+        <button
+          onClick={() => works.length >= 3 && setStep("done")}
+          style={{ width: "100%", background: works.length >= 3 ? `linear-gradient(135deg, ${CORAL}, ${TEAL})` : "#eee", color: works.length >= 3 ? "white" : "#aaa", border: "none", borderRadius: 16, padding: "16px", fontSize: 16, fontWeight: 700, cursor: works.length >= 3 ? "pointer" : "default", transition: "all 0.2s" }}
+        >Weiter →</button>
+        <button onClick={() => setStep("done")} style={{ width: "100%", marginTop: 10, background: "none", border: "none", color: "#aaa", fontSize: 13, cursor: "pointer" }}>Überspringen</button>
+      </div>
+    </div>
+  );
+
+  if (step === "done") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8f6 0%, #f0fffe 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
+      <div style={{ textAlign: "center", maxWidth: 360 }}>
+        <div style={{ fontSize: 72, marginBottom: 20, animation: "pulse 1s ease-in-out" }}>🎉</div>
+        <div style={{ fontSize: 28, fontWeight: 900, color: "#1a1a1a", marginBottom: 12, letterSpacing: -0.5 }}>
+          Dein Profil ist bereit!
+        </div>
+        <div style={{ fontSize: 15, color: "#888", lineHeight: 1.7, marginBottom: 36 }}>
+          Den Rest kannst du ganz entspannt in deinem Profil vervollständigen. Wir freuen uns, dass du dabei bist 🌱
+        </div>
+
+        <div style={{ background: "white", borderRadius: 20, padding: "20px", marginBottom: 28, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", textAlign: "left" }}>
+          {[
+            { icon: "✅", text: `Rolle: ${role === "talent" ? "Talent" : "Entdecker"}` },
+            artistName && { icon: "✅", text: `Name: ${artistName}` },
+            bio && { icon: "✅", text: "Bio hinzugefügt" },
+            profilePhoto && { icon: "✅", text: "Profilfoto gesetzt" },
+            works.length > 0 && { icon: "✅", text: `${works.length} Werke hochgeladen` },
+          ].filter(Boolean).map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < 3 ? "1px solid #f5f5f5" : "none" }}>
+              <span style={{ fontSize: 16 }}>{item.icon}</span>
+              <span style={{ fontSize: 14, color: "#444" }}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={handleFinish}
+          disabled={saving}
+          style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${TEAL})`, color: "white", border: "none", borderRadius: 16, padding: "18px", fontSize: 17, fontWeight: 800, cursor: "pointer", boxShadow: `0 8px 24px ${TEAL}40` }}
+        >
+          {saving ? "Wird gespeichert..." : "Jetzt mein Profil ansehen ✨"}
+        </button>
+      </div>
+    </div>
+  );
+
+  return null;
+}
+
 function HuiAuthScreen({ onLogin }) {
   const [mode, setMode] = useState("register");
   const [name, setName] = useState("");
@@ -6812,18 +7128,32 @@ function HuiAuthScreen({ onLogin }) {
   const [error, setError] = useState("");
   const [focused, setFocused] = useState(null);
 
-  const handleAuth = () => {
+  const handleAuth = async () => {
     setError("");
     if (!email.trim()) { setError("Bitte E-Mail eingeben"); return; }
     if (!password || password.length < 6) { setError("Passwort muss mindestens 6 Zeichen haben"); return; }
     if (mode === "register" && !name.trim()) { setError("Bitte deinen Namen eingeben"); return; }
     setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem("hui_user", JSON.stringify({ email, name: name || email.split("@")[0] }));
-      localStorage.setItem("hui_onboarding_seen", "1");
-      onLogin();
-      setLoading(false);
-    }, 900);
+    try {
+      if (mode === "register") {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { full_name: name.trim() } }
+        });
+        if (signUpError) { setError(signUpError.message); setLoading(false); return; }
+        localStorage.setItem("hui_user", JSON.stringify({ email, name: name.trim() }));
+        onLogin("welcome"); // Trigger welcome onboarding
+      } else {
+        const { error: loginError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (loginError) { setError("E-Mail oder Passwort falsch"); setLoading(false); return; }
+        localStorage.setItem("hui_user", JSON.stringify({ email, name: email.split("@")[0] }));
+        onLogin("app");
+      }
+    } catch(e) {
+      setError("Verbindungsfehler. Bitte nochmal versuchen.");
+    }
+    setLoading(false);
   };
 
   const inputStyle = (field) => ({
@@ -7832,7 +8162,8 @@ function AppInner() {
     return <HuiOnboarding onDone={() => setAuthState("auth")} />;
   }
   if (authState === "auth") {
-    return <HuiAuthScreen onLogin={() => setAuthState("app")} />;
+    if (authState === "welcome") return <WelcomeOnboarding onDone={() => setAuthState("app")} />;
+    return <HuiAuthScreen onLogin={(next) => setAuthState(next || "app")} />;
   }
 
   // Detail views (full-screen pages)
