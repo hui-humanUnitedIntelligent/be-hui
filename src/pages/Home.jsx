@@ -1507,8 +1507,6 @@ function ImpactTrackerPage({ onClose }) {
 }
 
 
-function HuiPunktePage({ onClose }) {
-
 // ─── HUI PUNKTE ────────────────────────────────────────────────────────────
 function HuiPunktePage({ onClose }) {
   const totalPunkte = 250;
