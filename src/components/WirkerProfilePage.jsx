@@ -1,3 +1,4 @@
+import mockWirkerProfiles from "../lib/mockData";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Heart, Star, MapPin, ArrowLeft } from "lucide-react";
