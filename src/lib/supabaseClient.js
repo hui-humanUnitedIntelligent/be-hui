@@ -111,14 +111,50 @@ export const HuiPaymentDB = makeAdapter("payments");
 export const HuiMessageDB = makeAdapter("messages");
 export const HuiImpactProjectDB = makeAdapter("impact_projects");
 
+// Chainable query builder
+function makeQueryBuilder(table, action, payload = null) {
+  const state = { query: {}, singleResult: false, _payload: payload };
+
+  const builder = {
+    eq(col, val) {
+      state.query[col] = val;
+      return builder;
+    },
+    or(filter) {
+      // Parse simple "col.eq.val,col2.eq.val2" patterns
+      state._orFilter = filter;
+      return builder;
+    },
+    order(col, opts) {
+      state._order = { col, ascending: opts?.ascending !== false };
+      return builder;
+    },
+    single() {
+      state.singleResult = true;
+      return builder;
+    },
+    then(resolve, reject) {
+      return builder._execute().then(resolve, reject);
+    },
+    async _execute() {
+      try {
+        const res = await supabaseProxy({ table, action, query: state.query, data: state._payload });
+        let data = res.data?.data || (action === 'list' ? [] : null);
+        if (state.singleResult && Array.isArray(data)) data = data[0] || null;
+        return { data, error: null };
+      } catch (e) {
+        return { data: null, error: { message: e.message } };
+      }
+    }
+  };
+  return builder;
+}
+
 // Supabase-style object for pages/Admin compatibility
 export const supabase = {
   auth,
   from: (table) => ({
-    select: async () => {
-      const res = await supabaseProxy({ table, action: "list" });
-      return { data: res.data?.data || [], error: null };
-    },
+    select: (cols) => makeQueryBuilder(table, 'list'),
     insert: async (payload) => {
       const res = await supabaseProxy({ table, action: "create", data: payload });
       return { data: res.data?.data, error: null };
