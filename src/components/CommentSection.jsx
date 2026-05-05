@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ThumbsUp, Send } from "lucide-react";
+import { Heart, Send, MessageCircle, ThumbsUp, User } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
