@@ -4761,7 +4761,7 @@ function AppInner() {
       {/* ── CHATS ── */}
       {page === "chats" && (
         openChat
-          ? <ChatDetailPage chat={typeof openChat === "object" ? openChat : mockChats.find(c => c.wirker === openChat) || mockChats[0]} onBack={() => setOpenChat(null)} />
+          ? <ChatDetailPage chat={typeof openChat === "object" ? openChat : mockChats.find(c => c.wirkerName === openChat) || mockChats[0]} onBack={() => setOpenChat(null)} />
           : <ChatListPage onOpenChat={setOpenChat} />
       )}
 
