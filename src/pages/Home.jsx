@@ -5,6 +5,9 @@ import { useAuth } from "../lib/AuthContext";
 import { CORAL, TEAL, GOLD, PURPLE } from "../lib/constants";
 import { Heart, Share2, Star, Search, Plus, ShoppingBasket, Bell, ChevronRight, MapPin, Play, X, Home, Leaf, User, SlidersHorizontal, ChevronDown, ChevronUp, Check, ArrowLeft, Calendar, Clock, Package, Award, Trash2, Edit3, Send, MessageCircle, Archive, ThumbsUp, ThumbsDown, BadgeCheck, ArrowUp, Eye, Settings } from "lucide-react";
 
+// Mock Data
+import { mockChats } from "../lib/mockData";
+
 // Ausgelagerte Seiten
 import ProfilePage from "./ProfilePage";
 import ImpactPage from "./ImpactPage";
