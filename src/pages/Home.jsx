@@ -5670,8 +5670,16 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
   const saveProfileHeader = async () => {
     if (!supaUser) return;
     setSavingProfile(true);
-    await supabase.from("profiles").upsert({ id: supaUser.id, bio: editBio, updated_at: new Date().toISOString() });
-    setProfile(p => ({ ...p, bio: editBio, name: editName }));
+    try {
+      const { error } = await supabase.from("profiles").upsert({
+        id: supaUser.id,
+        full_name: editName,
+        bio: editBio,
+        updated_at: new Date().toISOString()
+      });
+      if (error) console.error("Profil speichern:", error);
+      setProfile(p => ({ ...p, bio: editBio, full_name: editName, name: editName }));
+    } catch(e) { console.error(e); }
     setSavingProfile(false);
     setEditingHeader(false);
   };
@@ -5693,12 +5701,39 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
     alert("Gespeichert ✅");
   };
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => setBeitraege(prev => [{ id: Date.now(), src: ev.target.result, type: "foto" }, ...prev]);
-    reader.readAsDataURL(file);
+    const isVideo = file.type.startsWith("video/");
+    const mediaType = isVideo ? "video" : "foto";
+    // Sofort lokal anzeigen (optimistic UI)
+    const localUrl = URL.createObjectURL(file);
+    const tempId = "temp_" + Date.now();
+    setBeitraege(prev => [{ id: tempId, src: localUrl, type: mediaType, uploading: true }, ...prev]);
+    try {
+      // Upload zu Supabase Storage
+      const ext = file.name.split(".").pop();
+      const path = `beitraege/${supaUser.id}/${Date.now()}.${ext}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+      // In DB speichern
+      const { data: beitrag } = await supabase.from("beitraege").insert({
+        user_id: supaUser.id,
+        src: publicUrl,
+        type: mediaType,
+        created_at: new Date().toISOString()
+      }).select().single();
+      // Lokalen Placeholder ersetzen
+      setBeitraege(prev => prev.map(b => b.id === tempId ? { ...beitrag, src: publicUrl, uploading: false } : b));
+    } catch(err) {
+      console.error("Upload Fehler:", err);
+      // Fallback: Datei bleibt lokal sichtbar aber ohne persistenz
+      setBeitraege(prev => prev.map(b => b.id === tempId ? { ...b, uploading: false, localOnly: true } : b));
+      alert("Upload fehlgeschlagen — prüfe Supabase Storage Bucket 'media'");
+    }
   };
 
   const handleWerkBild = (e) => {
