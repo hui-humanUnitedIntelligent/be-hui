@@ -4,6 +4,11 @@ import { MapPin, Check, ArrowLeft, Calendar, Clock } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
+
+const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const WEEKDAY_FULL = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+
 const GOLD = "#F5A623";
 const PURPLE = "#A78BFA";
 
