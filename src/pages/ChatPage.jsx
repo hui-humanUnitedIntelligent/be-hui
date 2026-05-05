@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../lib/AuthContext";
-import { CORAL, TEAL } from "../lib/constants";
-import { Send, ArrowLeft, MessageCircle } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Check, ArrowLeft, Send, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
+
+const CORAL = "#FF6B5B";
+const TEAL = "#2ABFAC";
+const GOLD = "#F5A623";
+const PURPLE = "#A78BFA";
 
 function ChatListPage({ onOpenChat, onBack }) {
   const [chats, setChats] = useState(mockChats);
