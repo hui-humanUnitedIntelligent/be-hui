@@ -910,7 +910,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
               service: `${wirker.talent} – 1 Stunde`,
               date: selectedDate ? `${selectedDate.day}.${selectedDate.month+1}.${selectedDate.year}` : null,
               time: selectedTime || null,
-              location: selectedLocation || null,
+              location: locationType === "talent" ? wirker.location : (locationAddress || null),
               price_eur: total,
               status: 'pending',
             });
