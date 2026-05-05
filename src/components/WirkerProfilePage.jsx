@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../lib/AuthContext";
-import { CORAL, TEAL, GOLD } from "../lib/constants";
-import { ArrowLeft, MapPin, Star, Heart } from "lucide-react";
+import { Heart, Star, MapPin, ArrowLeft } from "lucide-react";
+
+const CORAL = "#FF6B5B";
+const TEAL = "#2ABFAC";
+const GOLD = "#F5A623";
+const PURPLE = "#A78BFA";
 
 function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, returnStep6, onGoToChats, following, toggleFollow }) {
   const [dbWirker, setDbWirker] = useState(null);
