@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import CommentSection from "./CommentSection";
-import { Heart, Share2, Star, ShoppingBasket, MapPin, Play, Check, ThumbsUp, BadgeCheck } from "lucide-react";
+import { Heart, Share2, Star, ShoppingBasket, MapPin, Play, Check, ThumbsUp, BadgeCheck, Image, Video, Info } from "lucide-react";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
