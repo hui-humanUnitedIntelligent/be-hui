@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../lib/AuthContext";
-import { CORAL, TEAL, GOLD } from "../lib/constants";
-import { ArrowLeft, Check, Calendar, Clock, MapPin } from "lucide-react";
+import { MapPin, Check, ArrowLeft, Calendar, Clock } from "lucide-react";
+
+const CORAL = "#FF6B5B";
+const TEAL = "#2ABFAC";
+const GOLD = "#F5A623";
+const PURPLE = "#A78BFA";
 
 function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   const [step, setStep] = useState(1);
