@@ -7628,8 +7628,8 @@ function AppInner() {
   const [showEditProfile, setShowEditProfile] = React.useState(false);
   React.useEffect(() => {
     // Sofort prüfen
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) setSupabaseUser(data.user);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setSupabaseUser(session.user);
     });
     // Auf Auth-Änderungen reagieren (Login/Logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
