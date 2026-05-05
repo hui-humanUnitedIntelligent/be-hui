@@ -1,4 +1,13 @@
 import { supabaseProxy } from "@/functions/supabaseProxy";
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Real Supabase client for auth only
+const supabaseAuth = (SUPABASE_URL && SUPABASE_ANON_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 
 function makeAdapter(tableName) {
   return {
@@ -38,7 +47,15 @@ export const HuiMessageDB = makeAdapter("messages");
 export const HuiImpactProjectDB = makeAdapter("impact_projects");
 
 // Supabase-style proxy object for pages/Admin which uses supabase.from("table").select("*")
+// auth is delegated to the real Supabase client
 export const supabase = {
+  auth: supabaseAuth?.auth ?? {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    signUp: async () => ({ data: null, error: new Error('Supabase not configured') }),
+    signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
+    signOut: async () => {},
+  },
   from: (table) => ({
     select: async (cols = "*") => {
       const res = await supabaseProxy({ table, action: "list" });
