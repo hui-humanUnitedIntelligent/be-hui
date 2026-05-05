@@ -12,6 +12,15 @@ const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August",
 const GOLD = "#F5A623";
 const PURPLE = "#A78BFA";
 
+
+const defaultAvailability = {
+  "Lars M.":  { Mo: true, Di: true, Mi: false, Do: true, Fr: true, Sa: false, So: false },
+  "Nina K.":  { Mo: false, Di: true, Mi: true, Do: true, Fr: true, Sa: true, So: false },
+  "Tom B.":   { Mo: true, Di: false, Mi: true, Do: false, Fr: true, Sa: true, So: false },
+  "Anna S.":  { Mo: true, Di: true, Mi: true, Do: true, Fr: false, Sa: false, So: false },
+  "Kai L.":   { Mo: false, Di: true, Mi: false, Do: true, Fr: true, Sa: true, So: true },
+};
+
 function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState(null);
