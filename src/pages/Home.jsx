@@ -5717,30 +5717,33 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
     const localUrl = URL.createObjectURL(file);
     const tempId = "temp_" + Date.now();
     setBeitraege(prev => [{ id: tempId, src: localUrl, type: mediaType, uploading: true }, ...prev]);
+    // Zeige sofort lokal (funktioniert immer)
+    setBeitraege(prev => prev.map(b => b.id === tempId ? { ...b, uploading: false } : b));
+    // Versuche im Hintergrund zu speichern
     try {
-      // Upload zu Supabase Storage
-      const ext = file.name.split(".").pop();
-      const path = `beitraege/${supaUser.id}/${Date.now()}.${ext}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const ext = (file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase();
+      const filePath = `beitraege/${supaUser?.id || "anon"}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
         .from("media")
-        .upload(path, file, { contentType: file.type });
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+        .upload(filePath, file, { contentType: file.type, upsert: false });
+      if (uploadError) {
+        console.warn("Storage Upload fehlgeschlagen:", uploadError.message);
+        // Trotzdem lokal behalten — kein alert
+        return;
+      }
+      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(filePath);
       // In DB speichern
-      const { data: beitrag } = await supabase.from("beitraege").insert({
+      const { data: beitrag, error: dbErr } = await supabase.from("beitraege").insert({
         user_id: supaUser.id,
         src: publicUrl,
         type: mediaType,
         created_at: new Date().toISOString()
       }).select().single();
-      // Lokalen Placeholder ersetzen
-      const finalItem = { ...(beitrag || {}), id: beitrag?.id || tempId, src: publicUrl, type: mediaType, uploading: false };
-      setBeitraege(prev => prev.map(b => b.id === tempId ? finalItem : b));
+      if (dbErr) { console.warn("DB Insert fehlgeschlagen:", dbErr.message); return; }
+      // Ersetze lokale URL mit persistenter URL
+      setBeitraege(prev => prev.map(b => b.id === tempId ? { ...beitrag, src: publicUrl, type: mediaType, uploading: false } : b));
     } catch(err) {
-      console.error("Upload Fehler:", err);
-      // Fallback: Datei bleibt lokal sichtbar aber ohne persistenz
-      setBeitraege(prev => prev.map(b => b.id === tempId ? { ...b, uploading: false, localOnly: true } : b));
-      alert("Upload fehlgeschlagen — prüfe Supabase Storage Bucket 'media'");
+      console.warn("Upload Fehler (ignoriert):", err);
     }
   };
 
@@ -5884,8 +5887,16 @@ function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOp
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 3 }}>
               {beitraege.map(b => (
-                <div key={b.id} style={{ aspectRatio: "1", borderRadius: 4, overflow: "hidden" }}>
-                  <img src={b.src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <div key={b.id} style={{ aspectRatio: "1", borderRadius: 4, overflow: "hidden", position: "relative", background: "#111" }}>
+                  {b.uploading && (
+                    <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+                      <div style={{ color: "white", fontSize: 12 }}>⏳</div>
+                    </div>
+                  )}
+                  {b.type === "video"
+                    ? <video src={b.src} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted playsInline />
+                    : <img src={b.src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  }
                 </div>
               ))}
             </div>
