@@ -2664,9 +2664,6 @@ function NotificationsOverlay({ onClose }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════
-// APP HEADER
-// ═══════════════════════════════════════════════════════
 function AppHeader({ cartCount, onCartClick, onNotifClick, notifCount }) {
   return (
     <div style={{ background: "white", padding: "14px 16px 10px", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 100 }}>
@@ -5626,7 +5623,9 @@ function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) 
     </div>
   );
 }
-
+// ══════════════════════════════════════════════════════════════════
+// TALENT ANBIETEN – Onboarding Flow
+// ══════════════════════════════════════════════════════════════════
 function TalentAnbietenPage({ onClose, onSuccess }) {
   const TOTAL_STEPS = 6;
   const [step, setStep] = useState(0); // 0=Willkommen, 1=Angebot, 2=Talent, 3=Profil, 4=Ersteswerk, 5=Fertig
@@ -6022,7 +6021,570 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
     </div>
   );
 }
+function ProfilePage({ isNewUser, onViewOwnWirkerProfile, onTalentAnbieten, onOpenChats, following, toggleFollow, onViewWirker }) {
+  const [activeSection, setActiveSection] = React.useState(null); // null | "einstellungen" | "editProfile"
+  const [settingsSection, setSettingsSection] = React.useState(null); // null | "benachrichtigungen" | "privatsphare" | "zahlung" | "rechtliches"
+  const [showHuiPunkte, setShowHuiPunkte] = React.useState(false);
+  const [showImpactTracker, setShowImpactTracker] = React.useState(false);
+  const [editTab, setEditTab] = React.useState("basis"); // "basis" | "bio" | "talent"
+  const [myBookingCount, setMyBookingCount] = React.useState(0);
+  const [myFavoriteCount, setMyFavoriteCount] = React.useState(0);
 
+  // Echte Zahlen aus Supabase laden
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return;
+      const uid = session.user.id;
+      supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('user_id', uid)
+        .then(({ count }) => { if (count !== null) setMyBookingCount(count); });
+      supabase.from('favorites').select('id', { count: 'exact', head: true }).eq('user_id', uid)
+        .then(({ count }) => { if (count !== null) setMyFavoriteCount(count); });
+    });
+  }, []);
+  const [profileForm, setProfileForm] = React.useState({
+    vorname: window.__huiUserName?.split(" ")[0] || "Lars", nachname: window.__huiUserName?.split(" ")[1] || "M.", anzeigeName: window.__huiUserName || "Lars M.",
+    standort: "München, Deutschland", suchRadius: 50,
+    bio: "Ich forme aus Ton Dinge, die bleiben.",
+    website: "", instagram: "", kategorie: "Keramik & Töpfern",
+    sprachen: ["Deutsch"], erfahrung: "3 Jahre",
+    kurzbeschreibung: "Keramik-Künstler aus München – handgemachte Unikate und Workshops.",
+  });
+  const setP = (k, v) => setProfileForm(f => ({ ...f, [k]: v }));
+
+  const [notifSettings, setNotifSettings] = React.useState({
+    buchungen: true, empfehlungen: true, impact: true, follower: false, system: true, email: true, push: true
+  });
+  const [privSettings, setPrivSettings] = React.useState({
+    profilOeffentlich: true, standortZeigen: true, empfehlungenZeigen: true, onlineStatus: false
+  });
+  const toggleNotif = (k) => setNotifSettings(s => ({ ...s, [k]: !s[k] }));
+  const togglePriv = (k) => setPrivSettings(s => ({ ...s, [k]: !s[k] }));
+
+  const ToggleRow = ({ label, sub, value, onToggle, color, last }) => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderBottom: last ? "none" : "1px solid #f5f5f3" }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{sub}</div>}
+      </div>
+      <div onClick={onToggle} style={{ width: 44, height: 26, borderRadius: 13, background: value ? (color || TEAL) : "#ddd", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+        <div style={{ position: "absolute", top: 3, left: value ? 21 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)", transition: "left 0.2s" }} />
+      </div>
+    </div>
+  );
+
+  const SectionHeader = ({ title, onBack, actionLabel, onAction }) => (
+    <div style={{ background: "white", padding: "16px 20px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}>
+        <ArrowLeft size={20} color="#444" />
+      </button>
+      <div style={{ fontWeight: 800, fontSize: 18, color: "#222", flex: 1 }}>{title}</div>
+      {actionLabel && (
+        <button onClick={onAction} style={{ background: CORAL, color: "white", border: "none", borderRadius: 20, padding: "7px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+
+  const MenuRow = ({ icon, label, sub, onClick, last, color }) => (
+    <div onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
+      <div style={{ width: 38, height: 38, borderRadius: 12, background: (color || CORAL) + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>
+        {icon}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>{sub}</div>}
+      </div>
+      <ChevronRight size={15} color="#ddd" />
+    </div>
+  );
+
+  // EINSTELLUNGEN > BENACHRICHTIGUNGEN
+  if (activeSection === "einstellungen" && settingsSection === "benachrichtigungen") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Benachrichtigungen" onBack={() => setSettingsSection(null)} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Kanäle</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <ToggleRow label="Push-Benachrichtigungen" sub="Direkt aufs Handy" value={notifSettings.push} onToggle={() => toggleNotif("push")} />
+          <ToggleRow label="E-Mail-Benachrichtigungen" sub="An deine registrierte E-Mail" value={notifSettings.email} onToggle={() => toggleNotif("email")} last />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Themen</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <ToggleRow label="Buchungsanfragen & -bestätigungen" value={notifSettings.buchungen} onToggle={() => toggleNotif("buchungen")} color={CORAL} />
+          <ToggleRow label="Empfehlungen & Bewertungen" value={notifSettings.empfehlungen} onToggle={() => toggleNotif("empfehlungen")} color={TEAL} />
+          <ToggleRow label="Treuhand & Zahlungen" value={notifSettings.impact} onToggle={() => toggleNotif("impact")} color="#F5A623" />
+          <ToggleRow label="Neue Follower" value={notifSettings.follower} onToggle={() => toggleNotif("follower")} color="#8b5cf6" />
+          <ToggleRow label="System & Updates" value={notifSettings.system} onToggle={() => toggleNotif("system")} last />
+        </div>
+      </div>
+    </div>
+  );
+
+  // EINSTELLUNGEN > PRIVATSPHÄRE
+  if (activeSection === "einstellungen" && settingsSection === "privatsphare") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Privatsphäre & Sicherheit" onBack={() => setSettingsSection(null)} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sichtbarkeit</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <ToggleRow label="Profil öffentlich sichtbar" sub="Andere können dich finden" value={privSettings.profilOeffentlich} onToggle={() => togglePriv("profilOeffentlich")} />
+          <ToggleRow label="Standort anzeigen" sub="Ungefährer Bereich" value={privSettings.standortZeigen} onToggle={() => togglePriv("standortZeigen")} />
+          <ToggleRow label="Empfehlungen öffentlich" sub="Verifizierte Empfehlungen auf Profil" value={privSettings.empfehlungenZeigen} onToggle={() => togglePriv("empfehlungenZeigen")} />
+          <ToggleRow label="Online-Status anzeigen" sub="Zuletzt aktiv sichtbar" value={privSettings.onlineStatus} onToggle={() => togglePriv("onlineStatus")} last />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Sicherheit</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          {[
+            { icon: "🔑", label: "Passwort ändern", sub: "Zuletzt geändert: vor 3 Monaten" },
+            { icon: "📱", label: "Zwei-Faktor-Authentifizierung", sub: "Nicht aktiviert" },
+            { icon: "📋", label: "Aktive Sitzungen", sub: "2 Geräte eingeloggt", last: true },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", cursor: "pointer" }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          ))}
+        </div>
+        <button style={{ width: "100%", background: "#fff0ee", border: "1.5px solid rgba(255,90,90,0.3)", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: CORAL }}>
+          🗑 Konto löschen
+        </button>
+      </div>
+    </div>
+  );
+
+  // EINSTELLUNGEN > ZAHLUNG
+  if (activeSection === "einstellungen" && settingsSection === "zahlung") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Zahlungsmethoden" onBack={() => setSettingsSection(null)} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Gespeicherte Karten</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          {[
+            { icon: "💳", label: "Visa •••• 4242", sub: "Läuft ab 08/2027", badge: "Standard" },
+            { icon: "💳", label: "Mastercard •••• 1234", sub: "Läuft ab 03/2026", last: true },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3" }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</span>
+                  {item.badge && <span style={{ background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "2px 7px" }}>{item.badge}</span>}
+                </div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          ))}
+        </div>
+        <button style={{ width: "100%", background: TEAL + "12", border: "1.5px solid " + TEAL + "30", borderRadius: 14, padding: "13px", fontWeight: 700, fontSize: 14, cursor: "pointer", color: TEAL }}>
+          + Neue Karte hinzufügen
+        </button>
+        {!isNewUser && (
+          <>
+            <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", margin: "20px 0 6px", textTransform: "uppercase", letterSpacing: 0.8 }}>Auszahlungskonto</div>
+            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+              <span style={{ fontSize: 24 }}>🏦</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>IBAN •••• 4321</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>Sparkasse München</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  // EINSTELLUNGEN > RECHTLICHES
+  if (activeSection === "einstellungen" && settingsSection === "rechtliches") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Rechtliches" onBack={() => setSettingsSection(null)} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          {[
+            { icon: "📄", label: "Impressum", sub: "Anbieterkennzeichnung" },
+            { icon: "🔒", label: "Datenschutzerklärung", sub: "Wie wir deine Daten verwenden" },
+            { icon: "📋", label: "AGB", sub: "Allgemeine Geschäftsbedingungen" },
+            { icon: "🍪", label: "Cookie-Einstellungen", sub: "Deine Präferenzen verwalten", last: true },
+          ].map((item, i) => (
+            <a key={i} href="#" style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 0", borderBottom: item.last ? "none" : "1px solid #f5f5f3", textDecoration: "none" }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{item.sub}</div>
+              </div>
+              <ChevronRight size={15} color="#ddd" />
+            </a>
+          ))}
+        </div>
+        <div style={{ textAlign: "center", fontSize: 11, color: "#ccc", marginTop: 8 }}>HUI – Human United Intelligent · v1.0.0</div>
+      </div>
+    </div>
+  );
+
+  // EINSTELLUNGEN HAUPTSEITE
+  if (activeSection === "einstellungen") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Einstellungen" onBack={() => setActiveSection(null)} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Konto</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <MenuRow icon="🔔" label="Benachrichtigungen" sub="Push & E-Mail konfigurieren" color={CORAL} onClick={() => setSettingsSection("benachrichtigungen")} />
+          <MenuRow icon="🔒" label="Privatsphäre & Sicherheit" sub="Sichtbarkeit & Passwort" color={TEAL} onClick={() => setSettingsSection("privatsphare")} />
+          <MenuRow icon="💳" label="Zahlungsmethoden" sub="Karten & Auszahlungskonto" color="#8b5cf6" onClick={() => setSettingsSection("zahlung")} last />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 11, color: "#aaa", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Info</div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px", marginBottom: 16 }}>
+          <MenuRow icon="📋" label="Rechtliches" sub="AGB, Datenschutz, Impressum" color="#999" onClick={() => setSettingsSection("rechtliches")} />
+          <MenuRow icon="✨" label="Intro erneut anzeigen" sub="HUI-Onboarding nochmal sehen" color={GOLD} onClick={() => { localStorage.removeItem("hui_onboarding_seen"); window.location.reload(); }} last />
+        </div>
+        <div style={{ background: "white", borderRadius: 16, padding: "0 16px" }}>
+          <div onClick={() => {}} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", cursor: "pointer" }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: "#fff0ee", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>🚪</div>
+            <div style={{ flex: 1, fontWeight: 700, fontSize: 14, color: CORAL }}>Ausloggen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // PROFIL BEARBEITEN
+  if (activeSection === "editProfile") return (
+    <div style={{ height: "100vh", background: "#fafaf8", display: "flex", flexDirection: "column" }}>
+      <SectionHeader title="Profil bearbeiten" onBack={() => setActiveSection(null)} actionLabel="Speichern" onAction={() => setActiveSection(null)} actionColor={CORAL} />
+      <div style={{ display: "flex", gap: 0, background: "white", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+        {[["basis", "Basis"], ["bio", "Bio & Links"], ...(isNewUser ? [] : [["talent", "Talent"]])].map(([k, l]) => (
+          <button key={k} onClick={() => setEditTab(k)}
+            style={{ flex: 1, padding: "12px 8px", border: "none", background: "none", cursor: "pointer", fontWeight: editTab === k ? 800 : 500, fontSize: 13, color: editTab === k ? CORAL : "#aaa", borderBottom: editTab === k ? "2px solid " + CORAL : "2px solid transparent" }}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        {editTab === "basis" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "white", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+              <div style={{ position: "relative" }}>
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop"
+                  style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid #f0f0f0" }} alt="" />
+                <div style={{ position: "absolute", bottom: 0, right: 0, width: 20, height: 20, borderRadius: "50%", background: CORAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Edit3 size={10} color="white" />
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>Profilbild</div>
+                <div style={{ fontSize: 12, color: CORAL, marginTop: 2 }}>Foto ändern</div>
+              </div>
+            </div>
+            {[
+              { label: "Anzeigename", key: "anzeigeName", placeholder: "z.B. Lars M." },
+              { label: "Vorname", key: "vorname", placeholder: "Vorname" },
+              { label: "Nachname", key: "nachname", placeholder: "Nachname" },
+              { label: "Standort", key: "standort", placeholder: "z.B. München, Deutschland" },
+            ].map(({ label, key, placeholder }) => (
+              <div key={key} style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+                <input value={profileForm[key]} onChange={e => setP(key, e.target.value)} placeholder={placeholder}
+                  style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#222", background: "transparent", fontFamily: "inherit" }} />
+              </div>
+            ))}
+            <div style={{ background: "white", borderRadius: 14, padding: "14px 16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.4 }}>Suchradius</div>
+                <span style={{ fontWeight: 800, fontSize: 13, color: CORAL }}>{profileForm.suchRadius >= 200 ? "🌍 Weltweit" : profileForm.suchRadius + " km"}</span>
+              </div>
+              <input type="range" min={5} max={200} step={5} value={profileForm.suchRadius} onChange={e => setP("suchRadius", Number(e.target.value))}
+                style={{ width: "100%", accentColor: CORAL, cursor: "pointer" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ccc", marginTop: 2 }}>
+                <span>5 km</span><span>50 km</span><span>100 km</span><span>🌍</span>
+              </div>
+            </div>
+          </div>
+        )}
+        {editTab === "bio" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Über mich</div>
+              <textarea value={profileForm.bio} onChange={e => setP("bio", e.target.value)} rows={4} placeholder="Beschreibe dich in ein paar Sätzen..."
+                style={{ width: "100%", border: "none", outline: "none", fontSize: 14, resize: "none", fontFamily: "inherit", lineHeight: 1.6, color: "#222", background: "transparent" }} />
+              <div style={{ fontSize: 11, color: profileForm.bio.length > 280 ? CORAL : "#ccc", textAlign: "right" }}>{profileForm.bio.length}/300</div>
+            </div>
+            {[
+              { label: "Website", key: "website", placeholder: "https://meineseite.de" },
+              { label: "Instagram", key: "instagram", placeholder: "@dein_handle" },
+            ].map(({ label, key, placeholder }) => (
+              <div key={key} style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
+                <input value={profileForm[key]} onChange={e => setP(key, e.target.value)} placeholder={placeholder}
+                  style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#222", background: "transparent", fontFamily: "inherit" }} />
+              </div>
+            ))}
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Sprachen</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {["Deutsch", "Englisch", "Französisch", "Spanisch", "Türkisch", "Arabisch"].map(lang => {
+                  const active = profileForm.sprachen.includes(lang);
+                  return (
+                    <button key={lang} onClick={() => setP("sprachen", active ? profileForm.sprachen.filter(l => l !== lang) : [...profileForm.sprachen, lang])}
+                      style={{ background: active ? TEAL + "18" : "#f4f4f2", border: "1.5px solid " + (active ? TEAL : "transparent"), borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: active ? TEAL : "#666", cursor: "pointer" }}>
+                      {lang}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+        {editTab === "talent" && !isNewUser && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kategorie</div>
+              <input value={profileForm.kategorie} onChange={e => setP("kategorie", e.target.value)}
+                style={{ width: "100%", border: "none", outline: "none", fontSize: 14, color: "#222", background: "transparent", fontFamily: "inherit" }} />
+            </div>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4 }}>Kurzvorstellung</div>
+              <textarea value={profileForm.kurzbeschreibung} onChange={e => setP("kurzbeschreibung", e.target.value)} rows={3} placeholder="Was machst du, wie arbeitest du?"
+                style={{ width: "100%", border: "none", outline: "none", fontSize: 14, resize: "none", fontFamily: "inherit", lineHeight: 1.6, color: "#222", background: "transparent" }} />
+            </div>
+            <div style={{ background: "white", borderRadius: 14, padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 }}>Erfahrung</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {["< 1 Jahr", "1–2 Jahre", "3–5 Jahre", "5–10 Jahre", "10+ Jahre"].map(e => (
+                  <button key={e} onClick={() => setP("erfahrung", e)}
+                    style={{ background: profileForm.erfahrung === e ? CORAL + "18" : "#f4f4f2", border: "1.5px solid " + (profileForm.erfahrung === e ? CORAL : "transparent"), borderRadius: 20, padding: "6px 13px", fontSize: 12, fontWeight: 600, color: profileForm.erfahrung === e ? CORAL : "#666", cursor: "pointer" }}>
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: "white", borderRadius: 14, padding: "14px 16px", border: "1px solid " + TEAL + "20" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.4 }}>Sichtbarkeitsradius</div>
+                  <div style={{ fontSize: 11, color: TEAL, marginTop: 2 }}>Wie weit erscheinst du in der Suche?</div>
+                </div>
+                <span style={{ fontWeight: 800, fontSize: 13, color: TEAL }}>50 km</span>
+              </div>
+              <input type="range" min={5} max={250} step={5} defaultValue={50} style={{ width: "100%", accentColor: TEAL, cursor: "pointer" }} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // HAUPT-PROFIL
+  return (
+    <div style={{ paddingBottom: 100, overflowY: "auto", height: "100vh", background: "#f5f5f3" }}>
+      {showHuiPunkte && <HuiPunktePage onClose={() => setShowHuiPunkte(false)} />}
+      {showImpactTracker && <ImpactTrackerPage onClose={() => setShowImpactTracker(false)} />}
+
+      {/* HERO HEADER */}
+      <div style={{ position: "relative", marginBottom: 0 }}>
+        {/* Cover */}
+        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop"
+          style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} alt="cover" />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%)" }} />
+
+        {/* Settings Button oben rechts */}
+        <button onClick={() => { setActiveSection("einstellungen"); setSettingsSection(null); }}
+          style={{ position: "absolute", top: 14, right: 14, background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "50%", width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          <Settings size={17} color="white" />
+        </button>
+
+        {/* Avatar — überlappt den Header */}
+        <div style={{ position: "absolute", bottom: -44, left: 20 }}>
+          <div style={{ position: "relative" }}>
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop"
+              style={{ width: 86, height: 86, borderRadius: "50%", border: "4px solid white", objectFit: "cover", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", display: "block" }} alt="profile" />
+            {!isNewUser && (
+              <div style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, borderRadius: "50%", background: TEAL, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 10 }}>✓</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* NAME + EDIT BUTTON */}
+      <div style={{ background: "white", padding: "52px 20px 18px", marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 22, color: "#1a1a1a", letterSpacing: -0.3 }}>
+              {window.__huiUserName || "Lars M."}
+              {!isNewUser && <span style={{ marginLeft: 8, background: TEAL + "18", color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "3px 9px", verticalAlign: "middle" }}>Wirker</span>}
+            </div>
+            {!isNewUser
+              ? <div style={{ fontSize: 13, color: TEAL, fontWeight: 600, marginTop: 2 }}>Keramik-Künstler · München</div>
+              : <div style={{ fontSize: 13, color: "#aaa", fontWeight: 500, marginTop: 2 }}>Mitglied der HUI Community</div>
+            }
+            <div style={{ fontSize: 12, color: "#bbb", display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+              <MapPin size={11} /> München · dabei seit März 2024
+            </div>
+          </div>
+          <button onClick={() => { setActiveSection("editProfile"); setEditTab("basis"); }}
+            style={{ background: CORAL + "10", border: `1.5px solid ${CORAL}30`, borderRadius: 22, padding: "8px 16px", fontSize: 12, fontWeight: 700, color: CORAL, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+            <Edit3 size={12} /> Bearbeiten
+          </button>
+        </div>
+
+        {/* Stats Zeile */}
+        <div style={{ display: "flex", gap: 0, marginTop: 18, paddingTop: 16, borderTop: "1px solid #f0f0ee" }}>
+          {[
+            [String(myBookingCount), "Buchungen", null],
+            [String(myFavoriteCount), "Favoriten", null],
+            ["0,00 €", "Impact 🌱", () => setShowImpactTracker(true)]
+          ].map(([v, l, action], i, arr) => (
+            <div key={l} onClick={action || undefined}
+              style={{ flex: 1, textAlign: "center", cursor: action ? "pointer" : "default", borderRight: i < arr.length - 1 ? "1px solid #f0f0ee" : "none", padding: "0 4px" }}>
+              <div style={{ fontWeight: 900, fontSize: 17, color: action ? TEAL : (v === "0" || v === "0,00 €" ? "#ccc" : "#1a1a1a") }}>{v}</div>
+              <div style={{ fontSize: 10, color: action ? TEAL : "#aaa", marginTop: 2, fontWeight: action ? 700 : 400 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* HUI-PUNKTE BANNER */}
+      <div onClick={() => setShowHuiPunkte(true)}
+        style={{ margin: "0 16px 10px", background: `linear-gradient(135deg, ${GOLD}, #f59e0b, #fbbf24)`, borderRadius: 18, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", boxShadow: "0 6px 20px rgba(245,166,35,0.3)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 46, height: 46, borderRadius: 14, background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: 24 }}>⭐</span>
+          </div>
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 19, color: "white", letterSpacing: -0.3 }}>250 HUI-Punkte</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 1 }}>= 12,50 € Guthaben · Einlösen →</div>
+          </div>
+        </div>
+        <ChevronRight size={20} color="rgba(255,255,255,0.7)" />
+      </div>
+
+      {/* AKTIONEN */}
+      <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
+        {/* Chats */}
+        <div onClick={onOpenChats}
+          style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer", borderBottom: "1px solid #f5f5f3" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: CORAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <MessageCircle size={19} color={CORAL} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Meine Chats</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>Buchungen & Treuhand-Status</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ background: CORAL, color: "white", borderRadius: 99, fontSize: 10, fontWeight: 800, padding: "2px 8px", minWidth: 20, textAlign: "center" }}>1</div>
+            <ChevronRight size={15} color="#ddd" />
+          </div>
+        </div>
+
+        {/* Talent-Profil */}
+        {!isNewUser && (
+          <div onClick={onViewOwnWirkerProfile}
+            style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", cursor: "pointer" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: TEAL + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Eye size={19} color={TEAL} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Mein Talent-Profil</div>
+              <div style={{ fontSize: 11, color: "#aaa", marginTop: 1 }}>So sehen dich andere</div>
+            </div>
+            <ChevronRight size={15} color="#ddd" />
+          </div>
+        )}
+      </div>
+
+      {/* Talent CTA — nur wenn noch kein Talent */}
+      {isNewUser && (
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, padding: "18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: `${GOLD}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🌟</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: 14, color: "#1a1a1a", marginBottom: 3 }}>Hast du ein Talent zu teilen?</div>
+              <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.5 }}>Werde Wirker — biete deine Fähigkeiten an und verdiene.</div>
+            </div>
+          </div>
+          <button onClick={onTalentAnbieten}
+            style={{ width: "100%", marginTop: 14, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+            Talent anbieten →
+          </button>
+        </div>
+      )}
+
+      {/* Meine Buchungen — für Kunden */}
+      {isNewUser && (
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid #f5f5f3" }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>📅 Meine Buchungen</div>
+          </div>
+          <div style={{ padding: "28px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>📭</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#555", marginBottom: 4 }}>Noch keine Buchungen</div>
+            <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.6 }}>Buche ein Talent im Feed — deine Buchungen erscheinen dann hier</div>
+          </div>
+        </div>
+      )}
+
+      {/* Meine Empfehlungen — für Kunden */}
+      {isNewUser && (
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid #f5f5f3" }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>👍 Meine Empfehlungen</div>
+          </div>
+          <div style={{ padding: "28px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>✨</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#555", marginBottom: 4 }}>Noch keine Empfehlungen</div>
+            <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.6 }}>Nach Abschluss einer Buchung kannst du das Talent weiterempfehlen — das macht den Unterschied.</div>
+          </div>
+        </div>
+      )}
+
+      {/* WEN ICH FOLGE */}
+      {isNewUser && (
+        <div style={{ margin: "0 16px 10px", background: "white", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid #f5f5f3", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>✨ Ich folge</div>
+            <span style={{ fontSize: 12, color: "#bbb", fontWeight: 600 }}>{following ? following.size : 0} Talente</span>
+          </div>
+          {following && following.size > 0 ? (
+            <div style={{ padding: "10px 14px 14px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {allWirkerStories.filter(s => following.has(s.wirkerKey)).map(s => (
+                  <div key={s.id} onClick={() => onViewWirker && onViewWirker(s.wirkerKey)}
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "#f7f7f5", borderRadius: 22, padding: "6px 12px 6px 6px", cursor: "pointer" }}>
+                    <img src={s.img} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} alt={s.name} />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: "#222" }}>{s.name}</div>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); toggleFollow && toggleFollow(s.wirkerKey); }}
+                      style={{ marginLeft: 4, background: "none", border: "1px solid #eee", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: "#aaa", cursor: "pointer" }}>
+                      Entfolgen
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ padding: "24px 20px", textAlign: "center" }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>👀</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#ccc", marginBottom: 4 }}>Noch niemanden</div>
+              <div style={{ fontSize: 12, color: "#ddd", lineHeight: 1.6 }}>Tippe auf "+ Folgen" bei einem Talent um ihnen zu folgen</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SPACER */}
+      <div style={{ height: 10 }} />
+    </div>
+  );
+}
 function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser, onPlusClick }) {
   const [plusPressed, setPlusPressed] = React.useState(false);
   return (
@@ -6237,16 +6799,9 @@ function HuiOnboarding({ onDone }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════
-// AUTH SCREEN
-// ═══════════════════════════════════════════════════════
-
-
-
-// ═══════════════════════════════════════════════════════
-// WELCOME ONBOARDING
-// ═══════════════════════════════════════════════════════
-
+// ══════════════════════════════════════════════════════════════════
+// HUI AUTH SCREEN — Clean Login / Register
+// ══════════════════════════════════════════════════════════════════
 function HuiAuthScreen({ onLogin }) {
   const [mode, setMode] = useState("register");
   const [name, setName] = useState("");
@@ -7064,7 +7619,6 @@ function KarteOverlay({ onClose, onViewWirker }) {
     </div>
   );
 }
-
 
 function AppInner() {
   // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
