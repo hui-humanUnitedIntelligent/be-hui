@@ -7,6 +7,24 @@ const TEAL = "#2ABFAC";
 const GOLD = "#F5A623";
 const PURPLE = "#A78BFA";
 
+
+// ─── Mock Favoriten-Daten ────────────────────────────────────────────────────
+const mockFavWirker = [
+  { id: 1, name: "Lars M.", talent: "Keramik-Künstler", location: "München", hourlyRate: "ab 45 €/h", recommendations: 34, img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" },
+  { id: 2, name: "Nina K.", talent: "Yoga & Atemarbeit", location: "Berlin", hourlyRate: "ab 60 €/h", recommendations: 28, img: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=200&h=200&fit=crop" },
+  { id: 3, name: "Tom B.", talent: "Fotografie", location: "Hamburg", hourlyRate: "ab 80 €/h", recommendations: 52, img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop" },
+];
+
+const mockFavWerke = [
+  { id: 1, title: "Handgemachte Schale", creator: "Lars M.", price: "55 €", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=300&fit=crop" },
+  { id: 2, title: "Yoga Starter-Set", creator: "Nina K.", price: "89 €", img: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop" },
+];
+
+const mockFavImpact = [
+  { id: 1, name: "Stadtgärten München", category: "Umwelt", description: "Urbane Gemeinschaftsgärten für alle", icon: "🌱", color: "#2ABFAC", votes: 234 },
+  { id: 2, name: "Kunstwerkstatt Kids", category: "Bildung", description: "Kreative Förderung für Kinder", icon: "🎨", color: "#A78BFA", votes: 187 },
+];
+
 function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) {
   const [tab, setTab] = useState("wirker");
   const [favWirker, setFavWirker] = useState(mockFavWirker.map(w => w.id));
