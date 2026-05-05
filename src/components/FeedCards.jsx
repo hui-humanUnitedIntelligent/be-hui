@@ -1,3 +1,4 @@
+import mockWirkerProfiles from "../lib/mockData";
 import React, { useState } from "react";
 import CommentSection from "./CommentSection";
 import { Heart, Share2, Star, ShoppingBasket, MapPin, Play, Check, ThumbsUp, BadgeCheck, Image, Video, Info } from "lucide-react";
