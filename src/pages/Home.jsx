@@ -2338,6 +2338,46 @@ function HuiAuthScreen({ onLogin }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════
+// APP HEADER
+// ═══════════════════════════════════════════════════════
+function AppHeader({ cartCount = 0, onCartClick, onNotifClick, notifCount = 0 }) {
+  const TEAL = "#2ABFAC";
+  const CORAL = "#FF6B6B";
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px 10px", background: "white", borderBottom: "1px solid #f0f0ee", position: "sticky", top: 0, zIndex: 100 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: 32, height: 32, borderRadius: 10, objectFit: "cover" }} />
+        <span style={{ fontWeight: 900, fontSize: 18, color: "#1a1a1a", letterSpacing: -0.5 }}>HUI</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button onClick={onNotifClick} style={{ position: "relative", background: "none", border: "none", cursor: "pointer", padding: 6 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          {notifCount > 0 && (
+            <span style={{ position: "absolute", top: 2, right: 2, width: 16, height: 16, background: CORAL, borderRadius: "50%", fontSize: 9, fontWeight: 800, color: "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {notifCount > 9 ? "9+" : notifCount}
+            </span>
+          )}
+        </button>
+        <button onClick={onCartClick} style={{ position: "relative", background: "none", border: "none", cursor: "pointer", padding: 6 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          {cartCount > 0 && (
+            <span style={{ position: "absolute", top: 2, right: 2, width: 16, height: 16, background: TEAL, borderRadius: "50%", fontSize: 9, fontWeight: 800, color: "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {cartCount}
+            </span>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 function AppInner() {
   // ── ALL HOOKS MUST BE DECLARED FIRST (React rules of hooks) ──────────────
 
