@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Plus, Check, ArrowLeft, Send, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 
 const CORAL = "#FF6B5B";
