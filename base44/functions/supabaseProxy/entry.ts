@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     if (action === 'auth.signIn') {
       const { email, password } = body;
       const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });
-      if (error) return Response.json({ error: error.message }, { status: 401 });
+      if (error) return Response.json({ error: error.message });
       return Response.json({ data });
     }
 
@@ -30,12 +30,11 @@ Deno.serve(async (req) => {
         email, password,
         options: { data: { full_name: fullName } }
       });
-      if (error) return Response.json({ error: error.message }, { status: 400 });
+      if (error) return Response.json({ error: error.message });
       return Response.json({ data });
     }
 
     if (action === 'auth.getSession') {
-      // Extract JWT from Authorization header or body
       const authHeader = req.headers.get('Authorization') || '';
       const token = body._authToken || authHeader.replace('Bearer ', '');
       if (!token) return Response.json({ data: { session: null } });
@@ -48,7 +47,7 @@ Deno.serve(async (req) => {
     // --- DB ACTIONS ---
     const { table, query, data, id } = body;
 
-    if (!table) return Response.json({ error: 'table is required' }, { status: 400 });
+    if (!table) return Response.json({ error: 'table is required for DB actions' }, { status: 400 });
 
     let result;
 
