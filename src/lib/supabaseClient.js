@@ -1,14 +1,82 @@
 import { supabaseProxy } from "@/functions/supabaseProxy";
-import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Token storage
+const TOKEN_KEY = 'hui_auth_token';
 
-// Real Supabase client for auth only
-const supabaseAuth = (SUPABASE_URL && SUPABASE_ANON_KEY)
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+function getStoredToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+function storeToken(token) {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+}
 
+// Auth listeners
+const authListeners = [];
+function notifyListeners(event, session) {
+  authListeners.forEach(fn => fn(event, session));
+}
+
+// Proxy-based Supabase auth object
+const auth = {
+  _session: null,
+
+  async getSession() {
+    const token = getStoredToken();
+    if (!token) return { data: { session: null }, error: null };
+    const res = await supabaseProxy({
+      action: 'auth.getSession',
+      _authToken: token
+    });
+    const session = res.data?.data?.session || null;
+    this._session = session;
+    return { data: { session }, error: null };
+  },
+
+  async signInWithPassword({ email, password }) {
+    const res = await supabaseProxy({ action: 'auth.signIn', email, password });
+    if (res.data?.error) return { data: null, error: { message: res.data.error } };
+    const session = res.data?.data?.session || null;
+    const user = res.data?.data?.user || null;
+    if (session?.access_token) storeToken(session.access_token);
+    this._session = session;
+    notifyListeners('SIGNED_IN', session);
+    return { data: { session, user }, error: null };
+  },
+
+  async signUp({ email, password, options }) {
+    const fullName = options?.data?.full_name || '';
+    const res = await supabaseProxy({ action: 'auth.signUp', email, password, fullName });
+    if (res.data?.error) return { data: null, error: { message: res.data.error } };
+    return { data: res.data?.data, error: null };
+  },
+
+  async signOut() {
+    storeToken(null);
+    this._session = null;
+    notifyListeners('SIGNED_OUT', null);
+  },
+
+  onAuthStateChange(callback) {
+    authListeners.push(callback);
+    // immediately fire with current state
+    this.getSession().then(({ data: { session } }) => {
+      callback(session ? 'SIGNED_IN' : 'SIGNED_OUT', session);
+    });
+    return {
+      data: {
+        subscription: {
+          unsubscribe: () => {
+            const idx = authListeners.indexOf(callback);
+            if (idx > -1) authListeners.splice(idx, 1);
+          }
+        }
+      }
+    };
+  }
+};
+
+// DB adapter via proxy
 function makeAdapter(tableName) {
   return {
     list: async () => {
@@ -35,29 +103,19 @@ function makeAdapter(tableName) {
       const res = await supabaseProxy({ table: tableName, action: "delete", id });
       return res.data?.data;
     },
-    // Supabase-style chaining for pages/Admin compatibility
-    from: null,
   };
 }
 
-// Named DB adapters for entities
 export const HuiWirkerDB = makeAdapter("wirker");
 export const HuiPaymentDB = makeAdapter("payments");
 export const HuiMessageDB = makeAdapter("messages");
 export const HuiImpactProjectDB = makeAdapter("impact_projects");
 
-// Supabase-style proxy object for pages/Admin which uses supabase.from("table").select("*")
-// auth is delegated to the real Supabase client
+// Supabase-style object for pages/Admin compatibility
 export const supabase = {
-  auth: supabaseAuth?.auth ?? {
-    getSession: async () => ({ data: { session: null }, error: null }),
-    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    signUp: async () => ({ data: null, error: new Error('Supabase not configured') }),
-    signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
-    signOut: async () => {},
-  },
+  auth,
   from: (table) => ({
-    select: async (cols = "*") => {
+    select: async () => {
       const res = await supabaseProxy({ table, action: "list" });
       return { data: res.data?.data || [], error: null };
     },
