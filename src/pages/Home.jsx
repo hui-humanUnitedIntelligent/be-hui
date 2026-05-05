@@ -5541,10 +5541,11 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
   const [saving, setSaving] = React.useState(false);
 
   const options = [
+  const options = [
     { key: "wirker", icon: "🤝", label: "Wirker", sub: "Biete deine Fähigkeiten an — Coaching, Handwerk, Musik, Beratung und mehr.", color: TEAL },
-    { key: "werke", icon: "🎨", label: "Werke & Erlebnisse", sub: "Zeige und verkaufe deine Werke — Kunst, Fotos, Design oder einzigartige Erlebnisse.", color: "#A78BFA" },
-    { key: "beides", icon: "✨", label: "Beides (Wirker & Werke)", sub: "Du möchtest sowohl deine Fähigkeiten als auch deine Werke mit der Welt teilen.", color: CORAL },
-  ];
+    { key: "werke", icon: "🎨", label: "Werke", sub: "Zeige und verkaufe deine Werke — Kunst, Fotos, Design, Produkte und mehr.", color: CORAL },
+    { key: "erlebnisse", icon: "🌟", label: "Erlebnisse", sub: "Biete einzigartige Erlebnisse an — Workshops, Events, Reisen und unvergessliche Momente.", color: "#A78BFA" },
+    { key: "beides", icon: "✨", label: "Alles davon", sub: "Du möchtest Fähigkeiten, Werke und Erlebnisse anbieten.", color: "#F59E0B" },
 
   const handleSelect = async (key) => {
     setSelected(key);
