@@ -4769,14 +4769,8 @@ function AppInner() {
       {/* ── PROFIL ── */}
       {page === "profile" && !openChat && (
         <ProfilePage
-          isNewUser={isNewUser}
-          onViewOwnWirkerProfile={() => viewWirker(supabaseUserName || "Lars M.", true)}
           onTalentAnbieten={() => setShowTalentAnbieten(true)}
-              showTalentWelcomeHint={showTalentWelcomeHint}
-          onOpenChats={() => setPage("chats")}
-          following={following}
-          toggleFollow={toggleFollow}
-          onViewWirker={viewWirker}
+          onLogout={() => window.location.href = "/login"}
         />
       )}
 
