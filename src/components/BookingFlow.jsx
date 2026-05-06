@@ -22,6 +22,15 @@ const defaultAvailability = {
   "Kai L.":   { Mo: false, Di: DEFAULT_SLOTS, Mi: false, Do: DEFAULT_SLOTS, Fr: DEFAULT_SLOTS, Sa: DEFAULT_SLOTS, So: ["10:00","11:00","12:00"] },
 };
 
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function getFirstWeekday(year, month) {
+  const day = new Date(year, month, 1).getDay();
+  return (day + 6) % 7; // Mo=0, So=6
+}
+
 function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState(null);
