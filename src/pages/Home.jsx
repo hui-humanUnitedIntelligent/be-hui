@@ -3346,7 +3346,7 @@ function TalentAnbietenPage({ onClose, onSuccess }) {
 
 
 // ─── TAB BAR ────────────────────────────────────────────────────────────────
-function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser, onPlusClick }) {
+function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser, onPlusClick, isTalent }) {
   const [plusPressed, setPlusPressed] = React.useState(false);
   return (
     <div style={{
@@ -3358,14 +3358,7 @@ function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser
     }}>
       <TabButton label="Home" icon={<Home size={22} />} active={page === "home"} onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
       <TabButton label="Impact" icon={<Leaf size={22} />} active={page === "impact"} onClick={() => { setPage("impact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
-      {isNewUser ? (
-        <button onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -22, WebkitTapHighlightColor: "transparent" }}>
-          <div style={{ width: 58, height: 58, borderRadius: "50%", overflow: "hidden", boxShadow: `0 4px 18px ${GOLD}66`, animation: "huiPulse 2.4s ease-in-out infinite" }}>
-            <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </div>
-          <span style={{ fontSize: 9, color: GOLD, fontWeight: 700, letterSpacing: 0.3 }}>Entdecke HUI</span>
-        </button>
-      ) : (
+      {isTalent ? (
         <button
           onClick={onPlusClick}
           onPointerDown={() => setPlusPressed(true)}
@@ -3387,6 +3380,14 @@ function TabBar({ page, setPage, setShowOnboarding, setOnboardingStep, isNewUser
             transform: plusPressed ? "rotate(45deg)" : "rotate(0deg)",
             transition: "transform 0.22s cubic-bezier(0.34,1.56,0.64,1)",
           }} />
+        </button>
+      ) : (
+        <button onClick={() => { setPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, marginTop: -22, WebkitTapHighlightColor: "transparent" }}>
+          <div style={{ width: 58, height: 58, borderRadius: "50%", overflow: "hidden", boxShadow: `0 4px 18px ${TEAL}55`, animation: "huiPulse 2.4s ease-in-out infinite" }}>
+            <img src="https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c9a4ece09_IMG_1693.jpg" alt="HUI" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+          <span style={{ fontSize: 9, color: TEAL, fontWeight: 700, letterSpacing: 0.3 }}>HUI entdecken</span>
         </button>
       )}
       <TabButton label="Favoriten" icon={<Star size={22} />} active={page === "favorites"} onClick={() => { setPage("favorites"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
@@ -4781,7 +4782,7 @@ function AppInner() {
 
       {/* ── TAB BAR ── */}
       {!detailView && (
-        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} isNewUser={isNewUser} onPlusClick={() => setShowCreateSheet(true)} />
+        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} isNewUser={isNewUser} onPlusClick={() => setShowCreateSheet(true)} isTalent={currentUser?.role === 'wirker' || currentUser?.role === 'talent'} />
       )}
 
       {/* ── OVERLAYS ── */}
