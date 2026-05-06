@@ -1,365 +1,609 @@
-import mockWirkerProfiles from "../lib/mockData";
 import React, { useState, useEffect } from "react";
-import BookingFlow from "./BookingFlow";
 import { supabase } from "../lib/supabaseClient";
-import { Heart, Star, MapPin, ArrowLeft, ShoppingBag, Handshake, Grid, Image } from "lucide-react";
+import mockWirkerProfiles from "../lib/mockData";
 
-const CORAL = "#FF6B5B";
-const TEAL = "#2ABFAC";
-const GOLD = "#F5A623";
-const PURPLE = "#A78BFA";
+/* ─── Design Tokens ─────────────────────────────────────── */
+const C = {
+  coral:   "#FF6B5B",
+  teal:    "#2ABFAC",
+  gold:    "#F5A623",
+  purple:  "#A78BFA",
+  ink:     "#1A1A2E",
+  muted:   "#6B7280",
+  surface: "#F8F7F5",
+  card:    "#FFFFFF",
+  border:  "#EEECE8",
+};
 
-// ─────────────────────────────────────────────
-// Fremdes Profil — wird je nach talent_type unterschiedlich gerendert
-// talent_type: "wirker" | "werke" | "beides"
-// ─────────────────────────────────────────────
-function WirkerProfilePage({ wirkerName, onBack, onAddToCart, isOwnProfile, autoBook, returnStep6, onGoToChats, following, toggleFollow }) {
-  const [dbWirker, setDbWirker] = useState(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [tab, setTab] = useState("main"); // main | beitraege | empfehlungen
-  const [followed, setFollowed] = useState(false);
-  const [showBooking, setShowBooking] = useState(!!autoBook);
-  const [bookingDone, setBookingDone] = useState(false);
-  const [werke, setWerke] = useState([]);
-  const [beitraege, setBeitraege] = useState([]);
-
-  // Sync following state
-  useEffect(() => {
-    const name = dbWirker?.name || wirkerName;
-    if (following && name) setFollowed(following.has(name));
-  }, [following, dbWirker, wirkerName]);
-
-  useEffect(() => {
-    async function loadWirker() {
-      setLoadingProfile(true);
-      try {
-        const { data } = await supabase.from("wirker").select("*").eq("name", wirkerName).single();
-        if (data) {
-          setDbWirker(data);
-          // Werke laden
-          const { data: w } = await supabase.from("werke").select("*").eq("wirker_id", data.id).order("created_at", { ascending: false });
-          if (w) setWerke(w);
-          // Beiträge laden
-          const { data: b } = await supabase.from("beitraege").select("*").eq("wirker_name", data.name).order("created_at", { ascending: false });
-          if (b) setBeitraege(b);
-        }
-      } catch(e) {}
-      setLoadingProfile(false);
-    }
-    loadWirker();
-  }, [wirkerName]);
-
-  const p = dbWirker || mockWirkerProfiles[wirkerName];
-  if (loadingProfile) return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ fontSize: 32 }}>🌱</div>
-    </div>
-  );
-  if (!p) return (
-    <div style={{ padding: 32, textAlign: "center" }}>
-      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: TEAL, fontWeight: 700 }}>← Zurück</button>
-      <p style={{ color: "#aaa" }}>Profil nicht gefunden</p>
-    </div>
-  );
-
-  // Normalize fields
-  const profile = {
-    name: p.name || wirkerName,
-    fullName: p.full_name || p.fullName || p.name || wirkerName,
-    talent: p.talent || "",
-    location: p.location || "",
-    hourlyRate: p.hourly_rate ? `${p.hourly_rate} €/h` : (p.hourlyRate || ""),
-    pricePerHour: p.hourly_rate || p.pricePerHour || 0,
-    memberSince: p.memberSince || "2024",
-    bookings: p.bookings || 0,
-    followers: p.followers || 0,
-    recommendations: p.recommendations || 0,
-    impactEur: p.impact_eur || p.impactEur || 0,
-    bio: p.bio || "",
-    img: p.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || wirkerName)}&background=2ABFAC&color=fff&size=200`,
-    header: p.header_img || p.header || null,
-    skills: p.skills || [],
-    talentType: p.talent_type || p.talentType || "wirker", // "wirker" | "werke" | "beides"
-    verified: p.verified || false,
-    werke: werke.length > 0 ? werke : (p.werke || []),
-    beitraege: beitraege,
-    empfehlungen: p.empfehlungen || p.recommendations_list || [],
-  };
-
-  // Profil-Typ bestimmt UI
-  const isWirker = profile.talentType === "wirker" || profile.talentType === "beides";
-  const isWerke  = profile.talentType === "werke"  || profile.talentType === "beides";
-  const isBeides = profile.talentType === "beides";
-
-  // Farbe und Label je nach Typ
-  const typeColor = isBeides ? PURPLE : isWerke ? GOLD : TEAL;
-  const typeLabel = isBeides ? "🤝🎨 Wirker & Werke"
-                 : isWerke   ? "🎨 Werke"
-                 :              "🤝 Wirker";
-
-  // Tabs je nach Typ
-  const tabs = [];
-  if (isWirker) tabs.push(["main", "🤝", "Dienste"]);
-  if (isWerke)  tabs.push(["werke", "🎨", "Werke"]);
-  tabs.push(["beitraege", "⊞", "Beiträge"]);
-  tabs.push(["empfehlungen", "⭐", "Empfehlungen"]);
-
-  // Default Tab setzen wenn nötig
-  const activeTab = tabs.find(t => t[0] === tab) ? tab : tabs[0][0];
-
+/* ─── Kleine Helfer ─────────────────────────────────────── */
+function Avatar({ src, name, size = 80 }) {
+  const initials = (name || "").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div style={{ paddingBottom: 100, overflowY: "auto", height: "100vh", background: "#fafafa" }}>
-
-      {/* ── HERO HEADER ── */}
-      <div style={{ position: "relative" }}>
-        <div style={{ height: 220, overflow: "hidden", background: `linear-gradient(135deg, ${typeColor}50, ${CORAL}20)` }}>
-          {profile.header && <img src={profile.header} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />}
-        </div>
-
-        {/* Typ-Badge oben rechts */}
-        <div style={{ position: "absolute", top: 16, right: 60, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "white" }}>
-          {typeLabel}
-        </div>
-
-        <button onClick={onBack} style={{ position: "absolute", top: 16, left: 16, width: 38, height: 38, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", border: "none", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-        </button>
-
-        <div style={{ position: "absolute", bottom: -44, left: 20 }}>
-          <div style={{ position: "relative" }}>
-            <img src={profile.img} style={{ width: 90, height: 90, borderRadius: "50%", border: `4px solid white`, objectFit: "cover", boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }} alt={profile.name} />
-            {profile.verified && (
-              <div style={{ position: "absolute", bottom: 2, right: 2, width: 22, height: 22, background: TEAL, borderRadius: "50%", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>✓</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── NAME & INFO ── */}
-      <div style={{ background: "white", padding: "54px 20px 20px", marginBottom: 6 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: 21, color: "#1a1a1a" }}>{profile.fullName}</div>
-            <div style={{ fontSize: 13, color: typeColor, fontWeight: 700, marginTop: 2 }}>{profile.talent}</div>
-            {profile.location && <div style={{ fontSize: 12, color: "#aaa", marginTop: 3, display: "flex", alignItems: "center", gap: 4 }}>📍 {profile.location}</div>}
-          </div>
-          {!isOwnProfile && (
-            <button onClick={() => { const next = !followed; setFollowed(next); if (toggleFollow) toggleFollow(profile.name); }}
-              style={{ background: followed ? TEAL : "white", border: `2px solid ${TEAL}`, borderRadius: 22, padding: "8px 18px", fontSize: 13, fontWeight: 700, color: followed ? "white" : TEAL, cursor: "pointer", transition: "all 0.2s" }}>
-              {followed ? "✓ Folge ich" : "+ Folgen"}
-            </button>
-          )}
-        </div>
-
-        {profile.bio && <div style={{ fontSize: 13, color: "#555", lineHeight: 1.65, marginBottom: 14 }}>{profile.bio}</div>}
-
-        {/* Skills Tags */}
-        {profile.skills?.length > 0 && (
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-            {profile.skills.slice(0, 5).map((s, i) => (
-              <span key={i} style={{ background: `${typeColor}12`, color: typeColor, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>{s}</span>
-            ))}
-          </div>
-        )}
-
-        {/* Stats */}
-        <div style={{ display: "flex", gap: 0, background: "#f8f8f8", borderRadius: 14, overflow: "hidden", marginBottom: 16 }}>
-          {[
-            ["⭐", profile.recommendations, "Empfehlungen"],
-            ["👥", profile.followers, "Follower"],
-            ["🌱", `${profile.impactEur} €`, "Impact"],
-          ].map(([icon, val, label]) => (
-            <div key={label} style={{ flex: 1, textAlign: "center", padding: "12px 6px", borderRight: "1px solid #eee" }}>
-              <div style={{ fontSize: 16, marginBottom: 2 }}>{icon}</div>
-              <div style={{ fontWeight: 800, fontSize: 14, color: "#1a1a1a" }}>{val}</div>
-              <div style={{ fontSize: 10, color: "#aaa" }}>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA Buttons — je nach Typ */}
-        {!isOwnProfile && (
-          <div style={{ display: "flex", gap: 10 }}>
-            {isWirker && (
-              <button onClick={() => setShowBooking(true)}
-                style={{ flex: 2, background: `linear-gradient(135deg, ${CORAL}, ${TEAL})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontSize: 15, fontWeight: 800, cursor: "pointer", boxShadow: `0 4px 16px ${CORAL}33` }}>
-                📅 Jetzt buchen {profile.pricePerHour > 0 ? `· ab ${profile.pricePerHour} €` : ""}
-              </button>
-            )}
-            {isWerke && !isWirker && (
-              <button onClick={() => { if (onGoToChats) onGoToChats(); }}
-                style={{ flex: 2, background: `linear-gradient(135deg, ${GOLD}, ${CORAL})`, color: "white", border: "none", borderRadius: 14, padding: "14px", fontSize: 15, fontWeight: 800, cursor: "pointer", boxShadow: `0 4px 16px ${GOLD}33` }}>
-                💬 Interesse bekunden
-              </button>
-            )}
-            {isBeides && (
-              <button onClick={() => { if (onGoToChats) onGoToChats(); }}
-                style={{ flex: 1, background: "white", color: GOLD, border: `2px solid ${GOLD}`, borderRadius: 14, padding: "14px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                🎨 Werk anfragen
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ── TABS ── */}
-      <div style={{ background: "white", display: "flex", borderBottom: "1px solid #f0f0ee", marginBottom: 8 }}>
-        {tabs.map(([key, icon, label]) => (
-          <button key={key} onClick={() => setTab(key)}
-            style={{ flex: 1, background: "none", border: "none", borderBottom: activeTab === key ? `2.5px solid ${typeColor}` : "2.5px solid transparent", padding: "13px 6px", fontSize: 11, fontWeight: activeTab === key ? 800 : 500, color: activeTab === key ? typeColor : "#aaa", cursor: "pointer", transition: "all 0.2s" }}>
-            <div style={{ fontSize: 17, marginBottom: 2 }}>{icon}</div>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── TAB: DIENSTE (nur Wirker) ── */}
-      {activeTab === "main" && isWirker && (
-        <div style={{ padding: "16px" }}>
-          {/* Preis-Info */}
-          {profile.pricePerHour > 0 && (
-            <div style={{ background: `linear-gradient(135deg, ${TEAL}12, ${TEAL}05)`, borderRadius: 18, padding: "16px 20px", marginBottom: 16, border: `1px solid ${TEAL}20` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: 20, color: "#1a1a1a" }}>{profile.pricePerHour} €<span style={{ fontSize: 13, fontWeight: 500, color: "#888" }}> /Stunde</span></div>
-                  <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>inkl. HUI-Provision · sicher im Treuhand</div>
-                </div>
-                <div style={{ fontSize: 36 }}>🤝</div>
-              </div>
-              <div style={{ background: `${TEAL}10`, borderRadius: 10, padding: "8px 12px", marginTop: 12, fontSize: 12, color: TEAL, fontWeight: 600 }}>
-                🌱 {Math.round(profile.pricePerHour * 0.15 * 0.15 * 100) / 100} € pro Buchung fließen in Impact-Projekte
-              </div>
-            </div>
-          )}
-
-          {/* Skills als Dienste */}
-          {profile.skills?.length > 0 && (
-            <div style={{ background: "white", borderRadius: 18, padding: "16px 20px", marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 12 }}>Was {profile.name} anbietet</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {profile.skills.map((skill, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < profile.skills.length - 1 ? "1px solid #f5f5f5" : "none" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${TEAL}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>✦</div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "#333" }}>{skill}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Buchen CTA unten */}
-          {!isOwnProfile && (
-            <button onClick={() => setShowBooking(true)}
-              style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${TEAL})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontSize: 16, fontWeight: 800, cursor: "pointer", boxShadow: `0 4px 16px ${CORAL}33` }}>
-              📅 Termin buchen {profile.hourlyRate ? `· ${profile.hourlyRate}` : ""}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB: WERKE ── */}
-      {activeTab === "werke" && (
-        <div style={{ padding: "16px" }}>
-          {profile.werke.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "48px 20px", color: "#ccc" }}>
-              <div style={{ fontSize: 44, marginBottom: 12 }}>🎨</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#aaa" }}>Noch keine Werke</div>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {profile.werke.map((w, i) => (
-                <div key={i} style={{ background: "white", borderRadius: 20, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.07)", border: `1px solid ${GOLD}20` }}>
-                  {(w.img || w.image || w.bild) && (
-                    <img src={w.img || w.image || w.bild} alt={w.title || w.titel || w.name} style={{ width: "100%", height: 220, objectFit: "cover" }} />
-                  )}
-                  <div style={{ padding: "16px 18px" }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, color: "#1a1a1a", marginBottom: 4 }}>{w.title || w.titel || w.name}</div>
-                    {(w.description || w.beschreibung) && <div style={{ fontSize: 13, color: "#777", lineHeight: 1.55, marginBottom: 10 }}>{w.description || w.beschreibung}</div>}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      {(w.price || w.preis) && <span style={{ fontWeight: 900, fontSize: 18, color: GOLD }}>{w.price || w.preis}</span>}
-                      {!isOwnProfile && (
-                        <button onClick={() => { if (onGoToChats) onGoToChats(); }}
-                          style={{ background: `linear-gradient(135deg, ${GOLD}, ${CORAL})`, color: "white", border: "none", borderRadius: 12, padding: "10px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                          💬 Anfragen
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB: BEITRÄGE ── */}
-      {activeTab === "beitraege" && (
-        <div style={{ padding: "14px" }}>
-          {profile.beitraege.length === 0 && profile.werke.filter(w => w.img || w.image || w.bild).length === 0 ? (
-            <div style={{ textAlign: "center", padding: "48px 20px" }}>
-              <div style={{ fontSize: 44 }}>📷</div>
-              <div style={{ fontSize: 15, color: "#aaa", marginTop: 10 }}>Noch keine Beiträge</div>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 3 }}>
-              {profile.beitraege.map((b, i) => (
-                <div key={i} style={{ aspectRatio: "1", borderRadius: 4, overflow: "hidden", background: "#111", position: "relative" }}>
-                  {b.type === "video"
-                    ? <><video src={b.src || b.url} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted playsInline />
-                        <div style={{ position: "absolute", top: 6, right: 6, fontSize: 12 }}>▶️</div></>
-                    : <img src={b.src || b.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  }
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB: EMPFEHLUNGEN ── */}
-      {activeTab === "empfehlungen" && (
-        <div style={{ padding: "16px" }}>
-          {profile.empfehlungen.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "48px 20px" }}>
-              <div style={{ fontSize: 44 }}>💬</div>
-              <div style={{ fontSize: 15, color: "#aaa", marginTop: 10 }}>Noch keine Empfehlungen</div>
-              <div style={{ fontSize: 12, color: "#ccc", marginTop: 6 }}>Empfehlungen entstehen nach abgeschlossenen Buchungen</div>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {profile.empfehlungen.map((emp, i) => (
-                <div key={i} style={{ background: "white", borderRadius: 18, padding: "16px 18px", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${TEAL}20`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, color: TEAL }}>
-                      {(emp.name || emp.author || "?")[0]}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 13 }}>{emp.name || emp.author || "Anonymer Nutzer"}</div>
-                      <div style={{ fontSize: 11, color: "#aaa" }}>{emp.date || emp.created_at || ""}</div>
-                    </div>
-                    <div style={{ marginLeft: "auto", color: GOLD, fontSize: 13 }}>{"⭐".repeat(emp.stars || 5)}</div>
-                  </div>
-                  {emp.text && <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>{emp.text}</div>}
-                  {(emp.img || emp.image) && <img src={emp.img || emp.image} alt="" style={{ width: "100%", borderRadius: 12, marginTop: 10, objectFit: "cover", maxHeight: 200 }} />}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* BookingFlow Overlay */}
-      {showBooking && (
-        <BookingFlow
-          wirker={profile}
-          onClose={() => setShowBooking(false)}
-          onAddToCart={onAddToCart}
-          onSuccess={() => { setShowBooking(false); setBookingDone(true); if (onGoToChats) onGoToChats(); }}
-          returnStep6={returnStep6}
-        />
-      )}
+    <div style={{
+      width: size, height: size, borderRadius: "50%", overflow: "hidden",
+      flexShrink: 0,
+      background: `linear-gradient(135deg, ${C.coral}80, ${C.teal}80)`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.35, fontWeight: 900, color: "white",
+    }}>
+      {src
+        ? <img src={src} alt={name} style={{ width:"100%", height:"100%", objectFit:"cover" }}
+            onError={e => e.target.style.display = "none"} />
+        : initials}
     </div>
   );
 }
 
-export default WirkerProfilePage;
+function TabBar({ tabs, active, onChange }) {
+  return (
+    <div style={{ display:"flex", background:C.card,
+      borderBottom:`1px solid ${C.border}`,
+      position:"sticky", top:0, zIndex:10 }}>
+      {tabs.map(([key, icon, label]) => (
+        <button key={key} onClick={() => onChange(key)}
+          style={{ flex:1, padding:"14px 4px", border:"none", cursor:"pointer",
+            background:"none", display:"flex", flexDirection:"column",
+            alignItems:"center", gap:3,
+            borderBottom: active === key ? `2.5px solid ${C.teal}` : "2.5px solid transparent",
+            transition:"border-color 0.2s",
+            WebkitTapHighlightColor:"transparent" }}>
+          <span style={{ fontSize:16 }}>{icon}</span>
+          <span style={{ fontSize:10, fontWeight: active === key ? 800 : 500,
+            color: active === key ? C.teal : C.muted,
+            transition:"color 0.2s" }}>{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Story-Leiste (kompakt) ────────────────────────────── */
+function MiniStories({ werke = [] }) {
+  const items = werke.slice(0, 6);
+  if (items.length === 0) return null;
+  return (
+    <div style={{ padding:"12px 0 8px" }}>
+      <div style={{ display:"flex", gap:12, overflowX:"auto", padding:"2px 16px",
+        scrollbarWidth:"none" }} className="scrollbar-hide">
+        {items.map((w, i) => (
+          <div key={i} style={{ display:"flex", flexDirection:"column",
+            alignItems:"center", gap:5, flexShrink:0 }}>
+            <div style={{ width:56, height:56, borderRadius:"50%",
+              overflow:"hidden", border:`2px solid ${C.teal}`,
+              boxShadow:`0 0 0 2px white, 0 0 0 3.5px ${C.teal}55` }}>
+              <img src={w.img || w.image_url} alt={w.title}
+                style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                onError={e => e.target.style.display = "none"} />
+            </div>
+            <span style={{ fontSize:9, fontWeight:600, color:C.ink,
+              maxWidth:58, textAlign:"center",
+              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+              {w.title}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Aktiver Wirker – Profil ───────────────────────────── */
+function ActiveWirkerProfile({ profile, onBack, onBook, following, toggleFollow }) {
+  const [tab, setTab] = useState("werke");
+  const [followed, setFollowed] = useState(following?.has(profile.name) || false);
+
+  const typeColor =
+    profile.talentType === "beides" ? C.purple :
+    profile.talentType === "werke"  ? C.gold   : C.teal;
+
+  const typeLabel =
+    profile.talentType === "beides" ? "🤝🎨 Wirker & Werke" :
+    profile.talentType === "werke"  ? "🎨 Werke" : "🤝 Wirker";
+
+  function handleFollow() {
+    setFollowed(p => !p);
+    if (toggleFollow) toggleFollow(profile.name);
+  }
+
+  async function handleShare() {
+    if (navigator.share) {
+      try { await navigator.share({ title: profile.fullName, text: profile.bio, url: window.location.href }); }
+      catch {}
+    }
+  }
+
+  const TABS = [
+    ["werke",  "🎨", "Werke"],
+    ["ueber",  "👤", "Über"],
+  ];
+
+  return (
+    <div style={{ minHeight:"100vh", background:C.surface, paddingBottom:90 }}>
+
+      {/* ── Hero Header ── */}
+      <div style={{ position:"relative" }}>
+        {/* Zurück + Teilen */}
+        <div style={{ position:"absolute", top:16, left:16, zIndex:20 }}>
+          <button onClick={onBack}
+            style={{ width:40, height:40, borderRadius:"50%",
+              background:"rgba(0,0,0,0.38)", backdropFilter:"blur(8px)",
+              border:"none", cursor:"pointer", color:"white",
+              fontSize:20, display:"flex", alignItems:"center", justifyContent:"center",
+              WebkitTapHighlightColor:"transparent" }}>
+            ←
+          </button>
+        </div>
+        <div style={{ position:"absolute", top:16, right:16, zIndex:20 }}>
+          <button onClick={handleShare}
+            style={{ width:40, height:40, borderRadius:"50%",
+              background:"rgba(0,0,0,0.38)", backdropFilter:"blur(8px)",
+              border:"none", cursor:"pointer", color:"white",
+              fontSize:18, display:"flex", alignItems:"center", justifyContent:"center",
+              WebkitTapHighlightColor:"transparent" }}>
+            ↗️
+          </button>
+        </div>
+
+        {/* Header-Bild */}
+        <div style={{ height:220, overflow:"hidden",
+          background:`linear-gradient(160deg, ${typeColor}35, ${C.coral}15)` }}>
+          {profile.header &&
+            <img src={profile.header} alt=""
+              style={{ width:"100%", height:"100%", objectFit:"cover",
+                filter:"brightness(0.85)" }} />}
+          <div style={{ position:"absolute", inset:0,
+            background:"linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(255,255,255,0.88) 100%)" }} />
+        </div>
+
+        {/* Avatar */}
+        <div style={{ position:"absolute", bottom:-32, left:20,
+          border:"3.5px solid white", borderRadius:"50%",
+          boxShadow:"0 4px 16px rgba(26,26,46,0.18)" }}>
+          <Avatar src={profile.img} name={profile.fullName} size={72} />
+        </div>
+      </div>
+
+      {/* Name + Typ + Location */}
+      <div style={{ padding:"40px 20px 0" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+          <div>
+            <div style={{ fontWeight:900, fontSize:20, color:C.ink }}>{profile.fullName}</div>
+            <div style={{ fontSize:12, fontWeight:700, color:typeColor, marginTop:2 }}>{typeLabel}</div>
+            {profile.location && (
+              <div style={{ fontSize:12, color:C.muted, marginTop:3 }}>📍 {profile.location}</div>
+            )}
+          </div>
+          {profile.verified && (
+            <span style={{ background:`${C.teal}12`, color:C.teal,
+              borderRadius:20, padding:"5px 12px", fontSize:11, fontWeight:700 }}>
+              ✓ Verifiziert
+            </span>
+          )}
+        </div>
+
+        {/* Bio */}
+        {profile.bio && (
+          <div style={{ fontSize:13, color:"#555", lineHeight:1.7, marginTop:12 }}>
+            {profile.bio}
+          </div>
+        )}
+      </div>
+
+      {/* Story-Leiste */}
+      <MiniStories werke={profile.werke || []} />
+
+      {/* ── Vertrauenszahl ── */}
+      {profile.recommendations > 0 && (
+        <div style={{ margin:"16px 20px 0" }}>
+          <div style={{ background:`${C.teal}08`, borderRadius:20,
+            padding:"18px 20px", border:`1.5px solid ${C.teal}22`,
+            display:"flex", alignItems:"center", gap:14 }}>
+            <div style={{ fontSize:32, flexShrink:0 }}>👥</div>
+            <div>
+              <div style={{ fontWeight:900, fontSize:18, color:C.teal, lineHeight:1.2 }}>
+                {profile.recommendations}
+              </div>
+              <div style={{ fontSize:13, color:C.ink, fontWeight:700, marginTop:2 }}>
+                Menschen haben {profile.fullName?.split(" ")[0]} weiterempfohlen
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Stats ── */}
+      <div style={{ margin:"12px 20px 0",
+        display:"flex", background:C.card, borderRadius:18,
+        padding:"14px 8px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+        {[
+          ["📦", profile.werke?.length || 0,    "Werke"],
+          ["📅", profile.bookings || 0,          "Buchungen"],
+          ["📍", profile.distance || "Lokal",    "Entfernung"],
+          ["🌱", `€ ${profile.impactEur || 0}`,  "Impact"],
+        ].map(([icon, val, label], i, arr) => (
+          <React.Fragment key={label}>
+            <div style={{ flex:1, display:"flex", flexDirection:"column",
+              alignItems:"center", gap:2 }}>
+              <div style={{ fontSize:11, color:C.muted }}>{icon}</div>
+              <div style={{ fontWeight:900, fontSize:15, color:C.ink }}>{val}</div>
+              <div style={{ fontSize:10, color:C.muted, textAlign:"center" }}>{label}</div>
+            </div>
+            {i < arr.length - 1 && (
+              <div style={{ width:1, background:C.border, margin:"4px 0" }} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Mitglied seit + Impact-Beitrag */}
+      <div style={{ margin:"10px 20px 0", display:"flex", gap:10 }}>
+        <div style={{ flex:1, background:C.card, borderRadius:14,
+          padding:"12px 14px", boxShadow:"0 1px 6px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize:11, color:C.muted, marginBottom:2 }}>Mitglied seit</div>
+          <div style={{ fontWeight:800, fontSize:13, color:C.ink }}>
+            {profile.memberSince || "2024"}
+          </div>
+        </div>
+        <div style={{ flex:1.4, background:`${C.teal}08`, borderRadius:14,
+          padding:"12px 14px", border:`1px solid ${C.teal}20` }}>
+          <div style={{ fontSize:11, color:C.muted, marginBottom:2 }}>Impact beigetragen</div>
+          <div style={{ fontWeight:800, fontSize:13, color:C.teal }}>
+            € {profile.impactEur || 0} gesammelt
+          </div>
+        </div>
+      </div>
+
+      {/* ── CTAs ── */}
+      <div style={{ margin:"20px 20px 0", display:"flex", gap:10 }}>
+        <button onClick={() => onBook && onBook(profile)}
+          style={{ flex:2, padding:"15px",
+            background:`linear-gradient(135deg, ${C.coral}, ${C.teal})`,
+            color:"white", border:"none", borderRadius:18,
+            fontSize:14, fontWeight:900, cursor:"pointer",
+            boxShadow:`0 5px 18px ${C.coral}2E`,
+            WebkitTapHighlightColor:"transparent" }}>
+          ✨ Talent entdecken
+        </button>
+        <button onClick={handleFollow}
+          style={{ flex:1, padding:"15px",
+            background: followed ? `${C.teal}12` : C.card,
+            color: followed ? C.teal : C.muted,
+            border: `1.5px solid ${followed ? C.teal : C.border}`,
+            borderRadius:18, fontSize:13, fontWeight:700, cursor:"pointer",
+            transition:"all 0.2s",
+            WebkitTapHighlightColor:"transparent" }}>
+          {followed ? "✓ Folge" : "+ Folgen"}
+        </button>
+      </div>
+
+      {/* ── Skills ── */}
+      {profile.skills?.length > 0 && (
+        <div style={{ margin:"16px 20px 0" }}>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+            {profile.skills.map((s, i) => (
+              <span key={i} style={{ background:`${typeColor}10`, color:typeColor,
+                borderRadius:20, padding:"5px 13px",
+                fontSize:11, fontWeight:600 }}>{s}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Tabs ── */}
+      <div style={{ marginTop:20 }}>
+        <TabBar tabs={TABS} active={tab} onChange={setTab} />
+
+        {/* TAB: Werke */}
+        {tab === "werke" && (
+          <div style={{ padding:"16px" }}>
+            {(!profile.werke || profile.werke.length === 0) ? (
+              <div style={{ textAlign:"center", padding:"40px 20px" }}>
+                <div style={{ fontSize:40, marginBottom:10 }}>🎨</div>
+                <div style={{ fontWeight:700, color:C.muted }}>Noch keine Werke</div>
+              </div>
+            ) : (
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                {profile.werke.map((w, i) => (
+                  <div key={i} className="hui-feed-card">
+                    <div style={{ height:130, overflow:"hidden" }}>
+                      <img src={w.img || w.image_url} alt={w.title}
+                        style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                        onError={e => e.target.style.background = `${typeColor}20`} />
+                    </div>
+                    <div style={{ padding:"10px 12px" }}>
+                      <div style={{ fontWeight:700, fontSize:13, color:C.ink,
+                        whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                        {w.title}
+                      </div>
+                      <div style={{ display:"flex", justifyContent:"space-between",
+                        alignItems:"center", marginTop:4 }}>
+                        <div style={{ fontWeight:800, fontSize:13, color:C.coral }}>
+                          {w.price}
+                        </div>
+                        {w.shipping && w.shipping !== "0 €" && (
+                          <div style={{ fontSize:10, color:C.muted }}>
+                            +{w.shipping} Versand
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: Über */}
+        {tab === "ueber" && (
+          <div style={{ padding:"16px", display:"flex", flexDirection:"column", gap:12 }}>
+
+            {/* Über-Karte */}
+            <div className="hui-feed-card" style={{ padding:"20px" }}>
+              <div style={{ fontWeight:800, fontSize:15, color:C.ink, marginBottom:10 }}>
+                Über {profile.fullName?.split(" ")[0]}
+              </div>
+              <div style={{ fontSize:13, color:"#555", lineHeight:1.7 }}>
+                {profile.bio || "Keine Beschreibung vorhanden."}
+              </div>
+            </div>
+
+            {/* Empfehlungen */}
+            {profile.empfehlungen?.length > 0 && (
+              <div>
+                <div style={{ fontWeight:800, fontSize:15, color:C.ink,
+                  marginBottom:10, padding:"0 4px" }}>
+                  Was andere sagen
+                </div>
+                {profile.empfehlungen.map((e, i) => (
+                  <div key={i} className="hui-feed-card"
+                    style={{ padding:"16px", marginBottom:10 }}>
+                    <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                      <div style={{ width:36, height:36, borderRadius:"50%",
+                        overflow:"hidden", flexShrink:0,
+                        background:`${C.teal}20` }}>
+                        {e.avatar
+                          ? <img src={e.avatar} alt={e.name}
+                              style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                          : <div style={{ width:"100%", height:"100%",
+                              display:"flex", alignItems:"center", justifyContent:"center",
+                              fontWeight:800, fontSize:13, color:C.teal }}>
+                              {(e.name||"")[0]}
+                            </div>
+                        }
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between" }}>
+                          <div style={{ fontWeight:700, fontSize:13, color:C.ink }}>{e.name}</div>
+                          <div style={{ fontSize:11, color:C.muted }}>{e.datum}</div>
+                        </div>
+                        <div style={{ fontSize:13, color:"#555", lineHeight:1.6, marginTop:4 }}>
+                          „{e.text}"
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Noch keine Empfehlungen */}
+            {(!profile.empfehlungen || profile.empfehlungen.length === 0) && (
+              <div className="hui-feed-card" style={{ padding:"24px", textAlign:"center" }}>
+                <div style={{ fontSize:32, marginBottom:8 }}>💬</div>
+                <div style={{ fontWeight:700, fontSize:14, color:C.ink, marginBottom:4 }}>
+                  Noch keine Empfehlungen
+                </div>
+                <div style={{ fontSize:12, color:C.muted }}>
+                  Empfehlungen entstehen nach abgeschlossenen Buchungen.
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Neuer User – kein Talent ──────────────────────────── */
+function NewUserProfile({ profile, onBack, following, toggleFollow }) {
+  const [followed, setFollowed] = useState(following?.has(profile.name) || false);
+
+  function handleFollow() {
+    setFollowed(p => !p);
+    if (toggleFollow) toggleFollow(profile.name);
+  }
+
+  return (
+    <div style={{ minHeight:"100vh", background:C.surface, paddingBottom:90 }}>
+
+      {/* Zurück */}
+      <div style={{ position:"absolute", top:16, left:16, zIndex:20 }}>
+        <button onClick={onBack}
+          style={{ width:40, height:40, borderRadius:"50%",
+            background:"rgba(0,0,0,0.35)", backdropFilter:"blur(8px)",
+            border:"none", cursor:"pointer", color:"white",
+            fontSize:20, display:"flex", alignItems:"center", justifyContent:"center",
+            WebkitTapHighlightColor:"transparent" }}>
+          ←
+        </button>
+      </div>
+
+      {/* Header */}
+      <div style={{ height:200, overflow:"hidden", position:"relative",
+        background:`linear-gradient(160deg, ${C.teal}25, ${C.coral}12)` }}>
+        {profile.header &&
+          <img src={profile.header} alt=""
+            style={{ width:"100%", height:"100%", objectFit:"cover", filter:"brightness(0.82)" }} />}
+        <div style={{ position:"absolute", inset:0,
+          background:"linear-gradient(to bottom, rgba(0,0,0,0.08), rgba(255,255,255,0.88))" }} />
+      </div>
+
+      {/* Avatar */}
+      <div style={{ display:"flex", justifyContent:"center", marginTop:-36 }}>
+        <div style={{ border:"4px solid white", borderRadius:"50%",
+          boxShadow:"0 4px 20px rgba(26,26,46,0.14)" }}>
+          <Avatar src={profile.img} name={profile.fullName} size={80} />
+        </div>
+      </div>
+
+      {/* Name & Bio */}
+      <div style={{ textAlign:"center", padding:"14px 28px 0" }}>
+        <div style={{ fontWeight:900, fontSize:22, color:C.ink, marginBottom:6 }}>
+          {profile.fullName}
+        </div>
+        {profile.bio && (
+          <div style={{ fontSize:13, color:C.muted, lineHeight:1.65 }}>
+            {profile.bio}
+          </div>
+        )}
+      </div>
+
+      {/* Zentrale Botschaft */}
+      <div style={{ margin:"28px 24px 0" }}>
+        <div style={{ background:C.card, borderRadius:24,
+          padding:"28px 24px", textAlign:"center",
+          boxShadow:"0 2px 20px rgba(26,26,46,0.07)",
+          border:`1.5px solid ${C.border}` }}>
+          <div style={{ fontSize:44, marginBottom:14 }}>🌱</div>
+          <div style={{ fontWeight:800, fontSize:17, color:C.ink, marginBottom:10, lineHeight:1.4 }}>
+            Dieser Mensch hat sein Talent noch nicht angeboten.
+          </div>
+          <div style={{ fontSize:13, color:C.muted, lineHeight:1.65 }}>
+            Auf HUI können Menschen ihr Können teilen — und mit jeder Buchung echte Projekte fördern.
+            Vielleicht kommt bald etwas von {profile.fullName?.split(" ")[0]}.
+          </div>
+        </div>
+      </div>
+
+      {/* Einziger CTA: Folgen */}
+      <div style={{ margin:"20px 24px 0" }}>
+        <button onClick={handleFollow}
+          style={{ width:"100%", padding:"16px",
+            background: followed
+              ? `${C.teal}12`
+              : `linear-gradient(135deg, ${C.teal}20, ${C.teal}10)`,
+            color: C.teal,
+            border: `1.5px solid ${C.teal}${followed ? "50" : "30"}`,
+            borderRadius:18, fontSize:14, fontWeight:800, cursor:"pointer",
+            transition:"all 0.2s",
+            WebkitTapHighlightColor:"transparent" }}>
+          {followed ? "✓ Du folgst diesem Menschen" : `+ ${profile.fullName?.split(" ")[0]} folgen`}
+        </button>
+        <div style={{ textAlign:"center", fontSize:12, color:C.muted, marginTop:8, lineHeight:1.5 }}>
+          Du wirst benachrichtigt, sobald {profile.fullName?.split(" ")[0]} sein Talent teilt.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Haupt-Export ──────────────────────────────────────── */
+export default function WirkerProfilePage({
+  wirkerName, onBack, onAddToCart, isOwnProfile,
+  following, toggleFollow, onGoToChats,
+}) {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        // DB-Lookup
+        const { data } = await supabase
+          .from("profiles")
+          .select("*, works(*), experiences(*)")
+          .eq("name", wirkerName)
+          .single();
+
+        if (data) {
+          setProfile({
+            name:           data.id,
+            fullName:       data.name,
+            talent:         data.talent || "",
+            location:       data.location || "",
+            bio:            data.bio || "",
+            img:            data.profile_image_url || null,
+            header:         data.header_image_url || null,
+            skills:         data.skills || [],
+            recommendations: data.recommendations_count || 0,
+            bookings:       0,
+            impactEur:      0,
+            memberSince:    new Date(data.created_at).toLocaleDateString("de-DE", { month:"long", year:"numeric" }),
+            werke:          (data.works || []).map(w => ({ title:w.title, price:`${w.price} €`, img:w.media_urls?.[0] })),
+            talentType:     data.user_type?.toLowerCase() || "talent",
+            pricePerHour:   data.experiences?.[0]?.price || 0,
+            verified:       false,
+            empfehlungen:   [],
+            distance:       "–",
+          });
+          setLoading(false);
+          return;
+        }
+      } catch {}
+
+      // Mock-Fallback
+      const mock = mockWirkerProfiles[wirkerName];
+      if (mock) {
+        setProfile({
+          name:           mock.name,
+          fullName:       mock.fullName || mock.name,
+          talent:         mock.talent || "",
+          location:       mock.location || "",
+          bio:            mock.bio || "",
+          img:            mock.img || null,
+          header:         mock.header || null,
+          skills:         mock.skills || [],
+          recommendations: mock.recommendations || 0,
+          bookings:       mock.bookings || 0,
+          impactEur:      mock.impactEur || 0,
+          memberSince:    mock.memberSince || "2024",
+          werke:          mock.werke || [],
+          talentType:     mock.talentType || "wirker",
+          pricePerHour:   mock.pricePerHour || 0,
+          verified:       mock.verified || false,
+          empfehlungen:   mock.empfehlungen || [],
+          distance:       mock.distance || "–",
+        });
+      }
+      setLoading(false);
+    }
+    load();
+  }, [wirkerName]);
+
+  if (loading) return (
+    <div style={{ height:"100vh", display:"flex", alignItems:"center",
+      justifyContent:"center", background:C.surface }}>
+      <div style={{ fontSize:36 }} className="hui-pulse">🌱</div>
+    </div>
+  );
+
+  if (!profile) return (
+    <div style={{ padding:32, textAlign:"center" }}>
+      <button onClick={onBack} style={{ background:"none", border:"none",
+        cursor:"pointer", color:C.teal, fontSize:14, fontWeight:700 }}>
+        ← Zurück
+      </button>
+      <div style={{ fontSize:14, color:C.muted, marginTop:12 }}>Profil nicht gefunden.</div>
+    </div>
+  );
+
+  // Kein Talent = neuer User
+  const hasTalent = !!(profile.talentType && profile.talentType !== "entdecker" && profile.talentType !== null);
+
+  if (!hasTalent) {
+    return <NewUserProfile profile={profile} onBack={onBack} following={following} toggleFollow={toggleFollow} />;
+  }
+
+  return (
+    <ActiveWirkerProfile
+      profile={profile}
+      onBack={onBack}
+      onBook={onAddToCart}
+      following={following}
+      toggleFollow={toggleFollow}
+    />
+  );
+}
