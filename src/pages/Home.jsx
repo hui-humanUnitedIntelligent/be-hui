@@ -4350,18 +4350,28 @@ function AppInner() {
 
   // Supabase Auth direkt
   const [supabaseUser, setSupabaseUser] = React.useState(null);
+  const [userRole, setUserRole] = React.useState("entdecker");
   const [showEditProfile, setShowEditProfile] = React.useState(false);
   const [showTalentWelcomeHint, setShowTalentWelcomeHint] = React.useState(false);
   React.useEffect(() => {
     // Sofort prüfen
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setSupabaseUser(session.user);
+      if (session?.user) {
+        setSupabaseUser(session.user);
+        supabase.from('profiles').select('role').eq('id', session.user.id).single()
+          .then(({ data }) => { if (data?.role) setUserRole(data.role); })
+          .catch(() => {});
+      }
     });
     // Auf Auth-Änderungen reagieren (Login/Logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setSupabaseUser(session.user);
         const uid = session.user.id;
+        // Rolle laden
+        supabase.from('profiles').select('role').eq('id', uid).single()
+          .then(({ data }) => { if (data?.role) setUserRole(data.role); })
+          .catch(() => {});
         // Favoriten laden
         supabase.from('favorites').select('wirker_name').eq('user_id', uid)
           .then(({ data }) => {
@@ -4776,7 +4786,7 @@ function AppInner() {
 
       {/* ── TAB BAR ── */}
       {!detailView && (
-        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} isNewUser={isNewUser} onPlusClick={() => setShowCreateSheet(true)} isTalent={currentUser?.role === 'wirker' || currentUser?.role === 'talent'} />
+        <TabBar page={page} setPage={(p) => { setPage(p); setOpenChat(null); }} cartCount={cart.length} isNewUser={isNewUser} onPlusClick={() => setShowCreateSheet(true)} isTalent={userRole === 'wirker' || userRole === 'talent'} />
       )}
 
       {/* ── OVERLAYS ── */}
