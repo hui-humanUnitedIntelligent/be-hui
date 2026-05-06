@@ -13,12 +13,13 @@ const GOLD = "#F5A623";
 const PURPLE = "#A78BFA";
 
 
+const DEFAULT_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 const defaultAvailability = {
-  "Lars M.":  { Mo: true, Di: true, Mi: false, Do: true, Fr: true, Sa: false, So: false },
-  "Nina K.":  { Mo: false, Di: true, Mi: true, Do: true, Fr: true, Sa: true, So: false },
-  "Tom B.":   { Mo: true, Di: false, Mi: true, Do: false, Fr: true, Sa: true, So: false },
-  "Anna S.":  { Mo: true, Di: true, Mi: true, Do: true, Fr: false, Sa: false, So: false },
-  "Kai L.":   { Mo: false, Di: true, Mi: false, Do: true, Fr: true, Sa: true, So: true },
+  "Lars M.":  { Mo: DEFAULT_SLOTS, Di: DEFAULT_SLOTS, Mi: false, Do: DEFAULT_SLOTS, Fr: DEFAULT_SLOTS, Sa: false, So: false },
+  "Nina K.":  { Mo: false, Di: DEFAULT_SLOTS, Mi: DEFAULT_SLOTS, Do: DEFAULT_SLOTS, Fr: DEFAULT_SLOTS, Sa: ["10:00","11:00","14:00"], So: false },
+  "Tom B.":   { Mo: DEFAULT_SLOTS, Di: false, Mi: DEFAULT_SLOTS, Do: false, Fr: DEFAULT_SLOTS, Sa: ["10:00","11:00"], So: false },
+  "Anna S.":  { Mo: DEFAULT_SLOTS, Di: DEFAULT_SLOTS, Mi: DEFAULT_SLOTS, Do: DEFAULT_SLOTS, Fr: false, Sa: false, So: false },
+  "Kai L.":   { Mo: false, Di: DEFAULT_SLOTS, Mi: false, Do: DEFAULT_SLOTS, Fr: DEFAULT_SLOTS, Sa: DEFAULT_SLOTS, So: ["10:00","11:00","12:00"] },
 };
 
 function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
@@ -56,7 +57,7 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
     const jsDay = new Date(viewYear, viewMonth, d).getDay();
     const wdIdx = (jsDay + 6) % 7;
     const wd = WEEKDAYS[wdIdx];
-    if (availability[wd]?.length > 0) availableDays.add(d);
+    if (availability[wd] && (Array.isArray(availability[wd]) ? availability[wd].length > 0 : availability[wd])) availableDays.add(d);
   }
 
   const isPast = (d) => new Date(viewYear, viewMonth, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -130,7 +131,8 @@ function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
     }
   };
 
-  const availableSlots = selectedDate ? (availability[selectedDate.weekday] || []) : [];
+  const rawSlots = selectedDate ? availability[selectedDate.weekday] : null;
+  const availableSlots = selectedDate ? (Array.isArray(rawSlots) ? rawSlots : (rawSlots ? ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"] : [])) : [];
   const pricePerHour = wirker.pricePerHour || 60;
   const provision = Math.round(pricePerHour * 0.15 * 100) / 100;
   const impact = Math.round(provision * 0.15 * 100) / 100;
