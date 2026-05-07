@@ -6,6 +6,7 @@ import BookingFlow    from "../components/BookingFlow";
 import CreateFlow     from "../components/CreateFlow";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
+import LiveMapPage    from "./LiveMapPage";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
