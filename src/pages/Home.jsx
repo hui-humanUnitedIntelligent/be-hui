@@ -117,13 +117,6 @@ const EXPERIENCES = [
   },
 ];
 
-const MATCH_HINTS = [
-  "Fotograf für meine Hochzeit",
-  "Yogakurs in München",
-  "Handgemachte Keramik",
-  "Gitarrenunterricht für Anfänger",
-  "Imagefilm für mein Unternehmen",
-];
 
 /* ═══════════════════════════════════════════════════
    GLOBAL STYLES injected once
@@ -660,124 +653,6 @@ function WirkerSheet({ w, onClose, onBook }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   MATCH OVERLAY
-═══════════════════════════════════════════════════ */) {
-  const [q,    setQ]    = useState("");
-  const [busy, setBusy] = useState(false);
-  const [res,  setRes]  = useState(null);
-  const [hint, setHint] = useState(0);
-
-  useEffect(()=>{
-    const t = setInterval(()=>setHint(h=>(h+1)%MATCH_HINTS.length), 3200);
-    return ()=>clearInterval(t);
-  },[]);
-
-  async function run() {
-    if(!q.trim()) return;
-    setBusy(true);
-    await new Promise(r=>setTimeout(r,1600));
-    setRes(WIRKERS.slice(0,3));
-    setBusy(false);
-  }
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:500,
-      background:"rgba(10,10,10,0.58)",
-      backdropFilter:"blur(16px)", WebkitBackdropFilter:"blur(16px)" }}
-      onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        background:C.cream, borderRadius:"28px 28px 0 0",
-        maxHeight:"88vh", overflowY:"auto",
-        animation:"slideUp 0.34s cubic-bezier(0.22,1,0.36,1) both",
-        paddingBottom:"max(28px,env(safe-area-inset-bottom))" }}>
-        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 0" }}>
-          <div style={{ width:44, height:4, borderRadius:999,
-            background:"rgba(0,0,0,0.1)" }}/>
-        </div>
-        <div style={{ padding:"14px 22px 24px" }}>
-          <div style={{ display:"flex", alignItems:"center",
-            gap:12, marginBottom:16 }}>
-            <div style={{ width:46, height:46, borderRadius:15, flexShrink:0,
-              background:`linear-gradient(135deg,${C.gold},#E8A000)`,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:22, boxShadow:"0 4px 16px rgba(245,158,11,0.35)" }}>✨</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontWeight:900, fontSize:20,
-                color:C.ink }}>HUI Match</div>
-              <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>
-                Beschreibe was du suchst — ganz natürlich
-              </div>
-            </div>
-            <button onClick={onClose}
-              style={{ width:30, height:30, borderRadius:"50%",
-                background:"rgba(0,0,0,0.06)", border:"none",
-                cursor:"pointer", fontSize:12, color:C.muted,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                WebkitTapHighlightColor:"transparent" }}>✕</button>
-          </div>
-
-          <div style={{ fontSize:13, color:C.muted2,
-            marginBottom:10, fontStyle:"italic" }}>
-            z. B. „{MATCH_HINTS[hint]}"
-          </div>
-
-          <textarea value={q} onChange={e=>setQ(e.target.value)} rows={3}
-            placeholder="Beschreibe wen oder was du suchst…"
-            style={{ width:"100%", boxSizing:"border-box",
-              padding:"14px 16px", fontSize:14, color:C.ink,
-              background:C.card, border:`1.5px solid rgba(0,0,0,0.08)`,
-              borderRadius:18, outline:"none", resize:"none",
-              fontFamily:"inherit", lineHeight:1.6, marginBottom:12,
-              transition:"border-color 0.2s, box-shadow 0.2s" }}
-            onFocus={e=>{ e.target.style.borderColor=C.teal;
-              e.target.style.boxShadow=`0 0 0 3px ${C.tealGlow}`; }}
-            onBlur={e=>{ e.target.style.borderColor="rgba(0,0,0,0.08)";
-              e.target.style.boxShadow="none"; }}/>
-
-          <button onClick={run} disabled={!q.trim()||busy}
-            style={{ width:"100%", padding:"15px",
-              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-              color:"white", border:"none", borderRadius:18,
-              fontSize:15, fontWeight:800, cursor:"pointer",
-              fontFamily:"inherit", letterSpacing:0.2,
-              boxShadow:`0 4px 20px ${C.tealGlow}`,
-              opacity:q.trim()?1:0.5, marginBottom:res?20:0,
-              transition:"opacity 0.2s" }}>
-            {busy ? "Suche läuft…" : "✨ Passende Wirker finden"}
-          </button>
-
-          {res && <>
-            <div style={{ fontWeight:800, fontSize:16, color:C.ink,
-              marginBottom:12 }}>Passend für dich</div>
-            {res.map((w,i)=>(
-              <div key={i} onClick={()=>{onClose();onView(w);}}
-                style={{ display:"flex", gap:12, alignItems:"center",
-                  padding:"14px", marginBottom:10,
-                  background:C.card, borderRadius:18,
-                  boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
-                  cursor:"pointer", animation:`fadeUp 0.5s ${i*0.07}s both` }}>
-                <img src={w.img} alt={w.name}
-                  style={{ width:50, height:50, borderRadius:"50%",
-                    objectFit:"cover", border:`2px solid ${C.tealPale}` }}/>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:800, fontSize:15,
-                    color:C.ink }}>{w.name}</div>
-                  <div style={{ fontSize:12, color:C.teal,
-                    fontWeight:700 }}>{w.talent}</div>
-                  <div style={{ fontSize:11, color:C.muted }}>📍 {w.city}</div>
-                </div>
-                <div style={{ fontSize:12, fontWeight:800, color:C.gold }}>
-                  ★ {w.score}
-                </div>
-              </div>
-            ))}
-          </>}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════════════════════
    WERKEKORB PAGE
