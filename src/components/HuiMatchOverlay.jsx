@@ -1,6 +1,6 @@
 // HuiMatchOverlay.jsx — HUI Match + Smart Search System
 // Intelligent, human, cinematic — not a search engine
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
