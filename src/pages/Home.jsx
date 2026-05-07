@@ -7,6 +7,13 @@ import WirkerProfilePage    from "../components/WirkerProfilePage";
 import BookingFlow          from "../components/BookingFlow";
 import CreateFlow           from "../components/CreateFlow";
 import FavoritesPage        from "./FavoritesPage";
+import {
+  IconHome, IconImpact, IconEntdecken, IconFavoriten, IconProfil,
+  IconWerkekorb, IconBell, IconHuiMatch, HuiLogoIcon,
+  WerkekorbbadgeBtn, HuiIconDefs,
+  CatHandwerk, CatKunst, CatFotografie, CatCoaching,
+  CatMusik, CatGesundheit, CatNatur, CatEvents,
+} from "../components/HuiIcons";
 
 /* ── Brand ──────────────────────────────────── */
 const T = {
