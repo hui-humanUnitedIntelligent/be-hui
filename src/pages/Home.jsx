@@ -306,14 +306,210 @@ function Header({ cart, notif, onCart, onNotif, userName }) {
    BOTTOM NAV — floating, minimal
 ═══════════════════════════════════════════════════ */
 const NAV = [
-  {key:"feed",     label:"Home",      emoji:"🏠"},
-  {key:"impact",   label:"Impact",    emoji:"🌱"},
+  {key:"feed",     label:"Home"},
+  {key:"impact",   label:"Impact"},
   null,
-  {key:"discover", label:"Entdecken", emoji:"🧭"},
-  {key:"profile",  label:"Profil",    emoji:"👤"},
+  {key:"discover", label:"Entdecken"},
+  {key:"profile",  label:"Profil"},
 ];
 
+/* Soft custom SVG icons — premium, organic */
+function NavIcon({ k, active }) {
+  const col   = active ? C.teal : C.muted2;
+  const glow  = active ? `drop-shadow(0 0 4px ${C.tealGlow})` : "none";
+  const s = { width:22, height:22, filter:glow, transition:"filter 0.3s" };
+
+  if(k==="feed") return (
+    <svg {...s} viewBox="0 0 24 24" fill="none">
+      <path d="M3 9.5L12 3L21 9.5V20C21 20.55 20.55 21 20 21H15.5V15.5H8.5V21H4C3.45 21 3 20.55 3 20V9.5Z"
+        fill={active?"url(#nav-teal)":"none"} stroke={col} strokeWidth="1.6"
+        strokeLinejoin="round"/>
+      <defs>
+        <linearGradient id="nav-teal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={C.teal}/>
+          <stop offset="100%" stopColor={C.coral} stopOpacity="0.7"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+  if(k==="impact") return (
+    <svg {...s} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke={col} strokeWidth="1.6"/>
+      <path d="M12 7 Q16 9 15 13 Q12 10 12 7Z"
+        fill={active?C.teal:col} opacity={active?1:0.65}/>
+      <path d="M15 13 Q14 17 11 18" stroke={col}
+        strokeWidth="1.4" strokeLinecap="round"/>
+      <circle cx="16.5" cy="6.5" r="1.8"
+        fill={active?C.gold:C.muted2} opacity={active?1:0.5}/>
+    </svg>
+  );
+  if(k==="discover") return (
+    <svg {...s} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke={col} strokeWidth="1.6"/>
+      <path d="M17 7L14 13.5L7 17L10 10.5L17 7Z"
+        fill={active?"url(#nav-teal2)":"none"} stroke={col}
+        strokeWidth="1.5" strokeLinejoin="round"/>
+      <circle cx="12" cy="12" r="1.5" fill={active?C.teal:col}/>
+      <defs>
+        <linearGradient id="nav-teal2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={C.teal}/>
+          <stop offset="100%" stopColor={C.coral} stopOpacity="0.6"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+  if(k==="profile") return (
+    <svg {...s} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8.5" r="3.5"
+        fill={active?"url(#nav-teal3)":"none"} stroke={col} strokeWidth="1.6"/>
+      <path d="M5 20Q5 15 12 15Q19 15 19 20"
+        stroke={col} strokeWidth="1.6" strokeLinecap="round" fill="none"/>
+      <defs>
+        <linearGradient id="nav-teal3" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={C.teal}/>
+          <stop offset="100%" stopColor={C.coral} stopOpacity="0.7"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+  return null;
+}
+
 function BottomNav({ tab, onTab, onCreate }) {
+  const [pressed, setPressed] = React.useState(null);
+
+  return (
+    <div style={{
+      position:"fixed", bottom:0, left:0, right:0, zIndex:100,
+    }}>
+      {/* Floating pill container */}
+      <div style={{
+        margin:"0 12px",
+        marginBottom:"max(10px, env(safe-area-inset-bottom, 10px))",
+        background:"rgba(252,250,247,0.88)",
+        backdropFilter:"blur(32px) saturate(1.6)",
+        WebkitBackdropFilter:"blur(32px) saturate(1.6)",
+        borderRadius:32,
+        border:"1px solid rgba(255,255,255,0.65)",
+        boxShadow:`
+          0 4px 6px rgba(0,0,0,0.04),
+          0 12px 32px rgba(0,0,0,0.09),
+          0 1px 0 rgba(255,255,255,0.8) inset
+        `,
+        display:"flex", alignItems:"center",
+        justifyContent:"space-around",
+        padding:"8px 6px",
+        overflow:"visible",
+      }}>
+        {NAV.map((item,i)=>{
+          if(!item) return (
+            /* ── HUI Center button ── */
+            <button key="hui"
+              onClick={onCreate}
+              onTouchStart={()=>setPressed("hui")}
+              onTouchEnd={()=>setPressed(null)}
+              style={{
+                background:"none", border:"none", cursor:"pointer",
+                padding:0, lineHeight:0, flexShrink:0,
+                WebkitTapHighlightColor:"transparent",
+              }}>
+              <div style={{
+                width:54, height:54,
+                borderRadius:18,
+                marginTop:-26,
+                background:`linear-gradient(145deg, ${C.teal}, #14C4B4 40%, ${C.coral})`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                transform: pressed==="hui" ? "scale(0.92) translateY(2px)" : "scale(1) translateY(0)",
+                transition:"transform 0.25s cubic-bezier(0.34,1.3,0.64,1)",
+                boxShadow:`
+                  0 0 0 3px rgba(252,250,247,0.9),
+                  0 4px 6px rgba(0,0,0,0.10),
+                  0 8px 24px rgba(22,215,197,0.35),
+                  0 4px 12px rgba(255,138,107,0.20)
+                `,
+              }}>
+                {/* HUI Logo SVG */}
+                <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+                  <rect x="2" y="2" width="60" height="60" rx="16"
+                    fill="white" fillOpacity="0.18"/>
+                  <rect x="2" y="2" width="60" height="30" rx="16"
+                    fill="white" fillOpacity="0.10"/>
+                  <text x="8" y="44" fontSize="28" fontWeight="900"
+                    fill="white" fontFamily="-apple-system,system-ui"
+                    letterSpacing="-1.5">HUI</text>
+                </svg>
+              </div>
+            </button>
+          );
+
+          const active = tab===item.key;
+          const isPressed = pressed===item.key;
+
+          return (
+            <button key={item.key}
+              onClick={()=>onTab(item.key)}
+              onTouchStart={()=>setPressed(item.key)}
+              onTouchEnd={()=>setPressed(null)}
+              style={{
+                display:"flex", flexDirection:"column",
+                alignItems:"center", gap:4,
+                background:"none", border:"none",
+                cursor:"pointer", padding:"4px 12px",
+                borderRadius:20, position:"relative",
+                WebkitTapHighlightColor:"transparent",
+                transform: isPressed ? "scale(0.88)" : "scale(1)",
+                transition:"transform 0.2s cubic-bezier(0.34,1.4,0.64,1)",
+                minWidth:52,
+              }}>
+
+              {/* Active pill background */}
+              {active && (
+                <div style={{
+                  position:"absolute", inset:0, borderRadius:20,
+                  background:`linear-gradient(135deg,
+                    rgba(22,215,197,0.10) 0%,
+                    rgba(255,138,107,0.06) 100%)`,
+                  border:`1px solid rgba(22,215,197,0.15)`,
+                  transition:"opacity 0.3s",
+                }}/>
+              )}
+
+              {/* Icon */}
+              <div style={{
+                position:"relative", zIndex:1,
+                transform: active ? "translateY(-1px)" : "translateY(0)",
+                transition:"transform 0.3s cubic-bezier(0.34,1.3,0.64,1)",
+              }}>
+                <NavIcon k={item.key} active={active}/>
+              </div>
+
+              {/* Label */}
+              <span style={{
+                fontSize:9, fontWeight: active ? 700 : 400,
+                color: active ? C.teal : C.muted2,
+                transition:"color 0.25s, font-weight 0.25s",
+                letterSpacing: active ? 0.2 : 0,
+                position:"relative", zIndex:1,
+              }}>
+                {item.label}
+              </span>
+
+              {/* Active dot */}
+              {active && (
+                <div style={{
+                  position:"absolute", bottom:2,
+                  width:3, height:3, borderRadius:"50%",
+                  background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+                  boxShadow:`0 0 4px ${C.teal}80`,
+                }}/>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}) {
   return (
     <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:100,
       background:"rgba(249,246,242,0.96)",
@@ -736,7 +932,7 @@ function KorbPage({ cart, onClose }) {
 function HomeFeed({ onView, onBook, onImpact, onMatch }) {
 
   return (
-    <div style={{ paddingBottom:100 }}>
+    <div style={{ paddingBottom:110 }}>
 
       {/* ─── 1. HERO SEARCH — atmospheric, not technical ─── */}
       <div style={{ margin:"16px 18px 0",
@@ -1031,7 +1227,7 @@ function DiscoverFeed({ onView, onMatch }) {
   ];
 
   return (
-    <div style={{ paddingBottom:100 }}>
+    <div style={{ paddingBottom:110 }}>
       <div style={{ padding:"20px 20px 0" }}>
         <div style={{ fontWeight:900, fontSize:26, color:C.ink,
           letterSpacing:-0.8, marginBottom:16 }}>Entdecken</div>
