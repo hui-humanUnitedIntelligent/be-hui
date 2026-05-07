@@ -1207,8 +1207,11 @@ export default function Home() {
             <ImpactPage currentUser={currentUser}/>
           )}
           {tab==="discover" && (
-            <DiscoverFeed
+            <LiveMapPage
               onView={w=>setShowWirker(w)}
+              onMatch={()=>setShowMatch(true)}
+            />
+          )}
               onMatch={()=>setShowMatch(true)}
             />
           )}
