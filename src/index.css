@@ -3,60 +3,67 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════
-   HUI — Emotional Design System v2
-   Warm, human, calm, inspiring
+   HUI Design System — Warm Premium Social Impact
+   Colors from the original HUI logo + reference image
 ═══════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Brand Colors ── */
-  --hui-teal:      #3DBFB8;   /* calm trust clarity */
-  --hui-teal-soft: #6DD5CF;
-  --hui-teal-pale: #E8F8F7;
-  --hui-coral:     #FF7055;   /* human warmth energy */
-  --hui-coral-soft:#FF9080;
-  --hui-coral-pale:#FFF0EE;
+  /* ── HUI Brand — Türkis / Aqua ── */
+  --teal:        #16D7C5;
+  --teal-2:      #11C5B7;
+  --teal-3:      #22E0D2;
+  --teal-soft:   #4DDDD2;
+  --teal-pale:   #E6FAF8;
+  --teal-pale2:  #F0FDFB;
+
+  /* ── HUI Brand — Warm Coral ── */
+  --coral:       #FF8A6B;
+  --coral-2:     #FF7B72;
+  --coral-3:     #FFA07A;
+  --coral-soft:  #FFB09A;
+  --coral-pale:  #FFF3EF;
 
   /* ── Neutrals ── */
-  --hui-cream:     #FAF8F5;   /* warm off-white bg */
-  --hui-cream-2:   #F4F1EC;
-  --hui-card:      #FFFFFE;
-  --hui-ink:       #1C1917;
-  --hui-ink-2:     #44403C;
-  --hui-muted:     #78716C;
-  --hui-border:    #E7E3DC;
-  --hui-gold:      #F0A500;
-  --hui-purple:    #9B7FE8;
-  --hui-green:     #2BA27A;
+  --white:       #FCFCFA;
+  --white-2:     #F8F8F6;
+  --card:        #FFFFFF;
+  --ink:         #111111;
+  --ink-2:       #333333;
+  --muted:       #666666;
+  --muted-2:     #999999;
+  --border:      #EBEBEB;
+  --border-2:    #F0F0F0;
 
-  /* ── Spacing & Radius ── */
-  --r-card:  22px;
-  --r-pill:  999px;
-  --r-btn:   16px;
+  /* ── Accent ── */
+  --gold:        #FFB800;
+  --gold-pale:   #FFF8E1;
+  --green:       #22C55E;
+  --purple:      #A78BFA;
 
   /* shadcn compat */
-  --background: 40 20% 98%;
-  --foreground: 20 6% 10%;
+  --background: 0 0% 99%;
+  --foreground: 0 0% 7%;
   --card: 0 0% 100%;
-  --card-foreground: 20 6% 10%;
+  --card-foreground: 0 0% 7%;
   --popover: 0 0% 100%;
-  --popover-foreground: 20 6% 10%;
-  --primary: 177 52% 48%;
+  --popover-foreground: 0 0% 7%;
+  --primary: 176 81% 45%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 40 15% 94%;
-  --secondary-foreground: 20 6% 10%;
-  --muted: 40 10% 94%;
-  --muted-foreground: 25 5% 45%;
-  --accent: 177 52% 95%;
-  --accent-foreground: 177 52% 28%;
+  --secondary: 0 0% 97%;
+  --secondary-foreground: 0 0% 20%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 176 81% 94%;
+  --accent-foreground: 176 60% 28%;
   --destructive: 10 78% 54%;
   --destructive-foreground: 0 0% 98%;
-  --border: 35 15% 88%;
-  --input: 35 15% 88%;
-  --ring: 177 52% 48%;
-  --radius: 0.5rem;
+  --border: 0 0% 92%;
+  --input: 0 0% 92%;
+  --ring: 176 81% 45%;
+  --radius: 0.75rem;
 }
 
-/* ── Reset ─────────────────────────────────────────── */
+/* ── Reset ─────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -65,273 +72,271 @@ body {
                "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--hui-cream);
-  color: var(--hui-ink);
+  background: var(--white);
+  color: var(--ink);
   overscroll-behavior: none;
 }
 
-/* ── Scrollbar ─────────────────────────────────────── */
+/* ── Scrollbar ─────────────────────────────────── */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── App Background — subtle teal→coral gradient ───── */
+/* ── App BG — warm white, barely-there gradient ── */
 .hui-app-bg {
   background:
-    radial-gradient(ellipse 80% 40% at 50% -5%,  rgba(61,191,184,0.10) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 30% at 80% 110%, rgba(255,112,85,0.08) 0%, transparent 65%),
-    var(--hui-cream);
-  min-height: 100dvh;
+    radial-gradient(ellipse 70% 35% at 30% 0%,   rgba(22,215,197,0.09) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 25% at 85% 100%,  rgba(255,138,107,0.08) 0%, transparent 60%),
+    var(--white);
 }
 
-/* ── Typography ────────────────────────────────────── */
-.hui-display {
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+/* ── Glass ─────────────────────────────────────── */
+.hui-glass {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.55);
 }
-.hui-title  { font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
-.hui-body   { font-weight: 400; line-height: 1.65; }
-.hui-label  { font-weight: 700; letter-spacing: 0.02em; }
-.hui-caption { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
-
-/* ── Gradient Text ─────────────────────────────────── */
-.hui-gradient-text {
-  background: linear-gradient(135deg, var(--hui-teal) 0%, var(--hui-coral) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.hui-glass-dark {
+  background: rgba(17,17,17,0.42);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.12);
 }
-.hui-teal-text   { color: var(--hui-teal); }
-.hui-coral-text  { color: var(--hui-coral); }
-.hui-muted-text  { color: var(--hui-muted); }
 
-/* ── Cards ─────────────────────────────────────────── */
+/* ── Cards ─────────────────────────────────────── */
 .hui-card {
-  background: var(--hui-card);
-  border-radius: var(--r-card);
-  box-shadow: 0 2px 20px rgba(28, 25, 23, 0.06);
+  background: var(--card);
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.07);
 }
-
-/* Stage card — full-width editorial feel */
-.hui-stage-card {
-  background: var(--hui-card);
-  border-radius: var(--r-card);
-  overflow: hidden;
-  box-shadow:
-    0 1px 3px  rgba(28,25,23,0.04),
-    0 8px 32px rgba(28,25,23,0.08);
-  transition: transform 0.22s cubic-bezier(0.34,1.2,0.64,1),
-              box-shadow 0.22s ease;
+.hui-card-sm {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
+}
+.hui-card-tap {
+  transition: transform 0.18s cubic-bezier(0.34,1.2,0.64,1),
+              box-shadow 0.18s ease;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
 }
-.hui-stage-card:active {
-  transform: scale(0.975);
-  box-shadow: 0 2px 12px rgba(28,25,23,0.10);
+.hui-card-tap:active {
+  transform: scale(0.968);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.09);
 }
 
-/* ── Buttons ────────────────────────────────────────── */
-.hui-btn-primary {
-  background: linear-gradient(135deg, var(--hui-teal), var(--hui-teal-soft));
+/* ── Gradient Badges ────────────────────────────── */
+.hui-badge-teal {
+  background: linear-gradient(135deg, var(--teal), var(--teal-2));
   color: white;
-  border: none;
-  border-radius: var(--r-btn);
-  font-weight: 800;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
-}
-.hui-btn-primary:active { opacity: 0.88; transform: scale(0.97); }
-
-.hui-btn-coral {
-  background: linear-gradient(135deg, var(--hui-coral), var(--hui-coral-soft));
-  color: white;
-  border: none;
-  border-radius: var(--r-btn);
-  font-weight: 800;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
-}
-
-.hui-btn-ghost {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.25);
-  color: white;
-  border-radius: var(--r-btn);
+  border-radius: 999px;
   font-weight: 700;
-  cursor: pointer;
-}
-
-/* ── Pills / Chips ──────────────────────────────────── */
-.hui-chip {
+  font-size: 11px;
+  padding: 3px 10px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  border-radius: var(--r-pill);
-  padding: 5px 13px;
-  font-size: 12px;
+  gap: 4px;
+}
+.hui-badge-coral {
+  background: linear-gradient(135deg, var(--coral), var(--coral-2));
+  color: white;
+  border-radius: 999px;
   font-weight: 700;
-  white-space: nowrap;
+  font-size: 11px;
+  padding: 3px 10px;
+}
+.hui-badge-gold {
+  background: var(--gold-pale);
+  color: #92600A;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+/* ── Buttons ────────────────────────────────────── */
+.hui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
   cursor: pointer;
-  transition: all 0.15s;
+  font-family: inherit;
+  font-weight: 700;
+  transition: transform 0.14s ease, opacity 0.14s ease, box-shadow 0.14s ease;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.hui-btn:active { transform: scale(0.95); opacity: 0.88; }
+
+.hui-btn-primary {
+  background: linear-gradient(135deg, var(--teal), var(--teal-2));
+  color: white;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(22,215,197,0.30);
+}
+.hui-btn-coral {
+  background: linear-gradient(135deg, var(--coral), var(--coral-2));
+  color: white;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(255,138,107,0.28);
+}
+.hui-btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--ink-2);
+  border-radius: 14px;
+}
+.hui-btn-ghost-light {
+  background: rgba(255,255,255,0.20);
+  border: 1px solid rgba(255,255,255,0.30);
+  color: white;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ── Section Headers ────────────────────────────── */
+.hui-section-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.3px;
+}
+.hui-section-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal);
+  text-decoration: none;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.hui-chip-teal  { background: var(--hui-teal-pale);  color: var(--hui-teal); }
-.hui-chip-coral { background: var(--hui-coral-pale); color: var(--hui-coral); }
 
-/* ── Bottom Nav ─────────────────────────────────────── */
+/* ── Search bar ─────────────────────────────────── */
+.hui-search-pill {
+  width: 100%;
+  background: rgba(255,255,255,0.85);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 12px 18px 12px 44px;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  font-family: inherit;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hui-search-pill:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(22,215,197,0.15);
+}
+.hui-search-pill::placeholder { color: var(--muted); }
+
+/* ── Bottom Nav ─────────────────────────────────── */
 .hui-bottom-nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  background: rgba(250, 248, 245, 0.96);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid var(--hui-border);
+  background: rgba(252,252,250,0.94);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-top: 1px solid rgba(0,0,0,0.07);
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ── Search Bar ─────────────────────────────────────── */
-.hui-search-input {
-  width: 100%;
-  background: var(--hui-card);
-  border: 1.5px solid var(--hui-border);
-  border-radius: var(--r-pill);
-  padding: 13px 18px 13px 46px;
-  font-size: 15px;
-  color: var(--hui-ink);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 8px rgba(28,25,23,0.05);
-  font-family: inherit;
-}
-.hui-search-input:focus {
-  border-color: var(--hui-teal);
-  box-shadow: 0 0 0 3px rgba(61,191,184,0.14);
-}
-.hui-search-input::placeholder { color: var(--hui-muted); }
-
-/* ── Section Headers ────────────────────────────────── */
-.hui-section-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 20px 14px;
 }
 
 /* ═══════════════════════════════════════════════════════
    ANIMATIONS
 ═══════════════════════════════════════════════════════ */
 
-/* Warm loading pulse */
-@keyframes hui-warm-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.9;
-    box-shadow: 0 0 0 0 rgba(61,191,184,0.3);
-  }
-  50% {
-    transform: scale(1.06);
-    opacity: 1;
-    box-shadow: 0 0 0 12px rgba(61,191,184,0);
-  }
-}
-.hui-warm-pulse { animation: hui-warm-pulse 2s ease-in-out infinite; }
-
-/* Fade in from below */
-@keyframes hui-rise {
-  from { opacity: 0; transform: translateY(18px); }
+@keyframes hui-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.hui-rise { animation: hui-rise 0.5s cubic-bezier(0.34,1.1,0.64,1) both; }
+.hui-fade-up   { animation: hui-fade-up 0.44s cubic-bezier(0.34,1.1,0.64,1) both; }
+.hui-fade-up-1 { animation: hui-fade-up 0.44s 0.05s cubic-bezier(0.34,1.1,0.64,1) both; }
+.hui-fade-up-2 { animation: hui-fade-up 0.44s 0.11s cubic-bezier(0.34,1.1,0.64,1) both; }
+.hui-fade-up-3 { animation: hui-fade-up 0.44s 0.17s cubic-bezier(0.34,1.1,0.64,1) both; }
+.hui-fade-up-4 { animation: hui-fade-up 0.44s 0.23s cubic-bezier(0.34,1.1,0.64,1) both; }
 
-/* Staggered rise */
-.hui-rise-1 { animation: hui-rise 0.5s 0.05s cubic-bezier(0.34,1.1,0.64,1) both; }
-.hui-rise-2 { animation: hui-rise 0.5s 0.12s cubic-bezier(0.34,1.1,0.64,1) both; }
-.hui-rise-3 { animation: hui-rise 0.5s 0.19s cubic-bezier(0.34,1.1,0.64,1) both; }
-.hui-rise-4 { animation: hui-rise 0.5s 0.26s cubic-bezier(0.34,1.1,0.64,1) both; }
-
-/* Heart pop */
-@keyframes hui-heart {
+@keyframes hui-heart-pop {
   0%   { transform: scale(1); }
-  30%  { transform: scale(1.55); }
-  55%  { transform: scale(0.88); }
+  35%  { transform: scale(1.5); }
+  60%  { transform: scale(0.88); }
   100% { transform: scale(1); }
 }
-.hui-heart-anim { animation: hui-heart 0.42s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+.hui-heart-pop { animation: hui-heart-pop 0.4s cubic-bezier(0.36,0.07,0.19,0.97) both; }
 
-/* Story glow ring */
-@keyframes hui-story-ring {
-  0%, 100% { box-shadow: 0 0 0 2.5px var(--hui-teal), 0 0 14px rgba(61,191,184,0.3); }
-  50%       { box-shadow: 0 0 0 2.5px var(--hui-coral), 0 0 18px rgba(255,112,85,0.25); }
-}
-.hui-story-ring { animation: hui-story-ring 3s ease-in-out infinite; }
-
-/* Soft scale tap feedback */
-@keyframes hui-tap {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(0.94); }
-  100% { transform: scale(1); }
-}
-.hui-tap { animation: hui-tap 0.22s ease-out both; }
-
-/* Shimmer loading */
 @keyframes hui-shimmer {
   0%   { background-position: -600px 0; }
-  100% { background-position: 600px 0; }
+  100% { background-position:  600px 0; }
 }
 .hui-shimmer {
-  background: linear-gradient(90deg, #EDE9E3 25%, #E5E0D8 50%, #EDE9E3 75%);
+  background: linear-gradient(90deg, #F0F0EE 25%, #E8E8E6 50%, #F0F0EE 75%);
   background-size: 1200px 100%;
-  animation: hui-shimmer 1.6s ease infinite;
+  animation: hui-shimmer 1.5s ease infinite;
 }
 
-/* Overlay slide up */
+@keyframes hui-pulse-ring {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(22,215,197,0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(22,215,197,0);
+  }
+}
+.hui-pulse-ring { animation: hui-pulse-ring 2.2s ease-in-out infinite; }
+
+@keyframes hui-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.hui-spin { animation: hui-spin-slow 1.2s linear infinite; }
+
+@keyframes hui-story-glow {
+  0%, 100% { box-shadow: 0 0 0 2px var(--teal), 0 0 10px rgba(22,215,197,0.3); }
+  50%       { box-shadow: 0 0 0 2px var(--coral), 0 0 14px rgba(255,138,107,0.25); }
+}
+.hui-story-glow { animation: hui-story-glow 2.8s ease-in-out infinite; }
+
 @keyframes hui-slide-up {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
-.hui-slide-up { animation: hui-slide-up 0.36s cubic-bezier(0.34,1.15,0.64,1) both; }
+.hui-slide-up { animation: hui-slide-up 0.34s cubic-bezier(0.34,1.1,0.64,1) both; }
 
-/* Impact breathe */
 @keyframes hui-breathe {
-  0%, 100% { opacity: 0.75; transform: scale(1); }
-  50%       { opacity: 1;   transform: scale(1.05); }
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.04); }
 }
-.hui-breathe { animation: hui-breathe 2.4s ease-in-out infinite; }
+.hui-breathe { animation: hui-breathe 2.6s ease-in-out infinite; }
 
-/* Ring fill */
-@keyframes ring-fill {
+@keyframes hui-ring-fill {
   from { stroke-dashoffset: 565; }
   to   { stroke-dashoffset: var(--ring-offset, 0); }
 }
 .hui-ring-fill {
-  animation: ring-fill 1.8s cubic-bezier(0.4,0,0.2,1) both;
-  animation-delay: 0.3s;
+  animation: hui-ring-fill 1.8s cubic-bezier(0.4,0,0.2,1) 0.3s both;
 }
 
-/* Checkmark pop */
-@keyframes hui-check-pop {
+@keyframes hui-check {
   0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
-  60%  { transform: scale(1.2) rotate(3deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0);      opacity: 1; }
+  65%  { transform: scale(1.18) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0);       opacity: 1; }
 }
-.hui-check-pop { animation: hui-check-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+.hui-check { animation: hui-check 0.44s cubic-bezier(0.34,1.56,0.64,1) both; }
 
-/* Number count in */
-@keyframes hui-count-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.94); }
+@keyframes hui-count {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.hui-count-in {
-  animation: hui-count-in 0.55s cubic-bezier(0.34,1.3,0.64,1) 0.5s both;
-}
+.hui-count { animation: hui-count 0.55s cubic-bezier(0.34,1.2,0.64,1) 0.5s both; }
 
-/* Impact card glow on vote */
-@keyframes hui-vote-glow {
-  0%   { box-shadow: 0 0 0 0 rgba(240,165,0,0.5); }
-  50%  { box-shadow: 0 0 0 10px rgba(240,165,0,0); }
-  100% { box-shadow: 0 0 0 0 rgba(240,165,0,0); }
+/* Story ring gradient border */
+.hui-story-border {
+  padding: 2.5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--teal), var(--coral));
 }
-.hui-vote-glow { animation: hui-vote-glow 0.7s ease-out; }
