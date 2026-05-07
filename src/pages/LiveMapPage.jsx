@@ -524,7 +524,7 @@ function TileCanvas({ mapLat, mapLng, zoom, width, height }) {
 /* ════════════════════════════════════════════
    MAIN LIVE MAP PAGE
 ════════════════════════════════════════════ */
-export default function LiveMapPage({ onView, onMatch }) {
+export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
   // Map state — centered on Munich
   const [mapLat,  setMapLat]  = useState(48.142);
   const [mapLng,  setMapLng]  = useState(11.560);
@@ -606,8 +606,12 @@ export default function LiveMapPage({ onView, onMatch }) {
   return (
     <>
       <style>{CSS}</style>
-      <div style={{ position:"relative", width:"100%", height:"100%",
-        background:"#EDE8E0", overflow:"hidden" }}
+      <div style={{
+          position: fullscreen ? "fixed" : "relative",
+          inset: fullscreen ? 0 : "auto",
+          zIndex: fullscreen ? 400 : "auto",
+          width:"100%", height: fullscreen ? "100dvh" : "100%",
+          background:"#EDE8E0", overflow:"hidden" }}
         ref={containerRef}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -696,6 +700,19 @@ export default function LiveMapPage({ onView, onMatch }) {
               </span>
             </div>
 
+            {/* Close button — when used as overlay */}
+            {onClose && (
+              <button onClick={onClose} data-bubble="1"
+                style={{ width:44, height:44, borderRadius:16,
+                  background:"rgba(252,250,247,0.88)",
+                  backdropFilter:"blur(16px)",
+                  border:"1px solid rgba(255,255,255,0.65)",
+                  boxShadow:"0 4px 16px rgba(0,0,0,0.10)",
+                  cursor:"pointer", fontSize:16, color:"#888",
+                  display:"flex", alignItems:"center",
+                  justifyContent:"center",
+                  WebkitTapHighlightColor:"transparent" }}>✕</button>
+            )}
             {/* Privacy toggle */}
             <button onClick={() => setVisible(v => !v)}
               data-bubble="1"
