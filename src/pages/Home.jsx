@@ -7,6 +7,7 @@ import CreateFlow     from "../components/CreateFlow";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
 import LiveMapPage    from "./LiveMapPage";
+import DiscoveryFeed  from "../components/DiscoveryFeed";
 import DiscoverPage   from "./DiscoverPage";
 
 /* ═══════════════════════════════════════════════════
@@ -1106,7 +1107,7 @@ export default function Home() {
             WebkitOverflowScrolling:"touch" }}>
 
           {tab==="feed" && (
-            <HomeFeed
+            <DiscoveryFeed
               onView={w=>setShowWirker(w)}
               onBook={w=>setShowBooking(w)}
               onImpact={()=>setTab("impact")}
