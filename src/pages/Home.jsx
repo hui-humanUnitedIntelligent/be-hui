@@ -7,6 +7,7 @@ import CreateFlow     from "../components/CreateFlow";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
 import LiveMapPage    from "./LiveMapPage";
+import DiscoverPage   from "./DiscoverPage";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -743,7 +744,7 @@ function KorbPage({ cart, onClose }) {
 /* ═══════════════════════════════════════════════════
    HOME FEED — cinematic, emotional, image-driven
 ═══════════════════════════════════════════════════ */
-function HomeFeed({ onView, onBook, onImpact, onMatch }) {
+function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 
   return (
     <div style={{ paddingBottom:110 }}>
@@ -768,25 +769,42 @@ function HomeFeed({ onView, onBook, onImpact, onMatch }) {
             Entdecke Menschen, Werke und Erlebnisse.
           </div>
 
-          {/* Search pill */}
-          <div style={{ position:"relative", marginBottom:12 }}>
-            <span style={{ position:"absolute", left:16, top:"50%",
-              transform:"translateY(-50%)", fontSize:14,
-              color:C.muted2, pointerEvents:"none" }}>🔍</span>
-            <input
-              style={{ width:"100%", background:"rgba(255,255,255,0.88)",
-                backdropFilter:"blur(12px)",
-                border:"1.5px solid rgba(0,0,0,0.06)",
-                borderRadius:999, padding:"13px 18px 13px 42px",
-                fontSize:14, color:C.ink, outline:"none",
-                fontFamily:"inherit", boxSizing:"border-box",
-                boxShadow:"0 2px 16px rgba(0,0,0,0.06)",
-                transition:"border-color 0.2s, box-shadow 0.2s" }}
-              placeholder="Wen oder was suchst du heute?"
-              readOnly onFocus={onMatch}
-              onMouseEnter={e=>e.target.style.borderColor=C.teal}
-              onMouseLeave={e=>e.target.style.borderColor="rgba(0,0,0,0.06)"}
-            />
+          {/* Search pill + Map icon */}
+          <div style={{ display:"flex", gap:10, marginBottom:12,
+            alignItems:"center" }}>
+            <div style={{ position:"relative", flex:1 }}>
+              <span style={{ position:"absolute", left:16, top:"50%",
+                transform:"translateY(-50%)", fontSize:14,
+                color:C.muted2, pointerEvents:"none" }}>🔍</span>
+              <input
+                style={{ width:"100%", background:"rgba(255,255,255,0.88)",
+                  backdropFilter:"blur(12px)",
+                  border:"1.5px solid rgba(0,0,0,0.06)",
+                  borderRadius:999, padding:"13px 18px 13px 42px",
+                  fontSize:14, color:C.ink, outline:"none",
+                  fontFamily:"inherit", boxSizing:"border-box",
+                  boxShadow:"0 2px 16px rgba(0,0,0,0.06)",
+                  transition:"border-color 0.2s, box-shadow 0.2s" }}
+                placeholder="Wen oder was suchst du heute?"
+                readOnly onFocus={onMatch}
+                onMouseEnter={e=>e.target.style.borderColor=C.teal}
+                onMouseLeave={e=>e.target.style.borderColor="rgba(0,0,0,0.06)"}
+              />
+            </div>
+            {/* Map icon button */}
+            <button onClick={onMap}
+              style={{ width:48, height:48, flexShrink:0,
+                borderRadius:16,
+                background:`linear-gradient(135deg,${C.teal}22,${C.coral}14)`,
+                border:`1.5px solid ${C.teal}55`,
+                cursor:"pointer", fontSize:20,
+                display:"flex", alignItems:"center",
+                justifyContent:"center",
+                boxShadow:`0 2px 12px ${C.tealGlow}`,
+                WebkitTapHighlightColor:"transparent",
+                transition:"transform 0.18s" }}>
+              🗺
+            </button>
           </div>
 
           {/* HUI Match — warm gradient pill */}
@@ -1038,6 +1056,7 @@ export default function Home() {
   const [showBooking, setShowBooking] = useState(null);
   const [showCreate,  setShowCreate]  = useState(false);
   const [showMatch,   setShowMatch]   = useState(false);
+  const [showMap,     setShowMap]     = useState(false);
   const [showKorb,    setShowKorb]    = useState(false);
   const [cart,        setCart]        = useState([]);
   const [notif,       setNotif]       = useState(3);
@@ -1092,15 +1111,16 @@ export default function Home() {
               onBook={w=>setShowBooking(w)}
               onImpact={()=>setTab("impact")}
               onMatch={()=>setShowMatch(true)}
+              onMap={()=>setShowMap(true)}
             />
           )}
           {tab==="impact" && (
             <ImpactPage currentUser={currentUser}/>
           )}
           {tab==="discover" && (
-            <LiveMapPage
+            <DiscoverPage
               onView={w=>setShowWirker(w)}
-              onMatch={()=>setShowMatch(true)}
+              onMap={()=>setShowMap(true)}
             />
           )}
               onMatch={()=>setShowMatch(true)}
@@ -1121,6 +1141,7 @@ export default function Home() {
           onCreate={()=>setShowCreate(true)}/>
 
         {/* Overlays */}
+        {showMap && <LiveMapPage onView={w=>{setShowWirker(w);setShowMap(false);}} onMatch={()=>{setShowMap(false);setShowMatch(true);}} onClose={()=>setShowMap(false)} fullscreen={true}/>}
         {showMatch  && <HuiMatchOverlay onClose={()=>setShowMatch(false)}
           onView={w=>{setShowWirker(w);setShowMatch(false);}}/>}
         {showWirker && (
