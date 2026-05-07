@@ -509,6 +509,7 @@ function BottomNav({ tab, onTab, onCreate }) {
       </div>
     </div>
   );
+}
 
 /* ═══════════════════════════════════════════════════
    WIRKER SHEET — cinematic bottom sheet
