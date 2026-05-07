@@ -509,69 +509,6 @@ function BottomNav({ tab, onTab, onCreate }) {
       </div>
     </div>
   );
-}) {
-  return (
-    <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:100,
-      background:"rgba(249,246,242,0.96)",
-      backdropFilter:"blur(28px)", WebkitBackdropFilter:"blur(28px)",
-      borderTop:"1px solid rgba(0,0,0,0.05)",
-      paddingBottom:"env(safe-area-inset-bottom,0)" }}>
-      <div style={{ display:"flex", alignItems:"center",
-        justifyContent:"space-around", padding:"6px 8px 4px" }}>
-        {NAV.map((item,i)=>{
-          if(!item) return (
-            <button key="hui" onClick={onCreate}
-              style={{ background:"none", border:"none",
-                cursor:"pointer", padding:0, lineHeight:0,
-                WebkitTapHighlightColor:"transparent" }}>
-              <div style={{ width:52, height:52, borderRadius:16,
-                marginTop:-22,
-                background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                boxShadow:`0 8px 24px ${C.tealGlow}, 0 4px 12px rgba(255,138,107,0.25)`,
-                animation:"breathe 3.5s ease-in-out infinite",
-                transition:"transform 0.14s" }}
-                onTouchStart={e=>e.currentTarget.style.transform="scale(0.88)"}
-                onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}>
-                <span style={{ fontWeight:900, fontSize:15,
-                  color:"white", letterSpacing:-0.5 }}>HUI</span>
-              </div>
-            </button>
-          );
-          const active = tab===item.key;
-          return (
-            <button key={item.key} onClick={()=>onTab(item.key)}
-              style={{ display:"flex", flexDirection:"column",
-                alignItems:"center", gap:2, background:"none",
-                border:"none", cursor:"pointer", padding:"4px 10px",
-                WebkitTapHighlightColor:"transparent",
-                transition:"transform 0.12s" }}
-              onTouchStart={e=>e.currentTarget.style.transform="scale(0.85)"}
-              onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}>
-              {/* Active indicator */}
-              {active && (
-                <div style={{ position:"absolute", top:0,
-                  width:18, height:2.5, borderRadius:999,
-                  background:`linear-gradient(90deg,${C.teal},${C.coral})` }}/>
-              )}
-              <span style={{ fontSize:20,
-                filter:active?"none":"grayscale(1) opacity(0.38)",
-                transform:active?"scale(1.12)":"scale(1)",
-                transition:"all 0.22s" }}>
-                {item.emoji}
-              </span>
-              <span style={{ fontSize:9, fontWeight:active?700:400,
-                color:active?C.teal:C.muted2,
-                transition:"color 0.2s" }}>
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════════════════════
    WIRKER SHEET — cinematic bottom sheet
