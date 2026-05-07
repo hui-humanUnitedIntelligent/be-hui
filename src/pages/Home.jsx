@@ -320,7 +320,7 @@ function NavIcon({ k, active }) {
   const s = { width:22, height:22, filter:glow, transition:"filter 0.3s" };
 
   if(k==="feed") return (
-    <svg {...s} viewBox="0 0 24 24" fill="none">
+    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
       <path d="M3 9.5L12 3L21 9.5V20C21 20.55 20.55 21 20 21H15.5V15.5H8.5V21H4C3.45 21 3 20.55 3 20V9.5Z"
         fill={active?"url(#nav-teal)":"none"} stroke={col} strokeWidth="1.6"
         strokeLinejoin="round"/>
@@ -333,7 +333,7 @@ function NavIcon({ k, active }) {
     </svg>
   );
   if(k==="impact") return (
-    <svg {...s} viewBox="0 0 24 24" fill="none">
+    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="9" stroke={col} strokeWidth="1.6"/>
       <path d="M12 7 Q16 9 15 13 Q12 10 12 7Z"
         fill={active?C.teal:col} opacity={active?1:0.65}/>
@@ -344,7 +344,7 @@ function NavIcon({ k, active }) {
     </svg>
   );
   if(k==="discover") return (
-    <svg {...s} viewBox="0 0 24 24" fill="none">
+    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="9" stroke={col} strokeWidth="1.6"/>
       <path d="M17 7L14 13.5L7 17L10 10.5L17 7Z"
         fill={active?"url(#nav-teal2)":"none"} stroke={col}
@@ -359,7 +359,7 @@ function NavIcon({ k, active }) {
     </svg>
   );
   if(k==="profile") return (
-    <svg {...s} viewBox="0 0 24 24" fill="none">
+    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="8.5" r="3.5"
         fill={active?"url(#nav-teal3)":"none"} stroke={col} strokeWidth="1.6"/>
       <path d="M5 20Q5 15 12 15Q19 15 19 20"
@@ -376,7 +376,7 @@ function NavIcon({ k, active }) {
 }
 
 function BottomNav({ tab, onTab, onCreate }) {
-  const [pressed, setPressed] = React.useState(null);
+  const [pressed, setPressed] = useState(null);
 
   return (
     <div style={{
@@ -403,7 +403,7 @@ function BottomNav({ tab, onTab, onCreate }) {
       }}>
         {NAV.map((item,i)=>{
           if(!item) return (
-            /* ── HUI Center button ── */
+            
             <button key="hui"
               onClick={onCreate}
               onTouchStart={()=>setPressed("hui")}
