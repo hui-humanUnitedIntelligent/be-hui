@@ -4,6 +4,7 @@ import ImpactPage     from "./ImpactPage";
 import ProfilePage    from "./ProfilePage";
 import BookingFlow    from "../components/BookingFlow";
 import CreateFlow     from "../components/CreateFlow";
+import WirkerProfilePage from "../components/WirkerProfilePage";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1218,9 +1219,13 @@ export default function Home() {
         {/* Overlays */}
         {showMatch  && <MatchOverlay onClose={()=>setShowMatch(false)}
           onView={w=>{setShowWirker(w);setShowMatch(false);}}/>}
-        {showWirker && <WirkerSheet w={showWirker}
+        {showWirker && (
+        <WirkerProfilePage
+          wirker={showWirker}
           onClose={()=>setShowWirker(null)}
-          onBook={w=>{setShowWirker(null);setShowBooking(w);}}/>}
+          onBook={w=>{setShowWirker(null);setShowBooking(w);}}
+        />
+      )}
         {showKorb   && <KorbPage cart={cart}
           onClose={()=>setShowKorb(false)}/>}
       </div>
