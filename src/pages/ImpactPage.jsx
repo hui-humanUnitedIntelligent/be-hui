@@ -1,854 +1,816 @@
-import React, { useState, useRef } from "react";
+// ImpactPage.jsx — Cinematic, emotional, human story experience
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-/* ── Colors ──────────────────────────────────── */
+/* ── Brand ──────────────────────────────────── */
 const C = {
   teal:      "#16D7C5",
   teal2:     "#11C5B7",
   tealPale:  "#E6FAF8",
-  tealMist:  "rgba(22,215,197,0.12)",
+  tealGlow:  "rgba(22,215,197,0.22)",
   coral:     "#FF8A6B",
-  coral2:    "#FF7B72",
   coralPale: "#FFF2EE",
-  green:     "#10B981",
-  greenPale: "#D1FAE5",
-  gold:      "#F59E0B",
   cream:     "#F9F6F2",
-  creamWarm: "#FFF9F4",
+  warm:      "#FFF9F4",
   card:      "#FFFFFF",
   ink:       "#1A1A1A",
-  ink2:      "#3D3D3D",
-  muted:     "#888888",
-  muted2:    "#BBBBBB",
-  border:    "#EFEFEF",
-  borderWarm:"#E8E2D8",
+  ink2:      "#3A3A3A",
+  muted:     "#888",
+  muted2:    "#BBB",
+  border:    "rgba(0,0,0,0.06)",
+  gold:      "#F5A623",
+  green:     "#3DB87A",
+  sage:      "#8BAF8B",
 };
 
-/* ── Mock Projects ──────────────────────────── */
+/* ── Mock projects ───────────────────────────── */
 const PROJECTS = [
   {
-    id:"p1", status:"aktiv",
+    id:1,
     title:"Bildung für Kinder in indigenen Gemeinden",
-    country:"Kolumbien", category:"Bildung",
-    img:"https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=800&q=85",
-    goal:80000, raised:48650, pct:61, supporters:1248,
-    desc:"Wir schaffen sichere Lernräume und fördern Bildung, Selbstvertrauen und Zukunftschancen für Kinder in indigenen Gemeinden.",
+    short:"Lernräume, die Zukunft öffnen.",
+    story:`Tief im kolumbianischen Regenwald, wo Straßen enden und Stille beginnt, bauen wir Schulen. Nicht aus Beton — aus Hoffnung.
+
+Seit 2023 haben wir drei Lernzentren eröffnet. 134 Kinder lernen jetzt lesen. Nicht weil jemand ihnen etwas gegeben hat — sondern weil Menschen wie du Teil davon wurden.`,
+    location:"Kolumbien",
+    category:"Bildung",
+    categoryColor:"#3DB87A",
+    img:"https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&q=90",
+    img2:"https://images.unsplash.com/photo-1509099652299-30938b0aeb63?w=900&q=90",
+    raised:48650,
+    goal:80000,
+    supporters:1248,
     goals:[
-      {label:"3 Lernzentren aufbauen",  done:2,  total:3,  finished:false},
-      {label:"200 Kinder fördern",       done:134,total:200,finished:false},
-      {label:"Lehrmaterialien bereitstellen",done:1,total:1,finished:true},
+      {label:"3 Lernzentren aufbauen",    done:true,  progress:"2/3"},
+      {label:"200 Kinder fördern",         done:true,  progress:"134/200"},
+      {label:"Lehrmaterialien stellen",    done:true,  progress:"✓"},
     ],
-    videoThumb:"https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=900&q=90",
-    supporters_imgs:[
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&q=80",
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&q=80",
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&q=80",
-    ],
+    votes:0,
   },
   {
-    id:"p2", status:"aktiv",
+    id:2,
     title:"Schutz der Meere und ihrer Bewohner",
-    country:"Indonesien", category:"Natur & Umwelt",
-    img:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=800&q=85",
-    goal:80000, raised:36200, pct:60, supporters:892,
-    desc:"Wir schützen marine Ökosysteme durch Aufklärung, Müllsammelaktionen und nachhaltige Fischereiberatung.",
+    short:"Wir schützen, was uns schützt.",
+    story:`Die Korallen vor Indonesien sterben leise. Aber sie sterben nicht still.
+
+Unser Team aus lokalen Tauchern und Meeresbiologen pflanzt Korallen zurück. Überwacht Ökosysteme. Und bildet die nächste Generation von Meereshütern aus.`,
+    location:"Indonesien",
+    category:"Ozean",
+    categoryColor:"#16D7C5",
+    img:"https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=900&q=90",
+    img2:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=900&q=90",
+    raised:36200,
+    goal:80000,
+    supporters:876,
     goals:[
-      {label:"500 km Küste gesäubert",done:310,total:500,finished:false},
-      {label:"50 Fischer beraten",    done:50, total:50, finished:true},
-      {label:"Korallenriff-Monitoring",done:2, total:5,  finished:false},
+      {label:"500 Korallen gepflanzt",    done:true,  progress:"✓"},
+      {label:"Schutzzone eingerichtet",   done:false, progress:"in Arbeit"},
+      {label:"50 Guides ausgebildet",     done:false, progress:"28/50"},
     ],
-    videoThumb:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=900&q=90",
-    supporters_imgs:[
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&q=80",
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&q=80",
-    ],
+    votes:0,
   },
   {
-    id:"p3", status:"aktiv",
-    title:"Aufforstung für eine grünere Zukunft",
-    country:"Kenia", category:"Natur & Umwelt",
-    img:"https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=85",
-    goal:60000, raised:22800, pct:38, supporters:634,
-    desc:"Gemeinsam pflanzen wir Bäume und stärken lokale Gemeinschaften im Kampf gegen den Klimawandel.",
+    id:3,
+    title:"Stadtgärten als Begegnungsorte",
+    short:"Wo Erde wächst, wächst Gemeinschaft.",
+    story:`Berlin, Frankfurt, Hamburg. Zwischen Asphalt und Hochhäusern entstehen Orte, die atmen.
+
+Gemeinschaftsgärten, in denen Menschen verschiedenster Herkunft gemeinsam pflanzen, ernten — und sich zum ersten Mal begegnen.`,
+    location:"Deutschland",
+    category:"Gemeinschaft",
+    categoryColor:"#F5A623",
+    img:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&q=90",
+    img2:"https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=900&q=90",
+    raised:12800,
+    goal:40000,
+    supporters:412,
     goals:[
-      {label:"10.000 Bäume pflanzen",done:3800,total:10000,finished:false},
-      {label:"Bauern ausbilden",     done:45,  total:100,  finished:false},
+      {label:"12 Gärten angelegt",        done:false, progress:"8/12"},
+      {label:"1000 Teilnehmer",           done:false, progress:"680/1000"},
     ],
-    videoThumb:"https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=900&q=90",
-    supporters_imgs:[
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&q=80",
-    ],
+    votes:0,
   },
 ];
 
-/* ── Formatters ──────────────────────────────── */
-const fmt = n => n>=1000 ? `${(n/1000).toFixed(0)}.${String(n%1000).padStart(3,'0')}` : String(n);
+/* ─── Global styles ─────────────────────────── */
+const CSS = `
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(22px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes slideUp {
+    from { transform:translateY(100%); opacity:0; }
+    to   { transform:translateY(0);    opacity:1; }
+  }
+  @keyframes breathe {
+    0%,100% { transform:scale(1);    opacity:0.85; }
+    50%      { transform:scale(1.06); opacity:1; }
+  }
+  @keyframes pulse-glow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(22,215,197,0.30); }
+    50%      { box-shadow: 0 0 0 14px rgba(22,215,197,0.00); }
+  }
+  @keyframes float {
+    0%,100% { transform:translateY(0); }
+    50%      { transform:translateY(-6px); }
+  }
+  .ip-scroll::-webkit-scrollbar { display:none; }
+  .ip-scroll { -ms-overflow-style:none; scrollbar-width:none; }
+  .ip-tap { transition:transform 0.2s cubic-bezier(0.34,1.4,0.64,1); }
+  .ip-tap:active { transform:scale(0.965); }
+`;
 
-/* ── Back arrow ─────────────────────────────── */
-function BackBtn({ onBack, white=false }) {
-  return (
-    <button onClick={onBack}
-      style={{ background:"none", border:"none", cursor:"pointer",
-        display:"flex", alignItems:"center", gap:6,
-        fontSize:14, fontWeight:600,
-        color:white?"rgba(255,255,255,0.88)":C.ink2,
-        padding:"4px 0", WebkitTapHighlightColor:"transparent" }}>
-      ← {!white&&"Zurück"}
-    </button>
-  );
+/* ─── Helpers ───────────────────────────────── */
+function fmt(n) {
+  return new Intl.NumberFormat("de-DE").format(n);
+}
+function pct(raised, goal) {
+  return Math.round((raised / goal) * 100);
 }
 
-/* ══════════════════════════════════════════════
-   IMPACT HOME
-══════════════════════════════════════════════ */
-function ImpactHome({ onProjects, onVote, onPool, onProject }) {
-  return (
-    <div style={{ paddingBottom:90 }}>
-      {/* Hero — cinematic full-width image */}
-      <div style={{ position:"relative", height:340, overflow:"hidden" }}>
-        <img
-          src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&q=90"
-          alt="Impact"
-          style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.65) saturate(1.15)" }}/>
+/* ════════════════════════════════════════════
+   PROJECT STORY PAGE — full cinematic detail
+════════════════════════════════════════════ */
+function ProjectStory({ p, onBack, onVote, hasVoted }) {
+  const [voted, setVoted] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-        {/* Warm cinematic gradient */}
-        <div style={{ position:"absolute", inset:0,
-          background:`linear-gradient(to bottom,
-            rgba(22,215,197,0.18) 0%,
-            rgba(0,0,0,0.05) 35%,
-            rgba(26,18,8,0.82) 100%)` }}/>
-
-        {/* Text */}
-        <div style={{ position:"absolute", bottom:0, left:0, right:0,
-          padding:"0 22px 28px" }}>
-          <div style={{ fontWeight:900, fontSize:34, color:"white",
-            letterSpacing:-1, lineHeight:1.15, marginBottom:6 }}>
-            Impact
-          </div>
-          <div style={{ fontSize:15, color:"rgba(255,255,255,0.82)",
-            lineHeight:1.65, maxWidth:280 }}>
-            Gemeinsam haben wir die Kraft, echte Veränderung zu schaffen.
-          </div>
-        </div>
-      </div>
-
-      {/* Pool card — floating white */}
-      <div style={{ margin:"-36px 18px 0", position:"relative", zIndex:10 }}>
-        <div style={{ background:C.card, borderRadius:24,
-          padding:"20px 22px",
-          boxShadow:"0 4px 8px rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.10)" }}
-          onClick={onPool}>
-          <div style={{ fontSize:12, color:C.muted, fontWeight:600,
-            marginBottom:8, textTransform:"uppercase", letterSpacing:0.5 }}>
-            Gemeinsam im Impact Pool
-          </div>
-          <div style={{ display:"flex", alignItems:"flex-end",
-            justifyContent:"space-between" }}>
-            <div>
-              <div style={{ fontWeight:900, fontSize:36, color:C.ink,
-                letterSpacing:-1.5, lineHeight:1 }}>
-                € 124.850
-              </div>
-              <div style={{ fontSize:13, color:C.green, fontWeight:700,
-                marginTop:5, display:"flex", alignItems:"center", gap:4 }}>
-                <span>↑</span> + € 8.950 diese Woche
-              </div>
-            </div>
-            {/* Community icon */}
-            <div style={{ width:52, height:52, borderRadius:16,
-              background:C.tealMist,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:26 }}>👥</div>
-          </div>
-          {/* Progress ring visual */}
-          <div style={{ marginTop:14, height:4, borderRadius:999,
-            background:C.border, overflow:"hidden" }}>
-            <div style={{ height:"100%", width:"62%", borderRadius:999,
-              background:`linear-gradient(90deg, ${C.teal}, ${C.teal2})`,
-              transition:"width 1s" }}/>
-          </div>
-          <div style={{ fontSize:11, color:C.muted, marginTop:5, textAlign:"right" }}>
-            62% des Monatsziels erreicht
-          </div>
-        </div>
-      </div>
-
-      {/* Aktive Projekte */}
-      <div style={{ display:"flex", justifyContent:"space-between",
-        alignItems:"center", padding:"28px 18px 14px" }}>
-        <div style={{ fontWeight:800, fontSize:18, color:C.ink }}>
-          Aktive Projekte
-        </div>
-        <button onClick={onProjects}
-          style={{ background:"none", border:"none", cursor:"pointer",
-            fontSize:12, fontWeight:600, color:C.teal }}>
-          Alle ansehen →
-        </button>
-      </div>
-
-      {/* Horizontal project cards */}
-      <div className="scrollbar-hide"
-        style={{ display:"flex", gap:14, overflowX:"auto", padding:"0 18px 4px" }}>
-        {PROJECTS.map((p,i)=>(
-          <div key={p.id} onClick={()=>onProject(p)}
-            style={{ flexShrink:0, width:240, borderRadius:20,
-              overflow:"hidden", cursor:"pointer",
-              boxShadow:"0 2px 12px rgba(0,0,0,0.10)",
-              background:C.card,
-              transition:"transform 0.2s" }}
-            onTouchStart={e=>e.currentTarget.style.transform="scale(0.97)"}
-            onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}>
-            {/* Image */}
-            <div style={{ height:150, overflow:"hidden", position:"relative" }}>
-              <img src={p.img} alt={p.title}
-                style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-              <div style={{ position:"absolute", inset:0,
-                background:"linear-gradient(to bottom, transparent 40%, rgba(26,26,26,0.65) 100%)"}}/>
-              {/* Category */}
-              <div style={{ position:"absolute", top:10, left:10 }}>
-                <span style={{ background:"rgba(22,215,197,0.88)",
-                  color:"white", borderRadius:999, padding:"3px 10px",
-                  fontSize:10, fontWeight:800,
-                  backdropFilter:"blur(8px)" }}>{p.category}</span>
-              </div>
-              {/* Heart */}
-              <button style={{ position:"absolute", top:8, right:8,
-                width:30, height:30, borderRadius:"50%",
-                background:"rgba(255,255,255,0.2)",
-                backdropFilter:"blur(8px)", border:"none",
-                cursor:"pointer", fontSize:14, color:"white",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                WebkitTapHighlightColor:"transparent" }}>♡</button>
-              {/* Title on image */}
-              <div style={{ position:"absolute", bottom:8, left:10, right:10 }}>
-                <div style={{ fontWeight:800, fontSize:13, color:"white",
-                  lineHeight:1.3 }}>{p.title}</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.7)",
-                  marginTop:2 }}>📍 {p.country}</div>
-              </div>
-            </div>
-            {/* Amount + progress */}
-            <div style={{ padding:"10px 14px 14px" }}>
-              <div style={{ fontSize:13, color:C.ink2, fontWeight:700,
-                marginBottom:6 }}>
-                € {fmt(p.raised)}{" "}
-                <span style={{ fontWeight:400, color:C.muted }}>
-                  von € {fmt(p.goal)}
-                </span>
-              </div>
-              <div style={{ background:C.border, borderRadius:999, height:5 }}>
-                <div style={{ height:"100%", borderRadius:999, width:`${p.pct}%`,
-                  background:`linear-gradient(90deg, ${C.teal}, ${C.teal2})`,
-                  transition:"width 1.2s" }}/>
-              </div>
-              <div style={{ fontSize:10, color:C.teal, fontWeight:700,
-                marginTop:4, textAlign:"right" }}>{p.pct}%</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Vote CTA */}
-      <div style={{ margin:"20px 18px 0",
-        background:`linear-gradient(160deg, rgba(22,215,197,0.08), rgba(255,138,107,0.06))`,
-        borderRadius:22, padding:"20px",
-        border:`1px solid ${C.teal}18` }}>
-        <div style={{ fontWeight:800, fontSize:16, color:C.ink, marginBottom:4 }}>
-          Deine Stimme zählt
-        </div>
-        <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:14 }}>
-          Als Wirker entscheidest du mit, welches Projekt als nächstes gefördert wird.
-        </div>
-        <button onClick={onVote}
-          style={{ width:"100%", padding:"13px",
-            background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-            color:"white", border:"none", borderRadius:14,
-            fontSize:14, fontWeight:800, cursor:"pointer",
-            fontFamily:"inherit",
-            boxShadow:"0 3px 14px rgba(22,215,197,0.35)",
-            WebkitTapHighlightColor:"transparent" }}>
-          🗳️ Jetzt abstimmen
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════
-   PROJECT LIST
-══════════════════════════════════════════════ */
-function ProjectList({ onBack, onProject }) {
-  const [tab, setTab] = useState("aktiv");
-  const tabs = ["aktiv","abgestimmt","abgeschlossen"];
-  const filtered = PROJECTS.filter(p=>
-    tab==="aktiv"        ? p.status==="aktiv" :
-    tab==="abgestimmt"   ? p.status==="abgestimmt" :
-    p.status==="abgeschlossen"
-  );
-
-  return (
-    <div style={{ paddingBottom:90 }}>
-      {/* Header */}
-      <div style={{ padding:"16px 18px 0",
-        display:"flex", alignItems:"center", gap:12 }}>
-        <BackBtn onBack={onBack} />
-        <div style={{ fontWeight:800, fontSize:18, color:C.ink, flex:1,
-          textAlign:"center" }}>Impact Projekte</div>
-        <div style={{ width:24 }}>
-          <span style={{ fontSize:16, color:C.muted }}>⊞</span>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div style={{ display:"flex", gap:0, padding:"16px 18px 0",
-        borderBottom:`1px solid ${C.border}` }}>
-        {tabs.map(t=>(
-          <button key={t} onClick={()=>setTab(t)}
-            style={{ flex:1, padding:"10px 4px", background:"none",
-              border:"none", cursor:"pointer",
-              borderBottom:tab===t?`2.5px solid ${C.teal}`:"2.5px solid transparent",
-              fontSize:13, fontWeight:tab===t?800:500,
-              color:tab===t?C.teal:C.muted,
-              textTransform:"capitalize",
-              transition:"all 0.2s",
-              WebkitTapHighlightColor:"transparent" }}>
-            {t==="aktiv"?"Aktiv":t==="abgestimmt"?"Abgestimmt":"Abgeschlossen"}
-          </button>
-        ))}
-      </div>
-
-      {/* Project cards */}
-      <div style={{ padding:"16px 18px" }}>
-        {PROJECTS.map((p,i)=>(
-          <div key={p.id} onClick={()=>onProject(p)}
-            style={{ marginBottom:16, borderRadius:22, overflow:"hidden",
-              background:C.card, cursor:"pointer",
-              boxShadow:"0 2px 8px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.08)",
-              transition:"transform 0.2s" }}
-            onTouchStart={e=>e.currentTarget.style.transform="scale(0.98)"}
-            onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}>
-
-            {/* Cinematic image */}
-            <div style={{ height:190, overflow:"hidden", position:"relative" }}>
-              <img src={p.img} alt={p.title}
-                style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-              <div style={{ position:"absolute", inset:0,
-                background:"linear-gradient(to bottom, transparent 30%, rgba(26,26,26,0.72) 100%)"}}/>
-              <div style={{ position:"absolute", top:12, left:12 }}>
-                <span style={{ background:"rgba(22,215,197,0.9)", color:"white",
-                  borderRadius:999, padding:"4px 11px",
-                  fontSize:10, fontWeight:800 }}>{p.category}</span>
-              </div>
-              <button style={{ position:"absolute", top:10, right:10,
-                width:32, height:32, borderRadius:"50%",
-                background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
-                border:"none", cursor:"pointer", fontSize:16,
-                color:"white", display:"flex", alignItems:"center",
-                justifyContent:"center",
-                WebkitTapHighlightColor:"transparent" }}>♡</button>
-              <div style={{ position:"absolute", bottom:12, left:12, right:12 }}>
-                <div style={{ fontWeight:900, fontSize:16, color:"white",
-                  lineHeight:1.25, marginBottom:4 }}>{p.title}</div>
-                <div style={{ fontSize:11, color:"rgba(255,255,255,0.75)" }}>
-                  📍 {p.country}
-                </div>
-              </div>
-            </div>
-
-            {/* Amount + progress */}
-            <div style={{ padding:"14px 16px 16px" }}>
-              <div style={{ display:"flex", justifyContent:"space-between",
-                alignItems:"center", marginBottom:8 }}>
-                <div style={{ fontWeight:800, fontSize:15, color:C.ink }}>
-                  € {fmt(p.raised)}
-                  <span style={{ fontWeight:400, fontSize:12, color:C.muted }}>
-                    {" "}von € {fmt(p.goal)}
-                  </span>
-                </div>
-                <div style={{ fontSize:13, fontWeight:800, color:C.teal }}>
-                  {p.pct}%
-                </div>
-              </div>
-              <div style={{ background:C.border, borderRadius:999, height:6 }}>
-                <div style={{ height:"100%", borderRadius:999, width:`${p.pct}%`,
-                  background:`linear-gradient(90deg,${C.teal},${C.teal2})` }}/>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════
-   PROJECT DETAIL
-══════════════════════════════════════════════ */
-function ProjectDetail({ project: p, onBack, onSupport }) {
-  const [supported, setSupported] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  return (
-    <div style={{ paddingBottom:100 }}>
-      {/* Cinematic hero */}
-      <div style={{ height:300, position:"relative", overflow:"hidden" }}>
-        <img src={p.videoThumb} alt={p.title}
-          style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.75) saturate(1.1)" }}/>
-        <div style={{ position:"absolute", inset:0,
-          background:"linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.55) 100%)"}}/>
-
-        {/* Top controls */}
-        <div style={{ position:"absolute", top:0, left:0, right:0,
-          display:"flex", justifyContent:"space-between", padding:"16px 18px" }}>
-          <button onClick={onBack}
-            style={{ width:36, height:36, borderRadius:"50%",
-              background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
-              border:"none", cursor:"pointer", fontSize:16, color:"white",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              WebkitTapHighlightColor:"transparent" }}>←</button>
-          <div style={{ display:"flex", gap:10 }}>
-            <button style={{ width:36, height:36, borderRadius:"50%",
-              background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
-              border:"none", cursor:"pointer", fontSize:16, color:"white",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              WebkitTapHighlightColor:"transparent" }}>↗</button>
-            <button style={{ width:36, height:36, borderRadius:"50%",
-              background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
-              border:"none", cursor:"pointer", fontSize:15, color:"white",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              WebkitTapHighlightColor:"transparent" }}>···</button>
-          </div>
-        </div>
-
-        {/* Play button */}
-        <div style={{ position:"absolute", inset:0,
-          display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <div style={{ width:60, height:60, borderRadius:"50%",
-            background:"rgba(255,255,255,0.22)", backdropFilter:"blur(10px)",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:22, cursor:"pointer",
-            boxShadow:"0 4px 20px rgba(0,0,0,0.25)" }}>▶</div>
-        </div>
-
-        {/* Title bottom */}
-        <div style={{ position:"absolute", bottom:16, left:18, right:18 }}>
-          <div style={{ fontWeight:900, fontSize:20, color:"white",
-            lineHeight:1.2, marginBottom:6 }}>{p.title}</div>
-          <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)" }}>
-            📍 {p.country}
-          </div>
-        </div>
-      </div>
-
-      {/* Supporter avatars + count */}
-      <div style={{ padding:"16px 18px 0",
-        display:"flex", alignItems:"center", gap:10 }}>
-        <div style={{ display:"flex" }}>
-          {p.supporters_imgs.map((img,i)=>(
-            <div key={i} style={{ width:28, height:28, borderRadius:"50%",
-              overflow:"hidden", border:"2px solid white",
-              marginLeft:i>0?-10:0 }}>
-              <img src={img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontSize:13, fontWeight:700, color:C.ink2 }}>
-          <span style={{ color:C.teal }}>{fmt(p.supporters)}</span> Unterstützer
-        </div>
-        <div style={{ marginLeft:"auto" }}>
-          <span style={{ background:`${C.teal}18`, color:C.teal,
-            borderRadius:999, padding:"3px 10px",
-            fontSize:11, fontWeight:800 }}>Aktiv</span>
-        </div>
-      </div>
-
-      {/* Description */}
-      <div style={{ padding:"16px 18px 0" }}>
-        <div style={{ fontWeight:800, fontSize:16, color:C.ink, marginBottom:8 }}>
-          Über das Projekt
-        </div>
-        <div style={{ fontSize:14, color:C.ink2, lineHeight:1.75 }}>
-          {p.desc}
-        </div>
-      </div>
-
-      {/* Impact Goals */}
-      <div style={{ padding:"20px 18px 0" }}>
-        <div style={{ fontWeight:800, fontSize:16, color:C.ink, marginBottom:12 }}>
-          Impact Ziele
-        </div>
-        <div style={{ background:C.cream, borderRadius:18, padding:"4px 0" }}>
-          {p.goals.map((g,i)=>(
-            <div key={i} style={{ padding:"12px 16px",
-              borderBottom:i<p.goals.length-1?`1px solid ${C.border}`:"none",
-              display:"flex", alignItems:"center", gap:12 }}>
-              {/* Check or progress */}
-              <div style={{ width:24, height:24, borderRadius:"50%", flexShrink:0,
-                background:g.finished?C.teal:`${C.teal}22`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:12 }}>
-                {g.finished
-                  ? <span style={{ color:"white" }}>✓</span>
-                  : <span style={{ fontSize:10, fontWeight:700,
-                      color:C.teal }}>{Math.round(g.done/g.total*100)}%</span>
-                }
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:C.ink,
-                  marginBottom:g.finished?0:5 }}>{g.label}</div>
-                {!g.finished && (
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <div style={{ flex:1, height:4, borderRadius:999,
-                      background:C.border }}>
-                      <div style={{ height:"100%", borderRadius:999,
-                        background:`linear-gradient(90deg,${C.teal},${C.teal2})`,
-                        width:`${Math.round(g.done/g.total*100)}%` }}/>
-                    </div>
-                    <span style={{ fontSize:11, color:C.muted, fontWeight:600,
-                      flexShrink:0 }}>
-                      {g.done}/{g.total}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Action buttons — sticky */}
-      <div style={{ position:"sticky", bottom:0,
-        background:"rgba(249,246,242,0.97)", backdropFilter:"blur(16px)",
-        padding:"14px 18px",
-        paddingBottom:"max(14px,env(safe-area-inset-bottom))",
-        borderTop:`1px solid ${C.border}`,
-        display:"flex", gap:12 }}>
-        <button onClick={()=>setSaved(s=>!s)}
-          style={{ width:48, height:48, borderRadius:14,
-            background:saved?C.coralPale:C.card,
-            border:`1.5px solid ${saved?C.coral:C.borderWarm}`,
-            cursor:"pointer", fontSize:20, display:"flex",
-            alignItems:"center", justifyContent:"center",
-            flexShrink:0, WebkitTapHighlightColor:"transparent" }}>
-          {saved?"❤️":"♡"}
-        </button>
-        <button onClick={()=>setSupported(true)}
-          disabled={supported}
-          style={{ flex:1, padding:"14px",
-            background:supported
-              ? `linear-gradient(135deg,${C.green},#059669)`
-              : `linear-gradient(135deg,${C.teal},${C.teal2})`,
-            color:"white", border:"none", borderRadius:14,
-            fontSize:15, fontWeight:800, cursor:"pointer",
-            fontFamily:"inherit",
-            boxShadow:supported
-              ? "0 3px 14px rgba(16,185,129,0.35)"
-              : "0 3px 14px rgba(22,215,197,0.35)",
-            transition:"all 0.3s" }}>
-          {supported ? "✓ Unterstützt" : "Projekt unterstützen"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════
-   VOTING SCREEN
-══════════════════════════════════════════════ */
-function VotingScreen({ onBack }) {
-  const [current, setCurrent] = useState(0);
-  const [voted,   setVoted]   = useState(null);
-
-  function vote(idx) {
-    setVoted(idx);
+  function doVote() {
+    setVoted(true);
+    setShowConfirm(true);
+    setTimeout(() => setShowConfirm(false), 3200);
+    onVote && onVote(p.id);
   }
 
+  const progress = pct(p.raised, p.goal);
+
   return (
-    <div style={{ paddingBottom:90 }}>
-      {/* Header */}
-      <div style={{ padding:"16px 18px 0",
-        display:"flex", alignItems:"center", gap:12 }}>
-        <BackBtn onBack={onBack} />
-        <div style={{ flex:1 }}/>
-        <span style={{ fontSize:16, color:C.muted }}>ⓘ</span>
+    <div style={{ position:"fixed", inset:0, zIndex:200,
+      background:C.cream, overflowY:"auto" }}
+      className="ip-scroll">
+
+      {/* ── Cinematic hero image ── */}
+      <div style={{ position:"relative", height:"60vh",
+        minHeight:360, maxHeight:520 }}>
+        <img src={p.img} alt={p.title}
+          style={{ position:"absolute", inset:0, width:"100%",
+            height:"100%", objectFit:"cover",
+            filter:"brightness(0.62) saturate(1.15)" }}/>
+        <div style={{ position:"absolute", inset:0,
+          background:`linear-gradient(to bottom,
+            rgba(0,0,0,0.30) 0%,
+            rgba(0,0,0,0.0) 25%,
+            rgba(10,5,0,0.15) 55%,
+            rgba(10,5,0,0.88) 100%)` }}/>
+
+        {/* Controls */}
+        <div style={{ position:"absolute", top:0, left:0, right:0,
+          padding:"max(52px,env(safe-area-inset-top,52px)) 20px 0",
+          display:"flex", justifyContent:"space-between" }}>
+          <button onClick={onBack}
+            style={{ width:42, height:42, borderRadius:"50%",
+              background:"rgba(255,255,255,0.18)",
+              backdropFilter:"blur(12px)",
+              border:"1px solid rgba(255,255,255,0.28)",
+              cursor:"pointer", fontSize:17, color:"white",
+              display:"flex", alignItems:"center",
+              justifyContent:"center",
+              WebkitTapHighlightColor:"transparent" }}>←</button>
+          <button style={{ width:42, height:42, borderRadius:"50%",
+            background:"rgba(255,255,255,0.18)",
+            backdropFilter:"blur(12px)",
+            border:"1px solid rgba(255,255,255,0.28)",
+            cursor:"pointer", color:"white", fontSize:16,
+            display:"flex", alignItems:"center",
+            justifyContent:"center",
+            WebkitTapHighlightColor:"transparent" }}>↗</button>
+        </div>
+
+        {/* Category + title at bottom */}
+        <div style={{ position:"absolute", bottom:0,
+          left:0, right:0, padding:"0 24px 28px" }}>
+          <div style={{ display:"inline-block",
+            background:p.categoryColor+"33",
+            backdropFilter:"blur(8px)",
+            border:`1px solid ${p.categoryColor}55`,
+            borderRadius:999, padding:"4px 14px",
+            fontSize:11, fontWeight:700,
+            color:p.categoryColor, marginBottom:12 }}>
+            {p.category}
+          </div>
+          <div style={{ fontWeight:900, fontSize:28, color:"white",
+            letterSpacing:-0.8, lineHeight:1.15, marginBottom:8 }}>
+            {p.title}
+          </div>
+          <div style={{ display:"flex", alignItems:"center",
+            gap:8, color:"rgba(255,255,255,0.72)", fontSize:13 }}>
+            <span>📍</span><span>{p.location}</span>
+            <span style={{ width:3, height:3, borderRadius:"50%",
+              background:"rgba(255,255,255,0.4)",
+              display:"inline-block" }}/>
+            <span>{fmt(p.supporters)} Menschen dabei</span>
+          </div>
+        </div>
       </div>
 
-      <div style={{ padding:"16px 18px 24px" }}>
-        <div style={{ fontWeight:900, fontSize:24, color:C.ink,
-          letterSpacing:-0.6, lineHeight:1.2, marginBottom:8 }}>
-          Welches Projekt soll als nächstes unterstützt werden?
+      {/* ── Story text ── */}
+      <div style={{ background:C.card, padding:"32px 24px 28px",
+        borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ fontWeight:800, fontSize:13, color:C.teal,
+          letterSpacing:1.5, textTransform:"uppercase", marginBottom:16 }}>
+          Die Geschichte
         </div>
-        <div style={{ fontSize:14, color:C.muted, lineHeight:1.6, marginBottom:24 }}>
-          Deine Stimme entscheidet mit.
+        <div style={{ fontSize:16, color:C.ink2, lineHeight:1.85,
+          whiteSpace:"pre-line", fontWeight:400 }}>
+          {p.story}
+        </div>
+      </div>
+
+      {/* ── Progress — warm, organic, NOT a dashboard ── */}
+      <div style={{ background:C.warm, padding:"28px 24px" }}>
+        <div style={{ fontWeight:800, fontSize:13, color:C.sage,
+          letterSpacing:1.5, textTransform:"uppercase", marginBottom:20 }}>
+          Gemeinsame Wirkung
         </div>
 
-        {/* Project cards — vertical swipeable */}
-        {PROJECTS.map((p,i)=>(
-          <div key={p.id} style={{ marginBottom:16,
-            borderRadius:24, overflow:"hidden",
-            background:C.card, position:"relative",
-            boxShadow:voted===i
-              ? `0 0 0 3px ${C.teal}, 0 8px 32px rgba(22,215,197,0.20)`
-              : "0 2px 12px rgba(0,0,0,0.09)",
-            transition:"box-shadow 0.3s" }}>
-
-            {/* Image */}
-            <div style={{ height:200, overflow:"hidden", position:"relative" }}>
-              <img src={p.img} alt={p.title}
-                style={{ width:"100%", height:"100%", objectFit:"cover",
-                  filter:"brightness(0.72) saturate(1.1)" }}/>
-              <div style={{ position:"absolute", inset:0,
-                background:"linear-gradient(to bottom, transparent 35%, rgba(26,26,26,0.75) 100%)"}}/>
-              {voted===i && (
-                <div style={{ position:"absolute", inset:0,
-                  background:"rgba(22,215,197,0.12)" }}/>
-              )}
-              {/* Category */}
-              <div style={{ position:"absolute", top:12, left:12 }}>
-                <span style={{ background:"rgba(22,215,197,0.88)",
-                  color:"white", borderRadius:999, padding:"4px 12px",
-                  fontSize:11, fontWeight:800 }}>{p.category}</span>
+        {/* Pool orb */}
+        <div style={{ display:"flex", alignItems:"center",
+          gap:20, marginBottom:24 }}>
+          <div style={{ width:72, height:72, borderRadius:"50%", flexShrink:0,
+            background:`radial-gradient(circle at 35% 35%,
+              rgba(22,215,197,0.9), rgba(17,197,183,0.6))`,
+            boxShadow:`0 0 0 8px ${C.tealGlow},
+              0 8px 32px rgba(22,215,197,0.30)`,
+            display:"flex", alignItems:"center",
+            justifyContent:"center",
+            animation:"breathe 4s ease-in-out infinite" }}>
+            <div style={{ textAlign:"center" }}>
+              <div style={{ fontWeight:900, fontSize:13,
+                color:"white", letterSpacing:-0.3 }}>
+                {progress}%
               </div>
-              {voted===i && (
-                <div style={{ position:"absolute", top:12, right:12 }}>
-                  <span style={{ background:C.teal, color:"white",
-                    borderRadius:999, padding:"4px 12px",
-                    fontSize:11, fontWeight:800 }}>✓ Gewählt</span>
-                </div>
-              )}
-              {/* Title */}
-              <div style={{ position:"absolute", bottom:14, left:14, right:14 }}>
-                <div style={{ fontWeight:900, fontSize:18, color:"white",
-                  lineHeight:1.2, marginBottom:4 }}>{p.title}</div>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)" }}>
-                  📍 {p.country}
-                </div>
-                {/* Supporter faces */}
-                <div style={{ display:"flex", alignItems:"center",
-                  gap:6, marginTop:8 }}>
-                  <div style={{ display:"flex" }}>
-                    {(p.supporters_imgs||[]).slice(0,3).map((img,j)=>(
-                      <div key={j} style={{ width:22, height:22, borderRadius:"50%",
-                        overflow:"hidden", border:"1.5px solid rgba(255,255,255,0.7)",
-                        marginLeft:j>0?-8:0 }}>
-                        <img src={img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                      </div>
-                    ))}
-                  </div>
-                  <span style={{ fontSize:11, color:"rgba(255,255,255,0.75)",
-                    fontWeight:600 }}>{fmt(p.supporters)} Unterstützer</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Vote button */}
-            <div style={{ padding:"14px 16px" }}>
-              <button onClick={()=>vote(i)}
-                disabled={voted!==null && voted!==i}
-                style={{ width:"100%", padding:"13px",
-                  background:voted===i
-                    ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                    : `linear-gradient(135deg,${C.coral},${C.coral2})`,
-                  color:"white", border:"none", borderRadius:14,
-                  fontSize:14, fontWeight:800, cursor:"pointer",
-                  fontFamily:"inherit",
-                  opacity:(voted!==null && voted!==i)?0.4:1,
-                  transition:"all 0.3s",
-                  boxShadow:voted===i
-                    ? "0 3px 14px rgba(22,215,197,0.35)"
-                    : "0 3px 14px rgba(255,138,107,0.30)" }}>
-                {voted===i ? "✓ Deine Stimme" : "Dieses Projekt wählen"}
-              </button>
             </div>
           </div>
-        ))}
+          <div>
+            <div style={{ fontWeight:900, fontSize:26,
+              color:C.ink, letterSpacing:-0.6 }}>
+              € {fmt(p.raised)}
+            </div>
+            <div style={{ fontSize:13, color:C.muted, marginTop:3 }}>
+              von € {fmt(p.goal)} gemeinsam bewegt
+            </div>
+          </div>
+        </div>
 
-        {voted !== null && (
-          <div style={{ marginTop:8, padding:"16px", borderRadius:18,
-            background:C.tealPale, textAlign:"center" }}>
-            <div style={{ fontSize:20, marginBottom:6 }}>🌱</div>
-            <div style={{ fontWeight:800, fontSize:15, color:C.teal }}>
-              Danke für deine Stimme!
+        {/* Organic progress bar */}
+        <div style={{ height:8, borderRadius:999,
+          background:"rgba(0,0,0,0.06)",
+          overflow:"hidden", marginBottom:28 }}>
+          <div style={{ height:"100%", borderRadius:999,
+            width:`${progress}%`,
+            background:`linear-gradient(90deg,${C.teal},${C.teal2})`,
+            boxShadow:`0 0 8px ${C.tealGlow}`,
+            transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
+        </div>
+
+        {/* Goals — story style */}
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {p.goals.map((g,i)=>(
+            <div key={i} style={{ display:"flex",
+              alignItems:"center", gap:14,
+              padding:"12px 16px",
+              background:g.done?"rgba(61,184,122,0.08)":C.card,
+              borderRadius:16,
+              border:`1px solid ${g.done?"rgba(61,184,122,0.20)":C.border}` }}>
+              <div style={{ width:28, height:28, borderRadius:"50%",
+                background:g.done?C.green:"rgba(0,0,0,0.06)",
+                display:"flex", alignItems:"center",
+                justifyContent:"center", flexShrink:0,
+                fontSize:12, color:g.done?"white":C.muted }}>
+                {g.done ? "✓" : "·"}
+              </div>
+              <div style={{ flex:1, fontSize:14, color:C.ink2 }}>
+                {g.label}
+              </div>
+              <div style={{ fontSize:12, fontWeight:700,
+                color:g.done?C.green:C.muted }}>
+                {g.progress}
+              </div>
             </div>
-            <div style={{ fontSize:13, color:C.muted, marginTop:4, lineHeight:1.6 }}>
-              Gemeinsam entscheiden wir, was wirklich zählt.
+          ))}
+        </div>
+      </div>
+
+      {/* ── Second image — documentary ── */}
+      <div style={{ margin:"0 20px 28px",
+        borderRadius:24, overflow:"hidden", height:200 }}>
+        <img src={p.img2} alt=""
+          style={{ width:"100%", height:"100%", objectFit:"cover",
+            filter:"brightness(0.85) saturate(1.1)" }}/>
+      </div>
+
+      {/* Bottom CTA space */}
+      <div style={{ height:90 }}/>
+
+      {/* ── Sticky bottom: Vote ── */}
+      <div style={{ position:"fixed", bottom:0, left:0, right:0,
+        background:"rgba(249,246,242,0.97)",
+        backdropFilter:"blur(20px)",
+        borderTop:`1px solid ${C.border}`,
+        padding:"14px 24px max(20px,env(safe-area-inset-bottom))" }}>
+
+        {showConfirm ? (
+          <div style={{ textAlign:"center", padding:"10px 0",
+            animation:"fadeUp 0.4s ease both" }}>
+            <div style={{ fontSize:26, marginBottom:4 }}>🌱</div>
+            <div style={{ fontWeight:800, fontSize:16, color:C.green }}>
+              Deine Stimme zählt.
             </div>
+            <div style={{ fontSize:13, color:C.muted, marginTop:2 }}>
+              Du hast etwas Echtes bewegt.
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={doVote}
+            disabled={voted || hasVoted}
+            style={{ width:"100%", padding:"16px",
+              background: (voted||hasVoted)
+                ? `linear-gradient(135deg,${C.green},#2DA86A)`
+                : `linear-gradient(135deg,${C.teal},${C.coral})`,
+              border:"none", borderRadius:18, fontSize:16,
+              fontWeight:900, color:"white", cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow:(voted||hasVoted)
+                ? "0 6px 24px rgba(61,184,122,0.35)"
+                : `0 6px 24px ${C.tealGlow}`,
+              opacity:(voted||hasVoted)?0.9:1,
+              transition:"all 0.4s",
+              WebkitTapHighlightColor:"transparent" }}>
+            {(voted||hasVoted) ? "✓ Du hast abgestimmt" : "🌱 Für dieses Projekt stimmen"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════
+   MAIN IMPACT PAGE
+════════════════════════════════════════════ */
+export default function ImpactPage({ currentUser }) {
+  const [projects,     setProjects]     = useState(PROJECTS);
+  const [selected,     setSelected]     = useState(null);
+  const [votedId,      setVotedId]      = useState(null);
+  const [poolTotal,    setPoolTotal]    = useState(124850);
+  const [monthVoting,  setMonthVoting]  = useState(true);
+  const [activeFilter, setActiveFilter] = useState("aktiv");
+
+  // Animate pool total slightly
+  useEffect(() => {
+    const t = setInterval(() => {
+      setPoolTotal(n => n + Math.floor(Math.random() * 12 + 3));
+    }, 7000);
+    return () => clearInterval(t);
+  }, []);
+
+  function handleVote(id) {
+    setVotedId(id);
+    setProjects(ps => ps.map(p =>
+      p.id === id ? {...p, votes: p.votes + 1} : p
+    ));
+  }
+
+  if (selected) return (
+    <ProjectStory
+      p={selected}
+      onBack={() => setSelected(null)}
+      onVote={handleVote}
+      hasVoted={votedId === selected.id}
+    />
+  );
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <div style={{ background:C.cream, paddingBottom:110 }}>
+
+        {/* ══ 1. CINEMATIC HERO ══════════════════════════ */}
+        <div style={{ position:"relative", height:"55vh",
+          minHeight:340, maxHeight:480, overflow:"hidden" }}>
+          <img
+            src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&q=90"
+            alt="Impact"
+            style={{ position:"absolute", inset:0, width:"100%",
+              height:"100%", objectFit:"cover",
+              filter:"brightness(0.58) saturate(1.2)" }}/>
+          {/* Teal→Coral atmospheric gradient */}
+          <div style={{ position:"absolute", inset:0,
+            background:`
+              linear-gradient(to bottom,
+                rgba(22,215,197,0.30) 0%,
+                rgba(0,0,0,0.0) 30%,
+                rgba(10,5,0,0.78) 100%)
+            ` }}/>
+
+          {/* Top label */}
+          <div style={{ position:"absolute",
+            top:"max(52px,env(safe-area-inset-top,52px))",
+            left:24 }}>
+            <div style={{ display:"inline-flex", alignItems:"center",
+              gap:6, background:"rgba(22,215,197,0.22)",
+              backdropFilter:"blur(8px)",
+              border:"1px solid rgba(22,215,197,0.40)",
+              borderRadius:999, padding:"5px 14px" }}>
+              <span style={{ width:6, height:6, borderRadius:"50%",
+                background:C.teal, display:"inline-block",
+                boxShadow:`0 0 6px ${C.teal}`,
+                animation:"breathe 3s ease-in-out infinite" }}/>
+              <span style={{ fontSize:11, color:C.teal,
+                fontWeight:700 }}>Impact Pool · Mai 2026</span>
+            </div>
+          </div>
+
+          {/* Hero headline */}
+          <div style={{ position:"absolute", bottom:0,
+            left:0, right:0, padding:"0 24px 32px" }}>
+            <div style={{ fontWeight:900, fontSize:30, color:"white",
+              letterSpacing:-0.8, lineHeight:1.15, marginBottom:10 }}>
+              Gemeinsam bewegen<br/>wir echte Veränderung.
+            </div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.75)",
+              lineHeight:1.65, maxWidth:300 }}>
+              Jede Buchung auf HUI fließt in echte Projekte —
+              ausgewählt von der Community.
+            </div>
+          </div>
+        </div>
+
+        {/* ══ 2. IMPACT POOL — organic, not a dashboard ══ */}
+        <div style={{ margin:"24px 20px",
+          borderRadius:28, overflow:"hidden",
+          background:`linear-gradient(145deg,
+            rgba(22,215,197,0.12) 0%,
+            rgba(255,138,107,0.08) 100%)`,
+          border:`1px solid rgba(22,215,197,0.18)`,
+          boxShadow:"0 4px 32px rgba(22,215,197,0.10)",
+          padding:"28px 24px" }}>
+
+          {/* Floating orb */}
+          <div style={{ display:"flex", alignItems:"center",
+            gap:20, marginBottom:20 }}>
+            <div style={{ position:"relative", flexShrink:0 }}>
+              <div style={{ width:64, height:64, borderRadius:"50%",
+                background:`radial-gradient(circle at 30% 30%,
+                  ${C.teal}, ${C.teal2})`,
+                display:"flex", alignItems:"center",
+                justifyContent:"center",
+                animation:"float 5s ease-in-out infinite",
+                boxShadow:`0 0 0 0 ${C.tealGlow}`,
+                animationName:"float,pulse-glow",
+                animationDuration:"5s,3s",
+                animationIterationCount:"infinite" }}>
+                <span style={{ fontSize:26 }}>🌱</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize:11, color:C.muted,
+                fontWeight:600, marginBottom:4 }}>
+                Gemeinsamer Impact Pool
+              </div>
+              <div style={{ fontWeight:900, fontSize:32,
+                color:C.ink, letterSpacing:-1,
+                transition:"all 0.8s" }}>
+                € {fmt(poolTotal)}
+              </div>
+              <div style={{ fontSize:12, color:C.teal,
+                fontWeight:600, marginTop:3 }}>
+                ↑ € 8.950 diese Woche
+              </div>
+            </div>
+          </div>
+
+          {/* Explanation — human, not technical */}
+          <div style={{ fontSize:14, color:C.ink2,
+            lineHeight:1.75,
+            padding:"16px 18px",
+            background:"rgba(255,255,255,0.55)",
+            borderRadius:18 }}>
+            Aus jeder Buchung fließen <strong>15 %</strong> in diesen Pool.
+            Die Community entscheidet jeden Monat, welche Projekte gefördert werden.
+            <span style={{ color:C.teal, fontWeight:700 }}> Deine Stimme zählt.</span>
+          </div>
+        </div>
+
+        {/* ══ 3. FILTER TABS — ruhig, minimal ════════════ */}
+        <div style={{ display:"flex", gap:8, padding:"0 20px 24px" }}>
+          {[
+            {key:"aktiv",      label:"Aktive Projekte"},
+            {key:"voting",     label:"Abstimmung"},
+            {key:"bewirkt",    label:"Bewirkt"},
+          ].map(f => (
+            <button key={f.key} onClick={() => setActiveFilter(f.key)}
+              style={{ padding:"8px 16px", borderRadius:999,
+                background: activeFilter===f.key
+                  ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                  : "rgba(0,0,0,0.05)",
+                color: activeFilter===f.key ? "white" : C.muted,
+                border:"none", cursor:"pointer", fontSize:12,
+                fontWeight: activeFilter===f.key ? 700 : 500,
+                fontFamily:"inherit",
+                boxShadow: activeFilter===f.key
+                  ? `0 4px 12px ${C.tealGlow}` : "none",
+                transition:"all 0.25s",
+                WebkitTapHighlightColor:"transparent" }}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ══ 4. PROJECT CARDS — story windows ═══════════ */}
+        {activeFilter !== "bewirkt" && (
+          <div style={{ padding:"0 20px",
+            display:"flex", flexDirection:"column", gap:20 }}>
+            {projects.map((p, i) => (
+              <ProjectCard
+                key={p.id} p={p} idx={i}
+                onOpen={() => setSelected(p)}
+                voted={votedId === p.id}
+                onVote={() => handleVote(p.id)}
+                showVote={activeFilter === "voting" && monthVoting}
+              />
+            ))}
           </div>
         )}
 
-        <button onClick={onBack}
-          style={{ width:"100%", marginTop:16, padding:"12px",
-            background:"none", border:`1.5px solid ${C.borderWarm}`,
-            borderRadius:14, fontSize:14, fontWeight:600,
-            color:C.ink2, cursor:"pointer", fontFamily:"inherit" }}>
-          Alle Projekte ansehen →
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════
-   IMPACT POOL
-══════════════════════════════════════════════ */
-function ImpactPool({ onBack }) {
-  return (
-    <div style={{ paddingBottom:90 }}>
-      {/* Header */}
-      <div style={{ padding:"16px 18px 0",
-        display:"flex", alignItems:"center", gap:12 }}>
-        <BackBtn onBack={onBack} />
-        <div style={{ flex:1, textAlign:"center",
-          fontWeight:800, fontSize:17, color:C.ink }}>Impact Pool</div>
-        <span style={{ fontSize:16, color:C.muted }}>ⓘ</span>
-      </div>
-
-      {/* Hero background */}
-      <div style={{ position:"relative", height:200, overflow:"hidden",
-        margin:"16px 18px 0", borderRadius:24 }}>
-        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=85"
-          alt="Pool"
-          style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.65) saturate(1.1)" }}/>
-        <div style={{ position:"absolute", inset:0,
-          background:`linear-gradient(160deg, rgba(22,215,197,0.55) 0%, rgba(255,138,107,0.35) 100%)` }}/>
-        <div style={{ position:"absolute", inset:0,
-          display:"flex", flexDirection:"column",
-          alignItems:"center", justifyContent:"center",
-          textAlign:"center", padding:"0 24px" }}>
-          <div style={{ fontWeight:800, fontSize:15, color:"rgba(255,255,255,0.9)",
-            marginBottom:4 }}>Gemeinsam wachsen wir über uns hinaus.</div>
-          <div style={{ fontSize:13, color:"rgba(255,255,255,0.75)", lineHeight:1.6 }}>
-            Jeder Beitrag. Jede Stimme.<br/>Jede Veränderung zählt.
+        {/* ══ 5. BEWIRKT — completed stories ═════════════ */}
+        {activeFilter === "bewirkt" && (
+          <div style={{ padding:"0 20px" }}>
+            <BewirktSection />
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Pool amount — big floating */}
-      <div style={{ margin:"16px 18px 0",
-        background:C.card, borderRadius:24, padding:"28px 24px",
-        textAlign:"center",
-        boxShadow:"0 4px 8px rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.09)" }}>
-        {/* Animated ring visual */}
-        <div style={{ position:"relative", width:160, height:160,
-          margin:"0 auto 20px" }}>
-          <svg width="160" height="160" viewBox="0 0 160 160">
-            <defs>
-              <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#16D7C5"/>
-                <stop offset="100%" stopColor="#FF8A6B"/>
-              </linearGradient>
-            </defs>
-            {/* Background ring */}
-            <circle cx="80" cy="80" r="70" fill="none"
-              stroke="#EFEFEF" strokeWidth="10"/>
-            {/* Progress ring — 62% */}
-            <circle cx="80" cy="80" r="70" fill="none"
-              stroke="url(#ring-grad)" strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray={`${2*Math.PI*70*0.62} ${2*Math.PI*70}`}
-              strokeDashoffset={2*Math.PI*70*0.25}
-              transform="rotate(-90 80 80)"/>
-            {/* Inner glow */}
-            <circle cx="80" cy="80" r="60" fill="rgba(22,215,197,0.06)"/>
-          </svg>
-          {/* Amount in center */}
-          <div style={{ position:"absolute", inset:0,
-            display:"flex", flexDirection:"column",
-            alignItems:"center", justifyContent:"center" }}>
-            <div style={{ fontWeight:900, fontSize:22, color:C.ink,
-              letterSpacing:-0.8 }}>€ 124.850</div>
-            <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>
-              Gesamt Impact Pool
+        {/* ══ 6. COMMUNITY QUOTE ══════════════════════════ */}
+        <div style={{ margin:"32px 20px 0",
+          padding:"28px 24px",
+          background:C.card, borderRadius:28,
+          boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
+          <div style={{ fontSize:22, color:C.teal,
+            marginBottom:10, lineHeight:1 }}>"</div>
+          <div style={{ fontSize:17, color:C.ink2,
+            fontStyle:"italic", lineHeight:1.75, marginBottom:16 }}>
+            Ich buche bei HUI, weil ich weiß, dass mein Geld nicht nur
+            eine Dienstleistung kauft — es bewegt etwas in der Welt.
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <img
+              src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80"
+              alt="Maria"
+              style={{ width:36, height:36, borderRadius:"50%",
+                objectFit:"cover" }}/>
+            <div>
+              <div style={{ fontWeight:700, fontSize:13, color:C.ink }}>
+                Maria K.
+              </div>
+              <div style={{ fontSize:11, color:C.muted }}>
+                HUI-Entdeckerin seit 2024
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        {[
-          {label:"Diese Woche", val:"+ € 8.950", color:C.green},
-          {label:"Unterstützer", val:"1.248",    color:C.ink},
-          {label:"Projekte",     val:"12",        color:C.ink},
-          {label:"Länder",       val:"8",         color:C.ink},
-        ].map((s,i)=>(
-          <div key={i} style={{ display:"flex", justifyContent:"space-between",
-            alignItems:"center",
-            padding:"12px 0",
-            borderBottom:i<3?`1px solid ${C.border}`:"none" }}>
-            <div style={{ fontSize:14, color:C.muted }}>{s.label}</div>
-            <div style={{ fontSize:15, fontWeight:800, color:s.color }}>{s.val}</div>
-          </div>
-        ))}
+        <div style={{ height:24 }}/>
+      </div>
+    </>
+  );
+}
 
-        {/* Transparency CTA */}
-        <button style={{ width:"100%", marginTop:16, padding:"14px",
-          background:"none", border:`1.5px solid ${C.borderWarm}`,
-          borderRadius:14, fontSize:14, fontWeight:700,
-          color:C.ink2, cursor:"pointer", fontFamily:"inherit",
-          display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-          Transparenz einsehen
-          <span style={{ fontSize:16 }}>→</span>
-        </button>
+/* ════════════════════════════════════════════
+   PROJECT CARD — cinematic story window
+════════════════════════════════════════════ */
+function ProjectCard({ p, idx, onOpen, voted, onVote, showVote }) {
+  const [localVoted, setLocalVoted] = useState(voted);
+  const progress = pct(p.raised, p.goal);
+
+  function handleVote(e) {
+    e.stopPropagation();
+    if (localVoted || voted) return;
+    setLocalVoted(true);
+    onVote();
+  }
+
+  return (
+    <div
+      className="ip-tap"
+      onClick={onOpen}
+      style={{ borderRadius:28, overflow:"hidden",
+        background:C.card, cursor:"pointer",
+        boxShadow:"0 4px 28px rgba(0,0,0,0.10)",
+        animation:`fadeUp 0.55s ${idx*0.10}s both` }}>
+
+      {/* Full-bleed image — dominant */}
+      <div style={{ position:"relative", height:280, overflow:"hidden" }}>
+        <img src={p.img} alt={p.title}
+          style={{ width:"100%", height:"100%", objectFit:"cover",
+            filter:"brightness(0.72) saturate(1.1)" }}/>
+        {/* Gradient — story framing */}
+        <div style={{ position:"absolute", inset:0,
+          background:`linear-gradient(to bottom,
+            rgba(0,0,0,0.0) 30%,
+            rgba(10,5,0,0.80) 100%)` }}/>
+
+        {/* Category badge */}
+        <div style={{ position:"absolute", top:16, left:16 }}>
+          <div style={{ background:p.categoryColor+"33",
+            backdropFilter:"blur(8px)",
+            border:`1px solid ${p.categoryColor}55`,
+            borderRadius:999, padding:"4px 12px",
+            fontSize:11, fontWeight:700, color:p.categoryColor }}>
+            {p.category}
+          </div>
+        </div>
+
+        {/* Heart */}
+        <div style={{ position:"absolute", top:14, right:14 }}>
+          <button onClick={e=>e.stopPropagation()}
+            style={{ width:36, height:36, borderRadius:"50%",
+              background:"rgba(255,255,255,0.18)",
+              backdropFilter:"blur(10px)",
+              border:"1px solid rgba(255,255,255,0.28)",
+              display:"flex", alignItems:"center",
+              justifyContent:"center", cursor:"pointer",
+              fontSize:15,
+              WebkitTapHighlightColor:"transparent" }}>
+            🤍
+          </button>
+        </div>
+
+        {/* Supporter count */}
+        <div style={{ position:"absolute", bottom:16, left:16 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            {/* Stacked avatars hint */}
+            <div style={{ display:"flex" }}>
+              {[
+                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&q=80",
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&q=80",
+                "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=60&q=80",
+              ].map((src,i) => (
+                <img key={i} src={src} alt=""
+                  style={{ width:22, height:22, borderRadius:"50%",
+                    objectFit:"cover",
+                    border:"2px solid rgba(255,255,255,0.7)",
+                    marginLeft: i>0 ? -7 : 0 }}/>
+              ))}
+            </div>
+            <span style={{ fontSize:12, color:"rgba(255,255,255,0.85)",
+              fontWeight:600 }}>
+              {fmt(p.supporters)} dabei
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Monthly distribution info */}
-      <div style={{ margin:"16px 18px 0",
-        background:`linear-gradient(135deg, ${C.tealPale}, ${C.coralPale})`,
-        borderRadius:22, padding:"20px" }}>
-        <div style={{ fontWeight:800, fontSize:15, color:C.ink, marginBottom:8 }}>
-          So funktioniert die Verteilung
+      {/* Text content */}
+      <div style={{ padding:"20px 20px 0" }}>
+        <div style={{ fontWeight:900, fontSize:18, color:C.ink,
+          letterSpacing:-0.4, lineHeight:1.25, marginBottom:6 }}>
+          {p.title}
         </div>
-        <div style={{ fontSize:13, color:C.ink2, lineHeight:1.7 }}>
-          Jeden Monat wählen Wirker aus drei Projekten. Das Projekt mit den meisten Stimmen erhält seinen vollen Wunschbetrag — der Rest fließt anteilig an die anderen Projekte.
+        <div style={{ fontSize:14, color:C.muted,
+          fontStyle:"italic", marginBottom:16,
+          lineHeight:1.5 }}>
+          {p.short}
         </div>
-        <div style={{ marginTop:14, display:"flex", gap:8 }}>
-          <span style={{ background:C.teal, color:"white", borderRadius:999,
-            padding:"5px 14px", fontSize:12, fontWeight:800 }}>15% Provision</span>
-          <span style={{ background:C.coralPale, color:C.coral,
-            border:`1px solid ${C.coral}30`, borderRadius:999,
-            padding:"5px 14px", fontSize:12, fontWeight:700 }}>2,25% Impact</span>
+
+        {/* Organic progress */}
+        <div style={{ marginBottom:16 }}>
+          <div style={{ display:"flex", justifyContent:"space-between",
+            alignItems:"center", marginBottom:8 }}>
+            <span style={{ fontSize:13, fontWeight:800, color:C.ink }}>
+              € {fmt(p.raised)}
+            </span>
+            <span style={{ fontSize:12, color:C.muted }}>
+              {progress}% erreicht
+            </span>
+          </div>
+          <div style={{ height:5, borderRadius:999,
+            background:"rgba(0,0,0,0.06)", overflow:"hidden" }}>
+            <div style={{ height:"100%", borderRadius:999,
+              width:`${progress}%`,
+              background:`linear-gradient(90deg,${C.teal},${C.teal2})`,
+              boxShadow:`0 0 6px ${C.tealGlow}` }}/>
+          </div>
         </div>
+      </div>
+
+      {/* Actions */}
+      <div style={{ padding:"0 20px 20px",
+        display:"flex", gap:10 }}>
+        {showVote ? (
+          <button onClick={handleVote}
+            style={{ flex:1, padding:"12px",
+              background:(localVoted||voted)
+                ?`linear-gradient(135deg,${C.green},#2DA86A)`
+                :`linear-gradient(135deg,${C.teal},${C.coral})`,
+              border:"none", borderRadius:14, fontSize:14,
+              fontWeight:800, color:"white", cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow:(localVoted||voted)
+                ?"0 4px 14px rgba(61,184,122,0.30)"
+                :`0 4px 14px ${C.tealGlow}`,
+              transition:"all 0.35s",
+              WebkitTapHighlightColor:"transparent" }}>
+            {(localVoted||voted) ? "✓ Abgestimmt" : "🌱 Abstimmen"}
+          </button>
+        ) : (
+          <button onClick={e=>{e.stopPropagation();onOpen();}}
+            style={{ flex:1, padding:"12px",
+              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+              border:"none", borderRadius:14, fontSize:14,
+              fontWeight:800, color:"white", cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow:`0 4px 14px ${C.tealGlow}`,
+              WebkitTapHighlightColor:"transparent" }}>
+            Geschichte lesen →
+          </button>
+        )}
+        <button onClick={e=>e.stopPropagation()}
+          style={{ width:44, height:44, borderRadius:14,
+            background:"rgba(0,0,0,0.04)", border:"none",
+            cursor:"pointer", fontSize:16,
+            display:"flex", alignItems:"center",
+            justifyContent:"center",
+            WebkitTapHighlightColor:"transparent" }}>
+          ↗
+        </button>
       </div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════
-   ROOT — ImpactPage
-══════════════════════════════════════════════ */
-export default function ImpactPage({ currentUser }) {
-  const [view, setView] = useState("home");
-  // home | projects | detail | vote | pool
-  const [selectedProject, setSelectedProject] = useState(null);
-
-  if(view==="detail" && selectedProject) return (
-    <ProjectDetail
-      project={selectedProject}
-      onBack={()=>setView("projects")}
-      onSupport={()=>{}}
-    />
-  );
-  if(view==="projects") return (
-    <ProjectList
-      onBack={()=>setView("home")}
-      onProject={p=>{setSelectedProject(p);setView("detail");}}
-    />
-  );
-  if(view==="vote") return (
-    <VotingScreen onBack={()=>setView("home")} />
-  );
-  if(view==="pool") return (
-    <ImpactPool onBack={()=>setView("home")} />
-  );
+/* ════════════════════════════════════════════
+   BEWIRKT — completed with warmth
+════════════════════════════════════════════ */
+function BewirktSection() {
+  const done = [
+    {
+      title:"Trinkwasser für 3 Dörfer",
+      location:"Kenia", month:"März 2026",
+      awarded:28400, img:"https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&q=85",
+      highlight:"847 Menschen haben täglich sauberes Wasser.",
+    },
+    {
+      title:"Solarenergie für eine Schule",
+      location:"Ghana", month:"Februar 2026",
+      awarded:18200, img:"https://images.unsplash.com/photo-1509099652299-30938b0aeb63?w=600&q=85",
+      highlight:"320 Kinder lernen jetzt auch nach Einbruch der Dunkelheit.",
+    },
+  ];
 
   return (
-    <ImpactHome
-      onProjects={()=>setView("projects")}
-      onVote={()=>setView("vote")}
-      onPool={()=>setView("pool")}
-      onProject={p=>{setSelectedProject(p);setView("detail");}}
-    />
+    <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+      <div style={{ fontWeight:800, fontSize:13, color:C.sage,
+        letterSpacing:1.5, textTransform:"uppercase", marginBottom:4 }}>
+        Bereits bewirkt
+      </div>
+      {done.map((d,i) => (
+        <div key={i} style={{ borderRadius:24, overflow:"hidden",
+          background:C.card, boxShadow:"0 3px 18px rgba(0,0,0,0.08)",
+          animation:`fadeUp 0.5s ${i*0.1}s both` }}>
+          <div style={{ height:190, overflow:"hidden", position:"relative" }}>
+            <img src={d.img} alt={d.title}
+              style={{ width:"100%", height:"100%", objectFit:"cover",
+                filter:"brightness(0.75) saturate(1.1)" }}/>
+            <div style={{ position:"absolute", inset:0,
+              background:"linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.72) 100%)"}}/>
+            <div style={{ position:"absolute", bottom:14, left:16, right:16 }}>
+              <div style={{ fontWeight:900, fontSize:16, color:"white",
+                marginBottom:2 }}>{d.title}</div>
+              <div style={{ fontSize:11,
+                color:"rgba(255,255,255,0.72)" }}>
+                📍 {d.location} · {d.month}
+              </div>
+            </div>
+            {/* Checkmark badge */}
+            <div style={{ position:"absolute", top:14, right:14,
+              width:32, height:32, borderRadius:"50%",
+              background:C.green,
+              display:"flex", alignItems:"center",
+              justifyContent:"center", fontSize:14,
+              boxShadow:"0 4px 12px rgba(61,184,122,0.40)" }}>
+              ✓
+            </div>
+          </div>
+          <div style={{ padding:"16px 18px" }}>
+            <div style={{ fontWeight:800, fontSize:15, color:C.ink,
+              marginBottom:6 }}>€ {fmt(d.awarded)} ausgezahlt</div>
+            <div style={{ fontSize:14, color:C.ink2,
+              fontStyle:"italic", lineHeight:1.65 }}>
+              „{d.highlight}"
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
