@@ -163,18 +163,14 @@ function Header({ cart, notif, onNotif, onCart }) {
   return (
     <div className="hui-glass" style={{ position:"sticky",top:0,zIndex:60,
       borderBottom:`1px solid rgba(255,255,255,0.45)` }}>
+      <HuiIconDefs />
       <div style={{ height:"env(safe-area-inset-top,0px)" }} />
       <div style={{ display:"flex",alignItems:"center",
         padding:"0 18px",height:56,gap:10 }}>
 
-        {/* Logo */}
+        {/* HUI Logo */}
         <div style={{ display:"flex",alignItems:"center",gap:9,flex:1 }}>
-          <div style={{ width:34,height:34,borderRadius:11,flexShrink:0,overflow:"hidden",
-            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-            display:"flex",alignItems:"center",justifyContent:"center",
-            boxShadow:`0 2px 10px ${T.tealGlow}` }}>
-            <span style={{ fontWeight:900,fontSize:15,color:"white",letterSpacing:-0.5 }}>Hj</span>
-          </div>
+          <HuiLogoIcon size={34} />
           <div style={{ fontWeight:800,fontSize:16,color:T.ink,letterSpacing:-0.3 }}>
             <span style={{ color:T.teal }}>H</span>uman{" "}
             <span style={{ color:T.coral }}>U</span>nited{" "}
@@ -182,26 +178,15 @@ function Header({ cart, notif, onNotif, onCart }) {
           </div>
         </div>
 
-        <button onClick={onCart} style={{ position:"relative",width:38,height:38,
-          borderRadius:"50%",background:T.cream,border:`1px solid ${T.borderWarm}`,
-          display:"flex",alignItems:"center",justifyContent:"center",
-          cursor:"pointer",fontSize:17,WebkitTapHighlightColor:"transparent" }}>
-          🛒
-          {cart>0&&<div style={{ position:"absolute",top:-3,right:-3,
-            width:16,height:16,borderRadius:"50%",background:T.coral,color:"white",
-            fontSize:8,fontWeight:900,display:"flex",alignItems:"center",
-            justifyContent:"center",border:`2px solid ${T.cream}` }}>{cart}</div>}
-        </button>
+        {/* Werkekorb — replaces shopping cart entirely */}
+        <WerkekorbbadgeBtn count={cart} size={36} onClick={onCart} />
 
-        <button onClick={onNotif} style={{ position:"relative",width:38,height:38,
-          borderRadius:"50%",background:T.cream,border:`1px solid ${T.borderWarm}`,
-          display:"flex",alignItems:"center",justifyContent:"center",
-          cursor:"pointer",fontSize:17,WebkitTapHighlightColor:"transparent" }}>
-          🔔
-          {notif>0&&<div style={{ position:"absolute",top:-3,right:-3,
-            width:16,height:16,borderRadius:"50%",background:T.coral,color:"white",
-            fontSize:8,fontWeight:900,display:"flex",alignItems:"center",
-            justifyContent:"center",border:`2px solid ${T.cream}` }}>{notif}</div>}
+        {/* Bell */}
+        <button onClick={onNotif}
+          style={{ background:"none",border:"none",cursor:"pointer",
+            padding:2,lineHeight:0,position:"relative",
+            WebkitTapHighlightColor:"transparent" }}>
+          <IconBell size={36} count={notif} />
         </button>
       </div>
     </div>
@@ -228,16 +213,16 @@ function BottomNav({ tab, onTab, isTalent, onCreate }) {
           if(!item) return (
             <button key="hui" onClick={onCreate}
               className="hui-float"
-              style={{ width:54,height:54,borderRadius:"50%",flexShrink:0,
-                background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-                border:`3px solid ${T.cream}`,cursor:"pointer",
-                display:"flex",alignItems:"center",justifyContent:"center",
+              style={{ width:56,height:56,borderRadius:16,flexShrink:0,
+                background:"none",border:`2.5px solid white`,cursor:"pointer",
+                padding:0,lineHeight:0,
+                filter:"drop-shadow(0 6px 18px rgba(22,215,197,0.45))",
                 WebkitTapHighlightColor:"transparent" }}
               onTouchStart={e=>{e.currentTarget.style.transform="translateY(-14px) scale(0.9)";
                 e.currentTarget.style.animation="none";}}
               onTouchEnd={e=>{e.currentTarget.style.transform="";
                 e.currentTarget.style.animation="";}}>
-              <span style={{ fontWeight:900,fontSize:18,color:"white",letterSpacing:-0.5 }}>Hj</span>
+              <HuiLogoIcon size={52} />
             </button>
           );
           const active=tab===item.key;
@@ -252,11 +237,16 @@ function BottomNav({ tab, onTab, isTalent, onCreate }) {
               {active&&<div style={{ position:"absolute",top:0,left:"50%",
                 transform:"translateX(-50%)",width:20,height:2.5,borderRadius:999,
                 background:`linear-gradient(90deg,${T.teal},${T.coral})` }} />}
-              <span style={{ fontSize:21,
-                filter:active?"none":"grayscale(1) opacity(0.38)",
-                transform:active?"translateY(-1px)":"none",transition:"all 0.2s" }}>
-                {item.icon}
-              </span>
+              <div style={{
+                filter:active?"none":"grayscale(1) opacity(0.42)",
+                transform:active?"translateY(-1.5px) scale(1.08)":"none",
+                transition:"all 0.2s" }}>
+                {item.key==="feed"    && <IconHome size={26} active={active} />}
+                {item.key==="impact"  && <IconImpact size={26} active={active} />}
+                {item.key==="discover"&& <IconEntdecken size={26} active={active} />}
+                {item.key==="favorites"&&<IconFavoriten size={26} active={active} />}
+                {item.key==="profile" && <IconProfil size={26} active={active} />}
+              </div>
               <span style={{ fontSize:9,fontWeight:active?800:500,
                 color:active?T.teal:T.muted,transition:"color 0.2s" }}>
                 {item.label}
@@ -333,7 +323,9 @@ function HeroSearch({ onMatch }) {
         <button onClick={()=>onMatch(val||MATCH_HINTS[hintIdx])}
           className="hui-btn hui-btn-teal"
           style={{ flex:1,padding:"13px 16px",fontSize:14,borderRadius:16 }}>
-          ✨ HUI Match
+          <span style={{ display:"flex",alignItems:"center",gap:6 }}>
+            <IconHuiMatch size={20} /> HUI Match
+          </span>
         </button>
         <div style={{ fontSize:12,color:T.muted,fontStyle:"italic",flex:1,
           overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>
@@ -384,7 +376,7 @@ function MatchOverlay({ initial="", onClose, onView }) {
             <div style={{ width:46,height:46,borderRadius:16,flexShrink:0,
               background:`linear-gradient(135deg,${T.teal},${T.coral})`,
               display:"flex",alignItems:"center",justifyContent:"center",
-              fontSize:22,boxShadow:`0 4px 16px ${T.tealGlow}` }}>✨</div>
+              fontSize:22,boxShadow:`0 4px 16px ${T.tealGlow}` }}><IconHuiMatch size={28} /></div>
             <div>
               <div style={{ fontWeight:900,fontSize:20,color:T.ink,letterSpacing:-0.5 }}>
                 HUI Match
@@ -856,12 +848,12 @@ function HomeFeedContent({ onView, onBook, onCart, onImpact, onMatch }) {
 ═══════════════════════════════════════════ */
 function DiscoverContent({ onView, onMatch }) {
   const cats=[
-    {icon:"🔨",label:"Handwerk",color:T.teal},
-    {icon:"🎨",label:"Kunst",color:T.coral},
-    {icon:"📷",label:"Fotografie",color:"#8B5CF6"},
-    {icon:"💬",label:"Coaching",color:T.gold},
-    {icon:"🧘",label:"Gesundheit",color:T.green},
-    {icon:"🎵",label:"Musik",color:"#EC4899"},
+    {label:"Handwerk",   Icon:CatHandwerk },
+    {label:"Kunst",      Icon:CatKunst    },
+    {label:"Fotografie", Icon:CatFotografie},
+    {label:"Coaching",   Icon:CatCoaching },
+    {label:"Gesundheit", Icon:CatGesundheit},
+    {label:"Musik",      Icon:CatMusik    },
   ];
   return (
     <div style={{ paddingBottom:100 }}>
