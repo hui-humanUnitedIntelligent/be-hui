@@ -1,127 +1,189 @@
 import React, { useState } from 'react';
-import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
-const CORAL = "#FF6B5B";
-const TEAL = "#2ABFAC";
+const C = {
+  teal:"#16D7C5", teal2:"#11C5B7",
+  coral:"#FF8A6B", coral2:"#FF7B72",
+  cream:"#F9F6F2", card:"#FFFFFF",
+  ink:"#1A1A1A", muted:"#888888",
+};
 
-export default function LoginPage({ onSuccess }) {
-  const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    if (mode === 'login') {
-      const { error } = await signIn(email, password);
-      if (error) setError(error.message);
-      else onSuccess?.();
-    } else {
-      const { error } = await signUp(email, password, fullName);
-      if (error) setError(error.message);
-      else setSuccess('✅ Bitte bestätige deine E-Mail! Dann kannst du dich einloggen.');
-    }
-    setLoading(false);
-  };
-
+function HuiLogo({ size=52 }) {
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(135deg, #fff5f4 0%, #f0fffe 100%)',
-      padding: 24, fontFamily: '-apple-system, sans-serif'
-    }}>
-      {/* Logo */}
-      <div style={{ marginBottom: 32, textAlign: 'center' }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: 16,
-          background: `linear-gradient(135deg, ${CORAL}, ${TEAL})`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28, margin: '0 auto 12px'
-        }}>🌱</div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#1a1a1a' }}>
-          <span style={{ color: CORAL }}>H</span>uman{' '}
-          <span style={{ color: TEAL }}>U</span>nited{' '}
-          <span style={{ color: CORAL }}>I</span>ntelligent
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="ll-g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#22E8D8"/>
+          <stop offset="100%" stopColor="#FF8A6B"/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#ll-g)"/>
+      <rect x="2" y="2" width="60" height="28" rx="18" fill="white" fillOpacity="0.15"/>
+      <text x="10" y="44" fontSize="30" fontWeight="900" fill="white"
+        fontFamily="-apple-system,system-ui,sans-serif" letterSpacing="-2">Hj</text>
+    </svg>
+  );
+}
+
+export default function LoginPage() {
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [pw, setPw] = useState('');
+  const [err, setErr] = useState('');
+  const [mode, setMode] = useState('splash'); // splash | login | register
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    setLoading(true); setErr('');
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (error) { setErr(error.message); setLoading(false); }
+  }
+
+  async function handleRegister(e) {
+    e.preventDefault();
+    setLoading(true); setErr('');
+    const { error } = await supabase.auth.signUp({ email, password: pw });
+    if (error) { setErr(error.message); setLoading(false); }
+    else setMode('login');
+  }
+
+  // ── SPLASH SCREEN ─────────────────────────────────
+  if (mode === 'splash') return (
+    <div style={{ height:"100dvh", overflow:"hidden", position:"relative",
+      background:"#1A1208" }}>
+      {/* Hero image */}
+      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=90"
+        alt="HUI"
+        style={{ position:"absolute", inset:0, width:"100%", height:"100%",
+          objectFit:"cover", filter:"brightness(0.55) saturate(1.15)" }}/>
+
+      {/* Gradient overlay */}
+      <div style={{ position:"absolute", inset:0,
+        background:`linear-gradient(to bottom,
+          rgba(22,215,197,0.25) 0%,
+          rgba(0,0,0,0.02) 40%,
+          rgba(26,18,8,0.88) 100%)` }}/>
+
+      {/* Content */}
+      <div style={{ position:"relative", height:"100%",
+        display:"flex", flexDirection:"column", padding:"0 28px" }}>
+
+        {/* Top — Logo */}
+        <div style={{ paddingTop:"max(60px, env(safe-area-inset-top,60px))",
+          display:"flex", alignItems:"center", gap:12 }}>
+          <HuiLogo size={48} />
+          <div>
+            <div style={{ fontWeight:900, fontSize:22, color:"white",
+              letterSpacing:-0.8 }}>HUI</div>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)",
+              fontWeight:500 }}>Human United Intelligent</div>
+          </div>
         </div>
-        <div style={{ color: '#888', fontSize: 13, marginTop: 4 }}>
-          Talente, Werke & Impact — an einem Ort
-        </div>
-      </div>
 
-      {/* Card */}
-      <div style={{
-        background: '#fff', borderRadius: 20, padding: 32,
-        width: '100%', maxWidth: 360,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
-      }}>
-        <h2 style={{ margin: '0 0 24px', fontSize: 20, fontWeight: 700, color: '#1a1a1a' }}>
-          {mode === 'login' ? 'Willkommen zurück 👋' : 'Konto erstellen ✨'}
-        </h2>
+        <div style={{ flex:1 }} />
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {mode === 'signup' && (
-            <input
-              type="text" placeholder="Dein Name" value={fullName}
-              onChange={e => setFullName(e.target.value)} required
-              style={inputStyle}
-            />
-          )}
-          <input
-            type="email" placeholder="E-Mail" value={email}
-            onChange={e => setEmail(e.target.value)} required
-            style={inputStyle}
-          />
-          <input
-            type="password" placeholder="Passwort" value={password}
-            onChange={e => setPassword(e.target.value)} required minLength={6}
-            style={inputStyle}
-          />
+        {/* Bottom — Claim + CTAs */}
+        <div style={{ paddingBottom:"max(44px, env(safe-area-inset-bottom,44px))" }}>
+          <div style={{ fontWeight:900, fontSize:38, color:"white",
+            letterSpacing:-1.5, lineHeight:1.15, marginBottom:12 }}>
+            Verbinde dich<br/>mit Menschen,<br/>
+            <span style={{ color:C.teal }}>die wirken.</span>
+          </div>
+          <div style={{ fontSize:15, color:"rgba(255,255,255,0.75)",
+            lineHeight:1.65, marginBottom:36 }}>
+            Für eine Welt, die gemeinsam<br/>mehr bewegt.
+          </div>
 
-          {error && <div style={{ color: CORAL, fontSize: 13, padding: '8px 12px', background: '#fff5f4', borderRadius: 8 }}>{error}</div>}
-          {success && <div style={{ color: TEAL, fontSize: 13, padding: '8px 12px', background: '#f0fffe', borderRadius: 8 }}>{success}</div>}
-
-          <button type="submit" disabled={loading} style={{
-            background: `linear-gradient(135deg, ${CORAL}, ${TEAL})`,
-            color: '#fff', border: 'none', borderRadius: 12,
-            padding: '14px', fontSize: 15, fontWeight: 700,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1, marginTop: 4
-          }}>
-            {loading ? '...' : mode === 'login' ? 'Einloggen' : 'Registrieren'}
+          <button onClick={()=>setMode('register')}
+            style={{ width:"100%", padding:"16px", marginBottom:12,
+              background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+              color:"white", border:"none", borderRadius:16,
+              fontSize:17, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow:"0 4px 20px rgba(22,215,197,0.45)",
+              WebkitTapHighlightColor:"transparent" }}>
+            Los geht's
           </button>
-        </form>
 
-        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#666' }}>
-          {mode === 'login' ? (
-            <>Noch kein Konto?{' '}
-              <span onClick={() => setMode('signup')} style={{ color: TEAL, fontWeight: 600, cursor: 'pointer' }}>
-                Jetzt registrieren
-              </span>
-            </>
-          ) : (
-            <>Schon dabei?{' '}
-              <span onClick={() => setMode('login')} style={{ color: CORAL, fontWeight: 600, cursor: 'pointer' }}>
-                Einloggen
-              </span>
-            </>
-          )}
+          <button onClick={()=>setMode('login')}
+            style={{ width:"100%", padding:"15px",
+              background:"rgba(255,255,255,0.10)",
+              backdropFilter:"blur(10px)",
+              color:"white", border:"1.5px solid rgba(255,255,255,0.25)",
+              borderRadius:16, fontSize:15, fontWeight:600,
+              cursor:"pointer", fontFamily:"inherit",
+              WebkitTapHighlightColor:"transparent" }}>
+            Einloggen
+          </button>
         </div>
       </div>
     </div>
   );
-}
 
-const inputStyle = {
-  padding: '12px 16px', borderRadius: 12, border: '1.5px solid #eee',
-  fontSize: 15, outline: 'none', width: '100%', boxSizing: 'border-box',
-  fontFamily: '-apple-system, sans-serif'
-};
+  // ── LOGIN / REGISTER FORM ──────────────────────────
+  return (
+    <div style={{ minHeight:"100dvh", background:C.cream,
+      display:"flex", flexDirection:"column",
+      padding:"max(60px,env(safe-area-inset-top,60px)) 28px 40px" }}>
+
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:40 }}>
+        <HuiLogo size={44} />
+        <div style={{ fontWeight:900, fontSize:20, color:C.ink }}>HUI</div>
+      </div>
+
+      <div style={{ fontWeight:900, fontSize:30, color:C.ink,
+        letterSpacing:-0.8, marginBottom:8 }}>
+        {mode==="login" ? "Willkommen zurück" : "Konto erstellen"}
+      </div>
+      <div style={{ fontSize:15, color:C.muted, marginBottom:32 }}>
+        {mode==="login"
+          ? "Schön, dich wiederzusehen."
+          : "Werde Teil der HUI-Community."}
+      </div>
+
+      <form onSubmit={mode==="login"?handleLogin:handleRegister}>
+        <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+          placeholder="E-Mail-Adresse"
+          style={{ width:"100%", padding:"15px 18px", marginBottom:12,
+            background:C.card, border:`1.5px solid #E8E2D8`,
+            borderRadius:16, fontSize:15, color:C.ink,
+            outline:"none", fontFamily:"inherit", boxSizing:"border-box" }}/>
+        <input type="password" value={pw} onChange={e=>setPw(e.target.value)}
+          placeholder="Passwort"
+          style={{ width:"100%", padding:"15px 18px", marginBottom:24,
+            background:C.card, border:`1.5px solid #E8E2D8`,
+            borderRadius:16, fontSize:15, color:C.ink,
+            outline:"none", fontFamily:"inherit", boxSizing:"border-box" }}/>
+
+        {err && <div style={{ color:C.coral, fontSize:13, marginBottom:16,
+          padding:"10px 14px", background:"#FFF2EE",
+          borderRadius:12 }}>{err}</div>}
+
+        <button type="submit" disabled={loading}
+          style={{ width:"100%", padding:"16px",
+            background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+            color:"white", border:"none", borderRadius:16,
+            fontSize:17, fontWeight:800, cursor:"pointer",
+            fontFamily:"inherit", marginBottom:16,
+            boxShadow:"0 4px 20px rgba(22,215,197,0.40)",
+            opacity:loading?0.75:1 }}>
+          {loading ? "Bitte warten…" : mode==="login" ? "Einloggen" : "Konto erstellen"}
+        </button>
+      </form>
+
+      <button onClick={()=>setMode(mode==="login"?"register":"login")}
+        style={{ background:"none", border:"none", cursor:"pointer",
+          fontSize:14, color:C.teal, fontWeight:600, textAlign:"center" }}>
+        {mode==="login"
+          ? "Noch kein Konto? Jetzt registrieren →"
+          : "Bereits registriert? Einloggen →"}
+      </button>
+
+      <button onClick={()=>setMode('splash')}
+        style={{ marginTop:12, background:"none", border:"none",
+          cursor:"pointer", fontSize:13, color:C.muted }}>
+        ← Zurück
+      </button>
+    </div>
+  );
+}
