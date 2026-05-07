@@ -5,6 +5,7 @@ import ProfilePage    from "./ProfilePage";
 import BookingFlow    from "../components/BookingFlow";
 import CreateFlow     from "../components/CreateFlow";
 import WirkerProfilePage from "../components/WirkerProfilePage";
+import HuiMatchOverlay from "../components/HuiMatchOverlay";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -661,8 +662,7 @@ function WirkerSheet({ w, onClose, onBook }) {
 
 /* ═══════════════════════════════════════════════════
    MATCH OVERLAY
-═══════════════════════════════════════════════════ */
-function MatchOverlay({ onClose, onView }) {
+═══════════════════════════════════════════════════ */) {
   const [q,    setQ]    = useState("");
   const [busy, setBusy] = useState(false);
   const [res,  setRes]  = useState(null);
@@ -1351,7 +1351,7 @@ export default function Home() {
           onCreate={()=>setShowCreate(true)}/>
 
         {/* Overlays */}
-        {showMatch  && <MatchOverlay onClose={()=>setShowMatch(false)}
+        {showMatch  && <HuiMatchOverlay onClose={()=>setShowMatch(false)}
           onView={w=>{setShowWirker(w);setShowMatch(false);}}/>}
         {showWirker && (
         <WirkerProfilePage
