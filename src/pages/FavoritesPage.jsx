@@ -1,221 +1,212 @@
-import React, { useState, useEffect } from "react";
-import EmptyState from "../components/EmptyState";
-import { Heart, Star, MapPin, Calendar, Clock, ThumbsUp } from "lucide-react";
+import React, { useState } from "react";
 
-const CORAL = "#FF6B5B";
-const TEAL = "#2ABFAC";
-const GOLD = "#F5A623";
-const PURPLE = "#A78BFA";
+const C = {
+  teal:"#16D3C5", tealPale:"#E6FAF8",
+  coral:"#FF7043", coralPale:"#FFF0EC",
+  gold:"#FFB300",
+  bg:"#FFFFFF", bg2:"#F5F5F5", card:"#FFFFFF",
+  ink:"#1A1A1A", ink2:"#333333",
+  muted:"#888888", border:"#EEEEEE", border2:"#E0E0E0",
+};
 
-
-// ─── Mock Favoriten-Daten ────────────────────────────────────────────────────
-const mockFavWirker = [
-  { id: 1, name: "Lars M.", talent: "Keramik-Künstler", location: "München", hourlyRate: "ab 45 €/h", recommendations: 34, img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" },
-  { id: 2, name: "Nina K.", talent: "Yoga & Atemarbeit", location: "Berlin", hourlyRate: "ab 60 €/h", recommendations: 28, img: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=200&h=200&fit=crop" },
-  { id: 3, name: "Tom B.", talent: "Fotografie", location: "Hamburg", hourlyRate: "ab 80 €/h", recommendations: 52, img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop" },
+const WIRKER_FAVS = [
+  { name:"Lena K.", talent:"Keramik & Töpfern",
+    img:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80",
+    location:"München", rec:34, price:"45 €/h", verified:true, online:true,
+    nextSlot:"Morgen, 10:00" },
+  { name:"Marco B.", talent:"Gitarrenunterricht",
+    img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
+    location:"Berlin", rec:21, price:"55 €/h", verified:true, online:false,
+    nextSlot:"Fr, 16:00" },
+  { name:"Sophie M.", talent:"Yoga & Meditation",
+    img:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80",
+    location:"Hamburg", rec:58, price:"40 €/h", verified:true, online:true,
+    nextSlot:"Heute, 18:00" },
+];
+const WERK_FAVS = [
+  { name:"Handgemachte Vase", creator:"Sofia M.", price:"65 €",
+    img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=200&q=80" },
+  { name:"Leder-Rucksack", creator:"Tom H.", price:"195 €",
+    img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&q=80" },
+  { name:"Aquarell-Druck A3", creator:"Lena K.", price:"55 €",
+    img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=80" },
+  { name:"Keramik-Tassen-Set", creator:"Sofia M.", price:"89 €",
+    img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=200&q=80" },
+];
+const IMPACT_FAVS = [
+  { name:"Schule für alle", country:"Uganda", category:"Kinder & Bildung",
+    progress:70, goal:"3.500 €" },
+  { name:"Wald schützen", country:"Kenia", category:"Natur & Umwelt",
+    progress:45, goal:"4.200 €" },
 ];
 
-const mockFavWerke = [
-  { id: 1, title: "Handgemachte Schale", creator: "Lars M.", price: "55 €", img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=300&fit=crop" },
-  { id: 2, title: "Yoga Starter-Set", creator: "Nina K.", price: "89 €", img: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop" },
-];
-
-const mockFavImpact = [
-  { id: 1, name: "Stadtgärten München", category: "Umwelt", description: "Urbane Gemeinschaftsgärten für alle", icon: "🌱", color: "#2ABFAC", votes: 234 },
-  { id: 2, name: "Kunstwerkstatt Kids", category: "Bildung", description: "Kreative Förderung für Kinder", icon: "🎨", color: "#A78BFA", votes: 187 },
-];
-
-function FavoritesPage({ onViewWirker, onBookWirker, onViewWerk, onAddToCart }) {
+export default function FavoritesPage() {
   const [tab, setTab] = useState("wirker");
-  const [favWirker, setFavWirker] = useState(mockFavWirker.map(w => w.id));
-  const [favWerke, setFavWerke] = useState(mockFavWerke.map(w => w.id));
-  const [favImpact, setFavImpact] = useState(mockFavImpact.map(i => i.id));
-  const [addedToCart, setAddedToCart] = useState({});
-
-  const handleAddToCart = (werk) => {
-    onAddToCart && onAddToCart(werk);
-    setAddedToCart(p => ({ ...p, [werk.id]: true }));
-    setTimeout(() => setAddedToCart(p => ({ ...p, [werk.id]: false })), 1800);
-  };
-
   const tabs = [
-    { id: "wirker", label: "Wirker", count: favWirker.length, icon: "✨" },
-    { id: "werke",  label: "Werke",  count: favWerke.length,  icon: "🎁" },
-    { id: "impact", label: "Impact", count: favImpact.length, icon: "🌱" },
+    { key:"wirker", label:"✨ Wirker", count:3 },
+    { key:"werke",  label:"🎁 Werke",  count:4 },
+    { key:"impact", label:"🌱 Impact", count:2 },
   ];
 
-  const EmptyState = ({ icon, label, sub, action, actionLabel }) => (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "52px 28px", textAlign: "center" }}>
-      <div style={{ width: 80, height: 80, borderRadius: 24, background: "#f5f5f3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, marginBottom: 16, boxShadow: "inset 0 2px 8px rgba(0,0,0,0.05)" }}>{icon}</div>
-      <div style={{ fontWeight: 800, fontSize: 16, color: "#333", marginBottom: 8 }}>{label}</div>
-      <div style={{ color: "#bbb", fontSize: 13, lineHeight: 1.65, maxWidth: 240 }}>{sub}</div>
-      {action && (
-        <button onClick={action} style={{ marginTop: 18, background: `linear-gradient(135deg, ${TEAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 14, padding: "12px 24px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
-          {actionLabel}
-        </button>
-      )}
-    </div>
-  );
-
   return (
-    <div style={{ paddingBottom: 90, background: "#fafaf8", minHeight: "100vh" }}>
-
-      {/* HEADER */}
-      <div style={{ background: "white", boxShadow: "0 1px 6px rgba(0,0,0,0.05)", padding: "20px 16px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 22, color: "#222" }}>Meine Favoriten</div>
-            <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{favWirker.length + favWerke.length + favImpact.length} gespeicherte Einträge</div>
-          </div>
-          <div style={{ width: 42, height: 42, borderRadius: "50%", background: `${GOLD}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>⭐</div>
+    <div style={{ paddingBottom:90 }}>
+      {/* Header */}
+      <div style={{ padding:"18px 16px 6px",
+        display:"flex", alignItems:"center",
+        justifyContent:"space-between" }}>
+        <div>
+          <div style={{ fontWeight:900, fontSize:22, color:C.ink }}>Meine Favoriten</div>
+          <div style={{ fontSize:13, color:C.muted, marginTop:2 }}>9 gespeicherte Einträge</div>
         </div>
-        <div style={{ display: "flex" }}>
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              style={{ flex: 1, background: "none", border: "none", borderBottom: tab === t.id ? `2.5px solid ${CORAL}` : "2.5px solid transparent", padding: "9px 0 11px", cursor: "pointer" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
-                <span style={{ fontSize: 13 }}>{t.icon}</span>
-                <span style={{ fontWeight: tab === t.id ? 700 : 500, fontSize: 13, color: tab === t.id ? CORAL : "#aaa" }}>{t.label}</span>
-                <span style={{ background: tab === t.id ? `${CORAL}18` : "#f0f0ee", color: tab === t.id ? CORAL : "#bbb", fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "1px 6px" }}>{t.count}</span>
-              </div>
-            </button>
-          ))}
-        </div>
+        <span style={{ fontSize:28 }}>⭐</span>
       </div>
 
-      {/* TAB: WIRKER */}
-      {tab === "wirker" && (
-        <div style={{ padding: "10px 0" }}>
-          {favWirker.length === 0
-            ? <EmptyState icon="✨" label="Noch keine Talente gespeichert" sub="Tippe auf ⭐ im Profil eines Talents um es hier zu speichern" />
-            : mockFavWirker.filter(w => favWirker.includes(w.id)).map(w => (
-              <div key={w.id} style={{ background: "white", margin: "0 0 8px", padding: "14px 16px", borderLeft: `4px solid ${TEAL}` }}>
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <div style={{ position: "relative", flexShrink: 0 }}>
-                    <img src={w.img} style={{ width: 58, height: 58, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${TEAL}25` }} alt={w.name} />
-                    {w.online && <div style={{ position: "absolute", bottom: 2, right: 2, width: 13, height: 13, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />}
+      {/* Tabs */}
+      <div style={{ display:"flex", padding:"8px 16px 0", gap:0,
+        borderBottom:`1px solid ${C.border}` }}>
+        {tabs.map(t=>(
+          <button key={t.key} onClick={()=>setTab(t.key)}
+            style={{ flex:1, padding:"10px 4px", background:"none",
+              border:"none", cursor:"pointer",
+              borderBottom:tab===t.key?`2.5px solid ${C.coral}`:"2.5px solid transparent",
+              fontSize:13, fontWeight:tab===t.key?800:500,
+              color:tab===t.key?C.coral:C.muted,
+              transition:"all 0.2s",
+              WebkitTapHighlightColor:"transparent" }}>
+            {t.label} <span style={{ fontWeight:800 }}>{t.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Wirker List */}
+      {tab==="wirker" && (
+        <div style={{ padding:"12px 16px" }}>
+          {WIRKER_FAVS.map((w,i)=>(
+            <div key={i} className="hui-card"
+              style={{ marginBottom:12, padding:"14px 16px",
+                borderLeft:`3.5px solid ${C.teal}` }}>
+              <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
+                <div style={{ position:"relative", flexShrink:0 }}>
+                  <div style={{ width:52, height:52, borderRadius:"50%",
+                    overflow:"hidden" }}>
+                    <img src={w.img} alt={w.name}
+                      style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: "#222" }}>{w.name}</span>
-                      <span style={{ background: `${TEAL}15`, color: TEAL, fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "1px 7px" }}>✓ Talent</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{w.talent}</div>
-                    <div style={{ display: "flex", gap: 10, marginTop: 3 }}>
-                      <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{w.location}</span>
-                      <span style={{ fontSize: 11, color: TEAL, display: "flex", alignItems: "center", gap: 2 }}><ThumbsUp size={10} color={TEAL} /> {w.recommendations}</span>
-                      <span style={{ fontSize: 11, color: "#bbb" }}>{w.rate}</span>
-                    </div>
+                  <div style={{ position:"absolute", bottom:1, right:1,
+                    width:12, height:12, borderRadius:"50%",
+                    background:w.online?"#4CAF50":"#ccc",
+                    border:"2px solid white" }} />
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", alignItems:"center",
+                    gap:6, marginBottom:2 }}>
+                    <span style={{ fontWeight:800, fontSize:15, color:C.ink }}>{w.name}</span>
+                    {w.verified && <span style={{ fontSize:11,
+                      color:C.teal, fontWeight:700 }}>✓ Talent</span>}
+                    <span style={{ marginLeft:"auto", fontSize:18, color:C.gold }}>★</span>
                   </div>
-                  <button onClick={() => setFavWirker(p => p.filter(id => id !== w.id))}
-                    style={{ background: `${GOLD}15`, border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Star size={15} fill={GOLD} color={GOLD} />
-                  </button>
-                </div>
-                <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, background: `${TEAL}08`, borderRadius: 10, padding: "7px 10px" }}>
-                  <Clock size={13} color={TEAL} />
-                  <span style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>Nächster freier Termin: {w.nextFree}</span>
-                </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                  <button onClick={() => onViewWirker && onViewWirker(w.name)}
-                    style={{ flex: 1, background: "#f5f5f3", border: "none", borderRadius: 12, padding: "9px 0", fontWeight: 600, fontSize: 13, color: "#444", cursor: "pointer" }}>
-                    Profil ansehen
-                  </button>
-                  <button onClick={() => onBookWirker && onBookWirker(w.name)}
-                    style={{ flex: 2, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 12, padding: "9px 0", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <Calendar size={13} color="white" /> Termin buchen
-                  </button>
+                  <div style={{ fontSize:13, color:C.teal, fontWeight:600 }}>{w.talent}</div>
+                  <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>
+                    📍 {w.location} · 👥 {w.rec} · 💰 {w.price}
+                  </div>
+                  <div style={{ fontSize:12, color:C.teal, marginTop:5,
+                    display:"flex", alignItems:"center", gap:4 }}>
+                    <span>🕐</span> Nächster freier Termin: {w.nextSlot}
+                  </div>
                 </div>
               </div>
-            ))
-          }
+              <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                <button style={{ flex:1, padding:"9px",
+                  background:C.bg2, border:`1px solid ${C.border2}`,
+                  borderRadius:10, fontSize:13, fontWeight:600, color:C.ink2,
+                  cursor:"pointer", WebkitTapHighlightColor:"transparent" }}>
+                  Profil ansehen
+                </button>
+                <button style={{ flex:1.5, padding:"9px",
+                  background:`linear-gradient(135deg, ${C.coral}, #FF8A65)`,
+                  border:"none", borderRadius:10,
+                  fontSize:13, fontWeight:800, color:"white",
+                  cursor:"pointer", boxShadow:`0 3px 10px ${C.coral}35`,
+                  WebkitTapHighlightColor:"transparent",
+                  display:"flex", alignItems:"center",
+                  justifyContent:"center", gap:5 }}>
+                  📅 Termin buchen
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* TAB: WERKE */}
-      {tab === "werke" && (
-        <div style={{ padding: "10px 0" }}>
-          {favWerke.length === 0
-            ? <EmptyState icon="🎁" label="Noch keine Werke gespeichert" sub="Tippe auf ⭐ bei einem Werk um es hier zu speichern" />
-            : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: "0 12px" }}>
-                {mockFavWerke.filter(w => favWerke.includes(w.id)).map(werk => (
-                  <div key={werk.id} style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: `0 2px 12px ${CORAL}10`, border: `1px solid ${CORAL}12` }}>
-                    <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk && onViewWerk(werk.title)}>
-                      <img src={werk.img} style={{ width: "100%", height: 130, objectFit: "cover" }} alt={werk.title} />
-                      <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.52)", color: "white", borderRadius: 20, padding: "3px 9px", fontWeight: 800, fontSize: 13 }}>{werk.price}</div>
-                      <button onClick={e => { e.stopPropagation(); setFavWerke(p => p.filter(id => id !== werk.id)); }}
-                        style={{ position: "absolute", top: 7, right: 7, background: "rgba(255,255,255,0.92)", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Star size={13} fill={GOLD} color={GOLD} />
-                      </button>
-                    </div>
-                    <div style={{ padding: "9px 10px 10px" }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: "#222", marginBottom: 4, lineHeight: 1.3 }}>{werk.title}</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 8 }}>
-                        <img src={werk.creatorImg} style={{ width: 18, height: 18, borderRadius: "50%", objectFit: "cover" }} alt="" />
-                        <span style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>{werk.creator}</span>
-                      </div>
-                      <button onClick={() => handleAddToCart(werk)}
-                        style={{ width: "100%", background: addedToCart[werk.id] ? TEAL : CORAL, color: "white", border: "none", borderRadius: 10, padding: "7px 0", fontWeight: 700, fontSize: 12, cursor: "pointer", transition: "background 0.2s" }}>
-                        {addedToCart[werk.id] ? "✓ Im Korb" : "In den Korb"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+      {/* Werke Grid */}
+      {tab==="werke" && (
+        <div style={{ padding:"12px 16px",
+          display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          {WERK_FAVS.map((w,i)=>(
+            <div key={i} className="hui-card hui-card-tap" style={{ overflow:"hidden" }}>
+              <div style={{ height:130, overflow:"hidden" }}>
+                <img src={w.img} alt={w.name}
+                  style={{ width:"100%", height:"100%", objectFit:"cover" }} />
               </div>
-            )
-          }
+              <div style={{ padding:"8px 10px 10px" }}>
+                <div style={{ fontWeight:700, fontSize:13, color:C.ink, marginBottom:3 }}>
+                  {w.name}
+                </div>
+                <div style={{ fontSize:11, color:C.teal, fontWeight:600 }}>{w.creator}</div>
+                <div style={{ fontWeight:800, fontSize:14, color:C.coral, marginTop:4 }}>
+                  {w.price}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* TAB: IMPACT */}
-      {tab === "impact" && (
-        <div style={{ padding: "10px 0" }}>
-          {favImpact.length === 0
-            ? <EmptyState icon="🌱" label="Noch keine Projekte gespeichert" sub="Entdecke Impact-Projekte und speichere sie hier — sie liegen dir am Herzen" />
-            : mockFavImpact.filter(i => favImpact.includes(i.id)).map(proj => (
-              <div key={proj.id} style={{ background: "white", margin: "0 0 8px", overflow: "hidden", borderLeft: `4px solid ${GOLD}` }}>
-                <div style={{ position: "relative" }}>
-                  <img src={proj.img} style={{ width: "100%", height: 110, objectFit: "cover" }} alt={proj.title} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.6))" }} />
-                  <div style={{ position: "absolute", bottom: 10, left: 14, right: 14, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, color: "white" }}>{proj.emoji} {proj.title}</div>
-                    <button onClick={() => setFavImpact(p => p.filter(id => id !== proj.id))}
-                      style={{ background: "rgba(255,255,255,0.9)", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Star size={13} fill={GOLD} color={GOLD} />
-                    </button>
+      {/* Impact */}
+      {tab==="impact" && (
+        <div style={{ padding:"12px 16px" }}>
+          {IMPACT_FAVS.map((p,i)=>(
+            <div key={i} className="hui-card" style={{ marginBottom:12, padding:"16px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between",
+                alignItems:"flex-start", marginBottom:8 }}>
+                <div>
+                  <div style={{ fontWeight:800, fontSize:16, color:C.ink }}>{p.name}</div>
+                  <div style={{ display:"flex", gap:6, marginTop:4 }}>
+                    <span style={{ background:C.tealPale, color:"#0A9B90",
+                      borderRadius:999, padding:"2px 9px", fontSize:11, fontWeight:700 }}>
+                      {p.category}
+                    </span>
+                    <span style={{ background:C.bg2, color:C.muted,
+                      borderRadius:999, padding:"2px 9px", fontSize:11, fontWeight:600 }}>
+                      📍 {p.country}
+                    </span>
                   </div>
-                  <div style={{ position: "absolute", top: 10, left: 14, background: `${GOLD}dd`, color: "white", borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 700 }}>{proj.tag}</div>
-                </div>
-                <div style={{ padding: "12px 14px" }}>
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
-                      <span style={{ fontWeight: 700, color: GOLD }}>{proj.collected.toLocaleString("de-DE")} € gesammelt</span>
-                      <span style={{ color: "#bbb" }}>Ziel: {proj.goal.toLocaleString("de-DE")} €</span>
-                    </div>
-                    <div style={{ height: 6, borderRadius: 99, background: "#f0f0ee", overflow: "hidden" }}>
-                      <div style={{ height: "100%", borderRadius: 99, background: `linear-gradient(90deg, ${GOLD}, ${CORAL})`, width: `${Math.min((proj.collected / proj.goal) * 100, 100)}%` }} />
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 12, fontSize: 12, color: "#aaa", marginBottom: 12 }}>
-                    <span>👥 {proj.backers} Unterstützer</span>
-                    <span>⏱ noch {proj.daysLeft} Tage</span>
-                  </div>
-                  <button style={{ width: "100%", background: `linear-gradient(135deg, ${GOLD}, ${CORAL})`, color: "white", border: "none", borderRadius: 12, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
-                    🌱 Jetzt unterstützen
-                  </button>
                 </div>
               </div>
-            ))
-          }
+              <div style={{ marginBottom:6 }}>
+                <div style={{ display:"flex", justifyContent:"space-between",
+                  fontSize:12, color:C.muted, marginBottom:5 }}>
+                  <span>Wunschbetrag</span>
+                  <span style={{ fontWeight:700, color:C.teal }}>{p.goal}</span>
+                </div>
+                <div style={{ background:C.border, borderRadius:999, height:7 }}>
+                  <div style={{ height:"100%", borderRadius:999,
+                    background:`linear-gradient(90deg, ${C.teal}, ${C.teal}AA)`,
+                    width:`${p.progress}%`, transition:"width 1s" }} />
+                </div>
+              </div>
+              <button style={{ width:"100%", padding:"11px",
+                background:`linear-gradient(135deg, ${C.teal}, ${C.teal}CC)`,
+                border:"none", borderRadius:12,
+                fontSize:13, fontWeight:800, color:"white",
+                cursor:"pointer", boxShadow:`0 3px 10px rgba(22,211,197,0.3)`,
+                WebkitTapHighlightColor:"transparent" }}>
+                🌱 Für dieses Projekt stimmen
+              </button>
+            </div>
+          ))}
         </div>
       )}
-
     </div>
   );
 }
-// ══════════════════════════════════════════════════════════════════
-// TALENT ANBIETEN – Onboarding Flow
-// ══════════════════════════════════════════════════════════════════
-
-export default FavoritesPage;
