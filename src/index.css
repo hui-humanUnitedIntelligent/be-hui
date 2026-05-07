@@ -3,248 +3,329 @@
 @tailwind utilities;
 
 /* ══════════════════════════════════════════════════════
-   HUI Design System — Exakt wie alte Base44 Version
-   Türkis #16D3C5 + Coral #FF7043 + Weiß + klare Struktur
+   HUI — Cinematic Warm Design System
+   Wirker = Teal  ·  Werke = Coral  ·  Canvas = Cream
 ══════════════════════════════════════════════════════ */
 
 :root {
-  --teal:      #16D3C5;
-  --teal2:     #11C5B7;
-  --teal-pale: #E6FAF8;
-  --coral:     #FF7043;
-  --coral2:    #FF5722;
-  --coral-pale:#FFF0EC;
-  --gold:      #FFB300;
-  --gold-pale: #FFF8E1;
-  --green:     #4CAF50;
-  --bg:        #FFFFFF;
-  --bg2:       #F5F5F5;
-  --card:      #FFFFFF;
-  --ink:       #1A1A1A;
-  --ink2:      #333333;
-  --muted:     #888888;
-  --muted2:    #BBBBBB;
-  --border:    #EEEEEE;
-  --border2:   #E0E0E0;
-  --shadow:    rgba(0,0,0,0.08);
-  
-  /* shadcn compat */
-  --background: 0 0% 100%;
-  --foreground: 0 0% 10%;
+  /* ── Wirker World — Teal ── */
+  --teal:       #16D7C5;
+  --teal-deep:  #11C5B7;
+  --teal-soft:  #4DDDD4;
+  --teal-mist:  rgba(22,215,197,0.12);
+  --teal-glow:  rgba(22,215,197,0.28);
+  --teal-pale:  #E4F9F7;
+  --teal-ultra: #F0FDFB;
+
+  /* ── Werke World — Coral ── */
+  --coral:      #FF8A6B;
+  --coral-deep: #FF7B72;
+  --coral-warm: #FFA07A;
+  --coral-mist: rgba(255,138,107,0.12);
+  --coral-glow: rgba(255,138,107,0.28);
+  --coral-pale: #FFF2EE;
+  --coral-ultra:#FFF8F5;
+
+  /* ── Canvas ── */
+  --cream:      #F9F6F2;
+  --cream-warm: #FFF9F4;
+  --cream-deep: #F2EDE6;
+  --white:      #FFFFFF;
+  --card:       #FFFFFF;
+
+  /* ── Text ── */
+  --ink:        #18181B;
+  --ink-2:      #3F3F46;
+  --ink-3:      #52525B;
+  --muted:      #71717A;
+  --muted-2:    #A1A1AA;
+  --subtle:     #D4D4D8;
+
+  /* ── Structure ── */
+  --border:     #E4E4E7;
+  --border-warm:#EDE8E0;
+  --gold:       #F59E0B;
+  --gold-pale:  #FFFBEB;
+  --green:      #10B981;
+
+  /* shadcn */
+  --background: 36 25% 97%;
+  --foreground: 240 5% 11%;
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 10%;
+  --card-foreground: 240 5% 11%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 10%;
+  --popover-foreground: 240 5% 11%;
   --primary: 177 78% 45%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 20%;
-  --muted: 0 0% 95%;
-  --muted-foreground: 0 0% 53%;
+  --secondary: 36 20% 95%;
+  --secondary-foreground: 240 5% 25%;
+  --muted: 36 15% 94%;
+  --muted-foreground: 240 4% 46%;
   --accent: 177 78% 94%;
-  --accent-foreground: 177 60% 26%;
+  --accent-foreground: 177 60% 25%;
   --destructive: 14 78% 54%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 93%;
-  --input: 0 0% 93%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
   --ring: 177 78% 45%;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
+/* ── Base ─────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
                'Segoe UI', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: var(--bg);
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--cream);
   color: var(--ink);
   overscroll-behavior: none;
+  line-height: 1.5;
 }
 
-/* Scrollbar */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── Cards ──────────────────────────────────── */
+/* ── Warm Cream Background ────────────────────── */
+.hui-canvas {
+  background:
+    radial-gradient(ellipse 55% 28% at 15% 0%,  rgba(22,215,197,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 20% at 88% 100%, rgba(255,138,107,0.07) 0%, transparent 55%),
+    var(--cream);
+}
+
+/* ── Glass ────────────────────────────────────── */
+.hui-glass {
+  background: rgba(255,253,248,0.88);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid rgba(255,255,255,0.6);
+}
+.hui-glass-card {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+.hui-glass-dark {
+  background: rgba(20,20,28,0.48);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+/* ── Cards ────────────────────────────────────── */
 .hui-card {
   background: var(--card);
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08);
-  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow:
+    0 1px 0 rgba(0,0,0,0.02),
+    0 2px 6px rgba(0,0,0,0.03),
+    0 8px 28px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+.hui-card-sm {
+  background: var(--card);
+  border-radius: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.07);
+  overflow: hidden;
 }
 .hui-card-tap {
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 .hui-card-tap:active {
-  transform: scale(0.975);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  transform: scale(0.974);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
 }
 
-/* ── Coral Primary Button (like old app) ─── */
-.hui-btn-coral {
-  background: linear-gradient(135deg, #FF7043, #FF8A65);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 15px;
+/* ── Wirker Card — teal atmosphere ───────────── */
+.hui-wirker-card {
+  background: var(--card);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(22,215,197,0.10),
+    0 4px 12px rgba(0,0,0,0.04),
+    0 16px 48px rgba(0,0,0,0.09);
+  transition: transform 0.24s cubic-bezier(0.34,1.2,0.64,1),
+              box-shadow 0.24s ease;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: opacity 0.15s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 3px 12px rgba(255,112,67,0.30);
 }
-.hui-btn-coral:active { opacity: 0.88; transform: scale(0.96); }
+.hui-wirker-card:active {
+  transform: scale(0.968);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+}
+
+/* ── Werke Card — coral atmosphere ───────────── */
+.hui-werk-card {
+  background: var(--card);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,138,107,0.08),
+    0 4px 12px rgba(0,0,0,0.04),
+    0 16px 40px rgba(0,0,0,0.08);
+  transition: transform 0.22s cubic-bezier(0.34,1.2,0.64,1),
+              box-shadow 0.22s ease;
+  cursor: pointer;
+}
+.hui-werk-card:active { transform: scale(0.972); }
+
+/* ── Buttons ──────────────────────────────────── */
+.hui-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; border: none; cursor: pointer; font-family: inherit;
+  font-weight: 700; transition: opacity 0.15s, transform 0.14s;
+  -webkit-tap-highlight-color: transparent; white-space: nowrap;
+}
+.hui-btn:active { opacity: 0.86; transform: scale(0.95); }
 
 .hui-btn-teal {
-  background: linear-gradient(135deg, #16D3C5, #11C5B7);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: opacity 0.15s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 3px 12px rgba(22,211,197,0.30);
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%);
+  color: white; border-radius: 14px;
+  box-shadow: 0 3px 14px var(--teal-glow), 0 1px 4px rgba(0,0,0,0.08);
 }
-.hui-btn-teal:active { opacity: 0.88; transform: scale(0.96); }
-
-.hui-btn-outline {
-  background: white;
-  border: 1.5px solid var(--border2);
-  color: var(--ink2);
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
+.hui-btn-coral {
+  background: linear-gradient(135deg, var(--coral) 0%, var(--coral-deep) 100%);
+  color: white; border-radius: 14px;
+  box-shadow: 0 3px 14px var(--coral-glow), 0 1px 4px rgba(0,0,0,0.08);
 }
-.hui-btn-outline:active { background: var(--bg2); }
-
-/* ── Tags / Badges ──────────────────────────── */
-.hui-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
+.hui-btn-ghost {
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.28);
+  color: white; border-radius: 12px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
-.hui-tag-teal   { background: var(--teal-pale);  color: #0A9B90; }
-.hui-tag-coral  { background: var(--coral-pale);  color: #C84B30; }
-.hui-tag-gold   { background: var(--gold-pale);   color: #8A6200; }
-.hui-tag-green  { background: #E8F5E9; color: #2E7D32; }
-.hui-tag-gray   { background: #F5F5F5; color: #666; }
-
-/* ── Bottom Nav ─────────────────────────────── */
-.hui-bottom-nav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border);
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+.hui-btn-cream {
+  background: rgba(249,246,242,0.92); border: 1px solid var(--border-warm);
+  color: var(--ink-2); border-radius: 12px;
 }
 
-/* ── Search ─────────────────────────────────── */
-.hui-search-input {
-  width: 100%;
-  background: #F5F5F5;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 11px 16px 11px 40px;
-  font-size: 14px;
-  color: var(--ink);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+/* ── Bottom Nav ───────────────────────────────── */
+.hui-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.hui-nav-pill {
+  margin: 0 10px 8px;
+  background: rgba(255,253,248,0.94);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.72);
+  border-radius: 28px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04), 0 10px 36px rgba(0,0,0,0.11);
+  display: flex; align-items: center;
+  padding: 5px 8px 5px;
+}
+
+/* ── Section Typography ───────────────────────── */
+.hui-section-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.hui-section-headline {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  line-height: 1.2; color: var(--ink);
+}
+.hui-section-sub {
+  font-size: 13px; color: var(--muted); line-height: 1.55;
+}
+
+/* ── Search ───────────────────────────────────── */
+.hui-search {
+  width: 100%; background: rgba(255,255,255,0.92);
+  border: 1.5px solid var(--border-warm);
+  border-radius: 18px; padding: 14px 56px 14px 46px;
+  font-size: 15px; color: var(--ink); outline: none;
   font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
 }
-.hui-search-input:focus {
+.hui-search:focus {
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(22,211,197,0.12);
-  background: white;
+  box-shadow: 0 0 0 4px var(--teal-mist), 0 2px 10px rgba(0,0,0,0.04);
 }
-.hui-search-input::placeholder { color: var(--muted); }
+.hui-search::placeholder { color: var(--muted-2); }
 
-/* ── Section Headers ────────────────────────── */
-.hui-section-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--ink);
-  letter-spacing: -0.3px;
-}
+/* ═══════════════════════════════════════════════
+   ANIMATIONS — air · light · water
+═══════════════════════════════════════════════ */
 
-/* ── Animations ─────────────────────────────── */
-@keyframes hui-fade-up {
-  from { opacity: 0; transform: translateY(14px); }
+/* Cinematic fade-rise */
+@keyframes hui-rise {
+  from { opacity: 0; transform: translateY(22px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.hui-fade-up   { animation: hui-fade-up 0.4s cubic-bezier(0.34,1.1,0.64,1) both; }
-.hui-fade-up-1 { animation: hui-fade-up 0.4s 0.05s cubic-bezier(0.34,1.1,0.64,1) both; }
-.hui-fade-up-2 { animation: hui-fade-up 0.4s 0.10s cubic-bezier(0.34,1.1,0.64,1) both; }
-.hui-fade-up-3 { animation: hui-fade-up 0.4s 0.15s cubic-bezier(0.34,1.1,0.64,1) both; }
-.hui-fade-up-4 { animation: hui-fade-up 0.4s 0.20s cubic-bezier(0.34,1.1,0.64,1) both; }
+.hui-rise   { animation: hui-rise 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+.hui-rise-1 { animation: hui-rise 0.55s 0.07s cubic-bezier(0.22,1,0.36,1) both; }
+.hui-rise-2 { animation: hui-rise 0.55s 0.14s cubic-bezier(0.22,1,0.36,1) both; }
+.hui-rise-3 { animation: hui-rise 0.55s 0.21s cubic-bezier(0.22,1,0.36,1) both; }
+.hui-rise-4 { animation: hui-rise 0.55s 0.28s cubic-bezier(0.22,1,0.36,1) both; }
+.hui-rise-5 { animation: hui-rise 0.55s 0.35s cubic-bezier(0.22,1,0.36,1) both; }
 
+/* Gentle heart */
 @keyframes hui-heart {
   0%  { transform: scale(1); }
-  35% { transform: scale(1.55); }
-  60% { transform: scale(0.88); }
+  30% { transform: scale(1.45); }
+  55% { transform: scale(0.9); }
   100%{ transform: scale(1); }
 }
-.hui-heart { animation: hui-heart 0.4s ease both; }
+.hui-heart { animation: hui-heart 0.42s cubic-bezier(0.22,1,0.36,1) both; }
 
+/* Warm shimmer skeleton */
 @keyframes hui-shimmer {
-  0%   { background-position: -600px 0; }
-  100% { background-position:  600px 0; }
+  0%   { background-position: -700px 0; }
+  100% { background-position:  700px 0; }
 }
 .hui-shimmer {
-  background: linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%);
-  background-size: 1200px 100%;
-  animation: hui-shimmer 1.5s ease infinite;
-  border-radius: 12px;
+  background: linear-gradient(90deg, #EDE8E0 25%, #E5DED6 50%, #EDE8E0 75%);
+  background-size: 1400px 100%;
+  animation: hui-shimmer 1.6s ease infinite;
 }
 
+/* Ambient float */
+@keyframes hui-float {
+  0%,100% { transform: translateY(-14px); box-shadow: 0 8px 28px rgba(22,215,197,0.42); }
+  50%      { transform: translateY(-17px); box-shadow: 0 12px 36px rgba(22,215,197,0.52); }
+}
+.hui-float { animation: hui-float 3s ease-in-out infinite; }
+
+/* Story ring */
+@keyframes hui-ring {
+  0%,100% { box-shadow: 0 0 0 2px var(--teal), 0 0 12px var(--teal-glow); }
+  50%      { box-shadow: 0 0 0 2px var(--coral), 0 0 14px var(--coral-glow); }
+}
+.hui-ring { animation: hui-ring 3s ease-in-out infinite; }
+
+/* Slide up sheet */
 @keyframes hui-slide-up {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
-.hui-slide-up { animation: hui-slide-up 0.32s cubic-bezier(0.34,1.1,0.64,1) both; }
+.hui-slide-up { animation: hui-slide-up 0.36s cubic-bezier(0.22,1,0.36,1) both; }
 
+/* Breathe */
+@keyframes hui-breathe {
+  0%,100% { opacity: 0.72; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.04); }
+}
+.hui-breathe { animation: hui-breathe 2.8s ease-in-out infinite; }
+
+/* Soft check */
 @keyframes hui-check {
-  0%  { transform: scale(0) rotate(-15deg); opacity: 0; }
-  65% { transform: scale(1.18) rotate(3deg); opacity: 1; }
+  0%  { transform: scale(0) rotate(-12deg); opacity: 0; }
+  65% { transform: scale(1.15) rotate(2deg); opacity: 1; }
   100%{ transform: scale(1) rotate(0);       opacity: 1; }
 }
-.hui-check { animation: hui-check 0.42s cubic-bezier(0.34,1.56,0.64,1) both; }
+.hui-check { animation: hui-check 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
 
-@keyframes hui-breathe {
-  0%,100% { opacity: 0.7; transform: scale(1); }
-  50%      { opacity: 1;  transform: scale(1.05); }
-}
-.hui-breathe { animation: hui-breathe 2.6s ease-in-out infinite; }
-
+/* Impact ring */
 @keyframes hui-ring-fill {
   from { stroke-dashoffset: 565; }
   to   { stroke-dashoffset: var(--ring-offset, 0); }
 }
-.hui-ring-fill { animation: hui-ring-fill 1.8s cubic-bezier(0.4,0,0.2,1) 0.3s both; }
+.hui-ring-fill { animation: hui-ring-fill 2s cubic-bezier(0.4,0,0.2,1) 0.4s both; }
