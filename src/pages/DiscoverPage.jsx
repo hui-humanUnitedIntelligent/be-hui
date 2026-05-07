@@ -111,7 +111,7 @@ export default function DiscoverPage({ onView, onMap }) {
                   fontWeight: cat===c ? 800 : 500,
                   color: cat===c ? "white" : C.muted,
                   cursor:"pointer", fontFamily:"inherit",
-                  boxShadow: cat===c ? \`0 2px 10px \${C.tealGlow}\` : "none",
+                  boxShadow: cat===c ? `0 2px 10px \${C.tealGlow}` : "none",
                   transition:"all 0.2s",
                   WebkitTapHighlightColor:"transparent" }}>
                 {c}
@@ -141,7 +141,7 @@ export default function DiscoverPage({ onView, onMap }) {
                     rgba(0,0,0,0.72) 100%)` }}/>
                 <div style={{ position:"absolute", top:0, left:0,
                   right:0, height:3,
-                  background:\`linear-gradient(90deg,\${C.gold},transparent)\` }}/>
+                  background:`linear-gradient(90deg,\${C.gold},transparent)` }}/>
                 {/* Spots */}
                 {shown[0].spots <= 4 && (
                   <div style={{ position:"absolute", top:14, right:14 }}>
@@ -198,7 +198,7 @@ export default function DiscoverPage({ onView, onMap }) {
                     overflow:"hidden", cursor:"pointer",
                     boxShadow:"0 3px 16px rgba(0,0,0,0.08)",
                     display:"flex", height:100,
-                    animation:\`fadeUp 0.4s \${i*0.06}s both\` }}>
+                    animation:`fadeUp 0.4s \${i*0.06}s both` }}>
                   {/* Thumbnail */}
                   <div style={{ width:100, flexShrink:0, position:"relative" }}>
                     <img src={ex.img} alt={ex.title}
@@ -244,16 +244,16 @@ export default function DiscoverPage({ onView, onMap }) {
           borderRadius:22, overflow:"hidden", position:"relative",
           cursor:"pointer" }} onClick={onMap}>
           <div style={{ height:90,
-            background:\`linear-gradient(135deg,\${C.teal}22,\${C.coral}14)\`,
-            border:\`1.5px solid \${C.teal}30\`,
+            background:`linear-gradient(135deg,\${C.teal}22,\${C.coral}14)`,
+            border:`1.5px solid \${C.teal}30`,
             borderRadius:22,
             display:"flex", alignItems:"center",
             gap:16, padding:"0 20px" }}>
             <div style={{ width:48, height:48, borderRadius:16,
-              background:\`linear-gradient(135deg,\${C.teal},\${C.teal2})\`,
+              background:`linear-gradient(135deg,\${C.teal},\${C.teal2})`,
               display:"flex", alignItems:"center",
               justifyContent:"center", fontSize:22,
-              boxShadow:\`0 4px 14px \${C.tealGlow}\` }}>
+              boxShadow:`0 4px 14px \${C.tealGlow}` }}>
               🗺
             </div>
             <div>
