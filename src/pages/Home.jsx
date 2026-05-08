@@ -3,6 +3,7 @@ import { supabase }   from "../lib/supabaseClient";
 import ImpactPage     from "./ImpactPage";
 import ProfilePage    from "./ProfilePage";
 import BookingFlow    from "../components/BookingFlow";
+import { WerkDetail, WerkCheckout, WerkeKorb } from "../components/WerkeShop";
 import CreateFlow     from "../components/CreateFlow";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
@@ -1055,6 +1056,9 @@ export default function Home() {
   const [tab,         setTab]         = useState("feed");
   const [showWirker,  setShowWirker]  = useState(null);
   const [showBooking, setShowBooking] = useState(null);
+  const [showWerkDetail,  setShowWerkDetail]  = useState(null);  // werk detail view
+  const [showWerkCheckout,setShowWerkCheckout]= useState(null);  // werk checkout
+  const [showWerkeKorb,   setShowWerkeKorb]   = useState(false); // korb sheet
   const [showCreate,  setShowCreate]  = useState(false);
   const [showMatch,   setShowMatch]   = useState(false);
   const [showMap,     setShowMap]     = useState(false);
@@ -1088,6 +1092,24 @@ export default function Home() {
     </div>
   );
 
+  if(showWerkDetail) return (
+    <WerkDetail
+      werk={showWerkDetail}
+      onClose={()=>setShowWerkDetail(null)}
+      onAddToKorb={w=>{setCart(p=>[...p,w]);setShowWerkDetail(null);}}
+      onBuyNow={w=>{setShowWerkDetail(null);setShowWerkCheckout([w]);}}
+    />
+  );
+
+  if(showWerkCheckout) return (
+    <WerkCheckout
+      werk={showWerkCheckout[0]}
+      items={showWerkCheckout}
+      onClose={()=>setShowWerkCheckout(null)}
+      onSuccess={()=>setShowWerkCheckout(null)}
+    />
+  );
+
   return (
     <>
       <style>{GLOBAL_CSS}</style>
@@ -1108,11 +1130,13 @@ export default function Home() {
 
           {tab==="feed" && (
             <DiscoveryFeed
-              onView={w=>setShowWirker(w)}
+              onView={w=>w.type==="werk"||w.price?setShowWerkDetail(w):setShowWirker(w)}
               onBook={w=>setShowBooking(w)}
               onImpact={()=>setTab("impact")}
               onMatch={()=>setShowMatch(true)}
               onMap={()=>setShowMap(true)}
+              onBuyWerk={w=>setShowWerkCheckout([w])}
+              onAddToKorb={w=>{setCart(p=>[...p,w]);}}
             />
           )}
           {tab==="impact" && (
@@ -1152,8 +1176,13 @@ export default function Home() {
           onBook={w=>{setShowWirker(null);setShowBooking(w);}}
         />
       )}
-        {showKorb   && <KorbPage cart={cart}
-          onClose={()=>setShowKorb(false)}/>}
+        {(showKorb||showWerkeKorb) && <WerkeKorb
+          items={cart}
+          onClose={()=>{setShowKorb(false);setShowWerkeKorb(false);}}
+          onRemove={i=>setCart(p=>p.filter((_,idx)=>idx!==i))}
+          onCheckout={()=>{setShowKorb(false);setShowWerkeKorb(false);
+            if(cart.length>0)setShowWerkCheckout(cart);}}
+        />}
       </div>
     </>
   );
