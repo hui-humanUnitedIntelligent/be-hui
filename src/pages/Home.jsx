@@ -171,69 +171,18 @@ function HeartBtn({ size=36, overlayStyle={} }) {
   );
 }
 
-function HuiLogo({ size=44, rounded=true }) {
-  const r = rounded ? Math.round(size * 0.27) : 0;
+function HuiLogo({ size=44 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 120 120" fill="none"
-      style={{ display:"block", flexShrink:0 }}>
-      <defs>
-        {/* Background: teal top-left → coral bottom-right */}
-        <linearGradient id="hbg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#1ECFBF"/>
-          <stop offset="55%"  stopColor="#18C8B8"/>
-          <stop offset="100%" stopColor="#FF8A6B"/>
-        </linearGradient>
-        {/* Coral wave fill */}
-        <linearGradient id="hcoral" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FF9F80"/>
-          <stop offset="100%" stopColor="#FF7B5E"/>
-        </linearGradient>
-        {/* Teal letter fill */}
-        <linearGradient id="hteal" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#12C4B4"/>
-          <stop offset="100%" stopColor="#0EADA0"/>
-        </linearGradient>
-      </defs>
-
-      {/* ── Rounded square background ── */}
-      <rect x="0" y="0" width="120" height="120" rx={r} fill="url(#hbg)"/>
-
-      {/* ── White blob (top swoosh) ── */}
-      <path d="M10 18 Q30 4 70 8 Q100 10 112 22 Q118 30 108 38
-               Q90 50 60 44 Q30 38 18 50 Q8 60 10 45 Z"
-        fill="white" fillOpacity="0.92"/>
-
-      {/* ── White blob (bottom swoosh) ── */}
-      <path d="M8 78 Q20 68 50 72 Q80 76 100 68
-               Q114 62 114 78 Q114 98 98 108 Q80 118 50 116
-               Q24 114 10 100 Q2 92 8 78 Z"
-        fill="url(#hcoral)" fillOpacity="0.96"/>
-
-      {/* ── H letter ── */}
-      {/* Left stem */}
-      <rect x="18" y="28" width="10" height="46" rx="5" fill="url(#hteal)"/>
-      {/* Right stem */}
-      <rect x="46" y="28" width="10" height="46" rx="5" fill="url(#hteal)"/>
-      {/* Crossbar */}
-      <rect x="18" y="47" width="38" height="9" rx="4.5" fill="url(#hteal)"/>
-
-      {/* ── U letter ── */}
-      <path d="M60 28 L60 64 Q60 78 74 78 Q88 78 88 64 L88 28"
-        stroke="url(#hteal)" strokeWidth="10" strokeLinecap="round"
-        strokeLinejoin="round" fill="none"/>
-
-      {/* ── i letter ── */}
-      {/* dot */}
-      <circle cx="102" cy="30" r="6" fill="url(#hteal)"/>
-      {/* stem */}
-      <rect x="97" y="40" width="10" height="34" rx="5" fill="url(#hteal)"/>
-
-      {/* ── Subtle inner shadow/depth on letters ── */}
-      <path d="M18 28 L18 74 Q18 74 23 74 L23 28 Q23 28 18 28Z"
-        fill="white" fillOpacity="0.12"/>
-      <path d="M46 28 L46 74 Q46 74 51 74 L51 28 Q51 28 46 28Z"
-        fill="white" fillOpacity="0.12"/>
-    </svg>
+    <img
+      src="/hui-logo.jpg"
+      alt="HUI"
+      style={{
+        width:size, height:size,
+        borderRadius: Math.round(size * 0.27),
+        objectFit:"cover",
+        display:"block", flexShrink:0,
+      }}
+    />
   );
 }
 
@@ -522,23 +471,10 @@ function BottomNav({ tab, onTab, onCreate }) {
                   0 4px 12px rgba(255,138,107,0.22)
                 `,
               }}>
-                {/* Real HUI logo — no background, letters only in white */}
-                <svg width="36" height="36" viewBox="0 0 120 120" fill="none">
-                  {/* H left stem */}
-                  <rect x="18" y="28" width="10" height="46" rx="5" fill="white"/>
-                  {/* H right stem */}
-                  <rect x="46" y="28" width="10" height="46" rx="5" fill="white"/>
-                  {/* H crossbar */}
-                  <rect x="18" y="47" width="38" height="9" rx="4.5" fill="white"/>
-                  {/* U */}
-                  <path d="M60 28 L60 64 Q60 78 74 78 Q88 78 88 64 L88 28"
-                    stroke="white" strokeWidth="10" strokeLinecap="round"
-                    strokeLinejoin="round" fill="none"/>
-                  {/* i dot */}
-                  <circle cx="102" cy="30" r="6" fill="white"/>
-                  {/* i stem */}
-                  <rect x="97" y="40" width="10" height="34" rx="5" fill="white"/>
-                </svg>
+                {/* Real HUI logo image */}
+                <img src="/hui-logo.jpg" alt="HUI"
+                  style={{ width:36, height:36, borderRadius:10,
+                    objectFit:"cover", display:"block" }}/>
               </div>
             </button>
           );
