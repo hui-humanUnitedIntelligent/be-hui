@@ -311,68 +311,81 @@ const NAV = [
   {key:"profile",  label:"Profil"},
 ];
 
-/* Soft custom SVG icons — premium, organic */
+/* ─── NAV ICONS — custom, characterful, HUI-native ─── */
 function NavIcon({ k, active }) {
-  const col   = active ? C.teal : C.muted2;
-  const glow  = active ? `drop-shadow(0 0 4px ${C.tealGlow})` : "none";
-  const s = { width:22, height:22, filter:glow, transition:"filter 0.3s" };
+  const col  = active ? C.teal : "rgba(80,80,80,0.55)";
+  const col2 = active ? C.coral : "rgba(80,80,80,0.30)";
+  const sw   = active ? 1.8 : 1.5;
 
+  /* HOME — organic house with a heart-roofline */
   if(k==="feed") return (
-    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
-      <path d="M3 9.5L12 3L21 9.5V20C21 20.55 20.55 21 20 21H15.5V15.5H8.5V21H4C3.45 21 3 20.55 3 20V9.5Z"
-        fill={active?"url(#nav-teal)":"none"} stroke={col} strokeWidth="1.6"
-        strokeLinejoin="round"/>
-      <defs>
-        <linearGradient id="nav-teal" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={C.teal}/>
-          <stop offset="100%" stopColor={C.coral} stopOpacity="0.7"/>
-        </linearGradient>
-      </defs>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      {/* Roof — curved, warm */}
+      <path d="M3.5 11 Q12 2.5 20.5 11" stroke={col} strokeWidth={sw}
+        strokeLinecap="round" fill="none"/>
+      {/* Walls */}
+      <path d="M5.5 11V20.5H10V15.5H14V20.5H18.5V11"
+        stroke={col} strokeWidth={sw} strokeLinecap="round"
+        strokeLinejoin="round" fill={active ? `${C.teal}15` : "none"}/>
+      {/* Tiny heart on door */}
+      <path d="M12 18 C12 18 10.5 17 10.5 15.8 C10.5 15.1 11.3 14.7 12 15.3 C12.7 14.7 13.5 15.1 13.5 15.8 C13.5 17 12 18 12 18Z"
+        fill={active ? C.coral : "rgba(80,80,80,0.25)"} stroke="none"/>
     </svg>
   );
+
+  /* IMPACT — sprouting seedling */
   if(k==="impact") return (
-    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke={col} strokeWidth="1.6"/>
-      <path d="M12 7 Q16 9 15 13 Q12 10 12 7Z"
-        fill={active?C.teal:col} opacity={active?1:0.65}/>
-      <path d="M15 13 Q14 17 11 18" stroke={col}
-        strokeWidth="1.4" strokeLinecap="round"/>
-      <circle cx="16.5" cy="6.5" r="1.8"
-        fill={active?C.gold:C.muted2} opacity={active?1:0.5}/>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      {/* Stem */}
+      <path d="M12 21 V10" stroke={col} strokeWidth={sw} strokeLinecap="round"/>
+      {/* Left leaf */}
+      <path d="M12 14 Q8 12 7 8 Q10 8 12 11"
+        fill={active ? `${C.teal}30` : "rgba(80,80,80,0.12)"}
+        stroke={col} strokeWidth={sw-0.3} strokeLinejoin="round"/>
+      {/* Right leaf */}
+      <path d="M12 17 Q16 15 17 11 Q14 11 12 14"
+        fill={active ? `${C.teal}22` : "rgba(80,80,80,0.08)"}
+        stroke={col} strokeWidth={sw-0.3} strokeLinejoin="round"/>
+      {/* Ground line */}
+      <path d="M8 21 H16" stroke={col2} strokeWidth={1.2} strokeLinecap="round"/>
     </svg>
   );
+
+  /* DISCOVER — compass rose */
   if(k==="discover") return (
-    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke={col} strokeWidth="1.6"/>
-      <path d="M17 7L14 13.5L7 17L10 10.5L17 7Z"
-        fill={active?"url(#nav-teal2)":"none"} stroke={col}
-        strokeWidth="1.5" strokeLinejoin="round"/>
-      <circle cx="12" cy="12" r="1.5" fill={active?C.teal:col}/>
-      <defs>
-        <linearGradient id="nav-teal2" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={C.teal}/>
-          <stop offset="100%" stopColor={C.coral} stopOpacity="0.6"/>
-        </linearGradient>
-      </defs>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke={col} strokeWidth={sw}/>
+      {/* N needle — teal */}
+      <path d="M12 12 L10.5 6.5 L12 8.5 L13.5 6.5 Z"
+        fill={active ? C.teal : col} stroke="none"/>
+      {/* S needle — coral */}
+      <path d="M12 12 L10.5 17.5 L12 15.5 L13.5 17.5 Z"
+        fill={active ? C.coral : "rgba(80,80,80,0.3)"} stroke="none"/>
+      {/* Center dot */}
+      <circle cx="12" cy="12" r="1.5"
+        fill={active ? "white" : "rgba(80,80,80,0.3)"}
+        stroke={col} strokeWidth="0.8"/>
     </svg>
   );
+
+  /* PROFILE — abstract face, warm */
   if(k==="profile") return (
-    <svg width={s.width} height={s.height} style={{filter:s.filter,transition:s.transition}} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="8.5" r="3.5"
-        fill={active?"url(#nav-teal3)":"none"} stroke={col} strokeWidth="1.6"/>
-      <path d="M5 20Q5 15 12 15Q19 15 19 20"
-        stroke={col} strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-      <defs>
-        <linearGradient id="nav-teal3" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={C.teal}/>
-          <stop offset="100%" stopColor={C.coral} stopOpacity="0.7"/>
-        </linearGradient>
-      </defs>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      {/* Head circle */}
+      <circle cx="12" cy="8.5" r="4"
+        fill={active ? `${C.teal}18` : "rgba(80,80,80,0.08)"}
+        stroke={col} strokeWidth={sw}/>
+      {/* Shoulders arc */}
+      <path d="M4 21 Q4 15 12 15 Q20 15 20 21"
+        stroke={col} strokeWidth={sw} strokeLinecap="round"
+        fill={active ? `${C.teal}10` : "none"}/>
     </svg>
   );
+
   return null;
 }
 
+/* ─── BOTTOM NAV — floating pill, premium ─── */
 function BottomNav({ tab, onTab, onCreate }) {
   const [pressed, setPressed] = useState(null);
 
@@ -380,138 +393,148 @@ function BottomNav({ tab, onTab, onCreate }) {
     <div style={{
       position:"fixed", bottom:0, left:0, right:0, zIndex:100,
     }}>
-      {/* Floating pill container */}
       <div style={{
-        margin:"0 12px",
-        marginBottom:"max(10px, env(safe-area-inset-bottom, 10px))",
-        background:"rgba(252,250,247,0.88)",
-        backdropFilter:"blur(32px) saturate(1.6)",
-        WebkitBackdropFilter:"blur(32px) saturate(1.6)",
-        borderRadius:32,
-        border:"1px solid rgba(255,255,255,0.65)",
+        margin:"0 14px",
+        marginBottom:"max(12px, env(safe-area-inset-bottom, 12px))",
+        background:"rgba(255,251,248,0.92)",
+        backdropFilter:"blur(36px) saturate(1.8)",
+        WebkitBackdropFilter:"blur(36px) saturate(1.8)",
+        borderRadius:28,
+        border:"1px solid rgba(255,255,255,0.72)",
         boxShadow:`
-          0 4px 6px rgba(0,0,0,0.04),
-          0 12px 32px rgba(0,0,0,0.09),
-          0 1px 0 rgba(255,255,255,0.8) inset
+          0 2px 4px rgba(0,0,0,0.03),
+          0 8px 28px rgba(0,0,0,0.10),
+          0 1px 0 rgba(255,255,255,0.9) inset
         `,
         display:"flex", alignItems:"center",
         justifyContent:"space-around",
-        padding:"8px 6px",
-        overflow:"visible",
+        padding:"6px 4px",
       }}>
-        {NAV.map((item,i)=>{
+
+        {NAV.map((item, i) => {
+          /* ── HUI centre button ── */
           if(!item) return (
-            
             <button key="hui"
               onClick={onCreate}
               onTouchStart={()=>setPressed("hui")}
               onTouchEnd={()=>setPressed(null)}
               style={{
-                background:"none", border:"none", cursor:"pointer",
-                padding:0, lineHeight:0, flexShrink:0,
+                background:"none", border:"none",
+                cursor:"pointer", padding:0,
+                lineHeight:0, flexShrink:0,
                 WebkitTapHighlightColor:"transparent",
               }}>
               <div style={{
-                width:54, height:54,
-                borderRadius:18,
-                marginTop:-26,
-                background:`linear-gradient(145deg, ${C.teal}, #14C4B4 40%, ${C.coral})`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                transform: pressed==="hui" ? "scale(0.92) translateY(2px)" : "scale(1) translateY(0)",
-                transition:"transform 0.25s cubic-bezier(0.34,1.3,0.64,1)",
+                width:52, height:52, borderRadius:17,
+                marginTop:-24,
+                background:`linear-gradient(145deg,${C.teal},#14C4B4 45%,${C.coral})`,
+                display:"flex", alignItems:"center",
+                justifyContent:"center",
+                transform: pressed==="hui"
+                  ? "scale(0.90) translateY(2px)"
+                  : "scale(1) translateY(0)",
+                transition:"transform 0.22s cubic-bezier(0.34,1.3,0.64,1)",
                 boxShadow:`
-                  0 0 0 3px rgba(252,250,247,0.9),
-                  0 4px 6px rgba(0,0,0,0.10),
-                  0 8px 24px rgba(22,215,197,0.35),
-                  0 4px 12px rgba(255,138,107,0.20)
+                  0 0 0 3px rgba(255,251,248,0.95),
+                  0 4px 6px rgba(0,0,0,0.12),
+                  0 8px 22px rgba(22,215,197,0.38),
+                  0 4px 12px rgba(255,138,107,0.22)
                 `,
               }}>
-                {/* HUI Logo SVG */}
-                <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
-                  <rect x="2" y="2" width="60" height="60" rx="16"
-                    fill="white" fillOpacity="0.18"/>
-                  <rect x="2" y="2" width="60" height="30" rx="16"
-                    fill="white" fillOpacity="0.10"/>
-                  <text x="8" y="44" fontSize="28" fontWeight="900"
-                    fill="white" fontFamily="-apple-system,system-ui"
-                    letterSpacing="-1.5">HUI</text>
+                {/* HUI wordmark — clean sans */}
+                <svg width="34" height="18" viewBox="0 0 68 24" fill="none">
+                  {/* H */}
+                  <path d="M2 2 V22 M2 12 H14 M14 2 V22"
+                    stroke="white" strokeWidth="3.5"
+                    strokeLinecap="round" strokeLinejoin="round"/>
+                  {/* U */}
+                  <path d="M22 2 V16 Q22 22 30 22 Q38 22 38 16 V2"
+                    stroke="white" strokeWidth="3.5"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    fill="none"/>
+                  {/* I */}
+                  <path d="M50 2 V22 M46 2 H54 M46 22 H54"
+                    stroke="white" strokeWidth="3.5"
+                    strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
             </button>
           );
 
-          const active = tab===item.key;
-          const isPressed = pressed===item.key;
+          const active    = tab === item.key;
+          const isPressed = pressed === item.key;
 
           return (
             <button key={item.key}
-              onClick={()=>onTab(item.key)}
-              onTouchStart={()=>setPressed(item.key)}
-              onTouchEnd={()=>setPressed(null)}
+              onClick={() => onTab(item.key)}
+              onTouchStart={() => setPressed(item.key)}
+              onTouchEnd={() => setPressed(null)}
               style={{
                 display:"flex", flexDirection:"column",
-                alignItems:"center", gap:4,
+                alignItems:"center", gap:3,
                 background:"none", border:"none",
-                cursor:"pointer", padding:"4px 12px",
-                borderRadius:20, position:"relative",
+                cursor:"pointer",
+                padding:"5px 10px 4px",
+                borderRadius:18,
+                position:"relative",
                 WebkitTapHighlightColor:"transparent",
                 transform: isPressed ? "scale(0.88)" : "scale(1)",
-                transition:"transform 0.2s cubic-bezier(0.34,1.4,0.64,1)",
-                minWidth:52,
+                transition:"transform 0.18s cubic-bezier(0.34,1.4,0.64,1)",
+                minWidth:50,
               }}>
 
-              {/* Active pill background */}
+              {/* Active background pill */}
               {active && (
                 <div style={{
-                  position:"absolute", inset:0, borderRadius:20,
-                  background:`linear-gradient(135deg,
-                    rgba(22,215,197,0.10) 0%,
-                    rgba(255,138,107,0.06) 100%)`,
-                  border:`1px solid rgba(22,215,197,0.15)`,
-                  transition:"opacity 0.3s",
+                  position:"absolute", inset:0,
+                  borderRadius:18,
+                  background:`linear-gradient(150deg,
+                    ${C.teal}18 0%,
+                    ${C.coral}0A 100%)`,
+                  border:`1px solid ${C.teal}28`,
                 }}/>
               )}
 
               {/* Icon */}
               <div style={{
                 position:"relative", zIndex:1,
-                transform: active ? "translateY(-1px)" : "translateY(0)",
-                transition:"transform 0.3s cubic-bezier(0.34,1.3,0.64,1)",
+                transform: active ? "translateY(-1px) scale(1.06)" : "translateY(0) scale(1)",
+                transition:"transform 0.25s cubic-bezier(0.34,1.3,0.64,1)",
               }}>
                 <NavIcon k={item.key} active={active}/>
               </div>
 
-              {/* Label */}
+              {/* Label — readable, warm */}
               <span style={{
-                fontSize:9, fontWeight: active ? 700 : 400,
-                color: active ? C.teal : C.muted2,
-                transition:"color 0.25s, font-weight 0.25s",
-                letterSpacing: active ? 0.2 : 0,
+                fontSize:10,
+                fontWeight: active ? 700 : 500,
+                color: active ? C.teal : "rgba(60,60,60,0.65)",
+                transition:"all 0.22s",
+                letterSpacing: active ? 0.1 : 0,
                 position:"relative", zIndex:1,
+                fontFamily:"inherit",
               }}>
                 {item.label}
               </span>
 
-              {/* Active dot */}
+              {/* Active indicator dot */}
               {active && (
                 <div style={{
-                  position:"absolute", bottom:2,
-                  width:3, height:3, borderRadius:"50%",
+                  position:"absolute", bottom:1,
+                  left:"50%", transform:"translateX(-50%)",
+                  width:4, height:4, borderRadius:"50%",
                   background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                  boxShadow:`0 0 4px ${C.teal}80`,
+                  boxShadow:`0 0 5px ${C.teal}80`,
                 }}/>
               )}
             </button>
           );
         })}
+
       </div>
     </div>
   );
 }
-
-/* ═══════════════════════════════════════════════════
-   WIRKER SHEET — cinematic bottom sheet
-═══════════════════════════════════════════════════ */
 function WirkerSheet({ w, onClose, onBook }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:400,
