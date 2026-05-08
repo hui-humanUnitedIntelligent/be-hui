@@ -104,7 +104,7 @@ function SaveBtn({ accent, dark }) {
 }
 
 /* ── WIRKER TILE — compact, portrait ──────────────────────────────────── */
-function WirkerTile({ w, onView }) {
+function WirkerTile({ w, onView, onBook }) {
   return (
     <div className="df-tap" onClick={() => onView && onView(w)}
       style={{ flexShrink:0, width:118, cursor:"pointer" }}>
@@ -137,17 +137,26 @@ function WirkerTile({ w, onView }) {
             fontWeight:600, marginTop:1 }}>{w.talent}</div>
         </div>
       </div>
-      {/* City */}
-      <div style={{ fontSize:10, color:C.muted, marginTop:5,
-        paddingLeft:2, display:"flex", alignItems:"center", gap:3 }}>
-        <span style={{ fontSize:9 }}>📍</span>{w.city}
+      {/* Price + buy pill */}
+      <div style={{ display:"flex", alignItems:"center",
+        justifyContent:"space-between", marginTop:5, paddingLeft:2 }}>
+        <span style={{ fontSize:11, fontWeight:800, color:C.coral }}>
+          {w.price}
+        </span>
+        <button onClick={e=>{e.stopPropagation();onBuyWerk&&onBuyWerk(w);}}
+          style={{ background:C.coral, border:"none", borderRadius:999,
+            padding:"3px 10px", fontSize:9.5, fontWeight:800,
+            color:"white", cursor:"pointer", fontFamily:"inherit",
+            WebkitTapHighlightColor:"transparent" }}>
+          kaufen
+        </button>
       </div>
     </div>
   );
 }
 
 /* ── WERK TILE — compact, square-ish ─────────────────────────────────── */
-function WerkTile({ w, onView }) {
+function WerkTile({ w, onView, onBuyWerk }) {
   return (
     <div className="df-tap" onClick={() => onView && onView(w)}
       style={{ flexShrink:0, width:130, cursor:"pointer" }}>
@@ -230,7 +239,7 @@ function Divider({ label, accent }) {
 }
 
 /* ── IMMERSIVE FEED CARDS ─────────────────────────────────────────────── */
-function WirkerCard({ item, onView }) {
+function WirkerCard({ item, onView, onBook }) {
   return (
     <div className="df-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%", height:"82vh", maxHeight:640,
@@ -286,21 +295,33 @@ function WirkerCard({ item, onView }) {
             </div>
           ))}
         </div>
-        <button onClick={e=>{e.stopPropagation();onView&&onView(item);}}
-          style={{ width:"100%", padding:"15px",
-            background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-            border:"none", borderRadius:16, color:"white",
-            fontSize:14.5, fontWeight:800, cursor:"pointer",
-            fontFamily:"inherit", boxShadow:`0 5px 20px ${C.tealGlow}`,
-            WebkitTapHighlightColor:"transparent" }}>
-          Profil ansehen
-        </button>
+        <div style={{ display:"flex", gap:8 }}>
+          <button onClick={e=>{e.stopPropagation();onView&&onView(item);}}
+            style={{ flex:1, padding:"14px",
+              background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)",
+              border:"1.5px solid rgba(22,215,197,0.45)",
+              borderRadius:16, color:"white",
+              fontSize:13, fontWeight:700, cursor:"pointer",
+              fontFamily:"inherit",
+              WebkitTapHighlightColor:"transparent" }}>
+            Profil
+          </button>
+          <button onClick={e=>{e.stopPropagation();onBook&&onBook(item);}}
+            style={{ flex:1.5, padding:"14px",
+              background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+              border:"none", borderRadius:16, color:"white",
+              fontSize:13, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:`0 4px 16px ${C.tealGlow}`,
+              WebkitTapHighlightColor:"transparent" }}>
+            Jetzt buchen
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-function WerkCard({ item, onView }) {
+function WerkCard({ item, onView, onBuyWerk, onAddToKorb }) {
   return (
     <div className="df-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%", height:"76vh", maxHeight:590,
@@ -348,15 +369,27 @@ function WerkCard({ item, onView }) {
           {item.creator}</div>
         <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.44)", marginBottom:20 }}>
           📍 {item.city}</div>
-        <button onClick={e=>{e.stopPropagation();onView&&onView(item);}}
-          style={{ width:"100%", padding:"15px",
-            background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
-            border:"none", borderRadius:16, color:"white",
-            fontSize:14.5, fontWeight:800, cursor:"pointer",
-            fontFamily:"inherit", boxShadow:`0 5px 20px ${C.coralGlow}`,
-            WebkitTapHighlightColor:"transparent" }}>
-          Werk entdecken
-        </button>
+        <div style={{ display:"flex", gap:8 }}>
+          <button onClick={e=>{e.stopPropagation();onAddToKorb&&onAddToKorb(item);}}
+            style={{ flex:1, padding:"14px",
+              background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
+              border:"1.5px solid rgba(255,138,107,0.45)",
+              borderRadius:16, color:"white",
+              fontSize:13, fontWeight:700, cursor:"pointer",
+              fontFamily:"inherit",
+              WebkitTapHighlightColor:"transparent" }}>
+            In Korb
+          </button>
+          <button onClick={e=>{e.stopPropagation();onBuyWerk&&onBuyWerk(item);}}
+            style={{ flex:1.5, padding:"14px",
+              background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
+              border:"none", borderRadius:16, color:"white",
+              fontSize:13, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:`0 4px 16px ${C.coralGlow}`,
+              WebkitTapHighlightColor:"transparent" }}>
+            Jetzt kaufen
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -506,7 +539,7 @@ function ImpactCard({ item, onImpact }) {
 /* ════════════════════════════════════════════════════════════════
    MAIN DISCOVERY FEED
 ════════════════════════════════════════════════════════════════ */
-export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap }) {
+export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb }) {
   return (
     <>
       <style>{CSS}</style>
@@ -583,7 +616,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           style={{ display:"flex", gap:12, overflowX:"auto",
             padding:"0 20px 4px" }}>
           {WIRKERS.map((w, i) => (
-            <WirkerTile key={i} w={w} onView={onView}/>
+            <WirkerTile key={i} w={w} onView={onView} onBook={onBook}/>
           ))}
         </div>
 
@@ -598,7 +631,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           style={{ display:"flex", gap:12, overflowX:"auto",
             padding:"0 20px 4px" }}>
           {WERKE.map((w, i) => (
-            <WerkTile key={i} w={w} onView={onView}/>
+            <WerkTile key={i} w={w} onView={onView} onBuyWerk={onBuyWerk}/>
           ))}
         </div>
 
@@ -620,8 +653,8 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
               <div key={item.id}>
                 {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
                 <div style={{ padding:"0 16px" }}>
-                  {item.type==="wirker"     && <WirkerCard     item={item} onView={onView}/>}
-                  {item.type==="werk"       && <WerkCard        item={item} onView={onView}/>}
+                  {item.type==="wirker"     && <WirkerCard     item={item} onView={onView} onBook={onBook}/>}
+                  {item.type==="werk"       && <WerkCard        item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb}/>}
                   {item.type==="experience" && <ExperienceCard  item={item} onView={onView}/>}
                   {item.type==="impact"     && <ImpactCard      item={item} onImpact={onImpact}/>}
                 </div>
