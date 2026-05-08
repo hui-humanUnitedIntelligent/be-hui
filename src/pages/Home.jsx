@@ -193,43 +193,38 @@ function Korb({ count=0, size=32, onClick }) {
       style={{ background:"none", border:"none", cursor:"pointer",
         padding:4, lineHeight:0, position:"relative",
         WebkitTapHighlightColor:"transparent" }}>
-      <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+        {/* Shopping bag — clean, minimal, app-native */}
+        {/* Handle */}
+        <path d="M11 13 Q11 7 16 7 Q21 7 21 13"
+          stroke={count>0 ? C.teal : "rgba(60,60,60,0.5)"}
+          strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+        {/* Bag body */}
+        <path d="M7 13 L8.5 26 Q8.5 27 9.5 27 H22.5 Q23.5 27 23.5 26 L25 13 Z"
+          fill={count>0
+            ? `url(#korb-fill)`
+            : "rgba(60,60,60,0.08)"}
+          stroke={count>0 ? C.teal : "rgba(60,60,60,0.35)"}
+          strokeWidth="1.5" strokeLinejoin="round"/>
+        {/* Subtle fold line */}
+        <path d="M9 19 Q16 18.2 23 19"
+          stroke={count>0 ? `${C.teal}55` : "rgba(60,60,60,0.12)"}
+          strokeWidth="0.9" strokeLinecap="round"/>
         <defs>
-          <linearGradient id="kb" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#E8A87C"/>
-            <stop offset="100%" stopColor="#B5692E"/>
-          </linearGradient>
-          <linearGradient id="kr" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#16D7C5"/>
-            <stop offset="100%" stopColor="#11C5B7"/>
+          <linearGradient id="korb-fill" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={`${C.teal}22`}/>
+            <stop offset="100%" stopColor={`${C.coral}14`}/>
           </linearGradient>
         </defs>
-        <path d="M22 29 Q22 11 32 11 Q42 11 42 29"
-          fill="none" stroke="#C8784A" strokeWidth="4" strokeLinecap="round"/>
-        <path d="M11 32 Q11 54 32 54 Q53 54 53 32Z" fill="url(#kb)"/>
-        {[37,43,49].map((y,i)=>(
-          <path key={i} d={`M12 ${y} Q32 ${y-2} 52 ${y}`}
-            fill="none" stroke="#9A5220" strokeWidth="1.5" strokeOpacity="0.4"/>
-        ))}
-        {[19,25,31,37,43].map((x,i)=>(
-          <path key={i} d={`M${x} 32 Q${x-1} 43 ${x} 53`}
-            fill="none" stroke="#7A3E14" strokeWidth="0.9" strokeOpacity="0.28"/>
-        ))}
-        <rect x="10" y="30" width="44" height="6" rx="3" fill="url(#kr)"/>
-        <rect x="10" y="30" width="44" height="3" rx="2" fill="white" fillOpacity="0.2"/>
-        {count>0 && <>
-          <circle cx="23" cy="27" r="5.5" fill="#FF8A6B" opacity="0.92"/>
-          <circle cx="32" cy="25" r="6"   fill="#16D7C5" opacity="0.92"/>
-          <circle cx="41" cy="27" r="5"   fill="#F59E0B" opacity="0.92"/>
-        </>}
       </svg>
       {count>0 && (
-        <div style={{ position:"absolute", top:-1, right:-1,
-          minWidth:16, height:16, borderRadius:999,
-          background:C.coral, color:"white", fontSize:8, fontWeight:900,
+        <div style={{ position:"absolute", top:0, right:0,
+          minWidth:15, height:15, borderRadius:999,
+          background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+          color:"white", fontSize:8, fontWeight:900,
           display:"flex", alignItems:"center", justifyContent:"center",
-          padding:"0 3px", border:"2px solid white",
-          boxShadow:`0 2px 6px ${C.coral}66` }}>
+          padding:"0 3px", border:"2px solid rgba(255,251,248,0.95)",
+          boxShadow:`0 1px 5px ${C.tealGlow}` }}>
           {count>9?"9+":count}
         </div>
       )}
@@ -304,15 +299,32 @@ function Header({ cart, notif, onCart, onNotif, userName }) {
 
         <button onClick={onNotif}
           style={{ background:"none", border:"none", cursor:"pointer",
-            padding:4, position:"relative", fontSize:20, lineHeight:1,
+            padding:4, position:"relative", lineHeight:0,
             WebkitTapHighlightColor:"transparent" }}>
-          🔔
+          <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+            {/* Bell dome */}
+            <path d="M16 4 C10 4 8 9 8 14 L8 21 L6 23 L26 23 L24 21 L24 14 C24 9 22 4 16 4Z"
+              fill={notif>0 ? `${C.teal}1A` : "rgba(60,60,60,0.08)"}
+              stroke={notif>0 ? C.teal : "rgba(60,60,60,0.45)"}
+              strokeWidth="1.6" strokeLinejoin="round"/>
+            {/* Clapper */}
+            <path d="M13 23 Q13 27 16 27 Q19 27 19 23"
+              stroke={notif>0 ? C.teal : "rgba(60,60,60,0.45)"}
+              strokeWidth="1.6" strokeLinecap="round" fill="none"/>
+            {/* Active vibration lines */}
+            {notif>0 && <>
+              <path d="M6 10 Q5 8 6.5 6.5" stroke={C.teal} strokeWidth="1.2"
+                strokeLinecap="round" opacity="0.5"/>
+              <path d="M26 10 Q27 8 25.5 6.5" stroke={C.coral} strokeWidth="1.2"
+                strokeLinecap="round" opacity="0.5"/>
+            </>}
+          </svg>
           {notif>0 && (
-            <div style={{ position:"absolute", top:0, right:0,
-              width:14, height:14, borderRadius:"50%",
-              background:C.coral, color:"white", fontSize:7, fontWeight:900,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              border:"2px solid white" }}>{notif}</div>
+            <div style={{ position:"absolute", top:1, right:1,
+              width:8, height:8, borderRadius:"50%",
+              background:`linear-gradient(135deg,${C.coral},${C.coral2||"#FF7B72"})`,
+              border:"1.5px solid rgba(255,251,248,0.95)",
+              boxShadow:`0 1px 4px ${C.coralGlow}` }}/>
           )}
         </button>
 
