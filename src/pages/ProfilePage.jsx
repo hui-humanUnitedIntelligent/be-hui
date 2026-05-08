@@ -107,174 +107,292 @@ function Row({ icon, label, sub, badge, accent, onClick, idx=0 }) {
    BASISPROFIL VIEW
 ══════════════════════════════════════════ */
 function BaseProfil({ profile, onSwitchToWirker, onShowOrders,
-  onTalentAnbieten, onLogout, onClose }) {
+  onTalentAnbieten, onLogout }) {
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Guten Morgen" : hour < 18 ? "Hallo" : "Guten Abend";
+  const firstName = (profile.name || "").split(" ")[0] || "dort";
 
   return (
     <div className="pp-scroll"
-      style={{ background:C.warm, overflowY:"auto", height:"100%",
-        WebkitOverflowScrolling:"touch" }}>
+      style={{ background:"#F7F5F2", overflowY:"auto", height:"100%",
+        WebkitOverflowScrolling:"touch", paddingBottom:120 }}>
       <style>{CSS}</style>
 
-      {/* ── Quiet personal header ── */}
-      <div style={{ padding:"max(52px,env(safe-area-inset-top,52px)) 22px 0" }}>
+      {/* ─────────────────────────────────────────
+          HEADER — ruhig, persönlich, warm
+      ───────────────────────────────────────── */}
+      <div style={{
+        background:"linear-gradient(160deg,#FFFFFF 0%,#F7F5F2 100%)",
+        borderBottom:"1px solid rgba(0,0,0,0.05)",
+        padding:"max(52px,env(safe-area-inset-top,52px)) 24px 28px",
+      }}>
         <div style={{ display:"flex", alignItems:"center",
-          justifyContent:"space-between", marginBottom:24,
-          animation:"ppUp 0.35s both" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-            <div style={{ position:"relative" }}>
-              <img src={profile.img} alt={profile.name}
-                style={{ width:56, height:56, borderRadius:18,
-                  objectFit:"cover", objectPosition:"top",
-                  border:`2px solid ${C.card}`,
-                  boxShadow:"0 3px 14px rgba(0,0,0,0.12)" }}/>
-              <div style={{ position:"absolute", bottom:-2, right:-2,
-                width:14, height:14, borderRadius:"50%",
-                background:C.green,
-                border:"2px solid white" }}/>
+          gap:16, animation:"ppUp 0.4s both" }}>
+
+          {/* Avatar */}
+          <div style={{ position:"relative", flexShrink:0 }}>
+            <img src={profile.img} alt={profile.name}
+              style={{ width:62, height:62, borderRadius:22,
+                objectFit:"cover", objectPosition:"top",
+                boxShadow:"0 4px 18px rgba(0,0,0,0.13)" }}/>
+            <div style={{ position:"absolute", bottom:-3, right:-3,
+              width:16, height:16, borderRadius:"50%",
+              background:"#3DB87A",
+              border:"2.5px solid #F7F5F2",
+              boxShadow:"0 1px 5px rgba(61,184,122,0.4)" }}/>
+          </div>
+
+          {/* Greeting */}
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:12, color:C.muted, fontWeight:500,
+              letterSpacing:0.2, marginBottom:3 }}>
+              {greeting}, {firstName} ✦
             </div>
-            <div>
-              <div style={{ fontWeight:900, fontSize:17, color:C.ink,
-                letterSpacing:-0.3 }}>
-                {profile.name.split(" ")[0]} ·
-                <span style={{ fontWeight:500, fontSize:14,
-                  color:C.muted }}> Mein Bereich</span>
-              </div>
-              <div style={{ fontSize:11.5, color:C.muted, marginTop:1 }}>
-                Dabei seit {profile.memberSince}
-              </div>
+            <div style={{ fontWeight:900, fontSize:20, color:C.ink,
+              letterSpacing:-0.5, lineHeight:1.15 }}>
+              Dein HUI Bereich
             </div>
           </div>
+
+          {/* Settings gear — minimal */}
+          <button style={{ width:40, height:40, borderRadius:14,
+            background:"rgba(0,0,0,0.05)", border:"none",
+            cursor:"pointer", fontSize:18,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            WebkitTapHighlightColor:"transparent" }}>
+            ⚙️
+          </button>
         </div>
 
-        {/* ── Stats row — quiet ── */}
-        <div style={{ background:C.card, borderRadius:20,
-          padding:"14px 16px", marginBottom:24,
-          border:`1px solid ${C.border}`,
-          boxShadow:"0 2px 12px rgba(0,0,0,0.04)",
-          display:"flex", gap:0,
-          animation:"ppUp 0.35s 0.04s both" }}>
-          {[
-            { val:`€ ${profile.impactEur.toFixed(0)}`, label:"Impact", color:C.green },
-            { val:profile.recommendations, label:"Empfehlungen", color:C.teal },
-            { val:profile.bookings,        label:"Buchungen",    color:C.coral },
-          ].map((s, i) => (
-            <div key={i} style={{ flex:1, textAlign:"center",
-              borderRight: i < 2 ? `1px solid ${C.border}` : "none" }}>
-              <div style={{ fontWeight:900, fontSize:18,
-                color:s.color }}>{s.val}</div>
-              <div style={{ fontSize:10.5, color:C.muted,
-                marginTop:2 }}>{s.label}</div>
-            </div>
-          ))}
+        {/* Impact pill — dezent, nicht dominant */}
+        <div style={{ display:"inline-flex", alignItems:"center", gap:7,
+          marginTop:18, padding:"7px 14px",
+          background:"rgba(61,184,122,0.09)",
+          border:"1px solid rgba(61,184,122,0.18)",
+          borderRadius:999, animation:"ppUp 0.4s 0.05s both" }}>
+          <div style={{ width:7, height:7, borderRadius:"50%",
+            background:"#3DB87A" }}/>
+          <span style={{ fontSize:12, color:"#3DB87A", fontWeight:600 }}>
+            € {profile.impactEur?.toFixed(0) || "0"} bewirkter Impact
+          </span>
         </div>
-
-        {/* ── Wirker switch banner ── */}
-        {profile.role === "wirker" && (
-          <button onClick={onSwitchToWirker} className="pp-tap"
-            style={{ width:"100%", background:`linear-gradient(135deg,${C.teal}18,${C.coral}0A)`,
-              border:`1px solid ${C.teal}30`, borderRadius:18,
-              padding:"14px 18px", marginBottom:24,
-              cursor:"pointer", fontFamily:"inherit", textAlign:"left",
-              display:"flex", alignItems:"center", gap:12,
-              animation:"ppUp 0.35s 0.08s both" }}>
-            <div style={{ width:38, height:38, borderRadius:12,
-              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-              display:"flex", alignItems:"center",
-              justifyContent:"center", fontSize:18 }}>✨</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontWeight:800, fontSize:14, color:C.teal }}>
-                Mein Wirkerprofil ansehen
-              </div>
-              <div style={{ fontSize:11.5, color:C.muted, marginTop:1 }}>
-                Deine öffentliche kreative Identität
-              </div>
-            </div>
-            <span style={{ color:C.teal, fontSize:16 }}>›</span>
-          </button>
-        )}
-
-        {profile.role !== "wirker" && (
-          <button onClick={onTalentAnbieten} className="pp-tap"
-            style={{ width:"100%",
-              background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
-              border:"none", borderRadius:18,
-              padding:"16px 18px", marginBottom:24,
-              cursor:"pointer", fontFamily:"inherit", textAlign:"left",
-              display:"flex", alignItems:"center", gap:12, color:"white",
-              boxShadow:`0 4px 18px ${C.coralGlow}`,
-              animation:"ppUp 0.35s 0.08s both" }}>
-            <div style={{ fontSize:22 }}>🌟</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontWeight:800, fontSize:14 }}>
-                Wirker werden
-              </div>
-              <div style={{ fontSize:11.5, opacity:0.8, marginTop:1 }}>
-                Teile dein Talent mit der Welt
-              </div>
-            </div>
-            <span style={{ fontSize:16, opacity:0.8 }}>›</span>
-          </button>
-        )}
       </div>
 
-      {/* ── Sections ── */}
-      <div style={{ padding:"0 22px 100px" }}>
+      {/* ─────────────────────────────────────────
+          WIRKERPROFIL KARTE — immersiv, cinematic
+      ───────────────────────────────────────── */}
+      {profile.role === "wirker" ? (
+        <div style={{ margin:"24px 18px 0", animation:"ppUp 0.4s 0.08s both" }}>
+          <div style={{ fontSize:10, fontWeight:700, color:C.muted,
+            letterSpacing:1.8, textTransform:"uppercase",
+            marginBottom:10 }}>Meine öffentliche Identität</div>
 
-        {/* Käufe & Buchungen */}
-        <div style={{ fontSize:10.5, fontWeight:700, color:C.muted,
-          letterSpacing:1.5, textTransform:"uppercase",
-          marginBottom:4, marginTop:8 }}>Meine Aktivität</div>
-        <div style={{ background:C.card, borderRadius:18,
-          padding:"0 4px", marginBottom:20,
-          border:`1px solid ${C.border}`,
-          boxShadow:"0 2px 10px rgba(0,0,0,0.04)" }}>
+          <button onClick={onSwitchToWirker}
+            className="pp-tap"
+            style={{ width:"100%", position:"relative",
+              borderRadius:26, overflow:"hidden",
+              border:"none", cursor:"pointer", padding:0,
+              fontFamily:"inherit",
+              boxShadow:"0 8px 32px rgba(0,0,0,0.14)" }}>
+            {/* BG image */}
+            <img src={profile.bg}
+              alt="Wirkerprofil"
+              style={{ width:"100%", height:170,
+                objectFit:"cover", objectPosition:"center 30%",
+                display:"block",
+                filter:"brightness(0.72) saturate(1.2)" }}/>
+            {/* Gradient overlay */}
+            <div style={{ position:"absolute", inset:0,
+              background:"linear-gradient(to bottom,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.65) 100%)" }}/>
+            {/* Content */}
+            <div style={{ position:"absolute", bottom:0, left:0, right:0,
+              padding:"16px 20px",
+              display:"flex", alignItems:"flex-end",
+              justifyContent:"space-between" }}>
+              <div style={{ textAlign:"left" }}>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.65)",
+                  fontWeight:600, letterSpacing:1.2,
+                  textTransform:"uppercase", marginBottom:5 }}>
+                  Wirkerprofil
+                </div>
+                <div style={{ fontWeight:900, fontSize:18, color:"white",
+                  letterSpacing:-0.3 }}>{profile.name}</div>
+                <div style={{ fontSize:12, color:"rgba(255,255,255,0.72)",
+                  marginTop:3 }}>
+                  {profile.talent} · {profile.city}
+                </div>
+              </div>
+              <div style={{ background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+                borderRadius:14, padding:"10px 16px",
+                fontSize:12, fontWeight:800, color:"white",
+                boxShadow:`0 3px 14px ${C.tealGlow}`,
+                flexShrink:0 }}>
+                Öffnen ›
+              </div>
+            </div>
+          </button>
+        </div>
+      ) : (
+        /* Nicht-Wirker: "Wirker werden" CTA */
+        <div style={{ margin:"24px 18px 0", animation:"ppUp 0.4s 0.08s both" }}>
+          <button onClick={onTalentAnbieten} className="pp-tap"
+            style={{ width:"100%", padding:"20px 22px",
+              background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
+              border:"none", borderRadius:22, cursor:"pointer",
+              fontFamily:"inherit", textAlign:"left",
+              boxShadow:`0 6px 24px ${C.coralGlow}`,
+              display:"flex", alignItems:"center", gap:16 }}>
+            <div style={{ width:48, height:48, borderRadius:16,
+              background:"rgba(255,255,255,0.2)",
+              display:"flex", alignItems:"center",
+              justifyContent:"center", fontSize:22, flexShrink:0 }}>
+              🌟
+            </div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontWeight:900, fontSize:16, color:"white",
+                letterSpacing:-0.3 }}>Wirker werden</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.78)",
+                marginTop:3, lineHeight:1.5 }}>
+                Teile dein Talent. Biete Werke & Experiences an.
+              </div>
+            </div>
+            <span style={{ color:"rgba(255,255,255,0.7)", fontSize:20 }}>›</span>
+          </button>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────
+          MEIN HUI
+      ───────────────────────────────────────── */}
+      <div style={{ margin:"28px 18px 0", animation:"ppUp 0.4s 0.12s both" }}>
+        <div style={{ fontSize:10, fontWeight:700, color:C.muted,
+          letterSpacing:1.8, textTransform:"uppercase",
+          marginBottom:10 }}>Mein HUI</div>
+
+        <div style={{ background:"#FFFFFF", borderRadius:22,
+          overflow:"hidden",
+          border:"1px solid rgba(0,0,0,0.06)",
+          boxShadow:"0 2px 14px rgba(0,0,0,0.04)" }}>
           {[
-            { icon:"📦", label:"Bestellungen & Buchungen",
+            { icon:"📦", iconBg:"rgba(22,215,197,0.10)", iconColor:C.teal,
+              label:"Bestellungen & Buchungen",
               sub:"Aktive und vergangene Käufe",
-              badge: profile.orders?.filter(o=>o.status==="transit").length || 1,
-              accent:C.teal, action:onShowOrders },
-            { icon:"💙", label:"Gespeicherte Werke",
-              sub:`${profile.gespeichert?.length || 0} Werke gespeichert`,
-              accent:C.coral },
-            { icon:"💬", label:"Nachrichten",
+              badge: 1, action: onShowOrders },
+            { icon:"🛍", iconBg:"rgba(245,166,35,0.10)", iconColor:C.gold,
+              label:"Werkekorb",
+              sub:"Deine gespeicherten Artikel" },
+            { icon:"💙", iconBg:"rgba(255,138,107,0.10)", iconColor:C.coral,
+              label:"Gespeicherte Werke",
+              sub:"Werke die du gemocht hast" },
+            { icon:"💬", iconBg:"rgba(22,215,197,0.10)", iconColor:C.teal,
+              label:"Nachrichten",
               sub:"Buchungsgespräche",
-              badge:profile.unreadMessages, accent:C.teal },
-            { icon:"🌱", label:"Impact Stimmen",
-              sub:`${profile.impactVotes} Stimmen abgegeben · € ${profile.impactEur.toFixed(0)} bewirkt`,
-              accent:C.green },
-          ].map((item, i) => (
-            <Row key={i} {...item} idx={i} onClick={item.action}/>
+              badge: profile.unreadMessages },
+            { icon:"🌱", iconBg:"rgba(61,184,122,0.10)", iconColor:"#3DB87A",
+              label:"Impact Stimmen",
+              sub:"Dein Beitrag zu echten Projekten" },
+          ].map((item, i, arr) => (
+            <button key={i}
+              onClick={item.action}
+              className="pp-tap"
+              style={{ width:"100%", display:"flex", alignItems:"center",
+                gap:14, padding:"15px 18px",
+                background:"none", border:"none", cursor:"pointer",
+                fontFamily:"inherit", textAlign:"left",
+                borderBottom: i < arr.length-1
+                  ? "1px solid rgba(0,0,0,0.045)" : "none" }}>
+              <div style={{ width:42, height:42, borderRadius:14,
+                background:item.iconBg, flexShrink:0,
+                display:"flex", alignItems:"center",
+                justifyContent:"center", fontSize:19 }}>
+                {item.icon}
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontWeight:700, fontSize:14, color:C.ink,
+                  lineHeight:1.2 }}>{item.label}</div>
+                <div style={{ fontSize:11.5, color:C.muted,
+                  marginTop:2, lineHeight:1.3 }}>{item.sub}</div>
+              </div>
+              {item.badge > 0 && (
+                <div style={{ minWidth:20, height:20, borderRadius:999,
+                  background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+                  color:"white", fontSize:9, fontWeight:900,
+                  display:"flex", alignItems:"center",
+                  justifyContent:"center", padding:"0 5px",
+                  flexShrink:0 }}>
+                  {item.badge}
+                </div>
+              )}
+              <span style={{ color:"rgba(0,0,0,0.2)", fontSize:15,
+                flexShrink:0 }}>›</span>
+            </button>
           ))}
         </div>
+      </div>
 
-        <div style={{ fontSize:10.5, fontWeight:700, color:C.muted,
-          letterSpacing:1.5, textTransform:"uppercase",
-          marginBottom:4 }}>Konto & Einstellungen</div>
-        <div style={{ background:C.card, borderRadius:18,
-          padding:"0 4px", marginBottom:20,
-          border:`1px solid ${C.border}`,
-          boxShadow:"0 2px 10px rgba(0,0,0,0.04)" }}>
+      {/* ─────────────────────────────────────────
+          MEIN KONTO
+      ───────────────────────────────────────── */}
+      <div style={{ margin:"24px 18px 0", animation:"ppUp 0.4s 0.16s both" }}>
+        <div style={{ fontSize:10, fontWeight:700, color:C.muted,
+          letterSpacing:1.8, textTransform:"uppercase",
+          marginBottom:10 }}>Mein Konto</div>
+
+        <div style={{ background:"#FFFFFF", borderRadius:22,
+          overflow:"hidden",
+          border:"1px solid rgba(0,0,0,0.06)",
+          boxShadow:"0 2px 14px rgba(0,0,0,0.04)" }}>
           {[
-            { icon:"💳", label:"Zahlungsmethoden",
-              sub:"Karten, Bankverbindung", accent:C.gold },
-            { icon:"🔔", label:"Benachrichtigungen",
-              sub:"Anfragen, Updates, Impact", accent:C.coral },
-            { icon:"🔒", label:"Privatsphäre",
-              sub:"Sichtbarkeit & Datenschutz", accent:C.muted },
-            { icon:"✏️", label:"Profil bearbeiten",
-              sub:"Name, Foto, Beschreibung", accent:C.teal },
-          ].map((item, i) => (
-            <Row key={i} {...item} idx={i+4}/>
+            { icon:"💳", iconBg:"rgba(245,166,35,0.10)",
+              label:"Zahlungsmethoden", sub:"Karten & Bankverbindung" },
+            { icon:"📄", iconBg:"rgba(22,215,197,0.08)",
+              label:"Rechnungen", sub:"Belege & Zahlungshistorie" },
+            { icon:"🔔", iconBg:"rgba(255,138,107,0.10)",
+              label:"Benachrichtigungen", sub:"Anfragen, Updates, Impact" },
+            { icon:"✏️", iconBg:"rgba(22,215,197,0.10)",
+              label:"Profil bearbeiten", sub:"Name, Foto, Beschreibung" },
+            { icon:"🔒", iconBg:"rgba(0,0,0,0.05)",
+              label:"Privatsphäre", sub:"Sichtbarkeit & Datenschutz" },
+          ].map((item, i, arr) => (
+            <button key={i}
+              className="pp-tap"
+              style={{ width:"100%", display:"flex", alignItems:"center",
+                gap:14, padding:"15px 18px",
+                background:"none", border:"none", cursor:"pointer",
+                fontFamily:"inherit", textAlign:"left",
+                borderBottom: i < arr.length-1
+                  ? "1px solid rgba(0,0,0,0.045)" : "none" }}>
+              <div style={{ width:42, height:42, borderRadius:14,
+                background:item.iconBg, flexShrink:0,
+                display:"flex", alignItems:"center",
+                justifyContent:"center", fontSize:19 }}>
+                {item.icon}
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontWeight:700, fontSize:14, color:C.ink }}>
+                  {item.label}</div>
+                <div style={{ fontSize:11.5, color:C.muted, marginTop:2 }}>
+                  {item.sub}</div>
+              </div>
+              <span style={{ color:"rgba(0,0,0,0.2)", fontSize:15,
+                flexShrink:0 }}>›</span>
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Logout */}
+      {/* ─────────────────────────────────────────
+          LOGOUT — ruhig, am Ende
+      ───────────────────────────────────────── */}
+      <div style={{ margin:"28px 18px 0", animation:"ppUp 0.4s 0.20s both" }}>
         <button onClick={onLogout} className="pp-tap"
-          style={{ width:"100%", padding:"14px",
-            background:"none", border:`1.5px solid rgba(255,138,107,0.3)`,
-            borderRadius:16, color:C.coral,
+          style={{ width:"100%", padding:"15px",
+            background:"none",
+            border:"1.5px solid rgba(255,138,107,0.25)",
+            borderRadius:18, color:C.coral,
             fontSize:13.5, fontWeight:700, cursor:"pointer",
-            fontFamily:"inherit", marginTop:8 }}>
+            fontFamily:"inherit", letterSpacing:0.1 }}>
           Abmelden
         </button>
       </div>
@@ -282,9 +400,7 @@ function BaseProfil({ profile, onSwitchToWirker, onShowOrders,
   );
 }
 
-/* ══════════════════════════════════════════
-   WIRKERPROFIL VIEW — cinematic, public
-══════════════════════════════════════════ */
+
 function WirkerProfil({ profile, onSwitchToBase, onEdit }) {
   const [activeTab, setActiveTab] = useState("werke");
 
