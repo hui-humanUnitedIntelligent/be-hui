@@ -137,18 +137,19 @@ function WirkerTile({ w, onView, onBook }) {
             fontWeight:600, marginTop:1 }}>{w.talent}</div>
         </div>
       </div>
-      {/* Price + buy pill */}
+      {/* City + buchen pill */}
       <div style={{ display:"flex", alignItems:"center",
         justifyContent:"space-between", marginTop:5, paddingLeft:2 }}>
-        <span style={{ fontSize:11, fontWeight:800, color:C.coral }}>
-          {w.price}
-        </span>
-        <button onClick={e=>{e.stopPropagation();onBuyWerk&&onBuyWerk(w);}}
-          style={{ background:C.coral, border:"none", borderRadius:999,
+        <div style={{ fontSize:10, color:C.muted,
+          display:"flex", alignItems:"center", gap:3 }}>
+          <span style={{ fontSize:9 }}>📍</span>{w.city}
+        </div>
+        <button onClick={e=>{e.stopPropagation();onBook&&onBook(w);}}
+          style={{ background:C.teal, border:"none", borderRadius:999,
             padding:"3px 10px", fontSize:9.5, fontWeight:800,
             color:"white", cursor:"pointer", fontFamily:"inherit",
             WebkitTapHighlightColor:"transparent" }}>
-          kaufen
+          buchen
         </button>
       </div>
     </div>
