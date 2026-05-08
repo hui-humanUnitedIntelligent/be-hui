@@ -4,6 +4,7 @@ import ImpactPage     from "./ImpactPage";
 import ProfilePage    from "./ProfilePage";
 import BookingFlow    from "../components/BookingFlow";
 import { WerkDetail, WerkCheckout, WerkeKorb } from "../components/WerkeShop";
+import OrdersPage from "../components/OrdersPage";
 import CreateFlow     from "../components/CreateFlow";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
