@@ -1,474 +1,1062 @@
-import React, { useState, useEffect } from "react";
+// BookingFlow.jsx — HUI Human Connection Flow
+// Kein Checkout. Eine menschliche Verbindung.
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { MapPin, Check, ArrowLeft, Calendar, Clock, Tag } from "lucide-react";
 
-const CORAL = "#FF6B5B";
-const TEAL = "#2ABFAC";
-
-const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-const WEEKDAY_FULL = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
-
-const GOLD = "#F5A623";
-const PURPLE = "#A78BFA";
-
-
-const DEFAULT_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
-const defaultAvailability = {
-  "Lars M.":  { Mo: DEFAULT_SLOTS, Di: DEFAULT_SLOTS, Mi: false, Do: DEFAULT_SLOTS, Fr: DEFAULT_SLOTS, Sa: false, So: false },
-  "Nina K.":  { Mo: false, Di: DEFAULT_SLOTS, Mi: DEFAULT_SLOTS, Do: DEFAULT_SLOTS, Fr: DEFAULT_SLOTS, Sa: ["10:00","11:00","14:00"], So: false },
-  "Tom B.":   { Mo: DEFAULT_SLOTS, Di: false, Mi: DEFAULT_SLOTS, Do: false, Fr: DEFAULT_SLOTS, Sa: ["10:00","11:00"], So: false },
-  "Anna S.":  { Mo: DEFAULT_SLOTS, Di: DEFAULT_SLOTS, Mi: DEFAULT_SLOTS, Do: DEFAULT_SLOTS, Fr: false, Sa: false, So: false },
-  "Kai L.":   { Mo: false, Di: DEFAULT_SLOTS, Mi: false, Do: DEFAULT_SLOTS, Fr: DEFAULT_SLOTS, Sa: DEFAULT_SLOTS, So: ["10:00","11:00","12:00"] },
+/* ── DESIGN ─────────────────────────────────────────────────────────── */
+const C = {
+  teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
+  tealGlow:"rgba(22,215,197,0.22)",
+  coral:"#FF8A6B", coral2:"#FF7B72", coralPale:"#FFF2EE",
+  coralGlow:"rgba(255,138,107,0.20)",
+  gold:"#F5A623", green:"#3DB87A", greenGlow:"rgba(61,184,122,0.20)",
+  cream:"#F9F6F2", warm:"#FFF9F4",
+  card:"#FFFFFF", ink:"#1A1A1A", ink2:"#3A3A3A",
+  muted:"#888", muted2:"#BBB", border:"rgba(0,0,0,0.06)",
+  purple:"#A78BFA",
 };
 
-function getDaysInMonth(year, month) {
-  return new Date(year, month + 1, 0).getDate();
+const CSS = `
+  @keyframes bfFadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes bfSlideUp { from{opacity:0;transform:translateY(100%)} to{opacity:1;transform:translateY(0)} }
+  @keyframes bfPulse   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+  @keyframes bfCheck   { 0%{transform:scale(0) rotate(-10deg);opacity:0} 60%{transform:scale(1.2) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+  @keyframes bfSpinner { to{transform:rotate(360deg)} }
+  @keyframes bfGlow    { 0%,100%{box-shadow:0 0 0px rgba(22,215,197,0)} 50%{box-shadow:0 0 22px rgba(22,215,197,0.4)} }
+  .bf-scroll::-webkit-scrollbar{display:none}
+  .bf-scroll{-ms-overflow-style:none;scrollbar-width:none}
+  .bf-tap{transition:transform .18s cubic-bezier(.34,1.4,.64,1);-webkit-tap-highlight-color:transparent}
+  .bf-tap:active{transform:scale(.965)}
+  .bf-day:hover{background:rgba(22,215,197,0.08)}
+`;
+
+/* ── UTILS ──────────────────────────────────────────────────────────── */
+const MONTHS = ["Januar","Februar","März","April","Mai","Juni",
+                "Juli","August","September","Oktober","November","Dezember"];
+const WEEKDAYS = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+const SLOTS = ["09:00","10:00","11:00","13:00","14:00","15:00","16:00","17:00"];
+
+function fmtDate(d) {
+  if(!d) return "";
+  return `${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function addDays(d, n) {
+  const r = new Date(d); r.setDate(r.getDate()+n); return r;
+}
+function startOfMonth(d) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function daysInMonth(d) {
+  return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
 }
 
-function getFirstWeekday(year, month) {
-  const day = new Date(year, month, 1).getDay();
-  return (day + 6) % 7; // Mo=0, So=6
-}
-
-function BookingFlow({ wirker, onClose, onSuccess, returnStep6 }) {
-  const [step, setStep] = useState(1);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const today = new Date();
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [confirming, setConfirming] = useState(false);
-  const [confetti, setConfetti] = useState([]);
-  const [locationType, setLocationType] = useState(null); // "kunde" | "talent" | "andere"
-  const [locationAddress, setLocationAddress] = useState("");
-  const [zahlart, setZahlart] = React.useState("karte");
-
-
-  // Nach Stripe-Rückkehr: direkt Step 6 zeigen (via returnStep6 prop)
-  React.useEffect(() => {
-    if (returnStep6) {
-      // Buchungsdaten aus localStorage wiederherstellen
-      try {
-        const lastBooking = JSON.parse(localStorage.getItem("hui_last_booking") || "null");
-        if (lastBooking?.selectedDate) setSelectedDate(lastBooking.selectedDate);
-        if (lastBooking?.selectedTime) setSelectedTime(lastBooking.selectedTime);
-      } catch(e) {}
-      setStep(6);
-    }
-  }, [returnStep6]);
-  const availability = defaultAvailability[wirker.name] || {};
-  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
-  const firstWeekday = getFirstWeekday(viewYear, viewMonth);
-
-  const availableDays = new Set();
-  for (let d = 1; d <= daysInMonth; d++) {
-    const jsDay = new Date(viewYear, viewMonth, d).getDay();
-    const wdIdx = (jsDay + 6) % 7;
-    const wd = WEEKDAYS[wdIdx];
-    if (availability[wd] && (Array.isArray(availability[wd]) ? availability[wd].length > 0 : availability[wd])) availableDays.add(d);
-  }
-
-  const isPast = (d) => new Date(viewYear, viewMonth, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-  const goTo = (nextStep) => { setStep(nextStep); };
-
-  const handleDayClick = (d) => {
-    if (!availableDays.has(d) || isPast(d)) return;
-    const jsDay = new Date(viewYear, viewMonth, d).getDay();
-    const wdIdx = (jsDay + 6) % 7;
-    setSelectedDate({ year: viewYear, month: viewMonth, day: d, weekday: WEEKDAYS[wdIdx] });
-    setSelectedTime(null);
-    setTimeout(() => goTo(2), 120);
-  };
-
-  const handleConfirm = async () => {
-    setConfirming(true);
-    try {
-      const amountCents = Math.round(total * 100);
-      const res = await fetch('https://michi-6f9abd25.base44.app/functions/createCheckout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemName: `${wirker.talent} – 1 Stunde mit ${wirker.fullName}`,
-          amountCents,
-          itemType: 'buchung',
-          wirkerName: wirker.fullName || wirker.name,
-          imageUrl: wirker.img,
-          successUrl: 'https://be-hui.vercel.app?payment=success',
-          cancelUrl: 'https://be-hui.vercel.app',
-        }),
-      });
-      const data = await res.json();
-      if (data.checkoutUrl) {
-        // Booking in Supabase speichern
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            await supabase.from('bookings').insert({
-              user_id: session.user.id,
-              wirker_name: wirker.name || wirker.fullName,
-              service: `${wirker.talent} – 1 Stunde`,
-              date: selectedDate ? `${selectedDate.day}.${selectedDate.month+1}.${selectedDate.year}` : null,
-              time: selectedTime || null,
-              location: locationType === "talent" ? wirker.location : (locationAddress || null),
-              price_eur: total,
-              status: 'pending',
-            });
-          }
-        } catch(e) {}
-        try {
-          localStorage.setItem("hui_last_booking", JSON.stringify({
-            wirkerName: wirker.name,
-            wirkerFullName: wirker.fullName || wirker.name,
-            wirkerImg: wirker.img,
-            itemName: `${wirker.talent} – 1 Stunde mit ${wirker.fullName || wirker.name}`,
-            totalEur: data.totalEur,
-            impactEur: data.impactEur,
-            selectedDate,
-            selectedTime,
-          }));
-        } catch(e) {}
-        window.location.href = data.checkoutUrl;
-      } else {
-        alert('Fehler beim Erstellen der Zahlung: ' + (data.error || 'Unbekannt'));
-        setConfirming(false);
-      }
-    } catch (err) {
-      alert('Verbindungsfehler: ' + err.message);
-      setConfirming(false);
-    }
-  };
-
-  const rawSlots = selectedDate ? availability[selectedDate.weekday] : null;
-  const availableSlots = selectedDate ? (Array.isArray(rawSlots) ? rawSlots : (rawSlots ? ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"] : [])) : [];
-  const pricePerHour = wirker.pricePerHour || 60;
-  const provision = Math.round(pricePerHour * 0.15 * 100) / 100;
-  const impact = Math.round(provision * 0.15 * 100) / 100;
-  const talentEarns = Math.round((pricePerHour - provision) * 100) / 100;
-  const total = pricePerHour;
-  const formatDate = (d) => d ? `${WEEKDAY_FULL[WEEKDAYS.indexOf(d.weekday)]}, ${d.day}. ${MONTHS[d.month]} ${d.year}` : "";
-  const stepLabels = ["Datum", "Uhrzeit", "Ort", "Zahlung"];
-  const stepIcons = ["\u{1F4C5}", "\u{1F550}", "\u{1F4CD}", "\u{1F4B3}"];
-
-  if (step === 6) return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", maxWidth: 430, margin: "0 auto", overflow: "hidden" }}>
-      <style>{`
-        @keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; } }
-        @keyframes successPop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
-      {confetti.map(p => (
-        <div key={p.id} style={{ position: "absolute", left: `${p.x}%`, top: -20, width: p.size, height: p.size, background: p.color, borderRadius: 2, transform: `rotate(${p.rotation}deg)`, animation: `confettiFall 1.8s ${p.delay}s ease-in forwards`, opacity: 0 }} />
+/* ── STEP INDICATOR ─────────────────────────────────────────────────── */
+function StepDots({ step, total=5 }) {
+  return (
+    <div style={{ display:"flex", gap:5, alignItems:"center",
+      justifyContent:"center" }}>
+      {Array.from({length:total}).map((_,i) => (
+        <div key={i} style={{
+          width: i===step ? 18 : 6,
+          height: 6, borderRadius:999,
+          background: i===step ? C.teal : i<step ? `${C.teal}66` : C.muted2,
+          transition:"all 0.3s cubic-bezier(.34,1.4,.64,1)",
+        }}/>
       ))}
-      <div style={{ width: 100, height: 100, borderRadius: "50%", background: `linear-gradient(135deg, ${TEAL}, ${TEAL}88)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, boxShadow: `0 8px 32px ${TEAL}44`, animation: "successPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards" }}>
-        <span style={{ fontSize: 48 }}>✓</span>
-      </div>
-      <div style={{ fontWeight: 900, fontSize: 26, color: "#1a1a1a", textAlign: "center", marginBottom: 8, animation: "fadeSlideUp 0.4s 0.3s both" }}>Buchung gesichert! 🎉</div>
-      <div style={{ fontSize: 15, color: "#888", textAlign: "center", lineHeight: 1.6, marginBottom: 28, animation: "fadeSlideUp 0.4s 0.4s both" }}>Dein Geld liegt sicher im Treuhand-Konto und wird erst freigegeben, wenn du zufrieden bist.</div>
-      <div style={{ width: "100%", background: "#fafaf8", borderRadius: 20, overflow: "hidden", border: "1px solid #f0f0ee", marginBottom: 20, animation: "fadeSlideUp 0.4s 0.5s both" }}>
-        <div style={{ padding: "16px 18px", display: "flex", gap: 12, alignItems: "center", borderBottom: "1px solid #f0f0ee" }}>
-          <img src={wirker.img} style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }} alt={wirker.name} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: "#1a1a1a" }}>{wirker.fullName}</div>
-            <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{wirker.talent}</div>
+    </div>
+  );
+}
+
+/* ── BACK BUTTON ────────────────────────────────────────────────────── */
+function BackBtn({ onBack, onClose }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center",
+      justifyContent:"space-between", padding:"max(52px,env(safe-area-inset-top,52px)) 20px 16px" }}>
+      <button onClick={onBack} className="bf-tap"
+        style={{ width:40, height:40, borderRadius:14,
+          background:C.card, border:`1px solid ${C.border}`,
+          cursor:"pointer", display:"flex", alignItems:"center",
+          justifyContent:"center", fontSize:16,
+          boxShadow:"0 2px 10px rgba(0,0,0,0.06)" }}>
+        ←
+      </button>
+      <button onClick={onClose} className="bf-tap"
+        style={{ background:"none", border:"none", cursor:"pointer",
+          fontSize:12, fontWeight:600, color:C.muted,
+          padding:"8px 12px" }}>
+        Abbrechen
+      </button>
+    </div>
+  );
+}
+
+/* ── STEP 0: WIRKER INTRO CARD ──────────────────────────────────────── */
+function StepIntro({ wirker, onNext }) {
+  const hourlyRate = wirker.hourly_rate || wirker.hourly || 85;
+  const totalRate  = Math.round(hourlyRate * 1.0); // customer sees full rate
+  const impactNote = Math.round(totalRate * 0.025);
+
+  return (
+    <div style={{ padding:"0 20px 40px",
+      animation:"bfFadeUp 0.5s both" }}>
+
+      {/* Hero portrait */}
+      <div style={{ position:"relative", height:260,
+        borderRadius:28, overflow:"hidden", marginBottom:28,
+        boxShadow:"0 6px 30px rgba(0,0,0,0.13)" }}>
+        <img src={wirker.img || wirker.imgUrl}
+          alt={wirker.name}
+          style={{ width:"100%", height:"100%", objectFit:"cover",
+            objectPosition:"top center",
+            filter:"brightness(0.78) saturate(1.1)" }}/>
+        <div style={{ position:"absolute", inset:0,
+          background:`linear-gradient(to bottom,
+            ${C.teal}18 0%, transparent 30%,
+            rgba(8,8,8,0.75) 100%)` }}/>
+        <div style={{ position:"absolute", top:0, left:0, right:0,
+          height:2.5,
+          background:`linear-gradient(90deg,${C.teal},transparent)` }}/>
+        <div style={{ position:"absolute", bottom:0,
+          left:0, right:0, padding:"0 22px 20px" }}>
+          <div style={{ fontWeight:900, fontSize:24, color:"white",
+            letterSpacing:-0.5, lineHeight:1.1 }}>
+            {wirker.name}
           </div>
-          <div style={{ background: `${TEAL}15`, borderRadius: 10, padding: "4px 10px", fontSize: 11, color: TEAL, fontWeight: 700 }}>Bestätigt</div>
-        </div>
-        <div style={{ padding: "14px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}><span style={{ fontSize: 18 }}>📅</span><div><div style={{ fontSize: 13, fontWeight: 700, color: "#222" }}>{formatDate(selectedDate)}</div><div style={{ fontSize: 12, color: "#aaa" }}>Datum</div></div></div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}><span style={{ fontSize: 18 }}>🕐</span><div><div style={{ fontSize: 13, fontWeight: 700, color: "#222" }}>{selectedTime} Uhr</div><div style={{ fontSize: 12, color: "#aaa" }}>Uhrzeit</div></div></div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}><span style={{ fontSize: 18 }}>💶</span><div><div style={{ fontSize: 13, fontWeight: 700, color: "#222" }}>{total.toFixed(2)} €</div><div style={{ fontSize: 12, color: "#aaa" }}>Im Treuhand</div></div></div>
-          <div style={{ background: `linear-gradient(90deg, ${TEAL}12, ${TEAL}05)`, borderRadius: 10, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-            <span style={{ fontSize: 16 }}>🌱</span>
-            <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{impact.toFixed(2)} € fließen in den Impact Pool — du machst einen Unterschied!</div>
+          <div style={{ fontSize:13, color:C.teal,
+            fontWeight:700, marginTop:4 }}>
+            {wirker.talent || wirker.job || "Kreativschaffende/r"}
+          </div>
+          <div style={{ fontSize:11.5,
+            color:"rgba(255,255,255,0.55)", marginTop:2 }}>
+            📍 {wirker.city || wirker.location || "München"}
           </div>
         </div>
       </div>
-      <div style={{ width: "100%", background: `${CORAL}10`, borderRadius: 14, padding: "12px 16px", fontSize: 13, color: "#666", lineHeight: 1.6, marginBottom: 24, display: "flex", gap: 10, alignItems: "center", animation: "fadeSlideUp 0.4s 0.6s both" }}>
-        <span style={{ fontSize: 20 }}>💬</span>
-        <span>Der Chat mit <strong>{wirker.name}</strong> ist jetzt freigeschaltet. Eine erste Nachricht wurde bereits gesendet.</span>
+
+      {/* Quote */}
+      {(wirker.quote || wirker.bio) && (
+        <p style={{ fontSize:15, color:C.ink2, fontStyle:"italic",
+          lineHeight:1.75, textAlign:"center",
+          marginBottom:28, padding:"0 8px",
+          animation:"bfFadeUp 0.5s 0.1s both" }}>
+          „{wirker.quote || wirker.bio}"
+        </p>
+      )}
+
+      {/* Recs */}
+      {(wirker.recs || wirker.recommendations) > 0 && (
+        <div style={{ display:"flex", justifyContent:"center",
+          marginBottom:28 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6,
+            background:C.tealPale, borderRadius:999,
+            padding:"7px 18px" }}>
+            <span style={{ fontSize:13, fontWeight:800, color:C.teal }}>
+              {wirker.recs || wirker.recommendations}
+            </span>
+            <span style={{ fontSize:12, color:C.muted }}>Empfehlungen</span>
+          </div>
+        </div>
+      )}
+
+      {/* Price block */}
+      <div style={{ background:C.card, borderRadius:24,
+        padding:"22px 22px", marginBottom:20,
+        border:`1px solid ${C.border}`,
+        boxShadow:"0 2px 16px rgba(0,0,0,0.05)",
+        animation:"bfFadeUp 0.5s 0.15s both" }}>
+        <div style={{ display:"flex", alignItems:"baseline",
+          justifyContent:"space-between", marginBottom:10 }}>
+          <div>
+            <span style={{ fontWeight:900, fontSize:28, color:C.ink }}>
+              € {totalRate}
+            </span>
+            <span style={{ fontSize:13, color:C.muted,
+              marginLeft:5 }}>/Stunde</span>
+          </div>
+          {wirker.available !== false && (
+            <div style={{ display:"flex", alignItems:"center", gap:5,
+              background:"rgba(61,184,122,0.12)",
+              borderRadius:999, padding:"4px 12px" }}>
+              <span style={{ width:6, height:6, borderRadius:"50%",
+                background:"#3DB87A",
+                boxShadow:"0 0 5px rgba(61,184,122,0.6)" }}/>
+              <span style={{ fontSize:11, fontWeight:700,
+                color:"#3DB87A" }}>Verfügbar</span>
+            </div>
+          )}
+        </div>
+        {/* Impact note — subtle */}
+        <div style={{ display:"flex", alignItems:"center", gap:7,
+          padding:"10px 14px", borderRadius:14,
+          background:"rgba(61,184,122,0.07)",
+          border:"1px solid rgba(61,184,122,0.14)" }}>
+          <span style={{ fontSize:14 }}>🌱</span>
+          <span style={{ fontSize:11.5, color:"#3DB87A", lineHeight:1.5 }}>
+            <strong>€ {impactNote}</strong> pro Stunde fließen automatisch in Projekte mit Herz.
+          </span>
+        </div>
       </div>
-      <button onClick={onSuccess} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 4px 16px ${CORAL}44`, animation: "fadeSlideUp 0.4s 0.7s both" }}>Zum Chat mit {wirker.name} →</button>
-      <button onClick={onClose} style={{ background: "none", border: "none", color: "#bbb", fontSize: 13, cursor: "pointer", marginTop: 14 }}>Zurück zur Übersicht</button>
+
+      {/* CTA */}
+      <button onClick={onNext} className="bf-tap"
+        style={{ width:"100%", padding:"17px",
+          background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border:"none", borderRadius:18,
+          color:"white", fontSize:15.5, fontWeight:800,
+          cursor:"pointer", fontFamily:"inherit",
+          boxShadow:`0 5px 22px ${C.tealGlow}`,
+          letterSpacing:0.2 }}>
+        Zeit auswählen
+      </button>
+
+      <p style={{ textAlign:"center", fontSize:11.5, color:C.muted,
+        marginTop:14, lineHeight:1.6 }}>
+        Keine Verpflichtung. Du sendest erst eine Anfrage.
+      </p>
+    </div>
+  );
+}
+
+/* ── STEP 1: CALENDAR ───────────────────────────────────────────────── */
+function StepCalendar({ wirker, selected, onSelect, onNext, onBack, onClose }) {
+  const today = new Date();
+  const [viewMonth, setViewMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const first     = startOfMonth(viewMonth);
+  const totalDays = daysInMonth(viewMonth);
+  // Monday-based offset
+  const offset    = (first.getDay() + 6) % 7;
+
+  const isAvailable = (d) => {
+    if(d < today) return false;
+    const dow = d.getDay(); // 0=Sun
+    // Wirker available Mon-Fri + Sat by default, not Sun
+    return dow !== 0;
+  };
+  const isSelected = (d) =>
+    selected && d.toDateString() === selected.toDateString();
+  const isToday = (d) =>
+    d.toDateString() === today.toDateString();
+
+  return (
+    <div style={{ padding:"0 20px 40px",
+      animation:"bfFadeUp 0.4s both" }}>
+
+      <BackBtn onBack={onBack} onClose={onClose}/>
+      <StepDots step={1}/>
+
+      <div style={{ textAlign:"center", padding:"18px 0 24px" }}>
+        <div style={{ fontWeight:900, fontSize:22, color:C.ink,
+          letterSpacing:-0.5 }}>Wann passt es?</div>
+        <div style={{ fontSize:13, color:C.muted, marginTop:4 }}>
+          Wähle einen Tag — {wirker.name?.split(" ")[0]} antwortet innerhalb 2h.
+        </div>
+      </div>
+
+      {/* Month nav */}
+      <div style={{ display:"flex", alignItems:"center",
+        justifyContent:"space-between", marginBottom:20 }}>
+        <button className="bf-tap" onClick={() =>
+          setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth()-1, 1))}
+          style={{ width:40, height:40, borderRadius:14,
+            background:C.card, border:`1px solid ${C.border}`,
+            cursor:"pointer", fontSize:16 }}>←</button>
+        <span style={{ fontWeight:800, fontSize:15, color:C.ink }}>
+          {MONTHS[viewMonth.getMonth()]} {viewMonth.getFullYear()}
+        </span>
+        <button className="bf-tap" onClick={() =>
+          setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 1))}
+          style={{ width:40, height:40, borderRadius:14,
+            background:C.card, border:`1px solid ${C.border}`,
+            cursor:"pointer", fontSize:16 }}>→</button>
+      </div>
+
+      {/* Weekday headers */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)",
+        marginBottom:8 }}>
+        {WEEKDAYS.map(d => (
+          <div key={d} style={{ textAlign:"center", fontSize:11,
+            fontWeight:700, color:C.muted2, padding:"4px 0" }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)",
+        gap:4, marginBottom:28 }}>
+        {Array.from({length:offset}).map((_,i) => (
+          <div key={`e${i}`}/>
+        ))}
+        {Array.from({length:totalDays}).map((_,i) => {
+          const d   = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), i+1);
+          const avl = isAvailable(d);
+          const sel = isSelected(d);
+          const tod = isToday(d);
+          return (
+            <button key={i} className="bf-day bf-tap"
+              disabled={!avl}
+              onClick={() => avl && onSelect(d)}
+              style={{
+                aspectRatio:"1", borderRadius:14,
+                border:"none", cursor: avl ? "pointer" : "default",
+                fontFamily:"inherit", fontSize:13.5,
+                fontWeight: sel||tod ? 800 : 500,
+                background: sel
+                  ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                  : tod ? C.tealPale : "transparent",
+                color: sel ? "white"
+                  : !avl ? C.muted2
+                  : tod ? C.teal : C.ink,
+                boxShadow: sel ? `0 3px 12px ${C.tealGlow}` : "none",
+                transition:"all 0.18s",
+              }}>
+              {i+1}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Available indicator */}
+      <div style={{ display:"flex", alignItems:"center", gap:8,
+        justifyContent:"center", marginBottom:24 }}>
+        <div style={{ width:8, height:8, borderRadius:"50%",
+          background:C.teal }}/>
+        <span style={{ fontSize:11.5, color:C.muted }}>
+          Montag–Samstag verfügbar
+        </span>
+      </div>
+
+      <button onClick={onNext} className="bf-tap"
+        disabled={!selected}
+        style={{ width:"100%", padding:"17px",
+          background: selected
+            ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+            : C.muted2,
+          border:"none", borderRadius:18,
+          color:"white", fontSize:15, fontWeight:800,
+          cursor: selected ? "pointer" : "default",
+          fontFamily:"inherit",
+          boxShadow: selected ? `0 5px 22px ${C.tealGlow}` : "none",
+          transition:"all 0.3s" }}>
+        {selected ? `${fmtDate(selected)} — weiter` : "Tag auswählen"}
+      </button>
+    </div>
+  );
+}
+
+/* ── STEP 2: TIME SLOT ──────────────────────────────────────────────── */
+function StepTime({ wirker, date, slot, onSlot, onNext, onBack, onClose }) {
+  // morning / afternoon groups
+  const morning   = SLOTS.filter(s => parseInt(s) < 12);
+  const afternoon = SLOTS.filter(s => parseInt(s) >= 12);
+
+  const SlotGroup = ({ label, slots }) => (
+    <div style={{ marginBottom:20 }}>
+      <div style={{ fontSize:11, fontWeight:700, color:C.muted,
+        letterSpacing:1.5, textTransform:"uppercase",
+        marginBottom:10 }}>{label}</div>
+      <div style={{ display:"grid",
+        gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
+        {slots.map(s => (
+          <button key={s} className="bf-tap"
+            onClick={() => onSlot(s)}
+            style={{ padding:"13px 0",
+              background: slot===s
+                ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                : C.card,
+              border:`1.5px solid ${slot===s ? "transparent" : C.border}`,
+              borderRadius:14, fontFamily:"inherit",
+              fontSize:13, fontWeight: slot===s ? 800 : 500,
+              color: slot===s ? "white" : C.ink,
+              cursor:"pointer",
+              boxShadow: slot===s
+                ? `0 3px 12px ${C.tealGlow}`
+                : "0 2px 8px rgba(0,0,0,0.05)",
+              transition:"all 0.2s" }}>
+            {s}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "white", display: "flex", flexDirection: "column", maxWidth: 430, margin: "0 auto" }}>
-      <div style={{ padding: "14px 18px 0", borderBottom: "1px solid #f5f5f3" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-          <button onClick={step > 1 ? () => goTo(step - 1) : onClose} style={{ background: "#f5f5f3", border: "none", borderRadius: "50%", width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-            <ArrowLeft size={18} color="#444" />
-          </button>
-          <img src={wirker.img} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}33` }} alt={wirker.name} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: "#1a1a1a", lineHeight: 1.2 }}>{wirker.fullName}</div>
-            <div style={{ fontSize: 11, color: TEAL, fontWeight: 600 }}>{wirker.talent}</div>
-          </div>
-          <div style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>{Math.min(step,4)}/4</div>
-        </div>
-        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {stepLabels.map((label, i) => {
-            const s = i + 1;
-            const isActive = step === s;
-            const isDone = step > s;
-            return (
-              <div key={s} style={{ flex: isActive ? 2 : 1, display: "flex", alignItems: "center", gap: 5, background: isDone ? `${TEAL}22` : isActive ? `${CORAL}12` : "#f5f5f3", borderRadius: 30, padding: "7px 12px", transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)" }}>
-                <span style={{ fontSize: 13 }}>{isDone ? "✓" : stepIcons[i]}</span>
-                {isActive && <span style={{ fontSize: 12, fontWeight: 700, color: CORAL, whiteSpace: "nowrap" }}>{label}</span>}
-              </div>
-            );
-          })}
+    <div style={{ padding:"0 20px 40px",
+      animation:"bfFadeUp 0.4s both" }}>
+
+      <BackBtn onBack={onBack} onClose={onClose}/>
+      <StepDots step={2}/>
+
+      <div style={{ textAlign:"center", padding:"18px 0 28px" }}>
+        <div style={{ fontWeight:900, fontSize:22, color:C.ink,
+          letterSpacing:-0.5 }}>Welche Uhrzeit?</div>
+        <div style={{ fontSize:13, color:C.muted, marginTop:4 }}>
+          {fmtDate(date)}
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 18px" }}>
-        {step === 1 && (
-          <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <button onClick={() => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y-1); } else setViewMonth(m => m-1); }} style={{ background: "#f5f5f3", border: "none", borderRadius: "50%", width: 40, height: 40, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-              <span style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a" }}>{MONTHS[viewMonth]} {viewYear}</span>
-              <button onClick={() => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y+1); } else setViewMonth(m => m+1); }} style={{ background: "#f5f5f3", border: "none", borderRadius: "50%", width: 40, height: 40, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 6 }}>
-              {WEEKDAYS.map(d => <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "#ccc", paddingBottom: 6 }}>{d}</div>)}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3 }}>
-              {Array(firstWeekday).fill(null).map((_, i) => <div key={"e"+i} />)}
-              {Array(daysInMonth).fill(null).map((_, i) => {
-                const d = i + 1;
-                const past = isPast(d);
-                const avail = availableDays.has(d);
-                const isSelected = selectedDate?.day === d && selectedDate?.month === viewMonth && selectedDate?.year === viewYear;
-                const isToday = d === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
-                return (
-                  <button key={d} onClick={() => handleDayClick(d)} style={{ aspectRatio: "1", borderRadius: "50%", border: isToday && !isSelected ? `2px solid ${CORAL}55` : "2px solid transparent", cursor: avail && !past ? "pointer" : "default", background: isSelected ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : avail && !past ? `${TEAL}15` : "transparent", color: isSelected ? "white" : past ? "#ddd" : avail ? TEAL : "#ccc", fontWeight: avail && !past ? 800 : 400, fontSize: 14, position: "relative", transition: "all 0.2s cubic-bezier(0.34,1.56,0.64,1)", boxShadow: isSelected ? `0 4px 16px ${CORAL}55` : "none", transform: isSelected ? "scale(1.15)" : "scale(1)" }}>
-                    {d}
-                    {avail && !past && !isSelected && <div style={{ position: "absolute", bottom: 3, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: TEAL }} />}
-                  </button>
-                );
-              })}
-            </div>
-            <div style={{ marginTop: 22, display: "flex", gap: 16, fontSize: 12, color: "#aaa" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: `${TEAL}33` }} />Verfügbar</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: "#e0e0e0" }} />Nicht verfügbar</div>
-            </div>
-            <div style={{ background: `linear-gradient(135deg, ${GOLD}12, ${GOLD}06)`, borderRadius: 14, padding: "14px 16px", marginTop: 20, display: "flex", alignItems: "center", gap: 12, border: `1px solid ${GOLD}25` }}>
-              <span style={{ fontSize: 24 }}>💶</span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#333" }}>{wirker.hourlyRate}</div>
-                <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>inkl. HUI-Provision · davon 15% fließen in Impact-Projekte</div>
-              </div>
-            </div>
-          </>
-        )}
+      <SlotGroup label="Vormittag" slots={morning}/>
+      <SlotGroup label="Nachmittag" slots={afternoon}/>
 
-        {step === 2 && selectedDate && (
-          <>
-            <div style={{ background: `linear-gradient(135deg, ${TEAL}12, ${TEAL}06)`, borderRadius: 16, padding: "14px 18px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, border: `1px solid ${TEAL}20` }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "white", flexShrink: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1 }}>{selectedDate.day}</div>
-                <div style={{ fontSize: 9, fontWeight: 600, opacity: 0.85 }}>{MONTHS[selectedDate.month].slice(0,3).toUpperCase()}</div>
-              </div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 15, color: "#1a1a1a" }}>{formatDate(selectedDate)}</div>
-                <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{availableSlots.length} freie Slots verfügbar</div>
-              </div>
+      {/* Duration */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:C.muted,
+          letterSpacing:1.5, textTransform:"uppercase",
+          marginBottom:10 }}>Dauer</div>
+        <div style={{ display:"grid",
+          gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+          {["1 Stunde","2 Stunden","3 Stunden"].map((d,i) => (
+            <div key={i} style={{ padding:"13px 0",
+              background:i===0?`linear-gradient(135deg,${C.teal}22,${C.teal2}14)`:C.card,
+              border:`1.5px solid ${i===0?C.teal+"55":C.border}`,
+              borderRadius:14, textAlign:"center",
+              fontSize:12.5, fontWeight:i===0?700:500,
+              color:i===0?C.teal:C.muted }}>
+              {d}
             </div>
-            <div style={{ fontWeight: 800, fontSize: 15, color: "#1a1a1a", marginBottom: 14 }}>Wähle deine Uhrzeit:</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-              {availableSlots.map(slot => {
-                const isSel = selectedTime === slot;
-                return (
-                  <button key={slot} onClick={() => setSelectedTime(slot)} style={{ padding: "14px 8px", borderRadius: 16, border: `2px solid ${isSel ? CORAL : "#eee"}`, background: isSel ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "white", color: isSel ? "white" : "#333", fontWeight: 700, fontSize: 14, cursor: "pointer", transition: "all 0.2s", boxShadow: isSel ? `0 4px 14px ${CORAL}33` : "0 1px 4px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <span style={{ fontSize: 18 }}>🕐</span>
-                    <span>{slot}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>Wo findet es statt?</div>
-            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Wähle den Treffpunkt für die Buchung.</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                { key: "talent", emoji: "🏠", label: "Beim Talent", desc: `Bei ${wirker.fullName} (${wirker.location})` },
-                { key: "kunde", emoji: "📍", label: "Bei mir zu Hause", desc: "Adresse eingeben" },
-                { key: "andere", emoji: "📌", label: "Anderer Ort", desc: "Eigene Adresse angeben" },
-              ].map(opt => (
-                <div key={opt.key} onClick={() => setLocationType(opt.key)}
-                  style={{ borderRadius: 16, border: `2px solid ${locationType === opt.key ? TEAL : "#f0f0ee"}`, background: locationType === opt.key ? `${TEAL}08` : "white", padding: "14px 16px", cursor: "pointer", display: "flex", gap: 14, alignItems: "flex-start", transition: "all 0.15s" }}>
-                  <span style={{ fontSize: 24 }}>{opt.emoji}</span>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{opt.label}</div>
-                    <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{opt.desc}</div>
-                  </div>
-                  {locationType === opt.key && <span style={{ marginLeft: "auto", color: TEAL, fontSize: 18 }}>✓</span>}
-                </div>
-              ))}
-            </div>
-            {(locationType === "kunde" || locationType === "andere") && (
-              <div style={{ marginTop: 16 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#444", marginBottom: 8 }}>
-                  {locationType === "kunde" ? "Deine Adresse" : "Adresse des Treffpunkts"}
-                </div>
-                <textarea
-                  value={locationAddress}
-                  onChange={e => setLocationAddress(e.target.value)}
-                  placeholder="Straße, Hausnummer, PLZ, Ort"
-                  rows={3}
-                  style={{ width: "100%", borderRadius: 12, border: "1.5px solid #e0e0de", padding: "12px 14px", fontSize: 14, fontFamily: "inherit", resize: "none", outline: "none", boxSizing: "border-box", color: "#1a1a1a" }}
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        {step === 4 && (
-          <>
-            <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>Wie möchtest du zahlen?</div>
-            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Dein Geld liegt sicher im HUI-Treuhand bis du die Leistung bestätigst.</div>
-
-            {/* Zahlungsoptionen */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-              {[
-                { key: "karte", emoji: "💳", label: "Kredit- oder Debitkarte", desc: "Visa, Mastercard, Amex" },
-                { key: "paypal", emoji: "🅿️", label: "PayPal", desc: "Schnell & bekannt" },
-                { key: "sepa", emoji: "🏦", label: "SEPA-Lastschrift", desc: "Direkt vom Bankkonto" },
-              ].map(opt => (
-                <div key={opt.key} onClick={() => setZahlart(opt.key)}
-                  style={{ borderRadius: 16, border: `2px solid ${zahlart === opt.key ? TEAL : "#f0f0ee"}`, background: zahlart === opt.key ? `${TEAL}08` : "white", padding: "14px 16px", cursor: "pointer", display: "flex", gap: 14, alignItems: "center", transition: "all 0.15s" }}>
-                  <span style={{ fontSize: 26 }}>{opt.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{opt.label}</div>
-                    <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{opt.desc}</div>
-                  </div>
-                  <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${zahlart === opt.key ? TEAL : "#ddd"}`, background: zahlart === opt.key ? TEAL : "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {zahlart === opt.key && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "white" }} />}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Betrag Übersicht */}
-            <div style={{ background: "#fafaf8", borderRadius: 16, padding: "14px 18px", border: "1px solid #f0f0ee" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 13, color: "#888" }}>1 Std. mit {wirker.fullName || wirker.name}</span>
-                <span style={{ fontSize: 13, fontWeight: 700 }}>{total.toFixed(2)} €</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 12, color: TEAL }}>🌱 davon Impact</span>
-                <span style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{impact.toFixed(2)} €</span>
-              </div>
-              <div style={{ height: 1, background: "#f0f0ee", marginBottom: 8 }} />
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 15, fontWeight: 800 }}>Gesamt</span>
-                <span style={{ fontSize: 16, fontWeight: 900, color: CORAL }}>{total.toFixed(2)} €</span>
-              </div>
-            </div>
-
-            <div style={{ background: `${TEAL}08`, borderRadius: 14, padding: "12px 16px", marginTop: 16, display: "flex", gap: 10, alignItems: "center", border: `1px solid ${TEAL}15` }}>
-              <span style={{ fontSize: 18 }}>🔒</span>
-              <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>Zahlung über <strong>Stripe</strong> gesichert. Du wirst weitergeleitet.</div>
-            </div>
-          </>
-        )}
-
-        {step === 5 && (
-          <>
-            <div style={{ fontWeight: 800, fontSize: 18, color: "#1a1a1a", marginBottom: 6 }}>Deine Buchung</div>
-            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Bitte überprüfe alles und bestätige.</div>
-            <div style={{ background: "#fafaf8", borderRadius: 18, overflow: "hidden", border: "1px solid #f0f0ee", marginBottom: 16 }}>
-              <div style={{ padding: "16px 18px", display: "flex", gap: 12, alignItems: "center", background: `linear-gradient(135deg, ${TEAL}08, white)` }}>
-                <img src={wirker.img} style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}33` }} alt={wirker.name} />
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: 16, color: "#1a1a1a" }}>{wirker.fullName}</div>
-                  <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{wirker.talent}</div>
-                  <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>📍 {wirker.location}</div>
-                </div>
-              </div>
-              <div style={{ padding: "14px 18px", display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid #f5f5f3" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "#888" }}>📅 Datum</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#222" }}>{formatDate(selectedDate)}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "#888" }}>🕐 Uhrzeit</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#222" }}>{selectedTime} Uhr</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "#888" }}>📍 Treffpunkt</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#222", textAlign: "right", maxWidth: "60%" }}>
-                    {locationType === "talent" ? wirker.location : locationAddress}
-                  </span>
-                </div>
-                <div style={{ height: 1, background: "#f0f0ee" }} />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a" }}>Du zahlst</span>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: CORAL }}>{total.toFixed(2)} €</span>
-                </div>
-
-              </div>
-            </div>
-            <div style={{ background: `linear-gradient(135deg, ${TEAL}10, ${TEAL}04)`, borderRadius: 14, padding: "14px 16px", marginBottom: 12, display: "flex", gap: 12, alignItems: "flex-start", border: `1px solid ${TEAL}20` }}>
-              <span style={{ fontSize: 22, flexShrink: 0 }}>🔒</span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "#333", marginBottom: 3 }}>Treuhand-Schutz</div>
-                <div style={{ fontSize: 12, color: "#777", lineHeight: 1.6 }}>Dein Geld wird erst freigegeben, wenn du die Leistung bestätigt hast. Du bist immer abgesichert.</div>
-              </div>
-            </div>
-            <div style={{ background: `${TEAL}08`, borderRadius: 14, padding: "12px 16px", marginBottom: 24, display: "flex", gap: 10, alignItems: "center", border: `1px solid ${TEAL}15` }}>
-              <span style={{ fontSize: 20 }}>🌱</span>
-              <div style={{ fontSize: 12, color: TEAL, fontWeight: 600 }}>{impact.toFixed(2)} € deiner Buchung fließen in echte Impact-Projekte.</div>
-            </div>
-          </>
-        )}
+          ))}
+        </div>
       </div>
 
-      <div style={{ padding: "14px 18px 28px", borderTop: "1px solid #f5f5f3", background: "white" }}>
-        {step === 1 && <div style={{ textAlign: "center", color: "#bbb", fontSize: 13 }}>Wähle einen grün markierten Tag</div>}
-        {step === 2 && (
-          <button onClick={() => selectedTime && goTo(3)} disabled={!selectedTime} style={{ width: "100%", background: selectedTime ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#f0f0ee", color: selectedTime ? "white" : "#bbb", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: selectedTime ? "pointer" : "default", boxShadow: selectedTime ? `0 4px 16px ${CORAL}33` : "none", transition: "all 0.25s" }}>
-            Weiter → Treffpunkt wählen
-          </button>
-        )}
-        {step === 3 && (
-          <button
-            onClick={() => locationType && (locationType === "talent" || locationAddress.trim()) && goTo(4)}
-            disabled={!locationType || ((locationType === "kunde" || locationType === "andere") && !locationAddress.trim())}
-            style={{ width: "100%", background: (locationType && (locationType === "talent" || locationAddress.trim())) ? `linear-gradient(135deg, ${CORAL}, ${GOLD})` : "#f0f0ee", color: (locationType && (locationType === "talent" || locationAddress.trim())) ? "white" : "#bbb", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: (locationType && (locationType === "talent" || locationAddress.trim())) ? `0 4px 16px ${CORAL}33` : "none", transition: "all 0.25s" }}>
-            Weiter → Zahlung wählen
-          </button>
-        )}
-        {step === 4 && (
-          <button onClick={() => goTo(5)} style={{ width: "100%", background: `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: `0 4px 16px ${CORAL}33` }}>
-            Weiter → Buchung prüfen
-          </button>
-        )}
-        {step === 5 && (
-          <div>
-            <button onClick={handleConfirm} disabled={confirming} style={{ width: "100%", background: confirming ? "#f0f0ee" : `linear-gradient(135deg, ${CORAL}, ${GOLD})`, color: confirming ? "#bbb" : "white", border: "none", borderRadius: 16, padding: "16px", fontWeight: 800, fontSize: 16, cursor: confirming ? "default" : "pointer", boxShadow: confirming ? "none" : `0 4px 16px ${CORAL}33`, transition: "all 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              {confirming ? (<><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #ddd", borderTopColor: CORAL, animation: "spin 0.7s linear infinite" }} />Wird gebucht…</>) : (<>💳 Jetzt verbindlich buchen · {total.toFixed(2)} €</>)}
-            </button>
-            <style>{"@keyframes heartPop {\n  0%   { transform: scale(1); }\n  40%  { transform: scale(1.45); }\n  70%  { transform: scale(0.9); }\n  100% { transform: scale(1); }\n}\n@keyframes toastIn {\n  from { opacity: 0; transform: translateX(-50%) translateY(20px); }\n  to   { opacity: 1; transform: translateX(-50%) translateY(0); }\n}\n@keyframes spin { to { transform: rotate(360deg); } }"}</style>
-            <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 10 }}>🔒 Verschlüsselt · Treuhand-gesichert · Jederzeit stornierbar</div>
-          </div>
-        )}
-      </div>
+      <button onClick={onNext} className="bf-tap"
+        disabled={!slot}
+        style={{ width:"100%", padding:"17px",
+          background: slot
+            ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+            : C.muted2,
+          border:"none", borderRadius:18,
+          color:"white", fontSize:15, fontWeight:800,
+          cursor: slot ? "pointer" : "default",
+          fontFamily:"inherit",
+          boxShadow: slot ? `0 5px 22px ${C.tealGlow}` : "none",
+          transition:"all 0.3s" }}>
+        {slot ? `${slot} Uhr — weiter` : "Uhrzeit auswählen"}
+      </button>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// WIRKER PROFIL PAGE
-// ══════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════
-// WERK EDITOR (Versandkosten & Details vom Wirker bearbeitbar)
-// ══════════════════════════════════════════════════════════════════
+/* ── STEP 3: MESSAGE + CONFIRM ──────────────────────────────────────── */
+function StepMessage({ wirker, date, slot, msg, onMsg, onNext, onBack, onClose }) {
+  const hourlyRate = wirker.hourly_rate || wirker.hourly || 85;
+  const impactEur  = Math.round(hourlyRate * 0.025);
 
-export default BookingFlow;
+  return (
+    <div style={{ padding:"0 20px 40px",
+      animation:"bfFadeUp 0.4s both" }}>
+
+      <BackBtn onBack={onBack} onClose={onClose}/>
+      <StepDots step={3}/>
+
+      <div style={{ textAlign:"center", padding:"18px 0 24px" }}>
+        <div style={{ fontWeight:900, fontSize:22, color:C.ink,
+          letterSpacing:-0.5 }}>Was möchtest du teilen?</div>
+        <div style={{ fontSize:13, color:C.muted, marginTop:4 }}>
+          Ein paar Worte an {wirker.name?.split(" ")[0]} — optional, aber herzlich willkommen.
+        </div>
+      </div>
+
+      {/* Booking summary card */}
+      <div style={{ background:C.card, borderRadius:22,
+        padding:"20px 20px", marginBottom:22,
+        border:`1px solid ${C.border}`,
+        boxShadow:"0 2px 14px rgba(0,0,0,0.05)" }}>
+        <div style={{ display:"flex", alignItems:"center",
+          gap:14, marginBottom:16 }}>
+          <img src={wirker.img || wirker.imgUrl}
+            style={{ width:48, height:48, borderRadius:14,
+              objectFit:"cover", objectPosition:"top" }}/>
+          <div>
+            <div style={{ fontWeight:800, fontSize:15, color:C.ink }}>
+              {wirker.name}
+            </div>
+            <div style={{ fontSize:12, color:C.teal, fontWeight:600 }}>
+              {wirker.talent || "Kreativschaffende/r"}
+            </div>
+          </div>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+          gap:10 }}>
+          {[
+            { icon:"📅", label:"Datum", val:fmtDate(date) },
+            { icon:"⏰", label:"Uhrzeit", val:`${slot} Uhr` },
+            { icon:"⏱", label:"Dauer", val:"1 Stunde" },
+            { icon:"💶", label:"Gesamt", val:`€ ${wirker.hourly_rate||wirker.hourly||85}` },
+          ].map((r,i) => (
+            <div key={i} style={{ background:C.cream,
+              borderRadius:14, padding:"12px 14px" }}>
+              <div style={{ fontSize:11, color:C.muted,
+                marginBottom:3 }}>{r.icon} {r.label}</div>
+              <div style={{ fontWeight:700, fontSize:13,
+                color:C.ink }}>{r.val}</div>
+            </div>
+          ))}
+        </div>
+        {/* Impact note */}
+        <div style={{ marginTop:14, padding:"10px 14px",
+          borderRadius:14, background:"rgba(61,184,122,0.07)",
+          border:"1px solid rgba(61,184,122,0.14)",
+          display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:15 }}>🌱</span>
+          <span style={{ fontSize:11.5, color:"#3DB87A", lineHeight:1.5 }}>
+            € {impactEur} dieser Buchung fließen in ein Herzensprojekt.
+          </span>
+        </div>
+      </div>
+
+      {/* Message field */}
+      <textarea
+        value={msg} onChange={e => onMsg(e.target.value)}
+        placeholder={`Hallo ${wirker.name?.split(" ")[0]}, ich würde gerne…`}
+        rows={4}
+        style={{ width:"100%", background:C.card,
+          border:`1.5px solid ${C.border}`, borderRadius:18,
+          padding:"16px 18px", fontSize:14, color:C.ink,
+          fontFamily:"inherit", resize:"none", outline:"none",
+          boxSizing:"border-box", lineHeight:1.65,
+          boxShadow:"0 2px 10px rgba(0,0,0,0.04)",
+          transition:"border-color 0.2s" }}
+        onFocus={e => e.target.style.borderColor=C.teal}
+        onBlur={e => e.target.style.borderColor=C.border}
+      />
+      <div style={{ fontSize:11.5, color:C.muted, textAlign:"right",
+        marginTop:6, marginBottom:24 }}>
+        {msg.length}/300
+      </div>
+
+      <button onClick={onNext} className="bf-tap"
+        style={{ width:"100%", padding:"17px",
+          background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border:"none", borderRadius:18,
+          color:"white", fontSize:15, fontWeight:800,
+          cursor:"pointer", fontFamily:"inherit",
+          boxShadow:`0 5px 22px ${C.tealGlow}` }}>
+        Anfrage senden
+      </button>
+
+      <p style={{ textAlign:"center", fontSize:11.5, color:C.muted,
+        marginTop:14, lineHeight:1.65 }}>
+        Das Geld wird erst nach Abschluss überwiesen.
+        Du bist immer auf der sicheren Seite.
+      </p>
+    </div>
+  );
+}
+
+/* ── STEP 4: ESCROW CONFIRMATION ────────────────────────────────────── */
+function StepEscrow({ wirker, date, slot, onNext, onBack, onClose }) {
+  const hourlyRate  = wirker.hourly_rate || wirker.hourly || 85;
+  const impactEur   = Math.round(hourlyRate * 0.025);
+  const huiEur      = Math.round(hourlyRate * 0.1275);
+  const talentEur   = hourlyRate - Math.round(hourlyRate * 0.15);
+
+  return (
+    <div style={{ padding:"0 20px 40px",
+      animation:"bfFadeUp 0.4s both" }}>
+
+      <BackBtn onBack={onBack} onClose={onClose}/>
+      <StepDots step={4}/>
+
+      {/* Escrow visual */}
+      <div style={{ textAlign:"center", padding:"18px 0 28px" }}>
+        <div style={{ width:72, height:72,
+          borderRadius:24, margin:"0 auto 16px",
+          background:`linear-gradient(135deg,${C.teal}20,${C.teal2}14)`,
+          border:`2px solid ${C.teal}40`,
+          display:"flex", alignItems:"center",
+          justifyContent:"center", fontSize:32,
+          animation:"bfGlow 3s ease-in-out infinite" }}>
+          🔒
+        </div>
+        <div style={{ fontWeight:900, fontSize:22, color:C.ink,
+          letterSpacing:-0.5, marginBottom:6 }}>
+          Dein Geld ist sicher
+        </div>
+        <div style={{ fontSize:13.5, color:C.muted,
+          lineHeight:1.7, maxWidth:280, margin:"0 auto" }}>
+          Es liegt im Treuhänder bis die Zusammenarbeit abgeschlossen ist.
+          Erst dann entscheidest du.
+        </div>
+      </div>
+
+      {/* Flow visualization */}
+      <div style={{ background:C.card, borderRadius:24,
+        padding:"24px 22px", marginBottom:22,
+        border:`1px solid ${C.border}`,
+        boxShadow:"0 2px 16px rgba(0,0,0,0.05)" }}>
+
+        {[
+          { icon:"💶", label:"Du bezahlst jetzt", val:`€ ${hourlyRate}`, note:"sicher im Treuhänder", color:C.ink },
+          { icon:"🌱", label:"Impact-Beitrag", val:`€ ${impactEur}`, note:"direkt für Herzensprojekte", color:"#3DB87A" },
+          { icon:"✅", label:"Nach deiner Empfehlung", val:`€ ${talentEur}`, note:`${wirker.name?.split(" ")[0]} bekommt ausgezahlt`, color:C.teal },
+        ].map((row, i, arr) => (
+          <div key={i}>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              <div style={{ width:40, height:40, borderRadius:14, flexShrink:0,
+                background:`${row.color}14`,
+                display:"flex", alignItems:"center",
+                justifyContent:"center", fontSize:18 }}>
+                {row.icon}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:12, color:C.muted,
+                  marginBottom:2 }}>{row.label}</div>
+                <div style={{ fontSize:14, fontWeight:800,
+                  color:row.color }}>{row.val}</div>
+                <div style={{ fontSize:11, color:C.muted2 }}>{row.note}</div>
+              </div>
+            </div>
+            {i < arr.length-1 && (
+              <div style={{ margin:"12px 0 12px 19px",
+                width:2, height:18, background:`${C.teal}30`,
+                borderRadius:999 }}/>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Trust note */}
+      <div style={{ padding:"14px 18px", borderRadius:18,
+        background:C.tealPale,
+        border:`1px solid ${C.teal}30`,
+        marginBottom:28, textAlign:"center" }}>
+        <div style={{ fontSize:12.5, color:C.teal,
+          lineHeight:1.65 }}>
+          Wenn du nicht zufrieden bist, wird das Geld zurückgebucht.
+          <br/>Kein Risiko. Echte Verbindung.
+        </div>
+      </div>
+
+      <button onClick={onNext} className="bf-tap"
+        style={{ width:"100%", padding:"17px",
+          background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border:"none", borderRadius:18,
+          color:"white", fontSize:15, fontWeight:800,
+          cursor:"pointer", fontFamily:"inherit",
+          boxShadow:`0 5px 22px ${C.tealGlow}` }}>
+        Jetzt verbinden — € {hourlyRate}
+      </button>
+
+      <p style={{ textAlign:"center", fontSize:11.5, color:C.muted,
+        marginTop:14, lineHeight:1.65 }}>
+        Keine versteckten Gebühren. Keine Überraschungen.
+      </p>
+    </div>
+  );
+}
+
+/* ── STEP 5: SUCCESS + CHAT UNLOCKED ────────────────────────────────── */
+function StepSuccess({ wirker, date, slot, onClose, onChat }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    setTimeout(() => setVisible(true), 80);
+  }, []);
+
+  return (
+    <div style={{ padding:"40px 20px 40px",
+      textAlign:"center",
+      animation:"bfFadeUp 0.5s both" }}>
+
+      {/* Checkmark */}
+      <div style={{
+        width:80, height:80, borderRadius:"50%",
+        background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+        margin:"0 auto 24px",
+        display:"flex", alignItems:"center",
+        justifyContent:"center", fontSize:36,
+        boxShadow:`0 6px 28px ${C.tealGlow}`,
+        animation:"bfCheck 0.6s 0.1s both" }}>
+        ✓
+      </div>
+
+      <div style={{ fontWeight:900, fontSize:24, color:C.ink,
+        letterSpacing:-0.5, marginBottom:8 }}>
+        Verbindung hergestellt
+      </div>
+      <div style={{ fontSize:14, color:C.muted,
+        lineHeight:1.7, maxWidth:280, margin:"0 auto 32px" }}>
+        Deine Anfrage ist bei {wirker.name?.split(" ")[0]} angekommen.
+        Der Chat ist jetzt geöffnet.
+      </div>
+
+      {/* Status timeline */}
+      <div style={{ background:C.card, borderRadius:24,
+        padding:"22px 20px", marginBottom:28,
+        border:`1px solid ${C.border}`,
+        boxShadow:"0 2px 14px rgba(0,0,0,0.05)",
+        textAlign:"left" }}>
+
+        {[
+          { done:true,  label:"Anfrage gesendet",   note:`${fmtDate(date)}, ${slot} Uhr` },
+          { done:false, label:"Bestätigung erwartet", note:"meist innerhalb 2h" },
+          { done:false, label:"Buchung aktiv",         note:"Chat offen, los gehts" },
+          { done:false, label:"Abschluss",             note:"Du entscheidest" },
+          { done:false, label:"Empfehlung",            note:"Dein Feedback macht den Unterschied" },
+        ].map((s, i, arr) => (
+          <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start" }}>
+            <div style={{ display:"flex", flexDirection:"column",
+              alignItems:"center", marginTop:2 }}>
+              <div style={{ width:22, height:22, borderRadius:"50%", flexShrink:0,
+                background: s.done
+                  ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                  : C.cream,
+                border: s.done ? "none" : `2px solid ${C.muted2}`,
+                display:"flex", alignItems:"center",
+                justifyContent:"center", fontSize:10,
+                fontWeight:900, color: s.done ? "white" : C.muted2 }}>
+                {s.done ? "✓" : i+1}
+              </div>
+              {i < arr.length-1 && (
+                <div style={{ width:2, height:24,
+                  background: s.done ? C.teal+"66" : C.muted2+"44",
+                  margin:"3px 0" }}/>
+              )}
+            </div>
+            <div style={{ paddingBottom:i<arr.length-1 ? 0 : 0, marginBottom:12 }}>
+              <div style={{ fontWeight: s.done ? 700 : 500,
+                fontSize:13, color: s.done ? C.ink : C.muted,
+                lineHeight:1.3 }}>{s.label}</div>
+              <div style={{ fontSize:11, color:C.muted2, marginTop:2 }}>
+                {s.note}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Chat unlock notice */}
+      <div style={{ padding:"16px 20px", borderRadius:18,
+        background:`linear-gradient(135deg,${C.teal}12,${C.coral}08)`,
+        border:`1.5px solid ${C.teal}30`,
+        marginBottom:24, display:"flex",
+        alignItems:"center", gap:12, textAlign:"left" }}>
+        <div style={{ fontSize:24 }}>💬</div>
+        <div>
+          <div style={{ fontWeight:700, fontSize:13, color:C.ink, marginBottom:2 }}>
+            Chat ist freigeschaltet
+          </div>
+          <div style={{ fontSize:11.5, color:C.muted, lineHeight:1.5 }}>
+            Du kannst {wirker.name?.split(" ")[0]} jetzt direkt schreiben.
+          </div>
+        </div>
+      </div>
+
+      <button onClick={onChat} className="bf-tap"
+        style={{ width:"100%", padding:"16px",
+          background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border:"none", borderRadius:18,
+          color:"white", fontSize:15, fontWeight:800,
+          cursor:"pointer", fontFamily:"inherit",
+          boxShadow:`0 5px 22px ${C.tealGlow}`,
+          marginBottom:12 }}>
+        Chat öffnen
+      </button>
+
+      <button onClick={onClose} className="bf-tap"
+        style={{ width:"100%", padding:"14px",
+          background:"none", border:`1.5px solid ${C.border}`,
+          borderRadius:18, color:C.muted,
+          fontSize:14, fontWeight:600,
+          cursor:"pointer", fontFamily:"inherit" }}>
+        Später
+      </button>
+    </div>
+  );
+}
+
+/* ── POST-BOOKING: RECOMMENDATION ──────────────────────────────────── */
+function StepRecommend({ wirker, onClose }) {
+  const [choice, setChoice] = useState(null); // "yes" | "no"
+  const [text, setText]     = useState("");
+  const [done, setDone]     = useState(false);
+
+  if(done) return (
+    <div style={{ padding:"60px 20px", textAlign:"center",
+      animation:"bfFadeUp 0.5s both" }}>
+      <div style={{ fontSize:48, marginBottom:20,
+        animation:"bfPulse 2s ease-in-out infinite" }}>
+        {choice==="yes" ? "🌱" : "🤝"}
+      </div>
+      <div style={{ fontWeight:900, fontSize:22, color:C.ink,
+        letterSpacing:-0.5, marginBottom:10 }}>
+        {choice==="yes" ? "Danke für deine Empfehlung" : "Danke für dein Feedback"}
+      </div>
+      <div style={{ fontSize:13.5, color:C.muted, lineHeight:1.7,
+        maxWidth:270, margin:"0 auto 32px" }}>
+        {choice==="yes"
+          ? "Die Zahlung an den Wirker wurde ausgelöst. Deine Empfehlung macht einen echten Unterschied."
+          : "Das HUI-Team schaut sich den Fall an. Dein Geld ist sicher."}
+      </div>
+      <button onClick={onClose} className="bf-tap"
+        style={{ width:"100%", padding:"16px",
+          background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border:"none", borderRadius:18, color:"white",
+          fontSize:15, fontWeight:800, cursor:"pointer",
+          fontFamily:"inherit", boxShadow:`0 5px 22px ${C.tealGlow}` }}>
+        Schließen
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{ padding:"0 20px 40px",
+      animation:"bfFadeUp 0.5s both" }}>
+
+      <div style={{ padding:"max(52px,env(safe-area-inset-top,52px)) 0 24px",
+        textAlign:"center" }}>
+        <div style={{ fontWeight:900, fontSize:22, color:C.ink,
+          letterSpacing:-0.5, marginBottom:6 }}>
+          Wie war deine Erfahrung?
+        </div>
+        <div style={{ fontSize:13, color:C.muted, lineHeight:1.65 }}>
+          Dein Feedback entscheidet ob die Zahlung freigegeben wird.
+        </div>
+      </div>
+
+      {/* Wirker card */}
+      <div style={{ display:"flex", alignItems:"center", gap:14,
+        background:C.card, borderRadius:20,
+        padding:"16px 18px", marginBottom:28,
+        border:`1px solid ${C.border}`,
+        boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+        <img src={wirker.img || wirker.imgUrl}
+          style={{ width:52, height:52, borderRadius:14,
+            objectFit:"cover", objectPosition:"top" }}/>
+        <div>
+          <div style={{ fontWeight:800, fontSize:15, color:C.ink }}>
+            {wirker.name}
+          </div>
+          <div style={{ fontSize:12, color:C.teal, fontWeight:600, marginTop:2 }}>
+            {wirker.talent}
+          </div>
+        </div>
+      </div>
+
+      {/* Choice buttons */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+        gap:12, marginBottom:24 }}>
+        <button className="bf-tap" onClick={() => setChoice("yes")}
+          style={{ padding:"22px 16px", borderRadius:20,
+            background: choice==="yes"
+              ? `linear-gradient(135deg,${C.teal}22,${C.teal2}14)`
+              : C.card,
+            border:`2px solid ${choice==="yes" ? C.teal : C.border}`,
+            cursor:"pointer", fontFamily:"inherit",
+            transition:"all 0.2s",
+            boxShadow: choice==="yes"
+              ? `0 4px 16px ${C.tealGlow}` : "0 2px 8px rgba(0,0,0,0.05)" }}>
+          <div style={{ fontSize:28, marginBottom:8 }}>🤝</div>
+          <div style={{ fontWeight:800, fontSize:14,
+            color: choice==="yes" ? C.teal : C.ink }}>Empfehlen</div>
+          <div style={{ fontSize:11, color:C.muted, marginTop:4, lineHeight:1.4 }}>
+            Zahlung freigeben
+          </div>
+        </button>
+        <button className="bf-tap" onClick={() => setChoice("no")}
+          style={{ padding:"22px 16px", borderRadius:20,
+            background: choice==="no"
+              ? `${C.coral}14` : C.card,
+            border:`2px solid ${choice==="no" ? C.coral : C.border}`,
+            cursor:"pointer", fontFamily:"inherit",
+            transition:"all 0.2s",
+            boxShadow: choice==="no"
+              ? `0 4px 16px ${C.coralGlow}` : "0 2px 8px rgba(0,0,0,0.05)" }}>
+          <div style={{ fontSize:28, marginBottom:8 }}>💬</div>
+          <div style={{ fontWeight:800, fontSize:14,
+            color: choice==="no" ? C.coral : C.ink }}>Nicht empfehlen</div>
+          <div style={{ fontSize:11, color:C.muted, marginTop:4, lineHeight:1.4 }}>
+            Geld zurückhalten
+          </div>
+        </button>
+      </div>
+
+      {/* Optional text */}
+      {choice && (
+        <div style={{ animation:"bfFadeUp 0.3s both" }}>
+          <textarea
+            value={text} onChange={e=>setText(e.target.value)}
+            placeholder={choice==="yes"
+              ? `Was hat dich an ${wirker.name?.split(" ")[0]} begeistert?`
+              : "Was hätte besser sein können?"}
+            rows={3}
+            style={{ width:"100%", background:C.card,
+              border:`1.5px solid ${C.border}`, borderRadius:16,
+              padding:"14px 16px", fontSize:13.5, color:C.ink,
+              fontFamily:"inherit", resize:"none", outline:"none",
+              boxSizing:"border-box", lineHeight:1.65, marginBottom:20 }}
+            onFocus={e => e.target.style.borderColor=C.teal}
+            onBlur={e => e.target.style.borderColor=C.border}
+          />
+          <button onClick={() => setDone(true)} className="bf-tap"
+            style={{ width:"100%", padding:"16px",
+              background: choice==="yes"
+                ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                : `linear-gradient(135deg,${C.coral},${C.coral2})`,
+              border:"none", borderRadius:18, color:"white",
+              fontSize:15, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow: choice==="yes"
+                ? `0 5px 22px ${C.tealGlow}`
+                : `0 5px 22px ${C.coralGlow}` }}>
+            {choice==="yes" ? "Empfehlung abgeben ✓" : "Feedback senden"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MAIN BOOKING FLOW
+════════════════════════════════════════════════════════════════════ */
+export default function BookingFlow({ wirker, onClose, onAddToCart, onSuccess }) {
+  const [step, setStep]   = useState(0);
+  const [date, setDate]   = useState(null);
+  const [slot, setSlot]   = useState(null);
+  const [msg,  setMsg]    = useState("");
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef(null);
+
+  // Smooth scroll to top on step change
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top:0, behavior:"smooth" });
+  }, [step]);
+
+  const handleSendRequest = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if(user) {
+        await supabase.from("bookings").insert({
+          user_id: user.id,
+          wirker_name: wirker.name,
+          date: date?.toISOString().split("T")[0],
+          time_slot: slot,
+          message: msg,
+          status: "pending",
+          amount_eur: wirker.hourly_rate || wirker.hourly || 85,
+          impact_eur: Math.round((wirker.hourly_rate || wirker.hourly || 85) * 0.025),
+        });
+      }
+    } catch(e) { /* continue even if DB fails */ }
+    setLoading(false);
+    setStep(4);
+  };
+
+  const handleEscrowConfirm = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if(user) {
+        await supabase.from("bookings").update({ status:"confirmed" })
+          .eq("user_id", user.id)
+          .eq("wirker_name", wirker.name)
+          .eq("status","pending");
+      }
+    } catch(e) {}
+    setLoading(false);
+    setStep(5);
+  };
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <div ref={scrollRef}
+        className="bf-scroll"
+        style={{ position:"fixed", inset:0,
+          zIndex:300, background:C.warm,
+          overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+
+        {/* Loading overlay */}
+        {loading && (
+          <div style={{ position:"fixed", inset:0, zIndex:400,
+            background:"rgba(249,246,242,0.88)",
+            backdropFilter:"blur(8px)",
+            display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center", gap:16 }}>
+            <div style={{ width:36, height:36,
+              borderRadius:"50%",
+              border:`3px solid ${C.teal}30`,
+              borderTop:`3px solid ${C.teal}`,
+              animation:"bfSpinner 0.8s linear infinite" }}/>
+            <div style={{ fontSize:13, color:C.muted }}>
+              Verbindung wird hergestellt…
+            </div>
+          </div>
+        )}
+
+        {step === 0 && (
+          <>
+            {/* Close only — no back on first step */}
+            <div style={{ display:"flex", justifyContent:"flex-end",
+              padding:"max(52px,env(safe-area-inset-top,52px)) 20px 0" }}>
+              <button onClick={onClose} className="bf-tap"
+                style={{ background:"none", border:"none",
+                  cursor:"pointer", fontSize:12,
+                  fontWeight:600, color:C.muted, padding:"8px 12px" }}>
+                Schließen
+              </button>
+            </div>
+            <StepIntro wirker={wirker} onNext={() => setStep(1)}/>
+          </>
+        )}
+
+        {step === 1 && (
+          <StepCalendar
+            wirker={wirker} selected={date}
+            onSelect={setDate}
+            onNext={() => setStep(2)}
+            onBack={() => setStep(0)}
+            onClose={onClose}
+          />
+        )}
+
+        {step === 2 && (
+          <StepTime
+            wirker={wirker} date={date} slot={slot}
+            onSlot={setSlot}
+            onNext={() => setStep(3)}
+            onBack={() => setStep(1)}
+            onClose={onClose}
+          />
+        )}
+
+        {step === 3 && (
+          <StepMessage
+            wirker={wirker} date={date} slot={slot}
+            msg={msg} onMsg={setMsg}
+            onNext={handleSendRequest}
+            onBack={() => setStep(2)}
+            onClose={onClose}
+          />
+        )}
+
+        {step === 4 && (
+          <>
+            <BackBtn onBack={() => setStep(3)} onClose={onClose}/>
+            <StepEscrow
+              wirker={wirker} date={date} slot={slot}
+              onNext={handleEscrowConfirm}
+              onBack={() => setStep(3)}
+              onClose={onClose}
+            />
+          </>
+        )}
+
+        {step === 5 && (
+          <StepSuccess
+            wirker={wirker} date={date} slot={slot}
+            onClose={onSuccess || onClose}
+            onChat={() => { onSuccess?.(); }}
+          />
+        )}
+
+        {step === 6 && (
+          <StepRecommend
+            wirker={wirker}
+            onClose={onSuccess || onClose}
+          />
+        )}
+      </div>
+    </>
+  );
+}
