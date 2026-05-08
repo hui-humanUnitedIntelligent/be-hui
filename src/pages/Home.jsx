@@ -149,6 +149,11 @@ const GLOBAL_CSS = `
   .hui-scroll { -ms-overflow-style:none; scrollbar-width:none; }
   .hui-card-tap { transition:transform 0.2s cubic-bezier(0.34,1.4,0.64,1); }
   .hui-card-tap:active { transform:scale(0.965); }
+  @keyframes hui-pulse-ring {
+    0%   { transform:translate(-50%,-62%) scale(0.85); opacity:0.45; }
+    60%  { transform:translate(-50%,-62%) scale(1.35); opacity:0; }
+    100% { transform:translate(-50%,-62%) scale(1.35); opacity:0; }
+  }
 `;
 
 /* ═══════════════════════════════════════════════════
@@ -429,8 +434,19 @@ function NavIcon({ k, active }) {
 }
 
 /* ─── BOTTOM NAV — floating pill, premium ─── */
-function BottomNav({ tab, onTab, onCreate }) {
+function BottomNav({ tab, onTab, onCreate, isWirker }) {
   const [pressed, setPressed] = useState(null);
+  const [transformed, setTransformed] = useState(false);
+
+  // Trigger the "magic moment" transformation animation
+  useEffect(() => {
+    if(isWirker) {
+      const t = setTimeout(() => setTransformed(true), 50);
+      return () => clearTimeout(t);
+    } else {
+      setTransformed(false);
+    }
+  }, [isWirker]);
 
   return (
     <div style={{
@@ -466,29 +482,75 @@ function BottomNav({ tab, onTab, onCreate }) {
                 cursor:"pointer", padding:0,
                 lineHeight:0, flexShrink:0,
                 WebkitTapHighlightColor:"transparent",
+                position:"relative",
               }}>
               <div style={{
-                width:52, height:52, borderRadius:17,
+                width:52, height:52, borderRadius: isWirker ? "50%" : 17,
                 marginTop:-24,
-                background:`linear-gradient(145deg,${C.teal},#14C4B4 45%,${C.coral})`,
+                background: isWirker
+                  ? `linear-gradient(145deg,${C.teal},${C.teal2} 45%,${C.coral})`
+                  : `linear-gradient(145deg,${C.teal},#14C4B4 45%,${C.coral})`,
                 display:"flex", alignItems:"center",
                 justifyContent:"center",
                 transform: pressed==="hui"
                   ? "scale(0.90) translateY(2px)"
-                  : "scale(1) translateY(0)",
-                transition:"transform 0.22s cubic-bezier(0.34,1.3,0.64,1)",
-                boxShadow:`
-                  0 0 0 3px rgba(255,251,248,0.95),
-                  0 4px 6px rgba(0,0,0,0.12),
-                  0 8px 22px rgba(22,215,197,0.38),
-                  0 4px 12px rgba(255,138,107,0.22)
-                `,
+                  : transformed ? "scale(1.05) translateY(0)" : "scale(1) translateY(0)",
+                transition:"all 0.55s cubic-bezier(0.34,1.5,0.64,1)",
+                boxShadow: isWirker
+                  ? `
+                    0 0 0 3px rgba(255,251,248,0.95),
+                    0 4px 6px rgba(0,0,0,0.12),
+                    0 8px 28px rgba(22,215,197,0.52),
+                    0 4px 14px rgba(255,138,107,0.30),
+                    0 0 0 7px rgba(22,215,197,0.10)
+                  `
+                  : `
+                    0 0 0 3px rgba(255,251,248,0.95),
+                    0 4px 6px rgba(0,0,0,0.12),
+                    0 8px 22px rgba(22,215,197,0.38),
+                    0 4px 12px rgba(255,138,107,0.22)
+                  `,
+                overflow:"hidden",
               }}>
-                {/* Real HUI logo image */}
+                {/* BASE USER: real HUI logo */}
                 <img src="/hui-logo.jpg" alt="HUI"
-                  style={{ width:36, height:36, borderRadius:10,
-                    objectFit:"cover", display:"block" }}/>
+                  style={{
+                    width:36, height:36, borderRadius: isWirker ? "50%" : 10,
+                    objectFit:"cover", display:"block",
+                    position:"absolute",
+                    opacity: isWirker ? 0 : 1,
+                    transform: isWirker ? "scale(0.5) rotate(-90deg)" : "scale(1) rotate(0deg)",
+                    transition:"all 0.5s cubic-bezier(0.34,1.3,0.64,1)",
+                  }}/>
+                {/* WIRKER: Plus icon */}
+                <div style={{
+                  position:"absolute",
+                  opacity: isWirker ? 1 : 0,
+                  transform: isWirker ? "scale(1) rotate(0deg)" : "scale(0.3) rotate(90deg)",
+                  transition:"all 0.5s cubic-bezier(0.34,1.3,0.64,1)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <path d="M11 3 L11 19" stroke="white" strokeWidth="2.4"
+                      strokeLinecap="round"/>
+                    <path d="M3 11 L19 11" stroke="white" strokeWidth="2.4"
+                      strokeLinecap="round"/>
+                  </svg>
+                </div>
               </div>
+              {/* Wirker glow pulse ring */}
+              {isWirker && (
+                <div style={{
+                  position:"absolute",
+                  top:"50%", left:"50%",
+                  transform:"translate(-50%,-62%)",
+                  width:64, height:64, borderRadius:"50%",
+                  border:`1.5px solid ${C.teal}`,
+                  opacity:0,
+                  animation:"hui-pulse-ring 2.2s ease-out infinite",
+                  pointerEvents:"none",
+                }}/>
+              )}
             </button>
           );
 
@@ -1108,6 +1170,9 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 ═══════════════════════════════════════════════════ */
 export default function Home() {
   const [tab,         setTab]         = useState("feed");
+  const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
+  const [showWirkerFlow, setShowWirkerFlow] = useState(false); // "Wirker werden" flow
+  const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
   const [showWirker,  setShowWirker]  = useState(null);
   const [showBooking, setShowBooking] = useState(null);
   const [showWerkDetail,  setShowWerkDetail]  = useState(null);  // werk detail view
@@ -1123,13 +1188,25 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(()=>{
-    supabase.auth.getSession().then(({data:{session}})=>{
+    supabase.auth.getSession().then(async ({data:{session}})=>{
       if(!session) return;
       setCurrentUser(session.user);
       setUserName(
         session.user.user_metadata?.full_name ||
         session.user.email?.split("@")[0] || ""
       );
+      // Check wirker status from profiles table
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("is_wirker")
+          .eq("id", session.user.id)
+          .single();
+        if (data?.is_wirker) setIsWirker(true);
+      } catch(e) {
+        // profiles table may not exist yet — use localStorage fallback
+        if(localStorage.getItem("hui_is_wirker") === "true") setIsWirker(true);
+      }
     });
   },[]);
 
@@ -1217,7 +1294,11 @@ export default function Home() {
         </div>
 
         <BottomNav tab={tab} onTab={setTab}
-          onCreate={()=>setShowCreate(true)}/>
+          isWirker={isWirker}
+          onCreate={()=>{
+            if(isWirker) setShowCreateSheet(true);
+            else setShowWirkerFlow(true);
+          }}/>
 
         {/* Overlays */}
         {showMap && <LiveMapPage onView={w=>{setShowWirker(w);setShowMap(false);}} onMatch={()=>{setShowMap(false);setShowMatch(true);}} onClose={()=>setShowMap(false)} fullscreen={true}/>}
@@ -1238,6 +1319,29 @@ export default function Home() {
             if(cart.length>0)setShowWerkCheckout(cart);}}
         />}
       </div>
+
+      {/* ── Wirker werden Flow ── */}
+      {showWirkerFlow && (
+        <WirkerWerdenFlow
+          onClose={() => setShowWirkerFlow(false)}
+          onActivate={() => {
+            setIsWirker(true);
+            localStorage.setItem("hui_is_wirker","true");
+            setShowWirkerFlow(false);
+          }}
+        />
+      )}
+
+      {/* ── Wirker Create Sheet ── */}
+      {showCreateSheet && (
+        <WirkerCreateSheet
+          onClose={() => setShowCreateSheet(false)}
+          onSelect={(type) => {
+            setShowCreateSheet(false);
+            setShowCreate(true);
+          }}
+        />
+      )}
     </>
   );
 }
