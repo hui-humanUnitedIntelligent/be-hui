@@ -3,6 +3,7 @@
 // KEIN Seller-Onboarding. KEIN technisches Formular.
 import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../lib/AuthContext";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -85,6 +86,7 @@ function TInput({ label, value, onChange, placeholder, type="text" }) {
 }
 
 export default function WirkerWerdenFlow({ onClose, onActivate }) {
+  const { becomeWirker } = useAuth();
   const [step, setStep]     = useState(0); // 0=intro, 1=type, 2=details, 3=categories, 4=payout, 5=done
   const [data, setData]     = useState({
     type:"", name:"", city:"", bio:"", categories:[],
@@ -98,19 +100,18 @@ export default function WirkerWerdenFlow({ onClose, onActivate }) {
   const handleActivate = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("profiles").upsert({
-          id: user.id,
-          is_wirker: true,
-          wirker_type: data.type,
-          display_name: data.name,
-          city: data.city,
-          bio: data.bio,
-          categories: data.categories,
-        });
+      const result = await becomeWirker({
+        name: data.name,
+        talent: data.categories[0] || "Kreativ",
+        type: data.type,
+        city: data.city,
+        bio: data.bio,
+        categories: data.categories,
+      });
+      if (result.error) {
+        console.warn("becomeWirker error:", result.error);
       }
-    } catch(e) {}
+    } catch(e) { console.warn("handleActivate error:", e); }
     setLoading(false);
     setStep(5);
   };
