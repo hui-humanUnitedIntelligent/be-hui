@@ -5,6 +5,7 @@ import ProfilePage    from "./ProfilePage";
 import BookingFlow    from "../components/BookingFlow";
 import { WerkDetail, WerkCheckout, WerkeKorb } from "../components/WerkeShop";
 import OrdersPage from "../components/OrdersPage";
+import { useAuth } from "../lib/AuthContext";
 import CreateFlow          from "../components/CreateFlow";
 import WirkerWerdenFlow   from "../components/WirkerWerdenFlow";
 import WirkerCreateSheet  from "../components/WirkerCreateSheet";
@@ -1197,6 +1198,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 ═══════════════════════════════════════════════════ */
 export default function Home() {
   const [tab,         setTab]         = useState("feed");
+  const { isWirker: authIsWirker, profile: authProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
   const [showWirkerFlow, setShowWirkerFlow] = useState(false); // "Wirker werden" flow
   const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
@@ -1206,6 +1208,11 @@ export default function Home() {
   const [showWerkCheckout,setShowWerkCheckout]= useState(null);  // werk checkout
   const [showWerkeKorb,   setShowWerkeKorb]   = useState(false); // korb sheet
   const [showCreate,  setShowCreate]  = useState(false);
+
+  // Sync wirker status from AuthContext
+  useEffect(() => {
+    if (authIsWirker) setIsWirker(true);
+  }, [authIsWirker]);
   const [showMatch,   setShowMatch]   = useState(false);
   const [showMap,     setShowMap]     = useState(false);
   const [showKorb,    setShowKorb]    = useState(false);
@@ -1222,19 +1229,8 @@ export default function Home() {
         session.user.user_metadata?.full_name ||
         session.user.email?.split("@")[0] || ""
       );
-      // Check wirker status from profiles table
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("is_wirker")
-          .eq("id", session.user.id)
-          .single();
-        if (data?.is_wirker) setIsWirker(true);
-      } catch(e) {
-        // profiles table may not exist yet — use localStorage fallback
-        if(localStorage.getItem("hui_is_wirker") === "true") setIsWirker(true);
-      }
     });
+    // Sync isWirker from AuthContext (authoritative source)
   },[]);
 
   if(showCreate)  return <CreateFlow onClose={()=>setShowCreate(false)}/>;
