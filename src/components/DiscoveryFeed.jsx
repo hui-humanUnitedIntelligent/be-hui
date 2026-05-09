@@ -540,6 +540,8 @@ function ImpactCard({ item, onImpact }) {
 /* ════════════════════════════════════════════════════════════════
    MAIN DISCOVERY FEED
 ════════════════════════════════════════════════════════════════ */
+import HuiStories from "./HuiStories";
+
 export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb }) {
   return (
     <>
@@ -633,6 +635,13 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             <span>✨</span><span>HUI Match</span>
           </button>
         </div>
+
+        {/* ══ 1b. STORY STRIP ═══════════════════════════════════════ */}
+        <HuiStories
+          onOpenProfile={() => {}}
+          onOpenWerk={() => {}}
+          onOpenImpact={onImpact}
+        />
 
         {/* ══ 2. WIRKER GRID ════════════════════════════════════════ */}
         <SectionHeader
