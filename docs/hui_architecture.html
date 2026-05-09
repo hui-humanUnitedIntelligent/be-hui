@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUI — Core System Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0D0D0F; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif; color: #E8E8EA; min-height: 100vh; padding: 40px 24px 80px; }
+  
+  /* Header */
+  .header { text-align: center; margin-bottom: 56px; }
+  .header-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(22,215,197,0.1); border: 1px solid rgba(22,215,197,0.25); border-radius: 999px; padding: 6px 16px; font-size: 11px; font-weight: 700; color: #16D7C5; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
+  .dot-live { width: 6px; height: 6px; border-radius: 50%; background: #16D7C5; box-shadow: 0 0 8px rgba(22,215,197,0.8); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 900; letter-spacing: -1.5px; background: linear-gradient(135deg, #FFFFFF 0%, #16D7C5 50%, #FF8A6B 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+  .subtitle { font-size: 15px; color: rgba(255,255,255,0.45); line-height: 1.7; max-width: 600px; margin: 0 auto; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; max-width: 1400px; margin: 0 auto 48px; }
+  
+  /* System Card */
+  .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 24px; padding: 24px; position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
+  .card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.14); }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 24px 24px 0 0; }
+  
+  /* Card colors */
+  .card.teal::before { background: linear-gradient(90deg, #16D7C5, #11C5B7); }
+  .card.coral::before { background: linear-gradient(90deg, #FF8A6B, #FF7B72); }
+  .card.gold::before { background: linear-gradient(90deg, #F5A623, #E09A1F); }
+  .card.green::before { background: linear-gradient(90deg, #3DB87A, #2FA368); }
+  .card.purple::before { background: linear-gradient(90deg, #9B6BFF, #7B4FE0); }
+  .card.blue::before { background: linear-gradient(90deg, #4A9BFF, #3585E0); }
+  .card.rose::before { background: linear-gradient(90deg, #FF6B9B, #E05585); }
+  .card.amber::before { background: linear-gradient(90deg, #FFB347, #FF9420); }
+
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .card-icon { width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .icon-teal   { background: rgba(22,215,197,0.15); }
+  .icon-coral  { background: rgba(255,138,107,0.15); }
+  .icon-gold   { background: rgba(245,166,35,0.15); }
+  .icon-green  { background: rgba(61,184,122,0.15); }
+  .icon-purple { background: rgba(155,107,255,0.15); }
+  .icon-blue   { background: rgba(74,155,255,0.15); }
+  .icon-rose   { background: rgba(255,107,155,0.15); }
+  .icon-amber  { background: rgba(255,179,71,0.15); }
+  
+  .card-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: #FFFFFF; }
+  .card-sub   { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; font-weight: 500; letter-spacing: 0.2px; }
+
+  /* Tables */
+  .table-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+  .table-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(255,255,255,0.04); border-radius: 10px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); }
+  .table-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .dot-teal   { background: #16D7C5; }
+  .dot-coral  { background: #FF8A6B; }
+  .dot-gold   { background: #F5A623; }
+  .dot-green  { background: #3DB87A; }
+  .dot-purple { background: #9B6BFF; }
+  .dot-blue   { background: #4A9BFF; }
+  .dot-rose   { background: #FF6B9B; }
+  .dot-amber  { background: #FFB347; }
+
+  /* States */
+  .states { display: flex; flex-wrap: wrap; gap: 5px; }
+  .state-tag { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.3px; }
+  
+  /* Triggers */
+  .triggers { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .trigger-title { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .trigger-item { font-size: 11.5px; color: rgba(255,255,255,0.5); padding: 4px 0; line-height: 1.5; display: flex; align-items: flex-start; gap: 6px; }
+  .trigger-arrow { color: #16D7C5; flex-shrink: 0; font-weight: 700; }
+
+  /* Flow diagram */
+  .flow-section { max-width: 1400px; margin: 0 auto 48px; }
+  .flow-title { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; text-align: center; }
+  .flow { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0; }
+  .flow-node { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px 18px; text-align: center; }
+  .flow-node-icon { font-size: 22px; margin-bottom: 6px; }
+  .flow-node-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.8); }
+  .flow-arrow { color: rgba(255,255,255,0.2); font-size: 18px; padding: 0 6px; font-weight: 300; }
+
+  /* Commission box */
+  .commission { background: rgba(61,184,122,0.06); border: 1px solid rgba(61,184,122,0.2); border-radius: 16px; padding: 16px; margin-top: 14px; }
+  .commission-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; }
+  .commission-label { color: rgba(255,255,255,0.5); }
+  .commission-value { font-weight: 800; color: #3DB87A; }
+  .commission-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 6px 0; }
+
+  /* Footer */
+  .footer { text-align: center; color: rgba(255,255,255,0.2); font-size: 12px; margin-top: 40px; letter-spacing: 0.3px; }
+  .footer strong { color: #16D7C5; }
+
+  /* Wide cards */
+  .grid-wide { max-width: 1400px; margin: 0 auto 48px; }
+  .card-wide { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 24px; padding: 28px; position: relative; overflow: hidden; }
+  .card-wide::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 24px 24px 0 0; background: linear-gradient(90deg, #16D7C5, #FF8A6B); }
+  .flow-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+  .flow-step { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; }
+  .step-num { font-size: 10px; font-weight: 900; color: #16D7C5; letter-spacing: 1px; margin-bottom: 6px; }
+  .step-title { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+  .step-body { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-badge"><div class="dot-live"></div>HUI Core Architecture v5.0</div>
+  <h1>Human United Intelligent</h1>
+  <p class="subtitle">Ein lebendiges Ökosystem — jede Aktion beeinflusst alle anderen Systeme. Kein isoliertes Feature. Eine kreative Welt.</p>
+</div>
+
+<!-- BOOKING FLOW -->
+<div class="grid-wide">
+  <div class="card-wide">
+    <div class="card-header">
+      <div class="card-icon icon-teal">⚡</div>
+      <div><div class="card-title">Core Event Flow — Buchung</div><div class="card-sub">So verbindet HUI alle Systeme automatisch</div></div>
+    </div>
+    <div class="flow-grid">
+      <div class="flow-step"><div class="step-num">01</div><div class="step-title">Anfrage</div><div class="step-body">Kunde bucht Wirker → booking.state = requested → Notification an Wirker</div></div>
+      <div class="flow-step"><div class="step-num">02</div><div class="step-title">Bestätigung</div><div class="step-body">Wirker bestätigt → booking.state = confirmed → Chat öffnet → Escrow aktiviert</div></div>
+      <div class="flow-step"><div class="step-num">03</div><div class="step-title">Zahlung</div><div class="step-body">Stripe Checkout → payment.state = paid → Escrow hält Betrag → Wirker informiert</div></div>
+      <div class="flow-step"><div class="step-num">04</div><div class="step-title">Durchführung</div><div class="step-body">booking.state = active → Chat aktiv → Wirker liefert → Availability gesperrt</div></div>
+      <div class="flow-step"><div class="step-num">05</div><div class="step-title">Abschluss</div><div class="step-body">booking.state = completed → Kunde wird zur Empfehlung eingeladen</div></div>
+      <div class="flow-step"><div class="step-num">06</div><div class="step-title">Empfehlung</div><div class="step-body">booking.state = recommended → Escrow released → Payout → Chat closed → Impact Pool</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM CARDS GRID -->
+<div class="grid">
+
+  <!-- USER SYSTEM -->
+  <div class="card teal">
+    <div class="card-header">
+      <div class="card-icon icon-teal">👤</div>
+      <div><div class="card-title">User System</div><div class="card-sub">profiles + wirker_profiles</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-teal"></div>profiles — Supabase Auth Erweiterung</div>
+      <div class="table-item"><div class="table-dot dot-teal"></div>wirker_profiles — Öffentliche Identität</div>
+      <div class="table-item"><div class="table-dot dot-teal"></div>follows — Follower-Netzwerk</div>
+    </div>
+    <div class="states">
+      <span class="state-tag" style="background:rgba(22,215,197,0.12);color:#16D7C5">basisuser</span>
+      <span class="state-tag" style="background:rgba(22,215,197,0.12);color:#16D7C5">wirker</span>
+      <span class="state-tag" style="background:rgba(22,215,197,0.12);color:#16D7C5">verified_wirker</span>
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">suspended</span>
+      <span class="state-tag" style="background:rgba(155,107,255,0.12);color:#9B6BFF">admin</span>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">Event Flow</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>Basisuser → Wirker: wirker_profiles erstellt, is_wirker = true, Feed-Upload aktiv</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>Stripe Connect Express: stripe_account_id gespeichert, Auszahlung freigeschaltet</div>
+    </div>
+  </div>
+
+  <!-- CONTENT SYSTEM -->
+  <div class="card coral">
+    <div class="card-header">
+      <div class="card-icon icon-coral">🎨</div>
+      <div><div class="card-title">Content System</div><div class="card-sub">works + experiences + stories + media</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-coral"></div>works — Werke mit Preis, Bestand, Versand</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>experiences — Buchbare Erlebnisse</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>stories — 24h, slides JSONB, Links</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>media — Asset-Store für alle Inhalte</div>
+    </div>
+    <div class="states">
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">draft</span>
+      <span class="state-tag" style="background:rgba(61,184,122,0.12);color:#3DB87A">published</span>
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">archived</span>
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">sold</span>
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">booked</span>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">Trigger</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>work published → feed_items INSERT + PostGIS location index</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>story posted → feed_items (expires_at = +24h) → auto-expire via cron</div>
+    </div>
+  </div>
+
+  <!-- FEED + DISCOVERY -->
+  <div class="card gold">
+    <div class="card-header">
+      <div class="card-icon icon-gold">🔭</div>
+      <div><div class="card-title">Feed & Discovery</div><div class="card-sub">feed_items + favorites + PostGIS</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-gold"></div>feed_items — denormalisiert, score-ranked</div>
+      <div class="table-item"><div class="table-dot dot-gold"></div>favorites — User-Saves</div>
+      <div class="table-item"><div class="table-dot dot-gold"></div>recommendations — verifiziert nach Buchung</div>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">Ranking Score berücksichtigt</div>
+      <div class="trigger-item"><span class="trigger-arrow">+</span>Standort + Radius (PostGIS ST_DWithin)</div>
+      <div class="trigger-item"><span class="trigger-arrow">+</span>Empfehlungen, Story-Aktivität, Buchungen</div>
+      <div class="trigger-item"><span class="trigger-arrow">+</span>Gespeicherte Werke, vergangene Interaktionen</div>
+    </div>
+  </div>
+
+  <!-- BOOKING SYSTEM -->
+  <div class="card green">
+    <div class="card-header">
+      <div class="card-icon icon-green">📅</div>
+      <div><div class="card-title">Booking System</div><div class="card-sub">bookings + booking_events + availability</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-green"></div>bookings — State Machine mit 7 Zuständen</div>
+      <div class="table-item"><div class="table-dot dot-green"></div>booking_events — vollständiges Audit-Log</div>
+      <div class="table-item"><div class="table-dot dot-green"></div>availability — Wirker-Kalender</div>
+    </div>
+    <div class="states">
+      <span class="state-tag" style="background:rgba(61,184,122,0.12);color:#3DB87A">requested</span>
+      <span class="state-tag" style="background:rgba(61,184,122,0.12);color:#3DB87A">confirmed</span>
+      <span class="state-tag" style="background:rgba(61,184,122,0.12);color:#3DB87A">active</span>
+      <span class="state-tag" style="background:rgba(61,184,122,0.12);color:#3DB87A">completed</span>
+      <span class="state-tag" style="background:rgba(61,184,122,0.12);color:#3DB87A">recommended</span>
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">disputed</span>
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">cancelled</span>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">DB-generierte Werte</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>commission_eur, impact_eur, wirker_payout_eur — GENERATED ALWAYS AS</div>
+    </div>
+  </div>
+
+  <!-- PAYMENT SYSTEM -->
+  <div class="card purple">
+    <div class="card-header">
+      <div class="card-icon icon-purple">💳</div>
+      <div><div class="card-title">Payment System</div><div class="card-sub">payments + escrow + payouts + orders</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-purple"></div>payments — Stripe PaymentIntent</div>
+      <div class="table-item"><div class="table-dot dot-purple"></div>escrow — hält Betrag bis Empfehlung</div>
+      <div class="table-item"><div class="table-dot dot-purple"></div>payouts — Stripe Connect Transfer</div>
+      <div class="table-item"><div class="table-dot dot-purple"></div>orders + order_items — Werke-Käufe</div>
+    </div>
+    <div class="commission">
+      <div class="commission-row"><span class="commission-label">Buchungspreis (Kunde)</span><span class="commission-value">100 €</span></div>
+      <div class="commission-divider"></div>
+      <div class="commission-row"><span class="commission-label">Impact (2,5%)</span><span class="commission-value">2,50 €</span></div>
+      <div class="commission-row"><span class="commission-label">HUI Provision (15%)</span><span class="commission-value">15,00 €</span></div>
+      <div class="commission-row"><span class="commission-label">Wirker erhält (85%)</span><span class="commission-value">85,00 €</span></div>
+    </div>
+  </div>
+
+  <!-- IMPACT SYSTEM -->
+  <div class="card green">
+    <div class="card-header">
+      <div class="card-icon icon-green">🌱</div>
+      <div><div class="card-title">Impact System</div><div class="card-sub">impact_pool + votes + transactions</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-green"></div>impact_projects — Kandidaten & Gewinner</div>
+      <div class="table-item"><div class="table-dot dot-green"></div>impact_pool — monatlich akkumuliert</div>
+      <div class="table-item"><div class="table-dot dot-green"></div>impact_transactions — je Buchung/Kauf</div>
+      <div class="table-item"><div class="table-dot dot-green"></div>impact_votes — UNIQUE(voter, month)</div>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">Voting Gewichte</div>
+      <div class="trigger-item"><span class="trigger-arrow">★★</span>Wirker = 2 Stimmen / Monat</div>
+      <div class="trigger-item"><span class="trigger-arrow">★</span>Kunden = 1 Stimme / Monat</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>booking recommended → impact_transactions INSERT → pool.total_eur += impact_eur</div>
+    </div>
+  </div>
+
+  <!-- CHAT SYSTEM -->
+  <div class="card blue">
+    <div class="card-header">
+      <div class="card-icon icon-blue">💬</div>
+      <div><div class="card-title">Chat System</div><div class="card-sub">chats + messages (Realtime)</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-blue"></div>chats — exklusiv an booking/order gebunden</div>
+      <div class="table-item"><div class="table-dot dot-blue"></div>messages — text|image|video|system</div>
+    </div>
+    <div class="states">
+      <span class="state-tag" style="background:rgba(74,155,255,0.12);color:#4A9BFF">opened</span>
+      <span class="state-tag" style="background:rgba(74,155,255,0.12);color:#4A9BFF">active</span>
+      <span class="state-tag" style="background:rgba(255,138,107,0.12);color:#FF8A6B">closed</span>
+      <span class="state-tag" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.4)">archived</span>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">Lifecycle</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>booking confirmed → chat INSERT + System-Nachricht</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>booking recommended → chat state = closed</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>new message → unread_counter Trigger + Realtime</div>
+    </div>
+  </div>
+
+  <!-- STORY SYSTEM -->
+  <div class="card amber">
+    <div class="card-header">
+      <div class="card-icon icon-amber">✨</div>
+      <div><div class="card-title">Story System</div><div class="card-sub">stories + story_views (Wirker only)</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-amber"></div>stories — JSONB slides, 24h TTL</div>
+      <div class="table-item"><div class="table-dot dot-amber"></div>story_views — Seiteneffekt-frei</div>
+    </div>
+    <div class="states">
+      <span class="state-tag" style="background:rgba(255,179,71,0.12);color:#FFB347">photo</span>
+      <span class="state-tag" style="background:rgba(255,179,71,0.12);color:#FFB347">video</span>
+      <span class="state-tag" style="background:rgba(255,179,71,0.12);color:#FFB347">work</span>
+      <span class="state-tag" style="background:rgba(255,179,71,0.12);color:#FFB347">experience</span>
+      <span class="state-tag" style="background:rgba(255,179,71,0.12);color:#FFB347">behind_scenes</span>
+      <span class="state-tag" style="background:rgba(255,179,71,0.12);color:#FFB347">impact</span>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">Trigger</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>INSERT → feed_items (score 1.5, expires_at)</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>pg_cron alle 15min: expire_stories()</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>is_highlight = true → Wirkerprofil Highlights</div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION SYSTEM -->
+  <div class="card rose">
+    <div class="card-header">
+      <div class="card-icon icon-rose">🔔</div>
+      <div><div class="card-title">Notification System</div><div class="card-sub">notifications (Realtime Push)</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-rose"></div>notifications — user_id + type + data JSONB</div>
+    </div>
+    <div class="states">
+      <span class="state-tag" style="background:rgba(255,107,155,0.12);color:#FF6B9B">new_message</span>
+      <span class="state-tag" style="background:rgba(255,107,155,0.12);color:#FF6B9B">new_booking</span>
+      <span class="state-tag" style="background:rgba(255,107,155,0.12);color:#FF6B9B">recommendation</span>
+      <span class="state-tag" style="background:rgba(255,107,155,0.12);color:#FF6B9B">payout</span>
+      <span class="state-tag" style="background:rgba(255,107,155,0.12);color:#FF6B9B">impact_voting</span>
+      <span class="state-tag" style="background:rgba(255,107,155,0.12);color:#FF6B9B">shipping_update</span>
+    </div>
+  </div>
+
+  <!-- MAP SYSTEM -->
+  <div class="card teal">
+    <div class="card-header">
+      <div class="card-icon icon-teal">🌍</div>
+      <div><div class="card-title">Map System</div><div class="card-sub">PostGIS GEOGRAPHY(POINT, 4326)</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-teal"></div>wirker_profiles.location — GIST Index</div>
+      <div class="table-item"><div class="table-dot dot-teal"></div>works.location — Werk-Standort</div>
+      <div class="table-item"><div class="table-dot dot-teal"></div>experiences.location — Experience-Ort</div>
+      <div class="table-item"><div class="table-dot dot-teal"></div>bookings.location — Buchungsort</div>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">Queries</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>ST_DWithin(location, ST_MakePoint(lng,lat)::geography, radius_m)</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>Realtime Presence für Live-Map</div>
+    </div>
+  </div>
+
+  <!-- SECURITY SYSTEM -->
+  <div class="card purple">
+    <div class="card-header">
+      <div class="card-icon icon-purple">🔒</div>
+      <div><div class="card-title">Security & Compliance</div><div class="card-sub">RLS + Audit + Moderation</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-purple"></div>audit_logs — alle Zustandsänderungen</div>
+      <div class="table-item"><div class="table-dot dot-purple"></div>reports — Content- + User-Reports</div>
+      <div class="table-item"><div class="table-dot dot-purple"></div>webhook_events — Stripe Idempotenz</div>
+    </div>
+    <div class="triggers">
+      <div class="trigger-title">RLS Policies (12 Tabellen)</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>profiles: public read, own write</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>bookings/payments: nur Beteiligte</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>chats/messages: nur Teilnehmer</div>
+      <div class="trigger-item"><span class="trigger-arrow">→</span>notifications: nur Eigentümer</div>
+    </div>
+  </div>
+
+  <!-- EVENT SYSTEM -->
+  <div class="card coral">
+    <div class="card-header">
+      <div class="card-icon icon-coral">⚙️</div>
+      <div><div class="card-title">Event & Trigger System</div><div class="card-sub">9 DB-Trigger, SECURITY DEFINER</div></div>
+    </div>
+    <div class="table-list">
+      <div class="table-item"><div class="table-dot dot-coral"></div>booking_confirmed_flow — Chat + Escrow</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>booking_recommended_flow — Payout + Impact</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>work_published_to_feed — Score + Location</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>story_to_feed — 24h TTL</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>impact_vote_count — Atomic Update</div>
+      <div class="table-item"><div class="table-dot dot-coral"></div>message_unread_counter — Realtime</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>HUI Core Architecture v5.0</strong> · PostgreSQL + PostGIS + Supabase Realtime + Stripe Connect Express<br>
+  971 lines SQL · 12 RLS Policies · 9 DB Triggers · 5 State Machines · 1 lebendes Ökosystem
+</div>
+
+</body>
+</html>
