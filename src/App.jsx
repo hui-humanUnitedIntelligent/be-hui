@@ -8,8 +8,8 @@ import Admin from './pages/Admin'
 import AuthCallback from './pages/AuthCallback'
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth()
-  if (loading) return (
+  const { isAuthenticated, loadingAuth } = useAuth()
+  if (loadingAuth) return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center",
       justifyContent:"center",
       background:"linear-gradient(135deg, #E6FAF8 0%, #FFF9F4 100%)" }}>
@@ -33,7 +33,7 @@ function ProtectedRoute({ children }) {
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   )
-  // Allow unauthenticated access for demo — redirect to login only if truly needed
+  if (!isAuthenticated) return <Navigate to="/login" replace />
   return children
 }
 
