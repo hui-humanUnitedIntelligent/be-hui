@@ -2,6 +2,7 @@
 // BASISPROFIL = privater Raum | WIRKERPROFIL = öffentliche Bühne
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../lib/AuthContext";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -692,6 +693,7 @@ function WirkerProfil({ profile, onSwitchToBase, onEdit }) {
    MAIN EXPORT
 ══════════════════════════════════════════ */
 export default function ProfilePage({ onTalentAnbieten, onLogout }) {
+  const { profile, wirkerProfile, isWirker, signOut } = useAuth();
   const [profile, setProfile] = useState(MOCK);
   // "base" | "wirker"
   const [view, setView] = useState("base");
@@ -777,7 +779,7 @@ export default function ProfilePage({ onTalentAnbieten, onLogout }) {
         onSwitchToWirker={() => setView("wirker")}
         onShowOrders={() => setShowOrders(true)}
         onTalentAnbieten={onTalentAnbieten}
-        onLogout={onLogout}
+        onLogout={async () => { await signOut(); if(onLogout) onLogout(); }}
       />
     </div>
   );
