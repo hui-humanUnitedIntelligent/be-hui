@@ -693,24 +693,30 @@ function WirkerProfil({ profile, onSwitchToBase, onEdit }) {
    MAIN EXPORT
 ══════════════════════════════════════════ */
 export default function ProfilePage({ onTalentAnbieten, onLogout }) {
-  const { profile, wirkerProfile, isWirker, signOut } = useAuth();
-  const [profile, setProfile] = useState(MOCK);
-  // "base" | "wirker"
+  const { profile: authProfile, wirkerProfile: authWirker, isWirker, signOut } = useAuth();
   const [view, setView] = useState("base");
   const [showOrders, setShowOrders] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) return;
-      const u = session.user;
-      setProfile(p => ({
-        ...p,
-        name: u.user_metadata?.full_name || u.email?.split("@")[0] || p.name,
-        img: u.user_metadata?.avatar_url || p.img,
-        email: u.email || p.email,
-      }));
-    });
-  }, []);
+  // Merge real auth data with MOCK fallback
+  const profile = {
+    ...MOCK,
+    ...(authProfile || {}),
+    name: authProfile?.display_name || MOCK.name,
+    email: authProfile?.email || MOCK.email,
+    img: authProfile?.avatar_url || MOCK.img,
+    impactEur: authProfile?.impact_total_eur ?? MOCK.impactEur,
+    unreadMessages: authProfile?.unread_messages ?? MOCK.unreadMessages,
+    role: isWirker ? "wirker" : "basisuser",
+    ...(authWirker ? {
+      talent: authWirker.talent || MOCK.talent,
+      city: authWirker.location_label || MOCK.city,
+      tagline: authWirker.tagline || MOCK.tagline,
+      bg: authWirker.header_img || MOCK.bg,
+      verified: authWirker.is_available ?? MOCK.verified,
+      bookings: authWirker.booking_count ?? MOCK.bookings,
+      recommendations: authWirker.recommendation_count ?? MOCK.recommendations,
+    } : {}),
+  };
 
   // Lazy-load OrdersPage to keep bundle clean
   if (showOrders) {
