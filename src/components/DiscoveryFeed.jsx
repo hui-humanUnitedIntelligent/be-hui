@@ -1,6 +1,7 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
 const C = {
@@ -79,6 +80,7 @@ const CSS = `
   @keyframes dfFadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
   @keyframes dfKenBurns { from{transform:scale(1)} to{transform:scale(1.06)} }
   @keyframes dfBreath { 0%,100%{opacity:0.5} 50%{opacity:1} }
+  @keyframes dfSkel { 0%,100%{opacity:1} 50%{opacity:0.5} }
   @keyframes dfSaved { 0%{transform:scale(1)} 40%{transform:scale(1.45)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
   .df-scroll::-webkit-scrollbar{display:none}
   .df-scroll{-ms-overflow-style:none;scrollbar-width:none}
@@ -87,6 +89,92 @@ const CSS = `
 `;
 
 /* ── SAVE BTN ──────────────────────────────────────────────────────────── */
+
+/* ── CreatorRow — Avatar + Name + @username, klickbar ──────────────── */
+function CreatorAvatar({ url, name, size = 28 }) {
+  const initials = (name || "?").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  if (url) return (
+    <img src={url} alt={name}
+      style={{ width: size, height: size, borderRadius: "50%",
+        objectFit: "cover", border: "2px solid rgba(255,255,255,0.4)",
+        flexShrink: 0 }} />
+  );
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%",
+      background: "linear-gradient(135deg, #16D7C5, #FF8A6B)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.36, fontWeight: 900, color: "white",
+      border: "2px solid rgba(255,255,255,0.4)", flexShrink: 0 }}>
+      {initials}
+    </div>
+  );
+}
+
+function CreatorRow({ item, dark = false, onNavigate }) {
+  const displayName = item.creator      || "Unbekannter Creator";
+  const username    = item.creatorUsername || "hui-user";
+  const avatarUrl   = item.creatorImg   || null;
+  const textColor   = dark ? "rgba(255,255,255,0.88)" : C.ink;
+  const subColor    = dark ? "rgba(255,255,255,0.50)" : C.muted;
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onNavigate) onNavigate(`/profile/${username}`);
+  };
+
+  return (
+    <div onClick={handleClick}
+      style={{ display: "flex", alignItems: "center", gap: 8,
+        cursor: "pointer", WebkitTapHighlightColor: "transparent" }}>
+      <CreatorAvatar url={avatarUrl} name={displayName} size={28} />
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: textColor,
+          lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis",
+          whiteSpace: "nowrap", maxWidth: 160 }}>
+          {displayName}
+        </div>
+        <div style={{ fontSize: 10.5, color: subColor, fontWeight: 500 }}>
+          @{username}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Skeleton Loading Card ───────────────────────────────────────────── */
+function WerkCardSkeleton() {
+  return (
+    <div style={{ position: "relative", width: "100%", height: "76vh",
+      maxHeight: 590, borderRadius: 32, overflow: "hidden",
+      background: "linear-gradient(135deg, #f0f0f0, #e8e8e8)",
+      animation: "dfSkel 1.4s ease-in-out infinite" }}>
+      <div style={{ position: "absolute", bottom: 32, left: 26, right: 26 }}>
+        <div style={{ height: 12, borderRadius: 8, background: "rgba(255,255,255,0.3)",
+          marginBottom: 12, width: "60%" }}/>
+        <div style={{ height: 24, borderRadius: 10, background: "rgba(255,255,255,0.4)",
+          marginBottom: 8, width: "85%" }}/>
+        <div style={{ height: 12, borderRadius: 8, background: "rgba(255,255,255,0.2)",
+          width: "40%" }}/>
+      </div>
+    </div>
+  );
+}
+
+function WerkTileSkeleton() {
+  return (
+    <div style={{ flexShrink: 0, width: 130 }}>
+      <div style={{ borderRadius: 18, height: 148,
+        background: "linear-gradient(135deg, #f0f0f0, #e8e8e8)",
+        animation: "dfSkel 1.4s ease-in-out infinite" }}/>
+      <div style={{ padding: "6px 2px 0" }}>
+        <div style={{ height: 10, borderRadius: 6, background: "#eee", marginBottom: 5, width: "80%" }}/>
+        <div style={{ height: 8, borderRadius: 6, background: "#eee", width: "55%" }}/>
+      </div>
+    </div>
+  );
+}
+
+
 function SaveBtn({ accent, dark }) {
   const [saved, setSaved] = useState(false);
   return (
@@ -191,9 +279,16 @@ function WerkTile({ w, onView, onBuyWerk }) {
       </div>
       <div style={{ padding:"6px 2px 0" }}>
         <div style={{ fontSize:11.5, fontWeight:700,
-          color:C.ink, lineHeight:1.3 }}>{w.title}</div>
-        <div style={{ fontSize:10, color:C.teal,
-          fontWeight:600, marginTop:2 }}>{w.creator}</div>
+          color:C.ink, lineHeight:1.3, marginBottom:4 }}>{w.title}</div>
+        <div onClick={e=>{e.stopPropagation(); navigate(`/profile/${w.creatorUsername||"hui-user"}`);}}
+          style={{ display:"flex", alignItems:"center", gap:4, cursor:"pointer" }}>
+          <CreatorAvatar url={w.creatorImg||null} name={w.creator||"?"} size={16}/>
+          <span style={{ fontSize:10, color:C.teal,
+            fontWeight:600, overflow:"hidden", textOverflow:"ellipsis",
+            whiteSpace:"nowrap", maxWidth:90 }}>
+            {w.creator || "Unbekannt"}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -366,11 +461,10 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb }) {
         <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.68)", fontStyle:"italic",
           lineHeight:1.65, marginBottom:12 }}>„{item.bio}"</p>
         <div style={{ fontWeight:900, fontSize:24, color:"white",
-          letterSpacing:-0.5, lineHeight:1.15, marginBottom:4 }}>{item.title}</div>
-        <div style={{ fontSize:12.5, color:C.coral, fontWeight:700, marginBottom:2 }}>
-          {item.creator}</div>
-        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.44)", marginBottom:20 }}>
-          📍 {item.city}</div>
+          letterSpacing:-0.5, lineHeight:1.15, marginBottom:10 }}>{item.title}</div>
+        <div style={{ marginBottom:16 }}>
+          <CreatorRow item={item} dark onNavigate={navigate}/>
+        </div>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={e=>{e.stopPropagation();onAddToKorb&&onAddToKorb(item);}}
             style={{ flex:1, padding:"14px",
@@ -544,6 +638,7 @@ function ImpactCard({ item, onImpact }) {
 import HuiStories from "./HuiStories";
 
 export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal }) {
+  const navigate = useNavigate();
   // ── Echte Supabase-Daten ──────────────────────────────────────────
   const [dbWerke,   setDbWerke]   = useState([]);
   const [dbFeed,    setDbFeed]    = useState([]);
@@ -771,14 +866,17 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         )}
 
         {feedLoading && (
-          <div style={{ display:"flex", justifyContent:"center",
-            padding:"32px 0", gap:8 }}>
-            {[0,1,2].map(i => (
-              <div key={i} style={{ width:8, height:8, borderRadius:"50%",
-                background:`rgba(22,215,197,${0.3 + i*0.25})`,
-                animation:`dfBreath ${1 + i*0.3}s ease-in-out infinite` }}/>
-            ))}
-          </div>
+          <>
+            {/* Skeleton Werke-Tiles */}
+            <div style={{ display:"flex", gap:12, overflowX:"auto",
+              padding:"0 20px 4px", marginBottom:8 }}>
+              {[0,1,2].map(i => <WerkTileSkeleton key={i}/>)}
+            </div>
+            {/* Skeleton Feed-Cards */}
+            <div style={{ padding:"0 16px", display:"flex", flexDirection:"column", gap:12, marginTop:12 }}>
+              <WerkCardSkeleton/>
+            </div>
+          </>
         )}
 
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
