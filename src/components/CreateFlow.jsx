@@ -27,6 +27,38 @@ const CSS = `
 `;
 
 /* ── helpers ── */
+// ErrorBoundary für Create Modal
+class CreateErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  componentDidCatch(e, info) { console.error("[HUI] CreateFlow Crash:", e, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ position:"fixed", inset:0, zIndex:400,
+          background:"#FFF0EE", display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center", padding:32 }}>
+          <div style={{ fontSize:40, marginBottom:16 }}>⚠️</div>
+          <div style={{ fontWeight:900, fontSize:18, color:"#E05A3A",
+            marginBottom:12 }}>Create Modal Fehler</div>
+          <div style={{ fontSize:13, color:"#C04020", lineHeight:1.6,
+            maxWidth:300, textAlign:"center", marginBottom:20 }}>
+            {this.state.error?.message || "Unbekannter Fehler"}
+          </div>
+          <button onClick={() => this.setState({ error: null })}
+            style={{ padding:"12px 24px", borderRadius:12,
+              background:"#FF8A6B", color:"white", border:"none",
+              fontWeight:700, cursor:"pointer", fontSize:14 }}>
+            Schließen
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+
 function Field({ label, children, note }) {
   return (
     <div style={{ marginBottom:18 }}>
@@ -257,8 +289,9 @@ function WerkCreateFlow({ onClose, onPublish }) {
     stock:"", countries:["Deutschland","Österreich","Schweiz"],
     images:[], imageFiles:[], category:"",
   });
-  const [loading, setLoading] = useState(false);
-  const [done, setDone]       = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [done, setDone]               = useState(false);
+  const [publishError, setPublishError] = useState(null);
   const scrollRef = useRef(null);
 
   const up = (k, v) => setDraft(d => ({...d, [k]:v}));
@@ -762,8 +795,9 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
     days:{ Mo:true, Di:true, Mi:false, Do:true, Fr:true, Sa:false, So:false },
     slots:["09:00","11:00","14:00","16:00"],
   });
-  const [loading, setLoading] = useState(false);
-  const [done, setDone]       = useState(false);
+  const [loading, setLoading]           = useState(false);
+  const [done, setDone]                 = useState(false);
+  const [publishError, setPublishError] = useState(null);
   const scrollRef = useRef(null);
 
   const up = (k,v) => setDraft(d=>({...d,[k]:v}));
@@ -1206,7 +1240,15 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
 /* ════════════════════════════════════════════════
    MAIN EXPORT — orchestrates choose → flow
 ════════════════════════════════════════════════ */
-export default function CreateFlow({ onClose }) {
+export default function CreateFlowWrapped(props) {
+  return (
+    <CreateErrorBoundary>
+      <CreateFlowInner {...props} />
+    </CreateErrorBoundary>
+  );
+}
+
+function CreateFlowInner({ onClose }) {
   const [mode, setMode] = useState(null); // null | "werk" | "experience" | "both"
   const [bothStep, setBothStep] = useState(0); // for "both": 0=werk, 1=experience
 
