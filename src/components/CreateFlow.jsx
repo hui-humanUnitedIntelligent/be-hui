@@ -255,7 +255,7 @@ function WerkCreateFlow({ onClose, onPublish }) {
   const [draft, setDraft] = useState({
     title:"", desc:"", price:"", shipping:"6.90",
     stock:"", countries:["Deutschland","Österreich","Schweiz"],
-    images:[], category:"",
+    images:[], imageFiles:[], category:"",
   });
   const [loading, setLoading] = useState(false);
   const [done, setDone]       = useState(false);
@@ -299,7 +299,7 @@ function WerkCreateFlow({ onClose, onPublish }) {
           🌱 € {(parseFloat(draft.price||0)*0.025).toFixed(2)} gehen in ein Herzensprojekt
         </div>
       </div>
-      <button onClick={onPublish || onClose} className="cf-tap"
+      <button onClick={onClose} className="cf-tap"
         style={{ width:"100%", maxWidth:320, padding:"16px",
           background:`linear-gradient(135deg,${C.gold},#E8951A)`,
           border:"none", borderRadius:18, color:"white",
@@ -314,43 +314,81 @@ function WerkCreateFlow({ onClose, onPublish }) {
   const handlePublish = async (draft_mode=false) => {
     setLoading(true);
     setPublishError(null);
-    try {
-      const { data: { user }, error: authErr } = await supabase.auth.getUser();
-      if (authErr || !user) throw new Error("Nicht eingeloggt");
+    console.log("[HUI] handlePublish gestartet", { draft_mode, draft });
 
-      // 1. Bilder in Supabase Storage hochladen
+    try {
+      // Auth check
+      const { data: { user }, error: authErr } = await supabase.auth.getUser();
+      console.log("[HUI] Auth:", { user: user?.id, authErr });
+      if (authErr || !user) throw new Error("Nicht eingeloggt — bitte neu anmelden");
+
+      // 1. Bilder hochladen
       const uploadedUrls = [];
       const imageFiles = draft.imageFiles || [];
+      console.log("[HUI] imageFiles:", imageFiles.length);
+
       for (const img of imageFiles) {
-        const ext = (img.file.name.split(".").pop()) || "jpg";
+        const ext = (img.file?.name?.split(".").pop()) || "jpg";
         const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: uploadErr } = await supabase.storage
+        console.log("[HUI] Upload zu Storage:", path);
+
+        const { data: upData, error: uploadErr } = await supabase.storage
           .from("works")
           .upload(path, img.file, { contentType: img.file.type, upsert: false });
+
+        console.log("[HUI] Storage response:", { upData, uploadErr });
         if (uploadErr) throw new Error("Bild-Upload fehlgeschlagen: " + uploadErr.message);
+
         const { data: { publicUrl } } = supabase.storage.from("works").getPublicUrl(path);
+        console.log("[HUI] publicUrl:", publicUrl);
         uploadedUrls.push(publicUrl);
       }
 
-      // 2. INSERT in public.works
-      const { error: insertErr } = await supabase.from("works").insert({
+      // 2. INSERT payload bauen
+      const payload = {
         user_id: user.id,
-        title: draft.title || "Ohne Titel",
-        description: draft.desc || "",
+        title: draft.title?.trim() || "Ohne Titel",
+        description: draft.desc?.trim() || "",
         price: parseFloat(draft.price) || 0,
         category: draft.category || null,
         images: uploadedUrls,
         cover_url: uploadedUrls[0] || null,
         status: draft_mode ? "draft" : "published",
-        created_at: new Date().toISOString(),
-      });
-      if (insertErr) throw new Error("Datenbank-Fehler: " + insertErr.message);
+      };
+      console.log("[HUI] INSERT payload:", JSON.stringify(payload, null, 2));
 
+      // 3. INSERT ausführen
+      const { data: insertData, error: insertErr } = await supabase
+        .from("works")
+        .insert(payload)
+        .select();
+
+      console.log("[HUI] INSERT response:", { insertData, insertErr });
+
+      if (insertErr) {
+        throw new Error(
+          `DB-Fehler (${insertErr.code}): ${insertErr.message}` +
+          (insertErr.details ? " | " + insertErr.details : "")
+        );
+      }
+      if (!insertData || insertData.length === 0) {
+        throw new Error("Insert ausgeführt aber keine Daten zurück — prüfe RLS Policies");
+      }
+
+      console.log("[HUI] ✅ Werk gespeichert:", insertData[0]?.id);
+
+      // 4. Erfolg
       setLoading(false);
-      if (!draft_mode) { setDone(true); onSuccess?.(); }
-      else onClose?.();
+      if (!draft_mode) {
+        setDone(true);
+        onSuccess?.(); // Feed refresh
+      } else {
+        onClose?.();
+      }
+
     } catch(e) {
-      setPublishError(e.message || "Unbekannter Fehler beim Veröffentlichen");
+      console.error("[HUI] ❌ Publish Fehler:", e);
+      setPublishError(e.message || "Unbekannter Fehler");
       setLoading(false);
     }
   };
@@ -362,15 +400,23 @@ function WerkCreateFlow({ onClose, onPublish }) {
 
       
       {publishError && (
-        <div style={{ position:"fixed", bottom:120, left:20, right:20, zIndex:410,
-          background:"#FFF2EE", border:"1.5px solid #FF8A6B",
-          borderRadius:16, padding:"14px 18px",
-          boxShadow:"0 4px 20px rgba(255,138,107,0.25)" }}>
-          <div style={{ fontWeight:800, fontSize:13, color:"#FF8A6B",
-            marginBottom:4 }}>⚠ Fehler</div>
-          <div style={{ fontSize:13, color:"#CC6644", lineHeight:1.5 }}>
+        <div style={{ position:"fixed", top:"max(60px,env(safe-area-inset-top,60px))",
+          left:16, right:16, zIndex:500,
+          background:"#FFF0EE", border:"2px solid #FF8A6B",
+          borderRadius:18, padding:"16px 20px",
+          boxShadow:"0 8px 32px rgba(255,138,107,0.35)" }}>
+          <div style={{ fontWeight:900, fontSize:14, color:"#E05A3A", marginBottom:6 }}>
+            ⚠ Veröffentlichung fehlgeschlagen
+          </div>
+          <div style={{ fontSize:13, color:"#C04020", lineHeight:1.6 }}>
             {publishError}
           </div>
+          <button onClick={() => setPublishError(null)}
+            style={{ marginTop:10, fontSize:12, fontWeight:700,
+              color:"#FF8A6B", background:"none", border:"none",
+              cursor:"pointer", padding:0 }}>
+            Schließen ✕
+          </button>
         </div>
       )}
 
@@ -801,15 +847,23 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
 
       
       {publishError && (
-        <div style={{ position:"fixed", bottom:120, left:20, right:20, zIndex:410,
-          background:"#FFF2EE", border:"1.5px solid #FF8A6B",
-          borderRadius:16, padding:"14px 18px",
-          boxShadow:"0 4px 20px rgba(255,138,107,0.25)" }}>
-          <div style={{ fontWeight:800, fontSize:13, color:"#FF8A6B",
-            marginBottom:4 }}>⚠ Fehler</div>
-          <div style={{ fontSize:13, color:"#CC6644", lineHeight:1.5 }}>
+        <div style={{ position:"fixed", top:"max(60px,env(safe-area-inset-top,60px))",
+          left:16, right:16, zIndex:500,
+          background:"#FFF0EE", border:"2px solid #FF8A6B",
+          borderRadius:18, padding:"16px 20px",
+          boxShadow:"0 8px 32px rgba(255,138,107,0.35)" }}>
+          <div style={{ fontWeight:900, fontSize:14, color:"#E05A3A", marginBottom:6 }}>
+            ⚠ Veröffentlichung fehlgeschlagen
+          </div>
+          <div style={{ fontSize:13, color:"#C04020", lineHeight:1.6 }}>
             {publishError}
           </div>
+          <button onClick={() => setPublishError(null)}
+            style={{ marginTop:10, fontSize:12, fontWeight:700,
+              color:"#FF8A6B", background:"none", border:"none",
+              cursor:"pointer", padding:0 }}>
+            Schließen ✕
+          </button>
         </div>
       )}
 
