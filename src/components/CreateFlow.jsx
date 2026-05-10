@@ -327,22 +327,28 @@ function WerkCreateFlow({ onClose, onPublish }) {
       const imageFiles = draft.imageFiles || [];
       console.log("[HUI] imageFiles:", imageFiles.length);
 
+      console.log("[HUI] imageFiles vor Upload:", imageFiles.length, imageFiles);
       for (const img of imageFiles) {
-        const ext = (img.file?.name?.split(".").pop()) || "jpg";
+        if (!img?.file) {
+          console.warn("[HUI] ⚠ img.file fehlt:", img);
+          continue;
+        }
+        const ext = (img.file.name?.split(".").pop()) || "jpg";
         const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-        console.log("[HUI] Upload zu Storage:", path);
+        console.log("[HUI] → Storage upload:", path, img.file.size, "bytes");
 
         const { data: upData, error: uploadErr } = await supabase.storage
           .from("works")
           .upload(path, img.file, { contentType: img.file.type, upsert: false });
 
-        console.log("[HUI] Storage response:", { upData, uploadErr });
-        if (uploadErr) throw new Error("Bild-Upload fehlgeschlagen: " + uploadErr.message);
+        console.log("[HUI] ← Storage result:", { upData, uploadErr });
+        if (uploadErr) throw new Error("Storage Upload Fehler: " + uploadErr.message);
 
-        const { data: { publicUrl } } = supabase.storage.from("works").getPublicUrl(path);
-        console.log("[HUI] publicUrl:", publicUrl);
-        uploadedUrls.push(publicUrl);
+        const { data: urlData } = supabase.storage.from("works").getPublicUrl(path);
+        console.log("[HUI] publicUrl:", urlData?.publicUrl);
+        uploadedUrls.push(urlData.publicUrl);
       }
+      console.log("[HUI] uploadedUrls:", uploadedUrls);
 
       // 2. INSERT payload bauen
       const payload = {
@@ -580,8 +586,13 @@ function WerkCreateFlow({ onClose, onPublish }) {
                 accept="image/*" style={{ display:"none" }}
                 onChange={e => {
                   const files = Array.from(e.target.files);
-                  const urls = files.map(f => URL.createObjectURL(f));
-                  up("images", [...draft.images, ...urls]);
+                  console.log("[HUI] Files ausgewählt:", files.length, files.map(f=>f.name));
+                  const previews = files.map(f => URL.createObjectURL(f));
+                  // File-Objekte für echten Upload speichern
+                  const fileObjs = files.map(f => ({ file: f, previewUrl: URL.createObjectURL(f) }));
+                  up("imageFiles", [...(draft.imageFiles||[]), ...fileObjs]);
+                  up("images", [...draft.images, ...previews]);
+                  console.log("[HUI] imageFiles nach Auswahl:", [...(draft.imageFiles||[]), ...fileObjs].length);
                 }}/>
             </div>
 
