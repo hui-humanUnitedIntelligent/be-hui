@@ -550,11 +550,29 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   const [feedLoading, setFeedLoading] = useState(true);
   const [feedError,   setFeedError]   = useState(null);
 
+  // Normalisiert ein Work-Objekt für den Feed
+  const mapWork = (w, prof = {}) => ({
+    id:              w.id,
+    type:            "werk",
+    title:           w.title        || "Unbekanntes Werk",
+    creator:         prof.display_name || prof.username || "Unbekannt",
+    creatorUsername: prof.username   || null,
+    creatorImg:      prof.avatar_url || null,
+    city:            "",
+    price:           w.price != null ? `€ ${Number(w.price).toFixed(0)}` : "",
+    category:        w.category     || "Kunst",
+    bio:             w.description  || "",
+    img: w.cover_url
+      || (Array.isArray(w.images) && w.images.length > 0 ? w.images[0] : null)
+      || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=90",
+    _raw: w,
+  });
+
   const loadFeed = useCallback(async () => {
     setFeedLoading(true);
     setFeedError(null);
     try {
-      // Werke aus Supabase
+      // 1. Works laden
       const { data: worksData, error: worksErr } = await supabase
         .from("works")
         .select("id, title, description, price, cover_url, images, category, status, created_at, user_id")
@@ -563,28 +581,26 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         .limit(40);
 
       if (worksErr) throw worksErr;
+      const rawWorks = worksData || [];
 
-      const works = (worksData || []).map(w => ({
-        // Feed-Shape (kompatibel mit bestehenden Cards)
-        id:       w.id,
-        type:     "werk",
-        title:    w.title    || "Unbekanntes Werk",
-        creator:  w.user_id  || "",
-        city:     "",
-        price:    w.price != null ? `€ ${Number(w.price).toFixed(0)}` : "",
-        category: w.category || "Kunst",
-        bio:      w.description || "",
-        // Bild: cover_url → images[0] → Fallback
-        img: w.cover_url
-          || (Array.isArray(w.images) && w.images.length > 0 ? w.images[0] : null)
-          || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=90",
-        // Für WerkTile
-        _raw: w,
-      }));
+      // 2. Profile für alle Creator laden (1 Query statt N)
+      const userIds = [...new Set(rawWorks.map(w => w.user_id).filter(Boolean))];
+      let profileMap = {};
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, username, display_name, avatar_url")
+          .in("id", userIds);
+        (profs || []).forEach(p => { profileMap[p.id] = p; });
+      }
+      console.log("[HUI] Profile geladen:", Object.keys(profileMap).length);
+
+      // 3. Works + Profile zusammenführen
+      const works = rawWorks.map(w => mapWork(w, profileMap[w.user_id] || {}));
 
       setDbWerke(works);
       setDbFeed(works);
-      console.log("[HUI] Feed geladen:", works.length, "Werke");
+      console.log("[HUI] Feed geladen:", works.length, "Werke mit Profilen");
     } catch(e) {
       console.error("[HUI] Feed Fehler:", e);
       setFeedError(e.message);
