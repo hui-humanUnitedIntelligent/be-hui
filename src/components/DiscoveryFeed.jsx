@@ -248,7 +248,7 @@ function WirkerTile({ w, onView, onBook }) {
 /* ── WERK TILE — compact, square-ish ─────────────────────────────────── */
 function WerkTile({ w, onView, onBuyWerk }) {
   return (
-    <div className="df-tap" onClick={() => onView && onView(w)}
+    <div className="df-tap" onClick={() => { if(w.id) navigate(`/work/${w.id}`); else if(onView) onView(w); }}
       style={{ flexShrink:0, width:130, cursor:"pointer" }}>
       <div style={{ borderRadius:18, overflow:"hidden",
         height:148, position:"relative",
@@ -420,7 +420,7 @@ function WirkerCard({ item, onView, onBook }) {
 
 function WerkCard({ item, onView, onBuyWerk, onAddToKorb }) {
   return (
-    <div className="df-tap" onClick={() => onView && onView(item)}
+    <div className="df-tap" onClick={() => { if(item.id) navigate(`/work/${item.id}`); else if(onView) onView(item); }}
       style={{ position:"relative", width:"100%", height:"76vh", maxHeight:590,
         overflow:"hidden", cursor:"pointer", borderRadius:32,
         animation:"dfFadeUp 0.5s both" }}>
