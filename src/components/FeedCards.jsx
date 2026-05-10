@@ -1,5 +1,10 @@
 import mockWirkerProfiles from "../lib/mockData";
 import React, { useState } from "react";
+
+const shareItem = (name) => {
+  if (navigator.share) { navigator.share({ title: name, url: window.location.href }).catch(() => {}); }
+  else { navigator.clipboard?.writeText(window.location.href).catch(() => {}); }
+};
 import CommentSection from "./CommentSection";
 import { Heart, Share2, Star, ShoppingBasket, MapPin, Play, Check, ThumbsUp, BadgeCheck, Image, Video, Info } from "lucide-react";
 

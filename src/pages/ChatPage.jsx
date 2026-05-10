@@ -1,4 +1,5 @@
 import { mockChats } from "../lib/mockData";
+import { HuiPaymentDB as HuiPayment } from "../lib/supabaseClient";
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Check, ArrowLeft, Send, MessageCircle, ThumbsUp, ThumbsDown, Info } from "lucide-react";
 
@@ -96,9 +97,9 @@ function ChatListPage({ onOpenChat, onBack }) {
 }
 
 function ChatDetailPage({ chat: initialChat, onBack }) {
-  // Kompatibilität mit wirkerName und wirker
-  const chatWirkerName = chat.wirkerName || chatWirkerName || "Wirker";
   const [chat, setChat] = useState(initialChat);
+  const chatWirkerName = initialChat.wirkerName || initialChat.wirker || "Wirker";
+  const chatWirkerNameImg = initialChat.wirkerImg || "";
   const [message, setMessage] = useState("");
   const [showEmpfehlung, setShowEmpfehlung] = useState(chat.status === "empfehlung_ausstehend");
   const [empfehlungText, setEmpfehlungText] = useState("");

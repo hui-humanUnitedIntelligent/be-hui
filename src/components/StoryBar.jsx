@@ -117,16 +117,7 @@ export function StoryViewer({ story, stories = [], onClose }) {
   const current = stories.length > 0 ? stories[idx] : story;
   const { user } = useAuth();
 
-  if (!current) return null;
-
-  const mediaUrl = current.media?.storage_path
-    ? supabase.storage
-        .from(current.media.storage_bucket || 'stories')
-        .getPublicUrl(current.media.storage_path)
-        .data.publicUrl
-    : null;
-
-  // Mark as viewed
+  // Mark as viewed — must be before any early return
   useEffect(() => {
     if (user && current?.id) {
       supabase.from('story_views').upsert({
@@ -135,6 +126,15 @@ export function StoryViewer({ story, stories = [], onClose }) {
       }).then(() => {});
     }
   }, [current?.id, user?.id]);
+
+  if (!current) return null;
+
+  const mediaUrl = current.media?.storage_path
+    ? supabase.storage
+        .from(current.media.storage_bucket || 'stories')
+        .getPublicUrl(current.media.storage_path)
+        .data?.publicUrl
+    : null;
 
   function next() {
     if (idx < stories.length - 1) setIdx(idx + 1);

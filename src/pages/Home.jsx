@@ -1300,8 +1300,6 @@ export default function Home() {
             <DiscoverPage
               onView={w=>setShowWirker(w)}
               onMap={()=>setShowMap(true)}
-            />
-          )}
               onMatch={()=>setShowMatch(true)}
             />
           )}
