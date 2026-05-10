@@ -313,30 +313,66 @@ function WerkCreateFlow({ onClose, onPublish }) {
 
   const handlePublish = async (draft_mode=false) => {
     setLoading(true);
+    setPublishError(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if(user) {
-        await supabase.from("works").insert({
-          user_id: user.id,
-          title: draft.title,
-          description: draft.desc,
-          price_eur: parseFloat(draft.price)||0,
-          shipping_eur: parseFloat(draft.shipping)||0,
-          stock: parseInt(draft.stock)||null,
-          category: draft.category,
-          status: draft_mode ? "draft" : "published",
-        });
+      const { data: { user }, error: authErr } = await supabase.auth.getUser();
+      if (authErr || !user) throw new Error("Nicht eingeloggt");
+
+      // 1. Bilder in Supabase Storage hochladen
+      const uploadedUrls = [];
+      const imageFiles = draft.imageFiles || [];
+      for (const img of imageFiles) {
+        const ext = (img.file.name.split(".").pop()) || "jpg";
+        const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadErr } = await supabase.storage
+          .from("works")
+          .upload(path, img.file, { contentType: img.file.type, upsert: false });
+        if (uploadErr) throw new Error("Bild-Upload fehlgeschlagen: " + uploadErr.message);
+        const { data: { publicUrl } } = supabase.storage.from("works").getPublicUrl(path);
+        uploadedUrls.push(publicUrl);
       }
-    } catch(e) {}
-    setLoading(false);
-    if(!draft_mode) setDone(true);
-    else onClose?.();
+
+      // 2. INSERT in public.works
+      const { error: insertErr } = await supabase.from("works").insert({
+        user_id: user.id,
+        title: draft.title || "Ohne Titel",
+        description: draft.desc || "",
+        price: parseFloat(draft.price) || 0,
+        category: draft.category || null,
+        images: uploadedUrls,
+        cover_url: uploadedUrls[0] || null,
+        status: draft_mode ? "draft" : "published",
+        created_at: new Date().toISOString(),
+      });
+      if (insertErr) throw new Error("Datenbank-Fehler: " + insertErr.message);
+
+      setLoading(false);
+      if (!draft_mode) { setDone(true); onSuccess?.(); }
+      else onClose?.();
+    } catch(e) {
+      setPublishError(e.message || "Unbekannter Fehler beim Veröffentlichen");
+      setLoading(false);
+    }
   };
 
   return (
     <div className="cf-scroll" ref={scrollRef}
       style={{ position:"fixed", inset:0, zIndex:360, background:C.warm }}>
       <style>{CSS}</style>
+
+      
+      {publishError && (
+        <div style={{ position:"fixed", bottom:120, left:20, right:20, zIndex:410,
+          background:"#FFF2EE", border:"1.5px solid #FF8A6B",
+          borderRadius:16, padding:"14px 18px",
+          boxShadow:"0 4px 20px rgba(255,138,107,0.25)" }}>
+          <div style={{ fontWeight:800, fontSize:13, color:"#FF8A6B",
+            marginBottom:4 }}>⚠ Fehler</div>
+          <div style={{ fontSize:13, color:"#CC6644", lineHeight:1.5 }}>
+            {publishError}
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div style={{ position:"fixed", inset:0, zIndex:400,
@@ -762,6 +798,20 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
     <div className="cf-scroll" ref={scrollRef}
       style={{ position:"fixed", inset:0, zIndex:360, background:C.warm }}>
       <style>{CSS}</style>
+
+      
+      {publishError && (
+        <div style={{ position:"fixed", bottom:120, left:20, right:20, zIndex:410,
+          background:"#FFF2EE", border:"1.5px solid #FF8A6B",
+          borderRadius:16, padding:"14px 18px",
+          boxShadow:"0 4px 20px rgba(255,138,107,0.25)" }}>
+          <div style={{ fontWeight:800, fontSize:13, color:"#FF8A6B",
+            marginBottom:4 }}>⚠ Fehler</div>
+          <div style={{ fontSize:13, color:"#CC6644", lineHeight:1.5 }}>
+            {publishError}
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div style={{ position:"fixed", inset:0, zIndex:400,
