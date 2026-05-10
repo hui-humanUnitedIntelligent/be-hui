@@ -1,6 +1,7 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -542,7 +543,69 @@ function ImpactCard({ item, onImpact }) {
 ════════════════════════════════════════════════════════════════ */
 import HuiStories from "./HuiStories";
 
-export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb }) {
+export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal }) {
+  // ── Echte Supabase-Daten ──────────────────────────────────────────
+  const [dbWerke,   setDbWerke]   = useState([]);
+  const [dbFeed,    setDbFeed]    = useState([]);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [feedError,   setFeedError]   = useState(null);
+
+  const loadFeed = useCallback(async () => {
+    setFeedLoading(true);
+    setFeedError(null);
+    try {
+      // Werke aus Supabase
+      const { data: worksData, error: worksErr } = await supabase
+        .from("works")
+        .select("id, title, description, price, cover_url, images, category, status, created_at, user_id")
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(40);
+
+      if (worksErr) throw worksErr;
+
+      const works = (worksData || []).map(w => ({
+        // Feed-Shape (kompatibel mit bestehenden Cards)
+        id:       w.id,
+        type:     "werk",
+        title:    w.title    || "Unbekanntes Werk",
+        creator:  w.user_id  || "",
+        city:     "",
+        price:    w.price != null ? `€ ${Number(w.price).toFixed(0)}` : "",
+        category: w.category || "Kunst",
+        bio:      w.description || "",
+        // Bild: cover_url → images[0] → Fallback
+        img: w.cover_url
+          || (Array.isArray(w.images) && w.images.length > 0 ? w.images[0] : null)
+          || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=90",
+        // Für WerkTile
+        _raw: w,
+      }));
+
+      setDbWerke(works);
+      setDbFeed(works);
+      console.log("[HUI] Feed geladen:", works.length, "Werke");
+    } catch(e) {
+      console.error("[HUI] Feed Fehler:", e);
+      setFeedError(e.message);
+    } finally {
+      setFeedLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadFeed(); }, [loadFeed]);
+  useEffect(() => { if (refreshSignal) loadFeed(); }, [refreshSignal, loadFeed]);
+
+  // Merge: echte DB-Werke + Mock-Items (Wirker, Experience, Impact bleiben als Platzhalter)
+  const liveFeedItems = dbFeed.length > 0
+    ? [
+        ...dbFeed,
+        ...FEED_ITEMS.filter(f => f.type !== "werk"),
+      ]
+    : FEED_ITEMS;
+
+  const liveWerke = dbWerke.length > 0 ? dbWerke : WERKE.map(w => ({...w, type:"werk"}));
+
   return (
     <>
       <style>{CSS}</style>
@@ -668,7 +731,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         <div className="df-scroll"
           style={{ display:"flex", gap:12, overflowX:"auto",
             padding:"0 20px 4px" }}>
-          {WERKE.map((w, i) => (
+          {liveWerke.map((w, i) => (
             <WerkTile key={i} w={w} onView={onView} onBuyWerk={onBuyWerk}/>
           ))}
         </div>
@@ -676,8 +739,34 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         {/* ══ 4. IMMERSIVER FEED ═══════════════════════════════════ */}
         <Divider label="Entdecken" accent={C.teal}/>
 
+        {feedError && (
+          <div style={{ margin:"0 16px 16px", padding:"12px 16px",
+            borderRadius:14, background:"#FFF0EE",
+            border:"1px solid #FF8A6B44" }}>
+            <span style={{ fontSize:12, color:"#E05A3A", fontWeight:700 }}>
+              ⚠ Feed-Fehler: {feedError}
+            </span>
+            <button onClick={loadFeed}
+              style={{ marginLeft:10, fontSize:11, color:"#16D7C5",
+                fontWeight:700, background:"none", border:"none", cursor:"pointer" }}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {feedLoading && (
+          <div style={{ display:"flex", justifyContent:"center",
+            padding:"32px 0", gap:8 }}>
+            {[0,1,2].map(i => (
+              <div key={i} style={{ width:8, height:8, borderRadius:"50%",
+                background:`rgba(22,215,197,${0.3 + i*0.25})`,
+                animation:`dfBreath ${1 + i*0.3}s ease-in-out infinite` }}/>
+            ))}
+          </div>
+        )}
+
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
-          {FEED_ITEMS.map((item, i) => {
+          {liveFeedItems.map((item, i) => {
             const divAccent =
               item.type==="wirker" ? C.teal :
               item.type==="werk"   ? C.coral :
