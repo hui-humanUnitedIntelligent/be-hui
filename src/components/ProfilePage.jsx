@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { ArrowLeft, MapPin, BadgeCheck, Grid, ShoppingBag } from "lucide-react";
 
 const C = {
   teal: "#16D7C5", teal2: "#11C5B7", tealPale: "#E6FAF8",
