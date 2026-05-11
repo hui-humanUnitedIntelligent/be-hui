@@ -51,6 +51,7 @@ function AppRoutes() {
       <Route path="/BookingFlow" element={<BookingFlow />} />
       <Route path="/Admin" element={<Admin />} />
       <Route path="/profile/:username" element={<ProfilePage />} />
+      <Route path="/work/:id" element={<WorkDetailPage />} />
     </Routes>
   )
 }
