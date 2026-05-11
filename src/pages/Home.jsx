@@ -1304,10 +1304,6 @@ export default function Home() {
 
           {tab==="feed" && (
             <>
-              <StoryBar
-                onStoryClick={(data) => setActiveStory(data)}
-                key={storyRefreshKey}
-              />
               <DiscoveryFeed
                 onView={(w) => w.type==="werk" || w.price ? setShowWerkDetail(w) : setShowWirker(w)}
                 onBook={(w) => setShowBooking(w)}
