@@ -646,6 +646,14 @@ function MomenteBar({ user, onOpenComposer, refreshKey }) {
   const [stories,  setStories]  = React.useState([]);
   const [viewer,   setViewer]   = React.useState(null);
   const [loading,  setLoading]  = React.useState(true);
+  const [ownProfile, setOwnProfile] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    supabase.from("profiles").select("avatar_url,display_name,username")
+      .eq("id", user.id).single()
+      .then(({ data }) => { if (data) setOwnProfile(data); });
+  }, [user?.id]);
 
   const load = React.useCallback(async () => {
     try {
@@ -700,8 +708,8 @@ function MomenteBar({ user, onOpenComposer, refreshKey }) {
 
           {/* ── "Dein Moment" immer zuerst ── */}
           <MomenteAvatar
-            label="Dein Moment"
-            avatar={user?.user_metadata?.avatar_url || null}
+            label={ownProfile?.display_name ? `${ownProfile.display_name.split(" ")[0]}` : "Dein Moment"}
+            avatar={ownProfile?.avatar_url || user?.user_metadata?.avatar_url || null}
             isOwn={true}
             hasStory={!!ownGroup}
             onTap={() => {
