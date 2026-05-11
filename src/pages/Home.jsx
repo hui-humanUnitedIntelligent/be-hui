@@ -1290,14 +1290,14 @@ export default function Home() {
 
           {tab==="feed" && (
             <DiscoveryFeed
-              onView={w=
-            storyRefreshKey={storyRefreshKey}>w.type==="werk"||w.price?setShowWerkDetail(w):setShowWirker(w)}
+              onView={w=>w.type==="werk"||w.price?setShowWerkDetail(w):setShowWirker(w)}
               onBook={w=>setShowBooking(w)}
               onImpact={()=>setTab("impact")}
               onMatch={()=>setShowMatch(true)}
               onMap={()=>setShowMap(true)}
               onBuyWerk={w=>setShowWerkCheckout([w])}
               onAddToKorb={w=>{setCart(p=>[...p,w]);}}
+              storyRefreshKey={storyRefreshKey}
             />
           )}
           {tab==="impact" && (
