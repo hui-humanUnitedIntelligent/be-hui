@@ -440,9 +440,7 @@ export default function WerkPublisher({ onClose, onSuccess }) {
         images:         imageUrls,
         sale_mode:      form.mode,
         price:          form.price ? parseFloat(form.price) : null,
-        allow_comments: form.allowComments,
-        allow_likes:    form.allowLikes,
-        allow_share:    form.allowShare,
+        // allow_comments/likes/share gehören zur stories-Tabelle, nicht zu works
         status:         form.publish==="publish"?"published":"draft",
         created_at:     new Date().toISOString(),
       });
