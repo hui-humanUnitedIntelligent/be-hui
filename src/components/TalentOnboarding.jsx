@@ -1,305 +1,216 @@
-// TalentOnboarding.jsx — "Dein Talent anbieten" Flow
-// Emotional, menschlich, modern. Kein useNavigate/useParams direkt.
-import React, { useState, useEffect, useRef } from "react";
+// TalentOnboarding v2 — "Dein Talent anbieten"
+// 3 Steps: Identität → Module → Profil
+// Props-only, kein useNavigate/useParams, router-safe
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../lib/AuthContext";
+import { useAuth }  from "../lib/AuthContext";
 
-const C = {
-  teal:"#16D7C5", teal2:"#11C5B7", tealPale:"rgba(22,215,197,0.10)",
-  tealGlow:"rgba(22,215,197,0.30)", tealBorder:"rgba(22,215,197,0.30)",
-  coral:"#FF8A6B", coral2:"#E8705A", coralPale:"rgba(255,138,107,0.10)",
-  coralGlow:"rgba(255,138,107,0.28)",
-  gold:"#F5A623", goldPale:"rgba(245,166,35,0.10)",
-  purple:"#A78BFA", purplePale:"rgba(167,139,250,0.12)",
-  green:"#22C55E",
+/* ── Design Tokens ──────────────────────────────────────────────────── */
+const T = {
+  teal:"#16D7C5", teal2:"#0EC4B3", tealGlow:"rgba(22,215,197,0.28)",
+  tealBg:"rgba(22,215,197,0.09)", tealBorder:"rgba(22,215,197,0.26)",
+  coral:"#FF8A6B", coralBg:"rgba(255,138,107,0.09)",
+  gold:"#F5A623",  goldBg:"rgba(245,166,35,0.09)",
+  purple:"#A78BFA",purpleBg:"rgba(167,139,250,0.10)",
+  green:"#22C55E", greenBg:"rgba(34,197,94,0.10)",
   warm:"#F9F7F4", card:"#FFFFFF",
-  ink:"#1A1A1A", ink2:"#3A3A3A", ink3:"#5A5A5A",
+  ink:"#1A1A1A", ink2:"#3A3A3A", ink3:"#6A6A6A",
   muted:"#9A9A9A", border:"rgba(0,0,0,0.07)",
 };
 
 const CSS = `
-  @keyframes toFadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes toFadeIn { from{opacity:0} to{opacity:1} }
-  @keyframes toPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
-  @keyframes toSlide  { from{transform:translateX(40px);opacity:0} to{transform:translateX(0);opacity:1} }
-  @keyframes toSpin   { from{transform:rotate(0)} to{transform:rotate(360deg)} }
-  @keyframes toFloat  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-  .to-tap { cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform 0.15s,opacity 0.15s; }
-  .to-tap:active { transform:scale(0.94); opacity:0.7; }
-  .to-scroll::-webkit-scrollbar { display:none; }
-  .to-scroll { -ms-overflow-style:none; scrollbar-width:none; }
+  @keyframes toUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes toIn{from{opacity:0}to{opacity:1}}
+  @keyframes toSlide{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes toSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  @keyframes toFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  @keyframes toPop{0%{transform:scale(0.7)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+  .t-tap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .14s,opacity .14s}
+  .t-tap:active{transform:scale(0.94)!important;opacity:.72}
+  .t-scroll::-webkit-scrollbar{display:none}
+  .t-scroll{-ms-overflow-style:none;scrollbar-width:none}
 `;
 
-const OFFER_TYPES = [
-  { key:"works",      emoji:"🎨", label:"Kreative Werke",    sub:"Kunst, Design, Foto, Musik", color:C.coral,  bg:C.coralPale },
-  { key:"services",   emoji:"🤝", label:"Dienstleistungen",  sub:"Skills, Beratung, Support",  color:C.teal,   bg:C.tealPale },
-  { key:"knowledge",  emoji:"📚", label:"Wissen teilen",     sub:"Tutorials, Kurse, Guides",   color:"#818CF8",bg:"rgba(129,140,248,0.10)" },
-  { key:"experiences",emoji:"✨", label:"Experiences",       sub:"Abenteuer, Führungen, Momente",color:C.gold, bg:C.goldPale },
-  { key:"workshops",  emoji:"🛠️", label:"Workshops",         sub:"Gruppen, Lernen, Praxis",    color:"#34D399",bg:"rgba(52,211,153,0.10)" },
-  { key:"music",      emoji:"🎵", label:"Musik",             sub:"Songs, Beats, Live, Events", color:"#F472B6",bg:"rgba(244,114,182,0.10)" },
-  { key:"healing",    emoji:"🌿", label:"Heilung",           sub:"Therapie, Wellness, Balance", color:"#6EE7B7",bg:"rgba(110,231,183,0.10)" },
-  { key:"movement",   emoji:"⚡", label:"Bewegung",          sub:"Sport, Yoga, Tanz, Fitness", color:"#FB923C",bg:"rgba(251,146,60,0.10)" },
-  { key:"coaching",   emoji:"🧭", label:"Coaching",          sub:"Mentoring, Life, Business",  color:C.purple, bg:C.purplePale },
-  { key:"events",     emoji:"🎉", label:"Events",            sub:"Feiern, Meetups, Shows",     color:"#F59E0B",bg:"rgba(245,158,11,0.10)" },
-  { key:"digital",    emoji:"💡", label:"Digitale Inhalte",  sub:"Ebooks, Templates, Assets",  color:"#38BDF8",bg:"rgba(56,189,248,0.10)" },
-  { key:"other",      emoji:"🌈", label:"Sonstiges",         sub:"Alles was dich ausmacht",    color:C.muted,  bg:"rgba(0,0,0,0.04)" },
-];
-
-const MODULES_MAP = {
-  works:"works", services:"services", knowledge:"knowledge",
-  experiences:"experiences", workshops:"workshops", music:"works",
-  healing:"services", movement:"experiences", coaching:"coaching",
-  events:"events", digital:"works", other:"works"
-};
-
-/* ── Progress Dots ─────────────────────────────────────────────────── */
-function ProgressDots({ step, total=3 }) {
+/* ── Progress Bar ──────────────────────────────────────────────────── */
+function ProgressBar({ step }) {
   return (
-    <div style={{ display:"flex", gap:7, justifyContent:"center" }}>
-      {Array.from({length:total}).map((_,i) => (
+    <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:28 }}>
+      {[0,1,2].map(i => (
         <div key={i} style={{
-          height:4, borderRadius:2,
-          width: i===step ? 24 : 8,
+          height:3, borderRadius:2,
+          width: i===step ? 28 : 10,
           background: i <= step
-            ? `linear-gradient(90deg,${C.teal},${C.coral})`
-            : "rgba(0,0,0,0.12)",
-          transition:"all 0.35s cubic-bezier(0.34,1.4,0.64,1)"
+            ? `linear-gradient(90deg,${T.teal},${T.coral})`
+            : "rgba(0,0,0,0.10)",
+          transition:"all .4s cubic-bezier(.34,1.4,.64,1)"
         }}/>
       ))}
     </div>
   );
 }
 
-/* ── Step 1: Was willst du teilen? ─────────────────────────────────── */
-function Step1({ selected, onToggle, onNext }) {
+/* ── STEP 1: Was ist dein Talent? ──────────────────────────────────── */
+const EXAMPLES = ["Fotografin","Keramikkünstler","Vocal Coach","Digital Artist",
+  "Yoga-Lehrerin","Filmemacher","Floristin","Illustrator","DJ","Köchin","Architekt","Schriftstellerin"];
+
+function Step1({ title, setTitle, desc, setDesc, onNext }) {
+  const [placeholder, setPlaceholder] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setPlaceholder(p => (p+1) % EXAMPLES.length), 2200);
+    return () => clearInterval(t);
+  }, []);
+
+  const valid = title.trim().length >= 2;
+
   return (
-    <div style={{ animation:"toFadeUp 0.4s both" }}>
-      <div style={{ textAlign:"center", padding:"0 4px 28px" }}>
-        <div style={{ fontSize:44, marginBottom:16, animation:"toFloat 3s ease-in-out infinite" }}>
-          ✨
-        </div>
+    <div style={{ animation:"toUp .4s both" }}>
+      <div style={{ textAlign:"center", marginBottom:28 }}>
+        <div style={{ fontSize:46, marginBottom:14, animation:"toFloat 3s ease-in-out infinite" }}>✦</div>
         <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight:900,
-          color:C.ink, letterSpacing:-0.6, lineHeight:1.2 }}>
-          Was möchtest du mit<br/>anderen teilen?
+          color:T.ink, letterSpacing:"-0.6px", lineHeight:1.2 }}>
+          Was ist<br/>dein Talent?
         </h2>
-        <p style={{ margin:0, fontSize:14, color:C.ink3, lineHeight:1.65 }}>
-          Wähle alles, was dich beschreibt.<br/>
-          Du kannst es jederzeit anpassen.
+        <p style={{ margin:0, fontSize:14, color:T.ink3, lineHeight:1.7 }}>
+          Erzähl uns von dir —<br/>ganz persönlich, nicht wie ein CV.
         </p>
       </div>
 
-      <div className="to-scroll"
-        style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
-          gap:10, maxHeight:"46vh", overflowY:"auto",
-          paddingRight:2, paddingBottom:4 }}>
-        {OFFER_TYPES.map((t,i) => {
-          const active = selected.includes(t.key);
-          return (
-            <div key={t.key} className="to-tap"
-              onClick={() => onToggle(t.key)}
+      <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+        {/* Titel */}
+        <div style={{ position:"relative" }}>
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder={EXAMPLES[placeholder]}
+            maxLength={60}
+            style={{
+              width:"100%", padding:"16px", borderRadius:16,
+              border:`2px solid ${title ? T.teal : T.border}`,
+              background:T.card, fontSize:17, color:T.ink,
+              outline:"none", fontFamily:"inherit", fontWeight:600,
+              boxShadow: title ? `0 0 0 4px ${T.tealBg}` : "none",
+              transition:"all .22s", boxSizing:"border-box"
+            }}
+          />
+        </div>
+
+        {/* Beschreibung */}
+        <textarea
+          value={desc}
+          onChange={e => setDesc(e.target.value)}
+          placeholder="Was macht dich aus? Was begeistert dich? Was kannst du teilen?"
+          rows={3}
+          style={{
+            width:"100%", padding:"16px", borderRadius:16,
+            border:`2px solid ${desc ? T.teal : T.border}`,
+            background:T.card, fontSize:14, color:T.ink,
+            outline:"none", fontFamily:"inherit", resize:"none", lineHeight:1.6,
+            boxShadow: desc ? `0 0 0 4px ${T.tealBg}` : "none",
+            transition:"all .22s", boxSizing:"border-box"
+          }}
+        />
+
+        {/* Beispiel-Chips */}
+        <div className="t-scroll"
+          style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:2 }}>
+          {EXAMPLES.slice(0,8).map(ex => (
+            <button key={ex} className="t-tap"
+              onClick={() => setTitle(ex)}
               style={{
-                padding:"14px 12px", borderRadius:18, cursor:"pointer",
-                background: active ? t.bg : C.card,
-                border: `2px solid ${active ? t.color : C.border}`,
-                boxShadow: active
-                  ? `0 4px 18px ${t.color}28, 0 1px 4px rgba(0,0,0,0.04)`
-                  : "0 1px 6px rgba(0,0,0,0.05)",
-                transition:"all 0.22s cubic-bezier(0.34,1.3,0.64,1)",
-                animation:`toFadeUp ${0.3+i*0.04}s both`,
-                position:"relative", overflow:"hidden"
+                flexShrink:0, padding:"7px 14px", borderRadius:999,
+                background: title===ex ? T.tealBg : "rgba(0,0,0,0.04)",
+                border:`1.5px solid ${title===ex ? T.teal : "transparent"}`,
+                color: title===ex ? T.teal : T.ink3,
+                fontWeight: title===ex ? 700 : 500,
+                fontSize:12, cursor:"pointer",
+                transition:"all .18s"
               }}>
-              {active && (
-                <div style={{ position:"absolute", top:8, right:8,
-                  width:18, height:18, borderRadius:"50%",
-                  background:t.color, display:"flex", alignItems:"center",
-                  justifyContent:"center", fontSize:10, color:"white",
-                  fontWeight:900, animation:"toFadeIn 0.2s both" }}>
-                  ✓
-                </div>
-              )}
-              <div style={{ fontSize:22, marginBottom:6 }}>{t.emoji}</div>
-              <div style={{ fontWeight:800, fontSize:13, color:active ? t.color : C.ink,
-                marginBottom:2, letterSpacing:-0.2 }}>{t.label}</div>
-              <div style={{ fontSize:11, color:C.muted, lineHeight:1.4 }}>{t.sub}</div>
-            </div>
-          );
-        })}
+              {ex}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <button className="to-tap"
-        onClick={onNext}
-        disabled={selected.length === 0}
-        style={{ width:"100%", marginTop:20, padding:"16px",
-          borderRadius:18, border:"none", cursor: selected.length>0 ? "pointer" : "not-allowed",
-          background: selected.length>0
-            ? `linear-gradient(135deg,${C.teal},${C.coral})`
-            : "rgba(0,0,0,0.08)",
-          color: selected.length>0 ? "white" : C.muted,
-          fontWeight:900, fontSize:15,
-          boxShadow: selected.length>0 ? `0 6px 24px ${C.tealGlow}` : "none",
-          transition:"all 0.25s" }}>
-        {selected.length > 0
-          ? `Weiter mit ${selected.length} Bereiche${selected.length===1?"":"n"} →`
-          : "Wähle mindestens einen Bereich"}
+      <button className="t-tap" onClick={onNext} disabled={!valid}
+        style={{
+          width:"100%", marginTop:24, padding:"17px",
+          borderRadius:18, border:"none",
+          background: valid ? `linear-gradient(135deg,${T.teal},${T.coral})` : "rgba(0,0,0,0.07)",
+          color: valid ? "white" : T.muted,
+          fontWeight:900, fontSize:15, cursor: valid ? "pointer" : "not-allowed",
+          boxShadow: valid ? `0 8px 28px ${T.tealGlow}` : "none",
+          transition:"all .25s"
+        }}>
+        Weiter →
       </button>
     </div>
   );
 }
 
-/* ── Step 2: Talentprofil erstellen ────────────────────────────────── */
-function Step2({ form, onChange, onNext, onBack }) {
-  return (
-    <div style={{ animation:"toSlide 0.35s both" }}>
-      <div style={{ textAlign:"center", padding:"0 4px 24px" }}>
-        <div style={{ fontSize:40, marginBottom:12 }}>🌟</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900,
-          color:C.ink, letterSpacing:-0.5 }}>Dein Talentprofil</h2>
-        <p style={{ margin:0, fontSize:13, color:C.ink3, lineHeight:1.6 }}>
-          Wie sollen andere dich finden?
-        </p>
-      </div>
-
-      <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-        <div>
-          <label style={{ fontSize:12, fontWeight:700, color:C.ink3,
-            marginBottom:6, display:"block", letterSpacing:0.3 }}>
-            DEIN TALENT IN EINEM SATZ *
-          </label>
-          <input
-            placeholder="z.B. 'Ich male lebendige Portraits"
-            value={form.title}
-            onChange={e => onChange("title", e.target.value)}
-            style={{ width:"100%", padding:"14px 16px", borderRadius:14,
-              border:`1.5px solid ${form.title ? C.teal : C.border}`,
-              background:C.card, fontSize:15, color:C.ink,
-              outline:"none", fontFamily:"inherit",
-              boxShadow: form.title ? `0 0 0 3px ${C.tealPale}` : "none",
-              transition:"all 0.2s" }}/>
-        </div>
-
-        <div>
-          <label style={{ fontSize:12, fontWeight:700, color:C.ink3,
-            marginBottom:6, display:"block", letterSpacing:0.3 }}>
-            BESCHREIBE DICH
-          </label>
-          <textarea
-            placeholder="Erzähl uns von dir — was macht dein Angebot besonders?"
-            value={form.description}
-            onChange={e => onChange("description", e.target.value)}
-            rows={3}
-            style={{ width:"100%", padding:"14px 16px", borderRadius:14,
-              border:`1.5px solid ${form.description ? C.teal : C.border}`,
-              background:C.card, fontSize:14, color:C.ink,
-              outline:"none", fontFamily:"inherit", resize:"none",
-              boxShadow: form.description ? `0 0 0 3px ${C.tealPale}` : "none",
-              transition:"all 0.2s" }}/>
-        </div>
-
-        <div>
-          <label style={{ fontSize:12, fontWeight:700, color:C.ink3,
-            marginBottom:6, display:"block", letterSpacing:0.3 }}>
-            STANDORT (OPTIONAL)
-          </label>
-          <input
-            placeholder="Stadt, Land oder 'Online"
-            value={form.location}
-            onChange={e => onChange("location", e.target.value)}
-            style={{ width:"100%", padding:"14px 16px", borderRadius:14,
-              border:`1.5px solid ${C.border}`,
-              background:C.card, fontSize:14, color:C.ink,
-              outline:"none", fontFamily:"inherit" }}/>
-        </div>
-      </div>
-
-      <div style={{ display:"flex", gap:10, marginTop:22 }}>
-        <button onClick={onBack} className="to-tap"
-          style={{ padding:"15px 20px", borderRadius:16, background:C.card,
-            border:`1.5px solid ${C.border}`, color:C.muted,
-            fontWeight:700, fontSize:14, cursor:"pointer" }}>
-          ‹
-        </button>
-        <button onClick={onNext} disabled={!form.title.trim()}
-          className="to-tap"
-          style={{ flex:1, padding:"15px", borderRadius:16, border:"none",
-            background: form.title.trim()
-              ? `linear-gradient(135deg,${C.teal},${C.coral})`
-              : "rgba(0,0,0,0.08)",
-            color: form.title.trim() ? "white" : C.muted,
-            fontWeight:900, fontSize:15, cursor: form.title.trim() ? "pointer" : "not-allowed",
-            boxShadow: form.title.trim() ? `0 6px 24px ${C.tealGlow}` : "none",
-            transition:"all 0.2s" }}>
-          Weiter →
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ── Step 3: Module aktivieren ─────────────────────────────────────── */
-const ALL_MODULES = [
-  { key:"works",       emoji:"🎨", label:"Werke verkaufen",     sub:"Produkte, Kunst, Fotos, Designs",  color:C.coral },
-  { key:"services",    emoji:"🤝", label:"Dienstleistungen",    sub:"Skills per Buchung anbieten",       color:C.teal },
-  { key:"experiences", emoji:"✨", label:"Experiences",         sub:"Erlebnisse & Touren anbieten",      color:C.gold },
-  { key:"workshops",   emoji:"🛠️", label:"Workshops",           sub:"Gruppen, Kurse, Workshops",        color:"#34D399" },
-  { key:"coaching",    emoji:"🧭", label:"Coaching",            sub:"1:1 Mentoring & Beratung",          color:C.purple },
-  { key:"events",      emoji:"🎉", label:"Events",              sub:"Veranstaltungen & Shows",           color:"#F59E0B" },
-  { key:"shop",        emoji:"🛍️", label:"Online Shop",         sub:"Digitale & physische Produkte",    color:"#38BDF8" },
-  { key:"impact",      emoji:"🌱", label:"Impact aktiv",        sub:"Impact-Pool Beiträge anzeigen",     color:C.green },
+/* ── STEP 2: Wie möchtest du sichtbar sein? ────────────────────────── */
+const MODULES = [
+  { key:"works",       emoji:"🎨", label:"Werke zeigen",
+    sub:"Fotos, Kunst, Designs, Musik",        color:T.coral,  bg:T.coralBg },
+  { key:"experiences", emoji:"✨", label:"Experiences anbieten",
+    sub:"Erlebnisse, Sessions, Touren",         color:T.gold,   bg:T.goldBg },
+  { key:"stories",     emoji:"⚡️", label:"Storys teilen",
+    sub:"Schnelle Momente, täglich, lebendig", color:T.teal,   bg:T.tealBg },
+  { key:"workshops",   emoji:"🛠️", label:"Workshops halten",
+    sub:"Gruppen, Kurse, Wissen weitergeben",  color:T.purple, bg:T.purpleBg },
+  { key:"bookings",    emoji:"📅", label:"Buchungen annehmen",
+    sub:"Direkte Terminbuchungen",             color:T.green,  bg:T.greenBg },
 ];
 
-function Step3({ modules, onToggle, onFinish, onBack, saving }) {
+function Step2({ modules, onToggle, onNext, onBack }) {
+  const activeCount = Object.values(modules).filter(Boolean).length;
   return (
-    <div style={{ animation:"toSlide 0.35s both" }}>
-      <div style={{ textAlign:"center", padding:"0 4px 24px" }}>
-        <div style={{ fontSize:40, marginBottom:12 }}>⚡️</div>
+    <div style={{ animation:"toSlide .35s both" }}>
+      <div style={{ textAlign:"center", marginBottom:24 }}>
+        <div style={{ fontSize:40, marginBottom:12 }}>🌟</div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900,
-          color:C.ink, letterSpacing:-0.5 }}>Aktiviere deine Bereiche</h2>
-        <p style={{ margin:0, fontSize:13, color:C.ink3, lineHeight:1.6 }}>
-          Nicht als Rollen — sondern als<br/>
-          <strong>aktivierbare Profilbereiche.</strong>
+          color:T.ink, letterSpacing:"-0.5px" }}>
+          Wie möchtest du<br/>sichtbar sein?
+        </h2>
+        <p style={{ margin:0, fontSize:13, color:T.ink3, lineHeight:1.65 }}>
+          Keine Rollen — nur Bereiche,<br/>die du jederzeit ein- oder ausschalten kannst.
         </p>
       </div>
 
-      <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
-        {ALL_MODULES.map((m,i) => {
-          const active = !!modules[m.key];
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {MODULES.map((m, i) => {
+          const on = !!modules[m.key];
           return (
-            <div key={m.key} className="to-tap"
+            <div key={m.key} className="t-tap"
               onClick={() => onToggle(m.key)}
               style={{
                 display:"flex", alignItems:"center", gap:14,
-                padding:"14px 16px", borderRadius:16,
-                background: active
-                  ? `linear-gradient(135deg,${m.color}14,${m.color}08)`
-                  : C.card,
-                border:`1.5px solid ${active ? m.color+"44" : C.border}`,
+                padding:"16px", borderRadius:18,
+                background: on ? m.bg : T.card,
+                border:`2px solid ${on ? m.color+"55" : T.border}`,
                 cursor:"pointer",
-                boxShadow: active ? `0 2px 12px ${m.color}20` : "none",
-                transition:"all 0.22s cubic-bezier(0.34,1.3,0.64,1)",
-                animation:`toFadeUp ${0.25+i*0.04}s both`
+                boxShadow: on ? `0 3px 14px ${m.color}22` : "none",
+                transition:"all .22s cubic-bezier(.34,1.3,.64,1)",
+                animation:`toUp ${.3+i*.05}s both`
               }}>
-              <div style={{ fontSize:22, flexShrink:0, width:32,
-                textAlign:"center" }}>{m.emoji}</div>
+              <span style={{ fontSize:24, width:34, textAlign:"center" }}>{m.emoji}</span>
               <div style={{ flex:1 }}>
-                <div style={{ fontWeight:700, fontSize:14,
-                  color: active ? m.color : C.ink, letterSpacing:-0.2 }}>
+                <div style={{ fontWeight:700, fontSize:14, color: on ? m.color : T.ink }}>
                   {m.label}
                 </div>
-                <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>
-                  {m.sub}
-                </div>
+                <div style={{ fontSize:11, color:T.muted, marginTop:2 }}>{m.sub}</div>
               </div>
               <div style={{
                 width:24, height:24, borderRadius:12,
-                border:`2px solid ${active ? m.color : C.border}`,
-                background: active ? m.color : "transparent",
+                border:`2px solid ${on ? m.color : T.border}`,
+                background: on ? m.color : "transparent",
                 display:"flex", alignItems:"center", justifyContent:"center",
-                flexShrink:0, transition:"all 0.2s"
+                flexShrink:0, transition:"all .2s"
               }}>
-                {active && (
-                  <svg width="12" height="9" viewBox="0 0 12 9">
-                    <path d="M1 4L4.5 7.5L11 1" stroke="white"
-                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                {on && (
+                  <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+                    <path d="M1 3.5L4 6.5L10 1" stroke="white"
+                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 )}
               </div>
@@ -309,28 +220,99 @@ function Step3({ modules, onToggle, onFinish, onBack, saving }) {
       </div>
 
       <div style={{ display:"flex", gap:10, marginTop:22 }}>
-        <button onClick={onBack} className="to-tap"
-          style={{ padding:"15px 20px", borderRadius:16, background:C.card,
-            border:`1.5px solid ${C.border}`, color:C.muted,
-            fontWeight:700, fontSize:14, cursor:"pointer" }}>
-          ‹
+        <button onClick={onBack} className="t-tap"
+          style={{ padding:"15px 18px", borderRadius:16,
+            background:T.card, border:`1.5px solid ${T.border}`,
+            color:T.muted, fontWeight:700, fontSize:14, cursor:"pointer" }}>‹</button>
+        <button onClick={onNext} disabled={activeCount===0} className="t-tap"
+          style={{
+            flex:1, padding:"15px", borderRadius:16, border:"none",
+            background: activeCount>0
+              ? `linear-gradient(135deg,${T.teal},${T.coral})` : "rgba(0,0,0,0.07)",
+            color: activeCount>0 ? "white" : T.muted,
+            fontWeight:900, fontSize:15, cursor: activeCount>0 ? "pointer" : "not-allowed",
+            boxShadow: activeCount>0 ? `0 6px 24px ${T.tealGlow}` : "none",
+            transition:"all .2s"
+          }}>
+          {activeCount>0 ? `Weiter (${activeCount} aktiv) →` : "Mindestens einen wählen"}
         </button>
-        <button onClick={onFinish}
-          disabled={saving || Object.values(modules).filter(Boolean).length===0}
-          className="to-tap"
-          style={{ flex:1, padding:"15px", borderRadius:16, border:"none",
-            background: `linear-gradient(135deg,${C.teal},${C.coral})`,
+      </div>
+    </div>
+  );
+}
+
+/* ── STEP 3: Gestalte dein Profil ──────────────────────────────────── */
+function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
+  return (
+    <div style={{ animation:"toSlide .35s both" }}>
+      <div style={{ textAlign:"center", marginBottom:24 }}>
+        <div style={{ fontSize:40, marginBottom:12 }}>🎭</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900,
+          color:T.ink, letterSpacing:"-0.5px" }}>
+          Gestalte dein Profil
+        </h2>
+        <p style={{ margin:0, fontSize:13, color:T.ink3, lineHeight:1.65 }}>
+          Wie sollen dich andere erleben?
+        </p>
+      </div>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+        <div>
+          <label style={{ fontSize:11, fontWeight:700, color:T.muted,
+            letterSpacing:.5, display:"block", marginBottom:8 }}>
+            INTRO-SATZ (optional)
+          </label>
+          <textarea
+            value={intro}
+            onChange={e => setIntro(e.target.value)}
+            placeholder="Ein Satz, der beschreibt wer du bist und was dich antreibt…"
+            rows={3}
+            style={{
+              width:"100%", padding:"16px", borderRadius:16,
+              border:`2px solid ${intro ? T.teal : T.border}`,
+              background:T.card, fontSize:14, color:T.ink,
+              outline:"none", fontFamily:"inherit", resize:"none", lineHeight:1.6,
+              transition:"all .2s", boxSizing:"border-box"
+            }}
+          />
+        </div>
+
+        <div style={{ padding:"14px 16px", borderRadius:16,
+          background:`linear-gradient(135deg,${T.tealBg},${T.coralBg})`,
+          border:`1px solid ${T.tealBorder}` }}>
+          <div style={{ fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+            <strong>Avatar & Coverfoto</strong> kannst du jederzeit<br/>
+            direkt in deinem Talentprofil hochladen. ✨
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div style={{ marginTop:14, padding:"12px 14px", borderRadius:12,
+          background:"rgba(255,80,80,0.07)", border:"1px solid rgba(255,80,80,0.18)",
+          fontSize:13, color:"#E53E3E" }}>⚠️ {error}</div>
+      )}
+
+      <div style={{ display:"flex", gap:10, marginTop:22 }}>
+        <button onClick={onBack} className="t-tap"
+          style={{ padding:"15px 18px", borderRadius:16,
+            background:T.card, border:`1.5px solid ${T.border}`,
+            color:T.muted, fontWeight:700, fontSize:14, cursor:"pointer" }}>‹</button>
+        <button onClick={onFinish} disabled={saving} className="t-tap"
+          style={{
+            flex:1, padding:"15px", borderRadius:16, border:"none",
+            background:`linear-gradient(135deg,${T.teal},${T.coral})`,
             color:"white", fontWeight:900, fontSize:15, cursor:"pointer",
-            boxShadow:`0 6px 24px ${C.tealGlow}`,
-            opacity: saving ? 0.7 : 1, transition:"all 0.2s",
-            display:"flex", alignItems:"center",
-            justifyContent:"center", gap:8 }}>
+            boxShadow:`0 6px 24px ${T.tealGlow}`,
+            opacity: saving ? .7 : 1, transition:"all .2s",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:8
+          }}>
           {saving ? (
             <>
-              <div style={{ width:18, height:18, borderRadius:"50%",
-                border:"2.5px solid rgba(255,255,255,0.3)",
+              <div style={{ width:17,height:17,borderRadius:"50%",
+                border:"2.5px solid rgba(255,255,255,.3)",
                 borderTop:"2.5px solid white",
-                animation:"toSpin 0.8s linear infinite" }}/>
+                animation:"toSpin .8s linear infinite" }}/>
               Speichere…
             </>
           ) : "✦ Talentprofil aktivieren"}
@@ -340,180 +322,135 @@ function Step3({ modules, onToggle, onFinish, onBack, saving }) {
   );
 }
 
-/* ── Success Screen ─────────────────────────────────────────────────── */
-function SuccessScreen({ onDone }) {
+/* ── Success ────────────────────────────────────────────────────────── */
+function SuccessView({ onDone }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 2400);
+    const t = setTimeout(onDone, 2600);
     return () => clearTimeout(t);
   }, [onDone]);
-
   return (
-    <div style={{ textAlign:"center", padding:"40px 20px",
-      animation:"toFadeUp 0.4s both" }}>
-      <div style={{ width:80, height:80, borderRadius:24, margin:"0 auto 24px",
-        background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+    <div style={{ textAlign:"center", padding:"32px 8px", animation:"toUp .4s both" }}>
+      <div style={{
+        width:80, height:80, borderRadius:24, margin:"0 auto 20px",
+        background:`linear-gradient(135deg,${T.teal},${T.coral})`,
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:36, animation:"toPulse 0.6s ease-out",
-        boxShadow:`0 12px 40px ${C.tealGlow}` }}>
-        ✓
-      </div>
-      <h2 style={{ margin:"0 0 12px", fontSize:26, fontWeight:900,
-        color:C.ink, letterSpacing:-0.5 }}>
-        Dein Talentprofil ist live!
-      </h2>
-      <p style={{ margin:0, fontSize:14, color:C.ink3, lineHeight:1.65 }}>
-        Du kannst jetzt Werke, Dienstleistungen<br/>
-        und Erlebnisse mit der Welt teilen. ✨
+        fontSize:34, boxShadow:`0 12px 40px ${T.tealGlow}`,
+        animation:"toPop .5s cubic-bezier(.34,1.4,.64,1) both"
+      }}>✦</div>
+      <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight:900,
+        color:T.ink, letterSpacing:"-0.5px" }}>Dein Talent ist live!</h2>
+      <p style={{ margin:0, fontSize:14, color:T.ink3, lineHeight:1.7 }}>
+        Willkommen in deiner kreativen Welt.<br/>
+        Du kannst jetzt teilen was dich ausmacht. ✨
       </p>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   MAIN EXPORT
+   MAIN
 ══════════════════════════════════════════════════════════════════════ */
 export default function TalentOnboarding({ onClose, onActivate }) {
   const { user, profile, setProfile } = useAuth();
-  const [step,     setStep]     = useState(0);
-  const [selected, setSelected] = useState([]);
-  const [form,     setForm]     = useState({ title:"", description:"", location:"" });
-  const [modules,  setModules]  = useState({
-    works:true, services:false, experiences:false,
-    workshops:false, coaching:false, events:false, shop:false, impact:true
+  const [step,    setStep]    = useState(0);
+  const [title,   setTitle]   = useState("");
+  const [desc,    setDesc]    = useState("");
+  const [intro,   setIntro]   = useState("");
+  const [modules, setModules] = useState({
+    works:true, experiences:false, stories:false, workshops:false, bookings:false
   });
-  const [saving,   setSaving]   = useState(false);
-  const [done,     setDone]     = useState(false);
-  const [error,    setError]    = useState(null);
-
-  // Pre-select modules basierend auf Step1 Auswahl
-  useEffect(() => {
-    if (selected.length > 0) {
-      const newMods = { ...modules };
-      selected.forEach(s => {
-        const mod = MODULES_MAP[s];
-        if (mod && newMods[mod] !== undefined) newMods[mod] = true;
-      });
-      setModules(newMods);
-    }
-  }, [selected]);
-
-  function toggleSelected(key) {
-    setSelected(p => p.includes(key) ? p.filter(k=>k!==key) : [...p,key]);
-  }
+  const [saving,  setSaving]  = useState(false);
+  const [done,    setDone]    = useState(false);
+  const [error,   setError]   = useState(null);
 
   function toggleModule(key) {
     setModules(p => ({ ...p, [key]: !p[key] }));
   }
 
-  async function handleFinish() {
+  async function save() {
     if (!user) return;
     setSaving(true); setError(null);
     try {
       const updates = {
         has_talent_profile:  true,
-        talent_title:        form.title.trim(),
-        talent_description:  form.description.trim(),
-        talent_location:     form.location.trim(),
-        talent_offer_types:  selected,
+        talent_title:        title.trim(),
+        talent_description:  desc.trim(),
+        talent_bio:          intro.trim(),
         profile_modules:     modules,
-        // Rückwärtskompatibilität
+        talent_offer_types:  Object.keys(modules).filter(k => modules[k]),
         is_wirker:           true,
-        role:                "wirker",
+        role:                "talent",
         updated_at:          new Date().toISOString(),
       };
-
       const { data, error: err } = await supabase
         .from("profiles")
         .update(updates)
         .eq("id", user.id)
-        .select()
-        .single();
-
+        .select().single();
       if (err) throw err;
-
-      // AuthContext sync
       if (setProfile) setProfile(p => ({ ...p, ...updates }));
-
       setDone(true);
     } catch(e) {
-      setError(e.message || "Fehler beim Speichern");
+      setError(e.message || "Fehler beim Speichern — bitte nochmal versuchen.");
     } finally {
       setSaving(false);
     }
   }
 
   function handleDone() {
-    if (onActivate) onActivate({ modules, title: form.title });
+    if (onActivate) onActivate({ modules, title });
     onClose();
   }
 
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:500,
-      background:"rgba(10,10,10,0.55)",
-      backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
+      background:"rgba(8,8,8,.52)",
+      backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
       display:"flex", alignItems:"flex-end",
-      animation:"toFadeIn 0.2s both"
+      animation:"toIn .2s both"
     }}>
       <style>{CSS}</style>
       <div style={{
         width:"100%", maxWidth:520, margin:"0 auto",
-        background:C.warm,
-        borderRadius:"28px 28px 0 0",
-        padding:"20px 20px 32px",
-        paddingBottom:"max(32px,calc(env(safe-area-inset-bottom,0px)+24px))",
-        maxHeight:"92vh", overflowY:"auto",
-        animation:"toFadeUp 0.38s cubic-bezier(0.34,1.3,0.64,1) both"
-      }}>
+        background:T.warm, borderRadius:"28px 28px 0 0",
+        padding:"20px 20px 0",
+        paddingBottom:"max(28px,calc(env(safe-area-inset-bottom,0px) + 20px))",
+        maxHeight:"93vh", overflowY:"auto",
+        animation:"toUp .38s cubic-bezier(.34,1.3,.64,1) both"
+      }} className="t-scroll">
 
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"center",
-          justifyContent:"space-between", marginBottom:22 }}>
-          {!done ? (
-            <ProgressDots step={step} total={3}/>
-          ) : <div/>}
-          <button onClick={onClose} className="to-tap"
-            style={{ width:34, height:34, borderRadius:"50%",
-              background:"rgba(0,0,0,0.07)", border:"none",
-              cursor:"pointer", display:"flex", alignItems:"center",
-              justifyContent:"center", fontSize:16, color:C.muted }}>
-            ✕
-          </button>
+        {/* Drag handle */}
+        <div style={{ width:36,height:4,borderRadius:2,background:"rgba(0,0,0,.12)",
+          margin:"0 auto 18px" }}/>
+
+        {/* Close */}
+        <div style={{ display:"flex", justifyContent:"space-between",
+          alignItems:"center", marginBottom:done?0:6 }}>
+          {!done && <ProgressBar step={step}/>}
+          <button onClick={onClose} className="t-tap"
+            style={{ marginLeft:"auto", width:32,height:32,borderRadius:"50%",
+              background:"rgba(0,0,0,.06)",border:"none",cursor:"pointer",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:15,color:T.muted,flexShrink:0 }}>✕</button>
         </div>
 
-        {error && (
-          <div style={{ padding:"12px 16px", borderRadius:12, marginBottom:16,
-            background:"rgba(255,80,80,0.08)", border:"1px solid rgba(255,80,80,0.2)",
-            fontSize:13, color:"#E53E3E" }}>
-            ⚠️ {error}
-          </div>
-        )}
-
         {done ? (
-          <SuccessScreen onDone={handleDone}/>
-        ) : step === 0 ? (
-          <Step1
-            selected={selected}
-            onToggle={toggleSelected}
-            onNext={() => setStep(1)}
-          />
-        ) : step === 1 ? (
-          <Step2
-            form={form}
-            onChange={(k,v) => setForm(p=>({...p,[k]:v}))}
-            onNext={() => setStep(2)}
-            onBack={() => setStep(0)}
-          />
+          <SuccessView onDone={handleDone}/>
+        ) : step===0 ? (
+          <Step1 title={title} setTitle={setTitle}
+            desc={desc} setDesc={setDesc}
+            onNext={() => setStep(1)}/>
+        ) : step===1 ? (
+          <Step2 modules={modules} onToggle={toggleModule}
+            onNext={() => setStep(2)} onBack={() => setStep(0)}/>
         ) : (
-          <Step3
-            modules={modules}
-            onToggle={toggleModule}
-            onFinish={handleFinish}
-            onBack={() => setStep(1)}
-            saving={saving}
-          />
+          <Step3 intro={intro} setIntro={setIntro}
+            onFinish={save} onBack={() => setStep(1)}
+            saving={saving} error={error}/>
         )}
 
+        <div style={{ height:8 }}/>
       </div>
     </div>
   );
