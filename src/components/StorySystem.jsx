@@ -36,7 +36,7 @@ export function StoryBar({ onRefreshKey }) {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("stories")
-        .select("id,user_id,username,avatar_url,media_url,media_type,text_overlay,mood,background,is_highlight,created_at,expires_at")
+        .select("id,user_id,username,avatar_url,media_url,media_type,caption,mood_tags,is_highlight,created_at,expires_at")
         .eq("status","published")
         .or(`expires_at.gt.${now},is_highlight.eq.true`)
         .order("created_at",{ascending:false})
@@ -281,9 +281,9 @@ export function StoryViewer({ stories, startIdx=0, onClose }) {
             textShadow:"0 1px 4px rgba(0,0,0,.4)"}}>
             {current.username||"HUI User"}
           </div>
-          {current.mood && (
+          {current.mood_tags?.[0] && (
             <div style={{color:"rgba(255,255,255,.7)",fontSize:11}}>
-              {current.mood}
+              {current.mood_tags[0]}
             </div>
           )}
         </div>
@@ -295,14 +295,14 @@ export function StoryViewer({ stories, startIdx=0, onClose }) {
       </div>
 
       {/* Text overlay */}
-      {current.text_overlay && (
+      {current.caption && (
         <div style={{position:"absolute",
           bottom:"max(80px,calc(env(safe-area-inset-bottom,20px)+60px))",
           left:20,right:20,textAlign:"center",
           color:"white",fontSize:20,fontWeight:800,lineHeight:1.35,
           textShadow:"0 2px 12px rgba(0,0,0,.6)",
           animation:"ssUp .3s both"}}>
-          {current.text_overlay}
+          {current.caption}
         </div>
       )}
 
