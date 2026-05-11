@@ -43,6 +43,8 @@ export function AuthProvider({ children }) {
             display_name: supabase.auth.getUser()?.data?.user?.user_metadata?.full_name || "",
             role: "basisuser",
             is_wirker: false,
+            has_talent_profile: false,
+            profile_modules: {},
           })
           .select()
           .single();
@@ -164,7 +166,9 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("hui_is_wirker");
   }, []);
 
-  const isWirker = profile?.is_wirker || false;
+  const isWirker = profile?.has_talent_profile || profile?.is_wirker || false;
+  const hasTalentProfile = profile?.has_talent_profile || false;
+  const profileModules   = profile?.profile_modules   || {};
 
   return (
     <AuthContext.Provider value={{
@@ -174,6 +178,8 @@ export function AuthProvider({ children }) {
       wirkerProfile,
       isAuthenticated,
       isWirker,
+      hasTalentProfile,
+      profileModules,
       loadingAuth,
       loadingProfile,
       // Actions
