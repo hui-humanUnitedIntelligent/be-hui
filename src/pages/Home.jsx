@@ -18,6 +18,9 @@ import LiveMapPage    from "./LiveMapPage";
 import DiscoveryFeed  from "../components/DiscoveryFeed";
 import { StoryBar, StoryViewer } from "../components/StoryBar";
 import DiscoverPage   from "./DiscoverPage";
+import ChatPage from "../components/ChatPage";
+import NotificationCenter from "../components/NotificationCenter";
+import { useNotifCount } from "../components/NotificationCenter";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1233,6 +1236,9 @@ export default function Home() {
   const [showKorb,    setShowKorb]    = useState(false);
   const [cart,        setCart]        = useState([]);
   const [notif,       setNotif]       = useState(3);
+  const [showChat,     setShowChat]     = useState(false);
+  const [showNotifs,   setShowNotifs]   = useState(false);
+  const liveNotifCount = useNotifCount();
   const [userName,    setUserName]    = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -1286,9 +1292,9 @@ export default function Home() {
         background:C.cream }}>
 
         <Header
-          cart={cart.length} notif={notif}
+          cart={cart.length} notif={liveNotifCount}
           onCart={()=>setShowKorb(true)}
-          onNotif={()=>setNotif(0)}
+          onNotif={()=>setShowNotifs(true)}
           userName={userName}
         />
 
@@ -1324,6 +1330,9 @@ export default function Home() {
               onMap={()=>setShowMap(true)}
               onMatch={()=>setShowMatch(true)}
             />
+          )}
+          {tab==="chat" && (
+            <ChatPage onClose={() => setTab("feed")} />
           )}
           {tab==="profile" && (
             <ProfilePage
@@ -1412,6 +1421,16 @@ export default function Home() {
             if (type === "werk")       setShowWerkPublisher(true);
             if (type === "experience") setShowExperienceCreator(true);
           }}
+        />
+      )}
+
+      {showChat && (
+        <ChatPage onClose={() => setShowChat(false)} />
+      )}
+      {showNotifs && (
+        <NotificationCenter
+          onClose={() => setShowNotifs(false)}
+          onNavigate={(url) => { setShowNotifs(false); }}
         />
       )}
     </>
