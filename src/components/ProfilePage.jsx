@@ -75,6 +75,7 @@ function WerkGridCard({ werk, onClick }) {
 }
 
 export default function ProfilePage({ onBack, onBuyWerk }) {
+  const navigate = useNavigate();
   const { username } = useParams();
   const navigate = useNavigate();
   const user = null;
