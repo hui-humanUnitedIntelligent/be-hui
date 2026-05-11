@@ -660,7 +660,7 @@ function MomenteBar({ user, onOpenComposer, refreshKey }) {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("stories")
-        .select("id,user_id,username,avatar_url,media_url,media_type,caption,mood_tags,is_highlight,created_at,expires_at")
+        .select("id,user_id,username,avatar_url,media_url,media_type,text_overlay,mood,is_highlight,created_at,expires_at")
         .eq("status","published")
         .or(`expires_at.is.null,expires_at.gt.${now},is_highlight.eq.true`)
         .order("created_at", { ascending: false })
@@ -909,12 +909,12 @@ function MomenteViewer({ stories, startIdx=0, onClose }) {
               background:"linear-gradient(135deg,#16D7C5,#A78BFA,#FF8A6B)" }}/>
         }
         {/* Caption */}
-        {current.caption && (
+        {current.text_overlay && (
           <div style={{ position:"absolute", bottom:80, left:20, right:20,
             background:"rgba(0,0,0,0.5)", backdropFilter:"blur(12px)",
             borderRadius:16, padding:"12px 16px",
             color:"white", fontSize:15, fontWeight:500, lineHeight:1.5 }}>
-            {current.caption}
+            {current.text_overlay}
           </div>
         )}
         {/* Tap zones */}
