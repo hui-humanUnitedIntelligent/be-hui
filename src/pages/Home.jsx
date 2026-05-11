@@ -7,7 +7,7 @@ import { WerkDetail, WerkCheckout, WerkeKorb } from "../components/WerkeShop";
 import OrdersPage from "../components/OrdersPage";
 import { useAuth } from "../lib/AuthContext";
 import CreateFlow          from "../components/CreateFlow";
-import WirkerWerdenFlow   from "../components/WirkerWerdenFlow";
+import TalentOnboarding   from "../components/TalentOnboarding";
 import WirkerCreateSheet  from "../components/WirkerCreateSheet";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
@@ -1198,9 +1198,9 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 ═══════════════════════════════════════════════════ */
 export default function Home() {
   const [tab,         setTab]         = useState("feed");
-  const { isWirker: authIsWirker, profile: authProfile, signOut: authSignOut } = useAuth();
+  const { isWirker: authIsWirker, hasTalentProfile, profile: authProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
-  const [showWirkerFlow, setShowWirkerFlow] = useState(false); // "Wirker werden" flow
+  const [showTalentFlow, setShowTalentFlow] = useState(false); // "Wirker werden" flow
   const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
   const [showWirker,  setShowWirker]  = useState(null);
   const [showBooking, setShowBooking] = useState(null);
@@ -1211,8 +1211,8 @@ export default function Home() {
 
   // Sync wirker status from AuthContext
   useEffect(() => {
-    if (authIsWirker) setIsWirker(true);
-  }, [authIsWirker]);
+    if (authIsWirker || hasTalentProfile) setIsWirker(true);
+  }, [authIsWirker, hasTalentProfile]);
   const [showMatch,   setShowMatch]   = useState(false);
   const [showMap,     setShowMap]     = useState(false);
   const [showKorb,    setShowKorb]    = useState(false);
@@ -1305,7 +1305,7 @@ export default function Home() {
           )}
           {tab==="profile" && (
             <ProfilePage
-              onTalentAnbieten={()=>setShowCreate(true)}
+              onTalentAnbieten={()=>setShowTalentFlow(true)}
               onLogout={()=>{
                 supabase.auth.signOut();
                 window.location.href="/login";
@@ -1317,8 +1317,8 @@ export default function Home() {
         <BottomNav tab={tab} onTab={setTab}
           isWirker={isWirker}
           onCreate={()=>{
-            if(isWirker) setShowCreateSheet(true);
-            else setShowWirkerFlow(true);
+            if(isWirker || hasTalentProfile) setShowCreateSheet(true);
+            else setShowTalentFlow(true);
           }}/>
 
         {/* Overlays */}
@@ -1342,13 +1342,12 @@ export default function Home() {
       </div>
 
       {/* ── Wirker werden Flow ── */}
-      {showWirkerFlow && (
-        <WirkerWerdenFlow
-          onClose={() => setShowWirkerFlow(false)}
-          onActivate={() => {
+      {showTalentFlow && (
+        <TalentOnboarding
+          onClose={() => setShowTalentFlow(false)}
+          onActivate={(data) => {
             setIsWirker(true);
-            localStorage.setItem("hui_is_wirker","true");
-            setShowWirkerFlow(false);
+            setShowTalentFlow(false);
           }}
         />
       )}
