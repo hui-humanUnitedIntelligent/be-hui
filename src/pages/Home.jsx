@@ -1305,6 +1305,7 @@ export default function Home() {
               onBuyWerk={w=>setShowWerkCheckout([w])}
               onAddToKorb={w=>{setCart(p=>[...p,w]);}}
               storyRefreshKey={storyRefreshKey}
+              onOpenComposer={()=>setShowStoryComposer(true)}
             />
           )}
           {tab==="impact" && (
