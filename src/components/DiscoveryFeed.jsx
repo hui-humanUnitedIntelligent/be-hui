@@ -1,6 +1,7 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
 import React, { useState, useEffect, useCallback } from "react";
+import { StoryBar } from "./StorySystem";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
@@ -105,6 +106,7 @@ function CreatorAvatar({ url, name, size = 28 }) {
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: size * 0.36, fontWeight: 900, color: "white",
       border: "2px solid rgba(255,255,255,0.4)", flexShrink: 0 }}>
+      <StoryBar onRefreshKey={storyRefreshKey}/>
       {initials}
     </div>
   );
@@ -637,7 +639,7 @@ function ImpactCard({ item, onImpact }) {
 ════════════════════════════════════════════════════════════════ */
 import HuiStories from "./HuiStories";
 
-export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal }) {
+export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal }, storyRefreshKey) {
   const navigate = useNavigate();
   // ── Echte Supabase-Daten ──────────────────────────────────────────
   const [dbWerke,   setDbWerke]   = useState([]);
