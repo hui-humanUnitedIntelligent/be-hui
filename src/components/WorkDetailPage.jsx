@@ -278,9 +278,130 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
-  const [liked,   setLiked]   = useState(false);
-  const [saved,   setSaved]   = useState(false);
-  const [shareOk, setShareOk] = useState(false);
+  const [liked,     setLiked]     = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [saved,     setSaved]     = useState(false);
+  const [shareOk,   setShareOk]   = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [comments,  setComments]  = useState([]);
+  const [commentInput, setCommentInput] = useState("");
+  const [commentCount, setCommentCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
+
+
+  /* ── Load Social State ──────────────────────────────────────────── */
+  const loadSocial = useCallback(async (werkId, creatorId) => {
+    if (!user?.id || !werkId) return;
+    try {
+      // Liked?
+      const { data: likeRow } = await supabase
+        .from("work_likes").select("id")
+        .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
+      setLiked(!!likeRow);
+
+      // Like count
+      const { count: lc } = await supabase
+        .from("work_likes").select("id", { count:"exact" })
+        .eq("work_id", werkId);
+      setLikeCount(lc || 0);
+
+      // Saved?
+      const { data: saveRow } = await supabase
+        .from("work_saves").select("id")
+        .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
+      setSaved(!!saveRow);
+
+      // Following creator?
+      if (creatorId) {
+        const { data: followRow } = await supabase
+          .from("follows").select("id")
+          .eq("follower_id", user.id).eq("following_id", creatorId).maybeSingle();
+        setFollowing(!!followRow);
+      }
+
+      // Comments
+      const { data: cData } = await supabase
+        .from("comments")
+        .select("id, text, created_at, user_id, profiles(display_name, avatar_url, username)")
+        .eq("work_id", werkId)
+        .order("created_at", { ascending: true })
+        .limit(50);
+      setComments(cData || []);
+      setCommentCount((cData || []).length);
+
+      // Increment view count
+      await supabase.rpc("increment_work_views", { work_id: werkId }).catch(() => {});
+    } catch(e) {
+      console.error("[WorkDetail] loadSocial:", e.message);
+    }
+  }, [user?.id]);
+
+  /* ── Toggle Like ─────────────────────────────────────────────────── */
+  const handleLike = useCallback(async () => {
+    if (!user?.id) return;
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setLikeCount(c => newLiked ? c + 1 : Math.max(0, c - 1));
+    if (newLiked) {
+      await supabase.from("work_likes").upsert({ work_id: id, user_id: user.id });
+    } else {
+      await supabase.from("work_likes").delete()
+        .eq("work_id", id).eq("user_id", user.id);
+    }
+  }, [user?.id, id, liked]);
+
+  /* ── Toggle Save ─────────────────────────────────────────────────── */
+  const handleSave = useCallback(async () => {
+    if (!user?.id) return;
+    const newSaved = !saved;
+    setSaved(newSaved);
+    if (newSaved) {
+      await supabase.from("work_saves").upsert({ work_id: id, user_id: user.id });
+    } else {
+      await supabase.from("work_saves").delete()
+        .eq("work_id", id).eq("user_id", user.id);
+    }
+  }, [user?.id, id, saved]);
+
+  /* ── Toggle Follow ───────────────────────────────────────────────── */
+  const handleFollow = useCallback(async () => {
+    if (!user?.id || !creator?.id) return;
+    const newFollowing = !following;
+    setFollowing(newFollowing);
+    if (newFollowing) {
+      await supabase.from("follows").upsert({
+        follower_id: user.id, following_id: creator.id
+      });
+    } else {
+      await supabase.from("follows").delete()
+        .eq("follower_id", user.id).eq("following_id", creator.id);
+    }
+  }, [user?.id, creator?.id, following]);
+
+  /* ── Submit Comment ──────────────────────────────────────────────── */
+  const handleComment = useCallback(async () => {
+    const txt = commentInput.trim();
+    if (!txt || !user?.id) return;
+    setSubmittingComment(true);
+    const optimistic = {
+      id: "opt_" + Date.now(),
+      text: txt, work_id: id, user_id: user.id,
+      created_at: new Date().toISOString(),
+      profiles: { display_name: user.user_metadata?.full_name || "Du", avatar_url: null, username: "" }
+    };
+    setComments(c => [...c, optimistic]);
+    setCommentCount(c => c + 1);
+    setCommentInput("");
+    const { error } = await supabase.from("comments")
+      .insert({ work_id: id, user_id: user.id, text: txt });
+    if (error) {
+      console.error("[Comment] insert:", error.message);
+      setComments(c => c.filter(x => x.id !== optimistic.id));
+      setCommentCount(c => c - 1);
+    }
+    setSubmittingComment(false);
+  }, [commentInput, user?.id, id]);
 
   /* ── Load ──────────────────────────────────────────────────────── */
   const load = useCallback(async () => {
@@ -316,12 +437,14 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
           setCreator(prof || null);
         }
         await loadRelated(w2.category, w2.user_id, id);
+        if (user?.id) await loadSocial(id, w2.user_id);
         return;
       }
 
       setWerk(w);
       setCreator(w.profiles || null);
       await loadRelated(w.category, w.user_id, id);
+      if (user?.id) await loadSocial(id, w.user_id);
 
     } catch (e) {
       console.error("[HUI] WorkDetail Fehler:", e);
@@ -498,7 +621,23 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
               </div>
             )}
           </div>
-          <div style={{ color:C.muted, fontSize:18, flexShrink:0 }}>›</div>
+          <div style={{ display:"flex", gap:8, flexShrink:0, alignItems:"center" }}>
+            {user?.id && creator?.id && user.id !== creator.id && (
+              <button onClick={handleFollow}
+                style={{ padding:"7px 14px",
+                  background: following
+                    ? "rgba(0,0,0,0.06)"
+                    : "linear-gradient(135deg,#16D7C5,#11C5B7)",
+                  border:"none", borderRadius:50,
+                  fontSize:12, fontWeight:700,
+                  color: following ? "#888" : "white",
+                  cursor:"pointer", fontFamily:"inherit",
+                  transition:"all .2s" }}>
+                {following ? "Folge ich" : "Folgen"}
+              </button>
+            )}
+            <div style={{ color:C.muted, fontSize:18 }}>›</div>
+          </div>
         </div>
 
         {/* ── Social Actions ── */}
@@ -508,10 +647,17 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
           boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
           <IconBtn
             icon={liked ? "❤️" : "🤍"}
-            label={liked ? "Gefällt mir" : "Like"}
+            label={likeCount > 0 ? String(likeCount) : "Like"}
             active={liked}
             color={C.coral}
-            onPress={() => setLiked(l => !l)}
+            onPress={handleLike}
+          />
+          <IconBtn
+            icon="💬"
+            label={commentCount > 0 ? String(commentCount) : "Kommentar"}
+            active={showComments}
+            color={C.teal}
+            onPress={() => setShowComments(s => !s)}
           />
           <IconBtn
             icon={shareOk ? "✅" : "↗️"}
@@ -525,9 +671,69 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
             label={saved ? "Gespeichert" : "Merken"}
             active={saved}
             color={C.gold}
-            onPress={() => setSaved(s => !s)}
+            onPress={handleSave}
           />
         </div>
+
+        {/* ── Comments Section ── */}
+        {showComments && (
+          <div style={{ margin:"12px 20px 0", background:C.card,
+            borderRadius:18, border:`1px solid ${C.border}`,
+            overflow:"hidden" }}>
+            {/* Input */}
+            <div style={{ display:"flex", gap:8, padding:"12px 14px",
+              borderBottom:`1px solid ${C.border}` }}>
+              <input
+                value={commentInput}
+                onChange={e => setCommentInput(e.target.value)}
+                onKeyDown={e => e.key==="Enter" && handleComment()}
+                placeholder="Dein Kommentar..."
+                style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:50,
+                  padding:"9px 14px", fontSize:13, color:"#1A1A1A",
+                  fontFamily:"inherit", outline:"none", background:"#F9F6F2" }}
+              />
+              <button onClick={handleComment} disabled={!commentInput.trim() || submittingComment}
+                style={{ padding:"9px 16px", background:`linear-gradient(135deg,#16D7C5,#11C5B7)`,
+                  border:"none", borderRadius:50, fontSize:13, fontWeight:700,
+                  color:"white", cursor:"pointer", opacity: !commentInput.trim() ? 0.4 : 1 }}>
+                →
+              </button>
+            </div>
+            {/* Comment list */}
+            <div style={{ maxHeight:280, overflowY:"auto" }}>
+              {comments.length === 0 ? (
+                <div style={{ padding:"24px", textAlign:"center",
+                  fontSize:13, color:"#888" }}>
+                  Noch kein Kommentar. Sei der Erste.
+                </div>
+              ) : comments.map(c => (
+                <div key={c.id} style={{ display:"flex", gap:10, padding:"10px 14px",
+                  borderBottom:`1px solid ${C.border}` }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0,
+                    background:"linear-gradient(135deg,#16D7C544,#FF8A6B44)",
+                    overflow:"hidden", display:"flex", alignItems:"center",
+                    justifyContent:"center", fontWeight:700, fontSize:13, color:"#16D7C5" }}>
+                    {c.profiles?.avatar_url
+                      ? <img src={c.profiles.avatar_url} alt=""
+                          style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                      : (c.profiles?.display_name?.[0] || "?")}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:"flex", gap:6, alignItems:"baseline", marginBottom:2 }}>
+                      <span style={{ fontWeight:700, fontSize:12, color:"#1A1A1A" }}>
+                        {c.profiles?.display_name || "Nutzer"}
+                      </span>
+                      <span style={{ fontSize:10, color:"#BBB" }}>
+                        {new Date(c.created_at).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}
+                      </span>
+                    </div>
+                    <div style={{ fontSize:13, color:"#3A3A3A", lineHeight:1.5 }}>{c.text}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Description ── */}
         {werk.description && (
