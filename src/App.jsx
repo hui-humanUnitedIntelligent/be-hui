@@ -7,7 +7,6 @@ import BookingFlow from './pages/BookingFlow'
 import Admin from './pages/Admin'
 import AuthCallback from './pages/AuthCallback'
 import ProfilePage from './components/ProfilePage'
-import WorkDetailPage from './components/WorkDetailPage'
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loadingAuth } = useAuth()
@@ -51,7 +50,6 @@ function AppRoutes() {
       <Route path="/BookingFlow" element={<BookingFlow />} />
       <Route path="/Admin" element={<Admin />} />
       <Route path="/profile/:username" element={<ProfilePage />} />
-      <Route path="/work/:id" element={<WorkDetailPage />} />
     </Routes>
   )
 }
