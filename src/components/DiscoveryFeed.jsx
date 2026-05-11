@@ -1,6 +1,6 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
@@ -957,20 +957,31 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     _raw: w,
   });
 
-  const loadFeed = useCallback(async () => {
-    setFeedLoading(true);
-    setFeedError(null);
+  // ── Infinite scroll state ────────────────────────────────────────
+  const [page,       setPage]       = useState(0);
+  const [hasMore,    setHasMore]    = useState(true);
+  const [loadingMore,setLoadingMore]= useState(false);
+  const PAGE_SIZE = 12;
+  const loaderRef = useRef(null);
+
+  const loadFeed = useCallback(async (reset = true) => {
+    if (reset) { setFeedLoading(true); setFeedError(null); setPage(0); setHasMore(true); }
+    else        { setLoadingMore(true); }
+
+    const currentPage = reset ? 0 : page;
+
     try {
-      // 1. Works laden
+      // 1. Works laden mit Pagination
       const { data: worksData, error: worksErr } = await supabase
         .from("works")
         .select("id, title, description, price, cover_url, images, category, status, created_at, user_id")
         .eq("status", "published")
         .order("created_at", { ascending: false })
-        .limit(40);
+        .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       if (worksErr) throw worksErr;
       const rawWorks = worksData || [];
+      if (rawWorks.length < PAGE_SIZE) setHasMore(false);
 
       // 2. Profile für alle Creator laden (1 Query statt N)
       const userIds = [...new Set(rawWorks.map(w => w.user_id).filter(Boolean))];
@@ -982,34 +993,61 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           .in("id", userIds);
         (profs || []).forEach(p => { profileMap[p.id] = p; });
       }
-      console.log("[HUI] Profile geladen:", Object.keys(profileMap).length);
 
       // 3. Works + Profile zusammenführen
       const works = rawWorks.map(w => mapWork(w, profileMap[w.user_id] || {}));
 
-      setDbWerke(works);
-      setDbFeed(works);
-      console.log("[HUI] Feed geladen:", works.length, "Werke mit Profilen");
+      if (reset) {
+        setDbWerke(works);
+        setDbFeed(works);
+      } else {
+        setDbWerke(prev => [...prev, ...works]);
+        setDbFeed(prev => [...prev, ...works]);
+        setPage(p => p + 1);
+      }
+      console.log("[HUI Feed] Loaded page", currentPage, "→", works.length, "works");
     } catch(e) {
-      console.error("[HUI] Feed Fehler:", e);
+      console.error("[HUI Feed] Error:", e);
       setFeedError(e.message);
     } finally {
       setFeedLoading(false);
+      setLoadingMore(false);
     }
+  }, [page]);
+
+  useEffect(() => { loadFeed(true); }, []);
+  useEffect(() => { if (refreshSignal) loadFeed(true); }, [refreshSignal]);
+
+  // Realtime subscription für neue Works
+  useEffect(() => {
+    const sub = supabase
+      .channel("works-feed")
+      .on("postgres_changes", {
+        event: "INSERT", schema: "public", table: "works",
+        filter: "status=eq.published"
+      }, (payload) => {
+        console.log("[HUI Feed] Realtime new work:", payload.new?.id);
+        loadFeed(true); // reload feed when new work added
+      })
+      .subscribe();
+    return () => supabase.removeChannel(sub);
   }, []);
 
-  useEffect(() => { loadFeed(); }, [loadFeed]);
-  useEffect(() => { if (refreshSignal) loadFeed(); }, [refreshSignal, loadFeed]);
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loaderRef.current) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasMore && !loadingMore && !feedLoading) {
+        loadFeed(false);
+      }
+    }, { threshold: 0.1 });
+    obs.observe(loaderRef.current);
+    return () => obs.disconnect();
+  }, [hasMore, loadingMore, feedLoading, loadFeed]);
 
-  // Merge: echte DB-Werke + Mock-Items (Wirker, Experience, Impact bleiben als Platzhalter)
-  const liveFeedItems = dbFeed.length > 0
-    ? [
-        ...dbFeed,
-        ...FEED_ITEMS.filter(f => f.type !== "werk"),
-      ]
-    : FEED_ITEMS;
-
-  const liveWerke = dbWerke.length > 0 ? dbWerke : WERKE.map(w => ({...w, type:"werk"}));
+  // Feed items: nur echte Daten — kein Mock-Fallback mehr
+  const liveFeedItems = dbFeed;
+  const liveWerke     = dbWerke;
 
   return (
     <>
@@ -1207,17 +1245,48 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             );
           })}
 
-          {/* Feed end */}
-          <div style={{ padding:"44px 28px 0", textAlign:"center" }}>
-            <div style={{ width:36, height:1, background:C.teal,
-              margin:"0 auto 14px", opacity:0.4 }}/>
-            <div style={{ fontSize:12.5, color:C.muted, lineHeight:1.7,
-              fontStyle:"italic", maxWidth:210, margin:"0 auto" }}>
-              Das war es für heute. Morgen warten neue Menschen und Momente.
+          {/* ── Empty state wenn keine echten Daten ── */}
+          {!feedLoading && liveFeedItems.length === 0 && (
+            <div style={{ padding:"60px 28px", textAlign:"center" }}>
+              <div style={{ fontSize:40, marginBottom:16 }}>🌱</div>
+              <div style={{ fontSize:16, fontWeight:700, color:C.ink, marginBottom:8 }}>
+                Noch keine Inhalte
+              </div>
+              <div style={{ fontSize:13, color:C.muted, lineHeight:1.6 }}>
+                Sei der Erste — lade ein Werk hoch oder teile einen Moment.
+              </div>
             </div>
-            <div style={{ fontSize:22, marginTop:14,
-              animation:"dfBreath 4s ease-in-out infinite" }}>🌿</div>
-          </div>
+          )}
+
+          {/* ── Infinite scroll loader ── */}
+          <div ref={loaderRef} style={{ height:1 }} />
+
+          {/* ── Loading more indicator ── */}
+          {loadingMore && (
+            <div style={{ display:"flex", justifyContent:"center", padding:"20px 0 8px" }}>
+              <div style={{ display:"flex", gap:6 }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ width:6, height:6, borderRadius:"50%",
+                    background:C.teal, opacity:0.6,
+                    animation:`dfSkPulse 1s ease-in-out ${i*0.2}s infinite alternate` }} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Feed end (nur wenn alles geladen) ── */}
+          {!hasMore && liveFeedItems.length > 0 && (
+            <div style={{ padding:"44px 28px 0", textAlign:"center" }}>
+              <div style={{ width:36, height:1, background:C.teal,
+                margin:"0 auto 14px", opacity:0.4 }}/>
+              <div style={{ fontSize:12.5, color:C.muted, lineHeight:1.7,
+                fontStyle:"italic", maxWidth:210, margin:"0 auto" }}>
+                Das war es für heute. Morgen warten neue Menschen und Momente.
+              </div>
+              <div style={{ fontSize:22, marginTop:14,
+                animation:"dfBreath 4s ease-in-out infinite" }}>🌿</div>
+            </div>
+          )}
         </div>
 
       </div>
