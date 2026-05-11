@@ -9,6 +9,7 @@ import { useAuth } from "../lib/AuthContext";
 import CreateFlow          from "../components/CreateFlow";
 import TalentOnboarding   from "../components/TalentOnboarding";
 import StoryComposer      from "../components/StoryComposer";
+import { StoryBar } from "../components/StorySystem";
 import WerkPublisher      from "../components/WerkPublisher";
 import ExperienceCreator  from "../components/ExperienceCreator";
 import QuickCreateSheet   from "../components/QuickCreateSheet";
@@ -1211,6 +1212,7 @@ export default function Home() {
   const [showWerkCheckout,setShowWerkCheckout]= useState(null);  // werk checkout
   const [showWerkeKorb,   setShowWerkeKorb]   = useState(false); // korb sheet
   const [showStoryComposer,   setShowStoryComposer]   = useState(false);
+  const [storyRefreshKey,     setStoryRefreshKey]     = useState(0);
   const [showWerkPublisher,   setShowWerkPublisher]   = useState(false);
   const [showExperienceCreator,setShowExperienceCreator]= useState(false);
 
@@ -1288,7 +1290,8 @@ export default function Home() {
 
           {tab==="feed" && (
             <DiscoveryFeed
-              onView={w=>w.type==="werk"||w.price?setShowWerkDetail(w):setShowWirker(w)}
+              onView={w=
+            storyRefreshKey={storyRefreshKey}>w.type==="werk"||w.price?setShowWerkDetail(w):setShowWirker(w)}
               onBook={w=>setShowBooking(w)}
               onImpact={()=>setTab("impact")}
               onMatch={()=>setShowMatch(true)}
@@ -1360,7 +1363,10 @@ export default function Home() {
       {showStoryComposer && (
         <StoryComposer
           onClose={() => setShowStoryComposer(false)}
-          onSuccess={() => setShowStoryComposer(false)}
+          onSuccess={() => {
+            setShowStoryComposer(false);
+            setStoryRefreshKey(p => p + 1);
+          }}
         />
       )}
       {showWerkPublisher && (
