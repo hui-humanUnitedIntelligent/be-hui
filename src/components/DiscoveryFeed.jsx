@@ -246,9 +246,9 @@ function WirkerTile({ w, onView, onBook }) {
 }
 
 /* ── WERK TILE — compact, square-ish ─────────────────────────────────── */
-function WerkTile({ w, onView, onBuyWerk }) {
+function WerkTile({ w, onView, onBuyWerk, navigate }) {
   return (
-    <div className="df-tap" onClick={() => onView && onView(w)}
+    <div className="df-tap" onClick={() => { if(w.id && navigate) navigate(`/work/${w.id}`); else if(onView) onView(w); }}
       style={{ flexShrink:0, width:130, cursor:"pointer" }}>
       <div style={{ borderRadius:18, overflow:"hidden",
         height:148, position:"relative",
@@ -280,7 +280,7 @@ function WerkTile({ w, onView, onBuyWerk }) {
       <div style={{ padding:"6px 2px 0" }}>
         <div style={{ fontSize:11.5, fontWeight:700,
           color:C.ink, lineHeight:1.3, marginBottom:4 }}>{w.title}</div>
-        <div onClick={e=>{e.stopPropagation(); navigate(`/profile/${w.creatorUsername||"hui-user"}`);}}
+        <div onClick={e=>{e.stopPropagation(); if(navigate) navigate(`/profile/${w.creatorUsername||"hui-user"}`);}}
           style={{ display:"flex", alignItems:"center", gap:4, cursor:"pointer" }}>
           <CreatorAvatar url={w.creatorImg||null} name={w.creator||"?"} size={16}/>
           <span style={{ fontSize:10, color:C.teal,
@@ -418,9 +418,9 @@ function WirkerCard({ item, onView, onBook }) {
   );
 }
 
-function WerkCard({ item, onView, onBuyWerk, onAddToKorb }) {
+function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
   return (
-    <div className="df-tap" onClick={() => onView && onView(item)}
+    <div className="df-tap" onClick={() => { if(item.id && navigate) navigate(`/work/${item.id}`); else if(onView) onView(item); }}
       style={{ position:"relative", width:"100%", height:"76vh", maxHeight:590,
         overflow:"hidden", cursor:"pointer", borderRadius:32,
         animation:"dfFadeUp 0.5s both" }}>
@@ -463,7 +463,7 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb }) {
         <div style={{ fontWeight:900, fontSize:24, color:"white",
           letterSpacing:-0.5, lineHeight:1.15, marginBottom:10 }}>{item.title}</div>
         <div style={{ marginBottom:16 }}>
-          <CreatorRow item={item} dark onNavigate={navigate}/>
+          <CreatorRow item={item} dark onNavigate={navigate || null}/>
         </div>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={e=>{e.stopPropagation();onAddToKorb&&onAddToKorb(item);}}
@@ -843,7 +843,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           style={{ display:"flex", gap:12, overflowX:"auto",
             padding:"0 20px 4px" }}>
           {liveWerke.map((w, i) => (
-            <WerkTile key={i} w={w} onView={onView} onBuyWerk={onBuyWerk}/>
+            <WerkTile key={i} w={w} onView={onView} onBuyWerk={onBuyWerk} navigate={navigate}/>
           ))}
         </div>
 
@@ -895,7 +895,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                 {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
                 <div style={{ padding:"0 16px" }}>
                   {item.type==="wirker"     && <WirkerCard     item={item} onView={onView} onBook={onBook}/>}
-                  {item.type==="werk"       && <WerkCard        item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb}/>}
+                  {item.type==="werk"       && <WerkCard        item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
                   {item.type==="experience" && <ExperienceCard  item={item} onView={onView}/>}
                   {item.type==="impact"     && <ImpactCard      item={item} onImpact={onImpact}/>}
                 </div>
