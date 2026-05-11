@@ -957,6 +957,41 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     _raw: w,
   });
 
+  // ── Wirker Profiles (Supabase) ──────────────────────────────────
+  const [liveWirkers, setLiveWirkers] = useState([]);
+  const [wirkersLoading, setWirkersLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadWirkers() {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, display_name, username, avatar_url, talent, city, availability, impact_eur")
+          .eq("has_talent_profile", true)
+          .eq("availability", true)
+          .order("impact_eur", { ascending: false })
+          .limit(10);
+        if (data && data.length > 0) {
+          setLiveWirkers(data.map(p => ({
+            user_id:   p.id,
+            name:      p.display_name || p.username || "Talent",
+            talent:    p.talent || "Kreativ",
+            city:      p.city  || "",
+            recs:      0,
+            available: p.availability !== false,
+            img:       p.avatar_url || null,
+            impactEur: p.impact_eur || 0,
+          })));
+        }
+      } catch(e) {
+        console.error("[DiscoveryFeed] wirkers:", e.message);
+      } finally {
+        setWirkersLoading(false);
+      }
+    }
+    loadWirkers();
+  }, []);
+
   // ── Infinite scroll state ────────────────────────────────────────
   const [page,       setPage]       = useState(0);
   const [hasMore,    setHasMore]    = useState(true);
@@ -1169,8 +1204,8 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         <div className="df-scroll"
           style={{ display:"flex", gap:12, overflowX:"auto",
             padding:"0 20px 4px" }}>
-          {WIRKERS.map((w, i) => (
-            <WirkerTile key={i} w={w} onView={onView} onBook={onBook}/>
+          {(liveWirkers.length > 0 ? liveWirkers : WIRKERS).map((w, i) => (
+            <WirkerTile key={w.user_id || i} w={w} onView={onView} onBook={onBook}/>
           ))}
         </div>
 
