@@ -130,21 +130,27 @@ export default function StoryComposer({ onClose, onSuccess }) {
       const expiresAt = saveHighlight ? null : new Date(Date.now() + 86400000).toISOString();
 
       // Map Composer fields → DB column names
-      const { data, error: dbErr } = await supabase.from("stories").insert({
-        user_id:        user.id,
-        username:       profile?.display_name || profile?.username || user.email?.split("@")[0] || "HUI User",
-        avatar_url:     profile?.avatar_url || null,
-        media_url:      mediaUrl,
-        media_type:     mediaUrl ? mediaType : "text",
-        text_overlay:   text.trim() || null,      // caption → text_overlay
-        mood:           mood || null,              // mood_tags[0] → mood (TEXT)
-        visibility:     visibility,
-        allow_comments: allowComments,
-        allow_reactions:true,
-        is_highlight:   saveHighlight,
-        expires_at:     expiresAt,
-        status:         "published",
-      }).select().single();
+      // Nur Spalten die im originalen CREATE TABLE existieren (009_story_system_fix.sql)
+      const storyRow = {
+        user_id:       user.id,
+        username:      profile?.display_name || profile?.username || user.email?.split("@")[0] || "HUI User",
+        avatar_url:    profile?.avatar_url   || null,
+        media_url:     mediaUrl              || null,
+        media_type:    mediaUrl ? mediaType  : "text",
+        text_overlay:  text.trim()           || null,
+        visibility:    visibility,
+        allow_comments:allowComments,
+        is_highlight:  saveHighlight,
+        expires_at:    expiresAt,
+        status:        "published",
+      };
+      console.log("[StoryComposer] inserting:", JSON.stringify(storyRow));
+
+      const { data, error: dbErr } = await supabase
+        .from("stories")
+        .insert(storyRow)
+        .select()
+        .single();
 
       if (dbErr) {
         console.error("[StoryComposer] db insert error:", dbErr);
