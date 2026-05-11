@@ -1297,18 +1297,23 @@ export default function Home() {
             WebkitOverflowScrolling:"touch" }}>
 
           {tab==="feed" && (
-            <StoryBar onStoryClick={(data) => setActiveStory(data)} key={storyRefreshKey} />
+            <>
+              <StoryBar
+                onStoryClick={(data) => setActiveStory(data)}
+                key={storyRefreshKey}
+              />
               <DiscoveryFeed
-              onView={w=>w.type==="werk"||w.price?setShowWerkDetail(w):setShowWirker(w)}
-              onBook={w=>setShowBooking(w)}
-              onImpact={()=>setTab("impact")}
-              onMatch={()=>setShowMatch(true)}
-              onMap={()=>setShowMap(true)}
-              onBuyWerk={w=>setShowWerkCheckout([w])}
-              onAddToKorb={w=>{setCart(p=>[...p,w]);}}
-              storyRefreshKey={storyRefreshKey}
-              onOpenComposer={()=>setShowStoryComposer(true)}
-            />
+                onView={(w) => w.type==="werk" || w.price ? setShowWerkDetail(w) : setShowWirker(w)}
+                onBook={(w) => setShowBooking(w)}
+                onImpact={() => setTab("impact")}
+                onMatch={() => setShowMatch(true)}
+                onMap={() => setShowMap(true)}
+                onBuyWerk={(w) => setShowWerkCheckout([w])}
+                onAddToKorb={(w) => { setCart(p => [...p, w]); }}
+                storyRefreshKey={storyRefreshKey}
+                onOpenComposer={() => setShowStoryComposer(true)}
+              />
+            </>
           )}
           {tab==="impact" && (
             <ImpactPage currentUser={currentUser}/>
