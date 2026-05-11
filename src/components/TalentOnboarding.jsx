@@ -166,7 +166,7 @@ function Step2({ form, onChange, onNext, onBack }) {
             DEIN TALENT IN EINEM SATZ *
           </label>
           <input
-            placeholder="z.B. „Ich male lebendige Portraits""
+            placeholder="z.B. 'Ich male lebendige Portraits"
             value={form.title}
             onChange={e => onChange("title", e.target.value)}
             style={{ width:"100%", padding:"14px 16px", borderRadius:14,
@@ -201,7 +201,7 @@ function Step2({ form, onChange, onNext, onBack }) {
             STANDORT (OPTIONAL)
           </label>
           <input
-            placeholder="Stadt, Land oder „Online""
+            placeholder="Stadt, Land oder 'Online"
             value={form.location}
             onChange={e => onChange("location", e.target.value)}
             style={{ width:"100%", padding:"14px 16px", borderRadius:14,
