@@ -8,6 +8,9 @@ import OrdersPage from "../components/OrdersPage";
 import { useAuth } from "../lib/AuthContext";
 import CreateFlow          from "../components/CreateFlow";
 import TalentOnboarding   from "../components/TalentOnboarding";
+import StoryComposer      from "../components/StoryComposer";
+import WerkPublisher      from "../components/WerkPublisher";
+import ExperienceCreator  from "../components/ExperienceCreator";
 import QuickCreateSheet   from "../components/QuickCreateSheet";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
@@ -1207,7 +1210,9 @@ export default function Home() {
   const [showWerkDetail,  setShowWerkDetail]  = useState(null);  // werk detail view
   const [showWerkCheckout,setShowWerkCheckout]= useState(null);  // werk checkout
   const [showWerkeKorb,   setShowWerkeKorb]   = useState(false); // korb sheet
-  const [showCreate,  setShowCreate]  = useState(false);
+  const [showStoryComposer,   setShowStoryComposer]   = useState(false);
+  const [showWerkPublisher,   setShowWerkPublisher]   = useState(false);
+  const [showExperienceCreator,setShowExperienceCreator]= useState(false);
 
   // Sync wirker status from AuthContext
   useEffect(() => {
@@ -1233,7 +1238,6 @@ export default function Home() {
     // Sync isWirker from AuthContext (authoritative source)
   },[]);
 
-  if(showCreate)  return <CreateFlow onClose={()=>setShowCreate(false)}/>;
   if(showBooking) return (
     <div style={{ position:"fixed", inset:0, zIndex:200,
       overflowY:"auto", background:C.cream }}>
@@ -1352,15 +1356,35 @@ export default function Home() {
         />
       )}
 
-      {/* ── Wirker Create Sheet ── */}
+      {/* ── Quick Create Flows ── */}
+      {showStoryComposer && (
+        <StoryComposer
+          onClose={() => setShowStoryComposer(false)}
+          onSuccess={() => setShowStoryComposer(false)}
+        />
+      )}
+      {showWerkPublisher && (
+        <WerkPublisher
+          onClose={() => setShowWerkPublisher(false)}
+          onSuccess={() => setShowWerkPublisher(false)}
+        />
+      )}
+      {showExperienceCreator && (
+        <ExperienceCreator
+          onClose={() => setShowExperienceCreator(false)}
+          onSuccess={() => setShowExperienceCreator(false)}
+        />
+      )}
+
+      {/* ── Quick Create Sheet ── */}
       {showCreateSheet && (
         <QuickCreateSheet
           onClose={() => setShowCreateSheet(false)}
           onSelect={(type) => {
             setShowCreateSheet(false);
-            if (type === "story" || type === "werk" || type === "experience") {
-              setShowCreate(true);
-            }
+            if (type === "story")      setShowStoryComposer(true);
+            if (type === "werk")       setShowWerkPublisher(true);
+            if (type === "experience") setShowExperienceCreator(true);
           }}
         />
       )}
