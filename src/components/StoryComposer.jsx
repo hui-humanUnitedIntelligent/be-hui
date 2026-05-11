@@ -94,24 +94,30 @@ export default function StoryComposer({ onClose, onSuccess }) {
   async function uploadMedia(file) {
     const ext    = file.name.split(".").pop() || (file.type.includes("video") ? "mp4" : "jpg");
     const path   = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const bucket = "story-media";
-    console.log("[StoryComposer] uploading to bucket:", bucket, "path:", path);
+    // Versuche "stories" bucket zuerst, fallback auf "works"
+    const buckets = ["stories", "story-media", "works"];
+    let publicUrl = null;
+    let lastErr   = null;
 
-    const { error: upErr } = await supabase.storage
-      .from(bucket)
-      .upload(path, file, {
-        contentType:   file.type,
-        cacheControl:  "3600",
-        upsert:        false,
-      });
-
-    if (upErr) {
-      console.error("[StoryComposer] storage upload error:", upErr);
-      throw upErr;
+    for (const bucket of buckets) {
+      console.log("[StoryComposer] trying bucket:", bucket, "path:", path);
+      const { error: upErr } = await supabase.storage
+        .from(bucket)
+        .upload(path, file, { contentType: file.type, cacheControl: "3600", upsert: false });
+      if (!upErr) {
+        const { data: { publicUrl: url } } = supabase.storage.from(bucket).getPublicUrl(path);
+        publicUrl = url;
+        console.log("[StoryComposer] uploaded to", bucket, "→", publicUrl);
+        break;
+      }
+      lastErr = upErr;
+      console.warn("[StoryComposer] bucket", bucket, "failed:", upErr.message);
     }
 
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
-    console.log("[StoryComposer] uploaded, publicUrl:", publicUrl);
+    if (!publicUrl) {
+      console.error("[StoryComposer] all buckets failed:", lastErr);
+      throw lastErr;
+    }
     return publicUrl;
   }
 
@@ -133,18 +139,18 @@ export default function StoryComposer({ onClose, onSuccess }) {
       console.log("[StoryComposer] inserting story for user:", user.id);
       const expiresAt = saveHighlight ? null : new Date(Date.now() + 86400000).toISOString();
 
+      // Map Composer fields → DB column names
       const { data, error: dbErr } = await supabase.from("stories").insert({
         user_id:        user.id,
         username:       profile?.display_name || profile?.username || user.email?.split("@")[0] || "HUI User",
         avatar_url:     profile?.avatar_url || null,
         media_url:      mediaUrl,
         media_type:     mediaUrl ? mediaType : "text",
-        caption:        text.trim() || null,
-        mood_tags:      mood ? [mood] : null,
+        text_overlay:   text.trim() || null,      // caption → text_overlay
+        mood:           mood || null,              // mood_tags[0] → mood (TEXT)
         visibility:     visibility,
         allow_comments: allowComments,
         allow_reactions:true,
-        allow_sharing:  true,
         is_highlight:   saveHighlight,
         expires_at:     expiresAt,
         status:         "published",
