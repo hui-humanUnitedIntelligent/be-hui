@@ -9,7 +9,6 @@ import { useAuth } from "../lib/AuthContext";
 import CreateFlow          from "../components/CreateFlow";
 import TalentOnboarding   from "../components/TalentOnboarding";
 import StoryComposer      from "../components/StoryComposer";
-import { StoryBar } from "../components/StorySystem";
 import WerkPublisher      from "../components/WerkPublisher";
 import ExperienceCreator  from "../components/ExperienceCreator";
 import QuickCreateSheet   from "../components/QuickCreateSheet";
