@@ -16,6 +16,7 @@ import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
 import LiveMapPage    from "./LiveMapPage";
 import DiscoveryFeed  from "../components/DiscoveryFeed";
+import { StoryBar, StoryViewer } from "../components/StoryBar";
 import DiscoverPage   from "./DiscoverPage";
 
 /* ═══════════════════════════════════════════════════
@@ -1211,6 +1212,7 @@ export default function Home() {
   const [showWerkCheckout,setShowWerkCheckout]= useState(null);  // werk checkout
   const [showWerkeKorb,   setShowWerkeKorb]   = useState(false); // korb sheet
   const [showStoryComposer,   setShowStoryComposer]   = useState(false);
+  const [activeStory,         setActiveStory]         = useState(null);
 
   // StoryBar "+" Button Event
   React.useEffect(() => {
@@ -1295,7 +1297,8 @@ export default function Home() {
             WebkitOverflowScrolling:"touch" }}>
 
           {tab==="feed" && (
-            <DiscoveryFeed
+            <StoryBar onStoryClick={(data) => setActiveStory(data)} key={storyRefreshKey} />
+              <DiscoveryFeed
               onView={w=>w.type==="werk"||w.price?setShowWerkDetail(w):setShowWirker(w)}
               onBook={w=>setShowBooking(w)}
               onImpact={()=>setTab("impact")}
@@ -1367,6 +1370,11 @@ export default function Home() {
       )}
 
       {/* ── Quick Create Flows ── */}
+      
+      {/* ── STORY VIEWER ── */}
+      {activeStory && (
+        <StoryViewer data={activeStory} onClose={() => setActiveStory(null)} />
+      )}
       {showStoryComposer && (
         <StoryComposer
           onClose={() => setShowStoryComposer(false)}
