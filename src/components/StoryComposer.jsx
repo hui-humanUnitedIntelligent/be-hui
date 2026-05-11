@@ -33,15 +33,17 @@ const MOODS = [
 // Friendly error messages
 function friendlyError(err) {
   const msg = (err?.message || err || "").toLowerCase();
-  if (msg.includes("row-level security") || msg.includes("rls") || msg.includes("policy"))
-    return "Story konnte nicht veröffentlicht werden. Bitte neu anmelden.";
+  const raw = err?.message || String(err) || "";
   if (msg.includes("storage") || msg.includes("upload") || msg.includes("bucket"))
     return "Bild konnte nicht hochgeladen werden. Bitte nochmal versuchen.";
   if (msg.includes("network") || msg.includes("fetch"))
     return "Keine Verbindung. Bitte WLAN prüfen.";
-  if (msg.includes("jwt") || msg.includes("auth") || msg.includes("token"))
+  if (msg.includes("jwt") || msg.includes("token"))
     return "Sitzung abgelaufen. Bitte neu anmelden.";
-  return "Story konnte nicht veröffentlicht werden. Bitte nochmal versuchen.";
+  // RLS/Policy: zeige echten Fehler für Debugging
+  if (msg.includes("row-level security") || msg.includes("rls") || msg.includes("policy"))
+    return `DB-Fehler: ${raw}`;
+  return `Fehler: ${raw}`;
 }
 
 const CSS = `
