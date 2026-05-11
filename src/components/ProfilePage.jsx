@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../lib/AuthContext";
 import { ArrowLeft, MapPin, BadgeCheck, Grid, ShoppingBag } from "lucide-react";
 
 const C = {
@@ -79,7 +78,7 @@ function WerkGridCard({ werk, onClick }) {
 export default function ProfilePage({ onBack, onBuyWerk }) {
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const user = null;
 
   const [profile, setProfile] = useState(null);
   const [werke,   setWerke]   = useState([]);
