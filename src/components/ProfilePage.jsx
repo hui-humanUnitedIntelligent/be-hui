@@ -199,7 +199,7 @@ function ProfileSkeleton() {
    OWN PROFILE — Premium Dashboard
 ══════════════════════════════════════════════════════════════════════ */
 function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
-  const { user, profile, wirkerProfile, isWirker, loadingAuth, loadingProfile } = useAuth();
+  const { user, profile, wirkerProfile, isWirker, hasTalentProfile, profileModules, loadingAuth, loadingProfile } = useAuth();
   const [werke,        setWerke]        = useState([]);
   const [worksLoading, setWorksLoading] = useState(true);
   const [impactTotal,  setImpactTotal]  = useState(0);
@@ -299,11 +299,11 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
           <h1 style={{ margin:0, fontSize:24, fontWeight:900, color:C.ink,
             letterSpacing:-0.6, lineHeight:1.1 }}>{displayName}</h1>
-          {isWirker && (
+          {hasTalent && (
             <div style={{ padding:"3px 9px", borderRadius:999,
               background:C.tealPale, border:`1px solid ${C.tealBorder}`,
               fontSize:11, fontWeight:800, color:C.teal, letterSpacing:0.5 }}>
-              ✦ WIRKER
+              ✦ TALENT
             </div>
           )}
         </div>
@@ -355,8 +355,8 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
       <div style={{ padding:"16px 20px 0" }}>
         <SectionHeader title="Schnellzugriff"/>
         <div style={{ display:"flex", gap:10 }}>
-          {!isWirker && onTalentAnbieten && (
-            <QuickAction icon="✦" label="Wirker werden"
+          {!hasTalent && onTalentAnbieten && (
+            <QuickAction icon="✦" label="Talent anbieten"
               color={C.teal}
               bg={`linear-gradient(135deg,${C.tealPale},rgba(255,255,255,0.8))`}
               onPress={onTalentAnbieten}/>
@@ -372,13 +372,13 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
         </div>
       </div>
 
-      {/* ── Creator Hub (nur Wirker) ──────────────────────────────────── */}
-      {isWirker && (
+      {/* ── Talent Hub (nur Wirker) ──────────────────────────────────── */}
+      {hasTalent && (
         <div style={{ margin:"16px 20px 0", padding:"18px",
           background:`linear-gradient(135deg,rgba(255,138,107,0.08),rgba(245,166,35,0.06))`,
           borderRadius:20, border:`1px solid rgba(255,138,107,0.2)` }}>
           <div style={{ fontWeight:800, fontSize:15, color:C.ink, marginBottom:14 }}>
-            🎯 Creator Hub
+            🎯 Talent Hub
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {[
@@ -509,7 +509,7 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
       )}
 
       {/* ── Wirker CTA (nur Non-Wirker) ───────────────────────────────── */}
-      {!isWirker && onTalentAnbieten && (
+      {!hasTalent && onTalentAnbieten && (
         <div style={{ margin:"24px 20px 0", padding:"24px 20px",
           borderRadius:24,
           background:`linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))`,
@@ -518,11 +518,11 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
           <div style={{ fontSize:32, marginBottom:12 }}>✦</div>
           <div style={{ fontWeight:900, fontSize:18, color:C.ink,
             letterSpacing:-0.4, marginBottom:8 }}>
-            Werde Teil der Wirker-Community
+            Teile dein Talent
           </div>
           <div style={{ fontSize:13, color:C.ink3, lineHeight:1.65,
             marginBottom:20, maxWidth:280, margin:"0 auto 20px" }}>
-            Teile deine Talente, verdiene Geld und trage zum Impact-Pool bei.
+            Biete deine Stärken an, verdiene Geld und trage zum Impact-Pool bei.
           </div>
           <button className="pp-tap" onClick={onTalentAnbieten}
             style={{ padding:"14px 32px", borderRadius:16,
@@ -530,7 +530,7 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
               border:"none", color:"white", fontWeight:900,
               fontSize:15, cursor:"pointer",
               boxShadow:`0 6px 24px rgba(22,215,197,0.35)` }}>
-            Wirker werden ✦
+            Talent anbieten ✦
           </button>
         </div>
       )}
