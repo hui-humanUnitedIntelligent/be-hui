@@ -269,8 +269,8 @@ function IconBtn({ icon, label, active, color, onPress }) {
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════ */
 export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
-  const { id } = useParams();
   const navigate = useNavigate();
+  const { id } = useParams();
   const { user } = useAuth();
 
   const [werk,    setWerk]    = useState(null);
