@@ -36,9 +36,9 @@ export function StoryBar({ onRefreshKey }) {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("stories")
-        .select("id,user_id,username,avatar_url,media_url,media_type,caption,mood_tags,is_highlight,created_at,expires_at")
+        .select("id,user_id,username,avatar_url,media_url,media_type,caption,mood_tags,is_highlight,created_at,expires_at,visibility")
         .eq("status","published")
-        .or(`expires_at.gt.${now},is_highlight.eq.true`)
+        .or(`expires_at.is.null,expires_at.gt.${now},is_highlight.eq.true`)
         .order("created_at",{ascending:false})
         .limit(40);
       if (error) { console.error("[StoryBar] load:", error); return; }
@@ -74,7 +74,7 @@ export function StoryBar({ onRefreshKey }) {
     </div>
   );
 
-  if (grouped.length === 0) return null;
+if (grouped.length === 0 && !user) return null;
 
   return (
     <>
@@ -83,6 +83,21 @@ export function StoryBar({ onRefreshKey }) {
         <div className="ss-scroll"
           style={{display:"flex",gap:14,overflowX:"auto",
             padding:"0 20px",WebkitOverflowScrolling:"touch"}}>
+          {/* Eigener "+" Avatar immer zuerst wenn kein eigenes Story dabei */}
+          {user && !grouped.find(g=>g.rep.user_id===user.id) && (
+            <div style={{flexShrink:0,display:"flex",flexDirection:"column",
+              alignItems:"center",gap:6}}>
+              <div style={{width:68,height:68,borderRadius:"50%",
+                background:"linear-gradient(135deg,rgba(22,215,197,.15),rgba(255,138,107,.15))",
+                border:"2px dashed rgba(22,215,197,.5)",
+                display:"flex",alignItems:"center",justifyContent:"center",
+                cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
+                onClick={()=>document.dispatchEvent(new CustomEvent("hui:open-story-composer"))}>
+                <span style={{fontSize:28,color:"#16D7C5",fontWeight:300}}>+</span>
+              </div>
+              <span style={{fontSize:11,color:"#888",fontWeight:500}}>Deine Story</span>
+            </div>
+          )}
           {grouped.map(({rep, all}, i) => (
             <StoryAvatar key={rep.user_id} story={rep} count={all.length}
               onTap={()=>setViewer({stories:all, startIdx:0})}
