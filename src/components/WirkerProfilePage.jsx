@@ -1,721 +1,622 @@
-// WirkerProfilePage.jsx — Full-screen cinematic Wirker profile
-// Opened as a full overlay from Home feed
-import React, { useState, useRef, useEffect } from "react";
+// WirkerProfilePage.jsx — HUI Phase 4
+// Öffentliches Talent-Profil: echte Supabase-Daten, cinematic design
+// Sektionen: Hero · Highlights · Portfolio · Experiences · Skills · DNA · Verfügbarkeit · Empfehlungen
+
+import React, { useState, useEffect, useRef } from "react";
+import { supabase } from "../lib/supabaseClient";
+import { HighlightsRow } from "./StoryBar";
 
 const C = {
-  teal:      "#16D7C5",
-  teal2:     "#11C5B7",
-  tealPale:  "#E6FAF8",
-  tealGlow:  "rgba(22,215,197,0.20)",
-  coral:     "#FF8A6B",
-  coral2:    "#FF7B72",
-  coralPale: "#FFF2EE",
-  cream:     "#F9F6F2",
-  creamWarm: "#FFF9F4",
-  card:      "#FFFFFF",
-  ink:       "#1A1A1A",
-  ink2:      "#3A3A3A",
-  muted:     "#888",
-  muted2:    "#BBB",
-  border:    "rgba(0,0,0,0.06)",
-  gold:      "#F59E0B",
-  green:     "#10B981",
+  teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8", tealGlow:"rgba(22,215,197,0.20)",
+  coral:"#FF8A6B", coralPale:"#FFF2EE", coralGlow:"rgba(255,138,107,0.18)",
+  gold:"#F5A623", goldPale:"#FFFBEB", goldGlow:"rgba(245,166,35,0.18)",
+  green:"#10B981", greenPale:"#ECFDF5",
+  cream:"#F9F6F2", warm:"#FFF9F4", card:"#FFFFFF",
+  ink:"#1A1A1A", ink2:"#3A3A3A", muted:"#888", muted2:"#BBB",
+  border:"rgba(0,0,0,0.06)",
 };
 
-/* ── Mock rich data for demo wirkers ── */
-const WIRKER_DATA = {
-  default: {
-    name:"Lea Sommer",
-    talent:"Fotografin",
-    city:"München",
-    tagline:"Ich fange das Licht ein, bevor es verschwindet.",
-    img:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&q=90",
-    bg:"https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1200&q=90",
-    verified:true,
-    memberSince:"2023",
-    recommendations:34,
-    connections:312,
-    impactEur:128.50,
-    story:`Fotografie ist für mich keine Technik — es ist Gegenwart. 
-Der Moment, in dem das Licht fällt. Die Stille zwischen zwei Atemzügen. Das echte Lächeln, das niemand erwartet.
+const CSS = `
+  @keyframes wpFadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes wpSlideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes wpPop{0%{transform:scale(0.92);opacity:0}70%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
+  @keyframes wpPulse{0%,100%{opacity:1}50%{opacity:.45}}
+  @keyframes wpSpin{to{transform:rotate(360deg)}}
+  .wp-scroll::-webkit-scrollbar{display:none}
+  .wp-scroll{-ms-overflow-style:none;scrollbar-width:none}
+  .wp-tap{transition:transform .18s cubic-bezier(.34,1.4,.64,1);-webkit-tap-highlight-color:transparent}
+  .wp-tap:active{transform:scale(.95)}
+`;
 
-Ich arbeite mit natürlichem Licht, echter Umgebung und echten Menschen. Keine Kulissen. Keine Masken. Nur das, was wirklich ist.`,
-    werke:[
-      {
-        title:"Portrait im goldenen Licht",
-        desc:"Dokumentarische Portraits in natürlicher Umgebung.",
-        price:"ab 280 €",
-        img:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=700&q=90",
-      },
-      {
-        title:"Hochzeitsreportage",
-        desc:"Der schönste Tag — ehrlich und emotional festgehalten.",
-        price:"ab 1.800 €",
-        img:"https://images.unsplash.com/photo-1519741497674-611481863552?w=700&q=90",
-      },
-      {
-        title:"Zwischen Licht und Wellen",
-        desc:"Limitierter Fine-Art-Druck. Handgefertigt auf Hahnemühle.",
-        price:"€ 320",
-        img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=700&q=90",
-      },
-    ],
-    experiences:[
-      {
-        title:"Golden Hour Session",
-        desc:"90 Minuten. Natürliches Licht. Ein Ort, den du liebst.",
-        img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=700&q=90",
-        duration:"90 Min",
-        price:"ab 380 €",
-      },
-      {
-        title:"Foto-Walk München",
-        desc:"Wir gehen zusammen durch die Stadt und entdecken dein Bild.",
-        img:"https://images.unsplash.com/photo-1444084316824-dc26d6657664?w=700&q=90",
-        duration:"2–3 Std",
-        price:"ab 220 €",
-      },
-    ],
-    recommendations:[
-      {
-        name:"Maria K.",
-        city:"München",
-        text:"Lea hat etwas Besonderes — sie macht dich vergessen, dass du fotografiert wirst. Die Bilder sind atemberaubend.",
-        img:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80",
-        werk:"Portrait-Session",
-        date:"März 2026",
-      },
-      {
-        name:"Jonas W.",
-        city:"Berlin",
-        text:"Unsere Hochzeitsbilder haben meine Mutter zum Weinen gebracht. Nicht aus Mitleid — vor Schönheit.",
-        img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
-        werk:"Hochzeitsreportage",
-        date:"Januar 2026",
-      },
-      {
-        name:"Sophie B.",
-        city:"Hamburg",
-        text:"Ich habe das Bild in meinem Wohnzimmer hängen. Jedes Mal, wenn ich es anschaue, berührt es mich neu.",
-        img:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&q=80",
-        werk:"Fine-Art-Print",
-        date:"Februar 2026",
-      },
-    ],
-    impact:{
-      project:"Bildung für Kinder in indigenen Gemeinden",
-      country:"Kolumbien",
-      img:"https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&q=85",
-      desc:"Von jeder Buchung fließt ein Teil in echte Projekte.",
-    },
-    available:true,
-    nextSlot:"Mo, 11. Mai · 14:00",
-  },
-};
-
-function getWirkerData(w) {
-  const base = WIRKER_DATA.default;
-  return {
-    ...base,
-    name:        w.name        || base.name,
-    talent:      w.talent      || base.talent,
-    city:        w.city        || base.city,
-    img:         w.img         || base.img,
-    bg:          w.bg          || base.bg,
-    quote:       w.quote,
-    bio:         w.bio,
-    werkeRaw:    w.werke       || [],
-  };
+// ── Skeleton ──────────────────────────────────────────────────────────
+function Skel({ w="100%", h=16, r=8, style={} }) {
+  return <div style={{ width:w, height:h, borderRadius:r,
+    background:"rgba(0,0,0,0.07)", animation:"wpPulse 1.4s ease-in-out infinite", ...style }} />;
 }
 
-/* ── Heart button ── */
-function HeartBtn({ size=36, white=true }) {
-  const [liked, setLiked] = useState(false);
-  const [pop,   setPop]   = useState(false);
+// ── Section Header ────────────────────────────────────────────────────
+function SecHead({ label, accent=C.teal, right=null }) {
   return (
-    <button
-      onClick={e=>{ e.stopPropagation(); setPop(true);
-        setTimeout(()=>setPop(false),360); setLiked(p=>!p); }}
-      style={{ width:size, height:size, borderRadius:"50%",
-        background:white?"rgba(255,255,255,0.20)":C.card,
-        backdropFilter:"blur(10px)",
-        border:`1px solid ${white?"rgba(255,255,255,0.30)":C.border}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        cursor:"pointer", fontSize:size*0.44, lineHeight:1,
-        transform:pop?"scale(1.4)":"scale(1)",
-        transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1)",
-        WebkitTapHighlightColor:"transparent" }}>
-      {liked ? "❤️" : "🤍"}
-    </button>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+      padding:"0 20px", marginBottom:14 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <div style={{ width:3, height:16, borderRadius:2, background:accent }} />
+        <span style={{ fontSize:13, fontWeight:800, color:C.ink, letterSpacing:.3,
+          textTransform:"uppercase" }}>{label}</span>
+      </div>
+      {right}
+    </div>
   );
 }
 
-/* ═══════════════════════════════════════════
-   BOOKING SHEET — floats up from bottom
-═══════════════════════════════════════════ */
-function BookingSheet({ wirker, onClose, onBook }) {
+// ── Skill Chip ────────────────────────────────────────────────────────
+function Chip({ label, color=C.teal }) {
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:600,
-      background:"rgba(10,10,10,0.55)",
-      backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)" }}
-      onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        background:C.creamWarm, borderRadius:"28px 28px 0 0",
-        padding:"20px 24px max(32px,env(safe-area-inset-bottom))",
-        animation:"slideUp 0.34s cubic-bezier(0.22,1,0.36,1) both" }}>
-        <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
-          <div style={{ width:44, height:4, borderRadius:999,
-            background:"rgba(0,0,0,0.1)" }}/>
-        </div>
-        <div style={{ fontWeight:900, fontSize:22, color:C.ink,
-          letterSpacing:-0.5, marginBottom:4 }}>
-          Anfrage senden
-        </div>
-        <div style={{ fontSize:14, color:C.muted, marginBottom:24 }}>
-          an {wirker.name} · {wirker.talent}
-        </div>
+    <div style={{ display:"inline-flex", alignItems:"center",
+      background:`${color}18`, border:`1px solid ${color}44`,
+      borderRadius:50, padding:"5px 12px",
+      fontSize:12, fontWeight:600, color, whiteSpace:"nowrap" }}>
+      {label}
+    </div>
+  );
+}
 
-        {/* Next slot */}
-        {wirker.nextSlot && (
-          <div style={{ display:"flex", alignItems:"center", gap:12,
-            padding:"14px 16px", background:C.tealPale,
-            borderRadius:18, marginBottom:16 }}>
-            <span style={{ fontSize:22 }}>📅</span>
-            <div>
-              <div style={{ fontSize:12, color:C.muted, marginBottom:2 }}>
-                Nächster freier Termin
-              </div>
-              <div style={{ fontWeight:800, fontSize:15, color:C.ink }}>
-                {wirker.nextSlot}
-              </div>
-            </div>
+// ── Work Card ─────────────────────────────────────────────────────────
+function WorkCard({ work, onBuy }) {
+  return (
+    <div className="wp-tap" onClick={() => onBuy?.(work)}
+      style={{ background:C.card, borderRadius:18,
+        overflow:"hidden", flexShrink:0, width:200,
+        boxShadow:"0 2px 14px rgba(0,0,0,0.07)",
+        border:`1px solid ${C.border}` }}>
+      <div style={{ width:"100%", height:140, overflow:"hidden" }}>
+        <img src={work.cover_url || work.images?.[0] ||
+          "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80"}
+          alt={work.title}
+          style={{ width:"100%", height:"100%", objectFit:"cover",
+            transition:"transform .4s ease" }}
+          onMouseOver={e=>e.target.style.transform="scale(1.04)"}
+          onMouseOut={e=>e.target.style.transform="scale(1)"} />
+      </div>
+      <div style={{ padding:"10px 12px 12px" }}>
+        <div style={{ fontSize:13, fontWeight:700, color:C.ink,
+          marginBottom:4, lineHeight:1.3 }}>{work.title}</div>
+        {work.price && (
+          <div style={{ fontSize:13, fontWeight:800, color:C.coral }}>€ {work.price}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Experience Card ───────────────────────────────────────────────────
+function ExpCard({ exp }) {
+  return (
+    <div style={{ background:C.card, borderRadius:18, overflow:"hidden",
+      flexShrink:0, width:240,
+      boxShadow:"0 2px 14px rgba(0,0,0,0.07)", border:`1px solid ${C.border}` }}>
+      <div style={{ width:"100%", height:130, overflow:"hidden",
+        background:`linear-gradient(135deg,${C.teal}22,${C.coral}18)`,
+        display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}>
+        {exp.cover_url
+          ? <img src={exp.cover_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+          : "✨"}
+      </div>
+      <div style={{ padding:"10px 14px 14px" }}>
+        <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:4, lineHeight:1.3 }}>
+          {exp.title}
+        </div>
+        {exp.description && (
+          <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginBottom:6,
+            display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+            {exp.description}
           </div>
         )}
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+          {exp.duration && <Chip label={`⏱ ${exp.duration}`} color={C.teal} />}
+          {exp.price    && <Chip label={`€ ${exp.price}`}    color={C.coral} />}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        <textarea rows={3}
-          placeholder="Beschreibe kurz was du dir vorstellst…"
-          style={{ width:"100%", boxSizing:"border-box",
-            padding:"14px 16px", fontSize:14, color:C.ink,
-            background:C.card, border:`1.5px solid ${C.border}`,
-            borderRadius:18, outline:"none", resize:"none",
-            fontFamily:"inherit", lineHeight:1.6, marginBottom:16 }}
-          onFocus={e=>{ e.target.style.borderColor=C.teal;
-            e.target.style.boxShadow=`0 0 0 3px ${C.tealGlow}`; }}
-          onBlur={e=>{ e.target.style.borderColor=C.border;
-            e.target.style.boxShadow="none"; }}/>
+// ── Recommendation Card ───────────────────────────────────────────────
+function RecCard({ rec }) {
+  return (
+    <div style={{ background:C.card, borderRadius:18, padding:"16px",
+      boxShadow:"0 2px 12px rgba(0,0,0,0.06)", border:`1px solid ${C.border}`,
+      marginBottom:10 }}>
+      <div style={{ display:"flex", gap:10, alignItems:"flex-start", marginBottom:10 }}>
+        <div style={{ width:38, height:38, borderRadius:"50%", flexShrink:0,
+          background:`linear-gradient(135deg,${C.teal}44,${C.coral}44)`,
+          overflow:"hidden", display:"flex", alignItems:"center",
+          justifyContent:"center", fontWeight:700, color:C.teal, fontSize:16 }}>
+          {rec.reviewer_name?.[0]?.toUpperCase() || "?"}
+        </div>
+        <div style={{ flex:1 }}>
+          <div style={{ fontWeight:700, fontSize:13, color:C.ink }}>
+            {rec.reviewer_name || "Anonymer Nutzer"}
+          </div>
+          <div style={{ fontSize:11, color:C.muted }}>{rec.created_at
+            ? new Date(rec.created_at).toLocaleDateString("de-DE",{month:"long",year:"numeric"})
+            : ""}</div>
+        </div>
+        <div style={{ fontSize:14 }}>{"⭐".repeat(rec.rating || 5)}</div>
+      </div>
+      {rec.text && (
+        <p style={{ margin:0, fontSize:14, color:C.ink2, lineHeight:1.65,
+          fontStyle:"italic" }}>"{rec.text}"</p>
+      )}
+      {rec.work_title && (
+        <div style={{ marginTop:8, fontSize:11, color:C.muted }}>
+          📦 {rec.work_title}
+        </div>
+      )}
+    </div>
+  );
+}
 
-        <button onClick={()=>{ onBook&&onBook(wirker); onClose(); }}
-          style={{ width:"100%", padding:"16px",
+// ── Booking Sheet ─────────────────────────────────────────────────────
+function BookingSheet({ profile, onClose, onBook }) {
+  const [msg, setMsg] = useState("");
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:4000,
+      background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)",
+      display:"flex", alignItems:"flex-end" }}
+      onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
+      <div style={{ background:C.card, borderRadius:"24px 24px 0 0",
+        padding:"24px 20px", paddingBottom:"max(32px,env(safe-area-inset-bottom,32px))",
+        width:"100%", animation:"wpSlideUp .3s ease-out" }}>
+        <div style={{ width:36, height:4, borderRadius:2, background:"rgba(0,0,0,0.12)",
+          margin:"0 auto 20px" }} />
+        <div style={{ fontSize:18, fontWeight:800, color:C.ink, marginBottom:6 }}>
+          Anfrage an {profile?.display_name || "Talent"}
+        </div>
+        <div style={{ fontSize:13, color:C.muted, marginBottom:16, lineHeight:1.5 }}>
+          Beschreibe kurz was du dir vorstellst — das Talent meldet sich dann bei dir.
+        </div>
+        <textarea
+          value={msg} onChange={e=>setMsg(e.target.value)}
+          placeholder="Was hast du in mind? Je mehr Details, desto besser..."
+          rows={4}
+          style={{ width:"100%", border:`1.5px solid ${C.border}`, borderRadius:14,
+            padding:"12px 14px", fontSize:14, color:C.ink, fontFamily:"inherit",
+            resize:"none", outline:"none", boxSizing:"border-box",
+            background:C.cream }} />
+        <button className="wp-tap" onClick={() => { onBook?.(msg); onClose(); }}
+          style={{ marginTop:12, width:"100%", padding:"15px",
             background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-            border:"none", borderRadius:18, fontSize:16, fontWeight:900,
+            border:"none", borderRadius:50, fontSize:16, fontWeight:800,
             color:"white", cursor:"pointer", fontFamily:"inherit",
-            boxShadow:`0 6px 24px ${C.tealGlow}`,
-            WebkitTapHighlightColor:"transparent" }}>
-          Anfrage absenden
+            boxShadow:`0 6px 24px ${C.tealGlow}` }}>
+          Anfrage senden ✦
         </button>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════════ */
+// ── MAIN COMPONENT ────────────────────────────────────────────────────
 export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook }) {
-  const w = getWirkerData(rawWirker || {});
-  const [showBooking, setShowBooking] = useState(false);
-  const [activeTab,   setActiveTab]   = useState("werke");
+  const [profile,    setProfile]    = useState(null);
+  const [works,      setWorks]      = useState([]);
+  const [exps,       setExps]       = useState([]);
+  const [recs,       setRecs]       = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [activeTab,  setActiveTab]  = useState("werke");
+  const [showBooking,setShowBooking]= useState(false);
   const scrollRef = useRef(null);
+
+  // Identifier: can be user_id (UUID) or username (string)
+  const identifier = rawWirker?.user_id || rawWirker?.id || rawWirker?.username || rawWirker?.name;
+
+  useEffect(() => {
+    if (!identifier) { setLoading(false); return; }
+    load();
+  }, [identifier]);
+
+  async function load() {
+    setLoading(true);
+    try {
+      // 1. Profile
+      let profileData = null;
+      // Try by user_id first
+      if (rawWirker?.user_id || rawWirker?.id) {
+        const uid = rawWirker?.user_id || rawWirker?.id;
+        const { data } = await supabase.from("profiles").select("*").eq("id", uid).single();
+        profileData = data;
+      }
+      // Fallback: by username
+      if (!profileData && rawWirker?.username) {
+        const { data } = await supabase.from("profiles").select("*")
+          .eq("username", rawWirker.username).single();
+        profileData = data;
+      }
+      // Last fallback: use raw data directly
+      if (!profileData) profileData = rawWirker || {};
+      setProfile(profileData);
+
+      const uid = profileData?.id || profileData?.user_id;
+
+      // 2. Works
+      if (uid) {
+        const { data: worksData } = await supabase
+          .from("works")
+          .select("id, title, description, price, cover_url, images, category, created_at")
+          .eq("user_id", uid)
+          .eq("status", "published")
+          .order("created_at", { ascending: false })
+          .limit(12);
+        setWorks(worksData || []);
+      }
+
+      // 3. Experiences
+      if (uid) {
+        const { data: expData } = await supabase
+          .from("experiences")
+          .select("id, title, description, price, duration, cover_url, date, spots_available")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(6);
+        setExps(expData || []);
+      }
+
+      // 4. Recommendations / Reviews
+      if (uid) {
+        const { data: recData } = await supabase
+          .from("recommendations")
+          .select("id, text, rating, reviewer_name, work_title, created_at")
+          .eq("wirker_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(10);
+        setRecs(recData || []);
+      }
+
+    } catch(e) {
+      console.error("[WirkerProfile] load error:", e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Merged display data: DB first, raw fallback
+  const p = {
+    display_name: profile?.display_name || rawWirker?.name || "Talent",
+    username:     profile?.username     || rawWirker?.username || "",
+    avatar_url:   profile?.avatar_url   || rawWirker?.img || null,
+    header_img:   profile?.header_img   || rawWirker?.bg  || null,
+    bio:          profile?.bio          || rawWirker?.bio  || rawWirker?.tagline || "",
+    city:         profile?.city         || rawWirker?.city || "",
+    talent:       profile?.talent       || rawWirker?.talent || "",
+    tagline:      profile?.tagline      || rawWirker?.tagline || "",
+    skills:       profile?.skills       || rawWirker?.skills || [],
+    mood_dna:     profile?.mood_dna     || rawWirker?.mood_dna || [],
+    availability: profile?.availability ?? rawWirker?.available ?? true,
+    hourly_rate:  profile?.hourly_rate  || rawWirker?.hourly || null,
+    verified:     profile?.verified     || rawWirker?.verified || false,
+    impact_eur:   profile?.impact_eur   || rawWirker?.impactEur || 0,
+    recommendations_count: recs.length  || rawWirker?.recs || 0,
+    id:           profile?.id           || rawWirker?.user_id,
+  };
+
+  const TABS = [
+    { key:"werke",      label:"Werke",      count: works.length },
+    { key:"erlebnisse", label:"Erlebnisse", count: exps.length  },
+    { key:"empf",       label:"Empfeh.",    count: recs.length  },
+  ];
+
+  const defaultSkills = ["Kreativität","Handwerk","Qualität"];
+  const displaySkills = (Array.isArray(p.skills) && p.skills.length > 0)
+    ? p.skills : defaultSkills;
+
+  const defaultDNA = ["🎨 Visuell","💡 Konzeptuell","🌿 Nachhaltig"];
+  const displayDNA = (Array.isArray(p.mood_dna) && p.mood_dna.length > 0)
+    ? p.mood_dna : defaultDNA;
 
   return (
     <>
-      <style>{`
-        @keyframes slideUp {
-          from { transform:translateY(100%); opacity:0; }
-          to   { transform:translateY(0);    opacity:1; }
-        }
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(18px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        @keyframes fadeIn {
-          from { opacity:0; }
-          to   { opacity:1; }
-        }
-        .wp-scroll::-webkit-scrollbar { display:none; }
-        .wp-scroll { -ms-overflow-style:none; scrollbar-width:none; }
-        .wp-tap { transition:transform 0.18s cubic-bezier(0.34,1.4,0.64,1); }
-        .wp-tap:active { transform:scale(0.96); }
-      `}</style>
+      <style>{CSS}</style>
 
       <div style={{ position:"fixed", inset:0, zIndex:300,
         background:C.cream, overflowY:"auto",
-        animation:"fadeIn 0.25s ease both" }}
+        animation:"wpFadeIn .25s ease both" }}
         className="wp-scroll" ref={scrollRef}>
 
-        {/* ══ 1. CINEMATIC HERO ══════════════════════════ */}
-        <div style={{ position:"relative", height:"65vh",
-          minHeight:400, maxHeight:580 }}>
+        {/* ══ 1. CINEMATIC HERO ══════════════════════════════════════ */}
+        <div style={{ position:"relative", height:"62vh", minHeight:380, maxHeight:560 }}>
 
-          {/* Full-bleed background image */}
-          <img src={w.bg} alt={w.name}
-            style={{ position:"absolute", inset:0,
-              width:"100%", height:"100%", objectFit:"cover",
-              filter:"brightness(0.65) saturate(1.15)" }}/>
+          {/* BG image */}
+          {p.header_img ? (
+            <img src={p.header_img} alt=""
+              style={{ position:"absolute", inset:0, width:"100%", height:"100%",
+                objectFit:"cover", filter:"brightness(0.62) saturate(1.1)" }} />
+          ) : (
+            <div style={{ position:"absolute", inset:0,
+              background:`linear-gradient(160deg, #1a1a2e 0%, #16213e 40%, ${C.teal}44 100%)` }} />
+          )}
 
-          {/* Cinematic gradient overlay */}
-          <div style={{ position:"absolute", inset:0,
-            background:`
-              linear-gradient(to bottom,
-                rgba(0,0,0,0.32) 0%,
-                rgba(0,0,0,0.0) 30%,
-                rgba(10,5,0,0.20) 60%,
-                rgba(10,5,0,0.82) 100%),
-              linear-gradient(to right,
-                rgba(22,215,197,0.12) 0%,
-                transparent 60%)
-            ` }}/>
+          {/* Cinematic gradient */}
+          <div style={{ position:"absolute", inset:0, background:`
+            linear-gradient(to bottom, rgba(0,0,0,.3) 0%, transparent 25%,
+              rgba(8,4,0,.15) 55%, rgba(8,4,0,.88) 100%),
+            linear-gradient(to right, ${C.teal}18 0%, transparent 50%)` }} />
 
-          {/* Back + options — top controls */}
-          <div style={{ position:"absolute", top:0, left:0, right:0,
-            padding:"max(52px,env(safe-area-inset-top,52px)) 20px 0",
-            display:"flex", justifyContent:"space-between",
-            alignItems:"flex-start" }}>
-            <button onClick={onClose}
+          {/* Back button */}
+          <div style={{ position:"absolute", top:"max(52px,env(safe-area-inset-top,52px))",
+            left:16, right:16, display:"flex", justifyContent:"space-between", zIndex:10 }}>
+            <button className="wp-tap" onClick={onClose}
               style={{ width:42, height:42, borderRadius:"50%",
-                background:"rgba(255,255,255,0.18)",
-                backdropFilter:"blur(12px)",
-                border:"1px solid rgba(255,255,255,0.28)",
-                cursor:"pointer", fontSize:17, color:"white",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                WebkitTapHighlightColor:"transparent" }}>←</button>
-            <div style={{ display:"flex", gap:10 }}>
-              <HeartBtn size={42}/>
-              <button style={{ width:42, height:42, borderRadius:"50%",
-                background:"rgba(255,255,255,0.18)",
-                backdropFilter:"blur(12px)",
-                border:"1px solid rgba(255,255,255,0.28)",
+                background:"rgba(255,255,255,0.16)", backdropFilter:"blur(12px)",
+                border:"1px solid rgba(255,255,255,0.25)",
                 cursor:"pointer", color:"white", fontSize:18,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                WebkitTapHighlightColor:"transparent" }}>↗</button>
-            </div>
-          </div>
-
-          {/* Bottom of hero — identity */}
-          <div style={{ position:"absolute", bottom:0, left:0, right:0,
-            padding:"0 24px 28px" }}>
-
-            {/* Teal verified pill */}
-            {w.verified && (
-              <div style={{ display:"inline-flex", alignItems:"center",
-                gap:5, background:"rgba(22,215,197,0.22)",
-                backdropFilter:"blur(8px)",
-                border:"1px solid rgba(22,215,197,0.40)",
-                borderRadius:999, padding:"4px 12px",
-                marginBottom:12 }}>
-                <span style={{ width:6, height:6, borderRadius:"50%",
-                  background:C.teal, display:"inline-block",
-                  boxShadow:`0 0 6px ${C.teal}` }}/>
-                <span style={{ fontSize:11, color:C.teal,
-                  fontWeight:700 }}>Verifizierter Wirker</span>
-              </div>
-            )}
-
-            {/* Name */}
-            <div style={{ fontWeight:900, fontSize:36, color:"white",
-              letterSpacing:-1.2, lineHeight:1.1, marginBottom:6 }}>
-              {w.name}
-            </div>
-
-            {/* Talent + city */}
-            <div style={{ display:"flex", alignItems:"center",
-              gap:12, marginBottom:16 }}>
-              <span style={{ fontSize:15, color:"rgba(255,255,255,0.88)",
-                fontWeight:600 }}>{w.talent}</span>
-              <span style={{ width:3, height:3, borderRadius:"50%",
-                background:"rgba(255,255,255,0.4)",
-                display:"inline-block" }}/>
-              <span style={{ fontSize:13,
-                color:"rgba(255,255,255,0.65)" }}>📍 {w.city}</span>
-            </div>
-
-            {/* Tagline — big, editorial */}
-            <div style={{ fontSize:16, color:"rgba(255,255,255,0.82)",
-              fontStyle:"italic", lineHeight:1.65,
-              maxWidth:320 }}>
-              „{w.tagline || w.quote}"
-            </div>
-          </div>
-        </div>
-
-        {/* ══ 2. PORTRAIT + QUICK ACTIONS ═══════════════ */}
-        <div style={{ background:C.card,
-          padding:"0 24px",
-          boxShadow:"0 -1px 0 rgba(0,0,0,0.04)" }}>
-
-          {/* Portrait overlapping hero */}
-          <div style={{ display:"flex", alignItems:"flex-end",
-            justifyContent:"space-between",
-            marginTop:-44, paddingBottom:0 }}>
-            <div style={{ position:"relative" }}>
-              <div style={{ width:88, height:88, borderRadius:"50%",
-                overflow:"hidden",
-                border:"4px solid white",
-                boxShadow:"0 8px 32px rgba(0,0,0,0.20)" }}>
-                <img src={w.img} alt={w.name}
-                  style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-              </div>
-              {/* Available dot */}
-              {w.available && (
-                <div style={{ position:"absolute", bottom:4, right:4,
-                  width:18, height:18, borderRadius:"50%",
-                  background:C.green,
-                  border:"3px solid white",
-                  boxShadow:"0 2px 8px rgba(16,185,129,0.4)" }}/>
-              )}
-            </div>
-
-            {/* ONLY action: Anfragen — no chat button */}
-            <button onClick={()=>setShowBooking(true)}
-              style={{ padding:"13px 28px",
-                background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                border:"none", borderRadius:999, fontSize:15, fontWeight:800,
-                color:"white", cursor:"pointer", fontFamily:"inherit",
-                boxShadow:`0 6px 24px ${C.tealGlow}`,
-                WebkitTapHighlightColor:"transparent",
-                marginBottom:4 }}>
-              Anfragen
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+              ←
+            </button>
+            {/* Share */}
+            <button className="wp-tap"
+              style={{ width:42, height:42, borderRadius:"50%",
+                background:"rgba(255,255,255,0.16)", backdropFilter:"blur(12px)",
+                border:"1px solid rgba(255,255,255,0.25)",
+                cursor:"pointer", color:"white", fontSize:16,
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+              ↑
             </button>
           </div>
 
-          {/* Availability */}
-          {w.available && w.nextSlot && (
-            <div style={{ display:"flex", alignItems:"center",
-              gap:8, padding:"12px 0 0",
-              fontSize:12, color:C.green, fontWeight:600 }}>
-              <span style={{ width:7, height:7, borderRadius:"50%",
-                background:C.green,
-                boxShadow:`0 0 6px ${C.green}` }}/>
-              Verfügbar · Nächster Slot: {w.nextSlot}
+          {/* Hero content */}
+          <div style={{ position:"absolute", bottom:0, left:0, right:0,
+            padding:"0 20px 24px", animation:"wpSlideUp .5s .1s ease both" }}>
+
+            {/* Avatar */}
+            <div style={{ width:72, height:72, borderRadius:"50%",
+              border:"3px solid rgba(255,255,255,0.85)",
+              overflow:"hidden", marginBottom:12,
+              background:`linear-gradient(135deg,${C.teal}55,${C.coral}44)` }}>
+              {p.avatar_url
+                ? <img src={p.avatar_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                : <div style={{ width:"100%", height:"100%", display:"flex",
+                    alignItems:"center", justifyContent:"center",
+                    fontSize:28, fontWeight:800, color:"white" }}>
+                    {p.display_name[0]}
+                  </div>}
+            </div>
+
+            {/* Name + badges */}
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+              <span style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:-.3 }}>
+                {p.display_name}
+              </span>
+              {p.verified && (
+                <div style={{ background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+                  borderRadius:50, padding:"2px 8px", fontSize:11, fontWeight:700, color:"white" }}>
+                  ✓ Verifiziert
+                </div>
+              )}
+            </div>
+
+            {/* Talent + city */}
+            <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:8 }}>
+              {p.talent && (
+                <span style={{ fontSize:14, color:`${C.teal}`, fontWeight:600 }}>{p.talent}</span>
+              )}
+              {p.city && (
+                <span style={{ fontSize:13, color:"rgba(255,255,255,0.55)" }}>📍 {p.city}</span>
+              )}
+            </div>
+
+            {/* Tagline */}
+            {p.tagline && (
+              <p style={{ margin:0, fontSize:14, color:"rgba(255,255,255,0.8)",
+                fontStyle:"italic", lineHeight:1.5, maxWidth:300 }}>
+                "{p.tagline}"
+              </p>
+            )}
+
+            {/* Stats row */}
+            <div style={{ display:"flex", gap:20, marginTop:12 }}>
+              {[
+                { val: p.recommendations_count || 0, label:"Empfeh." },
+                { val: works.length,                  label:"Werke"   },
+                { val: `€ ${(+p.impact_eur||0).toFixed(0)}`, label:"Impact" },
+              ].map(s => (
+                <div key={s.label}>
+                  <div style={{ fontSize:16, fontWeight:800, color:"white" }}>{s.val}</div>
+                  <div style={{ fontSize:10, color:"rgba(255,255,255,.5)", fontWeight:500 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ══ 2. CTA BAR ══════════════════════════════════════════════ */}
+        <div style={{ padding:"16px 20px",
+          background:`linear-gradient(to bottom, rgba(8,4,0,.06), transparent)`,
+          display:"flex", gap:10 }}>
+          <button className="wp-tap" onClick={() => setShowBooking(true)}
+            style={{ flex:1, padding:"14px",
+              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+              border:"none", borderRadius:50, fontSize:15, fontWeight:800,
+              color:"white", cursor:"pointer", fontFamily:"inherit",
+              boxShadow:`0 6px 20px ${C.tealGlow}` }}>
+            Anfragen ✦
+          </button>
+          {p.hourly_rate && (
+            <div style={{ display:"flex", alignItems:"center", gap:6,
+              background:C.card, borderRadius:50, padding:"0 16px",
+              border:`1px solid ${C.border}`,
+              fontSize:14, fontWeight:700, color:C.ink }}>
+              ab € {p.hourly_rate}/h
             </div>
           )}
-
-          <div style={{ height:24 }}/>
+          {/* Availability badge */}
+          <div style={{ display:"flex", alignItems:"center", gap:5,
+            background: p.availability ? C.greenPale : "rgba(0,0,0,0.06)",
+            borderRadius:50, padding:"0 14px",
+            fontSize:12, fontWeight:700,
+            color: p.availability ? C.green : C.muted }}>
+            <div style={{ width:6, height:6, borderRadius:"50%",
+              background: p.availability ? C.green : C.muted2 }} />
+            {p.availability ? "Verfügbar" : "Ausgebucht"}
+          </div>
         </div>
 
-        {/* ══ 3. STORY — über den Wirker ════════════════ */}
-        <div style={{ background:C.card,
-          padding:"32px 24px 36px",
-          borderTop:`1px solid ${C.border}` }}>
-
-          <div style={{ fontWeight:800, fontSize:13,
-            color:C.teal, letterSpacing:1.5,
-            textTransform:"uppercase", marginBottom:16 }}>
-            Über {w.name.split(" ")[0]}
+        {/* ══ 3. BIO ══════════════════════════════════════════════════ */}
+        {p.bio && (
+          <div style={{ padding:"4px 20px 20px" }}>
+            <p style={{ margin:0, fontSize:15, color:C.ink2, lineHeight:1.7,
+              fontWeight:400 }}>{p.bio}</p>
           </div>
+        )}
 
-          <div style={{ fontSize:16, color:C.ink2, lineHeight:1.85,
-            whiteSpace:"pre-line", fontWeight:400 }}>
-            {w.story || w.bio}
+        {/* ══ 4. SKILLS ═══════════════════════════════════════════════ */}
+        <div style={{ padding:"0 20px 20px" }}>
+          <SecHead label="Skills" accent={C.teal} />
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {displaySkills.map((s,i) => (
+              <Chip key={i} label={typeof s === "string" ? s : s.label || s} color={C.teal} />
+            ))}
           </div>
-
-          {/* Soft divider */}
-          <div style={{ margin:"28px 0 0",
-            height:1, background:`linear-gradient(to right,
-              ${C.teal}40, ${C.coral}30, transparent)` }}/>
         </div>
 
-        {/* ══ 4. TABS — Werke / Erlebnisse / Empfehlungen ══ */}
-        <div style={{ background:C.card, position:"sticky",
-          top:0, zIndex:10,
-          borderBottom:`1px solid ${C.border}` }}>
-          <div style={{ display:"flex" }}>
-            {[
-              {key:"werke",        label:"Werke"},
-              {key:"erlebnisse",   label:"Erlebnisse"},
-              {key:"empfehlungen", label:"Empfehlungen"},
-            ].map(t=>(
-              <button key={t.key} onClick={()=>setActiveTab(t.key)}
-                style={{ flex:1, padding:"15px 4px", background:"none",
-                  border:"none", cursor:"pointer",
-                  borderBottom:activeTab===t.key
-                    ?`2.5px solid ${C.teal}`
-                    :"2.5px solid transparent",
-                  fontSize:13, fontWeight:activeTab===t.key?800:500,
-                  color:activeTab===t.key?C.teal:C.muted,
-                  transition:"all 0.2s",
-                  WebkitTapHighlightColor:"transparent" }}>
-                {t.label}
+        {/* ══ 5. CREATIVE DNA ═════════════════════════════════════════ */}
+        <div style={{ padding:"0 20px 20px" }}>
+          <SecHead label="Creative DNA" accent={C.coral} />
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {displayDNA.map((d,i) => (
+              <Chip key={i} label={typeof d === "string" ? d : d.label || d} color={C.coral} />
+            ))}
+          </div>
+        </div>
+
+        {/* ══ 6. STORY HIGHLIGHTS ═════════════════════════════════════ */}
+        {p.id && (
+          <div style={{ paddingBottom:8 }}>
+            <HighlightsRow userId={p.id} />
+          </div>
+        )}
+
+        {/* ══ 7. TABS ═════════════════════════════════════════════════ */}
+        <div style={{ padding:"0 20px 0", marginBottom:16 }}>
+          <div style={{ display:"flex", gap:4, background:"rgba(0,0,0,0.05)",
+            borderRadius:50, padding:4 }}>
+            {TABS.map(t => (
+              <button key={t.key} className="wp-tap"
+                onClick={() => setActiveTab(t.key)}
+                style={{ flex:1, padding:"9px 4px",
+                  background: activeTab === t.key
+                    ? `linear-gradient(135deg,${C.teal},${C.coral})`
+                    : "transparent",
+                  border:"none", borderRadius:50,
+                  fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+                  color: activeTab === t.key ? "white" : C.muted,
+                  transition:"all .2s ease" }}>
+                {t.label}{t.count > 0 ? ` (${t.count})` : ""}
               </button>
             ))}
           </div>
         </div>
 
-        {/* ══ 5a. WERKE ═════════════════════════════════ */}
-        {activeTab==="werke" && (
-          <div style={{ padding:"28px 20px 40px" }}>
-            <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-              {w.werke.map((wk,i)=>(
-                <div key={i} className="wp-tap"
-                  style={{ borderRadius:24, overflow:"hidden",
-                    background:C.card,
-                    boxShadow:"0 4px 24px rgba(0,0,0,0.09)",
-                    cursor:"pointer",
-                    animation:`fadeUp 0.5s ${i*0.09}s both` }}>
+        {/* ══ 8. TAB CONTENT ══════════════════════════════════════════ */}
 
-                  {/* Large gallery image */}
-                  <div style={{ height:240, position:"relative",
-                    overflow:"hidden" }}>
-                    <img src={wk.img} alt={wk.title}
-                      style={{ width:"100%", height:"100%", objectFit:"cover",
-                        transition:"transform 0.6s ease" }}/>
-                    <div style={{ position:"absolute", inset:0,
-                      background:`linear-gradient(to bottom,
-                        rgba(255,138,107,0.05) 0%,
-                        transparent 50%,
-                        rgba(0,0,0,0.45) 100%)` }}/>
-                    {/* Price */}
-                    <div style={{ position:"absolute", bottom:14, right:14 }}>
-                      <div style={{ background:"rgba(255,255,255,0.92)",
-                        backdropFilter:"blur(8px)", borderRadius:999,
-                        padding:"5px 14px", fontSize:13, fontWeight:900,
-                        color:C.ink }}>
-                        {wk.price}
-                      </div>
-                    </div>
+        {/* WERKE */}
+        {activeTab === "werke" && (
+          <div style={{ paddingBottom:40 }}>
+            {loading ? (
+              <div style={{ padding:"0 20px", display:"flex", gap:12, overflowX:"auto" }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ flexShrink:0 }}>
+                    <Skel w={200} h={140} r={14} />
+                    <Skel w={140} h={12} r={6} style={{ marginTop:8 }} />
                   </div>
+                ))}
+              </div>
+            ) : works.length > 0 ? (
+              <div className="wp-scroll" style={{ display:"flex", gap:12,
+                overflowX:"auto", padding:"0 20px",
+                WebkitOverflowScrolling:"touch" }}>
+                {works.map(w => (
+                  <WorkCard key={w.id} work={w} onBuy={onBook} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding:"40px 20px", textAlign:"center" }}>
+                <div style={{ fontSize:32, marginBottom:12 }}>🎨</div>
+                <div style={{ fontSize:14, color:C.muted }}>Noch keine Werke veröffentlicht.</div>
+              </div>
+            )}
+          </div>
+        )}
 
-                  {/* Text — editorial */}
-                  <div style={{ padding:"18px 20px 20px" }}>
-                    <div style={{ fontWeight:800, fontSize:17, color:C.ink,
-                      letterSpacing:-0.3, marginBottom:6 }}>
-                      {wk.title}
-                    </div>
-                    <div style={{ fontSize:14, color:C.muted,
-                      lineHeight:1.65, marginBottom:16 }}>
-                      {wk.desc}
-                    </div>
-                    <button onClick={()=>setShowBooking(true)}
-                      style={{ width:"100%", padding:"13px",
-                        background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                        border:"none", borderRadius:14, fontSize:14,
-                        fontWeight:800, color:"white", cursor:"pointer",
-                        fontFamily:"inherit",
-                        boxShadow:`0 4px 16px ${C.tealGlow}`,
-                        WebkitTapHighlightColor:"transparent" }}>
-                      Anfragen →
-                    </button>
-                  </div>
+        {/* ERLEBNISSE */}
+        {activeTab === "erlebnisse" && (
+          <div style={{ paddingBottom:40 }}>
+            {loading ? (
+              <div style={{ padding:"0 20px", display:"flex", gap:12, overflowX:"auto" }}>
+                {[0,1].map(i => <Skel key={i} w={240} h={200} r={18} style={{ flexShrink:0 }} />)}
+              </div>
+            ) : exps.length > 0 ? (
+              <div className="wp-scroll" style={{ display:"flex", gap:12,
+                overflowX:"auto", padding:"0 20px",
+                WebkitOverflowScrolling:"touch" }}>
+                {exps.map(e => <ExpCard key={e.id} exp={e} />)}
+              </div>
+            ) : (
+              <div style={{ padding:"40px 20px", textAlign:"center" }}>
+                <div style={{ fontSize:32, marginBottom:12 }}>✨</div>
+                <div style={{ fontSize:14, color:C.muted }}>Noch keine Erlebnisse.</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* EMPFEHLUNGEN */}
+        {activeTab === "empf" && (
+          <div style={{ padding:"0 20px 40px" }}>
+            {loading ? (
+              [0,1,2].map(i => <Skel key={i} h={100} r={14} style={{ marginBottom:10 }} />)
+            ) : recs.length > 0 ? (
+              recs.map(r => <RecCard key={r.id} rec={r} />)
+            ) : (
+              <div style={{ padding:"40px 0", textAlign:"center" }}>
+                <div style={{ fontSize:32, marginBottom:12 }}>💬</div>
+                <div style={{ fontSize:14, color:C.muted }}>
+                  Noch keine Empfehlungen. Die ersten kommen nach dem ersten Auftrag.
                 </div>
-              ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══ 9. IMPACT SECTION ═══════════════════════════════════════ */}
+        {(+p.impact_eur || 0) > 0 && (
+          <div style={{ margin:"0 20px 24px",
+            background:`linear-gradient(135deg, ${C.teal}12, ${C.coral}0A)`,
+            border:`1px solid ${C.teal}30`, borderRadius:20, padding:"16px 18px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{ fontSize:28 }}>🌱</div>
+              <div>
+                <div style={{ fontSize:13, fontWeight:800, color:C.teal, marginBottom:2 }}>
+                  Impact durch {p.display_name}
+                </div>
+                <div style={{ fontSize:12, color:C.muted2, lineHeight:1.5 }}>
+                  € {(+p.impact_eur).toFixed(2)} sind bereits in soziale Projekte geflossen.
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ══ 5b. ERLEBNISSE ════════════════════════════ */}
-        {activeTab==="erlebnisse" && (
-          <div style={{ padding:"28px 20px 40px" }}>
-            <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-              {w.experiences.map((ex,i)=>(
-                <div key={i} className="wp-tap"
-                  style={{ borderRadius:24, overflow:"hidden",
-                    background:C.card,
-                    boxShadow:"0 4px 24px rgba(0,0,0,0.09)",
-                    cursor:"pointer",
-                    animation:`fadeUp 0.5s ${i*0.09}s both` }}>
-
-                  <div style={{ height:210, position:"relative" }}>
-                    <img src={ex.img} alt={ex.title}
-                      style={{ width:"100%", height:"100%", objectFit:"cover",
-                        filter:"brightness(0.82) saturate(1.1)" }}/>
-                    <div style={{ position:"absolute", inset:0,
-                      background:"linear-gradient(to bottom,rgba(22,215,197,0.08) 0%,rgba(0,0,0,0.55) 100%)"}}/>
-                    {/* Duration badge */}
-                    <div style={{ position:"absolute", top:14, left:14 }}>
-                      <div style={{ background:"rgba(255,255,255,0.20)",
-                        backdropFilter:"blur(10px)",
-                        border:"1px solid rgba(255,255,255,0.30)",
-                        borderRadius:999, padding:"5px 13px",
-                        fontSize:11, fontWeight:700, color:"white" }}>
-                        ⏱ {ex.duration}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ padding:"18px 20px 20px" }}>
-                    <div style={{ fontWeight:800, fontSize:17, color:C.ink,
-                      letterSpacing:-0.3, marginBottom:6 }}>
-                      {ex.title}
-                    </div>
-                    <div style={{ fontSize:14, color:C.muted,
-                      lineHeight:1.65, marginBottom:16 }}>
-                      {ex.desc}
-                    </div>
-                    <div style={{ display:"flex", alignItems:"center",
-                      justifyContent:"space-between" }}>
-                      <div style={{ fontWeight:800, fontSize:16, color:C.teal }}>
-                        {ex.price}
-                      </div>
-                      <button onClick={()=>setShowBooking(true)}
-                        style={{ padding:"11px 22px",
-                          background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                          border:"none", borderRadius:14, fontSize:13,
-                          fontWeight:800, color:"white", cursor:"pointer",
-                          fontFamily:"inherit",
-                          boxShadow:`0 4px 14px ${C.tealGlow}`,
-                          WebkitTapHighlightColor:"transparent" }}>
-                        Anfragen →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ══ 5c. EMPFEHLUNGEN ══════════════════════════ */}
-        {activeTab==="empfehlungen" && (
-          <div style={{ padding:"28px 20px 40px" }}>
-            {/* Header */}
-            <div style={{ fontWeight:800, fontSize:13,
-              color:C.teal, letterSpacing:1.5,
-              textTransform:"uppercase", marginBottom:6 }}>
-              Was Menschen sagen
-            </div>
-            <div style={{ fontSize:14, color:C.muted,
-              marginBottom:28, lineHeight:1.6 }}>
-              {w.recommendations.length} verifizierte Empfehlungen
-            </div>
-
-            <div style={{ display:"flex",
-              flexDirection:"column", gap:24 }}>
-              {w.recommendations.map((rec,i)=>(
-                <div key={i}
-                  style={{ animation:`fadeUp 0.5s ${i*0.1}s both` }}>
-
-                  {/* Quote — editorial */}
-                  <div style={{ fontSize:18, color:C.ink, lineHeight:1.7,
-                    fontStyle:"italic", fontWeight:500,
-                    marginBottom:16,
-                    padding:"0 0 0 20px",
-                    borderLeft:`3px solid ${C.teal}` }}>
-                    „{rec.text}"
-                  </div>
-
-                  {/* Reviewer */}
-                  <div style={{ display:"flex", alignItems:"center",
-                    gap:12 }}>
-                    <div style={{ width:40, height:40, borderRadius:"50%",
-                      overflow:"hidden",
-                      border:`2px solid ${C.tealPale}` }}>
-                      <img src={rec.img} alt={rec.name}
-                        style={{ width:"100%", height:"100%",
-                          objectFit:"cover" }}/>
-                    </div>
-                    <div>
-                      <div style={{ fontWeight:700, fontSize:14,
-                        color:C.ink }}>{rec.name}</div>
-                      <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>
-                        {rec.werk} · {rec.date}
-                      </div>
-                    </div>
-                    {/* Verified badge */}
-                    <div style={{ marginLeft:"auto",
-                      background:C.tealPale,
-                      borderRadius:999, padding:"3px 10px",
-                      fontSize:10, fontWeight:700, color:C.teal }}>
-                      ✓ Verifiziert
-                    </div>
-                  </div>
-
-                  {/* Soft divider */}
-                  {i < w.recommendations.length-1 && (
-                    <div style={{ marginTop:24, height:1,
-                      background:`linear-gradient(to right,
-                        ${C.border}, transparent)` }}/>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ══ 6. IMPACT SEKTION ═════════════════════════ */}
-        <div style={{ margin:"0 20px 32px",
-          borderRadius:24, overflow:"hidden", position:"relative" }}>
-          <img src={w.impact.img} alt="Impact"
-            style={{ width:"100%", height:180, objectFit:"cover",
-              filter:"brightness(0.6) saturate(1.1)" }}/>
-          <div style={{ position:"absolute", inset:0,
-            background:`linear-gradient(160deg,
-              rgba(22,215,197,0.55) 0%,
-              rgba(255,138,107,0.40) 100%)` }}/>
-          <div style={{ position:"absolute", inset:0,
-            display:"flex", flexDirection:"column",
-            justifyContent:"flex-end", padding:"20px" }}>
-            <div style={{ fontSize:11, fontWeight:700,
-              color:"rgba(255,255,255,0.75)", letterSpacing:1,
-              textTransform:"uppercase", marginBottom:6 }}>
-              Impact Engagement
-            </div>
-            <div style={{ fontWeight:900, fontSize:18, color:"white",
-              letterSpacing:-0.3, lineHeight:1.2, marginBottom:4 }}>
-              {w.impact.project}
-            </div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)",
-              marginBottom:8 }}>📍 {w.impact.country}</div>
-            <div style={{ fontSize:14, fontWeight:800, color:C.teal }}>
-              € {w.impactEur.toFixed(2)} gemeinsam bewegt
-            </div>
-          </div>
-        </div>
-
-        {/* ══ 7. STICKY BOTTOM CTA ══════════════════════ */}
-        <div style={{ position:"sticky", bottom:0,
-          background:"rgba(249,246,242,0.97)",
-          backdropFilter:"blur(20px)",
-          borderTop:`1px solid ${C.border}`,
-          padding:"14px 24px max(20px,env(safe-area-inset-bottom))",
-          display:"flex", alignItems:"center", gap:12 }}>
-
-          {/* Avatar small */}
-          <div style={{ width:40, height:40, borderRadius:"50%",
-            overflow:"hidden", flexShrink:0 }}>
-            <img src={w.img} alt={w.name}
-              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          </div>
-
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontWeight:700, fontSize:13,
-              color:C.ink, overflow:"hidden",
-              textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-              {w.name}
-            </div>
-            <div style={{ fontSize:11, color:C.green, fontWeight:600 }}>
-              {w.available ? "✓ Verfügbar" : "Auf Anfrage"}
-            </div>
-          </div>
-
-          <button onClick={()=>setShowBooking(true)}
-            style={{ padding:"13px 28px",
-              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-              border:"none", borderRadius:999, fontSize:15, fontWeight:900,
-              color:"white", cursor:"pointer", fontFamily:"inherit",
-              boxShadow:`0 6px 24px ${C.tealGlow}`,
-              flexShrink:0,
-              WebkitTapHighlightColor:"transparent" }}>
-            Anfragen
-          </button>
-        </div>
+        {/* ══ BOTTOM PADDING ══ */}
+        <div style={{ height:40 }} />
 
       </div>
 
-      {/* Booking sheet */}
+      {/* ── BOOKING SHEET ── */}
       {showBooking && (
         <BookingSheet
-          wirker={w}
-          onClose={()=>setShowBooking(false)}
+          profile={p}
+          onClose={() => setShowBooking(false)}
           onBook={onBook}
         />
       )}
