@@ -25,7 +25,7 @@ const C = {
   tealGlow:   "rgba(22,215,197,0.22)",
   coral:      "#FF8A6B",
   coral2:     "#FF7B72",
-  coralPale:  "#FFF2EE",
+  coralGlow: "rgba(255,138,107,0.22)",
   cream:      "#F9F6F2",
   creamWarm:  "#FFF9F4",
   card:       "#FFFFFF",
