@@ -1,4 +1,5 @@
 // ProfilePage.jsx — HUI v6
+import { HighlightsRow } from '../components/StoryBar';
 // BASISPROFIL = privater warmer Bereich
 // WIRKERPROFIL = öffentliche kreative Bühne
 import React, { useState } from "react";
