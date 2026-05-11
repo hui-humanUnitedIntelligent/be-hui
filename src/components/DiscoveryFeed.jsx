@@ -106,7 +106,6 @@ function CreatorAvatar({ url, name, size = 28 }) {
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: size * 0.36, fontWeight: 900, color: "white",
       border: "2px solid rgba(255,255,255,0.4)", flexShrink: 0 }}>
-      <StoryBar onRefreshKey={storyRefreshKey}/>
       {initials}
     </div>
   );
@@ -721,6 +720,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
 
   return (
     <>
+      <StoryBar onRefreshKey={storyRefreshKey}/>
       <style>{CSS}</style>
       <div className="df-scroll"
         style={{ background:C.creamWarm, overflowY:"auto",
