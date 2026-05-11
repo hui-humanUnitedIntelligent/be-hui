@@ -78,15 +78,25 @@ const FEED_ITEMS = [
 
 /* ── CSS ────────────────────────────────────────────────────────────────── */
 const CSS = `
-  @keyframes dfFadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes dfKenBurns { from{transform:scale(1)} to{transform:scale(1.06)} }
-  @keyframes dfBreath { 0%,100%{opacity:0.5} 50%{opacity:1} }
-  @keyframes dfSkel { 0%,100%{opacity:1} 50%{opacity:0.5} }
-  @keyframes dfSaved { 0%{transform:scale(1)} 40%{transform:scale(1.45)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
+  @keyframes dfFadeUp    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes dfKenBurns  { from{transform:scale(1)} to{transform:scale(1.06)} }
+  @keyframes dfBreath    { 0%,100%{opacity:0.5} 50%{opacity:1} }
+  @keyframes dfSkel      { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes dfSkPulse   { 0%,100%{opacity:1} 50%{opacity:0.45} }
+  @keyframes dfSaved     { 0%{transform:scale(1)} 40%{transform:scale(1.45)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
+  @keyframes dfRingPulse {
+    0%,100%{ filter:drop-shadow(0 0 0px rgba(22,215,197,0)); }
+    50%    { filter:drop-shadow(0 0 5px rgba(22,215,197,0.55)); }
+  }
+  @keyframes dfRingDash  {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -28; }
+  }
   .df-scroll::-webkit-scrollbar{display:none}
   .df-scroll{-ms-overflow-style:none;scrollbar-width:none}
-  .df-tap{transition:transform .18s cubic-bezier(.34,1.4,.64,1)}
+  .df-tap{transition:transform .18s cubic-bezier(.34,1.4,.64,1);-webkit-tap-highlight-color:transparent}
   .df-tap:active{transform:scale(.96)}
+  .df-moment-ring svg circle { animation: dfRingDash 8s linear infinite; }
 `;
 
 /* ── SAVE BTN ──────────────────────────────────────────────────────────── */
@@ -687,13 +697,16 @@ function MomenteBar({ user, onOpenComposer, refreshKey }) {
 
   if (loading) return (
     <div style={{ padding:"0 20px 4px", display:"flex", gap:14, overflowX:"auto" }}>
-      {[0,1,2,3].map(i => (
+      {[0,1,2,3,4].map(i => (
         <div key={i} style={{ flexShrink:0, display:"flex", flexDirection:"column",
           alignItems:"center", gap:6 }}>
-          <div style={{ width:68, height:68, borderRadius:"50%",
-            background:"rgba(0,0,0,0.06)",
-            animation:`dfSkPulse 1.4s ease-in-out ${i*0.15}s infinite alternate` }}/>
-          <div style={{ width:48, height:8, borderRadius:4, background:"rgba(0,0,0,0.06)" }}/>
+          <div style={{ width:64, height:64, borderRadius:"50%",
+            background:`linear-gradient(135deg,rgba(22,215,197,0.08),rgba(255,138,107,0.06))`,
+            animation:`dfSkPulse 1.4s ease-in-out ${i*0.12}s infinite alternate`,
+            boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}/>
+          <div style={{ width:44, height:7, borderRadius:4,
+            background:"rgba(0,0,0,0.05)",
+            animation:`dfSkPulse 1.4s ease-in-out ${i*0.12}s infinite alternate` }}/>
         </div>
       ))}
     </div>
@@ -702,9 +715,9 @@ function MomenteBar({ user, onOpenComposer, refreshKey }) {
   return (
     <>
       <div style={{ overflowX:"auto", WebkitOverflowScrolling:"touch",
-        paddingBottom:2,
+        paddingBottom:4,
         scrollbarWidth:"none", msOverflowStyle:"none" }}>
-        <div style={{ display:"flex", gap:14, padding:"0 20px", minWidth:"min-content" }}>
+        <div style={{ display:"flex", gap:16, padding:"2px 20px 6px", minWidth:"min-content" }}>
 
           {/* ── "Dein Moment" immer zuerst ── */}
           <MomenteAvatar
@@ -744,57 +757,123 @@ function MomenteBar({ user, onOpenComposer, refreshKey }) {
   );
 }
 
-/* ── Single Avatar Bubble ── */
+/* ── Single Avatar Bubble — HUI Premium ── */
 function MomenteAvatar({ label, avatar, isOwn, hasStory, onTap, animDelay=0 }) {
   const TEAL  = "#16D7C5";
   const CORAL = "#FF8A6B";
+  const [pressed, setPressed] = React.useState(false);
+
   return (
     <div onClick={onTap}
-      style={{ flexShrink:0, display:"flex", flexDirection:"column",
-        alignItems:"center", gap:7, cursor:"pointer",
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      style={{
+        flexShrink:0, display:"flex", flexDirection:"column",
+        alignItems:"center", gap:6, cursor:"pointer",
         WebkitTapHighlightColor:"transparent",
-        animation: `dfFadeUp 0.4s ${animDelay}s both` }}>
+        animation: `dfFadeUp 0.35s ${animDelay}s both`,
+        transform: pressed ? "scale(0.93)" : "scale(1)",
+        transition: "transform 0.18s cubic-bezier(0.34,1.4,0.64,1)",
+      }}>
 
-      {/* Ring */}
-      <div style={{ position:"relative", width:72, height:72 }}>
-        {/* Gradient ring wenn Story vorhanden */}
+      {/* Outer glow + ring container */}
+      <div style={{ position:"relative", width:64, height:64 }}>
+
+        {/* ── Story-Ring: echtes Gradient-SVG ── */}
         {hasStory && (
-          <div style={{
-            position:"absolute", inset:-3, borderRadius:"50%",
-            background:`linear-gradient(135deg, ${TEAL}, ${CORAL}, #A78BFA)`,
-            padding:2.5,
-            animation:"dfRingPulse 2.5s ease-in-out infinite",
-          }}>
-            <div style={{ width:"100%", height:"100%", borderRadius:"50%",
-              background:"#F9F7F4" }}/>
-          </div>
+          <svg width="72" height="72" viewBox="0 0 72 72"
+            style={{ position:"absolute", top:-4, left:-4,
+              animation:"dfRingPulse 3s ease-in-out infinite" }}>
+            <defs>
+              <linearGradient id={`rg_${label}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stopColor={TEAL}/>
+                <stop offset="50%"  stopColor="#A78BFA"/>
+                <stop offset="100%" stopColor={CORAL}/>
+              </linearGradient>
+            </defs>
+            <circle cx="36" cy="36" r="33"
+              fill="none"
+              stroke={`url(#rg_${label})`}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeDasharray="4 2.5"
+              style={{ animation:"dfRingDash 8s linear infinite" }}
+            />
+          </svg>
         )}
-        {/* Dashed ring wenn kein Story (isOwn) */}
+
+        {/* ── Empty own ring: dashed teal ── */}
         {!hasStory && isOwn && (
-          <div style={{
-            position:"absolute", inset:-3, borderRadius:"50%",
-            border:`2.5px dashed ${TEAL}80`,
-          }}/>
+          <svg width="72" height="72" viewBox="0 0 72 72"
+            style={{ position:"absolute", top:-4, left:-4 }}>
+            <circle cx="36" cy="36" r="33"
+              fill="none"
+              stroke={`${TEAL}60`}
+              strokeWidth="1.8"
+              strokeDasharray="5 4"
+              strokeLinecap="round"
+            />
+          </svg>
         )}
-        {/* Avatar */}
+
+        {/* ── Avatar circle ── */}
         <div style={{
-          position:"relative", width:72, height:72, borderRadius:"50%",
-          overflow:"hidden", zIndex:1,
-          background:`linear-gradient(135deg,${TEAL}20,${CORAL}20)`,
+          width:64, height:64, borderRadius:"50%",
+          overflow:"hidden", position:"relative", zIndex:1,
+          background: isOwn && !avatar
+            ? `linear-gradient(145deg,${TEAL}25,${CORAL}18)`
+            : `linear-gradient(145deg,rgba(22,215,197,0.12),rgba(255,138,107,0.10))`,
+          boxShadow: hasStory
+            ? `0 0 0 2.5px #F9F7F4, 0 4px 18px rgba(22,215,197,0.22)`
+            : `0 0 0 2px #F9F7F4, 0 2px 10px rgba(0,0,0,0.08)`,
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
           {avatar
             ? <img src={avatar} alt={label}
                 style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                onError={e=>{e.target.style.display="none"}}/>
-            : <span style={{ fontSize:28, color:TEAL, fontWeight:300, lineHeight:1 }}>+</span>
+                onError={e => { e.target.style.display="none"; }}/>
+            : isOwn
+              ? (
+                <div style={{ display:"flex", flexDirection:"column",
+                  alignItems:"center", justifyContent:"center", gap:1 }}>
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <circle cx="11" cy="11" r="10"
+                      stroke={TEAL} strokeWidth="1.6" strokeDasharray="3 2"/>
+                    <line x1="11" y1="6" x2="11" y2="16"
+                      stroke={TEAL} strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="6" y1="11" x2="16" y2="11"
+                      stroke={TEAL} strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              )
+              : (
+                <span style={{ fontSize:22, fontWeight:800,
+                  color:TEAL, letterSpacing:-1 }}>
+                  {(label||"?")[0].toUpperCase()}
+                </span>
+              )
           }
         </div>
+
+        {/* ── Online dot für andere User ── */}
+        {!isOwn && hasStory && (
+          <div style={{
+            position:"absolute", bottom:1, right:1, zIndex:2,
+            width:13, height:13, borderRadius:"50%",
+            background:`linear-gradient(135deg,${TEAL},${TEAL}CC)`,
+            border:"2.5px solid #F9F7F4",
+            boxShadow:`0 0 6px ${TEAL}88`,
+          }}/>
+        )}
       </div>
 
-      <span style={{ fontSize:11.5, color:"#555", fontWeight:600,
-        maxWidth:72, textAlign:"center", overflow:"hidden",
-        textOverflow:"ellipsis", whiteSpace:"nowrap", lineHeight:1.2 }}>
+      {/* Label */}
+      <span style={{
+        fontSize:10.5, color:"#4A4A4A", fontWeight: hasStory ? 700 : 500,
+        maxWidth:68, textAlign:"center",
+        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+        lineHeight:1.2, letterSpacing:0.1,
+      }}>
         {label}
       </span>
     </div>
@@ -1178,13 +1257,26 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         </div>
 
         {/* ══ 1b. MOMENTE ═══════════════════════════════════════════ */}
-        <div style={{ padding:"16px 0 8px" }}>
-          <div style={{ padding:"0 20px 8px",
+        <div style={{ padding:"18px 0 12px" }}>
+          {/* Section header */}
+          <div style={{ padding:"0 20px 10px",
             display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:13, fontWeight:700, color:"#1A1A1A",
-              letterSpacing:0.2 }}>Momente</span>
-            <span style={{ fontSize:11, color:"#16D7C5", fontWeight:600 }}>
-              24h Stories
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <div style={{
+                width:3, height:14, borderRadius:99,
+                background:"linear-gradient(to bottom,#16D7C5,#FF8A6B)",
+              }}/>
+              <span style={{ fontSize:13, fontWeight:800, color:"#1A1A1A",
+                letterSpacing:0.1 }}>Momente</span>
+            </div>
+            <span style={{
+              fontSize:10.5, color:"#16D7C5", fontWeight:700,
+              background:"rgba(22,215,197,0.10)",
+              border:"1px solid rgba(22,215,197,0.22)",
+              borderRadius:999, padding:"3px 10px",
+              letterSpacing:0.2,
+            }}>
+              24h
             </span>
           </div>
           <MomenteBar
