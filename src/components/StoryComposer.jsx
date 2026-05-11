@@ -32,18 +32,9 @@ const MOODS = [
 
 // Friendly error messages
 function friendlyError(err) {
-  const msg = (err?.message || err || "").toLowerCase();
-  const raw = err?.message || String(err) || "";
-  if (msg.includes("storage") || msg.includes("upload") || msg.includes("bucket"))
-    return "Bild konnte nicht hochgeladen werden. Bitte nochmal versuchen.";
-  if (msg.includes("network") || msg.includes("fetch"))
-    return "Keine Verbindung. Bitte WLAN prüfen.";
-  if (msg.includes("jwt") || msg.includes("token"))
-    return "Sitzung abgelaufen. Bitte neu anmelden.";
-  // RLS/Policy: zeige echten Fehler für Debugging
-  if (msg.includes("row-level security") || msg.includes("rls") || msg.includes("policy"))
-    return `DB-Fehler: ${raw}`;
-  return `Fehler: ${raw}`;
+  const raw = err?.message || err?.error_description || JSON.stringify(err) || String(err) || "Unbekannter Fehler";
+  const code = err?.code || err?.statusCode || "";
+  return `${raw}${code ? " ["+code+"]" : ""}`;
 }
 
 const CSS = `
@@ -123,16 +114,26 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
   async function publish() {
     if (!user) { setError("Nicht angemeldet. Bitte neu anmelden."); return; }
+    if (!supabase) { setError("Supabase nicht verbunden. VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY prüfen."); return; }
     setUploading(true); setError(null); setUploadPct(0);
 
     try {
       let mediaUrl  = null;
 
-      // Step 1: Upload media
+      // Step 1: Upload media (soft-fail: wenn Storage fehlt → Story ohne Bild)
       if (mediaFile) {
-        setUploadPct(30);
-        mediaUrl = await uploadMedia(mediaFile);
-        setUploadPct(70);
+        setUploadPct(20);
+        try {
+          mediaUrl = await uploadMedia(mediaFile);
+          setUploadPct(70);
+        } catch (storageErr) {
+          console.warn("[StoryComposer] Storage fehlgeschlagen, speichere ohne Bild:", storageErr.message);
+          // Zeige kurz Warnung aber fahre fort
+          setError(`Bild-Upload fehlgeschlagen (${storageErr.message}) — Story wird ohne Bild gespeichert.`);
+          await new Promise(r => setTimeout(r, 1500));
+          setError(null);
+          setUploadPct(70);
+        }
       }
 
       // Step 2: Insert story
