@@ -46,11 +46,11 @@ function AppRoutes() {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<Navigate to="/Home" replace />} />
-      <Route path="/Home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/Home" element={<Home />} />
       <Route path="/impact" element={<ProtectedRoute><ImpactPage /></ProtectedRoute>} />
-      <Route path="/BookingFlow" element={<ProtectedRoute><BookingFlow /></ProtectedRoute>} />
-      <Route path="/Admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-      <Route path="/profile/:username" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/BookingFlow" element={<BookingFlow />} />
+      <Route path="/Admin" element={<Admin />} />
+      <Route path="/profile/:username" element={<ProfilePage />} />
       <Route path="/work/:id" element={<ProtectedRoute><WorkDetailPage /></ProtectedRoute>} />
     </Routes>
   )
