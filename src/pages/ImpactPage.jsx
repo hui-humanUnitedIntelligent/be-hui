@@ -359,27 +359,112 @@ function ProjectStory({ p, onBack, onVote, hasVoted }) {
    MAIN IMPACT PAGE
 ════════════════════════════════════════════ */
 export default function ImpactPage({ currentUser }) {
-  const [projects,     setProjects]     = useState(PROJECTS);
+  const [projects,     setProjects]     = useState([]);
   const [selected,     setSelected]     = useState(null);
   const [votedId,      setVotedId]      = useState(null);
-  const [poolTotal,    setPoolTotal]    = useState(124850);
+  const [poolTotal,    setPoolTotal]    = useState(0);
   const [monthVoting,  setMonthVoting]  = useState(true);
   const [activeFilter, setActiveFilter] = useState("aktiv");
+  const [loading,      setLoading]      = useState(true);
+  const [weeklyInflow, setWeeklyInflow] = useState(0);
 
-  // Animate pool total slightly
+  // Load real data from Supabase
   useEffect(() => {
-    const t = setInterval(() => {
-      setPoolTotal(n => n + Math.floor(Math.random() * 12 + 3));
-    }, 7000);
-    return () => clearInterval(t);
+    async function load() {
+      try {
+        // 1. Projects
+        const { data: projData } = await supabase
+          .from("impact_projects")
+          .select("*")
+          .in("status", ["active", "voting", "funded"])
+          .order("votes", { ascending: false });
+
+        if (projData && projData.length > 0) {
+          // Map DB fields to component shape
+          setProjects(projData.map(p => ({
+            id:            p.id,
+            title:         p.name,
+            short:         p.description?.slice(0, 80) + "...",
+            story:         p.description || "",
+            location:      p.contact_name || "",
+            category:      p.category || "Soziales",
+            categoryColor: p.color || "#3DB87A",
+            img:           p.icon?.startsWith("http") ? p.icon
+                           : "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&q=90",
+            img2:          null,
+            raised:        p.awarded_eur || 0,
+            goal:          10000,
+            votes:         p.votes || 0,
+            status:        p.status,
+            tags:          p.tags || [],
+          })));
+          setMonthVoting(projData.some(p => p.status === "voting"));
+        } else {
+          // Graceful fallback to hardcoded if DB empty
+          setProjects(PROJECTS);
+          setMonthVoting(true);
+        }
+
+        // 2. Pool total — sum of all payments impact_eur
+        const { data: poolData } = await supabase
+          .from("payments")
+          .select("impact_eur");
+        const total = (poolData || []).reduce((s, r) => s + (r.impact_eur || 0), 0);
+        setPoolTotal(total > 0 ? total : 124850);
+
+        // 3. Weekly inflow (last 7 days)
+        const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+        const { data: weekData } = await supabase
+          .from("payments")
+          .select("impact_eur")
+          .gte("created_at", weekAgo);
+        const weekly = (weekData || []).reduce((s, r) => s + (r.impact_eur || 0), 0);
+        setWeeklyInflow(weekly > 0 ? weekly : 8950);
+
+      } catch(e) {
+        console.error("[ImpactPage] load:", e.message);
+        setProjects(PROJECTS);
+        setPoolTotal(124850);
+        setWeeklyInflow(8950);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
-  function handleVote(id) {
+  // User's vote from DB
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    supabase.from("impact_votes")
+      .select("project_id").eq("user_id", currentUser.id)
+      .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      .maybeSingle()
+      .then(({ data }) => { if (data) setVotedId(data.project_id); });
+  }, [currentUser?.id]);
+
+  async function handleVote(id) {
+    if (votedId || !currentUser?.id) return;
     setVotedId(id);
-    setProjects(ps => ps.map(p =>
-      p.id === id ? {...p, votes: p.votes + 1} : p
-    ));
+    setProjects(ps => ps.map(p => p.id === id ? {...p, votes: p.votes + 1} : p));
+    await supabase.from("impact_votes").upsert({
+      user_id: currentUser.id, project_id: id,
+      created_at: new Date().toISOString()
+    });
+    await supabase.from("impact_projects")
+      .update({ votes: projects.find(p=>p.id===id)?.votes + 1 || 1 })
+      .eq("id", id);
   }
+
+  if (loading) return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
+      height:"60vh", flexDirection:"column", gap:12 }}>
+      <div style={{ width:36, height:36, border:`3px solid #16D7C5`,
+        borderTopColor:"transparent", borderRadius:"50%",
+        animation:"spin 0.8s linear infinite" }} />
+      <div style={{ fontSize:13, color:"#888" }}>Impact Pool wird geladen…</div>
+    </div>
+  );
 
   if (selected) return (
     <ProjectStory
@@ -485,7 +570,7 @@ export default function ImpactPage({ currentUser }) {
               </div>
               <div style={{ fontSize:12, color:C.teal,
                 fontWeight:600, marginTop:3 }}>
-                ↑ € 8.950 diese Woche
+                ↑ € {new Intl.NumberFormat('de-DE').format(weeklyInflow)} diese Woche
               </div>
             </div>
           </div>
