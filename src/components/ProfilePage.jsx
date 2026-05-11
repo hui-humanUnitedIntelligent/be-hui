@@ -246,6 +246,8 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
 
   if (loadingAuth || loadingProfile) return <ProfileSkeleton/>;
 
+  const hasTalent   = hasTalentProfile || profile?.has_talent_profile || profile?.is_wirker || false;
+  const modules     = profileModules   || profile?.profile_modules    || {};
   const displayName = profile?.display_name || profile?.username
     || user?.email?.split("@")[0] || "HUI User";
   const username   = profile?.username || "mein-profil";
