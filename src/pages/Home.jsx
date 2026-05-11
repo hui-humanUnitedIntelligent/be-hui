@@ -1212,6 +1212,13 @@ export default function Home() {
   const [showWerkCheckout,setShowWerkCheckout]= useState(null);  // werk checkout
   const [showWerkeKorb,   setShowWerkeKorb]   = useState(false); // korb sheet
   const [showStoryComposer,   setShowStoryComposer]   = useState(false);
+
+  // StoryBar "+" Button Event
+  React.useEffect(() => {
+    const handler = () => setShowStoryComposer(true);
+    document.addEventListener("hui:open-story-composer", handler);
+    return () => document.removeEventListener("hui:open-story-composer", handler);
+  }, []);
   const [storyRefreshKey,     setStoryRefreshKey]     = useState(0);
   const [showWerkPublisher,   setShowWerkPublisher]   = useState(false);
   const [showExperienceCreator,setShowExperienceCreator]= useState(false);
