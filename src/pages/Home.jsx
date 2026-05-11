@@ -8,7 +8,7 @@ import OrdersPage from "../components/OrdersPage";
 import { useAuth } from "../lib/AuthContext";
 import CreateFlow          from "../components/CreateFlow";
 import TalentOnboarding   from "../components/TalentOnboarding";
-import WirkerCreateSheet  from "../components/WirkerCreateSheet";
+import QuickCreateSheet   from "../components/QuickCreateSheet";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
 import LiveMapPage    from "./LiveMapPage";
@@ -437,19 +437,19 @@ function NavIcon({ k, active }) {
 }
 
 /* ─── BOTTOM NAV — floating pill, premium ─── */
-function BottomNav({ tab, onTab, onCreate, isWirker }) {
+function BottomNav({ tab, onTab, onCreate, hasTalent }) {
   const [pressed, setPressed] = useState(null);
   const [transformed, setTransformed] = useState(false);
 
   // Trigger the "magic moment" transformation animation
   useEffect(() => {
-    if(isWirker) {
+    if(hasTalent) {
       const t = setTimeout(() => setTransformed(true), 50);
       return () => clearTimeout(t);
     } else {
       setTransformed(false);
     }
-  }, [isWirker]);
+  }, [hasTalent]);
 
   return (
     <div style={{
@@ -488,9 +488,9 @@ function BottomNav({ tab, onTab, onCreate, isWirker }) {
                 position:"relative",
               }}>
               <div style={{
-                width:52, height:52, borderRadius: isWirker ? "50%" : 17,
+                width:52, height:52, borderRadius: hasTalent ? "50%" : 17,
                 marginTop:-24,
-                background: isWirker
+                background: hasTalent
                   ? `linear-gradient(145deg,${C.teal},${C.teal2} 45%,${C.coral})`
                   : `linear-gradient(145deg,${C.teal},#14C4B4 45%,${C.coral})`,
                 display:"flex", alignItems:"center",
@@ -499,7 +499,7 @@ function BottomNav({ tab, onTab, onCreate, isWirker }) {
                   ? "scale(0.90) translateY(2px)"
                   : transformed ? "scale(1.05) translateY(0)" : "scale(1) translateY(0)",
                 transition:"all 0.55s cubic-bezier(0.34,1.5,0.64,1)",
-                boxShadow: isWirker
+                boxShadow: hasTalent
                   ? `
                     0 0 0 3px rgba(255,251,248,0.95),
                     0 4px 6px rgba(0,0,0,0.12),
@@ -518,18 +518,18 @@ function BottomNav({ tab, onTab, onCreate, isWirker }) {
                 {/* BASE USER: real HUI logo */}
                 <img src="/hui-logo.jpg" alt="HUI"
                   style={{
-                    width:36, height:36, borderRadius: isWirker ? "50%" : 10,
+                    width:36, height:36, borderRadius: hasTalent ? "50%" : 10,
                     objectFit:"cover", display:"block",
                     position:"absolute",
-                    opacity: isWirker ? 0 : 1,
-                    transform: isWirker ? "scale(0.5) rotate(-90deg)" : "scale(1) rotate(0deg)",
+                    opacity: hasTalent ? 0 : 1,
+                    transform: hasTalent ? "scale(0.5) rotate(-90deg)" : "scale(1) rotate(0deg)",
                     transition:"all 0.5s cubic-bezier(0.34,1.3,0.64,1)",
                   }}/>
                 {/* WIRKER: Plus icon */}
                 <div style={{
                   position:"absolute",
-                  opacity: isWirker ? 1 : 0,
-                  transform: isWirker ? "scale(1) rotate(0deg)" : "scale(0.3) rotate(90deg)",
+                  opacity: hasTalent ? 1 : 0,
+                  transform: hasTalent ? "scale(1) rotate(0deg)" : "scale(0.3) rotate(90deg)",
                   transition:"all 0.5s cubic-bezier(0.34,1.3,0.64,1)",
                   display:"flex", alignItems:"center", justifyContent:"center",
                 }}>
@@ -542,7 +542,7 @@ function BottomNav({ tab, onTab, onCreate, isWirker }) {
                 </div>
               </div>
               {/* Wirker glow pulse ring */}
-              {isWirker && (
+              {hasTalent && (
                 <div style={{
                   position:"absolute",
                   top:"50%", left:"50%",
@@ -1315,7 +1315,7 @@ export default function Home() {
         </div>
 
         <BottomNav tab={tab} onTab={setTab}
-          isWirker={isWirker}
+          hasTalent={isWirker || hasTalentProfile}
           onCreate={()=>{
             if(isWirker || hasTalentProfile) setShowCreateSheet(true);
             else setShowTalentFlow(true);
@@ -1354,11 +1354,13 @@ export default function Home() {
 
       {/* ── Wirker Create Sheet ── */}
       {showCreateSheet && (
-        <WirkerCreateSheet
+        <QuickCreateSheet
           onClose={() => setShowCreateSheet(false)}
           onSelect={(type) => {
             setShowCreateSheet(false);
-            setShowCreate(true);
+            if (type === "story" || type === "werk" || type === "experience") {
+              setShowCreate(true);
+            }
           }}
         />
       )}
