@@ -1,5 +1,6 @@
 // ProfilePage.jsx — HUI v6
 import { HighlightsRow } from '../components/StoryBar';
+import CreatorDashboard from './WirkerProfileDashboard';
 // BASISPROFIL = privater warmer Bereich
 // WIRKERPROFIL = öffentliche kreative Bühne
 import React, { useState } from "react";
@@ -342,7 +343,7 @@ function BaseProfil({ user, onOpenWirker, onShowOnboarding }) {
           </div>
         ) : (
           /* Wirker aktiv → Bühnen-Card */
-          <button onClick={onOpenWirker} className="hui-tap"
+          <button onClick={() => setShowCreatorStudio(true)} className="hui-tap"
             style={{ width:"100%", marginBottom:24, borderRadius:24,
               overflow:"hidden", position:"relative", minHeight:130,
               border:"none", cursor:"pointer", display:"block",
@@ -618,6 +619,7 @@ function WirkerProfil({ user, onBack }) {
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
   const [view, setView] = useState("base"); // base | wirker | onboarding
+  const [showCreatorStudio, setShowCreatorStudio] = useState(false);
   const [userData, setUserData] = useState({ ...MOCK });
 
   function handleOnboardingComplete(form) {
@@ -646,6 +648,13 @@ export default function ProfilePage() {
           user={userData}
           onOpenWirker={() => setView("wirker")}
           onShowOnboarding={() => setView("onboarding")}
+        />
+      )}
+      {showCreatorStudio && (
+        <CreatorDashboard
+          onClose={() => setShowCreatorStudio(false)}
+          onCreateWork={() => { setShowCreatorStudio(false); }}
+          onCreateExp={() => { setShowCreatorStudio(false); }}
         />
       )}
     </>
