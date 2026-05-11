@@ -83,21 +83,7 @@ if (grouped.length === 0 && !user) return null;
         <div className="ss-scroll"
           style={{display:"flex",gap:14,overflowX:"auto",
             padding:"0 20px",WebkitOverflowScrolling:"touch"}}>
-          {/* Eigener "+" Avatar immer zuerst wenn kein eigenes Story dabei */}
-          {user && !grouped.find(g=>g.rep.user_id===user.id) && (
-            <div style={{flexShrink:0,display:"flex",flexDirection:"column",
-              alignItems:"center",gap:6}}>
-              <div style={{width:68,height:68,borderRadius:"50%",
-                background:"linear-gradient(135deg,rgba(22,215,197,.15),rgba(255,138,107,.15))",
-                border:"2px dashed rgba(22,215,197,.5)",
-                display:"flex",alignItems:"center",justifyContent:"center",
-                cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
-                onClick={()=>document.dispatchEvent(new CustomEvent("hui:open-story-composer"))}>
-                <span style={{fontSize:28,color:"#16D7C5",fontWeight:300}}>+</span>
-              </div>
-              <span style={{fontSize:11,color:"#888",fontWeight:500}}>Deine Story</span>
-            </div>
-          )}
+          {/* "Dein Moment" wird in MomenteBar (DiscoveryFeed) gerendert */}
           {grouped.map(({rep, all}, i) => (
             <StoryAvatar key={rep.user_id} story={rep} count={all.length}
               onTap={()=>setViewer({stories:all, startIdx:0})}
