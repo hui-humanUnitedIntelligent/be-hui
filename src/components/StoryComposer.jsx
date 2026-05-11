@@ -83,32 +83,30 @@ export default function StoryComposer({ onClose, onSuccess }) {
   }
 
   async function uploadMedia(file) {
+    // Pfad MUSS mit user.id beginnen — so verlangt es die Storage RLS Policy
     const ext    = file.name.split(".").pop() || (file.type.includes("video") ? "mp4" : "jpg");
-    const path   = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    // Versuche "stories" bucket zuerst, fallback auf "works"
-    const buckets = ["stories", "story-media", "works"];
-    let publicUrl = null;
-    let lastErr   = null;
+    const path   = `${user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const bucket = "stories";
 
-    for (const bucket of buckets) {
-      console.log("[StoryComposer] trying bucket:", bucket, "path:", path);
-      const { error: upErr } = await supabase.storage
-        .from(bucket)
-        .upload(path, file, { contentType: file.type, cacheControl: "3600", upsert: false });
-      if (!upErr) {
-        const { data: { publicUrl: url } } = supabase.storage.from(bucket).getPublicUrl(path);
-        publicUrl = url;
-        console.log("[StoryComposer] uploaded to", bucket, "→", publicUrl);
-        break;
-      }
-      lastErr = upErr;
-      console.warn("[StoryComposer] bucket", bucket, "failed:", upErr.message);
+    console.log("[StoryComposer] upload start →", bucket + "/" + path);
+    console.log("[StoryComposer] user.id:", user.id, "file:", file.name, file.type, file.size);
+
+    const { data: uploadData, error: upErr } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, {
+        contentType:  file.type,
+        cacheControl: "3600",
+        upsert:       false,
+      });
+
+    if (upErr) {
+      console.error("[StoryComposer] storage error:", upErr.message, upErr);
+      throw new Error(`Storage: ${upErr.message}`);
     }
 
-    if (!publicUrl) {
-      console.error("[StoryComposer] all buckets failed:", lastErr);
-      throw lastErr;
-    }
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+    const publicUrl = urlData?.publicUrl;
+    console.log("[StoryComposer] upload OK →", publicUrl);
     return publicUrl;
   }
 
@@ -120,20 +118,11 @@ export default function StoryComposer({ onClose, onSuccess }) {
     try {
       let mediaUrl  = null;
 
-      // Step 1: Upload media (soft-fail: wenn Storage fehlt → Story ohne Bild)
+      // Step 1: Upload media
       if (mediaFile) {
         setUploadPct(20);
-        try {
-          mediaUrl = await uploadMedia(mediaFile);
-          setUploadPct(70);
-        } catch (storageErr) {
-          console.warn("[StoryComposer] Storage fehlgeschlagen, speichere ohne Bild:", storageErr.message);
-          // Zeige kurz Warnung aber fahre fort
-          setError(`Bild-Upload fehlgeschlagen (${storageErr.message}) — Story wird ohne Bild gespeichert.`);
-          await new Promise(r => setTimeout(r, 1500));
-          setError(null);
-          setUploadPct(70);
-        }
+        mediaUrl = await uploadMedia(mediaFile);
+        setUploadPct(70);
       }
 
       // Step 2: Insert story
