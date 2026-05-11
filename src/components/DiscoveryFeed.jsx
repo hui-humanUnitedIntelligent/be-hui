@@ -1,9 +1,9 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
 import React, { useState, useEffect, useCallback } from "react";
-import { StoryBar } from "./StorySystem";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../lib/AuthContext";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -636,10 +636,295 @@ function ImpactCard({ item, onImpact }) {
 /* ════════════════════════════════════════════════════════════════
    MAIN DISCOVERY FEED
 ════════════════════════════════════════════════════════════════ */
-import HuiStories from "./HuiStories";
 
-export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal }, storyRefreshKey) {
+
+/* ══════════════════════════════════════════════════════════════════
+   MOMENTEBAR — Offizieller HUI Story-Strip
+   Direkt nach HUI Match. Echter Supabase-Connect. Kein Mock.
+══════════════════════════════════════════════════════════════════ */
+function MomenteBar({ user, onOpenComposer, refreshKey }) {
+  const [stories,  setStories]  = React.useState([]);
+  const [viewer,   setViewer]   = React.useState(null);
+  const [loading,  setLoading]  = React.useState(true);
+
+  const load = React.useCallback(async () => {
+    try {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("stories")
+        .select("id,user_id,username,avatar_url,media_url,media_type,caption,mood_tags,is_highlight,created_at,expires_at")
+        .eq("status","published")
+        .or(`expires_at.is.null,expires_at.gt.${now},is_highlight.eq.true`)
+        .order("created_at", { ascending: false })
+        .limit(40);
+      if (error) { console.error("[MomenteBar] load:", error); return; }
+      setStories(data || []);
+    } finally { setLoading(false); }
+  }, []);
+
+  React.useEffect(() => { load(); }, [load, refreshKey]);
+
+  // Group by user, keep newest as representative
+  const grouped = React.useMemo(() => {
+    const map = new Map();
+    for (const s of stories) {
+      if (!map.has(s.user_id)) map.set(s.user_id, { rep: s, all: [s] });
+      else map.get(s.user_id).all.push(s);
+    }
+    return Array.from(map.values());
+  }, [stories]);
+
+  const ownGroup  = grouped.find(g => g.rep.user_id === user?.id);
+  const otherGroups = grouped.filter(g => g.rep.user_id !== user?.id);
+
+  if (loading) return (
+    <div style={{ padding:"0 20px 4px", display:"flex", gap:14, overflowX:"auto" }}>
+      {[0,1,2,3].map(i => (
+        <div key={i} style={{ flexShrink:0, display:"flex", flexDirection:"column",
+          alignItems:"center", gap:6 }}>
+          <div style={{ width:68, height:68, borderRadius:"50%",
+            background:"rgba(0,0,0,0.06)",
+            animation:`dfSkPulse 1.4s ease-in-out ${i*0.15}s infinite alternate` }}/>
+          <div style={{ width:48, height:8, borderRadius:4, background:"rgba(0,0,0,0.06)" }}/>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      <div style={{ overflowX:"auto", WebkitOverflowScrolling:"touch",
+        paddingBottom:2,
+        scrollbarWidth:"none", msOverflowStyle:"none" }}>
+        <div style={{ display:"flex", gap:14, padding:"0 20px", minWidth:"min-content" }}>
+
+          {/* ── "Dein Moment" immer zuerst ── */}
+          <MomenteAvatar
+            label="Dein Moment"
+            avatar={user?.user_metadata?.avatar_url || null}
+            isOwn={true}
+            hasStory={!!ownGroup}
+            onTap={() => {
+              if (ownGroup) setViewer({ stories: ownGroup.all, startIdx: 0 });
+              else onOpenComposer?.();
+            }}
+          />
+
+          {/* ── Andere User-Stories ── */}
+          {otherGroups.map(({ rep, all }, i) => (
+            <MomenteAvatar
+              key={rep.user_id}
+              label={rep.username || "HUI"}
+              avatar={rep.avatar_url}
+              isOwn={false}
+              hasStory={true}
+              animDelay={i * 0.06}
+              onTap={() => setViewer({ stories: all, startIdx: 0 })}
+            />
+          ))}
+        </div>
+      </div>
+
+      {viewer && (
+        <MomenteViewer
+          stories={viewer.stories}
+          startIdx={viewer.startIdx}
+          onClose={() => setViewer(null)}
+        />
+      )}
+    </>
+  );
+}
+
+/* ── Single Avatar Bubble ── */
+function MomenteAvatar({ label, avatar, isOwn, hasStory, onTap, animDelay=0 }) {
+  const TEAL  = "#16D7C5";
+  const CORAL = "#FF8A6B";
+  return (
+    <div onClick={onTap}
+      style={{ flexShrink:0, display:"flex", flexDirection:"column",
+        alignItems:"center", gap:7, cursor:"pointer",
+        WebkitTapHighlightColor:"transparent",
+        animation: `dfFadeUp 0.4s ${animDelay}s both` }}>
+
+      {/* Ring */}
+      <div style={{ position:"relative", width:72, height:72 }}>
+        {/* Gradient ring wenn Story vorhanden */}
+        {hasStory && (
+          <div style={{
+            position:"absolute", inset:-3, borderRadius:"50%",
+            background:`linear-gradient(135deg, ${TEAL}, ${CORAL}, #A78BFA)`,
+            padding:2.5,
+            animation:"dfRingPulse 2.5s ease-in-out infinite",
+          }}>
+            <div style={{ width:"100%", height:"100%", borderRadius:"50%",
+              background:"#F9F7F4" }}/>
+          </div>
+        )}
+        {/* Dashed ring wenn kein Story (isOwn) */}
+        {!hasStory && isOwn && (
+          <div style={{
+            position:"absolute", inset:-3, borderRadius:"50%",
+            border:`2.5px dashed ${TEAL}80`,
+          }}/>
+        )}
+        {/* Avatar */}
+        <div style={{
+          position:"relative", width:72, height:72, borderRadius:"50%",
+          overflow:"hidden", zIndex:1,
+          background:`linear-gradient(135deg,${TEAL}20,${CORAL}20)`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          {avatar
+            ? <img src={avatar} alt={label}
+                style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                onError={e=>{e.target.style.display="none"}}/>
+            : <span style={{ fontSize:28, color:TEAL, fontWeight:300, lineHeight:1 }}>+</span>
+          }
+        </div>
+      </div>
+
+      <span style={{ fontSize:11.5, color:"#555", fontWeight:600,
+        maxWidth:72, textAlign:"center", overflow:"hidden",
+        textOverflow:"ellipsis", whiteSpace:"nowrap", lineHeight:1.2 }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+/* ── Full-Screen Story Viewer ── */
+function MomenteViewer({ stories, startIdx=0, onClose }) {
+  const [idx,     setIdx]     = React.useState(startIdx);
+  const [paused,  setPaused]  = React.useState(false);
+  const [pct,     setPct]     = React.useState(0);
+  const elapsed = React.useRef(0);
+  const raf     = React.useRef(null);
+  const DURATION = 5000;
+
+  const current = stories[idx];
+  const goNext  = React.useCallback(() => {
+    elapsed.current = 0; setPct(0);
+    if (idx < stories.length - 1) setIdx(p=>p+1); else onClose?.();
+  }, [idx, stories.length, onClose]);
+  const goPrev  = () => {
+    elapsed.current = 0; setPct(0);
+    if (idx > 0) setIdx(p=>p-1);
+  };
+
+  // Progress timer
+  React.useEffect(() => {
+    if (paused) return;
+    const step = 16;
+    raf.current = setInterval(() => {
+      elapsed.current += step;
+      setPct(Math.min(100, (elapsed.current / DURATION) * 100));
+      if (elapsed.current >= DURATION) { elapsed.current = 0; setPct(0); goNext(); }
+    }, step);
+    return () => clearInterval(raf.current);
+  }, [idx, paused, goNext]);
+
+  // Touch swipe down to close
+  const touchStart = React.useRef(null);
+  const onTouchStart = e => { touchStart.current = { y: e.touches[0].clientY, x: e.touches[0].clientX }; };
+  const onTouchEnd   = e => {
+    if (!touchStart.current) return;
+    const dy = e.changedTouches[0].clientY - touchStart.current.y;
+    const dx = e.changedTouches[0].clientX - touchStart.current.x;
+    if (dy > 80 && Math.abs(dx) < 60) onClose?.();
+    touchStart.current = null;
+  };
+
+  if (!current) return null;
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9000, background:"#000",
+      display:"flex", flexDirection:"column" }}
+      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+
+      {/* Progress bars */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:2,
+        padding:"max(48px,env(safe-area-inset-top,48px)) 12px 0",
+        display:"flex", gap:4 }}>
+        {stories.map((_,i) => (
+          <div key={i} style={{ flex:1, height:3, borderRadius:2,
+            background:"rgba(255,255,255,0.3)", overflow:"hidden" }}>
+            <div style={{ height:"100%", borderRadius:2,
+              background:"white",
+              width: i < idx ? "100%" : i === idx ? `${pct}%` : "0%",
+              transition: i === idx ? "none" : "none" }}/>
+          </div>
+        ))}
+      </div>
+
+      {/* Header */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:3,
+        padding:"max(60px,env(safe-area-inset-top,60px)) 16px 12px",
+        display:"flex", alignItems:"center", gap:10,
+        background:"linear-gradient(to bottom,rgba(0,0,0,0.5),transparent)" }}>
+        <div style={{ width:38, height:38, borderRadius:"50%", overflow:"hidden",
+          border:"2px solid rgba(255,255,255,0.6)", flexShrink:0,
+          background:"rgba(255,255,255,0.1)" }}>
+          {current.avatar_url
+            ? <img src={current.avatar_url} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",
+                justifyContent:"center",color:"white",fontSize:16}}>✦</div>
+          }
+        </div>
+        <div>
+          <div style={{ color:"white", fontWeight:700, fontSize:14, lineHeight:1.2 }}>
+            {current.username || "HUI User"}
+          </div>
+          <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11 }}>
+            {current.created_at
+              ? new Date(current.created_at).toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"})
+              : ""}
+          </div>
+        </div>
+        <button onClick={onClose}
+          style={{ marginLeft:"auto", width:36, height:36, borderRadius:"50%",
+            background:"rgba(255,255,255,0.15)", border:"none", color:"white",
+            fontSize:20, cursor:"pointer", display:"flex", alignItems:"center",
+            justifyContent:"center", backdropFilter:"blur(8px)" }}>×</button>
+      </div>
+
+      {/* Media */}
+      <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+        position:"relative" }}>
+        {current.media_url
+          ? (current.media_type === "video"
+              ? <video src={current.media_url} autoPlay loop muted playsInline
+                  style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+              : <img src={current.media_url}
+                  style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)
+          : <div style={{ width:"100%", height:"100%",
+              background:"linear-gradient(135deg,#16D7C5,#A78BFA,#FF8A6B)" }}/>
+        }
+        {/* Caption */}
+        {current.caption && (
+          <div style={{ position:"absolute", bottom:80, left:20, right:20,
+            background:"rgba(0,0,0,0.5)", backdropFilter:"blur(12px)",
+            borderRadius:16, padding:"12px 16px",
+            color:"white", fontSize:15, fontWeight:500, lineHeight:1.5 }}>
+            {current.caption}
+          </div>
+        )}
+        {/* Tap zones */}
+        <div style={{ position:"absolute", left:0, top:0, width:"40%", height:"100%",
+          cursor:"pointer" }} onClick={goPrev}/>
+        <div style={{ position:"absolute", right:0, top:0, width:"60%", height:"100%",
+          cursor:"pointer" }}
+          onClick={goNext}
+          onPointerDown={()=>setPaused(true)}
+          onPointerUp={()=>setPaused(false)}/>
+      </div>
+    </div>
+  );
+}
+
+export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal, storyRefreshKey, onOpenComposer }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   // ── Echte Supabase-Daten ──────────────────────────────────────────
   const [dbWerke,   setDbWerke]   = useState([]);
   const [dbFeed,    setDbFeed]    = useState([]);
@@ -720,7 +1005,6 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
 
   return (
     <>
-      <StoryBar onRefreshKey={storyRefreshKey}/>
       <style>{CSS}</style>
       <div className="df-scroll"
         style={{ background:C.creamWarm, overflowY:"auto",
@@ -812,12 +1096,22 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           </button>
         </div>
 
-        {/* ══ 1b. STORY STRIP ═══════════════════════════════════════ */}
-        <HuiStories
-          onOpenProfile={() => {}}
-          onOpenWerk={() => {}}
-          onOpenImpact={onImpact}
-        />
+        {/* ══ 1b. MOMENTE ═══════════════════════════════════════════ */}
+        <div style={{ padding:"16px 0 8px" }}>
+          <div style={{ padding:"0 20px 8px",
+            display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <span style={{ fontSize:13, fontWeight:700, color:"#1A1A1A",
+              letterSpacing:0.2 }}>Momente</span>
+            <span style={{ fontSize:11, color:"#16D7C5", fontWeight:600 }}>
+              24h Stories
+            </span>
+          </div>
+          <MomenteBar
+            user={user}
+            refreshKey={storyRefreshKey}
+            onOpenComposer={onOpenComposer}
+          />
+        </div>
 
         {/* ══ 2. WIRKER GRID ════════════════════════════════════════ */}
         <SectionHeader
