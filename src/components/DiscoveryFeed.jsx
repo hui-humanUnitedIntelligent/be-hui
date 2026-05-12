@@ -785,15 +785,15 @@ function MomenteAvatar({ label, avatar, isOwn, hasStory, onTap, animDelay=0 }) {
             style={{ position:"absolute", top:-4, left:-4,
               animation:"dfRingPulse 3s ease-in-out infinite" }}>
             <defs>
-              <linearGradient id={`rg_${label}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%"   stopColor={TEAL}/>
+              <linearGradient id="huiRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stopColor="#16D7C5"/>
                 <stop offset="50%"  stopColor="#A78BFA"/>
-                <stop offset="100%" stopColor={CORAL}/>
+                <stop offset="100%" stopColor="#FF8A6B"/>
               </linearGradient>
             </defs>
             <circle cx="36" cy="36" r="33"
               fill="none"
-              stroke={`url(#rg_${label})`}
+              stroke="url(#huiRingGrad)"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeDasharray="4 2.5"
@@ -808,7 +808,7 @@ function MomenteAvatar({ label, avatar, isOwn, hasStory, onTap, animDelay=0 }) {
             style={{ position:"absolute", top:-4, left:-4 }}>
             <circle cx="36" cy="36" r="33"
               fill="none"
-              stroke={`${TEAL}60`}
+              stroke="rgba(22,215,197,0.38)"
               strokeWidth="1.8"
               strokeDasharray="5 4"
               strokeLinecap="round"
