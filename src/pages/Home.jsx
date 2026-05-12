@@ -21,6 +21,9 @@ import DiscoverPage   from "./DiscoverPage";
 import ChatPage from "../components/ChatPage";
 import NotificationCenter from "../components/NotificationCenter";
 import { useNotifCount } from "../components/NotificationCenter";
+import HuiMembershipFlow from "../components/HuiMembershipFlow";
+import HuiPlusSheet from "../components/HuiPlusSheet";
+import UniversalPostFlow from "../components/UniversalPostFlow";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1241,6 +1244,11 @@ export default function Home() {
   const liveNotifCount = useNotifCount();
   const [userName,    setUserName]    = useState("");
   const [currentUser, setCurrentUser] = useState(null);
+  // ── New simplified flows ──
+  const [showMembership,    setShowMembership]    = useState(false);
+  const [showPlusSheet,     setShowPlusSheet]      = useState(false);
+  const [showUniversalPost, setShowUniversalPost]  = useState(null);
+  const [hasTalentMode,     setHasTalentMode]      = useState(false);
 
   useEffect(()=>{
     supabase.auth.getSession().then(async ({data:{session}})=>{
@@ -1250,6 +1258,13 @@ export default function Home() {
         session.user.user_metadata?.full_name ||
         session.user.email?.split("@")[0] || ""
       );
+      // Load talent mode status
+      const { data:prof } = await supabase
+        .from("profiles")
+        .select("has_talent_profile")
+        .eq("id", session.user.id)
+        .single();
+      if (prof?.has_talent_profile) setHasTalentMode(true);
     });
     // Sync isWirker from AuthContext (authoritative source)
   },[]);
@@ -1342,10 +1357,10 @@ export default function Home() {
         </div>
 
         <BottomNav tab={tab} onTab={setTab}
-          hasTalent={isWirker || hasTalentProfile}
+          hasTalent={hasTalentMode}
           onCreate={()=>{
-            if(isWirker || hasTalentProfile) setShowCreateSheet(true);
-            else setShowTalentFlow(true);
+            if(hasTalentMode) setShowPlusSheet(true);
+            else setShowMembership(true);
           }}/>
 
         {/* Overlays */}
@@ -1427,6 +1442,39 @@ export default function Home() {
         <NotificationCenter
           onClose={() => setShowNotifs(false)}
           onNavigate={(url) => { setShowNotifs(false); }}
+        />
+      )}
+
+      {/* ── HUI Membership Flow (neues Onboarding) ── */}
+      {showMembership && (
+        <HuiMembershipFlow
+          onClose={() => setShowMembership(false)}
+          onComplete={() => {
+            setHasTalentMode(true);
+            setShowMembership(false);
+          }}
+        />
+      )}
+
+      {/* ── Plus Sheet (Talent-Modus aktiv) ── */}
+      {showPlusSheet && (
+        <HuiPlusSheet
+          onClose={() => setShowPlusSheet(false)}
+          onSelect={(type) => {
+            setShowPlusSheet(false);
+            setShowUniversalPost(type);
+          }}
+        />
+      )}
+
+      {/* ── Universal Post Flow ── */}
+      {showUniversalPost && (
+        <UniversalPostFlow
+          onClose={() => setShowUniversalPost(null)}
+          onSuccess={() => {
+            setShowUniversalPost(null);
+            setStoryRefreshKey(p => p + 1);
+          }}
         />
       )}
     </>
