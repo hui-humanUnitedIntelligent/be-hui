@@ -448,16 +448,16 @@ function NavIcon({ k, active }) {
 /* ─── BOTTOM NAV — floating pill, premium ─── */
 function BottomNav({ tab, onTab, onCreate, hasTalent }) {
   const [pressed, setPressed] = useState(null);
-  const [transformed, setTransformed] = useState(false);
+  // Start transformed=true immediately if hasTalent is already known on mount
+  const [transformed, setTransformed] = useState(() => hasTalent);
 
-  // Trigger the "magic moment" transformation animation
   useEffect(() => {
-    if(hasTalent) {
+    if (hasTalent) {
+      // Small delay only for first-time activation animation
       const t = setTimeout(() => setTransformed(true), 50);
       return () => clearTimeout(t);
-    } else {
-      setTransformed(false);
     }
+    // Never set false automatically — only if explicitly not a talent
   }, [hasTalent]);
 
   return (
