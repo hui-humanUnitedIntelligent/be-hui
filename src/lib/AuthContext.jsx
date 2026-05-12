@@ -24,6 +24,12 @@ export function AuthProvider({ children }) {
 
       if (prof) {
         setProfile(prof);
+        // Mirror to localStorage for instant-read on next load (no flash)
+        if (prof.has_talent_profile) {
+          localStorage.setItem("hui_talent", "1");
+        } else {
+          localStorage.removeItem("hui_talent");
+        }
 
         // Wirker profile (if wirker)
         if (prof.is_wirker) {
@@ -87,7 +93,10 @@ export function AuthProvider({ children }) {
       .upsert({ id: user.id, ...updates, updated_at: new Date().toISOString() })
       .select()
       .single();
-    if (data) setProfile(data);
+    if (data) {
+      setProfile(data);
+      localStorage.setItem("hui_talent", "1");
+    }
     return { data, error };
   }, [user]);
 
@@ -153,7 +162,10 @@ export function AuthProvider({ children }) {
       .eq("id", user.id)
       .select()
       .single();
-    if (data) setProfile(data);
+    if (data) {
+      setProfile(data);
+      localStorage.setItem("hui_talent", "1");
+    }
     return { data, error };
   }, [user]);
 
@@ -180,6 +192,8 @@ export function AuthProvider({ children }) {
     setWirkerProfile(null);
     setIsAuthenticated(false);
     localStorage.removeItem("hui_is_wirker");
+    // Note: we do NOT remove hui_talent on sign out — it belongs to the account,
+    // cleared only when profile reloads and has_talent_profile is false.
   }, []);
 
   const isWirker = profile?.has_talent_profile || profile?.is_wirker || false;
