@@ -1207,7 +1207,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 ═══════════════════════════════════════════════════ */
 export default function Home() {
   const [tab,         setTab]         = useState("feed");
-  const { isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, profile: authProfile, signOut: authSignOut } = useAuth();
+  const { isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, loadingProfile, profile: authProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
   const [showTalentFlow, setShowTalentFlow] = useState(false); // "Wirker werden" flow
   const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
@@ -1246,7 +1246,11 @@ export default function Home() {
   // ── New simplified flows ──
   const [showMembership,  setShowMembership]  = useState(false);
   const [showCreateFlow,  setShowCreateFlow]  = useState(false);
-  // hasTalentProfile → replaced by hasTalentProfile from AuthContext (server source-of-truth)
+  // hasTalentProfile → from AuthContext (Supabase source-of-truth)
+  // localStorage provides instant value on first render to prevent button flash
+  const instantTalent = localStorage.getItem("hui_talent") === "1";
+  // Derived: true as soon as either instant cache OR server confirms it
+  const isTalent = hasTalentProfile || instantTalent;
 
   useEffect(()=>{
     supabase.auth.getSession().then(async ({data:{session}})=>{
@@ -1349,9 +1353,9 @@ export default function Home() {
         </div>
 
         <BottomNav tab={tab} onTab={setTab}
-          hasTalent={hasTalentProfile}
+          hasTalent={isTalent}
           onCreate={()=>{
-            if(hasTalentProfile) setShowCreateFlow(true);
+            if(isTalent) setShowCreateFlow(true);
             else setShowMembership(true);
           }}/>
 
