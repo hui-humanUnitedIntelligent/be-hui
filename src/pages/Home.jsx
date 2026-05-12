@@ -453,11 +453,10 @@ function BottomNav({ tab, onTab, onCreate, hasTalent }) {
 
   useEffect(() => {
     if (hasTalent) {
-      // Small delay only for first-time activation animation
       const t = setTimeout(() => setTransformed(true), 50);
       return () => clearTimeout(t);
     }
-    // Never set false automatically — only if explicitly not a talent
+    // Never reset to false — button can only go Plus→HUI through explicit cancellation
   }, [hasTalent]);
 
   return (
@@ -1254,10 +1253,21 @@ export default function Home() {
   );
   useEffect(() => {
     if (hasTalentProfile) {
+      // Supabase confirmed talent → lock it in
       localStorage.setItem("hui_talent", "1");
       setIsTalent(true);
     }
+    // IMPORTANT: we never call setIsTalent(false) here.
+    // Only explicit user cancellation should do that.
   }, [hasTalentProfile]);
+
+  // Safety net: re-read localStorage on every mount
+  // (handles edge case where useState() ran before localStorage was set)
+  useEffect(() => {
+    if (localStorage.getItem("hui_talent") === "1") {
+      setIsTalent(true);
+    }
+  }, []);
 
   useEffect(()=>{
     supabase.auth.getSession().then(async ({data:{session}})=>{
