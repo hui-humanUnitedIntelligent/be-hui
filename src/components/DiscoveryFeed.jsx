@@ -1088,7 +1088,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       // 1. Works laden mit Pagination
       const { data: worksData, error: worksErr } = await supabase
         .from("works")
-        .select("id, title, description, price, cover_url, images, category, status, created_at, user_id")
+        .select("id, title, description, price, cover_url, media_url, images, category, status, created_at, user_id")
         .eq("status", "published")
         .order("created_at", { ascending: false })
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
