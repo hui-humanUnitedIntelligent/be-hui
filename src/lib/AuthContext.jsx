@@ -24,12 +24,14 @@ export function AuthProvider({ children }) {
 
       if (prof) {
         setProfile(prof);
-        // Mirror to localStorage for instant-read on next load (no flash)
+        // Mirror to localStorage — only SET, never remove automatically.
+        // Removal only happens when user explicitly cancels their membership.
         if (prof.has_talent_profile) {
           localStorage.setItem("hui_talent", "1");
-        } else {
-          localStorage.removeItem("hui_talent");
         }
+        // NOTE: we intentionally do NOT remove "hui_talent" here.
+        // If Supabase returns false, it could be a timing/cache issue.
+        // The source of truth is Supabase — but we don't punish the user for it.
 
         // Wirker profile (if wirker)
         if (prof.is_wirker) {
