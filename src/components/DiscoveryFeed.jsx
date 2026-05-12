@@ -1031,6 +1031,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     category:        w.category     || "Kunst",
     bio:             w.description  || "",
     img: w.cover_url
+      || w.media_url
       || (Array.isArray(w.images) && w.images.length > 0 ? w.images[0] : null)
       || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=90",
     _raw: w,
