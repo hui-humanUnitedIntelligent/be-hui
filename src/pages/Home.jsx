@@ -1247,10 +1247,17 @@ export default function Home() {
   const [showMembership,  setShowMembership]  = useState(false);
   const [showCreateFlow,  setShowCreateFlow]  = useState(false);
   // hasTalentProfile → from AuthContext (Supabase source-of-truth)
-  // localStorage provides instant value on first render to prevent button flash
-  const instantTalent = localStorage.getItem("hui_talent") === "1";
-  // Derived: true as soon as either instant cache OR server confirms it
-  const isTalent = hasTalentProfile || instantTalent;
+  // isTalent is a real useState — seeds from localStorage instantly,
+  // syncs with AuthContext as soon as profile loads
+  const [isTalent, setIsTalent] = useState(
+    () => localStorage.getItem("hui_talent") === "1"
+  );
+  useEffect(() => {
+    if (hasTalentProfile) {
+      localStorage.setItem("hui_talent", "1");
+      setIsTalent(true);
+    }
+  }, [hasTalentProfile]);
 
   useEffect(()=>{
     supabase.auth.getSession().then(async ({data:{session}})=>{
@@ -1446,8 +1453,12 @@ export default function Home() {
         <HuiMembershipFlow
           onClose={() => setShowMembership(false)}
           onComplete={async () => {
-            await activateTalentProfile();
+            // Show Plus-Button immediately (optimistic update)
+            setIsTalent(true);
+            localStorage.setItem("hui_talent", "1");
             setShowMembership(false);
+            // Then persist to Supabase in background
+            activateTalentProfile();
           }}
         />
       )}
