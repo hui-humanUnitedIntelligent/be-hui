@@ -118,6 +118,7 @@ const CSS = `
   .ip-scroll { -ms-overflow-style:none; scrollbar-width:none; }
   .ip-tap { transition:transform 0.2s cubic-bezier(0.34,1.4,0.64,1); }
   .ip-tap:active { transform:scale(0.965); }
+  @keyframes spin { to { transform:rotate(360deg); } }
 `;
 
 /* ─── Helpers ───────────────────────────────── */
@@ -570,7 +571,7 @@ export default function ImpactPage({ currentUser }) {
               </div>
               <div style={{ fontSize:12, color:C.teal,
                 fontWeight:600, marginTop:3 }}>
-                ↑ € {new Intl.NumberFormat('de-DE').format(weeklyInflow)} diese Woche
+                ↑ € {weeklyInflow.toLocaleString('de-DE', {minimumFractionDigits:0})} diese Woche
               </div>
             </div>
           </div>
