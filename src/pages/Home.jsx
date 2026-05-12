@@ -1207,7 +1207,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 ═══════════════════════════════════════════════════ */
 export default function Home() {
   const [tab,         setTab]         = useState("feed");
-  const { isWirker: authIsWirker, hasTalentProfile, profile: authProfile, signOut: authSignOut } = useAuth();
+  const { isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, profile: authProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
   const [showTalentFlow, setShowTalentFlow] = useState(false); // "Wirker werden" flow
   const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
@@ -1246,7 +1246,7 @@ export default function Home() {
   // ── New simplified flows ──
   const [showMembership,  setShowMembership]  = useState(false);
   const [showCreateFlow,  setShowCreateFlow]  = useState(false);
-  const [hasTalentMode,   setHasTalentMode]   = useState(false);
+  // hasTalentProfile → replaced by hasTalentProfile from AuthContext (server source-of-truth)
 
   useEffect(()=>{
     supabase.auth.getSession().then(async ({data:{session}})=>{
@@ -1256,13 +1256,7 @@ export default function Home() {
         session.user.user_metadata?.full_name ||
         session.user.email?.split("@")[0] || ""
       );
-      // Load talent mode status
-      const { data:prof } = await supabase
-        .from("profiles")
-        .select("has_talent_profile")
-        .eq("id", session.user.id)
-        .single();
-      if (prof?.has_talent_profile) setHasTalentMode(true);
+      // Talent status is handled by AuthContext — loads on every session restore
     });
     // Sync isWirker from AuthContext (authoritative source)
   },[]);
@@ -1355,9 +1349,9 @@ export default function Home() {
         </div>
 
         <BottomNav tab={tab} onTab={setTab}
-          hasTalent={hasTalentMode}
+          hasTalent={hasTalentProfile}
           onCreate={()=>{
-            if(hasTalentMode) setShowCreateFlow(true);
+            if(hasTalentProfile) setShowCreateFlow(true);
             else setShowMembership(true);
           }}/>
 
