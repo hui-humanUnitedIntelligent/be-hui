@@ -141,6 +141,22 @@ export function AuthProvider({ children }) {
     return { data, error };
   }, [user, wirkerProfile]);
 
+  // ── Activate Talent (HUI Membership) — persists forever in Supabase ──
+  const activateTalentProfile = useCallback(async () => {
+    if (!user) return { error: "Nicht eingeloggt" };
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({
+        has_talent_profile: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id)
+      .select()
+      .single();
+    if (data) setProfile(data);
+    return { data, error };
+  }, [user]);
+
   // ── Sign up ──────────────────────────────────────────────────────────
   const signUp = useCallback(async (email, password, fullName) => {
     const { data, error } = await supabase.auth.signUp({
@@ -190,6 +206,7 @@ export function AuthProvider({ children }) {
       saveProfile,
       becomeWirker,
       saveWirkerProfile,
+      activateTalentProfile,
       setProfile,
       setWirkerProfile,
     }}>
