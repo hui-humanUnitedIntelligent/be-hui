@@ -1441,8 +1441,8 @@ export default function Home() {
       {showMembership && (
         <HuiMembershipFlow
           onClose={() => setShowMembership(false)}
-          onComplete={() => {
-            setHasTalentMode(true);
+          onComplete={async () => {
+            await activateTalentProfile();
             setShowMembership(false);
           }}
         />
