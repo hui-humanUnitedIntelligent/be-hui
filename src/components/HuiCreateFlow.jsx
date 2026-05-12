@@ -1090,6 +1090,7 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
         const w = payload.werkData;
         const { error:e } = await supabase.from("works").insert({
           ...base,
+          cover_url:         publicUrl,   // same image — used by DiscoveryFeed
           title:             w.title || "Mein Werk",
           description:       w.desc,
           price:             w.price,
