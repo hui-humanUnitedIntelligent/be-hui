@@ -2,7 +2,6 @@
 // Cinematic cards, echte Bilder, voller Bildschirm
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
@@ -146,13 +145,8 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     if (!canFinish || loading) return;
     setLoading(true); setError("");
     try {
-      if (user?.id) {
-        const { error: e } = await supabase
-          .from("profiles")
-          .update({ has_talent_profile: true, updated_at: new Date().toISOString() })
-          .eq("id", user.id);
-        if (e) console.warn("[HuiMembership] profile update:", e.message);
-      }
+      // Delegate to parent — activateTalentProfile() in AuthContext
+      // writes has_talent_profile=true to Supabase AND updates in-memory profile
       setDone(true);
       setTimeout(() => onComplete?.(), 2200);
     } catch(err) {
