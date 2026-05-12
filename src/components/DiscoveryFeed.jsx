@@ -615,7 +615,7 @@ function ImpactCard({ item, onImpact }) {
         <div style={{ marginBottom:20 }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
             <span style={{ fontWeight:800, fontSize:14, color:C.green }}>
-              € {new Intl.NumberFormat("de-DE").format(item.raised)}
+              € {Number(item.raised).toLocaleString("de-DE")}
             </span>
             <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.50)" }}>
               {pct}% erreicht
