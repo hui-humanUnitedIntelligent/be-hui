@@ -368,7 +368,7 @@ const NAV = [
   {key:"impact",   label:"Impact"},
   null,
   {key:"discover", label:"Entdecken"},
-  {key:"profile",  label:"Profil"},
+  {key:"profile",  label:"Mein HUI"},
 ];
 
 /* ─── NAV ICONS — custom, characterful, HUI-native ─── */
