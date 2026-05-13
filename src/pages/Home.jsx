@@ -1646,13 +1646,13 @@ export default function Home() {
       {showMembership && (
         <HuiMembershipFlow
           onClose={() => setShowMembership(false)}
-          onComplete={async () => {
+          onComplete={async (focusType) => {
             // Show Plus-Button immediately (optimistic update)
             setIsTalent(true);
             localStorage.setItem("hui_talent", "1");
             setShowMembership(false);
-            // Then persist to Supabase in background
-            activateTalentProfile();
+            // Persist to Supabase — including focus_type
+            activateTalentProfile(focusType || "hybrid");
           }}
         />
       )}
