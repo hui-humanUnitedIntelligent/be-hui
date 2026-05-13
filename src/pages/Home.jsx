@@ -1201,6 +1201,170 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
    DISCOVER PAGE
 ═══════════════════════════════════════════════════ */
 
+
+/* ═══════════════════════════════════════════════════
+   RIGHT ACTION BAR — Floating Quick Actions
+   Only visible on Feed tab. Glassmorphism, HUI style.
+═══════════════════════════════════════════════════ */
+const GLOBAL_RIGHT_BAR_CSS = `
+  @keyframes hui-bar-in {
+    from { opacity:0; transform:translateX(24px) scale(0.9); }
+    to   { opacity:1; transform:translateX(0)    scale(1);   }
+  }
+  @keyframes hui-badge-pulse {
+    0%,100% { transform:scale(1); }
+    50%      { transform:scale(1.25); }
+  }
+  .hui-rab-btn {
+    position:relative;
+    width:44px; height:44px;
+    border-radius:50%;
+    border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.72);
+    backdrop-filter:blur(20px) saturate(1.6);
+    -webkit-backdrop-filter:blur(20px) saturate(1.6);
+    box-shadow:
+      0 2px 8px rgba(0,0,0,0.08),
+      0 1px 0 rgba(255,255,255,0.9) inset;
+    transition: transform 0.22s cubic-bezier(0.34,1.5,0.64,1),
+                box-shadow 0.22s ease,
+                background 0.18s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .hui-rab-btn:active {
+    transform:scale(0.88) !important;
+    box-shadow:0 1px 4px rgba(0,0,0,0.10) !important;
+  }
+  .hui-rab-btn:hover {
+    transform:scale(1.08);
+    box-shadow:
+      0 4px 16px rgba(22,215,197,0.22),
+      0 1px 0 rgba(255,255,255,0.9) inset;
+  }
+  .hui-rab-badge {
+    position:absolute;
+    top:1px; right:1px;
+    min-width:16px; height:16px;
+    padding:0 4px;
+    border-radius:8px;
+    background:linear-gradient(135deg,#FF6B6B,#FF8A6B);
+    color:#fff;
+    font-size:9px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px solid #fff;
+    animation:hui-badge-pulse 2.4s ease-in-out infinite;
+    pointer-events:none;
+  }
+`;
+
+function RightActionBar({ onChat, onStory, onNotifs, onProfile,
+                          msgCount=0, notifCount=0, avatarUrl=null, visible=true }) {
+  const [scrolled, setScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = document.querySelector(".hui-scroll");
+    if (!el) return;
+    const handler = () => setScrolled(el.scrollTop > 60);
+    el.addEventListener("scroll", handler, { passive:true });
+    return () => el.removeEventListener("scroll", handler);
+  }, []);
+
+  if (!visible) return null;
+
+  const scale = scrolled ? 0.88 : 1;
+
+  const btnStyle = (accentColor) => ({
+    background: accentColor
+      ? `linear-gradient(145deg, rgba(255,255,255,0.82), rgba(255,255,255,0.60))`
+      : undefined,
+  });
+
+  return (
+    <>
+      <style>{GLOBAL_RIGHT_BAR_CSS}</style>
+      <div style={{
+        position:"fixed",
+        right:14,
+        top:"50%",
+        transform:`translateY(-50%) scale(${scale})`,
+        transformOrigin:"right center",
+        transition:"transform 0.45s cubic-bezier(0.34,1.3,0.64,1)",
+        zIndex:90,
+        display:"flex",
+        flexDirection:"column",
+        gap:10,
+        animation:"hui-bar-in 0.55s cubic-bezier(0.34,1.3,0.64,1) both",
+      }}>
+
+        {/* ── Messages ── */}
+        <button className="hui-rab-btn" onClick={onChat}
+          title="Nachrichten" aria-label="Nachrichten öffnen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          {msgCount > 0 && (
+            <span className="hui-rab-badge">{msgCount > 9 ? "9+" : msgCount}</span>
+          )}
+        </button>
+
+        {/* ── Quick Story ── */}
+        <button className="hui-rab-btn" onClick={onStory}
+          title="Story erstellen" aria-label="Schnelle Story erstellen"
+          style={{
+            background:"linear-gradient(145deg, rgba(22,215,197,0.15), rgba(255,138,107,0.10))",
+          }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="url(#rab-grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <defs>
+              <linearGradient id="rab-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stopColor={C.teal}/>
+                <stop offset="100%" stopColor={C.coral}/>
+              </linearGradient>
+            </defs>
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8"  y1="12" x2="16" y2="12"/>
+          </svg>
+        </button>
+
+        {/* ── Notifications ── */}
+        <button className="hui-rab-btn" onClick={onNotifs}
+          title="Benachrichtigungen" aria-label="Benachrichtigungen">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none"
+            stroke={C.ink2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          {notifCount > 0 && (
+            <span className="hui-rab-badge">{notifCount > 9 ? "9+" : notifCount}</span>
+          )}
+        </button>
+
+        {/* ── My Profile (public view) ── */}
+        <button className="hui-rab-btn" onClick={onProfile}
+          title="Mein Profil ansehen" aria-label="Profil ansehen"
+          style={{ overflow:"hidden", padding:0 }}>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Profil"
+              style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}
+              onError={e => { e.target.style.display="none"; }}
+            />
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke={C.ink2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          )}
+        </button>
+
+      </div>
+    </>
+  );
+}
+
 /* ═══════════════════════════════════════════════════
    ROOT
 ═══════════════════════════════════════════════════ */
@@ -1375,6 +1539,19 @@ export default function Home() {
             if(isTalent) setShowCreateFlow(true);
             else setShowMembership(true);
           }}/>
+
+        {/* ── RIGHT ACTION BAR ── only on Feed tab ── */}
+        {tab === "feed" && (
+          <RightActionBar
+            onChat={()=>setShowChat(true)}
+            onStory={()=>setShowStoryComposer(true)}
+            onNotifs={()=>setShowNotifs(true)}
+            onProfile={()=>setTab("profile")}
+            msgCount={0}
+            notifCount={liveNotifCount}
+            avatarUrl={authProfile?.avatar_url || null}
+          />
+        )}
 
         {/* Overlays */}
         {showMap && <LiveMapPage onView={w=>{setShowWirker(w);setShowMap(false);}} onMatch={()=>{setShowMap(false);setShowMatch(true);}} onClose={()=>setShowMap(false)} fullscreen={true}/>}
