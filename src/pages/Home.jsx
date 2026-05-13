@@ -14,6 +14,7 @@ import ExperienceCreator  from "../components/ExperienceCreator";
 import QuickCreateSheet   from "../components/QuickCreateSheet";
 import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
+import HuiSearchBar   from "../components/HuiSearchBar";
 import LiveMapPage    from "./LiveMapPage";
 import DiscoveryFeed  from "../components/DiscoveryFeed";
 import { StoryBar, StoryViewer } from "../components/StoryBar";
@@ -870,84 +871,11 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
             Entdecke Menschen, Werke und Erlebnisse.
           </div>
 
-          {/* Search pill + Map icon */}
-          <div style={{ display:"flex", gap:10, marginBottom:12,
-            alignItems:"center" }}>
-            <div style={{ position:"relative", flex:1 }}>
-              <span style={{ position:"absolute", left:16, top:"50%",
-                transform:"translateY(-50%)", fontSize:14,
-                color:C.muted2, pointerEvents:"none" }}>🔍</span>
-              <input
-                style={{ width:"100%", background:"rgba(255,255,255,0.88)",
-                  backdropFilter:"blur(12px)",
-                  border:"1.5px solid rgba(0,0,0,0.06)",
-                  borderRadius:999, padding:"13px 18px 13px 42px",
-                  fontSize:14, color:C.ink, outline:"none",
-                  fontFamily:"inherit", boxSizing:"border-box",
-                  boxShadow:"0 2px 16px rgba(0,0,0,0.06)",
-                  transition:"border-color 0.2s, box-shadow 0.2s" }}
-                placeholder="Wen oder was suchst du heute?"
-                readOnly onFocus={onMatch}
-                onMouseEnter={e=>e.target.style.borderColor=C.teal}
-                onMouseLeave={e=>e.target.style.borderColor="rgba(0,0,0,0.06)"}
-              />
-            </div>
-            {/* Map icon button */}
-            <button onClick={onMap}
-              style={{ width:48, height:48, flexShrink:0,
-                borderRadius:16,
-                background:`linear-gradient(135deg,${C.teal}22,${C.coral}14)`,
-                border:`1.5px solid ${C.teal}40`,
-                cursor:"pointer",
-                display:"flex", alignItems:"center",
-                justifyContent:"center",
-                boxShadow:`0 2px 14px ${C.tealGlow}`,
-                WebkitTapHighlightColor:"transparent",
-                transition:"transform 0.18s cubic-bezier(0.34,1.4,0.64,1)" }}>
-              <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-                    <defs>
-                      <radialGradient id="pg" cx="38%" cy="34%" r="62%">
-                        <stop offset="0%" stopColor="#3DECD8"/>
-                        <stop offset="55%" stopColor="#16D7C5"/>
-                        <stop offset="100%" stopColor="#0FA898"/>
-                      </radialGradient>
-                      <radialGradient id="pg2" cx="62%" cy="66%" r="50%">
-                        <stop offset="0%" stopColor="#FF8A6B" stopOpacity="0.35"/>
-                        <stop offset="100%" stopColor="#FF8A6B" stopOpacity="0"/>
-                      </radialGradient>
-                    </defs>
-                    <circle cx="16" cy="16" r="9" fill="url(#pg)"/>
-                    <circle cx="16" cy="16" r="9" fill="url(#pg2)"/>
-                    <circle cx="13" cy="12" r="2.8" fill="white" fillOpacity="0.22"/>
-                    <ellipse cx="16" cy="16" rx="14" ry="5.5"
-                      stroke="rgba(22,215,197,0.55)" strokeWidth="1.4" fill="none"
-                      transform="rotate(-28 16 16)"/>
-                    <circle cx="3.5" cy="13.8" r="1.6" fill="#FF8A6B" opacity="0.9"/>
-                    <circle cx="28.8" cy="17.5" r="1.2" fill="#16D7C5" opacity="0.85"/>
-                    <circle cx="16" cy="4.5" r="1.0" fill="white" opacity="0.7"/>
-                    <line x1="7.2" y1="14.5" x2="4.8" y2="14.2"
-                      stroke="rgba(255,138,107,0.45)" strokeWidth="0.8" strokeLinecap="round"/>
-                    <line x1="24.6" y1="17.1" x2="27.4" y2="17.3"
-                      stroke="rgba(22,215,197,0.45)" strokeWidth="0.8" strokeLinecap="round"/>
-                  </svg>
-            </button>
-          </div>
-
-          {/* HUI Match — warm gradient pill */}
-          <button onClick={onMatch}
-            style={{ width:"100%", padding:"13px 20px",
-              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-              border:"none", borderRadius:999,
-              color:"white", fontSize:15, fontWeight:800,
-              cursor:"pointer", fontFamily:"inherit",
-              display:"flex", alignItems:"center",
-              justifyContent:"center", gap:8,
-              boxShadow:`0 4px 20px ${C.tealGlow}, 0 2px 8px rgba(255,138,107,0.2)`,
-              WebkitTapHighlightColor:"transparent",
-              letterSpacing:0.1 }}>
-            <span>✨</span>
-            <span>HUI Match</span>
-          </button>
+          {/* ── HUI Smart Search + Match ── */}
+          <HuiSearchBar
+            onMatchClick={onMatch}
+            onKarteClick={onMap}
+          />
         </div>
       </div>
 
