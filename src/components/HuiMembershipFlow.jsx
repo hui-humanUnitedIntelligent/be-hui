@@ -292,7 +292,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
 
         {/* Tag badge */}
         <div key={`tag-${animKey}`} style={{
-          position:"absolute", bottom: isLastCard ? 430 : 290, left:24, zIndex:10,
+          position:"absolute", bottom: isLastCard ? 430 : card.isFocusStep ? 390 : 290, left:24, zIndex:10,
           display:"inline-flex", alignItems:"center", gap:6,
           padding:"6px 12px",
           background:"rgba(255,255,255,0.12)",
@@ -317,7 +317,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
 
         {/* Main text block */}
         <div key={`text-${animKey}`} style={{
-          position:"absolute", bottom: isLastCard ? 280 : 140, left:0, right:0,
+          position:"absolute", bottom: isLastCard ? 280 : card.isFocusStep ? 240 : 140, left:0, right:0,
           zIndex:10, padding:"0 24px",
           animation:"hmfSlideUp 0.5s 0.08s cubic-bezier(0.34,1.2,0.64,1) both",
         }}>
@@ -338,7 +338,62 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
           </p>
         </div>
 
-        {/* Checkboxes (only step 3) */}
+        {/* ── FOCUS SELECTOR — step 3 (isFocusStep) ── */}
+        {card.isFocusStep && (
+          <div key={`focus-${animKey}`} style={{
+            position:"absolute", bottom:100, left:0, right:0,
+            zIndex:10, padding:"0 22px",
+            display:"flex", flexDirection:"column", gap:10,
+            animation:"hmfSlideUp 0.45s 0.15s cubic-bezier(0.34,1.2,0.64,1) both",
+          }}>
+            {[
+              { key:"works",       icon:"🎨", label:"Ich erschaffe Werke",   sub:"Gemälde, Musik, Fotos, Objekte…" },
+              { key:"experiences", icon:"✨", label:"Ich begleite Menschen", sub:"Kurse, Events, Sessions, Reisen…" },
+              { key:"hybrid",      icon:"⚡", label:"Beides gleich",          sub:"Kreativ & präsent" },
+            ].map(opt => (
+              <button key={opt.key}
+                onClick={() => setFocusType(opt.key)}
+                style={{
+                  display:"flex", alignItems:"center", gap:14,
+                  background: focusType === opt.key
+                    ? "rgba(245,166,35,0.22)"
+                    : "rgba(255,255,255,0.08)",
+                  backdropFilter:"blur(12px)",
+                  WebkitBackdropFilter:"blur(12px)",
+                  border:`1.5px solid ${focusType === opt.key
+                    ? "rgba(245,166,35,0.6)"
+                    : "rgba(255,255,255,0.15)"}`,
+                  borderRadius:16, padding:"12px 16px",
+                  cursor:"pointer", fontFamily:"inherit",
+                  textAlign:"left", width:"100%",
+                  transition:"all 0.22s cubic-bezier(0.34,1.2,0.64,1)",
+                  WebkitTapHighlightColor:"transparent",
+                }}>
+                {/* Radio circle */}
+                <div style={{
+                  width:22, height:22, borderRadius:"50%", flexShrink:0,
+                  border:`2px solid ${focusType === opt.key ? "#F5A623" : "rgba(255,255,255,0.35)"}`,
+                  background: focusType === opt.key
+                    ? "linear-gradient(135deg,#F5A623,#FF8A6B)"
+                    : "transparent",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  transition:"all 0.2s",
+                }}>
+                  {focusType === opt.key && (
+                    <div style={{ width:8, height:8, borderRadius:"50%", background:"white" }}/>
+                  )}
+                </div>
+                <span style={{ fontSize:18, flexShrink:0 }}>{opt.icon}</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:15, fontWeight:700, color:"white" }}>{opt.label}</div>
+                  <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginTop:1 }}>{opt.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Checkboxes (only last step) */}
         {isLastCard && (
           <div key="checks" style={{
             position:"absolute", bottom:195, left:0, right:0,
