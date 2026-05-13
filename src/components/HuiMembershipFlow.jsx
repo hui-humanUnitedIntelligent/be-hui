@@ -292,7 +292,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
 
         {/* Tag badge */}
         <div key={`tag-${animKey}`} style={{
-          position:"absolute", bottom: isLastCard ? 430 : card.isFocusStep ? 390 : 290, left:24, zIndex:10,
+          position:"absolute", bottom: isLastCard ? 430 : card.isFocusStep ? 460 : 290, left:24, zIndex:10,
           display:"inline-flex", alignItems:"center", gap:6,
           padding:"6px 12px",
           background:"rgba(255,255,255,0.12)",
@@ -317,7 +317,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
 
         {/* Main text block */}
         <div key={`text-${animKey}`} style={{
-          position:"absolute", bottom: isLastCard ? 280 : card.isFocusStep ? 240 : 140, left:0, right:0,
+          position:"absolute", bottom: isLastCard ? 280 : card.isFocusStep ? 330 : 140, left:0, right:0,
           zIndex:10, padding:"0 24px",
           animation:"hmfSlideUp 0.5s 0.08s cubic-bezier(0.34,1.2,0.64,1) both",
         }}>
@@ -330,20 +330,22 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
           }}>
             {card.title}
           </h1>
-          <p style={{
-            fontSize:15.5, color:"rgba(255,255,255,0.72)",
-            lineHeight:1.65, margin:0, maxWidth:320,
-          }}>
-            {card.sub}
-          </p>
+          {!card.isFocusStep && (
+            <p style={{
+              fontSize:15.5, color:"rgba(255,255,255,0.72)",
+              lineHeight:1.65, margin:0, maxWidth:320,
+            }}>
+              {card.sub}
+            </p>
+          )}
         </div>
 
         {/* ── FOCUS SELECTOR — step 3 (isFocusStep) ── */}
         {card.isFocusStep && (
           <div key={`focus-${animKey}`} style={{
-            position:"absolute", bottom:100, left:0, right:0,
+            position:"absolute", bottom:96, left:0, right:0,
             zIndex:10, padding:"0 22px",
-            display:"flex", flexDirection:"column", gap:10,
+            display:"flex", flexDirection:"column", gap:8,
             animation:"hmfSlideUp 0.45s 0.15s cubic-bezier(0.34,1.2,0.64,1) both",
           }}>
             {[
