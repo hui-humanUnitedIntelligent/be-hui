@@ -1180,51 +1180,79 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 ═══════════════════════════════════════════════════ */
 const GLOBAL_RIGHT_BAR_CSS = `
   @keyframes hui-bar-in {
-    from { opacity:0; transform:translateX(24px) scale(0.9); }
-    to   { opacity:1; transform:translateX(0)    scale(1);   }
+    from { opacity:0; transform:translateX(16px) scale(0.92); }
+    to   { opacity:1; transform:translateX(0)    scale(1);    }
   }
   @keyframes hui-badge-pulse {
     0%,100% { transform:scale(1); }
-    50%      { transform:scale(1.25); }
+    50%      { transform:scale(1.2); }
   }
+
+  /* ── Mobile: kompakt & unaufdringlich ── */
   .hui-rab-btn {
     position:relative;
-    width:44px; height:44px;
+    width:34px; height:34px;
     border-radius:50%;
     border:none; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
-    background:rgba(255,255,255,0.72);
-    backdrop-filter:blur(20px) saturate(1.6);
-    -webkit-backdrop-filter:blur(20px) saturate(1.6);
-    box-shadow:
-      0 2px 8px rgba(0,0,0,0.08),
-      0 1px 0 rgba(255,255,255,0.9) inset;
-    transition: transform 0.22s cubic-bezier(0.34,1.5,0.64,1),
-                box-shadow 0.22s ease,
-                background 0.18s ease;
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(10px) saturate(1.4);
+    -webkit-backdrop-filter:blur(10px) saturate(1.4);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    transition: transform 0.18s cubic-bezier(0.34,1.5,0.64,1),
+                box-shadow 0.18s ease;
     -webkit-tap-highlight-color:transparent;
   }
   .hui-rab-btn:active {
-    transform:scale(0.88) !important;
-    box-shadow:0 1px 4px rgba(0,0,0,0.10) !important;
+    transform:scale(0.86) !important;
+    box-shadow:0 1px 2px rgba(0,0,0,0.08) !important;
   }
-  .hui-rab-btn:hover {
-    transform:scale(1.08);
-    box-shadow:
-      0 4px 16px rgba(22,215,197,0.22),
-      0 1px 0 rgba(255,255,255,0.9) inset;
+
+  /* ── Tablet ── */
+  @media (min-width:600px) {
+    .hui-rab-btn {
+      width:40px; height:40px;
+      background:rgba(255,255,255,0.65);
+      backdrop-filter:blur(14px) saturate(1.5);
+      -webkit-backdrop-filter:blur(14px) saturate(1.5);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08),
+                  0 1px 0 rgba(255,255,255,0.8) inset;
+    }
+    .hui-rab-btn:hover {
+      transform:scale(1.06);
+      box-shadow: 0 3px 12px rgba(22,215,197,0.18),
+                  0 1px 0 rgba(255,255,255,0.8) inset;
+    }
   }
+
+  /* ── Desktop ── */
+  @media (min-width:1024px) {
+    .hui-rab-btn {
+      width:46px; height:46px;
+      background:rgba(255,255,255,0.72);
+      backdrop-filter:blur(20px) saturate(1.6);
+      -webkit-backdrop-filter:blur(20px) saturate(1.6);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.09),
+                  0 1px 0 rgba(255,255,255,0.9) inset;
+    }
+    .hui-rab-btn:hover {
+      transform:scale(1.09);
+      box-shadow: 0 4px 18px rgba(22,215,197,0.22),
+                  0 1px 0 rgba(255,255,255,0.9) inset;
+    }
+  }
+
   .hui-rab-badge {
     position:absolute;
-    top:1px; right:1px;
-    min-width:16px; height:16px;
-    padding:0 4px;
-    border-radius:8px;
+    top:0px; right:0px;
+    min-width:14px; height:14px;
+    padding:0 3px;
+    border-radius:7px;
     background:linear-gradient(135deg,#FF6B6B,#FF8A6B);
     color:#fff;
-    font-size:9px; font-weight:700;
+    font-size:8px; font-weight:800;
     display:flex; align-items:center; justify-content:center;
-    border:1.5px solid #fff;
+    border:1.5px solid rgba(255,251,248,0.95);
     animation:hui-badge-pulse 2.4s ease-in-out infinite;
     pointer-events:none;
   }
@@ -1244,7 +1272,7 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
 
   if (!visible) return null;
 
-  const scale = scrolled ? 0.88 : 1;
+  const scale = scrolled ? (window.innerWidth >= 600 ? 0.88 : 0.92) : 1;
 
   const btnStyle = (accentColor) => ({
     background: accentColor
@@ -1257,22 +1285,22 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
       <style>{GLOBAL_RIGHT_BAR_CSS}</style>
       <div style={{
         position:"fixed",
-        right:14,
+        right: window.innerWidth >= 1024 ? 18 : window.innerWidth >= 600 ? 12 : 8,
         top:"50%",
         transform:`translateY(-50%) scale(${scale})`,
         transformOrigin:"right center",
-        transition:"transform 0.45s cubic-bezier(0.34,1.3,0.64,1)",
+        transition:"transform 0.4s cubic-bezier(0.34,1.2,0.64,1)",
         zIndex:90,
         display:"flex",
         flexDirection:"column",
-        gap:10,
-        animation:"hui-bar-in 0.55s cubic-bezier(0.34,1.3,0.64,1) both",
+        gap: window.innerWidth >= 600 ? 9 : 7,
+        animation:"hui-bar-in 0.5s cubic-bezier(0.34,1.3,0.64,1) both",
       }}>
 
         {/* ── Werkekorb ── */}
         <button className="hui-rab-btn" onClick={onKorb}
           title="Werkekorb" aria-label="Werkekorb öffnen">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
             stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
@@ -1288,7 +1316,7 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
         {/* ── Messages ── */}
         <button className="hui-rab-btn" onClick={onChat}
           title="Nachrichten" aria-label="Nachrichten öffnen">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
             stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
@@ -1303,7 +1331,7 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
           style={{
             background:"linear-gradient(145deg, rgba(22,215,197,0.15), rgba(255,138,107,0.10))",
           }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
             stroke="url(#rab-grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <defs>
               <linearGradient id="rab-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1320,7 +1348,7 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
         {/* ── Notifications ── */}
         <button className="hui-rab-btn" onClick={onNotifs}
           title="Benachrichtigungen" aria-label="Benachrichtigungen">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke={C.ink2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -1340,7 +1368,7 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
               onError={e => { e.target.style.display="none"; }}
             />
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke={C.ink2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
