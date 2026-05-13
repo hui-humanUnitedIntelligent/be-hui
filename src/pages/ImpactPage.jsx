@@ -27,55 +27,55 @@ const C = {
 const PROJECTS = [
   {
     id:1,
-    title:"Bildung für Kinder in indigenen Gemeinden",
-    short:"Lernräume, die Zukunft öffnen.",
-    story:`Tief im kolumbianischen Regenwald, wo Straßen enden und Stille beginnt, bauen wir Schulen. Nicht aus Beton — aus Hoffnung.
+    title:"Repair Café Netzwerk",
+    short:"Gemeinsam reparieren statt wegwerfen.",
+    story:`In 14 Städten treffen sich Menschen jeden Alters, um gemeinsam zu reparieren. Ein alter Plattenspieler, eine Nähmaschine, ein Kinderfahrrad.
 
-Seit 2023 haben wir drei Lernzentren eröffnet. 134 Kinder lernen jetzt lesen. Nicht weil jemand ihnen etwas gegeben hat — sondern weil Menschen wie du Teil davon wurden.`,
-    location:"Kolumbien",
-    category:"Bildung",
+Was hier entsteht, ist mehr als Reparatur. Es entstehen Gespräche, Freundschaften, Fähigkeiten. Und ein Bewusstsein, dass Dinge einen Wert haben — wenn man sich um sie kümmert.`,
+    location:"Deutschland",
+    category:"Gemeinschaft",
     categoryColor:"#3DB87A",
-    img:"https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&q=90",
-    img2:"https://images.unsplash.com/photo-1509099652299-30938b0aeb63?w=900&q=90",
+    img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=90",
+    img2:"https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=900&q=90",
     raised:48650,
     goal:80000,
     supporters:1248,
     goals:[
-      {label:"3 Lernzentren aufbauen",    done:true,  progress:"2/3"},
-      {label:"200 Kinder fördern",         done:true,  progress:"134/200"},
-      {label:"Lehrmaterialien stellen",    done:true,  progress:"✓"},
+      {label:"20 Repair Cafés eröffnet",   done:true,  progress:"14/20"},
+      {label:"5.000 Reparaturen",           done:true,  progress:"3.840/5.000"},
+      {label:"Werkzeug-Sharing aufgebaut",  done:true,  progress:"✓"},
     ],
     votes:0,
   },
   {
     id:2,
-    title:"Schutz der Meere und ihrer Bewohner",
-    short:"Wir schützen, was uns schützt.",
-    story:`Die Korallen vor Indonesien sterben leise. Aber sie sterben nicht still.
+    title:"Musikräume für junge Künstler",
+    short:"Kreativität braucht Raum.",
+    story:`In vielen Städten fehlt jungen Musikerinnen und Musikern einfach der Platz. Kein Proberaum, kein Equipment, keine Bühne.
 
-Unser Team aus lokalen Tauchern und Meeresbiologen pflanzt Korallen zurück. Überwacht Ökosysteme. Und bildet die nächste Generation von Meereshütern aus.`,
-    location:"Indonesien",
-    category:"Ozean",
+Gemeinsam schaffen wir Orte, an denen Musik entsteht. Offene Studios. Kostenlose Kurse. Erste Auftritte. Weil jedes Talent einen Raum verdient, um sich zu entfalten.`,
+    location:"Österreich & Deutschland",
+    category:"Musik & Kreativität",
     categoryColor:"#16D7C5",
-    img:"https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=900&q=90",
-    img2:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=900&q=90",
+    img:"https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=900&q=90",
+    img2:"https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900&q=90",
     raised:36200,
     goal:80000,
     supporters:876,
     goals:[
-      {label:"500 Korallen gepflanzt",    done:true,  progress:"✓"},
-      {label:"Schutzzone eingerichtet",   done:false, progress:"in Arbeit"},
-      {label:"50 Guides ausgebildet",     done:false, progress:"28/50"},
+      {label:"8 Studios eröffnet",        done:true,  progress:"5/8"},
+      {label:"200 Kurse angeboten",       done:false, progress:"140/200"},
+      {label:"Erste Konzerte ermöglicht", done:false, progress:"28 Konzerte"},
     ],
     votes:0,
   },
   {
     id:3,
-    title:"Stadtgärten als Begegnungsorte",
+    title:"Gemeinschaftsgärten als Begegnungsorte",
     short:"Wo Erde wächst, wächst Gemeinschaft.",
-    story:`Berlin, Frankfurt, Hamburg. Zwischen Asphalt und Hochhäusern entstehen Orte, die atmen.
+    story:`Berlin, Frankfurt, Hamburg. Zwischen Asphalt und Hochhäusern entstehen Orte, die wachsen.
 
-Gemeinschaftsgärten, in denen Menschen verschiedenster Herkunft gemeinsam pflanzen, ernten — und sich zum ersten Mal begegnen.`,
+Menschen verschiedenster Herkunft kommen zusammen, pflanzen gemeinsam, tauschen Rezepte aus, erzählen Geschichten. Was als Garten beginnt, wird zur Gemeinschaft.`,
     location:"Deutschland",
     category:"Gemeinschaft",
     categoryColor:"#F5A623",
@@ -391,7 +391,7 @@ export default function ImpactPage({ currentUser }) {
             category:      p.category || "Soziales",
             categoryColor: p.color || "#3DB87A",
             img:           p.icon?.startsWith("http") ? p.icon
-                           : "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900&q=90",
+                           : "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=900&q=90",
             img2:          null,
             raised:        p.awarded_eur || 0,
             goal:          10000,
@@ -485,7 +485,7 @@ export default function ImpactPage({ currentUser }) {
         <div style={{ position:"relative", height:"55vh",
           minHeight:340, maxHeight:480, overflow:"hidden" }}>
           <img
-            src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&q=90"
+            src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&q=90"
             alt="Impact"
             style={{ position:"absolute", inset:0, width:"100%",
               height:"100%", objectFit:"cover",
@@ -522,12 +522,11 @@ export default function ImpactPage({ currentUser }) {
             left:0, right:0, padding:"0 24px 32px" }}>
             <div style={{ fontWeight:900, fontSize:30, color:"white",
               letterSpacing:-0.8, lineHeight:1.15, marginBottom:10 }}>
-              Gemeinsam bewegen<br/>wir echte Veränderung.
+              Aus Kreativität<br/>entsteht Wirkung.
             </div>
             <div style={{ fontSize:14, color:"rgba(255,255,255,0.75)",
               lineHeight:1.65, maxWidth:300 }}>
-              Jede Buchung auf HUI fließt in echte Projekte —
-              ausgewählt von der Community.
+              Ein Teil jeder Buchung fließt automatisch in echte Projekte der Community. Ihr entscheidet gemeinsam, wohin.
             </div>
           </div>
         </div>
@@ -582,8 +581,8 @@ export default function ImpactPage({ currentUser }) {
             padding:"16px 18px",
             background:"rgba(255,255,255,0.55)",
             borderRadius:18 }}>
-            Aus jeder Buchung fließen <strong>15 %</strong> in diesen Pool.
-            Die Community entscheidet jeden Monat, welche Projekte gefördert werden.
+            Aus Werken, Erlebnissen und Begegnungen entsteht echte Wirkung.
+            Die Community entscheidet gemeinsam, welche Ideen und Projekte gefördert werden.
             <span style={{ color:C.teal, fontWeight:700 }}> Deine Stimme zählt.</span>
           </div>
         </div>
@@ -592,7 +591,7 @@ export default function ImpactPage({ currentUser }) {
         <div style={{ display:"flex", gap:8, padding:"0 20px 24px" }}>
           {[
             {key:"aktiv",      label:"Aktive Projekte"},
-            {key:"voting",     label:"Abstimmung"},
+            {key:"voting",     label:"Community wählt"},
             {key:"bewirkt",    label:"Bewirkt"},
           ].map(f => (
             <button key={f.key} onClick={() => setActiveFilter(f.key)}
@@ -840,24 +839,33 @@ function ProjectCard({ p, idx, onOpen, voted, onVote, showVote }) {
 function BewirktSection() {
   const done = [
     {
-      title:"Trinkwasser für 3 Dörfer",
-      location:"Kenia", month:"März 2026",
-      awarded:28400, img:"https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&q=85",
-      highlight:"847 Menschen haben täglich sauberes Wasser.",
+      title:"12 Workshops ermöglicht",
+      location:"München & Umgebung", month:"April 2026",
+      awarded:14800,
+      img:"https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=85",
+      highlight:"Über 300 Menschen haben gemeinsam gelernt, erschaffen und sich kennengelernt.",
     },
     {
-      title:"Solarenergie für eine Schule",
-      location:"Ghana", month:"Februar 2026",
-      awarded:18200, img:"https://images.unsplash.com/photo-1509099652299-30938b0aeb63?w=600&q=85",
-      highlight:"320 Kinder lernen jetzt auch nach Einbruch der Dunkelheit.",
+      title:"Repair Café Gründung",
+      location:"Hamburg, Berlin, Wien", month:"März 2026",
+      awarded:9600,
+      img:"https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=85",
+      highlight:"3 neue Orte, an denen Gemeinschaft entsteht — eine Reparatur nach der anderen.",
+    },
+    {
+      title:"Musikprojekt für Jugendliche",
+      location:"Wien", month:"Februar 2026",
+      awarded:18200,
+      img:"https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=85",
+      highlight:"28 junge Künstler haben ihre ersten Konzerte gespielt.",
     },
   ];
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-      <div style={{ fontWeight:800, fontSize:13, color:C.sage,
+      <div style={{ fontWeight:800, fontSize:13, color:C.teal,
         letterSpacing:1.5, textTransform:"uppercase", marginBottom:4 }}>
-        Bereits bewirkt
+        Was bereits bewegt wurde
       </div>
       {done.map((d,i) => (
         <div key={i} style={{ borderRadius:24, overflow:"hidden",
@@ -888,8 +896,8 @@ function BewirktSection() {
             </div>
           </div>
           <div style={{ padding:"16px 18px" }}>
-            <div style={{ fontWeight:800, fontSize:15, color:C.ink,
-              marginBottom:6 }}>€ {fmt(d.awarded)} ausgezahlt</div>
+            <div style={{ fontWeight:800, fontSize:15, color:C.teal,
+              marginBottom:6 }}>✦ € {fmt(d.awarded)} in Wirkung verwandelt</div>
             <div style={{ fontSize:14, color:C.ink2,
               fontStyle:"italic", lineHeight:1.65 }}>
               „{d.highlight}"
