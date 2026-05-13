@@ -38,6 +38,10 @@ const CSS = `
   .hmo-scroll{-ms-overflow-style:none;scrollbar-width:none}
   .hmo-tap{-webkit-tap-highlight-color:transparent;cursor:pointer;border:none;fontFamily:inherit;background:none}
   .hmo-tap:active{transform:scale(0.94)!important}
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 `;
 
 /* ── Interest Chips ─────────────────────────────────── */
@@ -306,12 +310,7 @@ export default function HuiMatchOverlay({ onClose, onView }) {
 
   return (
     <>
-      <style>{CSS}
-        @keyframes shimmer {
-          0%{background-position:200% 0}
-          100%{background-position:-200% 0}
-        }
-      </style>
+      <style>{CSS}</style>
 
       {/* Backdrop */}
       <div style={{ position:"fixed",inset:0,zIndex:600,
