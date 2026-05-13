@@ -573,11 +573,13 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
   const [size,    setSize]    = useState({ w:390, h:680 });
   const [selected,setSelected]= useState(null);
   const [filter,  setFilter]  = useState("alle");
-  const [radius,  setRadius]  = useState(50);
+  const [radius,  setRadius]  = useState(50);   // fine-tune value
   const [visible, setVisible]       = useState(true);
   const [userLat, setUserLat]        = useState(48.138);
   const [userLng, setUserLng]        = useState(11.575);
-  const [matchIdx, setMatchIdx]      = useState(0);
+  const [matchIdx,    setMatchIdx]   = useState(0);
+  const [radiusStage, setRadiusStage]= useState(1);  // 0=nah,1=lokal,2=offen,3=grenzenlos
+  const [availability,setAvailability]=useState("alle"); // alle|heute|woche|aktiv
 
   const MATCH_TEXTS = [
     "Menschen entdecken",
@@ -643,8 +645,15 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
   function onPointerUp() { drag.current.active = false; }
 
   // Filter pins
+  // Derive radius from stage
+  const STAGE_RADIUS = [10, 50, 200, 9999];
+  const effectiveRadius = radiusStage === 3 ? 9999
+    : Math.max(radius, STAGE_RADIUS[radiusStage]);
+
   const visiblePins = PINS.filter(p => {
     if (filter !== "alle" && p.type !== filter) return false;
+    if (availability === "aktiv" && p.type === "wirker" && !p.available) return false;
+    if (availability === "heute" && p.type === "experience" && !p.available) return false;
     return true;
   });
 
@@ -836,49 +845,136 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
             ))}
           </div>
 
-          {/* ── RADIUS SLIDER — inline, always visible ── */}
+          {/* ── ENTDECKUNGS-RADIUS — emotional ── */}
           <div data-bubble="1"
             style={{ marginTop:10, pointerEvents:"auto",
-              background:"rgba(252,250,247,0.88)",
-              backdropFilter:"blur(20px)",
-              WebkitBackdropFilter:"blur(20px)",
-              border:"1px solid rgba(255,255,255,0.60)",
-              borderRadius:18, padding:"12px 16px",
-              boxShadow:"0 4px 18px rgba(0,0,0,0.09)" }}>
+              background:"rgba(252,250,247,0.92)",
+              backdropFilter:"blur(22px)",
+              WebkitBackdropFilter:"blur(22px)",
+              border:"1px solid rgba(255,255,255,0.65)",
+              borderRadius:22, padding:"14px 14px 12px",
+              boxShadow:"0 4px 22px rgba(0,0,0,0.10)" }}>
 
-            {/* Label row */}
-            <div style={{ display:"flex", justifyContent:"space-between",
-              alignItems:"center", marginBottom:8 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ width:7, height:7, borderRadius:"50%",
-                  background:C.teal, display:"inline-block",
-                  boxShadow:`0 0 5px ${C.teal}`,
-                  animation:"breathe 3s ease-in-out infinite" }}/>
-                <span style={{ fontSize:12, fontWeight:700, color:C.ink }}>
-                  Umkreis
-                </span>
-              </div>
-              <span style={{ fontSize:13, fontWeight:900, color:C.teal,
-                background:`${C.teal}14`, borderRadius:999,
-                padding:"2px 10px" }}>
-                {radius >= 500 ? "🌍 Weltweit" : `${radius} km`}
-              </span>
+            {/* Question header */}
+            <div style={{ fontSize:11, fontWeight:800, color:C.muted,
+              letterSpacing:0.8, marginBottom:10,
+              textTransform:"uppercase" }}>
+              Wie weit möchtest du entdecken?
             </div>
 
-            {/* Slider */}
-            <input type="range" min={5} max={500} step={5}
-              value={radius}
-              onChange={e => setRadius(+e.target.value)}
-              data-bubble="1"
-              style={{ width:"100%", accentColor:C.teal,
-                cursor:"pointer",
-                display:"block" }}/>
+            {/* 4 Emotion stages */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+              gap:7, marginBottom:12 }}>
+              {[
+                { stage:0, icon:"🌱", label:"Ganz nah",      km:"0–10 km",
+                  sub:"Direkt bei dir",
+                  grad:`linear-gradient(135deg,${C.green}22,${C.teal}14)`,
+                  border:C.green, glow:`${C.green}44` },
+                { stage:1, icon:"✨", label:"Lokal",         km:"10–50 km",
+                  sub:"Deine Region",
+                  grad:`linear-gradient(135deg,${C.teal}22,${C.teal2}14)`,
+                  border:C.teal, glow:`${C.teal}44` },
+                { stage:2, icon:"🌍", label:"Offen",         km:"50–200 km",
+                  sub:"Neue Energie",
+                  grad:`linear-gradient(135deg,${C.coral}18,${C.gold}10)`,
+                  border:C.coral, glow:`${C.coral}44` },
+                { stage:3, icon:"🚀", label:"Grenzenlos",    km:"Global",
+                  sub:"Weltweit verbinden",
+                  grad:`linear-gradient(135deg,#9B72CF22,${C.coral}14)`,
+                  border:"#9B72CF", glow:"#9B72CF44" },
+              ].map(s => {
+                const active = radiusStage === s.stage;
+                return (
+                  <button key={s.stage} data-bubble="1"
+                    onClick={() => {
+                      setRadiusStage(s.stage);
+                      setRadius([10,50,200,500][s.stage]);
+                    }}
+                    style={{ padding:"10px 10px",
+                      background: active ? s.grad : "rgba(255,255,255,0.55)",
+                      border:`1.5px solid ${active ? s.border : "rgba(0,0,0,0.07)"}`,
+                      borderRadius:16, cursor:"pointer",
+                      fontFamily:"inherit", textAlign:"left",
+                      boxShadow: active
+                        ? `0 3px 14px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.6)`
+                        : "0 1px 4px rgba(0,0,0,0.05)",
+                      transition:"all .22s cubic-bezier(.34,1.4,.64,1)",
+                      transform: active ? "scale(1.02)" : "scale(1)",
+                      WebkitTapHighlightColor:"transparent" }}>
+                    <div style={{ display:"flex", alignItems:"center",
+                      gap:5, marginBottom:2 }}>
+                      <span style={{ fontSize:14 }}>{s.icon}</span>
+                      <span style={{ fontWeight:800, fontSize:12,
+                        color: active ? C.ink : C.ink2 }}>
+                        {s.label}
+                      </span>
+                    </div>
+                    <div style={{ fontSize:10, color: active ? s.border : C.muted,
+                      fontWeight: active ? 700 : 500 }}>
+                      {s.km}
+                    </div>
+                    <div style={{ fontSize:9, color:C.muted,
+                      marginTop:1, fontStyle:"italic" }}>
+                      {s.sub}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Min/max hints */}
-            <div style={{ display:"flex", justifyContent:"space-between",
-              marginTop:4 }}>
-              <span style={{ fontSize:10, color:C.muted }}>Nachbarschaft</span>
-              <span style={{ fontSize:10, color:C.muted }}>Weltweit</span>
+            {/* Fine-tune slider — shows km value live */}
+            {radiusStage < 3 && (
+              <div data-bubble="1">
+                <div style={{ display:"flex", justifyContent:"space-between",
+                  alignItems:"center", marginBottom:5 }}>
+                  <span style={{ fontSize:10, color:C.muted, fontWeight:600 }}>
+                    Genauer einstellen
+                  </span>
+                  <span style={{ fontSize:11, fontWeight:800, color:C.teal,
+                    background:`${C.teal}14`,
+                    borderRadius:999, padding:"1px 8px" }}>
+                    {radius} km
+                  </span>
+                </div>
+                <input type="range"
+                  min={[2,10,50,100][radiusStage]}
+                  max={[10,50,200,500][radiusStage]}
+                  step={radiusStage===0?1:5}
+                  value={radius}
+                  onChange={e=>setRadius(+e.target.value)}
+                  data-bubble="1"
+                  style={{ width:"100%", accentColor:C.teal,
+                    cursor:"pointer", display:"block",
+                    height:4 }}/>
+              </div>
+            )}
+
+            {/* Availability quick filter */}
+            <div style={{ display:"flex", gap:6, marginTop:10,
+              flexWrap:"wrap" }}>
+              {[
+                {key:"alle",  label:"Alle"},
+                {key:"aktiv", label:"🟢 Jetzt aktiv"},
+                {key:"heute", label:"📅 Heute"},
+                {key:"woche", label:"📆 Diese Woche"},
+              ].map(a => (
+                <button key={a.key} data-bubble="1"
+                  onClick={()=>setAvailability(a.key)}
+                  style={{ padding:"5px 11px",
+                    background: availability===a.key
+                      ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                      : "rgba(0,0,0,0.05)",
+                    border:"none", borderRadius:999,
+                    fontSize:10, fontWeight: availability===a.key ? 800:500,
+                    color: availability===a.key ? "white" : C.muted,
+                    cursor:"pointer", fontFamily:"inherit",
+                    boxShadow: availability===a.key
+                      ? `0 2px 8px ${C.tealGlow}` : "none",
+                    transition:"all .18s",
+                    WebkitTapHighlightColor:"transparent" }}>
+                  {a.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -922,7 +1018,7 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
               animation:"breathe 2.5s ease-in-out infinite",
               boxShadow:`0 0 5px ${C.teal}` }}/>
             <span style={{ fontSize:12, color:C.ink2, fontWeight:600 }}>
-              {visiblePins.filter(p=>p.type==="wirker"&&p.available).length} Menschen gerade aktiv
+              {visiblePins.filter(p=>p.available).length} {availability==="aktiv" ? "gerade aktiv" : "kreative Menschen"} · {radiusStage===3 ? "weltweit" : `${radius} km`}
             </span>
           </div>
         </div>
