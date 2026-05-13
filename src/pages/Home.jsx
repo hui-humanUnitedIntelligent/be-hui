@@ -1546,7 +1546,14 @@ export default function Home() {
             onChat={()=>setShowChat(true)}
             onStory={()=>setShowStoryComposer(true)}
             onNotifs={()=>setShowNotifs(true)}
-            onProfile={()=>setTab("profile")}
+            onProfile={()=>{
+              // Öffnet das eigene Fremdprofil — so wie andere es sehen
+              if (authProfile) {
+                setShowWirker({ id: authProfile.id, user_id: authProfile.id });
+              } else {
+                setTab("profile");
+              }
+            }}
             msgCount={0}
             notifCount={liveNotifCount}
             avatarUrl={authProfile?.avatar_url || null}
