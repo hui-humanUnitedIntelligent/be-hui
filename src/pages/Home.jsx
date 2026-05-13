@@ -1529,6 +1529,9 @@ export default function Home() {
                 supabase.auth.signOut();
                 window.location.href="/login";
               }}
+              onViewPublicProfile={()=>{
+                if (authProfile) setShowWirker({ id: authProfile.id, user_id: authProfile.id });
+              }}
             />
           )}
         </div>
