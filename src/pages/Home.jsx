@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase }   from "../lib/supabaseClient";
 import ImpactPage     from "./ImpactPage";
-import ProfilePage from "../components/ProfilePage";
+import ProfilePage from "./ProfilePage";
 import BookingFlow    from "../components/BookingFlow";
 import { WerkDetail, WerkCheckout, WerkeKorb } from "../components/WerkeShop";
 import OrdersPage from "../components/OrdersPage";
