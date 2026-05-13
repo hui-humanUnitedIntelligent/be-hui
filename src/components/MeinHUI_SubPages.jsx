@@ -1087,123 +1087,762 @@ export function ImpactSubPage({ onBack }) {
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// 9. KONTO
+// 9. KONTO & EINSTELLUNGEN — vollständig
 // ══════════════════════════════════════════════════════════════════════
 export function KontoPage({ onBack, onLogout }) {
   const { user, profile, hasTalentProfile } = useAuth();
-  const [saved, setSaved] = useState(false);
-  const [email, setEmail] = useState(user?.email || "");
-  const [name,  setName]  = useState(profile?.display_name || "");
+
+  // Sub-section within Konto
+  const [sub, setSub] = useState(null);
+
+  // ── Profil state ────────────────────────────────────────────────
+  const [displayName,  setDisplayName]  = useState(profile?.display_name || user?.user_metadata?.full_name || "");
+  const [username,     setUsername]     = useState(profile?.username || "");
+  const [bio,          setBio]          = useState(profile?.bio || "");
+  const [location,     setLocation]     = useState(profile?.location || "");
+  const [website,      setWebsite]      = useState(profile?.website || "");
+  const [avatarFile,   setAvatarFile]   = useState(null);
+  const [avatarPreview,setAvatarPreview]= useState(profile?.avatar_url || null);
+  const [coverFile,    setCoverFile]    = useState(null);
+  const [coverPreview, setCoverPreview] = useState(profile?.cover_url || null);
+  const [saving,       setSaving]       = useState(false);
+  const [savedMsg,     setSavedMsg]     = useState("");
 
   async function saveProfile() {
-    await supabase.from("profiles")
-      .update({ display_name:name, updated_at:new Date().toISOString() })
-      .eq("id", user.id);
-    setSaved(true);
-    setTimeout(()=>setSaved(false), 2000);
+    if (!user?.id || saving) return;
+    setSaving(true); setSavedMsg("");
+    try {
+      let avatar_url = profile?.avatar_url || null;
+      let cover_url  = profile?.cover_url  || null;
+
+      if (avatarFile) {
+        const ext  = avatarFile.name.split(".").pop();
+        const path = `avatars/${user.id}/avatar.${ext}`;
+        const { error } = await supabase.storage.from("media").upload(path, avatarFile, { upsert:true });
+        if (!error) {
+          const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+          avatar_url = publicUrl;
+        }
+      }
+      if (coverFile) {
+        const ext  = coverFile.name.split(".").pop();
+        const path = `covers/${user.id}/cover.${ext}`;
+        const { error } = await supabase.storage.from("media").upload(path, coverFile, { upsert:true });
+        if (!error) {
+          const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+          cover_url = publicUrl;
+        }
+      }
+
+      const { error } = await supabase.from("profiles").update({
+        display_name: displayName,
+        username:     username || null,
+        bio:          bio || null,
+        location:     location || null,
+        website:      website || null,
+        avatar_url,
+        cover_url,
+        updated_at:   new Date().toISOString(),
+      }).eq("id", user.id);
+
+      if (error) throw error;
+      setSavedMsg("✓ Gespeichert");
+    } catch(e) {
+      setSavedMsg("Fehler: " + e.message);
+    }
+    setSaving(false);
+    setTimeout(() => setSavedMsg(""), 2500);
   }
 
-  const ROWS = [
-    { icon:"💳", label:"Zahlungsmethoden",    sub:"Kreditkarte, SEPA hinzufügen" },
-    { icon:"🧾", label:"Rechnungen & Belege", sub:"Alle Belege herunterladen"    },
-    { icon:"🔒", label:"Passwort ändern",      sub:"Sicherheit & Zugangsdaten"   },
-    { icon:"🛡️", label:"Datenschutz",          sub:"Daten & Privatsphäre"        },
-  ];
+  // Sub-pages
+  if (sub === "zahlung")       return <ZahlungPage     onBack={()=>setSub(null)}/>;
+  if (sub === "rechnungen")    return <RechnungenPage  onBack={()=>setSub(null)} userId={user?.id}/>;
+  if (sub === "passwort")      return <PasswortPage    onBack={()=>setSub(null)} user={user}/>;
+  if (sub === "datenschutz")   return <DatenschutzPage onBack={()=>setSub(null)} userId={user?.id}/>;
+  if (sub === "mitgliedschaft") return <MitgliedschaftPage onBack={()=>setSub(null)} profile={profile} hasTalentProfile={hasTalentProfile}/>;
+  if (sub === "benachricht")   return <BenachrichtigungPage onBack={()=>setSub(null)} userId={user?.id}/>;
+
+  const email      = user?.email || "";
+  const memberSince = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString("de-DE",{month:"long",year:"numeric"})
+    : "";
+
+  const FOCUS_LABEL = { works:"Werke", experiences:"Erlebnisse", hybrid:"Beides" };
 
   return (
     <PageShell title="Konto & Einstellungen" onBack={onBack}>
-      {/* Profil bearbeiten */}
-      <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:11,fontWeight:800,color:C.muted2,
-          letterSpacing:1.2,marginBottom:8,paddingLeft:2 }}>
-          PROFIL
+
+      {/* ── PROFIL ── */}
+      <SectionLabel>Profil</SectionLabel>
+      <Card style={{ marginBottom:20 }}>
+        {/* Avatar + Cover row */}
+        <div style={{ padding:"16px 16px 0" }}>
+          <div style={{ display:"flex", gap:14, alignItems:"flex-end", marginBottom:14 }}>
+            {/* Avatar */}
+            <label style={{ cursor:"pointer", position:"relative", flexShrink:0 }}>
+              <div style={{ width:64, height:64, borderRadius:18, overflow:"hidden",
+                background:`linear-gradient(135deg,${C.teal}44,${C.coral}33)`,
+                border:`1.5px solid ${C.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:24, fontWeight:900, color:C.teal }}>
+                {avatarPreview
+                  ? <img src={avatarPreview} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                  : (displayName[0]?.toUpperCase() || "?")}
+              </div>
+              <div style={{ position:"absolute", bottom:0, right:0,
+                width:20, height:20, borderRadius:"50%",
+                background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:10, color:"white", border:"2px solid white" }}>
+                ✎
+              </div>
+              <input type="file" accept="image/*" style={{ display:"none" }}
+                onChange={e=>{
+                  const f = e.target.files[0]; if(!f) return;
+                  setAvatarFile(f);
+                  setAvatarPreview(URL.createObjectURL(f));
+                }}/>
+            </label>
+            {/* Cover */}
+            <label style={{ cursor:"pointer", flex:1, position:"relative" }}>
+              <div style={{ height:56, borderRadius:12, overflow:"hidden",
+                background: coverPreview ? "transparent" : `linear-gradient(135deg,${C.teal}18,${C.coral}12)`,
+                border:`1.5px dashed ${C.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+                {coverPreview
+                  ? <img src={coverPreview} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                  : <span style={{ fontSize:12, color:C.muted, fontWeight:600 }}>Coverbild ändern</span>}
+              </div>
+              <input type="file" accept="image/*" style={{ display:"none" }}
+                onChange={e=>{
+                  const f = e.target.files[0]; if(!f) return;
+                  setCoverFile(f);
+                  setCoverPreview(URL.createObjectURL(f));
+                }}/>
+            </label>
+          </div>
         </div>
-        <Card>
-          <div style={{ padding:"14px 16px",display:"flex",flexDirection:"column",gap:10 }}>
-            {[
-              { label:"Name",  value:name,  set:setName,  type:"text"  },
-              { label:"E-Mail",value:email, set:setEmail, type:"email", disabled:true },
-            ].map(f => (
-              <div key={f.label}>
-                <div style={{ fontSize:11,fontWeight:700,color:C.muted,marginBottom:4 }}>
-                  {f.label.toUpperCase()}
-                </div>
-                <input type={f.type} value={f.value}
-                  disabled={f.disabled}
+
+        {/* Form fields */}
+        <div style={{ padding:"0 16px 16px", display:"flex", flexDirection:"column", gap:12 }}>
+          {[
+            { label:"Name",            value:displayName, set:setDisplayName, type:"text",     placeholder:"Dein Name" },
+            { label:"Username",        value:username,    set:setUsername,    type:"text",     placeholder:"@username" },
+            { label:"E-Mail",          value:email,       set:()=>{},         type:"email",    disabled:true },
+            { label:"Bio",             value:bio,         set:setBio,         type:"textarea", placeholder:"Kurze Beschreibung…" },
+            { label:"Standort",        value:location,    set:setLocation,    type:"text",     placeholder:"Stadt, Land" },
+            { label:"Website",         value:website,     set:setWebsite,     type:"url",      placeholder:"https://…" },
+          ].map(f => (
+            <div key={f.label}>
+              <div style={{ fontSize:11, fontWeight:700, color:C.muted2,
+                letterSpacing:0.8, marginBottom:5 }}>
+                {f.label.toUpperCase()}
+              </div>
+              {f.type === "textarea" ? (
+                <textarea value={f.value} onChange={e=>f.set(e.target.value)}
+                  placeholder={f.placeholder} rows={3}
+                  style={{ width:"100%", padding:"9px 12px", borderRadius:10,
+                    border:`1px solid ${C.border}`, background:C.cream,
+                    fontSize:14, color:C.ink, outline:"none",
+                    fontFamily:"inherit", boxSizing:"border-box",
+                    resize:"none", lineHeight:1.5 }}/>
+              ) : (
+                <input type={f.type} value={f.value} disabled={f.disabled}
+                  placeholder={f.placeholder}
                   onChange={e=>f.set(e.target.value)}
-                  style={{ width:"100%",padding:"9px 12px",borderRadius:10,
+                  style={{ width:"100%", padding:"9px 12px", borderRadius:10,
                     border:`1px solid ${C.border}`,
                     background: f.disabled ? "rgba(0,0,0,0.03)" : C.cream,
-                    fontSize:14,color: f.disabled ? C.muted : C.ink,
-                    outline:"none",fontFamily:"inherit",boxSizing:"border-box" }}/>
-              </div>
-            ))}
-            <button className="sp-tap" onClick={saveProfile}
-              style={{ padding:"11px",borderRadius:50,
-                background: saved ? C.greenPale : `linear-gradient(135deg,${C.teal},${C.teal2})`,
-                border: saved ? `1px solid ${C.green}44` : "none",
-                color: saved ? C.green : "white",
-                fontSize:14,fontWeight:700 }}>
-              {saved ? "✓ Gespeichert" : "Speichern"}
-            </button>
-          </div>
-        </Card>
-      </div>
-
-      {/* Konto-Menü */}
-      <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:11,fontWeight:800,color:C.muted2,
-          letterSpacing:1.2,marginBottom:8,paddingLeft:2 }}>
-          KONTO
-        </div>
-        <Card>
-          {ROWS.map((row,i) => (
-            <button key={i} className="sp-tap sp-menuitem"
-              style={{ width:"100%",display:"flex",alignItems:"center",
-                gap:14,padding:"13px 16px",background:"none",border:"none",
-                cursor:"pointer",fontFamily:"inherit",textAlign:"left",
-                borderBottom:`1px solid ${C.border}` }}>
-              <div style={{ width:36,height:36,borderRadius:10,
-                background:C.cream,display:"flex",alignItems:"center",
-                justifyContent:"center",fontSize:16,flexShrink:0 }}>
-                {row.icon}
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontWeight:700,fontSize:14,color:C.ink }}>{row.label}</div>
-                <div style={{ fontSize:12,color:C.muted,marginTop:1 }}>{row.sub}</div>
-              </div>
-              <span style={{ color:C.muted2,fontSize:16 }}>›</span>
-            </button>
+                    fontSize:14, color: f.disabled ? C.muted : C.ink,
+                    outline:"none", fontFamily:"inherit", boxSizing:"border-box" }}/>
+              )}
+            </div>
           ))}
-        </Card>
-      </div>
 
-      {/* Mitgliedschaft */}
+          <button className="sp-tap" onClick={saveProfile} disabled={saving}
+            style={{ padding:"12px", borderRadius:50,
+              background: savedMsg.startsWith("✓")
+                ? C.greenPale
+                : `linear-gradient(135deg,${C.teal},${C.teal2})`,
+              border: savedMsg.startsWith("✓") ? `1px solid ${C.green}44` : "none",
+              color: savedMsg.startsWith("✓") ? C.green : "white",
+              fontSize:14, fontWeight:700, opacity: saving ? 0.7 : 1 }}>
+            {saving ? "Speichern…" : savedMsg || "Speichern"}
+          </button>
+        </div>
+      </Card>
+
+      {/* ── KONTO-MENÜ ── */}
+      <SectionLabel>Konto</SectionLabel>
+      <Card style={{ marginBottom:20 }}>
+        {[
+          { icon:"💳", label:"Zahlungsmethoden",    sub:"Karte, PayPal, Bankkonto",   key:"zahlung"     },
+          { icon:"🧾", label:"Rechnungen & Belege", sub:"Käufe, Verkäufe, PDFs",      key:"rechnungen"  },
+          { icon:"🔒", label:"Passwort ändern",     sub:"Sicherheit & Zugangsdaten",  key:"passwort"    },
+          { icon:"🛡️", label:"Datenschutz",         sub:"Privatsphäre & Daten",       key:"datenschutz" },
+          { icon:"🔔", label:"Benachrichtigungen",  sub:"Push, E-Mail, In-App",       key:"benachricht" },
+        ].map((row,i,arr) => (
+          <button key={row.key} className="sp-tap"
+            onClick={() => setSub(row.key)}
+            style={{ width:"100%", display:"flex", alignItems:"center",
+              gap:14, padding:"13px 16px", background:"none", border:"none",
+              cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+              borderBottom: i < arr.length-1 ? `1px solid ${C.border}` : "none" }}>
+            <div style={{ width:36, height:36, borderRadius:10, flexShrink:0,
+              background:C.cream, display:"flex", alignItems:"center",
+              justifyContent:"center", fontSize:16 }}>
+              {row.icon}
+            </div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontWeight:700, fontSize:14, color:C.ink }}>{row.label}</div>
+              <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>{row.sub}</div>
+            </div>
+            <span style={{ color:C.muted2, fontSize:16 }}>›</span>
+          </button>
+        ))}
+      </Card>
+
+      {/* ── MITGLIEDSCHAFT ── */}
       {hasTalentProfile && (
-        <div style={{ marginBottom:20 }}>
-          <div style={{ fontSize:11,fontWeight:800,color:C.muted2,
-            letterSpacing:1.2,marginBottom:8,paddingLeft:2 }}>
-            MITGLIEDSCHAFT
-          </div>
-          <Card>
-            <div style={{ padding:"14px 16px",display:"flex",
-              alignItems:"center",justifyContent:"space-between" }}>
-              <div>
-                <div style={{ fontWeight:700,fontSize:14,color:C.ink }}>HUI Talent</div>
-                <div style={{ fontSize:12,color:C.green,marginTop:2,fontWeight:600 }}>● Aktiv</div>
+        <>
+          <SectionLabel>Mitgliedschaft</SectionLabel>
+          <Card style={{ marginBottom:20 }}>
+            <div style={{ padding:"16px" }}>
+              <div style={{ display:"flex", alignItems:"center",
+                justifyContent:"space-between", marginBottom:12 }}>
+                <div>
+                  <div style={{ fontWeight:800, fontSize:15, color:C.ink }}>HUI Talent</div>
+                  <div style={{ fontSize:12, color:C.green, marginTop:2, fontWeight:600,
+                    display:"flex", alignItems:"center", gap:5 }}>
+                    <span style={{ width:7,height:7,borderRadius:"50%",background:C.green,display:"inline-block" }}/>
+                    Aktiv {memberSince ? `· seit ${memberSince}` : ""}
+                  </div>
+                </div>
+                <div style={{ fontSize:24 }}>✦</div>
               </div>
-              <div style={{ fontSize:20 }}>✦</div>
+              {profile?.focus_type && (
+                <div style={{ display:"inline-flex", alignItems:"center", gap:6,
+                  background:`${C.gold}14`, borderRadius:50,
+                  padding:"5px 12px", border:`1px solid ${C.gold}33`,
+                  marginBottom:12 }}>
+                  <span style={{ fontSize:11, fontWeight:800, color:C.gold }}>
+                    FOKUS · {FOCUS_LABEL[profile.focus_type] || profile.focus_type}
+                  </span>
+                </div>
+              )}
+              <button className="sp-tap" onClick={() => setSub("mitgliedschaft")}
+                style={{ width:"100%", padding:"11px", borderRadius:50,
+                  background:C.cream, border:`1px solid ${C.border}`,
+                  color:C.ink2, fontSize:13, fontWeight:700 }}>
+                Mitgliedschaft verwalten
+              </button>
             </div>
           </Card>
-        </div>
+        </>
       )}
 
-      {/* Logout */}
+      {/* ── LOGOUT ── */}
       <button className="sp-tap" onClick={onLogout}
-        style={{ width:"100%",padding:"14px",borderRadius:50,
-          background:"none",border:`1.5px solid ${C.border}`,
-          color:C.muted,fontSize:14,fontWeight:700 }}>
+        style={{ width:"100%", padding:"14px", borderRadius:50,
+          background:"none", border:`1.5px solid ${C.border}`,
+          color:C.muted, fontSize:14, fontWeight:700,
+          cursor:"pointer", fontFamily:"inherit" }}>
         Abmelden
+      </button>
+
+      <div style={{ textAlign:"center", marginTop:20, paddingBottom:8,
+        fontSize:11, color:C.muted2 }}>
+        HUI · Human United Intelligent
+      </div>
+    </PageShell>
+  );
+}
+
+// ── Shared label helper ───────────────────────────────────────────────
+function SectionLabel({ children }) {
+  return (
+    <div style={{ fontSize:11, fontWeight:800, color:C.muted2,
+      letterSpacing:1.3, marginBottom:8, paddingLeft:4 }}>
+      {children.toUpperCase()}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// KONTO SUB-PAGES
+// ══════════════════════════════════════════════════════════════════════
+
+// ── Zahlungsmethoden ─────────────────────────────────────────────────
+function ZahlungPage({ onBack }) {
+  return (
+    <PageShell title="Zahlungsmethoden" onBack={onBack}>
+      <div style={{ marginBottom:20 }}>
+        {[
+          { icon:"💳", label:"Kreditkarte hinzufügen",  sub:"Visa, Mastercard, Amex" },
+          { icon:"🅿️", label:"PayPal verbinden",         sub:"Über PayPal bezahlen"   },
+          { icon:"🏦", label:"Bankkonto (SEPA)",          sub:"Direkt vom Konto"       },
+        ].map((m,i,arr) => (
+          <Card key={i} style={{ marginBottom: i < arr.length-1 ? 10 : 0 }}>
+            <button className="sp-tap"
+              style={{ width:"100%", display:"flex", alignItems:"center",
+                gap:14, padding:"15px 16px", background:"none", border:"none",
+                cursor:"pointer", fontFamily:"inherit", textAlign:"left" }}>
+              <div style={{ width:40, height:40, borderRadius:12, flexShrink:0,
+                background:C.cream, display:"flex", alignItems:"center",
+                justifyContent:"center", fontSize:18 }}>
+                {m.icon}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontWeight:700, fontSize:14, color:C.ink }}>{m.label}</div>
+                <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>{m.sub}</div>
+              </div>
+              <span style={{ fontSize:12, fontWeight:700,
+                background:`${C.teal}14`, color:C.teal,
+                borderRadius:50, padding:"4px 10px" }}>
+                + Hinzufügen
+              </span>
+            </button>
+          </Card>
+        ))}
+      </div>
+      <div style={{ padding:"14px 16px", background:`${C.teal}08`,
+        borderRadius:14, border:`1px solid ${C.teal}18` }}>
+        <div style={{ fontSize:12, color:C.muted, lineHeight:1.6 }}>
+          🔒 Zahlungen werden sicher über <strong>Stripe</strong> abgewickelt.
+          Deine Daten werden verschlüsselt gespeichert.
+        </div>
+      </div>
+    </PageShell>
+  );
+}
+
+// ── Rechnungen & Belege ───────────────────────────────────────────────
+function RechnungenPage({ onBack, userId }) {
+  const [tab,     setTab]     = useState("kaeufe");
+  const [items,   setItems]   = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { load(); }, [tab, userId]);
+
+  async function load() {
+    if (!userId) return;
+    setLoading(true);
+    if (tab === "kaeufe") {
+      const { data } = await supabase.from("bookings")
+        .select("id,amount,created_at,status,works(title),experiences(title)")
+        .eq("buyer_id", userId).order("created_at",{ascending:false});
+      setItems(data || []);
+    } else if (tab === "verkaeufe") {
+      const { data } = await supabase.from("bookings")
+        .select("id,amount,created_at,status,works(title),experiences(title)")
+        .eq("wirker_id", userId).eq("status","completed")
+        .order("created_at",{ascending:false});
+      setItems(data || []);
+    } else {
+      const { data } = await supabase.from("payouts")
+        .select("*").eq("user_id", userId)
+        .order("created_at",{ascending:false});
+      setItems(data || []);
+    }
+    setLoading(false);
+  }
+
+  return (
+    <PageShell title="Rechnungen & Belege" onBack={onBack}>
+      <Tabs
+        tabs={[
+          {key:"kaeufe",    label:"Käufe"},
+          {key:"verkaeufe", label:"Verkäufe"},
+          {key:"auszahl",   label:"Auszahlung"},
+        ]}
+        active={tab} onChange={setTab}
+      />
+      {loading ? <Spinner/> : items.length === 0
+        ? <EmptyMsg icon="🧾" text="Keine Einträge vorhanden"/>
+        : items.map(item => {
+          const title = item.works?.title || item.experiences?.title || item.description || "Transaktion";
+          const date  = new Date(item.created_at).toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"});
+          const amount = item.amount ? `€ ${Number(item.amount).toFixed(2)}` : "–";
+          return (
+            <Card key={item.id}>
+              <div style={{ padding:"12px 16px",
+                display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div style={{ flex:1, marginRight:12 }}>
+                  <div style={{ fontWeight:700, fontSize:14, color:C.ink,
+                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {title}
+                  </div>
+                  <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>{date}</div>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontWeight:800, fontSize:14, color:C.teal }}>{amount}</span>
+                  <button className="sp-tap"
+                    style={{ padding:"6px 12px", borderRadius:50,
+                      background:C.cream, border:`1px solid ${C.border}`,
+                      color:C.ink2, fontSize:12, fontWeight:700 }}>
+                    PDF
+                  </button>
+                </div>
+              </div>
+            </Card>
+          );
+        })
+      }
+    </PageShell>
+  );
+}
+
+// ── Passwort ändern ───────────────────────────────────────────────────
+function PasswortPage({ onBack, user }) {
+  const [newPw,    setNewPw]    = useState("");
+  const [confirmPw,setConfirmPw]= useState("");
+  const [msg,      setMsg]      = useState("");
+  const [loading,  setLoading]  = useState(false);
+
+  async function changePassword() {
+    if (!newPw || newPw !== confirmPw) {
+      setMsg("Passwörter stimmen nicht überein."); return;
+    }
+    if (newPw.length < 8) {
+      setMsg("Mindestens 8 Zeichen."); return;
+    }
+    setLoading(true); setMsg("");
+    const { error } = await supabase.auth.updateUser({ password: newPw });
+    if (error) setMsg("Fehler: " + error.message);
+    else       setMsg("✓ Passwort geändert");
+    setLoading(false);
+    if (!error) { setNewPw(""); setConfirmPw(""); }
+  }
+
+  return (
+    <PageShell title="Passwort ändern" onBack={onBack}>
+      <Card>
+        <div style={{ padding:"16px", display:"flex", flexDirection:"column", gap:12 }}>
+          <div style={{ fontSize:13, color:C.muted, marginBottom:4, lineHeight:1.5 }}>
+            Dein neues Passwort wird sofort aktiv.
+            Du bleibst auf diesem Gerät eingeloggt.
+          </div>
+          {[
+            { label:"Neues Passwort",     value:newPw,     set:setNewPw     },
+            { label:"Passwort bestätigen",value:confirmPw, set:setConfirmPw },
+          ].map(f => (
+            <div key={f.label}>
+              <div style={{ fontSize:11, fontWeight:700, color:C.muted2,
+                letterSpacing:0.8, marginBottom:5 }}>
+                {f.label.toUpperCase()}
+              </div>
+              <input type="password" value={f.value}
+                onChange={e=>f.set(e.target.value)}
+                style={{ width:"100%", padding:"9px 12px", borderRadius:10,
+                  border:`1px solid ${C.border}`, background:C.cream,
+                  fontSize:14, color:C.ink, outline:"none",
+                  fontFamily:"inherit", boxSizing:"border-box" }}/>
+            </div>
+          ))}
+          {msg && (
+            <div style={{ padding:"9px 12px", borderRadius:10,
+              background: msg.startsWith("✓") ? C.greenPale : `${C.red}10`,
+              border:`1px solid ${msg.startsWith("✓") ? C.green+"44" : C.red+"33"}`,
+              fontSize:13, color: msg.startsWith("✓") ? C.green : C.red, fontWeight:600 }}>
+              {msg}
+            </div>
+          )}
+          <button className="sp-tap" onClick={changePassword} disabled={loading}
+            style={{ padding:"12px", borderRadius:50,
+              background: msg.startsWith("✓")
+                ? C.greenPale
+                : `linear-gradient(135deg,${C.teal},${C.teal2})`,
+              border: msg.startsWith("✓") ? `1px solid ${C.green}44` : "none",
+              color: msg.startsWith("✓") ? C.green : "white",
+              fontSize:14, fontWeight:700, opacity: loading ? 0.7 : 1 }}>
+            {loading ? "Speichern…" : "Passwort ändern"}
+          </button>
+        </div>
+      </Card>
+    </PageShell>
+  );
+}
+
+// ── Datenschutz ───────────────────────────────────────────────────────
+function DatenschutzPage({ onBack, userId }) {
+  const [prefs, setPrefs] = useState({
+    profile_public:   true,
+    allow_messages:   true,
+    stories_followers:false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [saved,   setSaved]   = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from("privacy_settings").select("*").eq("user_id", userId).single()
+      .then(({data}) => {
+        if (data) setPrefs({
+          profile_public:    data.profile_public   ?? true,
+          allow_messages:    data.allow_messages   ?? true,
+          stories_followers: data.stories_followers ?? false,
+        });
+        setLoading(false);
+      });
+  }, [userId]);
+
+  async function save() {
+    await supabase.from("privacy_settings")
+      .upsert({ user_id:userId, ...prefs, updated_at:new Date().toISOString() },
+        { onConflict:"user_id" });
+    setSaved(true); setTimeout(()=>setSaved(false), 2000);
+  }
+
+  const TOGGLES = [
+    { key:"profile_public",    label:"Profil öffentlich",       sub:"Andere können dein Profil sehen" },
+    { key:"allow_messages",    label:"Nachrichten erlauben",     sub:"Jeder kann dir schreiben"        },
+    { key:"stories_followers", label:"Storys nur für Follower",  sub:"Sichtbarkeit einschränken"       },
+  ];
+
+  return (
+    <PageShell title="Datenschutz" onBack={onBack}>
+      {loading ? <Spinner/> : (
+        <>
+          <Card style={{ marginBottom:16 }}>
+            {TOGGLES.map((t,i,arr) => (
+              <div key={t.key}
+                style={{ display:"flex", alignItems:"center",
+                  justifyContent:"space-between", padding:"14px 16px",
+                  borderBottom: i < arr.length-1 ? `1px solid ${C.border}` : "none" }}>
+                <div style={{ flex:1, marginRight:16 }}>
+                  <div style={{ fontWeight:700, fontSize:14, color:C.ink }}>{t.label}</div>
+                  <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>{t.sub}</div>
+                </div>
+                {/* Toggle */}
+                <button className="sp-tap"
+                  onClick={() => setPrefs(p=>({...p,[t.key]:!p[t.key]}))}
+                  style={{ width:46, height:26, borderRadius:50, flexShrink:0,
+                    background: prefs[t.key]
+                      ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                      : "rgba(0,0,0,0.12)",
+                    border:"none", cursor:"pointer",
+                    position:"relative", transition:"background .2s" }}>
+                  <div style={{ position:"absolute",
+                    top:3, left: prefs[t.key] ? 23 : 3,
+                    width:20, height:20, borderRadius:"50%",
+                    background:"white",
+                    boxShadow:"0 1px 4px rgba(0,0,0,0.2)",
+                    transition:"left .2s cubic-bezier(.34,1.4,.64,1)" }}/>
+                </button>
+              </div>
+            ))}
+          </Card>
+
+          <button className="sp-tap" onClick={save}
+            style={{ width:"100%", padding:"12px", borderRadius:50,
+              background: saved ? C.greenPale : `linear-gradient(135deg,${C.teal},${C.teal2})`,
+              border: saved ? `1px solid ${C.green}44` : "none",
+              color: saved ? C.green : "white",
+              fontSize:14, fontWeight:700 }}>
+            {saved ? "✓ Gespeichert" : "Speichern"}
+          </button>
+
+          {/* Blockierte Nutzer */}
+          <div style={{ marginTop:20 }}>
+            <SectionLabel>Blockierte Nutzer</SectionLabel>
+            <Card>
+              <div style={{ padding:"16px", textAlign:"center" }}>
+                <div style={{ fontSize:13, color:C.muted }}>
+                  Keine blockierten Nutzer
+                </div>
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+    </PageShell>
+  );
+}
+
+// ── Mitgliedschaft verwalten ──────────────────────────────────────────
+function MitgliedschaftPage({ onBack, profile, hasTalentProfile }) {
+  const FOCUS_OPTIONS = [
+    { key:"works",       icon:"🎨", label:"Werke",       sub:"Ich erschaffe & verkaufe" },
+    { key:"experiences", icon:"✨", label:"Erlebnisse",   sub:"Ich begleite Menschen"    },
+    { key:"hybrid",      icon:"⚡", label:"Beides",       sub:"Kreativ & präsent"        },
+  ];
+  const [focus,   setFocus]   = useState(profile?.focus_type || "hybrid");
+  const [saving,  setSaving]  = useState(false);
+  const [saved,   setSaved]   = useState(false);
+
+  async function saveFocus() {
+    if (!profile?.id || saving) return;
+    setSaving(true);
+    await supabase.from("profiles")
+      .update({ focus_type:focus, updated_at:new Date().toISOString() })
+      .eq("id", profile.id);
+    setSaving(false); setSaved(true);
+    setTimeout(()=>setSaved(false), 2000);
+  }
+
+  const memberSince = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString("de-DE",{day:"numeric",month:"long",year:"numeric"})
+    : "–";
+
+  return (
+    <PageShell title="Mitgliedschaft" onBack={onBack}>
+      {/* Status Card */}
+      <Card style={{ marginBottom:20 }}>
+        <div style={{ padding:"18px 16px" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div>
+              <div style={{ fontWeight:800, fontSize:16, color:C.ink }}>HUI Talent</div>
+              <div style={{ fontSize:12, color:C.green, marginTop:3, fontWeight:600,
+                display:"flex", alignItems:"center", gap:5 }}>
+                <span style={{ width:7,height:7,borderRadius:"50%",background:C.green,display:"inline-block" }}/>
+                Aktiv
+              </div>
+            </div>
+            <div style={{ fontSize:26 }}>✦</div>
+          </div>
+          <div style={{ marginTop:12, fontSize:12, color:C.muted }}>
+            Mitglied seit {memberSince}
+          </div>
+          <div style={{ marginTop:8, padding:"8px 12px",
+            background:C.cream, borderRadius:10,
+            fontSize:12, color:C.muted, lineHeight:1.6 }}>
+            Deine Mitgliedschaft bleibt dauerhaft aktiv und kann jederzeit
+            über diesen Bereich verwaltet werden.
+          </div>
+        </div>
+      </Card>
+
+      {/* Fokus ändern */}
+      <SectionLabel>Dein Fokus</SectionLabel>
+      <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
+        {FOCUS_OPTIONS.map(opt => (
+          <button key={opt.key} className="sp-tap"
+            onClick={() => setFocus(opt.key)}
+            style={{ display:"flex", alignItems:"center", gap:14,
+              background: focus===opt.key ? `${C.teal}10` : C.card,
+              border:`1.5px solid ${focus===opt.key ? C.teal+"55" : C.border}`,
+              borderRadius:14, padding:"13px 16px", cursor:"pointer",
+              fontFamily:"inherit", textAlign:"left",
+              transition:"all .2s" }}>
+            <div style={{ width:20, height:20, borderRadius:"50%", flexShrink:0,
+              border:`2px solid ${focus===opt.key ? C.teal : C.muted2}`,
+              background: focus===opt.key ? `linear-gradient(135deg,${C.teal},${C.teal2})` : "transparent",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              transition:"all .2s" }}>
+              {focus===opt.key && <div style={{ width:8,height:8,borderRadius:"50%",background:"white" }}/>}
+            </div>
+            <span style={{ fontSize:18 }}>{opt.icon}</span>
+            <div>
+              <div style={{ fontWeight:700, fontSize:14, color:C.ink }}>{opt.label}</div>
+              <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>{opt.sub}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+      <button className="sp-tap" onClick={saveFocus} disabled={saving}
+        style={{ width:"100%", padding:"12px", borderRadius:50,
+          background: saved ? C.greenPale : `linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border: saved ? `1px solid ${C.green}44` : "none",
+          color: saved ? C.green : "white", fontSize:14, fontWeight:700,
+          marginBottom:20 }}>
+        {saving ? "Speichern…" : saved ? "✓ Gespeichert" : "Fokus speichern"}
+      </button>
+
+      {/* Kündigung */}
+      <Card>
+        <div style={{ padding:"14px 16px" }}>
+          <div style={{ fontWeight:700, fontSize:14, color:C.ink, marginBottom:4 }}>
+            Mitgliedschaft kündigen
+          </div>
+          <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:12 }}>
+            Nach der Kündigung verlierst du deinen Talent-Status und deine
+            Inhalte werden ausgeblendet. Diese Aktion kann rückgängig gemacht werden.
+          </div>
+          <button className="sp-tap"
+            onClick={() => window.alert("Kündigung — bitte wende dich an support@behui.app")}
+            style={{ padding:"10px 18px", borderRadius:50,
+              background:"none", border:`1px solid ${C.red}44`,
+              color:C.red, fontSize:13, fontWeight:700, cursor:"pointer",
+              fontFamily:"inherit" }}>
+            Mitgliedschaft kündigen
+          </button>
+        </div>
+      </Card>
+    </PageShell>
+  );
+}
+
+// ── Benachrichtigungen ────────────────────────────────────────────────
+function BenachrichtigungPage({ onBack, userId }) {
+  const [prefs, setPrefs] = useState({
+    push_bookings:  true,
+    push_messages:  true,
+    push_likes:     false,
+    email_bookings: true,
+    email_digest:   false,
+  });
+  const [saved, setSaved] = useState(false);
+
+  const GROUPS = [
+    { label:"Push-Benachrichtigungen", items:[
+      { key:"push_bookings", label:"Buchungsanfragen",  sub:"Neue Anfragen & Bestätigungen" },
+      { key:"push_messages", label:"Nachrichten",       sub:"Neue Chat-Nachrichten"         },
+      { key:"push_likes",    label:"Likes & Mentions",  sub:"Interaktionen auf deine Inhalte" },
+    ]},
+    { label:"E-Mail", items:[
+      { key:"email_bookings", label:"Buchungs-E-Mails", sub:"Bestätigung & Erinnerungen"   },
+      { key:"email_digest",   label:"Wöchentliche Zusammenfassung", sub:"Einmal pro Woche" },
+    ]},
+  ];
+
+  async function save() {
+    await supabase.from("notification_settings")
+      .upsert({ user_id:userId, ...prefs, updated_at:new Date().toISOString() },
+        { onConflict:"user_id" });
+    setSaved(true); setTimeout(()=>setSaved(false), 2000);
+  }
+
+  return (
+    <PageShell title="Benachrichtigungen" onBack={onBack}>
+      {GROUPS.map(group => (
+        <div key={group.label} style={{ marginBottom:20 }}>
+          <SectionLabel>{group.label}</SectionLabel>
+          <Card>
+            {group.items.map((t,i,arr) => (
+              <div key={t.key}
+                style={{ display:"flex", alignItems:"center",
+                  justifyContent:"space-between", padding:"13px 16px",
+                  borderBottom: i < arr.length-1 ? `1px solid ${C.border}` : "none" }}>
+                <div style={{ flex:1, marginRight:16 }}>
+                  <div style={{ fontWeight:700, fontSize:14, color:C.ink }}>{t.label}</div>
+                  <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>{t.sub}</div>
+                </div>
+                <button className="sp-tap"
+                  onClick={() => setPrefs(p=>({...p,[t.key]:!p[t.key]}))}
+                  style={{ width:46, height:26, borderRadius:50, flexShrink:0,
+                    background: prefs[t.key]
+                      ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                      : "rgba(0,0,0,0.12)",
+                    border:"none", cursor:"pointer", position:"relative",
+                    transition:"background .2s" }}>
+                  <div style={{ position:"absolute",
+                    top:3, left: prefs[t.key] ? 23 : 3,
+                    width:20, height:20, borderRadius:"50%", background:"white",
+                    boxShadow:"0 1px 4px rgba(0,0,0,0.2)",
+                    transition:"left .2s cubic-bezier(.34,1.4,.64,1)" }}/>
+                </button>
+              </div>
+            ))}
+          </Card>
+        </div>
+      ))}
+
+      <button className="sp-tap" onClick={save}
+        style={{ width:"100%", padding:"12px", borderRadius:50,
+          background: saved ? C.greenPale : `linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border: saved ? `1px solid ${C.green}44` : "none",
+          color: saved ? C.green : "white", fontSize:14, fontWeight:700 }}>
+        {saved ? "✓ Gespeichert" : "Speichern"}
       </button>
     </PageShell>
   );
