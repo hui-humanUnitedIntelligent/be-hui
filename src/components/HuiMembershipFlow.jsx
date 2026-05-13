@@ -81,8 +81,18 @@ const CARDS = [
     grad: "linear-gradient(180deg, rgba(0,0,0,0) 25%, rgba(8,5,25,0.82) 62%, rgba(8,5,25,0.97) 100%)",
   },
   {
+    img: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/1885ebd2d_generated_image.png",
+    tag: "Dein Fokus",
+    tagColor: "#F5A623",
+    title: "Was beschreibt\ndich mehr?",
+    sub:  "Das hilft HUI, dein Profil optimal zu gestalten. Du kannst das jederzeit ändern.",
+    accent: "#F5A623",
+    grad: "linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(15,10,0,0.88) 55%, rgba(15,10,0,0.97) 100%)",
+    isFocusStep: true,
+  },
+  {
     img: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/1f05aec0c_generated_image.png",
-    tag: "Schritt 4 von 4",
+    tag: "Schritt 5 von 5",
     tagColor: C.coral,
     title: "Mitglied\nwerden",
     sub:  "Werde Teil von etwas Echtem. Bestätige kurz — und los geht's.",
@@ -129,13 +139,18 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState("");
   const [done,        setDone]        = useState(false);
+  const [focusType,   setFocusType]   = useState(null); // works | experiences | hybrid
 
   const card       = CARDS[step];
-  const isLastCard = step === 3;
+  const isLastCard = step === 4;
   const canFinish  = agb && datenschutz;
 
   function goNext() {
     if (step < CARDS.length - 1) {
+      // On focus step: require a selection
+      if (card.isFocusStep && !focusType) {
+        setFocusType("hybrid"); // auto-select hybrid if user skips
+      }
       setAnimKey(k => k + 1);
       setStep(s => s + 1);
     }
@@ -148,7 +163,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
       // Delegate to parent — activateTalentProfile() in AuthContext
       // writes has_talent_profile=true to Supabase AND updates in-memory profile
       setDone(true);
-      setTimeout(() => onComplete?.(), 2200);
+      setTimeout(() => onComplete?.(focusType || 'hybrid'), 2200);
     } catch(err) {
       setError("Etwas ist schiefgelaufen. Bitte nochmal.");
       setLoading(false);
@@ -257,7 +272,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
           padding:"max(52px, env(safe-area-inset-top, 52px)) 22px 0",
           display:"flex", alignItems:"center", justifyContent:"space-between",
         }}>
-          <ProgressDots step={step} total={4} accent={card.accent}/>
+          <ProgressDots step={step} total={5} accent={card.accent}/>
           <button onClick={onClose} style={{
             width:34, height:34, borderRadius:"50%",
             background:"rgba(255,255,255,0.15)",
