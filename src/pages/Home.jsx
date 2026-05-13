@@ -1524,7 +1524,7 @@ export default function Home() {
           )}
           {tab==="profile" && (
             <ProfilePage
-              onTalentAnbieten={()=>setShowTalentFlow(true)}
+              onTalentAnbieten={()=>setShowMembership(true)}
               onLogout={()=>{
                 supabase.auth.signOut();
                 window.location.href="/login";
