@@ -253,7 +253,7 @@ function Korb({ count=0, size=32, onClick }) {
 /* ═══════════════════════════════════════════════════
    HEADER — minimal glass
 ═══════════════════════════════════════════════════ */
-function Header({ cart, notif, onCart, onNotif, userName }) {
+function Header({ userName, avatarUrl }) {
   return (
     <div style={{ position:"sticky", top:0, zIndex:60,
       background:"rgba(255,251,248,0.92)",
@@ -312,47 +312,19 @@ function Header({ cart, notif, onCart, onNotif, userName }) {
           </div>
         </div>
 
-        {/* ── Right actions ── */}
-        <Korb count={cart} size={30} onClick={onCart}/>
-
-        <button onClick={onNotif}
-          style={{ background:"none", border:"none", cursor:"pointer",
-            padding:4, position:"relative", lineHeight:0,
-            WebkitTapHighlightColor:"transparent" }}>
-          <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
-            {/* Bell dome */}
-            <path d="M16 4 C10 4 8 9 8 14 L8 21 L6 23 L26 23 L24 21 L24 14 C24 9 22 4 16 4Z"
-              fill={notif>0 ? `${C.teal}1A` : "rgba(60,60,60,0.08)"}
-              stroke={notif>0 ? C.teal : "rgba(60,60,60,0.45)"}
-              strokeWidth="1.6" strokeLinejoin="round"/>
-            {/* Clapper */}
-            <path d="M13 23 Q13 27 16 27 Q19 27 19 23"
-              stroke={notif>0 ? C.teal : "rgba(60,60,60,0.45)"}
-              strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-            {/* Active vibration lines */}
-            {notif>0 && <>
-              <path d="M6 10 Q5 8 6.5 6.5" stroke={C.teal} strokeWidth="1.2"
-                strokeLinecap="round" opacity="0.5"/>
-              <path d="M26 10 Q27 8 25.5 6.5" stroke={C.coral} strokeWidth="1.2"
-                strokeLinecap="round" opacity="0.5"/>
-            </>}
-          </svg>
-          {notif>0 && (
-            <div style={{ position:"absolute", top:1, right:1,
-              width:8, height:8, borderRadius:"50%",
-              background:`linear-gradient(135deg,${C.coral},${C.coral2||"#FF7B72"})`,
-              border:"1.5px solid rgba(255,251,248,0.95)",
-              boxShadow:`0 1px 4px ${C.coralGlow}` }}/>
-          )}
-        </button>
-
-        {userName && (
-          <div style={{ width:32, height:32, borderRadius:"50%",
+        {/* ── Right: Avatar only ── */}
+        {(avatarUrl || userName) && (
+          <div style={{ width:34, height:34, borderRadius:"50%", flexShrink:0,
+            overflow:"hidden",
             background:`linear-gradient(135deg,${C.teal},${C.coral})`,
             display:"flex", alignItems:"center", justifyContent:"center",
             fontWeight:900, fontSize:13, color:"white",
             boxShadow:`0 2px 8px ${C.tealGlow}` }}>
-            {userName[0].toUpperCase()}
+            {avatarUrl
+              ? <img src={avatarUrl} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
+                  onError={e=>{e.target.style.display="none"}}/>
+              : userName?.[0]?.toUpperCase()
+            }
           </div>
         )}
       </div>
@@ -1258,8 +1230,8 @@ const GLOBAL_RIGHT_BAR_CSS = `
   }
 `;
 
-function RightActionBar({ onChat, onStory, onNotifs, onProfile,
-                          msgCount=0, notifCount=0, avatarUrl=null, visible=true }) {
+function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
+                          msgCount=0, notifCount=0, cartCount=0, avatarUrl=null, visible=true }) {
   const [scrolled, setScrolled] = React.useState(false);
 
   React.useEffect(() => {
@@ -1296,6 +1268,22 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile,
         gap:10,
         animation:"hui-bar-in 0.55s cubic-bezier(0.34,1.3,0.64,1) both",
       }}>
+
+        {/* ── Werkekorb ── */}
+        <button className="hui-rab-btn" onClick={onKorb}
+          title="Werkekorb" aria-label="Werkekorb öffnen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          {cartCount > 0 && (
+            <span className="hui-rab-badge" style={{ background:`linear-gradient(135deg,${C.gold},${C.coral})` }}>
+              {cartCount > 9 ? "9+" : cartCount}
+            </span>
+          )}
+        </button>
 
         {/* ── Messages ── */}
         <button className="hui-rab-btn" onClick={onChat}
@@ -1484,10 +1472,8 @@ export default function Home() {
         background:C.cream }}>
 
         <Header
-          cart={cart.length} notif={liveNotifCount}
-          onCart={()=>setShowKorb(true)}
-          onNotif={()=>setShowNotifs(true)}
           userName={userName}
+          avatarUrl={authProfile?.avatar_url || null}
         />
 
         <div className="hui-scroll"
@@ -1543,25 +1529,24 @@ export default function Home() {
             else setShowMembership(true);
           }}/>
 
-        {/* ── RIGHT ACTION BAR ── only on Feed tab ── */}
-        {tab === "feed" && (
-          <RightActionBar
-            onChat={()=>setShowChat(true)}
-            onStory={()=>setShowStoryComposer(true)}
-            onNotifs={()=>setShowNotifs(true)}
-            onProfile={()=>{
-              // Öffnet das eigene Fremdprofil — so wie andere es sehen
-              if (authProfile) {
-                setShowWirker({ id: authProfile.id, user_id: authProfile.id });
-              } else {
-                setTab("profile");
-              }
-            }}
-            msgCount={0}
-            notifCount={liveNotifCount}
-            avatarUrl={authProfile?.avatar_url || null}
-          />
-        )}
+        {/* ── RIGHT ACTION BAR ── alle Tabs ── */}
+        <RightActionBar
+          onKorb={()=>setShowKorb(true)}
+          onChat={()=>setShowChat(true)}
+          onStory={()=>setShowStoryComposer(true)}
+          onNotifs={()=>setShowNotifs(true)}
+          onProfile={()=>{
+            if (authProfile) {
+              setShowWirker({ id: authProfile.id, user_id: authProfile.id });
+            } else {
+              setTab("profile");
+            }
+          }}
+          cartCount={cart.length}
+          msgCount={0}
+          notifCount={liveNotifCount}
+          avatarUrl={authProfile?.avatar_url || null}
+        />
 
         {/* Overlays */}
         {showMap && <LiveMapPage onView={w=>{setShowWirker(w);setShowMap(false);}} onMatch={()=>{setShowMap(false);setShowMatch(true);}} onClose={()=>setShowMap(false)} fullscreen={true}/>}
