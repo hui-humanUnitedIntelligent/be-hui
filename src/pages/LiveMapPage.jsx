@@ -574,7 +574,6 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
   const [selected,setSelected]= useState(null);
   const [filter,  setFilter]  = useState("alle");
   const [radius,  setRadius]  = useState(50);
-  const [showRadius,setShowRadius]=useState(false);
   const [visible, setVisible]       = useState(true);
   const [userLat, setUserLat]        = useState(48.138);
   const [userLng, setUserLng]        = useState(11.575);
@@ -836,6 +835,53 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
               </button>
             ))}
           </div>
+
+          {/* ── RADIUS SLIDER — inline, always visible ── */}
+          <div data-bubble="1"
+            style={{ marginTop:10, pointerEvents:"auto",
+              background:"rgba(252,250,247,0.88)",
+              backdropFilter:"blur(20px)",
+              WebkitBackdropFilter:"blur(20px)",
+              border:"1px solid rgba(255,255,255,0.60)",
+              borderRadius:18, padding:"12px 16px",
+              boxShadow:"0 4px 18px rgba(0,0,0,0.09)" }}>
+
+            {/* Label row */}
+            <div style={{ display:"flex", justifyContent:"space-between",
+              alignItems:"center", marginBottom:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                <span style={{ width:7, height:7, borderRadius:"50%",
+                  background:C.teal, display:"inline-block",
+                  boxShadow:`0 0 5px ${C.teal}`,
+                  animation:"breathe 3s ease-in-out infinite" }}/>
+                <span style={{ fontSize:12, fontWeight:700, color:C.ink }}>
+                  Umkreis
+                </span>
+              </div>
+              <span style={{ fontSize:13, fontWeight:900, color:C.teal,
+                background:`${C.teal}14`, borderRadius:999,
+                padding:"2px 10px" }}>
+                {radius >= 500 ? "🌍 Weltweit" : `${radius} km`}
+              </span>
+            </div>
+
+            {/* Slider */}
+            <input type="range" min={5} max={500} step={5}
+              value={radius}
+              onChange={e => setRadius(+e.target.value)}
+              data-bubble="1"
+              style={{ width:"100%", accentColor:C.teal,
+                cursor:"pointer",
+                display:"block" }}/>
+
+            {/* Min/max hints */}
+            <div style={{ display:"flex", justifyContent:"space-between",
+              marginTop:4 }}>
+              <span style={{ fontSize:10, color:C.muted }}>Nachbarschaft</span>
+              <span style={{ fontSize:10, color:C.muted }}>Weltweit</span>
+            </div>
+          </div>
+
         </div>
 
         {/* ── ZOOM CONTROLS — minimal, right side ── */}
@@ -885,58 +931,8 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
         <div style={{ position:"absolute", bottom:100, left:0, right:0,
           padding:"0 16px", pointerEvents:"auto" }}>
 
-          {/* Radius control */}
-          {showRadius && (
-            <div style={{ marginBottom:10,
-              background:"rgba(252,250,247,0.95)",
-              backdropFilter:"blur(24px)",
-              border:"1px solid rgba(255,255,255,0.70)",
-              borderRadius:22, padding:"16px 20px",
-              boxShadow:"0 8px 32px rgba(0,0,0,0.12)",
-              animation:"fadeUp 0.25s ease both" }}>
-              <div style={{ display:"flex", justifyContent:"space-between",
-                marginBottom:10 }}>
-                <span style={{ fontSize:13, fontWeight:700, color:C.ink }}>
-                  Umkreis
-                </span>
-                <span style={{ fontSize:13, fontWeight:800, color:C.teal }}>
-                  {radius === 500 ? "Weltweit" : `${radius} km`}
-                </span>
-              </div>
-              <input type="range" min={5} max={500} step={5}
-                value={radius}
-                onChange={e => setRadius(+e.target.value)}
-                style={{ width:"100%", accentColor:C.teal,
-                  cursor:"pointer" }}/>
-              <div style={{ display:"flex", justifyContent:"space-between",
-                marginTop:6, fontSize:10, color:C.muted2 }}>
-                <span>5 km</span><span>Weltweit</span>
-              </div>
-            </div>
-          )}
-
           {/* Bottom actions row */}
           <div style={{ display:"flex", gap:10 }}>
-            {/* Radius toggle */}
-            <button
-              data-bubble="1"
-              onClick={() => setShowRadius(s => !s)}
-              style={{ padding:"12px 18px",
-                background: showRadius
-                  ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                  : "rgba(252,250,247,0.92)",
-                backdropFilter:"blur(20px)",
-                border:"1px solid rgba(255,255,255,0.65)",
-                borderRadius:16, fontSize:13, fontWeight:700,
-                color: showRadius ? "white" : C.ink,
-                cursor:"pointer", fontFamily:"inherit",
-                boxShadow: showRadius
-                  ? `0 4px 16px ${C.tealGlow}` : "0 4px 16px rgba(0,0,0,0.10)",
-                display:"flex", alignItems:"center", gap:6,
-                transition:"all 0.25s",
-                WebkitTapHighlightColor:"transparent" }}>
-              📍 {radius} km
-            </button>
 
             {/* HUI Match — floating magic element */}
             <button
