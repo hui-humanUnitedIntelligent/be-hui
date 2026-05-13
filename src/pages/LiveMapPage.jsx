@@ -151,8 +151,35 @@ const CSS = `
   }
   .lm-scroll::-webkit-scrollbar { display:none; }
   .lm-scroll { -ms-overflow-style:none; scrollbar-width:none; }
-  .lm-tap { transition:transform 0.18s cubic-bezier(0.34,1.4,0.64,1); }
+  .lm-tap { transition:transform 0.18s cubic-bezier(0.34,1.4,0.64,1); -webkit-tap-highlight-color:transparent; }
   .lm-tap:active { transform:scale(0.94); }
+  @keyframes orbGlow {
+    0%,100% { box-shadow: 0 0 0 0 var(--orb-color), 0 6px 24px rgba(0,0,0,0.18); }
+    50%      { box-shadow: 0 0 0 10px rgba(0,0,0,0), 0 8px 32px rgba(0,0,0,0.22); }
+  }
+  @keyframes ringPulse {
+    0%   { transform:scale(1);   opacity:0.55; }
+    60%  { transform:scale(1.55);opacity:0; }
+    100% { transform:scale(1.55);opacity:0; }
+  }
+  @keyframes matchText {
+    0%,18%  { opacity:1; transform:translateY(0); }
+    22%,98% { opacity:0; transform:translateY(-8px); }
+    100%    { opacity:1; transform:translateY(0); }
+  }
+  @keyframes heatPulse {
+    0%,100% { opacity:0.22; }
+    50%     { opacity:0.38; }
+  }
+  @keyframes slideCard {
+    from { opacity:0; transform:translateY(24px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes shimmerSweep {
+    0%   { transform:translateX(-120%); }
+    60%  { transform:translateX(120%); }
+    100% { transform:translateX(120%); }
+  }
 `;
 
 /* ════════════════════════════════════════════
@@ -364,97 +391,111 @@ function Bubble({ pin, x, y, onClick, isSelected }) {
   const isExperience = pin.type === "experience";
   const isImpact     = pin.type === "impact";
 
-  const accent = isWirker ? C.teal : isWerk ? C.coral
-    : isExperience ? C.gold : C.green;
+  const accent = isWirker ? C.teal
+    : isWerk       ? C.coral
+    : isExperience ? "#9B72CF"   // violet for experiences
+    : C.green;
 
-  const size = isWirker ? 56 : isImpact ? 52 : 48;
+  const orbSize   = isWirker ? 58 : isImpact ? 50 : 46;
   const animDelay = `${(pin.id * 1.3) % 4}s`;
-  const floatDelay = `${(pin.id * 0.7) % 3}s`;
+  const floatDelay= `${(pin.id * 0.7) % 3}s`;
+  const glowDur   = 2.8 + (pin.id % 3) * 0.7;
 
   return (
     <div
+      data-bubble="1"
       onClick={() => onClick(pin)}
       style={{
         position:"absolute",
-        left: x - size/2,
-        top:  y - size/2,
-        width: size, height: size,
+        left: x - orbSize/2 - 8,
+        top:  y - orbSize/2 - 8,
+        width: orbSize + 16, height: orbSize + 16,
         cursor:"pointer",
         zIndex: isSelected ? 50 : isWirker ? 30 : isImpact ? 25 : 20,
         animation:`floatBubble ${3 + (pin.id%3)}s ${floatDelay} ease-in-out infinite`,
         WebkitTapHighlightColor:"transparent",
+        display:"flex", alignItems:"center", justifyContent:"center",
       }}>
 
-      {/* Aura ring — type-coded */}
+      {/* Expanding ring pulse */}
       <div style={{
-        position:"absolute",
-        inset: isSelected ? -8 : -5,
-        borderRadius:"50%",
-        border:`2px solid ${accent}`,
-        opacity: isSelected ? 0.9 : 0.35,
-        animation:`bubblePulse ${3.5 + (pin.id%2)}s ${animDelay} ease-in-out infinite`,
-        "--bubble-glow-0": `0 0 0 0 ${accent}44, 0 4px 16px rgba(0,0,0,0.15)`,
-        "--bubble-glow-1": `0 0 0 ${isSelected?10:8}px ${accent}00, 0 6px 24px rgba(0,0,0,0.20)`,
-        transition:"inset 0.3s",
+        position:"absolute", inset:0, borderRadius:"50%",
+        border:`1.5px solid ${accent}`,
+        animation:`ringPulse ${glowDur}s ${animDelay} ease-out infinite`,
+        pointerEvents:"none",
       }}/>
 
-      {/* Impact radial pulse */}
-      {isImpact && (
+      {/* Selected outer glow */}
+      {isSelected && (
         <div style={{
-          position:"absolute", inset:-10, borderRadius:"50%",
-          "--impact-color": `${C.gold}44`,
-          animation:"impactGlow 2.8s ease-in-out infinite",
-          animationDelay: animDelay,
+          position:"absolute", inset:-4, borderRadius:"50%",
+          background:`radial-gradient(circle,${accent}40 0%,transparent 70%)`,
+          pointerEvents:"none",
         }}/>
       )}
 
-      {/* Main bubble */}
+      {/* Main orb */}
       <div style={{
-        width:"100%", height:"100%",
-        borderRadius:"50%",
-        overflow:"hidden",
-        border:`3px solid ${isSelected ? accent : "rgba(255,255,255,0.85)"}`,
+        width: orbSize, height: orbSize,
+        borderRadius:"50%", overflow:"hidden",
+        flexShrink:0,
+        border:`2.5px solid ${isSelected ? accent : "rgba(255,255,255,0.92)"}`,
         boxShadow:`
-          0 4px 20px rgba(0,0,0,0.18),
-          0 0 0 ${isSelected?2:0}px ${accent},
-          0 2px 6px rgba(0,0,0,0.12)
+          0 4px 18px rgba(0,0,0,0.16),
+          0 0 0 ${isSelected ? 3 : 0}px ${accent}55,
+          inset 0 1px 2px rgba(255,255,255,0.6)
         `,
-        transition:"border-color 0.25s, box-shadow 0.25s",
+        "--orb-color": `${accent}55`,
+        animation:`orbGlow ${glowDur}s ${animDelay} ease-in-out infinite`,
+        transition:"border-color 0.28s, box-shadow 0.28s",
         background: isImpact
-          ? `linear-gradient(135deg,${C.green},${C.teal})` : "white",
-        display:"flex", alignItems:"center",
-        justifyContent:"center",
+          ? `linear-gradient(135deg,${C.green}CC,${C.teal}CC)`
+          : isWerk
+            ? `linear-gradient(135deg,${C.coral}22,${C.gold}22)`
+            : "white",
+        position:"relative",
       }}>
+        {/* Gradient overlay ring inside */}
+        <div style={{
+          position:"absolute", inset:0, borderRadius:"50%",
+          background:`linear-gradient(135deg,${accent}30 0%,transparent 60%)`,
+          zIndex:2, pointerEvents:"none",
+        }}/>
         {isImpact ? (
-          <span style={{ fontSize:22 }}>🌱</span>
+          <div style={{ width:"100%", height:"100%",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize: orbSize * 0.4 }}>
+            🌱
+          </div>
         ) : (
           <img src={pin.img} alt={pin.name}
             style={{ width:"100%", height:"100%",
               objectFit:"cover",
               objectPosition: isWirker ? "top" : "center",
-              filter:"brightness(0.92) saturate(1.1)" }}/>
+              filter:"brightness(0.90) saturate(1.12)" }}/>
         )}
       </div>
 
       {/* Available dot */}
       {isWirker && pin.available && (
         <div style={{
-          position:"absolute", bottom:2, right:2,
-          width:12, height:12, borderRadius:"50%",
+          position:"absolute", bottom:10, right:10,
+          width:11, height:11, borderRadius:"50%",
           background:C.green,
           border:"2.5px solid white",
-          boxShadow:`0 0 6px ${C.greenGlow}`,
+          boxShadow:`0 0 8px ${C.green}88`,
+          zIndex:5,
         }}/>
       )}
 
-      {/* Type accent strip at bottom */}
+      {/* Category glow strip */}
       <div style={{
-        position:"absolute", bottom:0, left:"15%", right:"15%",
-        height:3, borderRadius:999,
-        background:accent,
-        boxShadow:`0 0 6px ${accent}`,
-        opacity: isWirker||isSelected ? 0.85 : 0,
+        position:"absolute", bottom:8, left:"20%", right:"20%",
+        height:2.5, borderRadius:999,
+        background:`linear-gradient(90deg,${accent}00,${accent},${accent}00)`,
+        opacity: isSelected ? 1 : 0.6,
         transition:"opacity 0.3s",
+        zIndex:5,
       }}/>
     </div>
   );
@@ -505,8 +546,8 @@ function TileCanvas({ mapLat, mapLng, zoom, width, height }) {
         img.crossOrigin = "anonymous";
         img.onload = () => {
           ctx.drawImage(img, px, py, TILE_SIZE, TILE_SIZE);
-          // Warm tint overlay
-          ctx.fillStyle = "rgba(255,248,235,0.10)";
+          // Warm cream tint
+          ctx.fillStyle = "rgba(249,246,242,0.14)";
           ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         };
         img.src = url;
@@ -517,7 +558,7 @@ function TileCanvas({ mapLat, mapLng, zoom, width, height }) {
   return (
     <canvas ref={canvasRef} width={width} height={height}
       style={{ position:"absolute", inset:0,
-        filter:"saturate(0.82) brightness(1.02) contrast(0.94) hue-rotate(8deg)" }}/>
+        filter:"saturate(0.72) brightness(1.04) contrast(0.88) hue-rotate(12deg) sepia(0.06)" }}/>
   );
 }
 
@@ -534,9 +575,22 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
   const [filter,  setFilter]  = useState("alle");
   const [radius,  setRadius]  = useState(50);
   const [showRadius,setShowRadius]=useState(false);
-  const [visible, setVisible] = useState(true);  // privacy: user is visible
-  const [userLat, setUserLat] = useState(48.138);
-  const [userLng, setUserLng] = useState(11.575);
+  const [visible, setVisible]       = useState(true);
+  const [userLat, setUserLat]        = useState(48.138);
+  const [userLng, setUserLng]        = useState(11.575);
+  const [matchIdx, setMatchIdx]      = useState(0);
+
+  const MATCH_TEXTS = [
+    "Menschen entdecken",
+    "Kreative Energie finden",
+    "Talente in deiner Nähe",
+    "Passende Menschen",
+  ];
+
+  useEffect(() => {
+    const t = setInterval(() => setMatchIdx(i => (i+1) % 4), 3200);
+    return () => clearInterval(t);
+  }, []);
 
   const containerRef = useRef(null);
 
@@ -596,11 +650,11 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
   });
 
   const FILTERS = [
-    {key:"alle",       label:"Alle",        icon:"✦"},
-    {key:"wirker",     label:"Wirker",      icon:""},
-    {key:"werk",       label:"Werke",       icon:""},
-    {key:"experience", label:"Erlebnisse",  icon:""},
-    {key:"impact",     label:"Impact",      icon:""},
+    {key:"alle",       label:"✨ Alle",             accent:C.teal},
+    {key:"wirker",     label:"🤝 Menschen",          accent:C.teal},
+    {key:"werk",       label:"🎨 Werke",             accent:C.coral},
+    {key:"experience", label:"🌿 Erlebnisse",        accent:"#9B72CF"},
+    {key:"impact",     label:"🌍 Impact",            accent:C.green},
   ];
 
   return (
@@ -644,6 +698,26 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
                 onClick={p => setSelected(p)}
                 isSelected={selected?.id === pin.id}/>
             </div>
+          );
+        })}
+
+        {/* ── ENERGY HEATMAP — subtle creative zones ── */}
+        {[
+          {lat:48.142, lng:11.570, color:C.teal,  r:90,  opacity:0.07},
+          {lat:48.152, lng:11.536, color:C.coral, r:70,  opacity:0.06},
+          {lat:48.128, lng:11.561, color:C.gold,  r:60,  opacity:0.05},
+        ].map((zone,i) => {
+          const {x:zx, y:zy} = latLngToXY(zone.lat, zone.lng,
+            mapLat, mapLng, zoom, size.w, size.h);
+          return (
+            <div key={i} style={{ position:"absolute",
+              left: zx - zone.r, top: zy - zone.r,
+              width: zone.r*2, height: zone.r*2,
+              borderRadius:"50%",
+              background:`radial-gradient(circle,${zone.color} 0%,transparent 70%)`,
+              opacity: zone.opacity,
+              animation:`heatPulse ${4+i}s ${i*1.2}s ease-in-out infinite`,
+              pointerEvents:"none", mixBlendMode:"multiply" }}/>
           );
         })}
 
@@ -695,8 +769,8 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
               <span style={{ fontWeight:700, fontSize:14, color:C.ink }}>
                 München
               </span>
-              <span style={{ fontSize:12, color:C.muted, marginLeft:"auto" }}>
-                {visiblePins.length} in der Nähe
+              <span style={{ fontSize:12, color:C.teal, fontWeight:600, marginLeft:"auto" }}>
+                {visiblePins.length} kreative {visiblePins.length === 1 ? "Person" : "Menschen"}
               </span>
             </div>
 
@@ -748,14 +822,14 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
                   backdropFilter:"blur(16px)",
                   WebkitBackdropFilter:"blur(16px)",
                   border:`1.5px solid ${filter===f.key
-                    ? C.teal+"88" : "rgba(255,255,255,0.55)"}`,
+                    ? (f.accent||C.teal)+"88" : "rgba(255,255,255,0.55)"}`,
                   borderRadius:999, fontSize:12,
                   fontWeight: filter===f.key ? 800 : 500,
                   color: filter===f.key ? C.teal : C.ink2,
                   cursor:"pointer", fontFamily:"inherit",
                   whiteSpace:"nowrap",
                   boxShadow: filter===f.key
-                    ? `0 2px 10px ${C.tealGlow}` : "0 2px 8px rgba(0,0,0,0.06)",
+                    ? `0 2px 10px ${(f.accent||C.teal)}44` : "0 2px 8px rgba(0,0,0,0.06)",
                   transition:"all 0.2s",
                   WebkitTapHighlightColor:"transparent" }}>
                 {f.label}
@@ -786,6 +860,25 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
               {btn.label}
             </button>
           ))}
+        </div>
+
+        {/* ── LIVE COMMUNITY HINT ── */}
+        <div style={{ position:"absolute", bottom:156, left:20, right:20,
+          pointerEvents:"none" }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:7,
+            background:"rgba(252,250,247,0.82)",
+            backdropFilter:"blur(16px)",
+            border:"1px solid rgba(255,255,255,0.55)",
+            borderRadius:999, padding:"6px 14px",
+            boxShadow:"0 2px 12px rgba(0,0,0,0.08)" }}>
+            <span style={{ width:6, height:6, borderRadius:"50%",
+              background:C.teal, display:"inline-block",
+              animation:"breathe 2.5s ease-in-out infinite",
+              boxShadow:`0 0 5px ${C.teal}` }}/>
+            <span style={{ fontSize:12, color:C.ink2, fontWeight:600 }}>
+              {visiblePins.filter(p=>p.type==="wirker"&&p.available).length} Menschen gerade aktiv
+            </span>
+          </div>
         </div>
 
         {/* ── BOTTOM — radius + HUI match CTA ── */}
@@ -845,21 +938,31 @@ export default function LiveMapPage({ onView, onMatch, onClose, fullscreen }) {
               📍 {radius} km
             </button>
 
-            {/* HUI Match CTA */}
+            {/* HUI Match — floating magic element */}
             <button
               data-bubble="1"
               onClick={onMatch}
-              style={{ flex:1, padding:"12px 20px",
-                background:`linear-gradient(135deg,${C.gold}EE,#E8A000)`,
-                border:"none", borderRadius:16, fontSize:13,
-                fontWeight:900, color:"white", cursor:"pointer",
+              style={{ flex:1, padding:"11px 20px",
+                background:`linear-gradient(135deg,${C.teal}F0,${C.coral}E0)`,
+                border:"none", borderRadius:18, fontSize:13,
+                fontWeight:800, color:"white", cursor:"pointer",
                 fontFamily:"inherit",
-                boxShadow:`0 4px 20px ${C.goldGlow}`,
+                boxShadow:`0 4px 24px ${C.tealGlow}, 0 0 0 1px rgba(255,255,255,0.18) inset`,
                 display:"flex", alignItems:"center",
-                justifyContent:"center", gap:8,
+                justifyContent:"center", gap:7,
+                overflow:"hidden", position:"relative",
                 WebkitTapHighlightColor:"transparent" }}>
-              <span style={{ fontSize:16 }}>✨</span>
-              HUI Match
+              {/* Shimmer sweep */}
+              <div style={{ position:"absolute", inset:0,
+                background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%)",
+                animation:"shimmerSweep 3s ease-in-out infinite",
+                pointerEvents:"none" }}/>
+              <span style={{ fontSize:15, position:"relative" }}>✨</span>
+              <span style={{ position:"relative",
+                animation:`matchText 3.2s ease-in-out infinite`,
+                animationDelay:`${matchIdx * 0}s` }}>
+                {MATCH_TEXTS[matchIdx]}
+              </span>
             </button>
           </div>
         </div>
