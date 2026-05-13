@@ -2,7 +2,8 @@
 // Community Pool · Stimmen · Monatliche Ausschüttung · Keine NGO-Energie
 
 import React, { useState, useEffect, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase }      from "../lib/supabaseClient";
+import SupportSheet      from "../components/SupportSheet";
 
 /* ── Brand ──────────────────────────────────── */
 const C = {
@@ -196,7 +197,7 @@ function StimmenBadge({ votesLeft, totalVotes }) {
 /* ════════════════════════════════════════════
    PROJECT STORY — full detail view
 ════════════════════════════════════════════ */
-function ProjectStory({ p, onBack, onVote, votesLeft }) {
+function ProjectStory({ p, onBack, onVote, votesLeft, onSupport }) {
   const [voted, setVoted]       = useState(false);
   const [showConfirm, setConfirm] = useState(false);
   const st = getStatus(p.status);
@@ -332,6 +333,21 @@ function ProjectStory({ p, onBack, onVote, votesLeft }) {
           </div>
         )}
 
+        {/* Direct support button — shown for all projects */}
+        {p.status !== "voting" && (
+          <button
+            onClick={() => onSupport?.(p)}
+            style={{ width:"100%", padding:"14px",
+              background:`linear-gradient(135deg,${C.coral},${C.gold})`,
+              border:"none", borderRadius:16,
+              fontSize:14, fontWeight:800, color:"white",
+              cursor:"pointer", fontFamily:"inherit", marginBottom:20,
+              boxShadow:`0 4px 18px ${C.coralGlow}`,
+              WebkitTapHighlightColor:"transparent" }}>
+            🤍 Dieses Projekt direkt unterstützen
+          </button>
+        )}
+
         {/* Second image */}
         {p.img2 && (
           <div style={{ borderRadius:20, overflow:"hidden",
@@ -399,7 +415,7 @@ function ProjectStory({ p, onBack, onVote, votesLeft }) {
 /* ════════════════════════════════════════════
    PROJECT CARD
 ════════════════════════════════════════════ */
-function ProjectCard({ p, idx, onOpen, votesLeft, onVote }) {
+function ProjectCard({ p, idx, onOpen, votesLeft, onVote, onSupport }) {
   const [localVoted, setLocalVoted] = useState(false);
   const progress = pct(p.raised, p.goal);
   const st       = getStatus(p.status);
@@ -555,6 +571,18 @@ function ProjectCard({ p, idx, onOpen, votesLeft, onVote }) {
             Geschichte lesen →
           </button>
         )}
+        {/* Support heart button */}
+        <button className="ss-tap"
+          onClick={e=>{e.stopPropagation();onSupport?.();}}
+          style={{ width:44, height:44, borderRadius:12, flexShrink:0,
+            background:`linear-gradient(135deg,${C.coral}18,${C.coral}0A)`,
+            border:`1.5px solid ${C.coral}44`,
+            cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:18,
+            WebkitTapHighlightColor:"transparent" }}>
+          🤍
+        </button>
       </div>
     </div>
   );
@@ -662,15 +690,16 @@ function BewirktSection() {
    MAIN PAGE
 ════════════════════════════════════════════ */
 export default function ImpactPage({ currentUser }) {
-  const [projects,     setProjects]     = useState([]);
-  const [selected,     setSelected]     = useState(null);
-  const [votedIds,     setVotedIds]     = useState([]);   // array now (2 votes possible)
-  const [votesLeft,    setVotesLeft]    = useState(1);    // base: 1, talent: 2
-  const [totalVotes,   setTotalVotes]   = useState(1);
-  const [poolTotal,    setPoolTotal]    = useState(0);
-  const [weeklyInflow, setWeeklyInflow] = useState(0);
-  const [activeFilter, setActiveFilter] = useState("aktiv");
-  const [loading,      setLoading]      = useState(true);
+  const [projects,      setProjects]     = useState([]);
+  const [selected,      setSelected]     = useState(null);
+  const [supportProject,setSupportProject]= useState(null); // direct support
+  const [votedIds,      setVotedIds]     = useState([]);
+  const [votesLeft,     setVotesLeft]    = useState(1);
+  const [totalVotes,    setTotalVotes]   = useState(1);
+  const [poolTotal,     setPoolTotal]    = useState(0);
+  const [weeklyInflow,  setWeeklyInflow] = useState(0);
+  const [activeFilter,  setActiveFilter] = useState("aktiv");
+  const [loading,       setLoading]      = useState(true);
 
   useEffect(() => {
     async function load() {
@@ -796,6 +825,7 @@ export default function ImpactPage({ currentUser }) {
       onBack={() => setSelected(null)}
       onVote={handleVote}
       votesLeft={votesLeft}
+      onSupport={(proj) => { setSelected(null); setSupportProject(proj); }}
     />
   );
 
@@ -940,6 +970,7 @@ export default function ImpactPage({ currentUser }) {
                   onOpen={() => setSelected(p)}
                   votesLeft={votesLeft}
                   onVote={handleVote}
+                  onSupport={() => setSupportProject(p)}
                 />
               ))}
               {activeProjects.length === 0 && (
@@ -984,6 +1015,7 @@ export default function ImpactPage({ currentUser }) {
                   onOpen={() => setSelected(p)}
                   votesLeft={votesLeft}
                   onVote={handleVote}
+                  onSupport={() => setSupportProject(p)}
                 />
               ))}
               {votingProjects.length === 0 && activeProjects.map((p,i) => (
@@ -991,6 +1023,7 @@ export default function ImpactPage({ currentUser }) {
                   onOpen={() => setSelected(p)}
                   votesLeft={votesLeft}
                   onVote={handleVote}
+                  onSupport={() => setSupportProject(p)}
                 />
               ))}
             </div>
@@ -1014,6 +1047,24 @@ export default function ImpactPage({ currentUser }) {
           )}
         </div>
       </div>
+
+      {/* ── Direct Support Sheet ───────────────────────── */}
+      {supportProject && (
+        <SupportSheet
+          project={supportProject}
+          currentUser={currentUser}
+          onClose={() => setSupportProject(null)}
+          onSuccess={(amount) => {
+            // Optimistically update raised amount in list
+            setProjects(ps => ps.map(p =>
+              p.id === supportProject.id
+                ? {...p, raised: (p.raised||0) + amount}
+                : p
+            ));
+            setSupportProject(null);
+          }}
+        />
+      )}
     </>
   );
 }
