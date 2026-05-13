@@ -193,16 +193,32 @@ export default function HuiSearchBar({ onMatchClick, onKarteClick }) {
             ✨
           </button>
 
-          {/* Karte Button */}
+          {/* Karte Button — HUI SVG Icon */}
           <button className="hsb-tap" onClick={onKarteClick}
             style={{ width:38,height:38,borderRadius:50,flexShrink:0,
-              background:`${C.teal}15`,
-              border:`1px solid ${C.teal}30`,
+              background:`linear-gradient(135deg,${C.teal}18,${C.teal}0A)`,
+              border:`1.5px solid ${C.teal}40`,
               display:"flex",alignItems:"center",justifyContent:"center",
-              fontSize:16,
-              transition:"transform .18s" }}
+              boxShadow:`0 2px 8px ${C.tealGlow}`,
+              transition:"transform .18s, box-shadow .18s" }}
             title="Karte">
-            🗺
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="map-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%"   stopColor={C.teal}/>
+                  <stop offset="100%" stopColor={C.teal2}/>
+                </linearGradient>
+              </defs>
+              {/* Pin */}
+              <path d="M12 2C8.69 2 6 4.69 6 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.31-2.69-6-6-6z"
+                fill={`${C.teal}22`} stroke="url(#map-grad)" strokeWidth="1.6" strokeLinejoin="round"/>
+              <circle cx="12" cy="8" r="2.2"
+                fill="url(#map-grad)"/>
+              {/* Ground ring */}
+              <ellipse cx="12" cy="21" rx="4" ry="1.2"
+                fill={`${C.teal}30`}/>
+            </svg>
           </button>
         </div>
 
