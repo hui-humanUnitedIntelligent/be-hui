@@ -153,12 +153,13 @@ export function AuthProvider({ children }) {
   }, [user, wirkerProfile]);
 
   // ── Activate Talent (HUI Membership) — persists forever in Supabase ──
-  const activateTalentProfile = useCallback(async () => {
+  const activateTalentProfile = useCallback(async (focusType = "hybrid") => {
     if (!user) return { error: "Nicht eingeloggt" };
     const { data, error } = await supabase
       .from("profiles")
       .update({
         has_talent_profile: true,
+        focus_type: focusType,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id)
