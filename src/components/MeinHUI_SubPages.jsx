@@ -7,6 +7,76 @@ import { supabase } from "../lib/supabaseClient";
 import { safeQuery, FIELDS, cachedQuery } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
 
+// ── Local query helpers for tables not yet in main service layer ──────
+async function getPrivacySettings(userId) {
+  const { data } = await safeQuery(
+    supabase.from('privacy_settings')
+      .select('user_id,profile_visibility,show_location,show_availability,allow_messages')
+      .eq('user_id', userId).single()
+  );
+  return data;
+}
+
+async function savePrivacySettings(userId, settings) {
+  return safeQuery(
+    supabase.from('privacy_settings')
+      .upsert({ user_id: userId, ...settings, updated_at: new Date().toISOString() })
+      .select().single()
+  );
+}
+
+async function getNotificationSettings(userId) {
+  const { data } = await safeQuery(
+    supabase.from('notification_settings')
+      .select('user_id,email_bookings,email_messages,email_impact,push_bookings,push_messages,push_impact')
+      .eq('user_id', userId).single()
+  );
+  return data;
+}
+
+async function saveNotificationSettings(userId, settings) {
+  return safeQuery(
+    supabase.from('notification_settings')
+      .upsert({ user_id: userId, ...settings, updated_at: new Date().toISOString() })
+      .select().single()
+  );
+}
+
+async function getAvailabilitySlots(userId) {
+  const { data } = await safeQuery(
+    supabase.from('availability_slots')
+      .select('id,user_id,date,start_time,end_time,is_blocked,note')
+      .eq('user_id', userId)
+      .order('date', { ascending: true })
+      .limit(90)
+  );
+  return data || [];
+}
+
+async function upsertAvailabilitySlot(userId, slot) {
+  return safeQuery(
+    supabase.from('availability_slots')
+      .upsert({ user_id: userId, ...slot })
+      .select('id,date,start_time,end_time,is_blocked').single()
+  );
+}
+
+async function deleteAvailabilitySlot(slotId) {
+  return safeQuery(supabase.from('availability_slots').delete().eq('id', slotId));
+}
+
+async function getPayouts(userId) {
+  const { data } = await safeQuery(
+    supabase.from('payouts')
+      .select('id,amount_eur,status,initiated_at,paid_at')
+      .eq('user_id', userId)
+      .order('initiated_at', { ascending: false })
+      .limit(20)
+  );
+  return data || [];
+}
+
+
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
   coral:"#FF8A6B", coralPale:"#FFF2EE",
@@ -144,7 +214,7 @@ export function BestellungenPage({ onBack, onOpenChat }) {
   }
 
   async function updateStatus(id, status) {
-    await supabase.from("bookings").update({ status }).eq("id", id);
+    await BookingService.updateStatus(id, status);
     load();
   }
 
