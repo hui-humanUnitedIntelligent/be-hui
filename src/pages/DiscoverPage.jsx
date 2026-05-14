@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 
 /* ── Brand ──────────────────────────────────────────── */
 const C = {
@@ -571,7 +572,7 @@ export default function DiscoverPage({ onMap, onView, refreshSignal }) {
       const [profilesRes, worksRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id,display_name,full_name,avatar_url,focus_type,location,has_talent_profile")
+          .select(PROFILE_FIELDS)
           .eq("has_talent_profile", true)
           .limit(12),
         supabase
@@ -584,13 +585,34 @@ export default function DiscoverPage({ onMap, onView, refreshSignal }) {
       ]);
 
       if (profilesRes.data?.length > 0) {
-        setTalents((profilesRes.data || []).map((p,i) => ({
-          ...MOCK_TALENTS[i % MOCK_TALENTS.length],
-          id:       p.id,
-          name:     p.display_name || p.full_name || MOCK_TALENTS[i%4].name,
-          location: p.location || MOCK_TALENTS[i%4].location,
-          available:true,
-        })));
+        setTalents((profilesRes.data || []).map((p, i) => {
+          // normalizeProfileInput: gleicht alle Feldnamen an für WirkerProfilePage
+          const norm = normalizeProfileInput(p);
+          return {
+            // Visuelle Felder für TalentCard (bestehende UI)
+            ...MOCK_TALENTS[i % MOCK_TALENTS.length],
+            // Normalisierte ID-Felder für WirkerProfilePage routing
+            id:           norm.id,
+            user_id:      norm.user_id,
+            username:     norm.username,
+            display_name: norm.display_name,
+            // Weitere normalisierte Felder
+            name:         norm.display_name || MOCK_TALENTS[i%4].name,
+            avatar_url:   norm.avatar_url   || MOCK_TALENTS[i%4].img,
+            header_img:   norm.header_img   || null,
+            bio:          norm.bio          || null,
+            talent:       norm.talent       || null,
+            location:     norm.location_label || MOCK_TALENTS[i%4].location,
+            location_label: norm.location_label || null,
+            focus_type:   norm.focus_type   || "hybrid",
+            dna_tags:     norm.dna_tags     || [],
+            impact_eur:   norm.impact_eur   || 0,
+            is_wirker:    norm.is_wirker    || p.has_talent_profile || false,
+            available:    norm.is_available !== false,
+            // type-hint für onView routing
+            type: "wirker",
+          };
+        }));
       } else {
         setTalents(MOCK_TALENTS);
       }
