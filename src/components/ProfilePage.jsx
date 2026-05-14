@@ -286,6 +286,18 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile, onViewPubli
           justifyContent:"space-between", marginBottom:14 }}>
           <Avatar url={avatarUrl} name={displayName} size={88} ring={true}/>
           <div style={{ display:"flex", gap:8, paddingBottom:6 }}>
+            {onViewPublicProfile && (
+              <button className="pp-tap"
+                onClick={onViewPublicProfile}
+                style={{ padding:"9px 14px", borderRadius:20,
+                  background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+                  border:"none",
+                  fontWeight:700, fontSize:12, color:"white",
+                  cursor:"pointer",
+                  boxShadow:`0 2px 10px rgba(22,215,197,0.28)` }}>
+                👁 Öffentlich
+              </button>
+            )}
             <button className="pp-tap"
               onClick={onEditProfile || (() => {})}
               style={{ padding:"9px 16px", borderRadius:20,
