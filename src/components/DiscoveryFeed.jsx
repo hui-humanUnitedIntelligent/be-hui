@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { sentryCapture } from "../lib/sentry";
 import { useAuth } from "../lib/AuthContext";
 import HuiSearchBar from "./HuiSearchBar";
 import VirtualFeedList, { FeedEndSentinel } from "./VirtualFeedList";
@@ -1077,6 +1078,10 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         }
       } catch(e) {
         if (!mounted) return;
+        sentryCapture(e, {
+          source: 'DiscoveryFeed.loadWirkers',
+          document_hidden: document.hidden,
+        });
         console.error("[DiscoveryFeed] wirkers:", e.message);
       } finally {
         if (mounted) setWirkersLoading(false);
@@ -1153,6 +1158,12 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       console.log("[HUI Feed] Loaded page", currentPage, "works:", works.length);
     } catch(e) {
       if (!mounted) return;
+      sentryCapture(e, {
+        source:       'DiscoveryFeed.loadFeed',
+        reset:        reset,
+        current_page: currentPage,
+        document_hidden: document.hidden,
+      });
       console.error("[HUI Feed] Error:", e);
       setFeedError(e.message);
     } finally {
@@ -1383,7 +1394,13 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                   </div>
                 );
               } catch(err) {
-                console.error('[DiscoveryFeed] renderItem crash item.type=' +
+                sentryCapture(err, {
+                  source:     'DiscoveryFeed.renderItem',
+                  item_id:    item?.id   ?? null,
+                  item_type:  item?.type ?? 'unknown',
+                  item_index: i,
+                });
+                console.error('[DiscoveryFeed] renderItem crash type=' +
                   (item?.type||'?') + ' id=' + (item?.id||i), err);
                 return null;
               }
