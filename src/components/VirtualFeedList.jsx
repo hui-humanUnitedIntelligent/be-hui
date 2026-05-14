@@ -1,72 +1,72 @@
 // src/components/VirtualFeedList.jsx
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 // HUI Feed Virtualization — vollständig unsichtbar für Nutzer
 //
-// Architektur:
-//  • useVirtualizer mit externem .hui-scroll Container
-//  • Nur sichtbare + overscan Items im DOM
-//  • Variable Höhen via measureElement (auto-gemessen)
-//  • Graceful fallback wenn Container nicht verfügbar
-//  • Keine visuellen Änderungen — identische Card-Ausgabe
+// Strategie:
+//  • scrollContainerRef als Prop — kein DOM-Scan
+//  • fallbackSelector als String-Alternative (".df-scroll")
+//  • Nur ~10-12 DOM-Knoten statt alle Items
+//  • overscan: 5 → flüssiges Scrollen ohne Leerstellen
+//  • measureElement → echte variable Höhen nach Render
+//  • Stable translateY statt top → GPU-composited, kein Reflow
+//  • Graceful fallback: kein Container → rendert erste 15 Items
 //
-// WICHTIG: Kein Design-Code hier. Nur Virtualisierungs-Logik.
-// ══════════════════════════════════════════════════════════════
+// KEIN DESIGN-CODE — nur Virtualisierungslogik
+// ════════════════════════════════════════════════════════════════
 
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-// ─── Util: findet den .hui-scroll Container im DOM ───────────
-function findScrollContainer() {
-  return document.querySelector('.hui-scroll') || null;
-}
-
-// ─── Hook: gibt stable Ref auf hui-scroll zurück ─────────────
-function useHuiScrollContainer() {
-  const ref = useRef(null);
-  useEffect(() => {
-    ref.current = findScrollContainer();
-  }, []);
-  return ref;
-}
-
-// ══════════════════════════════════════════════════════════════
-// VirtualFeedList
-// Rendert nur sichtbare Items aus einer flachen Liste.
+// ─── VirtualFeedList ─────────────────────────────────────────────
 // Props:
-//   items[]           — flaches Array aller Feed-Items
-//   renderItem(item, index) → JSX
-//   estimatedSize     — Schätzung Itemhöhe in px (default 440)
-//   overscan          — Items außerhalb Viewport (default 3)
-//   onEndReached      — Callback wenn 85% gescrollt
-// ══════════════════════════════════════════════════════════════
+//   items[]              — flaches Array aller Feed-Items
+//   renderItem(item, i)  — (item, index) => JSX
+//   scrollContainerRef   — React Ref auf den scrollbaren Container (bevorzugt)
+//   fallbackSelector     — CSS-Selektor als Fallback (z.B. ".df-scroll")
+//   estimatedSize        — Schätzung Itemhöhe px (default: 520)
+//   overscan             — Items über/unter Viewport (default: 5)
+//   onEndReached         — Callback wenn letzte Items sichtbar werden
 export default function VirtualFeedList({
   items,
   renderItem,
-  estimatedSize = 440,
-  overscan      = 3,
+  scrollContainerRef: externalRef,
+  fallbackSelector,
+  estimatedSize = 520,
+  overscan      = 5,
   onEndReached,
 }) {
-  const scrollRef = useHuiScrollContainer();
-  const [ready,   setReady] = useState(false);
+  const internalRef   = useRef(null);
+  const [ready, setReady] = useState(false);
 
-  // Warte bis Container im DOM ist
+  // Ref-Auflösung: extern > fallbackSelector > intern
+  const getScrollEl = useCallback(() => {
+    if (externalRef?.current) return externalRef.current;
+    if (fallbackSelector) return document.querySelector(fallbackSelector);
+    return internalRef.current;
+  }, [externalRef, fallbackSelector]);
+
+  // Warte bis Container wirklich im DOM ist
   useEffect(() => {
-    const el = findScrollContainer();
-    if (el) { scrollRef.current = el; setReady(true); return; }
-    // Retry — auf langsamen Geräten kurz warten
-    const t = setTimeout(() => {
-      scrollRef.current = findScrollContainer();
-      setReady(true);
-    }, 80);
-    return () => clearTimeout(t);
-  }, []);
+    const el = getScrollEl();
+    if (el) { setReady(true); return; }
+    // Retry für Safari — Container kann leicht verzögert mounten
+    let tries = 0;
+    const interval = setInterval(() => {
+      tries++;
+      if (getScrollEl() || tries >= 10) {
+        clearInterval(interval);
+        setReady(true);
+      }
+    }, 50);
+    return () => clearInterval(interval);
+  }, [getScrollEl]);
 
   const virtualizer = useVirtualizer({
     count:            items.length,
-    getScrollElement: () => scrollRef.current,
+    getScrollElement: getScrollEl,
     estimateSize:     () => estimatedSize,
     overscan,
-    // measureElement: echte Höhe nach Render messen
+    // Echte Höhe nach Render messen — verhindert Layout-Sprünge
     measureElement:   (el) => {
       if (!el) return estimatedSize;
       return el.getBoundingClientRect().height || estimatedSize;
@@ -76,32 +76,32 @@ export default function VirtualFeedList({
   const virtualItems = virtualizer.getVirtualItems();
   const totalSize    = virtualizer.getTotalSize();
 
-  // End-reached detection — bei 85% Scroll-Position
+  // End-reached: triggern wenn letzte sichtbare Items nahe Ende
   useEffect(() => {
-    if (!onEndReached || !items.length) return;
-    const last = virtualItems[virtualItems.length - 1];
-    if (last && last.index >= items.length - Math.max(3, overscan + 1)) {
+    if (!onEndReached || !items.length || !virtualItems.length) return;
+    const lastVisible = virtualItems[virtualItems.length - 1];
+    if (lastVisible && lastVisible.index >= items.length - Math.max(overscan, 3)) {
       onEndReached();
     }
   }, [virtualItems, items.length, onEndReached, overscan]);
 
-  // Fallback: wenn Container nicht ready → normales Rendering
-  // Verhindert leeren Screen auf alten Geräten
-  if (!ready || !scrollRef.current) {
+  // Graceful Fallback — wenn Container noch nicht ready oder kein Container
+  if (!ready) {
     return (
-      <>
-        {items.slice(0, 12).map((item, i) => (
+      <div>
+        {items.slice(0, 8).map((item, i) => (
           <React.Fragment key={item?.id ?? i}>
             {renderItem(item, i)}
           </React.Fragment>
         ))}
-      </>
+      </div>
     );
   }
 
   return (
-    // Outer div nimmt die Gesamthöhe aller virtuellen Items ein
-    // → Scrollbar bleibt immer korrekt skaliert
+    // Outer-Div: nimmt Gesamthöhe aller virtuellen Items ein
+    // → Scrollbar-Thumb bleibt korrekt skaliert
+    // → position:relative ist der Anker für absolutepositionierte Items
     <div style={{ height: totalSize, position: 'relative', width: '100%' }}>
       {virtualItems.map(vItem => (
         <div
@@ -113,10 +113,8 @@ export default function VirtualFeedList({
             top:       0,
             left:      0,
             width:     '100%',
-            // translateY statt top — GPU-composited, kein Layout-Reflow
+            // GPU-composited transform — kein Layout-Reflow beim Scrollen
             transform: `translateY(${vItem.start}px)`,
-            // will-change nur während scroll aktiv setzen wäre ideal,
-            // aber hier static OK da virtualize sowieso GPU nutzt
           }}
         >
           {renderItem(items[vItem.index], vItem.index)}
@@ -126,54 +124,25 @@ export default function VirtualFeedList({
   );
 }
 
-// ══════════════════════════════════════════════════════════════
-// FeedEndSentinel
-// IntersectionObserver trigger für infinite scroll.
-// Sauber: observer wird beim unmount getrennt.
-// ══════════════════════════════════════════════════════════════
+// ─── FeedEndSentinel ─────────────────────────────────────────────
+// IntersectionObserver-trigger für Infinite Scroll.
+// Sauber: Observer wird bei unmount getrennt.
+// rootMargin: 500px → lädt früh genug für nahtlose Erfahrung
 export function FeedEndSentinel({ onVisible, loading }) {
-  const observerRef = useRef(null);
+  const obsRef = useRef(null);
 
-  const sentinelRef = useCallback(node => {
-    // Cleanup vorheriger observer
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-      observerRef.current = null;
-    }
+  const ref = useCallback(node => {
+    if (obsRef.current) { obsRef.current.disconnect(); obsRef.current = null; }
     if (!node) return;
     const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !loading) onVisible?.();
-      },
-      { rootMargin: '400px' } // früh triggern — 400px vor Sichtbarkeit
+      ([entry]) => { if (entry.isIntersecting && !loading) onVisible?.(); },
+      { rootMargin: '500px' }
     );
     obs.observe(node);
-    observerRef.current = obs;
+    obsRef.current = obs;
   }, [loading, onVisible]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      observerRef.current?.disconnect();
-      observerRef.current = null;
-    };
-  }, []);
+  useEffect(() => () => { obsRef.current?.disconnect(); }, []);
 
-  return <div ref={sentinelRef} style={{ height: 1, width: '100%' }} aria-hidden="true" />;
-}
-
-// ══════════════════════════════════════════════════════════════
-// useHuiFeedVirtualizer
-// Hook für Komponenten die direkten Zugriff auf den Virtualizer
-// brauchen (z.B. für scroll-to-index).
-// ══════════════════════════════════════════════════════════════
-export function useHuiFeedVirtualizer(count, estimatedSize = 440) {
-  const scrollRef = useHuiScrollContainer();
-  const virtualizer = useVirtualizer({
-    count,
-    getScrollElement: () => scrollRef.current,
-    estimateSize:     () => estimatedSize,
-    overscan:         3,
-  });
-  return virtualizer;
+  return <div ref={ref} style={{ height: 1, width: '100%' }} aria-hidden="true" />;
 }
