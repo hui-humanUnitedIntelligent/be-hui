@@ -108,7 +108,7 @@ const CSS = `
 function CreatorAvatar({ url, name, size = 28 }) {
   const initials = (name || "?").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
   if (url) return (
-    <img src={url} alt={name}
+    <img loading="lazy" decoding="async" src={url} alt={name}
       style={{ width: size, height: size, borderRadius: "50%",
         objectFit: "cover", border: "2px solid rgba(255,255,255,0.4)",
         flexShrink: 0 }} />
@@ -215,7 +215,7 @@ function WirkerTile({ w, onView, onBook }) {
       <div style={{ borderRadius:20, overflow:"hidden",
         height:148, position:"relative",
         boxShadow:"0 3px 14px rgba(0,0,0,0.11)" }}>
-        <img src={w.img} alt={w.name}
+        <img loading="lazy" decoding="async" src={w.img} alt={w.name}
           style={{ width:"100%", height:"100%",
             objectFit:"cover", objectPosition:"top center",
             filter:"brightness(0.88) saturate(1.1)" }}/>
@@ -267,7 +267,7 @@ function WerkTile({ w, onView, onBuyWerk, navigate }) {
       <div style={{ borderRadius:18, overflow:"hidden",
         height:148, position:"relative",
         boxShadow:"0 3px 14px rgba(0,0,0,0.10)" }}>
-        <img src={w.img} alt={w.title}
+        <img loading="lazy" decoding="async" src={w.img} alt={w.title}
           style={{ width:"100%", height:"100%",
             objectFit:"cover",
             filter:"brightness(0.86) saturate(1.15)" }}/>
@@ -358,7 +358,7 @@ function WirkerCard({ item, onView, onBook }) {
         animation:"dfFadeUp 0.5s both" }}>
       <div style={{ position:"absolute", inset:0,
         animation:"dfKenBurns 20s ease-in-out infinite alternate" }}>
-        <img src={item.img} alt={item.name}
+        <img loading="lazy" decoding="async" src={item.img} alt={item.name}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             objectPosition:"top center",
             filter:"brightness(0.70) saturate(1.15)" }}/>
@@ -440,7 +440,7 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
         animation:"dfFadeUp 0.5s both" }}>
       <div style={{ position:"absolute", inset:0,
         animation:"dfKenBurns 22s ease-in-out infinite alternate" }}>
-        <img src={item.img} alt={item.title}
+        <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             filter:"brightness(0.72) saturate(1.2)" }}/>
       </div>
@@ -513,7 +513,7 @@ function ExperienceCard({ item, onView }) {
         animation:"dfFadeUp 0.5s both" }}>
       <div style={{ position:"absolute", inset:0,
         animation:"dfKenBurns 18s ease-in-out infinite alternate" }}>
-        <img src={item.img} alt={item.title}
+        <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             filter:"brightness(0.65) saturate(1.2)" }}/>
       </div>
@@ -586,7 +586,7 @@ function ImpactCard({ item, onImpact }) {
         animation:"dfFadeUp 0.5s both" }}>
       <div style={{ position:"absolute", inset:0,
         animation:"dfKenBurns 24s ease-in-out infinite alternate" }}>
-        <img src={item.img} alt={item.title}
+        <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             filter:"brightness(0.58) saturate(1.25)" }}/>
       </div>
@@ -832,7 +832,7 @@ function MomenteAvatar({ label, avatar, isOwn, hasStory, onTap, animDelay=0 }) {
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
           {avatar
-            ? <img src={avatar} alt={label}
+            ? <img loading="lazy" decoding="async" src={avatar} alt={label}
                 style={{ width:"100%", height:"100%", objectFit:"cover" }}
                 onError={e => { e.target.style.display="none"; }}/>
             : isOwn
@@ -956,7 +956,7 @@ function MomenteViewer({ stories, startIdx=0, onClose }) {
           border:"2px solid rgba(255,255,255,0.6)", flexShrink:0,
           background:"rgba(255,255,255,0.1)" }}>
           {current.avatar_url
-            ? <img src={current.avatar_url} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            ? <img loading="lazy" decoding="async" src={current.avatar_url} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
             : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",
                 justifyContent:"center",color:"white",fontSize:16}}>✦</div>
           }
@@ -985,7 +985,7 @@ function MomenteViewer({ stories, startIdx=0, onClose }) {
           ? (current.media_type === "video"
               ? <video src={current.media_url} autoPlay loop muted playsInline
                   style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-              : <img src={current.media_url}
+              : <img loading="lazy" decoding="async" src={current.media_url}
                   style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)
           : <div style={{ width:"100%", height:"100%",
               background:"linear-gradient(135deg,#16D7C5,#A78BFA,#FF8A6B)" }}/>
