@@ -1642,37 +1642,80 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           />
         </div>
 
-        {/* ══ 2. WIRKER GRID ════════════════════════════════════════ */}
-        <SectionHeader
-          title="Menschen, die inspirieren"
-          sub="Echte Talente in deiner Nähe"
-          accent={C.teal}
-          onAll={() => {}}
-        />
-        <div className="df-scroll"
-          style={{ display:"flex", gap:12, overflowX:"auto",
-            padding:"0 20px 4px" }}>
-          {(liveWirkers.length > 0 ? liveWirkers : WIRKERS).map((w, i) => (
-            <WirkerTile key={w.user_id || i} w={w} onView={onView} onBook={onBook}/>
-          ))}
+        {/* ══ 2. WIRKER — Editorial Horizontal Scroll ══════════════════ */}
+        <div style={{ padding:"22px 0 8px" }}>
+          <div style={{ display:"flex", alignItems:"baseline",
+            justifyContent:"space-between", padding:"0 20px 14px" }}>
+            <div>
+              <div style={{ fontWeight:900, fontSize:17, color:C.ink,
+                letterSpacing:-0.4, lineHeight:1.1 }}>
+                Menschen, die bewegen
+              </div>
+              <div style={{ fontSize:11.5, color:C.muted, marginTop:3, fontWeight:500 }}>
+                Echte Talente in deiner Nähe
+              </div>
+            </div>
+            <span style={{ fontSize:11, fontWeight:700, color:C.teal,
+              padding:"5px 12px", borderRadius:999,
+              background:"rgba(22,215,197,0.10)",
+              border:"1px solid rgba(22,215,197,0.18)" }}>
+              Alle →
+            </span>
+          </div>
+          <div className="df-scroll"
+            style={{ display:"flex", gap:10, overflowX:"auto",
+              padding:"0 20px 6px", WebkitOverflowScrolling:"touch" }}>
+            {(liveWirkers.length > 0 ? liveWirkers : WIRKERS).map((w, i) => (
+              <WirkerTile key={w.user_id || i} w={w} onView={onView} onBook={onBook}/>
+            ))}
+          </div>
         </div>
 
-        {/* ══ 3. WERKE GRID ════════════════════════════════════════ */}
-        <SectionHeader
-          title="Werke mit Seele"
-          sub="Handgefertigt. Einzigartig. Bedeutungsvoll."
-          accent={C.coral}
-          onAll={() => {}}
-        />
-        <div className="df-scroll"
-          style={{ display:"flex", gap:12, overflowX:"auto",
-            padding:"0 20px 4px" }}>
-          {liveWerke.map((w, i) => (
-            <WerkTile key={i} w={w} onView={onView} onBuyWerk={onBuyWerk} navigate={navigate}/>
-          ))}
+        {/* ══ 3. WERKE — Editorial Showcase Strip ══════════════════════ */}
+        {liveWerke.length > 0 && (
+          <div style={{ padding:"8px 0 16px" }}>
+            <div style={{ display:"flex", alignItems:"baseline",
+              justifyContent:"space-between", padding:"0 20px 14px" }}>
+              <div>
+                <div style={{ fontWeight:900, fontSize:17, color:C.ink,
+                  letterSpacing:-0.4, lineHeight:1.1 }}>
+                  Werke mit Seele
+                </div>
+                <div style={{ fontSize:11.5, color:C.muted, marginTop:3, fontWeight:500 }}>
+                  Handgemacht. Einzigartig. Bedeutungsvoll.
+                </div>
+              </div>
+              <span style={{ fontSize:11, fontWeight:700, color:C.coral,
+                padding:"5px 12px", borderRadius:999,
+                background:"rgba(255,138,107,0.10)",
+                border:"1px solid rgba(255,138,107,0.18)" }}>
+                Alle →
+              </span>
+            </div>
+            <div className="df-scroll"
+              style={{ display:"flex", gap:10, overflowX:"auto",
+                padding:"0 20px 6px", WebkitOverflowScrolling:"touch" }}>
+              {liveWerke.map((w, i) => (
+                <WerkTile key={i} w={w} onView={onView} onBuyWerk={onBuyWerk} navigate={navigate}/>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══ 4. FEED — Editorial Cinematic Section Header ════════════ */}
+        <div style={{ padding:"8px 20px 4px",
+          display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ flex:1, height:1,
+            background:`linear-gradient(90deg,${C.teal}55,${C.coral}33,transparent)` }}/>
+          <span style={{ fontSize:9, fontWeight:900, letterSpacing:3,
+            textTransform:"uppercase", color:C.muted, opacity:0.7 }}>
+            Entdecken
+          </span>
+          <div style={{ flex:1, height:1,
+            background:`linear-gradient(270deg,${C.teal}55,${C.coral}33,transparent)` }}/>
         </div>
 
-        {/* ══ 4. IMMERSIVER FEED ═══════════════════════════════════ */}
+
         <Divider label="Entdecken" accent={C.teal}/>
 
         {feedError && (
@@ -1721,23 +1764,81 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                   window.__HUI_LAST_FEED_COMPONENT__ =
                     'DiscoveryFeed:' + (item.type || 'unknown') + ':' + (item.id || i);
                 }
-                const divAccent =
-                  item.type==="wirker" ? C.teal :
-                  item.type==="werk"   ? C.coral :
-                  item.type==="experience" ? C.gold : C.green;
-                const divLabel =
-                  item.type==="wirker" ? "Menschen" :
-                  item.type==="werk"   ? "Werke" :
-                  item.type==="experience" ? "Erlebnisse" : "Impact";
+
+                // ── FEED DRAMATURGIE ENGINE ──────────────────────────────────
+                // Position im Feed bestimmt visuelles Gewicht der Karte
+                // 0: Hero (groß) | 1: Mid | 2: Mid | 3: Full | 4+: abwechselnd
+                const pos = i % 7; // 7er-Rhythmus
+
+                // Bestimme Kartenformat basierend auf Position + Typ
+                const isHero   = pos === 0 || pos === 4;        // Groß + Fullbleed
+                const isMid    = pos === 1 || pos === 2;        // 2er-Gruppe
+                const isFull   = pos === 3;                     // Voller Cinematic
+                const isCompact = pos === 5 || pos === 6;       // Kleiner + kompakter
+
+                // Padding: Hero/Full edge-to-edge, Mid/Compact mit Rand
+                const px = isHero || isFull ? "0 14px" : "0 14px";
+
+                // ── SECTION BREAK zwischen Gruppen ─────────────────────────
+                // Vor Hero-Cards (pos 0, 4) eine atmosphärische Trennlinie
+                const showBreak = i > 0 && (pos === 0 || pos === 4);
+
+                // Akzentfarbe + Label
+                const accent =
+                  item.type==="wirker"     ? C.teal  :
+                  item.type==="werk"       ? C.coral :
+                  item.type==="experience" ? C.gold  : C.green;
+                const label =
+                  item.type==="wirker"     ? "Talent"    :
+                  item.type==="werk"       ? "Werk"      :
+                  item.type==="experience" ? "Erlebnis"  : "Impact";
+
                 return (
-                  <div key={item.id}>
-                    {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
-                    <div style={{ padding:"0 16px" }}>
-                      {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook}/>}
-                      {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
-                      {item.type==="experience" && <MemoExperienceCard item={item} onView={onView}/>}
-                      {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact}/>}
-                    </div>
+                  <div key={item.id || i}>
+                    {/* ── Atmosphärische Sektion-Pause ── */}
+                    {showBreak && (
+                      <div style={{ padding:"20px 22px 6px",
+                        display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ flex:1, height:1,
+                          background:`linear-gradient(90deg,${accent}44,transparent)` }}/>
+                        <span style={{ fontSize:8.5, fontWeight:900, color:accent,
+                          letterSpacing:2.5, textTransform:"uppercase", opacity:0.65 }}>
+                          {label}
+                        </span>
+                        <div style={{ flex:1, height:1,
+                          background:`linear-gradient(270deg,${accent}44,transparent)` }}/>
+                      </div>
+                    )}
+
+                    {/* ── HERO / FULL — große Karte ── */}
+                    {(isHero || isFull) && (
+                      <div style={{ padding:px, marginBottom:isHero ? 6 : 6 }}>
+                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} variant={isFull ? "full" : "hero"}/>}
+                      </div>
+                    )}
+
+                    {/* ── MID — kompaktere Karte, mehr Luft drumherum ── */}
+                    {isMid && (
+                      <div style={{ padding:px, marginBottom:6 }}>
+                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook} variant="mid"/>}
+                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="mid"/>}
+                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} variant="mid"/>}
+                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} variant="mid"/>}
+                      </div>
+                    )}
+
+                    {/* ── COMPACT — kleinere Karte mit weniger Höhe ── */}
+                    {isCompact && (
+                      <div style={{ padding:px, marginBottom:6 }}>
+                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook} variant="compact"/>}
+                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="compact"/>}
+                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} variant="compact"/>}
+                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} variant="compact"/>}
+                      </div>
+                    )}
                   </div>
                 );
               } catch(err) {
@@ -1752,6 +1853,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                 return null;
               }
             }}
+
           />
 
           {/* ── Empty state wenn keine echten Daten ── */}
