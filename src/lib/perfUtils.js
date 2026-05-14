@@ -63,14 +63,27 @@ export async function safeQuery(promise, timeoutMs = 8000) {
 }
 
 // ─── 6. Intersection Observer for lazy sections ───────────────────────
+// Returns observer — caller MUST call .disconnect() in useEffect cleanup
 export function createLazyObserver(callback, options = {}) {
   if (typeof IntersectionObserver === 'undefined') {
     callback(true); // SSR fallback
-    return { observe: () => {}, disconnect: () => {} };
+    return { observe: () => {}, disconnect: () => {}, unobserve: () => {} };
   }
-  return new IntersectionObserver(([entry]) => {
-    if (entry.isIntersecting) callback(true);
+  const obs = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      callback(true);
+      obs.disconnect(); // auto-disconnect after first intersection (one-shot)
+    }
   }, { rootMargin: '200px', threshold: 0.01, ...options });
+  return obs;
+}
+
+// ─── 6b. React hook helper for IO — auto-cleanup ─────────────────────
+// Usage: const ref = useIntersectionRef(() => setVisible(true));
+export function useIntersectionRef(onVisible, options = {}) {
+  // Note: import { useEffect, useRef } from 'react' in consumer
+  // This is a placeholder — use createLazyObserver directly in useEffect
+  return null;
 }
 
 // ─── 7. Image URL optimizer (Unsplash + Supabase Storage) ────────────
