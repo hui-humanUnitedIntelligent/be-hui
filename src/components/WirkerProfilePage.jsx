@@ -374,7 +374,44 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   }, [profile?.focus_type]);
 
   if (loading) return <ProfileSkeleton />;
-  if (!profile) return null;
+  if (!profile) {
+    // Kein silent null — zeige Retry-Option
+    return (
+      <div style={{
+        minHeight:"100vh", background:C.cream,
+        display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center",
+        gap:16, padding:"0 32px",
+        fontFamily:"-apple-system,'SF Pro Display',system-ui,sans-serif",
+      }}>
+        {onClose && (
+          <button onClick={onClose} style={{
+            position:"absolute", top:"max(52px,env(safe-area-inset-top,52px))", left:16,
+            background:"rgba(0,0,0,0.08)", border:"none", borderRadius:12,
+            padding:"8px 14px", fontSize:14, fontWeight:600,
+            cursor:"pointer", color:C.ink2,
+          }}>← Zurück</button>
+        )}
+        <div style={{ fontSize:40 }}>👤</div>
+        <div style={{ fontSize:16, fontWeight:700, color:C.ink, textAlign:"center" }}>
+          Profil konnte nicht geladen werden
+        </div>
+        <div style={{ fontSize:13, color:C.muted, textAlign:"center" }}>
+          Bitte prüfe deine Verbindung und versuche es erneut.
+        </div>
+        <button onClick={() => { setLoading(true); setProfile(null); load(); }}
+          style={{
+            background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+            color:"white", border:"none", borderRadius:999,
+            padding:"12px 28px", fontSize:15, fontWeight:700,
+            cursor:"pointer", marginTop:8,
+            boxShadow:`0 4px 16px ${C.tealGlow}`,
+          }}>
+          Erneut laden
+        </button>
+      </div>
+    );
+  }
 
   const heroImg = profile.header_img
     || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=900&q=85";
