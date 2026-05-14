@@ -1314,7 +1314,7 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
 ═══════════════════════════════════════════════════ */
 export default function Home() {
   const [tab,         setTab]         = useState("feed");
-  const { isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, loadingProfile, profile: authProfile, signOut: authSignOut } = useAuth();
+  const { isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, loadingProfile, profile: authProfile, wirkerProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
   const [showTalentFlow, setShowTalentFlow] = useState(false); // "Wirker werden" flow
   const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
@@ -1467,7 +1467,7 @@ export default function Home() {
                 window.location.href="/login";
               }}
               onViewPublicProfile={()=>{
-                if (authProfile) setShowWirker({ id: authProfile.id, user_id: authProfile.id });
+                if (authProfile) setShowWirker({ id: authProfile.id, user_id: authProfile.id, username: authProfile.username });
               }}
             />
           )}
@@ -1487,14 +1487,21 @@ export default function Home() {
           onStory={()=>setShowStoryComposer(true)}
           onNotifs={()=>setShowNotifs(true)}
           onProfile={()=>{
-            if (authProfile) {
-              // Öffentliches Profil öffnen — nicht Mein HUI
-              setShowWirker({
-                id:       authProfile.id,
-                user_id:  authProfile.id,
-                username: authProfile.username,
-              });
-            }
+            // Öffentliches Profil öffnen — nicht Mein HUI
+            // Nutze authProfile oder user als Fallback
+            const p = authProfile;
+            const uid = p?.id;
+            if (!uid) return;
+            setShowWirker({
+              id:       uid,
+              user_id:  uid,
+              username: p?.username || null,
+              // Direkt-Daten mitgeben damit Overlay sofort rendert
+              display_name: p?.display_name || null,
+              avatar_url:   p?.avatar_url   || null,
+              talent:       p?.talent       || null,
+              focus_type:   p?.focus_type   || "hybrid",
+            });
           }}
           cartCount={cart.length}
           msgCount={0}
