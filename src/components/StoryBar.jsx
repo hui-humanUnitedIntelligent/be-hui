@@ -101,9 +101,9 @@ export function StoryBar({ onStoryClick }) {
                   <div style={{ width:'100%', height:'100%', borderRadius:'50%',
                     overflow:'hidden', border:'2.5px solid white', background: C.cream }}>
                     {cover?.avatar_url ? (
-                      <img src={cover.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="lazy" decoding="async" src={cover.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     ) : cover?.media_url ? (
-                      <img src={cover.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="lazy" decoding="async" src={cover.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     ) : (
                       <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.teal}22,${C.coral}22)`,
                         display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>✦</div>
@@ -262,7 +262,7 @@ export function StoryViewer({ data: initData, onClose }) {
           style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }}
           onEnded={goNext} />
       ) : mediaUrl ? (
-        <img src={mediaUrl} alt="" style={{
+        <img loading="lazy" decoding="async" src={mediaUrl} alt="" style={{
           position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
       ) : (
         <div style={{ position:'absolute', inset:0,
@@ -294,7 +294,7 @@ export function StoryViewer({ data: initData, onClose }) {
         <div style={{ width:38, height:38, borderRadius:'50%', border:'2px solid rgba(255,255,255,.7)',
           overflow:'hidden', background:'rgba(255,255,255,.2)', flexShrink:0 }}>
           {current.avatar_url
-            ? <img src={current.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+            ? <img loading="lazy" decoding="async" src={current.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
             : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
                 justifyContent:'center', color:'white', fontWeight:800, fontSize:16 }}>
                 {(current.username||'A')[0].toUpperCase()}
@@ -461,7 +461,7 @@ export function HighlightsRow({ userId }) {
                 <div style={{ width:'100%', height:'100%', borderRadius:'50%',
                   overflow:'hidden', border:'2px solid white', background:'#eee' }}>
                   {h.media_url
-                    ? <img src={h.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                    ? <img loading="lazy" decoding="async" src={h.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     : <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.gold}44,${C.coral}44)`,
                         display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>⭐</div>}
                 </div>
