@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 import HuiSearchBar from "./HuiSearchBar";
+import VirtualFeedList, { FeedEndSentinel } from "./VirtualFeedList";
+import LazyImage from "./LazyImage";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -1290,28 +1292,34 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         )}
 
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
-          {liveFeedItems.map((item, i) => {
-            const divAccent =
-              item.type==="wirker" ? C.teal :
-              item.type==="werk"   ? C.coral :
-              item.type==="experience" ? C.gold : C.green;
-            const divLabel =
-              item.type==="wirker" ? "Menschen" :
-              item.type==="werk"   ? "Werke" :
-              item.type==="experience" ? "Erlebnisse" : "Impact";
-
-            return (
-              <div key={item.id}>
-                {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
-                <div style={{ padding:"0 16px" }}>
-                  {item.type==="wirker"     && <WirkerCard     item={item} onView={onView} onBook={onBook}/>}
-                  {item.type==="werk"       && <WerkCard        item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
-                  {item.type==="experience" && <ExperienceCard  item={item} onView={onView}/>}
-                  {item.type==="impact"     && <ImpactCard      item={item} onImpact={onImpact}/>}
+          <VirtualFeedList
+            items={liveFeedItems}
+            estimatedSize={380}
+            overscan={3}
+            onEndReached={hasMore ? loadMore : undefined}
+            renderItem={(item, i) => {
+              if (!item) return null;
+              const divAccent =
+                item.type==="wirker" ? C.teal :
+                item.type==="werk"   ? C.coral :
+                item.type==="experience" ? C.gold : C.green;
+              const divLabel =
+                item.type==="wirker" ? "Menschen" :
+                item.type==="werk"   ? "Werke" :
+                item.type==="experience" ? "Erlebnisse" : "Impact";
+              return (
+                <div key={item.id}>
+                  {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
+                  <div style={{ padding:"0 16px" }}>
+                    {item.type==="wirker"     && <WirkerCard     item={item} onView={onView} onBook={onBook}/>}
+                    {item.type==="werk"       && <WerkCard        item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
+                    {item.type==="experience" && <ExperienceCard  item={item} onView={onView}/>}
+                    {item.type==="impact"     && <ImpactCard      item={item} onImpact={onImpact}/>}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            }}
+          />
 
           {/* ── Empty state wenn keine echten Daten ── */}
           {!feedLoading && liveFeedItems.length === 0 && (
@@ -1327,7 +1335,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           )}
 
           {/* ── Infinite scroll loader ── */}
-          <div ref={loaderRef} style={{ height:1 }} />
+          {/* Infinite scroll via VirtualFeedList.onEndReached */}
 
           {/* ── Loading more indicator ── */}
           {loadingMore && (
