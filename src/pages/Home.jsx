@@ -1377,18 +1377,13 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(()=>{
-    supabase.auth.getSession().then(async ({data:{session}})=>{
-      if(!session) return;
-      setCurrentUser(session.user);
-      setUserName(
-        session.user.user_metadata?.full_name ||
-        session.user.email?.split("@")[0] || ""
-      );
-      // Talent status is handled by AuthContext — loads on every session restore
-    });
-    // Sync isWirker from AuthContext (authoritative source)
-  },[]);
+  // Session data comes from AuthContext — no separate getSession() needed
+  useEffect(() => {
+    if (authProfile) {
+      setCurrentUser(authProfile);
+      setUserName(authProfile.display_name || authProfile.email?.split("@")[0] || "");
+    }
+  }, [authProfile?.id]);  // only re-run when user actually changes
 
   if(showBooking) return (
     <div style={{ position:"fixed", inset:0, zIndex:200,
