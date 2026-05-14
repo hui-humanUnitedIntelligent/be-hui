@@ -52,7 +52,7 @@ function HUILoader({ message }) {
 
   // If still loading after 9s → show escape button
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 9000);
+    const t = setTimeout(() => setTimedOut(true), 30000);
     return () => clearTimeout(t);
   }, []);
 
@@ -125,7 +125,7 @@ function ProtectedRoute({ children }) {
   }
 
   // Still checking session
-  if (loadingAuth) return <HUILoader message="Anmeldung prüfen…" />;
+  if (loadingAuth) return <HUILoader key="auth-loader" message="Anmeldung prüfen…" />;
 
   // Not authenticated → login
   if (!isAuthenticated) return <Navigate to="/login" replace />;
