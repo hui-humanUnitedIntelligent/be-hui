@@ -11,15 +11,18 @@ export function useBookings(userId, role = 'user') {
   useEffect(() => {
     mounted.current = true;
     if (!userId) { setLoading(false); return; }
-    const fn = role === 'wirker'
-      ? BookingService.getByWirker
-      : BookingService.getByUser;
-    fn(userId, 0).then(({ data, error: err }) => {
+
+    (async () => {
+      const fetchFn = role === 'wirker'
+        ? BookingService.getByWirker
+        : BookingService.getByUser;
+      const { data, error: err } = await fetchFn(userId, 0);
       if (!mounted.current) return;
       setBookings(data || []);
       setError(err?.message || null);
       setLoading(false);
-    });
+    })();
+
     return () => { mounted.current = false; };
   }, [userId, role]);
 
