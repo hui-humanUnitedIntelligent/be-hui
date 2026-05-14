@@ -10,9 +10,14 @@ export function useMatch(userId) {
   useEffect(() => {
     mounted.current = true;
     if (!userId) { setLoading(false); return; }
-    MatchService.getTopMatches(userId).then(({ data }) => {
-      if (mounted.current) { setMatches(data || []); setLoading(false); }
-    });
+
+    (async () => {
+      const { data } = await MatchService.getTopMatches(userId);
+      if (!mounted.current) return;
+      setMatches(data || []);
+      setLoading(false);
+    })();
+
     return () => { mounted.current = false; };
   }, [userId]);
 
