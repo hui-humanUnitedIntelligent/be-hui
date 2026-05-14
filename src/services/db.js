@@ -473,7 +473,7 @@ export const ImpactService = {
     // Logic: Winner gets full goal_eur, rest splits remaining pool
     // This should run server-side (Supabase Edge Function) — 
     // frontend call just triggers it
-    return safeQuery(
+    return await safeQuery(
       supabase.rpc('distribute_impact_round', { round_id: roundId })
     );
   },
