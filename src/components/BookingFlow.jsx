@@ -679,7 +679,9 @@ function StepEscrow({ wirker, date, slot, onNext, onBack, onClose }) {
 function StepSuccess({ wirker, date, slot, onClose, onChat }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    setTimeout(() => setVisible(true), 80);
+    let mounted = true;
+    const t = setTimeout(() => { if (mounted) setVisible(true); }, 80);
+    return () => { mounted = false; clearTimeout(t); };
   }, []);
 
   return (
