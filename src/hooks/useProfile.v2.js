@@ -12,12 +12,15 @@ export function useProfile(userId) {
     mounted.current = true;
     if (!userId) { setLoading(false); return; }
     setLoading(true);
-    ProfileService.getById(userId).then(({ data, error: err }) => {
+
+    (async () => {
+      const { data, error: err } = await ProfileService.getById(userId);
       if (!mounted.current) return;
       setProfile(data);
       setError(err?.message || null);
       setLoading(false);
-    });
+    })();
+
     return () => { mounted.current = false; };
   }, [userId]);
 
