@@ -1180,24 +1180,58 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   useEffect(() => { loadFeed(true); }, []);
   useEffect(() => { if (refreshSignal) loadFeed(true); }, [refreshSignal]);
 
-  // visibilitychange: Reload nach langem Idle (Safari Background-Freeze)
+  // visibilitychange: iPad Safari Background Resume Recovery
   useEffect(() => {
-    let hiddenAt = 0;
-    const IDLE_THRESHOLD_MS = 5 * 60 * 1000; // 5 Minuten
+    let hiddenAt       = 0;
+    let loadingStartAt = 0;          // merken wann feedLoading startete
+    let stallTimer     = null;
+
+    // Schwellen:
+    //  > 60s  Idle → Feed neu laden (vorher 5min — zu lang für iPad)
+    //  > 8s   feedLoading hängt nach Resume → force reset
+    const RELOAD_THRESHOLD_MS = 60 * 1000;       // 60 Sekunden
+    const STALL_THRESHOLD_MS  =  8 * 1000;       //  8 Sekunden
+
     function onVisibility() {
       if (document.hidden) {
         hiddenAt = Date.now();
-      } else {
-        // Tab wieder sichtbar
-        const idleMs = Date.now() - hiddenAt;
-        if (hiddenAt > 0 && idleMs > IDLE_THRESHOLD_MS) {
-          console.log("[HUI Feed] Reload nach Idle:", Math.round(idleMs/1000) + "s");
+        if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
+        return;
+      }
+
+      // Tab wieder sichtbar
+      const idleMs = hiddenAt > 0 ? Date.now() - hiddenAt : 0;
+      console.log('[DiscoveryFeed] visibility resume, idle=' + Math.round(idleMs / 1000) + 's');
+
+      if (hiddenAt > 0 && idleMs > RELOAD_THRESHOLD_MS) {
+        // Lang genug weg → Feed neu laden
+        console.log('[DiscoveryFeed] Reload nach Idle: ' + Math.round(idleMs/1000) + 's');
+        loadFeed(true);
+      }
+
+      // Stall-Guard: nach Resume auf feedLoading=true prüfen
+      // Wenn feedLoading nach STALL_THRESHOLD_MS noch true → force reset
+      stallTimer = setTimeout(() => {
+        // Zugriff auf feedLoading über closure — aktueller Wert durch
+        // React-State nicht direkt lesbar hier, daher über DOM-Fallback
+        const skeleton = document.querySelector('[data-hui-skeleton]');
+        if (skeleton) {
+          console.warn('[DiscoveryFeed] Skeleton stall detected after resume — forcing reload');
+          sentryCapture(new Error('DiscoveryFeed skeleton stall after resume'), {
+            source:   'DiscoveryFeed.visibilityStall',
+            idle_ms:  idleMs,
+          });
           loadFeed(true);
         }
-      }
+        stallTimer = null;
+      }, STALL_THRESHOLD_MS);
     }
+
     document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (stallTimer) clearTimeout(stallTimer);
+    };
   }, [loadFeed]);
 
   // Realtime subscription für neue Works
