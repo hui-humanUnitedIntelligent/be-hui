@@ -553,166 +553,42 @@ function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile, onViewPubli
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   PUBLIC PROFILE — Reduced Portfolio View
+   PUBLIC PROFILE — delegiert an WirkerProfilePage (modernes System)
+   Das alte Legacy-Layout (Header+Werkliste) ist hiermit ersetzt.
+   Kein eigenes Design — WirkerProfilePage ist die Single Source of Truth.
 ══════════════════════════════════════════════════════════════════════ */
+const WirkerProfilePageLazy = React.lazy(() => import("./WirkerProfilePage"));
+
 function PublicProfileView({ username, onBack, onNavigate, onBuyWerk }) {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [werke,   setWerke]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
-
-  useEffect(() => {
-    if (username) loadProfile();
-  }, [username]);
-
-  async function loadProfile() {
-    setLoading(true); setError(null);
-    try {
-      const { data:prof, error:e } = await supabase.from("profiles")
-        .select("id,username,display_name,avatar_url,bio,is_wirker,role")
-        .eq("username", username).single();
-      if (e||!prof) throw new Error("Profil nicht gefunden");
-      setProfile(prof);
-      const { data:works } = await supabase.from("works")
-        .select("id,title,price,cover_url,images,category,created_at")
-        .eq("user_id",prof.id).eq("status","published")
-        .order("created_at",{ascending:false});
-      setWerke(works||[]);
-    } catch(e) { setError(e.message); }
-    finally { setLoading(false); }
-  }
-
-  const handleBack = () => {
+  // Delegiere vollständig an WirkerProfilePage — dasselbe moderne Layout
+  // für eigene UND fremde Profile.
+  // onClose: zurück navigieren (backward compat mit onBack/onNavigate)
+  function handleClose() {
     if (onBack) onBack();
     else if (onNavigate) onNavigate(-1);
     else window.history.back();
-  };
-
-  if (loading) return <ProfileSkeleton/>;
-
-  if (error||!profile) return (
-    <div style={{ minHeight:"100vh", background:C.warm, display:"flex",
-      flexDirection:"column", alignItems:"center", justifyContent:"center",
-      padding:32, fontFamily:"-apple-system,sans-serif" }}>
-      <style>{CSS}</style>
-      <div style={{ fontSize:48, marginBottom:16 }}>😕</div>
-      <div style={{ fontWeight:800, fontSize:18, color:C.ink, marginBottom:8 }}>
-        Profil nicht gefunden
-      </div>
-      <div style={{ fontSize:13, color:C.muted, textAlign:"center", marginBottom:24 }}>
-        @{username} existiert nicht.
-      </div>
-      <button onClick={handleBack} className="pp-tap"
-        style={{ padding:"12px 24px", borderRadius:12, background:C.teal,
-          color:"white", border:"none", fontWeight:700, cursor:"pointer", fontSize:14 }}>
-        Zurück
-      </button>
-    </div>
-  );
-
-  const displayName = profile.display_name||profile.username;
-  const isOwn = user && user.id === profile.id;
+  }
 
   return (
-    <div style={{ minHeight:"100vh", background:C.warm, paddingBottom:40,
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif" }}>
-      <style>{CSS}</style>
-
-      {/* Sticky Header */}
-      <div style={{ position:"sticky", top:0, zIndex:100,
-        background:"rgba(249,247,244,0.92)", backdropFilter:"blur(12px)",
-        borderBottom:`1px solid ${C.border}`, padding:"12px 16px",
-        paddingTop:"max(12px,env(safe-area-inset-top,12px))",
-        display:"flex", alignItems:"center", gap:12 }}>
-        <button onClick={handleBack} className="pp-tap"
-          style={{ width:38, height:38, borderRadius:"50%", background:"rgba(0,0,0,0.06)",
-            border:"none", cursor:"pointer", display:"flex",
-            alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>
-          ‹
-        </button>
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontWeight:800, fontSize:16, color:C.ink,
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {displayName}
-          </div>
-          <div style={{ fontSize:11, color:C.muted }}>@{profile.username}</div>
-        </div>
-        {isOwn && (
-          <div style={{ fontSize:12, padding:"5px 12px", borderRadius:20,
-            background:C.tealPale, color:C.teal, fontWeight:700 }}>
-            Ich
-          </div>
-        )}
+    <React.Suspense fallback={
+      <div style={{ minHeight:"100vh", background:"#F9F7F4",
+        display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <div style={{ width:48, height:48, borderRadius:"50%",
+          border:"3px solid rgba(22,215,197,0.3)", borderTopColor:"#16D7C5",
+          animation:"spin 0.8s linear infinite" }}/>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
-
-      {/* Hero */}
-      <div style={{ padding:"28px 20px 20px", borderBottom:`1px solid ${C.border}` }}>
-        <div style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
-          <Avatar url={profile.avatar_url} name={displayName} size={76} ring={profile.is_wirker}/>
-          <div style={{ flex:1, paddingTop:4 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
-              <span style={{ fontWeight:900, fontSize:20, color:C.ink, letterSpacing:-0.5 }}>
-                {displayName}
-              </span>
-              {profile.is_wirker && <span style={{ fontSize:14 }}>✦</span>}
-            </div>
-            <div style={{ fontSize:12, color:C.muted, marginBottom:10 }}>
-              @{profile.username}
-            </div>
-            <div style={{ display:"flex", gap:20 }}>
-              <div style={{ textAlign:"center" }}>
-                <div style={{ fontWeight:900, fontSize:18, color:C.ink }}>{werke.length}</div>
-                <div style={{ fontSize:10, color:C.muted }}>Werke</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {profile.bio && (
-          <p style={{ fontSize:14, color:C.ink2, lineHeight:1.65, margin:"14px 0 0" }}>
-            {profile.bio}
-          </p>
-        )}
-        {profile.is_wirker && (
-          <div style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6,
-            padding:"5px 12px", borderRadius:20,
-            background:C.tealPale, border:`1px solid ${C.tealBorder}` }}>
-            <span style={{ fontSize:12 }}>✦</span>
-            <span style={{ fontSize:12, fontWeight:700, color:C.teal }}>Wirker</span>
-          </div>
-        )}
-      </div>
-
-      {/* Werke */}
-      <div style={{ padding:"20px 16px 40px" }}>
-        {werke.length===0 ? (
-          <div style={{ textAlign:"center", padding:"48px 24px", color:C.muted }}>
-            <div style={{ fontSize:40, marginBottom:12, opacity:0.4 }}>🎨</div>
-            <div style={{ fontWeight:700, fontSize:15, color:C.ink, marginBottom:6 }}>
-              Noch keine Werke
-            </div>
-            <div style={{ fontSize:13 }}>
-              {displayName} hat noch nichts veröffentlicht.
-            </div>
-          </div>
-        ) : (
-          <>
-            <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:14 }}>
-              Werke ({werke.length})
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
-              {werke.map(w => <WerkCard key={w.id} werk={w} onPress={onBuyWerk}/>)}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    }>
+      <WirkerProfilePageLazy
+        wirker={{ username }}
+        onClose={handleClose}
+        onBook={null}
+      />
+    </React.Suspense>
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   MAIN EXPORT — Smart Routing
-══════════════════════════════════════════════════════════════════════ */
+
 export default function ProfilePage({
   username,        // wenn gesetzt → öffentliches Profil
   onBack,
