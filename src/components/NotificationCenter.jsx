@@ -1,6 +1,7 @@
 // NotificationCenter.jsx — HUI Phase 8
 // Echte Notifications aus Supabase. Realtime-Badge im Header.
 import React, { useState, useEffect, useCallback } from "react";
+import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
@@ -137,7 +138,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
     if (!user?.id) return;
     const { data } = await supabase
       .from("notifications")
-      .select("*")
+      .select("id,user_id,type,title,body,read,data,created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(60);
