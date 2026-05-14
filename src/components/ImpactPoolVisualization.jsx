@@ -340,28 +340,38 @@ export default function ImpactPoolVisualization({ onClose }) {
   const [liveData, setLiveData] = useState([]);
 
   useEffect(() => {
-    setTimeout(() => setAnimatedBars(true), 200);
-    // Echte Supabase Daten laden
-    supabase.from('impact_projects').select("id,name,category,description,icon,color,votes,status,goal_eur,awarded_eur,month,tags").order('votes', { ascending: false })
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setLiveData(data);
-          // Won projects als echte History anzeigen
-          const won = data.filter(p => p.status === "won" || p.status === "gewonnen");
-          if (won.length > 0) {
-            const mapped = won.map(p => ({
-              ...p,
-              awarded_eur: p.awarded_eur || 0,
-              votes: p.votes || 0,
-              emoji: p.icon || "🌱",
-              monthlyData: [0, 0, 0, 0, 0, p.awarded_eur || 0],
-              timeline: [],
-              impactMetrics: [],
-            }));
-            setProjects(prev => mapped.length > 0 ? mapped : prev);
-          }
+    let mounted = true;
+    // setTimeout mit cleanup — verhindert setState nach unmount
+    const t = setTimeout(() => { if (mounted) setAnimatedBars(true); }, 200);
+
+    // async IIFE mit mounted guard — kein .then() auf unmounted component
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('impact_projects')
+          .select("id,name,category,description,icon,color,votes,status,goal_eur,awarded_eur,month,tags")
+          .order('votes', { ascending: false });
+        if (!mounted || !data?.length) return;
+        setLiveData(data);
+        const won = data.filter(p => p.status === "won" || p.status === "gewonnen");
+        if (won.length > 0) {
+          const mapped = won.map(p => ({
+            ...p,
+            awarded_eur:  p.awarded_eur  || 0,
+            votes:        p.votes        || 0,
+            emoji:        p.icon         || "🌱",
+            monthlyData:  [0, 0, 0, 0, 0, p.awarded_eur || 0],
+            timeline:     [],
+            impactMetrics:[],
+          }));
+          if (mounted) setProjects(prev => mapped.length > 0 ? mapped : prev);
         }
-      });
+      } catch (e) {
+        // Daten nicht geladen — Mock bleibt bestehen
+      }
+    })();
+
+    return () => { mounted = false; clearTimeout(t); };
   }, []);
 
   const totalPool = projects.reduce((s, p) => s + p.awarded_eur, 0);
