@@ -1,20 +1,16 @@
 // src/components/VirtualFeedList.jsx
 // ════════════════════════════════════════════════════════════════
-// HUI Feed Virtualization — Runtime-Crash-Isolation v3
+// HUI Feed Virtualization — Hook-Order-Safe v4
+//
+// WICHTIG — React Hook Rules:
+//   Alle Hooks (useState, useEffect, useRef, useCallback, useVirtualizer)
+//   müssen BEDINGUNGSLOS und in fixer Reihenfolge aufgerufen werden.
+//   Early returns sind AUSSCHLIESSLICH nach dem letzten Hook erlaubt.
 //
 // Architektur:
-//  SafeVirtualRow   — try/catch um jeden renderItem-Aufruf
-//  VirtualFeedList  — alle render-guards vor virtualizer
-//  FeedEndSentinel  — sauberer IO mit cleanup
-//
-// Guards:
-//  - items[index] undefined -> null (kein throw)
-//  - renderItem throws -> null (kein Propagation zum App-EB)
-//  - document.hidden -> kein render, keine measurements
-//  - scrollEl fehlt -> graceful fallback (plain list, max 8)
-//  - items.length===0 -> sofort null, kein virtualizer
-//  - visibilitychange -> measure() nur wenn visible+ref.current
-//  - mounted guard -> kein setState nach unmount
+//   1. Alle Hooks (immer, keine Bedingung)
+//   2. virtualItems / totalSize berechnen
+//   3. Render-Entscheidung (empty / fallback / virtualized)
 // ════════════════════════════════════════════════════════════════
 
 import React, { useRef, useCallback, useEffect, useState } from 'react';
@@ -22,17 +18,14 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { sentryCapture } from '../lib/sentry';
 
 // ─── SafeVirtualRow ──────────────────────────────────────────────
-// Isoliert jeden einzelnen Feed-Item-Render.
-// Wenn renderItem() wirft: log + return null statt App-Crash.
+// Normales React-Component (keine Hooks) → early returns erlaubt
 function SafeVirtualRow({ renderItem, item, index, virtualKey, start, measureEl }) {
-  // Guard 1: item undefined
   if (item == null) return null;
 
   let content = null;
   try {
     content = renderItem(item, index);
   } catch (err) {
-    // Log mit kontext — niemals nach oben propagieren
     const eventId = sentryCapture(err, {
       source:     'VirtualFeedList.SafeVirtualRow',
       item_id:    item?.id   ?? null,
@@ -42,19 +35,16 @@ function SafeVirtualRow({ renderItem, item, index, virtualKey, start, measureEl 
     console.error(
       '[VirtualFeedList] renderItem crash index=' + index +
       ' type=' + (item?.type ?? '?') +
-      ' id=' + (item?.id ?? 'none') +
       ' sentry=' + (eventId || 'not sent'),
       err
     );
     return null;
   }
 
-  // Guard 2: renderItem gab null/undefined
   if (content == null) return null;
 
   return (
     <div
-      key={virtualKey}
       data-index={index}
       ref={measureEl}
       style={{
@@ -63,7 +53,6 @@ function SafeVirtualRow({ renderItem, item, index, virtualKey, start, measureEl 
         left:      0,
         width:     '100%',
         transform: 'translateY(' + start + 'px)',
-        // Keine weiteren Styles — alles Design-frei
       }}
     >
       {content}
@@ -81,18 +70,22 @@ export default function VirtualFeedList({
   overscan      = 5,
   onEndReached,
 }) {
+  // ══════════════════════════════════════════════════════════════
+  // ALLE HOOKS HIER — keine early returns vorher, keine Bedingungen
+  // ══════════════════════════════════════════════════════════════
+
   const internalRef    = useRef(null);
   const mountedRef     = useRef(true);
   const virtualizerRef = useRef(null);
   const [ready, setReady] = useState(false);
 
-  // Mounted-guard cleanup
+  // Hook 1: mounted-guard
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
 
-  // Ref-Aufloesung — null-safe, kein throw
+  // Hook 2: scroll-element resolver (null-safe)
   const getScrollEl = useCallback(() => {
     try {
       if (externalRef?.current) return externalRef.current;
@@ -103,11 +96,10 @@ export default function VirtualFeedList({
     }
   }, [externalRef, fallbackSelector]);
 
-  // Container-Bereitschaft mit Safari-Retry
+  // Hook 3: container readiness with Safari retry
   useEffect(() => {
     let tries = 0;
     let iv    = null;
-
     function check() {
       if (!mountedRef.current) return;
       if (getScrollEl()) {
@@ -115,48 +107,37 @@ export default function VirtualFeedList({
         return;
       }
       tries++;
-      if (tries >= 20 && mountedRef.current) {
-        // Timeout — Fallback-Modus aktivieren (plain list)
-        setReady(true);
-      }
+      if (tries >= 20 && mountedRef.current) setReady(true);
     }
-
     check();
     if (!getScrollEl()) iv = setInterval(check, 50);
     return () => { if (iv) clearInterval(iv); };
   }, [getScrollEl]);
 
-  // visibilitychange — measure() nur wenn visible UND ref existiert
+  // Hook 4: visibilitychange → measure() only when visible + ref exists
   useEffect(() => {
     function onVisibility() {
       if (document.visibilityState !== 'visible') return;
       const el = getScrollEl();
-      if (!el) return;                          // kein scrollEl -> skip
-      if (!virtualizerRef.current) return;      // kein virtualizer -> skip
-      try {
-        virtualizerRef.current.measure();
-      } catch { /* ignore */ }
+      if (!el || !virtualizerRef.current) return;
+      try { virtualizerRef.current.measure(); } catch { /* ignore */ }
     }
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [getScrollEl]);
 
-  // Virtualizer
+  // Hook 5: virtualizer — IMMER aufgerufen, count=0 wenn items leer
+  const safeCount = Array.isArray(items) ? items.length : 0;
   const virtualizer = useVirtualizer({
-    count: items.length,
-
+    count: safeCount,
     getScrollElement: () => {
-      // Guard: nie rendern wenn document.hidden
       if (document.hidden) return null;
       return getScrollEl() ?? null;
     },
-
     estimateSize: () => estimatedSize,
     overscan,
-
     measureElement: (el) => {
-      if (!el)                                    return estimatedSize;
-      if (document.visibilityState !== 'visible') return estimatedSize;
+      if (!el || document.visibilityState !== 'visible') return estimatedSize;
       try {
         const h = el.getBoundingClientRect().height;
         return h > 0 ? h : estimatedSize;
@@ -166,13 +147,32 @@ export default function VirtualFeedList({
     },
   });
 
-  // Speichere ref fuer visibilitychange
+  // Ref fuer visibilitychange-Handler
   virtualizerRef.current = virtualizer;
 
-  // Guard: items leer -> kein render
-  if (!items || items.length === 0) return null;
+  // Berechne virtualItems + totalSize NACH Hooks, VOR early returns
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize    = Math.max(virtualizer.getTotalSize(), 0);
 
-  // Guard: noch nicht ready -> plain fallback (max 8, mit try/catch)
+  // Hook 6: end-reached trigger — IMMER aufgerufen (guards im body, nicht aussen)
+  useEffect(() => {
+    if (!onEndReached || safeCount === 0 || virtualItems.length === 0) return;
+    const last = virtualItems[virtualItems.length - 1];
+    if (!last) return;
+    if (last.index >= safeCount - Math.max(overscan, 3)) {
+      onEndReached();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [virtualItems, safeCount, onEndReached, overscan]);
+
+  // ══════════════════════════════════════════════════════════════
+  // RENDER — erst nach ALLEN Hooks
+  // ══════════════════════════════════════════════════════════════
+
+  // Guard: keine items → nichts rendern
+  if (safeCount === 0) return null;
+
+  // Guard: container noch nicht bereit → plain fallback (max 8 items)
   if (!ready) {
     return (
       <div>
@@ -198,27 +198,12 @@ export default function VirtualFeedList({
     );
   }
 
-  const virtualItems = virtualizer.getVirtualItems();
-  const totalSize    = Math.max(virtualizer.getTotalSize(), 0);
-
-  // End-reached
-  useEffect(() => {
-    if (!onEndReached || !items.length || !virtualItems.length) return;
-    const last = virtualItems[virtualItems.length - 1];
-    if (!last) return;
-    if (last.index >= items.length - Math.max(overscan, 3)) {
-      onEndReached();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [virtualItems, items.length, onEndReached, overscan]);
-
+  // Virtualized render
   return (
     <div style={{ height: totalSize, position: 'relative', width: '100%' }}>
       {virtualItems.map(vItem => {
-        // Guard: index out of bounds
-        if (vItem.index >= items.length) return null;
+        if (vItem.index >= safeCount) return null;
         const item = items[vItem.index];
-
         return (
           <SafeVirtualRow
             key={vItem.key}
