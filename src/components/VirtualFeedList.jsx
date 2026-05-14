@@ -96,9 +96,10 @@ export default function VirtualFeedList({
     }
   }, [externalRef, fallbackSelector]);
 
-  // Hook 3: container readiness with Safari retry
+  // Hook 3: container readiness with Safari retry + stall detection
   useEffect(() => {
-    let tries = 0;
+    let tries     = 0;
+    const MAX_TRY = 60;  // 60 × 50ms = 3s (vorher 20 × 50ms = 1s)
     let iv    = null;
     function check() {
       if (!mountedRef.current) return;
@@ -107,20 +108,65 @@ export default function VirtualFeedList({
         return;
       }
       tries++;
-      if (tries >= 20 && mountedRef.current) setReady(true);
+      if (tries >= MAX_TRY && mountedRef.current) {
+        // 3s abgelaufen ohne ScrollElement — Fallback aktivieren
+        console.warn('[VirtualFeedList] ScrollEl not found after 3s — enabling fallback mode');
+        sentryCapture(new Error('VirtualFeedList: scrollEl stalled'), {
+          source:     'VirtualFeedList.containerStall',
+          tries,
+          document_hidden: document.hidden,
+        });
+        setReady(true);
+      }
     }
     check();
     if (!getScrollEl()) iv = setInterval(check, 50);
     return () => { if (iv) clearInterval(iv); };
   }, [getScrollEl]);
 
-  // Hook 4: visibilitychange → measure() only when visible + ref exists
+  // Hook 4: visibilitychange recovery — iPad Safari background resume
+  // Problem: Nach langem Idle friert Virtualizer ein:
+  //   - Positionen veraltet (Items an falschen Offsets)
+  //   - getScrollElement gibt null zurück (DOM suspendiert)
+  //   - visuelle Render steckt auf letztem bekannten Zustand
+  // Fix: measure() + scrollToOffset(aktuelle Position) = sauberer Neustart
+  const scrollOffsetRef = useRef(0); // letzten Scroll-Offset merken
   useEffect(() => {
+    let hiddenAt = 0;
     function onVisibility() {
-      if (document.visibilityState !== 'visible') return;
+      if (document.hidden) {
+        // Offset beim Verstecken merken
+        const el = getScrollEl();
+        if (el) scrollOffsetRef.current = el.scrollTop ?? 0;
+        hiddenAt = Date.now();
+        return;
+      }
+      // Tab wieder sichtbar
+      const idleMs = hiddenAt > 0 ? Date.now() - hiddenAt : 0;
       const el = getScrollEl();
-      if (!el || !virtualizerRef.current) return;
-      try { virtualizerRef.current.measure(); } catch { /* ignore */ }
+      const virt = virtualizerRef.current;
+      console.log('[VirtualFeedList] visibility resume, idle=' + Math.round(idleMs/1000) + 's, hasEl=' + !!el);
+      if (!el || !virt) return;
+      try {
+        // Schritt 1: Maße neu berechnen (friert nach Idle ein)
+        virt.measure();
+        // Schritt 2: Scroll-Position wiederherstellen
+        // (Safari setzt scrollTop manchmal auf 0 nach Resume)
+        if (idleMs > 2000 && scrollOffsetRef.current > 0) {
+          requestAnimationFrame(() => {
+            try {
+              virt.scrollToOffset(scrollOffsetRef.current, { align: 'start' });
+            } catch { /* ignore */ }
+          });
+        }
+      } catch (err) {
+        sentryCapture(err, {
+          source:   'VirtualFeedList.visibilityResume',
+          idle_ms:  idleMs,
+          has_el:   !!el,
+          has_virt: !!virt,
+        });
+      }
     }
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
