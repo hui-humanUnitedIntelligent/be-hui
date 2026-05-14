@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { safeQuery, FIELDS, cachedQuery } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
@@ -992,7 +993,7 @@ export function ImpactSubPage({ onBack }) {
     if (!user?.id) return;
     async function load() {
       const [projRes, voteRes, impactRes] = await Promise.all([
-        supabase.from("impact_projects").select("*").eq("status","active").order("votes",{ascending:false}),
+        supabase.from("impact_projects").select("id,name,category,description,votes,status,awarded_eur,month,icon,color").eq("status","active").order("votes",{ascending:false}),
         supabase.from("impact_votes").select("project_id").eq("user_id",user.id),
         supabase.from("profiles").select("impact_eur").eq("id",user.id).single(),
       ]);
@@ -1575,7 +1576,7 @@ function DatenschutzPage({ onBack, userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    supabase.from("privacy_settings").select("*").eq("user_id", userId).single()
+    supabase.from("privacy_settings").select("id,user_id,profile_public,messages_allowed,stories_for_followers").eq("user_id", userId).single()
       .then(({data}) => {
         if (data) setPrefs({
           profile_public:    data.profile_public   ?? true,
