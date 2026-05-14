@@ -11,10 +11,56 @@ import ProfilePage from './components/ProfilePage'
 import WorkDetailPage from './components/WorkDetailPage'
 
 /* ── Error Boundary ────────────────────────────────────────────────── */
+// Globaler letzter Feed-Kontext fuer ErrorBoundary-Diagnose
+window.__HUI_LAST_FEED_COMPONENT__ = null;
+
 class ErrorBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
-  static getDerivedStateFromError(error) { return { hasError: true, error }; }
-  componentDidCatch(e, info) { console.error('[HUI ErrorBoundary]', e, info); }
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, retryCount: 0 };
+    this._visibilityHandler = null;
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Vollstaendiges Stack-Logging immer (nicht nur dev)
+    console.error('[HUI ErrorBoundary] CRASH:', error.message);
+    console.error('[HUI ErrorBoundary] Stack:', error.stack);
+    console.error('[HUI ErrorBoundary] ComponentStack:', errorInfo?.componentStack);
+    console.error('[HUI ErrorBoundary] LastFeedComponent:', window.__HUI_LAST_FEED_COMPONENT__);
+    console.error('[HUI ErrorBoundary] document.hidden:', document.hidden);
+    console.error('[HUI ErrorBoundary] RetryCount:', this.state.retryCount);
+
+    // Auto-retry nach Idle-Crash: wenn Tab wieder sichtbar wird, einmal versuchen
+    if (this.state.retryCount < 2) {
+      this._visibilityHandler = () => {
+        if (document.visibilityState === 'visible') {
+          document.removeEventListener('visibilitychange', this._visibilityHandler);
+          this._visibilityHandler = null;
+          console.log('[HUI ErrorBoundary] Auto-retry after visibility restore');
+          this.setState(prev => ({
+            hasError: false, error: null,
+            retryCount: prev.retryCount + 1
+          }));
+        }
+      };
+      document.addEventListener('visibilitychange', this._visibilityHandler);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._visibilityHandler) {
+      document.removeEventListener('visibilitychange', this._visibilityHandler);
+    }
+  }
+
+  reset() {
+    this.setState(prev => ({ hasError: false, error: null, retryCount: prev.retryCount + 1 }));
+  }
+
   render() {
     if (this.state.hasError) return (
       <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column",
@@ -34,7 +80,7 @@ class ErrorBoundary extends React.Component {
             cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.3)" }}>
           Neu laden
         </button>
-        <button onClick={() => this.setState({ hasError:false, error:null })}
+        <button onClick={() => this.reset()}
           style={{ marginTop:10, padding:"10px 20px", borderRadius:12,
             background:"none", border:"1.5px solid rgba(0,0,0,0.1)",
             color:"#888", fontWeight:600, fontSize:13, cursor:"pointer" }}>
