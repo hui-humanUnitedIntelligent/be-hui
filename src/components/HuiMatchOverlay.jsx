@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -229,7 +230,7 @@ export default function HuiMatchOverlay({ onClose, onView }) {
       // Profiles / Talente
       if (discType === "all" || discType === "people") {
         let q = supabase.from("profiles")
-          .select("id, display_name, avatar_url, bio, location, focus_type, has_talent_profile")
+          .select(PROFILE_FIELDS)
           .eq("has_talent_profile", true)
           .limit(12);
         if (location === "online") q = q.eq("location", "Online");
@@ -287,7 +288,7 @@ export default function HuiMatchOverlay({ onClose, onView }) {
     setStep("surprise");
     try {
       const [profileRes, workRes, expRes] = await Promise.all([
-        supabase.from("profiles").select("id,display_name,avatar_url,bio,location")
+        supabase.from("profiles").select(PROFILE_FIELDS)
           .eq("has_talent_profile",true).limit(20),
         supabase.from("works").select("id,title,cover_url,price,description")
           .eq("status","published").limit(20),
