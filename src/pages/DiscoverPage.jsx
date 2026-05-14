@@ -584,7 +584,7 @@ export default function DiscoverPage({ onMap, onView, refreshSignal }) {
       ]);
 
       if (profilesRes.data?.length > 0) {
-        setTalents(profilesRes.data.map((p,i) => ({
+        setTalents((profilesRes.data || []).map((p,i) => ({
           ...MOCK_TALENTS[i % MOCK_TALENTS.length],
           id:       p.id,
           name:     p.display_name || p.full_name || MOCK_TALENTS[i%4].name,
@@ -596,7 +596,7 @@ export default function DiscoverPage({ onMap, onView, refreshSignal }) {
       }
 
       if (worksRes.data?.length > 0) {
-        setWorks(worksRes.data.map((w,i) => ({
+        setWorks((worksRes.data || []).map((w,i) => ({
           id:      w.id,
           title:   w.title,
           creator: w.profile?.display_name || w.profile?.full_name || "Unbekannt",
