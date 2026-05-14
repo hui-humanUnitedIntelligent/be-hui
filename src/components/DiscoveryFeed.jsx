@@ -1097,10 +1097,19 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   const scrollContainerRef   = useRef(null); // ref auf .df-scroll für VirtualFeedList
 
   const loadFeed = useCallback(async (reset = true) => {
-    if (reset) { setFeedLoading(true); setFeedError(null); setPage(0); setHasMore(true); }
-    else        { setLoadingMore(true); }
+    // Guard: prevent concurrent loads when not resetting
+    if (loadingRef.current && !reset) return;
+    loadingRef.current = true;
+    let mounted = true;  // per-call unmount guard
 
-    const currentPage = reset ? 0 : page;
+    if (reset) {
+      pageRef.current = 0;
+      setFeedLoading(true); setFeedError(null); setPage(0); setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    const currentPage = reset ? 0 : pageRef.current;
 
     try {
       // 1. Works laden mit Pagination
@@ -1111,11 +1120,12 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         .order("created_at", { ascending: false })
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
+      if (!mounted) return;   // unmounted during first await
       if (worksErr) throw worksErr;
       const rawWorks = worksData || [];
       if (rawWorks.length < PAGE_SIZE) setHasMore(false);
 
-      // 2. Profile für alle Creator laden (1 Query statt N)
+      // 2. Profile fuer alle Creator laden (1 Query statt N)
       const userIds = [...new Set(rawWorks.map(w => w.user_id).filter(Boolean))];
       let profileMap = {};
       if (userIds.length > 0) {
@@ -1123,11 +1133,13 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           .from("profiles")
           .select("id, username, display_name, avatar_url")
           .in("id", userIds);
+        if (!mounted) return;   // unmounted during second await
         (profs || []).forEach(p => { profileMap[p.id] = p; });
       }
 
-      // 3. Works + Profile zusammenführen
+      // 3. Works + Profile zusammenfuehren
       const works = rawWorks.map(w => mapWork(w, profileMap[w.user_id] || {}));
+      if (!mounted) return;
 
       if (reset) {
         setDbWerke(works);
@@ -1135,20 +1147,47 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       } else {
         setDbWerke(prev => [...prev, ...works]);
         setDbFeed(prev => [...prev, ...works]);
+        pageRef.current = currentPage + 1;
         setPage(p => p + 1);
       }
-      console.log("[HUI Feed] Loaded page", currentPage, "→", works.length, "works");
+      console.log("[HUI Feed] Loaded page", currentPage, "works:", works.length);
     } catch(e) {
+      if (!mounted) return;
       console.error("[HUI Feed] Error:", e);
       setFeedError(e.message);
     } finally {
-      setFeedLoading(false);
-      setLoadingMore(false);
+      loadingRef.current = false;
+      if (mounted) {
+        setFeedLoading(false);
+        setLoadingMore(false);
+      }
+      // cleanup: mark unmounted for any dangling callbacks
+      mounted = false;
     }
-  }, [page]);
+  }, []);  // no page dep — pageRef is always current
 
   useEffect(() => { loadFeed(true); }, []);
   useEffect(() => { if (refreshSignal) loadFeed(true); }, [refreshSignal]);
+
+  // visibilitychange: Reload nach langem Idle (Safari Background-Freeze)
+  useEffect(() => {
+    let hiddenAt = 0;
+    const IDLE_THRESHOLD_MS = 5 * 60 * 1000; // 5 Minuten
+    function onVisibility() {
+      if (document.hidden) {
+        hiddenAt = Date.now();
+      } else {
+        // Tab wieder sichtbar
+        const idleMs = Date.now() - hiddenAt;
+        if (hiddenAt > 0 && idleMs > IDLE_THRESHOLD_MS) {
+          console.log("[HUI Feed] Reload nach Idle:", Math.round(idleMs/1000) + "s");
+          loadFeed(true);
+        }
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [loadFeed]);
 
   // Realtime subscription für neue Works
   useEffect(() => {
@@ -1159,7 +1198,8 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         filter: "status=eq.published"
       }, (payload) => {
         console.log("[HUI Feed] Realtime new work:", payload.new?.id);
-        loadFeed(true); // reload feed when new work added
+        // Guard: skip reload wenn Tab hidden (Safari Idle)
+        if (!document.hidden) loadFeed(true);
       })
       .subscribe();
     return () => supabase.removeChannel(sub);
