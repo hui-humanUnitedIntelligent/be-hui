@@ -1,50 +1,59 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabaseClient'
+// src/hooks/useWirker.js — v2
+// Backward-compat wrapper + service layer
+import { useState, useEffect, useRef } from 'react';
+import { TalentService } from '../services/db';
 
-export function useWirker() {
-  const [wirker, setWirker] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+export function useWirker({ page = 0, category = null, location = null } = {}) {
+  const [wirker,  setWirker]  = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+  const mounted = useRef(true);
 
   useEffect(() => {
-    async function load() {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('wirker')
-        .select('*')
-        .order('bookings', { ascending: false })
-      if (error) setError(error.message)
-      else setWirker(data || [])
-      setLoading(false)
-    }
-    load()
-  }, [])
+    mounted.current = true;
+    setLoading(true);
+    TalentService.list({ page, category, location }).then(({ data, error: err }) => {
+      if (!mounted.current) return;
+      setWirker(data || []);
+      setError(err?.message || null);
+      setLoading(false);
+    });
+    return () => { mounted.current = false; };
+  }, [page, category, location]);
 
-  return { wirker, loading, error }
+  return { wirker, loading, error };
 }
 
 export function useWirkerById(id) {
-  const [wirker, setWirker] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [wirker,  setWirker]  = useState(null);
+  const [loading, setLoading] = useState(!!id);
+  const mounted = useRef(true);
 
   useEffect(() => {
-    if (!id) return
-    supabase.from('wirker').select('*').eq('id', id).single()
-      .then(({ data }) => { setWirker(data); setLoading(false) })
-  }, [id])
+    mounted.current = true;
+    if (!id) { setLoading(false); return; }
+    TalentService.getByUserId(id).then(({ data }) => {
+      if (mounted.current) { setWirker(data); setLoading(false); }
+    });
+    return () => { mounted.current = false; };
+  }, [id]);
 
-  return { wirker, loading }
+  return { wirker, loading };
 }
 
 export function useWirkerByName(name) {
-  const [wirker, setWirker] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [wirker,  setWirker]  = useState(null);
+  const [loading, setLoading] = useState(!!name);
+  const mounted = useRef(true);
 
   useEffect(() => {
-    if (!name) return
-    supabase.from('wirker').select('*').eq('name', name).single()
-      .then(({ data }) => { setWirker(data); setLoading(false) })
-  }, [name])
+    mounted.current = true;
+    if (!name) { setLoading(false); return; }
+    TalentService.getBySlug(name).then(({ data }) => {
+      if (mounted.current) { setWirker(data); setLoading(false); }
+    });
+    return () => { mounted.current = false; };
+  }, [name]);
 
-  return { wirker, loading }
+  return { wirker, loading };
 }
