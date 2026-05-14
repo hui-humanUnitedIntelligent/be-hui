@@ -725,19 +725,30 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
   }, []);
 
   const renderItem = useCallback((item, secIdx, itemIdx) => {
-    const cls = `hui-rise-${Math.min(itemIdx + 1, 4)}`;
-    if (item.type === "talent")
-      return <MemoTalentCard key={item.id} item={item} className={cls}
-               onView={onViewWirker} onBook={onBook} />;
-    if (item.type === "werk")
-      return <MemoWerkCard key={item.id} item={item} className={cls}
-               onCart={onAddToCart} />;
-    if (item.type === "video")
-      return <MemoVideoCard key={item.id} item={item} className={cls} />;
-    if (item.type === "impact")
-      return <MemoImpactCard key={item.id} item={item} className={cls}
-               onImpact={onImpact} />;
-    return null;
+    if (!item) return null;
+    try {
+      if (typeof window !== 'undefined') {
+        window.__HUI_LAST_FEED_COMPONENT__ =
+          'HomeFeed:' + (item.type || 'unknown') + ':' + (item.id || itemIdx);
+      }
+      const cls = `hui-rise-${Math.min(itemIdx + 1, 4)}`;
+      if (item.type === "talent")
+        return <MemoTalentCard key={item.id} item={item} className={cls}
+                 onView={onViewWirker} onBook={onBook} />;
+      if (item.type === "werk")
+        return <MemoWerkCard key={item.id} item={item} className={cls}
+                 onCart={onAddToCart} />;
+      if (item.type === "video")
+        return <MemoVideoCard key={item.id} item={item} className={cls} />;
+      if (item.type === "impact")
+        return <MemoImpactCard key={item.id} item={item} className={cls}
+                 onImpact={onImpact} />;
+      return null;
+    } catch(err) {
+      console.error('[HomeFeed] renderItem crash type=' + (item?.type||'?') +
+        ' id=' + (item?.id||itemIdx), err);
+      return null;
+    }
   }, [onViewWirker, onBook, onAddToCart, onImpact]);
 
   // ── Virtualization: flatten sections into a single list ────────────
@@ -764,17 +775,22 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
   // ── renderFlatItem: rendert header, divider oder Card ──────────────
   const renderFlatItem = useCallback((item, index) => {
     if (!item) return null;
-    if (item.__type === "__header") {
-      return <SectionHeader key={item.id} section={item.sec} index={item.si} />;
+    try {
+      if (item.__type === "__header") {
+        return <SectionHeader key={item.id} section={item.sec} index={item.si} />;
+      }
+      if (item.__type === "__divider") {
+        return (
+          <div key={item.id}
+            style={{ height: 1, background: T.border, margin: "4px 20px 4px" }} />
+        );
+      }
+      // Echte Feed-Card — renderItem recyceln
+      return renderItem(item, item.__secIdx ?? 0, item.__itemIdx ?? index);
+    } catch(err) {
+      console.error('[HomeFeed] renderFlatItem crash index=' + index, err);
+      return null;
     }
-    if (item.__type === "__divider") {
-      return (
-        <div key={item.id}
-          style={{ height: 1, background: T.border, margin: "4px 20px 4px" }} />
-      );
-    }
-    // Echte Feed-Card — renderItem recyceln
-    return renderItem(item, item.__secIdx ?? 0, item.__itemIdx ?? index);
   }, [renderItem]);
 
   return (
