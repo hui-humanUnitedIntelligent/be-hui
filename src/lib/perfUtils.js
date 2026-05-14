@@ -138,7 +138,7 @@ export async function withRetry(fn, { maxRetries = 3, baseDelayMs = 500 } = {}) 
 // ─── 10. Selective fields helper ─────────────────────────────────────
 // Use instead of select('*') everywhere
 export const FIELDS = {
-  profile:  'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,focus_type,talent,location_label,is_available,impact_eur,created_at',
+  profile:  'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,focus_type,talent,location_label,is_available,impact_eur,created_at,dna_tags,profile_modules,role,followers_count',
   wirker:   'id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified',
   work:     'id,user_id,title,cover_url,media_url,price,category,medium,status,created_at',
   experience:'id,user_id,title,cover_url,price,duration,spots_available,location_label,status',
