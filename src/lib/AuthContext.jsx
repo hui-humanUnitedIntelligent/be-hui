@@ -127,22 +127,19 @@ export function AuthProvider({ children }) {
     // Ongoing auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null;
+
+      // Always update auth state immediately — no delays
       setUser(u);
       setIsAuthenticated(!!u);
-
-      // Always clear loading on auth change
       setLoadingAuth(false);
 
       if (u) {
-        // Only reload profile on meaningful events, not every tick
+        // Load profile for meaningful events — no setTimeout (causes login race condition)
         if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-          // Small delay to avoid race with getSession
-          setTimeout(() => {
-            if (!profileLoadingRef.current) loadProfile(u.id);
-          }, 100);
+          if (!profileLoadingRef.current) loadProfile(u.id);
         }
       } else {
-        // Signed out
+        // Signed out — clear everything
         setProfile(null);
         setWirkerProfile(null);
         localStorage.removeItem("hui_is_wirker");
