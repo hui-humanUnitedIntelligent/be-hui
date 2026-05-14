@@ -488,7 +488,6 @@ function WerkStageCard({ item, onCart, className = "" }) {
   );
 }
 
-});
 
 /* ─── STAGE CARD — Video ─────────────────────────── */
 function VideoStageCard({ item, className = "" }) {
@@ -664,7 +663,6 @@ function SectionHeader({ section, index }) {
   );
 }
 
-});
 
 /* ─── Shimmer Skeleton ───────────────────────────── */
 function SkeletonCard() {
