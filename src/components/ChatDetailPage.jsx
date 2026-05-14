@@ -133,7 +133,7 @@ export default function ChatDetailPage({ chat: initialChat, onBack }) {
           <ArrowLeft size={20} color="#444" />
         </button>
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={chat.wirkerImg} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} alt={chat.wirker} />
+          <img loading="lazy" decoding="async" src={chat.wirkerImg} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} alt={chat.wirker} />
           {/* Online indicator */}
           <div style={{
             position: "absolute", bottom: 1, right: 1,
@@ -176,7 +176,7 @@ export default function ChatDetailPage({ chat: initialChat, onBack }) {
           const isRead = readMsgIds.has(i);
           return (
             <div key={i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: 10 }}>
-              {!isMe && <img src={chat.wirkerImg} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 8, marginTop: 2, flexShrink: 0 }} alt="" />}
+              {!isMe && <img loading="lazy" decoding="async" src={chat.wirkerImg} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 8, marginTop: 2, flexShrink: 0 }} alt="" />}
               <div style={{ maxWidth: "72%" }}>
                 {/* Text bubble */}
                 {m.text ? (
@@ -188,7 +188,7 @@ export default function ChatDetailPage({ chat: initialChat, onBack }) {
                 {(m.attachments || []).map((att, ai) => (
                   <div key={ai} style={{ marginTop: m.text ? 6 : 0 }}>
                     {isImage(att.type) ? (
-                      <img src={att.dataUrl} alt={att.name}
+                      <img loading="lazy" decoding="async" src={att.dataUrl} alt={att.name}
                         style={{ maxWidth: "100%", borderRadius: 12, display: "block", maxHeight: 180, objectFit: "cover" }} />
                     ) : (
                       <div style={{ background: isMe ? `${CORAL}22` : "white", border: `1px solid ${isMe ? CORAL + "44" : "#eee"}`, borderRadius: 12, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
@@ -225,7 +225,7 @@ export default function ChatDetailPage({ chat: initialChat, onBack }) {
         <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
           <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 430 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
-              <img src={chat.wirkerImg} alt={chat.wirker} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: `3px solid ${TEAL}`, marginBottom: 10 }} />
+              <img loading="lazy" decoding="async" src={chat.wirkerImg} alt={chat.wirker} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: `3px solid ${TEAL}`, marginBottom: 10 }} />
               <div style={{ fontWeight: 800, fontSize: 20, color: "#222", textAlign: "center" }}>
                 {chat.type === "werk" ? "Ware angekommen?" : "Leistung abgeschlossen?"}
               </div>
@@ -278,7 +278,7 @@ export default function ChatDetailPage({ chat: initialChat, onBack }) {
               {attachments.map(att => (
                 <div key={att.id} style={{ position: "relative", background: "#f5f5f3", borderRadius: 10, padding: "6px 10px", display: "flex", alignItems: "center", gap: 6, border: "1px solid #e8e8e8" }}>
                   {isImage(att.type)
-                    ? <img src={att.dataUrl} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: "cover" }} />
+                    ? <img loading="lazy" decoding="async" src={att.dataUrl} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: "cover" }} />
                     : <FileText size={16} color={TEAL} />
                   }
                   <div>
