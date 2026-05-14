@@ -1,20 +1,15 @@
 // LazyImage.jsx — HUI Performance Component
 // Lazy loading + progressive + WebP + Blur-up
+// v2: iPad Safari background resume recovery
+//  - visibilitychange fallback wenn IntersectionObserver nach Idle einfriert
+//  - 8s skeleton timeout als Sicherheitsnetz
+//  - sentryCapture für stalled loading
 // Kein visuelles Redesign — nur bessere Performance
 
 import React, { useState, useEffect, useRef } from 'react';
 import { optimizeImg } from '../lib/perfUtils';
+import { sentryCapture } from '../lib/sentry';
 
-/**
- * LazyImage — drop-in replacement für <img>
- * - IntersectionObserver lazy loading
- * - Blur-up placeholder (kein Layout-Shift)
- * - WebP via optimizeImg
- * - onError fallback
- *
- * Usage:
- *   <LazyImage src={url} alt="..." style={{ width:'100%', height:200, objectFit:'cover' }} />
- */
 export default function LazyImage({
   src,
   alt = '',
@@ -30,37 +25,118 @@ export default function LazyImage({
   const [loaded,  setLoaded]  = useState(false);
   const [visible, setVisible] = useState(false);
   const [error,   setError]   = useState(false);
-  const imgRef  = useRef(null);
-  const wrapRef = useRef(null);
+  const imgRef    = useRef(null);
+  const wrapRef   = useRef(null);
+  const mountedRef = useRef(true);
+  // Für Timeout-Tracking
+  const loadStartRef   = useRef(null);
+  const timeoutRef     = useRef(null);
+  const obsRef         = useRef(null);
 
   const optimized = visible && src
     ? optimizeImg(src, { w: width || 800, q: quality })
     : null;
 
-  // IntersectionObserver — load when near viewport
+  // ── Cleanup ──────────────────────────────────────────────────
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      obsRef.current?.disconnect();
+    };
+  }, []);
+
+  // ── IntersectionObserver + visibilitychange fallback ─────────
+  // Problem (iPad Safari): Nach langem Background-Idle friert der
+  // IntersectionObserver ein und feuert nie wieder.
+  // Fix: visibilitychange → wenn Tab sichtbar + noch nicht visible
+  // → force setVisible(true) nach kurzem Delay.
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+
+    // Fallback: kein IO Support
     if (typeof IntersectionObserver === 'undefined') {
       setVisible(true);
       return;
     }
+
+    // IntersectionObserver
     const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
+      if (entry.isIntersecting && mountedRef.current) {
         setVisible(true);
         obs.disconnect();
+        obsRef.current = null;
       }
     }, { rootMargin: '300px', threshold: 0 });
+
     obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+    obsRef.current = obs;
+
+    // visibilitychange fallback — iPad Safari IO-Freeze Recovery
+    function onVisibility() {
+      if (document.visibilityState !== 'visible') return;
+      if (visible || !mountedRef.current) return;
+      // IO könnte eingefroren sein → nach 400ms Force-load
+      // (Zeit damit normaler IO noch feuern kann wenn er noch läuft)
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        // Prüfe ob Element im sichtbaren Bereich liegt
+        try {
+          const rect = wrapRef.current?.getBoundingClientRect();
+          if (!rect) { setVisible(true); return; }
+          const inViewport = rect.top < window.innerHeight + 600;
+          if (inViewport) {
+            console.log('[LazyImage] IO-Freeze recovery: force visible', src?.slice(0, 40));
+            setVisible(true);
+          }
+        } catch {
+          setVisible(true);
+        }
+      }, 400);
+    }
+
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      obs.disconnect();
+      obsRef.current = null;
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  // visible als Dep damit onVisibility-closure aktuell ist
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
+
+  // ── Skeleton-Timeout: >8s → force loaded ─────────────────────
+  // Sicherheitsnetz: wenn Bild-Load nach 8s noch nicht abgeschlossen
+  // → skeleton entfernen statt permanent hängen zu bleiben.
+  useEffect(() => {
+    if (!visible || loaded || error) return;
+    loadStartRef.current = Date.now();
+    timeoutRef.current = setTimeout(() => {
+      if (!mountedRef.current || loaded || error) return;
+      const stalledMs = Date.now() - (loadStartRef.current || 0);
+      console.warn('[LazyImage] Loading stalled after ' + Math.round(stalledMs/1000) + 's:', src?.slice(0, 60));
+      sentryCapture(new Error('LazyImage loading stalled'), {
+        source:      'LazyImage.skeletonTimeout',
+        src_prefix:  src?.slice(0, 60) ?? null,
+        stalled_ms:  stalledMs,
+        document_hidden: document.hidden,
+      });
+      // Skeleton entfernen — kein Bild erzwingen da src evtl. invalide
+      setError(true);
+    }, 8000);
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+  }, [visible, loaded, error, src]);
 
   function handleLoad() {
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
     setLoaded(true);
     onLoadProp?.();
   }
 
   function handleError() {
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
     setError(true);
     onErrorProp?.();
   }
@@ -84,7 +160,6 @@ export default function LazyImage({
     willChange: 'opacity',
   };
 
-  // If error + no fallback → grey box
   if (error && !fallback) {
     return (
       <div ref={wrapRef} style={{
@@ -107,7 +182,6 @@ export default function LazyImage({
 
   return (
     <div ref={wrapRef} className={className} style={wrapStyle}>
-      {/* Skeleton pulse while not visible / not loaded */}
       {!loaded && (
         <div style={{
           position: 'absolute', inset: 0,
@@ -141,12 +215,6 @@ export default function LazyImage({
 
 /**
  * LazySection — renders children only when scrolled into view.
- * Use for heavy sections (maps, charts, video) that shouldn't block initial render.
- *
- * Usage:
- *   <LazySection fallback={<Skeleton />}>
- *     <HeavyChart />
- *   </LazySection>
  */
 export function LazySection({ children, fallback = null, rootMargin = '400px' }) {
   const [visible, setVisible] = useState(false);
