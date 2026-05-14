@@ -11,12 +11,16 @@ export function useTalentProfile(userId) {
   useEffect(() => {
     mounted.current = true;
     if (!userId) { setLoading(false); return; }
-    TalentService.getByUserId(userId).then(({ data, error: err }) => {
+
+    (async () => {
+      const { data, error: err } = await TalentService.getByUserId(userId);
       if (!mounted.current) return;
       setTalent(data);
+      // PGRST116 = row not found — not an error for talent profiles
       setError(err?.code === 'PGRST116' ? null : err?.message || null);
       setLoading(false);
-    });
+    })();
+
     return () => { mounted.current = false; };
   }, [userId]);
 
