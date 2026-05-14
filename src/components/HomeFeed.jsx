@@ -675,6 +675,13 @@ function SkeletonCard() {
   );
 }
 
+
+/* ─── Memoized Stage Cards — prevent re-render on parent state changes ─ */
+const MemoTalentCard  = React.memo(TalentStageCard);
+const MemoWerkCard    = React.memo(WerkStageCard);
+const MemoVideoCard   = React.memo(VideoStageCard);
+const MemoImpactCard  = React.memo(ImpactStageCard);
+
 /* ─── Haupt HomeFeed ─────────────────────────────── */
 export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
   onLoadMore,
@@ -722,15 +729,15 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
   const renderItem = useCallback((item, secIdx, itemIdx) => {
     const cls = `hui-rise-${Math.min(itemIdx + 1, 4)}`;
     if (item.type === "talent")
-      return <TalentStageCard key={item.id} item={item} className={cls}
+      return <MemoTalentCard key={item.id} item={item} className={cls}
                onView={onViewWirker} onBook={onBook} />;
     if (item.type === "werk")
-      return <WerkStageCard key={item.id} item={item} className={cls}
+      return <MemoWerkCard key={item.id} item={item} className={cls}
                onCart={onAddToCart} />;
     if (item.type === "video")
-      return <VideoStageCard key={item.id} item={item} className={cls} />;
+      return <MemoVideoCard key={item.id} item={item} className={cls} />;
     if (item.type === "impact")
-      return <ImpactStageCard key={item.id} item={item} className={cls}
+      return <MemoImpactCard key={item.id} item={item} className={cls}
                onImpact={onImpact} />;
     return null;
   }, [onViewWirker, onBook, onAddToCart, onImpact]);
