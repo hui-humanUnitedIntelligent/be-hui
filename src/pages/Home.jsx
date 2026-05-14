@@ -1434,7 +1434,7 @@ export default function Home() {
           {tab==="feed" && (
             <>
               <DiscoveryFeed
-                onView={(w) => w.type==="werk" || w.price ? setShowWerkDetail(w) : setShowWirker(w)}
+                onView={(w) => (w.type==="werk" || (w.price && w.type!=="wirker" && w.type!=="talent" && w.type!=="profile")) ? setShowWerkDetail(w) : setShowWirker(w)}
                 onBook={(w) => setShowBooking(w)}
                 onImpact={() => setTab("impact")}
                 onMatch={() => setShowMatch(true)}
@@ -1466,8 +1466,28 @@ export default function Home() {
                 supabase.auth.signOut();
                 window.location.href="/login";
               }}
-              onViewPublicProfile={()=>{
-                if (authProfile) setShowWirker({ id: authProfile.id, user_id: authProfile.id, username: authProfile.username });
+              onViewPublicProfile={async ()=>{
+                // Eigenes öffentliches Profil im WirkerProfilePage öffnen
+                let uid = authProfile?.id;
+                if (!uid) {
+                  try {
+                    const { data: { user: u } } = await supabase.auth.getUser();
+                    uid = u?.id;
+                  } catch { /* ignore */ }
+                }
+                if (!uid) return;
+                setShowWirker({
+                  id:          uid,
+                  user_id:     uid,
+                  username:    authProfile?.username    || null,
+                  display_name:authProfile?.display_name|| null,
+                  avatar_url:  authProfile?.avatar_url  || null,
+                  talent:      authProfile?.talent      || null,
+                  focus_type:  authProfile?.focus_type  || "hybrid",
+                  header_img:  authProfile?.header_img  || null,
+                  bio:         authProfile?.bio         || null,
+                  dna_tags:    authProfile?.dna_tags    || [],
+                });
               }}
             />
           )}
@@ -1486,21 +1506,34 @@ export default function Home() {
           onChat={()=>setShowChat(true)}
           onStory={()=>setShowStoryComposer(true)}
           onNotifs={()=>setShowNotifs(true)}
-          onProfile={()=>{
-            // Öffentliches Profil öffnen — nicht Mein HUI
-            // Nutze authProfile oder user als Fallback
-            const p = authProfile;
-            const uid = p?.id;
-            if (!uid) return;
+          onProfile={async ()=>{
+            // Öffentliches eigenes Profil öffnen via WirkerProfilePage
+            // authProfile kann noch null sein wenn loadingProfile aktiv
+            // → hole uid direkt aus Supabase session als Fallback
+            let p = authProfile;
+            let uid = p?.id;
+            if (!uid) {
+              // Fallback: direkt aus Supabase Auth Session
+              try {
+                const { data: { user: u } } = await supabase.auth.getUser();
+                uid = u?.id;
+              } catch { /* ignore */ }
+            }
+            if (!uid) {
+              console.warn("[HUI] onProfile: no uid available, skipping");
+              return;
+            }
             setShowWirker({
-              id:       uid,
-              user_id:  uid,
-              username: p?.username || null,
-              // Direkt-Daten mitgeben damit Overlay sofort rendert
-              display_name: p?.display_name || null,
-              avatar_url:   p?.avatar_url   || null,
-              talent:       p?.talent       || null,
-              focus_type:   p?.focus_type   || "hybrid",
+              id:          uid,
+              user_id:     uid,
+              username:    p?.username    || null,
+              display_name:p?.display_name|| null,
+              avatar_url:  p?.avatar_url  || null,
+              talent:      p?.talent      || null,
+              focus_type:  p?.focus_type  || "hybrid",
+              header_img:  p?.header_img  || null,
+              bio:         p?.bio         || null,
+              dna_tags:    p?.dna_tags    || [],
             });
           }}
           cartCount={cart.length}
