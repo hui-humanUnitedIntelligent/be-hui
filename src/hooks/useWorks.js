@@ -8,32 +8,40 @@ export function useWorks(userId) {
   const [error,   setError]   = useState(null);
   const [page,    setPage]    = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const mounted = useRef(true);
+  const mounted    = useRef(true);
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     mounted.current = true;
     if (!userId) { setLoading(false); return; }
-    setLoading(true);
-    WorkService.getByUser(userId, 0).then(({ data, error: err }) => {
-      if (!mounted.current) return;
-      const rows = data || [];
-      setWorks(rows);
-      setHasMore(rows.length === 20);
-      setError(err?.message || null);
-      setLoading(false);
-    });
+    loadPage(0);
     return () => { mounted.current = false; };
-  }, [userId]);
+  }, [userId]); // eslint-disable-line
 
-  const loadMore = useCallback(async () => {
-    if (!hasMore || loading) return;
-    const nextPage = page + 1;
-    const { data } = await WorkService.getByUser(userId, nextPage);
+  async function loadPage(pageNum) {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setLoading(true);
+
+    const { data, error: err } = await WorkService.getByUser(userId, pageNum);
+    if (!mounted.current) return;
+
     const rows = data || [];
-    setWorks(prev => [...prev, ...rows]);
+    if (pageNum === 0) setWorks(rows);
+    else setWorks(prev => [...prev, ...rows]);
+
     setHasMore(rows.length === 20);
-    setPage(nextPage);
-  }, [userId, page, hasMore, loading]);
+    setError(err?.message || null);
+    setLoading(false);
+    loadingRef.current = false;
+  }
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || loadingRef.current) return;
+    const next = page + 1;
+    setPage(next);
+    loadPage(next);
+  }, [page, hasMore]); // eslint-disable-line
 
   const createWork = useCallback(async (data) => {
     const { data: created, error: err } = await WorkService.create(userId, data);
@@ -51,10 +59,15 @@ export function useWorkById(workId) {
 
   useEffect(() => {
     mounted.current = true;
-    if (!workId) return;
-    WorkService.getById(workId).then(({ data }) => {
-      if (mounted.current) { setWork(data); setLoading(false); }
-    });
+    if (!workId) { setLoading(false); return; }
+
+    (async () => {
+      const { data } = await WorkService.getById(workId);
+      if (!mounted.current) return;
+      setWork(data);
+      setLoading(false);
+    })();
+
     return () => { mounted.current = false; };
   }, [workId]);
 
