@@ -54,7 +54,7 @@ function Avatar({ url, name, size=80, ring=false }) {
       ? `0 0 0 4px ${C.tealGlow}, 0 8px 32px rgba(0,0,0,0.18)`
       : "0 6px 24px rgba(0,0,0,0.14)",
   };
-  if (url) return <img src={url} alt={name} style={{...style, objectFit:"cover"}}/>;
+  if (url) return <img loading="lazy" decoding="async" src={url} alt={name} style={{...style, objectFit:"cover"}}/>;
   return (
     <div style={{...style,
       background:`linear-gradient(135deg,${C.teal},${C.coral})`,
@@ -103,7 +103,7 @@ function WerkCard({ werk, onPress }) {
         aspectRatio:"1", background:"#EEE",
         boxShadow:"0 3px 14px rgba(0,0,0,0.10)" }}>
       {img
-        ? <img src={img} alt={werk.title}
+        ? <img loading="lazy" decoding="async" src={img} alt={werk.title}
             style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
         : <div style={{ width:"100%", height:"100%",
             background:`linear-gradient(135deg,${C.tealPale},${C.coralPale})`,
