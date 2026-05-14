@@ -409,52 +409,92 @@ function Divider({ label, accent }) {
 }
 
 /* ── WIRKER CARD — cinematic fullscreen, Creator-First ───────────── */
-function WirkerCard({ item, onView, onBook }) {
+
+/* ══════════════════════════════════════════════════════════════════
+   VARIANT-AWARE CARD SYSTEM
+   variant: "hero" | "mid" | "compact" | "full"
+   Datenlogik identisch — nur Höhen/Padding/Schriftgröße variieren.
+══════════════════════════════════════════════════════════════════ */
+
+const ipad = typeof window !== 'undefined' && window.innerWidth >= 768;
+
+/* ── Variant-Höhen-Tabelle ── */
+function cardH(variant, type) {
+  const table = {
+    //        hero    mid     compact  full
+    wirker:  [ipad?680:610, ipad?520:470, ipad?400:360, ipad?740:660],
+    werk:    [ipad?640:580, ipad?490:440, ipad?380:340, ipad?700:630],
+    experience:[ipad?630:570,ipad?480:430,ipad?370:330, ipad?690:620],
+    impact:  [ipad?590:540, ipad?460:415, ipad?360:320, ipad?660:600],
+  };
+  const row = table[type] || table.werk;
+  return ({ hero: row[0], mid: row[1], compact: row[2], full: row[3] })[variant] || row[0];
+}
+
+/* ── Variant-Typografie ── */
+function titleSize(variant, len) {
+  const base = { hero:28, mid:23, compact:19, full:32 }[variant] || 28;
+  return len > 20 ? base - 4 : len > 14 ? base - 2 : base;
+}
+function quoteSize(variant) {
+  return { hero:13, mid:12.5, compact:12, full:14 }[variant] || 13;
+}
+function paddingBottom(variant) {
+  return { hero:28, mid:24, compact:20, full:32 }[variant] || 28;
+}
+
+/* ── WIRKER CARD ─────────────────────────────────────────────────── */
+function WirkerCard({ item, onView, onBook, variant = "hero" }) {
+  const h = cardH(variant, "wirker");
+  const isCompact = variant === "compact";
+  const isMid     = variant === "mid";
+
   return (
     <div className="df-card-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%",
-        height: window.innerWidth >= 768 ? "75vh" : "82vh",
-        maxHeight:660, overflow:"hidden", cursor:"pointer",
-        borderRadius:28, animation:"dfFadeUp 0.48s both",
-        boxShadow:"0 16px 48px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)" }}>
+        height:h, overflow:"hidden", cursor:"pointer",
+        borderRadius: isCompact ? 22 : 26,
+        animation:"dfFadeUp 0.5s both",
+        boxShadow: isCompact
+          ? "0 8px 28px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.08)"
+          : "0 18px 52px rgba(0,0,0,0.20), 0 4px 16px rgba(0,0,0,0.10)" }}>
 
-      {/* BG avec Ken-Burns */}
+      {/* BG Ken-Burns (nur hero/full für Performance) */}
       <div style={{ position:"absolute", inset:0,
-        animation:"dfKenBurns 22s ease-in-out infinite alternate" }}>
-        <img loading="lazy" decoding="async" src={item.img || item.avatar_url} alt={item.name}
+        animation: !isCompact ? "dfKenBurns 22s ease-in-out infinite alternate" : "none" }}>
+        <img loading="lazy" decoding="async"
+          src={item.img || item.avatar_url} alt={item.name || item.display_name}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             objectPosition:"top center",
-            filter:"brightness(0.68) saturate(1.20)" }}/>
+            filter:`brightness(${isCompact ? "0.72" : "0.65"}) saturate(1.22)` }}/>
       </div>
 
-      {/* Ambient Teal overlay top-left */}
+      {/* Ambient Teal top-left + deep bottom gradient */}
       <div style={{ position:"absolute", inset:0, pointerEvents:"none",
         background:`
-          radial-gradient(ellipse 70% 45% at 0% 5%, rgba(22,215,197,0.22) 0%, transparent 60%),
+          radial-gradient(ellipse 75% 45% at 0% 0%,
+            rgba(22,215,197,${isCompact ? "0.18" : "0.24"}) 0%, transparent 60%),
           linear-gradient(to bottom,
-            rgba(0,0,0,0.28) 0%,
-            transparent 28%,
-            rgba(6,6,6,0.88) 100%)` }}/>
+            rgba(0,0,0,0.25) 0%,
+            transparent ${isCompact ? "28" : "25"}%,
+            rgba(6,6,6,${isCompact ? "0.84" : "0.90"}) 100%)` }}/>
 
-      {/* Teal accent line */}
+      {/* Accent line */}
       <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
-        background:`linear-gradient(90deg,${C.teal},${C.teal}66,transparent)`,
-        opacity:0.9 }}/>
+        background:`linear-gradient(90deg,${C.teal},${C.teal}55,transparent)`, opacity:0.9 }}/>
 
       {/* Label + Save */}
-      <div style={{ position:"absolute", top:20, left:20, right:20,
+      <div style={{ position:"absolute", top:18, left:18, right:18,
         display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <div style={{ background:"rgba(22,215,197,0.14)", backdropFilter:"blur(12px)",
+        <div style={{ background:"rgba(22,215,197,0.13)", backdropFilter:"blur(12px)",
           WebkitBackdropFilter:"blur(12px)",
-          border:"1px solid rgba(22,215,197,0.30)", borderRadius:999,
-          padding:"5px 14px", display:"flex", alignItems:"center", gap:6 }}>
+          border:"1px solid rgba(22,215,197,0.28)", borderRadius:999,
+          padding:"4px 13px", display:"flex", alignItems:"center", gap:6 }}>
           <span style={{ fontSize:8, color:C.teal, fontWeight:900,
             letterSpacing:2, textTransform:"uppercase" }}>Talent</span>
           {item.available !== false && (
-            <span style={{ width:5, height:5, borderRadius:"50%",
-              background:C.green,
-              boxShadow:`0 0 0 2px rgba(61,184,122,0.4), 0 0 5px ${C.green}`,
-              display:"block" }}/>
+            <span style={{ width:5, height:5, borderRadius:"50%", background:C.green,
+              boxShadow:`0 0 0 2px rgba(61,184,122,0.4)`, display:"block" }}/>
           )}
         </div>
         <SaveBtn accent={C.teal} dark/>
@@ -462,92 +502,92 @@ function WirkerCard({ item, onView, onBook }) {
 
       {/* Content bottom */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 24px 28px" }}>
+        padding:`0 22px ${paddingBottom(variant)}px` }}>
 
-        {/* Creator statement — emotional */}
-        {item.bio && (
-          <p style={{ fontSize:13, color:"rgba(255,255,255,0.68)",
-            fontStyle:"italic", lineHeight:1.7, marginBottom:12,
-            letterSpacing:0.1,
-            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+        {/* Quote — nur hero/full */}
+        {!isCompact && item.bio && (
+          <p style={{ fontSize:quoteSize(variant), color:"rgba(255,255,255,0.65)",
+            fontStyle:"italic", lineHeight:1.72, marginBottom:10,
+            textShadow:"0 1px 10px rgba(0,0,0,0.45)",
+            letterSpacing:0.08 }}>
             „{item.bio}"
           </p>
         )}
 
-        {/* Name — dominant */}
-        <div style={{ fontWeight:900, fontSize: item.name?.length > 14 ? 24 : 28,
+        {/* Name */}
+        <div style={{ fontWeight:900,
+          fontSize:titleSize(variant, (item.name||item.display_name||"").length),
           color:"white", letterSpacing:-0.8, lineHeight:1.05,
-          marginBottom:5,
-          textShadow:"0 2px 16px rgba(0,0,0,0.5)" }}>
+          marginBottom:isCompact ? 6 : 5,
+          textShadow:"0 2px 18px rgba(0,0,0,0.55)" }}>
           {item.name || item.display_name}
         </div>
 
-        {/* Talent + Location */}
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-          <span style={{ fontSize:13, color:C.teal, fontWeight:700,
-            letterSpacing:0.1 }}>{item.talent}</span>
+        {/* Talent + City */}
+        <div style={{ display:"flex", alignItems:"center", gap:8,
+          marginBottom: isCompact ? 14 : 14 }}>
+          <span style={{ fontSize: isCompact ? 12 : 13, color:C.teal,
+            fontWeight:700 }}>{item.talent}</span>
           {(item.city || item.location_label) && (
             <>
               <span style={{ width:3, height:3, borderRadius:"50%",
-                background:"rgba(255,255,255,0.3)", display:"block" }}/>
-              <span style={{ fontSize:12, color:"rgba(255,255,255,0.48)",
-                fontWeight:500 }}>
+                background:"rgba(255,255,255,0.28)", display:"block" }}/>
+              <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.44)" }}>
                 📍 {item.city || item.location_label}
               </span>
             </>
           )}
         </div>
 
-        {/* Stats row */}
-        {(item.recs > 0 || item.hourly) && (
-          <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+        {/* Stats — nur hero/full */}
+        {!isCompact && (item.recs > 0 || item.hourly) && (
+          <div style={{ display:"flex", gap:8, marginBottom:18 }}>
             {item.recs > 0 && (
               <div style={{ background:"rgba(255,255,255,0.09)",
-                backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
-                border:"1px solid rgba(255,255,255,0.12)",
+                backdropFilter:"blur(10px)", border:"1px solid rgba(255,255,255,0.12)",
                 borderRadius:999, padding:"5px 14px",
                 display:"flex", alignItems:"center", gap:5 }}>
                 <span style={{ fontSize:11, color:C.teal, fontWeight:900 }}>{item.recs}</span>
-                <span style={{ fontSize:10, color:"rgba(255,255,255,0.50)" }}>Empfehlungen</span>
+                <span style={{ fontSize:10, color:"rgba(255,255,255,0.48)" }}>Empf.</span>
               </div>
             )}
             {item.hourly && (
               <div style={{ background:"rgba(255,255,255,0.09)",
-                backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
-                border:"1px solid rgba(255,255,255,0.12)",
+                backdropFilter:"blur(10px)", border:"1px solid rgba(255,255,255,0.12)",
                 borderRadius:999, padding:"5px 14px",
                 display:"flex", alignItems:"center", gap:5 }}>
                 <span style={{ fontSize:11, color:C.coral, fontWeight:900 }}>€ {item.hourly}</span>
-                <span style={{ fontSize:10, color:"rgba(255,255,255,0.50)" }}>/Std</span>
+                <span style={{ fontSize:10, color:"rgba(255,255,255,0.48)" }}>/Std</span>
               </div>
             )}
           </div>
         )}
 
-        {/* CTA — Profil primär, Buchen sekundär */}
+        {/* CTAs */}
         <div style={{ display:"flex", gap:10 }}>
-          <button onClick={e=>{e.stopPropagation(); onView&&onView(item);}}
-            className="df-tap"
-            style={{ flex:1, padding:"13px 16px",
-              background:"rgba(255,255,255,0.12)",
-              backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
-              border:"1px solid rgba(255,255,255,0.22)",
-              borderRadius:16, color:"white",
-              fontSize:13.5, fontWeight:700, cursor:"pointer",
-              fontFamily:"inherit",
-              letterSpacing:0.1,
-              WebkitTapHighlightColor:"transparent" }}>
-            Profil ansehen
-          </button>
+          {!isCompact && (
+            <button onClick={e=>{e.stopPropagation(); onView&&onView(item);}}
+              className="df-tap"
+              style={{ flex:1, padding:"12px 14px",
+                background:"rgba(255,255,255,0.11)", backdropFilter:"blur(12px)",
+                WebkitBackdropFilter:"blur(12px)",
+                border:"1px solid rgba(255,255,255,0.20)",
+                borderRadius:14, color:"rgba(255,255,255,0.88)",
+                fontSize:13, fontWeight:700, cursor:"pointer",
+                fontFamily:"inherit", WebkitTapHighlightColor:"transparent" }}>
+              Mehr ansehen
+            </button>
+          )}
           <button onClick={e=>{e.stopPropagation(); onBook&&onBook(item);}}
             className="df-tap"
-            style={{ flex:1.4, padding:"13px 16px",
+            style={{ flex: isCompact ? "unset" : 1.5,
+              width: isCompact ? "100%" : "auto",
+              padding:"12px 14px",
               background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-              border:"none", borderRadius:16, color:"white",
-              fontSize:13.5, fontWeight:800, cursor:"pointer",
+              border:"none", borderRadius:14, color:"white",
+              fontSize: isCompact ? 12.5 : 13, fontWeight:800, cursor:"pointer",
               fontFamily:"inherit",
-              boxShadow:`0 6px 20px rgba(22,215,197,0.38)`,
-              letterSpacing:0.1,
+              boxShadow:`0 5px 18px rgba(22,215,197,0.36)`,
               WebkitTapHighlightColor:"transparent" }}>
             Anfragen
           </button>
@@ -557,47 +597,49 @@ function WirkerCard({ item, onView, onBook }) {
   );
 }
 
-/* ── WERK CARD — editorial, creator-first ────────────────────────── */
-function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
+/* ── WERK CARD ───────────────────────────────────────────────────── */
+function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate, variant = "hero" }) {
+  const h = cardH(variant, "werk");
+  const isCompact = variant === "compact";
+
   return (
     <div className="df-card-tap" onClick={() => {
       if(item.id && navigate) navigate(`/work/${item.id}`);
       else if(onView) onView(item);
     }}
       style={{ position:"relative", width:"100%",
-        height: window.innerWidth >= 768 ? "72vh" : "78vh",
-        maxHeight:630, overflow:"hidden", cursor:"pointer",
-        borderRadius:28, animation:"dfFadeUp 0.48s both",
-        boxShadow:"0 16px 48px rgba(0,0,0,0.16), 0 4px 14px rgba(0,0,0,0.09)" }}>
+        height:h, overflow:"hidden", cursor:"pointer",
+        borderRadius: isCompact ? 22 : 26,
+        animation:"dfFadeUp 0.5s both",
+        boxShadow: isCompact
+          ? "0 8px 28px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.07)"
+          : "0 18px 52px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.09)" }}>
 
       <div style={{ position:"absolute", inset:0,
-        animation:"dfKenBurns 20s ease-in-out infinite alternate" }}>
+        animation: !isCompact ? "dfKenBurns 20s ease-in-out infinite alternate" : "none" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.72) saturate(1.22)" }}/>
+            filter:`brightness(${isCompact ? "0.75" : "0.68"}) saturate(1.24)` }}/>
       </div>
 
-      {/* Coral ambient overlay */}
       <div style={{ position:"absolute", inset:0, pointerEvents:"none",
         background:`
-          radial-gradient(ellipse 65% 40% at 100% 0%, rgba(255,138,107,0.18) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 40% at 100% 0%,
+            rgba(255,138,107,${isCompact ? "0.16" : "0.20"}) 0%, transparent 58%),
           linear-gradient(to bottom,
             rgba(0,0,0,0.22) 0%,
-            transparent 25%,
-            rgba(6,4,2,0.90) 100%)` }}/>
+            transparent ${isCompact ? "28" : "24"}%,
+            rgba(6,4,2,${isCompact ? "0.86" : "0.92"}) 100%)` }}/>
 
-      {/* Coral accent line */}
       <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
-        background:`linear-gradient(90deg,${C.coral},${C.coral}55,transparent)`,
-        opacity:0.9 }}/>
+        background:`linear-gradient(90deg,${C.coral},${C.coral}55,transparent)`, opacity:0.9 }}/>
 
-      {/* Header: Category + Save */}
-      <div style={{ position:"absolute", top:20, left:20, right:20,
+      {/* Header */}
+      <div style={{ position:"absolute", top:18, left:18, right:18,
         display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <div style={{ background:"rgba(255,138,107,0.14)", backdropFilter:"blur(12px)",
+        <div style={{ background:"rgba(255,138,107,0.13)", backdropFilter:"blur(12px)",
           WebkitBackdropFilter:"blur(12px)",
-          border:"1px solid rgba(255,138,107,0.28)", borderRadius:999,
-          padding:"5px 14px" }}>
+          border:"1px solid rgba(255,138,107,0.26)", borderRadius:999, padding:"4px 13px" }}>
           <span style={{ fontSize:8, color:C.coral, fontWeight:900,
             letterSpacing:2, textTransform:"uppercase" }}>
             {item.category || "Werk"}
@@ -608,57 +650,56 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
 
       {/* Content */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 24px 28px" }}>
+        padding:`0 22px ${paddingBottom(variant)}px` }}>
 
-        {/* Creator row — prominent */}
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-          <CreatorAvatar url={item.creatorImg||null} name={item.creator||"?"} size={30}/>
+        {/* Creator row — immer sichtbar, hero größer */}
+        <div style={{ display:"flex", alignItems:"center", gap:9,
+          marginBottom: isCompact ? 8 : 12 }}>
+          <CreatorAvatar url={item.creatorImg||null} name={item.creator||"?"} size={isCompact ? 24 : 30}/>
           <div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.58)",
-              fontWeight:500, marginBottom:1 }}>von</div>
-            <div style={{ fontSize:13.5, color:"white", fontWeight:800,
-              letterSpacing:-0.2 }}>
+            {!isCompact && (
+              <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.50)",
+                fontWeight:500, marginBottom:1 }}>von</div>
+            )}
+            <div style={{ fontSize: isCompact ? 12 : 13.5, color:"white",
+              fontWeight:800, letterSpacing:-0.2 }}>
               {item.creator || "Unbekannt"}
             </div>
           </div>
         </div>
 
-        {/* Beschreibung */}
-        {item.bio && (
-          <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)",
-            fontStyle:"italic", lineHeight:1.65, marginBottom:10,
-            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+        {!isCompact && item.bio && (
+          <p style={{ fontSize:quoteSize(variant), color:"rgba(255,255,255,0.60)",
+            fontStyle:"italic", lineHeight:1.68, marginBottom:10,
+            textShadow:"0 1px 10px rgba(0,0,0,0.45)" }}>
             „{item.bio}"
           </p>
         )}
 
-        {/* Titel */}
-        <div style={{ fontWeight:900, fontSize: item.title?.length > 18 ? 22 : 26,
+        <div style={{ fontWeight:900,
+          fontSize:titleSize(variant, (item.title||"").length),
           color:"white", letterSpacing:-0.6, lineHeight:1.1,
-          marginBottom:16,
-          textShadow:"0 2px 14px rgba(0,0,0,0.5)" }}>
+          marginBottom: isCompact ? 14 : 16,
+          textShadow:"0 2px 16px rgba(0,0,0,0.55)" }}>
           {item.title}
         </div>
 
-        {/* Meta: Ort */}
-        {(item.city || item.category) && (
-          <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.42)",
-            marginBottom:20, fontWeight:500 }}>
+        {!isCompact && (item.city || item.category) && (
+          <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.40)",
+            marginBottom:18, fontWeight:500, letterSpacing:0.1 }}>
             {item.category && <span>{item.category}</span>}
             {item.city && item.category && <span> · </span>}
             {item.city && <span>📍 {item.city}</span>}
           </div>
         )}
 
-        {/* CTA Row — Preis + Aktion */}
         <div style={{ display:"flex", gap:10, alignItems:"center" }}>
           {item.price && (
-            <div style={{ background:"rgba(255,255,255,0.12)",
+            <div style={{ background:"rgba(255,255,255,0.10)",
               backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
-              border:"1px solid rgba(255,255,255,0.18)",
-              borderRadius:14, padding:"11px 16px",
-              fontSize:16, fontWeight:900, color:"white",
-              letterSpacing:-0.3 }}>
+              border:"1px solid rgba(255,255,255,0.16)",
+              borderRadius:14, padding:"11px 14px",
+              fontSize: isCompact ? 14 : 16, fontWeight:900, color:"white" }}>
               {item.price}
             </div>
           )}
@@ -667,13 +708,12 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
             else if(onView) onView(item);
           }}
             className="df-tap"
-            style={{ flex:1, padding:"13px 16px",
+            style={{ flex:1, padding:"12px 14px",
               background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
-              border:"none", borderRadius:16, color:"white",
-              fontSize:13.5, fontWeight:800, cursor:"pointer",
+              border:"none", borderRadius:14, color:"white",
+              fontSize: isCompact ? 12.5 : 13.5, fontWeight:800, cursor:"pointer",
               fontFamily:"inherit",
-              boxShadow:`0 6px 20px rgba(255,138,107,0.36)`,
-              letterSpacing:0.1,
+              boxShadow:`0 5px 18px rgba(255,138,107,0.34)`,
               WebkitTapHighlightColor:"transparent" }}>
             Entdecken →
           </button>
@@ -683,52 +723,53 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
   );
 }
 
-/* ── EXPERIENCE CARD — immersive, Gold ───────────────────────────── */
-function ExperienceCard({ item, onView }) {
+/* ── EXPERIENCE CARD ─────────────────────────────────────────────── */
+function ExperienceCard({ item, onView, variant = "hero" }) {
+  const h = cardH(variant, "experience");
+  const isCompact = variant === "compact";
+
   return (
     <div className="df-card-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%",
-        height: window.innerWidth >= 768 ? "70vh" : "78vh",
-        maxHeight:620, overflow:"hidden", cursor:"pointer",
-        borderRadius:28, animation:"dfFadeUp 0.48s both",
-        boxShadow:"0 16px 48px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.09)" }}>
+        height:h, overflow:"hidden", cursor:"pointer",
+        borderRadius: isCompact ? 22 : 26,
+        animation:"dfFadeUp 0.5s both",
+        boxShadow: isCompact
+          ? "0 8px 28px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.08)"
+          : "0 18px 52px rgba(0,0,0,0.20), 0 4px 16px rgba(0,0,0,0.10)" }}>
 
       <div style={{ position:"absolute", inset:0,
-        animation:"dfKenBurns 18s ease-in-out infinite alternate" }}>
+        animation: !isCompact ? "dfKenBurns 18s ease-in-out infinite alternate" : "none" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.64) saturate(1.25)" }}/>
+            filter:`brightness(${isCompact ? "0.70" : "0.62"}) saturate(1.28)` }}/>
       </div>
 
-      {/* Gold ambient */}
       <div style={{ position:"absolute", inset:0, pointerEvents:"none",
         background:`
-          radial-gradient(ellipse 60% 35% at 50% 5%, rgba(245,166,35,0.20) 0%, transparent 55%),
+          radial-gradient(ellipse 58% 35% at 50% 5%,
+            rgba(245,166,35,${isCompact ? "0.18" : "0.22"}) 0%, transparent 55%),
           linear-gradient(to bottom,
-            rgba(0,0,0,0.30) 0%,
-            transparent 22%,
-            rgba(5,4,0,0.93) 100%)` }}/>
+            rgba(0,0,0,0.28) 0%,
+            transparent ${isCompact ? "26" : "22"}%,
+            rgba(5,4,0,${isCompact ? "0.88" : "0.94"}) 100%)` }}/>
 
-      {/* Gold accent line */}
       <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
-        background:`linear-gradient(90deg,${C.gold},${C.gold}55,transparent)`,
-        opacity:0.9 }}/>
+        background:`linear-gradient(90deg,${C.gold},${C.gold}55,transparent)`, opacity:0.9 }}/>
 
-      {/* Header */}
-      <div style={{ position:"absolute", top:20, left:20, right:20,
+      <div style={{ position:"absolute", top:18, left:18, right:18,
         display:"flex", justifyContent:"space-between", alignItems:"center" }}>
         <div style={{ display:"flex", gap:8 }}>
-          <div style={{ background:"rgba(245,166,35,0.15)", backdropFilter:"blur(12px)",
+          <div style={{ background:"rgba(245,166,35,0.14)", backdropFilter:"blur(12px)",
             WebkitBackdropFilter:"blur(12px)",
-            border:"1px solid rgba(245,166,35,0.35)", borderRadius:999,
-            padding:"5px 14px" }}>
+            border:"1px solid rgba(245,166,35,0.32)", borderRadius:999, padding:"4px 13px" }}>
             <span style={{ fontSize:8, color:C.gold, fontWeight:900,
               letterSpacing:2, textTransform:"uppercase" }}>Erlebnis</span>
           </div>
-          {item.spots <= 3 && (
-            <div style={{ background:"rgba(255,138,107,0.18)", backdropFilter:"blur(10px)",
-              border:"1px solid rgba(255,138,107,0.35)", borderRadius:999,
-              padding:"5px 11px", fontSize:9, color:C.coral, fontWeight:800,
+          {item.spots != null && item.spots <= 3 && (
+            <div style={{ background:"rgba(255,138,107,0.17)", backdropFilter:"blur(10px)",
+              border:"1px solid rgba(255,138,107,0.33)", borderRadius:999,
+              padding:"4px 10px", fontSize:9, color:C.coral, fontWeight:800,
               display:"flex", alignItems:"center", gap:4 }}>
               🔥 Nur noch {item.spots}
             </div>
@@ -737,62 +778,52 @@ function ExperienceCard({ item, onView }) {
         <SaveBtn accent={C.gold} dark/>
       </div>
 
-      {/* Content */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 24px 28px" }}>
+        padding:`0 22px ${paddingBottom(variant)}px` }}>
 
-        {item.bio && (
-          <p style={{ fontSize:13, color:"rgba(255,255,255,0.64)",
-            fontStyle:"italic", lineHeight:1.68, marginBottom:10,
-            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+        {!isCompact && item.bio && (
+          <p style={{ fontSize:quoteSize(variant), color:"rgba(255,255,255,0.62)",
+            fontStyle:"italic", lineHeight:1.70, marginBottom:10,
+            textShadow:"0 1px 10px rgba(0,0,0,0.45)" }}>
             „{item.bio}"
           </p>
         )}
 
-        <div style={{ fontWeight:900, fontSize: item.title?.length > 18 ? 22 : 25,
+        <div style={{ fontWeight:900,
+          fontSize:titleSize(variant, (item.title||"").length),
           color:"white", letterSpacing:-0.6, lineHeight:1.1,
-          marginBottom:14,
-          textShadow:"0 2px 14px rgba(0,0,0,0.5)" }}>
+          marginBottom: isCompact ? 12 : 14,
+          textShadow:"0 2px 16px rgba(0,0,0,0.55)" }}>
           {item.title}
         </div>
 
-        {/* Meta chips */}
-        <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", gap:8, marginBottom: isCompact ? 14 : 18, flexWrap:"wrap" }}>
           {item.date && (
-            <div style={{ background:"rgba(255,255,255,0.10)",
-              backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
-              border:"1px solid rgba(255,255,255,0.14)",
-              borderRadius:999, padding:"5px 13px",
-              fontSize:11, color:"rgba(255,255,255,0.72)", fontWeight:600 }}>
+            <div style={{ background:"rgba(255,255,255,0.09)",
+              backdropFilter:"blur(10px)", border:"1px solid rgba(255,255,255,0.12)",
+              borderRadius:999, padding:"4px 12px",
+              fontSize:10.5, color:"rgba(255,255,255,0.68)", fontWeight:600 }}>
               📅 {item.date}
             </div>
           )}
           {item.price && (
-            <div style={{ background:"rgba(245,166,35,0.16)",
-              backdropFilter:"blur(10px)", border:"1px solid rgba(245,166,35,0.32)",
-              borderRadius:999, padding:"5px 13px",
-              fontSize:11, color:C.gold, fontWeight:800 }}>
+            <div style={{ background:"rgba(245,166,35,0.15)",
+              backdropFilter:"blur(10px)", border:"1px solid rgba(245,166,35,0.30)",
+              borderRadius:999, padding:"4px 12px",
+              fontSize:10.5, color:C.gold, fontWeight:800 }}>
               {item.price}
-            </div>
-          )}
-          {item.city && (
-            <div style={{ fontSize:11, color:"rgba(255,255,255,0.44)",
-              display:"flex", alignItems:"center", gap:4, fontWeight:500,
-              padding:"5px 0" }}>
-              📍 {item.creator && <span>{item.creator} · </span>}{item.city}
             </div>
           )}
         </div>
 
         <button onClick={e=>{e.stopPropagation(); onView&&onView(item);}}
           className="df-tap"
-          style={{ width:"100%", padding:"14px",
+          style={{ width:"100%", padding: isCompact ? "11px" : "13px",
             background:`linear-gradient(135deg,${C.gold},#E8A000)`,
-            border:"none", borderRadius:16, color:"white",
-            fontSize:14, fontWeight:800, cursor:"pointer",
+            border:"none", borderRadius:14, color:"white",
+            fontSize: isCompact ? 12.5 : 13.5, fontWeight:800, cursor:"pointer",
             fontFamily:"inherit",
-            boxShadow:`0 6px 22px rgba(245,166,35,0.38)`,
-            letterSpacing:0.2,
+            boxShadow:`0 5px 18px rgba(245,166,35,0.36)`,
             WebkitTapHighlightColor:"transparent" }}>
           Erlebnis entdecken
         </button>
@@ -801,46 +832,49 @@ function ExperienceCard({ item, onView }) {
   );
 }
 
-/* ── IMPACT CARD — community, grün/teal ──────────────────────────── */
-function ImpactCard({ item, onImpact }) {
+/* ── IMPACT CARD ─────────────────────────────────────────────────── */
+function ImpactCard({ item, onImpact, variant = "hero" }) {
+  const h = cardH(variant, "impact");
+  const isCompact = variant === "compact";
   const pct = Math.min(Math.round(((item.raised||0) / (item.goal||1)) * 100), 100);
+
   return (
     <div className="df-card-tap" onClick={onImpact}
       style={{ position:"relative", width:"100%",
-        height: window.innerWidth >= 768 ? "68vh" : "74vh",
-        maxHeight:580, overflow:"hidden", cursor:"pointer",
-        borderRadius:28, animation:"dfFadeUp 0.48s both",
-        boxShadow:"0 16px 48px rgba(0,0,0,0.16), 0 4px 14px rgba(0,0,0,0.09)" }}>
+        height:h, overflow:"hidden", cursor:"pointer",
+        borderRadius: isCompact ? 22 : 26,
+        animation:"dfFadeUp 0.5s both",
+        boxShadow: isCompact
+          ? "0 8px 28px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.07)"
+          : "0 18px 52px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.09)" }}>
 
       <div style={{ position:"absolute", inset:0,
-        animation:"dfKenBurns 26s ease-in-out infinite alternate" }}>
+        animation: !isCompact ? "dfKenBurns 26s ease-in-out infinite alternate" : "none" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.56) saturate(1.28)" }}/>
+            filter:`brightness(${isCompact ? "0.62" : "0.55"}) saturate(1.30)` }}/>
       </div>
 
-      {/* Green/Teal ambient */}
       <div style={{ position:"absolute", inset:0, pointerEvents:"none",
         background:`
-          radial-gradient(ellipse 75% 45% at 15% 10%, rgba(22,215,197,0.22) 0%, transparent 55%),
-          radial-gradient(ellipse 50% 35% at 85% 85%, rgba(61,184,122,0.20) 0%, transparent 50%),
+          radial-gradient(ellipse 72% 44% at 15% 10%,
+            rgba(22,215,197,${isCompact ? "0.18" : "0.24"}) 0%, transparent 55%),
+          radial-gradient(ellipse 48% 33% at 85% 85%,
+            rgba(61,184,122,${isCompact ? "0.16" : "0.22"}) 0%, transparent 50%),
           linear-gradient(to bottom,
-            rgba(0,0,0,0.32) 0%,
-            transparent 20%,
-            rgba(3,6,4,0.91) 100%)` }}/>
+            rgba(0,0,0,0.30) 0%,
+            transparent ${isCompact ? "22" : "18"}%,
+            rgba(3,6,4,${isCompact ? "0.88" : "0.92"}) 100%)` }}/>
 
-      {/* Gradient accent line */}
       <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
-        background:`linear-gradient(90deg,${C.green},${C.teal},transparent)`,
-        opacity:0.9 }}/>
+        background:`linear-gradient(90deg,${C.green},${C.teal},transparent)`, opacity:0.9 }}/>
 
-      {/* Label */}
-      <div style={{ position:"absolute", top:20, left:20, right:20,
+      <div style={{ position:"absolute", top:18, left:18, right:18,
         display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <div style={{ background:"rgba(61,184,122,0.16)", backdropFilter:"blur(12px)",
+        <div style={{ background:"rgba(61,184,122,0.14)", backdropFilter:"blur(12px)",
           WebkitBackdropFilter:"blur(12px)",
-          border:"1px solid rgba(61,184,122,0.35)", borderRadius:999,
-          padding:"5px 14px", display:"flex", alignItems:"center", gap:6 }}>
+          border:"1px solid rgba(61,184,122,0.32)", borderRadius:999,
+          padding:"4px 13px", display:"flex", alignItems:"center", gap:6 }}>
           <span style={{ fontSize:11 }}>🌱</span>
           <span style={{ fontSize:8, color:C.green, fontWeight:900,
             letterSpacing:2, textTransform:"uppercase" }}>Impact</span>
@@ -848,63 +882,58 @@ function ImpactCard({ item, onImpact }) {
         <SaveBtn accent={C.green} dark/>
       </div>
 
-      {/* Content */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 24px 28px" }}>
+        padding:`0 22px ${paddingBottom(variant)}px` }}>
 
-        {item.bio && (
-          <p style={{ fontSize:13, color:"rgba(255,255,255,0.65)",
-            fontStyle:"italic", lineHeight:1.68, marginBottom:12,
-            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+        {!isCompact && item.bio && (
+          <p style={{ fontSize:quoteSize(variant), color:"rgba(255,255,255,0.63)",
+            fontStyle:"italic", lineHeight:1.70, marginBottom:12,
+            textShadow:"0 1px 10px rgba(0,0,0,0.45)" }}>
             „{item.bio}"
           </p>
         )}
 
-        <div style={{ fontWeight:900, fontSize: item.title?.length > 20 ? 21 : 24,
-          color:"white", letterSpacing:-0.5, lineHeight:1.15,
-          marginBottom:18,
-          textShadow:"0 2px 14px rgba(0,0,0,0.5)" }}>
+        <div style={{ fontWeight:900,
+          fontSize:titleSize(variant, (item.title||"").length),
+          color:"white", letterSpacing:-0.55, lineHeight:1.15,
+          marginBottom: isCompact ? 14 : 18,
+          textShadow:"0 2px 16px rgba(0,0,0,0.55)" }}>
           {item.title}
         </div>
 
         {/* Progress */}
-        <div style={{ marginBottom:22 }}>
+        <div style={{ marginBottom: isCompact ? 14 : 20 }}>
           <div style={{ display:"flex", justifyContent:"space-between",
             alignItems:"baseline", marginBottom:8 }}>
             <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
-              <span style={{ fontWeight:900, fontSize:18, color:C.green }}>
+              <span style={{ fontWeight:900, fontSize: isCompact ? 16 : 18,
+                color:C.green }}>
                 € {Number(item.raised||0).toLocaleString("de-DE")}
               </span>
-              <span style={{ fontSize:11, color:"rgba(255,255,255,0.42)" }}>
+              <span style={{ fontSize:10.5, color:"rgba(255,255,255,0.40)" }}>
                 von € {Number(item.goal||0).toLocaleString("de-DE")}
               </span>
             </div>
-            <span style={{ fontSize:11, color:C.teal,
-              fontWeight:800, letterSpacing:0.3 }}>
-              {pct} %
-            </span>
+            <span style={{ fontSize:10.5, color:C.teal, fontWeight:800 }}>{pct} %</span>
           </div>
-          {/* Progress bar */}
           <div style={{ height:5, borderRadius:999,
-            background:"rgba(255,255,255,0.12)", overflow:"hidden",
+            background:"rgba(255,255,255,0.11)", overflow:"hidden",
             boxShadow:"inset 0 1px 3px rgba(0,0,0,0.2)" }}>
-            <div style={{ height:"100%", borderRadius:999,
-              width:`${pct}%`,
+            <div style={{ height:"100%", borderRadius:999, width:`${pct}%`,
               background:`linear-gradient(90deg,${C.green},${C.teal})`,
-              boxShadow:`0 0 10px rgba(22,215,197,0.5)`,
-              transition:"width 0.8s cubic-bezier(.34,1.3,.64,1)" }}/>
+              boxShadow:`0 0 10px rgba(22,215,197,0.48)`,
+              transition:"width 0.9s cubic-bezier(.34,1.3,.64,1)" }}/>
           </div>
         </div>
 
         <button onClick={e=>{e.stopPropagation(); onImpact&&onImpact();}}
           className="df-tap"
-          style={{ width:"100%", padding:"14px",
+          style={{ width:"100%", padding: isCompact ? "11px" : "13px",
             background:`linear-gradient(135deg,${C.green},${C.teal2})`,
-            border:"none", borderRadius:16, color:"white",
-            fontSize:14, fontWeight:800, cursor:"pointer",
+            border:"none", borderRadius:14, color:"white",
+            fontSize: isCompact ? 12.5 : 13.5, fontWeight:800, cursor:"pointer",
             fontFamily:"inherit",
-            boxShadow:`0 6px 22px rgba(61,184,122,0.38)`,
-            letterSpacing:0.2,
+            boxShadow:`0 5px 20px rgba(61,184,122,0.36)`,
             WebkitTapHighlightColor:"transparent" }}>
           Projekt unterstützen
         </button>
@@ -912,6 +941,8 @@ function ImpactCard({ item, onImpact }) {
     </div>
   );
 }
+
+
 
 
 
