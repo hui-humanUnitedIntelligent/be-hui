@@ -355,9 +355,9 @@ function ChatDetailView({ chat, userId, onBack }) {
   async function loadMessages() {
     const { data } = await supabase
       .from("messages")
-      .select("*")
-      .eq("chat_id", chat.id)
-      .order("created_at", { ascending:true });
+        .select("id,chat_id,sender_id,text,created_at,read")
+        .eq("chat_id", chat.id)
+        .order("created_at", { ascending:true }).limit(100);
     setMessages(data || []);
     // Mark as read
     await supabase.from("messages")
@@ -598,7 +598,8 @@ export function MeineInhaltePage({ onBack }) {
     const { data } = await supabase.from(table)
       .select("id, title, cover_url, media_url, status, created_at, price")
       .eq("user_id", user.id)
-      .order("created_at",{ascending:false});
+      .order("created_at",{ascending:false})
+        .limit(50);
     setItems(data || []);
     setLoading(false);
   }
@@ -707,21 +708,19 @@ export function AnalyticsPage({ onBack }) {
   useEffect(() => {
     if (!user?.id) return;
     async function load() {
-      const [profileRes, likesRes, savesRes, salesRes, bookRes] = await Promise.all([
-        supabase.from("profiles").select("profile_views, follower_count").eq("id",user.id).single(),
-        supabase.from("likes").select("id",{count:"exact"})
-          .in("post_id",
-            (await supabase.from("feed_items").select("id").eq("user_id",user.id)).data?.map(f=>f.id)||[]
-          ),
-        supabase.from("favorites").select("id",{count:"exact"})
-          .in("work_id",
-            (await supabase.from("works").select("id").eq("user_id",user.id)).data?.map(w=>w.id)||[]
-          ),
-        supabase.from("bookings").select("amount")
-          .eq("wirker_id",user.id).eq("status","completed"),
-        supabase.from("bookings").select("id",{count:"exact"})
-          .eq("wirker_id",user.id),
-      ]);
+      const [profileRes, salesRes, bookRes] = await Promise.all([
+          supabase.from("profiles")
+            .select("profile_views,follower_count,impact_eur")
+            .eq("id",user.id).single(),
+          supabase.from("bookings")
+            .select("amount")
+            .eq("wirker_id",user.id).eq("status","completed").limit(500),
+          supabase.from("bookings")
+            .select("id",{count:"exact",head:true})
+            .eq("wirker_id",user.id),
+        ]);
+        const likesRes = { data: null, count: 0 };
+        const savesRes = { data: null, count: 0 };
       const revenue = (salesRes.data||[]).reduce((s,b)=>s+(+b.amount||0),0) * 0.85;
       setStats({
         views:    profileRes.data?.profile_views    || 0,
@@ -868,8 +867,9 @@ export function VerfuegbarkeitPage({ onBack }) {
   async function load() {
     if (!user?.id) return;
     const { data } = await supabase.from("availability_slots")
-      .select("*").eq("user_id", user.id)
-      .order("date",{ascending:true});
+        .select("id,user_id,date,time_from,time_to,available")
+        .eq("user_id", user.id)
+        .order("date",{ascending:true}).limit(90);
     setSlots(data || []);
     setLoading(false);
   }
@@ -1441,8 +1441,9 @@ function RechnungenPage({ onBack, userId }) {
       setItems(data || []);
     } else {
       const { data } = await supabase.from("payouts")
-        .select("*").eq("user_id", userId)
-        .order("created_at",{ascending:false});
+          .select("id,user_id,amount,status,created_at,method")
+          .eq("user_id", userId)
+          .order("created_at",{ascending:false}).limit(50);
       setItems(data || []);
     }
     setLoading(false);
