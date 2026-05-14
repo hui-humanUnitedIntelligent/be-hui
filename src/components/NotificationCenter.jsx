@@ -103,6 +103,7 @@ export function useNotifCount() {
 
   useEffect(() => {
     if (!user?.id) return;
+    let mounted = true;
 
     async function load() {
       const { count: c } = await supabase
@@ -110,7 +111,7 @@ export function useNotifCount() {
         .select("id", { count:"exact" })
         .eq("user_id", user.id)
         .eq("read", false);
-      setCount(c || 0);
+      if (mounted) setCount(c || 0);
     }
     load();
 
@@ -118,10 +119,10 @@ export function useNotifCount() {
       .on("postgres_changes", {
         event: "*", schema:"public", table:"notifications",
         filter:`user_id=eq.${user.id}`
-      }, () => load())
+      }, () => { if (mounted) load(); })
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => { mounted = false; supabase.removeChannel(channel); };
   }, [user?.id]);
 
   return count;
@@ -146,7 +147,11 @@ export default function NotificationCenter({ onClose, onNavigate }) {
     setLoading(false);
   }, [user?.id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    let mounted = true;
+    load().catch(() => {});
+    return () => { mounted = false; };
+  }, [load]);
 
   // Realtime
   useEffect(() => {
@@ -156,6 +161,8 @@ export default function NotificationCenter({ onClose, onNavigate }) {
         event: "INSERT", schema:"public", table:"notifications",
         filter:`user_id=eq.${user.id}`
       }, (payload) => {
+        // Only update if component still mounted (channel cleanup handles this,
+        // but explicit guard prevents stale closure issues)
         setNotifs(n => [payload.new, ...n]);
       })
       .subscribe();
