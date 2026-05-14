@@ -19,6 +19,7 @@
 
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { sentryCapture } from '../lib/sentry';
 
 // ─── SafeVirtualRow ──────────────────────────────────────────────
 // Isoliert jeden einzelnen Feed-Item-Render.
@@ -32,10 +33,17 @@ function SafeVirtualRow({ renderItem, item, index, virtualKey, start, measureEl 
     content = renderItem(item, index);
   } catch (err) {
     // Log mit kontext — niemals nach oben propagieren
+    const eventId = sentryCapture(err, {
+      source:     'VirtualFeedList.SafeVirtualRow',
+      item_id:    item?.id   ?? null,
+      item_type:  item?.type ?? 'unknown',
+      item_index: index,
+    });
     console.error(
-      '[VirtualFeedList] renderItem crash at index=' + index +
-      ' type=' + (item?.type ?? 'unknown') +
-      ' id=' + (item?.id ?? 'none'),
+      '[VirtualFeedList] renderItem crash index=' + index +
+      ' type=' + (item?.type ?? '?') +
+      ' id=' + (item?.id ?? 'none') +
+      ' sentry=' + (eventId || 'not sent'),
       err
     );
     return null;
@@ -176,7 +184,13 @@ export default function VirtualFeedList({
               ? <React.Fragment key={item?.id ?? i}>{content}</React.Fragment>
               : null;
           } catch (err) {
-            console.error('[VirtualFeedList:fallback] renderItem crash i=' + i, err);
+            sentryCapture(err, {
+              source:     'VirtualFeedList.fallback',
+              item_id:    item?.id   ?? null,
+              item_type:  item?.type ?? 'unknown',
+              item_index: i,
+            });
+            console.error('[VirtualFeedList:fallback] crash i=' + i, err);
             return null;
           }
         })}
