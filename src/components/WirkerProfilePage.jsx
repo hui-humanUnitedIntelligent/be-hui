@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import LazyImage from "./LazyImage";
-import { safeQuery, batchQueries, FIELDS, optimizeImg, cachedQuery } from "../lib/perfUtils";
+import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery } from "../lib/perfUtils";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
 const C = {
