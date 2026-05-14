@@ -2,6 +2,7 @@
 // Route: /work/:id
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
@@ -425,7 +426,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
       if (wErr || !w) {
         // Fallback: Work ohne JOIN laden, dann Profile separat
         const { data: w2, error: w2Err } = await supabase
-          .from("works").select("*").eq("id", id).single();
+          .from("works").select("id,title,description,cover_url,media_url,price,category,medium,status,user_id,likes_count,created_at,images,tags").eq("id", id).single();
         if (w2Err || !w2) throw new Error("Werk nicht gefunden");
         setWerk(w2);
 
