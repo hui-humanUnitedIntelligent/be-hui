@@ -1,5 +1,4 @@
 // src/hooks/useWirker.js — v2
-// Backward-compat wrapper + service layer
 import { useState, useEffect, useRef } from 'react';
 import { TalentService } from '../services/db';
 
@@ -12,12 +11,15 @@ export function useWirker({ page = 0, category = null, location = null } = {}) {
   useEffect(() => {
     mounted.current = true;
     setLoading(true);
-    TalentService.list({ page, category, location }).then(({ data, error: err }) => {
+
+    (async () => {
+      const { data, error: err } = await TalentService.list({ page, category, location });
       if (!mounted.current) return;
       setWirker(data || []);
       setError(err?.message || null);
       setLoading(false);
-    });
+    })();
+
     return () => { mounted.current = false; };
   }, [page, category, location]);
 
@@ -32,9 +34,14 @@ export function useWirkerById(id) {
   useEffect(() => {
     mounted.current = true;
     if (!id) { setLoading(false); return; }
-    TalentService.getByUserId(id).then(({ data }) => {
-      if (mounted.current) { setWirker(data); setLoading(false); }
-    });
+
+    (async () => {
+      const { data } = await TalentService.getByUserId(id);
+      if (!mounted.current) return;
+      setWirker(data);
+      setLoading(false);
+    })();
+
     return () => { mounted.current = false; };
   }, [id]);
 
@@ -49,9 +56,14 @@ export function useWirkerByName(name) {
   useEffect(() => {
     mounted.current = true;
     if (!name) { setLoading(false); return; }
-    TalentService.getBySlug(name).then(({ data }) => {
-      if (mounted.current) { setWirker(data); setLoading(false); }
-    });
+
+    (async () => {
+      const { data } = await TalentService.getBySlug(name);
+      if (!mounted.current) return;
+      setWirker(data);
+      setLoading(false);
+    })();
+
     return () => { mounted.current = false; };
   }, [name]);
 
