@@ -230,7 +230,7 @@ function StoriesBar({ onView }) {
                       }}>+</div>
                     </>
                   ) : s.img ? (
-                    <img src={s.img} alt={s.name}
+                    <img loading="lazy" decoding="async" src={s.img} alt={s.name}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
                     <span style={{ fontWeight: 800, color: T.teal }}>{s.name[0]}</span>
@@ -269,7 +269,7 @@ function TalentStageCard({ item, onView, onBook, className = "" }) {
         background: `linear-gradient(160deg, ${color}30, ${color}10)`,
       }}>
         {w.header && (
-          <img src={w.header} alt=""
+          <img loading="lazy" decoding="async" src={w.header} alt=""
             style={{ position: "absolute", inset: 0,
               width: "100%", height: "100%", objectFit: "cover",
               transition: "transform 0.6s ease" }} />
@@ -309,7 +309,7 @@ function TalentStageCard({ item, onView, onBook, className = "" }) {
               overflow: "hidden", border: "2px solid rgba(255,255,255,0.6)",
               flexShrink: 0,
             }}>
-              <img src={w.img} alt={w.fullName}
+              <img loading="lazy" decoding="async" src={w.img} alt={w.fullName}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onError={e => e.target.style.display = "none"} />
             </div>
@@ -390,7 +390,7 @@ function WerkStageCard({ item, onCart, className = "" }) {
       style={{ margin: "0 18px 24px" }}>
 
       <div style={{ position: "relative", paddingTop: "125%", overflow: "hidden" }}>
-        <img src={item.img} alt={item.title}
+        <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ position: "absolute", inset: 0,
             width: "100%", height: "100%", objectFit: "cover" }} />
 
@@ -430,7 +430,7 @@ function WerkStageCard({ item, onCart, className = "" }) {
               <div style={{ width: 28, height: 28, borderRadius: "50%",
                 overflow: "hidden", border: "1.5px solid rgba(255,255,255,0.6)",
                 flexShrink: 0 }}>
-                <img src={item.wirkerImg} alt=""
+                <img loading="lazy" decoding="async" src={item.wirkerImg} alt=""
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
             )}
@@ -520,7 +520,7 @@ function VideoStageCard({ item, className = "" }) {
 
       <div style={{ position: "relative", paddingTop: "125%", overflow: "hidden", background: "#0D0D0D" }}>
         {/* Thumb */}
-        <img src={item.thumb} alt=""
+        <img loading="lazy" decoding="async" src={item.thumb} alt=""
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
             objectFit: "cover", opacity: playing ? 0 : 1, transition: "opacity 0.5s" }} />
 
@@ -567,7 +567,7 @@ function VideoStageCard({ item, className = "" }) {
             {item.wirkerImg && (
               <div style={{ width: 28, height: 28, borderRadius: "50%",
                 overflow: "hidden", border: "1.5px solid rgba(255,255,255,0.6)" }}>
-                <img src={item.wirkerImg} alt=""
+                <img loading="lazy" decoding="async" src={item.wirkerImg} alt=""
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
             )}
@@ -599,7 +599,7 @@ function ImpactStageCard({ item, onImpact, className = "" }) {
       onClick={onImpact}>
 
       <div style={{ position: "relative", height: 220, overflow: "hidden" }}>
-        <img src={item.img} alt="" style={{ width: "100%", height: "100%",
+        <img loading="lazy" decoding="async" src={item.img} alt="" style={{ width: "100%", height: "100%",
           objectFit: "cover", filter: "brightness(0.72) saturate(1.15)" }} />
         <div style={{ position: "absolute", inset: 0,
           background: `linear-gradient(160deg, ${T.teal}88 0%, ${T.coral}55 100%)` }} />
