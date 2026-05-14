@@ -1058,7 +1058,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       try {
         const { data } = await supabase
           .from("profiles")
-          .select("id, display_name, username, avatar_url, talent, city, availability, impact_eur")
+          .select("id,display_name,username,avatar_url,header_img,bio,talent,focus_type,dna_tags,location_label,is_available,is_wirker,has_talent_profile,impact_eur,followers_count")
           .eq("has_talent_profile", true)
           .eq("availability", true)
           .order("impact_eur", { ascending: false })
