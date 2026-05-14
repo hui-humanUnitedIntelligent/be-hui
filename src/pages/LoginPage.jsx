@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 
 const C = {
@@ -28,22 +29,35 @@ function HuiLogo({ size=52 }) {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, loadingAuth } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const [mode, setMode] = useState('splash');
 
+  // If already authenticated → go to Home
+  useEffect(() => {
+    if (!loadingAuth && isAuthenticated) {
+      navigate('/Home', { replace: true });
+    }
+  }, [isAuthenticated, loadingAuth, navigate]);
+
   async function handleLogin(e) {
     e.preventDefault();
     setLoading(true); setErr('');
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     if (error) {
-      setErr(error.message);
+      // Translate common Supabase error messages to German
+      const msg = error.message?.includes('Invalid login credentials')
+        ? 'E-Mail oder Passwort falsch.'
+        : error.message?.includes('Email not confirmed')
+          ? 'Bitte bestätige zuerst deine E-Mail-Adresse.'
+          : error.message || 'Login fehlgeschlagen.';
+      setErr(msg);
       setLoading(false);
-    } else {
-      navigate('/Home');
     }
+    // Navigation handled by useEffect above when isAuthenticated changes
   }
 
   async function handleRegister(e) {
@@ -51,19 +65,21 @@ export default function LoginPage() {
     setLoading(true); setErr('');
     const { error } = await supabase.auth.signUp({ email, password: pw });
     if (error) {
-      setErr(error.message);
+      const msg = error.message?.includes('already registered')
+        ? 'Diese E-Mail ist bereits registriert. Bitte einloggen.'
+        : error.message || 'Registrierung fehlgeschlagen.';
+      setErr(msg);
       setLoading(false);
-    } else {
-      // Auto-login after register
-      const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password: pw });
-      if (loginErr) {
-        setMode('login');
-        setErr('Registriert! Bitte einloggen.');
-        setLoading(false);
-      } else {
-        navigate('/Home');
-      }
+      return;
     }
+    // Auto-login after register
+    const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (loginErr) {
+      setMode('login');
+      setErr('Konto erstellt! Bitte einloggen.');
+      setLoading(false);
+    }
+    // Navigation handled by useEffect above when isAuthenticated changes
   }
 
   // SPLASH
