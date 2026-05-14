@@ -594,7 +594,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         </div>
 
         {/* ── Creator Section ── */}
-        <div onClick={() => navigate(`/profile/${username}`)}
+        <div onClick={() => onViewCreator ? onViewCreator(normalizeProfileInput(creator)) : navigate(`/profile/${username}`)}
           className="wd-tap"
           style={{ margin:"16px 20px 0", padding:"14px 16px",
             background:C.card, borderRadius:18,
