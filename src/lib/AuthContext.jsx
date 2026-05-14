@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
-import { FIELDS } from "./perfUtils";
+import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 
 const AuthContext = createContext(null);
 
@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
     setLoadingProfile(true);
     try {
       const { data: prof, error } = await withTimeout(
-        supabase.from("profiles").select(FIELDS.profile).eq("id", userId).single(), 8000
+        supabase.from("profiles").select(PROFILE_FIELDS).eq("id", userId).single(), 8000
       );
 
       if (!prof && error?.code === "PGRST116") {
