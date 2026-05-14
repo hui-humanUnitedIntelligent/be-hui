@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
 
 const C = {
@@ -19,9 +20,9 @@ export default function Admin() {
     async function load() {
       setLoading(true);
       const [w, p, pr] = await Promise.all([
-        supabase.from("wirker").select("*").then(r => r.data || []),
-        supabase.from("payments").select("*").then(r => r.data || []),
-        supabase.from("impact_projects").select("*").then(r => r.data || []),
+        supabase.from("wirker").select("id,display_name,username,email,avatar_url,is_wirker,has_talent_profile,created_at").then(r => r.data || []),
+        supabase.from("payments").select("id,display_name,username,email,avatar_url,is_wirker,has_talent_profile,created_at").then(r => r.data || []),
+        supabase.from("impact_projects").select("id,display_name,username,email,avatar_url,is_wirker,has_talent_profile,created_at").then(r => r.data || []),
       ]);
       setWirker(w);
       setPayments(p);
