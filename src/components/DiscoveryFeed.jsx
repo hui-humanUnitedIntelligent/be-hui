@@ -1066,14 +1066,28 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         if (!mounted) return;
         if (data && data.length > 0) {
           setLiveWirkers(data.map(p => ({
-            user_id:   p.id,
-            name:      p.display_name || p.username || "Talent",
-            talent:    p.talent || "Kreativ",
-            city:      p.city  || "",
-            recs:      0,
-            available: p.availability !== false,
-            img:       p.avatar_url || null,
-            impactEur: p.impact_eur || 0,
+            // Normalisierte Felder — direkt kompatibel mit WirkerProfilePage
+            id:           p.id,
+            user_id:      p.id,
+            username:     p.username     || null,
+            display_name: p.display_name || p.username || "Talent",
+            // Legacy-Felder (WirkerTile/WirkerCard lesen diese)
+            name:         p.display_name || p.username || "Talent",
+            talent:       p.talent       || "Kreativ",
+            city:         p.location_label || "",
+            available:    p.is_available !== false,
+            img:          p.avatar_url   || null,
+            // Neue vollständige Felder
+            avatar_url:   p.avatar_url   || null,
+            header_img:   p.header_img   || null,
+            bio:          p.bio          || null,
+            focus_type:   p.focus_type   || "hybrid",
+            dna_tags:     p.dna_tags     || [],
+            location_label: p.location_label || "",
+            impact_eur:   p.impact_eur   || 0,
+            impactEur:    p.impact_eur   || 0,
+            followers_count: p.followers_count || 0,
+            is_wirker:    p.is_wirker    || p.has_talent_profile || false,
           })));
         }
       } catch(e) {
