@@ -301,13 +301,15 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const identifier = rawWirker?.user_id || rawWirker?.id || rawWirker?.username;
 
   useEffect(() => {
+    let mounted = true;
     setLoading(true);
     setProfile(null);
     setWorks([]); setExps([]); setRecs([]);
-    load();
+    load(mounted);
+    return () => { mounted = false; };
   }, [identifier]);
 
-  async function load() {
+  async function load(mounted = true) {
     try {
       const uid = rawWirker?.user_id || rawWirker?.id;
       const username = rawWirker?.username;
@@ -327,7 +329,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
       }
 
       const targetId = prof?.id || uid;
-      setProfile(prof ? { ...buildMock(rawWirker), ...prof } : buildMock(rawWirker));
+      if (mounted) setProfile(prof ? { ...buildMock(rawWirker), ...prof } : buildMock(rawWirker));
 
       // Batch all content queries in parallel
       if (targetId) {
@@ -345,15 +347,15 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             .eq("wirker_id", targetId)
             .order("created_at",{ascending:false}).limit(10)),
         ]);
-        if (worksRes.data?.length) setWorks(worksRes.data);
-        if (expsRes.data?.length)  setExps(expsRes.data);
-        if (recsRes.data?.length)  setRecs(recsRes.data);
+        if (mounted && worksRes.data?.length) setWorks(worksRes.data);
+        if (mounted && expsRes.data?.length)  setExps(expsRes.data);
+        if (mounted && recsRes.data?.length)  setRecs(recsRes.data);
       }
     } catch(e) {
       console.warn("[WirkerProfile] load:", e.message);
-      setProfile(buildMock(rawWirker));
+      if (mounted) setProfile(buildMock(rawWirker));
     } finally {
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
   }
 
