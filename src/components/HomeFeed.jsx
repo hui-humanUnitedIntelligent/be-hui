@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import mockWirkerProfiles from "../lib/mockData";
-import { FeedEndSentinel } from './VirtualFeedList';
+import VirtualFeedList, { FeedEndSentinel } from './VirtualFeedList';
+import LazyImage from './LazyImage';
 
 /* ─── Design Tokens ───────────────────────────────── */
 const T = {
@@ -730,6 +731,43 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
     return null;
   }, [onViewWirker, onBook, onAddToCart, onImpact]);
 
+  // ── Virtualization: flatten sections into a single list ────────────
+  // Section headers werden als spezielle Items eingebettet
+  // Typ "__header" → rendert SectionHeader
+  // Typ "__divider" → rendert Trennlinie
+  const flatFeedItems = React.useMemo(() => {
+    const flat = [];
+    sections.forEach((sec, si) => {
+      // Section header als pseudo-item
+      flat.push({ __type: "__header", sec, si, id: `hdr_${sec.id}` });
+      // Echte Items
+      sec.items.forEach((item, ii) => {
+        flat.push({ ...item, __secIdx: si, __itemIdx: ii });
+      });
+      // Trennlinie zwischen Sections (nicht nach letzter)
+      if (si < sections.length - 1) {
+        flat.push({ __type: "__divider", id: `div_${sec.id}` });
+      }
+    });
+    return flat;
+  }, [sections]);
+
+  // ── renderFlatItem: rendert header, divider oder Card ──────────────
+  const renderFlatItem = useCallback((item, index) => {
+    if (!item) return null;
+    if (item.__type === "__header") {
+      return <SectionHeader key={item.id} section={item.sec} index={item.si} />;
+    }
+    if (item.__type === "__divider") {
+      return (
+        <div key={item.id}
+          style={{ height: 1, background: T.border, margin: "4px 20px 4px" }} />
+      );
+    }
+    // Echte Feed-Card — renderItem recyceln
+    return renderItem(item, item.__secIdx ?? 0, item.__itemIdx ?? index);
+  }, [renderItem]);
+
   return (
     <div style={{ paddingBottom: 100 }}>
       {/* Stories */}
@@ -740,19 +778,17 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
 
       {loading
         ? [1,2,3].map(i => <SkeletonCard key={i} />)
-        : sections.map((sec, si) => (
-          <div key={sec.id}>
-            <SectionHeader section={sec} index={si} />
-            {sec.items.map((item, ii) => renderItem(item, si, ii))}
-            {si < sections.length - 1 && (
-              <div style={{ height: 1, background: T.border, margin: "4px 20px 4px" }} />
-            )}
-          </div>
-        ))
+        : <VirtualFeedList
+            items={flatFeedItems}
+            renderItem={renderFlatItem}
+            estimatedSize={460}
+            overscan={3}
+            onEndReached={onLoadMore}
+          />
       }
 
-      {/* Infinite scroll sentinel — loads more when near bottom */}
-      {!loading && (
+      {/* Infinite scroll — handled by VirtualFeedList.onEndReached */}
+      {!loading && !hasMore && false && (
         <FeedEndSentinel onVisible={onLoadMore} loading={!!loadingMore} />
       )}
 
