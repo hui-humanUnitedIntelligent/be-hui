@@ -946,20 +946,14 @@ export function VerfuegbarkeitPage({ onBack }) {
 
   async function addSlot() {
     if (!newSlot.date || !newSlot.time_from) return;
-    await supabase.from("availability_slots").insert({
-      user_id:   user.id,
-      date:      newSlot.date,
-      time_from: newSlot.time_from,
-      time_to:   newSlot.time_to || null,
-      blocked:   newSlot.blocked,
-    });
+    await upsertAvailabilitySlot(user.id, {$1});
     setAdding(false);
     setNewSlot({ date:"", time_from:"", time_to:"", blocked:false });
     load();
   }
 
   async function removeSlot(id) {
-    await supabase.from("availability_slots").delete().eq("id", id);
+    await deleteAvailabilitySlot(id);
     setSlots(p => p.filter(s=>s.id!==id));
   }
 
@@ -1077,7 +1071,7 @@ export function ImpactSubPage({ onBack }) {
 
   async function vote(projectId) {
     if (myVotes.includes(projectId)) return;
-    await supabase.from("impact_votes").insert({ user_id:user.id, project_id:projectId });
+    await safeQuery(supabase.from("impact_votes").insert({ user_id: user.id, project_id, round_id: currentRound?.id, weight: 1, created_at: new Date().toISOString() }));
     await supabase.from("impact_projects").update({ votes: supabase.rpc ? undefined : undefined })
       .eq("id", projectId);
     setMyVotes(p=>[...p,projectId]);
@@ -1205,7 +1199,7 @@ export function KontoPage({ onBack, onLogout }) {
         }
       }
 
-      const { error } = await supabase.from("profiles").update({
+      const { error } = await ProfileService.update(user.id, {
         display_name: displayName,
         username:     username || null,
         bio:          bio || null,
@@ -1214,7 +1208,7 @@ export function KontoPage({ onBack, onLogout }) {
         avatar_url,
         cover_url,
         updated_at:   new Date().toISOString(),
-      }).eq("id", user.id);
+      });
 
       if (error) throw error;
       setSavedMsg("✓ Gespeichert");
