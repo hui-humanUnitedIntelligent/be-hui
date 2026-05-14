@@ -1209,7 +1209,8 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   useEffect(() => {
     if (!loaderRef.current) return;
     const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && hasMore && !loadingMore && !feedLoading) {
+      // Guard: keine parallelen Loads, kein Load wenn Tab hidden
+      if (entry.isIntersecting && hasMore && !loadingMore && !feedLoading && !document.hidden) {
         loadFeed(false);
       }
     }, { threshold: 0.1 });
@@ -1353,26 +1354,39 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             overscan={5}
             onEndReached={hasMore ? loadMore : undefined}
             renderItem={(item, i) => {
+              // SafeVirtualRow in VirtualFeedList fängt Crashes — aber
+              // renderItem selbst extra absichern für maximale Isolation
               if (!item) return null;
-              const divAccent =
-                item.type==="wirker" ? C.teal :
-                item.type==="werk"   ? C.coral :
-                item.type==="experience" ? C.gold : C.green;
-              const divLabel =
-                item.type==="wirker" ? "Menschen" :
-                item.type==="werk"   ? "Werke" :
-                item.type==="experience" ? "Erlebnisse" : "Impact";
-              return (
-                <div key={item.id}>
-                  {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
-                  <div style={{ padding:"0 16px" }}>
-                    {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook}/>}
-                    {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
-                    {item.type==="experience" && <MemoExperienceCard item={item} onView={onView}/>}
-                    {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact}/>}
+              try {
+                // Tracking fuer ErrorBoundary-Diagnose
+                if (typeof window !== 'undefined') {
+                  window.__HUI_LAST_FEED_COMPONENT__ =
+                    'DiscoveryFeed:' + (item.type || 'unknown') + ':' + (item.id || i);
+                }
+                const divAccent =
+                  item.type==="wirker" ? C.teal :
+                  item.type==="werk"   ? C.coral :
+                  item.type==="experience" ? C.gold : C.green;
+                const divLabel =
+                  item.type==="wirker" ? "Menschen" :
+                  item.type==="werk"   ? "Werke" :
+                  item.type==="experience" ? "Erlebnisse" : "Impact";
+                return (
+                  <div key={item.id}>
+                    {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
+                    <div style={{ padding:"0 16px" }}>
+                      {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook}/>}
+                      {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
+                      {item.type==="experience" && <MemoExperienceCard item={item} onView={onView}/>}
+                      {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact}/>}
+                    </div>
                   </div>
-                </div>
-              );
+                );
+              } catch(err) {
+                console.error('[DiscoveryFeed] renderItem crash item.type=' +
+                  (item?.type||'?') + ' id=' + (item?.id||i), err);
+                return null;
+              }
             }}
           />
 
