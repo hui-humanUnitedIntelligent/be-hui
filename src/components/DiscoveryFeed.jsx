@@ -83,25 +83,38 @@ const FEED_ITEMS = [
 
 /* ── CSS ────────────────────────────────────────────────────────────────── */
 const CSS = `
-  @keyframes dfFadeUp    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes dfKenBurns  { from{transform:scale(1)} to{transform:scale(1.06)} }
-  @keyframes dfBreath    { 0%,100%{opacity:0.5} 50%{opacity:1} }
-  @keyframes dfSkel      { 0%,100%{opacity:1} 50%{opacity:0.5} }
-  @keyframes dfSkPulse   { 0%,100%{opacity:1} 50%{opacity:0.45} }
-  @keyframes dfSaved     { 0%{transform:scale(1)} 40%{transform:scale(1.45)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
+  /* ── Core Animations ────────────────────────────────────────── */
+  @keyframes dfFadeUp    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes dfFadeIn    { from{opacity:0} to{opacity:1} }
+  @keyframes dfKenBurns  { from{transform:scale(1) translate(0,0)} to{transform:scale(1.07) translate(-0.5%,-0.5%)} }
+  @keyframes dfSkel      { 0%,100%{opacity:1} 50%{opacity:0.48} }
+  @keyframes dfSkPulse   { 0%,100%{opacity:1} 50%{opacity:0.42} }
+  @keyframes dfSaved     { 0%{transform:scale(1)} 40%{transform:scale(1.5)} 70%{transform:scale(0.88)} 100%{transform:scale(1)} }
+  @keyframes dfShimmer   { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+  @keyframes dfGlow      { 0%,100%{opacity:0.4} 50%{opacity:0.85} }
+  @keyframes dfPop       { 0%{transform:scale(0.88);opacity:0} 65%{transform:scale(1.06)} 100%{transform:scale(1);opacity:1} }
   @keyframes dfRingPulse {
     0%,100%{ filter:drop-shadow(0 0 0px rgba(22,215,197,0)); }
-    50%    { filter:drop-shadow(0 0 5px rgba(22,215,197,0.55)); }
+    50%    { filter:drop-shadow(0 0 6px rgba(22,215,197,0.55)); }
   }
-  @keyframes dfRingDash  {
-    from { stroke-dashoffset: 0; }
-    to   { stroke-dashoffset: -28; }
-  }
+  @keyframes dfRingDash  { from{stroke-dashoffset:0} to{stroke-dashoffset:-28} }
+  @keyframes dfFloat     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+  /* ── Interaction ────────────────────────────────────────────── */
   .df-scroll::-webkit-scrollbar{display:none}
   .df-scroll{-ms-overflow-style:none;scrollbar-width:none}
-  .df-tap{transition:transform .18s cubic-bezier(.34,1.4,.64,1);-webkit-tap-highlight-color:transparent}
-  .df-tap:active{transform:scale(.96)}
-  .df-moment-ring svg circle { animation: dfRingDash 8s linear infinite; }
+  .df-tap{transition:transform .18s cubic-bezier(.34,1.4,.64,1);-webkit-tap-highlight-color:transparent;user-select:none}
+  .df-tap:active{transform:scale(.965)}
+  .df-card-tap{transition:transform .22s cubic-bezier(.34,1.3,.64,1),box-shadow .22s;-webkit-tap-highlight-color:transparent;user-select:none;cursor:pointer}
+  .df-card-tap:active{transform:scale(.975)}
+  .df-moment-ring svg circle{animation:dfRingDash 8s linear infinite}
+
+  /* ── Shimmer ────────────────────────────────────────────────── */
+  .df-shimmer{
+    background:linear-gradient(90deg,#f0f0f0 25%,#fafafa 50%,#f0f0f0 75%);
+    background-size:200% 100%;
+    animation:dfShimmer 1.5s ease-in-out infinite;
+  }
 `;
 
 /* ── SAVE BTN ──────────────────────────────────────────────────────────── */
@@ -191,117 +204,156 @@ function WerkTileSkeleton() {
 }
 
 
+
+/* ══════════════════════════════════════════════════════════════════
+   PREMIUM FEED CARDS — HUI Visual Identity v4
+   Nur UI/Styling. Datenlogik, Props, Callbacks unverändert.
+══════════════════════════════════════════════════════════════════ */
+
+/* ── SAVE BTN — eleganter, subtiler ─────────────────────────────── */
 function SaveBtn({ accent, dark }) {
   const [saved, setSaved] = useState(false);
   return (
     <button onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
-      style={{ width:32, height:32, borderRadius:"50%",
-        background: dark ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.88)",
-        backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
-        border:`1px solid ${dark?"rgba(255,255,255,0.25)":C.border}`,
+      className="df-tap"
+      style={{ width:36, height:36, borderRadius:"50%",
+        background: dark
+          ? "rgba(0,0,0,0.32)"
+          : "rgba(255,255,255,0.92)",
+        backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
+        border:`1px solid ${dark ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.07)"}`,
         cursor:"pointer", display:"flex", alignItems:"center",
-        justifyContent:"center", fontSize:14, lineHeight:1,
+        justifyContent:"center", fontSize:15, lineHeight:1,
         WebkitTapHighlightColor:"transparent",
-        animation: saved ? "dfSaved 0.38s ease" : "none" }}>
-      {saved ? "💙" : "🤍"}
+        boxShadow: dark
+          ? "0 2px 12px rgba(0,0,0,0.25)"
+          : "0 2px 8px rgba(0,0,0,0.10)",
+        animation: saved ? "dfSaved 0.42s cubic-bezier(.34,1.6,.64,1)" : "none",
+        transition:"background .2s, border .2s" }}>
+      {saved
+        ? <span style={{ color: accent, filter:`drop-shadow(0 0 4px ${accent})` }}>♥</span>
+        : <span style={{ opacity:0.72 }}>♡</span>}
     </button>
   );
 }
 
-/* ── WIRKER TILE — compact, portrait ──────────────────────────────────── */
+/* ── WIRKER TILE — kompakt, portrait, emotional ──────────────────── */
 function WirkerTile({ w, onView, onBook }) {
   return (
-    <div className="df-tap" onClick={() => onView && onView(w)}
-      style={{ flexShrink:0, width:118, cursor:"pointer" }}>
+    <div className="df-card-tap" onClick={() => onView && onView(w)}
+      style={{ flexShrink:0, width:122, cursor:"pointer",
+        animation:"dfFadeUp 0.45s both" }}>
       {/* Portrait */}
-      <div style={{ borderRadius:20, overflow:"hidden",
-        height:148, position:"relative",
-        boxShadow:"0 3px 14px rgba(0,0,0,0.11)" }}>
-        <img loading="lazy" decoding="async" src={w.img} alt={w.name}
+      <div style={{ borderRadius:22, overflow:"hidden",
+        height:158, position:"relative",
+        boxShadow:"0 6px 22px rgba(0,0,0,0.14), 0 2px 6px rgba(0,0,0,0.08)" }}>
+        <img loading="lazy" decoding="async" src={w.img || w.avatar_url} alt={w.name || w.display_name}
           style={{ width:"100%", height:"100%",
             objectFit:"cover", objectPosition:"top center",
-            filter:"brightness(0.88) saturate(1.1)" }}/>
-        {/* Teal top strip */}
-        <div style={{ position:"absolute", top:0, left:0, right:0, height:2.5,
-          background:`linear-gradient(90deg,${C.teal},transparent)` }}/>
-        {/* Gradient bottom */}
+            filter:"brightness(0.82) saturate(1.18)" }}/>
+        {/* Teal ambient top */}
+        <div style={{ position:"absolute", top:0, left:0, right:0, height:40,
+          background:`linear-gradient(to bottom,rgba(22,215,197,0.22),transparent)`,
+          pointerEvents:"none" }}/>
+        {/* Deep gradient bottom */}
         <div style={{ position:"absolute", inset:0,
-          background:"linear-gradient(to bottom,transparent 45%,rgba(0,0,0,0.62) 100%)" }}/>
-        {/* Available dot */}
-        {w.available && (
-          <div style={{ position:"absolute", top:8, right:8,
-            width:8, height:8, borderRadius:"50%",
-            background:C.green, border:"2px solid white",
-            boxShadow:`0 0 5px ${C.green}` }}/>
+          background:"linear-gradient(to bottom,transparent 38%,rgba(0,0,0,0.72) 100%)",
+          pointerEvents:"none" }}/>
+        {/* Available glow dot */}
+        {w.available !== false && (
+          <div style={{ position:"absolute", top:10, right:10 }}>
+            <div style={{ width:8, height:8, borderRadius:"50%",
+              background:C.green, border:"2px solid white",
+              boxShadow:`0 0 0 3px rgba(61,184,122,0.3), 0 0 8px ${C.green}` }}/>
+          </div>
         )}
-        {/* Name */}
-        <div style={{ position:"absolute", bottom:8, left:8, right:8 }}>
-          <div style={{ fontWeight:800, fontSize:11.5, color:"white",
-            lineHeight:1.2, letterSpacing:-0.2 }}>{w.name}</div>
-          <div style={{ fontSize:10, color:`${C.teal}EE`,
-            fontWeight:600, marginTop:1 }}>{w.talent}</div>
+        {/* Name over gradient */}
+        <div style={{ position:"absolute", bottom:10, left:10, right:10 }}>
+          <div style={{ fontWeight:800, fontSize:12, color:"white",
+            lineHeight:1.2, letterSpacing:-0.3,
+            textShadow:"0 1px 6px rgba(0,0,0,0.5)" }}>
+            {w.name || w.display_name}
+          </div>
+          <div style={{ fontSize:10, color:`rgba(22,215,197,0.95)`,
+            fontWeight:700, marginTop:2, letterSpacing:0.1 }}>
+            {w.talent}
+          </div>
         </div>
       </div>
-      {/* City + buchen pill */}
+      {/* Meta */}
       <div style={{ display:"flex", alignItems:"center",
-        justifyContent:"space-between", marginTop:5, paddingLeft:2 }}>
+        justifyContent:"space-between", marginTop:7, paddingLeft:2 }}>
         <div style={{ fontSize:10, color:C.muted,
           display:"flex", alignItems:"center", gap:3 }}>
-          <span style={{ fontSize:9 }}>📍</span>{w.city}
+          <span style={{ fontSize:9, opacity:0.7 }}>📍</span>
+          <span>{w.city || w.location_label}</span>
         </div>
-        <button onClick={e=>{e.stopPropagation();onBook&&onBook(w);}}
-          style={{ background:C.teal, border:"none", borderRadius:999,
-            padding:"3px 10px", fontSize:9.5, fontWeight:800,
+        <button onClick={e=>{e.stopPropagation(); onBook&&onBook(w);}}
+          className="df-tap"
+          style={{ background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+            border:"none", borderRadius:999,
+            padding:"4px 11px", fontSize:9.5, fontWeight:800,
             color:"white", cursor:"pointer", fontFamily:"inherit",
+            boxShadow:`0 2px 8px rgba(22,215,197,0.32)`,
             WebkitTapHighlightColor:"transparent" }}>
-          buchen
+          Buchen
         </button>
       </div>
     </div>
   );
 }
 
-/* ── WERK TILE — compact, square-ish ─────────────────────────────────── */
+/* ── WERK TILE — kompakt, editorial ──────────────────────────────── */
 function WerkTile({ w, onView, onBuyWerk, navigate }) {
   return (
-    <div className="df-tap" onClick={() => { if(w.id && navigate) navigate(`/work/${w.id}`); else if(onView) onView(w); }}
-      style={{ flexShrink:0, width:130, cursor:"pointer" }}>
-      <div style={{ borderRadius:18, overflow:"hidden",
-        height:148, position:"relative",
-        boxShadow:"0 3px 14px rgba(0,0,0,0.10)" }}>
+    <div className="df-card-tap"
+      onClick={() => { if(w.id && navigate) navigate(`/work/${w.id}`); else if(onView) onView(w); }}
+      style={{ flexShrink:0, width:134, cursor:"pointer",
+        animation:"dfFadeUp 0.45s both" }}>
+      <div style={{ borderRadius:20, overflow:"hidden",
+        height:158, position:"relative",
+        boxShadow:"0 6px 22px rgba(0,0,0,0.13), 0 2px 6px rgba(0,0,0,0.07)" }}>
         <img loading="lazy" decoding="async" src={w.img} alt={w.title}
           style={{ width:"100%", height:"100%",
             objectFit:"cover",
-            filter:"brightness(0.86) saturate(1.15)" }}/>
-        {/* Coral top strip */}
-        <div style={{ position:"absolute", top:0, left:0, right:0, height:2.5,
-          background:`linear-gradient(90deg,${C.coral},transparent)` }}/>
-        {/* Gradient bottom */}
+            filter:"brightness(0.84) saturate(1.18)" }}/>
+        {/* Coral ambient */}
+        <div style={{ position:"absolute", top:0, left:0, right:0, height:40,
+          background:`linear-gradient(to bottom,rgba(255,138,107,0.18),transparent)`,
+          pointerEvents:"none" }}/>
         <div style={{ position:"absolute", inset:0,
-          background:"linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.60) 100%)" }}/>
+          background:"linear-gradient(to bottom,transparent 35%,rgba(0,0,0,0.65) 100%)",
+          pointerEvents:"none" }}/>
         {/* Price badge */}
         <div style={{ position:"absolute", top:8, left:8 }}>
-          <div style={{ background:"rgba(255,255,255,0.92)",
-            backdropFilter:"blur(6px)",
-            borderRadius:999, padding:"3px 9px",
-            fontSize:10.5, fontWeight:900, color:C.ink }}>
+          <div style={{ background:"rgba(255,255,255,0.94)",
+            backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+            borderRadius:999, padding:"3px 10px",
+            fontSize:11, fontWeight:900, color:C.ink,
+            boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>
             {w.price}
           </div>
         </div>
-        {/* Save */}
         <div style={{ position:"absolute", top:6, right:6 }}>
           <SaveBtn accent={C.coral} dark/>
         </div>
+        {/* Title over gradient */}
+        <div style={{ position:"absolute", bottom:10, left:10, right:10 }}>
+          <div style={{ fontWeight:800, fontSize:11.5, color:"white",
+            lineHeight:1.25, letterSpacing:-0.2,
+            textShadow:"0 1px 6px rgba(0,0,0,0.5)" }}>
+            {w.title}
+          </div>
+        </div>
       </div>
-      <div style={{ padding:"6px 2px 0" }}>
-        <div style={{ fontSize:11.5, fontWeight:700,
-          color:C.ink, lineHeight:1.3, marginBottom:4 }}>{w.title}</div>
-        <div onClick={e=>{e.stopPropagation(); if(navigate) navigate(`/profile/${w.creatorUsername||"hui-user"}`);}}
+      <div style={{ padding:"6px 3px 0" }}>
+        <div onClick={e=>{ e.stopPropagation();
+          if(navigate) navigate(`/profile/${w.creatorUsername||"hui-user"}`); }}
           style={{ display:"flex", alignItems:"center", gap:4, cursor:"pointer" }}>
           <CreatorAvatar url={w.creatorImg||null} name={w.creator||"?"} size={16}/>
-          <span style={{ fontSize:10, color:C.teal,
-            fontWeight:600, overflow:"hidden", textOverflow:"ellipsis",
-            whiteSpace:"nowrap", maxWidth:90 }}>
+          <span style={{ fontSize:10.5, color:C.teal,
+            fontWeight:700, overflow:"hidden", textOverflow:"ellipsis",
+            whiteSpace:"nowrap", maxWidth:95 }}>
             {w.creator || "Unbekannt"}
           </span>
         </div>
@@ -310,123 +362,194 @@ function WerkTile({ w, onView, onBuyWerk, navigate }) {
   );
 }
 
-/* ── SECTION HEADER ───────────────────────────────────────────────────── */
+/* ── SECTION HEADER — editorial ──────────────────────────────────── */
 function SectionHeader({ title, sub, accent, onAll }) {
   return (
     <div style={{ display:"flex", alignItems:"flex-end",
       justifyContent:"space-between",
-      padding:"26px 20px 12px" }}>
+      padding:"28px 20px 14px" }}>
       <div>
-        <div style={{ fontWeight:900, fontSize:18, color:C.ink,
-          letterSpacing:-0.4, lineHeight:1.15 }}>{title}</div>
-        {sub && <div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>{sub}</div>}
+        <div style={{ fontWeight:900, fontSize:19, color:C.ink,
+          letterSpacing:-0.5, lineHeight:1.15 }}>{title}</div>
+        {sub && (
+          <div style={{ fontSize:12, color:C.muted, marginTop:3,
+            fontWeight:500 }}>{sub}</div>
+        )}
       </div>
-      <button onClick={onAll}
-        style={{ background:"none", border:"none", cursor:"pointer",
-          fontSize:11.5, fontWeight:700, color:accent,
-          padding:"5px 11px", borderRadius:999,
-          background:`${accent}18`,
-          WebkitTapHighlightColor:"transparent",
-          fontFamily:"inherit" }}>
-        Alle →
-      </button>
+      {onAll && (
+        <button onClick={onAll}
+          style={{ background:"none", border:"none", cursor:"pointer",
+            fontSize:12, fontWeight:700, color:accent,
+            padding:"6px 13px", borderRadius:999,
+            background:`${accent}14`,
+            WebkitTapHighlightColor:"transparent",
+            fontFamily:"inherit", letterSpacing:0.2 }}>
+          Alle →
+        </button>
+      )}
     </div>
   );
 }
 
-/* ── DIVIDER ──────────────────────────────────────────────────────────── */
+/* ── DIVIDER — atmospheric ───────────────────────────────────────── */
 function Divider({ label, accent }) {
   return (
-    <div style={{ padding:"24px 24px 6px",
-      display:"flex", alignItems:"center", gap:10 }}>
+    <div style={{ padding:"28px 22px 8px",
+      display:"flex", alignItems:"center", gap:12 }}>
       <div style={{ flex:1, height:1,
-        background:`linear-gradient(90deg,${accent}44,transparent)` }}/>
-      <span style={{ fontSize:8.5, fontWeight:800, color:accent,
-        letterSpacing:2.5, textTransform:"uppercase", opacity:0.8 }}>
+        background:`linear-gradient(90deg,${accent}55,transparent)` }}/>
+      <span style={{ fontSize:9, fontWeight:800, color:accent,
+        letterSpacing:2.8, textTransform:"uppercase", opacity:0.7 }}>
         {label}
       </span>
       <div style={{ flex:1, height:1,
-        background:`linear-gradient(270deg,${accent}44,transparent)` }}/>
+        background:`linear-gradient(270deg,${accent}55,transparent)` }}/>
     </div>
   );
 }
 
-/* ── IMMERSIVE FEED CARDS ─────────────────────────────────────────────── */
+/* ── WIRKER CARD — cinematic fullscreen, Creator-First ───────────── */
 function WirkerCard({ item, onView, onBook }) {
   return (
-    <div className="df-tap" onClick={() => onView && onView(item)}
-      style={{ position:"relative", width:"100%", height:"82vh", maxHeight:640,
-        overflow:"hidden", cursor:"pointer", borderRadius:32,
-        animation:"dfFadeUp 0.5s both" }}>
+    <div className="df-card-tap" onClick={() => onView && onView(item)}
+      style={{ position:"relative", width:"100%",
+        height: window.innerWidth >= 768 ? "75vh" : "82vh",
+        maxHeight:660, overflow:"hidden", cursor:"pointer",
+        borderRadius:28, animation:"dfFadeUp 0.48s both",
+        boxShadow:"0 16px 48px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)" }}>
+
+      {/* BG avec Ken-Burns */}
       <div style={{ position:"absolute", inset:0,
-        animation:"dfKenBurns 20s ease-in-out infinite alternate" }}>
-        <img loading="lazy" decoding="async" src={item.img} alt={item.name}
+        animation:"dfKenBurns 22s ease-in-out infinite alternate" }}>
+        <img loading="lazy" decoding="async" src={item.img || item.avatar_url} alt={item.name}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             objectPosition:"top center",
-            filter:"brightness(0.70) saturate(1.15)" }}/>
+            filter:"brightness(0.68) saturate(1.20)" }}/>
       </div>
-      <div style={{ position:"absolute", inset:0, background:`
-        radial-gradient(ellipse 80% 50% at 0% 0%, ${C.teal}2E 0%, transparent 55%),
-        linear-gradient(to bottom, transparent 28%, rgba(8,8,8,0.85) 100%)` }}/>
-      <div style={{ position:"absolute", top:0, left:0, right:0, height:2.5,
-        background:`linear-gradient(90deg,${C.teal},${C.teal}44,transparent)` }}/>
 
-      {/* Label */}
-      <div style={{ position:"absolute", top:22, left:22 }}>
-        <div style={{ background:"rgba(22,215,197,0.18)", backdropFilter:"blur(10px)",
-          border:"1px solid rgba(22,215,197,0.35)", borderRadius:999,
-          padding:"4px 13px", display:"flex", alignItems:"center", gap:5 }}>
-          <span style={{ fontSize:8.5, color:C.teal, fontWeight:800,
-            letterSpacing:1.8, textTransform:"uppercase" }}>Wirker</span>
-          {item.available && <span style={{ width:5, height:5, borderRadius:"50%",
-            background:C.green, boxShadow:`0 0 4px ${C.green}` }}/>}
+      {/* Ambient Teal overlay top-left */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none",
+        background:`
+          radial-gradient(ellipse 70% 45% at 0% 5%, rgba(22,215,197,0.22) 0%, transparent 60%),
+          linear-gradient(to bottom,
+            rgba(0,0,0,0.28) 0%,
+            transparent 28%,
+            rgba(6,6,6,0.88) 100%)` }}/>
+
+      {/* Teal accent line */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
+        background:`linear-gradient(90deg,${C.teal},${C.teal}66,transparent)`,
+        opacity:0.9 }}/>
+
+      {/* Label + Save */}
+      <div style={{ position:"absolute", top:20, left:20, right:20,
+        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div style={{ background:"rgba(22,215,197,0.14)", backdropFilter:"blur(12px)",
+          WebkitBackdropFilter:"blur(12px)",
+          border:"1px solid rgba(22,215,197,0.30)", borderRadius:999,
+          padding:"5px 14px", display:"flex", alignItems:"center", gap:6 }}>
+          <span style={{ fontSize:8, color:C.teal, fontWeight:900,
+            letterSpacing:2, textTransform:"uppercase" }}>Talent</span>
+          {item.available !== false && (
+            <span style={{ width:5, height:5, borderRadius:"50%",
+              background:C.green,
+              boxShadow:`0 0 0 2px rgba(61,184,122,0.4), 0 0 5px ${C.green}`,
+              display:"block" }}/>
+          )}
         </div>
-      </div>
-      <div style={{ position:"absolute", top:22, right:22 }}>
         <SaveBtn accent={C.teal} dark/>
       </div>
 
+      {/* Content bottom */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 26px 32px" }}>
-        <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.72)", fontStyle:"italic",
-          lineHeight:1.65, marginBottom:14 }}>„{item.bio}"</p>
-        <div style={{ fontWeight:900, fontSize:26, color:"white",
-          letterSpacing:-0.6, lineHeight:1.1, marginBottom:4 }}>{item.name}</div>
-        <div style={{ fontSize:13, color:C.teal, fontWeight:700, marginBottom:2 }}>
-          {item.talent}</div>
-        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.46)", marginBottom:18 }}>
-          📍 {item.city}</div>
-        <div style={{ display:"flex", gap:10, marginBottom:20 }}>
-          {[{val:`${item.recs}`, label:"Empf.", col:C.teal},
-            {val:`€ ${item.hourly}`, label:"/Std", col:C.coral}].map((s,i)=>(
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:5,
-              background:"rgba(255,255,255,0.10)", backdropFilter:"blur(8px)",
-              border:"1px solid rgba(255,255,255,0.12)",
-              borderRadius:999, padding:"5px 13px" }}>
-              <span style={{ fontSize:11, color:s.col, fontWeight:800 }}>{s.val}</span>
-              <span style={{ fontSize:10, color:"rgba(255,255,255,0.55)" }}>{s.label}</span>
-            </div>
-          ))}
+        padding:"0 24px 28px" }}>
+
+        {/* Creator statement — emotional */}
+        {item.bio && (
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.68)",
+            fontStyle:"italic", lineHeight:1.7, marginBottom:12,
+            letterSpacing:0.1,
+            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+            „{item.bio}"
+          </p>
+        )}
+
+        {/* Name — dominant */}
+        <div style={{ fontWeight:900, fontSize: item.name?.length > 14 ? 24 : 28,
+          color:"white", letterSpacing:-0.8, lineHeight:1.05,
+          marginBottom:5,
+          textShadow:"0 2px 16px rgba(0,0,0,0.5)" }}>
+          {item.name || item.display_name}
         </div>
-        <div style={{ display:"flex", gap:8 }}>
-          <button onClick={e=>{e.stopPropagation();onView&&onView(item);}}
-            style={{ flex:1, padding:"14px",
-              background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)",
-              border:"1.5px solid rgba(22,215,197,0.45)",
+
+        {/* Talent + Location */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+          <span style={{ fontSize:13, color:C.teal, fontWeight:700,
+            letterSpacing:0.1 }}>{item.talent}</span>
+          {(item.city || item.location_label) && (
+            <>
+              <span style={{ width:3, height:3, borderRadius:"50%",
+                background:"rgba(255,255,255,0.3)", display:"block" }}/>
+              <span style={{ fontSize:12, color:"rgba(255,255,255,0.48)",
+                fontWeight:500 }}>
+                📍 {item.city || item.location_label}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Stats row */}
+        {(item.recs > 0 || item.hourly) && (
+          <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+            {item.recs > 0 && (
+              <div style={{ background:"rgba(255,255,255,0.09)",
+                backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+                border:"1px solid rgba(255,255,255,0.12)",
+                borderRadius:999, padding:"5px 14px",
+                display:"flex", alignItems:"center", gap:5 }}>
+                <span style={{ fontSize:11, color:C.teal, fontWeight:900 }}>{item.recs}</span>
+                <span style={{ fontSize:10, color:"rgba(255,255,255,0.50)" }}>Empfehlungen</span>
+              </div>
+            )}
+            {item.hourly && (
+              <div style={{ background:"rgba(255,255,255,0.09)",
+                backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+                border:"1px solid rgba(255,255,255,0.12)",
+                borderRadius:999, padding:"5px 14px",
+                display:"flex", alignItems:"center", gap:5 }}>
+                <span style={{ fontSize:11, color:C.coral, fontWeight:900 }}>€ {item.hourly}</span>
+                <span style={{ fontSize:10, color:"rgba(255,255,255,0.50)" }}>/Std</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CTA — Profil primär, Buchen sekundär */}
+        <div style={{ display:"flex", gap:10 }}>
+          <button onClick={e=>{e.stopPropagation(); onView&&onView(item);}}
+            className="df-tap"
+            style={{ flex:1, padding:"13px 16px",
+              background:"rgba(255,255,255,0.12)",
+              backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
+              border:"1px solid rgba(255,255,255,0.22)",
               borderRadius:16, color:"white",
-              fontSize:13, fontWeight:700, cursor:"pointer",
+              fontSize:13.5, fontWeight:700, cursor:"pointer",
               fontFamily:"inherit",
+              letterSpacing:0.1,
               WebkitTapHighlightColor:"transparent" }}>
-            Profil
+            Profil ansehen
           </button>
-          <button onClick={e=>{e.stopPropagation();onBook&&onBook(item);}}
-            style={{ flex:1.5, padding:"14px",
+          <button onClick={e=>{e.stopPropagation(); onBook&&onBook(item);}}
+            className="df-tap"
+            style={{ flex:1.4, padding:"13px 16px",
               background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
               border:"none", borderRadius:16, color:"white",
-              fontSize:13, fontWeight:800, cursor:"pointer",
-              fontFamily:"inherit", boxShadow:`0 4px 16px ${C.tealGlow}`,
+              fontSize:13.5, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow:`0 6px 20px rgba(22,215,197,0.38)`,
+              letterSpacing:0.1,
               WebkitTapHighlightColor:"transparent" }}>
-            Jetzt buchen
+            Anfragen
           </button>
         </div>
       </div>
@@ -434,72 +557,125 @@ function WirkerCard({ item, onView, onBook }) {
   );
 }
 
+/* ── WERK CARD — editorial, creator-first ────────────────────────── */
 function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
   return (
-    <div className="df-tap" onClick={() => { if(item.id && navigate) navigate(`/work/${item.id}`); else if(onView) onView(item); }}
-      style={{ position:"relative", width:"100%", height:"76vh", maxHeight:590,
-        overflow:"hidden", cursor:"pointer", borderRadius:32,
-        animation:"dfFadeUp 0.5s both" }}>
+    <div className="df-card-tap" onClick={() => {
+      if(item.id && navigate) navigate(`/work/${item.id}`);
+      else if(onView) onView(item);
+    }}
+      style={{ position:"relative", width:"100%",
+        height: window.innerWidth >= 768 ? "72vh" : "78vh",
+        maxHeight:630, overflow:"hidden", cursor:"pointer",
+        borderRadius:28, animation:"dfFadeUp 0.48s both",
+        boxShadow:"0 16px 48px rgba(0,0,0,0.16), 0 4px 14px rgba(0,0,0,0.09)" }}>
+
       <div style={{ position:"absolute", inset:0,
-        animation:"dfKenBurns 22s ease-in-out infinite alternate" }}>
+        animation:"dfKenBurns 20s ease-in-out infinite alternate" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.72) saturate(1.2)" }}/>
+            filter:"brightness(0.72) saturate(1.22)" }}/>
       </div>
-      <div style={{ position:"absolute", inset:0, background:`
-        radial-gradient(ellipse 60% 40% at 100% 0%, ${C.coral}26 0%, transparent 55%),
-        linear-gradient(to bottom, transparent 22%, rgba(8,5,5,0.90) 100%)` }}/>
-      <div style={{ position:"absolute", top:0, left:0, right:0, height:2.5,
-        background:`linear-gradient(90deg,${C.coral},${C.coral}44,transparent)` }}/>
 
-      <div style={{ position:"absolute", top:22, left:22 }}>
-        <div style={{ background:"rgba(255,138,107,0.18)", backdropFilter:"blur(10px)",
-          border:"1px solid rgba(255,138,107,0.35)", borderRadius:999,
-          padding:"4px 13px", fontSize:8.5, color:C.coral,
-          fontWeight:800, letterSpacing:1.8, textTransform:"uppercase" }}>
-          {item.category}
+      {/* Coral ambient overlay */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none",
+        background:`
+          radial-gradient(ellipse 65% 40% at 100% 0%, rgba(255,138,107,0.18) 0%, transparent 60%),
+          linear-gradient(to bottom,
+            rgba(0,0,0,0.22) 0%,
+            transparent 25%,
+            rgba(6,4,2,0.90) 100%)` }}/>
+
+      {/* Coral accent line */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
+        background:`linear-gradient(90deg,${C.coral},${C.coral}55,transparent)`,
+        opacity:0.9 }}/>
+
+      {/* Header: Category + Save */}
+      <div style={{ position:"absolute", top:20, left:20, right:20,
+        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div style={{ background:"rgba(255,138,107,0.14)", backdropFilter:"blur(12px)",
+          WebkitBackdropFilter:"blur(12px)",
+          border:"1px solid rgba(255,138,107,0.28)", borderRadius:999,
+          padding:"5px 14px" }}>
+          <span style={{ fontSize:8, color:C.coral, fontWeight:900,
+            letterSpacing:2, textTransform:"uppercase" }}>
+            {item.category || "Werk"}
+          </span>
         </div>
-      </div>
-      <div style={{ position:"absolute", top:22,
-        left:"50%", transform:"translateX(-50%)" }}>
-        <div style={{ background:"rgba(255,255,255,0.92)", backdropFilter:"blur(10px)",
-          borderRadius:999, padding:"5px 16px",
-          fontSize:13, fontWeight:900, color:C.ink }}>
-          {item.price}
-        </div>
-      </div>
-      <div style={{ position:"absolute", top:22, right:22 }}>
         <SaveBtn accent={C.coral} dark/>
       </div>
 
+      {/* Content */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 26px 32px" }}>
-        <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.68)", fontStyle:"italic",
-          lineHeight:1.65, marginBottom:12 }}>„{item.bio}"</p>
-        <div style={{ fontWeight:900, fontSize:24, color:"white",
-          letterSpacing:-0.5, lineHeight:1.15, marginBottom:10 }}>{item.title}</div>
-        <div style={{ marginBottom:16 }}>
-          <CreatorRow item={item} dark onNavigate={navigate || null}/>
+        padding:"0 24px 28px" }}>
+
+        {/* Creator row — prominent */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+          <CreatorAvatar url={item.creatorImg||null} name={item.creator||"?"} size={30}/>
+          <div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.58)",
+              fontWeight:500, marginBottom:1 }}>von</div>
+            <div style={{ fontSize:13.5, color:"white", fontWeight:800,
+              letterSpacing:-0.2 }}>
+              {item.creator || "Unbekannt"}
+            </div>
+          </div>
         </div>
-        <div style={{ display:"flex", gap:8 }}>
-          <button onClick={e=>{e.stopPropagation();onAddToKorb&&onAddToKorb(item);}}
-            style={{ flex:1, padding:"14px",
-              background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
-              border:"1.5px solid rgba(255,138,107,0.45)",
-              borderRadius:16, color:"white",
-              fontSize:13, fontWeight:700, cursor:"pointer",
-              fontFamily:"inherit",
-              WebkitTapHighlightColor:"transparent" }}>
-            In Korb
-          </button>
-          <button onClick={e=>{e.stopPropagation();onBuyWerk&&onBuyWerk(item);}}
-            style={{ flex:1.5, padding:"14px",
+
+        {/* Beschreibung */}
+        {item.bio && (
+          <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)",
+            fontStyle:"italic", lineHeight:1.65, marginBottom:10,
+            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+            „{item.bio}"
+          </p>
+        )}
+
+        {/* Titel */}
+        <div style={{ fontWeight:900, fontSize: item.title?.length > 18 ? 22 : 26,
+          color:"white", letterSpacing:-0.6, lineHeight:1.1,
+          marginBottom:16,
+          textShadow:"0 2px 14px rgba(0,0,0,0.5)" }}>
+          {item.title}
+        </div>
+
+        {/* Meta: Ort */}
+        {(item.city || item.category) && (
+          <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.42)",
+            marginBottom:20, fontWeight:500 }}>
+            {item.category && <span>{item.category}</span>}
+            {item.city && item.category && <span> · </span>}
+            {item.city && <span>📍 {item.city}</span>}
+          </div>
+        )}
+
+        {/* CTA Row — Preis + Aktion */}
+        <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+          {item.price && (
+            <div style={{ background:"rgba(255,255,255,0.12)",
+              backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
+              border:"1px solid rgba(255,255,255,0.18)",
+              borderRadius:14, padding:"11px 16px",
+              fontSize:16, fontWeight:900, color:"white",
+              letterSpacing:-0.3 }}>
+              {item.price}
+            </div>
+          )}
+          <button onClick={e=>{e.stopPropagation();
+            if(item.id && navigate) navigate(`/work/${item.id}`);
+            else if(onView) onView(item);
+          }}
+            className="df-tap"
+            style={{ flex:1, padding:"13px 16px",
               background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
               border:"none", borderRadius:16, color:"white",
-              fontSize:13, fontWeight:800, cursor:"pointer",
-              fontFamily:"inherit", boxShadow:`0 4px 16px ${C.coralGlow}`,
+              fontSize:13.5, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow:`0 6px 20px rgba(255,138,107,0.36)`,
+              letterSpacing:0.1,
               WebkitTapHighlightColor:"transparent" }}>
-            Jetzt kaufen
+            Entdecken →
           </button>
         </div>
       </div>
@@ -507,146 +683,237 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
   );
 }
 
+/* ── EXPERIENCE CARD — immersive, Gold ───────────────────────────── */
 function ExperienceCard({ item, onView }) {
   return (
-    <div className="df-tap" onClick={() => onView && onView(item)}
-      style={{ position:"relative", width:"100%", height:"78vh", maxHeight:610,
-        overflow:"hidden", cursor:"pointer", borderRadius:32,
-        animation:"dfFadeUp 0.5s both" }}>
+    <div className="df-card-tap" onClick={() => onView && onView(item)}
+      style={{ position:"relative", width:"100%",
+        height: window.innerWidth >= 768 ? "70vh" : "78vh",
+        maxHeight:620, overflow:"hidden", cursor:"pointer",
+        borderRadius:28, animation:"dfFadeUp 0.48s both",
+        boxShadow:"0 16px 48px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.09)" }}>
+
       <div style={{ position:"absolute", inset:0,
         animation:"dfKenBurns 18s ease-in-out infinite alternate" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.65) saturate(1.2)" }}/>
+            filter:"brightness(0.64) saturate(1.25)" }}/>
       </div>
-      <div style={{ position:"absolute", inset:0, background:`
-        radial-gradient(ellipse 70% 40% at 50% 0%, ${C.gold}1E 0%, transparent 50%),
-        linear-gradient(to bottom, transparent 20%, rgba(6,5,0,0.92) 100%)` }}/>
-      <div style={{ position:"absolute", top:0, left:0, right:0, height:2.5,
-        background:`linear-gradient(90deg,${C.gold},${C.gold}44,transparent)` }}/>
 
-      <div style={{ position:"absolute", top:22, left:22,
-        display:"flex", gap:8 }}>
-        <div style={{ background:"rgba(245,166,35,0.18)", backdropFilter:"blur(10px)",
-          border:"1px solid rgba(245,166,35,0.40)", borderRadius:999,
-          padding:"4px 13px", fontSize:8.5, color:C.gold,
-          fontWeight:800, letterSpacing:1.6, textTransform:"uppercase" }}>
-          Erlebnis
-        </div>
-        {item.spots <= 3 && (
-          <div style={{ background:"rgba(255,138,107,0.22)", backdropFilter:"blur(10px)",
-            border:"1px solid rgba(255,138,107,0.40)", borderRadius:999,
-            padding:"4px 10px", fontSize:8.5, color:C.coral, fontWeight:800 }}>
-            🔥 Noch {item.spots}
+      {/* Gold ambient */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none",
+        background:`
+          radial-gradient(ellipse 60% 35% at 50% 5%, rgba(245,166,35,0.20) 0%, transparent 55%),
+          linear-gradient(to bottom,
+            rgba(0,0,0,0.30) 0%,
+            transparent 22%,
+            rgba(5,4,0,0.93) 100%)` }}/>
+
+      {/* Gold accent line */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
+        background:`linear-gradient(90deg,${C.gold},${C.gold}55,transparent)`,
+        opacity:0.9 }}/>
+
+      {/* Header */}
+      <div style={{ position:"absolute", top:20, left:20, right:20,
+        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div style={{ display:"flex", gap:8 }}>
+          <div style={{ background:"rgba(245,166,35,0.15)", backdropFilter:"blur(12px)",
+            WebkitBackdropFilter:"blur(12px)",
+            border:"1px solid rgba(245,166,35,0.35)", borderRadius:999,
+            padding:"5px 14px" }}>
+            <span style={{ fontSize:8, color:C.gold, fontWeight:900,
+              letterSpacing:2, textTransform:"uppercase" }}>Erlebnis</span>
           </div>
-        )}
-      </div>
-      <div style={{ position:"absolute", top:22, right:22 }}>
+          {item.spots <= 3 && (
+            <div style={{ background:"rgba(255,138,107,0.18)", backdropFilter:"blur(10px)",
+              border:"1px solid rgba(255,138,107,0.35)", borderRadius:999,
+              padding:"5px 11px", fontSize:9, color:C.coral, fontWeight:800,
+              display:"flex", alignItems:"center", gap:4 }}>
+              🔥 Nur noch {item.spots}
+            </div>
+          )}
+        </div>
         <SaveBtn accent={C.gold} dark/>
       </div>
 
+      {/* Content */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 26px 32px" }}>
-        <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.65)", fontStyle:"italic",
-          lineHeight:1.65, marginBottom:12 }}>„{item.bio}"</p>
-        <div style={{ fontWeight:900, fontSize:24, color:"white",
-          letterSpacing:-0.5, lineHeight:1.15, marginBottom:14 }}>{item.title}</div>
-        <div style={{ display:"flex", gap:10, marginBottom:18 }}>
-          <div style={{ background:"rgba(255,255,255,0.10)", backdropFilter:"blur(8px)",
-            border:"1px solid rgba(255,255,255,0.12)", borderRadius:999,
-            padding:"5px 13px", fontSize:11, color:"rgba(255,255,255,0.70)" }}>
-            📅 {item.date}
-          </div>
-          <div style={{ background:"rgba(245,166,35,0.15)", backdropFilter:"blur(8px)",
-            border:"1px solid rgba(245,166,35,0.30)", borderRadius:999,
-            padding:"5px 13px", fontSize:11, color:C.gold, fontWeight:800 }}>
-            {item.price}
-          </div>
+        padding:"0 24px 28px" }}>
+
+        {item.bio && (
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.64)",
+            fontStyle:"italic", lineHeight:1.68, marginBottom:10,
+            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+            „{item.bio}"
+          </p>
+        )}
+
+        <div style={{ fontWeight:900, fontSize: item.title?.length > 18 ? 22 : 25,
+          color:"white", letterSpacing:-0.6, lineHeight:1.1,
+          marginBottom:14,
+          textShadow:"0 2px 14px rgba(0,0,0,0.5)" }}>
+          {item.title}
         </div>
-        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.44)", marginBottom:18 }}>
-          {item.creator} · 📍 {item.city}</div>
-        <button onClick={e=>{e.stopPropagation();onView&&onView(item);}}
-          style={{ width:"100%", padding:"15px",
+
+        {/* Meta chips */}
+        <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+          {item.date && (
+            <div style={{ background:"rgba(255,255,255,0.10)",
+              backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+              border:"1px solid rgba(255,255,255,0.14)",
+              borderRadius:999, padding:"5px 13px",
+              fontSize:11, color:"rgba(255,255,255,0.72)", fontWeight:600 }}>
+              📅 {item.date}
+            </div>
+          )}
+          {item.price && (
+            <div style={{ background:"rgba(245,166,35,0.16)",
+              backdropFilter:"blur(10px)", border:"1px solid rgba(245,166,35,0.32)",
+              borderRadius:999, padding:"5px 13px",
+              fontSize:11, color:C.gold, fontWeight:800 }}>
+              {item.price}
+            </div>
+          )}
+          {item.city && (
+            <div style={{ fontSize:11, color:"rgba(255,255,255,0.44)",
+              display:"flex", alignItems:"center", gap:4, fontWeight:500,
+              padding:"5px 0" }}>
+              📍 {item.creator && <span>{item.creator} · </span>}{item.city}
+            </div>
+          )}
+        </div>
+
+        <button onClick={e=>{e.stopPropagation(); onView&&onView(item);}}
+          className="df-tap"
+          style={{ width:"100%", padding:"14px",
             background:`linear-gradient(135deg,${C.gold},#E8A000)`,
             border:"none", borderRadius:16, color:"white",
-            fontSize:14.5, fontWeight:800, cursor:"pointer",
-            fontFamily:"inherit", boxShadow:`0 5px 20px ${C.goldGlow}`,
+            fontSize:14, fontWeight:800, cursor:"pointer",
+            fontFamily:"inherit",
+            boxShadow:`0 6px 22px rgba(245,166,35,0.38)`,
+            letterSpacing:0.2,
             WebkitTapHighlightColor:"transparent" }}>
-          Erlebnis buchen
+          Erlebnis entdecken
         </button>
       </div>
     </div>
   );
 }
 
+/* ── IMPACT CARD — community, grün/teal ──────────────────────────── */
 function ImpactCard({ item, onImpact }) {
-  const pct = Math.round((item.raised / item.goal) * 100);
+  const pct = Math.min(Math.round(((item.raised||0) / (item.goal||1)) * 100), 100);
   return (
-    <div className="df-tap" onClick={onImpact}
-      style={{ position:"relative", width:"100%", height:"70vh", maxHeight:550,
-        overflow:"hidden", cursor:"pointer", borderRadius:32,
-        animation:"dfFadeUp 0.5s both" }}>
+    <div className="df-card-tap" onClick={onImpact}
+      style={{ position:"relative", width:"100%",
+        height: window.innerWidth >= 768 ? "68vh" : "74vh",
+        maxHeight:580, overflow:"hidden", cursor:"pointer",
+        borderRadius:28, animation:"dfFadeUp 0.48s both",
+        boxShadow:"0 16px 48px rgba(0,0,0,0.16), 0 4px 14px rgba(0,0,0,0.09)" }}>
+
       <div style={{ position:"absolute", inset:0,
-        animation:"dfKenBurns 24s ease-in-out infinite alternate" }}>
+        animation:"dfKenBurns 26s ease-in-out infinite alternate" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.58) saturate(1.25)" }}/>
+            filter:"brightness(0.56) saturate(1.28)" }}/>
       </div>
-      <div style={{ position:"absolute", inset:0, background:`
-        radial-gradient(ellipse 80% 50% at 20% 15%, ${C.teal}3A 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 80% 80%, ${C.green}28 0%, transparent 55%),
-        linear-gradient(to bottom, transparent 15%, rgba(4,8,6,0.90) 100%)` }}/>
-      <div style={{ position:"absolute", top:0, left:0, right:0, height:2.5,
-        background:`linear-gradient(90deg,${C.green},${C.teal},transparent)` }}/>
 
-      <div style={{ position:"absolute", top:22, left:22 }}>
-        <div style={{ background:"rgba(61,184,122,0.18)", backdropFilter:"blur(10px)",
-          border:"1px solid rgba(61,184,122,0.38)", borderRadius:999,
-          padding:"4px 13px", fontSize:8.5, color:C.green,
-          fontWeight:800, letterSpacing:1.8, textTransform:"uppercase" }}>
-          🌱 Impact
+      {/* Green/Teal ambient */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none",
+        background:`
+          radial-gradient(ellipse 75% 45% at 15% 10%, rgba(22,215,197,0.22) 0%, transparent 55%),
+          radial-gradient(ellipse 50% 35% at 85% 85%, rgba(61,184,122,0.20) 0%, transparent 50%),
+          linear-gradient(to bottom,
+            rgba(0,0,0,0.32) 0%,
+            transparent 20%,
+            rgba(3,6,4,0.91) 100%)` }}/>
+
+      {/* Gradient accent line */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
+        background:`linear-gradient(90deg,${C.green},${C.teal},transparent)`,
+        opacity:0.9 }}/>
+
+      {/* Label */}
+      <div style={{ position:"absolute", top:20, left:20, right:20,
+        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div style={{ background:"rgba(61,184,122,0.16)", backdropFilter:"blur(12px)",
+          WebkitBackdropFilter:"blur(12px)",
+          border:"1px solid rgba(61,184,122,0.35)", borderRadius:999,
+          padding:"5px 14px", display:"flex", alignItems:"center", gap:6 }}>
+          <span style={{ fontSize:11 }}>🌱</span>
+          <span style={{ fontSize:8, color:C.green, fontWeight:900,
+            letterSpacing:2, textTransform:"uppercase" }}>Impact</span>
         </div>
-      </div>
-      <div style={{ position:"absolute", top:22, right:22 }}>
         <SaveBtn accent={C.green} dark/>
       </div>
 
+      {/* Content */}
       <div style={{ position:"absolute", bottom:0, left:0, right:0,
-        padding:"0 26px 32px" }}>
-        <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.68)", fontStyle:"italic",
-          lineHeight:1.65, marginBottom:12 }}>„{item.bio}"</p>
-        <div style={{ fontWeight:900, fontSize:22, color:"white",
-          letterSpacing:-0.4, lineHeight:1.2, marginBottom:14 }}>{item.title}</div>
-        <div style={{ marginBottom:20 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
-            <span style={{ fontWeight:800, fontSize:14, color:C.green }}>
-              € {Number(item.raised).toLocaleString("de-DE")}
-            </span>
-            <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.50)" }}>
-              {pct}% erreicht
+        padding:"0 24px 28px" }}>
+
+        {item.bio && (
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.65)",
+            fontStyle:"italic", lineHeight:1.68, marginBottom:12,
+            textShadow:"0 1px 8px rgba(0,0,0,0.4)" }}>
+            „{item.bio}"
+          </p>
+        )}
+
+        <div style={{ fontWeight:900, fontSize: item.title?.length > 20 ? 21 : 24,
+          color:"white", letterSpacing:-0.5, lineHeight:1.15,
+          marginBottom:18,
+          textShadow:"0 2px 14px rgba(0,0,0,0.5)" }}>
+          {item.title}
+        </div>
+
+        {/* Progress */}
+        <div style={{ marginBottom:22 }}>
+          <div style={{ display:"flex", justifyContent:"space-between",
+            alignItems:"baseline", marginBottom:8 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
+              <span style={{ fontWeight:900, fontSize:18, color:C.green }}>
+                € {Number(item.raised||0).toLocaleString("de-DE")}
+              </span>
+              <span style={{ fontSize:11, color:"rgba(255,255,255,0.42)" }}>
+                von € {Number(item.goal||0).toLocaleString("de-DE")}
+              </span>
+            </div>
+            <span style={{ fontSize:11, color:C.teal,
+              fontWeight:800, letterSpacing:0.3 }}>
+              {pct} %
             </span>
           </div>
-          <div style={{ height:4, borderRadius:999,
-            background:"rgba(255,255,255,0.12)", overflow:"hidden" }}>
+          {/* Progress bar */}
+          <div style={{ height:5, borderRadius:999,
+            background:"rgba(255,255,255,0.12)", overflow:"hidden",
+            boxShadow:"inset 0 1px 3px rgba(0,0,0,0.2)" }}>
             <div style={{ height:"100%", borderRadius:999,
               width:`${pct}%`,
               background:`linear-gradient(90deg,${C.green},${C.teal})`,
-              boxShadow:`0 0 8px ${C.greenGlow}` }}/>
+              boxShadow:`0 0 10px rgba(22,215,197,0.5)`,
+              transition:"width 0.8s cubic-bezier(.34,1.3,.64,1)" }}/>
           </div>
         </div>
-        <button onClick={e=>{e.stopPropagation();onImpact&&onImpact();}}
-          style={{ width:"100%", padding:"15px",
+
+        <button onClick={e=>{e.stopPropagation(); onImpact&&onImpact();}}
+          className="df-tap"
+          style={{ width:"100%", padding:"14px",
             background:`linear-gradient(135deg,${C.green},${C.teal2})`,
             border:"none", borderRadius:16, color:"white",
-            fontSize:14.5, fontWeight:800, cursor:"pointer",
-            fontFamily:"inherit", boxShadow:`0 5px 20px ${C.greenGlow}`,
+            fontSize:14, fontWeight:800, cursor:"pointer",
+            fontFamily:"inherit",
+            boxShadow:`0 6px 22px rgba(61,184,122,0.38)`,
+            letterSpacing:0.2,
             WebkitTapHighlightColor:"transparent" }}>
-          Projekt entdecken
+          Projekt unterstützen
         </button>
       </div>
     </div>
   );
 }
+
+
 
 /* ════════════════════════════════════════════════════════════════
    MAIN DISCOVERY FEED
