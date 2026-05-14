@@ -708,7 +708,7 @@ export default function ImpactPage({ currentUser }) {
         // Projects
         const { data: projData } = await supabase
           .from("impact_projects")
-          .select("*")
+          .select("id,name,category,description,icon,color,votes,status,goal_eur,awarded_eur,month,tags,contact_name,website")
           .in("status", ["active","voting","growing","featured","funded"])
           .order("votes", { ascending:false });
 
