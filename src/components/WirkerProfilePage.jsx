@@ -260,28 +260,25 @@ function RecCard({ rec }) {
   );
 }
 
-/* ─── Mock fallback data ────────────────────────────────────────── */
+/* ─── Profile normalization ─────────────────────────────────────── */
+// buildMock nutzt jetzt normalizeProfileInput — einheitlicher Feldname-Ausgleich
+// für alle Quellen: Mock-Daten, DiscoveryFeed, HomeFeed, FeedCards, etc.
 function buildMock(rawWirker) {
+  const normalized = normalizeProfileInput(rawWirker) || {};
   return {
-    id: rawWirker?.id || "mock",
-    display_name: rawWirker?.name || rawWirker?.display_name || "Unbekannt",
-    username: rawWirker?.username || "@wirker",
-    avatar_url: rawWirker?.img || rawWirker?.avatar_url || null,
-    header_img: rawWirker?.header_img || rawWirker?.bg
+    ...normalized,
+    // Fallbacks für Display wenn keine DB-Daten vorhanden
+    id:           normalized.id        || "mock",
+    display_name: normalized.display_name || "Unbekannt",
+    username:     normalized.username   || null,
+    header_img:   normalized.header_img
       || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=900&q=85",
-    bio: rawWirker?.bio || "Kreativ. Präsent. Hier.",
-    talent: rawWirker?.talent || rawWirker?.skills?.[0] || "Kreativität",
-    location_label: rawWirker?.location || rawWirker?.city || "Deutschland",
-    focus_type: rawWirker?.focus_type || "hybrid",
-    dna_tags: rawWirker?.dna_tags || rawWirker?.skills
-      || ["Kreativität","Handwerk","Visuell","Nachhaltig"],
-    works_count: rawWirker?.works || 0,
-    experience_count: rawWirker?.bookings || 0,
-    recommendations_count: rawWirker?.recommendations || rawWirker?.recs || 0,
-    impact_eur: rawWirker?.impact_eur || 0,
-    hourly_rate: rawWirker?.hourly_rate || null,
-    is_available: rawWirker?.available ?? true,
-    created_at: rawWirker?.created_at || new Date().toISOString(),
+    bio:          normalized.bio        || "Kreativ. Präsent. Hier.",
+    talent:       normalized.talent     || "Kreativität",
+    location_label: normalized.location_label || "Deutschland",
+    focus_type:   normalized.focus_type || "hybrid",
+    dna_tags:     normalized.dna_tags?.length ? normalized.dna_tags
+      : ["Kreativität","Handwerk","Visuell","Nachhaltig"],
   };
 }
 
@@ -313,21 +310,35 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
   async function load(mounted = true) {
     try {
-      const uid = rawWirker?.user_id || rawWirker?.id;
-      const username = rawWirker?.username;
+      // Normalisiere rawWirker: gleicht alle historischen Feldnamen an
+      const norm    = normalizeProfileInput(rawWirker) || {};
+      const uid     = norm.user_id || norm.id;
+      const username = norm.username
+        || (typeof rawWirker === "string" ? null : rawWirker?.username);
+      // display_name-Suche als letzter Fallback (für FeedCards die creator=string übergeben)
+      const nameStr = norm.display_name
+        || (typeof rawWirker === "string" ? rawWirker : null);
 
       // Single profile query with field selection (no select *)
       let prof = null;
       if (uid) {
         const cacheKey = `profile-${uid}`;
         const res = await cachedQuery(cacheKey, () =>
-          safeQuery(supabase.from("profiles").select(FIELDS.profile).eq("id", uid).single()), 60000);
+          safeQuery(supabase.from("profiles").select(PROFILE_FIELDS).eq("id", uid).single()), 60000);
         prof = res.data;
       }
       if (!prof && username) {
         const res = await safeQuery(
-          supabase.from("profiles").select(FIELDS.profile).eq("username", username).single());
+          supabase.from("profiles").select(PROFILE_FIELDS).eq("username", username).single());
         prof = res.data;
+      }
+      // Fallback: Suche nach display_name (ungenau aber besser als nichts)
+      if (!prof && nameStr && !uid && !username) {
+        const res = await safeQuery(
+          supabase.from("profiles").select(PROFILE_FIELDS)
+            .ilike("display_name", nameStr).limit(1).single());
+        prof = res.data;
+        if (prof) console.log("[WirkerProfile] name-based lookup für:", nameStr);
       }
 
       const targetId = prof?.id || uid;
