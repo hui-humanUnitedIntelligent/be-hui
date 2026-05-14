@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import Home from './pages/Home'
@@ -46,8 +46,48 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-/* ── Loading Screen ────────────────────────────────────────────────── */
-function HUILoader() {
+/* ── Loading Screen — with timeout escape hatch ────────────────────── */
+function HUILoader({ message }) {
+  const [timedOut, setTimedOut] = useState(false);
+
+  // If still loading after 9s → show escape button
+  useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 9000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (timedOut) {
+    return (
+      <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center", padding:32,
+        background:"linear-gradient(135deg,#E6FAF8 0%,#FFF9F4 100%)",
+        fontFamily:"-apple-system,sans-serif" }}>
+        <div style={{ fontSize:40, marginBottom:16 }}>🌿</div>
+        <div style={{ fontWeight:800, fontSize:18, color:"#1A1A1A", marginBottom:8 }}>
+          Das dauert länger als erwartet
+        </div>
+        <div style={{ fontSize:13, color:"#888", textAlign:"center",
+          maxWidth:280, lineHeight:1.65, marginBottom:28 }}>
+          Möglicherweise gibt es ein Verbindungsproblem.
+          Versuche es nochmal oder lade die Seite neu.
+        </div>
+        <button onClick={() => window.location.reload()}
+          style={{ padding:"13px 28px", borderRadius:14, background:"#16D7C5",
+            color:"white", border:"none", fontWeight:800, fontSize:14,
+            cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.3)",
+            marginBottom:10 }}>
+          Neu laden
+        </button>
+        <button onClick={() => { window.location.href = "/login"; }}
+          style={{ padding:"10px 22px", borderRadius:12,
+            background:"none", border:"1.5px solid rgba(0,0,0,0.10)",
+            color:"#888", fontWeight:600, fontSize:13, cursor:"pointer" }}>
+          Zur Anmeldung
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center",
       justifyContent:"center",
@@ -66,7 +106,7 @@ function HUILoader() {
             fontFamily="-apple-system,system-ui" letterSpacing="-2">Hj</text>
         </svg>
         <div style={{ fontSize:13, color:"#888", marginTop:12, fontWeight:600 }}>
-          HUI lädt…
+          {message || "HUI lädt…"}
         </div>
       </div>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -74,11 +114,22 @@ function HUILoader() {
   );
 }
 
-/* ── Protected Route ───────────────────────────────────────────────── */
+/* ── Protected Route — never hangs ────────────────────────────────── */
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, loadingAuth } = useAuth();
-  if (loadingAuth) return <HUILoader/>;
-  if (!isAuthenticated) return <Navigate to="/login" replace/>;
+  const { isAuthenticated, loadingAuth, authError } = useAuth();
+
+  // Auth timed out or errored → redirect to login
+  if (authError === "timeout") {
+    console.warn("[HUI] Auth timeout — redirecting to login");
+    return <Navigate to="/login" replace />;
+  }
+
+  // Still checking session
+  if (loadingAuth) return <HUILoader message="Anmeldung prüfen…" />;
+
+  // Not authenticated → login
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
   return children;
 }
 
@@ -132,7 +183,7 @@ function AppRoutes() {
         <ProtectedRoute><Admin /></ProtectedRoute>
       }/>
 
-      {/* 404 */}
+      {/* 404 fallback → Home (never dead end) */}
       <Route path="*" element={<Navigate to="/Home" replace />} />
     </Routes>
   );
