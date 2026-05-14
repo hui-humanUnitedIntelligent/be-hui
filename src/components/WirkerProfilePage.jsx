@@ -218,9 +218,8 @@ const ExpCard = React.memo(function ExpCard({ exp, fullWidth=false, onTap }) {
       </div>
     </div>
   );
-}
-
 });
+
 
 /* ─── Rec Card ──────────────────────────────────────────────────── */
 function RecCard({ rec }) {
