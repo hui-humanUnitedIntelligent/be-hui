@@ -1595,7 +1595,25 @@ export default function Home() {
       
       {/* ── STORY VIEWER ── */}
       {activeStory && (
-        <StoryViewer data={activeStory} onClose={() => setActiveStory(null)} />
+        <StoryViewer
+          data={activeStory}
+          onClose={() => setActiveStory(null)}
+          onViewProfile={(story) => {
+            // Story-Creator-Profil öffnen via WirkerProfilePage
+            setActiveStory(null);
+            if (story?.user_id || story?.id) {
+              setShowWirker({
+                id:           story.user_id || story.id,
+                user_id:      story.user_id || story.id,
+                username:     story.username     || null,
+                display_name: story.username     || null,
+                avatar_url:   story.avatar_url   || null,
+                talent:       story.talent       || story.focus_label || null,
+                type:         "wirker",
+              });
+            }
+          }}
+        />
       )}
       {showStoryComposer && (
         <StoryComposer
