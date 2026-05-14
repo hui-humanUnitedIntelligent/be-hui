@@ -152,9 +152,8 @@ const WorkCard = React.memo(function WorkCard({ work, fullWidth=false, onTap }) 
       </div>
     </div>
   );
-}
-
 });
+
 
 /* ─── Experience Card ───────────────────────────────────────────── */
 const ExpCard = React.memo(function ExpCard({ exp, fullWidth=false, onTap }) {
