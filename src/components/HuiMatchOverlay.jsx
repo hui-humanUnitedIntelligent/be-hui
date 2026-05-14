@@ -235,7 +235,7 @@ export default function HuiMatchOverlay({ onClose, onView }) {
           .limit(12);
         if (location === "online") q = q.eq("location", "Online");
         const { data } = await q;
-        queries.push(...(data||[]).map(p => ({ ...p, type:"profile" })));
+        queries.push(...(data||[]).map(p => ({ ...normalizeProfileInput(p), type:"wirker" })));
       }
 
       // Works
@@ -296,7 +296,7 @@ export default function HuiMatchOverlay({ onClose, onView }) {
           .eq("status","published").limit(20),
       ]);
       const pool = [
-        ...(profileRes.data||[]).map(p=>({...p,type:"profile"})),
+        ...(profileRes.data||[]).map(p=>({...normalizeProfileInput(p),type:"wirker"})),
         ...(workRes.data||[]).map(w=>({...w,type:"work"})),
         ...(expRes.data||[]).map(e=>({...e,type:"experience"})),
       ];
