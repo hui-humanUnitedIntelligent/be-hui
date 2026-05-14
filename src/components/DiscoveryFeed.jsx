@@ -350,7 +350,7 @@ function Divider({ label, accent }) {
 }
 
 /* ── IMMERSIVE FEED CARDS ─────────────────────────────────────────────── */
-function WirkerCard({ item, onView, onBook }) {
+const WirkerCard = React.memo(function WirkerCard({ item, onView, onBook });) {
   return (
     <div className="df-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%", height:"82vh", maxHeight:640,
@@ -432,7 +432,9 @@ function WirkerCard({ item, onView, onBook }) {
   );
 }
 
-function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
+const WirkerCard = React.memo(WirkerCard__orig);
+function WirkCardAlias() {} // remove
+const WerkCard = React.memo(function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate });) {
   return (
     <div className="df-tap" onClick={() => { if(item.id && navigate) navigate(`/work/${item.id}`); else if(onView) onView(item); }}
       style={{ position:"relative", width:"100%", height:"76vh", maxHeight:590,
@@ -505,7 +507,7 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
   );
 }
 
-function ExperienceCard({ item, onView }) {
+const ExperienceCard = React.memo(function ExperienceCard({ item, onView });) {
   return (
     <div className="df-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%", height:"78vh", maxHeight:610,
@@ -577,7 +579,7 @@ function ExperienceCard({ item, onView }) {
   );
 }
 
-function ImpactCard({ item, onImpact }) {
+const ImpactCard = React.memo(function ImpactCard({ item, onImpact });) {
   const pct = Math.round((item.raised / item.goal) * 100);
   return (
     <div className="df-tap" onClick={onImpact}
