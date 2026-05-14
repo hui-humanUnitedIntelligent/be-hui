@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
+import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
@@ -269,7 +270,7 @@ function IconBtn({ icon, label, active, color, onPress }) {
 /* ══════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════ */
-export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
+export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
@@ -433,7 +434,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb }) {
         if (w2.user_id) {
           const { data: prof } = await supabase
             .from("profiles")
-            .select("id, username, display_name, avatar_url, bio, is_wirker")
+            .select("id,username,display_name,avatar_url,header_img,bio,is_wirker,has_talent_profile,talent,focus_type,dna_tags,location_label,impact_eur,followers_count")
             .eq("id", w2.user_id).single();
           setCreator(prof || null);
         }
