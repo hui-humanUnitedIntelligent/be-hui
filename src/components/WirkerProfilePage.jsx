@@ -4,6 +4,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import LazyImage from "./LazyImage";
+import { safeQuery, batchQueries, FIELDS, optimizeImg, cachedQuery } from "../lib/perfUtils";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
 const C = {
@@ -99,7 +101,8 @@ function WorkCard({ work, fullWidth=false, onTap }) {
         animation:"slideUp .38s ease both" }}>
       {/* Image */}
       <div style={{ width:"100%", height:h, overflow:"hidden", position:"relative" }}>
-        <img src={img} alt={work.title} className="wp-card-img"
+        <LazyImage src={img} alt={work.title} className="wp-card-img"
+          width={600} quality={75}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             display:"block", filter:"brightness(.92)saturate(1.08)" }}/>
         {/* Gradient overlay */}
@@ -165,7 +168,8 @@ function ExpCard({ exp, fullWidth=false, onTap }) {
       {/* Image */}
       <div style={{ width:"100%", height: fullWidth ? 200 : 160,
         overflow:"hidden", position:"relative" }}>
-        <img src={img} alt={exp.title} className="wp-card-img"
+        <LazyImage src={img} alt={exp.title} className="wp-card-img"
+          width={600} quality={75}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             display:"block", filter:"brightness(.9)saturate(1.1)" }}/>
         <div style={{ position:"absolute", inset:0,
@@ -305,39 +309,45 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
   async function load() {
     try {
-      // 1. Profil laden
-      let prof = null;
       const uid = rawWirker?.user_id || rawWirker?.id;
+      const username = rawWirker?.username;
+
+      // Single profile query with field selection (no select *)
+      let prof = null;
       if (uid) {
-        const { data } = await supabase.from("profiles")
-          .select("*").eq("id", uid).single();
-        prof = data;
+        const cacheKey = `profile-${uid}`;
+        const res = await cachedQuery(cacheKey, () =>
+          safeQuery(supabase.from("profiles").select(FIELDS.profile).eq("id", uid).single()), 60000);
+        prof = res.data;
       }
-      if (!prof && rawWirker?.username) {
-        const { data } = await supabase.from("profiles")
-          .select("*").eq("username", rawWirker.username).single();
-        prof = data;
+      if (!prof && username) {
+        const res = await safeQuery(
+          supabase.from("profiles").select(FIELDS.profile).eq("username", username).single());
+        prof = res.data;
       }
-      // Fallback auf rawWirker-Daten
+
+      const targetId = prof?.id || uid;
       setProfile(prof ? { ...buildMock(rawWirker), ...prof } : buildMock(rawWirker));
 
-      // 2. Werke laden
-      const targetId = prof?.id || uid;
+      // Batch all content queries in parallel
       if (targetId) {
-        const { data: w } = await supabase.from("works")
-          .select("*").eq("user_id", targetId)
-          .eq("status","published").order("created_at",{ascending:false}).limit(12);
-        if (w?.length) setWorks(w);
-
-        const { data: e } = await supabase.from("experiences")
-          .select("*").eq("user_id", targetId)
-          .eq("status","published").order("created_at",{ascending:false}).limit(8);
-        if (e?.length) setExps(e);
-
-        const { data: r } = await supabase.from("recommendations")
-          .select("*").eq("wirker_id", targetId)
-          .order("created_at",{ascending:false}).limit(10);
-        if (r?.length) setRecs(r);
+        const [worksRes, expsRes, recsRes] = await Promise.all([
+          safeQuery(supabase.from("works")
+            .select(FIELDS.work)
+            .eq("user_id", targetId).eq("status","published")
+            .order("created_at",{ascending:false}).limit(12)),
+          safeQuery(supabase.from("experiences")
+            .select(FIELDS.experience)
+            .eq("user_id", targetId).eq("status","published")
+            .order("created_at",{ascending:false}).limit(8)),
+          safeQuery(supabase.from("recommendations")
+            .select("id,reviewer_name,rating,text,work_title,created_at")
+            .eq("wirker_id", targetId)
+            .order("created_at",{ascending:false}).limit(10)),
+        ]);
+        if (worksRes.data?.length) setWorks(worksRes.data);
+        if (expsRes.data?.length)  setExps(expsRes.data);
+        if (recsRes.data?.length)  setRecs(recsRes.data);
       }
     } catch(e) {
       console.warn("[WirkerProfile] load:", e.message);
@@ -377,7 +387,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
         <div style={{ position:"relative", height:"clamp(300px,52vw,420px)",
           overflow:"hidden", flexShrink:0 }}>
           {/* Cover image */}
-          <img src={heroImg} alt=""
+          <LazyImage src={heroImg} alt=""
             onLoad={() => setHeroLoaded(true)}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%",
               objectFit:"cover", objectPosition:"center",
@@ -464,7 +474,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                 boxShadow:"0 4px 20px rgba(0,0,0,0.20)",
                 overflow:"hidden", background:`linear-gradient(135deg,${C.teal}50,${C.coral}50)` }}>
                 {avatarImg
-                  ? <img src={avatarImg} alt={profile.display_name}
+                  ? <LazyImage src={avatarImg} alt={profile.display_name}
                       style={{ width:"100%", height:"100%", objectFit:"cover",
                         objectPosition:"top" }}/>
                   : <div style={{ width:"100%", height:"100%",
