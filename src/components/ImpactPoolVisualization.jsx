@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, TrendingUp, Users, Calendar, Award, ChevronDown, ChevronUp } from "lucide-react";
+import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
 
 const CORAL = "#FF6B5B";
@@ -341,7 +342,7 @@ export default function ImpactPoolVisualization({ onClose }) {
   useEffect(() => {
     setTimeout(() => setAnimatedBars(true), 200);
     // Echte Supabase Daten laden
-    supabase.from('impact_projects').select('*').order('votes', { ascending: false })
+    supabase.from('impact_projects').select("id,name,category,description,icon,color,votes,status,goal_eur,awarded_eur,month,tags").order('votes', { ascending: false })
       .then(({ data }) => {
         if (data && data.length > 0) {
           setLiveData(data);
