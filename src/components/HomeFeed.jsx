@@ -691,7 +691,22 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    let mounted = true;
+    let mounted   = true;
+    let loadStart = Date.now();
+    // Skeleton-Timeout: nach 8s force setLoading(false)
+    // verhindert permanent-skeleton wenn Supabase nicht antwortet
+    const stallTimer = setTimeout(() => {
+      if (!mounted) return;
+      const elapsed = Date.now() - loadStart;
+      console.warn('[HomeFeed] loadLive stalled after ' + Math.round(elapsed/1000) + 's — forcing loading=false');
+      sentryCapture(new Error('HomeFeed loadLive stalled'), {
+        source:       'HomeFeed.loadStall',
+        elapsed_ms:   elapsed,
+        document_hidden: document.hidden,
+      });
+      setLoading(false);
+    }, 8000);
+
     async function loadLive() {
       try {
         const { data: posts } = await supabase
@@ -718,11 +733,34 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
             return updated;
           });
         }
-      } catch {}
-      if (mounted) setLoading(false);
+      } catch(e) {
+        console.warn('[HomeFeed] loadLive error:', e?.message);
+      }
+      if (mounted) {
+        clearTimeout(stallTimer);
+        setLoading(false);
+      }
     }
+
     loadLive();
-    return () => { mounted = false; };
+    return () => { mounted = false; clearTimeout(stallTimer); };
+  }, []);
+
+  // visibilitychange: Resume-Recovery für HomeFeed
+  useEffect(() => {
+    let hiddenAt = 0;
+    function onVisibility() {
+      if (document.hidden) { hiddenAt = Date.now(); return; }
+      const idleMs = hiddenAt > 0 ? Date.now() - hiddenAt : 0;
+      console.log('[HomeFeed] visibility resume, idle=' + Math.round(idleMs/1000) + 's');
+      // Nach langem Idle (>60s): loading sicherheitshalber auf false setzen
+      // verhindert stuck-skeleton wenn loadLive während Idle nicht fertig wurde
+      if (idleMs > 60000) {
+        setLoading(false);
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
   const renderItem = useCallback((item, secIdx, itemIdx) => {
