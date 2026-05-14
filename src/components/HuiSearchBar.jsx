@@ -82,9 +82,10 @@ export default function HuiSearchBar({ onMatchClick, onKarteClick }) {
             .limit(5),
         ]);
         const merged = [
-          ...(profileRes.data||[]).map(p=>({...p,_type:"talent"})),
-          ...(workRes.data||[]).map(w=>({...w,_type:"werk"})),
-          ...(expRes.data||[]).map(e=>({...e,_type:"erlebnis"})),
+          // normalizeProfileInput: Feldnamen angleichen für WirkerProfilePage routing
+          ...(profileRes.data||[]).map(p=>({...normalizeProfileInput(p),_type:"talent",type:"wirker"})),
+          ...(workRes.data||[]).map(w=>({...w,_type:"werk",type:"werk"})),
+          ...(expRes.data||[]).map(e=>({...e,_type:"erlebnis",type:"erlebnis"})),
         ];
         setResults(merged);
       } catch(e) {
