@@ -1,20 +1,69 @@
 // src/components/VirtualFeedList.jsx
 // ════════════════════════════════════════════════════════════════
-// HUI Feed Virtualization — stabil, kein Design-Code
+// HUI Feed Virtualization — Runtime-Crash-Isolation v3
 //
-// Fixes v2:
-//  • items[vItem.index] immer auf undefined geprüft
-//  • measureElement: null-guard + document.hidden-guard
-//  • visibilitychange: Virtualizer-Measure nach Tab-Restore
-//  • mounted-guard: kein setState nach unmount
-//  • stale count: count = items.length (immer aktuell)
-//  • getScrollEl: null-safe, kein throw
-//  • Fallback: bei fehlendem Container → normales Rendering
+// Architektur:
+//  SafeVirtualRow   — try/catch um jeden renderItem-Aufruf
+//  VirtualFeedList  — alle render-guards vor virtualizer
+//  FeedEndSentinel  — sauberer IO mit cleanup
+//
+// Guards:
+//  - items[index] undefined -> null (kein throw)
+//  - renderItem throws -> null (kein Propagation zum App-EB)
+//  - document.hidden -> kein render, keine measurements
+//  - scrollEl fehlt -> graceful fallback (plain list, max 8)
+//  - items.length===0 -> sofort null, kein virtualizer
+//  - visibilitychange -> measure() nur wenn visible+ref.current
+//  - mounted guard -> kein setState nach unmount
 // ════════════════════════════════════════════════════════════════
 
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
+// ─── SafeVirtualRow ──────────────────────────────────────────────
+// Isoliert jeden einzelnen Feed-Item-Render.
+// Wenn renderItem() wirft: log + return null statt App-Crash.
+function SafeVirtualRow({ renderItem, item, index, virtualKey, start, measureEl }) {
+  // Guard 1: item undefined
+  if (item == null) return null;
+
+  let content = null;
+  try {
+    content = renderItem(item, index);
+  } catch (err) {
+    // Log mit kontext — niemals nach oben propagieren
+    console.error(
+      '[VirtualFeedList] renderItem crash at index=' + index +
+      ' type=' + (item?.type ?? 'unknown') +
+      ' id=' + (item?.id ?? 'none'),
+      err
+    );
+    return null;
+  }
+
+  // Guard 2: renderItem gab null/undefined
+  if (content == null) return null;
+
+  return (
+    <div
+      key={virtualKey}
+      data-index={index}
+      ref={measureEl}
+      style={{
+        position:  'absolute',
+        top:       0,
+        left:      0,
+        width:     '100%',
+        transform: 'translateY(' + start + 'px)',
+        // Keine weiteren Styles — alles Design-frei
+      }}
+    >
+      {content}
+    </div>
+  );
+}
+
+// ─── VirtualFeedList ─────────────────────────────────────────────
 export default function VirtualFeedList({
   items,
   renderItem,
@@ -24,18 +73,18 @@ export default function VirtualFeedList({
   overscan      = 5,
   onEndReached,
 }) {
-  const internalRef = useRef(null);
-  const mountedRef  = useRef(true);           // ① mounted guard
+  const internalRef    = useRef(null);
+  const mountedRef     = useRef(true);
+  const virtualizerRef = useRef(null);
   const [ready, setReady] = useState(false);
 
-  // ── Cleanup: mounted guard ──────────────────────────────────
+  // Mounted-guard cleanup
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
 
-  // ── Ref-Auflösung: extern > fallbackSelector > intern ───────
-  // null-safe: gibt null zurück statt zu werfen
+  // Ref-Aufloesung — null-safe, kein throw
   const getScrollEl = useCallback(() => {
     try {
       if (externalRef?.current) return externalRef.current;
@@ -46,10 +95,10 @@ export default function VirtualFeedList({
     }
   }, [externalRef, fallbackSelector]);
 
-  // ── Container-Bereitschaft mit Retry (Safari-Timing) ────────
+  // Container-Bereitschaft mit Safari-Retry
   useEffect(() => {
-    let tries    = 0;
-    let interval = null;
+    let tries = 0;
+    let iv    = null;
 
     function check() {
       if (!mountedRef.current) return;
@@ -58,54 +107,48 @@ export default function VirtualFeedList({
         return;
       }
       tries++;
-      // max 20 Versuche × 50ms = 1s Geduld
-      if (tries >= 20) {
-        // Kein Container gefunden → trotzdem ready setzen (Fallback greift)
-        if (mountedRef.current) setReady(true);
+      if (tries >= 20 && mountedRef.current) {
+        // Timeout — Fallback-Modus aktivieren (plain list)
+        setReady(true);
       }
     }
 
     check();
-    if (!getScrollEl()) {
-      interval = setInterval(check, 50);
-    }
-    return () => { if (interval) clearInterval(interval); };
+    if (!getScrollEl()) iv = setInterval(check, 50);
+    return () => { if (iv) clearInterval(iv); };
   }, [getScrollEl]);
 
-  // ── visibilitychange: Virtualizer nach Tab-Restore refreshen ─
-  // Safari friert Intersection Observer + Virtualizer nach Idle ein.
-  // Nach Tab-Aktivierung: Maße neu berechnen.
-  const virtualizerRef = useRef(null);
+  // visibilitychange — measure() nur wenn visible UND ref existiert
   useEffect(() => {
     function onVisibility() {
-      if (document.hidden) return;   // Tab wird versteckt — nichts tun
-      // Tab wird wieder sichtbar → Virtualizer-Maße invalidieren
+      if (document.visibilityState !== 'visible') return;
+      const el = getScrollEl();
+      if (!el) return;                          // kein scrollEl -> skip
+      if (!virtualizerRef.current) return;      // kein virtualizer -> skip
       try {
-        virtualizerRef.current?.measure();
+        virtualizerRef.current.measure();
       } catch { /* ignore */ }
     }
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, []);
+  }, [getScrollEl]);
 
-  // ── Virtualizer ──────────────────────────────────────────────
+  // Virtualizer
   const virtualizer = useVirtualizer({
-    // ② count ist immer items.length (nie stale)
     count: items.length,
 
-    // ③ getScrollElement null-safe
     getScrollElement: () => {
-      const el = getScrollEl();
-      return el ?? null;
+      // Guard: nie rendern wenn document.hidden
+      if (document.hidden) return null;
+      return getScrollEl() ?? null;
     },
 
     estimateSize: () => estimatedSize,
     overscan,
 
-    // ④ measureElement: guard gegen null + document.hidden
     measureElement: (el) => {
-      if (!el)              return estimatedSize;
-      if (document.hidden)  return estimatedSize;   // keine Messung wenn Tab hidden
+      if (!el)                                    return estimatedSize;
+      if (document.visibilityState !== 'visible') return estimatedSize;
       try {
         const h = el.getBoundingClientRect().height;
         return h > 0 ? h : estimatedSize;
@@ -115,14 +158,36 @@ export default function VirtualFeedList({
     },
   });
 
-  // Ref für visibilitychange-Handler speichern
+  // Speichere ref fuer visibilitychange
   virtualizerRef.current = virtualizer;
 
+  // Guard: items leer -> kein render
+  if (!items || items.length === 0) return null;
+
+  // Guard: noch nicht ready -> plain fallback (max 8, mit try/catch)
+  if (!ready) {
+    return (
+      <div>
+        {items.slice(0, 8).map((item, i) => {
+          if (!item) return null;
+          try {
+            const content = renderItem(item, i);
+            return content
+              ? <React.Fragment key={item?.id ?? i}>{content}</React.Fragment>
+              : null;
+          } catch (err) {
+            console.error('[VirtualFeedList:fallback] renderItem crash i=' + i, err);
+            return null;
+          }
+        })}
+      </div>
+    );
+  }
+
   const virtualItems = virtualizer.getVirtualItems();
-  // ⑤ totalSize guard — nie negativ, verhindert layout-collapse
   const totalSize    = Math.max(virtualizer.getTotalSize(), 0);
 
-  // ── End-reached trigger ──────────────────────────────────────
+  // End-reached
   useEffect(() => {
     if (!onEndReached || !items.length || !virtualItems.length) return;
     const last = virtualItems[virtualItems.length - 1];
@@ -130,48 +195,26 @@ export default function VirtualFeedList({
     if (last.index >= items.length - Math.max(overscan, 3)) {
       onEndReached();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [virtualItems, items.length, onEndReached, overscan]);
-
-  // ── Graceful Fallback ────────────────────────────────────────
-  // Wenn Container noch nicht bereit: rendern ohne Virtualisierung
-  // Zeigt max 8 Items damit kein leerer Screen entsteht
-  if (!ready) {
-    return (
-      <div>
-        {items.slice(0, 8).map((item, i) => {
-          if (!item) return null;
-          return (
-            <React.Fragment key={item?.id ?? i}>
-              {renderItem(item, i)}
-            </React.Fragment>
-          );
-        })}
-      </div>
-    );
-  }
 
   return (
     <div style={{ height: totalSize, position: 'relative', width: '100%' }}>
       {virtualItems.map(vItem => {
-        // ⑥ items[vItem.index] guard — undefined wenn items zwischenzeitlich schrumpft
+        // Guard: index out of bounds
+        if (vItem.index >= items.length) return null;
         const item = items[vItem.index];
-        if (!item) return null;
 
         return (
-          <div
+          <SafeVirtualRow
             key={vItem.key}
-            data-index={vItem.index}
-            ref={virtualizer.measureElement}
-            style={{
-              position:  'absolute',
-              top:       0,
-              left:      0,
-              width:     '100%',
-              transform: `translateY(${vItem.start}px)`,
-            }}
-          >
-            {renderItem(item, vItem.index)}
-          </div>
+            renderItem={renderItem}
+            item={item}
+            index={vItem.index}
+            virtualKey={vItem.key}
+            start={vItem.start}
+            measureEl={virtualizer.measureElement}
+          />
         );
       })}
     </div>
