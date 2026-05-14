@@ -757,7 +757,6 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
       if (si < sections.length - 1) {
         flat.push({ __type: "__divider", id: `div_${sec.id}` });
       }
-    });
     return flat;
   }, [sections]);
 
