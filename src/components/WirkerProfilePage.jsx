@@ -87,7 +87,7 @@ const FOCUS = {
 };
 
 /* ─── Work Card ─────────────────────────────────────────────────── */
-function WorkCard({ work, fullWidth=false, onTap }) {
+const WorkCard = React.memo(function WorkCard({ work, fullWidth=false, onTap }) {
   const img = work.cover_url || work.media_url
     || (Array.isArray(work.images) && work.images[0])
     || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80";
@@ -154,8 +154,10 @@ function WorkCard({ work, fullWidth=false, onTap }) {
   );
 }
 
+});
+
 /* ─── Experience Card ───────────────────────────────────────────── */
-function ExpCard({ exp, fullWidth=false, onTap }) {
+const ExpCard = React.memo(function ExpCard({ exp, fullWidth=false, onTap }) {
   const img = exp.cover_url || exp.media_url
     || "https://images.unsplash.com/photo-1476611338391-6f395a0dd82e?w=600&q=80";
 
@@ -218,6 +220,8 @@ function ExpCard({ exp, fullWidth=false, onTap }) {
     </div>
   );
 }
+
+});
 
 /* ─── Rec Card ──────────────────────────────────────────────────── */
 function RecCard({ rec }) {
