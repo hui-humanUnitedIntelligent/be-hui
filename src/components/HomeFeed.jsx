@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 import mockWirkerProfiles from "../lib/mockData";
 import VirtualFeedList, { FeedEndSentinel } from './VirtualFeedList';
 import LazyImage from './LazyImage';
+import { sentryCapture } from '../lib/sentry';
 
 /* ─── Design Tokens ───────────────────────────────── */
 const T = {
@@ -745,6 +746,13 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
                  onImpact={onImpact} />;
       return null;
     } catch(err) {
+      sentryCapture(err, {
+        source:     'HomeFeed.renderItem',
+        item_id:    item?.id      ?? null,
+        item_type:  item?.type    ?? 'unknown',
+        item_index: itemIdx,
+        sec_index:  secIdx,
+      });
       console.error('[HomeFeed] renderItem crash type=' + (item?.type||'?') +
         ' id=' + (item?.id||itemIdx), err);
       return null;
@@ -788,6 +796,12 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
       // Echte Feed-Card — renderItem recyceln
       return renderItem(item, item.__secIdx ?? 0, item.__itemIdx ?? index);
     } catch(err) {
+      sentryCapture(err, {
+        source:     'HomeFeed.renderFlatItem',
+        item_index: index,
+        item_type:  item?.__type ?? item?.type ?? 'unknown',
+        item_id:    item?.id ?? null,
+      });
       console.error('[HomeFeed] renderFlatItem crash index=' + index, err);
       return null;
     }
