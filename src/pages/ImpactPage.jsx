@@ -219,7 +219,7 @@ function ProjectStory({ p, onBack, onVote, votesLeft, onSupport }) {
 
       {/* Cinematic hero */}
       <div style={{ position:"relative", height:"52vh", minHeight:320, overflow:"hidden" }}>
-        <img src={p.img} alt={p.title}
+        <img loading="lazy" decoding="async" src={p.img} alt={p.title}
           style={{ position:"absolute", inset:0, width:"100%", height:"100%",
             objectFit:"cover", filter:"brightness(0.62) saturate(1.15)" }}/>
         <div style={{ position:"absolute", inset:0,
@@ -353,7 +353,7 @@ function ProjectStory({ p, onBack, onVote, votesLeft, onSupport }) {
         {p.img2 && (
           <div style={{ borderRadius:20, overflow:"hidden",
             height:200, marginBottom:20 }}>
-            <img src={p.img2} alt="" style={{ width:"100%", height:"100%",
+            <img loading="lazy" decoding="async" src={p.img2} alt="" style={{ width:"100%", height:"100%",
               objectFit:"cover", filter:"brightness(0.85) saturate(1.1)" }}/>
           </div>
         )}
@@ -442,7 +442,7 @@ function ProjectCard({ p, idx, onOpen, votesLeft, onVote, onSupport }) {
 
       {/* Hero image */}
       <div style={{ position:"relative", height:240, overflow:"hidden" }}>
-        <img src={p.img} alt={p.title}
+        <img loading="lazy" decoding="async" src={p.img} alt={p.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             filter:"brightness(0.70) saturate(1.1)" }}/>
         <div style={{ position:"absolute", inset:0,
@@ -481,7 +481,7 @@ function ProjectCard({ p, idx, onOpen, votesLeft, onVote, onSupport }) {
                 "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&q=80",
                 "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=60&q=80",
               ].map((src,i) => (
-                <img key={i} src={src} alt=""
+                <img loading="lazy" decoding="async" key={i} src={src} alt=""
                   style={{ width:20, height:20, borderRadius:"50%",
                     objectFit:"cover",
                     border:"2px solid rgba(255,255,255,0.7)",
@@ -650,7 +650,7 @@ function BewirktSection() {
           boxShadow:"0 3px 18px rgba(0,0,0,0.07)",
           animation:`fadeUp 0.5s ${i*0.1}s both` }}>
           <div style={{ height:180, overflow:"hidden", position:"relative" }}>
-            <img src={d.img} alt={d.title}
+            <img loading="lazy" decoding="async" src={d.img} alt={d.title}
               style={{ width:"100%", height:"100%", objectFit:"cover",
                 filter:"brightness(0.75) saturate(1.1)" }}/>
             <div style={{ position:"absolute", inset:0,
