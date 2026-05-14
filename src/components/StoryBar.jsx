@@ -14,15 +14,20 @@ const C = {
 
 const CSS = `
   @keyframes huiRing{0%,100%{opacity:1}50%{opacity:.5}}
-  @keyframes huiIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
-  @keyframes huiUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes huiIn{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:scale(1)}}
+  @keyframes huiUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
   @keyframes huiBar{from{width:0%}to{width:100%}}
-  @keyframes huiEmoji{0%{transform:scale(0) rotate(-20deg);opacity:0}
-    60%{transform:scale(1.3) rotate(5deg);opacity:1}
-    100%{transform:scale(1) rotate(0deg);opacity:1}}
+  @keyframes huiEmoji{
+    0%{transform:translate(-50%,-50%) scale(0) rotate(-20deg);opacity:0}
+    60%{transform:translate(-50%,-50%) scale(1.25) rotate(4deg);opacity:1}
+    100%{transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1}}
   @keyframes huiPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  .hui-sv-tap{-webkit-tap-highlight-color:transparent;cursor:pointer}
-  .hui-sv-tap:active{opacity:.85}
+  @keyframes huiKenBurns{
+    0%{transform:scale(1) translate(0,0)}
+    100%{transform:scale(1.06) translate(-1%,-1%)}}
+  @keyframes huiFadeIn{from{opacity:0}to{opacity:1}}
+  .hui-sv-tap{-webkit-tap-highlight-color:transparent;cursor:pointer;user-select:none}
+  .hui-sv-tap:active{opacity:.82}
   .hui-no-scroll::-webkit-scrollbar{display:none}
   .hui-no-scroll{-ms-overflow-style:none;scrollbar-width:none}
 `;
@@ -127,48 +132,57 @@ export function StoryBar({ onStoryClick }) {
 }
 
 // ── STORY VIEWER ─────────────────────────────────────────────────────
-export function StoryViewer({ data: initData, onClose }) {
+// v3 — Immersive, emotional, modern. HUI-Stil: ruhig, hochwertig.
+// Neu: Ken-Burns, Story-Info-Ebene, verbesserter Header,
+//      Hold-to-pause, Action-Bar (Reaction/Reply/Profil), kein Follow-Button
+export function StoryViewer({ data: initData, onClose, onViewProfile }) {
   const { user } = useAuth();
 
-  // initData = { group, startIdx, allGroups, groupIdx, viewedIds }
-  const [groupIdx,  setGroupIdx]  = useState(initData?.groupIdx  ?? 0);
-  const [storyIdx,  setStoryIdx]  = useState(initData?.startIdx  ?? 0);
-  const [paused,    setPaused]    = useState(false);
-  const [progress,  setProgress]  = useState(0);
-  const [reaction,  setReaction]  = useState(null);
-  const [replyText, setReplyText] = useState('');
-  const [replyOpen, setReplyOpen] = useState(false);
-  const [sentReply, setSentReply] = useState(false);
-  const [viewerCount, setViewerCount] = useState(null);
+  const [groupIdx,   setGroupIdx]   = useState(initData?.groupIdx  ?? 0);
+  const [storyIdx,   setStoryIdx]   = useState(initData?.startIdx  ?? 0);
+  const [paused,     setPaused]     = useState(false);
+  const [progress,   setProgress]   = useState(0);
+  const [reaction,   setReaction]   = useState(null);    // floating emoji
+  const [myReaction, setMyReaction] = useState(null);    // persisted reaction
+  const [replyOpen,  setReplyOpen]  = useState(false);
+  const [replyText,  setReplyText]  = useState('');
+  const [sentReply,  setSentReply]  = useState(false);
+  const [viewerCount,setViewerCount]= useState(null);
+  const [imgLoaded,  setImgLoaded]  = useState(false);
+  const [shareHint,  setShareHint]  = useState(false);
 
-  const allGroups  = initData?.allGroups  ?? (initData?.group ? [initData.group] : []);
-  const group      = allGroups[groupIdx];
-  const stories    = group?.stories ?? [];
-  const current    = stories[storyIdx];
+  const allGroups = initData?.allGroups ?? (initData?.group ? [initData.group] : []);
+  const group     = allGroups[groupIdx];
+  const stories   = group?.stories ?? [];
+  const current   = stories[storyIdx];
 
   const timerRef   = useRef(null);
   const startRef   = useRef(null);
   const elapsed    = useRef(0);
-  const DURATION   = current?.media_type === 'video' ? 0 : 5000; // 5s per image
+  const holdTimer  = useRef(null);
+  const DURATION   = current?.media_type === 'video' ? 0 : 5000;
 
-  // Mark viewed + get viewer count
+  // ── Mark viewed + viewer count ──────────────────────────────────
   useEffect(() => {
     if (!current?.id) return;
-    if (user?.id) {
-      supabase.from('story_views').upsert({ story_id: current.id, viewer_id: user.id });
-      supabase.from('story_views').select('id', { count:'exact' }).eq('story_id', current.id)
-        .then(({ count }) => setViewerCount(count));
-    }
+    setImgLoaded(false);
     setProgress(0);
     elapsed.current = 0;
     setReaction(null);
     setReplyOpen(false);
     setSentReply(false);
-  }, [current?.id]);
+    if (user?.id) {
+      supabase.from('story_views').upsert({ story_id: current.id, viewer_id: user.id },
+        { onConflict: 'story_id,viewer_id', ignoreDuplicates: true });
+      supabase.from('story_views').select('id', { count:'exact' })
+        .eq('story_id', current.id)
+        .then(({ count }) => setViewerCount(count));
+    }
+  }, [current?.id, user?.id]);
 
-  // Auto-advance timer
+  // ── Timer ────────────────────────────────────────────────────────
   const startTimer = useCallback(() => {
-    if (DURATION === 0) return; // video handles its own timing
+    if (DURATION === 0) return;
     clearInterval(timerRef.current);
     startRef.current = Date.now() - elapsed.current;
     timerRef.current = setInterval(() => {
@@ -177,243 +191,459 @@ export function StoryViewer({ data: initData, onClose }) {
       setProgress(pct);
       elapsed.current = el;
       if (el >= DURATION) { clearInterval(timerRef.current); goNext(); }
-    }, 50);
+    }, 40);
   }, [storyIdx, groupIdx, DURATION]);
 
-  const stopTimer = useCallback(() => {
-    clearInterval(timerRef.current);
-  }, []);
+  const stopTimer = useCallback(() => clearInterval(timerRef.current), []);
 
   useEffect(() => {
-    if (!paused && !replyOpen) startTimer();
+    if (!paused && !replyOpen && imgLoaded) startTimer();
     else stopTimer();
     return stopTimer;
-  }, [paused, replyOpen, storyIdx, groupIdx]);
+  }, [paused, replyOpen, imgLoaded, storyIdx, groupIdx]);
 
   function goNext() {
-    if (storyIdx < stories.length - 1) {
-      setStoryIdx(i => i + 1);
-    } else if (groupIdx < allGroups.length - 1) {
-      setGroupIdx(g => g + 1);
-      setStoryIdx(0);
-    } else {
-      onClose?.();
-    }
+    if (storyIdx < stories.length - 1) setStoryIdx(i => i + 1);
+    else if (groupIdx < allGroups.length - 1) { setGroupIdx(g => g + 1); setStoryIdx(0); }
+    else onClose?.();
   }
-
   function goPrev() {
     if (storyIdx > 0) setStoryIdx(i => i - 1);
-    else if (groupIdx > 0) {
-      setGroupIdx(g => g - 1);
-      setStoryIdx(0);
-    }
+    else if (groupIdx > 0) { setGroupIdx(g => g - 1); setStoryIdx(0); }
   }
 
-  function handleReaction(emoji) {
-    setReaction(emoji);
-    setTimeout(() => setReaction(null), 2000);
-    // Could save reaction to DB here
+  // ── Hold to pause ────────────────────────────────────────────────
+  function onPointerDown() {
+    holdTimer.current = setTimeout(() => setPaused(true), 120);
+  }
+  function onPointerUp() {
+    clearTimeout(holdTimer.current);
+    setPaused(false);
   }
 
-  async function sendReply() {
-    if (!replyText.trim()) return;
-    // Save reply as message (if messages table exists)
-    setSentReply(true);
-    setReplyText('');
-    setTimeout(() => { setReplyOpen(false); setSentReply(false); }, 1500);
-  }
-
-  // Swipe down to close
+  // ── Swipe down to close ──────────────────────────────────────────
   const touchStartY = useRef(null);
+  const touchStartX = useRef(null);
   function onTouchStart(e) {
     touchStartY.current = e.touches[0].clientY;
-    setPaused(true);
+    touchStartX.current = e.touches[0].clientX;
   }
   function onTouchEnd(e) {
     const dy = e.changedTouches[0].clientY - (touchStartY.current || 0);
-    if (dy > 80) { onClose?.(); return; }
-    setPaused(false);
+    if (dy > 90) { onClose?.(); return; }
+  }
+
+  // ── Reaction ─────────────────────────────────────────────────────
+  function handleReaction(emoji) {
+    setReaction(emoji);
+    setMyReaction(emoji);
+    setTimeout(() => setReaction(null), 2200);
+  }
+
+  // ── Reply ────────────────────────────────────────────────────────
+  async function sendReply() {
+    if (!replyText.trim() || !user?.id || !current) return;
+    try {
+      await supabase.from('messages').insert({
+        sender_id: user.id,
+        receiver_id: current.user_id,
+        text: `↩ Story: ${replyText.trim()}`,
+        story_id: current.id,
+        created_at: new Date().toISOString(),
+      });
+    } catch(_) {}
+    setSentReply(true);
+    setReplyText('');
+    setTimeout(() => { setReplyOpen(false); setSentReply(false); setPaused(false); }, 1500);
+  }
+
+  // ── Share ────────────────────────────────────────────────────────
+  function handleShare() {
+    if (navigator.share) {
+      navigator.share({ title: `${current?.username} auf HUI`, url: window.location.href })
+        .catch(() => {});
+    } else {
+      setShareHint(true);
+      setTimeout(() => setShareHint(false), 2000);
+    }
   }
 
   if (!current) return null;
 
-  const isOwn   = user?.id === current.user_id;
+  const isOwn    = user?.id === current.user_id;
   const mediaUrl = current.media_url;
-  const timeAgo = (() => {
+  const caption  = current.text_overlay || current.caption || null;
+  const location = current.location_label || current.location || null;
+  const mood     = current.mood || null;
+
+  const timeAgo  = (() => {
     const d = new Date(current.created_at);
     const mins = Math.round((Date.now() - d) / 60000);
-    if (mins < 1)  return 'gerade eben';
-    if (mins < 60) return `vor ${mins} Min`;
+    if (mins < 1)  return 'gerade';
+    if (mins < 60) return `${mins}m`;
     const hrs = Math.round(mins / 60);
-    if (hrs < 24)  return `vor ${hrs} Std`;
-    return `vor ${Math.round(hrs/24)} Tagen`;
+    if (hrs < 24)  return `${hrs}h`;
+    return `${Math.round(hrs/24)}d`;
   })();
+
+  // Creator talent/role für Subline
+  const creatorRole = current.talent || current.focus_label || null;
 
   return (
     <div
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       style={{ position:'fixed', inset:0, zIndex:3000, background:'#000',
-        animation:'huiIn .25s ease-out' }}>
+        animation:'huiIn .22s ease-out', fontFamily:'-apple-system,BlinkMacSystemFont,sans-serif' }}>
 
-      {/* ── BG MEDIA ── */}
-      {mediaUrl && current.media_type === 'video' ? (
-        <video src={mediaUrl} autoPlay playsInline
-          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }}
-          onEnded={goNext} />
-      ) : mediaUrl ? (
-        <img loading="lazy" decoding="async" src={mediaUrl} alt="" style={{
-          position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
-      ) : (
-        <div style={{ position:'absolute', inset:0,
-          background:`linear-gradient(160deg, ${C.teal}44, ${C.coral}33, #1a1a1a)` }} />
-      )}
+      {/* ── BG MEDIA mit Ken-Burns ─────────────────────────────── */}
+      <div style={{ position:'absolute', inset:0, overflow:'hidden' }}>
+        {mediaUrl && current.media_type === 'video' ? (
+          <video src={mediaUrl} autoPlay playsInline muted={false}
+            style={{ width:'100%', height:'100%', objectFit:'cover' }}
+            onEnded={goNext}
+            onLoadedData={() => setImgLoaded(true)} />
+        ) : mediaUrl ? (
+          <img
+            loading="eager"
+            src={mediaUrl} alt=""
+            onLoad={() => setImgLoaded(true)}
+            style={{
+              width:'100%', height:'100%', objectFit:'cover',
+              // Ken-Burns: subtiler Zoom wenn Story läuft
+              animation: !paused ? 'huiKenBurns 6s ease-out forwards' : 'none',
+              transformOrigin: '50% 40%',
+            }} />
+        ) : (
+          <div style={{ position:'absolute', inset:0,
+            background:`linear-gradient(160deg, ${C.teal}44, ${C.coral}33, #111)` }}
+            ref={() => setImgLoaded(true)} />
+        )}
+      </div>
 
-      {/* ── DARK GRADIENT ── */}
+      {/* ── Gradient-Overlay (top + bottom) ─────────────────────── */}
       <div style={{ position:'absolute', inset:0, pointerEvents:'none',
-        background:'linear-gradient(to bottom, rgba(0,0,0,.55) 0%, transparent 30%, transparent 65%, rgba(0,0,0,.75) 100%)' }} />
+        background:`
+          linear-gradient(to bottom,
+            rgba(0,0,0,.58) 0%,
+            rgba(0,0,0,.10) 28%,
+            transparent 50%,
+            rgba(0,0,0,.15) 65%,
+            rgba(0,0,0,.80) 100%)` }} />
 
-      {/* ── PROGRESS BARS ── */}
-      <div style={{ position:'absolute', top:'max(14px,env(safe-area-inset-top,14px))',
-        left:12, right:12, display:'flex', gap:4, zIndex:10 }}>
+      {/* ── PROGRESS BARS ────────────────────────────────────────── */}
+      <div style={{ position:'absolute', top:'max(10px,env(safe-area-inset-top,10px))',
+        left:12, right:12, display:'flex', gap:3, zIndex:10 }}>
         {stories.map((_, i) => (
-          <div key={i} style={{ flex:1, height:3, borderRadius:2, background:'rgba(255,255,255,.3)', overflow:'hidden' }}>
+          <div key={i} style={{ flex:1, height:2.5, borderRadius:2,
+            background:'rgba(255,255,255,.28)', overflow:'hidden' }}>
             <div style={{
-              height:'100%', borderRadius:2, background:'white',
+              height:'100%', borderRadius:2,
+              background: i < storyIdx
+                ? 'rgba(255,255,255,.9)'
+                : i === storyIdx
+                  ? `linear-gradient(90deg,${C.teal},white)`
+                  : 'transparent',
               width: i < storyIdx ? '100%' : i === storyIdx ? `${progress}%` : '0%',
-              transition: i === storyIdx ? 'none' : 'width .1s',
+              transition: i === storyIdx ? 'none' : 'none',
+              boxShadow: i === storyIdx ? `0 0 6px rgba(22,215,197,.6)` : 'none',
             }} />
           </div>
         ))}
       </div>
 
-      {/* ── HEADER ── */}
-      <div style={{ position:'absolute', top:'max(30px,calc(env(safe-area-inset-top,14px)+16px))',
-        left:14, right:14, display:'flex', alignItems:'center', gap:10, zIndex:10 }}>
-        {/* Avatar */}
-        <div style={{ width:38, height:38, borderRadius:'50%', border:'2px solid rgba(255,255,255,.7)',
-          overflow:'hidden', background:'rgba(255,255,255,.2)', flexShrink:0 }}>
-          {current.avatar_url
-            ? <img loading="lazy" decoding="async" src={current.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-            : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
-                justifyContent:'center', color:'white', fontWeight:800, fontSize:16 }}>
-                {(current.username||'A')[0].toUpperCase()}
-              </div>}
-        </div>
-        {/* Name + time */}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ color:'white', fontWeight:700, fontSize:14, letterSpacing:.1 }}>
-            {current.username || 'Anonym'}
+      {/* ── HEADER ───────────────────────────────────────────────── */}
+      <div style={{
+        position:'absolute',
+        top:'max(24px,calc(env(safe-area-inset-top,14px)+14px))',
+        left:14, right:14,
+        display:'flex', alignItems:'center', gap:10, zIndex:10 }}>
+
+        {/* Avatar mit Glow-Ring */}
+        <div style={{
+          width:44, height:44, borderRadius:'50%', padding:2.5, flexShrink:0,
+          background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+          boxShadow:`0 0 0 1px rgba(255,255,255,.2), 0 0 18px rgba(22,215,197,.35)`,
+          cursor: onViewProfile ? 'pointer' : 'default',
+        }}
+          onClick={e => {
+            e.stopPropagation();
+            if (onViewProfile && current) onViewProfile(current);
+          }}>
+          <div style={{ width:'100%', height:'100%', borderRadius:'50%',
+            overflow:'hidden', background:'#222' }}>
+            {current.avatar_url
+              ? <img loading="eager" src={current.avatar_url} alt=""
+                  style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+              : <div style={{ width:'100%', height:'100%',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  color:'white', fontWeight:900, fontSize:17,
+                  background:`linear-gradient(135deg,${C.teal},${C.coral})` }}>
+                  {(current.username||'A')[0].toUpperCase()}
+                </div>}
           </div>
-          <div style={{ color:'rgba(255,255,255,.55)', fontSize:11 }}>{timeAgo}</div>
         </div>
-        {/* Viewer count (own stories) */}
+
+        {/* Name + Rolle + Zeit */}
+        <div style={{ flex:1, minWidth:0,
+          cursor: onViewProfile ? 'pointer' : 'default' }}
+          onClick={e => {
+            e.stopPropagation();
+            if (onViewProfile && current) onViewProfile(current);
+          }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ color:'white', fontWeight:800, fontSize:15,
+              letterSpacing:-.2, lineHeight:1.2,
+              textShadow:'0 1px 6px rgba(0,0,0,.4)',
+              overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+              maxWidth:140 }}>
+              {current.username || 'Anonym'}
+            </span>
+            {creatorRole && (
+              <span style={{ fontSize:10, fontWeight:700, color:C.teal,
+                background:'rgba(22,215,197,.16)', borderRadius:50,
+                padding:'1px 7px', backdropFilter:'blur(6px)',
+                border:'1px solid rgba(22,215,197,.25)', whiteSpace:'nowrap' }}>
+                {creatorRole}
+              </span>
+            )}
+          </div>
+          <div style={{ color:'rgba(255,255,255,.45)', fontSize:10.5,
+            fontWeight:500, marginTop:1 }}>{timeAgo}</div>
+        </div>
+
+        {/* Viewer count (nur eigene Stories) */}
         {isOwn && viewerCount !== null && (
           <div style={{ display:'flex', alignItems:'center', gap:4,
-            background:'rgba(255,255,255,.15)', borderRadius:20, padding:'4px 10px' }}>
-            <span style={{ fontSize:13 }}>👁</span>
+            background:'rgba(255,255,255,.12)', backdropFilter:'blur(10px)',
+            borderRadius:20, padding:'4px 10px',
+            border:'1px solid rgba(255,255,255,.14)' }}>
+            <span style={{ fontSize:12, opacity:.7 }}>👁</span>
             <span style={{ color:'white', fontSize:12, fontWeight:600 }}>{viewerCount}</span>
           </div>
         )}
+
         {/* Close */}
         <button className="hui-sv-tap" onClick={onClose} style={{
-          background:'rgba(255,255,255,.18)', backdropFilter:'blur(8px)',
-          border:'none', borderRadius:'50%', width:34, height:34,
-          color:'white', fontSize:16, cursor:'pointer', flexShrink:0,
-          display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+          background:'rgba(0,0,0,.32)', backdropFilter:'blur(12px)',
+          WebkitBackdropFilter:'blur(12px)',
+          border:'1px solid rgba(255,255,255,.12)', borderRadius:'50%',
+          width:34, height:34, color:'white', fontSize:15,
+          cursor:'pointer', flexShrink:0,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          boxShadow:'0 2px 10px rgba(0,0,0,.25)' }}>✕</button>
       </div>
 
-      {/* ── TAP ZONES ── */}
-      <div className="hui-sv-tap" onPointerDown={() => setPaused(true)} onPointerUp={() => setPaused(false)}
+      {/* ── TAP ZONES (Hold = pause) ─────────────────────────────── */}
+      <div className="hui-sv-tap"
+        onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}
         onClick={goPrev}
-        style={{ position:'absolute', top:0, bottom:0, left:0, width:'33%', zIndex:5 }} />
-      <div className="hui-sv-tap" onPointerDown={() => setPaused(true)} onPointerUp={() => setPaused(false)}
+        style={{ position:'absolute', top:0, bottom:'25%', left:0, width:'35%', zIndex:5 }} />
+      <div className="hui-sv-tap"
+        onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}
         onClick={goNext}
-        style={{ position:'absolute', top:0, bottom:0, right:0, width:'33%', zIndex:5 }} />
+        style={{ position:'absolute', top:0, bottom:'25%', right:0, width:'35%', zIndex:5 }} />
 
-      {/* ── TEXT OVERLAY ── */}
-      {current.text_overlay && (
-        <div style={{ position:'absolute', bottom: replyOpen ? 180 : 130,
-          left:20, right:20, zIndex:10,
-          color:'white', fontSize:17, fontWeight:600, lineHeight:1.5,
-          textShadow:'0 2px 12px rgba(0,0,0,.7)', animation:'huiUp .3s ease-out' }}>
-          {current.text_overlay}
+      {/* ── PAUSED INDICATOR ─────────────────────────────────────── */}
+      {paused && !replyOpen && (
+        <div style={{ position:'absolute', top:'50%', left:'50%',
+          transform:'translate(-50%,-50%)', zIndex:15,
+          pointerEvents:'none' }}>
+          <div style={{ width:52, height:52, borderRadius:'50%',
+            background:'rgba(0,0,0,.45)', backdropFilter:'blur(12px)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            border:'1px solid rgba(255,255,255,.2)' }}>
+            <span style={{ fontSize:20, lineHeight:1 }}>⏸</span>
+          </div>
         </div>
       )}
 
-      {/* ── REACTIONS FLOATING ── */}
+      {/* ── STORY INFO EBENE (unten links) ───────────────────────── */}
+      {!replyOpen && (caption || location || mood) && (
+        <div style={{
+          position:'absolute',
+          bottom:'max(120px,calc(env(safe-area-inset-bottom,0px)+120px))',
+          left:18, right:80, zIndex:10,
+          animation:'huiUp .35s ease-out' }}>
+          {/* Caption */}
+          {caption && (
+            <div style={{ color:'white', fontSize:15, fontWeight:600,
+              lineHeight:1.5, letterSpacing:-.1,
+              textShadow:'0 2px 16px rgba(0,0,0,.65)',
+              marginBottom: (location || mood) ? 8 : 0 }}>
+              {caption}
+            </div>
+          )}
+          {/* Meta-Chips */}
+          {(location || mood) && (
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {location && (
+                <span style={{ fontSize:11.5, color:'rgba(255,255,255,.85)',
+                  background:'rgba(0,0,0,.32)', backdropFilter:'blur(10px)',
+                  WebkitBackdropFilter:'blur(10px)',
+                  border:'1px solid rgba(255,255,255,.14)',
+                  borderRadius:50, padding:'4px 10px',
+                  fontWeight:600, display:'flex', alignItems:'center', gap:4 }}>
+                  <span>📍</span>{location}
+                </span>
+              )}
+              {mood && (
+                <span style={{ fontSize:11.5, color:'rgba(255,255,255,.85)',
+                  background:'rgba(0,0,0,.32)', backdropFilter:'blur(10px)',
+                  WebkitBackdropFilter:'blur(10px)',
+                  border:'1px solid rgba(255,255,255,.14)',
+                  borderRadius:50, padding:'4px 10px',
+                  fontWeight:600, display:'flex', alignItems:'center', gap:4 }}>
+                  <span>✨</span>{mood}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── FLOATING REACTION ────────────────────────────────────── */}
       {reaction && (
-        <div style={{ position:'absolute', top:'40%', left:'50%', transform:'translate(-50%,-50%)',
-          fontSize:64, zIndex:20, animation:'huiEmoji .4s ease-out', pointerEvents:'none' }}>
+        <div style={{ position:'absolute', top:'38%', left:'50%',
+          transform:'translate(-50%,-50%)',
+          fontSize:72, zIndex:20, animation:'huiEmoji .45s cubic-bezier(.34,1.56,.64,1)',
+          pointerEvents:'none', filter:'drop-shadow(0 4px 16px rgba(0,0,0,.3))' }}>
           {reaction}
         </div>
       )}
 
-      {/* ── BOTTOM BAR ── */}
-      {!replyOpen ? (
-        <div style={{ position:'absolute', bottom:'max(24px,env(safe-area-inset-bottom,24px))',
-          left:14, right:14, zIndex:10, display:'flex', flexDirection:'column', gap:10 }}>
-          {/* Reactions */}
+      {/* ── SHARE HINT ───────────────────────────────────────────── */}
+      {shareHint && (
+        <div style={{ position:'absolute', top:'50%', left:'50%',
+          transform:'translate(-50%,-50%)', zIndex:25,
+          background:'rgba(0,0,0,.75)', backdropFilter:'blur(16px)',
+          borderRadius:16, padding:'12px 20px',
+          color:'white', fontSize:13, fontWeight:600, pointerEvents:'none' }}>
+          🔗 Link kopiert
+        </div>
+      )}
+
+      {/* ── BOTTOM ACTION BAR ────────────────────────────────────── */}
+      {!replyOpen && (
+        <div style={{
+          position:'absolute',
+          bottom:'max(20px,env(safe-area-inset-bottom,20px))',
+          left:14, right:14, zIndex:10,
+          display:'flex', flexDirection:'column', gap:10 }}>
+
+          {/* Quick Reactions */}
           <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
             {REACTIONS.map(r => (
               <button key={r} className="hui-sv-tap"
                 onClick={() => handleReaction(r)}
-                style={{ background:'rgba(255,255,255,.18)', backdropFilter:'blur(12px)',
-                  border:'1px solid rgba(255,255,255,.25)', borderRadius:50,
-                  padding:'8px 14px', fontSize:20, cursor:'pointer',
-                  transition:'transform .15s', zIndex:10 }}>
+                style={{
+                  background: myReaction === r
+                    ? `rgba(22,215,197,.25)`
+                    : 'rgba(0,0,0,.32)',
+                  backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+                  border: myReaction === r
+                    ? `1px solid rgba(22,215,197,.5)`
+                    : '1px solid rgba(255,255,255,.18)',
+                  borderRadius:50, padding:'8px 15px', fontSize:19,
+                  cursor:'pointer', transition:'transform .15s, background .2s',
+                  transform: myReaction === r ? 'scale(1.12)' : 'scale(1)',
+                }}>
                 {r}
               </button>
             ))}
           </div>
-          {/* Reply input */}
-          <button className="hui-sv-tap"
-            onClick={() => { setReplyOpen(true); setPaused(true); }}
-            style={{ background:'rgba(255,255,255,.15)', backdropFilter:'blur(16px)',
-              border:'1px solid rgba(255,255,255,.25)', borderRadius:50,
-              padding:'12px 20px', color:'rgba(255,255,255,.75)',
-              fontSize:14, fontWeight:500, cursor:'pointer', textAlign:'left',
-              width:'100%' }}>
-            💬 Antwort senden...
-          </button>
+
+          {/* Action Row: Reply + Share + Profile */}
+          <div style={{ display:'flex', gap:8 }}>
+            {/* Reply */}
+            <button className="hui-sv-tap"
+              onClick={() => { setReplyOpen(true); setPaused(true); }}
+              style={{ flex:1,
+                background:'rgba(0,0,0,.28)', backdropFilter:'blur(16px)',
+                WebkitBackdropFilter:'blur(16px)',
+                border:'1px solid rgba(255,255,255,.18)', borderRadius:50,
+                padding:'11px 16px', color:'rgba(255,255,255,.72)',
+                fontSize:13.5, fontWeight:500, cursor:'pointer',
+                textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
+              <span style={{ opacity:.65 }}>💬</span>
+              <span>Antworten…</span>
+            </button>
+            {/* Share */}
+            <button className="hui-sv-tap"
+              onClick={handleShare}
+              style={{ width:46, height:46, borderRadius:'50%',
+                background:'rgba(0,0,0,.28)', backdropFilter:'blur(14px)',
+                WebkitBackdropFilter:'blur(14px)',
+                border:'1px solid rgba(255,255,255,.18)',
+                color:'white', fontSize:17, cursor:'pointer',
+                display:'flex', alignItems:'center', justifyContent:'center' }}>
+              🔗
+            </button>
+            {/* Profil öffnen */}
+            {!isOwn && onViewProfile && (
+              <button className="hui-sv-tap"
+                onClick={e => { e.stopPropagation(); onViewProfile(current); }}
+                style={{ width:46, height:46, borderRadius:'50%',
+                  background:'rgba(0,0,0,.28)', backdropFilter:'blur(14px)',
+                  WebkitBackdropFilter:'blur(14px)',
+                  border:'1px solid rgba(255,255,255,.18)',
+                  color:'white', fontSize:17, cursor:'pointer',
+                  display:'flex', alignItems:'center', justifyContent:'center' }}>
+                👤
+              </button>
+            )}
+          </div>
         </div>
-      ) : (
-        /* ── REPLY SHEET ── */
+      )}
+
+      {/* ── REPLY SHEET ──────────────────────────────────────────── */}
+      {replyOpen && (
         <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:20,
-          background:'rgba(20,20,20,.92)', backdropFilter:'blur(24px)',
-          borderRadius:'20px 20px 0 0', padding:'20px 16px',
-          paddingBottom:'max(24px,env(safe-area-inset-bottom,24px))',
-          animation:'huiUp .2s ease-out' }}>
+          background:'rgba(12,12,12,.94)', backdropFilter:'blur(28px)',
+          WebkitBackdropFilter:'blur(28px)',
+          borderRadius:'22px 22px 0 0',
+          padding:'20px 16px',
+          paddingBottom:'max(28px,env(safe-area-inset-bottom,28px))',
+          animation:'huiUp .22s ease-out',
+          borderTop:'1px solid rgba(255,255,255,.08)' }}>
           {sentReply ? (
-            <div style={{ textAlign:'center', color:'white', fontSize:16, fontWeight:600, padding:16 }}>
-              ✓ Antwort gesendet
+            <div style={{ textAlign:'center', padding:16 }}>
+              <div style={{ fontSize:28, marginBottom:8 }}>✓</div>
+              <div style={{ color:'white', fontSize:15, fontWeight:700 }}>Antwort gesendet</div>
             </div>
           ) : (
             <>
-              <div style={{ color:'rgba(255,255,255,.5)', fontSize:12, fontWeight:600,
-                textAlign:'center', marginBottom:14, textTransform:'uppercase', letterSpacing:1 }}>
-                Antwort an {current.username}
+              <div style={{ color:'rgba(255,255,255,.38)', fontSize:11.5, fontWeight:700,
+                textAlign:'center', marginBottom:14, letterSpacing:.8 }}>
+                ANTWORT AN {(current.username||'').toUpperCase()}
               </div>
-              <div style={{ display:'flex', gap:10 }}>
+              <div style={{ display:'flex', gap:10, alignItems:'center' }}>
                 <input
                   autoFocus
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendReply()}
-                  placeholder="Schreib etwas..."
-                  style={{ flex:1, background:'rgba(255,255,255,.1)', border:'1px solid rgba(255,255,255,.2)',
-                    borderRadius:50, padding:'12px 18px', color:'white', fontSize:14,
-                    outline:'none', fontFamily:'inherit' }} />
+                  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendReply()}
+                  placeholder="Schreib etwas…"
+                  style={{ flex:1, background:'rgba(255,255,255,.08)',
+                    border:'1px solid rgba(255,255,255,.15)',
+                    borderRadius:50, padding:'13px 18px', color:'white', fontSize:14,
+                    outline:'none', fontFamily:'inherit',
+                    caretColor:C.teal }} />
                 <button className="hui-sv-tap" onClick={sendReply}
-                  style={{ background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                    border:'none', borderRadius:50, padding:'12px 18px',
-                    color:'white', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                  style={{ width:46, height:46, borderRadius:'50%',
+                    background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+                    border:'none', color:'white', fontWeight:900,
+                    fontSize:18, cursor:'pointer',
+                    boxShadow:`0 4px 16px rgba(22,215,197,.35)`,
+                    display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   ↑
                 </button>
               </div>
-              <button className="hui-sv-tap" onClick={() => { setReplyOpen(false); setPaused(false); }}
+              <button className="hui-sv-tap"
+                onClick={() => { setReplyOpen(false); setPaused(false); }}
                 style={{ marginTop:12, background:'transparent', border:'none',
-                  color:'rgba(255,255,255,.4)', width:'100%', fontSize:13, cursor:'pointer' }}>
+                  color:'rgba(255,255,255,.3)', width:'100%', fontSize:13,
+                  cursor:'pointer', padding:'8px 0', fontFamily:'inherit' }}>
                 Abbrechen
               </button>
             </>
@@ -423,6 +653,7 @@ export function StoryViewer({ data: initData, onClose }) {
     </div>
   );
 }
+
 
 // ── HIGHLIGHTS ROW (für ProfilePage) ─────────────────────────────────
 export function HighlightsRow({ userId }) {
