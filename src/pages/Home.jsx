@@ -322,7 +322,7 @@ function Header({ userName, avatarUrl }) {
             fontWeight:900, fontSize:13, color:"white",
             boxShadow:`0 2px 8px ${C.tealGlow}` }}>
             {avatarUrl
-              ? <img src={avatarUrl} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
+              ? <img loading="lazy" decoding="async" src={avatarUrl} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
                   onError={e=>{e.target.style.display="none"}}/>
               : userName?.[0]?.toUpperCase()
             }
@@ -497,7 +497,7 @@ function BottomNav({ tab, onTab, onCreate, hasTalent }) {
                 overflow:"hidden",
               }}>
                 {/* BASE USER: real HUI logo */}
-                <img src="/hui-logo.jpg" alt="HUI"
+                <img loading="lazy" decoding="async" src="/hui-logo.jpg" alt="HUI"
                   style={{
                     width:36, height:36, borderRadius: hasTalent ? "50%" : 10,
                     objectFit:"cover", display:"block",
@@ -626,7 +626,7 @@ function WirkerSheet({ w, onClose, onBook }) {
 
         {/* Cinematic hero */}
         <div style={{ height:260, position:"relative", overflow:"hidden" }}>
-          <img src={w.bg} alt={w.name}
+          <img loading="lazy" decoding="async" src={w.bg} alt={w.name}
             style={{ width:"100%", height:"100%", objectFit:"cover",
               filter:"brightness(0.72) saturate(1.1)" }}/>
           <div style={{ position:"absolute", inset:0,
@@ -658,7 +658,7 @@ function WirkerSheet({ w, onClose, onBook }) {
             <div style={{ width:60, height:60, borderRadius:"50%",
               overflow:"hidden", border:"3px solid white",
               boxShadow:"0 4px 20px rgba(0,0,0,0.18)" }}>
-              <img src={w.img} alt={w.name}
+              <img loading="lazy" decoding="async" src={w.img} alt={w.name}
                 style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
             </div>
           </div>
@@ -726,7 +726,7 @@ function WirkerSheet({ w, onClose, onBook }) {
               {w.werke.map((wk,i)=>(
                 <div key={i} style={{ borderRadius:14, overflow:"hidden",
                   aspectRatio:"1" }}>
-                  <img src={wk.img} alt=""
+                  <img loading="lazy" decoding="async" src={wk.img} alt=""
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 </div>
               ))}
@@ -910,7 +910,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
             <div style={{ borderRadius:22, overflow:"hidden",
               height:205, position:"relative",
               boxShadow:"0 4px 20px rgba(0,0,0,0.12)" }}>
-              <img src={w.img} alt={w.name}
+              <img loading="lazy" decoding="async" src={w.img} alt={w.name}
                 style={{ width:"100%", height:"100%", objectFit:"cover",
                   objectPosition:"top" }}/>
               {/* Teal atmospheric overlay — WIRKER identifier */}
@@ -975,7 +975,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
               position:"relative", height:w.h,
               boxShadow:"0 3px 16px rgba(0,0,0,0.09)",
               cursor:"pointer" }}>
-              <img src={w.img} alt={w.title}
+              <img loading="lazy" decoding="async" src={w.img} alt={w.title}
                 style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
               {/* Coral atmosphere — WERKE identifier */}
               <div style={{ position:"absolute", inset:0,
@@ -1031,7 +1031,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
             style={{ flexShrink:0, width:270, borderRadius:22,
               overflow:"hidden", height:170, position:"relative",
               boxShadow:"0 4px 20px rgba(0,0,0,0.12)", cursor:"pointer" }}>
-            <img src={ex.img} alt={ex.title}
+            <img loading="lazy" decoding="async" src={ex.img} alt={ex.title}
               style={{ width:"100%", height:"100%", objectFit:"cover",
                 filter:"brightness(0.78)" }}/>
             <div style={{ position:"absolute", inset:0,
@@ -1291,7 +1291,7 @@ function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
           title="Mein Profil ansehen" aria-label="Profil ansehen"
           style={{ overflow:"hidden", padding:0 }}>
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Profil"
+            <img loading="lazy" decoding="async" src={avatarUrl} alt="Profil"
               style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}
               onError={e => { e.target.style.display="none"; }}
             />
