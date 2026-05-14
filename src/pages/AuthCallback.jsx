@@ -3,14 +3,15 @@ import { supabase } from '../lib/supabaseClient'
 
 export default function AuthCallback() {
   useEffect(() => {
-    // Supabase verarbeitet den Token aus der URL automatisch
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Pure async/await — no .then() chains
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        window.location.href = '/Home'
+        window.location.href = '/Home';
       } else {
-        window.location.href = '/login'
+        window.location.href = '/login';
       }
-    })
+    })();
   }, [])
 
   return (
