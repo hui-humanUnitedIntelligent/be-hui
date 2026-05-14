@@ -198,7 +198,7 @@ function ProfileSkeleton() {
 /* ══════════════════════════════════════════════════════════════════════
    OWN PROFILE — Premium Dashboard
 ══════════════════════════════════════════════════════════════════════ */
-function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile }) {
+function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile, onViewPublicProfile }) {
   const { user, profile, wirkerProfile, isWirker, hasTalentProfile, profileModules, loadingAuth, loadingProfile } = useAuth();
   const [werke,        setWerke]        = useState([]);
   const [worksLoading, setWorksLoading] = useState(true);
