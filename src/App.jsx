@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { sentryCapture, Sentry } from './lib/sentry'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import Home from './pages/Home'
@@ -17,7 +18,7 @@ window.__HUI_LAST_FEED_COMPONENT__ = null;
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, retryCount: 0 };
+    this.state = { hasError: false, error: null, retryCount: 0, sentryEventId: null };
     this._visibilityHandler = null;
   }
 
@@ -26,13 +27,37 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Vollstaendiges Stack-Logging immer (nicht nur dev)
+    // ── Vollstaendiges Stack-Logging ────────────────────────
     console.error('[HUI ErrorBoundary] CRASH:', error.message);
     console.error('[HUI ErrorBoundary] Stack:', error.stack);
     console.error('[HUI ErrorBoundary] ComponentStack:', errorInfo?.componentStack);
     console.error('[HUI ErrorBoundary] LastFeedComponent:', window.__HUI_LAST_FEED_COMPONENT__);
     console.error('[HUI ErrorBoundary] document.hidden:', document.hidden);
+    console.error('[HUI ErrorBoundary] visibilityState:', document.visibilityState);
+    console.error('[HUI ErrorBoundary] userAgent:', navigator.userAgent);
     console.error('[HUI ErrorBoundary] RetryCount:', this.state.retryCount);
+
+    // ── Sentry: Crash mit vollem Kontext senden ──────────────
+    const eventId = sentryCapture(error, {
+      source:              'ErrorBoundary',
+      component_stack:     errorInfo?.componentStack || '',
+      last_feed_component: window.__HUI_LAST_FEED_COMPONENT__ || null,
+      document_hidden:     document.hidden,
+      visibility_state:    document.visibilityState,
+      user_agent:          navigator.userAgent,
+      href:                window.location.href,
+      retry_count:         this.state.retryCount,
+      is_ipad:             /iPad/.test(navigator.userAgent) ||
+                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+    });
+    if (eventId) {
+      console.error('[HUI ErrorBoundary] Sentry Event ID:', eventId);
+      this.setState({ sentryEventId: eventId });
+    }
+
+    // ── Sentry.showReportDialog (optional) ───────────────────
+    // Kann aktiviert werden wenn User-Feedback gewünscht:
+    // if (eventId) Sentry.showReportDialog({ eventId });
 
     // Auto-retry nach Idle-Crash: wenn Tab wieder sichtbar wird, einmal versuchen
     if (this.state.retryCount < 2) {
