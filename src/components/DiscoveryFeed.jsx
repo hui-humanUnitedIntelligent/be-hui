@@ -1052,6 +1052,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   const [wirkersLoading, setWirkersLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     async function loadWirkers() {
       try {
         const { data } = await supabase
@@ -1061,6 +1062,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           .eq("availability", true)
           .order("impact_eur", { ascending: false })
           .limit(10);
+        if (!mounted) return;
         if (data && data.length > 0) {
           setLiveWirkers(data.map(p => ({
             user_id:   p.id,
@@ -1074,18 +1076,22 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           })));
         }
       } catch(e) {
+        if (!mounted) return;
         console.error("[DiscoveryFeed] wirkers:", e.message);
       } finally {
-        setWirkersLoading(false);
+        if (mounted) setWirkersLoading(false);
       }
     }
     loadWirkers();
+    return () => { mounted = false; };
   }, []);
 
   // ── Infinite scroll state ────────────────────────────────────────
   const [page,       setPage]       = useState(0);
+  const pageRef      = useRef(0);             // stale-free page ref
   const [hasMore,    setHasMore]    = useState(true);
   const [loadingMore,setLoadingMore]= useState(false);
+  const loadingRef   = useRef(false);         // concurrent-load guard
   const PAGE_SIZE = 12;
   const loaderRef            = useRef(null);
   const scrollContainerRef   = useRef(null); // ref auf .df-scroll für VirtualFeedList
