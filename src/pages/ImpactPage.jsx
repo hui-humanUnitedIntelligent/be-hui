@@ -2,6 +2,7 @@
 // Community Pool · Stimmen · Monatliche Ausschüttung · Keine NGO-Energie
 
 import React, { useState, useEffect, useRef } from "react";
+import { safeQuery, FIELDS } from "../lib/perfUtils";
 import { supabase }      from "../lib/supabaseClient";
 import SupportSheet      from "../components/SupportSheet";
 
@@ -769,7 +770,7 @@ export default function ImpactPage({ currentUser }) {
       .select("has_talent_profile")
       .eq("id", currentUser.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }).limit(100) => {
         const isTalent = data?.has_talent_profile === true;
         const alloc    = isTalent ? 2 : 1;
         setTotalVotes(alloc);
