@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { ArrowLeft, Camera, Save } from 'lucide-react'
+import { safeQuery } from "../lib/perfUtils";
 import { supabase } from '../lib/supabaseClient'
 
 const TEAL = "#2ABFAC"
@@ -16,7 +17,7 @@ export default function EditProfile({ user, onClose, onSave }) {
 
   useEffect(() => {
     if (!user?.id) return
-    supabase.from('profiles').select('*').eq('id', user.id).single()
+    supabase.from('profiles').select("id,display_name,username,avatar_url,bio,talent,location_label,dna_tags,focus_type").eq('id', user.id).single()
       .then(({ data }) => {
         if (data) setForm(f => ({
           ...f,
