@@ -763,29 +763,33 @@ export default function ImpactPage({ currentUser }) {
   // Load user's votes for this month + determine vote allowance
   useEffect(() => {
     if (!currentUser?.id) return;
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
-    // Check talent status (2 votes) vs base (1 vote)
-    supabase.from("profiles")
-      .select("has_talent_profile")
-      .eq("id", currentUser.id)
-      .maybeSingle()
-      .then(({ data }).limit(100) => {
-        const isTalent = data?.has_talent_profile === true;
-        const alloc    = isTalent ? 2 : 1;
-        setTotalVotes(alloc);
+    // Async IIFE — never mix async directly in useEffect callback
+    (async () => {
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
-        // How many has the user already cast this month?
-        supabase.from("impact_votes")
-          .select("project_id")
-          .eq("user_id", currentUser.id)
-          .gte("created_at", monthStart)
-          .then(({ data: vdata }) => {
-            const ids = (vdata||[]).map(v => v.project_id);
-            setVotedIds(ids);
-            setVotesLeft(Math.max(0, alloc - ids.length));
-          });
-      });
+      // Check talent status (2 votes) vs base (1 vote)
+    // Pure async/await — no .then(), no mixed chains, no query methods in callbacks
+    const [profileRes, votesRes] = await Promise.all([
+      supabase.from("profiles")
+        .select("has_talent_profile")
+        .eq("id", currentUser.id)
+        .maybeSingle(),
+      supabase.from("impact_votes")
+        .select("project_id")
+        .eq("user_id", currentUser.id)
+        .gte("created_at", monthStart)
+        .limit(10),
+    ]);
+
+    const isTalent = profileRes.data?.has_talent_profile === true;
+    const alloc    = isTalent ? 2 : 1;
+    setTotalVotes(alloc);
+
+    const votedProjectIds = (votesRes.data || []).map(v => v.project_id);
+    setVotedIds(votedProjectIds);
+      setVotesLeft(Math.max(0, alloc - votedProjectIds.length));
+    })();
   }, [currentUser?.id]);
 
   async function handleVote(projectId) {
