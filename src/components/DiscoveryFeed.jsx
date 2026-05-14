@@ -350,7 +350,7 @@ function Divider({ label, accent }) {
 }
 
 /* ── IMMERSIVE FEED CARDS ─────────────────────────────────────────────── */
-const WirkerCard = React.memo(function WirkerCard({ item, onView, onBook }) {
+function WirkerCard({ item, onView, onBook }) {
   return (
     <div className="df-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%", height:"82vh", maxHeight:640,
@@ -432,9 +432,7 @@ const WirkerCard = React.memo(function WirkerCard({ item, onView, onBook }) {
   );
 }
 
-const WirkerCard = React.memo(WirkerCard__orig);
-function WirkCardAlias() {} // remove
-const WerkCard = React.memo(function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate });) {
+function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate }) {
   return (
     <div className="df-tap" onClick={() => { if(item.id && navigate) navigate(`/work/${item.id}`); else if(onView) onView(item); }}
       style={{ position:"relative", width:"100%", height:"76vh", maxHeight:590,
@@ -507,7 +505,7 @@ const WerkCard = React.memo(function WerkCard({ item, onView, onBuyWerk, onAddTo
   );
 }
 
-const ExperienceCard = React.memo(function ExperienceCard({ item, onView }) {
+function ExperienceCard({ item, onView }) {
   return (
     <div className="df-tap" onClick={() => onView && onView(item)}
       style={{ position:"relative", width:"100%", height:"78vh", maxHeight:610,
@@ -579,7 +577,7 @@ const ExperienceCard = React.memo(function ExperienceCard({ item, onView }) {
   );
 }
 
-const ImpactCard = React.memo(function ImpactCard({ item, onImpact }) {
+function ImpactCard({ item, onImpact }) {
   const pct = Math.round((item.raised / item.goal) * 100);
   return (
     <div className="df-tap" onClick={onImpact}
@@ -1014,6 +1012,13 @@ function MomenteViewer({ stories, startIdx=0, onClose }) {
   );
 }
 
+
+/* ─── Memoized Card Components — prevent re-render on parent state ── */
+const MemoWirkerCard     = React.memo(WirkerCard);
+const MemoWerkCard       = React.memo(WerkCard);
+const MemoExperienceCard = React.memo(ExperienceCard);
+const MemoImpactCard     = React.memo(ImpactCard);
+
 export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal, storyRefreshKey, onOpenComposer }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -1315,10 +1320,10 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                 <div key={item.id}>
                   {i > 0 && <Divider label={divLabel} accent={divAccent}/>}
                   <div style={{ padding:"0 16px" }}>
-                    {item.type==="wirker"     && <WirkerCard     item={item} onView={onView} onBook={onBook}/>}
-                    {item.type==="werk"       && <WerkCard        item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
-                    {item.type==="experience" && <ExperienceCard  item={item} onView={onView}/>}
-                    {item.type==="impact"     && <ImpactCard      item={item} onImpact={onImpact}/>}
+                    {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook}/>}
+                    {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate}/>}
+                    {item.type==="experience" && <MemoExperienceCard item={item} onView={onView}/>}
+                    {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact}/>}
                   </div>
                 </div>
               );
