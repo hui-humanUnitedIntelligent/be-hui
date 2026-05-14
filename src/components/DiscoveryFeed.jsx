@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 import { sentryCapture } from "../lib/sentry";
 import { useAuth } from "../lib/AuthContext";
 import HuiSearchBar from "./HuiSearchBar";
@@ -1150,14 +1151,14 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       if (userIds.length > 0) {
         const { data: profs } = await supabase
           .from("profiles")
-          .select("id, username, display_name, avatar_url")
+          .select("id,username,display_name,avatar_url,header_img,bio,talent,focus_type,location_label,impact_eur,is_wirker,has_talent_profile")
           .in("id", userIds);
         if (!mounted) return;   // unmounted during second await
         (profs || []).forEach(p => { profileMap[p.id] = p; });
       }
 
       // 3. Works + Profile zusammenfuehren
-      const works = rawWorks.map(w => mapWork(w, profileMap[w.user_id] || {}));
+      const works = rawWorks.map(w => mapWork(w, normalizeProfileInput(profileMap[w.user_id]) || {}));
       if (!mounted) return;
 
       if (reset) {
