@@ -1378,7 +1378,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         )}
 
         {feedLoading && (
-          <>
+          <div data-hui-skeleton="true">
             {/* Skeleton Werke-Tiles */}
             <div style={{ display:"flex", gap:12, overflowX:"auto",
               padding:"0 20px 4px", marginBottom:8 }}>
@@ -1388,7 +1388,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             <div style={{ padding:"0 16px", display:"flex", flexDirection:"column", gap:12, marginTop:12 }}>
               <WerkCardSkeleton/>
             </div>
-          </>
+          </div>
         )}
 
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
