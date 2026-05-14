@@ -11,11 +11,16 @@ export function useConversations(userId) {
   useEffect(() => {
     mounted.current = true;
     if (!userId) { setLoading(false); return; }
-    ChatService.getConversations(userId).then(({ data }) => {
-      if (mounted.current) { setConvos(data || []); setLoading(false); }
-    });
 
-    // Realtime: only for conversations list (light subscription)
+    // Pure async IIFE — no .then()
+    (async () => {
+      const { data } = await ChatService.getConversations(userId);
+      if (!mounted.current) return;
+      setConvos(data || []);
+      setLoading(false);
+    })();
+
+    // Realtime: conversation list updates
     const channel = supabase.channel(`convos:${userId}`)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'conversations',
@@ -49,11 +54,15 @@ export function useMessages(conversationId, currentUserId) {
     mounted.current = true;
     if (!conversationId) { setLoading(false); return; }
 
-    ChatService.getMessages(conversationId, 0).then(({ data }) => {
-      if (mounted.current) { setMessages(data || []); setLoading(false); }
-    });
+    // Pure async IIFE — no .then()
+    (async () => {
+      const { data } = await ChatService.getMessages(conversationId, 0);
+      if (!mounted.current) return;
+      setMessages(data || []);
+      setLoading(false);
+    })();
 
-    // Mark as read
+    // Mark as read — fire & forget is OK here
     if (currentUserId) ChatService.markRead(conversationId, currentUserId);
 
     // Realtime — only for active chat window
@@ -62,11 +71,11 @@ export function useMessages(conversationId, currentUserId) {
         event: 'INSERT', schema: 'public', table: 'messages',
         filter: `conversation_id=eq.${conversationId}`,
       }, payload => {
+        if (!mounted.current) return;
         setMessages(prev => {
           if (prev.some(m => m.id === payload.new.id)) return prev;
           return [...prev, payload.new];
         });
-        // Mark new message read if from other user
         if (payload.new.sender_id !== currentUserId && currentUserId) {
           ChatService.markRead(conversationId, currentUserId);
         }
@@ -80,9 +89,8 @@ export function useMessages(conversationId, currentUserId) {
   }, [conversationId]);
 
   const sendMessage = useCallback(async (text, type = 'text') => {
-    if (!conversationId || !currentUserId) return;
+    if (!conversationId || !currentUserId) return null;
     const { data } = await ChatService.sendMessage(conversationId, currentUserId, text, type);
-    // Optimistic: add immediately (realtime will dedup)
     if (data) {
       setMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
     }
