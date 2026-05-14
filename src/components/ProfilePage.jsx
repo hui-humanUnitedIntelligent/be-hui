@@ -709,6 +709,7 @@ export default function ProfilePage({
   onTalentAnbieten,
   onLogout,
   onEditProfile,
+  onViewPublicProfile,  // öffnet eigenes Profil in WirkerProfilePage
 }) {
   if (username) {
     return (
@@ -725,6 +726,7 @@ export default function ProfilePage({
       onTalentAnbieten={onTalentAnbieten}
       onLogout={onLogout}
       onEditProfile={onEditProfile}
+      onViewPublicProfile={onViewPublicProfile}
     />
   );
 }
