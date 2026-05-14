@@ -165,7 +165,8 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
     setUser(null); setProfile(null); setWirkerProfile(null);
     setIsAuthenticated(false);
-    setAuthChecked(false);
+    // WICHTIG: authChecked bleibt true — kein erneuter Loading-Zyklus
+    // onAuthStateChange handelt den State-Reset automatisch
     localStorage.removeItem("hui_is_wirker");
   }, []);
 
