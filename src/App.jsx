@@ -114,20 +114,14 @@ function HUILoader({ message }) {
   );
 }
 
-/* ── Protected Route — never hangs ────────────────────────────────── */
+/* ── Protected Route ───────────────────────────────────────────────── */
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, loadingAuth, authError } = useAuth();
+  const { isAuthenticated, loadingAuth } = useAuth();
 
-  // Auth timed out or errored → redirect to login
-  if (authError === "timeout") {
-    console.warn("[HUI] Auth timeout — redirecting to login");
-    return <Navigate to="/login" replace />;
-  }
+  // Warte bis Auth-Check abgeschlossen
+  if (loadingAuth) return <HUILoader key="auth-loader" message="HUI lädt…" />;
 
-  // Still checking session
-  if (loadingAuth) return <HUILoader key="auth-loader" message="Anmeldung prüfen…" />;
-
-  // Not authenticated → login
+  // Nicht eingeloggt → Login
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return children;
