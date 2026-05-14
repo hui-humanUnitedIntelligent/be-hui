@@ -147,3 +147,54 @@ export const FIELDS = {
   feedItem: 'id,user_id,type,media_url,caption,created_at,likes_count,expires_at',
   impact:   'id,name,category,description,votes,status,awarded_eur,month',
 };
+
+// ─── 11. Zentrales Profil-Feld-Set für alle public profile queries ────
+// Exakt dieselben Felder die WirkerProfilePage erwartet.
+// Deckt profiles-Tabelle vollständig ab (keine imaginären Felder).
+export const PROFILE_FIELDS =
+  'id,display_name,username,avatar_url,header_img,bio,' +
+  'is_wirker,has_talent_profile,focus_type,talent,' +
+  'location_label,is_available,impact_eur,created_at,' +
+  'dna_tags,profile_modules,role,followers_count';
+
+// ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
+// Gleicht alle historisch unterschiedlichen Feldnamen an:
+//   name / display_name / full_name → display_name
+//   img / avatar_url / creatorImg   → avatar_url
+//   bg / header_img / cover_url     → header_img
+//   city / location / location_label → location_label
+//   hourly / hourly_rate             → hourly_rate
+//   recs / recommendations           → recommendations_count
+//   user_id / id                     → user_id + id (beide gesetzt)
+export function normalizeProfileInput(raw) {
+  if (!raw) return null;
+  return {
+    // Identity — wichtigste Felder zuerst
+    id:               raw.id          || raw.user_id    || null,
+    user_id:          raw.user_id     || raw.id         || null,
+    username:         raw.username                      || null,
+    display_name:     raw.display_name || raw.name      || raw.full_name || null,
+    // Visuals
+    avatar_url:       raw.avatar_url  || raw.img        || raw.creatorImg || null,
+    header_img:       raw.header_img  || raw.bg         || raw.cover_url  || null,
+    // Info
+    bio:              raw.bio         || raw.quote       || null,
+    talent:           raw.talent      || raw.skills?.[0] || null,
+    location_label:   raw.location_label || raw.city    || raw.location   || null,
+    focus_type:       raw.focus_type                    || "hybrid",
+    // Stats
+    hourly_rate:      raw.hourly_rate || raw.hourly      || null,
+    impact_eur:       raw.impact_eur  || raw.impactEur   || 0,
+    followers_count:  raw.followers_count || raw.followers || 0,
+    recommendations_count: raw.recommendations_count || raw.recs || raw.recommendations || 0,
+    works_count:      raw.works_count || raw.works        || 0,
+    // Arrays
+    dna_tags:         raw.dna_tags    || raw.skills      || [],
+    profile_modules:  raw.profile_modules                || {},
+    // Booleans
+    is_available:     raw.is_available ?? raw.available  ?? true,
+    is_wirker:        raw.is_wirker   || raw.has_talent_profile || false,
+    // Dates
+    created_at:       raw.created_at                    || null,
+  };
+}
