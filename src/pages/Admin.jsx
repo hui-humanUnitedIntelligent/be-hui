@@ -19,11 +19,24 @@ export default function Admin() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [w, p, pr] = await Promise.all([
-        supabase.from("wirker").select("id,display_name,username,email,avatar_url,is_wirker,has_talent_profile,created_at").then(r => r.data || []),
-        supabase.from("payments").select("id,display_name,username,email,avatar_url,is_wirker,has_talent_profile,created_at").then(r => r.data || []),
-        supabase.from("impact_projects").select("id,display_name,username,email,avatar_url,is_wirker,has_talent_profile,created_at").then(r => r.data || []),
+      // Pure async/await — no .then() mixed with await
+      const [wirkerRes, paymentsRes, projectsRes] = await Promise.all([
+        supabase.from("wirker")
+          .select("id,name,full_name,talent,location,img,verified,bookings,impact_eur,created_at")
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase.from("payments")
+          .select("id,user_id,wirker_name,amount_eur,impact_eur,status,payment_status,created_at")
+          .order("created_at", { ascending: false })
+          .limit(200),
+        supabase.from("impact_projects")
+          .select("id,name,category,description,votes,status,goal_eur,awarded_eur,month")
+          .order("votes", { ascending: false })
+          .limit(50),
       ]);
+      const w  = wirkerRes.data   || [];
+      const p  = paymentsRes.data || [];
+      const pr = projectsRes.data || [];
       setWirker(w);
       setPayments(p);
       setProjects(pr);
