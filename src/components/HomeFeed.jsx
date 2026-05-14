@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import mockWirkerProfiles from "../lib/mockData";
+import { FeedEndSentinel } from './VirtualFeedList';
 
 /* ─── Design Tokens ───────────────────────────────── */
 const T = {
@@ -670,7 +671,11 @@ function SkeletonCard() {
 }
 
 /* ─── Haupt HomeFeed ─────────────────────────────── */
-export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact }) {
+export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
+  onLoadMore,
+  loadingMore = false,
+  hasMore = false,
+}) {
   const [sections, setSections] = useState(SECTIONS);
   const [loading,  setLoading]  = useState(true);
 
@@ -744,8 +749,13 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact }
         ))
       }
 
-      {/* Footer */}
+      {/* Infinite scroll sentinel — loads more when near bottom */}
       {!loading && (
+        <FeedEndSentinel onVisible={onLoadMore} loading={!!loadingMore} />
+      )}
+
+      {/* Footer — only when truly at end */}
+      {!loading && !hasMore && (
         <div style={{ textAlign: "center", padding: "24px 20px 16px" }}>
           <div className="hui-breathe" style={{ fontSize: 28, marginBottom: 8 }}>🌱</div>
           <div style={{ fontSize: 14, fontWeight: 600, color: T.muted }}>
