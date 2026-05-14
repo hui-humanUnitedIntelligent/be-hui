@@ -680,6 +680,7 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     async function loadLive() {
       try {
         const { data: posts } = await supabase
@@ -687,7 +688,7 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
           .select("*, profiles(name, profile_image_url)")
           .order("created_at", { ascending: false })
           .limit(6);
-
+        if (!mounted) return;
         if (posts?.length) {
           const liveItems = posts.slice(0, 3).map(p => ({
             id: "live_" + p.id,
@@ -700,16 +701,17 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
             wirkerImg:  p.profiles?.profile_image_url,
             mood: "teal",
           }));
-          setSections(prev => {
+          if (mounted) setSections(prev => {
             const updated = [...prev];
             updated[0] = { ...updated[0], items: [...liveItems, ...updated[0].items.slice(0, 2)] };
             return updated;
           });
         }
       } catch {}
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
     loadLive();
+    return () => { mounted = false; };
   }, []);
 
   const renderItem = useCallback((item, secIdx, itemIdx) => {
