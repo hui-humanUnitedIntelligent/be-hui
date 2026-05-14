@@ -1080,7 +1080,8 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   const [hasMore,    setHasMore]    = useState(true);
   const [loadingMore,setLoadingMore]= useState(false);
   const PAGE_SIZE = 12;
-  const loaderRef = useRef(null);
+  const loaderRef            = useRef(null);
+  const scrollContainerRef   = useRef(null); // ref auf .df-scroll für VirtualFeedList
 
   const loadFeed = useCallback(async (reset = true) => {
     if (reset) { setFeedLoading(true); setFeedError(null); setPage(0); setHasMore(true); }
@@ -1170,7 +1171,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   return (
     <>
       <style>{CSS}</style>
-      <div className="df-scroll"
+      <div className="df-scroll" ref={scrollContainerRef}
         style={{ background:C.creamWarm, overflowY:"auto",
           height:"100%", WebkitOverflowScrolling:"touch",
           paddingBottom:110 }}>
@@ -1294,8 +1295,9 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
           <VirtualFeedList
             items={liveFeedItems}
-            estimatedSize={380}
-            overscan={3}
+            scrollContainerRef={scrollContainerRef}
+            estimatedSize={520}
+            overscan={5}
             onEndReached={hasMore ? loadMore : undefined}
             renderItem={(item, i) => {
               if (!item) return null;
