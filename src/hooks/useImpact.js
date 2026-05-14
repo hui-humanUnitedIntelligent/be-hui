@@ -3,25 +3,27 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { ImpactService, MembershipService } from '../services/db';
 
 export function useImpact() {
-  const [projects,  setProjects]  = useState([]);
-  const [round,     setRound]     = useState(null);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [round,    setRound]    = useState(null);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(null);
   const mounted = useRef(true);
 
   useEffect(() => {
     mounted.current = true;
-    Promise.all([
-      ImpactService.getActiveProjects(),
-      ImpactService.getCurrentRound(),
-    ]).then(([projRes, roundRes]) => {
+
+    (async () => {
+      const [projRes, roundRes] = await Promise.all([
+        ImpactService.getActiveProjects(),
+        ImpactService.getCurrentRound(),
+      ]);
       if (!mounted.current) return;
       setProjects(projRes.data || []);
       setRound(roundRes.data || null);
+      setError(projRes.error?.message || null);
       setLoading(false);
-    }).catch(e => {
-      if (mounted.current) { setError(e.message); setLoading(false); }
-    });
+    })();
+
     return () => { mounted.current = false; };
   }, []);
 
@@ -32,13 +34,20 @@ export function useImpactVote(userId) {
   const [votes,      setVotes]      = useState([]);
   const [voteWeight, setVoteWeight] = useState(1);
   const [casting,    setCasting]    = useState(false);
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
     if (!userId) return;
-    // Load current membership to get vote weight
-    MembershipService.getForUser(userId).then(({ data }) => {
+
+    // Pure async IIFE — no .then()
+    (async () => {
+      const { data } = await MembershipService.getForUser(userId);
+      if (!mounted.current) return;
       setVoteWeight(MembershipService.getVoteWeight(data));
-    });
+    })();
+
+    return () => { mounted.current = false; };
   }, [userId]);
 
   const loadVotes = useCallback(async (roundId) => {
@@ -56,9 +65,9 @@ export function useImpactVote(userId) {
     return result;
   }, [userId, voteWeight]);
 
-  const maxVotes = voteWeight >= 2 ? 2 : 1;
+  const maxVotes  = voteWeight >= 2 ? 2 : 1;
   const votesUsed = votes.length;
-  const canVote = votesUsed < maxVotes;
+  const canVote   = votesUsed < maxVotes;
 
   return { votes, voteWeight, maxVotes, votesUsed, canVote, casting, loadVotes, castVote };
 }
