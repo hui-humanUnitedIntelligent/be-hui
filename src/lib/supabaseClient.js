@@ -26,13 +26,13 @@ function makeAdapter(tableName) {
   return {
     list: async () => {
       if (!_supabase) return [];
-      const { data, error } = await _supabase.from(tableName).select("*");
+      const { data, error } = await _supabase.from(tableName).select(fields || "*");
       if (error) { console.error(error); return []; }
       return data || [];
     },
     filter: async (query) => {
       if (!_supabase) return [];
-      let req = _supabase.from(tableName).select("*");
+      let req = _supabase.from(tableName).select(fields || "*");
       if (query) Object.entries(query).forEach(([k, v]) => { req = req.eq(k, v); });
       const { data, error } = await req;
       if (error) { console.error(error); return []; }
@@ -40,7 +40,7 @@ function makeAdapter(tableName) {
     },
     get: async (id) => {
       if (!_supabase) return null;
-      const { data, error } = await _supabase.from(tableName).select("*").eq("id", id).single();
+      const { data, error } = await _supabase.from(tableName).select(fields || "*").eq("id", id).single();
       if (error) return null;
       return data;
     },
