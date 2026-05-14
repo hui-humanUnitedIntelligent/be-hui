@@ -1363,7 +1363,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             scrollContainerRef={scrollContainerRef}
             estimatedSize={520}
             overscan={5}
-            onEndReached={hasMore ? loadMore : undefined}
+            onEndReached={hasMore ? () => loadFeed(false) : undefined}
             renderItem={(item, i) => {
               // SafeVirtualRow in VirtualFeedList fängt Crashes — aber
               // renderItem selbst extra absichern für maximale Isolation
