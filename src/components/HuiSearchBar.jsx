@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -65,7 +66,7 @@ export default function HuiSearchBar({ onMatchClick, onKarteClick }) {
         const q = query.trim().toLowerCase();
         const [profileRes, workRes, expRes] = await Promise.all([
           supabase.from("profiles")
-            .select("id,display_name,avatar_url,bio,location,focus_type")
+            .select(PROFILE_FIELDS)
             .eq("has_talent_profile",true)
             .or(`display_name.ilike.%${q}%,bio.ilike.%${q}%,location.ilike.%${q}%`)
             .limit(6),
