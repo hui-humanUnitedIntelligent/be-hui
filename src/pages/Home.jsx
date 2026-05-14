@@ -1488,9 +1488,12 @@ export default function Home() {
           onNotifs={()=>setShowNotifs(true)}
           onProfile={()=>{
             if (authProfile) {
-              setShowWirker({ id: authProfile.id, user_id: authProfile.id });
-            } else {
-              setTab("profile");
+              // Öffentliches Profil öffnen — nicht Mein HUI
+              setShowWirker({
+                id:       authProfile.id,
+                user_id:  authProfile.id,
+                username: authProfile.username,
+              });
             }
           }}
           cartCount={cart.length}
