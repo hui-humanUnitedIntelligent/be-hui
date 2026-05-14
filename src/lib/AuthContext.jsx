@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import { FIELDS } from "./perfUtils";
 
 const AuthContext = createContext(null);
 
@@ -30,7 +31,7 @@ export function AuthProvider({ children }) {
     setLoadingProfile(true);
     try {
       const { data: prof, error } = await withTimeout(
-        supabase.from("profiles").select("*").eq("id", userId).single(), 8000
+        supabase.from("profiles").select(FIELDS.profile).eq("id", userId).single(), 8000
       );
 
       if (!prof && error?.code === "PGRST116") {
@@ -50,7 +51,7 @@ export function AuthProvider({ children }) {
         if (prof.has_talent_profile) localStorage.setItem("hui_talent", "1");
         if (prof.is_wirker) {
           const { data: wp } = await withTimeout(
-            supabase.from("wirker_profiles").select("*").eq("user_id", userId).single(), 6000
+            supabase.from("wirker_profiles").select(FIELDS.wirker).eq("user_id", userId).single(), 6000
           );
           setWirkerProfile(wp || null);
         }
