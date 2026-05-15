@@ -1453,12 +1453,22 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   }
 
   const loadFeed = useCallback(async (reset = true) => {
-    if (loadingRef.current && !reset) return;
+    // Guard: kein paralleler Load, auch bei reset
+    if (loadingRef.current) {
+      console.log("[HUI Feed] loadFeed SKIPPED — already loading, reset=", reset);
+      if (reset) {
+        // Bei reset: kurz warten, dann retry
+        setTimeout(() => { loadingRef.current = false; }, 500);
+      }
+      return;
+    }
     loadingRef.current = true;
     let mounted = true;
 
     if (reset) {
       pageRef.current = 0;
+      // WICHTIG: dbFeed NICHT auf [] setzen — Feed bleibt während reload sichtbar
+      // Skeleton erscheint über bestehendem Content (feedLoading=true)
       setFeedLoading(true); setFeedError(null); setPage(0); setHasMore(true);
     } else {
       setLoadingMore(true);
@@ -1622,9 +1632,14 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       const combined = interleaveFeeds(works, experiences, stories);
       if (!mounted) return;
 
+      // Debug log vor State-Update
+      console.log("[HUI Feed] ✓ setDbFeed — combined:", combined.length,
+        "works:", works.length, "exp:", experiences.length, "stories:", stories.length,
+        "reset:", reset);
+
       if (reset) {
         setDbWerke(works);
-        setDbFeed(combined);
+        setDbFeed(combined);   // atomic — React batcht beides mit feedLoading=false
       } else {
         setDbWerke(prev => [...prev, ...works]);
         setDbFeed(prev => [...prev, ...combined]);
@@ -1649,15 +1664,9 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
 
   // visibilitychange: iPad Safari Background Resume Recovery
   useEffect(() => {
-    let hiddenAt       = 0;
-    let loadingStartAt = 0;          // merken wann feedLoading startete
-    let stallTimer     = null;
-
-    // Schwellen:
-    //  > 60s  Idle → Feed neu laden (vorher 5min — zu lang für iPad)
-    //  > 8s   feedLoading hängt nach Resume → force reset
-    const RELOAD_THRESHOLD_MS = 60 * 1000;       // 60 Sekunden
-    const STALL_THRESHOLD_MS  =  8 * 1000;       //  8 Sekunden
+    let hiddenAt = 0;
+    // Schwelle: > 60s Idle → Feed neu laden
+    const RELOAD_THRESHOLD_MS = 60 * 1000;
 
     function onVisibility() {
       if (document.hidden) {
@@ -1670,34 +1679,20 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       const idleMs = hiddenAt > 0 ? Date.now() - hiddenAt : 0;
       console.log('[DiscoveryFeed] visibility resume, idle=' + Math.round(idleMs / 1000) + 's');
 
-      if (hiddenAt > 0 && idleMs > RELOAD_THRESHOLD_MS) {
-        // Lang genug weg → Feed neu laden
+      if (hiddenAt > 0 && idleMs > RELOAD_THRESHOLD_MS && !loadingRef.current) {
+        // Lang genug weg → Feed neu laden (guard: nicht wenn bereits loading)
         console.log('[DiscoveryFeed] Reload nach Idle: ' + Math.round(idleMs/1000) + 's');
         loadFeed(true);
       }
 
-      // Stall-Guard: nach Resume auf feedLoading=true prüfen
-      // Wenn feedLoading nach STALL_THRESHOLD_MS noch true → force reset
-      stallTimer = setTimeout(() => {
-        // Zugriff auf feedLoading über closure — aktueller Wert durch
-        // React-State nicht direkt lesbar hier, daher über DOM-Fallback
-        const skeleton = document.querySelector('[data-hui-skeleton]');
-        if (skeleton) {
-          console.warn('[DiscoveryFeed] Skeleton stall detected after resume — forcing reload');
-          sentryCapture(new Error('DiscoveryFeed skeleton stall after resume'), {
-            source:   'DiscoveryFeed.visibilityStall',
-            idle_ms:  idleMs,
-          });
-          loadFeed(true);
-        }
-        stallTimer = null;
-      }, STALL_THRESHOLD_MS);
+      // Stall-Guard: entfernt — verursachte Race Conditions
+      // (stallTimer feuerte während erster Load noch lief → doppelter loadFeed)
+      // Stattdessen: loadingRef guard verhindert parallele loads
     }
 
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      if (stallTimer) clearTimeout(stallTimer);
     };
   }, [loadFeed]);
 
@@ -1925,6 +1920,19 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
 
   const moodStyle = (activeMood && MOOD_STYLE[activeMood.key]) || null;
   const liveWerke     = dbWerke;
+
+  // ── RENDER DIAGNOSE (einmalig bei jedem render) ─────────────────
+  // Auskommentieren nach Debugging
+  console.log("[HUI Feed] RENDER —", {
+    feedLoading,
+    dbFeed_len:             dbFeed.length,
+    liveFeedItems_len:      liveFeedItems.length,
+    normalizedFeedItems_len: normalizedFeedItems.length,
+    liveWerke_len:          liveWerke.length,
+    hasMore,
+    feedError: feedError || null,
+    isEmpty: !feedLoading && normalizedFeedItems.length === 0,
+  });
 
   return (
     <>
@@ -2312,8 +2320,8 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
 
           />
 
-          {/* ── Empty state wenn keine echten Daten ── */}
-          {!feedLoading && normalizedFeedItems.length === 0 && (
+          {/* ── Empty state — NUR wenn: kein Fehler beim laden UND wirklich 0 items ── */}
+          {!feedLoading && normalizedFeedItems.length === 0 && dbFeed.length === 0 && (
             <div style={{ padding:"60px 28px", textAlign:"center" }}>
               <div style={{ fontSize:40, marginBottom:16 }}>🌱</div>
               <div style={{ fontSize:16, fontWeight:700, color:C.ink, marginBottom:8 }}>
@@ -2371,7 +2379,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           )}
 
           {/* ── Feed end (nur wenn alles geladen) ── */}
-          {!hasMore && liveFeedItems.length > 0 && (
+          {!hasMore && normalizedFeedItems.length > 0 && (
             <div style={{ padding:"44px 28px 0", textAlign:"center" }}>
               <div style={{ width:36, height:1, background:C.teal,
                 margin:"0 auto 14px", opacity:0.4 }}/>
