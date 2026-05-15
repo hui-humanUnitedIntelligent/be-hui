@@ -2,6 +2,7 @@
 // Emotional, warm, kreativ. Kein Shopify-Backend.
 import React, { useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { MOOD_TAG_OPTIONS, ENERGY_LEVELS } from "../lib/moodUtils";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -393,6 +394,9 @@ function WerkCreateFlow({ onClose, onPublish }) {
         images: uploadedUrls,
         cover_url: uploadedUrls[0] || null,
         status: draft_mode ? "draft" : "published",
+        mood_tags:     Array.isArray(draft.moodTags) && draft.moodTags.length > 0 ? draft.moodTags : null,
+        energy_level:  draft.energyLevel  || null,
+        social_energy: draft.socialEnergy || null,
       };
       console.log("[HUI] INSERT payload:", JSON.stringify(payload, null, 2));
 
@@ -720,6 +724,65 @@ function WerkCreateFlow({ onClose, onPublish }) {
                     Jetzt kaufen
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* ── Emotionales Tagging ── */}
+            <div style={{
+              marginBottom:18, padding:"14px 16px", borderRadius:18,
+              background:"linear-gradient(135deg,rgba(22,215,197,0.04),rgba(167,139,250,0.04))",
+              border:"1px solid rgba(0,0,0,0.05)",
+            }}>
+              <div style={{ fontSize:13, fontWeight:800, color:C.ink, marginBottom:2 }}>
+                Wie fühlt sich dein Werk an?
+              </div>
+              <div style={{ fontSize:11.5, color:C.muted, marginBottom:10 }}>
+                Optional — hilft passenden Menschen dich zu entdecken.
+              </div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
+                {MOOD_TAG_OPTIONS.slice(0,8).map(tag => {
+                  const on = (draft.moodTags||[]).includes(tag.key);
+                  return (
+                    <button key={tag.key} className="cf-tap"
+                      onClick={() => up("moodTags",
+                        on ? (draft.moodTags||[]).filter(k=>k!==tag.key)
+                           : (draft.moodTags||[]).length < 3
+                           ? [...(draft.moodTags||[]), tag.key]
+                           : (draft.moodTags||[])
+                      )}
+                      style={{
+                        display:"flex", alignItems:"center", gap:5,
+                        padding:"6px 12px", borderRadius:999,
+                        background: on ? `${tag.color}18` : "rgba(0,0,0,0.04)",
+                        border: on ? `1.5px solid ${tag.color}44` : "1.5px solid rgba(0,0,0,0.06)",
+                        color: on ? tag.color : C.muted,
+                        fontSize:12, fontWeight: on ? 800 : 500,
+                        fontFamily:"inherit", cursor:"pointer",
+                        transition:"all .18s cubic-bezier(.34,1.3,.64,1)",
+                      }}>
+                      <span style={{fontSize:13}}>{tag.emoji}</span>{tag.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display:"flex", gap:6 }}>
+                {ENERGY_LEVELS.map(lvl => {
+                  const on = draft.energyLevel === lvl.key;
+                  return (
+                    <button key={lvl.key} className="cf-tap"
+                      onClick={() => up("energyLevel", on ? null : lvl.key)}
+                      style={{
+                        flex:1, padding:"8px 4px", borderRadius:12, textAlign:"center",
+                        background: on ? "rgba(22,215,197,0.08)" : "rgba(0,0,0,0.04)",
+                        border: on ? "1.5px solid rgba(22,215,197,0.35)" : "1.5px solid rgba(0,0,0,0.06)",
+                        fontFamily:"inherit", cursor:"pointer", transition:"all .18s",
+                      }}>
+                      <div style={{fontSize:14, marginBottom:1}}>{lvl.emoji}</div>
+                      <div style={{fontSize:10.5, fontWeight: on ? 800:500,
+                        color: on ? "#16D7C5" : C.muted}}>{lvl.label}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
