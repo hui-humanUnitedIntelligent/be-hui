@@ -982,7 +982,7 @@ function MomenteBar({ user, onOpenComposer, refreshKey }) {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("stories")
-        .select("id,user_id,username,avatar_url,media_url,media_type,text_overlay,mood,is_highlight,created_at,expires_at")
+        .select("id,user_id,username,avatar_url,media_url,media_type,text_overlay,caption,is_highlight,created_at,expires_at,status")
         .eq("status","published")
         .or(`expires_at.is.null,expires_at.gt.${now},is_highlight.eq.true`)
         .order("created_at", { ascending: false })
@@ -1496,19 +1496,19 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
 
       const worksQ = supabase
         .from("works")
-        .select("id, title, description, price, cover_url, media_url, images, category, status, state, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, for_sale, created_at, user_id")
+        .select("id, title, description, price, cover_url, media_url, images, category, status, for_sale, created_at, user_id")
         .order("created_at", { ascending: false })
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       const expQ = supabase
         .from("experiences")
-        .select("id, title, description, price, price_type, format, location_text, category, status, state, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, media_url, media_type, caption, available_days, language, created_at, user_id")
+        .select("id, title, description, price, format, location_text, category, status, media_url, media_type, created_at, user_id")
         .order("created_at", { ascending: false })
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       const storiesQ = supabase
         .from("stories")
-        .select("id, media_url, media_type, caption, location, mood_tags, atmosphere_tags, energy_level, social_energy, status, state, created_at, user_id")
+        .select("id, media_url, media_type, caption, location, status, created_at, user_id")
         .order("created_at", { ascending: false })
         .range(0, PAGE_SIZE - 1);
 
