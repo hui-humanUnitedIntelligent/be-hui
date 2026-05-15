@@ -1426,11 +1426,30 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   const loaderRef            = useRef(null);
   const scrollContainerRef   = useRef(null); // ref auf .df-scroll für VirtualFeedList
 
+
+  // ── interleaveFeeds: mischt Works, Experiences und Stories zu einem Feed ──
+  // Pattern: 2 Works → 1 Exp/Story → 2 Works → 1 Exp/Story …
+  // Stellt sicher dass neue Inhalte sichtbar werden
+  function interleaveFeeds(works, experiences, stories) {
+    const extras = [...experiences, ...stories].sort(
+      (a, b) => new Date(b._raw?.created_at || 0) - new Date(a._raw?.created_at || 0)
+    );
+    const result = [];
+    let wi = 0, ei = 0;
+    while (wi < works.length || ei < extras.length) {
+      // 2 Works
+      for (let k = 0; k < 2 && wi < works.length; k++) result.push(works[wi++]);
+      // 1 Extra (Experience oder Story)
+      if (ei < extras.length) result.push(extras[ei++]);
+    }
+    return result;
+  }
+
   const loadFeed = useCallback(async (reset = true) => {
-    // Guard: prevent concurrent loads when not resetting
+    // Guard: kein concurrent load ausser bei reset
     if (loadingRef.current && !reset) return;
     loadingRef.current = true;
-    let mounted = true;  // per-call unmount guard
+    let mounted = true;
 
     if (reset) {
       pageRef.current = 0;
@@ -1442,50 +1461,132 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     const currentPage = reset ? 0 : pageRef.current;
 
     try {
-      // 1. Works laden mit Pagination
-      const { data: worksData, error: worksErr } = await supabase
+      // ── 1. Works, Experiences und Stories parallel laden ──────────
+      const worksQ = supabase
         .from("works")
-        .select("id, title, description, price, cover_url, media_url, images, category, status, created_at, user_id")
+        .select("id, title, description, price, cover_url, media_url, images, category, status, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, for_sale, created_at, user_id")
         .eq("status", "published")
         .order("created_at", { ascending: false })
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
-      if (!mounted) return;   // unmounted during first await
-      if (worksErr) throw worksErr;
-      const rawWorks = worksData || [];
+      const expQ = supabase
+        .from("experiences")
+        .select("id, title, description, price, price_type, format, location_text, category, status, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, media_url, media_type, caption, available_days, language, created_at, user_id")
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
+
+      const storiesQ = supabase
+        .from("stories")
+        .select("id, media_url, media_type, caption, location, mood_tags, atmosphere_tags, energy_level, social_energy, status, created_at, user_id")
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .range(0, PAGE_SIZE - 1);  // Stories nur erste Seite
+
+      // Parallel fetchen
+      const [worksRes, expRes, storiesRes] = await Promise.allSettled([worksQ, expQ, storiesQ]);
+      if (!mounted) return;
+
+      // Fehler nur loggen, nicht werfen — Feed soll partial funktionieren
+      const rawWorks    = worksRes.status   === "fulfilled" ? (worksRes.value.data   || []) : [];
+      const rawExp      = expRes.status     === "fulfilled" ? (expRes.value.data     || []) : [];
+      const rawStories  = storiesRes.status === "fulfilled" ? (storiesRes.value.data || []) : [];
+
+      if (worksRes.status   === "rejected") console.warn("[HUI Feed] works error:",    worksRes.reason);
+      if (expRes.status     === "rejected") console.warn("[HUI Feed] exp error:",      expRes.reason);
+      if (storiesRes.status === "rejected") console.warn("[HUI Feed] stories error:",  storiesRes.reason);
+
       if (rawWorks.length < PAGE_SIZE) setHasMore(false);
 
-      // 2. Profile fuer alle Creator laden (1 Query statt N)
-      const userIds = [...new Set(rawWorks.map(w => w.user_id).filter(Boolean))];
+      // ── 2. Profile für alle Creator laden (1 Query) ──────────────
+      const allUserIds = [
+        ...new Set([
+          ...rawWorks.map(w => w.user_id),
+          ...rawExp.map(e => e.user_id),
+          ...rawStories.map(s => s.user_id),
+        ].filter(Boolean))
+      ];
       let profileMap = {};
-      if (userIds.length > 0) {
+      if (allUserIds.length > 0) {
         const { data: profs } = await supabase
           .from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,talent,focus_type,location_label,impact_eur,is_wirker,has_talent_profile")
-          .in("id", userIds);
-        if (!mounted) return;   // unmounted during second await
+          .select("id,username,display_name,avatar_url,header_img,bio,talent,focus_type,location_label,impact_eur")
+          .in("id", allUserIds);
+        if (!mounted) return;
         (profs || []).forEach(p => { profileMap[p.id] = p; });
       }
 
-      // 3. Works + Profile zusammenfuehren
-      const works = rawWorks.map(w => mapWork(w, normalizeProfileInput(profileMap[w.user_id]) || {}));
+      // ── 3. Mapping ────────────────────────────────────────────────
+      const works = rawWorks.map(w =>
+        mapWork(w, normalizeProfileInput(profileMap[w.user_id]) || {})
+      );
+
+      const experiences = rawExp.map(e => ({
+        id:              e.id,
+        type:            "experience",
+        title:           e.title           || "Erlebnis",
+        creator:         profileMap[e.user_id]?.display_name || profileMap[e.user_id]?.username || "Wirker",
+        creatorUsername: profileMap[e.user_id]?.username     || null,
+        creatorImg:      profileMap[e.user_id]?.avatar_url   || null,
+        city:            e.location_text   || profileMap[e.user_id]?.location_label || "",
+        price:           e.price != null   ? `€ ${Number(e.price).toFixed(0)}/${e.price_type || "Session"}` : "",
+        category:        e.category        || "Erlebnis",
+        bio:             e.description     || e.caption || "",
+        img:             e.media_url       || profileMap[e.user_id]?.header_img || null,
+        format:          e.format          || "online",
+        language:        e.language        || "Deutsch",
+        mood_tags:       e.mood_tags       || null,
+        atmosphere_tags: e.atmosphere_tags || null,
+        energy_level:    e.energy_level    || null,
+        social_energy:   e.social_energy   || null,
+        creator_vibe:    e.creator_vibe    || null,
+        _raw: e,
+      }));
+
+      const stories = rawStories.map(s => ({
+        id:              s.id,
+        type:            "werk",          // im Feed als werk-Karte rendern
+        title:           s.caption        || "Moment",
+        creator:         profileMap[s.user_id]?.display_name || profileMap[s.user_id]?.username || "",
+        creatorUsername: profileMap[s.user_id]?.username     || null,
+        creatorImg:      profileMap[s.user_id]?.avatar_url   || null,
+        city:            s.location       || "",
+        price:           "",
+        category:        "Moment",
+        bio:             s.caption        || "",
+        img:             s.media_url      || null,
+        mood_tags:       s.mood_tags      || null,
+        atmosphere_tags: s.atmosphere_tags || null,
+        energy_level:    s.energy_level   || null,
+        social_energy:   s.social_energy  || null,
+        _raw: s,
+      }));
+
+      // ── 4. Feed-Mix: Works vorne, dann Erlebnisse, dann Momente ──
+      // Interleaved für bessere UX: 2 Works → 1 Experience/Story Muster
+      const combined = interleaveFeeds(works, experiences, stories);
       if (!mounted) return;
 
       if (reset) {
         setDbWerke(works);
-        setDbFeed(works);
+        setDbFeed(combined);
       } else {
         setDbWerke(prev => [...prev, ...works]);
-        setDbFeed(prev => [...prev, ...works]);
+        setDbFeed(prev => [...prev, ...combined]);
         pageRef.current = currentPage + 1;
         setPage(p => p + 1);
       }
-      console.log("[HUI Feed] Loaded page", currentPage, "works:", works.length);
+
+      console.log("[HUI Feed] page", currentPage,
+        "works:", works.length,
+        "exp:", experiences.length,
+        "stories:", stories.length);
+
     } catch(e) {
       if (!mounted) return;
       sentryCapture(e, {
         source:       'DiscoveryFeed.loadFeed',
-        reset:        reset,
+        reset,
         current_page: currentPage,
         document_hidden: document.hidden,
       });
@@ -1493,14 +1594,10 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       setFeedError(e.message);
     } finally {
       loadingRef.current = false;
-      if (mounted) {
-        setFeedLoading(false);
-        setLoadingMore(false);
-      }
-      // cleanup: mark unmounted for any dangling callbacks
+      if (mounted) { setFeedLoading(false); setLoadingMore(false); }
       mounted = false;
     }
-  }, []);  // no page dep — pageRef is always current
+  }, []);  // no page dep — pageRef ist immer aktuell
 
   useEffect(() => { loadFeed(true); }, []);
   useEffect(() => { if (refreshSignal) loadFeed(true); }, [refreshSignal]);
