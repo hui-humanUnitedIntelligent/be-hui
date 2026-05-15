@@ -445,7 +445,7 @@ function paddingBottom(variant) {
 }
 
 /* ── WIRKER CARD ─────────────────────────────────────────────────── */
-function WirkerCard({ item, onView, onBook, variant = "hero" }) {
+function WirkerCard({ item, onView, onBook, variant = "hero", moodCtx = null }) {
   const h = cardH(variant, "wirker");
   const isCompact = variant === "compact";
   const isMid     = variant === "mid";
@@ -462,12 +462,12 @@ function WirkerCard({ item, onView, onBook, variant = "hero" }) {
 
       {/* BG Ken-Burns (nur hero/full für Performance) */}
       <div style={{ position:"absolute", inset:0,
-        animation: !isCompact ? "dfKenBurns 22s ease-in-out infinite alternate" : "none" }}>
+        animation: !isCompact ? `dfKenBurns ${moodCtx?.kenBurnsDuration || "22s"} ease-in-out infinite alternate` : "none" }}>
         <img loading="lazy" decoding="async"
           src={item.img || item.avatar_url} alt={item.name || item.display_name}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             objectPosition:"top center",
-            filter:`brightness(${isCompact ? "0.72" : "0.65"}) saturate(1.22)` }}/>
+            filter: moodCtx?.imgFilter || `brightness(${isCompact ? "0.72" : "0.65"}) saturate(1.22)` }}/>
       </div>
 
       {/* Ambient Teal top-left + deep bottom gradient */}
@@ -481,6 +481,11 @@ function WirkerCard({ item, onView, onBook, variant = "hero" }) {
             rgba(6,6,6,${isCompact ? "0.84" : "0.90"}) 100%)` }}/>
 
       {/* Accent line */}
+      {moodCtx?.ambientColor && (
+        <div style={{ position:"absolute", inset:0, pointerEvents:"none",
+          background:`radial-gradient(ellipse 70% 40% at 5% 5%, ${moodCtx.ambientColor} 0%, transparent 65%)`,
+          mixBlendMode:"screen", opacity:0.65, zIndex:1 }}/>
+      )}
       <div style={{ position:"absolute", top:0, left:0, right:0, height:3, pointerEvents:"none",
         background:`linear-gradient(90deg,${C.teal},${C.teal}55,transparent)`, opacity:0.9 }}/>
 
@@ -599,7 +604,7 @@ function WirkerCard({ item, onView, onBook, variant = "hero" }) {
 }
 
 /* ── WERK CARD ───────────────────────────────────────────────────── */
-function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate, variant = "hero" }) {
+function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate, variant = "hero", moodCtx = null }) {
   const h = cardH(variant, "werk");
   const isCompact = variant === "compact";
 
@@ -620,7 +625,7 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate, variant = "h
         animation: !isCompact ? "dfKenBurns 20s ease-in-out infinite alternate" : "none" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:`brightness(${isCompact ? "0.75" : "0.68"}) saturate(1.24)` }}/>
+            filter: moodCtx?.imgFilter || `brightness(${isCompact ? "0.75" : "0.68"}) saturate(1.24)` }}/>
       </div>
 
       <div style={{ position:"absolute", inset:0, pointerEvents:"none",
@@ -725,7 +730,7 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate, variant = "h
 }
 
 /* ── EXPERIENCE CARD ─────────────────────────────────────────────── */
-function ExperienceCard({ item, onView, variant = "hero" }) {
+function ExperienceCard({ item, onView, variant = "hero", moodCtx = null }) {
   const h = cardH(variant, "experience");
   const isCompact = variant === "compact";
 
@@ -743,7 +748,7 @@ function ExperienceCard({ item, onView, variant = "hero" }) {
         animation: !isCompact ? "dfKenBurns 18s ease-in-out infinite alternate" : "none" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:`brightness(${isCompact ? "0.70" : "0.62"}) saturate(1.28)` }}/>
+            filter: moodCtx?.imgFilter || `brightness(${isCompact ? "0.70" : "0.62"}) saturate(1.28)` }}/>
       </div>
 
       <div style={{ position:"absolute", inset:0, pointerEvents:"none",
@@ -834,7 +839,7 @@ function ExperienceCard({ item, onView, variant = "hero" }) {
 }
 
 /* ── IMPACT CARD ─────────────────────────────────────────────────── */
-function ImpactCard({ item, onImpact, variant = "hero" }) {
+function ImpactCard({ item, onImpact, variant = "hero", moodCtx = null }) {
   const h = cardH(variant, "impact");
   const isCompact = variant === "compact";
   const pct = Math.min(Math.round(((item.raised||0) / (item.goal||1)) * 100), 100);
@@ -853,7 +858,7 @@ function ImpactCard({ item, onImpact, variant = "hero" }) {
         animation: !isCompact ? "dfKenBurns 26s ease-in-out infinite alternate" : "none" }}>
         <img loading="lazy" decoding="async" src={item.img} alt={item.title}
           style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:`brightness(${isCompact ? "0.62" : "0.55"}) saturate(1.30)` }}/>
+            filter: moodCtx?.imgFilter || `brightness(${isCompact ? "0.62" : "0.55"}) saturate(1.30)` }}/>
       </div>
 
       <div style={{ position:"absolute", inset:0, pointerEvents:"none",
@@ -1673,6 +1678,66 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       .map(s => s.item);
   }, [dbFeed, activeMood]);
   // ── Ende MOOD SCORING ENGINE ─────────────────────────────────────
+  // ── MOOD STYLE ENGINE ─────────────────────────────────────────────
+  // Subtile visuelle Overrides pro Stimmung — via moodCtx an renderItem.
+  const MOOD_STYLE = {
+    ruhe: {
+      imgFilter:        "brightness(0.58) saturate(0.90)",
+      kenBurnsDuration: "38s",
+      overlayDark:      "rgba(4,8,6,0.94)",
+      ambientColor:     "rgba(107,159,212,0.24)",
+      accentColor:      "#6B9FD4",
+      bioOpacity:       0.75,
+      breakPadding:     "28px 22px 10px",
+    },
+    inspiration: {
+      imgFilter:        "brightness(0.70) saturate(1.35)",
+      kenBurnsDuration: "16s",
+      overlayDark:      "rgba(6,4,12,0.82)",
+      ambientColor:     "rgba(245,166,35,0.28)",
+      accentColor:      "#F5A623",
+      bioOpacity:       0.90,
+      breakPadding:     "16px 22px 5px",
+    },
+    gemeinschaft: {
+      imgFilter:        "brightness(0.65) saturate(1.12)",
+      kenBurnsDuration: "24s",
+      overlayDark:      "rgba(8,4,4,0.88)",
+      ambientColor:     "rgba(255,138,107,0.22)",
+      accentColor:      "#FF8A6B",
+      bioOpacity:       0.85,
+      breakPadding:     "22px 22px 8px",
+    },
+    kreativitaet: {
+      imgFilter:        "brightness(0.68) saturate(1.28)",
+      kenBurnsDuration: "18s",
+      overlayDark:      "rgba(6,4,10,0.85)",
+      ambientColor:     "rgba(167,139,250,0.26)",
+      accentColor:      "#A78BFA",
+      bioOpacity:       0.88,
+      breakPadding:     "20px 22px 7px",
+    },
+    abenteuer: {
+      imgFilter:        "brightness(0.70) saturate(1.30)",
+      kenBurnsDuration: "14s",
+      overlayDark:      "rgba(4,8,4,0.80)",
+      ambientColor:     "rgba(61,184,122,0.24)",
+      accentColor:      "#3DB87A",
+      bioOpacity:       0.92,
+      breakPadding:     "15px 22px 5px",
+    },
+  };
+
+  const MOOD_BANNER_TEXTS = {
+    ruhe:          { h:"Für deinen Moment",             s:"Ruhige Inspiration · heute für dich" },
+    inspiration:   { h:"Neue Inspiration für dich",     s:"Kreative Energie · frisch entdeckt" },
+    gemeinschaft:  { h:"Menschen, die zu dir passen",   s:"Begegnungen & Gemeinschaft · kuratiert" },
+    kreativitaet:  { h:"Lass dich kreativ inspirieren", s:"Handwerk, Kunst & kreative Köpfe" },
+    abenteuer:     { h:"Erlebnisse, die warten",        s:"Aktiv & lebendig · für dich gefunden" },
+    ueberraschung: { h:"Frisch entdeckt",               s:"Zufällig kuratiert — vielleicht genau richtig" },
+  };
+
+  const moodStyle = (activeMood && MOOD_STYLE[activeMood.key]) || null;
   const liveWerke     = dbWerke;
 
   return (
@@ -1810,35 +1875,40 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             background:`linear-gradient(270deg,${C.teal}55,${C.coral}33,transparent)` }}/>
         </div>
 
-        {/* ── MOOD BANNER — aktive Stimmung ─────────────── */}
-        {activeMood && (
-          <div style={{
-            margin:"8px 14px 4px",
-            padding:"11px 16px",
-            borderRadius:16,
-            background: activeMood.grad || "rgba(22,215,197,0.08)",
-            border:`1px solid ${activeMood.color || '#16D7C5'}22`,
-            display:"flex", alignItems:"center", gap:10,
-            animation:"dfFadeUp 0.4s both",
-          }}>
-            <span style={{ fontSize:20 }}>{activeMood.emoji}</span>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:12.5, fontWeight:800, color:C.ink,
-                letterSpacing:-0.1 }}>
-                {activeMood.label.replace("Ich ", "")}
+        {/* ── MOOD BANNER — emotional ─────────────────────────── */}
+        {activeMood && (() => {
+          const bt = MOOD_BANNER_TEXTS[activeMood.key] || {};
+          const mc = moodStyle;
+          return (
+            <div style={{
+              margin:"10px 14px 6px", padding:"13px 17px", borderRadius:18,
+              background: activeMood.grad || "rgba(22,215,197,0.07)",
+              border:`1px solid ${mc?.accentColor || activeMood.color || '#16D7C5'}1C`,
+              display:"flex", alignItems:"center", gap:12,
+              animation:"dfFadeUp 0.5s both",
+            }}>
+              <div style={{
+                width:40, height:40, borderRadius:13, flexShrink:0,
+                background:`${mc?.accentColor || activeMood.color || '#16D7C5'}14`,
+                border:`1px solid ${mc?.accentColor || activeMood.color || '#16D7C5'}22`,
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:20,
+              }}>
+                {activeMood.emoji}
               </div>
-              <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>
-                Feed kuratiert · {liveFeedItems.length} Inhalte priorisiert
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:13.5, fontWeight:800, color:"#1A1A1A",
+                  letterSpacing:-0.2, lineHeight:1.25, marginBottom:3 }}>
+                  {bt.h || activeMood.label}
+                </div>
+                <div style={{ fontSize:11.5, color:"#888", lineHeight:1.4, fontWeight:500 }}>
+                  {bt.s || "Für dich kuratiert"}
+                </div>
               </div>
+              <div style={{ width:7, height:7, borderRadius:"50%", flexShrink:0,
+                background: mc?.accentColor || activeMood.color || '#16D7C5', opacity:0.45 }}/>
             </div>
-            <button onClick={() => {}}
-              style={{ background:"none", border:"none", cursor:"default",
-                fontSize:12, color:`${activeMood.color || '#16D7C5'}99`,
-                fontWeight:700, padding:0 }}>
-              ✦
-            </button>
-          </div>
-        )}
+          );
+        })()}
 
 
 
@@ -1901,6 +1971,8 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                 const isMid    = pos === 1 || pos === 2;        // 2er-Gruppe
                 const isFull   = pos === 3;                     // Voller Cinematic
                 const isCompact = pos === 5 || pos === 6;       // Kleiner + kompakter
+                const moodCtx = moodStyle;
+                const breakPx = moodCtx?.breakPadding || "20px 22px 6px";
 
                 // Padding: Hero/Full edge-to-edge, Mid/Compact mit Rand
                 const px = isHero || isFull ? "0 14px" : "0 14px";
@@ -1923,7 +1995,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                   <div key={item.id || i}>
                     {/* ── Atmosphärische Sektion-Pause ── */}
                     {showBreak && (
-                      <div style={{ padding:"20px 22px 6px",
+                      <div style={{ padding:breakPx,
                         display:"flex", alignItems:"center", gap:10 }}>
                         <div style={{ flex:1, height:1,
                           background:`linear-gradient(90deg,${accent}44,transparent)` }}/>
@@ -1939,30 +2011,30 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                     {/* ── HERO / FULL — große Karte ── */}
                     {(isHero || isFull) && (
                       <div style={{ padding:px, marginBottom:isHero ? 6 : 6 }}>
-                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook} variant={isFull ? "full" : "hero"}/>}
-                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant={isFull ? "full" : "hero"}/>}
-                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} variant={isFull ? "full" : "hero"}/>}
-                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} moodCtx={moodCtx} onBook={onBook} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant={isFull ? "full" : "hero"}/>}
                       </div>
                     )}
 
                     {/* ── MID — kompaktere Karte, mehr Luft drumherum ── */}
                     {isMid && (
                       <div style={{ padding:px, marginBottom:6 }}>
-                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook} variant="mid"/>}
-                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="mid"/>}
-                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} variant="mid"/>}
-                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} variant="mid"/>}
+                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} moodCtx={moodCtx} onBook={onBook} variant="mid"/>}
+                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="mid"/>}
+                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant="mid"/>}
+                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant="mid"/>}
                       </div>
                     )}
 
                     {/* ── COMPACT — kleinere Karte mit weniger Höhe ── */}
                     {isCompact && (
                       <div style={{ padding:px, marginBottom:6 }}>
-                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} onBook={onBook} variant="compact"/>}
-                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="compact"/>}
-                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} variant="compact"/>}
-                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} variant="compact"/>}
+                        {item.type==="wirker"     && <MemoWirkerCard     item={item} onView={onView} moodCtx={moodCtx} onBook={onBook} variant="compact"/>}
+                        {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="compact"/>}
+                        {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant="compact"/>}
+                        {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant="compact"/>}
                       </div>
                     )}
                   </div>
