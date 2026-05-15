@@ -452,137 +452,183 @@ function NavIcon({ k, active }) {
 ═══════════════════════════════════════════════════════════════ */
 
 const BN_CSS = `
+  /* ── Orb Breathing Glow — meditative, matter, premium ── */
   @keyframes hui-orb-breathe-glow {
-    0%,100% { box-shadow: 0 0 0 0 rgba(22,215,197,0),
-                           0 6px 24px rgba(22,215,197,0.22),
-                           0 2px 8px rgba(0,0,0,0.10),
-                           0 1px 0 rgba(255,255,255,0.55) inset; }
-    50%      { box-shadow: 0 0 0 0 rgba(22,215,197,0),
-                           0 8px 32px rgba(22,215,197,0.38),
-                           0 2px 8px rgba(0,0,0,0.10),
-                           0 1px 0 rgba(255,255,255,0.55) inset; }
+    0%,100% {
+      box-shadow:
+        0 4px 18px rgba(22,215,197,0.13),
+        0 1px 4px  rgba(0,0,0,0.08),
+        0 1px 0    rgba(255,255,255,0.50) inset;
+    }
+    50% {
+      box-shadow:
+        0 6px 26px rgba(22,215,197,0.22),
+        0 1px 4px  rgba(0,0,0,0.08),
+        0 1px 0    rgba(255,255,255,0.50) inset;
+    }
   }
+  /* ── Card Appear — weich, aus dem Orb entstehend ── */
   @keyframes hui-card-in {
-    from { opacity:0; transform:translateY(18px) scale(0.97); }
-    to   { opacity:1; transform:translateY(0)    scale(1);    }
+    from { opacity:0; transform:translateX(-50%) translateY(14px) scale(0.98); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0)    scale(1);    }
   }
-  @keyframes hui-card-out {
-    from { opacity:1; transform:translateY(0)    scale(1);    }
-    to   { opacity:0; transform:translateY(12px) scale(0.97); }
-  }
-  @keyframes hui-overlay-in  { from{opacity:0} to{opacity:1} }
+  @keyframes hui-overlay-in { from{opacity:0} to{opacity:1} }
+
+  /* ── Tab Buttons ── */
   .hui-bn-btn {
-    display:flex; flex-direction:column; align-items:center; gap:3px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
     background:none; border:none; cursor:pointer; padding:5px 8px 4px;
-    border-radius:16px; position:relative; min-width:48px; min-height:44px;
+    border-radius:16px; position:relative; min-width:50px; min-height:46px;
     -webkit-tap-highlight-color:transparent;
     transition:transform 0.18s cubic-bezier(0.34,1.4,0.64,1);
     justify-content:center;
   }
   .hui-bn-btn:active { transform:scale(0.88); }
   .hui-bn-label {
-    font-size:10px; font-weight:500; letter-spacing:0.05px;
-    color:rgba(60,60,60,0.62); transition:color 0.2s, font-weight 0.2s;
+    font-size:9.5px; font-weight:500; letter-spacing:0.04px;
+    color:rgba(55,55,55,0.55);
+    transition:color 0.22s ease, font-weight 0.22s ease;
     font-family:inherit; line-height:1;
   }
-  .hui-bn-label--active { color:#16D7C5; font-weight:700; }
+  .hui-bn-label--active {
+    color:#16D7C5; font-weight:700;
+  }
   .hui-bn-active-pill {
     position:absolute; inset:0; border-radius:16px; pointer-events:none;
-    background:linear-gradient(150deg,rgba(22,215,197,0.09) 0%,rgba(255,138,107,0.04) 100%);
-    border:1px solid rgba(22,215,197,0.15);
+    background:linear-gradient(150deg,
+      rgba(22,215,197,0.07) 0%,
+      rgba(255,138,107,0.03) 100%);
+    border:1px solid rgba(22,215,197,0.11);
   }
   .hui-bn-dot {
     position:absolute; bottom:2px; left:50%; transform:translateX(-50%);
-    width:3.5px; height:3.5px; border-radius:50%;
+    width:3px; height:3px; border-radius:50%;
     background:linear-gradient(135deg,#16D7C5,#FF8A6B);
-    box-shadow:0 0 4px rgba(22,215,197,0.6);
+    box-shadow:0 0 3px rgba(22,215,197,0.45);
   }
-  /* Orb */
+
+  /* ── Orb Button ── */
   .hui-orb-btn {
-    width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
-    flex-shrink:0; position:relative; margin-top:-12px;
+    width:54px; height:54px; border-radius:50%; border:none; cursor:pointer;
+    flex-shrink:0; position:relative; margin-top:-10px;
     -webkit-tap-highlight-color:transparent;
-    background:radial-gradient(circle at 36% 32%,
-      rgba(255,255,255,0.88) 0%, rgba(255,252,248,0.72) 40%,
-      rgba(22,215,197,0.10) 100%);
-    backdrop-filter:blur(28px) saturate(1.5);
-    -webkit-backdrop-filter:blur(28px) saturate(1.5);
-    border:1px solid rgba(255,255,255,0.55);
-    transition:transform 0.32s cubic-bezier(0.34,1.35,0.64,1),
-               box-shadow 0.4s ease;
-    will-change:transform,box-shadow;
+    /* Subtile Glassmorphism — kein Neon, kein Gaming */
+    background:radial-gradient(circle at 36% 30%,
+      rgba(255,255,255,0.86) 0%,
+      rgba(255,252,248,0.70) 42%,
+      rgba(22,215,197,0.07) 100%);
+    backdrop-filter:blur(28px) saturate(1.45);
+    -webkit-backdrop-filter:blur(28px) saturate(1.45);
+    border:1px solid rgba(255,255,255,0.44);
+    transition:
+      transform 0.30s cubic-bezier(0.34,1.30,0.64,1),
+      box-shadow 0.45s ease;
+    will-change:transform, box-shadow;
   }
-  .hui-orb-btn:active { transform:scale(0.89); }
-  .hui-orb-btn--idle {
-    animation:hui-orb-breathe-glow 4.5s ease-in-out infinite;
+  .hui-orb-btn:active { transform:scale(0.90); }
+
+  /* Idle: ruhiges Breathing (6s — fast meditativ) */
+  @media (prefers-reduced-motion:no-preference) {
+    .hui-orb-btn.hui-orb-btn--idle {
+      animation:hui-orb-breathe-glow 6s ease-in-out infinite;
+    }
   }
-  .hui-orb-btn--open {
-    transform:scale(1.07);
-    box-shadow:0 8px 36px rgba(22,215,197,0.42),
-               0 2px 8px rgba(0,0,0,0.10),
-               0 1px 0 rgba(255,255,255,0.62) inset;
+
+  /* Open: leicht elevated, nicht dominant */
+  .hui-orb-btn.hui-orb-btn--open {
+    transform:scale(1.05);
+    box-shadow:
+      0 6px 28px rgba(22,215,197,0.22),
+      0 2px 8px  rgba(0,0,0,0.09),
+      0 1px 0    rgba(255,255,255,0.55) inset;
   }
+
+  /* Glass-Ring — kaum sichtbar, nur als Tiefenhinweis */
   .hui-orb-ring {
-    position:absolute; inset:-5px; border-radius:50%;
-    border:1.5px solid rgba(255,255,255,0.32); pointer-events:none;
-    transition:border-color 0.4s ease;
+    position:absolute; inset:-4px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.26); pointer-events:none;
   }
+  /* Top-left Reflektion — wie Apple VisionOS */
   .hui-orb-highlight {
-    position:absolute; top:8px; left:9px; width:28px; height:15px;
+    position:absolute; top:8px; left:9px; width:24px; height:12px;
     border-radius:50%; pointer-events:none;
-    background:radial-gradient(ellipse,rgba(255,255,255,0.78) 0%,transparent 100%);
-    filter:blur(2px); transform:rotate(-22deg); opacity:0.82;
+    background:radial-gradient(ellipse,rgba(255,255,255,0.72) 0%,transparent 100%);
+    filter:blur(1.5px); transform:rotate(-22deg); opacity:0.75;
   }
-  /* Orb icon cross */
   .hui-orb-icon {
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    border-radius:50%; overflow:hidden;
+    position:absolute; inset:0; display:flex; align-items:center;
+    justify-content:center; border-radius:50%; overflow:hidden;
   }
-  /* Floating Card */
+
+  /* ── Floating Card ── */
   .hui-orb-card {
     position:fixed;
-    background:rgba(255,251,248,0.94);
-    backdrop-filter:blur(28px) saturate(1.5);
-    -webkit-backdrop-filter:blur(28px) saturate(1.5);
-    border:1px solid rgba(255,255,255,0.68);
-    box-shadow:0 8px 40px rgba(0,0,0,0.12),
-               0 2px 12px rgba(0,0,0,0.07),
-               0 1px 0 rgba(255,255,255,0.88) inset;
-    border-radius:24px;
-    padding:8px 0;
+    /* Zentrierung: transform enthält translateX(-50%) aus cardStyle */
+    background:rgba(253,250,247,0.96);
+    backdrop-filter:blur(32px) saturate(1.55);
+    -webkit-backdrop-filter:blur(32px) saturate(1.55);
+    border:1px solid rgba(255,255,255,0.72);
+    box-shadow:
+      0 4px 6px   rgba(0,0,0,0.04),
+      0 12px 40px rgba(0,0,0,0.09),
+      0 1px 0     rgba(255,255,255,0.92) inset;
+    border-radius:22px;
+    padding:6px 0;
     z-index:101;
-    min-width:200px;
-    animation:hui-card-in 0.28s cubic-bezier(0.34,1.3,0.64,1) both;
-    transform-origin:bottom center;
+    width:232px;
+    /* Animation: transform-origin bottom center, transform via keyframe */
+    animation:hui-card-in 0.30s cubic-bezier(0.34,1.25,0.64,1) both;
   }
+
+  /* Card Row */
   .hui-orb-card-item {
     display:flex; align-items:center; gap:14px;
-    padding:12px 20px; cursor:pointer;
-    min-height:52px; min-width:0;
+    padding:13px 18px; cursor:pointer;
+    min-height:56px;
     border:none; background:none; width:100%;
     -webkit-tap-highlight-color:transparent;
-    transition:background 0.16s ease;
+    transition:background 0.18s ease;
     border-radius:0;
     font-family:inherit;
+    text-align:left;
   }
   .hui-orb-card-item:active {
-    background:rgba(22,215,197,0.07);
+    background:rgba(22,215,197,0.05);
   }
-  .hui-orb-card-item:first-child { border-radius:24px 24px 0 0; }
-  .hui-orb-card-item:last-child  { border-radius:0 0 24px 24px; }
+  .hui-orb-card-item:first-child { border-radius:22px 22px 0 0; }
+  .hui-orb-card-item:last-child  { border-radius:0 0 22px 22px; }
+
+  /* Divider — kaum sichtbar */
   .hui-orb-card-divider {
-    height:1px; margin:0 16px;
-    background:linear-gradient(90deg,transparent,rgba(0,0,0,0.07),transparent);
+    height:1px; margin:0 18px;
+    background:linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0,0,0,0.055) 30%,
+      rgba(0,0,0,0.055) 70%,
+      transparent 100%
+    );
   }
+
+  /* Icon Wrapper in Card — soft ambient glow on tap */
+  .hui-orb-card-icon {
+    width:34px; height:34px; border-radius:10px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.70);
+    border:1px solid rgba(0,0,0,0.055);
+    box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    transition:background 0.18s ease, box-shadow 0.18s ease;
+  }
+  .hui-orb-card-item:active .hui-orb-card-icon {
+    background:rgba(255,255,255,0.90);
+    box-shadow:0 2px 8px rgba(22,215,197,0.12);
+  }
+
+  /* Overlay — nahezu unsichtbar, 5% Darkness */
   .hui-orb-overlay {
     position:fixed; inset:0; z-index:100;
-    background:rgba(15,12,8,0.07);
-    animation:hui-overlay-in 0.22s ease both;
-  }
-  @media (prefers-reduced-motion:no-preference) {
-    .hui-orb-btn--idle {
-      animation:hui-orb-breathe-glow 4.5s ease-in-out infinite;
-    }
+    background:rgba(10,8,5,0.05);
+    animation:hui-overlay-in 0.20s ease both;
   }
 `;
 
@@ -618,10 +664,13 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
   // Orb Menü Karten-Position: direkt über dem Orb, mittig
   // Orb sitzt mittig. Card-Breite ca. 220px → links: calc(50% - 110px)
   // Bottom: BottomNav-Höhe + safe-area + 12px Luft
+  // Card: exakt über dem Orb zentriert
+  // BottomNav-Pill: ca. 66px hoch + 10px margin + safe-area
+  // Card bottom: Oberkante Nav + 10px Luft
   const cardStyle = {
     left: "50%",
-    transform: "translateX(-50%)",
-    bottom: `calc(${74}px + max(12px, env(safe-area-inset-bottom, 12px)) + 8px)`,
+    // transform ist im @keyframes hui-card-in definiert (translateX(-50%) bleibt erhalten)
+    bottom: `calc(66px + max(10px, env(safe-area-inset-bottom, 10px)) + 12px)`,
   };
 
   const ORB_MENU = [
@@ -651,7 +700,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
       key:"profile",
       icon: (
         <div style={{
-          width:28, height:28, borderRadius:"50%", overflow:"hidden", flexShrink:0,
+          width:26, height:26, borderRadius:"50%", overflow:"hidden", flexShrink:0,
           background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
@@ -669,7 +718,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
     {
       key:"notifs",
       icon: (
-        <div style={{ position:"relative", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+        <div style={{ position:"relative", width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -711,15 +760,16 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
                 onClick={() => handleOrbAction(item.key)}
                 aria-label={item.label}
               >
-                {item.icon}
+                <div className="hui-orb-card-icon">{item.icon}</div>
                 <div style={{ flex:1, textAlign:"left", minWidth:0 }}>
                   <div style={{
-                    fontSize:14, fontWeight:600, color:"#1A1A1A",
-                    letterSpacing:-0.1, lineHeight:1.2,
+                    fontSize:14.5, fontWeight:600, color:"#1A1A1A",
+                    letterSpacing:-0.15, lineHeight:1.25,
                   }}>{item.label}</div>
                   <div style={{
-                    fontSize:11, color:"rgba(60,60,60,0.55)",
-                    marginTop:1, lineHeight:1.3, fontWeight:400,
+                    fontSize:11.5, color:"rgba(55,55,55,0.48)",
+                    marginTop:2, lineHeight:1.35, fontWeight:400,
+                    letterSpacing:0.05,
                   }}>{item.sub}</div>
                 </div>
               </button>
