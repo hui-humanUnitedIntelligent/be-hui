@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { emotionalScore } from "../lib/moodUtils";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 import { sentryCapture } from "../lib/sentry";
 import { useAuth } from "../lib/AuthContext";
@@ -1344,6 +1345,12 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       || w.media_url
       || (Array.isArray(w.images) && w.images.length > 0 ? w.images[0] : null)
       || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=90",
+    // Emotionale Tags — optional, niemals erzwingen
+    mood_tags:       w.mood_tags       || null,
+    atmosphere_tags: w.atmosphere_tags || null,
+    energy_level:    w.energy_level    || null,
+    social_energy:   w.social_energy   || null,
+    creator_vibe:    w.creator_vibe    || null,
     _raw: w,
   });
 
@@ -1652,6 +1659,10 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       for (const kw of weights.keywords) {
         if (text.includes(kw)) score += 0.25;
       }
+
+
+      // ── Emotionaler Score (mood_tags, atmosphere_tags, energy_level etc.) ──
+      score += emotionalScore(item, activeMood?.key || null) * 0.8;
 
       return { item, score };
     });
