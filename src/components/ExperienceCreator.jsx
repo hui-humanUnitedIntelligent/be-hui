@@ -417,9 +417,10 @@ export default function ExperienceCreator({ onClose, onSuccess }) {
         const path = `experiences/${user.id}/${Date.now()}_${i}.${ext}`;
         console.log("[ExperienceCreator] uploading:", path);
         const { error:upErr } = await supabase.storage
-          .from("experiences").upload(path, img.file, {contentType:img.file.type});
-        if (upErr) { console.error("[ExperienceCreator] storage:", upErr); throw upErr; }
-        const {data:{publicUrl}} = supabase.storage.from("experiences").getPublicUrl(path);
+          .from("media").upload(path, img.file, {contentType:img.file.type});
+        if (upErr) { console.error("[ExperienceCreator] ❌ storage:", upErr.message, upErr.statusCode); throw upErr; }
+        const {data:{publicUrl}} = supabase.storage.from("media").getPublicUrl(path);
+        console.log("[ExperienceCreator] ✓ upload OK:", publicUrl);
         imgUrls.push(publicUrl);
       }
 
@@ -432,10 +433,11 @@ export default function ExperienceCreator({ onClose, onSuccess }) {
         duration:         form.duration.trim(),
         price:            form.price ? parseFloat(form.price) : null,
         format:           form.format,
-        location:         form.location.trim(),
+        location_text:    form.location.trim(),   // text statt GEOGRAPHY
         max_participants: form.maxParticipants ? parseInt(form.maxParticipants) : null,
         booking_mode:     form.bookingMode,
         images:           imgUrls,
+        media_url:        imgUrls[0] || null,
         cover_url:        imgUrls[0] || null,
         status:           "published",
         created_at:       new Date().toISOString(),
