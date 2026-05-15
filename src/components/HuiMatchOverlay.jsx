@@ -299,7 +299,7 @@ function Skeleton() {
 /* ══════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════ */
-export default function HuiMatchOverlay({ onClose, onView }) {
+export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
   const [step,      setStep]      = useState("mood");
   const [mood,      setMood]      = useState(null);
   const [results,   setResults]   = useState([]);
@@ -330,6 +330,7 @@ export default function HuiMatchOverlay({ onClose, onView }) {
   /* ── Stimmung wählen → searching → match ── */
   async function handleMoodSelect(m) {
     setMood(m);
+    if (onMoodSelect) onMoodSelect(m);  // Bridge: Stimmung sofort an Feed übergeben
     if (m.isSurprise) {
       setStep("searching");
       await new Promise(r => setTimeout(r, 1100));
