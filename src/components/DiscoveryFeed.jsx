@@ -1319,7 +1319,7 @@ const MemoWerkCard       = React.memo(WerkCard);
 const MemoExperienceCard = React.memo(ExperienceCard);
 const MemoImpactCard     = React.memo(ImpactCard);
 
-export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal, storyRefreshKey, onOpenComposer }) {
+export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal, storyRefreshKey, onOpenComposer, activeMood }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   // ── Echte Supabase-Daten ──────────────────────────────────────────
