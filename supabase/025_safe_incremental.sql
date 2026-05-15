@@ -1,28 +1,25 @@
 -- ═══════════════════════════════════════════════════════════════════════
--- HUI 025 — SAFE INCREMENTAL MIGRATION
+-- HUI 025 — SAFE INCREMENTAL MIGRATION  (v2 FINAL)
 -- Datum: 2026-05-15
 --
--- STRATEGIE:
---   - Kein RENAME COLUMN (wirft Fehler wenn Spalte nicht existiert)
---   - Kein DROP TABLE (Datenverlust-Risiko)
---   - Kein CREATE TABLE ohne IF NOT EXISTS
---   - Keine Annahmen über bestehende Spalten-Namen
---   - Jede neue Spalte via ADD COLUMN IF NOT EXISTS
---   - Alle Policies via DROP IF EXISTS + CREATE (idempotent)
---   - Alle wirker_id-Referenzen entfernt — Policies nutzen nur
---     Spalten die wir selbst via ADD COLUMN IF NOT EXISTS anlegen
+-- PRINZIP: Nur das Minimum. Keine Annahmen.
 --
--- ABLAUF:
---   1. Fehlende Spalten zu bestehenden Tabellen hinzufügen
---   2. Fehlende Tabellen anlegen (IF NOT EXISTS)
---   3. RLS + Policies setzen
---   4. Indexes
---   5. Storage Buckets ergänzen
---   6. Schema-Cache flush
+-- REGELN:
+--   1. Kein DROP TABLE
+--   2. Kein RENAME COLUMN
+--   3. Jede neue Spalte: ADD COLUMN IF NOT EXISTS
+--   4. Policies: DROP IF EXISTS + CREATE
+--   5. Policies referenzieren NUR Spalten die wir selbst
+--      via ADD COLUMN IF NOT EXISTS anlegen — oder bekannte
+--      Kern-Spalten (user_id, id) die in jeder Tabelle sind
+--   6. recommendations-Policies: USING (true) — keine
+--      Spalten-Filter, da Spalten-Stand unbekannt
+--   7. bookings: wirker_id existiert real (via 016_creator_tools)
+--      → Policy darf wirker_id nutzen
 -- ═══════════════════════════════════════════════════════════════════════
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 1: WORKS — fehlende Spalten ergänzen
+-- 1. WORKS
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.works (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -66,13 +63,11 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- Daten reparieren
 UPDATE public.works SET status = 'published' WHERE status IS NULL OR status = '';
 UPDATE public.works SET media_url = cover_url WHERE media_url IS NULL AND cover_url IS NOT NULL;
 UPDATE public.works SET media_url = images[1]
   WHERE media_url IS NULL AND images IS NOT NULL AND array_length(images,1) > 0;
 
--- RLS
 ALTER TABLE public.works ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS works_select_all ON public.works;
 DROP POLICY IF EXISTS works_insert_own ON public.works;
@@ -88,7 +83,7 @@ CREATE INDEX IF NOT EXISTS works_status_idx     ON public.works(status);
 CREATE INDEX IF NOT EXISTS works_created_at_idx ON public.works(created_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 2: EXPERIENCES
+-- 2. EXPERIENCES
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.experiences (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -129,7 +124,6 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- location (GEOGRAPHY) → location_text
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='experiences'
@@ -164,7 +158,7 @@ CREATE INDEX IF NOT EXISTS exp_status_idx     ON public.experiences(status);
 CREATE INDEX IF NOT EXISTS exp_created_at_idx ON public.experiences(created_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 3: STORIES
+-- 3. STORIES
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.stories (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -218,7 +212,7 @@ CREATE INDEX IF NOT EXISTS stories_created_at_idx ON public.stories(created_at D
 CREATE INDEX IF NOT EXISTS stories_expires_at_idx ON public.stories(expires_at);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 4: PROFILES
+-- 4. PROFILES
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.profiles (
   id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -259,9 +253,7 @@ CREATE INDEX IF NOT EXISTS profiles_is_wirker_idx  ON public.profiles(is_wirker)
 CREATE INDEX IF NOT EXISTS profiles_created_at_idx ON public.profiles(created_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 5: WIRKER_PROFILES
--- PK = id | FK = user_id UNIQUE → auth.users
--- Kein "wirker_id" in dieser Tabelle
+-- 5. WIRKER_PROFILES
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.wirker_profiles (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -302,7 +294,7 @@ CREATE INDEX IF NOT EXISTS wp_user_id_idx ON public.wirker_profiles(user_id);
 CREATE INDEX IF NOT EXISTS wp_slug_idx    ON public.wirker_profiles(slug);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 6: FOLLOWS
+-- 6. FOLLOWS
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.follows (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -311,7 +303,6 @@ CREATE TABLE IF NOT EXISTS public.follows (
   created_at  timestamptz DEFAULT now(),
   UNIQUE(follower_id, followed_id)
 );
-
 ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS follows_select_all ON public.follows;
 DROP POLICY IF EXISTS follows_insert_own ON public.follows;
@@ -321,17 +312,16 @@ CREATE POLICY follows_insert_own ON public.follows
   FOR INSERT TO authenticated WITH CHECK (auth.uid() = follower_id);
 CREATE POLICY follows_delete_own ON public.follows
   FOR DELETE TO authenticated USING (auth.uid() = follower_id);
-
 CREATE INDEX IF NOT EXISTS follows_follower_idx ON public.follows(follower_id);
 CREATE INDEX IF NOT EXISTS follows_followed_idx ON public.follows(followed_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 7: WORK_LIKES / WORK_SAVES / LIKES / FAVORITES
+-- 7. LIKES / FAVORITES / WORK_LIKES / WORK_SAVES
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.work_likes (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  work_id    uuid REFERENCES public.works(id) ON DELETE CASCADE,
-  user_id    uuid REFERENCES auth.users(id)   ON DELETE CASCADE,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  work_id uuid REFERENCES public.works(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at timestamptz DEFAULT now(),
   UNIQUE(work_id, user_id)
 );
@@ -346,9 +336,9 @@ CREATE INDEX IF NOT EXISTS wl_work_id_idx ON public.work_likes(work_id);
 CREATE INDEX IF NOT EXISTS wl_user_id_idx ON public.work_likes(user_id);
 
 CREATE TABLE IF NOT EXISTS public.work_saves (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  work_id    uuid REFERENCES public.works(id) ON DELETE CASCADE,
-  user_id    uuid REFERENCES auth.users(id)   ON DELETE CASCADE,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  work_id uuid REFERENCES public.works(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at timestamptz DEFAULT now(),
   UNIQUE(work_id, user_id)
 );
@@ -363,11 +353,11 @@ CREATE INDEX IF NOT EXISTS ws_work_id_idx ON public.work_saves(work_id);
 CREATE INDEX IF NOT EXISTS ws_user_id_idx ON public.work_saves(user_id);
 
 CREATE TABLE IF NOT EXISTS public.likes (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id     uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  target_id   uuid NOT NULL,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  target_id uuid NOT NULL,
   target_type text NOT NULL,
-  created_at  timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now(),
   UNIQUE(user_id, target_id, target_type)
 );
 ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
@@ -381,11 +371,11 @@ CREATE INDEX IF NOT EXISTS likes_user_id_idx   ON public.likes(user_id);
 CREATE INDEX IF NOT EXISTS likes_target_id_idx ON public.likes(target_id);
 
 CREATE TABLE IF NOT EXISTS public.favorites (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id     uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  target_id   uuid NOT NULL,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  target_id uuid NOT NULL,
   target_type text NOT NULL DEFAULT 'wirker',
-  created_at  timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now(),
   UNIQUE(user_id, target_id, target_type)
 );
 ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
@@ -398,13 +388,13 @@ CREATE POLICY fav_delete_own ON public.favorites FOR DELETE TO authenticated USI
 CREATE INDEX IF NOT EXISTS fav_user_id_idx ON public.favorites(user_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 8: COMMENTS / STORY_VIEWS
+-- 8. COMMENTS / STORY_VIEWS
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.comments (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    uuid REFERENCES auth.users(id)   ON DELETE CASCADE,
-  work_id    uuid REFERENCES public.works(id) ON DELETE CASCADE,
-  text       text NOT NULL,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  work_id uuid REFERENCES public.works(id) ON DELETE CASCADE,
+  text text NOT NULL,
   created_at timestamptz DEFAULT now()
 );
 ALTER TABLE public.comments
@@ -423,7 +413,7 @@ CREATE INDEX IF NOT EXISTS comments_work_id_idx ON public.comments(work_id);
 CREATE INDEX IF NOT EXISTS comments_user_id_idx ON public.comments(user_id);
 
 CREATE TABLE IF NOT EXISTS public.story_views (
-  id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   story_id  uuid REFERENCES public.stories(id) ON DELETE CASCADE,
   viewer_id uuid REFERENCES auth.users(id)     ON DELETE CASCADE,
   viewed_at timestamptz DEFAULT now(),
@@ -438,50 +428,55 @@ CREATE INDEX IF NOT EXISTS sv_story_id_idx  ON public.story_views(story_id);
 CREATE INDEX IF NOT EXISTS sv_viewer_id_idx ON public.story_views(viewer_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 9: RECOMMENDATIONS
--- Spalte: recommender_user_id → auth.users (KEIN wirker_id)
+-- 9. RECOMMENDATIONS
+-- WICHTIG: Spalten-Stand in Production unbekannt.
+-- Daher: CREATE TABLE IF NOT EXISTS mit Minimal-Schema,
+-- dann ADD COLUMN IF NOT EXISTS für alle Felder.
+-- Policies: USING (true) — kein Spalten-Filter auf unbekannte Spalten.
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.recommendations (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  reviewer_id   uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  reviewer_name text,
-  rating        integer CHECK (rating BETWEEN 1 AND 5),
-  text          text,
-  work_title    text,
-  booking_id    uuid,
-  created_at    timestamptz DEFAULT now()
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz DEFAULT now()
 );
--- target_user_id = der Wirker der empfohlen wird (FK → auth.users)
+
+-- Alle Spalten via ADD COLUMN IF NOT EXISTS (sicher für bestehende Tabelle)
 ALTER TABLE public.recommendations
-  ADD COLUMN IF NOT EXISTS target_user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
+  ADD COLUMN IF NOT EXISTS user_id      uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS target_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS rating       integer CHECK (rating BETWEEN 1 AND 5),
+  ADD COLUMN IF NOT EXISTS text         text,
+  ADD COLUMN IF NOT EXISTS work_title   text,
+  ADD COLUMN IF NOT EXISTS booking_id   uuid,
+  ADD COLUMN IF NOT EXISTS is_public    boolean DEFAULT true;
 
 ALTER TABLE public.recommendations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS rec_select_all  ON public.recommendations;
 DROP POLICY IF EXISTS rec_insert_auth ON public.recommendations;
+DROP POLICY IF EXISTS rec_select_own  ON public.recommendations;
+-- Policies ohne Spalten-Filter — maximale Kompatibilität
 CREATE POLICY rec_select_all  ON public.recommendations FOR SELECT USING (true);
-CREATE POLICY rec_insert_auth ON public.recommendations
-  FOR INSERT TO authenticated WITH CHECK (true);
-CREATE INDEX IF NOT EXISTS rec_target_user_id_idx ON public.recommendations(target_user_id);
-CREATE INDEX IF NOT EXISTS rec_reviewer_id_idx    ON public.recommendations(reviewer_id);
+CREATE POLICY rec_insert_auth ON public.recommendations FOR INSERT TO authenticated WITH CHECK (true);
+
+CREATE INDEX IF NOT EXISTS rec_target_id_idx ON public.recommendations(target_id);
+CREATE INDEX IF NOT EXISTS rec_user_id_idx   ON public.recommendations(user_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 10: BOOKINGS
--- booker_id = Kunde | provider_id = Wirker — beide → auth.users
--- KEIN wirker_id
+-- 10. BOOKINGS
+-- wirker_id existiert real in der DB (via 016_creator_tools.sql)
+-- Policy darf wirker_id nutzen — user_id auch vorhanden
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.bookings (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  booker_id  uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  provider_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  user_id    uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
 
--- Fehlende Spalten ergänzen (sicher für bestehende Tabelle)
+-- Alle bekannten Spalten ergänzen
 ALTER TABLE public.bookings
-  ADD COLUMN IF NOT EXISTS booker_id      uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS provider_id    uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS work_id        uuid REFERENCES public.works(id)       ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS user_id        uuid REFERENCES auth.users(id)       ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS wirker_id      uuid REFERENCES auth.users(id)       ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS work_id        uuid REFERENCES public.works(id)      ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS experience_id  uuid REFERENCES public.experiences(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS status         text          DEFAULT 'pending',
   ADD COLUMN IF NOT EXISTS amount         numeric(10,2) DEFAULT 0,
@@ -496,38 +491,39 @@ ALTER TABLE public.bookings
   ADD COLUMN IF NOT EXISTS commission     numeric(10,2) DEFAULT 0;
 
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS book_select_own ON public.bookings;
-DROP POLICY IF EXISTS book_insert_own ON public.bookings;
-DROP POLICY IF EXISTS book_update_own ON public.bookings;
--- Policies nutzen ausschliesslich booker_id + provider_id
--- diese existieren garantiert durch ADD COLUMN IF NOT EXISTS oben
+DROP POLICY IF EXISTS book_select_own        ON public.bookings;
+DROP POLICY IF EXISTS book_insert_own        ON public.bookings;
+DROP POLICY IF EXISTS book_update_own        ON public.bookings;
+DROP POLICY IF EXISTS bookings_wirker_select ON public.bookings;
+DROP POLICY IF EXISTS bookings_wirker_update ON public.bookings;
+-- wirker_id ist real vorhanden → Policy ist sicher
 CREATE POLICY book_select_own ON public.bookings
   FOR SELECT TO authenticated
-  USING (auth.uid() = booker_id OR auth.uid() = provider_id);
+  USING (auth.uid() = user_id OR auth.uid() = wirker_id);
 CREATE POLICY book_insert_own ON public.bookings
-  FOR INSERT TO authenticated WITH CHECK (auth.uid() = booker_id);
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 CREATE POLICY book_update_own ON public.bookings
   FOR UPDATE TO authenticated
-  USING (auth.uid() = booker_id OR auth.uid() = provider_id);
+  USING (auth.uid() = user_id OR auth.uid() = wirker_id);
 
-CREATE INDEX IF NOT EXISTS book_booker_id_idx   ON public.bookings(booker_id);
-CREATE INDEX IF NOT EXISTS book_provider_id_idx ON public.bookings(provider_id);
-CREATE INDEX IF NOT EXISTS book_status_idx      ON public.bookings(status);
+CREATE INDEX IF NOT EXISTS book_user_id_idx   ON public.bookings(user_id);
+CREATE INDEX IF NOT EXISTS book_wirker_id_idx ON public.bookings(wirker_id);
+CREATE INDEX IF NOT EXISTS book_status_idx    ON public.bookings(status);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 11: PAYMENTS / PAYOUTS
+-- 11. PAYMENTS / PAYOUTS
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.payments (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       uuid REFERENCES auth.users(id)      ON DELETE SET NULL,
-  booking_id    uuid REFERENCES public.bookings(id)  ON DELETE SET NULL,
-  amount        numeric(10,2) DEFAULT 0,
-  impact_amount numeric(10,2) DEFAULT 0,
-  status        text          DEFAULT 'pending',
-  stripe_id     text,
-  created_at    timestamptz   DEFAULT now()
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid REFERENCES auth.users(id)     ON DELETE SET NULL,
+  booking_id uuid REFERENCES public.bookings(id) ON DELETE SET NULL,
+  amount     numeric(10,2) DEFAULT 0,
+  status     text          DEFAULT 'pending',
+  created_at timestamptz   DEFAULT now()
 );
 ALTER TABLE public.payments
+  ADD COLUMN IF NOT EXISTS impact_amount  numeric(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS stripe_id      text,
   ADD COLUMN IF NOT EXISTS payment_method text,
   ADD COLUMN IF NOT EXISTS currency       text DEFAULT 'eur';
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
@@ -537,27 +533,26 @@ CREATE POLICY pay_select_own ON public.payments FOR SELECT TO authenticated USIN
 CREATE POLICY pay_insert_own ON public.payments FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 CREATE INDEX IF NOT EXISTS pay_user_id_idx ON public.payments(user_id);
 
+-- payouts: provider_id via ADD COLUMN IF NOT EXISTS — kein wirker_id
 CREATE TABLE IF NOT EXISTS public.payouts (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  provider_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  amount      numeric(10,2) DEFAULT 0,
-  status      text          DEFAULT 'pending',
-  created_at  timestamptz   DEFAULT now()
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  amount     numeric(10,2) DEFAULT 0,
+  status     text          DEFAULT 'pending',
+  created_at timestamptz   DEFAULT now()
 );
--- provider_id immer via ADD COLUMN IF NOT EXISTS sichern
 ALTER TABLE public.payouts
   ADD COLUMN IF NOT EXISTS provider_id   uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   ADD COLUMN IF NOT EXISTS payout_method text,
   ADD COLUMN IF NOT EXISTS reference     text;
 ALTER TABLE public.payouts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS payout_select_own ON public.payouts;
--- Policy nutzt nur provider_id (immer vorhanden nach ADD COLUMN oben)
+-- provider_id ist via ADD COLUMN IF NOT EXISTS garantiert vorhanden
 CREATE POLICY payout_select_own ON public.payouts
   FOR SELECT TO authenticated USING (auth.uid() = provider_id);
 CREATE INDEX IF NOT EXISTS payout_provider_id_idx ON public.payouts(provider_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 12: CHATS + MESSAGES
+-- 12. CHATS + MESSAGES
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.chats (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -612,7 +607,7 @@ CREATE INDEX IF NOT EXISTS msg_sender_id_idx  ON public.messages(sender_id);
 CREATE INDEX IF NOT EXISTS msg_created_at_idx ON public.messages(created_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 13: NOTIFICATIONS + SETTINGS
+-- 13. NOTIFICATIONS + SETTINGS
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.notifications (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -636,15 +631,16 @@ CREATE INDEX IF NOT EXISTS notif_read_idx    ON public.notifications(read);
 CREATE INDEX IF NOT EXISTS notif_created_idx ON public.notifications(created_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.notification_settings (
-  user_id        uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email_bookings boolean DEFAULT true,
-  email_messages boolean DEFAULT true,
-  email_impact   boolean DEFAULT true,
-  push_bookings  boolean DEFAULT true,
-  push_messages  boolean DEFAULT true,
-  push_impact    boolean DEFAULT false,
-  updated_at     timestamptz DEFAULT now()
+  user_id    uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  updated_at timestamptz DEFAULT now()
 );
+ALTER TABLE public.notification_settings
+  ADD COLUMN IF NOT EXISTS email_bookings boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS email_messages boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS email_impact   boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS push_bookings  boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS push_messages  boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS push_impact    boolean DEFAULT false;
 ALTER TABLE public.notification_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ns_select_own ON public.notification_settings;
 DROP POLICY IF EXISTS ns_all_own    ON public.notification_settings;
@@ -652,13 +648,14 @@ CREATE POLICY ns_select_own ON public.notification_settings FOR SELECT TO authen
 CREATE POLICY ns_all_own    ON public.notification_settings FOR ALL   TO authenticated USING (auth.uid() = user_id);
 
 CREATE TABLE IF NOT EXISTS public.privacy_settings (
-  user_id            uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  profile_visibility text    DEFAULT 'public',
-  show_location      boolean DEFAULT true,
-  show_availability  boolean DEFAULT true,
-  allow_messages     boolean DEFAULT true,
-  updated_at         timestamptz DEFAULT now()
+  user_id    uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  updated_at timestamptz DEFAULT now()
 );
+ALTER TABLE public.privacy_settings
+  ADD COLUMN IF NOT EXISTS profile_visibility text    DEFAULT 'public',
+  ADD COLUMN IF NOT EXISTS show_location      boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS show_availability  boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS allow_messages     boolean DEFAULT true;
 ALTER TABLE public.privacy_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ps_select_own ON public.privacy_settings;
 DROP POLICY IF EXISTS ps_all_own    ON public.privacy_settings;
@@ -666,27 +663,27 @@ CREATE POLICY ps_select_own ON public.privacy_settings FOR SELECT TO authenticat
 CREATE POLICY ps_all_own    ON public.privacy_settings FOR ALL   TO authenticated USING (auth.uid() = user_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 14: IMPACT
+-- 14. IMPACT
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.impact_projects (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name          text NOT NULL,
-  description   text,
-  category      text,
-  status        text          DEFAULT 'active',
-  votes         integer       DEFAULT 0,
-  awarded_eur   numeric(10,2) DEFAULT 0,
-  month         text,
-  website       text,
-  contact_name  text,
-  contact_email text,
-  impact_report text,
-  tags          text[]        DEFAULT '{}',
-  icon          text,
-  color         text,
-  created_at    timestamptz   DEFAULT now()
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       text NOT NULL,
+  created_at timestamptz DEFAULT now()
 );
 ALTER TABLE public.impact_projects
+  ADD COLUMN IF NOT EXISTS description   text,
+  ADD COLUMN IF NOT EXISTS category      text,
+  ADD COLUMN IF NOT EXISTS status        text          DEFAULT 'active',
+  ADD COLUMN IF NOT EXISTS votes         integer       DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS awarded_eur   numeric(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS month         text,
+  ADD COLUMN IF NOT EXISTS website       text,
+  ADD COLUMN IF NOT EXISTS contact_name  text,
+  ADD COLUMN IF NOT EXISTS contact_email text,
+  ADD COLUMN IF NOT EXISTS impact_report text,
+  ADD COLUMN IF NOT EXISTS tags          text[]        DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS icon          text,
+  ADD COLUMN IF NOT EXISTS color         text,
   ADD COLUMN IF NOT EXISTS distributed_at timestamptz;
 ALTER TABLE public.impact_projects ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ip_select_all   ON public.impact_projects;
@@ -711,27 +708,28 @@ CREATE INDEX IF NOT EXISTS iv_user_id_idx    ON public.impact_votes(user_id);
 CREATE INDEX IF NOT EXISTS iv_project_id_idx ON public.impact_votes(project_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 15: AVAILABILITY_SLOTS
--- provider_id → auth.users — KEIN wirker_id
+-- 15. AVAILABILITY_SLOTS
+-- provider_id via ADD COLUMN IF NOT EXISTS — KEIN wirker_id in Policy
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.availability_slots (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  provider_id  uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  day_of_week  integer CHECK (day_of_week BETWEEN 0 AND 6),
-  start_time   time,
-  end_time     time,
-  is_available boolean     DEFAULT true,
-  created_at   timestamptz DEFAULT now()
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz DEFAULT now()
 );
--- provider_id immer via ADD COLUMN IF NOT EXISTS sichern
+-- provider_id IMMER via ADD COLUMN IF NOT EXISTS anlegen
+-- (egal ob Tabelle neu oder alt — die Spalte existiert danach garantiert)
 ALTER TABLE public.availability_slots
-  ADD COLUMN IF NOT EXISTS provider_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
+  ADD COLUMN IF NOT EXISTS provider_id  uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS day_of_week  integer CHECK (day_of_week BETWEEN 0 AND 6),
+  ADD COLUMN IF NOT EXISTS start_time   time,
+  ADD COLUMN IF NOT EXISTS end_time     time,
+  ADD COLUMN IF NOT EXISTS is_available boolean DEFAULT true;
+
 ALTER TABLE public.availability_slots ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS avail_select_all ON public.availability_slots;
 DROP POLICY IF EXISTS avail_insert_own ON public.availability_slots;
 DROP POLICY IF EXISTS avail_update_own ON public.availability_slots;
 CREATE POLICY avail_select_all ON public.availability_slots FOR SELECT USING (true);
--- Policies nutzen provider_id (immer vorhanden durch ADD COLUMN oben)
+-- provider_id ist via ADD COLUMN IF NOT EXISTS garantiert vorhanden
 CREATE POLICY avail_insert_own ON public.availability_slots
   FOR INSERT TO authenticated WITH CHECK (auth.uid() = provider_id);
 CREATE POLICY avail_update_own ON public.availability_slots
@@ -739,19 +737,19 @@ CREATE POLICY avail_update_own ON public.availability_slots
 CREATE INDEX IF NOT EXISTS avail_provider_id_idx ON public.availability_slots(provider_id);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 16: MEDIA / FEED_ITEMS
+-- 16. MEDIA / FEED_ITEMS
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.media (
-  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id        uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  type           text,
-  mime           text,
-  storage_path   text,
-  storage_bucket text,
-  url            text,
-  created_at     timestamptz DEFAULT now()
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now()
 );
 ALTER TABLE public.media
+  ADD COLUMN IF NOT EXISTS type              text,
+  ADD COLUMN IF NOT EXISTS mime              text,
+  ADD COLUMN IF NOT EXISTS storage_path      text,
+  ADD COLUMN IF NOT EXISTS storage_bucket    text,
+  ADD COLUMN IF NOT EXISTS url               text,
   ADD COLUMN IF NOT EXISTS caption           text,
   ADD COLUMN IF NOT EXISTS media_url         text,
   ADD COLUMN IF NOT EXISTS media_type        text,
@@ -771,11 +769,12 @@ CREATE TABLE IF NOT EXISTS public.feed_items (
   user_id      uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   content_id   uuid NOT NULL,
   content_type text NOT NULL,
-  caption      text,
-  status       text        DEFAULT 'published',
-  created_at   timestamptz DEFAULT now(),
-  expires_at   timestamptz
+  created_at   timestamptz DEFAULT now()
 );
+ALTER TABLE public.feed_items
+  ADD COLUMN IF NOT EXISTS caption    text,
+  ADD COLUMN IF NOT EXISTS status     text        DEFAULT 'published',
+  ADD COLUMN IF NOT EXISTS expires_at timestamptz;
 ALTER TABLE public.feed_items ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS fi_select_all ON public.feed_items;
 DROP POLICY IF EXISTS fi_insert_own ON public.feed_items;
@@ -785,27 +784,7 @@ CREATE INDEX IF NOT EXISTS fi_user_id_idx    ON public.feed_items(user_id);
 CREATE INDEX IF NOT EXISTS fi_created_at_idx ON public.feed_items(created_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 17: STORAGE BUCKETS (nur ergänzen, nicht löschen)
--- ─────────────────────────────────────────────────────────────────────
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES
-  ('media',    'media',    true, 52428800,
-   ARRAY['image/jpeg','image/jpg','image/png','image/webp','image/gif','image/heic',
-         'video/mp4','video/webm','video/quicktime','video/mov']),
-  ('stories',  'stories',  true, 52428800,
-   ARRAY['image/jpeg','image/jpg','image/png','image/webp','image/gif','image/heic',
-         'video/mp4','video/webm','video/quicktime','video/mov']),
-  ('works',    'works',    true, 52428800,
-   ARRAY['image/jpeg','image/jpg','image/png','image/webp','image/gif','image/heic',
-         'video/mp4','video/webm','video/quicktime']),
-  ('avatars',  'avatars',  true, 10485760,
-   ARRAY['image/jpeg','image/jpg','image/png','image/webp','image/gif','image/heic'])
-ON CONFLICT (id) DO UPDATE SET
-  public          = true,
-  file_size_limit = EXCLUDED.file_size_limit;
-
--- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 18: DATA RECOVERY
+-- 17. DATA RECOVERY
 -- ─────────────────────────────────────────────────────────────────────
 UPDATE public.works SET status = 'published' WHERE status IS NULL OR status = '';
 UPDATE public.works SET media_url = COALESCE(cover_url, images[1])
@@ -816,7 +795,7 @@ UPDATE public.experiences SET media_url = cover_url WHERE media_url IS NULL AND 
 UPDATE public.stories SET status = 'published' WHERE status IS NULL OR status = '';
 
 -- ─────────────────────────────────────────────────────────────────────
--- SCHRITT 19: SCHEMA-CACHE FLUSH
+-- 18. SCHEMA-CACHE FLUSH
 -- ─────────────────────────────────────────────────────────────────────
 NOTIFY pgrst, 'reload schema';
 
@@ -824,7 +803,7 @@ NOTIFY pgrst, 'reload schema';
 -- VERIFIKATION
 -- ─────────────────────────────────────────────────────────────────────
 SELECT
-  'HUI 025 — Safe Incremental Migration abgeschlossen' AS status,
+  'HUI 025 v2 — Safe Incremental abgeschlossen' AS status,
   NOW() AS ts,
   (SELECT COUNT(*) FROM public.works)           AS works,
   (SELECT COUNT(*) FROM public.works WHERE status='published') AS works_pub,
@@ -832,4 +811,5 @@ SELECT
   (SELECT COUNT(*) FROM public.experiences)     AS experiences,
   (SELECT COUNT(*) FROM public.profiles)        AS profiles,
   (SELECT COUNT(*) FROM public.wirker_profiles) AS wirker_profiles,
-  (SELECT COUNT(*) FROM public.bookings)        AS bookings;
+  (SELECT COUNT(*) FROM public.bookings)        AS bookings,
+  (SELECT COUNT(*) FROM public.recommendations) AS recommendations;
