@@ -1875,6 +1875,30 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         style={{ background:C.creamWarm, overflowY:"auto",
           height:"100%", WebkitOverflowScrolling:"touch",
           paddingBottom:110 }}>
+        {/* ── ENV KEY FEHLT BANNER — verschwindet wenn Key gesetzt ── */}
+        {!import.meta.env.VITE_SUPABASE_ANON_KEY && (
+          <div style={{
+            margin:"16px 16px 0", padding:"14px 16px", borderRadius:12,
+            background:"rgba(220,38,38,0.1)", border:"1.5px solid rgba(220,38,38,0.3)",
+            display:"flex", alignItems:"flex-start", gap:10,
+          }}>
+            <div style={{fontSize:22}}>🚨</div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:800,color:"#dc2626",marginBottom:4}}>
+                VITE_SUPABASE_ANON_KEY fehlt in Vercel
+              </div>
+              <div style={{fontSize:11,color:"#555",lineHeight:1.6}}>
+                Feed ist leer weil Supabase nicht verbunden ist.
+                Vercel → Settings → Environment Variables → Key hinzufügen → Redeploy.
+              </div>
+            </div>
+            <a href="/diagnose" style={{
+              fontSize:11,fontWeight:700,color:"#dc2626",textDecoration:"none",
+              background:"rgba(220,38,38,0.1)",padding:"6px 10px",
+              borderRadius:8,whiteSpace:"nowrap",flexShrink:0,
+            }}>Diagnose →</a>
+          </div>
+        )}
 
         {/* ══ 1. SEARCH HEADER ══════════════════════════════════════ */}
         <div style={{
