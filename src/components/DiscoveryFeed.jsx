@@ -1577,7 +1577,91 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   }, [hasMore, loadingMore, feedLoading, loadFeed]);
 
   // Feed items: nur echte Daten — kein Mock-Fallback mehr
-  const liveFeedItems = dbFeed;
+// ── MOOD SCORING ENGINE ─────────────────────────────────────────────
+  // Gewichtet dbFeed ohne neue API-Calls — reine Client-Priorisierung.
+  // Jede Stimmung hebt bestimmte Kategorien/Typen nach oben.
+  const MOOD_WEIGHTS = {
+    ruhe: {
+      // Natur, Meditation, ruhige Werke → hoch; Action, Events → niedrig
+      typeBoost:     { werk: 0.15, wirker: 0.10, experience: -0.05, impact: 0.20 },
+      categoryBoost: { natur:1.0, heilung:0.9, yoga:0.8, meditation:0.8,
+                       handwerk:0.5, fotografie:0.4, kunst:0.3 },
+      keywords:      ["ruhe","stille","natur","heilung","yoga","meditation","zen",
+                       "wald","see","entspannung","slow"],
+    },
+    inspiration: {
+      typeBoost:     { werk: 0.30, wirker: 0.15, experience: 0.10, impact: 0.05 },
+      categoryBoost: { kunst:1.0, design:0.9, fotografie:0.8, architektur:0.7,
+                       malerei:0.9, illustration:0.8, musik:0.5 },
+      keywords:      ["inspiration","kreativ","kunst","design","farbe","vision",
+                       "idee","experiment","mutig","original"],
+    },
+    gemeinschaft: {
+      typeBoost:     { werk: -0.05, wirker: 0.35, experience: 0.25, impact: 0.20 },
+      categoryBoost: { workshop:0.9, kurs:0.8, community:1.0, gruppe:0.9,
+                       event:0.8, coaching:0.6 },
+      keywords:      ["gemeinschaft","gruppe","workshop","kurs","event","treffen",
+                       "zusammen","community","austausch","menschen"],
+    },
+    kreativitaet: {
+      typeBoost:     { werk: 0.25, wirker: 0.20, experience: 0.20, impact: 0.05 },
+      categoryBoost: { handwerk:1.0, keramik:0.9, malerei:0.9, musik:0.8,
+                       design:0.8, illustration:0.8, workshop:0.7 },
+      keywords:      ["kreativ","handwerk","bauen","basteln","machen","gestalten",
+                       "formen","erschaffen","kunst","atelier"],
+    },
+    abenteuer: {
+      typeBoost:     { werk: -0.05, wirker: 0.10, experience: 0.45, impact: 0.10 },
+      categoryBoost: { outdoor:1.0, sport:0.9, natur:0.8, reise:0.9,
+                       event:0.7, abenteuer:1.0 },
+      keywords:      ["abenteuer","outdoor","sport","natur","wandern","klettern",
+                       "erleben","aktiv","raus","draußen","reise"],
+    },
+    ueberraschung: {
+      typeBoost:     { werk: 0, wirker: 0, experience: 0, impact: 0 },
+      categoryBoost: {},
+      keywords:      [],
+    },
+  };
+
+  const liveFeedItems = React.useMemo(() => {
+    if (!activeMood || !dbFeed.length) return dbFeed;
+    const weights = MOOD_WEIGHTS[activeMood.key];
+    if (!weights) return dbFeed;
+
+    const scored = dbFeed.map(item => {
+      let score = 0;
+
+      // Typ-Boost
+      const typeKey = item.type === "wirker" ? "wirker"
+        : item.type === "werk" ? "werk"
+        : item.type === "experience" ? "experience" : "impact";
+      score += weights.typeBoost[typeKey] || 0;
+
+      // Kategorie-Boost
+      const cat = (item.category || "").toLowerCase();
+      for (const [k, v] of Object.entries(weights.categoryBoost)) {
+        if (cat.includes(k)) { score += v; break; }
+      }
+
+      // Keyword-Boost (Bio + Titel + Talent)
+      const text = [
+        item.bio || "", item.title || "", item.talent || "",
+        item.name || "", item.creator || ""
+      ].join(" ").toLowerCase();
+      for (const kw of weights.keywords) {
+        if (text.includes(kw)) score += 0.25;
+      }
+
+      return { item, score };
+    });
+
+    // Sortieren: höchster Score vorne, Gleichstand zufällig
+    return scored
+      .sort((a, b) => b.score - a.score + (Math.random() * 0.05 - 0.025))
+      .map(s => s.item);
+  }, [dbFeed, activeMood]);
+  // ── Ende MOOD SCORING ENGINE ─────────────────────────────────────
   const liveWerke     = dbWerke;
 
   return (
@@ -1714,6 +1798,37 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           <div style={{ flex:1, height:1,
             background:`linear-gradient(270deg,${C.teal}55,${C.coral}33,transparent)` }}/>
         </div>
+
+        {/* ── MOOD BANNER — aktive Stimmung ─────────────── */}
+        {activeMood && (
+          <div style={{
+            margin:"8px 14px 4px",
+            padding:"11px 16px",
+            borderRadius:16,
+            background: activeMood.grad || "rgba(22,215,197,0.08)",
+            border:`1px solid ${activeMood.color || '#16D7C5'}22`,
+            display:"flex", alignItems:"center", gap:10,
+            animation:"dfFadeUp 0.4s both",
+          }}>
+            <span style={{ fontSize:20 }}>{activeMood.emoji}</span>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:12.5, fontWeight:800, color:C.ink,
+                letterSpacing:-0.1 }}>
+                {activeMood.label.replace("Ich ", "")}
+              </div>
+              <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>
+                Feed kuratiert · {liveFeedItems.length} Inhalte priorisiert
+              </div>
+            </div>
+            <button onClick={() => {}}
+              style={{ background:"none", border:"none", cursor:"default",
+                fontSize:12, color:`${activeMood.color || '#16D7C5'}99`,
+                fontWeight:700, padding:0 }}>
+              ✦
+            </button>
+          </div>
+        )}
+
 
 
         <Divider label="Entdecken" accent={C.teal}/>
