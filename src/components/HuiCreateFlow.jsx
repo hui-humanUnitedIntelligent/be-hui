@@ -6,6 +6,7 @@ import React, {
   useState, useRef, useCallback, useEffect
 } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS } from "../lib/moodUtils";
 import { useAuth }  from "../lib/AuthContext";
 
 /* ── Brand tokens ─────────────────────────────────────────────────── */
@@ -424,6 +425,9 @@ function ScreenDetails({media, editMeta, onBack, onNext}) {
   const [location,   setLocation]   = useState("");
   const [visibility, setVisibility] = useState("public");
   const [asStory,    setAsStory]    = useState(false);
+  const [moodTags,    setMoodTags]    = useState([]);
+  const [energyLevel, setEnergyLevel] = useState(null);
+  const [socialEnergy,setSocialEnergy]= useState(null);
 
   return (
     <div style={{
@@ -443,7 +447,7 @@ function ScreenDetails({media, editMeta, onBack, onNext}) {
         <span style={{fontWeight:800, fontSize:17, color:C.ink, letterSpacing:-.3}}>
           Beschreibung
         </span>
-        <button onClick={()=>onNext({caption, location, visibility, asStory})}
+        <button onClick={()=>onNext({caption, location, visibility, asStory, moodTags, energyLevel, socialEnergy})}
           className="hcf-tap" style={{
             padding:"8px 16px", borderRadius:22,
             background:`linear-gradient(135deg,${C.teal},${C.coral})`,
@@ -511,6 +515,103 @@ function ScreenDetails({media, editMeta, onBack, onNext}) {
             onChange={setVisibility}
           />
         </FieldWrap>
+
+
+        {/* ── Emotionaler Charakter — "Wie fühlt sich dein Werk an?" ── */}
+        <div style={{
+          marginBottom:20, padding:"16px", borderRadius:18,
+          background:"linear-gradient(135deg,rgba(22,215,197,0.05),rgba(167,139,250,0.05))",
+          border:"1px solid rgba(0,0,0,0.06)",
+        }}>
+          <div style={{ fontSize:14, fontWeight:800, color:"#1A1A1A",
+            letterSpacing:-0.2, marginBottom:3 }}>
+            Wie fühlt sich das an?
+          </div>
+          <div style={{ fontSize:12, color:"#888", marginBottom:14, lineHeight:1.5 }}>
+            Optional — hilft passenden Menschen dich zu finden.
+          </div>
+
+          {/* Mood Tags */}
+          <div style={{ fontSize:11, fontWeight:700, color:"#888",
+            letterSpacing:0.8, textTransform:"uppercase", marginBottom:8 }}>
+            Stimmung
+          </div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:16 }}>
+            {MOOD_TAG_OPTIONS.slice(0, 8).map(tag => {
+              const on = moodTags.includes(tag.key);
+              return (
+                <button key={tag.key} className="hcf-tap"
+                  onClick={() => setMoodTags(prev =>
+                    on ? prev.filter(k=>k!==tag.key)
+                       : prev.length < 3 ? [...prev, tag.key] : prev
+                  )}
+                  style={{
+                    display:"flex", alignItems:"center", gap:5,
+                    padding:"7px 13px", borderRadius:999,
+                    background: on ? `${tag.color}18` : "rgba(0,0,0,0.04)",
+                    border:`1.5px solid ${on ? tag.color+"55" : "rgba(0,0,0,0.07)"}`,
+                    color: on ? tag.color : "#888",
+                    fontSize:12.5, fontWeight: on ? 800 : 500,
+                    transition:"all .18s cubic-bezier(.34,1.3,.64,1)",
+                    fontFamily:"inherit", cursor:"pointer",
+                  }}>
+                  <span style={{ fontSize:14 }}>{tag.emoji}</span>
+                  {tag.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Energy Level */}
+          <div style={{ fontSize:11, fontWeight:700, color:"#888",
+            letterSpacing:0.8, textTransform:"uppercase", marginBottom:8 }}>
+            Energie
+          </div>
+          <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+            {ENERGY_LEVELS.map(lvl => {
+              const on = energyLevel === lvl.key;
+              return (
+                <button key={lvl.key} className="hcf-tap"
+                  onClick={() => setEnergyLevel(on ? null : lvl.key)}
+                  style={{
+                    flex:1, padding:"10px 6px", borderRadius:14, textAlign:"center",
+                    background: on ? "rgba(22,215,197,0.10)" : "rgba(0,0,0,0.04)",
+                    border:`1.5px solid ${on ? "#16D7C555" : "rgba(0,0,0,0.07)"}`,
+                    transition:"all .18s", fontFamily:"inherit", cursor:"pointer",
+                  }}>
+                  <div style={{ fontSize:16, marginBottom:3 }}>{lvl.emoji}</div>
+                  <div style={{ fontSize:11.5, fontWeight: on ? 800 : 500,
+                    color: on ? "#16D7C5" : "#888" }}>{lvl.label}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Social Energy */}
+          <div style={{ fontSize:11, fontWeight:700, color:"#888",
+            letterSpacing:0.8, textTransform:"uppercase", marginBottom:8 }}>
+            Für wen?
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            {SOCIAL_ENERGY_OPTIONS.map(opt => {
+              const on = socialEnergy === opt.key;
+              return (
+                <button key={opt.key} className="hcf-tap"
+                  onClick={() => setSocialEnergy(on ? null : opt.key)}
+                  style={{
+                    flex:1, padding:"9px 4px", borderRadius:14, textAlign:"center",
+                    background: on ? "rgba(255,138,107,0.10)" : "rgba(0,0,0,0.04)",
+                    border:`1.5px solid ${on ? "#FF8A6B55" : "rgba(0,0,0,0.07)"}`,
+                    transition:"all .18s", fontFamily:"inherit", cursor:"pointer",
+                  }}>
+                  <div style={{ fontSize:16, marginBottom:2 }}>{opt.emoji}</div>
+                  <div style={{ fontSize:11, fontWeight: on ? 800 : 500,
+                    color: on ? "#FF8A6B" : "#888" }}>{opt.label}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Also as story */}
         <Toggle
@@ -1073,6 +1174,9 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
         location:   payload.details?.location || null,
         created_at: new Date().toISOString(),
         status:     "published",
+        mood_tags:       payload.details?.moodTags?.length   ? payload.details.moodTags : null,
+        energy_level:    payload.details?.energyLevel         || null,
+        social_energy:   payload.details?.socialEnergy        || null,
       };
 
       if (payload.type === "moment") {
