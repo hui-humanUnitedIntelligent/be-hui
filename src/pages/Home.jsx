@@ -181,11 +181,7 @@ const GLOBAL_CSS = `
   .hui-scroll { -ms-overflow-style:none; scrollbar-width:none; }
   .hui-card-tap { transition:transform 0.2s cubic-bezier(0.34,1.4,0.64,1); }
   .hui-card-tap:active { transform:scale(0.965); }
-  @keyframes hui-pulse-ring {
-    0%   { transform:translate(-50%,-62%) scale(0.85); opacity:0.45; }
-    60%  { transform:translate(-50%,-62%) scale(1.35); opacity:0; }
-    100% { transform:translate(-50%,-62%) scale(1.35); opacity:0; }
-  }
+  /* hui-pulse-ring removed — Orb handles all pulse animations */
 `;
 
 /* ═══════════════════════════════════════════════════
@@ -276,7 +272,7 @@ function Korb({ count=0, size=32, onClick }) {
 function Header({ userName, avatarUrl }) {
   return (
     <div style={{ position:"sticky", top:0, zIndex:60,
-      background:"rgba(255,251,248,0.92)",
+      background:"rgba(255,251,248,0.88)",
       backdropFilter:"blur(28px) saturate(1.6)",
       WebkitBackdropFilter:"blur(28px) saturate(1.6)",
       borderBottom:"1px solid rgba(0,0,0,0.05)" }}>
@@ -456,105 +452,32 @@ function BottomNav({ tab, onTab, onCreate, hasTalent }) {
       position:"fixed", bottom:0, left:0, right:0, zIndex:100,
     }}>
       <div style={{
-        margin:"0 14px",
+        margin:"0 10px",
         marginBottom:"max(12px, env(safe-area-inset-bottom, 12px))",
-        background:"rgba(255,251,248,0.92)",
+        background:"rgba(255,251,248,0.88)",
         backdropFilter:"blur(36px) saturate(1.8)",
         WebkitBackdropFilter:"blur(36px) saturate(1.8)",
         borderRadius:28,
-        border:"1px solid rgba(255,255,255,0.72)",
+        border:"1px solid rgba(255,255,255,0.65)",
         boxShadow:`
           0 2px 4px rgba(0,0,0,0.03),
           0 8px 28px rgba(0,0,0,0.10),
           0 1px 0 rgba(255,255,255,0.9) inset
         `,
         display:"flex", alignItems:"center",
-        justifyContent:"space-around",
-        padding:"6px 4px",
+        justifyContent:"space-between",
+        padding:"8px 6px",
       }}>
 
         {NAV.map((item, i) => {
           /* ── HUI centre button ── */
           if(!item) return (
-            <button key="hui"
-              onClick={onCreate}
-              onTouchStart={()=>setPressed("hui")}
-              onTouchEnd={()=>setPressed(null)}
-              style={{
-                background:"none", border:"none",
-                cursor:"pointer", padding:0,
-                lineHeight:0, flexShrink:0,
-                WebkitTapHighlightColor:"transparent",
-                position:"relative",
-              }}>
-              <div style={{
-                width:52, height:52, borderRadius: hasTalent ? "50%" : 17,
-                marginTop:-24,
-                background: hasTalent
-                  ? `linear-gradient(145deg,${C.teal},${C.teal2} 45%,${C.coral})`
-                  : `linear-gradient(145deg,${C.teal},#14C4B4 45%,${C.coral})`,
-                display:"flex", alignItems:"center",
-                justifyContent:"center",
-                transform: pressed==="hui"
-                  ? "scale(0.90) translateY(2px)"
-                  : transformed ? "scale(1.05) translateY(0)" : "scale(1) translateY(0)",
-                transition:"all 0.55s cubic-bezier(0.34,1.5,0.64,1)",
-                boxShadow: hasTalent
-                  ? `
-                    0 0 0 3px rgba(255,251,248,0.95),
-                    0 4px 6px rgba(0,0,0,0.12),
-                    0 8px 28px rgba(22,215,197,0.52),
-                    0 4px 14px rgba(255,138,107,0.30),
-                    0 0 0 7px rgba(22,215,197,0.10)
-                  `
-                  : `
-                    0 0 0 3px rgba(255,251,248,0.95),
-                    0 4px 6px rgba(0,0,0,0.12),
-                    0 8px 22px rgba(22,215,197,0.38),
-                    0 4px 12px rgba(255,138,107,0.22)
-                  `,
-                overflow:"hidden",
-              }}>
-                {/* BASE USER: real HUI logo */}
-                <img loading="lazy" decoding="async" src="/hui-logo.jpg" alt="HUI"
-                  style={{
-                    width:36, height:36, borderRadius: hasTalent ? "50%" : 10,
-                    objectFit:"cover", display:"block",
-                    position:"absolute",
-                    opacity: hasTalent ? 0 : 1,
-                    transform: hasTalent ? "scale(0.5) rotate(-90deg)" : "scale(1) rotate(0deg)",
-                    transition:"all 0.5s cubic-bezier(0.34,1.3,0.64,1)",
-                  }}/>
-                {/* WIRKER: Plus icon */}
-                <div style={{
-                  position:"absolute",
-                  opacity: hasTalent ? 1 : 0,
-                  transform: hasTalent ? "scale(1) rotate(0deg)" : "scale(0.3) rotate(90deg)",
-                  transition:"all 0.5s cubic-bezier(0.34,1.3,0.64,1)",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                }}>
-                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <path d="M11 3 L11 19" stroke="white" strokeWidth="2.4"
-                      strokeLinecap="round"/>
-                    <path d="M3 11 L19 11" stroke="white" strokeWidth="2.4"
-                      strokeLinecap="round"/>
-                  </svg>
-                </div>
-              </div>
-              {/* Wirker glow pulse ring */}
-              {hasTalent && (
-                <div style={{
-                  position:"absolute",
-                  top:"50%", left:"50%",
-                  transform:"translate(-50%,-62%)",
-                  width:64, height:64, borderRadius:"50%",
-                  border:`1.5px solid ${C.teal}`,
-                  opacity:0,
-                  animation:"hui-pulse-ring 2.2s ease-out infinite",
-                  pointerEvents:"none",
-                }}/>
-              )}
-            </button>
+            <div key="orb-space" style={{
+              width:72, height:48,
+              flexShrink:0,
+              pointerEvents:"none",
+              position:"relative",
+            }}/>
           );
 
           const active    = tab === item.key;
