@@ -2015,6 +2015,32 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
               display:"flex", alignItems:"center", gap:12,
               animation:"dfFadeUp 0.5s both",
             }}>
+
+        {/* ── DEBUG BANNER — nur wenn Supabase Key fehlt ── */}
+        {!import.meta.env.VITE_SUPABASE_ANON_KEY && (
+          <div style={{
+            margin:"12px 16px 0", padding:"12px 16px", borderRadius:12,
+            background:"rgba(220,38,38,0.12)", border:"1.5px solid rgba(220,38,38,0.35)",
+            display:"flex", alignItems:"center", gap:10,
+          }}>
+            <div style={{ fontSize:20 }}>🚨</div>
+            <div>
+              <div style={{ fontSize:13, fontWeight:800, color:"#dc2626", marginBottom:2 }}>
+                VITE_SUPABASE_ANON_KEY fehlt in Vercel
+              </div>
+              <div style={{ fontSize:11, color:"#666", lineHeight:1.5 }}>
+                Supabase nicht verbunden → Feed leer. 
+                Vercel → Settings → Environment Variables → Key hinzufügen → Redeploy.
+              </div>
+            </div>
+            <a href="/diagnose" style={{
+              marginLeft:"auto", fontSize:11, fontWeight:700,
+              color:"#dc2626", textDecoration:"none",
+              background:"rgba(220,38,38,0.1)", padding:"6px 12px",
+              borderRadius:8, whiteSpace:"nowrap",
+            }}>Diagnose →</a>
+          </div>
+        )}
               <div style={{
                 width:40, height:40, borderRadius:13, flexShrink:0,
                 background:`${mc?.accentColor || activeMood.color || '#16D7C5'}14`,
