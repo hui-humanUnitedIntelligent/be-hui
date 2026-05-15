@@ -42,7 +42,7 @@ const DEFAULT_MOOD = { color:"#16D7C5", rgb:"22,215,197", floatS:6.0, breathS:4.
 // Gesamt-Bogen: 240° (oben frei, unterer Bereich frei wegen BottomNav)
 // Schritt: 240° / 4 = 60°
 // Positionen: 150°, 210°, 270°, 330°, 30°
-const ORB_R  = 106;  // Radius Satelliten-Umlaufbahn [px]
+const ORB_R  = 102;  // Radius Satelliten-Umlaufbahn [px]
 const ANGLES = [150, 210, 270, 330, 30];
 
 function polarPos(angleDeg, r) {
@@ -73,7 +73,7 @@ const ORB_CSS = `
 
   @keyframes orb-wrap-float {
     0%,100% { transform: translateX(-50%) translateY(0px);  }
-    50%      { transform: translateX(-50%) translateY(-5px); }
+    50%      { transform: translateX(-50%) translateY(-3.5px); }
   }
 
   @keyframes orb-breathe {
@@ -154,12 +154,13 @@ const ORB_CSS = `
     position: fixed;
     left: 50%;
     /* Perfekte Balance: BottomNav ≈ 74px + safe-area + 16px Luft */
-    bottom: calc(74px + max(12px, env(safe-area-inset-bottom, 12px)) + 16px);
+    /* Orb sitzt teilweise in/über BottomNav — nahtlose Integration */
+    bottom: calc(52px + max(8px, env(safe-area-inset-bottom, 8px)));
     z-index: 95;
     pointer-events: none;
     transform: translateX(-50%);
-    width: 66px;
-    height: 66px;
+    width: 64px;
+    height: 64px;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -210,7 +211,7 @@ const ORB_CSS = `
     position: absolute;
     inset: -5px;
     border-radius: 50%;
-    border: 1.5px solid rgba(255,255,255,0.28);
+    border: 1.5px solid rgba(255,255,255,0.38);
     pointer-events: none;
     transition: border-color 0.55s ease, opacity 0.4s ease;
   }
@@ -356,8 +357,8 @@ const ORB_CSS = `
   .orb-backdrop {
     position: fixed; inset: 0; z-index: 94;
     /* Stärkerer blur + Brightness-Reduktion + soft Vignette */
-    backdrop-filter: blur(6px) brightness(0.85) saturate(0.88);
-    -webkit-backdrop-filter: blur(6px) brightness(0.85) saturate(0.88);
+    backdrop-filter: blur(7px) brightness(0.82) saturate(0.86);
+    -webkit-backdrop-filter: blur(7px) brightness(0.82) saturate(0.86);
     /* Radial vignette — hält Feed sichtbar, dämpft Ränder */
     background: radial-gradient(
       ellipse 90% 75% at 50% 115%,
