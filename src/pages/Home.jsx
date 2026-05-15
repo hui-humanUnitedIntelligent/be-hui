@@ -24,6 +24,7 @@ import NotificationCenter from "../components/NotificationCenter";
 import { useNotifCount } from "../components/NotificationCenter";
 import HuiMembershipFlow from "../components/HuiMembershipFlow";
 import HuiCreateFlow from "../components/HuiCreateFlow";
+import HuiOrb from '../components/HuiOrb';
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1124,202 +1125,6 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
    RIGHT ACTION BAR — Floating Quick Actions
    Only visible on Feed tab. Glassmorphism, HUI style.
 ═══════════════════════════════════════════════════ */
-const GLOBAL_RIGHT_BAR_CSS = `
-  @keyframes hui-bar-in {
-    from { opacity:0; transform:translateX(12px) scale(0.94); }
-    to   { opacity:1; transform:translateX(0)    scale(1);    }
-  }
-  @keyframes hui-badge-pulse {
-    0%,100% { transform:scale(1); opacity:1; }
-    50%     { transform:scale(1.12); opacity:0.8; }
-  }
-  .hui-rab-btn {
-    position:relative;
-    width:30px; height:30px; border-radius:50%;
-    border:1px solid rgba(255,255,255,0.42);
-    cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    background:rgba(255,255,255,0.38);
-    backdrop-filter:blur(18px) saturate(1.2);
-    -webkit-backdrop-filter:blur(18px) saturate(1.2);
-    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 0 rgba(255,255,255,0.65) inset;
-    transition:transform 0.24s cubic-bezier(0.34,1.4,0.64,1),
-      box-shadow 0.24s ease, background 0.24s ease, border-color 0.24s ease;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .hui-rab-btn:active {
-    transform:scale(0.88) !important;
-    box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;
-    background:rgba(255,255,255,0.26) !important;
-  }
-  .hui-rab-btn--active {
-    background:rgba(22,215,197,0.10) !important;
-    border-color:rgba(22,215,197,0.26) !important;
-    box-shadow:0 2px 8px rgba(22,215,197,0.12),0 1px 0 rgba(255,255,255,0.6) inset !important;
-  }
-  @media (min-width:600px) {
-    .hui-rab-btn {
-      width:34px; height:34px;
-      background:rgba(255,255,255,0.44);
-      backdrop-filter:blur(22px) saturate(1.3);
-      -webkit-backdrop-filter:blur(22px) saturate(1.3);
-    }
-    .hui-rab-btn:hover {
-      transform:scale(1.05);
-      background:rgba(255,255,255,0.55);
-      box-shadow:0 2px 8px rgba(22,215,197,0.10),0 1px 0 rgba(255,255,255,0.72) inset;
-    }
-  }
-  @media (min-width:1024px) {
-    .hui-rab-btn {
-      width:38px; height:38px;
-      background:rgba(255,255,255,0.48);
-      backdrop-filter:blur(26px) saturate(1.35);
-      -webkit-backdrop-filter:blur(26px) saturate(1.35);
-    }
-    .hui-rab-btn:hover {
-      transform:scale(1.06);
-      background:rgba(255,255,255,0.58);
-      box-shadow:0 3px 12px rgba(22,215,197,0.12),0 1px 0 rgba(255,255,255,0.78) inset;
-    }
-  }
-  .hui-rab-badge {
-    position:absolute; top:0px; right:0px;
-    min-width:12px; height:12px; padding:0 3px; border-radius:6px;
-    background:linear-gradient(135deg,#FF6B6B,#FF8A6B);
-    color:#fff; font-size:7.5px; font-weight:800;
-    display:flex; align-items:center; justify-content:center;
-    border:1.5px solid rgba(255,251,248,0.95);
-    animation:hui-badge-pulse 3.2s ease-in-out infinite; pointer-events:none;
-  }
-`;
-
-function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
-                          msgCount=0, notifCount=0, cartCount=0, avatarUrl=null, visible=true, resetKey=null }) {
-  const [scrolled, setScrolled] = React.useState(false);
-  const [activeRab, setActiveRab] = React.useState(null);
-  React.useEffect(() => { setActiveRab(null); }, [resetKey]);
-
-  React.useEffect(() => {
-    const el = document.querySelector(".hui-scroll");
-    if (!el) return;
-    const handler = () => setScrolled(el.scrollTop > 60);
-    el.addEventListener("scroll", handler, { passive:true });
-    return () => el.removeEventListener("scroll", handler);
-  }, []);
-
-  if (!visible) return null;
-
-  const scale = scrolled ? (window.innerWidth >= 600 ? 0.88 : 0.92) : 1;
-
-  const btnStyle = (accentColor) => ({
-    background: accentColor
-      ? `linear-gradient(145deg, rgba(255,255,255,0.82), rgba(255,255,255,0.60))`
-      : undefined,
-  });
-
-  const handleRabClick = (key, fn) => { setActiveRab(p => p===key ? null : key); fn?.(); };
-
-  return (
-    <>
-      <style>{GLOBAL_RIGHT_BAR_CSS}</style>
-      <div style={{
-        position:"fixed",
-        right: window.innerWidth >= 1024 ? 18 : window.innerWidth >= 600 ? 12 : 8,
-        top:"50%",
-        transform:`translateY(-50%) scale(${scale})`,
-        transformOrigin:"right center",
-        transition:"transform 0.4s cubic-bezier(0.34,1.2,0.64,1)",
-        zIndex:90,
-        display:"flex",
-        flexDirection:"column",
-        gap: window.innerWidth >= 600 ? 6 : 5,
-        animation:"hui-bar-in 0.5s cubic-bezier(0.34,1.3,0.64,1) both",
-      }}>
-
-        {/* ── Werkekorb ── */}
-        <button className="hui-rab-btn" onClick={()=>handleRabClick("korb",onKorb)}
-          title="Werkekorb" aria-label="Werkekorb öffnen">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 01-8 0"/>
-          </svg>
-          {cartCount > 0 && (
-            <span className="hui-rab-badge" style={{ background:`linear-gradient(135deg,${C.gold},${C.coral})` }}>
-              {cartCount > 9 ? "9+" : cartCount}
-            </span>
-          )}
-        </button>
-
-        {/* ── Messages ── */}
-        <button className="hui-rab-btn" onClick={()=>handleRabClick("chat",onChat)}
-          title="Nachrichten" aria-label="Nachrichten öffnen">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          {msgCount > 0 && (
-            <span className="hui-rab-badge">{msgCount > 9 ? "9+" : msgCount}</span>
-          )}
-        </button>
-
-        {/* ── Quick Story ── */}
-        <button className="hui-rab-btn" onClick={()=>handleRabClick("story",onStory)}
-          title="Story erstellen" aria-label="Schnelle Story erstellen"
-          style={{
-            background:"linear-gradient(145deg, rgba(22,215,197,0.09), rgba(255,138,107,0.06))",
-          }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="url(#rab-grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <defs>
-              <linearGradient id="rab-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%"   stopColor={C.teal}/>
-                <stop offset="100%" stopColor={C.coral}/>
-              </linearGradient>
-            </defs>
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="16"/>
-            <line x1="8"  y1="12" x2="16" y2="12"/>
-          </svg>
-        </button>
-
-        {/* ── Notifications ── */}
-        <button className="hui-rab-btn" onClick={()=>handleRabClick("notifs",onNotifs)}
-          title="Benachrichtigungen" aria-label="Benachrichtigungen">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke={C.ink2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          {notifCount > 0 && (
-            <span className="hui-rab-badge">{notifCount > 9 ? "9+" : notifCount}</span>
-          )}
-        </button>
-
-        {/* ── My Profile (public view) ── */}
-        <button className={`hui-rab-btn${activeRab==="profile" ? " hui-rab-btn--active" : ""}`} onClick={onProfile}
-          title="Mein Profil ansehen" aria-label="Profil ansehen"
-          style={{ overflow:"hidden", padding:0 }}>
-          {avatarUrl ? (
-            <img loading="lazy" decoding="async" src={avatarUrl} alt="Profil"
-              style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}
-              onError={e => { e.target.style.display="none"; }}
-            />
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke={C.ink2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          )}
-        </button>
-
-      </div>
-    </>
-  );
-}
 
 /* ═══════════════════════════════════════════════════
    ROOT
@@ -1537,40 +1342,35 @@ export default function Home() {
           }}/>
 
         {/* ── RIGHT ACTION BAR ── alle Tabs ── */}
-        <RightActionBar
+        {/* ── HUI ORB NAVIGATION ── */}
+        <HuiOrb
           resetKey={tab}
-          onKorb={()=>setShowKorb(true)}
+          activeMood={activeMood}
           onChat={()=>setShowChat(true)}
-          onStory={()=>setShowStoryComposer(true)}
           onNotifs={()=>setShowNotifs(true)}
+          onKorb={()=>setShowKorb(true)}
+          onMatch={()=>setShowMatch(true)}
           onProfile={async ()=>{
-            // Öffentliches eigenes Profil öffnen via WirkerProfilePage
-            // authProfile kann noch null sein wenn loadingProfile aktiv
-            // → hole uid direkt aus Supabase session als Fallback
             let p = authProfile;
             let uid = p?.id;
             if (!uid) {
-              // Fallback: direkt aus Supabase Auth Session
               try {
                 const { data: { user: u } } = await supabase.auth.getUser();
                 uid = u?.id;
               } catch { /* ignore */ }
             }
-            if (!uid) {
-              console.warn("[HUI] onProfile: no uid available, skipping");
-              return;
-            }
+            if (!uid) return;
             setShowWirker({
-              id:          uid,
-              user_id:     uid,
-              username:    p?.username    || null,
-              display_name:p?.display_name|| null,
-              avatar_url:  p?.avatar_url  || null,
-              talent:      p?.talent      || null,
-              focus_type:  p?.focus_type  || "hybrid",
-              header_img:  p?.header_img  || null,
-              bio:         p?.bio         || null,
-              dna_tags:    p?.dna_tags    || [],
+              id:           uid,
+              user_id:      uid,
+              username:     p?.username    || null,
+              display_name: p?.display_name|| null,
+              avatar_url:   p?.avatar_url  || null,
+              talent:       p?.talent      || null,
+              focus_type:   p?.focus_type  || "hybrid",
+              header_img:   p?.header_img  || null,
+              bio:          p?.bio         || null,
+              dna_tags:     p?.dna_tags    || [],
             });
           }}
           cartCount={cart.length}
