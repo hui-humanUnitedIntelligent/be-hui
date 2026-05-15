@@ -1146,8 +1146,8 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
         .from(bucket).upload(path, file, { contentType:file.type, upsert:false });
       if (upErr) throw upErr;
 
-      console.log("[HUI Publish] publicUrl:", publicUrl, "bucket:", bucket);
       const { data:{ publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+      console.log("[HUI Publish] publicUrl:", publicUrl, "bucket:", bucket);
       // location wird per-Tabelle gesetzt (_loc), nicht im base-Objekt
       // stories → location (text), experiences → location_text (GEOGRAPHY-Konflikt)
       const _loc = payload.details?.location || mediaData.location || null;
@@ -1165,6 +1165,7 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
       };
 
       if (payload.type === "moment") {
+        console.log("[HUI Publish] inserting story:", { user_id:base.user_id, media_url:base.media_url });
         const { error:e } = await supabase.from("stories").insert({
           ...base,
           location:   _loc,
@@ -1173,6 +1174,7 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
         if (e) throw e;
       } else if (payload.type === "werk") {
         const w = payload.werkData;
+        console.log("[HUI Publish] inserting work:", { user_id:base.user_id, title:w.title });
         const { error:e } = await supabase.from("works").insert({
           ...base,
           cover_url:          publicUrl,
@@ -1184,12 +1186,13 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
           pickup_available:   w.pickup,
           delivery_time:      w.deliveryTime || null,
           category:           w.category     || null,
-            for_sale:           !w.onlyShow,
-            location_text:      _loc,
+          for_sale:           !w.onlyShow,
+          location_text:      _loc,
         });
         if (e) throw e;
       } else if (payload.type === "erlebnis") {
         const er = payload.erlData;
+        console.log("[HUI Publish] inserting experience:", { user_id:base.user_id, title:er.title });
         const { error:e } = await supabase.from("experiences").insert({
           ...base,
           title:            er.title       || "Mein Erlebnis",
@@ -1231,9 +1234,10 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
         .from("media").upload(path, file, { contentType:file.type, upsert:false });
       if (upErr) throw upErr;
 
-      console.log("[HUI Moment] publicUrl:", publicUrl);
       const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+      console.log("[HUI Moment] publicUrl:", publicUrl);
 
+      console.log("[HUI Moment] inserting story:", { user_id, media_url: publicUrl });
       const { error:e } = await supabase.from("stories").insert({
         user_id:    user.id,
         media_url:  publicUrl,
@@ -1250,7 +1254,7 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
       setScreen("done");
       setTimeout(() => { onSuccess?.(); onClose?.(); }, 2200);
     } catch(err) {
-      console.error("[HUI Publish] ERROR (moment):", err.message, err);
+      // (moment error handled below)
       console.error("[HUI Moment] ERROR:", err.message, err);
       setError(err.message || "Fehler beim Veröffentlichen.");
       setLoading(false);
