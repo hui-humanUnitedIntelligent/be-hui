@@ -40,15 +40,54 @@ const _noopAuth = {
   },
 };
 
+// ─── Warnung wenn nicht konfiguriert ─────────────────────────────
+if (!_supabase) {
+  console.error(
+    "⚠️ [HUI Supabase] NICHT KONFIGURIERT — VITE_SUPABASE_URL und/oder " +
+    "VITE_SUPABASE_ANON_KEY fehlen. " +
+    "→ Vercel: Settings → Environment Variables prüfen. " +
+    "→ Lokal: .env.local Datei mit VITE_SUPABASE_URL=https://xxx.supabase.co anlegen."
+  );
+}
+
+const _noopError = { message: "Supabase nicht konfiguriert — VITE_SUPABASE_URL fehlt in Vercel", code: "SUPABASE_NOT_CONFIGURED" };
+
 export const supabase = _supabase || {
   auth:  _noopAuth,
-  from:  () => ({
-    select:  () => Promise.resolve({ data: [],   error: null }),
-    insert:  () => Promise.resolve({ data: null, error: null }),
-    update:  () => Promise.resolve({ data: null, error: null }),
-    upsert:  () => Promise.resolve({ data: null, error: null }),
-    delete:  () => Promise.resolve({ data: null, error: null }),
+  // Noop gibt jetzt erkennbaren Error zurück statt leerem Array
+  // → loadFeed sieht den Fehler und zeigt ihn im UI an
+  from:  () => {
+    const chain = {
+      select:  () => { chain._isSelect=true; return chain; },
+      insert:  () => Promise.resolve({ data: null, error: _noopError }),
+      update:  () => Promise.resolve({ data: null, error: _noopError }),
+      upsert:  () => Promise.resolve({ data: null, error: _noopError }),
+      delete:  () => Promise.resolve({ data: null, error: _noopError }),
+      order:   () => chain,
+      range:   () => chain,
+      limit:   () => chain,
+      eq:      () => chain,
+      neq:     () => chain,
+      in:      () => chain,
+      or:      () => chain,
+      single:  () => Promise.resolve({ data: null, error: _noopError }),
+      // select gibt am Ende Promise mit error zurück
+      then:    (resolve) => resolve({ data: null, error: _noopError }),
+    };
+    return chain;
+  },
+  storage: {
+    from: () => ({
+      upload:     async () => ({ error: _noopError }),
+      getPublicUrl: () => ({ data: { publicUrl: "" } }),
+      listBuckets:  async () => ({ data: [], error: _noopError }),
+    }),
+    listBuckets: async () => ({ data: [], error: _noopError }),
+  },
+  channel: () => ({
+    on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
   }),
+  removeChannel: () => {},
 };
 
 // ─── DB helpers (backwards-compatible) ──────────────────────────────
