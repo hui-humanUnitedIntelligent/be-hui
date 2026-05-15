@@ -1145,13 +1145,15 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
       if (upErr) throw upErr;
 
       const { data:{ publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+      // location wird per-Tabelle gesetzt (_loc), nicht im base-Objekt
+      // stories → location (text), experiences → location_text (GEOGRAPHY-Konflikt)
+      const _loc = payload.details?.location || mediaData.location || null;
 
       const base = {
         user_id:    user.id,
         media_url:  publicUrl,
         media_type: isVid ? "video" : "image",
         caption:    payload.details?.caption   || mediaData.caption || null,
-        location:   payload.details?.location  || mediaData.location || null,
         created_at: new Date().toISOString(),
         status:     "published",
         mood_tags:      payload.details?.moodTags?.length ? payload.details.moodTags : null,
@@ -1160,7 +1162,11 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
       };
 
       if (payload.type === "moment") {
-        const { error:e } = await supabase.from("stories").insert({ ...base, expires_at:null });
+        const { error:e } = await supabase.from("stories").insert({
+          ...base,
+          location:   _loc,
+          expires_at: null,
+        });
         if (e) throw e;
       } else if (payload.type === "werk") {
         const w = payload.werkData;
@@ -1175,7 +1181,8 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
           pickup_available:   w.pickup,
           delivery_time:      w.deliveryTime || null,
           category:           w.category     || null,
-          for_sale:           !w.onlyShow,
+            for_sale:           !w.onlyShow,
+            location_text:      _loc,
         });
         if (e) throw e;
       } else if (payload.type === "erlebnis") {
@@ -1187,12 +1194,12 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
           price:            er.price,
           price_type:       er.priceType,
           format:           er.format,
-          location:         er.location    || null,
+          location_text:    er.location    || null,
           duration:         er.duration    || null,
           available_days:   er.days        || null,
-          max_participants: er.maxPax,
+          max_participants: er.maxPax      || null,
           category:         er.category    || null,
-          language:         er.language,
+          language:         er.language    || "Deutsch",
         });
         if (e) throw e;
       }
