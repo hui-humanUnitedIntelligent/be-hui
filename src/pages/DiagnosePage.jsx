@@ -1,231 +1,273 @@
-// src/pages/Diagnose.jsx
-// Hard Debug — zeigt Supabase Status, ENV Vars, DB Queries
+// src/pages/DiagnosePage.jsx
+// HUI Schema-Diagnose — zeigt exakten Zustand von DB, Schema, Feed Pipeline
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const IS_CONNECTED  = !!(SUPABASE_URL && SUPABASE_KEY);
+// Felder die das Frontend ERWARTET (aus Schema-Audit 024)
+const EXPECTED = {
+  works:       ['id','user_id','title','description','price','cover_url','media_url','images',
+                'category','status','for_sale','mood_tags','atmosphere_tags','energy_level',
+                'social_energy','creator_vibe','likes_count','medium','tags','created_at'],
+  stories:     ['id','user_id','username','avatar_url','media_url','media_type','text_overlay',
+                'caption','mood','location','is_highlight','expires_at','mood_tags',
+                'atmosphere_tags','energy_level','social_energy','status','created_at'],
+  experiences: ['id','user_id','title','description','price','price_type','format',
+                'location_text','category','status','mood_tags','atmosphere_tags',
+                'energy_level','social_energy','creator_vibe','media_url','media_type',
+                'available_days','language','created_at'],
+  profiles:    ['id','display_name','username','avatar_url','header_img','bio','is_wirker',
+                'has_talent_profile','focus_type','talent','location_label','is_available',
+                'impact_eur','followers_count','dna_tags','profile_modules','role','created_at'],
+  wirker_profiles: ['id','user_id','slug','talent','wirker_type','location_label','categories',
+                    'bio','hourly_rate','is_verified','impact_eur','followers_count',
+                    'recommendations_count','availability_slots'],
+  bookings:    ['id','user_id','wirker_id','work_id','experience_id','status','amount',
+                'total_amount','scheduled_at','client_name','service_title','work_title'],
+  messages:    ['id','chat_id','sender_id','receiver_id','text','read','created_at',
+                'image_url','background','story_id'],
+  chats:       ['id','user1_id','user2_id','booking_id','created_at'],
+  notifications: ['id','user_id','type','title','body','read','data','created_at'],
+  notification_settings: ['user_id','email_bookings','email_messages','email_impact',
+                          'push_bookings','push_messages','push_impact'],
+  privacy_settings: ['user_id','profile_visibility','show_location','show_availability',
+                     'allow_messages'],
+};
 
-export default function Diagnose() {
-  const [results, setResults] = useState({});
-  const [running, setRunning] = useState(false);
+const C = {
+  bg:'#0f172a', card:'#1e293b', border:'#334155',
+  text:'#f1f5f9', muted:'#94a3b8',
+  ok:'#4ade80', err:'#f87171', warn:'#fbbf24',
+};
 
-  const C = {
-    ok:   "#16a34a", err: "#dc2626", warn: "#d97706",
-    bg:   "#0f172a", card:"#1e293b", border:"#334155",
-    text: "#f1f5f9", muted:"#94a3b8",
-  };
+export default function DiagnosePage() {
+  const [results, setResults]   = useState({});
+  const [schema,  setSchema]    = useState({});
+  const [running, setRunning]   = useState(false);
 
-  async function runChecks() {
+  async function runAudit() {
     setRunning(true);
     const out = {};
 
-    // 1. ENV VARS
-    out.env_url  = SUPABASE_URL  || "❌ NICHT GESETZT";
-    out.env_key  = SUPABASE_KEY  ? `✓ ${SUPABASE_KEY.slice(0,20)}...` : "❌ NICHT GESETZT";
-    out.connected = IS_CONNECTED ? "✓ VERBUNDEN" : "❌ NICHT VERBUNDEN — KEY FEHLT";
+    // 1. ENV
+    out.env_url  = SUPABASE_URL  || null;
+    out.env_key  = SUPABASE_KEY  ? SUPABASE_KEY.slice(0,24)+'...' : null;
+    out.connected = !!(SUPABASE_URL && SUPABASE_KEY);
 
-    // 2. Works Query
+    // 2. Auth
     try {
-      const { data, error } = await supabase
-        .from("works").select("id, title, status, media_url, cover_url, created_at")
-        .order("created_at", { ascending: false }).limit(5);
-      if (error) out.works = `❌ ERROR: ${error.message} [${error.code}]`;
-      else       out.works = data?.length ? `✓ ${data.length} Works: ${data.map(w=>w.title||w.id).join(", ")}` : "⚠ 0 Works in DB";
-      out.works_raw = JSON.stringify(data?.slice(0,3), null, 2);
-    } catch(e) { out.works = `❌ CRASH: ${e.message}`; }
+      const { data: { session } } = await supabase.auth.getSession();
+      out.auth = session ? `✓ ${session.user.email}` : '⚠ anon (nicht eingeloggt)';
+    } catch(e) { out.auth = `✗ ${e.message}`; }
 
-    // 3. Experiences Query
-    try {
-      const { data, error } = await supabase
-        .from("experiences").select("id, title, status, media_url, created_at")
-        .order("created_at", { ascending: false }).limit(5);
-      if (error) out.experiences = `❌ ERROR: ${error.message} [${error.code}]`;
-      else       out.experiences = data?.length ? `✓ ${data.length} Experiences` : "⚠ 0 Experiences";
-    } catch(e) { out.experiences = `❌ CRASH: ${e.message}`; }
+    // 3. Tabellen-Counts
+    const tables = ['works','stories','experiences','profiles','wirker_profiles',
+                    'bookings','messages','chats','notifications','follows',
+                    'work_likes','work_saves','impact_projects','impact_votes',
+                    'recommendations','favorites','media'];
 
-    // 4. Stories Query
-    try {
-      const { data, error } = await supabase
-        .from("stories").select("id, media_url, media_type, status, caption, text_overlay, created_at")
-        .order("created_at", { ascending: false }).limit(5);
-      if (error) out.stories = `❌ ERROR: ${error.message} [${error.code}]`;
-      else       out.stories = data?.length ? `✓ ${data.length} Stories: ${data.map(s=>s.media_type||"text").join(", ")}` : "⚠ 0 Stories";
-      out.stories_raw = JSON.stringify(data?.slice(0,3), null, 2);
-    } catch(e) { out.stories = `❌ CRASH: ${e.message}`; }
+    out.counts = {};
+    for (const t of tables) {
+      try {
+        const { count, error } = await supabase.from(t).select('*', { count:'exact', head:true });
+        out.counts[t] = error ? `✗ ${error.code}: ${error.message.slice(0,60)}` : count ?? 0;
+      } catch(e) { out.counts[t] = `✗ ${e.message.slice(0,60)}`; }
+    }
 
-    // 5. Profiles Query
-    try {
-      const { data, error } = await supabase
-        .from("profiles").select("id, display_name, is_wirker").limit(5);
-      if (error) out.profiles = `❌ ERROR: ${error.message} [${error.code}]`;
-      else       out.profiles = data?.length ? `✓ ${data.length} Profile` : "⚠ 0 Profile";
-    } catch(e) { out.profiles = `❌ CRASH: ${e.message}`; }
+    // 4. Schema-Audit — versuche jedes erwartete Feld zu selektieren
+    const schemaOut = {};
+    for (const [table, fields] of Object.entries(EXPECTED)) {
+      const missing = [];
+      const present = [];
+      try {
+        // Selektiere alle erwarteten Felder auf einmal
+        const { data, error } = await supabase.from(table)
+          .select(fields.join(',')).limit(1);
+        if (error) {
+          // Parse: welche Felder fehlen?
+          const errMsg = error.message || '';
+          for (const f of fields) {
+            if (errMsg.includes(f) || error.code === 'PGRST204') {
+              missing.push(f);
+            } else {
+              present.push(f);
+            }
+          }
+          if (missing.length === 0 && error.code === 'PGRST204') {
+            missing.push(...fields);
+          }
+        } else {
+          // Prüfe welche Felder tatsächlich im Ergebnis sind
+          const row = data?.[0] || {};
+          for (const f of fields) {
+            if (f in row || data?.length === 0) present.push(f);
+            else missing.push(f);
+          }
+        }
+      } catch(e) {
+        missing.push(...fields);
+      }
+      schemaOut[table] = { present, missing };
+    }
+    setSchema(schemaOut);
 
-    // 6. Auth Session
+    // 5. Feed Pipeline
+    out.feed = {};
     try {
-      const { data:{ session } } = await supabase.auth.getSession();
-      out.auth = session ? `✓ Eingeloggt: ${session.user.email}` : "⚠ Nicht eingeloggt (anon)";
-    } catch(e) { out.auth = `❌ Auth CRASH: ${e.message}`; }
+      const { data: w, error: we } = await supabase.from('works')
+        .select('id,title,status,media_url,cover_url,created_at')
+        .order('created_at', { ascending: false }).limit(5);
+      out.feed.works = we ? `✗ ${we.message}` :
+        `✓ ${w?.length ?? 0} Works (${w?.filter(x=>x.media_url)?.length ?? 0} mit media_url)`;
+      out.feed.works_sample = w?.slice(0,2).map(x => ({
+        id: x.id?.slice(0,8), title: x.title?.slice(0,20),
+        status: x.status, has_media: !!x.media_url
+      }));
+    } catch(e) { out.feed.works = `✗ ${e.message}`; }
 
-    // 7. Storage Buckets
     try {
-      const { data, error } = await supabase.storage.listBuckets();
-      if (error) out.storage = `❌ ${error.message}`;
-      else       out.storage = data?.length ? `✓ Buckets: ${data.map(b=>b.name).join(", ")}` : "⚠ Keine Buckets";
-    } catch(e) { out.storage = `❌ CRASH: ${e.message}`; }
+      const { data: s, error: se } = await supabase.from('stories')
+        .select('id,status,media_url,media_type,created_at')
+        .order('created_at', { ascending: false }).limit(5);
+      out.feed.stories = se ? `✗ ${se.message}` :
+        `✓ ${s?.length ?? 0} Stories (${s?.filter(x=>x.media_url)?.length ?? 0} mit media_url)`;
+    } catch(e) { out.feed.stories = `✗ ${e.message}`; }
 
-    // 8. Storage Files in media bucket
     try {
-      const { data, error } = await supabase.storage.from("media").list("", { limit: 10 });
-      if (error) out.media_files = `❌ ${error.message}`;
-      else       out.media_files = data?.length ? `✓ ${data.length} Dateien in /media` : "⚠ 0 Dateien in /media";
-    } catch(e) { out.media_files = `❌ CRASH: ${e.message}`; }
+      const { data: e, error: ee } = await supabase.from('experiences')
+        .select('id,title,status,media_url,location_text,energy_level,created_at')
+        .order('created_at', { ascending: false }).limit(5);
+      out.feed.experiences = ee ? `✗ ${ee.message}` :
+        `✓ ${e?.length ?? 0} Experiences`;
+    } catch(e) { out.feed.experiences = `✗ ${e.message}`; }
 
-    // 9. Storage Files in stories bucket
+    // 6. Storage Buckets
     try {
-      const { data, error } = await supabase.storage.from("stories").list("", { limit: 10 });
-      if (error) out.stories_files = `❌ ${error.message}`;
-      else       out.stories_files = data?.length ? `✓ ${data.length} Dateien in /stories` : "⚠ 0 Dateien in /stories";
-    } catch(e) { out.stories_files = `❌ CRASH: ${e.message}`; }
+      const { data: b, error: be } = await supabase.storage.listBuckets();
+      out.buckets = be ? `✗ ${be.message}` : b?.map(x=>x.name).join(', ') || 'keine';
+    } catch(e) { out.buckets = `✗ ${e.message}`; }
 
     setResults(out);
     setRunning(false);
   }
 
-  useEffect(() => { runChecks(); }, []);
+  useEffect(() => { runAudit(); }, []);
 
-  const Row = ({ label, value, raw }) => {
-    const isErr  = String(value).startsWith("❌");
-    const isWarn = String(value).startsWith("⚠");
-    const isOk   = String(value).startsWith("✓");
-    return (
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
-          <div style={{ minWidth:160, fontSize:11, color:C.muted, fontFamily:"monospace", paddingTop:2 }}>
-            {label}
-          </div>
-          <div style={{
-            fontSize:12, fontFamily:"monospace", flex:1, wordBreak:"break-all",
-            color: isErr ? C.err : isWarn ? C.warn : isOk ? C.ok : C.text,
-            fontWeight: (isErr || isWarn) ? 700 : 400,
-          }}>
-            {value || "—"}
-          </div>
-        </div>
-        {raw && (
-          <pre style={{
-            marginTop:6, marginLeft:172, padding:"8px 10px",
-            background:"rgba(0,0,0,0.4)", borderRadius:6,
-            fontSize:10, color:C.muted, overflow:"auto", maxHeight:120,
-            border:`1px solid ${C.border}`
-          }}>{raw}</pre>
-        )}
+  const S = { fontFamily:'monospace,-apple-system', fontSize:11 };
+
+  const Tag = ({ ok, children }) => (
+    <span style={{
+      display:'inline-block', padding:'2px 8px', borderRadius:6,
+      background: ok === true ? 'rgba(74,222,128,.15)' : ok === false ? 'rgba(248,113,113,.15)' : 'rgba(251,191,36,.1)',
+      color:       ok === true ? C.ok                  : ok === false ? C.err                   : C.warn,
+      fontWeight:700, fontSize:10, marginRight:4, marginBottom:3,
+    }}>{children}</span>
+  );
+
+  const Section = ({ title, children }) => (
+    <div style={{ marginBottom:16, background:C.card, borderRadius:12,
+      border:`1px solid ${C.border}`, padding:16 }}>
+      <div style={{ fontSize:10, fontWeight:800, color:C.muted, textTransform:'uppercase',
+        letterSpacing:1.2, marginBottom:12 }}>{title}</div>
+      {children}
+    </div>
+  );
+
+  const Row = ({ label, value, ok }) => (
+    <div style={{ display:'flex', gap:8, marginBottom:6, alignItems:'flex-start' }}>
+      <div style={{ color:C.muted, fontSize:11, minWidth:180, flexShrink:0 }}>{label}</div>
+      <div style={{ color: ok===true?C.ok : ok===false?C.err : C.text, fontSize:11,
+        fontFamily:'monospace', wordBreak:'break-all', flex:1 }}>
+        {String(value ?? '—')}
       </div>
-    );
-  };
-
-  const isKeyMissing = !SUPABASE_KEY;
+    </div>
+  );
 
   return (
-    <div style={{
-      minHeight:"100vh", background:C.bg, color:C.text, padding:"24px 20px",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Mono',monospace",
-    }}>
-      {/* HEADER */}
-      <div style={{ marginBottom:24 }}>
-        <div style={{ fontSize:11, color:C.muted, marginBottom:4 }}>
-          🔍 HUI DIAGNOSE — {new Date().toLocaleString("de-DE")}
+    <div style={{ minHeight:'100vh', background:C.bg, color:C.text,
+      padding:'20px 16px 80px', ...S }}>
+
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontSize:18, fontWeight:900, letterSpacing:'-.5px', marginBottom:4 }}>
+          🔬 HUI Schema-Diagnose
         </div>
-        <h1 style={{ margin:"0 0 4px", fontSize:20, fontWeight:800, letterSpacing:"-.5px", color:C.text }}>
-          Feed Debug
-        </h1>
-        <div style={{ fontSize:12, color:C.muted }}>
-          Build: {import.meta.env.VITE_BUILD_DATE || "?"}  |  
-          Mode: {import.meta.env.MODE}
+        <div style={{ fontSize:11, color:C.muted }}>
+          024 Master Schema Audit · {new Date().toLocaleString('de-DE')}
         </div>
       </div>
 
-      {/* CRITICAL ALERT wenn Key fehlt */}
-      {isKeyMissing && (
-        <div style={{
-          marginBottom:20, padding:"16px 20px", borderRadius:12,
-          background:"rgba(220,38,38,0.15)", border:"2px solid rgba(220,38,38,0.5)",
-        }}>
-          <div style={{ fontSize:14, fontWeight:800, color:"#fca5a5", marginBottom:8 }}>
-            🚨 KRITISCH: VITE_SUPABASE_ANON_KEY FEHLT IN VERCEL
+      <Section title="Verbindung">
+        <Row label="SUPABASE_URL"  value={results.env_url  || '✗ FEHLT'} ok={!!results.env_url}/>
+        <Row label="SUPABASE_KEY"  value={results.env_key  || '✗ FEHLT'} ok={!!results.env_key}/>
+        <Row label="Connected"     value={results.connected ? '✓ JA' : '✗ NEIN'} ok={results.connected}/>
+        <Row label="Auth Session"  value={results.auth} ok={results.auth?.startsWith('✓')}/>
+        <Row label="Storage"       value={results.buckets}/>
+      </Section>
+
+      <Section title="Tabellen & Counts">
+        {results.counts && Object.entries(results.counts).map(([t, v]) => {
+          const isErr = String(v).startsWith('✗');
+          return <Row key={t} label={t} value={v} ok={!isErr}/>;
+        })}
+      </Section>
+
+      <Section title="Feed Pipeline">
+        {results.feed && <>
+          <Row label="works"       value={results.feed.works}       ok={results.feed.works?.startsWith('✓')}/>
+          {results.feed.works_sample && (
+            <pre style={{ fontSize:9, color:C.muted, margin:'4px 0 8px 180px',
+              background:'rgba(0,0,0,.3)', padding:'4px 8px', borderRadius:6 }}>
+              {JSON.stringify(results.feed.works_sample, null, 2)}
+            </pre>
+          )}
+          <Row label="stories"     value={results.feed.stories}     ok={results.feed.stories?.startsWith('✓')}/>
+          <Row label="experiences" value={results.feed.experiences} ok={results.feed.experiences?.startsWith('✓')}/>
+        </>}
+      </Section>
+
+      <Section title="Schema-Audit — Fehlende Spalten">
+        {Object.entries(schema).map(([table, { present, missing }]) => (
+          <div key={table} style={{ marginBottom:12 }}>
+            <div style={{ fontWeight:800, color: missing.length ? C.warn : C.ok,
+              fontSize:11, marginBottom:4 }}>
+              {missing.length ? '⚠' : '✓'} {table}
+              <span style={{ color:C.muted, fontWeight:400, marginLeft:8 }}>
+                {present.length}/{present.length+missing.length} Felder vorhanden
+              </span>
+            </div>
+            {missing.length > 0 && (
+              <div style={{ marginLeft:16 }}>
+                <span style={{ color:C.err, fontSize:10, fontWeight:700 }}>FEHLT: </span>
+                {missing.map(f => <Tag key={f} ok={false}>{f}</Tag>)}
+              </div>
+            )}
+            {missing.length === 0 && (
+              <div style={{ marginLeft:16, color:C.ok, fontSize:10 }}>
+                Alle Felder vorhanden ✓
+              </div>
+            )}
           </div>
-          <div style={{ fontSize:12, color:"#fca5a5", lineHeight:1.6 }}>
-            Der Anon Key ist NICHT im Vercel-Bundle eingebettet.
-            Supabase Client ist im NOOP-Modus → alle Queries geben [] zurück → Feed leer.
-          </div>
-          <div style={{ marginTop:12, padding:"12px 14px", background:"rgba(0,0,0,0.3)",
-            borderRadius:8, fontSize:11, color:"#94a3b8", lineHeight:1.8 }}>
-            <strong style={{color:"#f1f5f9"}}>FIX (2 Minuten):</strong><br/>
-            1. Vercel öffnen → hui-humanunitedintelligents-projects → be-hui<br/>
-            2. Settings → Environment Variables<br/>
-            3. VITE_SUPABASE_ANON_KEY → Add<br/>
-            4. Value = deinen Supabase anon key einfügen<br/>
-               (Supabase Dashboard → Settings → API → Project API keys → anon public)<br/>
-            5. Redeploy klicken
-          </div>
-        </div>
-      )}
+        ))}
+      </Section>
 
-      {/* CHECKS */}
-      <div style={{
-        background:C.card, borderRadius:12, padding:"20px",
-        border:`1px solid ${C.border}`, marginBottom:16
-      }}>
-        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:16, textTransform:"uppercase", letterSpacing:1 }}>
-          ENV / Verbindung
-        </div>
-        <Row label="SUPABASE_URL"    value={results.env_url} />
-        <Row label="SUPABASE_KEY"    value={results.env_key} />
-        <Row label="IS_CONNECTED"    value={results.connected} />
-        <Row label="Auth Session"    value={results.auth} />
-      </div>
-
-      <div style={{
-        background:C.card, borderRadius:12, padding:"20px",
-        border:`1px solid ${C.border}`, marginBottom:16
-      }}>
-        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:16, textTransform:"uppercase", letterSpacing:1 }}>
-          Datenbank
-        </div>
-        <Row label="works"       value={results.works}       raw={results.works_raw} />
-        <Row label="experiences" value={results.experiences} />
-        <Row label="stories"     value={results.stories}     raw={results.stories_raw} />
-        <Row label="profiles"    value={results.profiles} />
-      </div>
-
-      <div style={{
-        background:C.card, borderRadius:12, padding:"20px",
-        border:`1px solid ${C.border}`, marginBottom:24
-      }}>
-        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:16, textTransform:"uppercase", letterSpacing:1 }}>
-          Storage
-        </div>
-        <Row label="Buckets"        value={results.storage} />
-        <Row label="media/ files"   value={results.media_files} />
-        <Row label="stories/ files" value={results.stories_files} />
-      </div>
-
-      <button
-        onClick={runChecks}
-        disabled={running}
-        style={{
-          padding:"13px 28px", borderRadius:10,
-          background: running ? "rgba(22,211,197,0.3)" : "#16D7C5",
-          border:"none", color: running ? "#16D7C5" : "#0f172a",
-          fontWeight:800, fontSize:13, cursor: running ? "default" : "pointer",
-          fontFamily:"inherit",
-        }}
-      >
-        {running ? "Läuft…" : "Nochmal prüfen"}
+      <button onClick={runAudit} disabled={running}
+        style={{ padding:'12px 24px', borderRadius:10, background:'#16D7C5',
+          border:'none', color:'#0f172a', fontWeight:800, fontSize:13,
+          cursor: running?'default':'pointer', fontFamily:'inherit' }}>
+        {running ? 'Audit läuft…' : '🔄 Audit nochmal ausführen'}
       </button>
+
+      <div style={{ marginTop:16, padding:'12px 16px', background:'rgba(22,215,197,.07)',
+        borderRadius:10, border:'1px solid rgba(22,215,197,.2)', fontSize:11 }}>
+        <strong style={{ color:'#16D7C5' }}>024 Migration ausführen:</strong>
+        <div style={{ color:C.muted, marginTop:4 }}>
+          Supabase Dashboard → SQL Editor →{' '}
+          <code style={{ color:'#16D7C5' }}>supabase/024_master_schema.sql</code>
+          {' '}einfügen und ausführen. Danach diese Seite neu laden.
+        </div>
+      </div>
     </div>
   );
 }
