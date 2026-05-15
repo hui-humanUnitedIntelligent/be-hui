@@ -117,84 +117,84 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-/* ── Loading Screen — with timeout escape hatch ────────────────────── */
-function HUILoader({ message }) {
-  const [timedOut, setTimedOut] = useState(false);
-
-  // If still loading after 9s → show escape button
-  useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 30000);
+/* ── HUI Ambient Splash — kein Login-Flash, kein Spinner-Stress ──── */
+function HUILoader() {
+  const [timedOut, setTimedOut] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 25000);
     return () => clearTimeout(t);
   }, []);
 
-  if (timedOut) {
-    return (
-      <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column",
-        alignItems:"center", justifyContent:"center", padding:32,
-        background:"linear-gradient(135deg,#E6FAF8 0%,#FFF9F4 100%)",
-        fontFamily:"-apple-system,sans-serif" }}>
-        <div style={{ fontSize:40, marginBottom:16 }}>🌿</div>
-        <div style={{ fontWeight:800, fontSize:18, color:"#1A1A1A", marginBottom:8 }}>
-          Das dauert länger als erwartet
-        </div>
-        <div style={{ fontSize:13, color:"#888", textAlign:"center",
-          maxWidth:280, lineHeight:1.65, marginBottom:28 }}>
-          Möglicherweise gibt es ein Verbindungsproblem.
-          Versuche es nochmal oder lade die Seite neu.
-        </div>
-        <button onClick={() => window.location.reload()}
-          style={{ padding:"13px 28px", borderRadius:14, background:"#16D7C5",
-            color:"white", border:"none", fontWeight:800, fontSize:14,
-            cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.3)",
-            marginBottom:10 }}>
-          Neu laden
-        </button>
-        <button onClick={() => { window.location.href = "/login"; }}
-          style={{ padding:"10px 22px", borderRadius:12,
-            background:"none", border:"1.5px solid rgba(0,0,0,0.10)",
-            color:"#888", fontWeight:600, fontSize:13, cursor:"pointer" }}>
-          Zur Anmeldung
-        </button>
+  if (timedOut) return (
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center", padding:32,
+      background:"#F9F7F4", fontFamily:"-apple-system,sans-serif" }}>
+      <div style={{ fontSize:38, marginBottom:14 }}>🌿</div>
+      <div style={{ fontWeight:800, fontSize:18, color:"#1A1A1A", marginBottom:8 }}>
+        Verbindung dauert länger als erwartet
       </div>
-    );
-  }
+      <div style={{ fontSize:13, color:"#888", textAlign:"center",
+        maxWidth:280, lineHeight:1.65, marginBottom:28 }}>
+        Bitte prüfe deine Internetverbindung.
+      </div>
+      <button onClick={() => window.location.reload()}
+        style={{ padding:"13px 28px", borderRadius:14, background:"#16D7C5",
+          color:"white", border:"none", fontWeight:800, fontSize:14,
+          cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.3)", marginBottom:10 }}>
+        Neu laden
+      </button>
+      <button onClick={() => { window.location.href = "/login"; }}
+        style={{ padding:"10px 22px", borderRadius:12,
+          background:"none", border:"1.5px solid rgba(0,0,0,0.10)",
+          color:"#888", fontWeight:600, fontSize:13, cursor:"pointer" }}>
+        Zur Anmeldung
+      </button>
+    </div>
+  );
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center",
-      justifyContent:"center",
-      background:"linear-gradient(135deg,#E6FAF8 0%,#FFF9F4 100%)" }}>
-      <div style={{ textAlign:"center" }}>
-        <svg width="52" height="52" viewBox="0 0 64 64" fill="none"
-          style={{ animation:"spin 1.5s linear infinite" }}>
-          <defs>
-            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#22E8D8"/>
-              <stop offset="100%" stopColor="#FF8A6B"/>
-            </linearGradient>
-          </defs>
-          <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#lg)"/>
-          <text x="10" y="44" fontSize="30" fontWeight="900" fill="white"
-            fontFamily="-apple-system,system-ui" letterSpacing="-2">Hj</text>
-        </svg>
-        <div style={{ fontSize:13, color:"#888", marginTop:12, fontWeight:600 }}>
-          {message || "HUI lädt…"}
+    <div style={{
+      minHeight:"100vh",
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
+      background:"linear-gradient(160deg,#F0FAF9 0%,#FFF9F4 55%,#F9F7F4 100%)",
+      fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif",
+    }}>
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:20,
+        animation:"hui-splash-fade 0.55s ease both" }}>
+        <div style={{ animation:"hui-splash-pulse 3s ease-in-out infinite" }}>
+          <img src="/hui-logo.jpg" alt="HUI"
+            style={{ width:72, height:72, borderRadius:"50%", objectFit:"cover",
+              boxShadow:"0 8px 32px rgba(22,215,197,0.22), 0 2px 8px rgba(0,0,0,0.07)",
+              border:"2px solid rgba(255,255,255,0.90)" }}
+            onError={e => { e.target.style.display="none"; }}
+          />
+        </div>
+        <div style={{ fontSize:13, color:"rgba(60,60,60,0.50)", fontWeight:500, letterSpacing:0.3 }}>
+          HUI
         </div>
       </div>
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes hui-splash-fade {
+          from { opacity:0; transform:translateY(10px); }
+          to   { opacity:1; transform:translateY(0);    }
+        }
+        @keyframes hui-splash-pulse {
+          0%,100% { transform:scale(1);    }
+          50%      { transform:scale(1.04); }
+        }
+      `}</style>
     </div>
   );
 }
 
+
 /* ── Protected Route ───────────────────────────────────────────────── */
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, loadingAuth } = useAuth();
-
-  // Warte bis Auth-Check abgeschlossen
-  if (loadingAuth) return <HUILoader key="auth-loader" message="HUI lädt…" />;
-
-  // Nicht eingeloggt → Login
+  const { isAuthenticated, loadingAuth, authChecked } = useAuth();
+  // Kein Redirect bevor Auth vollständig geprüft — verhindert Login-Flash
+  if (loadingAuth || !authChecked) return <HUILoader />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-
   return children;
 }
 
