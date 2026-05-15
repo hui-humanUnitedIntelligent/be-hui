@@ -125,32 +125,24 @@ export function StoryUploadModal({ open, onClose, onSuccess }) {
         .from('stories')
         .getPublicUrl(path);
 
-      // 3. Save media record
+      // 3. Save story — direkt mit publicUrl, ohne media-Zwischentabelle
       const isVideo = file.type.startsWith('video');
-      const { data: media, error: mediaErr } = await supabase
-        .from('media')
-        .insert({
-          user_id: user.id,
-          type: isVideo ? 'video' : 'image',
-          mime: file.type,
-          storage_path: path,
-          storage_bucket: 'stories',
-          compression_state: 'done',
-        })
-        .select().single();
-      if (mediaErr) throw mediaErr;
-
-      // 4. Save story
+      console.log("[StoryUpload] publicUrl:", publicUrl, "isVideo:", isVideo);
       const { error: storyErr } = await supabase
         .from('stories')
         .insert({
-          user_id: user.id,
-          wirker_profile_id: wirkerProfile?.id || null,
-          media_id: media.id,
-          caption: caption.trim() || null,
+          user_id:    user.id,
+          media_url:  publicUrl,
+          media_type: isVideo ? 'video' : 'image',
+          caption:    caption.trim() || null,
+          status:     'published',
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         });
-      if (storyErr) throw storyErr;
+      if (storyErr) {
+        console.error("[StoryUpload] ❌ story insert:", storyErr.message, storyErr.code);
+        throw storyErr;
+      }
+      console.log("[StoryUpload] ✓ story saved!");
 
       onSuccess?.();
       handleClose();
