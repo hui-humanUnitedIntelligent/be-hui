@@ -40,7 +40,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px 6px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <img src={item.creatorImg} onClick={() => onViewWirker(item.creator)}
+          <img src={item.creatorImg || ""} onClick={() => onViewWirker(item.creator)}
             style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: `2px solid ${TEAL}25`, cursor: "pointer" }} alt={item.creator} />
           <div style={{ position: "absolute", bottom: 0, right: 0, width: 9, height: 9, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
         </div>
@@ -90,7 +90,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
             </div>
           </>
         ) : (
-          <img src={item.img} style={{ width: "100%", height: 230, objectFit: "cover", display: "block" }} alt="" />
+          <img src={item.img || item.media_url || item.cover_url || ""} style={{ width: "100%", height: 230, objectFit: "cover", display: "block" }} alt="" />
         )}
       </div>
 
@@ -131,7 +131,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
   return (
     <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: `1px solid #f0f0ee`, margin: "6px 12px", borderLeft: `3px solid ${GOLD}` }}>
       <div style={{ position: "relative", cursor: "pointer" }} onClick={() => onViewWerk(item.title)}>
-        <img src={item.img} style={{ width: "100%", height: 175, objectFit: "cover" }} alt={item.title} />
+        <img src={item.img || item.media_url || item.cover_url || ""} style={{ width: "100%", height: 175, objectFit: "cover" }} alt={item.title} />
         {/* Preis oben links */}
         <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 15 }}>{item.price}</div>
         {/* In den Korb – Overlay-Button unten */}
@@ -152,7 +152,7 @@ function WerkCard({ item, liked, onLike, faved, onFav, onAddToCart, onViewWerk, 
       </div>
       <div style={{ padding: "10px 14px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-          <img src={item.creatorImg} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
+          <img src={item.creatorImg || ""} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
           <span onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ fontWeight: 600, fontSize: 12, color: TEAL, cursor: "pointer" }}>{item.creator}</span>
           <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location}</span>
           {(item.recommendations || 0) > 0 && <span style={{ fontSize: 11, color: TEAL, display: "flex", alignItems: "center", gap: 2, fontWeight: 700 }}><ThumbsUp size={10} color={TEAL} fill={TEAL} />{item.recommendations} empfehlen</span>}
@@ -220,14 +220,14 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
   return (
     <div style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 14px rgba(0,0,0,0.07)", border: "1px solid #f0f0ee", margin: "8px 16px", borderLeft: `3.5px solid ${TEAL}` }}>
       <div style={{ position: "relative" }}>
-        <img src={item.img} style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }} alt={item.title} />
+        <img src={item.img || item.media_url || item.cover_url || ""} style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }} alt={item.title} />
         <div style={{ position: "absolute", top: 10, left: 10, background: `${TEAL}ee`, backdropFilter: "blur(4px)", color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
           🤝 {item.price}
         </div>
       </div>
       <div style={{ padding: "10px 14px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-          <img src={item.creatorImg} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
+          <img src={item.creatorImg || ""} onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", cursor: "pointer" }} alt={item.creator} />
           <span onClick={(e) => { e.stopPropagation(); onViewWirker(item.creator); }} style={{ fontWeight: 600, fontSize: 12, color: TEAL, cursor: "pointer" }}>{item.creator}</span>
           <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}><MapPin size={10} />{item.location}</span>
         </div>
@@ -271,7 +271,7 @@ function WirkerCard({ item, onViewWirker, onBookWirker }) {
         {/* Name overlay */}
         <div style={{ position: "absolute", bottom: 10, left: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ position: "relative" }}>
-            <img src={item.img} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid white" }} alt={item.name} />
+            <img src={item.img || item.media_url || item.cover_url || ""} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid white" }} alt={item.name} />
             <div style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#4CAF50", border: "2px solid white" }} />
           </div>
           <div>
@@ -306,7 +306,7 @@ function ImpactCard({ item }) {
     <div style={{ background: `linear-gradient(160deg, #faf5ff, #ede9fe)`, borderRadius: 18, overflow: "hidden", boxShadow: `0 4px 18px rgba(124,58,237,0.13)`, border: `1px solid rgba(124,58,237,0.18)`, margin: "8px 16px", borderLeft: `3.5px solid ${IMPACT_PURPLE}` }}>
       {/* Cover Image mit Overlay */}
       <div style={{ position: "relative" }}>
-        <img src={item.img} style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} alt={item.title} />
+        <img src={item.img || item.media_url || item.cover_url || ""} style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }} alt={item.title} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(124,58,237,0.15) 0%, rgba(0,0,0,0.5) 100%)" }} />
         {/* Badge */}
         <div style={{ position: "absolute", top: 12, left: 12, background: IMPACT_PURPLE, color: "white", borderRadius: 20, padding: "5px 12px", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
