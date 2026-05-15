@@ -4,6 +4,7 @@ import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 
 const AuthContext = createContext(null);
 
+// ─── Helper: Promise mit Timeout ─────────────────────────────────────
 async function withTimeout(promise, ms = 8000) {
   let timer;
   const timeout = new Promise(resolve => {
@@ -13,6 +14,14 @@ async function withTimeout(promise, ms = 8000) {
   finally { clearTimeout(timer); }
 }
 
+// ─── AuthProvider ──────────────────────────────────────────────────────
+// Bootstrap-Reihenfolge:
+//   1. onAuthStateChange wird registriert (feuert INITIAL_SESSION sofort wenn
+//      Session in localStorage vorhanden — Supabase Garantie)
+//   2. getSession() als Sicherheitsnetz: falls INITIAL_SESSION nach 400ms
+//      noch nicht gefeuert hat (Safari PWA Edge Case), wird Session manuell geladen
+//   3. loadingAuth bleibt true bis einer der beiden Wege settled hat
+//   4. ProtectedRoute wartet auf loadingAuth=false bevor redirect
 export function AuthProvider({ children }) {
   const [user,            setUser]            = useState(null);
   const [profile,         setProfile]         = useState(null);
@@ -23,8 +32,9 @@ export function AuthProvider({ children }) {
   const [authChecked,     setAuthChecked]     = useState(false);
 
   const profileLoadingRef = useRef(false);
+  const authSettledRef    = useRef(false);  // verhindert doppelten Bootstrap
 
-  // ── Load profile ──────────────────────────────────────────────────
+  // ── Profile laden ──────────────────────────────────────────────────
   const loadProfile = useCallback(async (userId) => {
     if (profileLoadingRef.current) return;
     profileLoadingRef.current = true;
@@ -64,19 +74,27 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // ── Auth Listener — Single Source of Truth ────────────────────────
-  useEffect(() => {
-    let settled = false;
+  // ── Auth-State setzen (zentralisiert, idempotent) ─────────────────
+  const applySession = useCallback((session) => {
+    const u = session?.user ?? null;
+    setUser(u);
+    setIsAuthenticated(!!u);
+    setLoadingAuth(false);
+    setAuthChecked(true);
+    authSettledRef.current = true;
+    return u;
+  }, []);
 
-    // onAuthStateChange feuert ZUERST (Supabase Guarantee) —
-    // wir verlassen uns ausschliesslich darauf.
+  // ── Haupt-Auth-Bootstrap ──────────────────────────────────────────
+  useEffect(() => {
+    // ── A) onAuthStateChange — primärer Weg ──────────────────────────
+    // Supabase feuert INITIAL_SESSION synchron (wenn Session im localStorage)
+    // oder kurz async (bei Token-Refresh). Wir verlassen uns darauf als
+    // primäre Quelle.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      setIsAuthenticated(!!u);
-      setLoadingAuth(false);
-      setAuthChecked(true);
-      settled = true;
+      console.log("[HUI Auth] event:", event, "user:", session?.user?.id || "null");
+
+      const u = applySession(session);
 
       if (u && ["SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","INITIAL_SESSION"].includes(event)) {
         if (!profileLoadingRef.current) loadProfile(u.id);
@@ -89,26 +107,46 @@ export function AuthProvider({ children }) {
       }
     });
 
-    // Fallback: wenn onAuthStateChange nach 10s noch nicht gefeuert hat
-    // (z.B. komplett kein Netz) → Loading aufheben, nicht eingeloggt annehmen
-    const fallback = setTimeout(() => {
-      if (!settled) {
-        console.warn("[HUI] onAuthStateChange hat nicht gefeuert nach 10s");
-        setLoadingAuth(false);
-        setAuthChecked(true);
+    // ── B) getSession() Sicherheitsnetz ──────────────────────────────
+    // In Safari iOS PWA kann INITIAL_SESSION verzögert feuern.
+    // Wir rufen getSession() parallel auf — wer zuerst fertig ist, gewinnt.
+    // authSettledRef verhindert doppeltes Setzen.
+    const sessionFallback = async () => {
+      // Kurzes Warten: onAuthStateChange hat Vorrang
+      await new Promise(r => setTimeout(r, 350));
+      if (authSettledRef.current) return;  // onAuthStateChange war schneller
+
+      console.log("[HUI Auth] getSession() Sicherheitsnetz aktiv");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (authSettledRef.current) return;  // onAuthStateChange hat zwischenzeitlich gefeuert
+        const u = applySession(session);
+        if (u && !profileLoadingRef.current) loadProfile(u.id);
+      } catch (e) {
+        console.warn("[HUI Auth] getSession Fehler:", e.message);
+        if (!authSettledRef.current) applySession(null);
       }
-    }, 10000);
+    };
+    sessionFallback();
+
+    // ── C) Absoluter Fallback nach 12s (offline/netzwerkfehler) ──────
+    const absoluteFallback = setTimeout(() => {
+      if (!authSettledRef.current) {
+        console.warn("[HUI Auth] Absoluter Fallback nach 12s — kein Auth-Event");
+        applySession(null);
+      }
+    }, 12000);
 
     return () => {
       subscription.unsubscribe();
-      clearTimeout(fallback);
+      clearTimeout(absoluteFallback);
     };
-  }, [loadProfile]);
+  }, [loadProfile, applySession]);
 
-  // ── Shim für alte ProtectedRoute.jsx (components/) ───────────────
+  // ── Shim für alte ProtectedRoute (components/) ───────────────────
   const checkUserAuth = useCallback(() => {}, []);
 
-  // ── Actions ───────────────────────────────────────────────────────
+  // ── Actions ──────────────────────────────────────────────────────
   const signUp = useCallback(async (email, password, fullName) => {
     return supabase.auth.signUp({ email, password, options:{ data:{ full_name: fullName } } });
   }, []);
@@ -118,6 +156,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    authSettledRef.current = false;  // Reset für sauberen logout
     await supabase.auth.signOut();
     // State wird von onAuthStateChange automatisch gecleared
   }, []);
@@ -181,10 +220,10 @@ export function AuthProvider({ children }) {
       user, profile, wirkerProfile,
       isAuthenticated, isWirker, hasTalentProfile, profileModules,
       loadingAuth,
-      isLoadingAuth: loadingAuth,
+      isLoadingAuth: loadingAuth,   // Alias für components/ProtectedRoute.jsx
       loadingProfile,
       authChecked,
-      authError: null,   // kein authError mehr — kein falscher redirect
+      authError: null,
       checkUserAuth,
       signUp, signIn, signOut,
       loadProfile, saveProfile, becomeWirker,
@@ -198,6 +237,6 @@ export function AuthProvider({ children }) {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be inside <AuthProvider>");
+  if (!ctx) throw new Error("useAuth muss innerhalb von <AuthProvider> verwendet werden");
   return ctx;
 };
