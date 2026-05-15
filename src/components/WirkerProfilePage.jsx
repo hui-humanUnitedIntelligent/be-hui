@@ -592,7 +592,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
           {/* Bio */}
           {profile.bio && (
-            <p style={{ margin:"0 0 14px", fontSize:14, color:C.ink2,
+            <p style={{ margin:"0 0 10px", fontSize:14, color:C.ink2,
               lineHeight:1.65, fontStyle:"italic" }}>
               „{profile.bio}"
             </p>
