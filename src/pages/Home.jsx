@@ -24,7 +24,6 @@ import NotificationCenter from "../components/NotificationCenter";
 import { useNotifCount } from "../components/NotificationCenter";
 import HuiMembershipFlow from "../components/HuiMembershipFlow";
 import HuiCreateFlow from "../components/HuiCreateFlow";
-import HuiOrb from '../components/HuiOrb';
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -354,9 +353,9 @@ function Header({ userName, avatarUrl }) {
 const NAV = [
   {key:"feed",     label:"Home"},
   {key:"impact",   label:"Impact"},
-  null,
+  null,                               // Orb-Slot
   {key:"discover", label:"Entdecken"},
-  {key:"profile",  label:"Mein HUI"},
+  {key:"chat",     label:"Chat"},     // Chat ersetzt Mein HUI
 ];
 
 /* ─── NAV ICONS — custom, characterful, HUI-native ─── */
@@ -430,128 +429,424 @@ function NavIcon({ k, active }) {
     </svg>
   );
 
+  /* CHAT — speech bubble mit warmem Akzent */
+  if(k==="chat") return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H7L12 22L17 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
+        fill={active ? `${C.teal}18` : "rgba(80,80,80,0.08)"}
+        stroke={col} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="8"  cy="11" r="1" fill={active ? C.teal : col}/>
+      <circle cx="12" cy="11" r="1" fill={active ? C.coral : col}/>
+      <circle cx="16" cy="11" r="1" fill={active ? C.teal : col}/>
+    </svg>
+  );
+
   return null;
 }
 
-/* ─── BOTTOM NAV — floating pill, premium ─── */
-function BottomNav({ tab, onTab, onCreate, hasTalent }) {
-  const [pressed, setPressed] = useState(null);
-  // Start transformed=true immediately if hasTalent is already known on mount
-  const [transformed, setTransformed] = useState(() => hasTalent);
+/* ═══════════════════════════════════════════════════════════════
+   HUI BOTTOM NAVIGATION — v3
+   5 Tabs: Home · Impact · [Orb] · Entdecken · Chat
+   Orb: fest eingebettet, Floating Card Menü (slide-up)
+   Design: Premium Ruhe · Glassmorphism · Ambient Glow
+═══════════════════════════════════════════════════════════════ */
 
-  useEffect(() => {
-    if (hasTalent) {
-      const t = setTimeout(() => setTransformed(true), 50);
-      return () => clearTimeout(t);
+const BN_CSS = `
+  @keyframes hui-orb-breathe-glow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(22,215,197,0),
+                           0 6px 24px rgba(22,215,197,0.22),
+                           0 2px 8px rgba(0,0,0,0.10),
+                           0 1px 0 rgba(255,255,255,0.55) inset; }
+    50%      { box-shadow: 0 0 0 0 rgba(22,215,197,0),
+                           0 8px 32px rgba(22,215,197,0.38),
+                           0 2px 8px rgba(0,0,0,0.10),
+                           0 1px 0 rgba(255,255,255,0.55) inset; }
+  }
+  @keyframes hui-card-in {
+    from { opacity:0; transform:translateY(18px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0)    scale(1);    }
+  }
+  @keyframes hui-card-out {
+    from { opacity:1; transform:translateY(0)    scale(1);    }
+    to   { opacity:0; transform:translateY(12px) scale(0.97); }
+  }
+  @keyframes hui-overlay-in  { from{opacity:0} to{opacity:1} }
+  .hui-bn-btn {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:none; border:none; cursor:pointer; padding:5px 8px 4px;
+    border-radius:16px; position:relative; min-width:48px; min-height:44px;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform 0.18s cubic-bezier(0.34,1.4,0.64,1);
+    justify-content:center;
+  }
+  .hui-bn-btn:active { transform:scale(0.88); }
+  .hui-bn-label {
+    font-size:10px; font-weight:500; letter-spacing:0.05px;
+    color:rgba(60,60,60,0.62); transition:color 0.2s, font-weight 0.2s;
+    font-family:inherit; line-height:1;
+  }
+  .hui-bn-label--active { color:#16D7C5; font-weight:700; }
+  .hui-bn-active-pill {
+    position:absolute; inset:0; border-radius:16px; pointer-events:none;
+    background:linear-gradient(150deg,rgba(22,215,197,0.09) 0%,rgba(255,138,107,0.04) 100%);
+    border:1px solid rgba(22,215,197,0.15);
+  }
+  .hui-bn-dot {
+    position:absolute; bottom:2px; left:50%; transform:translateX(-50%);
+    width:3.5px; height:3.5px; border-radius:50%;
+    background:linear-gradient(135deg,#16D7C5,#FF8A6B);
+    box-shadow:0 0 4px rgba(22,215,197,0.6);
+  }
+  /* Orb */
+  .hui-orb-btn {
+    width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+    flex-shrink:0; position:relative; margin-top:-12px;
+    -webkit-tap-highlight-color:transparent;
+    background:radial-gradient(circle at 36% 32%,
+      rgba(255,255,255,0.88) 0%, rgba(255,252,248,0.72) 40%,
+      rgba(22,215,197,0.10) 100%);
+    backdrop-filter:blur(28px) saturate(1.5);
+    -webkit-backdrop-filter:blur(28px) saturate(1.5);
+    border:1px solid rgba(255,255,255,0.55);
+    transition:transform 0.32s cubic-bezier(0.34,1.35,0.64,1),
+               box-shadow 0.4s ease;
+    will-change:transform,box-shadow;
+  }
+  .hui-orb-btn:active { transform:scale(0.89); }
+  .hui-orb-btn--idle {
+    animation:hui-orb-breathe-glow 4.5s ease-in-out infinite;
+  }
+  .hui-orb-btn--open {
+    transform:scale(1.07);
+    box-shadow:0 8px 36px rgba(22,215,197,0.42),
+               0 2px 8px rgba(0,0,0,0.10),
+               0 1px 0 rgba(255,255,255,0.62) inset;
+  }
+  .hui-orb-ring {
+    position:absolute; inset:-5px; border-radius:50%;
+    border:1.5px solid rgba(255,255,255,0.32); pointer-events:none;
+    transition:border-color 0.4s ease;
+  }
+  .hui-orb-highlight {
+    position:absolute; top:8px; left:9px; width:28px; height:15px;
+    border-radius:50%; pointer-events:none;
+    background:radial-gradient(ellipse,rgba(255,255,255,0.78) 0%,transparent 100%);
+    filter:blur(2px); transform:rotate(-22deg); opacity:0.82;
+  }
+  /* Orb icon cross */
+  .hui-orb-icon {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    border-radius:50%; overflow:hidden;
+  }
+  /* Floating Card */
+  .hui-orb-card {
+    position:fixed;
+    background:rgba(255,251,248,0.94);
+    backdrop-filter:blur(28px) saturate(1.5);
+    -webkit-backdrop-filter:blur(28px) saturate(1.5);
+    border:1px solid rgba(255,255,255,0.68);
+    box-shadow:0 8px 40px rgba(0,0,0,0.12),
+               0 2px 12px rgba(0,0,0,0.07),
+               0 1px 0 rgba(255,255,255,0.88) inset;
+    border-radius:24px;
+    padding:8px 0;
+    z-index:101;
+    min-width:200px;
+    animation:hui-card-in 0.28s cubic-bezier(0.34,1.3,0.64,1) both;
+    transform-origin:bottom center;
+  }
+  .hui-orb-card-item {
+    display:flex; align-items:center; gap:14px;
+    padding:12px 20px; cursor:pointer;
+    min-height:52px; min-width:0;
+    border:none; background:none; width:100%;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.16s ease;
+    border-radius:0;
+    font-family:inherit;
+  }
+  .hui-orb-card-item:active {
+    background:rgba(22,215,197,0.07);
+  }
+  .hui-orb-card-item:first-child { border-radius:24px 24px 0 0; }
+  .hui-orb-card-item:last-child  { border-radius:0 0 24px 24px; }
+  .hui-orb-card-divider {
+    height:1px; margin:0 16px;
+    background:linear-gradient(90deg,transparent,rgba(0,0,0,0.07),transparent);
+  }
+  .hui-orb-overlay {
+    position:fixed; inset:0; z-index:100;
+    background:rgba(15,12,8,0.07);
+    animation:hui-overlay-in 0.22s ease both;
+  }
+  @media (prefers-reduced-motion:no-preference) {
+    .hui-orb-btn--idle {
+      animation:hui-orb-breathe-glow 4.5s ease-in-out infinite;
     }
-    // Never reset to false — button can only go Plus→HUI through explicit cancellation
-  }, [hasTalent]);
+  }
+`;
+
+function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalent=false, authProfile=null }) {
+  const [pressed,   setPressed]  = React.useState(null);
+  const [orbOpen,   setOrbOpen]  = React.useState(false);
+  const [orbAnim,   setOrbAnim]  = React.useState(false); // breathing
+
+  // Scroll → Orb schließen
+  React.useEffect(() => {
+    if (!orbOpen) return;
+    const el = document.querySelector(".hui-scroll");
+    if (!el) return;
+    const h = () => setOrbOpen(false);
+    el.addEventListener("scroll", h, { passive:true });
+    return () => el.removeEventListener("scroll", h);
+  }, [orbOpen]);
+
+  // Tab-Wechsel → Orb schließen
+  React.useEffect(() => { setOrbOpen(false); }, [tab]);
+
+  // Orb idle breathing — startet nach mount
+  React.useEffect(() => {
+    const t = setTimeout(() => setOrbAnim(true), 200);
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleOrbAction = React.useCallback((key) => {
+    setOrbOpen(false);
+    onOrbAction?.(key);
+  }, [onOrbAction]);
+
+  // Orb Menü Karten-Position: direkt über dem Orb, mittig
+  // Orb sitzt mittig. Card-Breite ca. 220px → links: calc(50% - 110px)
+  // Bottom: BottomNav-Höhe + safe-area + 12px Luft
+  const cardStyle = {
+    left: "50%",
+    transform: "translateX(-50%)",
+    bottom: `calc(${74}px + max(12px, env(safe-area-inset-bottom, 12px)) + 8px)`,
+  };
+
+  const ORB_MENU = [
+    {
+      key:"favorites",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF8A6B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      ),
+      label: "Favoriten",
+      sub:   "Deine gespeicherten Talente",
+    },
+    {
+      key:"create",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8"  y1="12" x2="16" y2="12"/>
+        </svg>
+      ),
+      label: "Erstellen",
+      sub:   hasTalent ? "Story · Werk · Erlebnis" : "Wirker werden",
+    },
+    {
+      key:"profile",
+      icon: (
+        <div style={{
+          width:28, height:28, borderRadius:"50%", overflow:"hidden", flexShrink:0,
+          background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          {authProfile?.avatar_url
+            ? <img src={authProfile.avatar_url} alt="Profil"
+                style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
+                onError={e=>{e.target.style.display="none";}}/>
+            : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          }
+        </div>
+      ),
+      label: "Mein HUI",
+      sub:   "Profil · Einstellungen · Impact",
+    },
+    {
+      key:"notifs",
+      icon: (
+        <div style={{ position:"relative", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          {notifCount > 0 && (
+            <div style={{
+              position:"absolute", top:-2, right:-2,
+              minWidth:14, height:14, borderRadius:7,
+              background:"linear-gradient(135deg,#FF5F5F,#FF8A6B)",
+              color:"white", fontSize:8, fontWeight:800,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              padding:"0 3px", border:"1.5px solid rgba(255,251,248,0.96)",
+            }}>{notifCount > 9 ? "9+" : notifCount}</div>
+          )}
+        </div>
+      ),
+      label: "Mitteilungen",
+      sub:   notifCount > 0 ? `${notifCount} neue Benachrichtigung${notifCount>1?"en":""}` : "Keine neuen Mitteilungen",
+    },
+  ];
 
   return (
-    <div style={{
-      position:"fixed", bottom:0, left:0, right:0, zIndex:100,
-    }}>
+    <>
+      <style>{BN_CSS}</style>
+
+      {/* Overlay zum Schließen */}
+      {orbOpen && (
+        <div className="hui-orb-overlay" onClick={() => setOrbOpen(false)} aria-hidden="true"/>
+      )}
+
+      {/* Floating Card */}
+      {orbOpen && (
+        <div className="hui-orb-card" style={cardStyle} role="dialog" aria-label="HUI Menü">
+          {ORB_MENU.map((item, idx) => (
+            <React.Fragment key={item.key}>
+              {idx > 0 && <div className="hui-orb-card-divider"/>}
+              <button
+                className="hui-orb-card-item"
+                onClick={() => handleOrbAction(item.key)}
+                aria-label={item.label}
+              >
+                {item.icon}
+                <div style={{ flex:1, textAlign:"left", minWidth:0 }}>
+                  <div style={{
+                    fontSize:14, fontWeight:600, color:"#1A1A1A",
+                    letterSpacing:-0.1, lineHeight:1.2,
+                  }}>{item.label}</div>
+                  <div style={{
+                    fontSize:11, color:"rgba(60,60,60,0.55)",
+                    marginTop:1, lineHeight:1.3, fontWeight:400,
+                  }}>{item.sub}</div>
+                </div>
+              </button>
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+
+      {/* Bottom Nav Pill */}
       <div style={{
-        margin:"0 10px",
-        marginBottom:"max(12px, env(safe-area-inset-bottom, 12px))",
-        background:"rgba(255,251,248,0.88)",
-        backdropFilter:"blur(36px) saturate(1.8)",
-        WebkitBackdropFilter:"blur(36px) saturate(1.8)",
-        borderRadius:28,
-        border:"1px solid rgba(255,255,255,0.65)",
-        boxShadow:`
-          0 2px 4px rgba(0,0,0,0.03),
-          0 8px 28px rgba(0,0,0,0.10),
-          0 1px 0 rgba(255,255,255,0.9) inset
-        `,
-        display:"flex", alignItems:"center",
-        justifyContent:"space-between",
-        padding:"8px 6px",
+        position:"fixed", bottom:0, left:0, right:0, zIndex:100,
+        pointerEvents:"none",
       }}>
+        <div style={{
+          margin:"0 10px",
+          marginBottom:"max(10px, env(safe-area-inset-bottom, 10px))",
+          background:"rgba(255,251,248,0.90)",
+          backdropFilter:"blur(36px) saturate(1.8)",
+          WebkitBackdropFilter:"blur(36px) saturate(1.8)",
+          borderRadius:28,
+          border:"1px solid rgba(255,255,255,0.65)",
+          boxShadow:`
+            0 2px 4px rgba(0,0,0,0.03),
+            0 8px 28px rgba(0,0,0,0.09),
+            0 1px 0 rgba(255,255,255,0.92) inset
+          `,
+          display:"flex", alignItems:"center",
+          justifyContent:"space-between",
+          padding:"4px 6px",
+          height:66,
+          pointerEvents:"auto",
+        }}>
+          {NAV.map((item, i) => {
 
-        {NAV.map((item, i) => {
-          /* ── HUI centre button ── */
-          if(!item) return (
-            <div key="orb-space" style={{
-              width:72, height:48,
-              flexShrink:0,
-              pointerEvents:"none",
-              position:"relative",
-            }}/>
-          );
+            /* ── Orb Slot ── */
+            if (!item) return (
+              <button
+                key="orb"
+                className={`hui-orb-btn${orbOpen ? " hui-orb-btn--open" : (orbAnim ? " hui-orb-btn--idle" : "")}`}
+                onClick={() => setOrbOpen(o => !o)}
+                aria-label={orbOpen ? "Menü schließen" : "Menü öffnen"}
+                aria-expanded={orbOpen}
+              >
+                <div className="hui-orb-ring"/>
+                <div className="hui-orb-highlight"/>
+                <div className="hui-orb-icon">
+                  {/* Logo — sichtbar wenn geschlossen */}
+                  <div style={{
+                    position:"absolute",
+                    opacity:   orbOpen ? 0 : 1,
+                    transform: orbOpen ? "scale(0.72) rotate(-18deg)" : "scale(1) rotate(0deg)",
+                    transition:"opacity 0.26s ease, transform 0.34s cubic-bezier(0.34,1.3,0.64,1)",
+                  }}>
+                    <img src="/hui-logo.jpg" alt="HUI" loading="eager" decoding="async"
+                      style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", display:"block" }}
+                      onError={e=>{e.target.style.display="none";}}/>
+                  </div>
+                  {/* ✕ — sichtbar wenn offen */}
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+                    style={{
+                      position:"absolute",
+                      opacity:   orbOpen ? 1 : 0,
+                      transform: orbOpen ? "rotate(0deg) scale(1)" : "rotate(-45deg) scale(0.55)",
+                      transition:"opacity 0.24s ease, transform 0.34s cubic-bezier(0.34,1.4,0.64,1)",
+                    }}>
+                    <line x1="3" y1="9" x2="15" y2="9" stroke="#16D7C5" strokeWidth="2.2" strokeLinecap="round"/>
+                    <line x1="9" y1="3" x2="9"  y2="15" stroke="#16D7C5" strokeWidth="2.2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                {/* Notif-Dot */}
+                {!orbOpen && notifCount > 0 && (
+                  <div style={{
+                    position:"absolute", top:3, right:3,
+                    width:7, height:7, borderRadius:"50%",
+                    background:"linear-gradient(135deg,#FF8A6B,#FF5F5F)",
+                    border:"1.5px solid rgba(255,251,248,0.95)",
+                    boxShadow:"0 0 5px rgba(255,138,107,0.7)",
+                  }}/>
+                )}
+              </button>
+            );
 
-          const active    = tab === item.key;
-          const isPressed = pressed === item.key;
+            /* ── Standard Tab ── */
+            const active    = tab === item.key || (item.key === "chat" && false);
+            const isActive  = tab === item.key;
+            const isPressed = pressed === item.key;
 
-          return (
-            <button key={item.key}
-              onClick={() => onTab(item.key)}
-              onTouchStart={() => setPressed(item.key)}
-              onTouchEnd={() => setPressed(null)}
-              style={{
-                display:"flex", flexDirection:"column",
-                alignItems:"center", gap:3,
-                background:"none", border:"none",
-                cursor:"pointer",
-                padding:"5px 10px 4px",
-                borderRadius:18,
-                position:"relative",
-                WebkitTapHighlightColor:"transparent",
-                transform: isPressed ? "scale(0.88)" : "scale(1)",
-                transition:"transform 0.18s cubic-bezier(0.34,1.4,0.64,1)",
-                minWidth:50,
-              }}>
-
-              {/* Active background pill */}
-              {active && (
+            return (
+              <button
+                key={item.key}
+                className="hui-bn-btn"
+                onClick={() => onTab(item.key)}
+                onTouchStart={() => setPressed(item.key)}
+                onTouchEnd={() => setPressed(null)}
+                style={{ transform: isPressed ? "scale(0.88)" : "scale(1)" }}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {isActive && <div className="hui-bn-active-pill"/>}
                 <div style={{
-                  position:"absolute", inset:0,
-                  borderRadius:18,
-                  background:`linear-gradient(150deg,
-                    ${C.teal}18 0%,
-                    ${C.coral}0A 100%)`,
-                  border:`1px solid ${C.teal}28`,
-                }}/>
-              )}
-
-              {/* Icon */}
-              <div style={{
-                position:"relative", zIndex:1,
-                transform: active ? "translateY(-1px) scale(1.06)" : "translateY(0) scale(1)",
-                transition:"transform 0.25s cubic-bezier(0.34,1.3,0.64,1)",
-              }}>
-                <NavIcon k={item.key} active={active}/>
-              </div>
-
-              {/* Label — readable, warm */}
-              <span style={{
-                fontSize:10,
-                fontWeight: active ? 700 : 500,
-                color: active ? C.teal : "rgba(60,60,60,0.65)",
-                transition:"all 0.22s",
-                letterSpacing: active ? 0.1 : 0,
-                position:"relative", zIndex:1,
-                fontFamily:"inherit",
-              }}>
-                {item.label}
-              </span>
-
-              {/* Active indicator dot */}
-              {active && (
-                <div style={{
-                  position:"absolute", bottom:1,
-                  left:"50%", transform:"translateX(-50%)",
-                  width:4, height:4, borderRadius:"50%",
-                  background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                  boxShadow:`0 0 5px ${C.teal}80`,
-                }}/>
-              )}
-            </button>
-          );
-        })}
-
+                  position:"relative", zIndex:1,
+                  transform: isActive ? "translateY(-1px) scale(1.06)" : "translateY(0) scale(1)",
+                  transition:"transform 0.24s cubic-bezier(0.34,1.3,0.64,1)",
+                }}>
+                  <NavIcon k={item.key} active={isActive}/>
+                  {/* Chat unread badge */}
+                  {item.key === "chat" && msgCount > 0 && (
+                    <div style={{
+                      position:"absolute", top:-3, right:-5,
+                      minWidth:14, height:14, borderRadius:7,
+                      background:"linear-gradient(135deg,#FF5F5F,#FF8A6B)",
+                      color:"white", fontSize:7.5, fontWeight:800,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      padding:"0 3px", border:"1.5px solid rgba(255,251,248,0.96)",
+                    }}>{msgCount > 9 ? "9+" : msgCount}</div>
+                  )}
+                </div>
+                <span className={`hui-bn-label${isActive ? " hui-bn-label--active" : ""}`}>
+                  {item.label}
+                </span>
+                {isActive && <div className="hui-bn-dot"/>}
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 function WirkerSheet({ w, onClose, onBook }) {
@@ -1257,50 +1552,41 @@ export default function Home() {
           )}
         </div>
 
-        <BottomNav tab={tab} onTab={switchTab}
-          hasTalent={isTalent}
-          onCreate={()=>{
-            if(isTalent) setShowCreateFlow(true);
-            else setShowMembership(true);
-          }}/>
-
-        {/* ── RIGHT ACTION BAR ── alle Tabs ── */}
-        {/* ── HUI ORB NAVIGATION ── */}
-        <HuiOrb
-          resetKey={tab}
-          activeMood={activeMood}
-          onChat={()=>setShowChat(true)}
-          onNotifs={()=>setShowNotifs(true)}
-          onKorb={()=>setShowKorb(true)}
-          onMatch={()=>setShowMatch(true)}
-          onProfile={async ()=>{
-            let p = authProfile;
-            let uid = p?.id;
-            if (!uid) {
-              try {
-                const { data: { user: u } } = await supabase.auth.getUser();
-                uid = u?.id;
-              } catch { /* ignore */ }
-            }
-            if (!uid) return;
-            setShowWirker({
-              id:           uid,
-              user_id:      uid,
-              username:     p?.username    || null,
-              display_name: p?.display_name|| null,
-              avatar_url:   p?.avatar_url  || null,
-              talent:       p?.talent      || null,
-              focus_type:   p?.focus_type  || "hybrid",
-              header_img:   p?.header_img  || null,
-              bio:          p?.bio         || null,
-              dna_tags:     p?.dna_tags    || [],
-            });
+        <BottomNav
+          tab={tab}
+          onTab={(key) => {
+            if (key === "chat") { setShowChat(true); return; }
+            switchTab(key);
           }}
-          cartCount={cart.length}
-          msgCount={0}
+          hasTalent={isTalent}
+          authProfile={authProfile}
           notifCount={liveNotifCount}
-          avatarUrl={authProfile?.avatar_url || null}
+          msgCount={0}
+          onOrbAction={(key) => {
+            if (key === "favorites")  { /* TODO: FavoritesPage öffnen */ }
+            if (key === "create") {
+              if(isTalent) setShowCreateFlow(true);
+              else setShowMembership(true);
+            }
+            if (key === "profile") {
+              let p = authProfile;
+              if (!p?.id) return;
+              setShowWirker({
+                id: p.id, user_id: p.id,
+                username: p?.username || null,
+                display_name: p?.display_name || null,
+                avatar_url: p?.avatar_url || null,
+                talent: p?.talent || null,
+                focus_type: p?.focus_type || "hybrid",
+                header_img: p?.header_img || null,
+                bio: p?.bio || null,
+                dna_tags: p?.dna_tags || [],
+              });
+            }
+            if (key === "notifs") setShowNotifs(true);
+          }}
         />
+
 
         {/* Overlays */}
         {showMap && <LiveMapPage onView={w=>{setShowWirker(w);setShowMap(false);}} onMatch={()=>{setShowMap(false);setShowMatch(true);}} onClose={()=>setShowMap(false)} fullscreen={true}/>}
