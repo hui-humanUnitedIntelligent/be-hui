@@ -1,291 +1,231 @@
-// src/pages/DiagnosePage.jsx
-// ══════════════════════════════════════════════════════════════════
-// HUI Diagnose-Panel — TEMPORÄR, nicht für Produktion
-// Zeigt exakt warum der Feed leer ist.
-// Entfernen nach Debugging.
-// ══════════════════════════════════════════════════════════════════
+// src/pages/Diagnose.jsx
+// Hard Debug — zeigt Supabase Status, ENV Vars, DB Queries
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-const ROW = ({ label, value, ok }) => (
-  <div style={{
-    display:"flex", justifyContent:"space-between", alignItems:"center",
-    padding:"10px 0", borderBottom:"1px solid #f0ede8",
-    fontFamily:"system-ui,sans-serif",
-  }}>
-    <span style={{ fontSize:13, color:"#444", fontWeight:500 }}>{label}</span>
-    <span style={{
-      fontSize:12, fontWeight:700,
-      color: ok === true ? "#16a34a" : ok === false ? "#dc2626" : "#888",
-      background: ok === true ? "#dcfce7" : ok === false ? "#fee2e2" : "#f3f4f6",
-      padding:"3px 10px", borderRadius:8,
-      maxWidth:220, textAlign:"right", wordBreak:"break-all",
-    }}>{String(value)}</span>
-  </div>
-);
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const Section = ({ title, children }) => (
-  <div style={{ marginBottom:24 }}>
-    <div style={{
-      fontSize:11, fontWeight:800, letterSpacing:"0.08em",
-      color:"#16D7C5", textTransform:"uppercase", marginBottom:8,
-    }}>{title}</div>
-    <div style={{
-      background:"white", borderRadius:16,
-      border:"1px solid #ede9e3", padding:"0 16px",
-      boxShadow:"0 2px 12px rgba(0,0,0,0.04)",
-    }}>{children}</div>
-  </div>
-);
+const IS_CONNECTED  = !!(SUPABASE_URL && SUPABASE_KEY);
 
-export default function DiagnosePage() {
+export default function Diagnose() {
   const [results, setResults] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [running, setRunning] = useState(false);
 
-  useEffect(() => {
-    runDiagnosis();
-  }, []);
+  const C = {
+    ok:   "#16a34a", err: "#dc2626", warn: "#d97706",
+    bg:   "#0f172a", card:"#1e293b", border:"#334155",
+    text: "#f1f5f9", muted:"#94a3b8",
+  };
 
-  async function runDiagnosis() {
-    setLoading(true);
-    const r = {};
+  async function runChecks() {
+    setRunning(true);
+    const out = {};
 
-    // ── 1. Auth Status ──────────────────────────────────────────
+    // 1. ENV VARS
+    out.env_url  = SUPABASE_URL  || "❌ NICHT GESETZT";
+    out.env_key  = SUPABASE_KEY  ? `✓ ${SUPABASE_KEY.slice(0,20)}...` : "❌ NICHT GESETZT";
+    out.connected = IS_CONNECTED ? "✓ VERBUNDEN" : "❌ NICHT VERBUNDEN — KEY FEHLT";
+
+    // 2. Works Query
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      r.authUserId    = session?.user?.id || null;
-      r.authEmail     = session?.user?.email || null;
-      r.authLoggedIn  = !!session?.user;
-    } catch(e) { r.authError = e.message; }
+      const { data, error } = await supabase
+        .from("works").select("id, title, status, media_url, cover_url, created_at")
+        .order("created_at", { ascending: false }).limit(5);
+      if (error) out.works = `❌ ERROR: ${error.message} [${error.code}]`;
+      else       out.works = data?.length ? `✓ ${data.length} Works: ${data.map(w=>w.title||w.id).join(", ")}` : "⚠ 0 Works in DB";
+      out.works_raw = JSON.stringify(data?.slice(0,3), null, 2);
+    } catch(e) { out.works = `❌ CRASH: ${e.message}`; }
 
-    // ── 2. Tabellen existieren + Row-Count ──────────────────────
-    // Ohne Auth (anon) zählen → zeigt ob RLS SELECT blockiert
-    const tables = ["works", "experiences", "stories", "profiles", "wirker_profiles"];
-    for (const t of tables) {
-      try {
-        const { count, error } = await supabase
-          .from(t)
-          .select("*", { count:"exact", head:true });
-        r[`count_${t}`]       = error ? `ERROR: ${error.message}` : count;
-        r[`count_${t}_ok`]    = !error;
-        r[`count_${t}_err`]   = error?.message || null;
-      } catch(e) {
-        r[`count_${t}`]       = `CRASH: ${e.message}`;
-        r[`count_${t}_ok`]    = false;
-      }
-    }
-
-    // ── 3. Column-Check — kritische Spalten vorhanden? ──────────
-    // Supabase REST gibt PGRST204 wenn Spalte nicht existiert
-    const colChecks = [
-      { table:"works",       cols:"id,title,status,mood_tags,cover_url,media_url,user_id" },
-      { table:"experiences", cols:"id,title,status,available_days,location_text,mood_tags,user_id" },
-      { table:"stories",     cols:"id,media_url,status,mood_tags,location,user_id" },
-    ];
-    for (const { table, cols } of colChecks) {
-      try {
-        const { data, error } = await supabase.from(table).select(cols).limit(1);
-        r[`cols_${table}`]    = error ? `ERROR: ${error.message}` : `OK (${(data||[]).length} rows)`;
-        r[`cols_${table}_ok`] = !error;
-      } catch(e) {
-        r[`cols_${table}`]    = `CRASH: ${e.message}`;
-        r[`cols_${table}_ok`] = false;
-      }
-    }
-
-    // ── 4. Erste Rows (sehen ob Daten da sind) ──────────────────
-    const dataChecks = ["works","experiences","stories"];
-    for (const t of dataChecks) {
-      try {
-        const { data, error } = await supabase
-          .from(t).select("id,created_at").order("created_at",{ascending:false}).limit(3);
-        r[`rows_${t}`]    = error
-          ? `ERROR: ${error.message}`
-          : data?.length > 0
-            ? data.map(d => d.id.slice(0,8) + "…" + " (" + (d.created_at||"?").slice(0,10) + ")").join(", ")
-            : "LEER — keine Daten";
-        r[`rows_${t}_ok`] = !error && (data?.length||0) > 0;
-      } catch(e) {
-        r[`rows_${t}`]    = `CRASH: ${e.message}`;
-        r[`rows_${t}_ok`] = false;
-      }
-    }
-
-    // ── 5. RLS Analyse — als eingeloggter User ──────────────────
-    // Versuche zu inserting in works (ohne echten Insert)
-    // Stattdessen: INSERT mit fehlenden Pflichtfeldern → zeigt ob RLS oder Schema-Error
-    if (r.authLoggedIn) {
-      try {
-        const { error } = await supabase.from("works").insert({
-          user_id:    r.authUserId,
-          title:      "__HUI_DIAG_TEST__",
-          media_url:  "https://diagnose.test/img.jpg",
-          status:     "draft",
-        });
-        // Wenn RLS blockiert → error.code = "42501" / message includes "row-level"
-        // Wenn Schema-Fehler → error.code = "PGRST204" / "23502" etc.
-        if (error) {
-          r.rlsInsertWorks = `FEHLER code=${error.code}: ${error.message}`;
-          r.rlsInsertOk    = false;
-        } else {
-          r.rlsInsertWorks = "INSERT OK (cleanup nötig!)";
-          r.rlsInsertOk    = true;
-          // Test-Row löschen
-          await supabase.from("works").delete().eq("title","__HUI_DIAG_TEST__");
-        }
-      } catch(e) {
-        r.rlsInsertWorks = `CRASH: ${e.message}`;
-        r.rlsInsertOk    = false;
-      }
-    } else {
-      r.rlsInsertWorks = "nicht eingeloggt — kein Test";
-      r.rlsInsertOk    = null;
-    }
-
-    // ── 6. Storage Buckets ──────────────────────────────────────
+    // 3. Experiences Query
     try {
-      const { data: buckets, error } = await supabase.storage.listBuckets();
-      if (error) {
-        r.storageBuckets = `ERROR: ${error.message}`;
-        r.storageOk      = false;
-      } else {
-        const names = (buckets||[]).map(b => b.name);
-        r.storageBuckets = names.join(", ") || "(keine Buckets)";
-        r.storageMedia   = names.includes("media");
-        r.storageStories = names.includes("stories");
-        r.storageOk      = r.storageMedia && r.storageStories;
-      }
-    } catch(e) {
-      r.storageBuckets = `CRASH: ${e.message}`;
-      r.storageOk      = false;
-    }
+      const { data, error } = await supabase
+        .from("experiences").select("id, title, status, media_url, created_at")
+        .order("created_at", { ascending: false }).limit(5);
+      if (error) out.experiences = `❌ ERROR: ${error.message} [${error.code}]`;
+      else       out.experiences = data?.length ? `✓ ${data.length} Experiences` : "⚠ 0 Experiences";
+    } catch(e) { out.experiences = `❌ CRASH: ${e.message}`; }
 
-    // ── 7. loadFeed Simulation ──────────────────────────────────
-    // Exakt dieselben Queries wie loadFeed() — zeigt was der Feed sieht
-    const PAGE_SIZE = 10;
-    for (const [table, sel] of [
-      ["works",       "id,title,cover_url,media_url,status,state,created_at,user_id"],
-      ["experiences", "id,title,media_url,status,state,created_at,user_id"],
-      ["stories",     "id,media_url,status,state,created_at,user_id"],
-    ]) {
-      try {
-        const { data, error } = await supabase
-          .from(table).select(sel)
-          .order("created_at",{ascending:false})
-          .range(0, PAGE_SIZE-1);
-        r[`feed_${table}`]    = error
-          ? `ERROR: ${error.message}`
-          : `${(data||[]).length} items${data?.length > 0 ? " ✓" : " — LEER"}`;
-        r[`feed_${table}_ok`] = !error && (data?.length||0) > 0;
-      } catch(e) {
-        r[`feed_${table}`]    = `CRASH: ${e.message}`;
-        r[`feed_${table}_ok`] = false;
-      }
-    }
+    // 4. Stories Query
+    try {
+      const { data, error } = await supabase
+        .from("stories").select("id, media_url, media_type, status, caption, text_overlay, created_at")
+        .order("created_at", { ascending: false }).limit(5);
+      if (error) out.stories = `❌ ERROR: ${error.message} [${error.code}]`;
+      else       out.stories = data?.length ? `✓ ${data.length} Stories: ${data.map(s=>s.media_type||"text").join(", ")}` : "⚠ 0 Stories";
+      out.stories_raw = JSON.stringify(data?.slice(0,3), null, 2);
+    } catch(e) { out.stories = `❌ CRASH: ${e.message}`; }
 
-    // ── 8. Supabase Client Status ────────────────────────────────
-    r.supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "NICHT GESETZT";
-    r.supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-      ? import.meta.env.VITE_SUPABASE_ANON_KEY.slice(0,20) + "…"
-      : "NICHT GESETZT";
-    r.supabaseOk  = !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
+    // 5. Profiles Query
+    try {
+      const { data, error } = await supabase
+        .from("profiles").select("id, display_name, is_wirker").limit(5);
+      if (error) out.profiles = `❌ ERROR: ${error.message} [${error.code}]`;
+      else       out.profiles = data?.length ? `✓ ${data.length} Profile` : "⚠ 0 Profile";
+    } catch(e) { out.profiles = `❌ CRASH: ${e.message}`; }
 
-    setResults(r);
-    setLoading(false);
+    // 6. Auth Session
+    try {
+      const { data:{ session } } = await supabase.auth.getSession();
+      out.auth = session ? `✓ Eingeloggt: ${session.user.email}` : "⚠ Nicht eingeloggt (anon)";
+    } catch(e) { out.auth = `❌ Auth CRASH: ${e.message}`; }
 
-    // Alles auch in Console loggen
-    console.log("[HUI DIAGNOSE] vollständige Ergebnisse:", r);
+    // 7. Storage Buckets
+    try {
+      const { data, error } = await supabase.storage.listBuckets();
+      if (error) out.storage = `❌ ${error.message}`;
+      else       out.storage = data?.length ? `✓ Buckets: ${data.map(b=>b.name).join(", ")}` : "⚠ Keine Buckets";
+    } catch(e) { out.storage = `❌ CRASH: ${e.message}`; }
+
+    // 8. Storage Files in media bucket
+    try {
+      const { data, error } = await supabase.storage.from("media").list("", { limit: 10 });
+      if (error) out.media_files = `❌ ${error.message}`;
+      else       out.media_files = data?.length ? `✓ ${data.length} Dateien in /media` : "⚠ 0 Dateien in /media";
+    } catch(e) { out.media_files = `❌ CRASH: ${e.message}`; }
+
+    // 9. Storage Files in stories bucket
+    try {
+      const { data, error } = await supabase.storage.from("stories").list("", { limit: 10 });
+      if (error) out.stories_files = `❌ ${error.message}`;
+      else       out.stories_files = data?.length ? `✓ ${data.length} Dateien in /stories` : "⚠ 0 Dateien in /stories";
+    } catch(e) { out.stories_files = `❌ CRASH: ${e.message}`; }
+
+    setResults(out);
+    setRunning(false);
   }
+
+  useEffect(() => { runChecks(); }, []);
+
+  const Row = ({ label, value, raw }) => {
+    const isErr  = String(value).startsWith("❌");
+    const isWarn = String(value).startsWith("⚠");
+    const isOk   = String(value).startsWith("✓");
+    return (
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
+          <div style={{ minWidth:160, fontSize:11, color:C.muted, fontFamily:"monospace", paddingTop:2 }}>
+            {label}
+          </div>
+          <div style={{
+            fontSize:12, fontFamily:"monospace", flex:1, wordBreak:"break-all",
+            color: isErr ? C.err : isWarn ? C.warn : isOk ? C.ok : C.text,
+            fontWeight: (isErr || isWarn) ? 700 : 400,
+          }}>
+            {value || "—"}
+          </div>
+        </div>
+        {raw && (
+          <pre style={{
+            marginTop:6, marginLeft:172, padding:"8px 10px",
+            background:"rgba(0,0,0,0.4)", borderRadius:6,
+            fontSize:10, color:C.muted, overflow:"auto", maxHeight:120,
+            border:`1px solid ${C.border}`
+          }}>{raw}</pre>
+        )}
+      </div>
+    );
+  };
+
+  const isKeyMissing = !SUPABASE_KEY;
 
   return (
     <div style={{
-      minHeight:"100vh", background:"#F9F7F4",
-      padding:"24px 20px 60px", fontFamily:"system-ui,sans-serif",
-      maxWidth:560, margin:"0 auto",
+      minHeight:"100vh", background:C.bg, color:C.text, padding:"24px 20px",
+      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Mono',monospace",
     }}>
-      <div style={{ marginBottom:28, display:"flex", alignItems:"center", gap:12 }}>
-        <div style={{
-          width:40, height:40, borderRadius:12,
-          background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:20,
-        }}>🔍</div>
-        <div>
-          <div style={{ fontWeight:800, fontSize:18, color:"#1a1a1a" }}>HUI Diagnose</div>
-          <div style={{ fontSize:12, color:"#888" }}>Feed + Publish + Database Debug</div>
+      {/* HEADER */}
+      <div style={{ marginBottom:24 }}>
+        <div style={{ fontSize:11, color:C.muted, marginBottom:4 }}>
+          🔍 HUI DIAGNOSE — {new Date().toLocaleString("de-DE")}
         </div>
-        {!loading && (
-          <button onClick={runDiagnosis} style={{
-            marginLeft:"auto", padding:"8px 16px", borderRadius:10,
-            background:"#16D7C5", border:"none", color:"white",
-            fontWeight:700, fontSize:12, cursor:"pointer",
-          }}>Neu laden</button>
-        )}
+        <h1 style={{ margin:"0 0 4px", fontSize:20, fontWeight:800, letterSpacing:"-.5px", color:C.text }}>
+          Feed Debug
+        </h1>
+        <div style={{ fontSize:12, color:C.muted }}>
+          Build: {import.meta.env.VITE_BUILD_DATE || "?"}  |  
+          Mode: {import.meta.env.MODE}
+        </div>
       </div>
 
-      {loading ? (
-        <div style={{ textAlign:"center", padding:"60px 0", color:"#888", fontSize:14 }}>
-          Diagnose läuft…
-        </div>
-      ) : (
-        <>
-          <Section title="Supabase Client">
-            <ROW label="URL"           value={results.supabaseUrl}  ok={results.supabaseOk} />
-            <ROW label="Anon Key"      value={results.supabaseKey}  ok={results.supabaseOk} />
-          </Section>
-
-          <Section title="Auth Status">
-            <ROW label="Eingeloggt"    value={results.authLoggedIn ? "JA" : "NEIN"} ok={results.authLoggedIn} />
-            <ROW label="User ID"       value={results.authUserId  || "—"} ok={!!results.authUserId} />
-            <ROW label="E-Mail"        value={results.authEmail   || "—"} ok={!!results.authEmail} />
-          </Section>
-
-          <Section title="Tabellen — Row Count (via RLS)">
-            <ROW label="works"             value={results.count_works}            ok={results.count_works_ok} />
-            <ROW label="experiences"       value={results.count_experiences}      ok={results.count_experiences_ok} />
-            <ROW label="stories"           value={results.count_stories}          ok={results.count_stories_ok} />
-            <ROW label="profiles"          value={results.count_profiles}         ok={results.count_profiles_ok} />
-            <ROW label="wirker_profiles"   value={results.count_wirker_profiles}  ok={results.count_wirker_profiles_ok} />
-          </Section>
-
-          <Section title="Schema Check — kritische Spalten">
-            <ROW label="works Spalten"       value={results.cols_works}       ok={results.cols_works_ok} />
-            <ROW label="experiences Spalten" value={results.cols_experiences} ok={results.cols_experiences_ok} />
-            <ROW label="stories Spalten"     value={results.cols_stories}     ok={results.cols_stories_ok} />
-          </Section>
-
-          <Section title="Feed Simulation — exakt wie loadFeed()">
-            <ROW label="works im Feed"       value={results.feed_works}       ok={results.feed_works_ok} />
-            <ROW label="experiences im Feed" value={results.feed_experiences} ok={results.feed_experiences_ok} />
-            <ROW label="stories im Feed"     value={results.feed_stories}     ok={results.feed_stories_ok} />
-          </Section>
-
-          <Section title="Daten — neueste 3 Rows (sichtbar für dich)">
-            <ROW label="works"       value={results.rows_works}       ok={results.rows_works_ok} />
-            <ROW label="experiences" value={results.rows_experiences} ok={results.rows_experiences_ok} />
-            <ROW label="stories"     value={results.rows_stories}     ok={results.rows_stories_ok} />
-          </Section>
-
-          <Section title="RLS Insert Test">
-            <ROW label="works INSERT" value={results.rlsInsertWorks} ok={results.rlsInsertOk} />
-          </Section>
-
-          <Section title="Storage Buckets">
-            <ROW label="Alle Buckets"    value={results.storageBuckets}  ok={results.storageOk} />
-            <ROW label="media (Bucket)"  value={results.storageMedia ? "vorhanden ✓" : "FEHLT ✗"} ok={results.storageMedia} />
-            <ROW label="stories (Bucket)"value={results.storageStories ? "vorhanden ✓" : "FEHLT ✗"} ok={results.storageStories} />
-          </Section>
-
-          <div style={{
-            padding:"16px", borderRadius:14, background:"#FFF8F0",
-            border:"1px solid #FF8A6B33", fontSize:12, color:"#666", lineHeight:1.7,
-          }}>
-            <strong>📋 Vollständige Logs in Browser Console</strong><br/>
-            Öffne DevTools → Console → suche nach "[HUI DIAGNOSE]"<br/>
-            Nach diesem Fix: diese Seite entfernen und DiagnosePage aus Routing löschen.
+      {/* CRITICAL ALERT wenn Key fehlt */}
+      {isKeyMissing && (
+        <div style={{
+          marginBottom:20, padding:"16px 20px", borderRadius:12,
+          background:"rgba(220,38,38,0.15)", border:"2px solid rgba(220,38,38,0.5)",
+        }}>
+          <div style={{ fontSize:14, fontWeight:800, color:"#fca5a5", marginBottom:8 }}>
+            🚨 KRITISCH: VITE_SUPABASE_ANON_KEY FEHLT IN VERCEL
           </div>
-        </>
+          <div style={{ fontSize:12, color:"#fca5a5", lineHeight:1.6 }}>
+            Der Anon Key ist NICHT im Vercel-Bundle eingebettet.
+            Supabase Client ist im NOOP-Modus → alle Queries geben [] zurück → Feed leer.
+          </div>
+          <div style={{ marginTop:12, padding:"12px 14px", background:"rgba(0,0,0,0.3)",
+            borderRadius:8, fontSize:11, color:"#94a3b8", lineHeight:1.8 }}>
+            <strong style={{color:"#f1f5f9"}}>FIX (2 Minuten):</strong><br/>
+            1. Vercel öffnen → hui-humanunitedintelligents-projects → be-hui<br/>
+            2. Settings → Environment Variables<br/>
+            3. VITE_SUPABASE_ANON_KEY → Add<br/>
+            4. Value = deinen Supabase anon key einfügen<br/>
+               (Supabase Dashboard → Settings → API → Project API keys → anon public)<br/>
+            5. Redeploy klicken
+          </div>
+        </div>
       )}
+
+      {/* CHECKS */}
+      <div style={{
+        background:C.card, borderRadius:12, padding:"20px",
+        border:`1px solid ${C.border}`, marginBottom:16
+      }}>
+        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:16, textTransform:"uppercase", letterSpacing:1 }}>
+          ENV / Verbindung
+        </div>
+        <Row label="SUPABASE_URL"    value={results.env_url} />
+        <Row label="SUPABASE_KEY"    value={results.env_key} />
+        <Row label="IS_CONNECTED"    value={results.connected} />
+        <Row label="Auth Session"    value={results.auth} />
+      </div>
+
+      <div style={{
+        background:C.card, borderRadius:12, padding:"20px",
+        border:`1px solid ${C.border}`, marginBottom:16
+      }}>
+        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:16, textTransform:"uppercase", letterSpacing:1 }}>
+          Datenbank
+        </div>
+        <Row label="works"       value={results.works}       raw={results.works_raw} />
+        <Row label="experiences" value={results.experiences} />
+        <Row label="stories"     value={results.stories}     raw={results.stories_raw} />
+        <Row label="profiles"    value={results.profiles} />
+      </div>
+
+      <div style={{
+        background:C.card, borderRadius:12, padding:"20px",
+        border:`1px solid ${C.border}`, marginBottom:24
+      }}>
+        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:16, textTransform:"uppercase", letterSpacing:1 }}>
+          Storage
+        </div>
+        <Row label="Buckets"        value={results.storage} />
+        <Row label="media/ files"   value={results.media_files} />
+        <Row label="stories/ files" value={results.stories_files} />
+      </div>
+
+      <button
+        onClick={runChecks}
+        disabled={running}
+        style={{
+          padding:"13px 28px", borderRadius:10,
+          background: running ? "rgba(22,211,197,0.3)" : "#16D7C5",
+          border:"none", color: running ? "#16D7C5" : "#0f172a",
+          fontWeight:800, fontSize:13, cursor: running ? "default" : "pointer",
+          fontFamily:"inherit",
+        }}
+      >
+        {running ? "Läuft…" : "Nochmal prüfen"}
+      </button>
     </div>
   );
 }
