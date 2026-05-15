@@ -609,13 +609,13 @@ DROP POLICY IF EXISTS chats_update_own ON public.chats;
 -- participant_ids ARRAY — DB-verifiziert ✓
 CREATE POLICY chats_select_own ON public.chats
   FOR SELECT TO authenticated
-  USING (auth.uid() = ANY(participant_ids));
+  USING (auth.uid()::text = ANY(participant_ids::text[]));
 CREATE POLICY chats_insert_own ON public.chats
   FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = ANY(participant_ids));
+  WITH CHECK (auth.uid()::text = ANY(participant_ids::text[]));
 CREATE POLICY chats_update_own ON public.chats
   FOR UPDATE TO authenticated
-  USING (auth.uid() = ANY(participant_ids));
+  USING (auth.uid()::text = ANY(participant_ids::text[]));
 
 CREATE INDEX IF NOT EXISTS idx_chats_booking_id ON public.chats(booking_id);
 
@@ -648,7 +648,7 @@ CREATE POLICY msg_select_own ON public.messages
     auth.uid() = receiver_id OR
     EXISTS (
       SELECT 1 FROM public.chats c
-      WHERE c.id = chat_id AND auth.uid() = ANY(c.participant_ids)
+      WHERE c.id = chat_id AND auth.uid()::text = ANY(c.participant_ids)
     )
   );
 CREATE POLICY msg_insert_own ON public.messages
@@ -915,6 +915,9 @@ NOTIFY pgrst, 'reload schema';
 SELECT
   'HUI 026 — Clean Production Schema — OK' AS status,
   NOW()                                    AS executed_at,
+  (SELECT udt_name FROM information_schema.columns
+   WHERE table_schema='public' AND table_name='chats'
+     AND column_name='participant_ids') AS participant_ids_type,
   (SELECT COUNT(*) FROM public.profiles)        AS profiles,
   (SELECT COUNT(*) FROM public.wirker_profiles) AS wirker_profiles,
   (SELECT COUNT(*) FROM public.works)           AS works,
