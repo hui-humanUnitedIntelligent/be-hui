@@ -623,7 +623,10 @@ function WerkCard({ item, onView, onBuyWerk, onAddToKorb, navigate, variant = "h
 
       <div style={{ position:"absolute", inset:0,
         animation: !isCompact ? "dfKenBurns 20s ease-in-out infinite alternate" : "none" }}>
-        <img loading="lazy" decoding="async" src={item.img} alt={item.title}
+        <img loading="lazy" decoding="async"
+          src={item.img || item.media_url || item.cover_url || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=85"}
+          alt={item.title || ""}
+          onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=85"; }}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             filter: moodCtx?.imgFilter || `brightness(${isCompact ? "0.75" : "0.68"}) saturate(1.24)` }}/>
       </div>
@@ -1431,9 +1434,13 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   // Pattern: 2 Works → 1 Exp/Story → 2 Works → 1 Exp/Story …
   // Stellt sicher dass neue Inhalte sichtbar werden
   function interleaveFeeds(works, experiences, stories) {
-    const extras = [...experiences, ...stories].sort(
-      (a, b) => new Date(b._raw?.created_at || 0) - new Date(a._raw?.created_at || 0)
-    );
+    const extras = [...experiences, ...stories].sort((a, b) => {
+      try {
+        const ta = new Date(b?._raw?.created_at || b?.created_at || 0).getTime();
+        const tb = new Date(a?._raw?.created_at || a?.created_at || 0).getTime();
+        return ta - tb;
+      } catch { return 0; }
+    });
     const result = [];
     let wi = 0, ei = 0;
     while (wi < works.length || ei < extras.length) {
