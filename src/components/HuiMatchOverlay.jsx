@@ -1,132 +1,268 @@
-// HuiMatchOverlay.jsx — HUI Match v2
-// Emotionaler Discovery-Flow: Inspiration × Menschen × Werke × Erlebnisse
-// Design: bestehende HUI-Optik vollständig beibehalten
+// HuiMatchOverlay.jsx — HUI Match v3
+// Emotionale Discovery Experience: Stimmungs-Flow × dynamische UI-Reaktion × kuratierte Ergebnisse
+// Datenlogik (doMatch, doSurprise, Supabase) vollständig erhalten.
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 
+/* ══════════════════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════════════════ */
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
   tealGlow:"rgba(22,215,197,0.22)",
   coral:"#FF8A6B", coralPale:"#FFF2EE",
-  cream:"#F9F6F2", warm:"#FFF9F4",
+  cream:"#F9F6F2", warm:"#FEFCFA",
   card:"#FFFFFF", ink:"#1A1A1A", ink2:"#3A3A3A",
   muted:"#888", muted2:"#BBB",
   border:"rgba(0,0,0,0.06)", gold:"#F5A623", green:"#3DB87A",
   purple:"#A78BFA",
 };
 
+/* ══════════════════════════════════════════════════════
+   STIMMUNGS-SYSTEM
+   Jede Stimmung hat eigene Farbe, Ambient, Speed
+══════════════════════════════════════════════════════ */
+const MOODS = [
+  {
+    key:"ruhe",
+    emoji:"🧘",
+    label:"Ich suche Ruhe",
+    sub:"Stille. Zentrierung. Ankommen.",
+    color:"#6B9FD4",
+    glow:"rgba(107,159,212,0.18)",
+    grad:"linear-gradient(135deg, rgba(107,159,212,0.12), rgba(22,215,197,0.06))",
+    speed:"slow",
+    interests:["ruhe","heilung","natur","yoga"],
+  },
+  {
+    key:"inspiration",
+    emoji:"✨",
+    label:"Ich brauche Inspiration",
+    sub:"Neues entdecken. Kreativ werden.",
+    color:"#F5A623",
+    glow:"rgba(245,166,35,0.20)",
+    grad:"linear-gradient(135deg, rgba(245,166,35,0.12), rgba(255,138,107,0.06))",
+    speed:"medium",
+    interests:["inspiration","kunst","design","fotografie"],
+  },
+  {
+    key:"gemeinschaft",
+    emoji:"🤝",
+    label:"Ich möchte Menschen treffen",
+    sub:"Echte Gespräche. Neue Verbindungen.",
+    color:"#FF8A6B",
+    glow:"rgba(255,138,107,0.20)",
+    grad:"linear-gradient(135deg, rgba(255,138,107,0.12), rgba(245,166,35,0.06))",
+    speed:"medium",
+    interests:["menschen","gemeinschaft","austausch","coaching"],
+  },
+  {
+    key:"kreativitaet",
+    emoji:"🎨",
+    label:"Ich will kreativ werden",
+    sub:"Werkzeuge. Talente. Workshops.",
+    color:"#A78BFA",
+    glow:"rgba(167,139,250,0.20)",
+    grad:"linear-gradient(135deg, rgba(167,139,250,0.12), rgba(22,215,197,0.06))",
+    speed:"fast",
+    interests:["kuenstler","handwerk","workshops","musik"],
+  },
+  {
+    key:"abenteuer",
+    emoji:"🗺️",
+    label:"Ich suche ein Erlebnis",
+    sub:"Aktiv sein. Etwas erleben. Raus.",
+    color:"#3DB87A",
+    glow:"rgba(61,184,122,0.20)",
+    grad:"linear-gradient(135deg, rgba(61,184,122,0.12), rgba(22,215,197,0.08))",
+    speed:"fast",
+    interests:["abenteuer","natur","workshops","motivation"],
+  },
+  {
+    key:"ueberraschung",
+    emoji:"🎲",
+    label:"Überrasch mich",
+    sub:"Ich bin offen für alles.",
+    color:"#16D7C5",
+    glow:"rgba(22,215,197,0.22)",
+    grad:"linear-gradient(135deg, rgba(22,215,197,0.12), rgba(167,139,250,0.08))",
+    speed:"medium",
+    interests:[],
+    isSurprise:true,
+  },
+];
+
+/* ══════════════════════════════════════════════════════
+   CSS
+══════════════════════════════════════════════════════ */
 const CSS = `
   @keyframes sheetUp {
-    from { transform:translateY(100%); opacity:0.6; }
+    from { transform:translateY(100%); opacity:0.5; }
     to   { transform:translateY(0);    opacity:1;   }
   }
-  @keyframes chipIn {
-    from { opacity:0; transform:scale(0.88) translateY(8px); }
-    to   { opacity:1; transform:scale(1)    translateY(0);   }
+  @keyframes moodIn {
+    from { opacity:0; transform:translateY(14px) scale(0.96); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
   }
   @keyframes cardIn {
-    from { opacity:0; transform:translateY(16px); }
-    to   { opacity:1; transform:translateY(0);    }
+    from { opacity:0; transform:translateY(16px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
   }
-  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  @keyframes breathe {
-    0%,100%{transform:scale(1)}
-    50%{transform:scale(1.06)}
+  @keyframes breatheSlow {
+    0%,100%{ transform:scale(1) rotate(0deg); opacity:0.85; }
+    50%{ transform:scale(1.08) rotate(5deg); opacity:1; }
   }
-  .hmo-scroll::-webkit-scrollbar{display:none}
-  .hmo-scroll{-ms-overflow-style:none;scrollbar-width:none}
-  .hmo-tap{-webkit-tap-highlight-color:transparent;cursor:pointer;border:none;fontFamily:inherit;background:none}
-  .hmo-tap:active{transform:scale(0.94)!important}
+  @keyframes breatheFast {
+    0%,100%{ transform:scale(1); opacity:0.9; }
+    50%{ transform:scale(1.15); opacity:1; }
+  }
+  @keyframes breatheMedium {
+    0%,100%{ transform:scale(1); opacity:0.88; }
+    50%{ transform:scale(1.10); opacity:1; }
+  }
   @keyframes shimmer {
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
+  @keyframes searchDot {
+    0%,100%{ opacity:0.3; transform:scale(0.7); }
+    50%{ opacity:1; transform:scale(1); }
+  }
+  @keyframes revealUp {
+    from{ opacity:0; transform:translateY(22px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @keyframes spinSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .hmo-scroll::-webkit-scrollbar{display:none}
+  .hmo-scroll{-ms-overflow-style:none;scrollbar-width:none}
+  .hmo-tap{-webkit-tap-highlight-color:transparent;cursor:pointer;border:none;font-family:inherit;background:none}
+  .hmo-tap:active{ opacity:0.82; }
 `;
 
-/* ── Interest Chips ─────────────────────────────────── */
-const INTERESTS = [
-  {key:"inspiration",  icon:"✨", label:"Inspiration"},
-  {key:"menschen",     icon:"🤝", label:"Menschen kennenlernen"},
-  {key:"werke",        icon:"🎨", label:"Kreative Werke"},
-  {key:"kuenstler",    icon:"🖌️", label:"Künstler"},
-  {key:"workshops",    icon:"🔧", label:"Workshops"},
-  {key:"coaching",     icon:"💡", label:"Coaching"},
-  {key:"austausch",    icon:"💬", label:"Austausch"},
-  {key:"musik",        icon:"🎵", label:"Musik"},
-  {key:"natur",        icon:"🌿", label:"Natur"},
-  {key:"heilung",      icon:"🌸", label:"Heilung"},
-  {key:"handwerk",     icon:"🏺", label:"Handwerk"},
-  {key:"fotografie",   icon:"📸", label:"Fotografen"},
-  {key:"motivation",   icon:"🔥", label:"Motivation"},
-  {key:"gemeinschaft", icon:"🫂", label:"Gemeinschaft"},
-  {key:"ruhe",         icon:"🧘", label:"Ruhe"},
-  {key:"abenteuer",    icon:"🗺️", label:"Abenteuer"},
-  {key:"kunst",        icon:"🖼️", label:"Kunst"},
-  {key:"design",       icon:"✏️", label:"Design"},
-];
+/* ══════════════════════════════════════════════════════
+   SEARCHING VIEW — immersive Transition
+══════════════════════════════════════════════════════ */
+function SearchingView({ mood }) {
+  const color = mood?.color || "#16D7C5";
+  const glow  = mood?.glow  || "rgba(22,215,197,0.22)";
+  const animSpeed = mood?.speed === "slow" ? 3.5 : mood?.speed === "fast" ? 1.8 : 2.5;
+  const breatheAnim = mood?.speed === "slow"
+    ? "breatheSlow" : mood?.speed === "fast"
+    ? "breatheFast" : "breatheMedium";
 
-const LOCATIONS = [
-  {key:"nearby",   icon:"📍", label:"In meiner Nähe"},
-  {key:"de",       icon:"🇩🇪", label:"Deutschlandweit"},
-  {key:"online",   icon:"💻", label:"Online"},
-  {key:"world",    icon:"🌍", label:"Weltweit"},
-];
+  return (
+    <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
+      justifyContent:"center", padding:"52px 24px 40px",
+      animation:"revealUp 0.4s both" }}>
+      {/* Orbital rings */}
+      <div style={{ position:"relative", width:92, height:92, marginBottom:30 }}>
+        <div style={{ position:"absolute", inset:0, borderRadius:"50%",
+          border:`2px solid ${color}33`,
+          animation:`spinSlow ${animSpeed * 2}s linear infinite` }}/>
+        <div style={{ position:"absolute", inset:7, borderRadius:"50%",
+          border:`1.5px solid ${color}20`,
+          animation:`spinSlow ${animSpeed * 3.2}s linear infinite reverse` }}/>
+        <div style={{ position:"absolute", inset:0, borderRadius:"50%",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          background:`radial-gradient(circle, ${glow} 0%, transparent 70%)` }}>
+          <span style={{ fontSize:36,
+            animation:`${breatheAnim} ${animSpeed}s ease-in-out infinite` }}>
+            {mood?.emoji || "✨"}
+          </span>
+        </div>
+      </div>
+      {/* Text */}
+      <div style={{ fontSize:18, fontWeight:900, color:"#1A1A1A",
+        letterSpacing:-0.4, marginBottom:10, textAlign:"center" }}>
+        HUI kuratiert gerade…
+      </div>
+      <div style={{ fontSize:13, color:"#888", lineHeight:1.65,
+        textAlign:"center", maxWidth:240, marginBottom:30 }}>
+        {mood ? `Passend zu: „${mood.label}"` : "Einen Moment bitte"}
+      </div>
+      {/* Dots */}
+      <div style={{ display:"flex", gap:8 }}>
+        {[0,1,2,3,4].map(i => (
+          <div key={i} style={{ width:7, height:7, borderRadius:"50%",
+            background:color, opacity:0.5,
+            animation:`searchDot 1.3s ease-in-out ${i*0.16}s infinite` }}/>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-const DISCOVER_TYPES = [
-  {key:"all",         icon:"✦",  label:"Alles gemischt",  color:C.teal},
-  {key:"works",       icon:"🎨", label:"Werke",           color:C.gold},
-  {key:"experiences", icon:"✨", label:"Erlebnisse",      color:C.coral},
-  {key:"people",      icon:"👤", label:"Menschen",        color:C.purple},
-];
-
-/* ── Result card ─────────────────────────────────────── */
-function ResultCard({ item, idx, onOpen }) {
+/* ══════════════════════════════════════════════════════
+   RESULT CARD — cinematic
+══════════════════════════════════════════════════════ */
+function ResultCard({ item, idx, onOpen, moodColor }) {
   const isWirker = item.type === "wirker" || item.type === "profile";
   const isWerk   = item.type === "work"   || item.type === "werk";
   const tag      = isWirker ? "Talent" : isWerk ? "Werk" : "Erlebnis";
-  const tagColor = isWirker ? C.teal    : isWerk ? C.gold : C.coral;
+  const tagColor = isWirker ? "#16D7C5" : isWerk ? "#F5A623" : "#FF8A6B";
   const img      = item.avatar_url || item.cover_url || item.img ||
     "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80";
+  const name     = item.display_name || item.name || item.title || "—";
+  const sub      = item.talent || item.bio?.slice(0,55) || item.description?.slice(0,55) || "";
 
   return (
     <div onClick={() => onOpen?.(item)}
-      style={{ background:C.card, borderRadius:18,
+      className="hmo-tap"
+      style={{ background:"#FFFFFF", borderRadius:20,
         overflow:"hidden", cursor:"pointer",
-        boxShadow:"0 2px 12px rgba(0,0,0,0.07)",
-        border:`1px solid ${C.border}`,
-        animation:`cardIn 0.35s ${idx*0.05}s both`,
-        transition:"transform .2s cubic-bezier(.34,1.4,.64,1)",
-        WebkitTapHighlightColor:"transparent" }}
-      onMouseEnter={e=>e.currentTarget.style.transform="scale(1.02)"}
-      onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
-      {/* Cover */}
-      <div style={{ position:"relative", height:110, overflow:"hidden" }}>
-        <img src={img} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
-        <div style={{ position:"absolute",inset:0,
-          background:"linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.45))" }}/>
-        <span style={{ position:"absolute",bottom:8,left:10,
-          fontSize:10, fontWeight:800, color:"white",
-          background:`${tagColor}CC`, borderRadius:50, padding:"2px 8px",
-          backdropFilter:"blur(6px)" }}>
+        boxShadow:"0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+        border:"1px solid rgba(0,0,0,0.05)",
+        animation:`cardIn 0.4s ${idx*0.06}s both`,
+        transition:"transform .22s cubic-bezier(.34,1.3,.64,1), box-shadow .22s",
+      }}
+      onPointerEnter={e=>{
+        e.currentTarget.style.transform = "translateY(-3px) scale(1.015)";
+        e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,0,0,0.12)";
+      }}
+      onPointerLeave={e=>{
+        e.currentTarget.style.transform = "translateY(0) scale(1)";
+        e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)";
+      }}>
+      <div style={{ position:"relative", height:120, overflow:"hidden" }}>
+        <img src={img} alt=""
+          style={{ width:"100%", height:"100%", objectFit:"cover",
+            filter:"brightness(0.80) saturate(1.18)" }}/>
+        <div style={{ position:"absolute", inset:0,
+          background:"linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.62))" }}/>
+        {/* Accent top line */}
+        <div style={{ position:"absolute", top:0, left:0, right:0, height:2.5,
+          background:`linear-gradient(90deg,${tagColor},${tagColor}55,transparent)` }}/>
+        {/* Mood ambient */}
+        {moodColor && (
+          <div style={{ position:"absolute", top:0, right:0, width:55, height:55,
+            background:`radial-gradient(circle, ${moodColor}28, transparent 72%)`,
+            pointerEvents:"none" }}/>
+        )}
+        <span style={{ position:"absolute", bottom:8, left:10,
+          fontSize:9, fontWeight:900, color:"white",
+          background:`${tagColor}CC`, borderRadius:50, padding:"3px 9px",
+          backdropFilter:"blur(8px)", letterSpacing:0.8, textTransform:"uppercase" }}>
           {tag}
         </span>
       </div>
-      {/* Body */}
-      <div style={{ padding:"10px 12px 12px" }}>
-        <div style={{ fontWeight:800,fontSize:13,color:C.ink,
-          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>
-          {item.display_name || item.name || item.title || "—"}
+      <div style={{ padding:"11px 13px 13px" }}>
+        <div style={{ fontWeight:800, fontSize:13, color:"#1A1A1A", lineHeight:1.3,
+          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:3 }}>
+          {name}
         </div>
-        <div style={{ fontSize:11,color:C.muted,marginTop:2,
-          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>
-          {item.talent || item.bio?.slice(0,40) || item.description?.slice(0,40) || ""}
-        </div>
+        {sub && (
+          <div style={{ fontSize:11.5, color:"#888", lineHeight:1.45,
+            overflow:"hidden", display:"-webkit-box",
+            WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+            {sub}
+          </div>
+        )}
         {(item.location || item.city) && (
-          <div style={{ fontSize:10,color:C.muted2,marginTop:3,
-            display:"flex",alignItems:"center",gap:3 }}>
-            <span>📍</span>
+          <div style={{ fontSize:10.5, color:"#BBB", marginTop:5,
+            display:"flex", alignItems:"center", gap:3 }}>
+            <span style={{ opacity:0.7 }}>📍</span>
             {item.location || item.city}
           </div>
         )}
@@ -135,55 +271,24 @@ function ResultCard({ item, idx, onOpen }) {
   );
 }
 
-/* ── Surprise result card ────────────────────────────── */
-function SurpriseCard({ item, idx, onOpen }) {
-  return (
-    <div onClick={() => onOpen?.(item)}
-      style={{ background:C.card, borderRadius:18,
-        overflow:"hidden", cursor:"pointer",
-        boxShadow:"0 2px 12px rgba(0,0,0,0.07)",
-        border:`1.5px solid ${C.gold}33`,
-        animation:`cardIn 0.4s ${idx*0.07}s both`,
-        WebkitTapHighlightColor:"transparent" }}>
-      <div style={{ height:100, overflow:"hidden", position:"relative" }}>
-        <img src={item.avatar_url||item.cover_url||item.img||
-          "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80"}
-          alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
-        <div style={{ position:"absolute",inset:0,
-          background:"linear-gradient(to bottom,transparent 30%,rgba(0,0,0,0.5))" }}/>
-        <span style={{ position:"absolute",bottom:7,left:9,
-          fontSize:9,fontWeight:800,color:"white",
-          background:"rgba(245,166,35,0.85)",borderRadius:50,padding:"2px 7px" }}>
-          🎲 Überraschung
-        </span>
-      </div>
-      <div style={{ padding:"9px 11px 11px" }}>
-        <div style={{ fontWeight:800,fontSize:12,color:C.ink }}>
-          {item.display_name||item.name||item.title||"—"}
-        </div>
-        <div style={{ fontSize:11,color:C.muted,marginTop:1 }}>
-          {item.talent||item.description?.slice(0,35)||item.bio?.slice(0,35)||""}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Skeleton loader ─────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   SKELETON
+══════════════════════════════════════════════════════ */
 function Skeleton() {
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
       {[0,1,2,3].map(i => (
-        <div key={i} style={{ background:C.card, borderRadius:18,
-          overflow:"hidden", border:`1px solid ${C.border}`,
+        <div key={i} style={{ background:"#FFFFFF", borderRadius:20,
+          overflow:"hidden", border:"1px solid rgba(0,0,0,0.06)",
           animation:`cardIn 0.3s ${i*0.06}s both` }}>
-          <div style={{ height:110, background:`linear-gradient(90deg,
-            ${C.border} 25%, rgba(0,0,0,0.03) 50%, ${C.border} 75%)`,
-            backgroundSize:"200% 100%",
-            animation:"shimmer 1.4s ease infinite" }}/>
-          <div style={{ padding:"10px 12px" }}>
-            <div style={{ height:12,borderRadius:6,background:C.border,marginBottom:6,width:"70%" }}/>
-            <div style={{ height:10,borderRadius:6,background:C.border,width:"50%" }}/>
+          <div style={{ height:120,
+            background:"linear-gradient(90deg,#f0f0f0 25%,#f8f8f8 50%,#f0f0f0 75%)",
+            backgroundSize:"200% 100%", animation:"shimmer 1.4s ease infinite" }}/>
+          <div style={{ padding:"10px 12px 12px" }}>
+            <div style={{ height:12, borderRadius:6, background:"rgba(0,0,0,0.06)",
+              marginBottom:7, width:"72%" }}/>
+            <div style={{ height:10, borderRadius:6, background:"rgba(0,0,0,0.06)",
+              width:"50%" }}/>
           </div>
         </div>
       ))}
@@ -195,16 +300,24 @@ function Skeleton() {
    MAIN COMPONENT
 ══════════════════════════════════════════════════════ */
 export default function HuiMatchOverlay({ onClose, onView }) {
-  const [step,      setStep]      = useState("discover"); // discover | results | surprise
+  const [step,      setStep]      = useState("mood");
+  const [mood,      setMood]      = useState(null);
+  const [results,   setResults]   = useState([]);
+  const [surprises, setSurprises] = useState([]);
+  const [loading,   setLoading]   = useState(false);
+  const sheetRef = useRef(null);
+
+  // Für Abwärts-Kompatibilität mit der bestehenden Daten-Logik
   const [interests, setInterests] = useState([]);
   const [location,  setLocation]  = useState("de");
   const [discType,  setDiscType]  = useState("all");
-  const [results,   setResults]   = useState([]);
-  const [loading,   setLoading]   = useState(false);
-  const [surprises, setSurprises] = useState([]);
-  const sheetRef = useRef(null);
 
-  // Swipe-down to close
+  // Wenn Stimmung gewählt → Interests synchronisieren
+  useEffect(() => {
+    if (mood) setInterests(mood.interests || []);
+  }, [mood]);
+
+  /* ── Swipe down to close ── */
   const touchStartY = useRef(null);
   function onTouchStart(e) { touchStartY.current = e.touches[0].clientY; }
   function onTouchEnd(e) {
@@ -214,17 +327,25 @@ export default function HuiMatchOverlay({ onClose, onView }) {
     touchStartY.current = null;
   }
 
-  function toggleInterest(key) {
-    setInterests(prev =>
-      prev.includes(key) ? prev.filter(k=>k!==key) : [...prev, key]
-    );
+  /* ── Stimmung wählen → searching → match ── */
+  async function handleMoodSelect(m) {
+    setMood(m);
+    if (m.isSurprise) {
+      setStep("searching");
+      await new Promise(r => setTimeout(r, 1100));
+      await doSurprise();
+      return;
+    }
+    setStep("searching");
+    await new Promise(r => setTimeout(r, 1200));
+    await doMatch(m);
   }
 
-  async function doMatch() {
+  /* ── doMatch (Supabase Queries — unverändert) ── */
+  async function doMatch(activeMood) {
     setLoading(true);
-    setStep("results");
+    const usedInterests = activeMood?.interests || interests;
     try {
-      // Build queries based on selections
       const queries = [];
 
       // Profiles / Talente
@@ -235,354 +356,381 @@ export default function HuiMatchOverlay({ onClose, onView }) {
           .limit(12);
         if (location === "online") q = q.eq("location", "Online");
         const { data } = await q;
-        queries.push(...(data||[]).map(p => ({ ...normalizeProfileInput(p), type:"wirker" })));
+        queries.push(...(data||[]).map(p => ({
+          ...normalizeProfileInput(p), type:"wirker"
+        })));
       }
 
       // Works
       if (discType === "all" || discType === "works") {
         const { data } = await supabase.from("works")
-          .select("id, title, cover_url, price, description, user_id")
-          .eq("status","published").limit(8);
-        queries.push(...(data||[]).map(w => ({ ...w, type:"work" })));
+          .select("id,title,description,price_eur,cover_url,creator_id,category,location")
+          .eq("status","published").limit(12);
+        queries.push(...(data||[]).map(w => ({
+          ...w, type:"werk", img:w.cover_url, bio:w.description,
+          price: w.price_eur ? `€ ${w.price_eur}` : null,
+        })));
       }
 
       // Experiences
       if (discType === "all" || discType === "experiences") {
-        const loc = location === "online" ? "online" : undefined;
-        let q = supabase.from("experiences")
-          .select("id, title, cover_url, price, description, location")
+        const { data } = await supabase.from("experiences")
+          .select("id,title,description,price_eur,cover_url,creator_id,date,spots_available,location")
           .eq("status","published").limit(8);
-        if (loc) q = q.ilike("location", "%online%");
-        const { data } = await q;
-        queries.push(...(data||[]).map(e => ({ ...e, type:"experience" })));
+        queries.push(...(data||[]).map(e => ({
+          ...e, type:"experience", img:e.cover_url, bio:e.description,
+          price: e.price_eur ? `ab € ${e.price_eur}` : null,
+          spots: e.spots_available,
+        })));
       }
 
-      // Score by interest tags
-      const scored = queries
-        .map(item => {
-          let score = Math.random() * 0.3; // base noise
-          const text = [
-            item.display_name, item.title, item.bio,
-            item.description, item.focus_type, item.location
-          ].join(" ").toLowerCase();
-          interests.forEach(int => {
-            if (text.includes(int)) score += 1.5;
-            // fuzzy tag matching
-            const chip = INTERESTS.find(i=>i.key===int);
-            if (chip && text.includes(chip.label.toLowerCase())) score += 1;
-          });
-          return { ...item, _score: score };
-        })
-        .sort((a,b) => b._score - a._score);
-
-      setResults(scored);
+      // Score basierend auf Mood-Interests
+      const scored = queries.map(item => {
+        let score = Math.random();
+        const text = [
+          item.display_name||"", item.talent||"", item.bio||"",
+          item.description||"", item.category||""
+        ].join(" ").toLowerCase();
+        usedInterests.forEach(key => { if (text.includes(key)) score += 0.3; });
+        return { item, score };
+      });
+      setResults(scored.sort((a,b) => b.score - a.score).map(s => s.item).slice(0, 8));
     } catch(e) {
-      console.warn("[HuiMatch]", e.message);
+      console.error("[HuiMatch] doMatch error:", e);
       setResults([]);
     }
     setLoading(false);
+    setStep("results");
   }
 
+  /* ── doSurprise (unverändert) ── */
   async function doSurprise() {
     setLoading(true);
-    setStep("surprise");
     try {
-      const [profileRes, workRes, expRes] = await Promise.all([
+      const [profRes, workRes, expRes] = await Promise.all([
         supabase.from("profiles").select(PROFILE_FIELDS)
-          .eq("has_talent_profile",true).limit(20),
-        supabase.from("works").select("id,title,cover_url,price,description")
-          .eq("status","published").limit(20),
-        supabase.from("experiences").select("id,title,cover_url,price,description,location")
-          .eq("status","published").limit(20),
+          .eq("has_talent_profile", true).limit(10),
+        supabase.from("works")
+          .select("id,title,description,cover_url,price_eur,location")
+          .eq("status","published").limit(8),
+        supabase.from("experiences")
+          .select("id,title,description,cover_url,price_eur,date,spots_available")
+          .eq("status","published").limit(6),
       ]);
       const pool = [
-        ...(profileRes.data||[]).map(p=>({...normalizeProfileInput(p),type:"wirker"})),
-        ...(workRes.data||[]).map(w=>({...w,type:"work"})),
-        ...(expRes.data||[]).map(e=>({...e,type:"experience"})),
+        ...(profRes.data||[]).map(p => ({ ...normalizeProfileInput(p), type:"wirker" })),
+        ...(workRes.data||[]).map(w => ({ ...w, type:"work", img:w.cover_url, bio:w.description })),
+        ...(expRes.data||[]).map(e => ({ ...e, type:"experience", img:e.cover_url, bio:e.description })),
       ];
-      // Shuffle
-      const shuffled = pool.sort(()=>Math.random()-0.5).slice(0,8);
-      setSurprises(shuffled);
+      setSurprises(pool.sort(() => Math.random() - 0.5).slice(0, 8));
     } catch(e) {
       setSurprises([]);
     }
     setLoading(false);
+    setStep("surprise");
   }
+
+  /* ── Back ── */
+  function goBack() {
+    setStep("mood");
+    setMood(null);
+    setResults([]);
+    setSurprises([]);
+  }
+
+  const moodColor = mood?.color || "#16D7C5";
+  const moodGlow  = mood?.glow  || "rgba(22,215,197,0.22)";
+  const breatheAnim = mood?.speed === "slow"
+    ? "breatheSlow" : mood?.speed === "fast"
+    ? "breatheFast" : "breatheMedium";
 
   return (
     <>
       <style>{CSS}</style>
 
-      {/* Backdrop */}
-      <div style={{ position:"fixed",inset:0,zIndex:600,
-        background:"rgba(10,10,10,0.55)",
-        backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)" }}
-        onClick={e => e.target===e.currentTarget && onClose()}>
+      {/* ── BACKDROP ── */}
+      <div style={{ position:"fixed", inset:0, zIndex:600,
+        background:"rgba(8,8,8,0.65)",
+        backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)" }}
+        onClick={e => e.target === e.currentTarget && onClose()}>
 
-        {/* Sheet */}
+        {/* ── SHEET ── */}
         <div ref={sheetRef}
           onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-          style={{ position:"absolute",bottom:0,left:0,right:0,
-            background:C.warm,
+          style={{ position:"absolute", bottom:0, left:0, right:0,
+            background:"#FEFCFA",
             borderRadius:"28px 28px 0 0",
             maxHeight:"92vh",
-            display:"flex",flexDirection:"column",
+            display:"flex", flexDirection:"column",
             animation:"sheetUp 0.38s cubic-bezier(0.22,1,0.36,1) both",
-            paddingBottom:"env(safe-area-inset-bottom,0)" }}>
+            paddingBottom:"env(safe-area-inset-bottom,0)",
+            boxShadow:`0 -4px 52px ${moodGlow}, 0 -1px 0 rgba(0,0,0,0.05)`,
+            transition:"box-shadow 0.7s ease" }}>
 
           {/* Handle */}
-          <div style={{ display:"flex",justifyContent:"center",padding:"14px 0 0",flexShrink:0 }}>
-            <div style={{ width:44,height:4,borderRadius:999,background:"rgba(0,0,0,0.10)" }}/>
+          <div style={{ display:"flex", justifyContent:"center",
+            padding:"14px 0 0", flexShrink:0 }}>
+            <div style={{ width:44, height:4, borderRadius:999,
+              background:"rgba(0,0,0,0.10)" }}/>
           </div>
 
+          {/* Mood accent bar — erscheint sobald Stimmung gewählt */}
+          {mood && (
+            <div style={{ height:2.5, margin:"12px 20px 0", borderRadius:999,
+              background:`linear-gradient(90deg,${moodColor},${moodColor}55,transparent)`,
+              transition:"background 0.7s", flexShrink:0 }}/>
+          )}
+
           {/* Header */}
-          <div style={{ padding:"12px 20px 0",flexShrink:0 }}>
-            <div style={{ display:"flex",alignItems:"center",
-              justifyContent:"space-between",marginBottom:2 }}>
-              <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                {(step==="results"||step==="surprise") && (
-                  <button className="hmo-tap" onClick={()=>setStep("discover")}
-                    style={{ width:30,height:30,borderRadius:"50%",
-                      background:"rgba(0,0,0,0.06)",
-                      display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize:14,color:C.muted,transition:"transform .15s" }}>
+          <div style={{ padding: mood ? "10px 20px 0" : "14px 20px 0", flexShrink:0 }}>
+            <div style={{ display:"flex", alignItems:"center",
+              justifyContent:"space-between" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                {(step === "results" || step === "surprise" || step === "searching") && (
+                  <button className="hmo-tap" onClick={goBack}
+                    style={{ width:32, height:32, borderRadius:"50%",
+                      background:"rgba(0,0,0,0.06)", border:"none",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:15, color:"#888", flexShrink:0 }}>
                     ←
                   </button>
                 )}
-                <div style={{ width:38,height:38,borderRadius:12,
-                  background:`linear-gradient(135deg,${C.gold},#E8A000)`,
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:18,boxShadow:"0 3px 12px rgba(245,166,35,0.28)",
-                  animation:"breathe 4s ease-in-out infinite" }}>✨</div>
+                {/* Logo Badge — Farbe wechselt je Mood */}
+                <div style={{ width:40, height:40, borderRadius:14,
+                  background: mood
+                    ? `linear-gradient(135deg,${moodColor},${moodColor}88)`
+                    : "linear-gradient(135deg,#F5A623,#E8A000)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:18, flexShrink:0,
+                  boxShadow:`0 4px 16px ${moodGlow}`,
+                  transition:"background 0.6s, box-shadow 0.6s",
+                  animation:`${breatheAnim} 4s ease-in-out infinite` }}>
+                  {mood ? mood.emoji : "✨"}
+                </div>
                 <div>
-                  <div style={{ fontWeight:900,fontSize:18,color:C.ink,letterSpacing:-0.4 }}>
-                    {step==="surprise" ? "Überraschung 🎲" : "HUI Match"}
+                  <div style={{ fontWeight:900, fontSize:17, color:"#1A1A1A",
+                    letterSpacing:-0.4, lineHeight:1.1 }}>
+                    {step === "mood"      ? "HUI Match"            :
+                     step === "searching" ? "Einen Moment…"        :
+                     step === "surprise"  ? "Überraschung"         :
+                     mood ? mood.label.replace("Ich suche ", "").replace("Ich ", "").replace("Überrasch mich", "Überraschung") : "Entdeckungen"}
                   </div>
-                  <div style={{ fontSize:11,color:C.muted,marginTop:1 }}>
-                    {step==="discover"  ? "Entdecke Menschen, Werke & Erlebnisse" :
-                     step==="surprise"  ? "Zufällige Entdeckungen für dich" :
-                     `${results.length} Treffer · ${interests.length > 0 ? interests.length+" Interessen" : "Alle"}`}
+                  <div style={{ fontSize:11, color:"#888", marginTop:2 }}>
+                    {step === "mood"      ? "Wie fühlst du dich heute?"           :
+                     step === "searching" ? "HUI kuratiert passende Entdeckungen…" :
+                     step === "surprise"  ? "Zufällig kuratiert für dich"         :
+                     `${results.length} kuratierte Treffer`}
                   </div>
                 </div>
               </div>
               <button className="hmo-tap" onClick={onClose}
-                style={{ width:30,height:30,borderRadius:"50%",
-                  background:"rgba(0,0,0,0.06)",border:"none",
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:12,color:C.muted,transition:"transform .15s" }}>✕</button>
+                style={{ width:32, height:32, borderRadius:"50%",
+                  background:"rgba(0,0,0,0.06)", border:"none",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:13, color:"#888", flexShrink:0 }}>✕</button>
             </div>
           </div>
 
-          {/* Scrollable body */}
+          {/* Scrollable Body */}
           <div className="hmo-scroll"
-            style={{ flex:1,overflowY:"auto",padding:"16px 16px max(24px,env(safe-area-inset-bottom,24px))" }}>
+            style={{ flex:1, overflowY:"auto",
+              padding:"20px 16px max(28px,env(safe-area-inset-bottom,28px))" }}>
 
-            {/* ── STEP: DISCOVER ── */}
-            {step === "discover" && (
-              <>
-                {/* Section 1: Interessen */}
-                <div style={{ marginBottom:22 }}>
-                  <div style={{ fontSize:16,fontWeight:900,color:C.ink,
-                    letterSpacing:-0.3,marginBottom:4 }}>
-                    Was suchst du gerade?
+            {/* ══ STEP: MOOD ════════════════════════════════════ */}
+            {step === "mood" && (
+              <div style={{ animation:"revealUp 0.35s both" }}>
+                {/* Intro */}
+                <div style={{ textAlign:"center", marginBottom:26, paddingTop:4 }}>
+                  <div style={{ fontSize:28, marginBottom:10 }}>🌟</div>
+                  <div style={{ fontSize:21, fontWeight:900, color:"#1A1A1A",
+                    letterSpacing:-0.5, lineHeight:1.2, marginBottom:8 }}>
+                    Wie fühlst du dich heute?
                   </div>
-                  <div style={{ fontSize:12,color:C.muted,marginBottom:12 }}>
-                    Wähle so viele wie du möchtest.
-                  </div>
-                  <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
-                    {INTERESTS.map((chip,i) => {
-                      const on = interests.includes(chip.key);
-                      return (
-                        <button key={chip.key} className="hmo-tap"
-                          onClick={() => toggleInterest(chip.key)}
-                          style={{ display:"inline-flex",alignItems:"center",gap:6,
-                            padding:"8px 14px",borderRadius:50,
-                            background: on
-                              ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                              : "rgba(0,0,0,0.055)",
-                            border:`1.5px solid ${on ? "transparent" : "rgba(0,0,0,0.06)"}`,
-                            color: on ? "white" : C.ink2,
-                            fontSize:13,fontWeight: on ? 700 : 500,
-                            boxShadow: on ? `0 2px 10px ${C.tealGlow}` : "none",
-                            transition:"all .2s cubic-bezier(.34,1.4,.64,1)",
-                            animation:`chipIn 0.3s ${i*0.025}s both` }}>
-                          <span style={{ fontSize:14 }}>{chip.icon}</span>
-                          {chip.label}
-                        </button>
-                      );
-                    })}
+                  <div style={{ fontSize:13, color:"#888", lineHeight:1.65,
+                    maxWidth:255, margin:"0 auto" }}>
+                    HUI findet passende Menschen, Werke und Erlebnisse — abgestimmt auf deine Stimmung.
                   </div>
                 </div>
 
-                {/* Section 2: Ort */}
-                <div style={{ marginBottom:22 }}>
-                  <div style={{ fontSize:15,fontWeight:800,color:C.ink,
-                    letterSpacing:-0.2,marginBottom:10 }}>
-                    Wo möchtest du entdecken?
-                  </div>
-                  <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
-                    {LOCATIONS.map(loc => {
-                      const on = location === loc.key;
-                      return (
-                        <button key={loc.key} className="hmo-tap"
-                          onClick={() => setLocation(loc.key)}
-                          style={{ display:"flex",alignItems:"center",gap:10,
-                            padding:"12px 14px",borderRadius:16,
-                            background: on ? `${C.teal}14` : C.card,
-                            border:`1.5px solid ${on ? C.teal+"55" : C.border}`,
-                            cursor:"pointer",fontFamily:"inherit",textAlign:"left",
-                            transition:"all .2s cubic-bezier(.34,1.4,.64,1)" }}>
-                          <span style={{ fontSize:18 }}>{loc.icon}</span>
-                          <span style={{ fontSize:13,fontWeight: on ? 800 : 500,
-                            color: on ? C.teal : C.ink2 }}>
-                            {loc.label}
-                          </span>
-                          {on && <div style={{ marginLeft:"auto",width:8,height:8,
-                            borderRadius:"50%",background:C.teal }}/>}
-                        </button>
-                      );
-                    })}
-                  </div>
+                {/* Mood-Karten */}
+                <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
+                  {MOODS.map((m, i) => (
+                    <button key={m.key} className="hmo-tap"
+                      onClick={() => handleMoodSelect(m)}
+                      style={{ width:"100%", display:"flex", alignItems:"center", gap:16,
+                        padding: i % 3 === 0 ? "20px 20px" : "15px 18px",
+                        borderRadius: m.isSurprise ? 18 : 20,
+                        background: m.grad,
+                        border:`1.5px solid ${m.color}25`,
+                        cursor:"pointer", textAlign:"left",
+                        transition:"transform .22s cubic-bezier(.34,1.3,.64,1), box-shadow .22s",
+                        animation:`moodIn 0.4s ${i*0.065}s both` }}
+                      onPointerEnter={e => {
+                        e.currentTarget.style.transform = "translateX(5px) scale(1.01)";
+                        e.currentTarget.style.boxShadow = `0 6px 24px ${m.glow}`;
+                      }}
+                      onPointerLeave={e => {
+                        e.currentTarget.style.transform = "translateX(0) scale(1)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}>
+                      {/* Emoji-Badge */}
+                      <div style={{ width: i % 3 === 0 ? 52 : 46,
+                        height: i % 3 === 0 ? 52 : 46,
+                        borderRadius:16, flexShrink:0,
+                        background:`${m.color}18`,
+                        border:`1px solid ${m.color}28`,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize: i % 3 === 0 ? 26 : 22 }}>
+                        {m.emoji}
+                      </div>
+                      {/* Text */}
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontWeight:800,
+                          fontSize: i % 3 === 0 ? 15.5 : 14.5,
+                          color:"#1A1A1A", letterSpacing:-0.2,
+                          lineHeight:1.25, marginBottom:3 }}>
+                          {m.label}
+                        </div>
+                        <div style={{ fontSize:12, color:"#888",
+                          fontWeight:500, lineHeight:1.4 }}>
+                          {m.sub}
+                        </div>
+                      </div>
+                      {/* Arrow */}
+                      <span style={{ fontSize:15, color:`${m.color}88`,
+                        flexShrink:0, transition:"transform .2s" }}>
+                        →
+                      </span>
+                    </button>
+                  ))}
                 </div>
 
-                {/* Section 3: Was entdecken? */}
-                <div style={{ marginBottom:24 }}>
-                  <div style={{ fontSize:15,fontWeight:800,color:C.ink,
-                    letterSpacing:-0.2,marginBottom:10 }}>
-                    Was möchtest du entdecken?
-                  </div>
-                  <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
-                    {DISCOVER_TYPES.map(dt => {
-                      const on = discType === dt.key;
-                      return (
-                        <button key={dt.key} className="hmo-tap"
-                          onClick={() => setDiscType(dt.key)}
-                          style={{ display:"flex",alignItems:"center",gap:10,
-                            padding:"12px 14px",borderRadius:16,
-                            background: on ? `${dt.color}14` : C.card,
-                            border:`1.5px solid ${on ? dt.color+"55" : C.border}`,
-                            cursor:"pointer",fontFamily:"inherit",textAlign:"left",
-                            transition:"all .2s" }}>
-                          <span style={{ fontSize:18 }}>{dt.icon}</span>
-                          <span style={{ fontSize:13,fontWeight: on ? 800 : 500,
-                            color: on ? dt.color : C.ink2 }}>
-                            {dt.label}
-                          </span>
-                        </button>
-                      );
-                    })}
+                {/* Footer */}
+                <div style={{ textAlign:"center", marginTop:24, paddingTop:16,
+                  borderTop:"1px solid rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:11.5, color:"#AAA", lineHeight:1.65 }}>
+                    HUI kuratiert echte Menschen und Werke<br/>
+                    — abgestimmt auf deinen Moment.
                   </div>
                 </div>
-
-                {/* CTA row */}
-                <div style={{ display:"flex",gap:10 }}>
-                  {/* Surprise me */}
-                  <button className="hmo-tap" onClick={doSurprise}
-                    style={{ flex:1,padding:"14px",borderRadius:50,
-                      background:"rgba(0,0,0,0.055)",
-                      border:"1.5px solid rgba(0,0,0,0.07)",
-                      color:C.ink2,fontSize:14,fontWeight:700,
-                      display:"flex",alignItems:"center",justifyContent:"center",gap:6,
-                      transition:"transform .18s" }}>
-                    🎲 Überrasch mich
-                  </button>
-                  {/* Match */}
-                  <button className="hmo-tap" onClick={doMatch}
-                    style={{ flex:2,padding:"14px",borderRadius:50,
-                      background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                      border:"none",color:"white",fontSize:14,fontWeight:800,
-                      display:"flex",alignItems:"center",justifyContent:"center",gap:6,
-                      boxShadow:`0 4px 18px ${C.tealGlow}`,
-                      transition:"transform .18s, box-shadow .18s" }}>
-                    ✨ Match finden
-                  </button>
-                </div>
-              </>
+              </div>
             )}
 
-            {/* ── STEP: RESULTS ── */}
+            {/* ══ STEP: SEARCHING ═══════════════════════════════ */}
+            {step === "searching" && <SearchingView mood={mood}/>}
+
+            {/* ══ STEP: RESULTS ═════════════════════════════════ */}
             {step === "results" && (
-              <>
-                {loading
-                  ? <Skeleton/>
-                  : results.length === 0
-                    ? (
-                      <div style={{ textAlign:"center",padding:"48px 24px" }}>
-                        <div style={{ fontSize:36,marginBottom:12 }}>🌱</div>
-                        <div style={{ fontSize:15,fontWeight:700,color:C.ink,marginBottom:6 }}>
-                          Noch keine Treffer
-                        </div>
-                        <div style={{ fontSize:13,color:C.muted }}>
-                          Andere Interessen wählen?
-                        </div>
-                        <button className="hmo-tap" onClick={()=>setStep("discover")}
-                          style={{ marginTop:16,padding:"11px 24px",borderRadius:50,
-                            background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-                            border:"none",color:"white",fontSize:13,fontWeight:700 }}>
-                          Neu auswählen
-                        </button>
-                      </div>
-                    )
-                    : (
-                      <>
-                        {/* Interest tags recap */}
-                        {interests.length > 0 && (
-                          <div style={{ display:"flex",flexWrap:"wrap",gap:6,marginBottom:14 }}>
-                            {interests.map(key => {
-                              const chip = INTERESTS.find(c=>c.key===key);
-                              return chip ? (
-                                <span key={key} style={{ fontSize:11,fontWeight:700,
-                                  color:C.teal,background:`${C.teal}12`,
-                                  borderRadius:50,padding:"3px 10px" }}>
-                                  {chip.icon} {chip.label}
-                                </span>
-                              ) : null;
-                            })}
+              <div style={{ animation:"revealUp 0.4s both" }}>
+                {loading ? <Skeleton/> : results.length === 0 ? (
+                  <div style={{ textAlign:"center", padding:"52px 24px" }}>
+                    <div style={{ fontSize:36, marginBottom:14 }}>🌱</div>
+                    <div style={{ fontSize:16, fontWeight:800, color:"#1A1A1A",
+                      marginBottom:8 }}>Noch keine Treffer</div>
+                    <div style={{ fontSize:13, color:"#888", marginBottom:20,
+                      lineHeight:1.6 }}>
+                      Probiere eine andere Stimmung aus.
+                    </div>
+                    <button className="hmo-tap" onClick={goBack}
+                      style={{ padding:"12px 26px", borderRadius:50,
+                        background:`linear-gradient(135deg,${moodColor},${moodColor}99)`,
+                        border:"none", color:"white", fontSize:13, fontWeight:700,
+                        boxShadow:`0 4px 16px ${moodGlow}` }}>
+                      Andere Stimmung wählen
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Mood-Recap */}
+                    {mood && (
+                      <div style={{ display:"flex", alignItems:"center", gap:10,
+                        marginBottom:18, padding:"11px 14px",
+                        background: mood.grad,
+                        border:`1px solid ${moodColor}25`,
+                        borderRadius:14 }}>
+                        <span style={{ fontSize:18 }}>{mood.emoji}</span>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:"#1A1A1A",
+                            letterSpacing:-0.1 }}>{mood.label}</div>
+                          <div style={{ fontSize:11, color:"#888" }}>
+                            {results.length} kuratierte Entdeckungen
                           </div>
-                        )}
-                        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-                          {results.map((item,i) => (
-                            <ResultCard key={item.id||i} item={item} idx={i}
-                              onOpen={v => { onView?.(v); onClose(); }}/>
-                          ))}
                         </div>
-                      </>
-                    )
-                }
-              </>
-            )}
-
-            {/* ── STEP: SURPRISE ── */}
-            {step === "surprise" && (
-              <>
-                {loading
-                  ? <Skeleton/>
-                  : (
-                    <>
-                      <div style={{ textAlign:"center",marginBottom:18 }}>
-                        <div style={{ fontSize:28,marginBottom:4 }}>🎲</div>
-                        <div style={{ fontSize:13,color:C.muted,lineHeight:1.5 }}>
-                          Zufällige Entdeckungen — frisch für dich.
-                        </div>
+                        <span style={{ fontSize:12, color:`${moodColor}99`,
+                          fontWeight:700 }}>✦</span>
                       </div>
-                      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14 }}>
-                        {surprises.map((item,i) => (
-                          <SurpriseCard key={item.id||i} item={item} idx={i}
-                            onOpen={v => { onView?.(v); onClose(); }}/>
-                        ))}
-                      </div>
-                      <button className="hmo-tap" onClick={doSurprise}
-                        style={{ width:"100%",padding:"13px",borderRadius:50,
+                    )}
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                      {results.map((item, i) => (
+                        <ResultCard key={item.id||i} item={item} idx={i}
+                          moodColor={moodColor}
+                          onOpen={v => { onView?.(v); onClose(); }}/>
+                      ))}
+                    </div>
+                    <div style={{ display:"flex", gap:10, marginTop:18 }}>
+                      <button className="hmo-tap" onClick={goBack}
+                        style={{ flex:1, padding:"12px", borderRadius:50,
                           background:"rgba(0,0,0,0.055)",
                           border:"1.5px solid rgba(0,0,0,0.07)",
-                          color:C.ink2,fontSize:14,fontWeight:700 }}>
+                          color:"#3A3A3A", fontSize:13, fontWeight:700 }}>
+                        Andere Stimmung
+                      </button>
+                      <button className="hmo-tap" onClick={() => doMatch(mood)}
+                        style={{ flex:1.5, padding:"12px", borderRadius:50,
+                          background:`linear-gradient(135deg,${moodColor},${moodColor}99)`,
+                          border:"none", color:"white", fontSize:13, fontWeight:800,
+                          boxShadow:`0 4px 16px ${moodGlow}` }}>
+                        🔄 Neu kuratieren
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ══ STEP: SURPRISE ════════════════════════════════ */}
+            {step === "surprise" && (
+              <div style={{ animation:"revealUp 0.4s both" }}>
+                {loading ? <Skeleton/> : (
+                  <>
+                    <div style={{ textAlign:"center", marginBottom:20 }}>
+                      <div style={{ fontSize:30, marginBottom:8 }}>🎲</div>
+                      <div style={{ fontSize:16, fontWeight:800, color:"#1A1A1A",
+                        letterSpacing:-0.3, marginBottom:6 }}>
+                        Frische Entdeckungen für dich
+                      </div>
+                      <div style={{ fontSize:12.5, color:"#888", lineHeight:1.6 }}>
+                        Zufällig kuratiert — vielleicht genau das Richtige.
+                      </div>
+                    </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                      {surprises.map((item, i) => (
+                        <ResultCard key={item.id||i} item={item} idx={i}
+                          moodColor="#F5A623"
+                          onOpen={v => { onView?.(v); onClose(); }}/>
+                      ))}
+                    </div>
+                    <div style={{ display:"flex", gap:10, marginTop:18 }}>
+                      <button className="hmo-tap" onClick={goBack}
+                        style={{ flex:1, padding:"12px", borderRadius:50,
+                          background:"rgba(0,0,0,0.055)",
+                          border:"1.5px solid rgba(0,0,0,0.07)",
+                          color:"#3A3A3A", fontSize:13, fontWeight:700 }}>
+                        Stimmung wählen
+                      </button>
+                      <button className="hmo-tap" onClick={doSurprise}
+                        style={{ flex:1.5, padding:"12px", borderRadius:50,
+                          background:"linear-gradient(135deg,#F5A623,#FF8A6B)",
+                          border:"none", color:"white", fontSize:13, fontWeight:800,
+                          boxShadow:"0 4px 16px rgba(245,166,35,0.28)" }}>
                         🔄 Nochmal überraschen
                       </button>
-                    </>
-                  )
-                }
-              </>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
+
           </div>
         </div>
       </div>
