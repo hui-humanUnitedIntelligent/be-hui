@@ -1582,7 +1582,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         }
       }).filter(Boolean);
 
-      const stories = rawStories.filter(s => s && s.id && s.media_url).map(s => {
+      const stories = rawStories.filter(s => s && s.id).map(s => {  // media_url optional (text-only Stories)
         try {
           const prof = profileMap[s.user_id] || {};
           return {
