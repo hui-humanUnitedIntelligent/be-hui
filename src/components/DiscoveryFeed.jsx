@@ -1587,7 +1587,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           const prof = profileMap[s.user_id] || {};
           return {
             id:              s.id,
-            type:            "werk",
+            type:            "story",  // FIX: war falsch "werk" — stories brauchen eigenen Renderer
             title:           s.caption         || "Moment",
             creator:         prof.display_name || prof.username || "",
             creatorUsername: prof.username     || null,
@@ -1805,6 +1805,57 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       .sort((a, b) => b.score - a.score + (Math.random() * 0.05 - 0.025))
       .map(s => s.item);
   }, [dbFeed, activeMood]);
+
+  // ── ITEM NORMALISIERUNG — defensive Absicherung aller Feed-Items ──────
+  // Verhindert Render-Crashes durch null/undefined Properties
+  const normalizedFeedItems = React.useMemo(() => {
+    if (!Array.isArray(liveFeedItems)) return [];
+    let renderErrors = 0;
+    const normalized = liveFeedItems.map((item, idx) => {
+      if (!item) return null;
+      try {
+        return {
+          // Identity
+          id:         item.id         ?? `hui-${idx}-${Date.now()}`,
+          type:       item.type       ?? "werk",
+          // Display
+          title:      item.title      ?? "",
+          bio:        item.bio        ?? "",
+          category:   item.category   ?? "",
+          price:      item.price      ?? "",
+          // Media — NIEMALS undefined, null ist OK (Cards haben Fallbacks)
+          img:        item.img        ?? item.media_url ?? item.cover_url ?? null,
+          media_url:  item.media_url  ?? item.cover_url ?? item.img ?? null,
+          cover_url:  item.cover_url  ?? item.media_url ?? item.img ?? null,
+          // Creator
+          creator:         item.creator         ?? "",
+          creatorImg:      item.creatorImg       ?? null,
+          creatorUsername: item.creatorUsername  ?? null,
+          city:            item.city             ?? "",
+          // Emotionale Tags — immer Arrays
+          mood_tags:       Array.isArray(item.mood_tags)       ? item.mood_tags       : [],
+          atmosphere_tags: Array.isArray(item.atmosphere_tags) ? item.atmosphere_tags : [],
+          energy_level:    item.energy_level  ?? null,
+          social_energy:   item.social_energy ?? null,
+          creator_vibe:    item.creator_vibe  ?? null,
+          // Datum — immer valider String
+          created_at: item.created_at ?? new Date().toISOString(),
+          // Raw
+          _raw:  item._raw  ?? item,
+          // Extras
+          talent: item.talent ?? null,
+          name:   item.name   ?? null,
+        };
+      } catch(err) {
+        renderErrors++;
+        console.error("[HUI Feed] normalize crash idx=" + idx, err);
+        return null;
+      }
+    }).filter(Boolean);
+    if (renderErrors > 0) console.warn("[HUI Feed] normalize: " + renderErrors + " items übersprungen");
+    console.log("[HUI Feed] normalized: " + normalized.length + " items (von " + liveFeedItems.length + ")");
+    return normalized;
+  }, [liveFeedItems]);
   // ── Ende MOOD SCORING ENGINE ─────────────────────────────────────
   // ── MOOD STYLE ENGINE ─────────────────────────────────────────────
   // Subtile visuelle Overrides pro Stimmung — via moodCtx an renderItem.
@@ -2121,9 +2172,28 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           </div>
         )}
 
+        {/* ── DEBUG OVERLAY — temporär ── */}
+        {process.env.NODE_ENV !== "production" || window.__HUI_DEBUG__ ? (
+          <div style={{
+            position:"fixed", top:50, right:8, zIndex:9999,
+            background:"rgba(0,0,0,0.75)", color:"white", borderRadius:8,
+            padding:"6px 10px", fontSize:10, fontFamily:"monospace", lineHeight:1.7,
+            pointerEvents:"none",
+          }}>
+            <div>items: {normalizedFeedItems.length}</div>
+            <div>works: {normalizedFeedItems.filter(x=>x?.type==="werk").length}</div>
+            <div>stories: {normalizedFeedItems.filter(x=>x?.type==="story").length}</div>
+            <div>exp: {normalizedFeedItems.filter(x=>x?.type==="experience").length}</div>
+            <div>loading: {feedLoading ? "T" : "F"}</div>
+            <div style={{color: feedError?"#f87171":"#4ade80"}}>
+              {feedError ? "ERR" : "OK"}
+            </div>
+          </div>
+        ) : null}
+
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
           <VirtualFeedList
-            items={liveFeedItems}
+            items={normalizedFeedItems}
             scrollContainerRef={scrollContainerRef}
             estimatedSize={520}
             overscan={5}
@@ -2193,6 +2263,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                         {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant={isFull ? "full" : "hero"}/>}
                         {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant={isFull ? "full" : "hero"}/>}
                         {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="story"      && <MemoWerkCard       item={{...item, type:"werk"}} onView={onView} moodCtx={moodCtx} onBuyWerk={null} onAddToKorb={null} navigate={navigate} variant={isFull ? "full" : "hero"}/>}
                       </div>
                     )}
 
@@ -2203,6 +2274,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                         {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="mid"/>}
                         {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant="mid"/>}
                         {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant="mid"/>}
+                        {item.type==="story"      && <MemoWerkCard       item={{...item, type:"werk"}} onView={onView} moodCtx={moodCtx} onBuyWerk={null} onAddToKorb={null} navigate={navigate} variant="mid"/>}
                       </div>
                     )}
 
@@ -2213,6 +2285,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                         {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="compact"/>}
                         {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant="compact"/>}
                         {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant="compact"/>}
+                        {item.type==="story"      && <MemoWerkCard       item={{...item, type:"werk"}} onView={onView} moodCtx={moodCtx} onBuyWerk={null} onAddToKorb={null} navigate={navigate} variant="compact"/>}
                       </div>
                     )}
                   </div>
@@ -2233,7 +2306,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
           />
 
           {/* ── Empty state wenn keine echten Daten ── */}
-          {!feedLoading && liveFeedItems.length === 0 && (
+          {!feedLoading && normalizedFeedItems.length === 0 && (
             <div style={{ padding:"60px 28px", textAlign:"center" }}>
               <div style={{ fontSize:40, marginBottom:16 }}>🌱</div>
               <div style={{ fontSize:16, fontWeight:700, color:C.ink, marginBottom:8 }}>
