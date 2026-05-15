@@ -423,9 +423,10 @@ export default function WerkPublisher({ onClose, onSuccess }) {
         const path = `works/${user.id}/${Date.now()}_${i}.${ext}`;
         console.log(`[WerkPublisher] uploading ${i+1}/${images.length}:`, path);
         const { error: upErr } = await supabase.storage
-          .from("works").upload(path, img.file, { contentType: img.file.type });
-        if (upErr) { console.error("[WerkPublisher] storage error:", upErr); throw upErr; }
-        const { data:{ publicUrl } } = supabase.storage.from("works").getPublicUrl(path);
+          .from("media").upload(path, img.file, { contentType: img.file.type });
+        if (upErr) { console.error("[WerkPublisher] ❌ storage error:", upErr.message, upErr.statusCode); throw upErr; }
+        const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+        console.log("[WerkPublisher] ✓ upload OK:", publicUrl);
         imageUrls.push(publicUrl);
         if (i===coverIdx) coverUrl = publicUrl;
       }
@@ -438,7 +439,8 @@ export default function WerkPublisher({ onClose, onSuccess }) {
         tags:           form.tags.split(",").map(t=>t.trim()).filter(Boolean),
         cover_url:      coverUrl,
         images:         imageUrls,
-        sale_mode:      form.mode,
+        for_sale:       form.mode !== "show_only",
+        sale_mode:      form.mode,   // behalten für ältere DB-Schemas
         price:          form.price ? parseFloat(form.price) : null,
         // allow_comments/likes/share gehören zur stories-Tabelle, nicht zu works
         status:         form.publish==="publish"?"published":"draft",
