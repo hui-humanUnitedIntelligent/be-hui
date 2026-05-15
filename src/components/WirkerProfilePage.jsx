@@ -23,32 +23,26 @@ const C = {
 
 const CSS = `
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  @keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes popIn{0%{transform:scale(.88);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes popIn{0%{transform:scale(.90);opacity:0}65%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  @keyframes breathe{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
+  @keyframes breathe{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
   @keyframes shimmer{0%{transform:translateX(-130%)}55%{transform:translateX(130%)}100%{transform:translateX(130%)}}
-  @keyframes tabSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-
+  @keyframes tabSlide{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
   .wp-scroll::-webkit-scrollbar{display:none}
   .wp-scroll{-ms-overflow-style:none;scrollbar-width:none;overflow-x:auto}
-
   .wp-tap{
     -webkit-tap-highlight-color:transparent;
-    transition:transform .18s cubic-bezier(.34,1.4,.64,1),opacity .15s;
+    transition:transform .22s cubic-bezier(.34,1.3,.64,1),opacity .18s ease;
     cursor:pointer;
   }
-  .wp-tap:active{transform:scale(.94)!important;opacity:.85}
-
-  .wp-card:hover .wp-card-img{transform:scale(1.04)}
-  .wp-card-img{transition:transform .45s cubic-bezier(.25,.46,.45,.94)}
-
+  .wp-tap:active{transform:scale(.95)!important;opacity:.80}
+  .wp-card:hover .wp-card-img{transform:scale(1.03)}
+  .wp-card-img{transition:transform .50s cubic-bezier(.25,.46,.45,.94)}
   .wp-sticky-tabs{
-    position:sticky;
-    top:0;
-    z-index:50;
-    backdrop-filter:blur(24px) saturate(1.8);
-    -webkit-backdrop-filter:blur(24px) saturate(1.8);
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(28px) saturate(1.9);
+    -webkit-backdrop-filter:blur(28px) saturate(1.9);
   }
 `;
 
@@ -443,7 +437,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             onLoad={() => setHeroLoaded(true)}
             style={{ position:"absolute", inset:0, width:"100%", height:"100%",
               objectFit:"cover", objectPosition:"center",
-              filter:"brightness(.72) saturate(1.15)",
+              filter:"brightness(.75) saturate(1.08)",
               transition:"opacity .6s ease",
               opacity: heroLoaded ? 1 : 0 }}/>
 
@@ -453,7 +447,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               ${focus.accent}28 0%,
               transparent 35%,
               rgba(0,0,0,0.15) 55%,
-              rgba(15,12,8,0.88) 100%)`,
+              rgba(15,12,8,0.75) 100%)`,
             pointerEvents:"none" }}/>
           <div style={{ position:"absolute", inset:0,
             background:"linear-gradient(to right,rgba(0,0,0,0.18),transparent 60%)",
@@ -511,18 +505,25 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           </div>
         </div>
 
+        {/* ── Atmospheric Fade Bridge ── */}
+        <div aria-hidden="true" style={{
+          height:52, marginTop:-52, position:"relative", zIndex:2,
+          background:`linear-gradient(to bottom,transparent 0%,${C.warm}C0 55%,${C.warm} 100%)`,
+          pointerEvents:"none",
+        }}/> {/* hero-fade-bridge */}
+
         {/* ═══ PROFILE INFO BAND ════════════════════════════════════ */}
-        <div style={{ background:C.warm, padding:"0 20px 20px",
+        <div style={{ background:C.warm, padding:"0 20px 14px",
           borderBottom:`1px solid ${C.border}`,
           animation:"slideUp .42s ease both" }}>
 
           {/* Avatar row — overlaps hero */}
           <div style={{ display:"flex", alignItems:"flex-end",
-            justifyContent:"space-between", marginTop:-32, marginBottom:14 }}>
+            justifyContent:"space-between", marginTop:-32, marginBottom:10 }}>
             {/* Avatar */}
             <div style={{ position:"relative" }}>
-              <div style={{ width:72, height:72, borderRadius:"50%",
-                border:"3.5px solid white",
+              <div style={{ width:78, height:78, borderRadius:"50%",
+                border:"4px solid white",
                 boxShadow:"0 4px 20px rgba(0,0,0,0.20)",
                 overflow:"hidden", background:`linear-gradient(135deg,${C.teal}50,${C.coral}50)` }}>
                 {avatarImg
@@ -563,7 +564,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
           {/* Username + since */}
           <div style={{ display:"flex", alignItems:"center", gap:8,
-            marginBottom:8, flexWrap:"wrap" }}>
+            marginBottom:6, flexWrap:"wrap" }}>
             {profile.username && (
               <span style={{ fontSize:13, color:C.muted, fontWeight:500 }}>
                 @{profile.username.replace("@","")}
