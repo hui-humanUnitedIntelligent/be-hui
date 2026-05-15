@@ -1359,6 +1359,7 @@ export default function Home() {
     if (authIsWirker || hasTalentProfile) setIsWirker(true);
   }, [authIsWirker, hasTalentProfile]);
   const [showMatch,   setShowMatch]   = useState(false);
+  const [activeMood,   setActiveMood]   = useState(null);  // HUI Match Stimmung
   const [showMap,     setShowMap]     = useState(false);
   const [showKorb,    setShowKorb]    = useState(false);
   const [cart,        setCart]        = useState([]);
@@ -1461,6 +1462,7 @@ export default function Home() {
                 onAddToKorb={(w) => { setCart(p => [...p, w]); }}
                 storyRefreshKey={storyRefreshKey}
                 onOpenComposer={() => setShowStoryComposer(true)}
+                activeMood={activeMood}
               />
             </>
           )}
@@ -1563,7 +1565,8 @@ export default function Home() {
         {/* Overlays */}
         {showMap && <LiveMapPage onView={w=>{setShowWirker(w);setShowMap(false);}} onMatch={()=>{setShowMap(false);setShowMatch(true);}} onClose={()=>setShowMap(false)} fullscreen={true}/>}
         {showMatch  && <HuiMatchOverlay onClose={()=>setShowMatch(false)}
-          onView={w=>{setShowWirker(w);setShowMatch(false);}}/>}
+          onMoodSelect={(m)=>{ setActiveMood(m); setShowMatch(false); }}
+          onView={w=>{setShowWirker(w);setShowMatch(false);}}/> }
         {showWirker && (
         <WirkerProfilePage
           wirker={showWirker}
