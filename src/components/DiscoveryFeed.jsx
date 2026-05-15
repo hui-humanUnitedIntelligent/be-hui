@@ -1458,7 +1458,18 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     }
 
     const currentPage = reset ? 0 : pageRef.current;
-    console.log("[HUI Feed] loadFeed page", currentPage, reset ? "(reset)" : "(more)");
+    // ── ENV + Client Diagnose (immer sichtbar) ──────────────────
+    const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const _supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    console.log("[HUI Feed] loadFeed page", currentPage, reset ? "(reset)" : "(more)",
+      "| supabase configured:", !!(_supabaseUrl && _supabaseKey),
+      "| url:", _supabaseUrl ? _supabaseUrl.slice(0,40) : "NICHT GESETZT");
+    if (!_supabaseUrl || !_supabaseKey) {
+      console.error("[HUI Feed] ❌ VITE_SUPABASE_URL oder VITE_SUPABASE_ANON_KEY fehlt in Vercel!");
+      setFeedError("Supabase nicht konfiguriert — ENV VAR fehlt in Vercel");
+      setFeedLoading(false); loadingRef.current = false;
+      return;
+    }
 
     try {
       // ── Queries OHNE status-Filter ─────────────────────────────────────
@@ -1488,18 +1499,29 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       const [worksRes, expRes, storiesRes] = await Promise.allSettled([worksQ, expQ, storiesQ]);
       if (!mounted) return;
 
-      const rawWorks   = worksRes.status   === "fulfilled" ? (worksRes.value.data   || []) : [];
-      const rawExp     = expRes.status     === "fulfilled" ? (expRes.value.data     || []) : [];
-      const rawStories = storiesRes.status === "fulfilled" ? (storiesRes.value.data || []) : [];
+      const rawWorks   = (worksRes.status   === "fulfilled" && !worksRes.value?.error)   ? (worksRes.value.data   || []) : [];
+      const rawExp     = (expRes.status     === "fulfilled" && !expRes.value?.error)     ? (expRes.value.data     || []) : [];
+      const rawStories = (storiesRes.status === "fulfilled" && !storiesRes.value?.error) ? (storiesRes.value.data || []) : [];
 
       if (worksRes.status === "rejected")
-        console.warn("[HUI Feed] works query failed:", worksRes.reason?.message || worksRes.reason);
+        console.error("[HUI Feed] ❌ works FAILED:", worksRes.reason?.message, worksRes.reason?.code, worksRes.reason);
+      else if (worksRes.value?.error)
+        console.error("[HUI Feed] ❌ works ERROR:", worksRes.value.error.message, worksRes.value.error.code);
       if (expRes.status === "rejected")
-        console.warn("[HUI Feed] exp query failed:", expRes.reason?.message || expRes.reason);
+        console.error("[HUI Feed] ❌ exp FAILED:", expRes.reason?.message, expRes.reason?.code, expRes.reason);
+      else if (expRes.value?.error)
+        console.error("[HUI Feed] ❌ exp ERROR:", expRes.value.error.message, expRes.value.error.code);
       if (storiesRes.status === "rejected")
-        console.warn("[HUI Feed] stories query failed:", storiesRes.reason?.message || storiesRes.reason);
+        console.error("[HUI Feed] ❌ stories FAILED:", storiesRes.reason?.message, storiesRes.reason?.code, storiesRes.reason);
+      else if (storiesRes.value?.error)
+        console.error("[HUI Feed] ❌ stories ERROR:", storiesRes.value.error.message, storiesRes.value.error.code);
 
-      console.log("[HUI Feed] raw — works:", rawWorks.length, "exp:", rawExp.length, "stories:", rawStories.length);
+      console.log("[HUI Feed] raw — works:", rawWorks.length, "exp:", rawExp.length, "stories:", rawStories.length,
+        "| errors:", [
+          worksRes.value?.error?.message,
+          expRes.value?.error?.message,
+          storiesRes.value?.error?.message,
+        ].filter(Boolean).join(", ") || "keine");
 
       if (rawWorks.length < PAGE_SIZE && rawExp.length < PAGE_SIZE) setHasMore(false);
 
@@ -1678,7 +1700,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       .channel("works-feed")
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "works",
-        filter: "status=eq.published"
+        // filter entfernt — status-Spalte existiert evtl. noch nicht in DB
       }, (payload) => {
         console.log("[HUI Feed] Realtime new work:", payload.new?.id);
         // Guard: skip reload wenn Tab hidden (Safari Idle)
@@ -2165,26 +2187,40 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             <div style={{ padding:"60px 28px", textAlign:"center" }}>
               <div style={{ fontSize:40, marginBottom:16 }}>🌱</div>
               <div style={{ fontSize:16, fontWeight:700, color:C.ink, marginBottom:8 }}>
-                Noch keine Inhalte
+                {feedError ? "Verbindungsfehler" : "Noch keine Inhalte"}
               </div>
               <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:20 }}>
-                Sei der Erste — lade ein Werk hoch oder teile einen Moment.
+                {feedError
+                  ? "Feed konnte nicht geladen werden."
+                  : "Sei der Erste — lade ein Werk hoch oder teile einen Moment."}
               </div>
-              <button onClick={() => loadFeed(true)} style={{
-                padding:"11px 24px", borderRadius:14,
-                background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
-                border:"none", color:"white", fontWeight:700,
-                fontSize:13, cursor:"pointer", fontFamily:"inherit",
-              }}>
-                Feed neu laden
-              </button>
               {feedError && (
-                <div style={{ marginTop:14, fontSize:11, color:"rgba(200,60,60,0.8)",
-                  fontFamily:"monospace", wordBreak:"break-all",
-                  maxWidth:280, margin:"14px auto 0" }}>
-                  {feedError}
+                <div style={{ marginBottom:16, padding:"10px 16px", borderRadius:10,
+                  background:"rgba(220,50,50,0.07)", border:"1px solid rgba(220,50,50,0.15)",
+                  fontFamily:"monospace", fontSize:11, color:"rgba(180,40,40,0.9)",
+                  maxWidth:300, margin:"0 auto 16px", wordBreak:"break-all",
+                  textAlign:"left", lineHeight:1.5 }}>
+                  ⚠ {feedError}
                 </div>
               )}
+              <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+                <button onClick={() => loadFeed(true)} style={{
+                  padding:"11px 24px", borderRadius:14,
+                  background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
+                  border:"none", color:"white", fontWeight:700,
+                  fontSize:13, cursor:"pointer", fontFamily:"inherit",
+                }}>
+                  Neu laden
+                </button>
+                <button onClick={() => window.open("/diagnose","_blank")} style={{
+                  padding:"11px 18px", borderRadius:14,
+                  background:"rgba(0,0,0,0.06)", border:"none",
+                  color:C.ink2, fontWeight:600,
+                  fontSize:12, cursor:"pointer", fontFamily:"inherit",
+                }}>
+                  Diagnose
+                </button>
+              </div>
             </div>
           )}
 
