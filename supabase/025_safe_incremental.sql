@@ -474,6 +474,54 @@ CREATE POLICY escrow_insert_auth ON public.escrow FOR INSERT TO authenticated WI
 CREATE INDEX IF NOT EXISTS escrow_booking_id_idx ON public.escrow(booking_id);
 
 -- ─────────────────────────────────────────────────────────────────────
+
+-- ─────────────────────────────────────────────────────────────────────
+-- PAYMENTS (existiert via FK-Analyse: payments.booking_id → bookings)
+-- Fehlende Spalten + RLS
+-- ─────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.payments (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id uuid REFERENCES public.bookings(id) ON DELETE SET NULL,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.payments
+  ADD COLUMN IF NOT EXISTS user_id        uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS amount         numeric(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS amount_eur     numeric(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS impact_amount  numeric(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS status         text          DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS stripe_id      text,
+  ADD COLUMN IF NOT EXISTS payment_method text,
+  ADD COLUMN IF NOT EXISTS currency       text          DEFAULT 'eur';
+
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS pay_select_own ON public.payments;
+DROP POLICY IF EXISTS pay_insert_own ON public.payments;
+-- user_id via ADD COLUMN IF NOT EXISTS garantiert ✓
+CREATE POLICY pay_select_own ON public.payments
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY pay_insert_own ON public.payments
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS pay_user_id_idx    ON public.payments(user_id);
+CREATE INDEX IF NOT EXISTS pay_booking_id_idx ON public.payments(booking_id);
+
+-- ─────────────────────────────────────────────────────────────────────
+-- ORDERS + ORDER_ITEMS (existieren — Struktur unbekannt → nur RLS)
+-- ─────────────────────────────────────────────────────────────────────
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables
+    WHERE table_schema='public' AND table_name='orders') THEN
+    ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables
+    WHERE table_schema='public' AND table_name='order_items') THEN
+    ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+  END IF;
+END $$;
+
+-- orders: Struktur unbekannt → keine Policy (verhindert Fehler)
+-- RLS bereits via ENABLE ROW LEVEL SECURITY oben gesetzt
+
 -- 15. RECOMMENDATIONS (Spalten unbekannt — defensiv)
 -- ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.recommendations (
