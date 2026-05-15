@@ -1350,9 +1350,9 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       || w.media_url
       || (Array.isArray(w.images) && w.images.length > 0 ? w.images[0] : null)
       || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=90",
-    // Emotionale Tags — optional, niemals erzwingen
-    mood_tags:       w.mood_tags       || null,
-    atmosphere_tags: w.atmosphere_tags || null,
+    // Emotionale Tags — defensive Arrays (niemals crash durch null)
+    mood_tags:       Array.isArray(w.mood_tags)       ? w.mood_tags       : [],
+    atmosphere_tags: Array.isArray(w.atmosphere_tags) ? w.atmosphere_tags : [],
     energy_level:    w.energy_level    || null,
     social_energy:   w.social_energy   || null,
     creator_vibe:    w.creator_vibe    || null,
@@ -1446,7 +1446,6 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   }
 
   const loadFeed = useCallback(async (reset = true) => {
-    // Guard: kein concurrent load ausser bei reset
     if (loadingRef.current && !reset) return;
     loadingRef.current = true;
     let mounted = true;
@@ -1459,111 +1458,138 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     }
 
     const currentPage = reset ? 0 : pageRef.current;
+    console.log("[HUI Feed] loadFeed page", currentPage, reset ? "(reset)" : "(more)");
 
     try {
-      // ── 1. Works, Experiences und Stories parallel laden ──────────
+      // ── Queries OHNE status-Filter ─────────────────────────────────────
+      // works/experiences hatten 'state' ENUM in v5. 'status' text ist neu.
+      // Kein .eq("status") → verhindert PGRST204-Crash wenn Migrations fehlen.
+      // RLS + created_at ordering steuern Sichtbarkeit.
+
       const worksQ = supabase
         .from("works")
-        .select("id, title, description, price, cover_url, media_url, images, category, status, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, for_sale, created_at, user_id")
-        .eq("status", "published")
+        .select("id, title, description, price, cover_url, media_url, images, category, status, state, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, for_sale, created_at, user_id")
         .order("created_at", { ascending: false })
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       const expQ = supabase
         .from("experiences")
-        .select("id, title, description, price, price_type, format, location_text, category, status, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, media_url, media_type, caption, available_days, language, created_at, user_id")
-        .eq("status", "published")
+        .select("id, title, description, price, price_type, format, location_text, category, status, state, mood_tags, atmosphere_tags, energy_level, social_energy, creator_vibe, media_url, media_type, caption, available_days, language, created_at, user_id")
         .order("created_at", { ascending: false })
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       const storiesQ = supabase
         .from("stories")
-        .select("id, media_url, media_type, caption, location, mood_tags, atmosphere_tags, energy_level, social_energy, status, created_at, user_id")
-        .eq("status", "published")
+        .select("id, media_url, media_type, caption, location, mood_tags, atmosphere_tags, energy_level, social_energy, status, state, created_at, user_id")
         .order("created_at", { ascending: false })
-        .range(0, PAGE_SIZE - 1);  // Stories nur erste Seite
+        .range(0, PAGE_SIZE - 1);
 
-      // Parallel fetchen
+      // Parallel — partial failure tolerant (PGRST204 crasht nur einen Query)
       const [worksRes, expRes, storiesRes] = await Promise.allSettled([worksQ, expQ, storiesQ]);
       if (!mounted) return;
 
-      // Fehler nur loggen, nicht werfen — Feed soll partial funktionieren
-      const rawWorks    = worksRes.status   === "fulfilled" ? (worksRes.value.data   || []) : [];
-      const rawExp      = expRes.status     === "fulfilled" ? (expRes.value.data     || []) : [];
-      const rawStories  = storiesRes.status === "fulfilled" ? (storiesRes.value.data || []) : [];
+      const rawWorks   = worksRes.status   === "fulfilled" ? (worksRes.value.data   || []) : [];
+      const rawExp     = expRes.status     === "fulfilled" ? (expRes.value.data     || []) : [];
+      const rawStories = storiesRes.status === "fulfilled" ? (storiesRes.value.data || []) : [];
 
-      if (worksRes.status   === "rejected") console.warn("[HUI Feed] works error:",    worksRes.reason);
-      if (expRes.status     === "rejected") console.warn("[HUI Feed] exp error:",      expRes.reason);
-      if (storiesRes.status === "rejected") console.warn("[HUI Feed] stories error:",  storiesRes.reason);
+      if (worksRes.status === "rejected")
+        console.warn("[HUI Feed] works query failed:", worksRes.reason?.message || worksRes.reason);
+      if (expRes.status === "rejected")
+        console.warn("[HUI Feed] exp query failed:", expRes.reason?.message || expRes.reason);
+      if (storiesRes.status === "rejected")
+        console.warn("[HUI Feed] stories query failed:", storiesRes.reason?.message || storiesRes.reason);
 
-      if (rawWorks.length < PAGE_SIZE) setHasMore(false);
+      console.log("[HUI Feed] raw — works:", rawWorks.length, "exp:", rawExp.length, "stories:", rawStories.length);
 
-      // ── 2. Profile für alle Creator laden (1 Query) ──────────────
-      const allUserIds = [
-        ...new Set([
-          ...rawWorks.map(w => w.user_id),
-          ...rawExp.map(e => e.user_id),
-          ...rawStories.map(s => s.user_id),
-        ].filter(Boolean))
-      ];
+      if (rawWorks.length < PAGE_SIZE && rawExp.length < PAGE_SIZE) setHasMore(false);
+
+      // ── Profile für alle Creator (1 Query) ──────────────────────────────
+      const allUserIds = [...new Set([
+        ...rawWorks.map(w => w.user_id),
+        ...rawExp.map(e => e.user_id),
+        ...rawStories.map(s => s.user_id),
+      ].filter(Boolean))];
+
       let profileMap = {};
       if (allUserIds.length > 0) {
-        const { data: profs } = await supabase
+        const { data: profs, error: profErr } = await supabase
           .from("profiles")
           .select("id,username,display_name,avatar_url,header_img,bio,talent,focus_type,location_label,impact_eur")
           .in("id", allUserIds);
         if (!mounted) return;
+        if (profErr) console.warn("[HUI Feed] profiles failed:", profErr.message);
         (profs || []).forEach(p => { profileMap[p.id] = p; });
       }
 
-      // ── 3. Mapping ────────────────────────────────────────────────
-      const works = rawWorks.map(w =>
-        mapWork(w, normalizeProfileInput(profileMap[w.user_id]) || {})
-      );
+      // ── Mapping mit defensiven Guards — kein Item darf crashen ──────────
+      const works = rawWorks.filter(w => w && w.id).map(w => {
+        try { return mapWork(w, normalizeProfileInput(profileMap[w.user_id]) || {}); }
+        catch(e) { console.warn("[HUI Feed] mapWork failed", w.id, e.message); return null; }
+      }).filter(Boolean);
 
-      const experiences = rawExp.map(e => ({
-        id:              e.id,
-        type:            "experience",
-        title:           e.title           || "Erlebnis",
-        creator:         profileMap[e.user_id]?.display_name || profileMap[e.user_id]?.username || "Wirker",
-        creatorUsername: profileMap[e.user_id]?.username     || null,
-        creatorImg:      profileMap[e.user_id]?.avatar_url   || null,
-        city:            e.location_text   || profileMap[e.user_id]?.location_label || "",
-        price:           e.price != null   ? `€ ${Number(e.price).toFixed(0)}/${e.price_type || "Session"}` : "",
-        category:        e.category        || "Erlebnis",
-        bio:             e.description     || e.caption || "",
-        img:             e.media_url       || profileMap[e.user_id]?.header_img || null,
-        format:          e.format          || "online",
-        language:        e.language        || "Deutsch",
-        mood_tags:       e.mood_tags       || null,
-        atmosphere_tags: e.atmosphere_tags || null,
-        energy_level:    e.energy_level    || null,
-        social_energy:   e.social_energy   || null,
-        creator_vibe:    e.creator_vibe    || null,
-        _raw: e,
-      }));
+      const experiences = rawExp.filter(e => e && e.id).map(e => {
+        try {
+          const prof = profileMap[e.user_id] || {};
+          return {
+            id:              e.id,
+            type:            "experience",
+            title:           e.title           || "Erlebnis",
+            creator:         prof.display_name || prof.username || "Wirker",
+            creatorUsername: prof.username     || null,
+            creatorImg:      prof.avatar_url   || null,
+            city:            e.location_text   || prof.location_label || "",
+            price:           e.price != null
+              ? ("EUR " + Number(e.price).toFixed(0) + (e.price_type ? "/" + e.price_type : ""))
+              : "",
+            category:        e.category        || "Erlebnis",
+            bio:             e.description     || e.caption || "",
+            img:             e.media_url       || prof.header_img
+                             || "https://images.unsplash.com/photo-1536623975707-c4b3b2af565d?w=900&q=90",
+            format:          e.format          || "online",
+            language:        e.language        || "Deutsch",
+            mood_tags:       Array.isArray(e.mood_tags)       ? e.mood_tags       : [],
+            atmosphere_tags: Array.isArray(e.atmosphere_tags) ? e.atmosphere_tags : [],
+            energy_level:    e.energy_level    || null,
+            social_energy:   e.social_energy   || null,
+            creator_vibe:    e.creator_vibe    || null,
+            _raw: e,
+          };
+        } catch(err) {
+          console.warn("[HUI Feed] mapExp failed", e.id, err.message);
+          return null;
+        }
+      }).filter(Boolean);
 
-      const stories = rawStories.map(s => ({
-        id:              s.id,
-        type:            "werk",          // im Feed als werk-Karte rendern
-        title:           s.caption        || "Moment",
-        creator:         profileMap[s.user_id]?.display_name || profileMap[s.user_id]?.username || "",
-        creatorUsername: profileMap[s.user_id]?.username     || null,
-        creatorImg:      profileMap[s.user_id]?.avatar_url   || null,
-        city:            s.location       || "",
-        price:           "",
-        category:        "Moment",
-        bio:             s.caption        || "",
-        img:             s.media_url      || null,
-        mood_tags:       s.mood_tags      || null,
-        atmosphere_tags: s.atmosphere_tags || null,
-        energy_level:    s.energy_level   || null,
-        social_energy:   s.social_energy  || null,
-        _raw: s,
-      }));
+      const stories = rawStories.filter(s => s && s.id && s.media_url).map(s => {
+        try {
+          const prof = profileMap[s.user_id] || {};
+          return {
+            id:              s.id,
+            type:            "werk",
+            title:           s.caption         || "Moment",
+            creator:         prof.display_name || prof.username || "",
+            creatorUsername: prof.username     || null,
+            creatorImg:      prof.avatar_url   || null,
+            city:            s.location        || "",
+            price:           "",
+            category:        "Moment",
+            bio:             s.caption         || "",
+            img:             s.media_url,
+            mood_tags:       Array.isArray(s.mood_tags)       ? s.mood_tags       : [],
+            atmosphere_tags: Array.isArray(s.atmosphere_tags) ? s.atmosphere_tags : [],
+            energy_level:    s.energy_level    || null,
+            social_energy:   s.social_energy   || null,
+            creator_vibe:    null,
+            _raw: s,
+          };
+        } catch(err) {
+          console.warn("[HUI Feed] mapStory failed", s.id, err.message);
+          return null;
+        }
+      }).filter(Boolean);
 
-      // ── 4. Feed-Mix: Works vorne, dann Erlebnisse, dann Momente ──
-      // Interleaved für bessere UX: 2 Works → 1 Experience/Story Muster
+      console.log("[HUI Feed] mapped — works:", works.length, "exp:", experiences.length, "stories:", stories.length);
+
       const combined = interleaveFeeds(works, experiences, stories);
       if (!mounted) return;
 
@@ -1577,27 +1603,17 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         setPage(p => p + 1);
       }
 
-      console.log("[HUI Feed] page", currentPage,
-        "works:", works.length,
-        "exp:", experiences.length,
-        "stories:", stories.length);
-
     } catch(e) {
       if (!mounted) return;
-      sentryCapture(e, {
-        source:       'DiscoveryFeed.loadFeed',
-        reset,
-        current_page: currentPage,
-        document_hidden: document.hidden,
-      });
-      console.error("[HUI Feed] Error:", e);
+      console.error("[HUI Feed] loadFeed CRASH:", e.message, e);
+      sentryCapture(e, { source:"DiscoveryFeed.loadFeed", reset, current_page: currentPage });
       setFeedError(e.message);
     } finally {
       loadingRef.current = false;
       if (mounted) { setFeedLoading(false); setLoadingMore(false); }
       mounted = false;
     }
-  }, []);  // no page dep — pageRef ist immer aktuell
+  }, []);
 
   useEffect(() => { loadFeed(true); }, []);
   useEffect(() => { if (refreshSignal) loadFeed(true); }, [refreshSignal]);
@@ -1739,33 +1755,26 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     if (!weights) return dbFeed;
 
     const scored = dbFeed.map(item => {
+      if (!item) return { item, score: 0 };
       let score = 0;
-
-      // Typ-Boost
-      const typeKey = item.type === "wirker" ? "wirker"
-        : item.type === "werk" ? "werk"
-        : item.type === "experience" ? "experience" : "impact";
-      score += weights.typeBoost[typeKey] || 0;
-
-      // Kategorie-Boost
-      const cat = (item.category || "").toLowerCase();
-      for (const [k, v] of Object.entries(weights.categoryBoost)) {
-        if (cat.includes(k)) { score += v; break; }
+      try {
+        const typeKey = item.type === "wirker" ? "wirker"
+          : item.type === "werk" ? "werk"
+          : item.type === "experience" ? "experience" : "impact";
+        score += (weights.typeBoost || {})[typeKey] || 0;
+        const cat = (item.category || "").toLowerCase();
+        for (const [k, v] of Object.entries(weights.categoryBoost || {})) {
+          if (cat.includes(k)) { score += v; break; }
+        }
+        const text = [item.bio||"", item.title||"", item.talent||"",
+          item.name||"", item.creator||""].join(" ").toLowerCase();
+        for (const kw of (weights.keywords || [])) {
+          if (text.includes(kw)) score += 0.25;
+        }
+        score += emotionalScore(item, activeMood?.key || null) * 0.8;
+      } catch(_scoreErr) {
+        /* scoring darf Feed nie crashen */
       }
-
-      // Keyword-Boost (Bio + Titel + Talent)
-      const text = [
-        item.bio || "", item.title || "", item.talent || "",
-        item.name || "", item.creator || ""
-      ].join(" ").toLowerCase();
-      for (const kw of weights.keywords) {
-        if (text.includes(kw)) score += 0.25;
-      }
-
-
-      // ── Emotionaler Score (mood_tags, atmosphere_tags, energy_level etc.) ──
-      score += emotionalScore(item, activeMood?.key || null) * 0.8;
-
       return { item, score };
     });
 
@@ -2158,9 +2167,24 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
               <div style={{ fontSize:16, fontWeight:700, color:C.ink, marginBottom:8 }}>
                 Noch keine Inhalte
               </div>
-              <div style={{ fontSize:13, color:C.muted, lineHeight:1.6 }}>
+              <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:20 }}>
                 Sei der Erste — lade ein Werk hoch oder teile einen Moment.
               </div>
+              <button onClick={() => loadFeed(true)} style={{
+                padding:"11px 24px", borderRadius:14,
+                background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
+                border:"none", color:"white", fontWeight:700,
+                fontSize:13, cursor:"pointer", fontFamily:"inherit",
+              }}>
+                Feed neu laden
+              </button>
+              {feedError && (
+                <div style={{ marginTop:14, fontSize:11, color:"rgba(200,60,60,0.8)",
+                  fontFamily:"monospace", wordBreak:"break-all",
+                  maxWidth:280, margin:"14px auto 0" }}>
+                  {feedError}
+                </div>
+              )}
             </div>
           )}
 
