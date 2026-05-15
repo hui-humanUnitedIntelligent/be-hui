@@ -1195,9 +1195,10 @@ const GLOBAL_RIGHT_BAR_CSS = `
 `;
 
 function RightActionBar({ onChat, onStory, onNotifs, onProfile, onKorb,
-                          msgCount=0, notifCount=0, cartCount=0, avatarUrl=null, visible=true }) {
+                          msgCount=0, notifCount=0, cartCount=0, avatarUrl=null, visible=true, resetKey=null }) {
   const [scrolled, setScrolled] = React.useState(false);
   const [activeRab, setActiveRab] = React.useState(null);
+  React.useEffect(() => { setActiveRab(null); }, [resetKey]);
 
   React.useEffect(() => {
     const el = document.querySelector(".hui-scroll");
@@ -1397,6 +1398,28 @@ export default function Home() {
     }
   }, [authProfile?.id]);  // only re-run when user actually changes
 
+  // ── ZENTRALER TAB-WECHSEL ────────────────────────────────────────
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const switchTab = React.useCallback((newTab) => {
+    setShowWirker(null);
+    setShowBooking(null);
+    setShowWerkDetail(null);
+    setShowWerkCheckout(null);
+    setShowWerkeKorb(false);
+    setShowStoryComposer(false);
+    setShowWerkPublisher(false);
+    setShowExperienceCreator(false);
+    setShowMatch(false);
+    setShowMap(false);
+    setShowKorb(false);
+    setShowChat(false);
+    setShowNotifs(false);
+    setShowCreateSheet(false);
+    setShowMembership(false);
+    setShowCreateFlow(false);
+    setTab(newTab);
+  }, []);
+
   if(showBooking) return (
     <div style={{ position:"fixed", inset:0, zIndex:200,
       overflowY:"auto", background:C.cream }}>
@@ -1448,7 +1471,7 @@ export default function Home() {
               <DiscoveryFeed
                 onView={(w) => (w.type==="werk" || (w.price && w.type!=="wirker" && w.type!=="talent" && w.type!=="profile")) ? setShowWerkDetail(w) : setShowWirker(w)}
                 onBook={(w) => setShowBooking(w)}
-                onImpact={() => setTab("impact")}
+                onImpact={() => switchTab("impact")}
                 onMatch={() => setShowMatch(true)}
                 onMap={() => setShowMap(true)}
                 onBuyWerk={(w) => setShowWerkCheckout([w])}
@@ -1470,7 +1493,7 @@ export default function Home() {
             />
           )}
           {tab==="chat" && (
-            <ChatPage onClose={() => setTab("feed")} />
+            <ChatPage onClose={() => switchTab("feed")} />
           )}
           {tab==="profile" && (
             <ProfilePage
@@ -1506,7 +1529,7 @@ export default function Home() {
           )}
         </div>
 
-        <BottomNav tab={tab} onTab={setTab}
+        <BottomNav tab={tab} onTab={switchTab}
           hasTalent={isTalent}
           onCreate={()=>{
             if(isTalent) setShowCreateFlow(true);
@@ -1515,6 +1538,7 @@ export default function Home() {
 
         {/* ── RIGHT ACTION BAR ── alle Tabs ── */}
         <RightActionBar
+          resetKey={tab}
           onKorb={()=>setShowKorb(true)}
           onChat={()=>setShowChat(true)}
           onStory={()=>setShowStoryComposer(true)}
