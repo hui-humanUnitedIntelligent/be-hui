@@ -1,7 +1,7 @@
 // WerkPublisher.jsx — 4-Step Premium Werk Creator
 // Galerie-artig, hochwertig, clean
 import React, { useState, useRef } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 
 const T = {
