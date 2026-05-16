@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 20:32:24 — import path fixes
+// HUI build 2026-05-16 20:35:28 — all import paths fixed
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
