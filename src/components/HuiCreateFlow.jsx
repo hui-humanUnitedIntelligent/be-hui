@@ -235,7 +235,7 @@ function CollapseSection({ title, icon, defaultOpen = false, children, accent = 
    Ultra-light: Media + Caption + Teilen
    Keine Kategorien, keine Preise, keine Konfiguration
 ══════════════════════════════════════════════════════════════════ */
-function ScreenMoment({ onClose, onPublishDirect, onDeepen }) {
+function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null }) {
   const [file,       setFile]       = useState(null);
   const [preview,    setPreview]    = useState(null);
   const [isVid,      setIsVid]      = useState(false);
@@ -286,6 +286,12 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen }) {
 
   async function publish() {
     if (!file || !user) return;
+    // Wenn forcedType gesetzt → kein Moment-Upload, sondern weiter zum Formular
+    if (forcedType && forcedType !== "moment") {
+      const mediaObj = { file, preview, isVid, caption, location, visibility };
+      onDeepen?.(mediaObj, forcedType);
+      return;
+    }
     setLoading(true); setError(""); setProgress(10);
     try {
       const ext  = (file.name.split(".").pop() || (isVid ? "mp4" : "jpg")).toLowerCase();
@@ -369,9 +375,13 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen }) {
           </svg>
         </button>
         <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-          <span style={{ fontSize:18 }}>✨</span>
+          <span style={{ fontSize:18 }}>
+            {forcedType === "werk" ? "🎨" : forcedType === "erlebnis" ? "🌟" : "✨"}
+          </span>
           <span style={{ fontWeight:900, fontSize:16, color:C.ink, letterSpacing:-.3 }}>
-            Moment
+            {forcedType === "werk" ? "Bild für dein Werk"
+              : forcedType === "erlebnis" ? "Bild für dein Erlebnis"
+              : "Moment"}
           </span>
         </div>
         <div style={{ width:34 }}/>
@@ -636,7 +646,9 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen }) {
                 borderTop:"2.5px solid white",
                 animation:"hcf2-spin .7s linear infinite", flexShrink:0,
               }}/> Wird geteilt…</>
-            : canPost ? "✨  Moment veröffentlichen"
+            : canPost ? (forcedType === "werk" ? "🎨  Bild wählen & weiter"
+                : forcedType === "erlebnis" ? "🌟  Bild wählen & weiter"
+                : "✨  Moment veröffentlichen")
             : "Foto oder Video wählen"
           }
         </button>
@@ -649,7 +661,10 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen }) {
           }}>
             Möchtest du mehr?{" "}
             <button
-              onClick={() => onDeepen?.({ file, preview, isVid, caption, location, visibility }, "suggestion")}
+              onClick={() => {
+                const mediaObj = { file, preview, isVid, caption, location, visibility };
+                onDeepen?.(mediaObj, forcedType || "suggestion");
+              }}
               style={{
                 background:"none", border:"none", color:C.teal,
                 fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit",
