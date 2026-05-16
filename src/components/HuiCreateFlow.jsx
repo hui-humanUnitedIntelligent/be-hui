@@ -235,7 +235,7 @@ function CollapseSection({ title, icon, defaultOpen = false, children, accent = 
    Ultra-light: Media + Caption + Teilen
    Keine Kategorien, keine Preise, keine Konfiguration
 ══════════════════════════════════════════════════════════════════ */
-function ScreenMoment({ onClose, onPublishDirect }) {
+function ScreenMoment({ onClose, onPublishDirect, onDeepen }) {
   const [file,       setFile]       = useState(null);
   const [preview,    setPreview]    = useState(null);
   const [isVid,      setIsVid]      = useState(false);
@@ -648,10 +648,12 @@ function ScreenMoment({ onClose, onPublishDirect }) {
             animation:"hcf2-fade .3s .2s both",
           }}>
             Möchtest du mehr?{" "}
-            <button onClick={() => {}} style={{
-              background:"none", border:"none", color:C.teal,
-              fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit",
-            }}>
+            <button
+              onClick={() => onDeepen?.({ file, preview, isVid, caption, location, visibility }, "suggestion")}
+              style={{
+                background:"none", border:"none", color:C.teal,
+                fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit",
+              }}>
               Als Werk oder Erlebnis →
             </button>
           </div>
@@ -1458,6 +1460,10 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
           onClose={onClose}
           onPublishDirect={() => {
             onSuccess?.();
+          }}
+          onDeepen={(mediaObj, type) => {
+            setMediaData(mediaObj);
+            setScreen(type); // "werk" oder "erlebnis"
           }}
         />
       )}
