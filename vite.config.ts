@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 16:43:39 — profile live sync final
+// HUI build 2026-05-16 16:55:48 — profile buttons complete
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
