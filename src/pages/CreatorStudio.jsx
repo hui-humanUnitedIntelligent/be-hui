@@ -16,6 +16,7 @@ import {
   KontoPage,
   MeineInhaltePage,
   BestellungenPage,
+  ReputationInsightsPage,
 } from "../components/MeinHUI_SubPages";
 
 const C = {
@@ -84,12 +85,13 @@ export default function CreatorStudio() {
   };
 
   const SubPage = {
-      analytics:    () => <AnalyticsPage    onBack={handleBack} />,
-      earnings:     () => <EinnahmenPage    onBack={handleBack} />,
-      content:      () => <MeineInhaltePage onBack={handleBack} />,
-      availability: () => <VerfuegbarkeitPage onBack={handleBack} />,
-      orders:       () => <BestellungenPage  onBack={handleBack} />,
-      impact:       () => <ImpactSubPage     onBack={handleBack} />,
+      analytics:    () => <AnalyticsPage          onBack={handleBack} />,
+      earnings:     () => <EinnahmenPage          onBack={handleBack} />,
+      content:      () => <MeineInhaltePage       onBack={handleBack} />,
+      availability: () => <VerfuegbarkeitPage     onBack={handleBack} />,
+      orders:       () => <BestellungenPage        onBack={handleBack} />,
+      impact:       () => <ImpactSubPage           onBack={handleBack} />,
+      reputation:   () => <ReputationInsightsPage  onBack={handleBack} />,
       settings:     () => <KontoPage         onBack={handleBack} onLogout={() => { supabase.auth.signOut(); navigate("/login"); }} />,
     }[activeTool];
     if (SubPage) return (
