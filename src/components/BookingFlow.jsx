@@ -1,7 +1,7 @@
 // BookingFlow.jsx — HUI Human Connection Flow
 // Kein Checkout. Eine menschliche Verbindung.
 import React, { useState, useEffect, useRef } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 import { useBookingActions, BOOKING_STATUS, REQ_TYPES as BREQ_TYPES, MOODS as BMOODS } from "../lib/bookingContext";
 import { useDraftPersist } from "../lib/sessionHooks";
