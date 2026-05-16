@@ -1372,7 +1372,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       try {
         const { data } = await supabase
           .from("profiles")
-          .select("id,display_name,username,avatar_url,header_img,bio,talent,focus_type,dna_tags,location_label,is_available,is_wirker,has_talent_profile,impact_eur,followers_count")
+          .select("id,display_name,username,avatar_url,header_img,bio,talent,focus_type,dna_tags,location,is_available,is_wirker,has_talent_profile,impact_eur,followers_count")
           .eq("has_talent_profile", true)
           .eq("availability", true)
           .order("impact_eur", { ascending: false })
@@ -1553,7 +1553,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
       if (allUserIds.length > 0) {
         const { data: profs, error: profErr } = await supabase
           .from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,talent,focus_type,location_label,impact_eur")
+          .select("id,username,display_name,avatar_url,header_img,bio,talent,focus_type,location,impact_eur")
           .in("id", allUserIds);
         if (!mounted) return;
         if (profErr) console.warn("[HUI Feed] profiles failed:", profErr.message);
@@ -1576,7 +1576,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             creator:         prof.display_name || prof.username || "Wirker",
             creatorUsername: prof.username     || null,
             creatorImg:      prof.avatar_url   || null,
-            city:            e.location_text   || prof.location_label || "",
+            city:            e.location_text   || prof.location        || "",
             price:           e.price != null
               ? ("EUR " + Number(e.price).toFixed(0) + (e.price_type ? "/" + e.price_type : ""))
               : "",
