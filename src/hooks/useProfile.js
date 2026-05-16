@@ -2,7 +2,7 @@
 // Service-backed, no direct supabase queries
 import { useProfile, useProfileUpdate } from './useProfile.v2';
 import { useTalentProfile } from './useTalentProfile';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '.../lib/supabaseClient';
 import { ProfileService } from '../services/db';
 import { useState, useEffect, useRef } from 'react';
 
