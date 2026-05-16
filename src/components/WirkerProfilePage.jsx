@@ -746,40 +746,38 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
           {/* CTA Buttons — Owner vs. Visitor */}
           {isOwner ? (
-            /* ── OWNER MODE: Instagram-Style — wie eigenes Profil bei Insta ── */
-            <div style={{ display:"flex", gap:8 }}>
-              {/* "Profil bearbeiten" — primärer Button wie bei Instagram */}
-              <button className="wp-tap"
-                onClick={() => setActiveTool('edit')}
-                style={{ flex:1, padding:"11px 12px",
-                  background:"rgba(0,0,0,0.06)",
-                  border:"1.5px solid rgba(0,0,0,0.10)",
-                  borderRadius:14, fontSize:13.5, fontWeight:700,
-                  color:"#1A1A1A", fontFamily:"inherit",
-                  letterSpacing:-0.1 }}>
-                Profil bearbeiten
-              </button>
-              {/* "Creator Tools" — sekundär, diskret */}
-              <button className="wp-tap"
-                onClick={() => setOwnerToolsOpen(o => !o)}
-                style={{ flex:1, padding:"11px 12px",
-                  background: ownerToolsOpen
-                    ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                    : "rgba(0,0,0,0.06)",
-                  border: ownerToolsOpen ? "none" : "1.5px solid rgba(0,0,0,0.10)",
-                  borderRadius:14, fontSize:13.5, fontWeight:700,
-                  color: ownerToolsOpen ? "white" : "#1A1A1A",
-                  fontFamily:"inherit", letterSpacing:-0.1,
-                  boxShadow: ownerToolsOpen ? `0 4px 14px ${C.tealGlow}` : "none",
-                  transition:"all .18s ease" }}>
-                {ownerToolsOpen ? "✕ Schließen" : "Creator Tools"}
-              </button>
-            </div>
-            {/* Live-Sync Hinweis — nur Owner */}
-            <div style={{ textAlign:"center", marginTop:5,
-              fontSize:10.5, color:"rgba(60,60,60,0.38)", letterSpacing:0.1 }}>
-              Änderungen sind sofort für alle sichtbar
-            </div>
+            <>
+              <div style={{ display:"flex", gap:8 }}>
+                <button className="wp-tap"
+                  onClick={() => setActiveTool('edit')}
+                  style={{ flex:1, padding:"11px 12px",
+                    background:"rgba(0,0,0,0.06)",
+                    border:"1.5px solid rgba(0,0,0,0.10)",
+                    borderRadius:14, fontSize:13.5, fontWeight:700,
+                    color:"#1A1A1A", fontFamily:"inherit",
+                    letterSpacing:-0.1 }}>
+                  Profil bearbeiten
+                </button>
+                <button className="wp-tap"
+                  onClick={() => setOwnerToolsOpen(o => !o)}
+                  style={{ flex:1, padding:"11px 12px",
+                    background: ownerToolsOpen
+                      ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                      : "rgba(0,0,0,0.06)",
+                    border: ownerToolsOpen ? "none" : "1.5px solid rgba(0,0,0,0.10)",
+                    borderRadius:14, fontSize:13.5, fontWeight:700,
+                    color: ownerToolsOpen ? "white" : "#1A1A1A",
+                    fontFamily:"inherit", letterSpacing:-0.1,
+                    boxShadow: ownerToolsOpen ? `0 4px 14px ${C.tealGlow}` : "none",
+                    transition:"all .18s ease" }}>
+                  {ownerToolsOpen ? "✕ Schließen" : "Creator Tools"}
+                </button>
+              </div>
+              <div style={{ textAlign:"center", marginTop:5,
+                fontSize:10.5, color:"rgba(60,60,60,0.38)", letterSpacing:0.1 }}>
+                Änderungen sind sofort für alle sichtbar
+              </div>
+            </>
           ) : (
             /* ── VISITOR MODE: HUI CTAs ── */
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
