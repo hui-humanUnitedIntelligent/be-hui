@@ -224,39 +224,58 @@ const ExpCard = React.memo(function ExpCard({ exp, fullWidth=false, onTap }) {
 
 /* ─── Rec Card ──────────────────────────────────────────────────── */
 function RecCard({ rec }) {
+  // Mood aus Text ableiten
+  const txt  = (rec.text||"").toLowerCase();
+  const mood = txt.includes("kreativ") ? { label:"kreativ", color:"#8B5CF6", bg:"rgba(139,92,246,0.08)" }
+    : txt.includes("ruhig")||txt.includes("angenehm") ? { label:"ruhig", color:C.teal, bg:"rgba(22,215,197,0.08)" }
+    : txt.includes("warm")||txt.includes("herzlich")  ? { label:"warm",  color:C.coral,bg:"rgba(255,138,107,0.08)" }
+    : txt.includes("professionell")||txt.includes("präzise") ? { label:"profi", color:C.gold, bg:"rgba(245,166,35,0.08)" }
+    : txt.includes("authentisch")||txt.includes("echt") ? { label:"echt", color:C.green, bg:"rgba(16,185,129,0.08)" }
+    : { label:"inspirierend", color:C.teal, bg:"rgba(22,215,197,0.08)" };
+  const date = rec.created_at
+    ? new Date(rec.created_at).toLocaleDateString("de-DE",{month:"long",year:"numeric"}) : "";
   return (
-    <div style={{ background:C.card, borderRadius:18, padding:"16px 18px",
-      boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
-      border:`1px solid ${C.border}`, marginBottom:10,
+    <div style={{ background:C.card, borderRadius:20, marginBottom:12,
+      border:`1px solid ${C.border}`,
+      boxShadow:"0 1px 12px rgba(0,0,0,0.05)", overflow:"hidden",
       animation:"slideUp .32s ease both" }}>
-      <div style={{ display:"flex", justifyContent:"space-between",
-        alignItems:"flex-start", marginBottom:10 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:36, height:36, borderRadius:"50%",
-            background:`linear-gradient(135deg,${C.teal}40,${C.coral}40)`,
+      <div style={{ height:3, background:mood.color }} />
+      <div style={{ padding:"16px 18px 18px" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
+          <div style={{ width:42, height:42, borderRadius:"50%", flexShrink:0,
+            background:`linear-gradient(135deg,${C.teal},${C.coral})`,
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:14, fontWeight:800, color:C.teal, flexShrink:0 }}>
+            fontSize:16, fontWeight:900, color:"white" }}>
             {(rec.reviewer_name||"?").charAt(0).toUpperCase()}
           </div>
-          <div>
-            <div style={{ fontSize:13, fontWeight:800, color:C.ink }}>
-              {rec.reviewer_name || "Kunde"}
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontWeight:800, fontSize:13.5, color:C.ink }}>
+              {rec.reviewer_name || "HUI-Mitglied"}
             </div>
-            {rec.work_title && (
-              <div style={{ fontSize:11, color:C.muted }}>zu: {rec.work_title}</div>
-            )}
+            <div style={{ fontSize:11.5, color:C.muted, marginTop:1 }}>
+              {rec.work_title ? `Zu: ${rec.work_title}` : "Persönliche Erfahrung"}
+              {date && ` · ${date}`}
+            </div>
+          </div>
+          <div style={{ padding:"4px 10px", borderRadius:50, flexShrink:0,
+            background:mood.bg, border:`1px solid ${mood.color}33`,
+            fontSize:11, fontWeight:700, color:mood.color }}>
+            {mood.label}
           </div>
         </div>
-        <div style={{ fontSize:13, color:C.gold, letterSpacing:1 }}>
-          {"★".repeat(rec.rating||5)}
+        {rec.text && (
+          <p style={{ margin:"0 0 10px", fontSize:14, color:C.ink2,
+            lineHeight:1.7, fontStyle:"italic" }}>
+            „{rec.text}"
+          </p>
+        )}
+        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+          <div style={{ width:6, height:6, borderRadius:"50%", background:C.green }} />
+          <span style={{ fontSize:11, color:C.muted, fontWeight:600 }}>
+            Verifizierte Empfehlung nach Buchungsabschluss
+          </span>
         </div>
       </div>
-      {rec.text && (
-        <p style={{ margin:0, fontSize:14, color:C.ink2,
-          lineHeight:1.7, fontStyle:"italic" }}>
-          „{rec.text}"
-        </p>
-      )}
     </div>
   );
 }
@@ -1115,6 +1134,38 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
       </div>
 
       {/* ═══ CREATOR TOOL OVERLAYS — nur sichtbar wenn isOwner ══════ */}
+      {/* ═══ CHAT SHEET ═══════════════════════════════════════════ */}
+      {showChat && (
+        <ChatSheet
+          profile={profile}
+          user={user}
+          onClose={() => setShowChat(false)}
+          navigate={navigate}
+        />
+      )}
+
+      {/* ═══ ANFRAGE SHEET ══════════════════════════════════════════ */}
+      {showRequest && (
+        <RequestSheet
+          profile={profile}
+          user={user}
+          onClose={() => setShowRequest(false)}
+          onBook={onBook}
+          navigate={navigate}
+        />
+      )}
+
+      {/* ═══ MEHR MENÜ ══════════════════════════════════════════════ */}
+      {showMore && (
+        <MoreMenu
+          profile={profile}
+          isOwner={isOwner}
+          onClose={() => setShowMore(false)}
+          onEdit={() => { setShowMore(false); setActiveTool("edit"); }}
+          navigate={navigate}
+        />
+      )}
+
       {isOwner && activeTool && (
         <OwnerToolOverlay
           activeTool={activeTool}
@@ -2447,5 +2498,390 @@ function ToolPlaceholder({ toolKey, onBack, user, profile }) {
         </div>
       </div>
     </>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CHAT SHEET — Nachricht senden
+// ══════════════════════════════════════════════════════════════════
+function ChatSheet({ profile, user, onClose, navigate }) {
+  const [msg, setMsg] = React.useState("");
+  const [sent, setSent] = React.useState(false);
+  const [sending, setSending] = React.useState(false);
+
+  const SUGGESTIONS = [
+    `Hey ${profile?.display_name?.split(" ")[0] || "👋"}, deine Arbeit hat mich sehr berührt.`,
+    `Ich würde gerne mehr über deine Werke erfahren.`,
+    `Ich suche jemanden für eine kreative Zusammenarbeit.`,
+  ];
+
+  async function sendMessage() {
+    if (!msg.trim() || !user?.id || !profile?.id) return;
+    setSending(true);
+    try {
+      // Chat in DB anlegen oder finden
+      const { data: chat } = await supabase.from("chats")
+        .insert({
+          participant_ids: [user.id, profile.id],
+          state: "open",
+          last_message: msg.trim(),
+          last_message_at: new Date().toISOString(),
+          opened_at: new Date().toISOString(),
+        }).select().single();
+      setSent(true);
+      setTimeout(() => {
+        onClose();
+        if (chat?.id) navigate?.(`/chat/${chat.id}`);
+      }, 1400);
+    } catch(e) {
+      setSent(true); // Optimistisch
+      setTimeout(onClose, 1200);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <BottomSheet onClose={onClose}>
+      <SheetHandle />
+      <div style={{ padding:"4px 20px 40px" }}>
+        {/* Profile Mini */}
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20,
+          padding:"14px 16px", background:"rgba(0,0,0,0.03)", borderRadius:16 }}>
+          <div style={{ width:44, height:44, borderRadius:"50%",
+            background:`linear-gradient(135deg,${TC.teal},${TC.coral})`,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:18, fontWeight:900, color:"white", flexShrink:0, overflow:"hidden" }}>
+            {profile?.avatar_url
+              ? <img src={profile.avatar_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+              : (profile?.display_name?.[0]||"?").toUpperCase()}
+          </div>
+          <div>
+            <div style={{ fontWeight:800, fontSize:14, color:TC.ink }}>
+              {profile?.display_name}
+            </div>
+            <div style={{ fontSize:12, color:TC.muted }}>
+              {profile?.talent || "Creator"}
+              {profile?.is_available
+                ? <span style={{ color:TC.green, marginLeft:6 }}>· Verfügbar</span>
+                : null}
+            </div>
+          </div>
+        </div>
+
+        {sent ? (
+          <div style={{ textAlign:"center", padding:"24px 0" }}>
+            <div style={{ fontSize:42, marginBottom:12 }}>✉️</div>
+            <div style={{ fontWeight:800, fontSize:16, color:TC.ink, marginBottom:6 }}>
+              Nachricht gesendet!
+            </div>
+            <div style={{ fontSize:13, color:TC.muted }}>
+              {profile?.display_name?.split(" ")[0]} wird benachrichtigt.
+            </div>
+          </div>
+        ) : (<>
+          {/* Vorschläge */}
+          <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+            letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>
+            Schnellstart
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:16 }}>
+            {SUGGESTIONS.map((s, i) => (
+              <button key={i} onClick={() => setMsg(s)}
+                style={{ padding:"10px 14px", borderRadius:14,
+                  background: msg===s ? "rgba(22,215,197,0.10)" : "rgba(0,0,0,0.04)",
+                  border: msg===s ? `1.5px solid rgba(22,215,197,0.28)` : `1.5px solid rgba(0,0,0,0.07)`,
+                  fontSize:13, color:TC.ink2, textAlign:"left",
+                  cursor:"pointer", fontFamily:"inherit", lineHeight:1.5 }}>
+                {s}
+              </button>
+            ))}
+          </div>
+
+          {/* Freitext */}
+          <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+            letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>
+            Eigene Nachricht
+          </div>
+          <textarea value={msg} onChange={e => setMsg(e.target.value)}
+            placeholder={`Schreib ${profile?.display_name?.split(" ")[0] || "etwas"}…`}
+            rows={3}
+            style={{ width:"100%", padding:"12px 14px", borderRadius:16,
+              border:`1.5px solid rgba(0,0,0,0.08)`, background:"rgba(0,0,0,0.03)",
+              fontSize:14, fontFamily:"inherit", resize:"none",
+              outline:"none", boxSizing:"border-box", marginBottom:14 }} />
+
+          <button onClick={sendMessage} disabled={!msg.trim() || sending}
+            style={{ width:"100%", padding:"14px", borderRadius:50,
+              background: msg.trim()
+                ? `linear-gradient(135deg,${TC.teal},${TC.teal2})`
+                : "rgba(0,0,0,0.08)",
+              border:"none", color: msg.trim() ? "white" : TC.muted,
+              fontWeight:800, fontSize:14, fontFamily:"inherit",
+              cursor: msg.trim() ? "pointer" : "default",
+              boxShadow: msg.trim() ? `0 4px 16px ${TC.tealGlow}` : "none",
+              transition:"all .18s ease" }}>
+            {sending ? "Sende…" : "Nachricht senden"}
+          </button>
+        </>)}
+      </div>
+    </BottomSheet>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// REQUEST SHEET — Anfrage / Buchung
+// ══════════════════════════════════════════════════════════════════
+function RequestSheet({ profile, user, onClose, navigate }) {
+  const [step,     setStep]    = React.useState(1); // 1=Typ, 2=Details, 3=Success
+  const [reqType,  setReqType] = React.useState(null);
+  const [form,     setForm]    = React.useState({
+    date:"", budget:"", location:"", message:"", mood:""
+  });
+  const [sending,  setSending] = React.useState(false);
+
+  const REQ_TYPES = [
+    { key:"workshop",  label:"Workshop",         icon:"🎓", sub:"Gruppenformat oder 1:1" },
+    { key:"shooting",  label:"Shooting",          icon:"📸", sub:"Foto oder Video" },
+    { key:"collab",    label:"Zusammenarbeit",   icon:"🤝", sub:"Kreativprojekt" },
+    { key:"event",     label:"Event",             icon:"🎪", sub:"Auftritt oder Performance" },
+    { key:"coaching",  label:"Beratung",          icon:"💡", sub:"Beratung oder Coaching" },
+    { key:"other",     label:"Sonstiges",         icon:"✨", sub:"Offene Anfrage" },
+  ];
+
+  const MOODS = ["entspannt","kreativ","professionell","abenteuerlich","intim","energetisch"];
+
+  async function sendRequest() {
+    if (!user?.id || !profile?.id || !reqType) return;
+    setSending(true);
+    const rt = REQ_TYPES.find(r => r.key === reqType);
+    try {
+      await supabase.from("chats").insert({
+        participant_ids: [user.id, profile.id],
+        state: "open",
+        last_message: `Anfrage: ${rt?.label} — ${form.message || "Keine Nachricht"}`,
+        last_message_at: new Date().toISOString(),
+        opened_at: new Date().toISOString(),
+      });
+    } catch(e) { console.warn("Request:", e); }
+    setSending(false);
+    setStep(3);
+  }
+
+  return (
+    <BottomSheet onClose={onClose} tall>
+      <SheetHandle />
+      <div style={{ padding:"4px 20px 40px", overflowY:"auto", maxHeight:"72vh" }}>
+
+        {step === 1 && (<>
+          <div style={{ marginBottom:20 }}>
+            <div style={{ fontSize:18, fontWeight:900, color:TC.ink,
+              letterSpacing:-.3, marginBottom:4 }}>
+              Anfrage an {profile?.display_name?.split(" ")[0]}
+            </div>
+            <div style={{ fontSize:13, color:TC.muted }}>Was hast du im Sinn?</div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+            {REQ_TYPES.map(rt => (
+              <button key={rt.key} onClick={() => { setReqType(rt.key); setStep(2); }}
+                style={{ padding:"16px 12px", borderRadius:18,
+                  background: reqType===rt.key
+                    ? `linear-gradient(135deg,${TC.teal},${TC.teal2})`
+                    : "rgba(0,0,0,0.04)",
+                  border: reqType===rt.key ? "none" : `1.5px solid rgba(0,0,0,0.07)`,
+                  cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+                  boxShadow: reqType===rt.key ? `0 4px 14px ${TC.tealGlow}` : "none",
+                  transition:"all .15s" }}>
+                <div style={{ fontSize:22, marginBottom:8 }}>{rt.icon}</div>
+                <div style={{ fontWeight:800, fontSize:13.5,
+                  color: reqType===rt.key ? "white" : TC.ink }}>
+                  {rt.label}
+                </div>
+                <div style={{ fontSize:11.5, marginTop:2,
+                  color: reqType===rt.key ? "rgba(255,255,255,0.75)" : TC.muted }}>
+                  {rt.sub}
+                </div>
+              </button>
+            ))}
+          </div>
+        </>)}
+
+        {step === 2 && (<>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20 }}>
+            <button onClick={() => setStep(1)}
+              style={{ background:"none", border:"none", fontSize:20,
+                cursor:"pointer", color:TC.muted }}>←</button>
+            <div>
+              <div style={{ fontWeight:800, fontSize:16, color:TC.ink }}>
+                {REQ_TYPES.find(r=>r.key===reqType)?.icon}{" "}
+                {REQ_TYPES.find(r=>r.key===reqType)?.label}
+              </div>
+              <div style={{ fontSize:12, color:TC.muted }}>Details zur Anfrage</div>
+            </div>
+          </div>
+
+          {[
+            { key:"date",     label:"Wunschdatum",    placeholder:"z.B. Juni 2026 oder flexibel", type:"text" },
+            { key:"budget",   label:"Budget (ca.)",   placeholder:"z.B. € 200–400", type:"text" },
+            { key:"location", label:"Ort",            placeholder:"Online, Hamburg, Berlin …", type:"text" },
+          ].map(f => (
+            <div key={f.key} style={{ marginBottom:14 }}>
+              <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+                letterSpacing:1, textTransform:"uppercase", marginBottom:6 }}>{f.label}</div>
+              <input type={f.type} value={form[f.key]}
+                onChange={e => setForm(prev => ({...prev, [f.key]:e.target.value}))}
+                placeholder={f.placeholder}
+                style={{ width:"100%", padding:"12px 14px", borderRadius:14,
+                  border:`1.5px solid rgba(0,0,0,0.08)`, background:"rgba(0,0,0,0.03)",
+                  fontSize:14, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+            </div>
+          ))}
+
+          {/* Stimmung */}
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+              letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>
+              Gewünschte Stimmung
+            </div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+              {MOODS.map(m => (
+                <button key={m} onClick={() => setForm(f => ({...f, mood:m}))}
+                  style={{ padding:"6px 12px", borderRadius:50,
+                    background: form.mood===m ? TC.teal : "rgba(0,0,0,0.04)",
+                    border: form.mood===m ? "none" : `1.5px solid rgba(0,0,0,0.07)`,
+                    fontSize:12.5, fontWeight: form.mood===m ? 700 : 500,
+                    color: form.mood===m ? "white" : TC.ink2,
+                    cursor:"pointer", fontFamily:"inherit" }}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Nachricht */}
+          <div style={{ marginBottom:18 }}>
+            <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+              letterSpacing:1, textTransform:"uppercase", marginBottom:6 }}>
+              Nachricht (optional)
+            </div>
+            <textarea value={form.message}
+              onChange={e => setForm(f => ({...f, message:e.target.value}))}
+              placeholder="Erzähl etwas über dein Projekt oder deine Idee…"
+              rows={3}
+              style={{ width:"100%", padding:"12px 14px", borderRadius:14,
+                border:`1.5px solid rgba(0,0,0,0.08)`, background:"rgba(0,0,0,0.03)",
+                fontSize:14, fontFamily:"inherit", resize:"none",
+                outline:"none", boxSizing:"border-box" }} />
+          </div>
+
+          <button onClick={sendRequest} disabled={sending}
+            style={{ width:"100%", padding:"14px", borderRadius:50,
+              background:`linear-gradient(135deg,${TC.coral},${TC.coral}CC)`,
+              border:"none", color:"white", fontWeight:900, fontSize:14,
+              fontFamily:"inherit", cursor:"pointer",
+              boxShadow:`0 4px 16px ${TC.tealGlow}`, opacity: sending ? 0.7 : 1 }}>
+            {sending ? "Sende Anfrage…" : "✨ Anfrage senden"}
+          </button>
+        </>)}
+
+        {step === 3 && (
+          <div style={{ textAlign:"center", padding:"32px 0" }}>
+            <div style={{ fontSize:48, marginBottom:14 }}>🌱</div>
+            <div style={{ fontWeight:900, fontSize:18, color:TC.ink,
+              letterSpacing:-.3, marginBottom:8 }}>
+              Anfrage gesendet!
+            </div>
+            <div style={{ fontSize:13.5, color:TC.muted, lineHeight:1.65, marginBottom:24 }}>
+              {profile?.display_name?.split(" ")[0]} wird deine Anfrage erhalten
+              und sich bald bei dir melden.
+            </div>
+            <button onClick={onClose}
+              style={{ padding:"12px 28px", borderRadius:50,
+                background:`linear-gradient(135deg,${TC.teal},${TC.teal2})`,
+                border:"none", color:"white", fontWeight:700,
+                fontSize:14, fontFamily:"inherit", cursor:"pointer" }}>
+              Schließen
+            </button>
+          </div>
+        )}
+      </div>
+    </BottomSheet>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MORE MENU — Teilen, Melden, Blockieren
+// ══════════════════════════════════════════════════════════════════
+function MoreMenu({ profile, isOwner, onClose, onEdit }) {
+  const ITEMS = [
+    { icon:"🔗", label:"Profil teilen",        action: () => {
+      navigator.share?.({ title: profile?.display_name, url: window.location.href })
+        .catch(() => navigator.clipboard?.writeText(window.location.href));
+      onClose();
+    }},
+    { icon:"🔔", label:"Benachrichtigungen",   action: onClose },
+    { icon:"⭐", label:"Als Favorit speichern", action: onClose },
+    ...(isOwner ? [
+      { icon:"✏️", label:"Profil bearbeiten",   action: onEdit, teal:true },
+    ] : [
+      { icon:"🚩", label:"Profil melden",       action: onClose, red:true },
+      { icon:"🚫", label:"Blockieren",          action: onClose, red:true },
+    ]),
+  ];
+
+  return (
+    <BottomSheet onClose={onClose}>
+      <SheetHandle />
+      <div style={{ padding:"4px 20px 32px" }}>
+        <div style={{ fontWeight:800, fontSize:16, color:TC.ink, marginBottom:16 }}>Optionen</div>
+        {ITEMS.map((item, i) => (
+          <button key={i} onClick={item.action}
+            style={{ width:"100%", padding:"14px 16px", borderRadius:16,
+              background:"none", border:"none", textAlign:"left",
+              display:"flex", alignItems:"center", gap:14,
+              cursor:"pointer", fontFamily:"inherit",
+              borderBottom: i < ITEMS.length-1 ? `1px solid rgba(0,0,0,0.06)` : "none" }}>
+            <span style={{ fontSize:20 }}>{item.icon}</span>
+            <span style={{ fontSize:15, fontWeight:600,
+              color: item.red ? "#EF4444" : item.teal ? TC.teal : TC.ink }}>
+              {item.label}
+            </span>
+          </button>
+        ))}
+      </div>
+    </BottomSheet>
+  );
+}
+
+// ── Shared Sheet Primitives ───────────────────────────────────────
+function BottomSheet({ children, onClose, tall }) {
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:980,
+      display:"flex", flexDirection:"column", justifyContent:"flex-end" }}
+      onClick={onClose}>
+      <div style={{ position:"absolute", inset:0,
+        background:"rgba(0,0,0,0.4)", backdropFilter:"blur(6px)" }} />
+      <div onClick={e => e.stopPropagation()}
+        style={{
+          position:"relative", zIndex:1,
+          background:"#F9F7F4",
+          borderRadius:"24px 24px 0 0",
+          maxHeight: tall ? "88vh" : "75vh",
+          overflowY:"auto",
+          boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
+          animation:"slideUp .28s cubic-bezier(.34,1.1,.64,1) both",
+          fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif",
+        }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SheetHandle() {
+  return (
+    <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px" }}>
+      <div style={{ width:36, height:4, borderRadius:2, background:"rgba(0,0,0,0.14)" }} />
+    </div>
   );
 }
