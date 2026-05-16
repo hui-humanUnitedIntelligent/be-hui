@@ -9,6 +9,7 @@ import BookingFlow from './pages/BookingFlow'
 import Admin from './pages/Admin'
 import AuthCallback from './pages/AuthCallback'
 import DiagnosePage from './pages/DiagnosePage'
+import CreatorStudio from './pages/CreatorStudio'
 import ProfilePage from './components/ProfilePage'
 import WirkerProfilePage from './components/WirkerProfilePage'
 import WorkDetailPage from './components/WorkDetailPage'
@@ -257,6 +258,9 @@ function AppRoutes() {
       {/* 404 fallback → Home (never dead end) */}
       {/* ── TEMPORÄR: Diagnose-Route — nach Debugging entfernen ── */}
       <Route path="/diagnose" element={<DiagnosePage />} />
+      <Route path="/studio" element={
+        <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+      }/>
       <Route path="*" element={<Navigate to="/Home" replace />} />
     </Routes>
   );
