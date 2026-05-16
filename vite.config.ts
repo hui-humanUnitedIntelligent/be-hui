@@ -1,4 +1,4 @@
-// HUI build — 2026-05-16 08:07
+// HUI build — 2026-05-16 08:13 — sql restructure
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
