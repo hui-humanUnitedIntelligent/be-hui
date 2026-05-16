@@ -1,6 +1,7 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSoftFade } from "../lib/sessionHooks";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { emotionalScore } from "../lib/moodUtils";
