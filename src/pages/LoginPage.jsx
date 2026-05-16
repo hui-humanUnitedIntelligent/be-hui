@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
-import { supabase } from '.../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7",
