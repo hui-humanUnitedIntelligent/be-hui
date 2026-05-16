@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import mockWirkerProfiles from "../lib/mockData";
 import VirtualFeedList, { FeedEndSentinel } from './VirtualFeedList';
 import LazyImage from './LazyImage';
