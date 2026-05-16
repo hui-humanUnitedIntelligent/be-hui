@@ -1,4 +1,5 @@
-// chatContext.js — HUI Chat Intelligence Layer v1.0
+// chatContext.js — HUI Chat Intelligence Layer v1.1
+// Phase 3D: softText Status-Übergänge
 // Phase 3B: Intelligentes Creator-Kommunikationssystem
 //
 // CHAT TYPEN:
@@ -303,10 +304,14 @@ export function useChatThread(chatId) {
     return sendMessage({ text, msgType: "system_message", contextRef });
   }, [sendMessage]);
 
-  // sendBookingUpdate — wenn Booking-Status sich ändert
+  // sendBookingUpdate — weiche Status-Beschreibung statt technischer Text
+  // Verwendet BOOKING_STATUS.softText wenn vorhanden
   const sendBookingUpdate = useCallback(async (statusText, bookingData) => {
+    // softText aus bookingData.status holen wenn nicht explizit übergeben
+    const finalText = statusText || (bookingData?.status
+      ? `Status: ${bookingData.status}` : "Status aktualisiert");
     return sendMessage({
-      text:       statusText,
+      text:       finalText,
       msgType:    "booking_update",
       contextRef: bookingData,
     });
