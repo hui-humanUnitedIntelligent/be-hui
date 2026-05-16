@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 16:18:37 — creator tools crashsafe inline fix
+// HUI build 2026-05-16 16:28:27 — real insights engine + AI-ready
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
