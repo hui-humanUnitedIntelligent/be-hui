@@ -3,17 +3,29 @@ import { sentryCapture, Sentry } from './lib/sentry'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
-import Home from './pages/Home'
-import ImpactPage from './pages/ImpactPage'
-import LoginPage from './pages/LoginPage'
-import BookingFlow from './pages/BookingFlow'
-import Admin from './pages/Admin'
-import AuthCallback from './pages/AuthCallback'
-import DiagnosePage from './pages/DiagnosePage'
-import CreatorStudio from './pages/CreatorStudio'
-import ProfilePage from './components/ProfilePage'
-import WirkerProfilePage from './components/WirkerProfilePage'
-import WorkDetailPage from './components/WorkDetailPage'
+
+// ── Route-Level Pages ─────────────────────────────────────────
+// Single Source of Truth: jede Route hat genau eine zuständige Komponente
+import Home          from './pages/Home'           // Haupt-App-Shell + Tab-Navigation
+import ImpactPage    from './pages/ImpactPage'     // Impact-Tab (auch intern genutzt)
+import LoginPage     from './pages/LoginPage'      // Auth-Gate
+import Admin         from './pages/Admin'           // Admin-only
+import AuthCallback  from './pages/AuthCallback'   // OAuth-Callback
+import DiagnosePage  from './pages/DiagnosePage'   // Developer Diagnose
+import CreatorStudio from './pages/CreatorStudio'  // Creator Studio /studio
+
+// ── Overlay-Level Components ──────────────────────────────────
+// Diese werden als Overlays innerhalb von Home.jsx geöffnet, nicht als Routes
+// Ausnahme: ProfilePage + WirkerProfilePage haben eigene Routes für Deep-Links
+import ProfilePage     from './components/ProfilePage'      // Öffentliches Profil (Props-basiert)
+import WirkerProfilePage from './components/WirkerProfilePage' // Creator-Profil
+import WorkDetailPage   from './components/WorkDetailPage'  // Werk-Detail
+
+// ── Deprecated Route-Stubs ────────────────────────────────────
+// Diese Pages existieren als Stubs damit alte Links nicht crashen
+// Die echte Logik ist in components/ oder Home.jsx
+import BookingFlowStub from './pages/BookingFlow'   // Stub → echte: components/BookingFlow.jsx
+
 
 /* ── Error Boundary ────────────────────────────────────────────────── */
 // Globaler letzter Feed-Kontext fuer ErrorBoundary-Diagnose
