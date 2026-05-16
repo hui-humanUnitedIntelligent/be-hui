@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 20:28:14 — phase3b chat intelligence
+// HUI build 2026-05-16 20:32:24 — import path fixes
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
