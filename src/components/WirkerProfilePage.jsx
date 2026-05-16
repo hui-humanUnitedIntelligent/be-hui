@@ -572,28 +572,57 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             </div>
           </div>
 
-          {/* Hero bottom text — name + dna */}
+          {/* Hero bottom text — Name + Identität */}
           <div style={{ position:"absolute", bottom:0, left:0, right:0,
             padding:"0 20px 20px",
             animation:"fadeIn .5s .15s ease both" }}>
-            {/* Focus badge */}
-            <div style={{ display:"inline-flex", alignItems:"center", gap:5,
-              background:"rgba(255,255,255,0.15)", backdropFilter:"blur(10px)",
-              border:"1px solid rgba(255,255,255,0.25)",
-              borderRadius:50, padding:"4px 12px", marginBottom:10,
-              fontSize:11, fontWeight:700, color:"white", letterSpacing:.3 }}>
-              <span>{focus.icon}</span>
-              <span>{focus.label}</span>
+            {/* Focus + Location Chips */}
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
+              <div style={{ display:"inline-flex", alignItems:"center", gap:5,
+                background:"rgba(255,255,255,0.15)", backdropFilter:"blur(10px)",
+                border:"1px solid rgba(255,255,255,0.25)",
+                borderRadius:50, padding:"4px 12px",
+                fontSize:11, fontWeight:700, color:"white", letterSpacing:.3 }}>
+                <span>{focus.icon}</span>
+                <span>{focus.label}</span>
+              </div>
+              {(profile.location || profile.location_label) && (
+                <div style={{ display:"inline-flex", alignItems:"center", gap:4,
+                  background:"rgba(0,0,0,0.28)", backdropFilter:"blur(10px)",
+                  border:"1px solid rgba(255,255,255,0.15)",
+                  borderRadius:50, padding:"4px 10px",
+                  fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.88)" }}>
+                  📍 {profile.location || profile.location_label}
+                </div>
+              )}
+              {profile.is_available && (
+                <div style={{ display:"inline-flex", alignItems:"center", gap:4,
+                  background:"rgba(16,185,129,0.28)", backdropFilter:"blur(10px)",
+                  border:"1px solid rgba(16,185,129,0.45)",
+                  borderRadius:50, padding:"4px 10px",
+                  fontSize:11, fontWeight:700, color:"#6EE7B7" }}>
+                  <span style={{ width:5, height:5, borderRadius:"50%",
+                    background:"#6EE7B7", display:"inline-block",
+                    animation:"breathe 2s ease-in-out infinite" }}/>
+                  Verfügbar
+                </div>
+              )}
             </div>
+            {/* Name */}
             <h1 style={{ margin:0, fontSize:"clamp(26px,7vw,34px)", fontWeight:900,
-              color:"white", letterSpacing:-1, lineHeight:1.1, marginBottom:4,
+              color:"white", letterSpacing:-1, lineHeight:1.1, marginBottom:5,
               textShadow:"0 2px 16px rgba(0,0,0,0.4)" }}>
               {profile.display_name}
             </h1>
-            <div style={{ fontSize:13, color:"rgba(255,255,255,0.75)",
-              fontWeight:500 }}>
-              {profile.talent || profile.focus_type || 'Kreativität'}
-              {profile.location_label && ` · ${profile.location_label}`}
+            {/* Talent + kreative Richtung */}
+            <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.80)",
+              fontWeight:500, lineHeight:1.5 }}>
+              {profile.talent || profile.focus_type || "Creator"}
+              {(profile.mood_tags?.length > 0) && (
+                <span style={{ color:"rgba(255,255,255,0.55)" }}>
+                  {" · "}{profile.mood_tags.slice(0,2).join(" · ")}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -655,9 +684,9 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             </div>
           </div>
 
-          {/* Username + since */}
-          <div style={{ display:"flex", alignItems:"center", gap:8,
-            marginBottom:6, flexWrap:"wrap" }}>
+          {/* Identity row — Username + Meta */}
+          <div style={{ display:"flex", alignItems:"center", gap:7,
+            marginBottom:8, flexWrap:"wrap" }}>
             {profile.username && (
               <span style={{ fontSize:13, color:C.muted, fontWeight:500 }}>
                 @{profile.username.replace("@","")}
@@ -667,20 +696,45 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               <span style={{ fontSize:11, color:C.muted2,
                 background:C.cream, borderRadius:50, padding:"2px 8px",
                 border:`1px solid ${C.border}` }}>
-                Dabei seit {memberSince}
+                seit {memberSince}
               </span>
             )}
             {profile.is_available && (
               <span style={{ fontSize:11, color:C.green, fontWeight:700,
-                background:C.greenPale||"#ECFDF5",
-                borderRadius:50, padding:"2px 8px",
-                border:`1px solid ${C.green}30`,
+                background:"rgba(16,185,129,0.09)",
+                borderRadius:50, padding:"3px 9px",
+                border:`1px solid rgba(16,185,129,0.22)`,
                 display:"flex", alignItems:"center", gap:4 }}>
                 <span style={{ width:5, height:5, borderRadius:"50%",
                   background:C.green, display:"inline-block",
                   animation:"breathe 2s ease-in-out infinite" }}/>
                 Verfügbar
               </span>
+            )}
+          </div>
+          {/* Antwortzeit + Fokus — menschliches Signal */}
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
+            {profile.is_available && (
+              <div style={{ fontSize:11.5, color:C.muted,
+                display:"flex", alignItems:"center", gap:4 }}>
+                <span>💬</span>
+                <span>Antwortet schnell</span>
+              </div>
+            )}
+            {(profile.location || profile.location_label) && (
+              <div style={{ fontSize:11.5, color:C.muted,
+                display:"flex", alignItems:"center", gap:4 }}>
+                <span>📍</span>
+                <span>{profile.location || profile.location_label}</span>
+              </div>
+            )}
+            {profile.website && (
+              <a href={profile.website} target="_blank" rel="noreferrer"
+                style={{ fontSize:11.5, color:C.teal, fontWeight:600,
+                  textDecoration:"none", display:"flex", alignItems:"center", gap:3 }}>
+                <span>🔗</span>
+                <span>Website</span>
+              </a>
             )}
           </div>
 
@@ -900,6 +954,66 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           </div>
         )}
 
+
+        {/* ═══ STORY HIGHLIGHTS ════════════════════════════════════ */}
+        {works.length > 0 || exps.length > 0 ? (
+          <div style={{ background:C.warm, padding:"16px 0 16px",
+            borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ overflowX:"auto", scrollbarWidth:"none",
+              display:"flex", gap:14, padding:"0 20px" }}>
+              {/* Highlights aus Werke-Kategorien + Erlebnissen */}
+              {[
+                ...(works.slice(0,4).map((w,i) => ({
+                  img: w.cover_url || w.media_url,
+                  label: w.category || w.title?.slice(0,10) || "Werk",
+                  accent: C.gold,
+                }))),
+                ...(exps.slice(0,2).map(e => ({
+                  img: e.cover_url || e.media_url,
+                  label: e.title?.slice(0,10) || "Event",
+                  accent: C.coral,
+                }))),
+                // Fallback-Highlights wenn wenig Content
+                ...(works.length + exps.length < 3 ? [
+                  { img:null, label:"Kreativität", accent:C.teal, emoji:"🌿" },
+                  { img:null, label:"Community",   accent:C.violet||"#8B5CF6", emoji:"🤝" },
+                  { img:null, label:"Inspiration", accent:C.gold, emoji:"✨" },
+                ] : []),
+              ].slice(0,6).map((h, i) => (
+                <div key={i} onClick={() => setActiveTab("werke")}
+                  style={{ display:"flex", flexDirection:"column",
+                    alignItems:"center", gap:6, flexShrink:0,
+                    cursor:"pointer" }}>
+                  {/* Ring + Avatar */}
+                  <div style={{
+                    width:60, height:60, borderRadius:"50%", padding:2.5,
+                    background:`linear-gradient(135deg,${h.accent},${h.accent}88)`,
+                    boxShadow:`0 2px 12px ${h.accent}44`,
+                  }}>
+                    <div style={{ width:"100%", height:"100%", borderRadius:"50%",
+                      border:"2.5px solid white", overflow:"hidden",
+                      background: h.img ? "transparent"
+                        : `linear-gradient(135deg,${h.accent}22,${h.accent}11)`,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:20 }}>
+                      {h.img
+                        ? <img src={h.img} alt={h.label}
+                            style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                        : h.emoji || "✦"
+                      }
+                    </div>
+                  </div>
+                  <span style={{ fontSize:10.5, color:C.ink2, fontWeight:600,
+                    textAlign:"center", maxWidth:60,
+                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {h.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {/* ═══ STATS ROW ════════════════════════════════════════════ */}
         <div style={{ background:C.warm, padding:"14px 20px 16px",
           borderBottom:`1px solid ${C.border}`,
@@ -933,26 +1047,45 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             borderBottom:`1px solid ${C.border}` }}>
           <div style={{ display:"flex", padding:"10px 16px 0", gap:4 }}>
             {[
-              { key:"werke",      label:"Werke",        accent:C.gold },
-              { key:"erlebnisse", label:"Erlebnisse",   accent:C.coral },
-              { key:"empf",       label:"Empfehlungen", accent:C.teal },
-              { key:"impact",     label:"Impact",       accent:C.green },
+              { key:"werke",      label:"Werke",   icon:"🎨", accent:C.gold,
+                count: works.length || 0 },
+              { key:"erlebnisse", label:"Events",  icon:"✨", accent:C.coral,
+                count: exps.length || 0 },
+              { key:"empf",       label:"Empf.",   icon:"💬", accent:C.teal,
+                count: recs.length || 0 },
+              { key:"impact",     label:"Impact",  icon:"🌱", accent:C.green,
+                count: null },
             ].map(tab => {
               const active = activeTab === tab.key;
               return (
                 <button key={tab.key} className="wp-tap"
                   onClick={() => setActiveTab(tab.key)}
-                  style={{ flex:1, padding:"10px 4px 10px",
+                  style={{ flex:1, padding:"10px 2px 10px",
                     background:"none", border:"none",
                     borderBottom: active
                       ? `2.5px solid ${tab.accent}`
                       : "2.5px solid transparent",
-                    fontSize:12, fontWeight: active ? 800 : 500,
-                    color: active ? tab.accent : C.muted,
+                    fontFamily:"inherit",
                     transition:"all .2s ease",
-                    letterSpacing:.2,
-                    fontFamily:"inherit" }}>
-                  {tab.label}
+                    display:"flex", flexDirection:"column",
+                    alignItems:"center", gap:2 }}>
+                  <span style={{ fontSize:15,
+                    filter: active ? "none" : "grayscale(0.6) opacity(0.55)",
+                    transition:"filter .2s" }}>
+                    {tab.icon}
+                  </span>
+                  <span style={{ fontSize:10.5, fontWeight: active ? 800 : 500,
+                    color: active ? tab.accent : C.muted,
+                    letterSpacing:.2, lineHeight:1 }}>
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <span style={{ marginLeft:3, fontSize:9, fontWeight:700,
+                        color: active ? tab.accent : C.muted2,
+                        opacity:0.8 }}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </span>
                 </button>
               );
             })}
@@ -960,8 +1093,49 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
         </div>
 
         {/* ═══ TAB CONTENT ══════════════════════════════════════════ */}
-        <div ref={contentRef} style={{ padding:"20px 16px 40px",
+        <div ref={contentRef} style={{ padding:"16px 16px 120px",
           animation:"tabSlide .28s ease both" }}>
+
+          {/* Kreative Intro-Zeile — lebendiger Context */}
+          {activeTab === "werke" && works.length > 0 && (
+            <div style={{ display:"flex", alignItems:"center", gap:8,
+              marginBottom:14, padding:"10px 14px",
+              background:"rgba(245,166,35,0.07)",
+              borderRadius:14, border:"1px solid rgba(245,166,35,0.14)" }}>
+              <span style={{ fontSize:16 }}>🎨</span>
+              <div style={{ flex:1, minWidth:0 }}>
+                <span style={{ fontSize:12.5, fontWeight:700, color:C.ink }}>
+                  {works.length} {works.length === 1 ? "Werk" : "Werke"}
+                </span>
+                <span style={{ fontSize:12, color:C.muted, marginLeft:6 }}>
+                  · Tippe um mehr zu sehen
+                </span>
+              </div>
+              {profile.hourly_rate > 0 && (
+                <div style={{ fontSize:12, fontWeight:800, color:C.gold,
+                  background:"rgba(245,166,35,0.12)", borderRadius:50,
+                  padding:"3px 10px", flexShrink:0 }}>
+                  ab € {profile.hourly_rate}/h
+                </div>
+              )}
+            </div>
+          )}
+          {activeTab === "erlebnisse" && exps.length > 0 && (
+            <div style={{ display:"flex", alignItems:"center", gap:8,
+              marginBottom:14, padding:"10px 14px",
+              background:"rgba(255,138,107,0.07)",
+              borderRadius:14, border:"1px solid rgba(255,138,107,0.14)" }}>
+              <span style={{ fontSize:16 }}>✨</span>
+              <div>
+                <span style={{ fontSize:12.5, fontWeight:700, color:C.ink }}>
+                  {exps.length} {exps.length === 1 ? "Erlebnis" : "Erlebnisse"}
+                </span>
+                <span style={{ fontSize:12, color:C.muted, marginLeft:6 }}>
+                  · live & buchbar
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* ── WERKE ── */}
           {activeTab === "werke" && (
