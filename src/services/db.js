@@ -19,7 +19,7 @@ const F = {
   profileMin:   'id,display_name,username,avatar_url,is_wirker,has_talent_profile,talent,location_label',
   wirker:       'id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count',
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
-  work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,created_at',
+  work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_label,status,created_at',
   story:        'id,user_id,media_url,media_type,text_overlay,mood,expires_at,views_count,created_at',
   booking:      'id,user_id,wirker_id,work_id,experience_id,amount,platform_fee,impact_fee,status,payment_status,escrow_status,created_at',
