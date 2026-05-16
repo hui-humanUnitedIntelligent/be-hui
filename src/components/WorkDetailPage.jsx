@@ -823,7 +823,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           In den Korb
         </button>
         <button
-          onClick={() => onBuyWerk ? onBuyWerk({...werk, img: images[0], price: priceStr}) : navigate(`/BookingFlow?werk=${werk.id}`)}
+          onClick={() => onBuyWerk ? onBuyWerk({...werk, img: images[0], price: priceStr}) : onBuyWerk?.({...werk, img: images[0], price: priceStr})}
           className="wd-tap"
           style={{ flex:2, padding:"14px",
             background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
