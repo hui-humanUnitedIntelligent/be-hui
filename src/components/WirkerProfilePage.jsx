@@ -1189,7 +1189,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               ) : (
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   {exps.map((exp,i) => (
-                    <ExpCard key={exp.id||i} exp={exp} fullWidth onTap={e=>onBook?.(e)}/>
+                    <ExpCard key={exp.id||i} exp={exp} fullWidth onBook={onBook} onTap={e=>setShowRequest(true)}/>
                   ))}
                 </div>
               )}
@@ -1264,14 +1264,24 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           {activeTab === "empf" && (
             <div>
               {recs.length === 0 ? (
-                <div style={{ textAlign:"center", padding:"48px 24px",
+                <div style={{ textAlign:"center", padding:"40px 20px",
                   color:C.muted }}>
-                  <div style={{ fontSize:36, marginBottom:12 }}>💬</div>
-                  <div style={{ fontWeight:700, fontSize:15, color:C.ink,
-                    marginBottom:6 }}>Noch keine Empfehlungen</div>
-                  <div style={{ fontSize:13, lineHeight:1.6 }}>
-                    Empfehlungen erscheinen nach abgeschlossenen Buchungen.
+                  <div style={{ fontSize:40, marginBottom:12 }}>💬</div>
+                  <div style={{ fontWeight:800, fontSize:15, color:C.ink,
+                    marginBottom:8 }}>Noch keine Empfehlungen</div>
+                  <div style={{ fontSize:13, lineHeight:1.65, marginBottom:18 }}>
+                    Empfehlungen entstehen nach echten Buchungen und<br/>
+                    werden persönlich und emotional formuliert.
                   </div>
+                  {!isOwner && (
+                    <button onClick={() => setShowRequest(true)}
+                      style={{ padding:"11px 24px", borderRadius:50,
+                        background:`linear-gradient(135deg,${C.coral},${C.coral}CC)`,
+                        border:"none", color:"white", fontWeight:700, fontSize:13,
+                        cursor:"pointer", fontFamily:"inherit" }}>
+                      ✨ Erste Anfrage stellen
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div>
