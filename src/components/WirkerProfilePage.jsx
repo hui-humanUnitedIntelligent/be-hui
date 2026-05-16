@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import LazyImage from "./LazyImage";
-import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery } from "../lib/perfUtils";
+import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery, clearQueryCache } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { fetchCreatorInsights } from "../lib/InsightsEngine";
@@ -955,7 +955,30 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           user={user}
           profile={profile}
           onClose={() => setActiveTool(null)}
-          onSave={(updated) => { setProfile(p => ({...p, ...updated})); setActiveTool(null); }}
+          onSave={(updated) => {
+            // 1. Cache sofort invalidieren — nächste load() holt frische Daten
+            if (user?.id) clearQueryCache(`profile-${user.id}`);
+            // 2. Profil optimistisch sofort updaten (kein Reload nötig)
+            setProfile(p => ({
+              ...p, ...updated,
+              // Felder-Normalisierung: EditProfile schreibt location, WirkerProfilePage zeigt location_label
+              location_label: updated.location || updated.location_label || p?.location_label,
+              display_name:   updated.display_name || p?.display_name,
+              avatar_url:     updated.avatar_url   || p?.avatar_url,
+              header_img:     updated.header_img   || p?.header_img,
+              bio:            updated.bio           ?? p?.bio,
+              talent:         updated.talent        || p?.talent,
+              focus_type:     updated.focus_type    || p?.focus_type,
+              is_available:   updated.is_available  ?? p?.is_available,
+              categories:     updated.categories    || p?.categories || [],
+              mood_tags:      updated.mood_tags     || p?.mood_tags  || [],
+              languages:      updated.languages     || p?.languages  || [],
+              website:        updated.website       || p?.website,
+              hourly_rate:    updated.hourly_rate   || p?.hourly_rate,
+            }));
+            // 3. Tool schließen
+            setActiveTool(null);
+          }}
         />
       )}
     </>
