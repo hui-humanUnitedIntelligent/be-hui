@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase }   from "../lib/supabaseClient";
 import ImpactPage     from "./ImpactPage";
 import ProfilePage from "./ProfilePage";
-// BookingFlow: lazy geladen — verhindert Circular-Init + reduziert initial Bundle
-const BookingFlow = React.lazy(() => import('../components/BookingFlow'));
+// BookingFlow: ENTFERNT aus Home.jsx
+// Buchungsanfragen laufen über WirkerProfilePage.RequestSheet
+// (sendBookingRequest via bookingContext)
 import { WerkDetail, WerkCheckout, WerkeKorb } from "../components/WerkeShop";
 import OrdersPage from "../components/OrdersPage";
 import { useAuth } from "../lib/AuthContext";
@@ -1415,7 +1416,7 @@ export default function Home() {
   const [showTalentFlow, setShowTalentFlow] = useState(false); // "Wirker werden" flow
   const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
   const [showWirker,  setShowWirker]  = useState(null);
-  const [showBooking, setShowBooking] = useState(null);
+  // showBooking: ENTFERNT — Buchungen über WirkerProfilePage.RequestSheet
   const [showWerkDetail,  setShowWerkDetail]  = useState(null);  // werk detail view
   const [showWerkCheckout,setShowWerkCheckout]= useState(null);  // werk checkout
   const [showWerkeKorb,   setShowWerkeKorb]   = useState(false); // korb sheet
@@ -1500,7 +1501,7 @@ export default function Home() {
 
   const switchTab = React.useCallback((newTab) => {
     setShowWirker(null);
-    setShowBooking(null);
+    // setShowBooking: entfernt (BookingFlow aus Home.jsx entfernt)
     setShowWerkDetail(null);
     setShowWerkCheckout(null);
     setShowWerkeKorb(false);
@@ -1520,24 +1521,9 @@ export default function Home() {
     setTab(newTab);
   }, []);
 
-  if(showBooking) return (
-    <div style={{ position:"fixed", inset:0, zIndex:200,
-      overflowY:"auto", background:C.cream }}>
-      <React.Suspense fallback={
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
-          height:"100dvh", background:C.cream }}>
-          <div style={{ opacity:0.3, fontSize:24 }}>✦</div>
-        </div>
-      }>
-        <BookingFlow
-          wirker={showBooking}
-          onClose={()=>setShowBooking(null)}
-          onAddToCart={item=>setCart(p=>[...p,item])}
-          onSuccess={()=>setShowBooking(null)}
-        />
-      </React.Suspense>
-    </div>
-  );
+  // showBooking: ENTFERNT aus Home.jsx
+  // Buchungsanfragen werden über WirkerProfilePage.RequestSheet abgewickelt
+  // onBook-Callback öffnet WirkerProfilePage → RequestSheet öffnet sich intern
 
   if(showWerkDetail) return (
     <WerkDetail
@@ -1578,7 +1564,11 @@ export default function Home() {
           <div style={keepFeed}>
             <DiscoveryFeed
               onView={(w) => (w.type==="werk" || (w.price && w.type!=="wirker" && w.type!=="talent" && w.type!=="profile")) ? setShowWerkDetail(w) : setShowWirker(w)}
-              onBook={(w) => setShowBooking(w)}
+              onBook={(w) => {
+                // Buchungsanfrage über WirkerProfilePage.RequestSheet
+                // WirkerProfilePage öffnen → RequestSheet öffnet sich intern
+                setShowWirker(w);
+              }}
               onImpact={() => switchTab("impact")}
               onMatch={() => setShowMatch(true)}
               onMap={() => setShowMap(true)}
@@ -1663,7 +1653,10 @@ export default function Home() {
           <WirkerProfilePage
             wirker={showWirker}
             onClose={() => setShowWirker(null)}
-            onBook={w => { setShowWirker(null); setShowBooking(w); }}
+            onBook={w => {
+              // WirkerProfile bleibt offen — RequestSheet öffnet sich intern
+              // setShowBooking entfernt (BookingFlow nicht mehr in Home)
+            }}
             onMessage={profile => {
               // Chat öffnet sich als Sheet innerhalb WirkerProfilePage — handled intern
             }}
