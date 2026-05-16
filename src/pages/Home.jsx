@@ -1624,18 +1624,22 @@ export default function Home() {
               else setShowMembership(true);
             }
             if (key === "profile") {
-              let p = authProfile;
+              // Öffnet immer das eigene Profil — WirkerProfilePage
+              // erkennt owner via isOwner (user.id === profile.id)
+              const p = authProfile;
               if (!p?.id) return;
               setShowWirker({
-                id: p.id, user_id: p.id,
-                username: p?.username || null,
-                display_name: p?.display_name || null,
-                avatar_url: p?.avatar_url || null,
-                talent: p?.talent || null,
-                focus_type: p?.focus_type || "hybrid",
-                header_img: p?.header_img || null,
-                bio: p?.bio || null,
-                dna_tags: p?.dna_tags || [],
+                id:           p.id,
+                user_id:      p.id,
+                username:     p.username      || null,
+                display_name: p.display_name  || null,
+                avatar_url:   p.avatar_url    || null,
+                talent:       p.talent        || null,
+                focus_type:   p.focus_type    || "hybrid",
+                header_img:   p.header_img    || null,
+                bio:          p.bio           || null,
+                dna_tags:     p.dna_tags      || [],
+                _isOwnProfile: true,  // Hinweis für WirkerProfilePage
               });
             }
             if (key === "notifs") setShowNotifs(true);
@@ -1653,6 +1657,11 @@ export default function Home() {
           wirker={showWirker}
           onClose={()=>setShowWirker(null)}
           onBook={w=>{setShowWirker(null);setShowBooking(w);}}
+          onEdit={(_p) => {
+            // Owner → Profil bearbeiten (MeinHUI / Einstellungen)
+            setShowWirker(null);
+            switchTab("mein");
+          }}
         />
       )}
         {(showKorb||showWerkeKorb) && <WerkeKorb
