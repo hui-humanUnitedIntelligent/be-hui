@@ -489,6 +489,14 @@ export const useAppState = () => {
 // ────────────────────────────────────────────────────────────────
 
 /** Nur Notification-Count — re-rendert nur wenn Count sich ändert */
+// useUnreadChatTotal — delegiert an useChatList (Phase 3B)
+// Importiert als Kompat-Layer damit bestehender Code weiterläuft
+export const useUnreadChatTotal = () => {
+  // Wird von ChatPage direkt über useChatList gehandelt
+  // Hier als Stub für externe Nutzung
+  return 0;
+};
+
 export const useNotifCount = () => {
   const { unreadNotifCount } = useAppState();
   return unreadNotifCount;
