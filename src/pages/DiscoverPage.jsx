@@ -2,7 +2,7 @@
 // Emotional · Editorial · Lebendig · Apple × Pinterest × Ruhige Community
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 
 /* ── Brand ──────────────────────────────────────────── */
