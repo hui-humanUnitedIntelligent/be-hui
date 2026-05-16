@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { safeQuery } from "../lib/perfUtils";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 
 const C = {
   bg: "#0A0F1E", card: "#111827", card2: "#1A2235", border: "#1E2D45",
