@@ -1400,7 +1400,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
 ═══════════════════════════════════════════════════ */
 export default function Home() {
   const [tab,         setTab]         = useState("feed");
-  const { isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, loadingProfile, profile: authProfile, wirkerProfile, signOut: authSignOut } = useAuth();
+  const { user, isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, loadingProfile, profile: authProfile, wirkerProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
   const [showTalentFlow, setShowTalentFlow] = useState(false); // "Wirker werden" flow
   const [showCreateSheet, setShowCreateSheet] = useState(false); // wirker create menu
@@ -1626,9 +1626,9 @@ export default function Home() {
             if (key === "profile") {
               // "Mein HUI" → öffnet eigenes öffentliches Profil
               // WirkerProfilePage erkennt Owner automatisch via isOwner
-              const p = authProfile;
+              const p   = authProfile;
               const uid = p?.id || user?.id;
-              if (!uid) return;
+              if (!uid) { console.warn("[MeinHUI] keine uid — authProfile:", p, "user:", user); return; }
               setShowWirker({
                 id:            uid,
                 user_id:       uid,
