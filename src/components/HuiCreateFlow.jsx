@@ -235,32 +235,121 @@ function CollapseSection({ title, icon, defaultOpen = false, children, accent = 
    Ultra-light: Media + Caption + Teilen
    Keine Kategorien, keine Preise, keine Konfiguration
 ══════════════════════════════════════════════════════════════════ */
-function ScreenMoment({ onClose, onNext }) {
-  const [file,      setFile]      = useState(null);
-  const [preview,   setPreview]   = useState(null);
-  const [isVid,     setIsVid]     = useState(false);
-  const [caption,   setCaption]   = useState("");
-  const [location,  setLocation]  = useState("");
-  const [showLoc,   setShowLoc]   = useState(false);
-  const [visibility,setVisibility]= useState("public");
-  const [showVis,   setShowVis]   = useState(false);
+function ScreenMoment({ onClose, onPublishDirect }) {
+  const [file,       setFile]       = useState(null);
+  const [preview,    setPreview]    = useState(null);
+  const [isVid,      setIsVid]      = useState(false);
+  const [caption,    setCaption]    = useState("");
+  const [location,   setLocation]   = useState("");
+  const [showLoc,    setShowLoc]    = useState(false);
+  const [visibility, setVisibility] = useState("public");
+  const [moodTags,   setMoodTags]   = useState([]);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState("");
+  const [done,       setDone]       = useState(false);
+  const [progress,   setProgress]   = useState(0);
   const fileRef = useRef(null);
   const textRef = useRef(null);
+  const { user } = useAuth();
+
+  const MOODS = [
+    { key:"ruhig",        label:"🌿 Ruhig" },
+    { key:"gluecklich",   label:"☀️ Glücklich" },
+    { key:"inspirierend", label:"💡 Inspirierend" },
+    { key:"kreativ",      label:"🎨 Kreativ" },
+    { key:"frei",         label:"🦋 Frei" },
+    { key:"dankbar",      label:"🙏 Dankbar" },
+    { key:"abenteuer",    label:"🌍 Abenteuer" },
+    { key:"energiegeladen",label:"⚡ Energie" },
+    { key:"tief",         label:"🌊 Tief" },
+    { key:"gemeinschaft", label:"🤝 Gemeinschaft" },
+  ];
 
   function pickFile(f) {
     if (!f) return;
+    const maxSize = f.type.startsWith("video") ? 100 * 1024 * 1024 : 20 * 1024 * 1024;
+    if (f.size > maxSize) {
+      setError(f.type.startsWith("video") ? "Video max. 100 MB" : "Bild max. 20 MB");
+      return;
+    }
+    setError("");
     setFile(f);
     setIsVid(f.type.startsWith("video"));
-    setPreview(URL.createObjectURL(f));
-    // Focus caption after short delay
-    setTimeout(() => textRef.current?.focus(), 280);
+    const prev = URL.createObjectURL(f);
+    setPreview(prev);
+    setTimeout(() => textRef.current?.focus(), 300);
   }
 
-  function handleNext() {
-    onNext({ file, preview, isVid, caption, location, visibility });
+  function toggleMood(k) {
+    setMoodTags(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k]);
   }
 
-  const canPost = !!file;
+  async function publish() {
+    if (!file || !user) return;
+    setLoading(true); setError(""); setProgress(10);
+    try {
+      const ext  = (file.name.split(".").pop() || (isVid ? "mp4" : "jpg")).toLowerCase();
+      const path = `moments/${user.id}/${Date.now()}.${ext}`;
+      setProgress(25);
+
+      const { error: upErr } = await supabase.storage
+        .from("media").upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      setProgress(65);
+
+      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+      setProgress(80);
+
+      const { error: dbErr } = await supabase.from("stories").insert({
+        user_id:    user.id,
+        media_url:  publicUrl,
+        media_type: isVid ? "video" : "image",
+        caption:    caption.trim() || null,
+        location:   location.trim() || null,
+        mood_tags:  moodTags.length ? moodTags : null,
+        status:     "published",
+        expires_at: null,
+        created_at: new Date().toISOString(),
+      });
+      if (dbErr) throw dbErr;
+      setProgress(100);
+      setDone(true);
+      setTimeout(() => { onPublishDirect?.(); onClose?.(); }, 2000);
+    } catch (err) {
+      console.error("[HUI Moment]", err);
+      setError(err.message || "Upload fehlgeschlagen. Bitte nochmal versuchen.");
+      setLoading(false); setProgress(0);
+    }
+  }
+
+  // Done State
+  if (done) {
+    return (
+      <div className="hcf2-sheet" style={{
+        alignItems:"center", justifyContent:"center", gap:20,
+        background: `linear-gradient(160deg, rgba(22,215,197,0.06) 0%, rgba(255,138,107,0.04) 100%)`,
+      }}>
+        <style>{CSS}</style>
+        <div style={{
+          width:80, height:80, borderRadius:"50%",
+          background:`linear-gradient(135deg, ${C.teal}, ${C.coral})`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:34, animation:"hcf2-pop .5s ease both",
+          boxShadow:`0 12px 40px rgba(22,215,197,0.35)`,
+        }}>✨</div>
+        <div style={{ textAlign:"center", animation:"hcf2-fade .4s .3s both" }}>
+          <div style={{ fontSize:22, fontWeight:900, color:C.ink, marginBottom:6 }}>
+            Dein Moment ist live!
+          </div>
+          <div style={{ fontSize:14, color:C.muted }}>
+            Alle können ihn jetzt sehen ✦
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const canPost = !!file && !loading;
 
   return (
     <div className="hcf2-sheet">
@@ -269,213 +358,304 @@ function ScreenMoment({ onClose, onNext }) {
       {/* ── Header ── */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
-        padding:"14px 18px 10px", flexShrink:0,
+        padding:"14px 18px 8px", flexShrink:0,
       }}>
-        <button onClick={onClose} className="hcf2-tap" style={{
-          background:"none", border:"none", padding:6,
-          borderRadius:"50%", display:"flex",
+        <button onClick={onClose} disabled={loading} style={{
+          background:"none", border:"none", padding:8, borderRadius:"50%",
+          display:"flex", opacity: loading ? 0.4 : 1, cursor: loading ? "not-allowed" : "pointer",
         }}>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M1 1L19 19M19 1L1 19"
-              stroke={C.ink} strokeWidth="2" strokeLinecap="round"/>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M1 1L17 17M17 1L1 17" stroke={C.ink} strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
         </button>
-
-        <span style={{
-          fontWeight:800, fontSize:16.5, color:C.ink,
-          letterSpacing:-.3,
-        }}>Teilen</span>
-
-        <div style={{ width:32 }}/>  {/* balance spacer */}
+        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+          <span style={{ fontSize:18 }}>✨</span>
+          <span style={{ fontWeight:900, fontSize:16, color:C.ink, letterSpacing:-.3 }}>
+            Moment
+          </span>
+        </div>
+        <div style={{ width:34 }}/>
       </div>
 
-      {/* ── Scrollbarer Inhalt ── */}
-      <div className="hcf2-scroll" style={{ flex:1, padding:"0 18px" }}>
+      {/* ── Progress Bar ── */}
+      {loading && (
+        <div style={{
+          height:3, background:"rgba(0,0,0,0.06)", flexShrink:0,
+          position:"relative", overflow:"hidden",
+        }}>
+          <div style={{
+            position:"absolute", inset:0,
+            background:`linear-gradient(90deg, ${C.teal}, ${C.coral})`,
+            width: `${progress}%`,
+            transition:"width .4s ease",
+            borderRadius:99,
+          }}/>
+        </div>
+      )}
 
-        {/* Media Fläche */}
+      {/* ── Scrollbarer Inhalt ── */}
+      <div className="hcf2-scroll" style={{ flex:1, padding:"10px 18px 0" }}>
+
+        {/* ── Media Fläche ── */}
         <div
           className="hcf2-tap hcf2-animate"
-          onClick={() => fileRef.current?.click()}
+          onClick={() => !loading && fileRef.current?.click()}
           style={{
-            width:"100%",
-            aspectRatio: preview ? "1/1" : "4/3",
-            borderRadius:22,
-            overflow:"hidden",
-            background: preview
-              ? "transparent"
-              : `linear-gradient(145deg, rgba(22,215,197,0.08) 0%, rgba(255,138,107,0.06) 100%)`,
-            border: preview
-              ? "none"
-              : "2px dashed rgba(22,215,197,0.30)",
+            width:"100%", aspectRatio: preview ? "4/5" : "4/3",
+            borderRadius:24, overflow:"hidden", marginBottom:16,
+            background: preview ? "transparent"
+              : `linear-gradient(145deg, rgba(22,215,197,0.08), rgba(255,138,107,0.06))`,
+            border: preview ? "none" : "2px dashed rgba(22,215,197,0.28)",
             display:"flex", alignItems:"center", justifyContent:"center",
-            flexDirection:"column", gap:12,
-            marginBottom:18,
-            position:"relative",
-            cursor:"pointer",
+            flexDirection:"column", gap:14, position:"relative",
+            cursor: loading ? "not-allowed" : "pointer",
             transition:"all .25s ease",
           }}>
           {preview ? (
-            isVid
-              ? <video src={preview} style={{
-                  width:"100%", height:"100%", objectFit:"cover",
-                }} muted playsInline/>
-              : <img src={preview} alt="preview" style={{
-                  width:"100%", height:"100%", objectFit:"cover",
-                }}/>
+            <>
+              {isVid
+                ? <video src={preview} style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                    muted playsInline autoPlay loop/>
+                : <img src={preview} alt="preview"
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+              }
+              {/* Change overlay */}
+              {!loading && (
+                <div style={{
+                  position:"absolute", bottom:12, right:12,
+                  background:"rgba(0,0,0,0.52)", backdropFilter:"blur(14px)",
+                  borderRadius:20, padding:"5px 13px",
+                  color:"white", fontSize:11.5, fontWeight:700,
+                  display:"flex", alignItems:"center", gap:5,
+                }}>
+                  <span>↺</span><span>Ändern</span>
+                </div>
+              )}
+              {/* Loading overlay */}
+              {loading && (
+                <div style={{
+                  position:"absolute", inset:0, background:"rgba(255,255,255,0.72)",
+                  backdropFilter:"blur(8px)", display:"flex",
+                  alignItems:"center", justifyContent:"center", flexDirection:"column", gap:10,
+                }}>
+                  <div style={{
+                    width:40, height:40, borderRadius:"50%",
+                    border:`3px solid rgba(22,215,197,0.2)`,
+                    borderTop:`3px solid ${C.teal}`,
+                    animation:"hcf2-spin .8s linear infinite",
+                  }}/>
+                  <div style={{ fontSize:12, color:C.ink2, fontWeight:600 }}>
+                    {progress < 65 ? "Wird hochgeladen…" : "Fast fertig…"}
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <>
+              {/* Upload Icon */}
               <div style={{
-                width:56, height:56, borderRadius:"50%",
+                width:64, height:64, borderRadius:"50%",
                 background:"rgba(22,215,197,0.10)",
                 display:"flex", alignItems:"center", justifyContent:"center",
               }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="4"
-                    stroke={C.teal} strokeWidth="1.8"/>
-                  <circle cx="8.5" cy="8.5" r="1.5" fill={C.teal}/>
-                  <path d="M3 15L8 10L12 14L16 10L21 15"
-                    stroke={C.teal} strokeWidth="1.8" strokeLinecap="round"/>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <path d="M14 4v14M8 10l6-6 6 6" stroke={C.teal} strokeWidth="2.2"
+                    strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M4 22h20" stroke={C.teal} strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:15, fontWeight:700, color:C.ink2 }}>
+                <div style={{ fontSize:15.5, fontWeight:700, color:C.ink2 }}>
                   Foto oder Video
                 </div>
-                <div style={{ fontSize:12.5, color:C.muted, marginTop:3 }}>
-                  Tippe um auszuwählen
+                <div style={{ fontSize:12.5, color:C.muted, marginTop:4 }}>
+                  Tippe hier oder ziehe rein
                 </div>
+              </div>
+              <div style={{
+                display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center", padding:"0 20px",
+              }}>
+                {["📷 Kamera", "🖼 Galerie", "🎥 Video"].map(l => (
+                  <span key={l} style={{
+                    fontSize:11, color:C.teal, background:"rgba(22,215,197,0.08)",
+                    padding:"3px 10px", borderRadius:99, fontWeight:600,
+                  }}>{l}</span>
+                ))}
               </div>
             </>
           )}
-
-          {/* Change overlay wenn preview */}
-          {preview && (
-            <div style={{
-              position:"absolute", bottom:10, right:10,
-              background:"rgba(0,0,0,0.48)",
-              backdropFilter:"blur(12px)",
-              borderRadius:20, padding:"5px 12px",
-              color:"white", fontSize:11.5, fontWeight:700,
-            }}>
-              Ändern
-            </div>
-          )}
         </div>
 
-        <input ref={fileRef} type="file"
-          accept="image/*,video/*" style={{ display:"none" }}
+        <input ref={fileRef} type="file" accept="image/*,video/*"
+          capture="environment"
+          style={{ display:"none" }}
           onChange={e => pickFile(e.target.files?.[0])}/>
 
-        {/* Caption */}
-        <div className="hcf2-field hcf2-animate" style={{
-          animationDelay:"0.05s", marginBottom:12,
-        }}>
-          <textarea
-            ref={textRef}
+        {/* ── Caption ── */}
+        <div className="hcf2-field hcf2-animate" style={{ animationDelay:".05s", marginBottom:14 }}>
+          <textarea ref={textRef}
             className="hcf2-input"
             rows={3}
-            placeholder="Was bewegt dich heute? ✨"
+            maxLength={280}
+            placeholder="Was möchtest du teilen? ✨"
             value={caption}
+            disabled={loading}
             onChange={e => setCaption(e.target.value)}
+            style={{ resize:"none" }}
           />
+          <div style={{
+            textAlign:"right", fontSize:11, color:C.muted,
+            marginTop:4, paddingRight:2,
+          }}>
+            {caption.length}/280
+          </div>
         </div>
 
-        {/* Optionale Felder — sehr subtil */}
-        <div className="hcf2-animate" style={{ animationDelay:"0.10s" }}>
+        {/* ── Mood Tags ── */}
+        <div className="hcf2-animate" style={{ animationDelay:".08s", marginBottom:16 }}>
           <div style={{
-            display:"flex", gap:8, marginBottom:14, flexWrap:"wrap",
+            fontSize:11.5, fontWeight:700, color:C.muted,
+            textTransform:"uppercase", letterSpacing:.8, marginBottom:9,
           }}>
-            {/* Ort-Toggle */}
-            <button
-              className="hcf2-tap"
-              onClick={() => setShowLoc(l => !l)}
+            Stimmung
+          </div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+            {MOODS.map(m => {
+              const sel = moodTags.includes(m.key);
+              return (
+                <button key={m.key}
+                  disabled={loading}
+                  onClick={() => toggleMood(m.key)}
+                  style={{
+                    padding:"7px 13px", borderRadius:999, border:"none",
+                    fontSize:13, fontWeight:600, fontFamily:"inherit",
+                    cursor: loading ? "not-allowed" : "pointer",
+                    background: sel
+                      ? `linear-gradient(135deg, ${C.teal}22, ${C.coral}18)`
+                      : "rgba(0,0,0,0.04)",
+                    color:   sel ? C.teal : C.ink3,
+                    boxShadow: sel ? `0 0 0 1.5px ${C.teal}55` : `0 0 0 1px rgba(0,0,0,0.08)`,
+                    transition:"all .15s ease",
+                    transform: sel ? "scale(1.04)" : "scale(1)",
+                  }}>
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Optionale Felder ── */}
+        <div className="hcf2-animate" style={{ animationDelay:".11s", marginBottom:14 }}>
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+            {/* Ort */}
+            <button disabled={loading} onClick={() => setShowLoc(p => !p)}
               style={{
-                display:"flex", alignItems:"center", gap:6,
-                padding:"8px 14px", borderRadius:999,
+                display:"flex", alignItems:"center", gap:5,
+                padding:"7px 14px", borderRadius:999, fontFamily:"inherit",
                 background: showLoc ? "rgba(22,215,197,0.10)" : "rgba(0,0,0,0.04)",
-                border:`1.5px solid ${showLoc ? C.teal+"44" : "rgba(0,0,0,0.09)"}`,
+                border:`1.5px solid ${showLoc ? C.teal+"44" : "rgba(0,0,0,0.08)"}`,
                 color: showLoc ? C.teal : C.muted,
-                fontSize:13, fontWeight:600, fontFamily:"inherit",
-                transition:"all .18s",
+                fontSize:13, fontWeight:600,
+                cursor: loading ? "not-allowed" : "pointer",
+                transition:"all .15s",
               }}>
-              <span style={{ fontSize:14 }}>📍</span>
-              <span>Ort</span>
+              📍 {showLoc && location ? location.slice(0,15) + (location.length>15?"…":"") : "Ort"}
             </button>
 
             {/* Sichtbarkeit */}
-            <button
-              className="hcf2-tap"
-              onClick={() => setShowVis(v => !v)}
+            <button disabled={loading}
+              onClick={() => {
+                const opts = ["public","followers","private"];
+                const idx = opts.indexOf(visibility);
+                setVisibility(opts[(idx+1)%3]);
+              }}
               style={{
-                display:"flex", alignItems:"center", gap:6,
-                padding:"8px 14px", borderRadius:999,
-                background: showVis ? "rgba(167,139,250,0.10)" : "rgba(0,0,0,0.04)",
-                border:`1.5px solid ${showVis ? C.purple+"44" : "rgba(0,0,0,0.09)"}`,
-                color: showVis ? C.purple : C.muted,
-                fontSize:13, fontWeight:600, fontFamily:"inherit",
-                transition:"all .18s",
+                display:"flex", alignItems:"center", gap:5,
+                padding:"7px 14px", borderRadius:999, fontFamily:"inherit",
+                background:"rgba(0,0,0,0.04)",
+                border:"1.5px solid rgba(0,0,0,0.08)",
+                color:C.muted, fontSize:13, fontWeight:600,
+                cursor: loading ? "not-allowed" : "pointer",
+                transition:"all .15s",
               }}>
-              <span style={{ fontSize:14 }}>
-                {visibility === "public" ? "🌍" : visibility === "followers" ? "👥" : "🔒"}
-              </span>
-              <span>
-                {visibility === "public" ? "Öffentlich"
-                  : visibility === "followers" ? "Follower"
-                  : "Privat"}
-              </span>
+              {visibility==="public" ? "🌍 Alle"
+                : visibility==="followers" ? "👥 Follower"
+                : "🔒 Nur ich"}
             </button>
           </div>
 
-          {/* Ort-Eingabe */}
           {showLoc && (
-            <div className="hcf2-field hcf2-animate-fade" style={{ marginBottom:10 }}>
-              <div className="hcf2-field-label">Ort</div>
+            <div className="hcf2-animate-fade" style={{ marginTop:10 }}>
               <input
                 className="hcf2-input"
-                placeholder="Stadt, Ort oder Adresse"
+                placeholder="Stadt oder Ort"
                 value={location}
+                disabled={loading}
                 onChange={e => setLocation(e.target.value)}
+                style={{ marginBottom:0 }}
               />
-            </div>
-          )}
-
-          {/* Sichtbarkeit-Chips */}
-          {showVis && (
-            <div className="hcf2-pill-row hcf2-animate-fade" style={{ marginBottom:12 }}>
-              {[
-                { v:"public",    label:"🌍 Alle" },
-                { v:"followers", label:"👥 Follower" },
-                { v:"private",   label:"🔒 Nur ich" },
-              ].map(o => (
-                <Pill key={o.v}
-                  label={o.label}
-                  selected={visibility === o.v}
-                  color={C.purple}
-                  onClick={() => setVisibility(o.v)}/>
-              ))}
             </div>
           )}
         </div>
 
-        {/* Bottom spacer */}
-        <div style={{ height:24 }}/>
+        {/* Error */}
+        {error && (
+          <div style={{
+            background:"rgba(255,80,80,0.08)", border:"1px solid rgba(255,80,80,0.20)",
+            borderRadius:12, padding:"10px 14px", marginBottom:12,
+            fontSize:13, color:"#D44", fontWeight:600,
+            animation:"hcf2-fade .2s ease",
+          }}>
+            ⚠️ {error}
+          </div>
+        )}
+
+        <div style={{ height:20 }}/>
       </div>
 
       {/* ── Publish Button ── */}
-      <div style={{ padding:"12px 18px 18px", flexShrink:0 }}>
+      <div style={{ padding:"12px 18px 20px", flexShrink:0 }}>
         <button
           className="hcf2-publish-btn"
           disabled={!canPost}
-          onClick={handleNext}
+          onClick={publish}
           style={{
             background: canPost
               ? `linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 45%, ${C.coral} 100%)`
               : "rgba(0,0,0,0.07)",
-            color:      canPost ? "white" : "rgba(120,120,120,0.7)",
-            boxShadow:  canPost ? "0 4px 22px rgba(22,215,197,0.32)" : "none",
+            color:     canPost ? "white" : "rgba(120,120,120,0.6)",
+            boxShadow: canPost ? "0 6px 28px rgba(22,215,197,0.35)" : "none",
+            fontSize:16, fontWeight:900, letterSpacing:-.2,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:8,
           }}>
-          {canPost ? "Teilen ✦" : "Foto oder Video wählen"}
+          {loading
+            ? <><div style={{
+                width:18, height:18, borderRadius:"50%",
+                border:"2.5px solid rgba(255,255,255,0.3)",
+                borderTop:"2.5px solid white",
+                animation:"hcf2-spin .7s linear infinite", flexShrink:0,
+              }}/> Wird geteilt…</>
+            : canPost ? "✨  Moment veröffentlichen"
+            : "Foto oder Video wählen"
+          }
         </button>
+
+        {/* Werk/Erlebnis Option — sehr subtil */}
+        {preview && !loading && (
+          <div style={{
+            textAlign:"center", marginTop:12, fontSize:12.5, color:C.muted,
+            animation:"hcf2-fade .3s .2s both",
+          }}>
+            Möchtest du mehr?{" "}
+            <button onClick={() => {}} style={{
+              background:"none", border:"none", color:C.teal,
+              fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit",
+            }}>
+              Als Werk oder Erlebnis →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1276,9 +1456,8 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
       {screen === "moment" && (
         <ScreenMoment
           onClose={onClose}
-          onNext={(m) => {
-            setMediaData(m);
-            setScreen("suggestion");
+          onPublishDirect={() => {
+            onSuccess?.();
           }}
         />
       )}
