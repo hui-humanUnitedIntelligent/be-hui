@@ -1388,7 +1388,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             // Legacy-Felder (WirkerTile/WirkerCard lesen diese)
             name:         p.display_name || p.username || "Talent",
             talent:       p.talent       || "Kreativ",
-            city:         p.location_label || "",
+            city:         p.location || "",
             available:    p.is_available !== false,
             img:          p.avatar_url   || null,
             // Neue vollständige Felder
@@ -1397,7 +1397,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
             bio:          p.bio          || null,
             focus_type:   p.focus_type   || "hybrid",
             dna_tags:     p.dna_tags     || [],
-            location_label: p.location_label || "",
+            location_label: p.location || "",
             impact_eur:   p.impact_eur   || 0,
             impactEur:    p.impact_eur   || 0,
             followers_count: p.followers_count || 0,
