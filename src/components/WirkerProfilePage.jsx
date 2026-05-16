@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
 const C = {
@@ -282,18 +283,20 @@ function buildMock(rawWirker) {
 ═══════════════════════════════════════════════════════════════════ */
 export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onMessage, onEdit }) {
   const { user } = useAuth();
-  const [profile,   setProfile]   = useState(null);
-  const [works,     setWorks]     = useState([]);
-  const [exps,      setExps]      = useState([]);
-  const [recs,      setRecs]      = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [followed,  setFollowed]  = useState(false);
-  const [activeTab, setActiveTab] = useState("werke");
-  const [heroLoaded,setHeroLoaded]= useState(false);
-  const tabsRef = useRef(null);
+  const navigate  = useNavigate();
+  const [profile,        setProfile]       = useState(null);
+  const [works,          setWorks]         = useState([]);
+  const [exps,           setExps]          = useState([]);
+  const [recs,           setRecs]          = useState([]);
+  const [loading,        setLoading]       = useState(true);
+  const [followed,       setFollowed]      = useState(false);
+  const [activeTab,      setActiveTab]     = useState("werke");
+  const [heroLoaded,     setHeroLoaded]    = useState(false);
+  const [ownerToolsOpen, setOwnerToolsOpen]= useState(false); // Creator-Tools Drawer
+  const tabsRef    = useRef(null);
   const contentRef = useRef(null);
 
-  // Owner Mode: Nutzer schaut sein eigenes Profil
+  // Owner Mode: Nutzer schaut sein eigenes öffentliches Profil
   const isOwner = !!(
     user?.id &&
     profile &&
@@ -478,15 +481,18 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             )}
             <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
               {isOwner ? (
+                /* Owner: kleiner "⚙" Chip — diskret, kein dominantes Dashboard-Feeling */
                 <button className="wp-tap"
-                  onClick={() => onEdit?.(profile)}
-                  style={{ height:38, padding:"0 14px", borderRadius:12,
-                    background:"rgba(255,255,255,0.22)", backdropFilter:"blur(14px)",
-                    border:"1px solid rgba(255,255,255,0.30)",
-                    display:"flex", alignItems:"center", gap:6,
-                    color:"white", fontSize:13, fontWeight:700, fontFamily:"inherit" }}>
-                  <span style={{ fontSize:14 }}>✏️</span>
-                  <span>Bearbeiten</span>
+                  onClick={() => setOwnerToolsOpen(o => !o)}
+                  style={{ height:34, padding:"0 12px", borderRadius:20,
+                    background:"rgba(255,255,255,0.18)", backdropFilter:"blur(14px)",
+                    border:"1px solid rgba(255,255,255,0.28)",
+                    display:"flex", alignItems:"center", gap:5,
+                    color:"rgba(255,255,255,0.92)", fontSize:12,
+                    fontWeight:600, fontFamily:"inherit",
+                    letterSpacing:0.1 }}>
+                  <span style={{ fontSize:13 }}>⚙</span>
+                  <span>Tools</span>
                 </button>
               ) : (
                 <button className="wp-tap"
