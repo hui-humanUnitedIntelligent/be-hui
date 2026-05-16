@@ -335,6 +335,12 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const presenceStatus = usePresence(profile?.id);
   const presenceInfo   = getPresenceLabel(presenceStatus);
 
+  // Phase 3C + 3A Trust
+  const { recommendations: reputationRecs, collaborations: reputationCollabs,
+          signals: reputationSignals, collabSummary } = useReputation(profile);
+  const { sendVerifiedRecommendation } = useRecommendationActions();
+  const trustSignals = getTrustSignals(profile);
+
   const isOwner = !!(
     user?.id &&
     profile &&
