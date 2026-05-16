@@ -96,7 +96,7 @@ function ChatThread({ chat, onBack }) {
     const txt = input.trim();
     if (!txt || sending) return;
     setSending(true);
-    setInput("");
+    setInputState(""); setDraft({ text: "" }); // clear draft
     const { error } = await supabase.from("messages").insert({
       chat_id: chat.id, sender_id: user.id, text: txt, read: false
     });
