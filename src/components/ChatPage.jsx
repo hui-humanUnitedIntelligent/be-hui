@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuth } from "../lib/AuthContext";
+import { AMBIENT_CSS, TRANSITIONS, getSoftStatus } from "../lib/journeyContext";
 import { useDraftPersist, useScrollMemory, usePresence, getPresenceLabel } from "../lib/sessionHooks";
 import {
   useChatList, useChatThread, useChatContext,
@@ -19,6 +20,7 @@ const C = {
 };
 
 const CSS = `
+${AMBIENT_CSS}
   @keyframes msgSlideIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
   @keyframes cpPulse{0%,100%{opacity:1}50%{opacity:.35}}
   @keyframes cpShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
@@ -139,7 +141,7 @@ function ChatThread({ chat, onBack, onViewWork }) {
   }, [input, sending, sendMessage, setDraftState]);
 
   const bookingBadge = booking ? {
-    label: BOOKING_STATUS[booking.status]?.label,
+    label: BOOKING_STATUS[booking.status]?.softText || BOOKING_STATUS[booking.status]?.label,
     color: BOOKING_STATUS[booking.status]?.color,
     emoji: BOOKING_STATUS[booking.status]?.emoji,
   } : null;
