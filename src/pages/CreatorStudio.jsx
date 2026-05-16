@@ -148,12 +148,24 @@ export default function CreatorStudio() {
           )}
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats — echte Daten aus AppStateContext */}
         <div style={{ display:"flex", gap:10 }}>
           {[
-            { icon:"👁", label:"Views", value:"—" },
-            { icon:"💰", label:"Monat",  value:"—" },
-            { icon:"🌱", label:"Impact", value:"—" },
+            {
+              icon:"🎨",
+              label:"Werke",
+              value: ownWorks.length > 0 ? ownWorks.length : (profile?.works_count || 0),
+            },
+            {
+              icon:"📦",
+              label:"Aufträge",
+              value: bookings.filter(b => b.status === "accepted" || b.status === "pending").length || "—",
+            },
+            {
+              icon:"🌱",
+              label:"Impact",
+              value: profile?.impact_eur ? `€ ${Math.round(profile.impact_eur)}` : "—",
+            },
           ].map(s => (
             <div key={s.label} style={{ flex:1, padding:"10px 12px",
               background:"rgba(255,255,255,0.07)",
