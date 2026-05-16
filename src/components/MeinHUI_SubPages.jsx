@@ -1826,7 +1826,10 @@ function MitgliedschaftPage({ onBack, profile, hasTalentProfile }) {
             Inhalte werden ausgeblendet. Diese Aktion kann rückgängig gemacht werden.
           </div>
           <button className="sp-tap"
-            onClick={() => window.alert("Kündigung — bitte wende dich an support@behui.app")}
+            onClick={() => {
+              // Kündigung: User zu Support-Kontakt leiten
+              window.open("mailto:support@behui.app?subject=Mitgliedschaft%20kündigen&body=Hallo%20HUI-Team%2C%0A%0Aich%20möchte%20meine%20Creator-Mitgliedschaft%20kündigen.%0A%0AUser-ID%3A%20" + encodeURIComponent(window.HUI_USER_ID || ''), "_blank");
+            }}
             style={{ padding:"10px 18px", borderRadius:50,
               background:"none", border:`1px solid ${C.red}44`,
               color:C.red, fontSize:13, fontWeight:700, cursor:"pointer",
