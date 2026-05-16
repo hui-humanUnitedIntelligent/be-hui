@@ -21,7 +21,7 @@ import { StoryBar, StoryViewer } from "../components/StoryBar";
 import DiscoverPage   from "./DiscoverPage";
 import ChatPage from "../components/ChatPage";
 import NotificationCenter from "../components/NotificationCenter";
-import { useNotifCount } from "../components/NotificationCenter";
+import { useNotifCount } from "../lib/AppStateContext";
 import HuiMembershipFlow from "../components/HuiMembershipFlow";
 import HuiCreateFlow  from "../components/HuiCreateFlow";
 import HuiPlusSheet   from "../components/HuiPlusSheet";
