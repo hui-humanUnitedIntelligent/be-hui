@@ -553,7 +553,7 @@ export default function HuiOrb({
     },
     {
       key:"profile",angleIndex:4,
-      label:"Mein Profil",  badge:0,       accentRgb:"58,58,58",
+      label:"Mein HUI",     badge:0,       accentRgb:"22,215,197",
       fn:onProfile,
       icon: avatarUrl
         ? <img src={avatarUrl} alt="Profil"
