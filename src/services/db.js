@@ -10,7 +10,7 @@
 //  • Kein select("*") — nur explizite Felder
 // ══════════════════════════════════════════════════════════════
 
-import { supabase } from '.../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { safeQuery, cachedQuery, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
