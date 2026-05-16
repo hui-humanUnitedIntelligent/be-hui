@@ -1624,22 +1624,23 @@ export default function Home() {
               else setShowMembership(true);
             }
             if (key === "profile") {
-              // Öffnet immer das eigene Profil — WirkerProfilePage
-              // erkennt owner via isOwner (user.id === profile.id)
+              // "Mein HUI" → öffnet eigenes öffentliches Profil
+              // WirkerProfilePage erkennt Owner automatisch via isOwner
               const p = authProfile;
-              if (!p?.id) return;
+              const uid = p?.id || user?.id;
+              if (!uid) return;
               setShowWirker({
-                id:           p.id,
-                user_id:      p.id,
-                username:     p.username      || null,
-                display_name: p.display_name  || null,
-                avatar_url:   p.avatar_url    || null,
-                talent:       p.talent        || null,
-                focus_type:   p.focus_type    || "hybrid",
-                header_img:   p.header_img    || null,
-                bio:          p.bio           || null,
-                dna_tags:     p.dna_tags      || [],
-                _isOwnProfile: true,  // Hinweis für WirkerProfilePage
+                id:            uid,
+                user_id:       uid,
+                username:      p?.username      || null,
+                display_name:  p?.display_name  || null,
+                avatar_url:    p?.avatar_url    || null,
+                talent:        p?.talent        || null,
+                focus_type:    p?.focus_type    || "hybrid",
+                header_img:    p?.header_img    || null,
+                bio:           p?.bio           || null,
+                dna_tags:      p?.dna_tags      || [],
+                _isOwnProfile: true,
               });
             }
             if (key === "notifs") setShowNotifs(true);
@@ -1658,9 +1659,9 @@ export default function Home() {
           onClose={()=>setShowWirker(null)}
           onBook={w=>{setShowWirker(null);setShowBooking(w);}}
           onEdit={(_p) => {
-            // Owner → Profil bearbeiten (MeinHUI / Einstellungen)
+            // Owner → Profil bearbeiten → öffnet ProfilePage (privater Bereich)
             setShowWirker(null);
-            switchTab("mein");
+            switchTab("profile");
           }}
         />
       )}
