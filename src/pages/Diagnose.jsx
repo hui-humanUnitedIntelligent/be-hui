@@ -1,7 +1,7 @@
 // src/pages/Diagnose.jsx
 // Hard Debug — zeigt Supabase Status, ENV Vars, DB Queries
 import React, { useState, useEffect } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY;
