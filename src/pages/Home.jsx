@@ -1643,17 +1643,21 @@ export default function Home() {
           onMoodSelect={(m)=>{ setActiveMood(m); setShowMatch(false); }}
           onView={w=>{setShowWirker(w);setShowMatch(false);}}/> }
         {showWirker && (
-        <WirkerProfilePage
-          wirker={showWirker}
-          onClose={()=>setShowWirker(null)}
-          onBook={w=>{setShowWirker(null);setShowBooking(w);}}
-          onEdit={(_p) => {
-            // Owner → Profil bearbeiten → öffnet ProfilePage (privater Bereich)
-            setShowWirker(null);
-            switchTab("profile");
-          }}
-        />
-      )}
+          <WirkerProfilePage
+            wirker={showWirker}
+            onClose={() => setShowWirker(null)}
+            onBook={w => { setShowWirker(null); setShowBooking(w); }}
+            onMessage={profile => {
+              // Chat öffnet sich als Sheet innerhalb WirkerProfilePage
+              // kein navigate() nötig — handled intern
+              console.log("[Home] onMessage:", profile?.display_name);
+            }}
+            onEdit={() => {
+              setShowWirker(null);
+              switchTab("profile");
+            }}
+          />
+        )}
         {(showKorb||showWerkeKorb) && <WerkeKorb
           items={cart}
           onClose={()=>{setShowKorb(false);setShowWerkeKorb(false);}}
