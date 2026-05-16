@@ -330,7 +330,7 @@ export function AppStateProvider({ children }) {
 
     // 1. Notifications — realtime
     const notifChannel = supabase
-      .channel(`notifs:${user.id}`)
+      .channel(`asc-notifs:${user.id}`)  // Single-Owner: AppStateContext
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
