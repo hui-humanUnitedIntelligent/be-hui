@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 21:00:41 — 3d.1 final
+// HUI build 2026-05-16 21:05:43 — BookingFlow ReferenceError fixed
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
