@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
+import { AppStateProvider } from './lib/AppStateContext'
 import Home from './pages/Home'
 import ImpactPage from './pages/ImpactPage'
 import LoginPage from './pages/LoginPage'
@@ -320,10 +321,12 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
+        <AppStateProvider>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
-        </AuthProvider>
+          </AppStateProvider>
+      </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );
