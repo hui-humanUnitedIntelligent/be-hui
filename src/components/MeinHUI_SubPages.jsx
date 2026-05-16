@@ -3,7 +3,7 @@
 // Verwendet bestehende Supabase-Tabellen
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { safeQuery, FIELDS, cachedQuery } from "../lib/perfUtils";
 import { ProfileService } from "../services/db";
 import { useAuth } from "../lib/AuthContext";
