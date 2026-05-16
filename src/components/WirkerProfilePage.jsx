@@ -1,6 +1,8 @@
 // WirkerProfilePage.jsx — HUI v3
 import { usePresence, getPresenceLabel } from "../lib/sessionHooks";
 import { useBookingActions, getTrustSignals, REQ_TYPES, MOODS, BOOKING_STATUS } from "../lib/bookingContext";
+import { useReputation, useRecommendationActions, computeReputationSignals,
+         COLLAB_MOODS, OUTCOME_QUALITIES, REPUTATION_QUALITIES } from "../lib/trustContext";
 // Mobile-First Cinematic Profile
 // Dieselbe Premium-DNA wie Desktop — nur kompakter
 
