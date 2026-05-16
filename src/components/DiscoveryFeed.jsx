@@ -1324,6 +1324,157 @@ function MomenteViewer({ stories, startIdx=0, onClose }) {
 
 /* ─── Memoized Card Components — prevent re-render on parent state ── */
 const MemoWirkerCard     = React.memo(WirkerCard);
+
+/* ══════════════════════════════════════════════════════════════════
+   MOMENT CARD — Schnelle Story/Moment Darstellung im Feed
+   Instagram + BeReal inspired, voller Bildfüllstand
+══════════════════════════════════════════════════════════════════ */
+function MomentCard({ item, onView, variant = "hero" }) {
+  const [imgErr, setImgErr] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const h = variant === "compact" ? 340 : variant === "mid" ? 480 : 580;
+
+  const MOOD_EMOJI = {
+    ruhig:"🌿", gluecklich:"☀️", inspirierend:"💡", kreativ:"🎨",
+    frei:"🦋", dankbar:"🙏", abenteuer:"🌍", energiegeladen:"⚡",
+    tief:"🌊", gemeinschaft:"🤝",
+  };
+
+  const hasMedia = !!item.img && !imgErr;
+  const moodTags = Array.isArray(item.mood_tags) ? item.mood_tags.slice(0,3) : [];
+
+  return (
+    <>
+      {fullscreen && (
+        <div onClick={() => setFullscreen(false)} style={{
+          position:"fixed", inset:0, zIndex:1000,
+          background:"rgba(0,0,0,0.92)", backdropFilter:"blur(20px)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <button onClick={() => setFullscreen(false)} style={{
+            position:"absolute", top:20, right:20,
+            background:"rgba(255,255,255,0.12)", border:"none",
+            borderRadius:"50%", width:40, height:40, color:"white",
+            fontSize:20, cursor:"pointer", display:"flex",
+            alignItems:"center", justifyContent:"center",
+          }}>✕</button>
+          {hasMedia && (item._raw?.media_type === "video"
+            ? <video src={item.img} controls autoPlay style={{ maxWidth:"95vw", maxHeight:"95vh", borderRadius:16 }}/>
+            : <img src={item.img} alt="" style={{ maxWidth:"95vw", maxHeight:"95vh", borderRadius:16, objectFit:"contain" }}/>
+          )}
+          {item.title && item.title !== "Moment" && (
+            <div style={{
+              position:"absolute", bottom:30, left:20, right:20, textAlign:"center",
+              color:"white", fontSize:15, fontWeight:600,
+              textShadow:"0 2px 12px rgba(0,0,0,0.8)",
+            }}>{item.title}</div>
+          )}
+        </div>
+      )}
+
+      <div className="df-card-tap"
+        onClick={() => hasMedia ? setFullscreen(true) : onView?.(item)}
+        style={{
+          position:"relative", width:"100%", height:h,
+          borderRadius:32, overflow:"hidden",
+          background: hasMedia ? "#111" : "linear-gradient(145deg,#e8f8f7,#fdf3ef)",
+          cursor:"pointer",
+        }}>
+
+        {hasMedia && (item._raw?.media_type === "video"
+          ? <video src={item.img} muted playsInline loop autoPlay
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+          : <img src={item.img} alt={item.title || ""} onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform .4s ease" }}/>
+        )}
+
+        {!hasMedia && (
+          <div style={{
+            position:"absolute", inset:0, display:"flex",
+            alignItems:"center", justifyContent:"center",
+            background:"linear-gradient(145deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
+          }}>
+            <span style={{ fontSize:64, opacity:.3 }}>✨</span>
+          </div>
+        )}
+
+        <div style={{
+          position:"absolute", inset:0,
+          background: hasMedia
+            ? "linear-gradient(to top,rgba(0,0,0,0.72) 0%,rgba(0,0,0,0.10) 45%,transparent 100%)"
+            : "none",
+        }}/>
+
+        <div style={{
+          position:"absolute", top:16, left:16,
+          background:"rgba(255,255,255,0.18)", backdropFilter:"blur(14px)",
+          border:"1px solid rgba(255,255,255,0.25)",
+          borderRadius:20, padding:"4px 10px",
+          display:"flex", alignItems:"center", gap:5,
+        }}>
+          <span style={{ fontSize:11 }}>✨</span>
+          <span style={{ fontSize:11, fontWeight:700, color:"white", letterSpacing:.4 }}>MOMENT</span>
+        </div>
+
+        <div style={{ position:"absolute", top:14, right:14, display:"flex", gap:8 }}>
+          {item.creatorImg && (
+            <img src={item.creatorImg} alt="" style={{
+              width:32, height:32, borderRadius:"50%", objectFit:"cover",
+              border:"2px solid rgba(255,255,255,0.7)",
+              boxShadow:"0 2px 10px rgba(0,0,0,0.3)",
+            }}/>
+          )}
+          {hasMedia && (
+            <div style={{
+              width:32, height:32, borderRadius:"50%",
+              background:"rgba(0,0,0,0.32)", backdropFilter:"blur(12px)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                <path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9"
+                  stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          )}
+        </div>
+
+        <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"24px 20px 20px" }}>
+          {moodTags.length > 0 && (
+            <div style={{ display:"flex", gap:5, marginBottom:8, flexWrap:"wrap" }}>
+              {moodTags.map(t => (
+                <span key={t} style={{
+                  background:"rgba(255,255,255,0.18)", backdropFilter:"blur(12px)",
+                  border:"1px solid rgba(255,255,255,0.22)",
+                  borderRadius:99, padding:"3px 9px",
+                  fontSize:11, fontWeight:600, color:"white",
+                }}>
+                  {MOOD_EMOJI[t] || "✦"} {t}
+                </span>
+              ))}
+            </div>
+          )}
+          {item.title && item.title !== "Moment" && (
+            <div style={{
+              fontSize: variant==="compact" ? 14 : 16, fontWeight:700,
+              color:"white", lineHeight:1.35,
+              textShadow:"0 1px 8px rgba(0,0,0,0.5)", marginBottom:6,
+              display:"-webkit-box", WebkitLineClamp:2,
+              WebkitBoxOrient:"vertical", overflow:"hidden",
+            }}>{item.title}</div>
+          )}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontWeight:500, display:"flex", gap:5 }}>
+              {item.creator && <span>{item.creator}</span>}
+              {item.city && <><span>·</span><span>📍 {item.city}</span></>}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+const MemoMomentCard = React.memo(MomentCard);
+
 const MemoWerkCard       = React.memo(WerkCard);
 const MemoExperienceCard = React.memo(ExperienceCard);
 const MemoImpactCard     = React.memo(ImpactCard);
@@ -2277,7 +2428,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                         {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant={isFull ? "full" : "hero"}/>}
                         {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant={isFull ? "full" : "hero"}/>}
                         {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant={isFull ? "full" : "hero"}/>}
-                        {item.type==="story"      && <MemoWerkCard       item={{...item, type:"werk"}} onView={onView} moodCtx={moodCtx} onBuyWerk={null} onAddToKorb={null} navigate={navigate} variant={isFull ? "full" : "hero"}/>}
+                        {item.type==="story" && <MemoMomentCard item={item} onView={onView} />}
                       </div>
                     )}
 
@@ -2288,7 +2439,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                         {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="mid"/>}
                         {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant="mid"/>}
                         {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant="mid"/>}
-                        {item.type==="story"      && <MemoWerkCard       item={{...item, type:"werk"}} onView={onView} moodCtx={moodCtx} onBuyWerk={null} onAddToKorb={null} navigate={navigate} variant="mid"/>}
+                        {item.type==="story" && <MemoMomentCard item={item} onView={onView} variant="mid"     />}
                       </div>
                     )}
 
@@ -2299,7 +2450,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
                         {item.type==="werk"       && <MemoWerkCard       item={item} onView={onView} moodCtx={moodCtx} onBuyWerk={onBuyWerk} onAddToKorb={onAddToKorb} navigate={navigate} variant="compact"/>}
                         {item.type==="experience" && <MemoExperienceCard item={item} onView={onView} moodCtx={moodCtx} variant="compact"/>}
                         {item.type==="impact"     && <MemoImpactCard     item={item} onImpact={onImpact} moodCtx={moodCtx} variant="compact"/>}
-                        {item.type==="story"      && <MemoWerkCard       item={{...item, type:"werk"}} onView={onView} moodCtx={moodCtx} onBuyWerk={null} onAddToKorb={null} navigate={navigate} variant="compact"/>}
+                        {item.type==="story" && <MemoMomentCard item={item} onView={onView} variant="compact"  />}
                       </div>
                     )}
                   </div>
