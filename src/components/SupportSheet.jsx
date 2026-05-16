@@ -2,7 +2,7 @@
 // Kein "Spendenformular" — sondern: "Ich will, dass dieses Projekt schneller wächst"
 
 import React, { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealGlow:"rgba(22,215,197,0.22)",
