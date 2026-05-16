@@ -237,18 +237,27 @@ function CollapseSection({ title, icon, defaultOpen = false, children, accent = 
    Keine Kategorien, keine Preise, keine Konfiguration
 ══════════════════════════════════════════════════════════════════ */
 function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null }) {
+  // Draft Persistence — overlebt Overlay-Close
+  const [draft, setDraft, clearDraft] = useDraftPersist("moment-create", {
+    caption: "", moodTags: [], location: "", visibility: "public"
+  });
   const [file,       setFile]       = useState(null);
   const [preview,    setPreview]    = useState(null);
   const [isVid,      setIsVid]      = useState(false);
-  const [caption,    setCaption]    = useState("");
-  const [location,   setLocation]   = useState("");
+  const [caption,    setCaption]    = useState(draft.caption     || "");
+  const [location,   setLocation]   = useState(draft.location    || "");
   const [showLoc,    setShowLoc]    = useState(false);
-  const [visibility, setVisibility] = useState("public");
-  const [moodTags,   setMoodTags]   = useState([]);
+  const [visibility, setVisibility] = useState(draft.visibility  || "public");
+  const [moodTags,   setMoodTags]   = useState(draft.moodTags    || []);
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState("");
   const [done,       setDone]       = useState(false);
   const [progress,   setProgress]   = useState(0);
+
+  // Auto-save draft bei jeder Änderung
+  React.useEffect(() => {
+    setDraft({ caption, moodTags, location, visibility });
+  }, [caption, moodTags, location, visibility]);
   const fileRef    = useRef(null);  // Galerie (kein capture)
   const cameraRef  = useRef(null);  // Kamera (capture=environment)
   const videoRef   = useRef(null);  // Video Galerie
