@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 17:00:47 — JSX fragment fix deployed
+// HUI build 2026-05-16 17:08:46 — navigation fix complete
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
