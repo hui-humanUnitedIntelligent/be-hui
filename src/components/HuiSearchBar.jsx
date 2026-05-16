@@ -2,7 +2,7 @@
 // Rotierende, emotionale Placeholder — keine technische Suchmaschine
 
 import React, { useState, useEffect, useRef } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 
 const C = {
