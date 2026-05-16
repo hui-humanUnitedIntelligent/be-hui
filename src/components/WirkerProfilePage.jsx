@@ -8,6 +8,8 @@ import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { AnalyticsPage, EinnahmenPage, VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
+import EditProfile from "../pages/EditProfile";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
 const C = {
@@ -294,6 +296,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const [activeTab,      setActiveTab]     = useState("werke");
   const [heroLoaded,     setHeroLoaded]    = useState(false);
   const [ownerToolsOpen, setOwnerToolsOpen]= useState(false); // Creator-Tools Drawer
+  const [activeTool,     setActiveTool]    = useState(null);  // "edit"|"analytics"|"earnings"|"insights"|"availability"|"settings"|"drafts"
   const tabsRef    = useRef(null);
   const contentRef = useRef(null);
 
@@ -653,7 +656,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             <div style={{ display:"flex", gap:8 }}>
               {/* "Profil bearbeiten" — primärer Button wie bei Instagram */}
               <button className="wp-tap"
-                onClick={() => navigate('/profile/edit')}
+                onClick={() => setActiveTool('edit')}
                 style={{ flex:1, padding:"11px 12px",
                   background:"rgba(0,0,0,0.06)",
                   border:"1.5px solid rgba(0,0,0,0.10)",
@@ -744,15 +747,15 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               {/* Tool Grid — 2 Spalten, genau wie TikTok Creator Center */}
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
                 {[
-                  { icon:"📊", label:"Analytics",   sub:"Views & Reichweite",   action:()=>navigate('/analytics') },
-                  { icon:"💰", label:"Einnahmen",   sub:"Buchungen & Umsatz",   action:()=>navigate('/earnings') },
-                  { icon:"📝", label:"Entwürfe",    sub:"Unveröffentlichte Werke", action:()=>setActiveTab("entwuerfe") },
-                  { icon:"⚡", label:"Insights",    sub:"Follower & Trends",    action:()=>navigate('/insights') },
-                  { icon:"🗓", label:"Verfügbarkeit", sub:"Kalender & Slots",  action:()=>navigate('/availability') },
-                  { icon:"⚙", label:"Einstellungen", sub:"Konto & Sichtbarkeit", action:()=>navigate('/settings') },
+                  { icon:"📊", label:"Analytics",     sub:"Views & Reichweite",      key:"analytics" },
+                  { icon:"💰", label:"Einnahmen",     sub:"Buchungen & Umsatz",      key:"earnings" },
+                  { icon:"📝", label:"Entwürfe",      sub:"Unveröff. Inhalte",       key:"drafts" },
+                  { icon:"⚡", label:"Insights",      sub:"KI-Tipps für dich",       key:"insights" },
+                  { icon:"🗓", label:"Verfügbarkeit", sub:"Kalender & Slots",        key:"availability" },
+                  { icon:"⚙", label:"Einstellungen", sub:"Konto & Sichtbarkeit",    key:"settings" },
                 ].map((tool) => (
                   <button key={tool.label} className="wp-tap"
-                    onClick={() => { setOwnerToolsOpen(false); tool.action(); }}
+                    onClick={() => { setOwnerToolsOpen(false); setActiveTool(tool.key); }}
                     style={{
                       padding:"12px 14px", borderRadius:14,
                       background:"rgba(0,0,0,0.03)",
