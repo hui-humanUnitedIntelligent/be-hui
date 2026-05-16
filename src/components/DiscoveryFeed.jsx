@@ -1671,7 +1671,6 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
     function onVisibility() {
       if (document.hidden) {
         hiddenAt = Date.now();
-        if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
         return;
       }
 
