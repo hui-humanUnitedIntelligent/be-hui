@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, TrendingUp, Users, Calendar, Award, ChevronDown, ChevronUp } from "lucide-react";
 import { safeQuery } from "../lib/perfUtils";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 const CORAL = "#FF6B5B";
 const TEAL = "#2ABFAC";
