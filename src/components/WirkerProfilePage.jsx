@@ -1,4 +1,5 @@
 // WirkerProfilePage.jsx — HUI v3
+import { usePresence, getPresenceLabel } from "../lib/sessionHooks";
 // Mobile-First Cinematic Profile
 // Dieselbe Premium-DNA wie Desktop — nur kompakter
 
