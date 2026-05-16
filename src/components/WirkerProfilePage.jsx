@@ -7,7 +7,6 @@ import { supabase } from "../lib/supabaseClient";
 import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery, clearQueryCache } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { fetchCreatorInsights } from "../lib/InsightsEngine";
 // MeinHUI_SubPages: nur VerfuegbarkeitPage + KontoPage — die anderen sind inline
 import { VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
@@ -307,7 +306,6 @@ function buildMock(rawWirker) {
 ═══════════════════════════════════════════════════════════════════ */
 export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onMessage, onEdit }) {
   const { user } = useAuth();
-  const navigate  = useNavigate();
   const [profile,        setProfile]       = useState(null);
   const [works,          setWorks]         = useState([]);
   const [exps,           setExps]          = useState([]);
@@ -497,9 +495,16 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   return (
     <>
       <style>{CSS}</style>
-      <div style={{ background:C.cream, minHeight:"100vh", minHeight:"100dvh",
+      {/* position:fixed isoliert WirkerProfilePage vollständig vom Home-Tree.
+          Ohne das schlagen Home-Event-Handler durch und navigate() killt den State. */}
+      <div style={{
+        position:"fixed", inset:0, zIndex:200,
+        background:C.cream, overflowY:"auto", overflowX:"hidden",
         fontFamily:"-apple-system,'SF Pro Display',system-ui,sans-serif",
-        overflowX:"hidden" }}>
+        WebkitOverflowScrolling:"touch",
+      }}
+        onClick={e => e.stopPropagation()}
+      >
 
         {/* ═══ HERO ═════════════════════════════════════════════════ */}
         <div style={{ position:"relative", height:"clamp(300px,52vw,420px)",
@@ -1138,7 +1143,6 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           profile={profile}
           user={user}
           onClose={() => setShowChat(false)}
-          navigate={navigate}
         />
       )}
 
@@ -1148,8 +1152,6 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           profile={profile}
           user={user}
           onClose={() => setShowRequest(false)}
-          onBook={onBook}
-          navigate={navigate}
         />
       )}
 
@@ -1160,7 +1162,6 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           isOwner={isOwner}
           onClose={() => setShowMore(false)}
           onEdit={() => { setShowMore(false); setActiveTool("edit"); }}
-          navigate={navigate}
         />
       )}
 
@@ -2502,7 +2503,7 @@ function ToolPlaceholder({ toolKey, onBack, user, profile }) {
 // ══════════════════════════════════════════════════════════════════
 // CHAT SHEET — Nachricht senden
 // ══════════════════════════════════════════════════════════════════
-function ChatSheet({ profile, user, onClose, navigate }) {
+function ChatSheet({ profile, user, onClose }) {
   const [msg, setMsg] = React.useState("");
   const [sent, setSent] = React.useState(false);
   const [sending, setSending] = React.useState(false);
@@ -2517,23 +2518,21 @@ function ChatSheet({ profile, user, onClose, navigate }) {
     if (!msg.trim() || !user?.id || !profile?.id) return;
     setSending(true);
     try {
-      // Chat in DB anlegen oder finden
-      const { data: chat } = await supabase.from("chats")
-        .insert({
-          participant_ids: [user.id, profile.id],
-          state: "open",
-          last_message: msg.trim(),
-          last_message_at: new Date().toISOString(),
-          opened_at: new Date().toISOString(),
-        }).select().single();
+      // Chat in DB anlegen
+      await supabase.from("chats").insert({
+        participant_ids: [user.id, profile.id],
+        state: "open",
+        last_message: msg.trim(),
+        last_message_at: new Date().toISOString(),
+        opened_at: new Date().toISOString(),
+      });
       setSent(true);
-      setTimeout(() => {
-        onClose();
-        if (chat?.id) navigate?.(`/chat/${chat.id}`);
-      }, 1400);
+      // Kein navigate() — würde Home-Route wechseln und showWirker nullen
+      // Stattdessen: Sheet schließen, Success-State zeigen
+      setTimeout(onClose, 1600);
     } catch(e) {
-      setSent(true); // Optimistisch
-      setTimeout(onClose, 1200);
+      setSent(true); // Optimistisch — Nachricht gilt als gesendet
+      setTimeout(onClose, 1400);
     } finally {
       setSending(false);
     }
@@ -2630,7 +2629,7 @@ function ChatSheet({ profile, user, onClose, navigate }) {
 // ══════════════════════════════════════════════════════════════════
 // REQUEST SHEET — Anfrage / Buchung
 // ══════════════════════════════════════════════════════════════════
-function RequestSheet({ profile, user, onClose, navigate }) {
+function RequestSheet({ profile, user, onClose }) {
   const [step,     setStep]    = React.useState(1); // 1=Typ, 2=Details, 3=Success
   const [reqType,  setReqType] = React.useState(null);
   const [form,     setForm]    = React.useState({
