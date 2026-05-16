@@ -269,7 +269,7 @@ function buildMock(rawWirker) {
     header_img:   normalized.header_img
       || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=900&q=85",
     bio:          normalized.bio        || "Kreativ. Präsent. Hier.",
-    talent:       normalized.talent     || "Kreativität",
+    talent:       normalized.talent || normalized.has_talent_profile && 'Talent' || "Kreativität",
     location_label: normalized.location_label || "Deutschland",
     focus_type:   normalized.focus_type || "hybrid",
     dna_tags:     normalized.dna_tags?.length ? normalized.dna_tags
@@ -521,7 +521,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             </h1>
             <div style={{ fontSize:13, color:"rgba(255,255,255,0.75)",
               fontWeight:500 }}>
-              {profile.talent}
+              {profile.talent || profile.focus_type || 'Kreativität'}
               {profile.location_label && ` · ${profile.location_label}`}
             </div>
           </div>
