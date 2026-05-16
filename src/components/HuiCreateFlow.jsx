@@ -1299,6 +1299,161 @@ function ScreenDone({ type }) {
   );
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   SCREEN 0 — TYPE SELECTOR
+   Erster Screen: Was möchtest du erstellen?
+   ✨ Moment  🎨 Werk  🌟 Erlebnis  📖 Story
+══════════════════════════════════════════════════════════════════ */
+function ScreenTypeSelector({ onClose, onSelect }) {
+  const TYPES = [
+    {
+      key:   "moment",
+      emoji: "✨",
+      label: "Moment",
+      sub:   "Schneller spontaner Post",
+      grad:  `linear-gradient(135deg, rgba(22,215,197,0.12) 0%, rgba(22,215,197,0.04) 100%)`,
+      accent: "#16D7C5",
+      border: "rgba(22,215,197,0.25)",
+    },
+    {
+      key:   "werk",
+      emoji: "🎨",
+      label: "Werk",
+      sub:   "Produkt · Kunst · Portfolio",
+      grad:  `linear-gradient(135deg, rgba(255,138,107,0.12) 0%, rgba(255,138,107,0.04) 100%)`,
+      accent: "#FF8A6B",
+      border: "rgba(255,138,107,0.25)",
+    },
+    {
+      key:   "erlebnis",
+      emoji: "🌟",
+      label: "Erlebnis",
+      sub:   "Event · Workshop · Session",
+      grad:  `linear-gradient(135deg, rgba(245,166,35,0.12) 0%, rgba(245,166,35,0.04) 100%)`,
+      accent: "#F5A623",
+      border: "rgba(245,166,35,0.25)",
+    },
+    {
+      key:   "story",
+      emoji: "📖",
+      label: "Story",
+      sub:   "Temporär · Tagesbericht",
+      grad:  `linear-gradient(135deg, rgba(167,139,250,0.12) 0%, rgba(167,139,250,0.04) 100%)`,
+      accent: "#A78BFA",
+      border: "rgba(167,139,250,0.25)",
+    },
+  ];
+
+  return (
+    <div className="hcf2-sheet" style={{ background: C.cream }}>
+      <style>{CSS}</style>
+
+      {/* ── Header ── */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        padding:"16px 20px 8px", flexShrink:0,
+      }}>
+        <button onClick={onClose} style={{
+          background:"none", border:"none", padding:8, borderRadius:"50%",
+          display:"flex", cursor:"pointer",
+        }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M1 1L17 17M17 1L1 17"
+              stroke={C.ink} strokeWidth="2.2" strokeLinecap="round"/>
+          </svg>
+        </button>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ fontWeight:900, fontSize:17, color:C.ink, letterSpacing:-.4 }}>
+            Was möchtest du teilen?
+          </div>
+        </div>
+        <div style={{ width:34 }}/>
+      </div>
+
+      {/* ── Scrollbarer Inhalt ── */}
+      <div className="hcf2-scroll" style={{ flex:1, padding:"16px 18px 24px" }}>
+
+        {/* ── Tagline ── */}
+        <div style={{
+          textAlign:"center", fontSize:13.5, color:C.muted,
+          marginBottom:24, lineHeight:1.5,
+          animation:"hcf2-fade .35s ease both",
+        }}>
+          Wähle einen Typ — dann geht es los ✦
+        </div>
+
+        {/* ── Type Cards ── */}
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {TYPES.map((t, idx) => (
+            <button
+              key={t.key}
+              className="hcf2-tap"
+              onClick={() => onSelect(t.key)}
+              style={{
+                width:"100%", background:t.grad,
+                border:`1.5px solid ${t.border}`,
+                borderRadius:22, padding:"18px 20px",
+                display:"flex", alignItems:"center", gap:16,
+                cursor:"pointer", textAlign:"left", fontFamily:"inherit",
+                animation:`hcf2-up .35s ${idx * 0.06}s both`,
+                transition:"transform .15s ease, box-shadow .15s ease",
+                boxShadow:"0 2px 12px rgba(0,0,0,0.04)",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = "scale(1.015)";
+                e.currentTarget.style.boxShadow = `0 6px 24px ${t.accent}22`;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
+              }}
+            >
+              {/* Emoji in farbigem Kreis */}
+              <div style={{
+                width:54, height:54, borderRadius:16, flexShrink:0,
+                background:`${t.accent}18`,
+                border:`1.5px solid ${t.accent}30`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:26,
+              }}>
+                {t.emoji}
+              </div>
+
+              {/* Text */}
+              <div style={{ flex:1 }}>
+                <div style={{
+                  fontSize:16.5, fontWeight:800, color:C.ink,
+                  letterSpacing:-.3, marginBottom:3,
+                }}>
+                  {t.label}
+                </div>
+                <div style={{ fontSize:13, color:C.muted, fontWeight:500 }}>
+                  {t.sub}
+                </div>
+              </div>
+
+              {/* Arrow */}
+              <div style={{
+                width:32, height:32, borderRadius:"50%", flexShrink:0,
+                background:`${t.accent}15`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M3 7h8M8 4l3 3-3 3"
+                    stroke={t.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div style={{ height:8 }}/>
+      </div>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════════════
    ROOT — CONTROLLER
    handlePublish: EXAKT gleich wie vorher — kein Datenmodell-Break
@@ -1306,8 +1461,8 @@ function ScreenDone({ type }) {
 export default function HuiCreateFlow({ onClose, onSuccess }) {
   const { user } = useAuth();
 
-  // Screen: "moment" | "suggestion" | "werk" | "erlebnis" | "done"
-  const [screen,   setScreen]   = useState("moment");
+  // Screen: "select" | "moment" | "suggestion" | "werk" | "erlebnis" | "story" | "done"
+  const [screen,   setScreen]   = useState("select");
   const [mediaData,setMediaData]= useState(null);   // { file, preview, isVid, caption, location, visibility }
   const [postType, setPostType] = useState(null);
   const [loading,  setLoading]  = useState(false);
@@ -1419,7 +1574,7 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
       const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
       console.log("[HUI Moment] publicUrl:", publicUrl);
 
-      console.log("[HUI Moment] inserting story:", { user_id, media_url: publicUrl });
+      console.log("[HUI Moment] inserting story:", { user_id: user?.id, media_url: publicUrl });
       const { error:e } = await supabase.from("stories").insert({
         user_id:    user.id,
         media_url:  publicUrl,
@@ -1455,31 +1610,82 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
     >
       {/* ── Screen Routing ── */}
 
+      {/* ── Screen 0: Type Selector ── */}
+      {screen === "select" && (
+        <ScreenTypeSelector
+          onClose={onClose}
+          onSelect={(type) => setScreen(type)}
+        />
+      )}
+
+      {/* ── Screen 1a: Moment Quick Composer ── */}
       {screen === "moment" && (
         <ScreenMoment
-          onClose={onClose}
+          onClose={() => setScreen("select")}
           onPublishDirect={() => {
             onSuccess?.();
           }}
           onDeepen={(mediaObj, type) => {
             setMediaData(mediaObj);
-            setScreen(type); // "werk" oder "erlebnis"
+            setScreen("suggestion");
           }}
         />
       )}
 
+      {/* ── Screen 1b: Story (identisch zu Moment, aber story-type) ── */}
+      {screen === "story" && (
+        <ScreenMoment
+          onClose={() => setScreen("select")}
+          onPublishDirect={() => {
+            onSuccess?.();
+          }}
+          onDeepen={(mediaObj, type) => {
+            setMediaData(mediaObj);
+            setScreen("suggestion");
+          }}
+        />
+      )}
+
+      {/* ── Screen 1c: Werk — braucht zuerst Media ── */}
+      {screen === "werk" && !mediaData && (
+        <ScreenMoment
+          onClose={() => setScreen("select")}
+          onPublishDirect={() => { onSuccess?.(); }}
+          onDeepen={(mediaObj) => {
+            setMediaData(mediaObj);
+            setScreen("werk_form");
+          }}
+          forcedType="werk"
+        />
+      )}
+
+      {/* ── Screen 1d: Erlebnis — braucht zuerst Media ── */}
+      {screen === "erlebnis" && !mediaData && (
+        <ScreenMoment
+          onClose={() => setScreen("select")}
+          onPublishDirect={() => { onSuccess?.(); }}
+          onDeepen={(mediaObj) => {
+            setMediaData(mediaObj);
+            setScreen("erlebnis_form");
+          }}
+          forcedType="erlebnis"
+        />
+      )}
+
+      {/* ── Screen 2: Suggestion (nach Moment-Upload) ── */}
       {screen === "suggestion" && mediaData && (
         <ScreenSuggestion
           media={mediaData}
-          onBack={() => setScreen("moment")}
+          onBack={() => { setMediaData(null); setScreen("select"); }}
           onPublishDirect={async () => {
             await publishMomentDirect();
           }}
-          onDeepen={(type) => setScreen(type)}
+          onDeepen={(type) => setScreen(type + "_form")}
         />
       )}
 
-      {screen === "werk" && mediaData && (
+      {/* ── Screen 3a: Werk Formular ── */}
+      {screen === "werk_form" && mediaData && (
         <ScreenWerk
           media={mediaData}
           onBack={() => setScreen("suggestion")}
@@ -1489,7 +1695,8 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
         />
       )}
 
-      {screen === "erlebnis" && mediaData && (
+      {/* ── Screen 3b: Erlebnis Formular ── */}
+      {screen === "erlebnis_form" && mediaData && (
         <ScreenErlebnis
           media={mediaData}
           onBack={() => setScreen("suggestion")}
@@ -1499,6 +1706,7 @@ export default function HuiCreateFlow({ onClose, onSuccess }) {
         />
       )}
 
+      {/* ── Screen 4: Done ── */}
       {screen === "done" && (
         <ScreenDone type={postType || "moment"} />
       )}
