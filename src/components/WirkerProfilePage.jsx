@@ -1218,88 +1218,697 @@ function InlineEarnings({ user, onBack }) {
   );
 }
 
-// ── VERFÜGBARKEIT (crashsicher) ───────────────────────────────────
-function InlineAvailability({ user, onBack }) {
-  const [slots,   setSlots]  = React.useState([]);
-  const [loading, setLoading]= React.useState(true);
-  const [adding,  setAdding] = React.useState(false);
-  const [newDate, setNewDate]= React.useState("");
+// ══════════════════════════════════════════════════════════════════
+// AVAILABILITY SYSTEM — Airbnb + Calendly + Apple Calendar Vibes
+// Echter Monatskalender, Zeitslots, Status-System, Tag-Detail
+// ══════════════════════════════════════════════════════════════════
 
-  React.useEffect(() => {
-    if (!user?.id) { setLoading(false); return; }
-    supabase.from("availability_slots")
-      .select("id,date,time_from,time_to,blocked,note")
-      .eq("user_id", user.id)
-      .order("date", { ascending:true })
-      .limit(60)
-      .then(({ data }) => { setSlots(data||[]); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [user?.id]);
+// Hilfsfunktionen
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function daysInMonth(y, m) { return new Date(y, m+1, 0).getDate(); }
+function firstDayOfMonth(y, m) { return (new Date(y, m, 1).getDay() + 6) % 7; } // Mo=0
 
-  async function addSlot() {
-    if (!newDate || !user?.id) return;
-    const { data } = await supabase.from("availability_slots")
-      .insert({ user_id:user.id, date:newDate, blocked:false })
-      .select().single();
-    if (data) setSlots(s => [...s, data]);
-    setAdding(false); setNewDate("");
+const WEEKDAYS = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+const MONTHS_DE = ["Januar","Februar","März","April","Mai","Juni",
+                   "Juli","August","September","Oktober","November","Dezember"];
+
+const SLOT_TYPES = [
+  { key:"free",      label:"Verfügbar",   color:"#16D7C5", bg:"rgba(22,215,197,0.09)",  dot:"#16D7C5" },
+  { key:"workshop",  label:"Workshop",    color:"#8B5CF6", bg:"rgba(139,92,246,0.09)", dot:"#8B5CF6" },
+  { key:"shooting",  label:"Shooting",    color:"#F5A623", bg:"rgba(245,166,35,0.09)", dot:"#F5A623" },
+  { key:"session",   label:"Session",     color:"#FF8A6B", bg:"rgba(255,138,107,0.09)",dot:"#FF8A6B" },
+  { key:"blocked",   label:"Blockiert",   color:"#EF4444", bg:"rgba(239,68,68,0.08)",  dot:"#EF4444" },
+  { key:"focus",     label:"Fokuszeit",   color:"#10B981", bg:"rgba(16,185,129,0.09)", dot:"#10B981" },
+];
+
+function getSlotType(t) {
+  return SLOT_TYPES.find(s => s.key === t) || SLOT_TYPES[0];
+}
+
+function getDayStatus(dateStr, slots, bookings) {
+  const daySlots    = slots.filter(s => s.date === dateStr);
+  const dayBookings = bookings.filter(b => {
+    if (!b.scheduled_at) return false;
+    return b.scheduled_at.startsWith(dateStr);
+  });
+  const blockedAll  = daySlots.length > 0 && daySlots.every(s => s.blocked);
+  const hasBooking  = dayBookings.length > 0;
+  const hasFree     = daySlots.some(s => !s.blocked);
+
+  if (hasBooking && hasFree) return "partial";  // 🟡
+  if (hasBooking || blockedAll) return "busy";   // 🔴
+  if (hasFree) return "free";                    // 🟢
+  return "none";                                 // ⚪
+}
+
+const STATUS_DOT = {
+  free:    { color:"#16D7C5", label:"Verfügbar" },
+  partial: { color:"#F5A623", label:"Teilweise" },
+  busy:    { color:"#EF4444", label:"Ausgebucht" },
+  none:    { color:"rgba(0,0,0,0.12)", label:"" },
+};
+
+// ── Zeitslot-Karte ────────────────────────────────────────────────
+function SlotCard({ slot, onDelete, onToggle }) {
+  const st = getSlotType(slot.slot_type || (slot.blocked ? "blocked" : "free"));
+  const fmt = t => t ? t.slice(0,5) : "—";
+
+  return (
+    <div style={{
+      borderRadius:16, overflow:"hidden",
+      border:`1px solid ${TC.border}`,
+      boxShadow:"0 1px 8px rgba(0,0,0,0.04)",
+      background:TC.card, marginBottom:8,
+    }}>
+      <div style={{ height:3, background:st.color }} />
+      <div style={{ padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
+        {/* Typ-Badge */}
+        <div style={{ width:36, height:36, borderRadius:12, background:st.bg,
+          display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+          <div style={{ width:10, height:10, borderRadius:"50%", background:st.color }} />
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontWeight:700, fontSize:13.5, color:TC.ink }}>{st.label}</div>
+          <div style={{ fontSize:12, color:TC.muted, marginTop:1 }}>
+            {fmt(slot.time_from)} – {fmt(slot.time_to)}
+            {slot.note && ` · ${slot.note}`}
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:6 }}>
+          <button onClick={() => onToggle?.(slot)}
+            style={{ width:30, height:30, borderRadius:10, background:"rgba(0,0,0,0.04)",
+              border:`1px solid ${TC.border}`, fontSize:13, cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center" }}>
+            ✏️
+          </button>
+          <button onClick={() => onDelete?.(slot.id)}
+            style={{ width:30, height:30, borderRadius:10, background:"rgba(239,68,68,0.07)",
+              border:"1px solid rgba(239,68,68,0.15)", fontSize:13, cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center" }}>
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Tag-Detail Sheet (slide-up) ───────────────────────────────────
+function DayDetailSheet({ dateStr, slots, bookings, onClose, onAddSlot, onDeleteSlot }) {
+  const [addOpen, setAddOpen]    = React.useState(false);
+  const [form, setForm]          = React.useState({
+    time_from:"09:00", time_to:"12:00",
+    slot_type:"free", note:"", blocked:false,
+  });
+
+  const d = new Date(dateStr + "T12:00:00");
+  const label = d.toLocaleDateString("de-DE",
+    { weekday:"long", day:"numeric", month:"long" });
+
+  const daySlots    = slots.filter(s => s.date === dateStr);
+  const dayBookings = bookings.filter(b =>
+    b.scheduled_at && b.scheduled_at.startsWith(dateStr)
+  );
+
+  async function saveSlot() {
+    await onAddSlot({ ...form, date:dateStr });
+    setAddOpen(false);
+    setForm({ time_from:"09:00", time_to:"12:00", slot_type:"free", note:"", blocked:false });
   }
 
-  async function removeSlot(id) {
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:980, display:"flex",
+      flexDirection:"column", justifyContent:"flex-end" }}
+      onClick={onClose}>
+      {/* Backdrop */}
+      <div style={{ position:"absolute", inset:0,
+        background:"rgba(0,0,0,0.35)", backdropFilter:"blur(4px)" }} />
+      {/* Sheet */}
+      <div onClick={e => e.stopPropagation()}
+        style={{
+          position:"relative", zIndex:1,
+          background:TC.bg, borderRadius:"24px 24px 0 0",
+          maxHeight:"82vh", overflowY:"auto",
+          boxShadow:"0 -8px 40px rgba(0,0,0,0.15)",
+          animation:"slideUp .28s cubic-bezier(.34,1.1,.64,1) both",
+        }}>
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px" }}>
+          <div style={{ width:36, height:4, borderRadius:2, background:"rgba(0,0,0,0.12)" }} />
+        </div>
+        {/* Header */}
+        <div style={{ padding:"4px 20px 16px",
+          display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div>
+            <div style={{ fontSize:18, fontWeight:900, color:TC.ink,
+              letterSpacing:-.4, textTransform:"capitalize" }}>{label}</div>
+            <div style={{ fontSize:12, color:TC.muted, marginTop:2 }}>
+              {daySlots.length} Slot{daySlots.length !== 1 ? "s" : ""}
+              {dayBookings.length > 0 && ` · ${dayBookings.length} Buchung${dayBookings.length !== 1 ? "en" : ""}`}
+            </div>
+          </div>
+          <button onClick={onClose}
+            style={{ width:32, height:32, borderRadius:10, background:"rgba(0,0,0,0.06)",
+              border:`1px solid ${TC.border}`, fontSize:15, cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center" }}>
+            ✕
+          </button>
+        </div>
+
+        <div style={{ padding:"0 20px 40px" }}>
+          {/* Buchungen des Tages */}
+          {dayBookings.length > 0 && (<>
+            <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+              letterSpacing:1.1, textTransform:"uppercase", marginBottom:8 }}>
+              Buchungen
+            </div>
+            {dayBookings.map(b => (
+              <div key={b.id} style={{ background:"rgba(239,68,68,0.06)", borderRadius:14,
+                padding:"12px 16px", marginBottom:8, border:"1px solid rgba(239,68,68,0.12)" }}>
+                <div style={{ fontWeight:700, fontSize:13.5, color:TC.ink }}>
+                  {b.service_title || b.work_title || "Buchung"}
+                </div>
+                <div style={{ fontSize:12, color:TC.muted, marginTop:2 }}>
+                  {b.scheduled_at
+                    ? new Date(b.scheduled_at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})
+                    : "Ganztag"}
+                  {b.amount && ` · € ${(+b.amount * 0.85).toFixed(0)} netto`}
+                </div>
+              </div>
+            ))}
+          </>)}
+
+          {/* Slots */}
+          {daySlots.length > 0 && (<>
+            <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+              letterSpacing:1.1, textTransform:"uppercase", marginBottom:8,
+              marginTop: dayBookings.length > 0 ? 16 : 0 }}>
+              Zeitfenster
+            </div>
+            {daySlots.map(s => (
+              <SlotCard key={s.id} slot={s} onDelete={onDeleteSlot} />
+            ))}
+          </>)}
+
+          {/* Leer */}
+          {daySlots.length === 0 && dayBookings.length === 0 && (
+            <div style={{ textAlign:"center", padding:"24px 0 8px" }}>
+              <div style={{ fontSize:28, marginBottom:8 }}>🌿</div>
+              <div style={{ fontSize:14, color:TC.muted }}>Dieser Tag ist noch frei.</div>
+            </div>
+          )}
+
+          {/* Slot hinzufügen */}
+          {!addOpen ? (
+            <button onClick={() => setAddOpen(true)}
+              style={{ width:"100%", marginTop:16, padding:"13px", borderRadius:50,
+                background:`linear-gradient(135deg,${TC.teal},${TC.teal2})`,
+                border:"none", color:"white", fontWeight:700, fontSize:14,
+                cursor:"pointer", fontFamily:"inherit",
+                boxShadow:`0 4px 14px ${TC.tealGlow}` }}>
+              + Zeitfenster hinzufügen
+            </button>
+          ) : (
+            <div style={{ background:TC.card, borderRadius:20, padding:20,
+              border:`1px solid ${TC.border}`, marginTop:16,
+              boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
+              <div style={{ fontWeight:800, fontSize:14, color:TC.ink, marginBottom:14 }}>
+                Zeitfenster erstellen
+              </div>
+
+              {/* Typ */}
+              <div style={{ fontSize:11, fontWeight:700, color:TC.muted,
+                letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>Art</div>
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:14 }}>
+                {SLOT_TYPES.map(st => (
+                  <button key={st.key} onClick={() => setForm(f => ({
+                    ...f, slot_type:st.key, blocked:st.key==="blocked"
+                  }))}
+                    style={{
+                      padding:"6px 12px", borderRadius:50, fontFamily:"inherit",
+                      background: form.slot_type===st.key ? st.color : "rgba(0,0,0,0.04)",
+                      border: form.slot_type===st.key ? "none" : `1.5px solid ${TC.border}`,
+                      color: form.slot_type===st.key ? "white" : TC.ink2,
+                      fontSize:12, fontWeight: form.slot_type===st.key ? 700 : 500,
+                      cursor:"pointer",
+                    }}>
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Zeiten */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, color:TC.muted,
+                    letterSpacing:1, textTransform:"uppercase", marginBottom:6 }}>Von</div>
+                  <input type="time" value={form.time_from}
+                    onChange={e => setForm(f => ({...f, time_from:e.target.value}))}
+                    style={{ width:"100%", padding:"11px 12px", borderRadius:12,
+                      border:`1.5px solid ${TC.border}`, background:"rgba(0,0,0,0.03)",
+                      fontSize:14, fontFamily:"inherit", boxSizing:"border-box" }} />
+                </div>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, color:TC.muted,
+                    letterSpacing:1, textTransform:"uppercase", marginBottom:6 }}>Bis</div>
+                  <input type="time" value={form.time_to}
+                    onChange={e => setForm(f => ({...f, time_to:e.target.value}))}
+                    style={{ width:"100%", padding:"11px 12px", borderRadius:12,
+                      border:`1.5px solid ${TC.border}`, background:"rgba(0,0,0,0.03)",
+                      fontSize:14, fontFamily:"inherit", boxSizing:"border-box" }} />
+                </div>
+              </div>
+
+              {/* Notiz */}
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:TC.muted,
+                  letterSpacing:1, textTransform:"uppercase", marginBottom:6 }}>Notiz (optional)</div>
+                <input value={form.note}
+                  onChange={e => setForm(f => ({...f, note:e.target.value}))}
+                  placeholder="z.B. nur für Fotoprojekte"
+                  style={{ width:"100%", padding:"11px 14px", borderRadius:12,
+                    border:`1.5px solid ${TC.border}`, background:"rgba(0,0,0,0.03)",
+                    fontSize:13, fontFamily:"inherit", boxSizing:"border-box" }} />
+              </div>
+
+              {/* Buttons */}
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={() => setAddOpen(false)}
+                  style={{ flex:1, padding:"12px", borderRadius:50,
+                    background:"rgba(0,0,0,0.05)", border:`1.5px solid ${TC.border}`,
+                    fontSize:13, fontWeight:700, color:TC.ink2, cursor:"pointer", fontFamily:"inherit" }}>
+                  Abbrechen
+                </button>
+                <button onClick={saveSlot}
+                  style={{ flex:2, padding:"12px", borderRadius:50,
+                    background:`linear-gradient(135deg,${TC.teal},${TC.teal2})`,
+                    border:"none", fontSize:13, fontWeight:700, color:"white",
+                    cursor:"pointer", fontFamily:"inherit",
+                    boxShadow:`0 4px 12px ${TC.tealGlow}` }}>
+                  Speichern
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── HAUPT-KOMPONENTE ──────────────────────────────────────────────
+function InlineAvailability({ user, onBack }) {
+  const today      = new Date();
+  const [year, setYear]   = React.useState(today.getFullYear());
+  const [month, setMonth] = React.useState(today.getMonth());
+  const [slots,    setSlots]    = React.useState([]);
+  const [bookings, setBookings] = React.useState([]);
+  const [loading,  setLoading]  = React.useState(true);
+  const [selected, setSelected] = React.useState(null); // ISO-Datum
+
+  // Daten laden
+  React.useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    const from = `${year}-${String(month+1).padStart(2,'0')}-01`;
+    const to   = `${year}-${String(month+1).padStart(2,'0')}-${daysInMonth(year,month)}`;
+
+    Promise.all([
+      supabase.from("availability_slots")
+        .select("id,date,time_from,time_to,blocked,note")
+        .eq("user_id", user.id)
+        .gte("date", from).lte("date", to)
+        .order("date").order("time_from"),
+      supabase.from("bookings")
+        .select("id,scheduled_at,status,service_title,work_title,amount")
+        .eq("wirker_id", user.id)
+        .gte("scheduled_at", from + "T00:00:00")
+        .lte("scheduled_at", to   + "T23:59:59")
+        .not("scheduled_at", "is", null),
+    ]).then(([sr, br]) => {
+      // slot_type Feld ableiten (DB hat es noch nicht — Fallback)
+      const enriched = (sr.data || []).map(s => ({
+        ...s,
+        slot_type: s.blocked ? "blocked" : "free",
+      }));
+      setSlots(enriched);
+      setBookings(br.data || []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [user?.id, year, month]);
+
+  // Monats-Navigation
+  function prevMonth() {
+    if (month === 0) { setMonth(11); setYear(y => y-1); }
+    else setMonth(m => m-1);
+    setSlots([]); setBookings([]); setLoading(true);
+  }
+  function nextMonth() {
+    if (month === 11) { setMonth(0); setYear(y => y+1); }
+    else setMonth(m => m+1);
+    setSlots([]); setBookings([]); setLoading(true);
+  }
+
+  // Slot hinzufügen
+  async function handleAddSlot(slotData) {
+    if (!user?.id) return;
+    const { data } = await supabase.from("availability_slots")
+      .insert({
+        user_id:   user.id,
+        date:      slotData.date,
+        time_from: slotData.time_from,
+        time_to:   slotData.time_to,
+        blocked:   slotData.blocked || false,
+        note:      slotData.note || null,
+      }).select().single();
+    if (data) {
+      setSlots(s => [...s, { ...data, slot_type: data.blocked ? "blocked" : "free" }]);
+    }
+  }
+
+  // Slot löschen
+  async function handleDeleteSlot(id) {
     await supabase.from("availability_slots").delete().eq("id", id);
     setSlots(s => s.filter(x => x.id !== id));
   }
 
+  // Kalendertage aufbauen
+  const firstDay = firstDayOfMonth(year, month);
+  const days     = daysInMonth(year, month);
+  const todayStr = isoDate(today);
+
+  // Heatmap: Tage mit Slots pro Status zählen
+  const freeDays    = new Set(slots.filter(s => !s.blocked).map(s => s.date));
+  const blockedDays = new Set(slots.filter(s => s.blocked).map(s => s.date));
+  const bookedDays  = new Set(bookings.map(b => b.scheduled_at?.slice(0,10)).filter(Boolean));
+
+  // Summary Stats
+  const freeCount    = freeDays.size;
+  const bookedCount  = bookedDays.size;
+  const pendingCount = bookings.filter(b => b.status === "confirmed" || b.status === "in_progress").length;
+
   return (
     <>
       <ToolHeader title="Verfügbarkeit" emoji="🗓" onBack={onBack} />
-      <div style={{ padding:"20px 20px 60px" }}>
-        <button onClick={() => setAdding(a => !a)}
-          style={{ width:"100%", padding:"13px", borderRadius:50, marginBottom:16, cursor:"pointer",
-            background: adding ? "rgba(0,0,0,0.05)" : `linear-gradient(135deg,${TC.teal},${TC.teal2})`,
-            border: adding ? `1.5px solid ${TC.border}` : "none",
-            color: adding ? TC.ink : "white", fontWeight:700, fontSize:14, fontFamily:"inherit",
-            boxShadow: adding ? "none" : `0 4px 14px ${TC.tealGlow}` }}>
-          {adding ? "Abbrechen" : "+ Verfügbaren Tag hinzufügen"}
-        </button>
-        {adding && (
-          <div style={{ background:TC.card, borderRadius:16, padding:"16px", marginBottom:16,
+
+      {/* ── CSS für Animationen ── */}
+      <style>{`
+        @keyframes slideUp {
+          from { transform:translateY(100%); opacity:0; }
+          to   { transform:translateY(0);    opacity:1; }
+        }
+        @keyframes calFadeIn {
+          from { opacity:0; transform:translateY(6px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+      `}</style>
+
+      <div style={{ padding:"0 0 100px", animation:"calFadeIn .3s ease both" }}>
+
+        {/* ── SUMMARY STRIP ── */}
+        <div style={{ display:"flex", gap:0, padding:"0 20px 0",
+          borderBottom:`1px solid ${TC.border}` }}>
+          {[
+            { dot:"#16D7C5", label:"Verfügbar",  value:freeCount },
+            { dot:"#EF4444", label:"Ausgebucht", value:bookedCount },
+            { dot:"#F5A623", label:"Offen",      value:pendingCount },
+          ].map((s, i, arr) => (
+            <div key={s.label} style={{
+              flex:1, padding:"14px 0", textAlign:"center",
+              borderRight: i < arr.length-1 ? `1px solid ${TC.border}` : "none",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
+                gap:6, marginBottom:2 }}>
+                <div style={{ width:7, height:7, borderRadius:"50%", background:s.dot }} />
+                <span style={{ fontSize:18, fontWeight:900, color:TC.ink }}>{s.value}</span>
+              </div>
+              <div style={{ fontSize:10.5, color:TC.muted, fontWeight:600,
+                textTransform:"uppercase", letterSpacing:0.8 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── MONATS-NAVIGATION ── */}
+        <div style={{ display:"flex", alignItems:"center", padding:"18px 20px 10px",
+          justifyContent:"space-between" }}>
+          <button onClick={prevMonth}
+            style={{ width:38, height:38, borderRadius:12, background:"rgba(0,0,0,0.05)",
+              border:`1.5px solid ${TC.border}`, fontSize:16, cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center", color:TC.ink }}>
+            ‹
+          </button>
+          <div style={{ textAlign:"center" }}>
+            <div style={{ fontSize:17, fontWeight:900, color:TC.ink, letterSpacing:-.3 }}>
+              {MONTHS_DE[month]}
+            </div>
+            <div style={{ fontSize:12, color:TC.muted }}>{year}</div>
+          </div>
+          <button onClick={nextMonth}
+            style={{ width:38, height:38, borderRadius:12, background:"rgba(0,0,0,0.05)",
+              border:`1.5px solid ${TC.border}`, fontSize:16, cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center", color:TC.ink }}>
+            ›
+          </button>
+        </div>
+
+        {/* ── WOCHENTAG-HEADER ── */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)",
+          padding:"0 12px", marginBottom:4 }}>
+          {WEEKDAYS.map(d => (
+            <div key={d} style={{ textAlign:"center", fontSize:11, fontWeight:700,
+              color:TC.muted, padding:"4px 0", letterSpacing:0.5 }}>
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* ── KALENDER-GRID ── */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)",
+          gap:3, padding:"0 12px", marginBottom:20 }}>
+          {/* Leere Zellen vor dem ersten Tag */}
+          {Array.from({ length:firstDay }).map((_,i) => (
+            <div key={`e${i}`} />
+          ))}
+          {/* Tage */}
+          {Array.from({ length:days }).map((_,i) => {
+            const day    = i + 1;
+            const dStr   = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const isToday = dStr === todayStr;
+            const isSel   = dStr === selected;
+            const status  = getDayStatus(dStr, slots, bookings);
+            const { color } = STATUS_DOT[status];
+            const isPast   = dStr < todayStr;
+
+            return (
+              <button key={day}
+                onClick={() => setSelected(isSel ? null : dStr)}
+                style={{
+                  aspectRatio:"1",
+                  borderRadius:12,
+                  border: isSel
+                    ? `2px solid ${TC.teal}`
+                    : isToday
+                    ? `2px solid ${TC.teal}44`
+                    : "2px solid transparent",
+                  background: isSel
+                    ? `linear-gradient(135deg,${TC.teal}18,${TC.teal}08)`
+                    : isToday
+                    ? "rgba(22,215,197,0.06)"
+                    : "transparent",
+                  cursor:"pointer",
+                  display:"flex", flexDirection:"column",
+                  alignItems:"center", justifyContent:"center",
+                  gap:2, padding:"4px 2px",
+                  opacity: isPast ? 0.38 : 1,
+                  transition:"all .14s ease",
+                  fontFamily:"inherit",
+                }}>
+                <span style={{
+                  fontSize:13, fontWeight: isToday ? 900 : 500,
+                  color: isToday ? TC.teal : TC.ink,
+                  lineHeight:1,
+                }}>
+                  {day}
+                </span>
+                {/* Status-Punkt */}
+                <div style={{
+                  width:5, height:5, borderRadius:"50%",
+                  background: status === "none" ? "transparent" : color,
+                  transition:"background .14s",
+                }} />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── LEGENDE ── */}
+        <div style={{ display:"flex", gap:14, padding:"0 20px 20px",
+          justifyContent:"center" }}>
+          {[
+            { color:"#16D7C5", label:"Verfügbar" },
+            { color:"#F5A623", label:"Teilweise" },
+            { color:"#EF4444", label:"Ausgebucht" },
+          ].map(s => (
+            <div key={s.label} style={{ display:"flex", alignItems:"center", gap:5 }}>
+              <div style={{ width:7, height:7, borderRadius:"50%", background:s.color }} />
+              <span style={{ fontSize:11, color:TC.muted, fontWeight:500 }}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── DIESE WOCHE — Quick Overview ── */}
+        <div style={{ padding:"0 20px 20px" }}>
+          <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+            letterSpacing:1.1, textTransform:"uppercase", marginBottom:12 }}>
+            Nächste Tage
+          </div>
+          <div style={{ display:"flex", gap:8, overflowX:"auto",
+            scrollbarWidth:"none", paddingBottom:4 }}>
+            {Array.from({ length:7 }).map((_,i) => {
+              const d    = new Date();
+              d.setDate(d.getDate() + i);
+              const dStr = isoDate(d);
+              const st   = getDayStatus(dStr, slots, bookings);
+              const { color } = STATUS_DOT[st];
+              const isSel = dStr === selected;
+              const wd = ["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()];
+
+              return (
+                <button key={i} onClick={() => setSelected(isSel ? null : dStr)}
+                  style={{
+                    flexShrink:0, width:52, padding:"10px 0",
+                    borderRadius:14, fontFamily:"inherit",
+                    background: isSel
+                      ? `linear-gradient(135deg,${TC.teal},${TC.teal2})`
+                      : "rgba(0,0,0,0.04)",
+                    border: isSel ? "none" : `1.5px solid ${TC.border}`,
+                    cursor:"pointer", textAlign:"center",
+                    transition:"all .14s ease",
+                  }}>
+                  <div style={{ fontSize:10.5, fontWeight:700,
+                    color: isSel ? "rgba(255,255,255,0.75)" : TC.muted,
+                    marginBottom:3, textTransform:"uppercase" }}>
+                    {i === 0 ? "Heute" : wd}
+                  </div>
+                  <div style={{ fontSize:16, fontWeight:900,
+                    color: isSel ? "white" : TC.ink, marginBottom:5 }}>
+                    {d.getDate()}
+                  </div>
+                  <div style={{ width:6, height:6, borderRadius:"50%",
+                    background: st === "none"
+                      ? (isSel ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.1)")
+                      : color,
+                    margin:"0 auto" }} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── UPCOMING SLOTS ── */}
+        {loading ? (
+          <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:10 }}>
+            {[1,2,3].map(n => (
+              <div key={n} style={{ height:68, borderRadius:16, background:"rgba(0,0,0,0.04)",
+                animation:"pulse 1.4s ease-in-out infinite",
+                animationDelay:`${n*0.1}s` }} />
+            ))}
+          </div>
+        ) : slots.length === 0 && bookings.length === 0 ? (
+          <div style={{ margin:"0 20px", background:TC.card, borderRadius:20,
+            padding:"28px 24px", textAlign:"center",
             border:`1px solid ${TC.border}` }}>
-            <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
-              style={{ width:"100%", padding:"12px", borderRadius:12, border:`1.5px solid ${TC.border}`,
-                fontSize:14, fontFamily:"inherit", marginBottom:10, boxSizing:"border-box" }} />
-            <button onClick={addSlot}
-              style={{ width:"100%", padding:"12px", borderRadius:50, cursor:"pointer",
-                background:TC.green, color:"white", border:"none", fontWeight:700, fontFamily:"inherit" }}>
-              Hinzufügen
-            </button>
+            <div style={{ fontSize:36, marginBottom:10 }}>🌿</div>
+            <div style={{ fontSize:15, fontWeight:800, color:TC.ink, marginBottom:6 }}>
+              Noch keine Einträge für {MONTHS_DE[month]}
+            </div>
+            <div style={{ fontSize:13, color:TC.muted, lineHeight:1.65, marginBottom:18 }}>
+              Tippe auf einen Tag im Kalender um Zeitfenster hinzuzufügen.
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding:"0 20px" }}>
+            <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+              letterSpacing:1.1, textTransform:"uppercase", marginBottom:12 }}>
+              {MONTHS_DE[month]} — Übersicht
+            </div>
+            {/* Alle Slots chronologisch */}
+            {slots.slice(0, 12).map(s => {
+              const st  = getSlotType(s.slot_type);
+              const fmt = t => t?.slice(0,5) || "—";
+              const d   = new Date(s.date + "T12:00:00");
+              const dateLabel = d.toLocaleDateString("de-DE",
+                { weekday:"short", day:"numeric", month:"short" });
+              return (
+                <div key={s.id}
+                  onClick={() => setSelected(s.date)}
+                  style={{ borderRadius:16, overflow:"hidden",
+                    border:`1px solid ${TC.border}`, marginBottom:8,
+                    background:TC.card, cursor:"pointer",
+                    boxShadow:"0 1px 6px rgba(0,0,0,0.04)" }}>
+                  <div style={{ height:3, background:st.color }} />
+                  <div style={{ padding:"12px 16px",
+                    display:"flex", alignItems:"center", gap:12 }}>
+                    <div style={{ width:38, height:38, borderRadius:12, background:st.bg,
+                      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <div style={{ width:10, height:10, borderRadius:"50%", background:st.color }} />
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:700, fontSize:13, color:TC.ink }}>{st.label}</div>
+                      <div style={{ fontSize:11.5, color:TC.muted, marginTop:1 }}>
+                        {dateLabel} · {fmt(s.time_from)}–{fmt(s.time_to)}
+                      </div>
+                    </div>
+                    <div style={{ fontSize:14, color:TC.muted }}>›</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
-        {loading ? (
-          <div style={{ textAlign:"center", padding:32, color:TC.muted }}>Lade…</div>
-        ) : slots.length === 0 ? (
-          <div style={{ background:TC.card, borderRadius:16, padding:24, textAlign:"center",
-            border:`1px solid ${TC.border}` }}>
-            <div style={{ fontSize:32, marginBottom:8 }}>🗓</div>
-            <div style={{ fontSize:14, color:TC.muted }}>Noch keine Slots eingetragen</div>
+
+        {/* ── Coming Soon Features ── */}
+        <div style={{ margin:"20px 20px 0",
+          background:"linear-gradient(135deg,rgba(22,215,197,0.07),rgba(22,215,197,0.02))",
+          borderRadius:20, padding:"16px 20px",
+          border:"1.5px solid rgba(22,215,197,0.14)" }}>
+          <div style={{ fontWeight:700, fontSize:13, color:TC.teal, marginBottom:4 }}>
+            🔮 Bald verfügbar
           </div>
-        ) : slots.map(s => (
-          <div key={s.id} style={{ background:TC.card, borderRadius:14, marginBottom:8,
-            border:`1px solid ${TC.border}`, padding:"13px 16px",
-            display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <div>
-              <div style={{ fontWeight:700, fontSize:14, color:TC.ink }}>
-                {new Date(s.date).toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"short" })}
-              </div>
-              {s.blocked && <div style={{ fontSize:11, color:TC.coral, marginTop:2 }}>Blockiert</div>}
-            </div>
-            <button onClick={() => removeSlot(s.id)}
-              style={{ background:"none", border:"none", fontSize:16, cursor:"pointer", color:TC.muted }}>
-              ✕
-            </button>
+          <div style={{ fontSize:12, color:TC.muted, lineHeight:1.6 }}>
+            Google Calendar Sync · Automatische Buchungsfreigabe · Wiederkehrende Slots · Buchungslink teilen
           </div>
-        ))}
+        </div>
       </div>
+
+      {/* ── DAY DETAIL SHEET ── */}
+      {selected && (
+        <DayDetailSheet
+          dateStr={selected}
+          slots={slots}
+          bookings={bookings}
+          onClose={() => setSelected(null)}
+          onAddSlot={async (slotData) => {
+            await handleAddSlot(slotData);
+            // Reload für diesen Tag
+            const { data } = await supabase.from("availability_slots")
+              .select("id,date,time_from,time_to,blocked,note")
+              .eq("user_id", user.id)
+              .eq("date", slotData.date)
+              .order("time_from");
+            if (data) {
+              setSlots(prev => {
+                const without = prev.filter(s => s.date !== slotData.date);
+                return [...without, ...data.map(s => ({
+                  ...s, slot_type: s.blocked ? "blocked" : "free"
+                }))].sort((a,b) => a.date.localeCompare(b.date));
+              });
+            }
+          }}
+          onDeleteSlot={handleDeleteSlot}
+        />
+      )}
     </>
   );
 }
