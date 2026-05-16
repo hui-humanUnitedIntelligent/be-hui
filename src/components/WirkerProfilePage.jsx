@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery, clearQueryCache } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { fetchCreatorInsights } from "../lib/InsightsEngine";
 // MeinHUI_SubPages: nur VerfuegbarkeitPage + KontoPage — die anderen sind inline
 import { VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
@@ -306,6 +307,7 @@ function buildMock(rawWirker) {
 ═══════════════════════════════════════════════════════════════════ */
 export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onMessage, onEdit }) {
   const { user } = useAuth();
+  const navigate  = useNavigate();
   const [profile,        setProfile]       = useState(null);
   const [works,          setWorks]         = useState([]);
   const [exps,           setExps]          = useState([]);
@@ -320,7 +322,6 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const [workSaved,      setWorkSaved]     = useState({});
   const [activeTab,      setActiveTab]     = useState("werke");
   const [heroLoaded,     setHeroLoaded]    = useState(false);
-  const [ownerToolsOpen, setOwnerToolsOpen]= useState(false); // Creator-Tools Drawer
   const [activeTool,     setActiveTool]    = useState(null);  // "edit"|"analytics"|"earnings"|"insights"|"availability"|"settings"|"drafts"
   const tabsRef    = useRef(null);
   const contentRef = useRef(null);
@@ -546,27 +547,27 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             )}
             <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
               {isOwner ? (
-                /* Owner: kleiner "⚙" Chip — diskret, kein dominantes Dashboard-Feeling */
+                /* Owner: Studio-Button — dezent, kein Dashboard-Feeling */
                 <button className="wp-tap"
-                  onClick={() => setOwnerToolsOpen(o => !o)}
-                  style={{ height:34, padding:"0 12px", borderRadius:20,
+                  onClick={() => navigate('/studio')}
+                  style={{ height:34, padding:"0 14px", borderRadius:20,
                     background:"rgba(255,255,255,0.18)", backdropFilter:"blur(14px)",
                     border:"1px solid rgba(255,255,255,0.28)",
-                    display:"flex", alignItems:"center", gap:5,
+                    display:"flex", alignItems:"center", gap:6,
                     color:"rgba(255,255,255,0.92)", fontSize:12,
-                    fontWeight:600, fontFamily:"inherit",
-                    letterSpacing:0.1 }}>
-                  <span style={{ fontSize:13 }}>⚙</span>
-                  <span>Tools</span>
+                    fontWeight:700, fontFamily:"inherit" }}>
+                  <span style={{ fontSize:11 }}>✦</span>
+                  <span>Studio</span>
                 </button>
               ) : (
                 <button className="wp-tap"
+                  onClick={() => setShowMore(true)}
                   style={{ width:38, height:38, borderRadius:12,
                     background:"rgba(0,0,0,0.38)", backdropFilter:"blur(12px)",
                     border:"1px solid rgba(255,255,255,0.20)",
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    color:"white", fontSize:15 }}>
-                  ⋯
+                    color:"white", fontSize:16 }}>
+                  ···
                 </button>
               )}
             </div>
@@ -806,35 +807,35 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           {/* CTA Buttons — Owner vs. Visitor */}
           {isOwner ? (
             <>
+              {/* 3 dezente Owner-Buttons — wie Instagram */}
               <div style={{ display:"flex", gap:8 }}>
                 <button className="wp-tap"
                   onClick={() => setActiveTool('edit')}
-                  style={{ flex:1, padding:"11px 12px",
-                    background:"rgba(0,0,0,0.06)",
-                    border:"1.5px solid rgba(0,0,0,0.10)",
-                    borderRadius:14, fontSize:13.5, fontWeight:700,
-                    color:"#1A1A1A", fontFamily:"inherit",
-                    letterSpacing:-0.1 }}>
-                  Profil bearbeiten
+                  style={{ flex:1, padding:"10px 8px",
+                    background:"rgba(0,0,0,0.05)",
+                    border:"1.5px solid rgba(0,0,0,0.09)",
+                    borderRadius:14, fontSize:13, fontWeight:700,
+                    color:C.ink2, fontFamily:"inherit" }}>
+                  ✏️ Bearbeiten
                 </button>
                 <button className="wp-tap"
-                  onClick={() => setOwnerToolsOpen(o => !o)}
-                  style={{ flex:1, padding:"11px 12px",
-                    background: ownerToolsOpen
-                      ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                      : "rgba(0,0,0,0.06)",
-                    border: ownerToolsOpen ? "none" : "1.5px solid rgba(0,0,0,0.10)",
-                    borderRadius:14, fontSize:13.5, fontWeight:700,
-                    color: ownerToolsOpen ? "white" : "#1A1A1A",
-                    fontFamily:"inherit", letterSpacing:-0.1,
-                    boxShadow: ownerToolsOpen ? `0 4px 14px ${C.tealGlow}` : "none",
-                    transition:"all .18s ease" }}>
-                  {ownerToolsOpen ? "✕ Schließen" : "Creator Tools"}
+                  onClick={() => navigate('/studio')}
+                  style={{ flex:1, padding:"10px 8px",
+                    background:`rgba(22,215,197,0.08)`,
+                    border:`1.5px solid rgba(22,215,197,0.20)`,
+                    borderRadius:14, fontSize:13, fontWeight:700,
+                    color:C.teal, fontFamily:"inherit" }}>
+                  ✦ Studio
                 </button>
-              </div>
-              <div style={{ textAlign:"center", marginTop:5,
-                fontSize:10.5, color:"rgba(60,60,60,0.38)", letterSpacing:0.1 }}>
-                Änderungen sind sofort für alle sichtbar
+                <button className="wp-tap"
+                  onClick={() => setShowMore(true)}
+                  style={{ width:42, padding:"10px 0",
+                    background:"rgba(0,0,0,0.05)",
+                    border:"1.5px solid rgba(0,0,0,0.09)",
+                    borderRadius:14, fontSize:16,
+                    color:C.muted, fontFamily:"inherit" }}>
+                  ···
+                </button>
               </div>
             </>
           ) : (
@@ -907,52 +908,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
         </div>
 
         {/* ═══ OWNER TOOLS DRAWER — slide-down, kein Modal ════════ */}
-        {isOwner && ownerToolsOpen && (
-          <div style={{
-            background:"#FFFFFF",
-            borderBottom:`1px solid ${C.border}`,
-            overflow:"hidden",
-            animation:"slideDown .22s cubic-bezier(.34,1.2,.64,1) both",
-          }}>
-            <div style={{ padding:"16px 20px 20px" }}>
-              {/* Titre */}
-              <div style={{ fontSize:11, fontWeight:700, color:C.muted,
-                letterSpacing:1.2, textTransform:"uppercase", marginBottom:14 }}>
-                Creator Tools
-              </div>
-              {/* Tool Grid — 2 Spalten, genau wie TikTok Creator Center */}
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-                {[
-                  { icon:"📊", label:"Analytics",     sub:"Views & Reichweite",      key:"analytics" },
-                  { icon:"💰", label:"Einnahmen",     sub:"Buchungen & Umsatz",      key:"earnings" },
-                  { icon:"📝", label:"Entwürfe",      sub:"Unveröff. Inhalte",       key:"drafts" },
-                  { icon:"⚡", label:"Insights",      sub:"KI-Tipps für dich",       key:"insights" },
-                  { icon:"🗓", label:"Verfügbarkeit", sub:"Kalender & Slots",        key:"availability" },
-                  { icon:"⚙", label:"Einstellungen", sub:"Konto & Sichtbarkeit",    key:"settings" },
-                ].map((tool) => (
-                  <button key={tool.label} className="wp-tap"
-                    onClick={() => { setOwnerToolsOpen(false); setActiveTool(tool.key); }}
-                    style={{
-                      padding:"12px 14px", borderRadius:14,
-                      background:"rgba(0,0,0,0.03)",
-                      border:`1px solid ${C.border}`,
-                      textAlign:"left", cursor:"pointer",
-                      fontFamily:"inherit",
-                      transition:"background .12s ease",
-                    }}>
-                    <div style={{ fontSize:18, marginBottom:4 }}>{tool.icon}</div>
-                    <div style={{ fontSize:12.5, fontWeight:700, color:C.ink, letterSpacing:-.1 }}>
-                      {tool.label}
-                    </div>
-                    <div style={{ fontSize:11, color:C.muted, marginTop:1, lineHeight:1.3 }}>
-                      {tool.sub}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Creator Tools Drawer entfernt — Inhalte jetzt in /studio */}
 
 
         {/* ═══ STORY HIGHLIGHTS ════════════════════════════════════ */}
