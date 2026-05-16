@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAppState } from "../lib/AppStateContext";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import {
@@ -49,6 +50,8 @@ export default function CreatorStudio() {
   const navigate  = useNavigate();
   const { section } = useParams();  // /studio/:section
   const { user }  = useAuth();
+  const { ownWorks, ownExperiences, bookings, unreadNotifCount,
+          loadOwnWorks, loadOwnExperiences } = useAppState();
   const [profile, setProfile] = useState(null);
   // section aus URL ODER lokaler State — URL hat Priorität
   const [activeTool, setActiveTool] = useState(section || null);
