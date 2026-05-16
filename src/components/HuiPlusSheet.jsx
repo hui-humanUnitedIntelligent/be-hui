@@ -1,178 +1,209 @@
-// HuiPlusSheet.jsx — Bottom Sheet für Plus-Button (Talent-Modus aktiv)
-// Sauber, modern, 3 große Karten. HUI DNA beibehalten.
+// HuiPlusSheet.jsx — Content Type Selector
+// 4 Typen: Moment / Werk / Erlebnis / Story
+// Design: Premium Bottom Sheet, Apple + Instagram Qualität
 
-import React from "react";
+import React, { useEffect } from "react";
 
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7", tealGlow:"rgba(22,215,197,0.22)",
-  coral:"#FF8A6B", coralGlow:"rgba(255,138,107,0.18)",
+  teal:"#16D7C5", coral:"#FF8A6B", gold:"#F5A623", purple:"#A78BFA",
   cream:"#F9F7F4", card:"#FFFFFF",
-  ink:"#1A1A1A", ink2:"#3A3A3A", muted:"#888",
-  border:"rgba(0,0,0,0.07)",
+  ink:"#1A1A1A", ink2:"#3A3A3A", muted:"rgba(60,60,60,0.55)",
 };
 
 const CSS = `
-  @keyframes psFadeUp {
-    from { opacity:0; transform:translateY(28px) scale(0.97); }
-    to   { opacity:1; transform:translateY(0) scale(1); }
-  }
-  @keyframes psCardIn {
-    from { opacity:0; transform:translateY(14px); }
+  @keyframes psUp {
+    from { opacity:0; transform:translateY(100%); }
     to   { opacity:1; transform:translateY(0); }
   }
-  .ps-card {
-    -webkit-tap-highlight-color:transparent;
-    transition: transform 0.18s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.18s;
+  @keyframes psCardIn {
+    from { opacity:0; transform:translateY(16px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0)   scale(1); }
   }
-  .ps-card:active { transform:scale(0.96) !important; }
+  @keyframes psBgIn { from{opacity:0} to{opacity:1} }
+
+  .psc-card {
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition: transform 0.16s cubic-bezier(0.34,1.3,0.64,1),
+                box-shadow 0.16s ease;
+    border:none; text-align:left; width:100%; font-family:inherit;
+  }
+  .psc-card:active {
+    transform: scale(0.96) !important;
+  }
 `;
 
-const OPTIONS = [
+const TYPES = [
   {
-    key:"moment",
-    emoji:"📸",
-    title:"Moment teilen",
-    desc:"Foto oder Video posten",
-    color:C.teal,
-    bg:`linear-gradient(145deg,rgba(22,215,197,0.09),rgba(22,215,197,0.03))`,
-    border:`rgba(22,215,197,0.25)`,
-    shadow:`rgba(22,215,197,0.15)`,
+    key:    "moment",
+    emoji:  "✨",
+    title:  "Moment",
+    desc:   "Spontaner Post · Foto · Video",
+    color:  "#16D7C5",
+    bg:     "linear-gradient(135deg,rgba(22,215,197,0.10),rgba(22,215,197,0.03))",
+    border: "rgba(22,215,197,0.28)",
+    shadow: "rgba(22,215,197,0.12)",
   },
   {
-    key:"werk",
-    emoji:"🎨",
-    title:"Werk veröffentlichen",
-    desc:"Etwas verkaufen oder zeigen",
-    color:"#F5A623",
-    bg:`linear-gradient(145deg,rgba(245,166,35,0.09),rgba(245,166,35,0.03))`,
-    border:`rgba(245,166,35,0.25)`,
-    shadow:`rgba(245,166,35,0.15)`,
+    key:    "werk",
+    emoji:  "🎨",
+    title:  "Werk",
+    desc:   "Produkt · Kunst · Portfolio · Service",
+    color:  "#FF8A6B",
+    bg:     "linear-gradient(135deg,rgba(255,138,107,0.10),rgba(255,138,107,0.03))",
+    border: "rgba(255,138,107,0.28)",
+    shadow: "rgba(255,138,107,0.12)",
   },
   {
-    key:"erlebnis",
-    emoji:"🌟",
-    title:"Erlebnis anbieten",
-    desc:"Zeit, Wissen oder Sessions anbieten",
-    color:"#A78BFA",
-    bg:`linear-gradient(145deg,rgba(167,139,250,0.09),rgba(167,139,250,0.03))`,
-    border:`rgba(167,139,250,0.25)`,
-    shadow:`rgba(167,139,250,0.15)`,
+    key:    "erlebnis",
+    emoji:  "🌟",
+    title:  "Erlebnis",
+    desc:   "Workshop · Event · Session · Community",
+    color:  "#F5A623",
+    bg:     "linear-gradient(135deg,rgba(245,166,35,0.10),rgba(245,166,35,0.03))",
+    border: "rgba(245,166,35,0.28)",
+    shadow: "rgba(245,166,35,0.12)",
+  },
+  {
+    key:    "story",
+    emoji:  "📖",
+    title:  "Story",
+    desc:   "Temporär · 24h · Tagesbericht",
+    color:  "#A78BFA",
+    bg:     "linear-gradient(135deg,rgba(167,139,250,0.10),rgba(167,139,250,0.03))",
+    border: "rgba(167,139,250,0.28)",
+    shadow: "rgba(167,139,250,0.12)",
   },
 ];
 
 export default function HuiPlusSheet({ onSelect, onClose }) {
+  // Body-Scroll sperren
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   return (
     <>
       <style>{CSS}</style>
-      {/* Backdrop */}
-      <div onClick={onClose} style={{
-        position:"fixed", inset:0, zIndex:2000,
-        background:"rgba(0,0,0,0.30)",
-        backdropFilter:"blur(4px)",
-        WebkitBackdropFilter:"blur(4px)",
-      }}/>
 
-      {/* Sheet */}
+      {/* ── Backdrop ── */}
+      <div
+        onClick={onClose}
+        style={{
+          position:"fixed", inset:0, zIndex:2000,
+          background:"rgba(0,0,0,0.35)",
+          backdropFilter:"blur(8px)",
+          WebkitBackdropFilter:"blur(8px)",
+          animation:"psBgIn .25s ease both",
+        }}
+      />
+
+      {/* ── Sheet ── */}
       <div style={{
         position:"fixed", bottom:0, left:0, right:0, zIndex:2001,
         background:C.card,
-        borderRadius:"26px 26px 0 0",
-        paddingBottom:"max(28px, env(safe-area-inset-bottom, 28px))",
-        boxShadow:"0 -6px 40px rgba(0,0,0,0.12)",
+        borderRadius:"28px 28px 0 0",
+        paddingBottom:"max(24px, env(safe-area-inset-bottom, 24px))",
+        boxShadow:"0 -8px 48px rgba(0,0,0,0.14)",
         fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-        animation:"psFadeUp 0.34s cubic-bezier(0.34,1.3,0.64,1) both",
+        animation:"psUp 0.38s cubic-bezier(0.32,1.0,0.64,1) both",
       }}>
+
         {/* Handle */}
         <div style={{
-          width:38, height:4, borderRadius:999,
-          background:"rgba(0,0,0,0.11)",
-          margin:"13px auto 0",
+          width:40, height:4.5, borderRadius:999,
+          background:"rgba(0,0,0,0.10)",
+          margin:"14px auto 0",
         }}/>
 
-        {/* Title */}
-        <div style={{
-          padding:"18px 22px 4px",
-          fontWeight:800, fontSize:20,
-          color:C.ink, letterSpacing:-0.5,
-        }}>
-          Was möchtest du teilen?
-        </div>
-        <div style={{
-          padding:"0 22px 18px",
-          fontSize:13, color:C.muted,
-        }}>
-          Wähle, wie dein Beitrag erscheinen soll.
+        {/* Header */}
+        <div style={{ padding:"20px 22px 6px" }}>
+          <div style={{
+            fontWeight:900, fontSize:21, color:C.ink, letterSpacing:-0.5,
+            marginBottom:4,
+          }}>
+            Was möchtest du erstellen?
+          </div>
+          <div style={{ fontSize:13.5, color:C.muted, lineHeight:1.5 }}>
+            Wähle einen Typ — dann geht es los ✦
+          </div>
         </div>
 
-        {/* Option cards */}
-        <div style={{ padding:"0 16px", display:"flex", flexDirection:"column", gap:11 }}>
-          {OPTIONS.map((opt, i) => (
-            <button key={opt.key}
-              className="ps-card"
-              onClick={() => onSelect?.(opt.key)}
+        {/* Type Cards — 2x2 Grid auf großen Screens, Liste auf Mobile */}
+        <div style={{
+          padding:"14px 16px 6px",
+          display:"grid",
+          gridTemplateColumns:"1fr 1fr",
+          gap:11,
+        }}>
+          {TYPES.map((t, idx) => (
+            <button
+              key={t.key}
+              className="psc-card"
+              onClick={() => onSelect?.(t.key)}
               style={{
-                display:"flex", alignItems:"center", gap:16,
-                padding:"17px 18px",
-                background: opt.bg,
-                border:`1.5px solid ${opt.border}`,
-                borderRadius:18,
-                cursor:"pointer", fontFamily:"inherit",
-                textAlign:"left", width:"100%",
-                boxShadow:`0 2px 16px ${opt.shadow}`,
-                animation:`psCardIn 0.3s ${i * 0.06}s ease both`,
-              }}>
-              {/* Icon box */}
+                background:  t.bg,
+                border:      `1.5px solid ${t.border}`,
+                borderRadius: 20,
+                padding:     "18px 16px",
+                display:     "flex",
+                flexDirection:"column",
+                gap:         10,
+                boxShadow:   `0 3px 18px ${t.shadow}`,
+                animation:   `psCardIn 0.32s ${idx * 0.055}s ease both`,
+              }}
+            >
+              {/* Emoji Circle */}
               <div style={{
-                width:54, height:54, borderRadius:17, flexShrink:0,
-                background:`${opt.color}15`,
-                border:`1.5px solid ${opt.color}25`,
+                width:50, height:50, borderRadius:15, flexShrink:0,
+                background:`${t.color}18`,
+                border:`1.5px solid ${t.color}30`,
                 display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:26,
-                boxShadow:`0 2px 12px ${opt.color}20`,
+                fontSize:24,
+                boxShadow:`0 3px 14px ${t.color}22`,
               }}>
-                {opt.emoji}
+                {t.emoji}
               </div>
 
               {/* Text */}
-              <div style={{ flex:1 }}>
+              <div>
                 <div style={{
-                  fontWeight:800, fontSize:16, color:C.ink,
+                  fontWeight:800, fontSize:15.5, color:C.ink,
                   letterSpacing:-0.2, marginBottom:3,
                 }}>
-                  {opt.title}
+                  {t.title}
                 </div>
                 <div style={{
-                  fontSize:13, color:C.muted, lineHeight:1.4,
+                  fontSize:11.5, color:C.muted, lineHeight:1.45,
                 }}>
-                  {opt.desc}
+                  {t.desc}
                 </div>
               </div>
-
-              {/* Arrow */}
-              <svg width="8" height="14" viewBox="0 0 8 14" fill="none"
-                style={{ flexShrink:0, opacity:0.3 }}>
-                <path d="M1 1L7 7L1 13"
-                  stroke={C.ink} strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
             </button>
           ))}
         </div>
 
         {/* Cancel */}
-        <button onClick={onClose} style={{
-          display:"block", width:"calc(100% - 32px)",
-          margin:"14px 16px 0",
-          padding:"14px",
-          background:"rgba(0,0,0,0.04)",
-          border:"1.5px solid rgba(0,0,0,0.07)",
-          borderRadius:16,
-          fontSize:14, fontWeight:600, color:C.muted,
-          cursor:"pointer", fontFamily:"inherit",
-          WebkitTapHighlightColor:"transparent",
-        }}>
-          Abbrechen
-        </button>
+        <div style={{ padding:"10px 16px 0" }}>
+          <button
+            onClick={onClose}
+            style={{
+              display:"block", width:"100%",
+              padding:"13px",
+              background:"rgba(0,0,0,0.04)",
+              border:"1.5px solid rgba(0,0,0,0.07)",
+              borderRadius:16,
+              fontSize:14, fontWeight:600, color:C.muted,
+              cursor:"pointer", fontFamily:"inherit",
+              WebkitTapHighlightColor:"transparent",
+              transition:"background .15s",
+            }}
+          >
+            Abbrechen
+          </button>
+        </div>
       </div>
     </>
   );
