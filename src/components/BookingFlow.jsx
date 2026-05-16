@@ -2,6 +2,9 @@
 // Kein Checkout. Eine menschliche Verbindung.
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../lib/AuthContext";
+import { useBookingActions, BOOKING_STATUS, REQ_TYPES as BREQ_TYPES, MOODS as BMOODS } from "../lib/bookingContext";
+import { useDraftPersist } from "../lib/sessionHooks";
 
 /* ── DESIGN ─────────────────────────────────────────────────────────── */
 const C = {
@@ -942,12 +945,35 @@ function StepRecommend({ wirker, onClose }) {
    MAIN BOOKING FLOW
 ════════════════════════════════════════════════════════════════════ */
 export default function BookingFlow({ wirker, onClose, onAddToCart, onSuccess }) {
-  const [step, setStep]   = useState(0);
-  const [date, setDate]   = useState(null);
-  const [slot, setSlot]   = useState(null);
-  const [msg,  setMsg]    = useState("");
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { sendBookingRequest, loading: bookingLoading } = useBookingActions();
+
+  // Draft Persistence — Buchungsanfragen überleben Overlay-Close
+  const [draft, setDraft, clearDraft] = useDraftPersist(
+    `booking-${wirker?.id || wirker?.user_id || "draft"}`,
+    { reqType: null, mood: null, date: null, timeSlot: null,
+      location: "", budget: "", guests: 1, direction: "", msg: "" }
+  );
+
+  const [step,      setStep]    = useState(0);
+  const [date,      setDate]    = useState(draft.date ? new Date(draft.date) : null);
+  const [slot,      setSlot]    = useState(draft.timeSlot || null);
+  const [msg,       setMsg]     = useState(draft.msg || "");
+  const [reqType,   setReqType] = useState(draft.reqType || null);
+  const [mood,      setMood]    = useState(draft.mood || null);
+  const [location,  setLocation]  = useState(draft.location || "");
+  const [budget,    setBudget]    = useState(draft.budget || "");
+  const [guests,    setGuests]    = useState(draft.guests || 1);
+  const [direction, setDirection] = useState(draft.direction || "");
+  const [loading,   setLoading]  = useState(false);
   const scrollRef = useRef(null);
+
+  // Auto-save draft
+  useEffect(() => {
+    setDraft({ reqType, mood,
+      date: date?.toISOString() || null, timeSlot: slot,
+      location, budget, guests, direction, msg });
+  }, [reqType, mood, date, slot, location, budget, guests, direction, msg]);
 
   // Smooth scroll to top on step change
   useEffect(() => {
@@ -956,36 +982,43 @@ export default function BookingFlow({ wirker, onClose, onAddToCart, onSuccess })
 
   const handleSendRequest = async () => {
     setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if(user) {
-        await supabase.from("bookings").insert({
-          user_id: user.id,
-          wirker_name: wirker.name,
-          date: date?.toISOString().split("T")[0],
-          time_slot: slot,
-          message: msg,
-          status: "pending",
-          amount_eur: wirker.hourly_rate || wirker.hourly || 85,
-          impact_eur: Math.round((wirker.hourly_rate || wirker.hourly || 85) * 0.025),
-        });
-      }
-    } catch(e) { /* continue even if DB fails */ }
+    const rate = wirker.hourly_rate || wirker.hourly || 85;
+    const creatorId = wirker.id || wirker.user_id;
+    const { error } = await sendBookingRequest({
+      creatorId,
+      creatorName:  wirker.name || wirker.display_name,
+      reqType:      reqType   || "other",
+      mood,
+      date:         date?.toISOString().split("T")[0] || null,
+      timeSlot:     slot,
+      location,
+      budget,
+      guests,
+      direction,
+      message:      msg,
+      amountEur:    rate,
+      impactEur:    Math.round(rate * 0.025),
+    });
+    if (!error) {
+      clearDraft(); // Draft nach erfolgreichem Senden löschen
+    }
     setLoading(false);
     setStep(4);
   };
 
   const handleEscrowConfirm = async () => {
     setLoading(true);
+    // Booking wird nach Bestätigung auf "scheduled" gesetzt
+    // Der Creator bekommt eine Notification
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if(user) {
-        await supabase.from("bookings").update({ status:"confirmed" })
-          .eq("user_id", user.id)
-          .eq("wirker_name", wirker.name)
-          .eq("status","pending");
+      if (user?.id) {
+        await supabase.from("bookings")
+          .update({ status: "scheduled", scheduled_at: new Date().toISOString() })
+          .eq("requester_id", user.id)
+          .eq("creator_id",   wirker.id || wirker.user_id)
+          .in("status", ["accepted","requested"]);
       }
-    } catch(e) {}
+    } catch(e) { /* continue */ }
     setLoading(false);
     setStep(5);
   };
