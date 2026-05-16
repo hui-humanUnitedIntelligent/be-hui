@@ -1,4 +1,4 @@
-// HUI build — 2026-05-16 09:12 — moment system complete
+// HUI build — 2026-05-16 09:23 — create regression fix
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
