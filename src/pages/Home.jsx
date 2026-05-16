@@ -23,7 +23,8 @@ import ChatPage from "../components/ChatPage";
 import NotificationCenter from "../components/NotificationCenter";
 import { useNotifCount } from "../components/NotificationCenter";
 import HuiMembershipFlow from "../components/HuiMembershipFlow";
-import HuiCreateFlow from "../components/HuiCreateFlow";
+import HuiCreateFlow  from "../components/HuiCreateFlow";
+import HuiPlusSheet   from "../components/HuiPlusSheet";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1439,6 +1440,8 @@ export default function Home() {
   // ── New simplified flows ──
   const [showMembership,  setShowMembership]  = useState(false);
   const [showCreateFlow,  setShowCreateFlow]  = useState(false);
+  const [showPlusSheet,   setShowPlusSheet]   = useState(false);  // Type-Selector Sheet
+  const [createType,      setCreateType]      = useState(null);   // "moment"|"werk"|"erlebnis"|"story"
   // hasTalentProfile → from AuthContext (Supabase source-of-truth)
   // isTalent is a real useState — seeds from localStorage instantly,
   // syncs with AuthContext as soon as profile loads
@@ -1615,7 +1618,7 @@ export default function Home() {
           onOrbAction={(key) => {
             if (key === "favorites")  { /* TODO: FavoritesPage öffnen */ }
             if (key === "create") {
-              if(isTalent) setShowCreateFlow(true);
+              if (isTalent) { setCreateType(null); setShowPlusSheet(true); }
               else setShowMembership(true);
             }
             if (key === "profile") {
@@ -1754,12 +1757,26 @@ export default function Home() {
         />
       )}
 
-      {/* ── HUI Create Flow (Plus Button) ── */}
+      {/* ── HUI Plus Sheet — Type Selector ── */}
+      {showPlusSheet && (
+        <HuiPlusSheet
+          onClose={() => setShowPlusSheet(false)}
+          onSelect={(type) => {
+            setShowPlusSheet(false);
+            setCreateType(type);
+            setShowCreateFlow(true);
+          }}
+        />
+      )}
+
+      {/* ── HUI Create Flow — Content Creator ── */}
       {showCreateFlow && (
         <HuiCreateFlow
-          onClose={() => setShowCreateFlow(false)}
+          initialType={createType}
+          onClose={() => { setShowCreateFlow(false); setCreateType(null); }}
           onSuccess={() => {
             setShowCreateFlow(false);
+            setCreateType(null);
             setStoryRefreshKey(p => p + 1);
           }}
         />
