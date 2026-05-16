@@ -205,16 +205,56 @@ function ProtectedRoute({ children }) {
 function WirkerProfileRouteWrapper() {
   const { username } = useParams();
   const navigate = useNavigate();
-  // rawWirker mit username übergeben — WirkerProfilePage lädt rest selbst
   return (
     <WirkerProfilePage
       wirker={{ username }}
       onClose={() => navigate(-1)}
       onBook={(w) => navigate('/BookingFlow', { state: { item: w } })}
-      onMessage={() => {
-        // Chat handled intern als Sheet — kein navigate() nötig
-      }}
+      onMessage={() => { /* Chat handled intern als Sheet */ }}
     />
+  );
+}
+
+/* /profile/me → lädt eigenes Profil via Auth */
+function OwnProfileRedirect() {
+  const { user } = useAuth();
+  const navigate  = useNavigate();
+  const [username, setUsername] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    // Username aus Supabase holen
+    import('../lib/supabaseClient').then(({ supabase }) => {
+      supabase.from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.username) {
+            navigate(`/profile/${data.username}`, { replace: true });
+          } else {
+            // Fallback: user.id als identifier
+            navigate(`/profile/${user.id}`, { replace: true });
+          }
+        });
+    });
+  }, [user?.id]);
+
+  // Loading state — kurze Animation
+  return (
+    <div style={{ position:'fixed', inset:0, display:'flex',
+      alignItems:'center', justifyContent:'center',
+      background:'#F9F6F2', fontFamily:"-apple-system,sans-serif" }}>
+      <div style={{ textAlign:'center' }}>
+        <div style={{ fontSize:32, marginBottom:12,
+          animation:'spin 1.2s linear infinite',
+          display:'inline-block' }}>✦</div>
+        <div style={{ fontSize:14, color:'#888', fontWeight:500 }}>
+          Lade dein Profil…
+        </div>
+      </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
   );
 }
 
@@ -244,6 +284,11 @@ function AppRoutes() {
         <ProtectedRoute><WirkerProfileRouteWrapper /></ProtectedRoute>
       }/>
 
+      {/* /profile/me — shortcut to own public profile */}
+      <Route path="/profile/me" element={
+        <ProtectedRoute><OwnProfileRedirect /></ProtectedRoute>
+      }/>
+
       {/* Legacy routes */}
       <Route path="/impact" element={
         <ProtectedRoute><ImpactPage /></ProtectedRoute>
@@ -259,6 +304,9 @@ function AppRoutes() {
       {/* ── TEMPORÄR: Diagnose-Route — nach Debugging entfernen ── */}
       <Route path="/diagnose" element={<DiagnosePage />} />
       <Route path="/studio" element={
+        <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+      }/>
+      <Route path="/studio/:section" element={
         <ProtectedRoute><CreatorStudio /></ProtectedRoute>
       }/>
       <Route path="*" element={<Navigate to="/Home" replace />} />
