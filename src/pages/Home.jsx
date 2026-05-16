@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { supabase }   from "../lib/supabaseClient";
+import { supabase }   from ".../lib/supabaseClient";
 import ImpactPage     from "./ImpactPage";
 import ProfilePage from "./ProfilePage";
 import BookingFlow    from "../components/BookingFlow";
