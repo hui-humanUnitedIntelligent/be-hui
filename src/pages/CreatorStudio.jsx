@@ -45,6 +45,7 @@ const TOOLS = [
   { key:"availability", icon:"🗓", label:"Verfügbarkeit",    sub:"Kalender & Slots",     accent:C.coral,  bg:"rgba(255,138,107,0.08)"  },
   { key:"orders",       icon:"📦", label:"Bestellungen",     sub:"Aufträge & Historie",  accent:C.violet, bg:"rgba(139,92,246,0.08)"   },
   { key:"impact",       icon:"🌱", label:"Impact",           sub:"Soziale Wirkung",      accent:C.green,  bg:"rgba(16,185,129,0.08)"   },
+  { key:"reputation",   icon:"✦", label:"Reputation",         sub:"Vertrauen & Zusammenarbeit", accent:C.violet },
   { key:"settings",     icon:"⚙", label:"Einstellungen",    sub:"Konto & Sichtbarkeit", accent:C.muted,  bg:"rgba(0,0,0,0.04)"        },
 ];
 
