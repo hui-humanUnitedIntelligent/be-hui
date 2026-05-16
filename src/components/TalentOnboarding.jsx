@@ -2,7 +2,7 @@
 // 3 Steps: Identität → Module → Profil
 // Props-only, kein useNavigate/useParams, router-safe
 import React, { useState, useEffect, useCallback } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 
 /* ── Design Tokens ──────────────────────────────────────────────────── */
