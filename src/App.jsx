@@ -10,6 +10,7 @@ import Admin from './pages/Admin'
 import AuthCallback from './pages/AuthCallback'
 import DiagnosePage from './pages/DiagnosePage'
 import ProfilePage from './components/ProfilePage'
+import WirkerProfilePage from './components/WirkerProfilePage'
 import WorkDetailPage from './components/WorkDetailPage'
 
 /* ── Error Boundary ────────────────────────────────────────────────── */
@@ -199,15 +200,16 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-/* ── Router Wrapper für ProfilePage als Route ──────────────────────── */
-function ProfilePageRouteWrapper() {
+/* ── Router Wrapper: /profile/:username → WirkerProfilePage ────────── */
+function WirkerProfileRouteWrapper() {
   const { username } = useParams();
   const navigate = useNavigate();
+  // rawWirker mit username übergeben — WirkerProfilePage lädt rest selbst
   return (
-    <ProfilePage
-      username={username}
-      onBack={() => navigate(-1)}
-      onNavigate={navigate}
+    <WirkerProfilePage
+      wirker={{ username }}
+      onClose={() => navigate(-1)}
+      onBook={(w) => navigate('/BookingFlow', { state: { item: w } })}
     />
   );
 }
@@ -233,9 +235,9 @@ function AppRoutes() {
         <ProtectedRoute><WorkDetailPage /></ProtectedRoute>
       }/>
 
-      {/* Public Profile */}
+      {/* Public Profile — Instagram-style Creator Page */}
       <Route path="/profile/:username" element={
-        <ProtectedRoute><ProfilePageRouteWrapper /></ProtectedRoute>
+        <ProtectedRoute><WirkerProfileRouteWrapper /></ProtectedRoute>
       }/>
 
       {/* Legacy routes */}
