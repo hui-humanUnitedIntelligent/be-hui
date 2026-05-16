@@ -12,7 +12,7 @@
 
 import { useDraftPersist } from "../lib/sessionHooks";
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { supabase }  from "../lib/supabaseClient";
+import { supabase }  from ".../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
 import {
   MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS
