@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 17:36:15 — profile/studio separation complete
+// HUI build 2026-05-16 18:19:27 — phase2a2 routing complete
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
