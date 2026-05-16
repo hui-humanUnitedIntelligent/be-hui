@@ -5,7 +5,7 @@ import { useBookingActions, getTrustSignals, REQ_TYPES, MOODS, BOOKING_STATUS } 
 // Dieselbe Premium-DNA wie Desktop — nur kompakter
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery, clearQueryCache } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
