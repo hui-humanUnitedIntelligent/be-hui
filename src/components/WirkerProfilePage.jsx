@@ -1166,7 +1166,10 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                     </div>
                   )}
                   {works.slice(works.length % 2 !== 0 ? 1 : 0).map((w,i) => (
-                    <WorkCard key={w.id||i} work={w} onTap={w=>onBook?.(w)}/>
+                    <WorkCard key={w.id||i} work={w} onTap={w=>onBook?.(w)}
+                      liked={workLikes[w.id]} saved={workSaved[w.id]}
+                      onLike={id=>setWorkLikes(l=>({...l,[id]:!l[id]}))}
+                      onSave={id=>setWorkSaved(s=>({...s,[id]:!s[id]}))}/>
                   ))}
                 </div>
               )}
