@@ -239,6 +239,10 @@ export function useBookingActions() {
   // Buchung abschließen
   const completeBooking = useCallback(async (bookingId) => {
     if (!user?.id) return;
+    // Update booking — Trigger after_booking_completed feuert automatisch in DB:
+    // → erstellt collaboration entry
+    // → erstellt trust_event: collaboration_completed
+    // → updated profile.collab_count
     await supabase.from("bookings")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", bookingId)
