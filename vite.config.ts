@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 17:08:46 — navigation fix complete
+// HUI build 2026-05-16 17:21:27 — profile depth complete
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
