@@ -8,7 +8,8 @@ import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { AnalyticsPage, EinnahmenPage, VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
+// MeinHUI_SubPages: nur VerfuegbarkeitPage + KontoPage — die anderen sind inline
+import { VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
 import EditProfile from "../pages/EditProfile";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
@@ -947,38 +948,13 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
       </div>
 
       {/* ═══ CREATOR TOOL OVERLAYS — nur sichtbar wenn isOwner ══════ */}
-      {isOwner && activeTool === "edit" && (
-        <EditProfile
+      {isOwner && activeTool && (
+        <OwnerToolOverlay
+          activeTool={activeTool}
           user={user}
           profile={profile}
           onClose={() => setActiveTool(null)}
           onSave={(updated) => { setProfile(p => ({...p, ...updated})); setActiveTool(null); }}
-        />
-      )}
-      {isOwner && activeTool === "analytics" && (
-        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
-          <AnalyticsPage onBack={() => setActiveTool(null)} />
-        </div>
-      )}
-      {isOwner && activeTool === "earnings" && (
-        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
-          <EinnahmenPage onBack={() => setActiveTool(null)} />
-        </div>
-      )}
-      {isOwner && activeTool === "availability" && (
-        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
-          <VerfuegbarkeitPage onBack={() => setActiveTool(null)} />
-        </div>
-      )}
-      {isOwner && activeTool === "settings" && (
-        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
-          <KontoPage onBack={() => setActiveTool(null)} onLogout={onClose} />
-        </div>
-      )}
-      {isOwner && (activeTool === "insights" || activeTool === "drafts") && (
-        <ToolPlaceholder
-          toolKey={activeTool}
-          onBack={() => setActiveTool(null)}
         />
       )}
     </>
