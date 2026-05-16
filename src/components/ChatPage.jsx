@@ -1,6 +1,7 @@
 // ChatPage.jsx — HUI Phase 8
 // Echte Supabase Realtime-Chats. Nur für aktive Buchungen.
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useDraftPersist } from "../lib/sessionHooks";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
@@ -38,7 +39,15 @@ function Avatar({ url, name, size=38 }) {
 function ChatThread({ chat, onBack }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
-  const [input,    setInput]    = useState("");
+  // Chat Draft — merkt Text bei Overlay-Close
+  const [_draft, setDraft, clearDraft] = useDraftPersist(
+    `chat-draft-${chatId || "default"}`, { text: "" }
+  );
+  const [input, setInputState] = useState(_draft.text || "");
+  const setInput = (val) => {
+    setInputState(val);
+    setDraft({ text: val }); // auto-persist
+  };
   const [loading,  setLoading]  = useState(true);
   const [sending,  setSending]  = useState(false);
   const bottomRef = useRef(null);
