@@ -21,15 +21,15 @@ import { useAuth } from "./AuthContext";
 // Status System
 // ────────────────────────────────────────────────────────────────
 export const BOOKING_STATUS = {
-  draft:            { label: "Entwurf",         color: "#94A3B8", emoji: "📝" },
-  requested:        { label: "Angefragt",        color: "#F59E0B", emoji: "✨" },
-  pending_response: { label: "Wartet auf Antwort", color: "#6366F1", emoji: "⏳" },
-  accepted:         { label: "Angenommen",       color: "#10B981", emoji: "✓"  },
-  declined:         { label: "Abgelehnt",        color: "#EF4444", emoji: "✗"  },
-  scheduled:        { label: "Terminiert",       color: "#16D7C5", emoji: "📅" },
-  in_progress:      { label: "Läuft",            color: "#FF8A6B", emoji: "🎨" },
-  completed:        { label: "Abgeschlossen",    color: "#10B981", emoji: "⭐" },
-  cancelled:        { label: "Storniert",        color: "#94A3B8", emoji: "✗"  },
+  draft:            { label: "Entwurf",             softText: "Wird vorbereitet …",           color: "#94A3B8", emoji: "📝" },
+  requested:        { label: "Angefragt",            softText: "Anfrage unterwegs",             color: "#F59E0B", emoji: "✨" },
+  pending_response: { label: "Wartet auf Antwort",  softText: "Warten auf Rückmeldung",        color: "#6366F1", emoji: "⏳" },
+  accepted:         { label: "Angenommen",           softText: "Zusammenarbeit bestätigt ✓",    color: "#10B981", emoji: "✓"  },
+  declined:         { label: "Abgelehnt",            softText: "Leider nicht möglich",          color: "#EF4444", emoji: "✗"  },
+  scheduled:        { label: "Geplant",              softText: "Termin steht",                  color: "#16D7C5", emoji: "📅" },
+  in_progress:      { label: "Läuft",                softText: "Ihr arbeitet gemeinsam",        color: "#8B5CF6", emoji: "⚡" },
+  completed:        { label: "Abgeschlossen",        softText: "Zusammenarbeit abgeschlossen",  color: "#10B981", emoji: "⭐" },
+  cancelled:        { label: "Storniert",            softText: "Nicht zustande gekommen",       color: "#888",    emoji: "✗"  },
 };
 
 export const REQ_TYPES = [
