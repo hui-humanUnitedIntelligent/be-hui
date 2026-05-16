@@ -1,4 +1,4 @@
-// HUI build 2026-05-16T21:32:00Z — FINAL: BookingFlow fully eradicated, cache busted
+// HUI build 2026-05-16T21:36:54Z — Notification channel single-owner fix
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
