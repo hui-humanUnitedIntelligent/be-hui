@@ -7,7 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAppState } from "../lib/AppStateContext";
 import { useCreatorBookings, BOOKING_STATUS } from "../lib/bookingContext";
 import { useAuth } from "../lib/AuthContext";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import {
   AnalyticsPage,
   EinnahmenPage,
