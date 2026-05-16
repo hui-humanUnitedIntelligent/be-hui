@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase }   from "../lib/supabaseClient";
 import ImpactPage     from "./ImpactPage";
 import ProfilePage from "./ProfilePage";
-import BookingFlow    from "../components/BookingFlow";
+// BookingFlow: lazy geladen — verhindert Circular-Init + reduziert initial Bundle
+const BookingFlow = React.lazy(() => import('../components/BookingFlow'));
 import { WerkDetail, WerkCheckout, WerkeKorb } from "../components/WerkeShop";
 import OrdersPage from "../components/OrdersPage";
 import { useAuth } from "../lib/AuthContext";
@@ -1522,12 +1523,19 @@ export default function Home() {
   if(showBooking) return (
     <div style={{ position:"fixed", inset:0, zIndex:200,
       overflowY:"auto", background:C.cream }}>
-      <BookingFlow
-        wirker={showBooking}
-        onClose={()=>setShowBooking(null)}
-        onAddToCart={item=>setCart(p=>[...p,item])}
-        onSuccess={()=>setShowBooking(null)}
-      />
+      <React.Suspense fallback={
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
+          height:"100dvh", background:C.cream }}>
+          <div style={{ opacity:0.3, fontSize:24 }}>✦</div>
+        </div>
+      }>
+        <BookingFlow
+          wirker={showBooking}
+          onClose={()=>setShowBooking(null)}
+          onAddToCart={item=>setCart(p=>[...p,item])}
+          onSuccess={()=>setShowBooking(null)}
+        />
+      </React.Suspense>
     </div>
   );
 
