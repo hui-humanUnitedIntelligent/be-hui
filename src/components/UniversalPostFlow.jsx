@@ -2,7 +2,7 @@
 // HUI Design beibehalten. Kein Redesign.
 
 import React, { useState, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
