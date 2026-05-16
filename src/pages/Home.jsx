@@ -1588,7 +1588,11 @@ export default function Home() {
           notifCount={liveNotifCount}
           msgCount={0}
           onOrbAction={(key) => {
-            if (key === "favorites")  { /* TODO: FavoritesPage öffnen */ }
+            if (key === "favorites") {
+              // Saved/Favoriten → zum Discover Tab (dort sind gespeicherte Works sichtbar)
+              // Vollständige FavoritesPage kommt in Phase 3 als dedizierter Tab
+              switchTab("discover");
+            }
             if (key === "create") {
               if (isTalent) { setCreateType(null); setShowPlusSheet(true); }
               else setShowMembership(true);
@@ -1629,9 +1633,7 @@ export default function Home() {
             onClose={() => setShowWirker(null)}
             onBook={w => { setShowWirker(null); setShowBooking(w); }}
             onMessage={profile => {
-              // Chat öffnet sich als Sheet innerhalb WirkerProfilePage
-              // kein navigate() nötig — handled intern
-              console.log("[Home] onMessage:", profile?.display_name);
+              // Chat öffnet sich als Sheet innerhalb WirkerProfilePage — handled intern
             }}
             onEdit={() => {
               // Edit-Overlay öffnet sich innerhalb WirkerProfilePage
