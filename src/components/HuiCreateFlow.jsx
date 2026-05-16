@@ -248,8 +248,10 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
   const [error,      setError]      = useState("");
   const [done,       setDone]       = useState(false);
   const [progress,   setProgress]   = useState(0);
-  const fileRef = useRef(null);
-  const textRef = useRef(null);
+  const fileRef    = useRef(null);  // Galerie (kein capture)
+  const cameraRef  = useRef(null);  // Kamera (capture=environment)
+  const videoRef   = useRef(null);  // Video Galerie
+  const textRef    = useRef(null);
   const { user } = useAuth();
 
   const MOODS = [
@@ -433,12 +435,30 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
               {!loading && (
                 <div style={{
                   position:"absolute", bottom:12, right:12,
-                  background:"rgba(0,0,0,0.52)", backdropFilter:"blur(14px)",
-                  borderRadius:20, padding:"5px 13px",
-                  color:"white", fontSize:11.5, fontWeight:700,
-                  display:"flex", alignItems:"center", gap:5,
+                  display:"flex", gap:6,
                 }}>
-                  <span>↺</span><span>Ändern</span>
+                  {[
+                    { icon:"📷", ref: cameraRef, title:"Kamera" },
+                    { icon:"🖼", ref: fileRef,   title:"Galerie" },
+                    { icon:"🎥", ref: videoRef,  title:"Video" },
+                  ].map(btn => (
+                    <button
+                      key={btn.title}
+                      title={btn.title}
+                      onClick={e => { e.stopPropagation(); btn.ref.current?.click(); }}
+                      style={{
+                        background:"rgba(0,0,0,0.50)", backdropFilter:"blur(14px)",
+                        border:"1px solid rgba(255,255,255,0.18)",
+                        borderRadius:20, padding:"5px 11px",
+                        color:"white", fontSize:13, cursor:"pointer",
+                        WebkitTapHighlightColor:"transparent",
+                        display:"flex", alignItems:"center", gap:4,
+                      }}
+                    >
+                      <span>{btn.icon}</span>
+                      <span style={{ fontSize:11, fontWeight:700 }}>{btn.title}</span>
+                    </button>
+                  ))}
                 </div>
               )}
               {/* Loading overlay */}
@@ -483,21 +503,41 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 </div>
               </div>
               <div style={{
-                display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center", padding:"0 20px",
+                display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center", padding:"0 16px",
               }}>
-                {["📷 Kamera", "🖼 Galerie", "🎥 Video"].map(l => (
-                  <span key={l} style={{
-                    fontSize:11, color:C.teal, background:"rgba(22,215,197,0.08)",
-                    padding:"3px 10px", borderRadius:99, fontWeight:600,
-                  }}>{l}</span>
+                {[
+                  { label:"📷 Kamera",  ref: cameraRef, color: C.teal },
+                  { label:"🖼 Galerie", ref: fileRef,   color: C.teal },
+                  { label:"🎥 Video",   ref: videoRef,  color: C.teal },
+                ].map(btn => (
+                  <button
+                    key={btn.label}
+                    onClick={e => { e.stopPropagation(); btn.ref.current?.click(); }}
+                    style={{
+                      fontSize:12, color:btn.color,
+                      background:"rgba(22,215,197,0.09)",
+                      border:"1.5px solid rgba(22,215,197,0.22)",
+                      padding:"5px 13px", borderRadius:99, fontWeight:700,
+                      cursor:"pointer", fontFamily:"inherit",
+                      WebkitTapHighlightColor:"transparent",
+                      transition:"all .14s",
+                    }}
+                  >{btn.label}</button>
                 ))}
               </div>
             </>
           )}
         </div>
 
-        <input ref={fileRef} type="file" accept="image/*,video/*"
+        {/* ── Hidden Inputs: Galerie / Kamera / Video ── */}
+        <input ref={fileRef}   type="file" accept="image/*"
+          style={{ display:"none" }}
+          onChange={e => pickFile(e.target.files?.[0])}/>
+        <input ref={cameraRef} type="file" accept="image/*"
           capture="environment"
+          style={{ display:"none" }}
+          onChange={e => pickFile(e.target.files?.[0])}/>
+        <input ref={videoRef}  type="file" accept="video/*"
           style={{ display:"none" }}
           onChange={e => pickFile(e.target.files?.[0])}/>
 
