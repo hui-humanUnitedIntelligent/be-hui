@@ -1473,11 +1473,12 @@ function ScreenTypeSelector({ onClose, onSelect }) {
    ROOT — CONTROLLER
    handlePublish: EXAKT gleich wie vorher — kein Datenmodell-Break
 ══════════════════════════════════════════════════════════════════ */
-export default function HuiCreateFlow({ onClose, onSuccess }) {
+export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }) {
   const { user } = useAuth();
 
   // Screen: "select" | "moment" | "suggestion" | "werk" | "erlebnis" | "story" | "done"
-  const [screen,   setScreen]   = useState("select");
+  // initialType: wenn von außen gesetzt, direkt in diesen Screen springen
+  const [screen,   setScreen]   = useState(initialType || "select");
   const [mediaData,setMediaData]= useState(null);   // { file, preview, isVid, caption, location, visibility }
   const [postType, setPostType] = useState(null);
   const [loading,  setLoading]  = useState(false);
