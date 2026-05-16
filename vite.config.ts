@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 11:22:20 — meinHUI critical fix
+// HUI build 2026-05-16 11:22:48 — syntax fix + meinHUI final
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
