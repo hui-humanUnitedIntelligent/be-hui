@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 20:45:06 — App.jsx import fix validated
+// HUI build 2026-05-16 20:50:57 — phase3d creator experience polish
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
