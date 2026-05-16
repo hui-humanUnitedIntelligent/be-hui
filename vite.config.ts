@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 15:59:20 — creator tools + full edit profile
+// HUI build 2026-05-16 16:18:37 — creator tools crashsafe inline fix
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
