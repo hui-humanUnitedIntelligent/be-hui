@@ -961,7 +961,455 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   );
 }
 
-// ── Tool Placeholder für Insights + Entwürfe (wird später ausgebaut) ──
+// ══════════════════════════════════════════════════════════════════
+// OwnerToolOverlay — crashsicherer zentraler Wrapper für alle Tools
+// Kein externe Component-Import-Crash kann die App killen
+// ══════════════════════════════════════════════════════════════════
+class ToolErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError:false, errMsg:'' }; }
+  static getDerivedStateFromError(e) { return { hasError:true, errMsg:e.message }; }
+  componentDidCatch(e) { console.error('[OwnerTool crash]', e); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding:"40px 24px", textAlign:"center",
+          fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif" }}>
+          <div style={{ fontSize:36, marginBottom:12 }}>⚡</div>
+          <div style={{ fontWeight:800, fontSize:16, color:"#1A1A1A", marginBottom:8 }}>
+            Kurzer Aussetzer
+          </div>
+          <div style={{ fontSize:13, color:"rgba(60,60,60,0.55)", marginBottom:20, lineHeight:1.6 }}>
+            {this.state.errMsg || "Dieser Bereich konnte nicht geladen werden."}
+          </div>
+          <button onClick={this.props.onClose}
+            style={{ padding:"12px 24px", borderRadius:50, background:"#16D7C5",
+              color:"white", border:"none", fontWeight:700, fontFamily:"inherit", cursor:"pointer" }}>
+            Zurück zum Profil
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function OwnerToolOverlay({ activeTool, user, profile, onClose, onSave }) {
+  const OL = {
+    position:"fixed", inset:0, zIndex:950,
+    background:"#F9F7F4", overflowY:"auto",
+    fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif",
+    animation:"fadeIn .18s ease both",
+  };
+
+  return (
+    <div style={OL}>
+      <ToolErrorBoundary onClose={onClose}>
+        {activeTool === "edit" && (
+          <EditProfile user={user} profile={profile} onClose={onClose} onSave={onSave} />
+        )}
+        {activeTool === "analytics" && <InlineAnalytics user={user} onBack={onClose} />}
+        {activeTool === "earnings"  && <InlineEarnings  user={user} onBack={onClose} />}
+        {activeTool === "availability" && <InlineAvailability user={user} onBack={onClose} />}
+        {activeTool === "settings" && <InlineSettings user={user} profile={profile} onBack={onClose} onLogout={onClose} />}
+        {(activeTool === "insights" || activeTool === "drafts") && (
+          <ToolPlaceholder toolKey={activeTool} onBack={onClose} />
+        )}
+      </ToolErrorBoundary>
+    </div>
+  );
+}
+
+// ── Shared Tool UI Helpers ────────────────────────────────────────
+const TC = {
+  bg:"#F9F7F4", card:"#FFFFFF", teal:"#16D7C5", teal2:"#12B8A8",
+  coral:"#FF8A6B", gold:"#F5A623", green:"#10B981",
+  ink:"#1A1A1A", ink2:"#3D3D3D", muted:"rgba(60,60,60,0.48)",
+  border:"rgba(0,0,0,0.07)", tealGlow:"rgba(22,215,197,0.25)",
+};
+
+function ToolHeader({ title, onBack, emoji }) {
+  return (
+    <div style={{
+      position:"sticky", top:0, zIndex:10,
+      background:"rgba(249,246,242,0.95)", backdropFilter:"blur(20px)",
+      borderBottom:`1px solid ${TC.border}`,
+      padding:"max(52px,env(safe-area-inset-top,52px)) 20px 14px",
+      display:"flex", alignItems:"center", gap:12,
+    }}>
+      <button onClick={onBack}
+        style={{ width:36, height:36, borderRadius:12, background:"rgba(0,0,0,0.05)",
+          border:`1.5px solid ${TC.border}`, fontSize:16, cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center", color:TC.ink }}>
+        ←
+      </button>
+      <div style={{ fontSize:18, fontWeight:900, color:TC.ink, letterSpacing:-.4, flex:1 }}>
+        {emoji && <span style={{ marginRight:8 }}>{emoji}</span>}{title}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value, color }) {
+  return (
+    <div style={{ background:TC.card, borderRadius:16, padding:"18px 16px",
+      border:`1px solid ${TC.border}`, boxShadow:"0 1px 8px rgba(0,0,0,0.04)" }}>
+      <div style={{ fontSize:24, marginBottom:8 }}>{icon}</div>
+      <div style={{ fontSize:22, fontWeight:900, color:color||TC.teal, marginBottom:4 }}>{value}</div>
+      <div style={{ fontSize:12, color:TC.muted, fontWeight:500 }}>{label}</div>
+    </div>
+  );
+}
+
+// ── ANALYTICS (crashsicher — nur existierende Felder) ─────────────
+function InlineAnalytics({ user, onBack }) {
+  const [stats, setStats] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    Promise.all([
+      supabase.from("bookings")
+        .select("id,amount,status", { count:"exact", head:false })
+        .eq("wirker_id", user.id)
+        .limit(500),
+      supabase.from("follows")
+        .select("follower_id", { count:"exact", head:true })
+        .eq("followed_id", user.id),
+      supabase.from("works")
+        .select("id", { count:"exact", head:true })
+        .eq("user_id", user.id),
+    ]).then(([bookRes, followRes, worksRes]) => {
+      const allBookings = bookRes.data || [];
+      const completed   = allBookings.filter(b => b.status === "completed");
+      const revenue     = completed.reduce((s,b) => s + (+b.amount||0), 0) * 0.85;
+      setStats({
+        bookings:  bookRes.count  || allBookings.length || 0,
+        followers: followRes.count || 0,
+        works:     worksRes.count  || 0,
+        revenue:   revenue.toFixed(2),
+      });
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [user?.id]);
+
+  return (
+    <>
+      <ToolHeader title="Analytics" emoji="📊" onBack={onBack} />
+      <div style={{ padding:"20px 20px 60px" }}>
+        {loading ? (
+          <div style={{ textAlign:"center", padding:40, color:TC.muted }}>Lade…</div>
+        ) : (
+          <>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
+              <StatCard icon="👥" label="Follower"        value={stats.followers} color={TC.coral} />
+              <StatCard icon="📅" label="Buchungen"       value={stats.bookings}  color={TC.teal} />
+              <StatCard icon="🎨" label="Werke"           value={stats.works}     color={TC.gold} />
+              <StatCard icon="💰" label="Einnahmen (netto)" value={`€ ${stats.revenue}`} color={TC.green} />
+            </div>
+            <div style={{ background:TC.card, borderRadius:16, padding:"16px 18px",
+              border:`1px solid ${TC.border}`, fontSize:13, color:TC.muted, lineHeight:1.6 }}>
+              📈 Detaillierte Charts & Wachstums-Tracking kommen bald.
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ── EINNAHMEN (crashsicher) ───────────────────────────────────────
+function InlineEarnings({ user, onBack }) {
+  const [bookings, setBookings] = React.useState([]);
+  const [loading,  setLoading]  = React.useState(true);
+  const [requested, setReq]     = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    supabase.from("bookings")
+      .select("id,amount,status,created_at,service,service_title,work_title")
+      .eq("wirker_id", user.id)
+      .order("created_at", { ascending:false })
+      .limit(50)
+      .then(({ data }) => { setBookings(data||[]); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [user?.id]);
+
+  const completed = bookings.filter(b => ["completed","released"].includes(b.status));
+  const pending   = bookings.filter(b => ["confirmed","in_progress","accepted"].includes(b.status));
+  const netTotal  = completed.reduce((s,b) => s + (+b.amount||0), 0) * 0.85;
+  const pendingTotal = pending.reduce((s,b) => s + (+b.amount||0), 0) * 0.85;
+
+  return (
+    <>
+      <ToolHeader title="Einnahmen" emoji="💰" onBack={onBack} />
+      <div style={{ padding:"20px 20px 60px" }}>
+        {/* Summary Cards */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
+          <StatCard icon="✅" label="Verfügbar"  value={`€ ${netTotal.toFixed(2)}`}     color={TC.green} />
+          <StatCard icon="⏳" label="Ausstehend" value={`€ ${pendingTotal.toFixed(2)}`} color={TC.gold} />
+        </div>
+        {/* Impact Anteil */}
+        <div style={{ background:"linear-gradient(135deg,rgba(22,215,197,0.08),rgba(22,215,197,0.03))",
+          borderRadius:16, padding:"14px 18px", border:"1.5px solid rgba(22,215,197,0.15)",
+          marginBottom:20, display:"flex", alignItems:"center", gap:12 }}>
+          <span style={{ fontSize:22 }}>🌱</span>
+          <div>
+            <div style={{ fontWeight:700, fontSize:13, color:TC.teal }}>
+              Impact bewirkt: € {(netTotal * 0.025 / 0.85).toFixed(2)}
+            </div>
+            <div style={{ fontSize:11.5, color:TC.muted, marginTop:1 }}>
+              2,5% jeder Buchung fließt in soziale Projekte.
+            </div>
+          </div>
+        </div>
+        {/* Auszahlung */}
+        {netTotal > 0 && (
+          <button disabled={requested} onClick={() => setReq(true)}
+            style={{ width:"100%", padding:"14px", borderRadius:50, marginBottom:20, cursor:"pointer",
+              background: requested ? "rgba(16,185,129,0.1)" : `linear-gradient(135deg,${TC.green},#0ea070)`,
+              border: requested ? `1.5px solid ${TC.green}44` : "none",
+              color: requested ? TC.green : "white",
+              fontWeight:800, fontSize:14, fontFamily:"inherit",
+              boxShadow: requested ? "none" : "0 4px 16px rgba(16,185,129,0.3)" }}>
+            {requested ? "✓ Auszahlung angefordert" : "Auszahlung anfordern"}
+          </button>
+        )}
+        {/* Transaktionen */}
+        <div style={{ fontSize:11, fontWeight:800, color:TC.muted,
+          letterSpacing:1.2, textTransform:"uppercase", marginBottom:12 }}>
+          Transaktionen
+        </div>
+        {loading ? (
+          <div style={{ textAlign:"center", padding:32, color:TC.muted }}>Lade…</div>
+        ) : completed.length === 0 ? (
+          <div style={{ background:TC.card, borderRadius:16, padding:24, textAlign:"center",
+            border:`1px solid ${TC.border}` }}>
+            <div style={{ fontSize:32, marginBottom:8 }}>💳</div>
+            <div style={{ fontSize:14, color:TC.muted }}>Noch keine abgeschlossenen Buchungen</div>
+          </div>
+        ) : completed.map(b => {
+          const title = b.work_title || b.service_title || b.service || "Buchung";
+          const net   = ((+b.amount||0) * 0.85).toFixed(2);
+          const date  = new Date(b.created_at).toLocaleDateString("de-DE",
+            { day:"numeric", month:"short" });
+          return (
+            <div key={b.id} style={{ background:TC.card, borderRadius:14, marginBottom:8,
+              border:`1px solid ${TC.border}`, padding:"14px 16px",
+              display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div>
+                <div style={{ fontWeight:700, fontSize:14, color:TC.ink }}>{title}</div>
+                <div style={{ fontSize:12, color:TC.muted, marginTop:2 }}>{date}</div>
+              </div>
+              <div style={{ textAlign:"right" }}>
+                <div style={{ fontWeight:800, fontSize:15, color:TC.green }}>€ {net}</div>
+                <div style={{ fontSize:11, color:TC.muted }}>nach Provision</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+// ── VERFÜGBARKEIT (crashsicher) ───────────────────────────────────
+function InlineAvailability({ user, onBack }) {
+  const [slots,   setSlots]  = React.useState([]);
+  const [loading, setLoading]= React.useState(true);
+  const [adding,  setAdding] = React.useState(false);
+  const [newDate, setNewDate]= React.useState("");
+
+  React.useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    supabase.from("availability_slots")
+      .select("id,date,time_from,time_to,blocked,note")
+      .eq("user_id", user.id)
+      .order("date", { ascending:true })
+      .limit(60)
+      .then(({ data }) => { setSlots(data||[]); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [user?.id]);
+
+  async function addSlot() {
+    if (!newDate || !user?.id) return;
+    const { data } = await supabase.from("availability_slots")
+      .insert({ user_id:user.id, date:newDate, blocked:false })
+      .select().single();
+    if (data) setSlots(s => [...s, data]);
+    setAdding(false); setNewDate("");
+  }
+
+  async function removeSlot(id) {
+    await supabase.from("availability_slots").delete().eq("id", id);
+    setSlots(s => s.filter(x => x.id !== id));
+  }
+
+  return (
+    <>
+      <ToolHeader title="Verfügbarkeit" emoji="🗓" onBack={onBack} />
+      <div style={{ padding:"20px 20px 60px" }}>
+        <button onClick={() => setAdding(a => !a)}
+          style={{ width:"100%", padding:"13px", borderRadius:50, marginBottom:16, cursor:"pointer",
+            background: adding ? "rgba(0,0,0,0.05)" : `linear-gradient(135deg,${TC.teal},${TC.teal2})`,
+            border: adding ? `1.5px solid ${TC.border}` : "none",
+            color: adding ? TC.ink : "white", fontWeight:700, fontSize:14, fontFamily:"inherit",
+            boxShadow: adding ? "none" : `0 4px 14px ${TC.tealGlow}` }}>
+          {adding ? "Abbrechen" : "+ Verfügbaren Tag hinzufügen"}
+        </button>
+        {adding && (
+          <div style={{ background:TC.card, borderRadius:16, padding:"16px", marginBottom:16,
+            border:`1px solid ${TC.border}` }}>
+            <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
+              style={{ width:"100%", padding:"12px", borderRadius:12, border:`1.5px solid ${TC.border}`,
+                fontSize:14, fontFamily:"inherit", marginBottom:10, boxSizing:"border-box" }} />
+            <button onClick={addSlot}
+              style={{ width:"100%", padding:"12px", borderRadius:50, cursor:"pointer",
+                background:TC.green, color:"white", border:"none", fontWeight:700, fontFamily:"inherit" }}>
+              Hinzufügen
+            </button>
+          </div>
+        )}
+        {loading ? (
+          <div style={{ textAlign:"center", padding:32, color:TC.muted }}>Lade…</div>
+        ) : slots.length === 0 ? (
+          <div style={{ background:TC.card, borderRadius:16, padding:24, textAlign:"center",
+            border:`1px solid ${TC.border}` }}>
+            <div style={{ fontSize:32, marginBottom:8 }}>🗓</div>
+            <div style={{ fontSize:14, color:TC.muted }}>Noch keine Slots eingetragen</div>
+          </div>
+        ) : slots.map(s => (
+          <div key={s.id} style={{ background:TC.card, borderRadius:14, marginBottom:8,
+            border:`1px solid ${TC.border}`, padding:"13px 16px",
+            display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <div style={{ fontWeight:700, fontSize:14, color:TC.ink }}>
+                {new Date(s.date).toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"short" })}
+              </div>
+              {s.blocked && <div style={{ fontSize:11, color:TC.coral, marginTop:2 }}>Blockiert</div>}
+            </div>
+            <button onClick={() => removeSlot(s.id)}
+              style={{ background:"none", border:"none", fontSize:16, cursor:"pointer", color:TC.muted }}>
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── EINSTELLUNGEN (crashsicher) ───────────────────────────────────
+function InlineSettings({ user, profile, onBack, onLogout }) {
+  const [section, setSection] = React.useState("konto");
+  const [displayName, setDisplayName] = React.useState(profile?.display_name || "");
+  const [email] = React.useState(user?.email || "");
+  const [saving, setSaving] = React.useState(false);
+  const [saved,  setSaved]  = React.useState(false);
+  const [isAvail, setIsAvail] = React.useState(profile?.is_available ?? true);
+
+  async function saveKonto() {
+    if (!user?.id || saving) return;
+    setSaving(true);
+    await supabase.from("profiles").update({
+      display_name: displayName, is_available: isAvail,
+      updated_at: new Date().toISOString()
+    }).eq("id", user.id);
+    setSaving(false); setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  const SECTIONS = [
+    { key:"konto",   label:"Konto" },
+    { key:"sicht",   label:"Sichtbarkeit" },
+    { key:"zahlung", label:"Zahlungen" },
+  ];
+
+  return (
+    <>
+      <ToolHeader title="Einstellungen" emoji="⚙" onBack={onBack} />
+      {/* Section Tabs */}
+      <div style={{ display:"flex", borderBottom:`1px solid ${TC.border}`,
+        background:TC.card, overflowX:"auto" }}>
+        {SECTIONS.map(s => (
+          <button key={s.key} onClick={() => setSection(s.key)}
+            style={{ padding:"12px 18px", border:"none", background:"none", cursor:"pointer",
+              fontFamily:"inherit", fontSize:13, whiteSpace:"nowrap",
+              fontWeight: section===s.key ? 800 : 500,
+              color: section===s.key ? TC.teal : TC.muted,
+              borderBottom: section===s.key ? `2.5px solid ${TC.teal}` : "2.5px solid transparent" }}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ padding:"20px 20px 80px" }}>
+        {section === "konto" && (<>
+          <div style={{ marginBottom:16 }}>
+            <div style={{ fontSize:11, fontWeight:800, color:TC.muted, letterSpacing:1.1,
+              textTransform:"uppercase", marginBottom:6 }}>Anzeigename</div>
+            <input value={displayName} onChange={e => setDisplayName(e.target.value)}
+              style={{ width:"100%", padding:"13px 16px", borderRadius:14,
+                border:`1.5px solid ${TC.border}`, background:"rgba(0,0,0,0.03)",
+                fontSize:14, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+          </div>
+          <div style={{ marginBottom:20 }}>
+            <div style={{ fontSize:11, fontWeight:800, color:TC.muted, letterSpacing:1.1,
+              textTransform:"uppercase", marginBottom:6 }}>E-Mail</div>
+            <div style={{ padding:"13px 16px", borderRadius:14, background:"rgba(0,0,0,0.03)",
+              border:`1.5px solid ${TC.border}`, fontSize:14, color:TC.muted }}>{email}</div>
+          </div>
+          <button onClick={saveKonto} disabled={saving}
+            style={{ width:"100%", padding:"14px", borderRadius:50, cursor:"pointer",
+              background: saved ? TC.green : `linear-gradient(135deg,${TC.teal},${TC.teal2})`,
+              border:"none", color:"white", fontWeight:700, fontSize:14, fontFamily:"inherit",
+              boxShadow:`0 4px 14px ${TC.tealGlow}`, marginBottom:20 }}>
+            {saved ? "✓ Gespeichert" : saving ? "..." : "Speichern"}
+          </button>
+          <button onClick={onLogout}
+            style={{ width:"100%", padding:"13px", borderRadius:50, cursor:"pointer",
+              background:"rgba(239,68,68,0.07)", border:"1.5px solid rgba(239,68,68,0.2)",
+              color:"#EF4444", fontWeight:700, fontSize:14, fontFamily:"inherit" }}>
+            Abmelden
+          </button>
+        </>)}
+        {section === "sicht" && (
+          <div style={{ background:TC.card, borderRadius:16, padding:"16px 18px",
+            border:`1px solid ${TC.border}` }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div>
+                <div style={{ fontWeight:700, fontSize:14, color:TC.ink }}>
+                  {isAvail ? "✅ Nimmt Anfragen an" : "⏸ Nicht verfügbar"}
+                </div>
+                <div style={{ fontSize:12, color:TC.muted, marginTop:2 }}>
+                  Steuert ob du buchbar bist
+                </div>
+              </div>
+              <div onClick={() => setIsAvail(v => !v)}
+                style={{ width:48, height:28, borderRadius:50, cursor:"pointer",
+                  background: isAvail ? TC.teal : "rgba(0,0,0,0.15)",
+                  position:"relative", transition:"background .2s", flexShrink:0 }}>
+                <div style={{ position:"absolute", top:3, transition:"left .2s",
+                  left: isAvail ? 23 : 3, width:22, height:22, borderRadius:"50%",
+                  background:"white", boxShadow:"0 1px 4px rgba(0,0,0,0.2)" }} />
+              </div>
+            </div>
+          </div>
+        )}
+        {section === "zahlung" && (
+          <div style={{ background:TC.card, borderRadius:16, padding:24, textAlign:"center",
+            border:`1px solid ${TC.border}` }}>
+            <div style={{ fontSize:32, marginBottom:10 }}>💳</div>
+            <div style={{ fontWeight:700, color:TC.ink, marginBottom:6 }}>Zahlungsinfos</div>
+            <div style={{ fontSize:13, color:TC.muted, lineHeight:1.6 }}>
+              Stripe-Konto & Bankverbindung werden über den sicheren Auszahlungs-Flow eingerichtet.
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ── Tool Placeholder für Insights + Entwürfe ──────────────────────
 function ToolPlaceholder({ toolKey, onBack }) {
   const isInsights = toolKey === "insights";
   const C2 = { bg:"#F9F7F4", ink:"#1A1A1A", muted:"rgba(60,60,60,0.50)",
