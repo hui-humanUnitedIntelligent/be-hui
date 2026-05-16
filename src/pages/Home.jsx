@@ -1624,24 +1624,9 @@ export default function Home() {
               else setShowMembership(true);
             }
             if (key === "profile") {
-              // "Mein HUI" → öffnet eigenes öffentliches Profil
-              // WirkerProfilePage erkennt Owner automatisch via isOwner
-              const p   = authProfile;
-              const uid = p?.id || user?.id;
-              if (!uid) { console.warn("[MeinHUI] keine uid — authProfile:", p, "user:", user); return; }
-              setShowWirker({
-                id:            uid,
-                user_id:       uid,
-                username:      p?.username      || null,
-                display_name:  p?.display_name  || null,
-                avatar_url:    p?.avatar_url    || null,
-                talent:        p?.talent        || null,
-                focus_type:    p?.focus_type    || "hybrid",
-                header_img:    p?.header_img    || null,
-                bio:           p?.bio           || null,
-                dna_tags:      p?.dna_tags      || [],
-                _isOwnProfile: true,
-              });
+              // "Mein HUI" → navigiert direkt zur eigenen ProfilePage
+              switchTab("profile");
+            });
             }
             if (key === "notifs") setShowNotifs(true);
           }}
