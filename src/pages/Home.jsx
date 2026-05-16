@@ -1575,44 +1575,14 @@ export default function Home() {
           {tab==="chat" && (
             <ChatPage onClose={() => switchTab("feed")} />
           )}
-          {tab==="profile" && (
-            <ProfilePage
-              onTalentAnbieten={()=>setShowMembership(true)}
-              onLogout={()=>{
-                supabase.auth.signOut();
-                window.location.href="/login";
-              }}
-              onViewPublicProfile={async ()=>{
-                // Eigenes öffentliches Profil im WirkerProfilePage öffnen
-                let uid = authProfile?.id;
-                if (!uid) {
-                  try {
-                    const { data: { user: u } } = await supabase.auth.getUser();
-                    uid = u?.id;
-                  } catch { /* ignore */ }
-                }
-                if (!uid) return;
-                setShowWirker({
-                  id:          uid,
-                  user_id:     uid,
-                  username:    authProfile?.username    || null,
-                  display_name:authProfile?.display_name|| null,
-                  avatar_url:  authProfile?.avatar_url  || null,
-                  talent:      authProfile?.talent      || null,
-                  focus_type:  authProfile?.focus_type  || "hybrid",
-                  header_img:  authProfile?.header_img  || null,
-                  bio:         authProfile?.bio         || null,
-                  dna_tags:    authProfile?.dna_tags    || [],
-                });
-              }}
-            />
-          )}
+          {/* "profile" Tab entfernt — Profil läuft über Orb → setShowWirker (Overlay) */}
+          {/* Für tiefes Profil-Editing: /studio Route */}
         </div>
 
         <BottomNav
           tab={tab}
           onTab={(key) => {
-            if (key === "chat") { setShowChat(true); return; }
+            // Alle Tabs über switchTab — einheitlich, kein showChat-State-Split mehr
             switchTab(key);
           }}
           hasTalent={isTalent}
@@ -1626,10 +1596,23 @@ export default function Home() {
               else setShowMembership(true);
             }
             if (key === "profile") {
-              // "Mein HUI" → öffnet eigenes Creator-Profil (Instagram-Style)
-              const username = authProfile?.username || user?.id;
-              if (username) {
-                navigate(`/profile/${username}`);
+              // "Mein HUI" → zeigt eigenes Profil als Overlay in Home context
+              // KEIN navigate() — würde Home unmounten und State zerstören
+              // WirkerProfilePage erkennt isOwner automatisch via user.id
+              if (authProfile?.id || user?.id) {
+                setShowWirker({
+                  id:           authProfile?.id   || user?.id,
+                  user_id:      authProfile?.id   || user?.id,
+                  username:     authProfile?.username     || null,
+                  display_name: authProfile?.display_name || null,
+                  avatar_url:   authProfile?.avatar_url   || null,
+                  header_img:   authProfile?.header_img   || null,
+                  talent:       authProfile?.talent       || null,
+                  focus_type:   authProfile?.focus_type   || "hybrid",
+                  bio:          authProfile?.bio          || null,
+                  dna_tags:     authProfile?.dna_tags     || [],
+                  _isOwnerView: true,  // Signal für isOwner-Detection
+                });
               }
             }
             if (key === "notifs") setShowNotifs(true);
@@ -1653,8 +1636,9 @@ export default function Home() {
               console.log("[Home] onMessage:", profile?.display_name);
             }}
             onEdit={() => {
+              // Edit-Overlay öffnet sich innerhalb WirkerProfilePage
+              // kein Tab-Wechsel, kein State-Reset
               setShowWirker(null);
-              switchTab("profile");
             }}
           />
         )}
@@ -1737,9 +1721,7 @@ export default function Home() {
         />
       )}
 
-      {showChat && (
-        <ChatPage onClose={() => setShowChat(false)} />
-      )}
+      {/* Chat-Overlay entfernt — Chat läuft jetzt sauber über Tab */}
       {showNotifs && (
         <NotificationCenter
           onClose={() => setShowNotifs(false)}
