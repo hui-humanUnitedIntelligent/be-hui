@@ -1,6 +1,6 @@
 // src/hooks/useFavorites.js — v2
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '.../lib/supabaseClient';
 import { safeQuery } from '../lib/perfUtils';
 
 export function useFavorites(userId) {
