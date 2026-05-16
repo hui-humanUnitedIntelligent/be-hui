@@ -417,24 +417,21 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
     }
   }
 
-  // ── Follow/Unfollow ──────────────────────────────────────────────
+  // ── Follow/Unfollow — über AppStateContext (globaler optimistic update)
+  const { isFollowing: _globalFollowed, toggle: _toggleFollow } = useFollowStatus(profile?.id);
+  // Sync lokaler followed-State mit globalem Context
+  useEffect(() => {
+    if (profile?.id) setFollowed(_globalFollowed);
+  }, [_globalFollowed, profile?.id]);
+
   async function handleFollow() {
     if (!user?.id || !profile?.id || followLoading) return;
     setFollowLoading(true);
-    const targetId = profile.id;
-    if (followed) {
-      await supabase.from("follows")
-        .delete()
-        .eq("follower_id", user.id)
-        .eq("followed_id", targetId);
-      setFollowed(false);
-    } else {
-      await supabase.from("follows")
-        .upsert({ follower_id: user.id, followed_id: targetId },
-                 { onConflict: "follower_id,followed_id" });
-      setFollowed(true);
+    try {
+      await _toggleFollow(); // AppStateContext: optimistic + DB sync
+    } finally {
+      setFollowLoading(false);
     }
-    setFollowLoading(false);
   }
 
   const focus = FOCUS[profile?.focus_type] || FOCUS.hybrid;
