@@ -327,6 +327,10 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const contentRef = useRef(null);
 
   // Owner Mode: Nutzer schaut sein eigenes öffentliches Profil
+  // Presence — sehr subtil, nur online/recently zeigen
+  const presenceStatus = usePresence(profile?.id);
+  const presenceInfo   = getPresenceLabel(presenceStatus);
+
   const isOwner = !!(
     user?.id &&
     profile &&
