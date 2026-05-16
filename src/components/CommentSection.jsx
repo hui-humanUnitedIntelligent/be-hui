@@ -1,7 +1,7 @@
 // CommentSection.jsx — HUI Phase 6
 // Echte Supabase-Kommentare: insert, realtime, likes
 import React, { useState, useEffect, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
