@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSoftFade } from "../lib/sessionHooks";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { emotionalScore } from "../lib/moodUtils";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 import { sentryCapture } from "../lib/sentry";
