@@ -138,7 +138,7 @@ export async function withRetry(fn, { maxRetries = 3, baseDelayMs = 500 } = {}) 
 // ─── 10. Selective fields helper ─────────────────────────────────────
 // Use instead of select('*') everywhere
 export const FIELDS = {
-  profile:  'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,focus_type,talent,location_label,is_available,impact_eur,created_at,dna_tags,profile_modules,role,followers_count',
+  profile:  'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,focus_type,location,is_available,created_at,dna_tags,role',
   wirker:   'id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified',
   work:     'id,user_id,title,cover_url,media_url,price,category,medium,status,created_at',
   experience:'id,user_id,title,cover_url,price,duration,spots_available,location_label,status',
@@ -152,10 +152,12 @@ export const FIELDS = {
 // Exakt dieselben Felder die WirkerProfilePage erwartet.
 // Deckt profiles-Tabelle vollständig ab (keine imaginären Felder).
 export const PROFILE_FIELDS =
+  // Nur Spalten die wirklich in der profiles-Tabelle existieren
+  // (verifiziert via Supabase Index-Export — kein 'talent', kein 'location_label')
   'id,display_name,username,avatar_url,header_img,bio,' +
-  'is_wirker,has_talent_profile,focus_type,talent,' +
-  'location_label,is_available,impact_eur,created_at,' +
-  'dna_tags,profile_modules,role,followers_count';
+  'is_wirker,has_talent_profile,focus_type,' +
+  'location,is_available,created_at,' +
+  'dna_tags,role';
 
 // ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
 // Gleicht alle historisch unterschiedlichen Feldnamen an:
@@ -179,7 +181,7 @@ export function normalizeProfileInput(raw) {
     header_img:       raw.header_img  || raw.bg         || raw.cover_url  || null,
     // Info
     bio:              raw.bio         || raw.quote       || null,
-    talent:           raw.talent      || raw.skills?.[0] || null,
+    talent:           raw.talent      || raw.has_talent_profile || null,  // talent kommt aus wirker_profiles, nicht profiles
     location_label:   raw.location_label || raw.city    || raw.location   || null,
     focus_type:       raw.focus_type                    || "hybrid",
     // Stats
