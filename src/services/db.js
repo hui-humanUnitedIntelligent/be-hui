@@ -21,7 +21,7 @@ const F = {
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',
-  story:        'id,user_id,media_url,media_type,text_overlay,mood,expires_at,views_count,created_at',
+  story:        'id,user_id,media_url,media_type,text_overlay,mood,location,expires_at,views_count,created_at',
   booking:      'id,user_id,wirker_id,work_id,experience_id,amount,platform_fee,impact_fee,status,payment_status,escrow_status,created_at',
   message:      'id,conversation_id,sender_id,text,created_at,read,type',
   conversation: 'id,participant_a,participant_b,booking_id,last_message_at,last_message_text,unread_count_a,unread_count_b',
