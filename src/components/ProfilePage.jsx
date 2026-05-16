@@ -1,7 +1,7 @@
 // ProfilePage.jsx — Premium Creator Profile
 // Props-basiert: kein useNavigate/useParams direkt → Router-safe
 import React, { useState, useEffect, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 /* ── Tokens ─────────────────────────────────────────────────────────── */
