@@ -225,7 +225,7 @@ function OwnProfileRedirect() {
   React.useEffect(() => {
     if (!user?.id) return;
     // Username aus Supabase holen
-    import('../lib/supabaseClient').then(({ supabase }) => {
+    import('./lib/supabaseClient').then(({ supabase }) => {
       supabase.from('profiles')
         .select('username')
         .eq('id', user.id)
