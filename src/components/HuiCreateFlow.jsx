@@ -10,6 +10,7 @@
 // Alle Datenmodelle (works, experiences, stories, mood_tags etc.) bleiben
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
+import { useDraftPersist } from "../lib/sessionHooks";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
@@ -287,6 +288,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
   }
 
   async function publish() {
+    clearDraft();
     if (!file || !user) return;
     // Wenn forcedType gesetzt → kein Moment-Upload, sondern weiter zum Formular
     if (forcedType && forcedType !== "moment") {
