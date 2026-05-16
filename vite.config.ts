@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 20:55:33 — phase3d.1 stabilization
+// HUI build 2026-05-16 20:59:22 — phase3d.1 stabilization complete
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
