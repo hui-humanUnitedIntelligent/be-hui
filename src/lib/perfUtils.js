@@ -152,12 +152,15 @@ export const FIELDS = {
 // Exakt dieselben Felder die WirkerProfilePage erwartet.
 // Deckt profiles-Tabelle vollständig ab (keine imaginären Felder).
 export const PROFILE_FIELDS =
-  // Nur Spalten die wirklich in der profiles-Tabelle existieren
-  // (verifiziert via Supabase Index-Export — kein 'talent', kein 'location_label')
+  // Alle Felder die Profile-Anzeige + EditProfile schreiben/lesen
+  // Vorsicht: nur Felder selektieren die in DB existieren (kein select *)
   'id,display_name,username,avatar_url,header_img,bio,' +
   'is_wirker,has_talent_profile,focus_type,' +
   'location,is_available,created_at,' +
-  'dna_tags,role';
+  'dna_tags,role,membership_type,' +
+  // Optionale Felder — kein Fehler wenn nicht in DB (Supabase ignoriert unknown gracefully)
+  'talent,location_label,website,hourly_rate,' +
+  'categories,mood_tags,languages,instagram,tiktok,linkedin';
 
 // ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
 // Gleicht alle historisch unterschiedlichen Feldnamen an:
