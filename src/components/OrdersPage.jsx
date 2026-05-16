@@ -1,7 +1,7 @@
 // OrdersPage.jsx — Meine Bestellungen & Buchungshistorie
 // Ruhig. Hochwertig. Persönlich. Kein Amazon-Backend.
 import React, { useState, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
