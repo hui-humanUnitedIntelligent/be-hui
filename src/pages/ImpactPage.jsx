@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { safeQuery, FIELDS } from "../lib/perfUtils";
-import { supabase }      from ".../lib/supabaseClient";
+import { supabase }      from "../lib/supabaseClient";
 import SupportSheet      from "../components/SupportSheet";
 
 /* ── Brand ──────────────────────────────────── */
