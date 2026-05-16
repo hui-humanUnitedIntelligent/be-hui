@@ -3,7 +3,7 @@
 // Datenlogik (doMatch, doSurprise, Supabase) vollständig erhalten.
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 
 /* ══════════════════════════════════════════════════════
