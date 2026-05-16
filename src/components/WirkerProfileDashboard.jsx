@@ -3,7 +3,7 @@
 // Ersetzt WirkerProfileDashboard.jsx
 
 import React, { useState, useEffect, useCallback } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
