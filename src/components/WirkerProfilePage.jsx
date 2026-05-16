@@ -1,6 +1,7 @@
 // WirkerProfilePage.jsx — HUI v3
 import { usePresence, getPresenceLabel } from "../lib/sessionHooks";
 import { useBookingActions, getTrustSignals, REQ_TYPES, MOODS, BOOKING_STATUS } from "../lib/bookingContext";
+import { getSoftStatus, AMBIENT_CSS, TRANSITIONS } from "../lib/journeyContext";
 import { useReputation, useRecommendationActions, computeReputationSignals,
          COLLAB_MOODS, OUTCOME_QUALITIES, REPUTATION_QUALITIES } from "../lib/trustContext";
 // Mobile-First Cinematic Profile
