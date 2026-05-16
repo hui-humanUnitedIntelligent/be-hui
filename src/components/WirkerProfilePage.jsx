@@ -322,7 +322,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const [workSaved,      setWorkSaved]     = useState({});
   const [activeTab,      setActiveTab]     = useState("werke");
   const [heroLoaded,     setHeroLoaded]    = useState(false);
-  const [activeTool,     setActiveTool]    = useState(null);  // "edit"|"analytics"|"earnings"|"insights"|"availability"|"settings"|"drafts"
+  const [activeTool,     setActiveTool]    = useState(null);  // nur "edit" — Rest in /studioghts"|"availability"|"settings"|"drafts"
   const tabsRef    = useRef(null);
   const contentRef = useRef(null);
 
@@ -1305,6 +1305,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           isOwner={isOwner}
           onClose={() => setShowMore(false)}
           onEdit={() => { setShowMore(false); setActiveTool("edit"); }}
+          onOpenStudio={() => navigate('/studio')}
         />
       )}
 
@@ -1390,25 +1391,25 @@ function OwnerToolOverlay({ activeTool, user, profile, onClose, onSave }) {
         {activeTool === "edit" && (
           <EditProfile user={user} profile={profile} onClose={onClose} onSave={onSave} />
         )}
-        {activeTool === "analytics" && <InlineAnalytics user={user} onBack={onClose} />}
-        {activeTool === "earnings"  && <InlineEarnings  user={user} onBack={onClose} />}
-        {activeTool === "availability" && <InlineAvailability user={user} onBack={onClose} />}
-        {activeTool === "settings" && (
-          <InlineSettings
-            user={user}
-            profile={profile}
-            onBack={onClose}
-            onLogout={onClose}
-            onSave={onSave}
-          />
-        )}
-        {(activeTool === "insights" || activeTool === "drafts") && (
-          <ToolPlaceholder
-            toolKey={activeTool}
-            onBack={onClose}
-            user={user}
-            profile={profile}
-          />
+        {/* Analytics, Einnahmen, Insights etc. → jetzt in /studio */}
+        {activeTool !== "edit" && activeTool && (
+          <div style={{ padding:"60px 20px", textAlign:"center" }}>
+            <div style={{ fontSize:40, marginBottom:16 }}>✦</div>
+            <div style={{ fontSize:17, fontWeight:800, color:"#1A1A1A", marginBottom:8 }}>
+              Creator Studio
+            </div>
+            <div style={{ fontSize:14, color:"#888", lineHeight:1.65, marginBottom:24 }}>
+              Dieser Bereich ist jetzt im Creator Studio.<br/>
+              Öffne /studio für deine vollständige Verwaltung.
+            </div>
+            <button onClick={onClose}
+              style={{ padding:"12px 28px", borderRadius:50,
+                background:"linear-gradient(135deg,#16D7C5,#11C5B7)",
+                border:"none", color:"white", fontWeight:700, fontSize:14,
+                fontFamily:"inherit", cursor:"pointer" }}>
+              Schließen
+            </button>
+          </div>
         )}
       </ToolErrorBoundary>
     </div>
@@ -2952,7 +2953,7 @@ function RequestSheet({ profile, user, onClose }) {
 // ══════════════════════════════════════════════════════════════════
 // MORE MENU — Teilen, Melden, Blockieren
 // ══════════════════════════════════════════════════════════════════
-function MoreMenu({ profile, isOwner, onClose, onEdit }) {
+function MoreMenu({ profile, isOwner, onClose, onEdit, onOpenStudio }) {
   const ITEMS = [
     { icon:"🔗", label:"Profil teilen",        action: () => {
       navigator.share?.({ title: profile?.display_name, url: window.location.href })
@@ -2962,7 +2963,8 @@ function MoreMenu({ profile, isOwner, onClose, onEdit }) {
     { icon:"🔔", label:"Benachrichtigungen",   action: onClose },
     { icon:"⭐", label:"Als Favorit speichern", action: onClose },
     ...(isOwner ? [
-      { icon:"✏️", label:"Profil bearbeiten",   action: onEdit, teal:true },
+      { icon:"✏️", label:"Profil bearbeiten",    action: onEdit, teal:true },
+      { icon:"✦",  label:"Creator Studio öffnen", action: () => { onClose(); onOpenStudio?.(); }, teal:true },
     ] : [
       { icon:"🚩", label:"Profil melden",       action: onClose, red:true },
       { icon:"🚫", label:"Blockieren",          action: onClose, red:true },
