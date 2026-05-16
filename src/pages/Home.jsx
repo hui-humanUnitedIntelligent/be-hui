@@ -25,6 +25,12 @@ import { useNotifCount } from "../lib/AppStateContext";
 import HuiMembershipFlow from "../components/HuiMembershipFlow";
 import HuiCreateFlow  from "../components/HuiCreateFlow";
 import HuiPlusSheet   from "../components/HuiPlusSheet";
+import {
+  useScrollMemory,
+  useTabKeepAlive,
+  useSessionRestore,
+  useOwnPresence,
+} from "../lib/sessionHooks";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1399,7 +1405,10 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
    ROOT
 ═══════════════════════════════════════════════════ */
 export default function Home() {
-  const [tab,         setTab]         = useState("feed");
+  // useSessionRestore: merkt letzten Tab bei Reload
+  const [tab, _setTab] = useSessionRestore("feed");
+  // Wrapper damit switchTab weiterhin funktioniert
+  const setTab = _setTab;
   const { user, isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, loadingProfile, profile: authProfile, wirkerProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
   const [showTalentFlow, setShowTalentFlow] = useState(false); // "Wirker werden" flow
@@ -1476,6 +1485,18 @@ export default function Home() {
 
   // ── ZENTRALER TAB-WECHSEL ────────────────────────────────────────
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // ── Scroll Memory — pro Tab ──────────────────────────────────
+  const { ref: mainScrollRef } = useScrollMemory(tab);
+
+  // ── Own Presence — setzt last_seen alle 2min ───────────────
+  useOwnPresence(user?.id);
+
+  // ── Tab Keep-Alive Styles — vorab berechnet (Rules of Hooks) ─
+  const keepFeed     = useTabKeepAlive(tab === "feed");
+  const keepDiscover = useTabKeepAlive(tab === "discover");
+  const keepChat     = useTabKeepAlive(tab === "chat");
+  const keepImpact   = useTabKeepAlive(tab === "impact");
+
   const switchTab = React.useCallback((newTab) => {
     setShowWirker(null);
     setShowBooking(null);
@@ -1540,39 +1561,42 @@ export default function Home() {
           avatarUrl={authProfile?.avatar_url || null}
         />
 
-        <div className="hui-scroll"
+        <div className="hui-scroll" ref={mainScrollRef}
           style={{ flex:1, overflowY:"auto", overflowX:"hidden",
             WebkitOverflowScrolling:"touch" }}>
 
-          {tab==="feed" && (
-            <>
-              <DiscoveryFeed
-                onView={(w) => (w.type==="werk" || (w.price && w.type!=="wirker" && w.type!=="talent" && w.type!=="profile")) ? setShowWerkDetail(w) : setShowWirker(w)}
-                onBook={(w) => setShowBooking(w)}
-                onImpact={() => switchTab("impact")}
-                onMatch={() => setShowMatch(true)}
-                onMap={() => setShowMap(true)}
-                onBuyWerk={(w) => setShowWerkCheckout([w])}
-                onAddToKorb={(w) => { setCart(p => [...p, w]); }}
-                storyRefreshKey={storyRefreshKey}
-                onOpenComposer={() => setShowStoryComposer(true)}
-                activeMood={activeMood}
-              />
-            </>
-          )}
-          {tab==="impact" && (
-            <ImpactPage currentUser={currentUser}/>
-          )}
-          {tab==="discover" && (
+          {/* ── KEEP-ALIVE TABS: display:none statt unmount ──────────────── */}
+          {/* Feed — bleibt immer gemountet, scroll position bleibt erhalten */}
+          <div style={keepFeed}>
+            <DiscoveryFeed
+              onView={(w) => (w.type==="werk" || (w.price && w.type!=="wirker" && w.type!=="talent" && w.type!=="profile")) ? setShowWerkDetail(w) : setShowWirker(w)}
+              onBook={(w) => setShowBooking(w)}
+              onImpact={() => switchTab("impact")}
+              onMatch={() => setShowMatch(true)}
+              onMap={() => setShowMap(true)}
+              onBuyWerk={(w) => setShowWerkCheckout([w])}
+              onAddToKorb={(w) => { setCart(p => [...p, w]); }}
+              storyRefreshKey={storyRefreshKey}
+              onOpenComposer={() => setShowStoryComposer(true)}
+              activeMood={activeMood}
+            />
+          </div>
+          {/* Discover — bleibt gemountet */}
+          <div style={keepDiscover}>
             <DiscoverPage
               onView={w=>setShowWirker(w)}
               onMap={()=>setShowMap(true)}
               onMatch={()=>setShowMatch(true)}
             />
-          )}
-          {tab==="chat" && (
+          </div>
+          {/* Chat — bleibt gemountet */}
+          <div style={keepChat}>
             <ChatPage onClose={() => switchTab("feed")} />
-          )}
+          </div>
+          {/* Impact — bleibt gemountet */}
+          <div style={keepImpact}>
+            <ImpactPage currentUser={currentUser}/>
+          </div>
           {/* "profile" Tab entfernt — Profil läuft über Orb → setShowWirker (Overlay) */}
           {/* Für tiefes Profil-Editing: /studio Route */}
         </div>
