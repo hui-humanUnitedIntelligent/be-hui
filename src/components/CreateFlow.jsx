@@ -1,7 +1,7 @@
 // CreateFlow.jsx — HUI Create Experience
 // Emotional, warm, kreativ. Kein Shopify-Backend.
 import React, { useState, useRef } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { MOOD_TAG_OPTIONS, ENERGY_LEVELS } from "../lib/moodUtils";
 
 const C = {
