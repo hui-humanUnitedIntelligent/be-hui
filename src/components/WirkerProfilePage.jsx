@@ -2957,14 +2957,48 @@ function MoreMenu({ profile, isOwner, onClose, onEdit, onOpenStudio }) {
         .catch(() => navigator.clipboard?.writeText(window.location.href));
       onClose();
     }},
-    { icon:"🔔", label:"Benachrichtigungen",   action: onClose },
-    { icon:"⭐", label:"Als Favorit speichern", action: onClose },
+    { icon:"🔔", label:"Benachrichtigungen",   action: () => {
+      // Benachrichtigungen für diesen Creator (de)aktivieren
+      // Vollständige Notification-Prefs in Phase 3 — vorerst: Save-Status als Signal
+      onClose();
+    }},
+    { icon:"⭐", label:"Als Favorit speichern", action: () => {
+      // Gespeicherter Creator → Browser localStorage + AppStateContext in Phase 3
+      try {
+        const saved = JSON.parse(localStorage.getItem("hui_saved_creators") || "[]");
+        const id = profile?.id || profile?.user_id;
+        if (id && !saved.includes(id)) {
+          saved.push(id);
+          localStorage.setItem("hui_saved_creators", JSON.stringify(saved.slice(-50)));
+        }
+      } catch(e) { /* silent */ }
+      onClose();
+    }},
     ...(isOwner ? [
       { icon:"✏️", label:"Profil bearbeiten",    action: onEdit, teal:true },
       { icon:"✦",  label:"Creator Studio öffnen", action: () => { onClose(); onOpenStudio?.(); }, teal:true },
     ] : [
-      { icon:"🚩", label:"Profil melden",       action: onClose, red:true },
-      { icon:"🚫", label:"Blockieren",          action: onClose, red:true },
+      { icon:"🚩", label:"Profil melden", action: () => {
+        const uid = profile?.id || profile?.user_id || "unbekannt";
+        const subject = encodeURIComponent(`Profil melden: ${profile?.display_name || uid}`);
+        const body = encodeURIComponent(`Ich möchte dieses Profil melden.
+
+Profil-ID: ${uid}
+Grund: `);
+        window.open(`mailto:support@behui.app?subject=${subject}&body=${body}`, "_blank");
+        onClose();
+      }, red:true },
+      { icon:"🚫", label:"Blockieren", action: () => {
+        try {
+          const blocked = JSON.parse(localStorage.getItem("hui_blocked") || "[]");
+          const id = profile?.id || profile?.user_id;
+          if (id && !blocked.includes(id)) {
+            blocked.push(id);
+            localStorage.setItem("hui_blocked", JSON.stringify(blocked.slice(-100)));
+          }
+        } catch(e) { /* silent */ }
+        onClose();
+      }, red:true },
     ]),
   ];
 
