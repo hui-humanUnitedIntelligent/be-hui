@@ -88,7 +88,7 @@ const FOCUS = {
 };
 
 /* ─── Work Card ─────────────────────────────────────────────────── */
-const WorkCard = React.memo(function WorkCard({ work, fullWidth=false, onTap }) {
+const WorkCard = React.memo(function WorkCard({ work, fullWidth=false, onTap, onLike, onSave, liked, saved }) {
   const img = work.cover_url || work.media_url
     || (Array.isArray(work.images) && work.images[0])
     || "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80";
@@ -295,6 +295,12 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const [recs,           setRecs]          = useState([]);
   const [loading,        setLoading]       = useState(true);
   const [followed,       setFollowed]      = useState(false);
+  const [followLoading,  setFollowLoading] = useState(false);
+  const [showChat,       setShowChat]      = useState(false);
+  const [showRequest,    setShowRequest]   = useState(false);
+  const [showMore,       setShowMore]      = useState(false);
+  const [workLikes,      setWorkLikes]     = useState({});
+  const [workSaved,      setWorkSaved]     = useState({});
   const [activeTab,      setActiveTab]     = useState("werke");
   const [heroLoaded,     setHeroLoaded]    = useState(false);
   const [ownerToolsOpen, setOwnerToolsOpen]= useState(false); // Creator-Tools Drawer
@@ -356,6 +362,15 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
       const targetId = prof?.id || uid;
       if (mounted) setProfile(prof ? { ...buildMock(rawWirker), ...prof } : buildMock(rawWirker));
 
+      // Follow-Status aus DB laden
+      if (user?.id && targetId && user.id !== targetId) {
+        supabase.from("follows")
+          .select("follower_id", { count:"exact", head:true })
+          .eq("follower_id", user.id)
+          .eq("followed_id", targetId)
+          .then(({ count }) => { if (mounted) setFollowed((count||0) > 0); });
+      }
+
       // Batch all content queries in parallel
       if (targetId) {
         const [worksRes, expsRes, recsRes] = await Promise.all([
@@ -382,6 +397,26 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
     } finally {
       if (mounted) setLoading(false);
     }
+  }
+
+  // ── Follow/Unfollow ──────────────────────────────────────────────
+  async function handleFollow() {
+    if (!user?.id || !profile?.id || followLoading) return;
+    setFollowLoading(true);
+    const targetId = profile.id;
+    if (followed) {
+      await supabase.from("follows")
+        .delete()
+        .eq("follower_id", user.id)
+        .eq("followed_id", targetId);
+      setFollowed(false);
+    } else {
+      await supabase.from("follows")
+        .upsert({ follower_id: user.id, followed_id: targetId },
+                 { onConflict: "follower_id,followed_id" });
+      setFollowed(true);
+    }
+    setFollowLoading(false);
   }
 
   const focus = FOCUS[profile?.focus_type] || FOCUS.hybrid;
@@ -727,49 +762,69 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               Änderungen sind sofort für alle sichtbar
             </div>
           ) : (
-            /* ── VISITOR MODE: Standard CTAs ── */
-            <div style={{ display:"flex", gap:9 }}>
-              {/* Folgen */}
-              <button className="wp-tap" onClick={() => setFollowed(f=>!f)}
-                style={{ flex:1, padding:"12px 8px",
-                  background: followed
-                    ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                    : "rgba(0,0,0,0.05)",
-                  border: followed ? "none" : `1.5px solid ${C.border}`,
-                  borderRadius:16, fontSize:13, fontWeight:800,
-                  color: followed ? "white" : C.ink2,
-                  fontFamily:"inherit",
-                  boxShadow: followed ? `0 4px 16px ${C.tealGlow}` : "none",
-                  transition:"all .22s cubic-bezier(.34,1.4,.64,1)",
-                  position:"relative", overflow:"hidden" }}>
-                {followed && (
-                  <div style={{ position:"absolute", inset:0,
-                    background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%)",
-                    animation:"shimmer 3s ease-in-out infinite" }}/>
-                )}
-                <span style={{ position:"relative" }}>
-                  {followed ? "✓ Folge ich" : "Folgen"}
-                </span>
-              </button>
-              {/* Nachricht */}
+            /* ── VISITOR MODE: HUI CTAs ── */
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {/* Haupt-Aktionen */}
+              <div style={{ display:"flex", gap:8 }}>
+                {/* FOLGEN */}
+                <button className="wp-tap" onClick={handleFollow}
+                  disabled={followLoading}
+                  style={{ flex:1, padding:"12px 8px",
+                    background: followed
+                      ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                      : "rgba(0,0,0,0.05)",
+                    border: followed ? "none" : `1.5px solid ${C.border}`,
+                    borderRadius:16, fontSize:13, fontWeight:800,
+                    color: followed ? "white" : C.ink2, fontFamily:"inherit",
+                    boxShadow: followed ? `0 4px 16px ${C.tealGlow}` : "none",
+                    transition:"all .22s cubic-bezier(.34,1.4,.64,1)",
+                    opacity: followLoading ? 0.6 : 1,
+                    position:"relative", overflow:"hidden" }}>
+                  {followed && (
+                    <div style={{ position:"absolute", inset:0,
+                      background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%)",
+                      animation:"shimmer 3s ease-in-out infinite" }}/>
+                  )}
+                  <span style={{ position:"relative" }}>
+                    {followLoading ? "…" : followed ? "✓ Folge ich" : "Folgen"}
+                  </span>
+                </button>
+                {/* NACHRICHT */}
+                <button className="wp-tap"
+                  onClick={() => setShowChat(true)}
+                  style={{ flex:1, padding:"12px 8px",
+                    background:"rgba(22,215,197,0.08)",
+                    border:`1.5px solid rgba(22,215,197,0.22)`,
+                    borderRadius:16, fontSize:13, fontWeight:700,
+                    color:C.teal, fontFamily:"inherit",
+                    transition:"all .15s ease" }}>
+                  💬 Nachricht
+                </button>
+                {/* MEHR (...) */}
+                <button className="wp-tap"
+                  onClick={() => setShowMore(true)}
+                  style={{ width:44, height:44, padding:0,
+                    background:"rgba(0,0,0,0.05)",
+                    border:`1.5px solid ${C.border}`,
+                    borderRadius:16, fontSize:18, fontWeight:700,
+                    color:C.muted, fontFamily:"inherit",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    flexShrink:0 }}>
+                  ···
+                </button>
+              </div>
+              {/* ANFRAGE CTA — prominent */}
               <button className="wp-tap"
-                onClick={() => onMessage?.(profile)}
-                style={{ flex:1, padding:"12px 8px",
-                  background:"rgba(22,215,197,0.09)",
-                  border:`1.5px solid ${C.teal}30`,
-                  borderRadius:16, fontSize:13, fontWeight:700,
-                  color:C.teal, fontFamily:"inherit" }}>
-                Nachricht
-              </button>
-              {/* Anfrage */}
-              <button className="wp-tap"
-                onClick={() => onBook?.(profile)}
-                style={{ flex:1, padding:"12px 8px",
+                onClick={() => setShowRequest(true)}
+                style={{ width:"100%", padding:"13px",
                   background:`linear-gradient(135deg,${C.coral},${C.coral}CC)`,
-                  border:"none", borderRadius:16, fontSize:13, fontWeight:800,
-                  color:"white", fontFamily:"inherit",
-                  boxShadow:`0 4px 14px ${C.coralGlow}` }}>
-                Anfrage
+                  border:"none", borderRadius:16, fontSize:14, fontWeight:900,
+                  color:"white", fontFamily:"inherit", position:"relative", overflow:"hidden",
+                  boxShadow:`0 4px 18px ${C.coralGlow}` }}>
+                <div style={{ position:"absolute", inset:0,
+                  background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.15) 50%,transparent 65%)",
+                  animation:"shimmer 3.5s ease-in-out infinite", pointerEvents:"none" }}/>
+                <span style={{ position:"relative" }}>✨ Anfrage stellen</span>
               </button>
             </div>
           )}
@@ -859,6 +914,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               { key:"werke",      label:"Werke",        accent:C.gold },
               { key:"erlebnisse", label:"Erlebnisse",   accent:C.coral },
               { key:"empf",       label:"Empfehlungen", accent:C.teal },
+              { key:"impact",     label:"Impact",       accent:C.green },
             ].map(tab => {
               const active = activeTab === tab.key;
               return (
@@ -907,7 +963,10 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                   {/* Erstes Werk full-width wenn ungerade Anzahl */}
                   {works.length % 2 !== 0 && (
                     <div style={{ gridColumn:"1/-1" }}>
-                      <WorkCard work={works[0]} fullWidth onTap={w=>onBook?.(w)}/>
+                      <WorkCard work={works[0]} fullWidth onTap={w=>onBook?.(w)}
+                         liked={workLikes[works[0]?.id]} saved={workSaved[works[0]?.id]}
+                         onLike={id=>setWorkLikes(l=>({...l,[id]:!l[id]}))}
+                         onSave={id=>setWorkSaved(s=>({...s,[id]:!s[id]}))}/>
                     </div>
                   )}
                   {works.slice(works.length % 2 !== 0 ? 1 : 0).map((w,i) => (
@@ -942,6 +1001,70 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           )}
 
           {/* ── EMPFEHLUNGEN ── */}
+          {activeTab === "impact" && (
+            <div style={{ padding:"4px 0 16px" }}>
+              {/* Impact Header */}
+              <div style={{ background:"linear-gradient(135deg,rgba(16,185,129,0.08),rgba(22,215,197,0.05))",
+                borderRadius:20, padding:"20px 20px", marginBottom:16,
+                border:"1.5px solid rgba(16,185,129,0.14)" }}>
+                <div style={{ fontSize:28, marginBottom:8 }}>🌱</div>
+                <div style={{ fontSize:18, fontWeight:900, color:C.ink,
+                  letterSpacing:-.3, marginBottom:6 }}>
+                  {profile.display_name?.split(" ")[0]}s Wirkung
+                </div>
+                <div style={{ fontSize:13.5, color:"rgba(30,30,30,0.58)", lineHeight:1.65 }}>
+                  Jede Buchung trägt automatisch zu sozialen Projekten bei.
+                  {profile.impact_eur > 0
+                    ? ` Bisher wurden € ${Math.round(profile.impact_eur)} weitergegeben.`
+                    : " Die ersten Einnahmen fließen bald weiter."}
+                </div>
+              </div>
+
+              {/* Impact Zahlen */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:16 }}>
+                {[
+                  { icon:"🌿", label:"Impact bewirkt",
+                    value: profile.impact_eur > 0 ? `€ ${Math.round(profile.impact_eur)}` : "—",
+                    color: C.green, bg:"rgba(16,185,129,0.08)" },
+                  { icon:"❤️", label:"Empfehlungen",
+                    value: recs.length || profile.recommendations_count || 0,
+                    color: C.coral, bg:"rgba(255,138,107,0.08)" },
+                  { icon:"🎨", label:"Werke geteilt",
+                    value: works.length || 0,
+                    color: C.gold, bg:"rgba(245,166,35,0.08)" },
+                  { icon:"✨", label:"Erlebnisse",
+                    value: exps.length || 0,
+                    color: C.teal, bg:"rgba(22,215,197,0.08)" },
+                ].map(s => (
+                  <div key={s.label} style={{ background:s.bg, borderRadius:18,
+                    padding:"18px 16px", border:`1px solid ${s.color}22` }}>
+                    <div style={{ fontSize:22, marginBottom:8 }}>{s.icon}</div>
+                    <div style={{ fontSize:20, fontWeight:900, color:s.color,
+                      marginBottom:4 }}>{s.value}</div>
+                    <div style={{ fontSize:11.5, color:C.muted,
+                      fontWeight:600 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* HUI Impact Erklärung */}
+              <div style={{ background:C.card, borderRadius:18, padding:"18px 20px",
+                border:`1px solid ${C.border}`,
+                boxShadow:"0 1px 8px rgba(0,0,0,0.04)" }}>
+                <div style={{ fontWeight:800, fontSize:14, color:C.ink, marginBottom:8 }}>
+                  Wie funktioniert das?
+                </div>
+                <div style={{ fontSize:13, color:"rgba(30,30,30,0.58)", lineHeight:1.7 }}>
+                  Bei jeder Buchung fließen{" "}
+                  <strong style={{ color:C.teal }}>2,5%</strong> automatisch
+                  in echte soziale Projekte — ausgewählt durch die HUI-Community.
+                  <br/><br/>
+                  Kreativität und Wirkung gehen Hand in Hand.
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === "empf" && (
             <div>
               {recs.length === 0 ? (
@@ -972,21 +1095,21 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           backdropFilter:"blur(20px) saturate(1.6)",
           borderTop:`1px solid ${C.border}`,
           boxShadow:"0 -4px 20px rgba(0,0,0,0.07)" }}>
-          <button className="wp-tap" onClick={() => onBook?.(profile)}
-            style={{ width:"100%", padding:"15px",
-              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-              border:"none", borderRadius:18,
-              fontSize:15, fontWeight:900, color:"white",
-              fontFamily:"inherit", position:"relative", overflow:"hidden",
-              boxShadow:`0 6px 24px ${C.tealGlow},0 2px 8px rgba(0,0,0,0.12)` }}>
-            <div style={{ position:"absolute", inset:0,
-              background:"linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.18) 50%,transparent 70%)",
-              animation:"shimmer 3.5s ease-in-out infinite",
-              pointerEvents:"none" }}/>
-            <span style={{ position:"relative" }}>
-              ✨ Anfrage stellen
-            </span>
-          </button>
+          {!isOwner && (
+            <button className="wp-tap" onClick={() => setShowRequest(true)}
+              style={{ width:"100%", padding:"15px",
+                background:`linear-gradient(135deg,${C.teal},${C.coral})`,
+                border:"none", borderRadius:18,
+                fontSize:15, fontWeight:900, color:"white",
+                fontFamily:"inherit", position:"relative", overflow:"hidden",
+                boxShadow:`0 6px 24px ${C.tealGlow},0 2px 8px rgba(0,0,0,0.12)` }}>
+              <div style={{ position:"absolute", inset:0,
+                background:"linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.18) 50%,transparent 70%)",
+                animation:"shimmer 3.5s ease-in-out infinite",
+                pointerEvents:"none" }}/>
+              <span style={{ position:"relative" }}>✨ Anfrage stellen</span>
+            </button>
+          )}
         </div>
 
       </div>
