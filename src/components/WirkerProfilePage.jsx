@@ -945,6 +945,127 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
         </div>
 
       </div>
+
+      {/* ═══ CREATOR TOOL OVERLAYS — nur sichtbar wenn isOwner ══════ */}
+      {isOwner && activeTool === "edit" && (
+        <EditProfile
+          user={user}
+          profile={profile}
+          onClose={() => setActiveTool(null)}
+          onSave={(updated) => { setProfile(p => ({...p, ...updated})); setActiveTool(null); }}
+        />
+      )}
+      {isOwner && activeTool === "analytics" && (
+        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
+          <AnalyticsPage onBack={() => setActiveTool(null)} />
+        </div>
+      )}
+      {isOwner && activeTool === "earnings" && (
+        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
+          <EinnahmenPage onBack={() => setActiveTool(null)} />
+        </div>
+      )}
+      {isOwner && activeTool === "availability" && (
+        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
+          <VerfuegbarkeitPage onBack={() => setActiveTool(null)} />
+        </div>
+      )}
+      {isOwner && activeTool === "settings" && (
+        <div style={{ position:"fixed",inset:0,zIndex:900,overflowY:"auto",background:"#F9F7F4" }}>
+          <KontoPage onBack={() => setActiveTool(null)} onLogout={onClose} />
+        </div>
+      )}
+      {isOwner && (activeTool === "insights" || activeTool === "drafts") && (
+        <ToolPlaceholder
+          toolKey={activeTool}
+          onBack={() => setActiveTool(null)}
+        />
+      )}
     </>
+  );
+}
+
+// ── Tool Placeholder für Insights + Entwürfe (wird später ausgebaut) ──
+function ToolPlaceholder({ toolKey, onBack }) {
+  const isInsights = toolKey === "insights";
+  const C2 = { bg:"#F9F7F4", ink:"#1A1A1A", muted:"rgba(60,60,60,0.50)",
+    teal:"#16D7C5", card:"#FFFFFF", border:"rgba(0,0,0,0.07)" };
+
+  const INSIGHTS = [
+    { icon:"🌅", tip:"Deine Inhalte performen abends am besten — 19–21 Uhr." },
+    { icon:"🌿", tip:"Naturbilder erhalten 2× mehr Saves als Studio-Fotos." },
+    { icon:"✨", tip:"Community-Erlebnisse wachsen gerade besonders stark." },
+    { icon:"🎯", tip:"Dein Profil wirkt ruhig & kreativ — das trifft einen Nerv." },
+    { icon:"💬", tip:"Antworte auf die ersten 3 Kommentare — steigert Reichweite." },
+  ];
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:900, background:C2.bg, overflowY:"auto",
+      fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif" }}>
+      <div style={{ padding:"max(52px,env(safe-area-inset-top,52px)) 20px 40px" }}>
+
+        {/* Back */}
+        <button onClick={onBack}
+          style={{ background:"none", border:"none", fontSize:20, cursor:"pointer",
+            color:C2.ink, marginBottom:24, display:"flex", alignItems:"center", gap:8,
+            fontWeight:600, fontSize:14 }}>
+          ← {isInsights ? "Insights" : "Entwürfe"}
+        </button>
+
+        {/* Hero */}
+        <div style={{ marginBottom:28 }}>
+          <div style={{ fontSize:36, marginBottom:10 }}>
+            {isInsights ? "⚡" : "📝"}
+          </div>
+          <div style={{ fontSize:24, fontWeight:900, color:C2.ink, marginBottom:6, letterSpacing:-0.5 }}>
+            {isInsights ? "Deine Insights" : "Deine Entwürfe"}
+          </div>
+          <div style={{ fontSize:14, color:C2.muted, lineHeight:1.6 }}>
+            {isInsights
+              ? "Personalisierte Tipps basierend auf deinen Inhalten."
+              : "Inhalte die du begonnen, aber noch nicht veröffentlicht hast."}
+          </div>
+        </div>
+
+        {/* Content */}
+        {isInsights ? (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {INSIGHTS.map((ins, idx) => (
+              <div key={idx} style={{
+                background:C2.card, borderRadius:16, padding:"16px 18px",
+                border:`1px solid ${C2.border}`,
+                boxShadow:"0 1px 8px rgba(0,0,0,0.04)",
+                display:"flex", alignItems:"flex-start", gap:14,
+                animation:"fadeIn .3s ease both",
+                animationDelay:`${idx * 0.07}s`,
+              }}>
+                <span style={{ fontSize:22, flexShrink:0 }}>{ins.icon}</span>
+                <span style={{ fontSize:14, color:C2.ink, lineHeight:1.55, fontWeight:500 }}>
+                  {ins.tip}
+                </span>
+              </div>
+            ))}
+            <div style={{ marginTop:8, padding:"14px 18px", borderRadius:16,
+              background:`linear-gradient(135deg,rgba(22,215,197,0.08),rgba(22,215,197,0.03))`,
+              border:"1.5px solid rgba(22,215,197,0.18)",
+              fontSize:13, color:"rgba(22,215,197,0.85)", fontWeight:600, textAlign:"center" }}>
+              🔮 KI-Insights werden personalisierter, je mehr du postest.
+            </div>
+          </div>
+        ) : (
+          <div style={{ background:C2.card, borderRadius:20, padding:28,
+            border:`1px solid ${C2.border}`, textAlign:"center",
+            boxShadow:"0 2px 16px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize:42, marginBottom:14 }}>📄</div>
+            <div style={{ fontSize:16, fontWeight:700, color:C2.ink, marginBottom:8 }}>
+              Keine Entwürfe vorhanden
+            </div>
+            <div style={{ fontSize:13, color:C2.muted, lineHeight:1.6 }}>
+              Wenn du einen Inhalt anfängst und nicht sofort veröffentlichst, wird er hier gespeichert.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
