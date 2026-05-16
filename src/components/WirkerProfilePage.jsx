@@ -25,6 +25,7 @@ const C = {
 
 const CSS = `
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
   @keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
   @keyframes popIn{0%{transform:scale(.90);opacity:0}65%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -648,46 +649,34 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
           {/* CTA Buttons — Owner vs. Visitor */}
           {isOwner ? (
-            /* ── OWNER MODE: Profil-Steuerung ── */
-            <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
-              {/* Owner Banner */}
-              <div style={{
-                background:"linear-gradient(135deg,rgba(22,215,197,0.10),rgba(22,215,197,0.04))",
-                border:"1.5px solid rgba(22,215,197,0.22)",
-                borderRadius:16, padding:"10px 16px",
-                display:"flex", alignItems:"center", gap:10,
-              }}>
-                <span style={{ fontSize:16 }}>✨</span>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, fontWeight:800, color:"#16D7C5", letterSpacing:-.2 }}>
-                    Dein öffentliches Profil
-                  </div>
-                  <div style={{ fontSize:11.5, color:"rgba(60,60,60,0.55)", marginTop:1 }}>
-                    So sehen dich andere Nutzer
-                  </div>
-                </div>
-              </div>
-              {/* Owner Actions */}
-              <div style={{ display:"flex", gap:9 }}>
-                <button className="wp-tap"
-                  onClick={() => onEdit?.(profile)}
-                  style={{ flex:1, padding:"12px 8px",
-                    background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-                    border:"none", borderRadius:16, fontSize:13, fontWeight:800,
-                    color:"white", fontFamily:"inherit",
-                    boxShadow:`0 4px 16px ${C.tealGlow}` }}>
-                  ✏️ Profil bearbeiten
-                </button>
-                <button className="wp-tap"
-                  onClick={() => onEdit?.({ ...profile, tab:"content" })}
-                  style={{ flex:1, padding:"12px 8px",
-                    background:"rgba(0,0,0,0.04)",
-                    border:`1.5px solid ${C.border}`,
-                    borderRadius:16, fontSize:13, fontWeight:700,
-                    color:C.ink2, fontFamily:"inherit" }}>
-                  + Werk hinzufügen
-                </button>
-              </div>
+            /* ── OWNER MODE: Instagram-Style — wie eigenes Profil bei Insta ── */
+            <div style={{ display:"flex", gap:8 }}>
+              {/* "Profil bearbeiten" — primärer Button wie bei Instagram */}
+              <button className="wp-tap"
+                onClick={() => navigate('/profile/edit')}
+                style={{ flex:1, padding:"11px 12px",
+                  background:"rgba(0,0,0,0.06)",
+                  border:"1.5px solid rgba(0,0,0,0.10)",
+                  borderRadius:14, fontSize:13.5, fontWeight:700,
+                  color:"#1A1A1A", fontFamily:"inherit",
+                  letterSpacing:-0.1 }}>
+                Profil bearbeiten
+              </button>
+              {/* "Creator Tools" — sekundär, diskret */}
+              <button className="wp-tap"
+                onClick={() => setOwnerToolsOpen(o => !o)}
+                style={{ flex:1, padding:"11px 12px",
+                  background: ownerToolsOpen
+                    ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                    : "rgba(0,0,0,0.06)",
+                  border: ownerToolsOpen ? "none" : "1.5px solid rgba(0,0,0,0.10)",
+                  borderRadius:14, fontSize:13.5, fontWeight:700,
+                  color: ownerToolsOpen ? "white" : "#1A1A1A",
+                  fontFamily:"inherit", letterSpacing:-0.1,
+                  boxShadow: ownerToolsOpen ? `0 4px 14px ${C.tealGlow}` : "none",
+                  transition:"all .18s ease" }}>
+                {ownerToolsOpen ? "✕ Schließen" : "Creator Tools"}
+              </button>
             </div>
           ) : (
             /* ── VISITOR MODE: Standard CTAs ── */
@@ -737,6 +726,54 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             </div>
           )}
         </div>
+
+        {/* ═══ OWNER TOOLS DRAWER — slide-down, kein Modal ════════ */}
+        {isOwner && ownerToolsOpen && (
+          <div style={{
+            background:"#FFFFFF",
+            borderBottom:`1px solid ${C.border}`,
+            overflow:"hidden",
+            animation:"slideDown .22s cubic-bezier(.34,1.2,.64,1) both",
+          }}>
+            <div style={{ padding:"16px 20px 20px" }}>
+              {/* Titre */}
+              <div style={{ fontSize:11, fontWeight:700, color:C.muted,
+                letterSpacing:1.2, textTransform:"uppercase", marginBottom:14 }}>
+                Creator Tools
+              </div>
+              {/* Tool Grid — 2 Spalten, genau wie TikTok Creator Center */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                {[
+                  { icon:"📊", label:"Analytics",   sub:"Views & Reichweite",   action:()=>navigate('/analytics') },
+                  { icon:"💰", label:"Einnahmen",   sub:"Buchungen & Umsatz",   action:()=>navigate('/earnings') },
+                  { icon:"📝", label:"Entwürfe",    sub:"Unveröffentlichte Werke", action:()=>setActiveTab("entwuerfe") },
+                  { icon:"⚡", label:"Insights",    sub:"Follower & Trends",    action:()=>navigate('/insights') },
+                  { icon:"🗓", label:"Verfügbarkeit", sub:"Kalender & Slots",  action:()=>navigate('/availability') },
+                  { icon:"⚙", label:"Einstellungen", sub:"Konto & Sichtbarkeit", action:()=>navigate('/settings') },
+                ].map((tool) => (
+                  <button key={tool.label} className="wp-tap"
+                    onClick={() => { setOwnerToolsOpen(false); tool.action(); }}
+                    style={{
+                      padding:"12px 14px", borderRadius:14,
+                      background:"rgba(0,0,0,0.03)",
+                      border:`1px solid ${C.border}`,
+                      textAlign:"left", cursor:"pointer",
+                      fontFamily:"inherit",
+                      transition:"background .12s ease",
+                    }}>
+                    <div style={{ fontSize:18, marginBottom:4 }}>{tool.icon}</div>
+                    <div style={{ fontSize:12.5, fontWeight:700, color:C.ink, letterSpacing:-.1 }}>
+                      {tool.label}
+                    </div>
+                    <div style={{ fontSize:11, color:C.muted, marginTop:1, lineHeight:1.3 }}>
+                      {tool.sub}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ═══ STATS ROW ════════════════════════════════════════════ */}
         <div style={{ background:C.warm, padding:"14px 20px 16px",
