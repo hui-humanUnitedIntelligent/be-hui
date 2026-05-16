@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 16:28:27 — real insights engine + AI-ready
+// HUI build 2026-05-16 16:34:04 — availability calendar final
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
