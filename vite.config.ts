@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 21:16:41 — BookingFlow lazy-load ReferenceError fix
+// HUI build 2026-05-16T21:32:00Z — FINAL: BookingFlow fully eradicated, cache busted
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
@@ -21,6 +21,16 @@ export default defineConfig({
     alias: {
       // @-Alias: alle Imports können jetzt @/lib/... statt ../../../lib/... nutzen
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    // Chunk-Hashing erzwingen — verhindert Browser-Caching alter Bundles
+    rollupOptions: {
+      output: {
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
+      },
     },
   },
 });
