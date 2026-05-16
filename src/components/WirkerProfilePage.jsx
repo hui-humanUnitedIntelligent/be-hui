@@ -8,6 +8,7 @@ import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { fetchCreatorInsights } from "../lib/InsightsEngine";
 // MeinHUI_SubPages: nur VerfuegbarkeitPage + KontoPage — die anderen sind inline
 import { VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
 import EditProfile from "../pages/EditProfile";
@@ -1409,87 +1410,229 @@ function InlineSettings({ user, profile, onBack, onLogout }) {
   );
 }
 
-// ── Tool Placeholder für Insights + Entwürfe ──────────────────────
-function ToolPlaceholder({ toolKey, onBack }) {
-  const isInsights = toolKey === "insights";
-  const C2 = { bg:"#F9F7F4", ink:"#1A1A1A", muted:"rgba(60,60,60,0.50)",
-    teal:"#16D7C5", card:"#FFFFFF", border:"rgba(0,0,0,0.07)" };
+// ── INSIGHTS — echte KI-Analyse ─────────────────────────────────
+function InlineInsights({ user, profile, onBack }) {
+  const [result,  setResult]  = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [filter,  setFilter]  = React.useState("alle"); // "alle"|"performance"|"growth"|"trend"|"coach"
 
-  const INSIGHTS = [
-    { icon:"🌅", tip:"Deine Inhalte performen abends am besten — 19–21 Uhr." },
-    { icon:"🌿", tip:"Naturbilder erhalten 2× mehr Saves als Studio-Fotos." },
-    { icon:"✨", tip:"Community-Erlebnisse wachsen gerade besonders stark." },
-    { icon:"🎯", tip:"Dein Profil wirkt ruhig & kreativ — das trifft einen Nerv." },
-    { icon:"💬", tip:"Antworte auf die ersten 3 Kommentare — steigert Reichweite." },
+  React.useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    fetchCreatorInsights(user.id, profile)
+      .then(r => { setResult(r); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [user?.id]);
+
+  const CATEGORY_COLORS = {
+    performance: { bg:"rgba(22,215,197,0.08)",  border:"rgba(22,215,197,0.18)",  dot:TC.teal },
+    growth:      { bg:"rgba(16,185,129,0.07)",  border:"rgba(16,185,129,0.16)",  dot:TC.green },
+    trend:       { bg:"rgba(245,166,35,0.08)",  border:"rgba(245,166,35,0.18)",  dot:TC.gold },
+    coach:       { bg:"rgba(255,138,107,0.08)", border:"rgba(255,138,107,0.18)", dot:TC.coral },
+    business:    { bg:"rgba(22,215,197,0.06)",  border:"rgba(22,215,197,0.14)",  dot:TC.teal },
+    community:   { bg:"rgba(139,92,246,0.07)",  border:"rgba(139,92,246,0.16)",  dot:"#8B5CF6" },
+    portfolio:   { bg:"rgba(245,166,35,0.07)",  border:"rgba(245,166,35,0.16)",  dot:TC.gold },
+    profile:     { bg:"rgba(16,185,129,0.07)",  border:"rgba(16,185,129,0.14)",  dot:TC.green },
+    onboarding:  { bg:"rgba(255,138,107,0.09)", border:"rgba(255,138,107,0.20)", dot:TC.coral },
+  };
+
+  const TYPE_LABELS = {
+    data:      "Deine Daten",
+    trend:     "Plattform-Trend",
+    coach:     "Creator-Tipp",
+    pattern:   "Muster erkannt",
+    community: "Community",
+  };
+
+  const FILTERS = [
+    { key:"alle",        label:"Alle" },
+    { key:"coach",       label:"💡 Tipps" },
+    { key:"trend",       label:"📈 Trends" },
+    { key:"data",        label:"📊 Daten" },
   ];
 
+  const visible = result?.insights?.filter(ins =>
+    filter === "alle" || ins.type === filter || ins.category === filter
+  ) || [];
+
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:900, background:C2.bg, overflowY:"auto",
-      fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif" }}>
-      <div style={{ padding:"max(52px,env(safe-area-inset-top,52px)) 20px 40px" }}>
+    <>
+      <ToolHeader title="Insights" emoji="⚡" onBack={onBack} />
+      <div style={{ padding:"0 0 80px" }}>
 
-        {/* Back */}
-        <button onClick={onBack}
-          style={{ background:"none", border:"none", fontSize:20, cursor:"pointer",
-            color:C2.ink, marginBottom:24, display:"flex", alignItems:"center", gap:8,
-            fontWeight:600, fontSize:14 }}>
-          ← {isInsights ? "Insights" : "Entwürfe"}
-        </button>
-
-        {/* Hero */}
-        <div style={{ marginBottom:28 }}>
-          <div style={{ fontSize:36, marginBottom:10 }}>
-            {isInsights ? "⚡" : "📝"}
-          </div>
-          <div style={{ fontSize:24, fontWeight:900, color:C2.ink, marginBottom:6, letterSpacing:-0.5 }}>
-            {isInsights ? "Deine Insights" : "Deine Entwürfe"}
-          </div>
-          <div style={{ fontSize:14, color:C2.muted, lineHeight:1.6 }}>
-            {isInsights
-              ? "Personalisierte Tipps basierend auf deinen Inhalten."
-              : "Inhalte die du begonnen, aber noch nicht veröffentlicht hast."}
-          </div>
-        </div>
-
-        {/* Content */}
-        {isInsights ? (
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {INSIGHTS.map((ins, idx) => (
-              <div key={idx} style={{
-                background:C2.card, borderRadius:16, padding:"16px 18px",
-                border:`1px solid ${C2.border}`,
-                boxShadow:"0 1px 8px rgba(0,0,0,0.04)",
-                display:"flex", alignItems:"flex-start", gap:14,
-                animation:"fadeIn .3s ease both",
-                animationDelay:`${idx * 0.07}s`,
-              }}>
-                <span style={{ fontSize:22, flexShrink:0 }}>{ins.icon}</span>
-                <span style={{ fontSize:14, color:C2.ink, lineHeight:1.55, fontWeight:500 }}>
-                  {ins.tip}
-                </span>
-              </div>
-            ))}
-            <div style={{ marginTop:8, padding:"14px 18px", borderRadius:16,
-              background:`linear-gradient(135deg,rgba(22,215,197,0.08),rgba(22,215,197,0.03))`,
-              border:"1.5px solid rgba(22,215,197,0.18)",
-              fontSize:13, color:"rgba(22,215,197,0.85)", fontWeight:600, textAlign:"center" }}>
-              🔮 KI-Insights werden personalisierter, je mehr du postest.
-            </div>
-          </div>
-        ) : (
-          <div style={{ background:C2.card, borderRadius:20, padding:28,
-            border:`1px solid ${C2.border}`, textAlign:"center",
-            boxShadow:"0 2px 16px rgba(0,0,0,0.04)" }}>
-            <div style={{ fontSize:42, marginBottom:14 }}>📄</div>
-            <div style={{ fontSize:16, fontWeight:700, color:C2.ink, marginBottom:8 }}>
-              Keine Entwürfe vorhanden
-            </div>
-            <div style={{ fontSize:13, color:C2.muted, lineHeight:1.6 }}>
-              Wenn du einen Inhalt anfängst und nicht sofort veröffentlichst, wird er hier gespeichert.
+        {/* ── Datenpunkte Header ── */}
+        {result && !loading && (
+          <div style={{ padding:"12px 20px 0", marginBottom:4 }}>
+            <div style={{ fontSize:11.5, color:TC.muted, fontWeight:500 }}>
+              Basierend auf{" "}
+              <span style={{ fontWeight:700, color:TC.ink }}>
+                {result.dataPoints} Datenpunkten
+              </span>
+              {" "}der letzten 30 Tage
             </div>
           </div>
         )}
+
+        {/* ── Filter Chips ── */}
+        <div style={{ display:"flex", gap:6, padding:"14px 20px 16px",
+          overflowX:"auto", scrollbarWidth:"none" }}>
+          {FILTERS.map(f => (
+            <button key={f.key} onClick={() => setFilter(f.key)}
+              style={{
+                padding:"7px 14px", borderRadius:50, border:"none",
+                background: filter===f.key
+                  ? `linear-gradient(135deg,${TC.teal},${TC.teal2})`
+                  : "rgba(0,0,0,0.05)",
+                color: filter===f.key ? "white" : TC.ink2,
+                fontSize:12.5, fontWeight: filter===f.key ? 700 : 500,
+                cursor:"pointer", fontFamily:"inherit",
+                whiteSpace:"nowrap", flexShrink:0,
+                boxShadow: filter===f.key ? `0 3px 12px ${TC.tealGlow}` : "none",
+                transition:"all .15s ease",
+              }}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Content ── */}
+        <div style={{ padding:"0 20px" }}>
+          {loading ? (
+            /* Skeleton Cards — wie Inhalte die laden */
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {[1,2,3,4].map(n => (
+                <div key={n} style={{
+                  background:"white", borderRadius:20, padding:24,
+                  border:"1px solid rgba(0,0,0,0.06)",
+                  animation:"pulse 1.4s ease-in-out infinite",
+                  animationDelay:`${n * 0.1}s`,
+                }}>
+                  <div style={{ width:32, height:32, borderRadius:10, background:"rgba(0,0,0,0.06)", marginBottom:12 }}/>
+                  <div style={{ height:14, borderRadius:6, background:"rgba(0,0,0,0.06)", width:"70%", marginBottom:8 }}/>
+                  <div style={{ height:11, borderRadius:4, background:"rgba(0,0,0,0.04)", width:"90%", marginBottom:4 }}/>
+                  <div style={{ height:11, borderRadius:4, background:"rgba(0,0,0,0.04)", width:"60%" }}/>
+                </div>
+              ))}
+            </div>
+          ) : visible.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"40px 20px" }}>
+              <div style={{ fontSize:36, marginBottom:12 }}>🌱</div>
+              <div style={{ fontWeight:700, color:TC.ink, marginBottom:6 }}>
+                {result?.dataPoints === 0
+                  ? "Noch keine Daten"
+                  : "Kein Insight für diesen Filter"}
+              </div>
+              <div style={{ fontSize:13, color:TC.muted, lineHeight:1.6 }}>
+                {result?.dataPoints === 0
+                  ? "Poste deinen ersten Inhalt — dann beginnt HUI deinen Stil zu verstehen."
+                  : "Wähle einen anderen Filter oben."}
+              </div>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {visible.map((ins, idx) => {
+                const colors = CATEGORY_COLORS[ins.category] || CATEGORY_COLORS.coach;
+                return (
+                  <div key={ins.id}
+                    style={{
+                      background:"white",
+                      borderRadius:20,
+                      border:`1px solid rgba(0,0,0,0.06)`,
+                      overflow:"hidden",
+                      boxShadow:"0 1px 12px rgba(0,0,0,0.04)",
+                      animation:"fadeIn .3s ease both",
+                      animationDelay:`${idx * 0.06}s`,
+                    }}>
+                    {/* Farbiger Akzentbalken oben */}
+                    <div style={{
+                      height:3,
+                      background:`linear-gradient(90deg,${colors.dot},${colors.dot}44)`,
+                    }}/>
+                    <div style={{ padding:"18px 20px 20px" }}>
+                      {/* Type Badge + Icon */}
+                      <div style={{ display:"flex", alignItems:"center",
+                        justifyContent:"space-between", marginBottom:12 }}>
+                        <div style={{
+                          display:"inline-flex", alignItems:"center", gap:5,
+                          padding:"4px 10px", borderRadius:50,
+                          background:colors.bg, border:`1px solid ${colors.border}`,
+                        }}>
+                          <div style={{
+                            width:6, height:6, borderRadius:"50%",
+                            background:colors.dot, flexShrink:0,
+                          }}/>
+                          <span style={{ fontSize:11, fontWeight:700, color:colors.dot,
+                            letterSpacing:0.3, textTransform:"uppercase" }}>
+                            {TYPE_LABELS[ins.type] || ins.type}
+                          </span>
+                        </div>
+                        <span style={{ fontSize:24 }}>{ins.icon}</span>
+                      </div>
+                      {/* Headline */}
+                      <div style={{ fontSize:16, fontWeight:800, color:TC.ink,
+                        letterSpacing:-.3, marginBottom:8, lineHeight:1.3 }}>
+                        {ins.headline}
+                      </div>
+                      {/* Body */}
+                      <div style={{ fontSize:13.5, color:"rgba(30,30,30,0.65)",
+                        lineHeight:1.65, fontWeight:400 }}>
+                        {ins.body}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* KI Footer */}
+              <div style={{
+                marginTop:4, padding:"16px 20px",
+                borderRadius:20,
+                background:"linear-gradient(135deg,rgba(22,215,197,0.07),rgba(22,215,197,0.03))",
+                border:"1.5px solid rgba(22,215,197,0.15)",
+                display:"flex", alignItems:"center", gap:12,
+              }}>
+                <span style={{ fontSize:22, flexShrink:0 }}>🔮</span>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:700, color:TC.teal, marginBottom:2 }}>
+                    KI-Coaching kommt bald
+                  </div>
+                  <div style={{ fontSize:12, color:TC.muted, lineHeight:1.5 }}>
+                    Caption-Vorschläge · beste Posting-Zeit · Content-Ideen · Profil-Analyse
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
+  );
+}
+
+// ── ENTWÜRFE ──────────────────────────────────────────────────────
+function ToolPlaceholder({ toolKey, onBack, user, profile }) {
+  if (toolKey === "insights") {
+    return <InlineInsights user={user} profile={profile} onBack={onBack} />;
+  }
+  // Entwürfe — Placeholder
+  return (
+    <>
+      <ToolHeader title="Entwürfe" emoji="📝" onBack={onBack} />
+      <div style={{ padding:"32px 20px" }}>
+        <div style={{ background:"white", borderRadius:20, padding:28, textAlign:"center",
+          border:"1px solid rgba(0,0,0,0.06)", boxShadow:"0 2px 16px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize:42, marginBottom:14 }}>📄</div>
+          <div style={{ fontSize:16, fontWeight:800, color:TC.ink, marginBottom:8,
+            letterSpacing:-.2 }}>Keine Entwürfe vorhanden</div>
+          <div style={{ fontSize:13, color:TC.muted, lineHeight:1.65, maxWidth:260, margin:"0 auto" }}>
+            Inhalte die du begonnen aber noch nicht veröffentlicht hast, erscheinen hier automatisch.
+          </div>
+        </div>
+        <div style={{ marginTop:12, padding:"14px 18px", borderRadius:16,
+          background:"rgba(22,215,197,0.06)", border:"1.5px solid rgba(22,215,197,0.14)",
+          fontSize:13, color:TC.muted, lineHeight:1.5 }}>
+          💡 Autosave für angefangene Werke kommt bald.
+        </div>
+      </div>
+    </>
   );
 }
