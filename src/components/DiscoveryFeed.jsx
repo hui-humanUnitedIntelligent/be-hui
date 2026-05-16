@@ -2092,6 +2092,18 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         style={{ background:C.creamWarm, overflowY:"auto",
           height:"100%", WebkitOverflowScrolling:"touch",
           paddingBottom:110 }}>
+
+        {/* ── SKELETON LOADING — phase 2D: weiche Einblendung ─────────── */}
+        {feedLoading && normalizedFeedItems.length === 0 && (
+          <div style={{ padding:"16px 16px 8px", animation:"hui-fade .25s ease both" }}>
+            {[320, 200, 240].map((h, i) => (
+              <div key={i} className="hui-skeleton"
+                style={{ height:h, marginBottom:12, borderRadius:24,
+                  opacity: 1 - i * 0.18 }} />
+            ))}
+          </div>
+        )}
+
         {/* ── ENV KEY FEHLT BANNER — verschwindet wenn Key gesetzt ── */}
         {!import.meta.env.VITE_SUPABASE_ANON_KEY && (
           <div style={{
