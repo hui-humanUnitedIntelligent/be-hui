@@ -210,6 +210,9 @@ function WirkerProfileRouteWrapper() {
       wirker={{ username }}
       onClose={() => navigate(-1)}
       onBook={(w) => navigate('/BookingFlow', { state: { item: w } })}
+      onMessage={() => {
+        // Chat handled intern als Sheet — kein navigate() nötig
+      }}
     />
   );
 }
