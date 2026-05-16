@@ -1,4 +1,8 @@
-// Shared Mock Data für HUI App
+// src/lib/mockData.js
+// Status: AKTIV — wird als Fallback in FeedCards.jsx + HomeFeed.jsx verwendet
+// Kontext: Zeigt Demo-Daten wenn Supabase leer ist oder Verbindung fehlt
+// Phase 3D.1: Dokumentiert als legitimer Fallback, kein Legacy
+
 // Wird von mehreren Komponenten verwendet als Fallback bis Supabase-Daten geladen sind
 
 const mockWirkerProfiles = {
