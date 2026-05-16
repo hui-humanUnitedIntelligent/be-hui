@@ -633,6 +633,44 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             </p>
           )}
 
+          {/* Mood-Tags + Kategorien — live nach EditProfile */}
+          {((profile.mood_tags?.length > 0) || (profile.categories?.length > 0)) && (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:10 }}>
+              {(profile.mood_tags || []).slice(0,3).map(tag => (
+                <span key={tag} style={{
+                  padding:"4px 10px", borderRadius:50,
+                  background:"rgba(255,138,107,0.10)",
+                  border:"1px solid rgba(255,138,107,0.22)",
+                  fontSize:11.5, fontWeight:600, color:C.coral,
+                }}>
+                  {tag}
+                </span>
+              ))}
+              {(profile.categories || []).slice(0,2).map(cat => (
+                <span key={cat} style={{
+                  padding:"4px 10px", borderRadius:50,
+                  background:"rgba(22,215,197,0.09)",
+                  border:"1px solid rgba(22,215,197,0.22)",
+                  fontSize:11.5, fontWeight:600, color:C.teal,
+                }}>
+                  {cat}
+                </span>
+              ))}
+              {profile.website && (
+                <a href={profile.website} target="_blank" rel="noreferrer"
+                  style={{
+                    padding:"4px 10px", borderRadius:50,
+                    background:"rgba(0,0,0,0.04)",
+                    border:"1px solid rgba(0,0,0,0.08)",
+                    fontSize:11.5, fontWeight:600, color:C.ink2,
+                    textDecoration:"none",
+                  }}>
+                  🔗 Website
+                </a>
+              )}
+            </div>
+          )}
+
           {/* DNA Tags */}
           {dna.length > 0 && (
             <div className="wp-scroll"
@@ -682,6 +720,11 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                   transition:"all .18s ease" }}>
                 {ownerToolsOpen ? "✕ Schließen" : "Creator Tools"}
               </button>
+            </div>
+            {/* Live-Sync Hinweis — nur Owner */}
+            <div style={{ textAlign:"center", marginTop:5,
+              fontSize:10.5, color:"rgba(60,60,60,0.38)", letterSpacing:0.1 }}>
+              Änderungen sind sofort für alle sichtbar
             </div>
           ) : (
             /* ── VISITOR MODE: Standard CTAs ── */
