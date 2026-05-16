@@ -1493,6 +1493,8 @@ export default function Home() {
     setShowCreateSheet(false);
     setShowMembership(false);
     setShowCreateFlow(false);
+    setShowPlusSheet(false);
+    setCreateType(null);
     setTab(newTab);
   }, []);
 
