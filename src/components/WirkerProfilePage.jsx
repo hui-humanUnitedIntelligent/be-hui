@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import LazyImage from "./LazyImage";
 import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, optimizeImg, cachedQuery } from "../lib/perfUtils";
+import { useAuth } from "../lib/AuthContext";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
 const C = {
@@ -279,7 +280,8 @@ function buildMock(rawWirker) {
 /* ═══════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════════════ */
-export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onMessage }) {
+export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onMessage, onEdit }) {
+  const { user } = useAuth();
   const [profile,   setProfile]   = useState(null);
   const [works,     setWorks]     = useState([]);
   const [exps,      setExps]      = useState([]);
@@ -290,6 +292,13 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const [heroLoaded,setHeroLoaded]= useState(false);
   const tabsRef = useRef(null);
   const contentRef = useRef(null);
+
+  // Owner Mode: Nutzer schaut sein eigenes Profil
+  const isOwner = !!(
+    user?.id &&
+    profile &&
+    (profile.id === user.id || profile.user_id === user.id)
+  );
 
   const identifier = rawWirker?.user_id || rawWirker?.id || rawWirker?.username;
 
@@ -468,14 +477,27 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               </button>
             )}
             <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
-              <button className="wp-tap"
-                style={{ width:38, height:38, borderRadius:12,
-                  background:"rgba(0,0,0,0.38)", backdropFilter:"blur(12px)",
-                  border:"1px solid rgba(255,255,255,0.20)",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  color:"white", fontSize:15 }}>
-                ⋯
-              </button>
+              {isOwner ? (
+                <button className="wp-tap"
+                  onClick={() => onEdit?.(profile)}
+                  style={{ height:38, padding:"0 14px", borderRadius:12,
+                    background:"rgba(255,255,255,0.22)", backdropFilter:"blur(14px)",
+                    border:"1px solid rgba(255,255,255,0.30)",
+                    display:"flex", alignItems:"center", gap:6,
+                    color:"white", fontSize:13, fontWeight:700, fontFamily:"inherit" }}>
+                  <span style={{ fontSize:14 }}>✏️</span>
+                  <span>Bearbeiten</span>
+                </button>
+              ) : (
+                <button className="wp-tap"
+                  style={{ width:38, height:38, borderRadius:12,
+                    background:"rgba(0,0,0,0.38)", backdropFilter:"blur(12px)",
+                    border:"1px solid rgba(255,255,255,0.20)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    color:"white", fontSize:15 }}>
+                  ⋯
+                </button>
+              )}
             </div>
           </div>
 
@@ -618,53 +640,96 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
             </div>
           )}
 
-          {/* CTA Buttons */}
-          <div style={{ display:"flex", gap:9 }}>
-            {/* Folgen */}
-            <button className="wp-tap" onClick={() => setFollowed(f=>!f)}
-              style={{ flex:1, padding:"12px 8px",
-                background: followed
-                  ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                  : "rgba(0,0,0,0.05)",
-                border: followed ? "none" : `1.5px solid ${C.border}`,
-                borderRadius:16, fontSize:13, fontWeight:800,
-                color: followed ? "white" : C.ink2,
-                fontFamily:"inherit",
-                boxShadow: followed ? `0 4px 16px ${C.tealGlow}` : "none",
-                transition:"all .22s cubic-bezier(.34,1.4,.64,1)",
-                position:"relative", overflow:"hidden" }}>
-              {followed && (
-                <div style={{ position:"absolute", inset:0,
-                  background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%)",
-                  animation:"shimmer 3s ease-in-out infinite" }}/>
-              )}
-              <span style={{ position:"relative" }}>
-                {followed ? "✓ Folge ich" : "Folgen"}
-              </span>
-            </button>
-
-            {/* Nachricht */}
-            <button className="wp-tap"
-              onClick={() => onMessage?.(profile)}
-              style={{ flex:1, padding:"12px 8px",
-                background:"rgba(22,215,197,0.09)",
-                border:`1.5px solid ${C.teal}30`,
-                borderRadius:16, fontSize:13, fontWeight:700,
-                color:C.teal, fontFamily:"inherit" }}>
-              Nachricht
-            </button>
-
-            {/* Anfrage */}
-            <button className="wp-tap"
-              onClick={() => onBook?.(profile)}
-              style={{ flex:1, padding:"12px 8px",
-                background:`linear-gradient(135deg,${C.coral},${C.coral}CC)`,
-                border:"none", borderRadius:16, fontSize:13, fontWeight:800,
-                color:"white", fontFamily:"inherit",
-                boxShadow:`0 4px 14px ${C.coralGlow}` }}>
-              Anfrage
-            </button>
-          </div>
+          {/* CTA Buttons — Owner vs. Visitor */}
+          {isOwner ? (
+            /* ── OWNER MODE: Profil-Steuerung ── */
+            <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
+              {/* Owner Banner */}
+              <div style={{
+                background:"linear-gradient(135deg,rgba(22,215,197,0.10),rgba(22,215,197,0.04))",
+                border:"1.5px solid rgba(22,215,197,0.22)",
+                borderRadius:16, padding:"10px 16px",
+                display:"flex", alignItems:"center", gap:10,
+              }}>
+                <span style={{ fontSize:16 }}>✨</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, fontWeight:800, color:"#16D7C5", letterSpacing:-.2 }}>
+                    Dein öffentliches Profil
+                  </div>
+                  <div style={{ fontSize:11.5, color:"rgba(60,60,60,0.55)", marginTop:1 }}>
+                    So sehen dich andere Nutzer
+                  </div>
+                </div>
+              </div>
+              {/* Owner Actions */}
+              <div style={{ display:"flex", gap:9 }}>
+                <button className="wp-tap"
+                  onClick={() => onEdit?.(profile)}
+                  style={{ flex:1, padding:"12px 8px",
+                    background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+                    border:"none", borderRadius:16, fontSize:13, fontWeight:800,
+                    color:"white", fontFamily:"inherit",
+                    boxShadow:`0 4px 16px ${C.tealGlow}` }}>
+                  ✏️ Profil bearbeiten
+                </button>
+                <button className="wp-tap"
+                  onClick={() => onEdit?.({ ...profile, tab:"content" })}
+                  style={{ flex:1, padding:"12px 8px",
+                    background:"rgba(0,0,0,0.04)",
+                    border:`1.5px solid ${C.border}`,
+                    borderRadius:16, fontSize:13, fontWeight:700,
+                    color:C.ink2, fontFamily:"inherit" }}>
+                  + Werk hinzufügen
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── VISITOR MODE: Standard CTAs ── */
+            <div style={{ display:"flex", gap:9 }}>
+              {/* Folgen */}
+              <button className="wp-tap" onClick={() => setFollowed(f=>!f)}
+                style={{ flex:1, padding:"12px 8px",
+                  background: followed
+                    ? `linear-gradient(135deg,${C.teal},${C.teal2})`
+                    : "rgba(0,0,0,0.05)",
+                  border: followed ? "none" : `1.5px solid ${C.border}`,
+                  borderRadius:16, fontSize:13, fontWeight:800,
+                  color: followed ? "white" : C.ink2,
+                  fontFamily:"inherit",
+                  boxShadow: followed ? `0 4px 16px ${C.tealGlow}` : "none",
+                  transition:"all .22s cubic-bezier(.34,1.4,.64,1)",
+                  position:"relative", overflow:"hidden" }}>
+                {followed && (
+                  <div style={{ position:"absolute", inset:0,
+                    background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%)",
+                    animation:"shimmer 3s ease-in-out infinite" }}/>
+                )}
+                <span style={{ position:"relative" }}>
+                  {followed ? "✓ Folge ich" : "Folgen"}
+                </span>
+              </button>
+              {/* Nachricht */}
+              <button className="wp-tap"
+                onClick={() => onMessage?.(profile)}
+                style={{ flex:1, padding:"12px 8px",
+                  background:"rgba(22,215,197,0.09)",
+                  border:`1.5px solid ${C.teal}30`,
+                  borderRadius:16, fontSize:13, fontWeight:700,
+                  color:C.teal, fontFamily:"inherit" }}>
+                Nachricht
+              </button>
+              {/* Anfrage */}
+              <button className="wp-tap"
+                onClick={() => onBook?.(profile)}
+                style={{ flex:1, padding:"12px 8px",
+                  background:`linear-gradient(135deg,${C.coral},${C.coral}CC)`,
+                  border:"none", borderRadius:16, fontSize:13, fontWeight:800,
+                  color:"white", fontFamily:"inherit",
+                  boxShadow:`0 4px 14px ${C.coralGlow}` }}>
+                Anfrage
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ═══ STATS ROW ════════════════════════════════════════════ */}
