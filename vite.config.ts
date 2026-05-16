@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 16:55:48 — profile buttons complete
+// HUI build 2026-05-16 17:00:47 — JSX fragment fix deployed
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
