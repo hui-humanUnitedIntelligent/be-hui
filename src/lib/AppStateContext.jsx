@@ -342,16 +342,16 @@ export function AppStateProvider({ children }) {
       .subscribe();
     realtimeChannels.current.push(notifChannel);
 
-    // 2. Bookings — realtime status updates
+    // 2. Bookings — realtime (als Creator UND als Client)
+    // useCreatorBookings hat eigenen Realtime-Channel — AppState nur für Client-Sicht
     const bookingChannel = supabase
-      .channel(`bookings:${user.id}`)
+      .channel(`bookings-client:${user.id}`)
       .on("postgres_changes", {
         event: "*",
         schema: "public",
         table: "bookings",
-        filter: `creator_id=eq.${user.id}`,
+        filter: `requester_id=eq.${user.id}`,
       }, () => {
-        // Invalidate + reload on any booking change
         cache.invalidate(`bookings:${user.id}`);
         loadBookings(true);
       })
