@@ -3,7 +3,7 @@
 // Route: /studio
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import {
@@ -47,9 +47,11 @@ const TOOLS = [
 
 export default function CreatorStudio() {
   const navigate  = useNavigate();
+  const { section } = useParams();  // /studio/:section
   const { user }  = useAuth();
   const [profile, setProfile] = useState(null);
-  const [activeTool, setActiveTool] = useState(null);
+  // section aus URL ODER lokaler State — URL hat Priorität
+  const [activeTool, setActiveTool] = useState(section || null);
   const [greeting, setGreeting] = useState("");
 
   useEffect(() => {
@@ -67,14 +69,20 @@ export default function CreatorStudio() {
 
   // Wenn Sub-Tool aktiv
   if (activeTool) {
-    const SubPage = {
-      analytics:    () => <AnalyticsPage    onBack={() => setActiveTool(null)} />,
-      earnings:     () => <EinnahmenPage    onBack={() => setActiveTool(null)} />,
-      content:      () => <MeineInhaltePage onBack={() => setActiveTool(null)} />,
-      availability: () => <VerfuegbarkeitPage onBack={() => setActiveTool(null)} />,
-      orders:       () => <BestellungenPage  onBack={() => setActiveTool(null)} />,
-      impact:       () => <ImpactSubPage     onBack={() => setActiveTool(null)} />,
-      settings:     () => <KontoPage         onBack={() => setActiveTool(null)} onLogout={() => { supabase.auth.signOut(); navigate("/login"); }} />,
+      // Back aus Sub-Tool → /studio root
+  const handleBack = () => {
+    setActiveTool(null);
+    navigate('/studio', { replace: true });
+  };
+
+  const SubPage = {
+      analytics:    () => <AnalyticsPage    onBack={handleBack} />,
+      earnings:     () => <EinnahmenPage    onBack={handleBack} />,
+      content:      () => <MeineInhaltePage onBack={handleBack} />,
+      availability: () => <VerfuegbarkeitPage onBack={handleBack} />,
+      orders:       () => <BestellungenPage  onBack={handleBack} />,
+      impact:       () => <ImpactSubPage     onBack={handleBack} />,
+      settings:     () => <KontoPage         onBack={handleBack} onLogout={() => { supabase.auth.signOut(); navigate("/login"); }} />,
     }[activeTool];
     if (SubPage) return (
       <div style={{ position:"fixed", inset:0, zIndex:300,
@@ -199,7 +207,10 @@ export default function CreatorStudio() {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
           {TOOLS.map((tool, idx) => (
             <button key={tool.key} className="st-tap"
-              onClick={() => setActiveTool(tool.key)}
+              onClick={() => {
+                setActiveTool(tool.key);
+                navigate(`/studio/${tool.key}`, { replace: true });
+              }}
               style={{
                 padding:"18px 16px",
                 background:tool.bg,
