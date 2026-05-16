@@ -1,4 +1,4 @@
-// HUI build — 2026-05-16 10:40 — gallery + camera fix
+// HUI build — 2026-05-16 10:54 — owner mode + mein hui button fix
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
