@@ -1,7 +1,7 @@
 // StorySystem.jsx — StoryBar + StoryViewer (unified, production-ready)
 // Uses flat stories schema: no joins, direct columns
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 
 const C = {
