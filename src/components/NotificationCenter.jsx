@@ -2,7 +2,7 @@
 // Echte Notifications aus Supabase. Realtime-Badge im Header.
 import React, { useState, useEffect, useCallback } from "react";
 import { safeQuery } from "../lib/perfUtils";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
