@@ -1,5 +1,6 @@
 // WirkerProfilePage.jsx — HUI v3
 import { usePresence, getPresenceLabel } from "../lib/sessionHooks";
+import { useBookingActions, getTrustSignals, REQ_TYPES, MOODS, BOOKING_STATUS } from "../lib/bookingContext";
 // Mobile-First Cinematic Profile
 // Dieselbe Premium-DNA wie Desktop — nur kompakter
 
@@ -2776,39 +2777,33 @@ function ChatSheet({ profile, user, onClose }) {
 // REQUEST SHEET — Anfrage / Buchung
 // ══════════════════════════════════════════════════════════════════
 function RequestSheet({ profile, user, onClose }) {
-  const [step,     setStep]    = React.useState(1); // 1=Typ, 2=Details, 3=Success
-  const [reqType,  setReqType] = React.useState(null);
-  const [form,     setForm]    = React.useState({
-    date:"", budget:"", location:"", message:"", mood:""
+  const { sendBookingRequest, loading: sendLoading } = useBookingActions();
+  const [step,      setStep]     = React.useState(1);
+  const [reqType,   setReqType]  = React.useState(null);
+  const [form,      setForm]     = React.useState({
+    date:"", budget:"", location:"", message:"", mood:"", guests:1, direction:""
   });
-  const [sending,  setSending] = React.useState(false);
-
-  const REQ_TYPES = [
-    { key:"workshop",  label:"Workshop",         icon:"🎓", sub:"Gruppenformat oder 1:1" },
-    { key:"shooting",  label:"Shooting",          icon:"📸", sub:"Foto oder Video" },
-    { key:"collab",    label:"Zusammenarbeit",   icon:"🤝", sub:"Kreativprojekt" },
-    { key:"event",     label:"Event",             icon:"🎪", sub:"Auftritt oder Performance" },
-    { key:"coaching",  label:"Beratung",          icon:"💡", sub:"Beratung oder Coaching" },
-    { key:"other",     label:"Sonstiges",         icon:"✨", sub:"Offene Anfrage" },
-  ];
-
-  const MOODS = ["entspannt","kreativ","professionell","abenteuerlich","intim","energetisch"];
+  const sending = sendLoading;
 
   async function sendRequest() {
     if (!user?.id || !profile?.id || !reqType) return;
-    setSending(true);
     const rt = REQ_TYPES.find(r => r.key === reqType);
-    try {
-      await supabase.from("chats").insert({
-        participant_ids: [user.id, profile.id],
-        state: "open",
-        last_message: `Anfrage: ${rt?.label} — ${form.message || "Keine Nachricht"}`,
-        last_message_at: new Date().toISOString(),
-        opened_at: new Date().toISOString(),
-      });
-    } catch(e) { console.warn("Request:", e); }
-    setSending(false);
-    setStep(3);
+    const rate = profile?.hourly_rate || 85;
+    const { error } = await sendBookingRequest({
+      creatorId:   profile.id || profile.user_id,
+      creatorName: profile.display_name || profile.name,
+      reqType,
+      mood:        form.mood    || null,
+      date:        form.date    || null,
+      location:    form.location || null,
+      budget:      form.budget   || null,
+      guests:      form.guests   || 1,
+      direction:   form.direction || null,
+      message:     form.message  || null,
+      amountEur:   rate,
+      impactEur:   Math.round(rate * 0.025),
+    });
+    setStep(error ? 1 : 3); // bei Fehler bleibt Step 1
   }
 
   return (
