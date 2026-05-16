@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 20:35:28 — all import paths fixed
+// HUI build 2026-05-16 20:41:32 — phase3c trust reputation
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
