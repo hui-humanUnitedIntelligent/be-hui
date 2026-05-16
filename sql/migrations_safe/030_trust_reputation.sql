@@ -1,0 +1,209 @@
+-- ════════════════════════════════════════════════════════════════
+-- HUI Phase 3C: Trust & Reputation Layer
+-- Migration: 030_trust_reputation
+-- Additiv — keine Drops, keine destruktiven Änderungen
+-- Philosophie: kreative Glaubwürdigkeit, kein Freelancer-Ranking
+-- ════════════════════════════════════════════════════════════════
+
+-- ── 1. RECOMMENDATIONS — tiefe, menschliche Empfehlungen ────────
+CREATE TABLE IF NOT EXISTS recommendations (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- Wer empfiehlt wen
+  from_user_id    uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  to_user_id      uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  -- Buchungs-Kontext (optional — nur wenn nach Abschluss)
+  booking_id      uuid,
+  -- Empfehlungsinhalt
+  text            text NOT NULL,
+  collab_type     text,          -- workshop/shooting/collab/coaching/event/other
+  collab_mood     text,          -- entspannt/kreativ/professionell/...
+  project_type    text,          -- Freiform-Beschreibung
+  creative_dir    text,          -- kreative Richtung
+  outcome_quality text,          -- Ergebnisqualität (subtil: 'sehr gut', 'außergewöhnlich')
+  experience_note text,          -- persönliche Erfahrung
+  -- Sichtbarkeit
+  is_verified     boolean DEFAULT false,  -- verifiziert = nach abgeschlossener Buchung
+  is_public       boolean DEFAULT true,
+  -- Timestamps
+  created_at      timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_recs_to_user   ON recommendations(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_recs_from_user ON recommendations(from_user_id);
+CREATE INDEX IF NOT EXISTS idx_recs_booking   ON recommendations(booking_id);
+
+-- ── 2. TRUST EVENTS — kreative Vertrauens-Historie ──────────────
+CREATE TABLE IF NOT EXISTS trust_events (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  actor_id        uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  event_type      text NOT NULL CHECK (event_type IN (
+    'collaboration_completed',
+    'recommendation_received',
+    'repeat_client',
+    'project_verified',
+    'creator_supported',
+    'community_recognized',
+    'first_booking',
+    'quick_response',
+    'long_term_collab'
+  )),
+  context_ref     jsonb,         -- { booking_id, rec_id, collab_type, ... }
+  created_at      timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_trust_events_user ON trust_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_trust_events_type ON trust_events(event_type);
+
+-- ── 3. COLLABORATION HISTORY — verifizierte Zusammenarbeit ──────
+CREATE TABLE IF NOT EXISTS collaborations (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_id      uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  client_id       uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  booking_id      uuid,
+  collab_type     text,          -- Buchungstyp
+  creative_dir    text,          -- kreative Richtung
+  completed_at    timestamptz,
+  is_repeat       boolean DEFAULT false,  -- Wiederholung dieser Zusammenarbeit
+  created_at      timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_collabs_creator ON collaborations(creator_id);
+CREATE INDEX IF NOT EXISTS idx_collabs_client  ON collaborations(client_id);
+
+-- ── 4. CREATOR REPUTATION PROFILE ───────────────────────────────
+-- Erweitert profiles um Reputation-Felder
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS reputation_signals   jsonb DEFAULT '{}',
+  -- { response_quality, collab_style, community_presence, creative_range }
+  ADD COLUMN IF NOT EXISTS collab_style         text,
+  -- Arbeitsweise: 'sehr kooperativ', 'strukturiert', 'frei & kreativ', ...
+  ADD COLUMN IF NOT EXISTS creative_values      text[],
+  -- Werte: ['nachhaltigkeit','gemeinschaft','experiment','handwerk']
+  ADD COLUMN IF NOT EXISTS preferred_proj_types text[],
+  -- ['workshop','shooting','collab','coaching']
+  ADD COLUMN IF NOT EXISTS creator_mood_tags    text[],
+  -- Stil-Tags: ['ruhig','intensiv','spielerisch','präzise']
+  ADD COLUMN IF NOT EXISTS collab_count         int DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS repeat_client_count  int DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS verified_collab_count int DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS recommendations_count int DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS last_active_signal   timestamptz;
+
+-- ── 5. TRIGGER: nach Booking-Completion → Collaboration + Trust-Event ──
+CREATE OR REPLACE FUNCTION after_booking_completed()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_is_repeat boolean := false;
+BEGIN
+  -- Nur feuern wenn status auf 'completed' wechselt
+  IF NEW.status != 'completed' OR OLD.status = 'completed' THEN
+    RETURN NEW;
+  END IF;
+
+  -- Prüfen ob Repeat-Client (haben vorher schon zusammengearbeitet?)
+  SELECT EXISTS(
+    SELECT 1 FROM collaborations
+    WHERE creator_id = NEW.creator_id
+      AND client_id  = NEW.requester_id
+      AND id         != gen_random_uuid()
+  ) INTO v_is_repeat;
+
+  -- Collaboration-Eintrag erstellen
+  INSERT INTO collaborations (
+    creator_id, client_id, booking_id,
+    collab_type, completed_at, is_repeat
+  ) VALUES (
+    NEW.creator_id, NEW.requester_id, NEW.id,
+    NEW.req_type, NOW(), v_is_repeat
+  ) ON CONFLICT DO NOTHING;
+
+  -- Trust-Event für Creator: collaboration_completed
+  INSERT INTO trust_events (user_id, actor_id, event_type, context_ref)
+  VALUES (
+    NEW.creator_id, NEW.requester_id,
+    'collaboration_completed',
+    jsonb_build_object(
+      'booking_id',   NEW.id,
+      'collab_type',  NEW.req_type,
+      'amount_eur',   NEW.amount_eur
+    )
+  );
+
+  -- Repeat-Client Event wenn zutreffend
+  IF v_is_repeat THEN
+    INSERT INTO trust_events (user_id, actor_id, event_type, context_ref)
+    VALUES (
+      NEW.creator_id, NEW.requester_id,
+      'repeat_client',
+      jsonb_build_object('booking_id', NEW.id)
+    );
+  END IF;
+
+  -- Profile-Counters aktualisieren
+  UPDATE profiles
+  SET
+    collab_count          = COALESCE(collab_count, 0) + 1,
+    verified_collab_count = COALESCE(verified_collab_count, 0) + 1,
+    repeat_client_count   = COALESCE(repeat_client_count, 0) + (CASE WHEN v_is_repeat THEN 1 ELSE 0 END),
+    last_active_signal    = NOW()
+  WHERE id = NEW.creator_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS booking_completed_trust ON bookings;
+CREATE TRIGGER booking_completed_trust
+  AFTER UPDATE OF status ON bookings
+  FOR EACH ROW EXECUTE FUNCTION after_booking_completed();
+
+-- ── 6. TRIGGER: nach neuer Recommendation → Trust-Event + Counter ──
+CREATE OR REPLACE FUNCTION after_recommendation_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Trust-Event: recommendation_received
+  INSERT INTO trust_events (user_id, actor_id, event_type, context_ref)
+  VALUES (
+    NEW.to_user_id, NEW.from_user_id,
+    'recommendation_received',
+    jsonb_build_object(
+      'rec_id',      NEW.id,
+      'collab_type', NEW.collab_type,
+      'verified',    NEW.is_verified
+    )
+  );
+
+  -- Profile recommendations_count ++
+  UPDATE profiles
+  SET recommendations_count = COALESCE(recommendations_count, 0) + 1
+  WHERE id = NEW.to_user_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS rec_trust_event ON recommendations;
+CREATE TRIGGER rec_trust_event
+  AFTER INSERT ON recommendations
+  FOR EACH ROW EXECUTE FUNCTION after_recommendation_insert();
+
+-- ── 7. RLS ──────────────────────────────────────────────────────
+ALTER TABLE recommendations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS recs_read   ON recommendations;
+DROP POLICY IF EXISTS recs_insert ON recommendations;
+CREATE POLICY recs_read   ON recommendations FOR SELECT USING (is_public = true);
+CREATE POLICY recs_insert ON recommendations FOR INSERT
+  WITH CHECK (auth.uid() = from_user_id);
+
+ALTER TABLE trust_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS trust_read ON trust_events;
+CREATE POLICY trust_read ON trust_events FOR SELECT
+  USING (auth.uid() = user_id);
+
+ALTER TABLE collaborations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS collab_read ON collaborations;
+CREATE POLICY collab_read ON collaborations FOR SELECT
+  USING (auth.uid() = creator_id OR auth.uid() = client_id);
+
+NOTIFY pgrst, 'reload schema';
