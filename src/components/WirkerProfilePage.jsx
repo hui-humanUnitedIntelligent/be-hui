@@ -1013,7 +1013,12 @@ function OwnerToolOverlay({ activeTool, user, profile, onClose, onSave }) {
         {activeTool === "availability" && <InlineAvailability user={user} onBack={onClose} />}
         {activeTool === "settings" && <InlineSettings user={user} profile={profile} onBack={onClose} onLogout={onClose} />}
         {(activeTool === "insights" || activeTool === "drafts") && (
-          <ToolPlaceholder toolKey={activeTool} onBack={onClose} />
+          <ToolPlaceholder
+            toolKey={activeTool}
+            onBack={onClose}
+            user={user}
+            profile={profile}
+          />
         )}
       </ToolErrorBoundary>
     </div>
