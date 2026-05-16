@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 16:34:04 — availability calendar final
+// HUI build 2026-05-16 16:43:39 — profile live sync final
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
