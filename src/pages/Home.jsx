@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase }   from "../lib/supabaseClient";
 import ImpactPage     from "./ImpactPage";
 import ProfilePage from "./ProfilePage";
@@ -1399,6 +1400,7 @@ function HomeFeed({ onView, onBook, onImpact, onMatch, onMap }) {
    ROOT
 ═══════════════════════════════════════════════════ */
 export default function Home() {
+  const navigate = useNavigate();
   const [tab,         setTab]         = useState("feed");
   const { user, isWirker: authIsWirker, hasTalentProfile, activateTalentProfile, loadingProfile, profile: authProfile, wirkerProfile, signOut: authSignOut } = useAuth();
   const [isWirker,    setIsWirker]    = useState(false);  // transforms centre btn
@@ -1624,8 +1626,11 @@ export default function Home() {
               else setShowMembership(true);
             }
             if (key === "profile") {
-              // "Mein HUI" → navigiert direkt zur eigenen ProfilePage
-              switchTab("profile");
+              // "Mein HUI" → öffnet eigenes Creator-Profil (Instagram-Style)
+              const username = authProfile?.username || user?.id;
+              if (username) {
+                navigate(`/profile/${username}`);
+              }
             }
             if (key === "notifs") setShowNotifs(true);
           }}
