@@ -1,7 +1,7 @@
 // ExperienceCreator.jsx — Warm emotional Experience Flow
 // Fühlt sich an wie eine Einladung, nicht wie ein Formular.
 import React, { useState, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 
 const T = {
