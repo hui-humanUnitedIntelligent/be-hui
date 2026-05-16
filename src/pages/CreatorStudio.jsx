@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppState } from "../lib/AppStateContext";
+import { useCreatorBookings, BOOKING_STATUS } from "../lib/bookingContext";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import {
@@ -50,8 +51,12 @@ export default function CreatorStudio() {
   const navigate  = useNavigate();
   const { section } = useParams();  // /studio/:section
   const { user }  = useAuth();
-  const { ownWorks, ownExperiences, bookings, unreadNotifCount,
+  const { ownWorks, ownExperiences, unreadNotifCount,
           loadOwnWorks, loadOwnExperiences } = useAppState();
+  // Booking-Daten direkt aus bookingContext (Creator-spezifisch)
+  const { grouped: bookingGroups, loading: bookingLoading } = useCreatorBookings();
+  const pendingBookings  = bookingGroups.pending?.length  || 0;
+  const activeBookings   = (bookingGroups.accepted?.length || 0) + (bookingGroups.active?.length || 0);
   const [profile, setProfile] = useState(null);
   // section aus URL ODER lokaler State — URL hat Priorität
   const [activeTool, setActiveTool] = useState(section || null);
@@ -158,8 +163,8 @@ export default function CreatorStudio() {
             },
             {
               icon:"📦",
-              label:"Aufträge",
-              value: bookings.filter(b => b.status === "accepted" || b.status === "pending").length || "—",
+              label: pendingBookings > 0 ? `${pendingBookings} offen` : "Aufträge",
+              value: pendingBookings > 0 ? pendingBookings : (activeBookings || "—"),
             },
             {
               icon:"🌱",
