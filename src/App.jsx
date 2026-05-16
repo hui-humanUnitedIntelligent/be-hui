@@ -24,8 +24,7 @@ import WorkDetailPage   from './components/WorkDetailPage'  // Werk-Detail
 // ── Deprecated Route-Stubs ────────────────────────────────────
 // Diese Pages existieren als Stubs damit alte Links nicht crashen
 // Die echte Logik ist in components/ oder Home.jsx
-// BookingFlow: lazy geladen um Circular-Init + Bundle-Split zu vermeiden
-const BookingFlow = React.lazy(() => import('./components/BookingFlow'));
+// BookingFlow: Route entfernt — Buchungen laufen über WirkerProfilePage.RequestSheet
 
 
 /* ── Error Boundary ────────────────────────────────────────────────── */
@@ -216,31 +215,17 @@ function ProtectedRoute({ children }) {
 }
 
 /* ── Router Wrapper: /profile/:username → WirkerProfilePage ────────── */
-// BookingFlow wird als lokales Overlay geöffnet (kein Route-Wechsel)
-// identisch zu Home.jsx Overlay-Logik
+// onBook öffnet RequestSheet INNERHALB der WirkerProfilePage
+// Kein separates BookingFlow-Overlay mehr nötig
 function WirkerProfileRouteWrapper() {
-  const { username }    = useParams();
-  const navigate        = useNavigate();
-  const [bookingTarget, setBookingTarget] = React.useState(null);
-
-  // Wenn Booking aktiv: BookingFlow als Overlay über das Profil legen
-  if (bookingTarget) {
-    return (
-      <React.Suspense fallback={<HUILoader />}>
-        <BookingFlow
-          wirker={bookingTarget}
-          onClose={() => setBookingTarget(null)}
-          onSuccess={() => setBookingTarget(null)}
-        />
-      </React.Suspense>
-    );
-  }
+  const { username } = useParams();
+  const navigate     = useNavigate();
 
   return (
     <WirkerProfilePage
       wirker={{ username }}
       onClose={() => navigate(-1)}
-      onBook={(w) => setBookingTarget(w || { username })}
+      onBook={() => { /* RequestSheet öffnet sich intern in WirkerProfilePage */ }}
       onMessage={() => { /* Chat intern als Sheet in WirkerProfilePage */ }}
     />
   );
@@ -324,18 +309,8 @@ function AppRoutes() {
       <Route path="/impact" element={
         <ProtectedRoute><ImpactPage /></ProtectedRoute>
       }/>
-      {/* Fallback-Route für direkte BookingFlow-URLs */}
-      <Route path="/BookingFlow" element={
-        <ProtectedRoute>
-          <React.Suspense fallback={<HUILoader />}>
-            <BookingFlow
-              wirker={null}
-              onClose={() => window.history.back()}
-              onSuccess={() => window.history.back()}
-            />
-          </React.Suspense>
-        </ProtectedRoute>
-      }/>
+      {/* Legacy /BookingFlow → Redirect nach /Home */}
+      <Route path="/BookingFlow" element={<Navigate to="/Home" replace />}/>
       <Route path="/Admin" element={
         <ProtectedRoute><Admin /></ProtectedRoute>
       }/>
