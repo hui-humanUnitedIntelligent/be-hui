@@ -2,7 +2,7 @@
 // "Teile dein Talent mit der Welt" — emotional, ruhig, menschlich.
 // KEIN Seller-Onboarding. KEIN technisches Formular.
 import React, { useState } from "react";
-import { supabase } from ".../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
