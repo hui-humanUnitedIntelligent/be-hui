@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useMyTrustEvents, REPUTATION_QUALITIES } from "../lib/trustContext";
 import { safeQuery, FIELDS, cachedQuery } from "../lib/perfUtils";
 import { ProfileService } from "../services/db";
 import { useAuth } from "../lib/AuthContext";
@@ -781,7 +782,7 @@ export function AnalyticsPage({ onBack }) {
     async function load() {
       const [profileRes, salesRes, bookRes] = await Promise.all([
           supabase.from("profiles")
-            .select("profile_views,follower_count,impact_eur")
+            .select("profile_views,follower_count,impact_eur,collab_count,recommendations_count,repeat_client_count")
             .eq("id",user.id).single(),
           supabase.from("bookings")
             .select("amount")
@@ -794,12 +795,15 @@ export function AnalyticsPage({ onBack }) {
         const savesRes = { data: null, count: 0 };
       const revenue = (salesRes.data||[]).reduce((s,b)=>s+(+b.amount||0),0) * 0.85;
       setStats({
-        views:    profileRes.data?.profile_views    || 0,
-        followers:profileRes.data?.follower_count   || 0,
-        likes:    likesRes.count                    || 0,
-        saves:    savesRes.count                    || 0,
+        views:    profileRes.data?.profile_views       || 0,
+        followers:profileRes.data?.follower_count      || 0,
+        likes:    likesRes.count                       || 0,
+        saves:    savesRes.count                       || 0,
         revenue:  revenue.toFixed(2),
-        bookings: bookRes.count                     || 0,
+        bookings: bookRes.count                        || 0,
+        collabs:  profileRes.data?.collab_count        || 0,
+        recs:     profileRes.data?.recommendations_count || 0,
+        repeats:  profileRes.data?.repeat_client_count || 0,
       });
       setLoading(false);
     }
@@ -809,10 +813,10 @@ export function AnalyticsPage({ onBack }) {
   const STAT_ROWS = stats ? [
     { icon:"👁",  label:"Profilaufrufe",  value:stats.views,    color:C.teal  },
     { icon:"👥",  label:"Follower",       value:stats.followers,color:C.coral },
-    { icon:"❤️",  label:"Likes",          value:stats.likes,    color:C.coral },
+    { icon:"🤝",  label:"Zusammenarbeiten",value:stats.collabs || 0, color:C.teal },
     { icon:"🔖",  label:"Saves",          value:stats.saves,    color:C.gold  },
     { icon:"💰",  label:"Einnahmen (netto)",value:`€ ${stats.revenue}`, color:C.green },
-    { icon:"📅",  label:"Buchungen",      value:stats.bookings, color:C.teal  },
+    { icon:"⭐",  label:"Empfehlungen",   value:stats.recs || 0, color:C.coral },
   ] : [];
 
   return (
@@ -831,6 +835,130 @@ export function AnalyticsPage({ onBack }) {
             </div>
           ))}
         </div>
+      )}
+    </PageShell>
+  );
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// REPUTATION INSIGHTS — Phase 3C
+// Sehr ruhig visualisiert — kein Dashboard-Feeling
+// ════════════════════════════════════════════════════════════════
+export function ReputationInsightsPage({ onBack }) {
+  const { user } = useAuth();
+  const { events, grouped, loading } = useMyTrustEvents();
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from("profiles")
+      .select("collab_count,repeat_client_count,recommendations_count,verified_collab_count,avg_response_time_h,response_rate")
+      .eq("id", user.id).single()
+      .then(({ data }) => setProfile(data));
+  }, [user?.id]);
+
+  const EVENT_LABELS = {
+    collaboration_completed: { icon:"🤝", label:"Zusammenarbeit abgeschlossen" },
+    recommendation_received: { icon:"⭐", label:"Empfehlung erhalten"          },
+    repeat_client:           { icon:"↩",  label:"Wiederkehrende Zusammenarbeit" },
+    project_verified:        { icon:"◎",  label:"Projekt verifiziert"          },
+    creator_supported:       { icon:"✦",  label:"Creator unterstützt"          },
+    community_recognized:    { icon:"💬", label:"Community-Anerkennung"        },
+    first_booking:           { icon:"🎯", label:"Erste Buchung"                },
+    quick_response:          { icon:"⚡", label:"Schnelle Antwort"             },
+    long_term_collab:        { icon:"🌱", label:"Langfristige Zusammenarbeit"  },
+  };
+
+  const METRICS = profile ? [
+    { label:"Zusammenarbeiten",       value: profile.collab_count             || 0, icon:"🤝" },
+    { label:"Verifizierte Projekte",  value: profile.verified_collab_count    || 0, icon:"◎" },
+    { label:"Empfehlungen",           value: profile.recommendations_count    || 0, icon:"⭐" },
+    { label:"Wiederkehrende Clients", value: profile.repeat_client_count      || 0, icon:"↩" },
+  ] : [];
+
+  return (
+    <PageShell title="Reputation & Trust" onBack={onBack}>
+      {loading ? <Spinner /> : (
+        <>
+          {/* Metrics */}
+          {profile && (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:24 }}>
+              {METRICS.map(m => (
+                <Card key={m.label}>
+                  <div style={{ fontSize:22, marginBottom:6 }}>{m.icon}</div>
+                  <div style={{ fontSize:22, fontWeight:900, color:C.ink, marginBottom:2 }}>
+                    {m.value}
+                  </div>
+                  <div style={{ fontSize:12, color:C.muted }}>{m.label}</div>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Antwortzeit */}
+          {profile?.avg_response_time_h != null && (
+            <Card style={{ marginBottom:16 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:2 }}>
+                    ⚡ Durchschnittliche Antwortzeit
+                  </div>
+                  <div style={{ fontSize:12, color:C.muted }}>
+                    Wie schnell du auf Anfragen reagierst
+                  </div>
+                </div>
+                <div style={{ fontSize:18, fontWeight:900, color:C.teal }}>
+                  {profile.avg_response_time_h <= 1
+                    ? "< 1 Std"
+                    : `${Math.round(profile.avg_response_time_h)} Std`}
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Trust Events Historie */}
+          {events.length > 0 ? (
+            <>
+              <div style={{ fontSize:12, fontWeight:700, color:C.muted,
+                letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>
+                Vertrauens-Momente
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {events.slice(0, 12).map(ev => {
+                  const evInfo = EVENT_LABELS[ev.event_type] || { icon:"·", label: ev.event_type };
+                  return (
+                    <div key={ev.id} style={{ display:"flex", alignItems:"center", gap:12,
+                      background:C.card, borderRadius:14,
+                      padding:"12px 14px",
+                      border:`1px solid ${C.border}` }}>
+                      <div style={{ fontSize:18, width:32, textAlign:"center" }}>
+                        {evInfo.icon}
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:13, fontWeight:600, color:C.ink }}>
+                          {evInfo.label}
+                        </div>
+                        {ev.actor && (
+                          <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>
+                            mit {ev.actor.display_name}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ fontSize:11, color:C.muted2 }}>
+                        {new Date(ev.created_at).toLocaleDateString("de-DE",
+                          { day:"numeric", month:"short" })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <EmptyMsg icon="✦"
+              text="Deine Reputation wächst durch echte Zusammenarbeit. Starte deine erste Buchung." />
+          )}
+        </>
       )}
     </PageShell>
   );
