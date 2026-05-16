@@ -1,7 +1,7 @@
 // ImpactTrackerPage.jsx — HUI Phase 7
 // Echte User-Impact-Stats aus Supabase
 import React, { useState, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
