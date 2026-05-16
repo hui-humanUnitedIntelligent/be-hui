@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 18:39:45 — phase2c button wiring complete
+// HUI build 2026-05-16 18:50:37 — phase2d complete
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
