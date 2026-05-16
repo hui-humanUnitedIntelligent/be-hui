@@ -1,7 +1,7 @@
 // src/hooks/useChat.js
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChatService } from '../services/db';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '.../lib/supabaseClient';
 
 export function useConversations(userId) {
   const [convos,  setConvos]  = useState([]);
