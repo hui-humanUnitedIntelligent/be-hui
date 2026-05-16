@@ -1,4 +1,4 @@
-// HUI build 2026-05-16 19:04:30 — phase3a booking intelligence
+// HUI build 2026-05-16 19:05:29 — phase3a 44/44 complete
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
