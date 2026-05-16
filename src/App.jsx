@@ -24,7 +24,8 @@ import WorkDetailPage   from './components/WorkDetailPage'  // Werk-Detail
 // ── Deprecated Route-Stubs ────────────────────────────────────
 // Diese Pages existieren als Stubs damit alte Links nicht crashen
 // Die echte Logik ist in components/ oder Home.jsx
-import BookingFlow     from './components/BookingFlow' // Echte BookingFlow (nicht Stub!)
+// BookingFlow: lazy geladen um Circular-Init + Bundle-Split zu vermeiden
+const BookingFlow = React.lazy(() => import('./components/BookingFlow'));
 
 
 /* ── Error Boundary ────────────────────────────────────────────────── */
@@ -225,11 +226,13 @@ function WirkerProfileRouteWrapper() {
   // Wenn Booking aktiv: BookingFlow als Overlay über das Profil legen
   if (bookingTarget) {
     return (
-      <BookingFlow
-        wirker={bookingTarget}
-        onClose={() => setBookingTarget(null)}
-        onSuccess={() => setBookingTarget(null)}
-      />
+      <React.Suspense fallback={<HUILoader />}>
+        <BookingFlow
+          wirker={bookingTarget}
+          onClose={() => setBookingTarget(null)}
+          onSuccess={() => setBookingTarget(null)}
+        />
+      </React.Suspense>
     );
   }
 
@@ -324,11 +327,13 @@ function AppRoutes() {
       {/* Fallback-Route für direkte BookingFlow-URLs */}
       <Route path="/BookingFlow" element={
         <ProtectedRoute>
-          <BookingFlow
-            wirker={null}
-            onClose={() => window.history.back()}
-            onSuccess={() => window.history.back()}
-          />
+          <React.Suspense fallback={<HUILoader />}>
+            <BookingFlow
+              wirker={null}
+              onClose={() => window.history.back()}
+              onSuccess={() => window.history.back()}
+            />
+          </React.Suspense>
         </ProtectedRoute>
       }/>
       <Route path="/Admin" element={
