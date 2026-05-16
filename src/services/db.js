@@ -15,8 +15,8 @@ import { safeQuery, cachedQuery, FIELDS, PAGE_SIZE, buildPage } from '../lib/per
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 const F = {
-  profile:      'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,focus_type,talent,location_label,is_available,impact_eur,follower_count,profile_views,created_at',
-  profileMin:   'id,display_name,username,avatar_url,is_wirker,has_talent_profile,talent,location_label',
+  profile:      'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,focus_type,talent,location,is_available,impact_eur,follower_count,profile_views,created_at',
+  profileMin:   'id,display_name,username,avatar_url,is_wirker,has_talent_profile,talent,location',
   wirker:       'id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count',
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
