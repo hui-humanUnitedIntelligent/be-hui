@@ -3,7 +3,7 @@
 // isOwner-only — wird als Overlay aus WirkerProfilePage geöffnet
 
 import React, { useState, useEffect, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from ".../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 
 const C = {
