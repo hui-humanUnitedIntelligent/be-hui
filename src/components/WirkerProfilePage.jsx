@@ -1034,7 +1034,15 @@ function OwnerToolOverlay({ activeTool, user, profile, onClose, onSave }) {
         {activeTool === "analytics" && <InlineAnalytics user={user} onBack={onClose} />}
         {activeTool === "earnings"  && <InlineEarnings  user={user} onBack={onClose} />}
         {activeTool === "availability" && <InlineAvailability user={user} onBack={onClose} />}
-        {activeTool === "settings" && <InlineSettings user={user} profile={profile} onBack={onClose} onLogout={onClose} />}
+        {activeTool === "settings" && (
+          <InlineSettings
+            user={user}
+            profile={profile}
+            onBack={onClose}
+            onLogout={onClose}
+            onSave={onSave}
+          />
+        )}
         {(activeTool === "insights" || activeTool === "drafts") && (
           <ToolPlaceholder
             toolKey={activeTool}
@@ -1937,7 +1945,7 @@ function InlineAvailability({ user, onBack }) {
 }
 
 // ── EINSTELLUNGEN (crashsicher) ───────────────────────────────────
-function InlineSettings({ user, profile, onBack, onLogout }) {
+function InlineSettings({ user, profile, onBack, onLogout, onSave }) {
   const [section, setSection] = React.useState("konto");
   const [displayName, setDisplayName] = React.useState(profile?.display_name || "");
   const [email] = React.useState(user?.email || "");
@@ -1953,6 +1961,8 @@ function InlineSettings({ user, profile, onBack, onLogout }) {
       updated_at: new Date().toISOString()
     }).eq("id", user.id);
     setSaving(false); setSaved(true);
+    // Profil sofort im Parent spiegeln
+    onSave?.({ display_name: displayName, is_available: isAvail });
     setTimeout(() => setSaved(false), 2000);
   }
 
