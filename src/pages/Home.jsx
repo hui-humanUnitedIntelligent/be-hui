@@ -1626,7 +1626,6 @@ export default function Home() {
             if (key === "profile") {
               // "Mein HUI" → navigiert direkt zur eigenen ProfilePage
               switchTab("profile");
-            });
             }
             if (key === "notifs") setShowNotifs(true);
           }}
