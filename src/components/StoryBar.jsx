@@ -4,7 +4,7 @@
 // Phase 2: Highlights row on profile
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '.../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 
 const C = {
