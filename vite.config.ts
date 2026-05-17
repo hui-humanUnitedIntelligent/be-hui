@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T20:04:10Z — Phase 7G: Stewardship & Community Governance
+// HUI build 2026-05-17T20:17:35Z — Phase 8A: Global Creative Federation
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
