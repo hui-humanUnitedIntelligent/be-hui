@@ -341,7 +341,7 @@ function StepCalendar({ wirker, selected, onSelect, onNext, onBack, onClose }) {
                   : !avl ? C.muted2
                   : tod ? C.teal : C.ink,
                 boxShadow: sel ? `0 3px 12px ${C.tealGlow}` : "none",
-                transition:"all 0.18s",
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
               }}>
               {i+1}
             </button>
@@ -370,7 +370,7 @@ function StepCalendar({ wirker, selected, onSelect, onNext, onBack, onClose }) {
           cursor: selected ? "pointer" : "default",
           fontFamily:"inherit",
           boxShadow: selected ? `0 5px 22px ${C.tealGlow}` : "none",
-          transition:"all 0.3s" }}>
+          transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
         {selected ? `${fmtDate(selected)} — weiter` : "Tag auswählen"}
       </button>
     </div>
@@ -405,7 +405,7 @@ function StepTime({ wirker, date, slot, onSlot, onNext, onBack, onClose }) {
               boxShadow: slot===s
                 ? `0 3px 12px ${C.tealGlow}`
                 : "0 2px 8px rgba(0,0,0,0.05)",
-              transition:"all 0.2s" }}>
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
             {s}
           </button>
         ))}
@@ -462,7 +462,7 @@ function StepTime({ wirker, date, slot, onSlot, onNext, onBack, onClose }) {
           cursor: slot ? "pointer" : "default",
           fontFamily:"inherit",
           boxShadow: slot ? `0 5px 22px ${C.tealGlow}` : "none",
-          transition:"all 0.3s" }}>
+          transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
         {slot ? `${slot} Uhr — weiter` : "Uhrzeit auswählen"}
       </button>
     </div>
@@ -877,7 +877,7 @@ function StepRecommend({ wirker, onClose }) {
               : C.card,
             border:`2px solid ${choice==="yes" ? C.teal : C.border}`,
             cursor:"pointer", fontFamily:"inherit",
-            transition:"all 0.2s",
+            transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
             boxShadow: choice==="yes"
               ? `0 4px 16px ${C.tealGlow}` : "0 2px 8px rgba(0,0,0,0.05)" }}>
           <div style={{ fontSize:28, marginBottom:8 }}>🤝</div>
@@ -893,7 +893,7 @@ function StepRecommend({ wirker, onClose }) {
               ? `${C.coral}14` : C.card,
             border:`2px solid ${choice==="no" ? C.coral : C.border}`,
             cursor:"pointer", fontFamily:"inherit",
-            transition:"all 0.2s",
+            transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
             boxShadow: choice==="no"
               ? `0 4px 16px ${C.coralGlow}` : "0 2px 8px rgba(0,0,0,0.05)" }}>
           <div style={{ fontSize:28, marginBottom:8 }}>💬</div>
