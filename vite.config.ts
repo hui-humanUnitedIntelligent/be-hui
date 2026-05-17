@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T16:45:25Z — Phase 6B complete: Progressive Discovery in DiscoveryFeed
+// HUI build 2026-05-17T16:51:05Z — Phase 6C: Observability & Production Validation
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
