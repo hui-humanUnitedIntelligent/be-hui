@@ -150,7 +150,7 @@ export function useBookingActions() {
           sender_id:  user.id,
           text:       message,
           created_at: new Date().toISOString(),
-        }).catch(() => {});
+        }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
       }
 
       // 4. Notification für Creator
@@ -161,7 +161,7 @@ export function useBookingActions() {
         read:      false,
         actor_id:  user.id,
         created_at: new Date().toISOString(),
-      }).catch(() => {});
+      }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
 
       return { data: booking, chatId: chat?.id };
     } catch(e) {
@@ -195,7 +195,7 @@ export function useBookingActions() {
         from_status: "requested",
         to_status:   "accepted",
         note:        note || null,
-      }).catch(() => {});
+      }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
 
       return { success: true };
     } catch(e) {
@@ -225,7 +225,7 @@ export function useBookingActions() {
         event_type:  "status_change",
         to_status:   "declined",
         note:        reason || null,
-      }).catch(() => {});
+      }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
 
       return { success: true };
     } catch(e) {
