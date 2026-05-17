@@ -205,7 +205,7 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
             totalEur: data.totalEur,
             impactEur: data.impactEur,
           }));
-        } catch(ex) {}
+        } catch(ex) { /* image load failed — suppress */ }
         window.open(data.checkoutUrl, '_self');
       } else {
         console.error('[FeedCards] Stripe error:', data.error); // LEGACY
