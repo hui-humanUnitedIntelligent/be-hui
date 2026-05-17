@@ -1,4 +1,4 @@
-// HUI build 2026-05-16T21:36:54Z — Notification channel single-owner fix
+// HUI build 2026-05-17T07:28:31Z — Phase 4A consolidation complete
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
