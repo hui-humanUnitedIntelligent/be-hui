@@ -85,7 +85,7 @@ function StatusTrack({ status }) {
             <div style={{ width:10, height:10, borderRadius:"50%",
               background: i <= current ? C.teal : C.muted2,
               boxShadow: i === current ? `0 0 6px ${C.tealGlow}` : "none",
-              transition:"all 0.3s", flexShrink:0 }}/>
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */, flexShrink:0 }}/>
             <div style={{ fontSize:8.5, color: i<=current ? C.teal : C.muted2,
               marginTop:4, fontWeight: i===current ? 700 : 400,
               whiteSpace:"nowrap" }}>{s}</div>
@@ -148,7 +148,7 @@ function RecommendSheet({ order, onClose, onSubmit }) {
             fontSize:15, fontWeight:800, cursor:"pointer",
             fontFamily:"inherit",
             boxShadow: text.trim() ? `0 4px 18px ${C.tealGlow}` : "none",
-            transition:"all 0.3s" }}>
+            transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
           Empfehlung senden
         </button>
       </div>
@@ -385,7 +385,7 @@ export default function OrdersPage({ onClose }) {
                 color: tab===t.key ? "white" : C.muted,
                 cursor:"pointer", fontFamily:"inherit",
                 boxShadow: tab===t.key ? `0 3px 12px ${C.tealGlow}` : "none",
-                transition:"all 0.22s" }}>
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
               {t.label}
             </button>
           ))}
