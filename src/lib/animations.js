@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ── Standard Transition Durations ────────────────────────────────
-export const DUR = {
+export const ANIM_DUR = {
   instant:  '80ms',
   fast:     '150ms',
   normal:   '250ms',
@@ -15,7 +15,7 @@ export const DUR = {
 };
 
 // ── Standard Easing ──────────────────────────────────────────────
-export const EASE = {
+export const ANIM_EASE = {
   out:     'cubic-bezier(0.25, 0.46, 0.45, 0.94)',  // sanftes Out
   in:      'cubic-bezier(0.55, 0.055, 0.675, 0.19)', // sanftes In
   spring:  'cubic-bezier(0.34, 1.02, 0.64, 1)',       // leichter Spring
@@ -25,13 +25,13 @@ export const EASE = {
 
 // ── Standard Transitions ─────────────────────────────────────────
 // Nur transform + opacity — GPU-Layer garantiert
-export const T = {
-  overlay:  `transform ${DUR.normal} ${EASE.overlay}, opacity ${DUR.normal} ${EASE.out}`,
-  card:     `transform ${DUR.fast} ${EASE.out}, opacity ${DUR.fast} ${EASE.out}`,
-  fade:     `opacity ${DUR.normal} ${EASE.out}`,
-  spring:   `transform ${DUR.slow} ${EASE.spring}, opacity ${DUR.fast} ${EASE.out}`,
-  breathe:  `transform 4s ${EASE.breathe} infinite, opacity 4s ${EASE.breathe} infinite`,
-  instant:  `transform ${DUR.instant} ${EASE.out}, opacity ${DUR.instant} ${EASE.out}`,
+export const ANIM_T = {
+  overlay:  `transform ${ANIM_DUR.normal} ${ANIM_EASE.overlay}, opacity ${ANIM_DUR.normal} ${ANIM_EASE.out}`,
+  card:     `transform ${ANIM_DUR.fast} ${ANIM_EASE.out}, opacity ${ANIM_DUR.fast} ${ANIM_EASE.out}`,
+  fade:     `opacity ${ANIM_DUR.normal} ${ANIM_EASE.out}`,
+  spring:   `transform ${ANIM_DUR.slow} ${ANIM_EASE.spring}, opacity ${ANIM_DUR.fast} ${ANIM_EASE.out}`,
+  breathe:  `transform 4s ${ANIM_EASE.breathe} infinite, opacity 4s ${ANIM_EASE.breathe} infinite`,
+  instant:  `transform ${ANIM_DUR.instant} ${ANIM_EASE.out}, opacity ${ANIM_DUR.instant} ${ANIM_EASE.out}`,
 };
 
 // ── GPU-Layer Hints ──────────────────────────────────────────────
