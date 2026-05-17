@@ -53,13 +53,13 @@ export function CreateBottomSheet({ open, onClose, onSelect }) {
       {/* Backdrop */}
       <div onClick={onClose} style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-        zIndex: 998, backdropFilter: 'blur(4px)',
+        zIndex: 510  /* Z.story */, backdropFilter: 'blur(4px)',
       }} />
       {/* Sheet */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: C.card, borderRadius: '24px 24px 0 0',
-        padding: '12px 24px 40px', zIndex: 999,
+        padding: '12px 24px 40px', zIndex: 510  /* Z.story */,
         boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
       }}>
         {/* Handle */}
@@ -163,12 +163,12 @@ export function StoryUploadModal({ open, onClose, onSuccess }) {
     <>
       <div onClick={handleClose} style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-        zIndex: 1000, backdropFilter: 'blur(8px)',
+        zIndex: 500  /* Z.fullscreen */, backdropFilter: 'blur(8px)',
       }} />
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: C.card, borderRadius: '24px 24px 0 0',
-        padding: '12px 24px 48px', zIndex: 1001,
+        padding: '12px 24px 48px', zIndex: 511  /* Z.storyTop */,
         maxHeight: '90dvh', overflowY: 'auto',
       }}>
         <div style={{ width: 40, height: 4, borderRadius: 2, background: '#E0DAD0', margin: '0 auto 24px' }} />
