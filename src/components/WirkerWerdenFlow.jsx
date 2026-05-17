@@ -329,7 +329,7 @@ export default function WirkerWerdenFlow({ onClose, onActivate }) {
                     borderRadius:20, cursor:"pointer", fontFamily:"inherit",
                     display:"flex", alignItems:"center", gap:16,
                     boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
-                    transition:"all 0.2s" }}>
+                    transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                   <div style={{ width:46, height:46, borderRadius:15,
                     background:`${C.teal}12`,
                     display:"flex", alignItems:"center",
@@ -404,7 +404,7 @@ export default function WirkerWerdenFlow({ onClose, onActivate }) {
                       fontSize:13, fontWeight: sel ? 700 : 500,
                       color: sel ? C.teal : C.muted,
                       cursor:"pointer", fontFamily:"inherit",
-                      transition:"all 0.18s",
+                      transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                       boxShadow: sel ? `0 2px 8px ${C.tealGlow}` : "none" }}>
                     {c}
                   </button>
@@ -507,7 +507,7 @@ export default function WirkerWerdenFlow({ onClose, onActivate }) {
               fontFamily:"inherit",
               boxShadow: (step===2 && !data.name) ? "none"
                 : `0 5px 22px ${C.tealGlow}`,
-              transition:"all 0.3s" }}>
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
             Weiter →
           </button>
         </div>
