@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T10:17:57Z — Phase 4E: UX Coherence + Overlay Governance complete
+// HUI build 2026-05-17T10:22:17Z — cache-bust: useUIState fix
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
