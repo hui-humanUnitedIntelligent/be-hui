@@ -224,7 +224,7 @@ function ProjectDetail({ project, onClose }) {
   const maxMonthly = Math.max(...project.monthlyData);
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 300  /* Z.overlay */, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end" }}>
       <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", maxHeight: "88vh", display: "flex", flexDirection: "column" }}>
         {/* Header */}
         <div style={{ background: `linear-gradient(135deg, ${project.color}20, ${project.color}08)`, borderRadius: "24px 24px 0 0", padding: "20px 20px 0", flexShrink: 0 }}>
