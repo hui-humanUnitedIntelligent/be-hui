@@ -336,9 +336,11 @@ export function AppStateProvider({ children }) {
         schema: "public",
         table: "notifications",
         filter: `user_id=eq.${user.id}`,
-      }, (payload) => {
+      }, throttle((payload) => {
+        // Throttle: max 1 Notif-Update alle 200ms — verhindert Storm
+        if (!payload?.new) return;
         setNotifications(prev => [payload.new, ...prev].slice(0, 50));
-      })
+      }, 200))
       .subscribe();
     realtimeChannels.current.push(notifChannel);
 
@@ -366,14 +368,15 @@ export function AppStateProvider({ children }) {
         schema: "public",
         table: "messages",
         // Messages in chats where user is participant
-      }, (payload) => {
-        // Update chat list with new last message
+      }, throttle((payload) => {
+        // Throttle: max 1 Chat-Update alle 150ms
+        if (!payload?.new?.chat_id) return;
         setChats(prev => prev.map(chat =>
           chat.id === payload.new.chat_id
             ? { ...chat, last_message: payload.new.text, last_message_at: payload.new.created_at }
             : chat
         ));
-      })
+      }, 150))
       .subscribe();
     realtimeChannels.current.push(chatChannel);
 
