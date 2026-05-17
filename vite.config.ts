@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T18:18:53Z — Phase 6H: Cultural Layer & Community Atmosphere
+// HUI build 2026-05-17T18:33:22Z — Phase 7A: Assistive Intelligence Layer
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
