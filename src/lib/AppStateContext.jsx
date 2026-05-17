@@ -543,8 +543,7 @@ export const useFollow = (userId) => {
   return { isFollowing, toggleFollow };
 };
 
-/** Nur UI-State (Overlays, Tab) — kein Datenzugriff */
-export { useUIState };  // re-export already defined above
+/** Nur UI-State (Overlays, Tab) — kein Datenzugriff — definiert weiter unten */
 
 /** Nur Notification-Count — re-rendert nur wenn Count sich ändert */
 // useUnreadChatTotal — delegiert an useChatList (Phase 3B)
