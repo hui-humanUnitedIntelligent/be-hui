@@ -1,6 +1,7 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useMemoizedFeed, createFeedNormalizer, useVisibilityPause, useStableCallback } from '../lib/performance/index.js';
 import { useSoftFade } from "../lib/sessionHooks";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
@@ -2005,8 +2006,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         return null;
       }
     }).filter(Boolean);
-    if (renderErrors > 0) console.warn("[HUI Feed] normalize: " + renderErrors + " items übersprungen");
-    console.log("[HUI Feed] normalized: " + normalized.length + " items (von " + liveFeedItems.length + ")");
+    // renderErrors in Sentry via sentryCapture (Phase 4B)
     return normalized;
   }, [liveFeedItems]);
   // ── Ende MOOD SCORING ENGINE ─────────────────────────────────────
