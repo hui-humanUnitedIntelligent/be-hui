@@ -1,3 +1,9 @@
+// ═══════════════════════════════════════════════════════════════
+// STATUS: LEGACY — Phase 4A.5
+// Diese Datei wird von keinem aktiven Modul importiert.
+// NICHT LÖSCHEN — nur dokumentiert für spätere Bereinigung.
+// Ersatz: siehe docs/LEGACY_MAP.md
+// ═══════════════════════════════════════════════════════════════
 const isNode = typeof window === 'undefined';
 const windowObj = isNode ? { localStorage: new Map() } : window;
 const storage = windowObj.localStorage;
