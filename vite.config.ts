@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T19:36:23Z — Phase 7E: Long-Term Cultural Evolution
+// HUI build 2026-05-17T19:50:13Z — Phase 7F: Gentle Monetization Ethics
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
