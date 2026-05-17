@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T15:46:18Z — Phase 5H: Health-Aware Discovery Integration
+// HUI build 2026-05-17T16:23:25Z — Phase 6A: Platform Scale & Infrastructure Maturity
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
