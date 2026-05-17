@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T19:50:13Z — Phase 7F: Gentle Monetization Ethics
+// HUI build 2026-05-17T20:04:10Z — Phase 7G: Stewardship & Community Governance
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
