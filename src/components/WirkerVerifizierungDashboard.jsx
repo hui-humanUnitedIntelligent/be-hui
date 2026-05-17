@@ -237,7 +237,7 @@ export default function WirkerVerifizierungDashboard({ onClose, onViewWirker }) 
           }));
           setWirkerList([...mapped, ...mockWirkerData].filter((w, i, arr) => arr.findIndex(x => x.name === w.name) === i));
         }
-      } catch(e) {}
+      } catch(e) { console.error("[WirkerVerifizierung]", e?.message || e); }
       setLoading(false);
     }
     load();
