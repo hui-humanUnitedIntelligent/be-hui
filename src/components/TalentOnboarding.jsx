@@ -90,7 +90,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
               background:T.card, fontSize:17, color:T.ink,
               outline:"none", fontFamily:"inherit", fontWeight:600,
               boxShadow: title ? `0 0 0 4px ${T.tealBg}` : "none",
-              transition:"all .22s", boxSizing:"border-box"
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */, boxSizing:"border-box"
             }}
           />
         </div>
@@ -107,7 +107,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
             background:T.card, fontSize:14, color:T.ink,
             outline:"none", fontFamily:"inherit", resize:"none", lineHeight:1.6,
             boxShadow: desc ? `0 0 0 4px ${T.tealBg}` : "none",
-            transition:"all .22s", boxSizing:"border-box"
+            transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */, boxSizing:"border-box"
           }}
         />
 
@@ -124,7 +124,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
                 color: title===ex ? T.teal : T.ink3,
                 fontWeight: title===ex ? 700 : 500,
                 fontSize:12, cursor:"pointer",
-                transition:"all .18s"
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */
               }}>
               {ex}
             </button>
