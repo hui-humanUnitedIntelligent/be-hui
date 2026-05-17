@@ -1,4 +1,4 @@
-// AppStateContext.jsx — HUI Global State Layer v1.0
+// AppStateContext.jsx — HUI Phase 4D/4E — rebuilt 2026-05-17T10:22:17Z
 // Phase 2B: Single source of truth für alle App-Daten
 //
 // ARCHITEKTUR:
