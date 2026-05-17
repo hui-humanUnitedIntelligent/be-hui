@@ -402,7 +402,7 @@ function WerkCheckout({ werk, items, onClose, onSuccess }) {
                   marginBottom:10,
                   boxShadow: ship===opt.id
                     ? `0 3px 14px ${C.coralGlow}` : "0 2px 8px rgba(0,0,0,0.04)",
-                  transition:"all 0.2s", textAlign:"left" }}>
+                  transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */, textAlign:"left" }}>
                 <span style={{ fontSize:24 }}>{opt.icon}</span>
                 <div style={{ flex:1 }}>
                   <div style={{ fontWeight:700, fontSize:14,
@@ -477,7 +477,7 @@ function WerkCheckout({ werk, items, onClose, onSuccess }) {
                 fontFamily:"inherit",
                 boxShadow: (addr.name&&addr.street&&addr.city&&addr.zip)
                   ? `0 5px 22px ${C.coralGlow}` : "none",
-                transition:"all 0.3s" }}>
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
               Zur Übersicht
             </button>
           </div>
