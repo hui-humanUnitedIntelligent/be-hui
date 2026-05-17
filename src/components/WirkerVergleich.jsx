@@ -189,7 +189,7 @@ export default function WirkerVergleich({ onClose, onViewWirker, onBookWirker })
               fontWeight: 800, fontSize: 16, cursor: selected.length >= 2 ? "pointer" : "default",
               background: selected.length >= 2 ? `linear-gradient(135deg, ${TEAL}, ${GOLD})` : "#e0e0e0",
               color: selected.length >= 2 ? "white" : "#bbb",
-              transition: "all 0.2s"
+              transition: "all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */
             }}>
             {selected.length < 2 ? `Noch ${2 - selected.length} auswählen` : `${selected.length} Wirker vergleichen →`}
           </button>
