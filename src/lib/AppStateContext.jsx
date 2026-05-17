@@ -238,30 +238,57 @@ export function AppStateProvider({ children }) {
   // ────────────────────────────────────────────────────────────
   const loadFollows = useCallback(async () => {
     if (!user?.id) return;
-    try {
-      const { data } = await supabase
-        .from("follows")
-        .select("followed_id")
-        .eq("follower_id", user.id);
-      if (data) setFollows(new Set(data.map(f => f.followed_id)));
-    } catch(e) { /* silent */ }
+    const { data, error } = await supabase
+      .from("follows")
+      .select("followed_id")
+      .eq("follower_id", user.id);
+    if (error) {
+      console.error("[AppState] loadFollows:", error.message);
+      return;
+    }
+    if (data) setFollows(new Set(data.map(f => f.followed_id)));
   }, [user?.id]);
 
   const toggleFollow = useCallback(async (targetUserId) => {
+    // Safety guards
     if (!user?.id || !targetUserId) return;
+    if (targetUserId === user.id) {
+      console.warn("[AppState] toggleFollow: self-follow abgeblockt");
+      return;
+    }
+
     const isFollowing = follows.has(targetUserId);
-    // Optimistic update
+
+    // 1. Optimistic update (sofort sichtbar)
     setFollows(prev => {
       const next = new Set(prev);
       isFollowing ? next.delete(targetUserId) : next.add(targetUserId);
       return next;
     });
-    // DB sync
+
+    // 2. DB sync
+    let error = null;
     if (isFollowing) {
-      await supabase.from("follows")
-        .delete().eq("follower_id", user.id).eq("followed_id", targetUserId);
+      const res = await supabase.from("follows")
+        .delete()
+        .eq("follower_id", user.id)
+        .eq("followed_id", targetUserId);
+      error = res.error;
     } else {
-      await supabase.from("follows").insert({ follower_id: user.id, followed_id: targetUserId });
+      const res = await supabase.from("follows")
+        .insert({ follower_id: user.id, followed_id: targetUserId });
+      error = res.error;
+    }
+
+    // 3. Rollback bei Fehler (Optimistic Update zurücknehmen)
+    if (error) {
+      console.error("[AppState] toggleFollow:", error.message);
+      setFollows(prev => {
+        const next = new Set(prev);
+        // Umkehren: war isFollowing → wieder hinzufügen; war nicht → wieder entfernen
+        isFollowing ? next.add(targetUserId) : next.delete(targetUserId);
+        return next;
+      });
     }
   }, [user?.id, follows]);
 
