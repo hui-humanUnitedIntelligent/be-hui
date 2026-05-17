@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T16:51:05Z — Phase 6C: Observability & Production Validation
+// HUI build 2026-05-17T17:08:30Z — Phase 6D: Operational Resilience & Release Engineering
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
