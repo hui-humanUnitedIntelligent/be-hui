@@ -1,5 +1,7 @@
 // WirkerProfilePage.jsx — HUI v3
-import { usePresence, getPresenceLabel } from "../lib/sessionHooks";
+import { usePresence as usePresenceLegacy, getPresenceLabel } from "../lib/sessionHooks";
+// Phase 6G: Creative Presence Engine
+import { usePresence, resonanceSignature, creativeRhythm, atmosphericIdentity, collaborationStyle } from "@/lib/presence/index";
 import { useBookingActions, getTrustSignals, REQ_TYPES, MOODS, BOOKING_STATUS } from "../lib/bookingContext";
 import { getSoftStatus, AMBIENT_CSS, TRANSITIONS } from "../lib/journeyContext";
 import { useReputation, useRecommendationActions, computeReputationSignals,
@@ -758,6 +760,52 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               „{profile.bio}"
             </p>
           )}
+
+          {/* ── Phase 6G: Presence Layer ── */}
+          {/* Resonance Signature — kreative Handschrift in Sprache */}
+          {presence?.signature?.full && (
+            <div style={{
+              fontSize: 12, color: "rgba(0,0,0,0.38)",
+              fontStyle: "italic", letterSpacing: "0.01em",
+              marginBottom: 8, lineHeight: 1.5,
+              paddingLeft: 2,
+            }}>
+              {presence.signature.full}
+            </div>
+          )}
+
+          {/* Rhythm + Bridge — nur wenn nicht "konstant" oder "Bridge" */}
+          {(presence?.rhythm?.key && presence.rhythm.key !== 'consistent') ||
+           presence?.continuity?.isBridge ? (
+            <div style={{
+              display: "flex", gap: 6, flexWrap: "wrap",
+              marginBottom: 10,
+            }}>
+              {presence?.rhythm?.key && presence.rhythm.key !== 'consistent' && (
+                <span style={{
+                  fontSize: 11, color: "rgba(0,0,0,0.42)",
+                  background: "rgba(0,0,0,0.04)",
+                  borderRadius: 50, padding: "3px 9px",
+                  border: "1px solid rgba(0,0,0,0.07)",
+                  display: "flex", alignItems: "center", gap: 4,
+                }}>
+                  <span style={{ fontSize: 10 }}>{presence.rhythm.icon}</span>
+                  {presence.rhythm.label}
+                </span>
+              )}
+              {presence?.continuity?.isBridge && (
+                <span style={{
+                  fontSize: 11, color: "rgba(0,0,0,0.42)",
+                  background: "rgba(0,0,0,0.04)",
+                  borderRadius: 50, padding: "3px 9px",
+                  border: "1px solid rgba(0,0,0,0.07)",
+                }}>
+                  {presence.continuity.domainFamilies.slice(0,2).join(' × ')}
+                </span>
+              )}
+            </div>
+          ) : null}
+          {/* ── Ende Presence Layer ── */}
 
           {/* Mood-Tags + Kategorien — live nach EditProfile */}
           {((profile.mood_tags?.length > 0) || (profile.categories?.length > 0)) && (
@@ -2825,6 +2873,16 @@ function RequestSheet({ profile, user, onClose }) {
             <div style={{ fontSize:18, fontWeight:900, color:TC.ink,
               letterSpacing:-.3, marginBottom:4 }}>
               Anfrage an {profile?.display_name?.split(" ")[0]}
+              {/* Phase 6G: Collaboration Feeling */}
+              {presence?.collaboration && (
+                <div style={{
+                  fontSize: 12, color: "rgba(0,0,0,0.4)",
+                  fontStyle: "italic", marginTop: 4,
+                  fontWeight: 400,
+                }}>
+                  {presence.collaboration.style?.description}
+                </div>
+              )}
             </div>
             <div style={{ fontSize:13, color:TC.muted }}>Was hast du im Sinn?</div>
           </div>
