@@ -91,7 +91,7 @@ function S1({ f, set, onNext }) {
                   background:f.category===c?T.coralBg:"rgba(0,0,0,.04)",
                   color:f.category===c?T.coral:T.ink3,
                   fontWeight:f.category===c?700:500,fontSize:12,cursor:"pointer",
-                  transition:"all .18s"}}>
+                  transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}>
                 {c}
               </button>
             ))}
@@ -113,7 +113,7 @@ function S1({ f, set, onNext }) {
           color:ok?"white":T.muted,fontWeight:900,fontSize:15,
           cursor:ok?"pointer":"not-allowed",
           boxShadow:ok?`0 6px 24px ${T.coralGlow}`:"none",
-          transition:"all .22s"}}>
+          transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}>
         Weiter →
       </button>
     </div>
@@ -258,7 +258,7 @@ function S3({ f, set, onNext, onBack }) {
                 border:`2px solid ${on?T.coral:T.border}`,
                 background:on?T.coral:"transparent",
                 display:"flex",alignItems:"center",justifyContent:"center",
-                transition:"all .18s",flexShrink:0}}>
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,flexShrink:0}}>
                 {on && <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
                   <path d="M1 3.5L3.5 6L9 1" stroke="white" strokeWidth="2"
                     strokeLinecap="round" strokeLinejoin="round"/>
