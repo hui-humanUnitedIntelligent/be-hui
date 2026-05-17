@@ -58,7 +58,7 @@ function MediaCard({ item, liked, onLike, faved, onFav, onViewWirker, isTalentUs
           const isFollowed = following && following.has(item.creator);
           return (
             <button onClick={() => toggleFollow && toggleFollow(item.creator)}
-              style={{ background: isFollowed ? TEAL : `${TEAL}12`, border: "none", borderRadius: 20, padding: "5px 11px", fontWeight: 700, fontSize: 11, color: isFollowed ? "white" : TEAL, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 3, transition: "all 0.2s" }}>
+              style={{ background: isFollowed ? TEAL : `${TEAL}12`, border: "none", borderRadius: 20, padding: "5px 11px", fontWeight: 700, fontSize: 11, color: isFollowed ? "white" : TEAL, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 3, transition: "all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
               {isFollowed ? <><Check size={10} /> Folge ich</> : <>+ Folgen</>}
             </button>
           );
