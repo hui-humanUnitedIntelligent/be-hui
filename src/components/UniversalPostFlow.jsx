@@ -439,7 +439,7 @@ export default function UniversalPostFlow({ onClose, onSuccess }) {
       <style>{CSS}</style>
       {/* Backdrop */}
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, zIndex:3100,
+        position:"fixed", inset:0, zIndex:610   /* Z.membership */,
         background:"rgba(0,0,0,0.45)",
         backdropFilter:"blur(5px)",
         WebkitBackdropFilter:"blur(5px)",
@@ -447,7 +447,7 @@ export default function UniversalPostFlow({ onClose, onSuccess }) {
 
       {/* Sheet */}
       <div style={{
-        position:"fixed", bottom:0, left:0, right:0, zIndex:3101,
+        position:"fixed", bottom:0, left:0, right:0, zIndex:420   /* Z.create */,
         background:C.card,
         borderRadius:"28px 28px 0 0",
         maxHeight:"93vh",
