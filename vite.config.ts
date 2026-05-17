@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T10:22:17Z — cache-bust: useUIState fix
+// HUI build 2026-05-17T10:31:49Z — Phase 4F: Visual Coherence + Token System complete
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
