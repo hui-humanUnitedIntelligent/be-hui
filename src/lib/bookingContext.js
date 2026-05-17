@@ -14,6 +14,8 @@
 // - getTrustSignals: Trust-Badges für Creator-Profile
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { assertAuthenticated, assertCreator, globalMutationGuard } from './security/index.js';
+import { validateBookingRequest, assertValid } from './validation/index.js';
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 
@@ -100,7 +102,30 @@ export function useBookingActions() {
     creatorId, creatorName, reqType, mood, date, timeSlot,
     location, budget, guests, direction, message, amountEur, impactEur,
   }) => {
-    if (!user?.id || !creatorId) return { error: "Nicht eingeloggt" };
+    // ── Security Guards ──────────────────────────────────────────
+    assertAuthenticated(user);
+    if (!creatorId) return { error: "Creator-ID fehlt" };
+
+    // ── Double-Submit Guard ──────────────────────────────────────
+    const guardKey = `booking-${user.id}-${creatorId}`;
+    if (!globalMutationGuard.lockWithTimeout(guardKey, 8000)) {
+      return { error: "Anfrage bereits in Bearbeitung." };
+    }
+
+    // ── Input Validation ─────────────────────────────────────────
+    const validResult = validateBookingRequest({
+      creatorId,
+      requesterId: user.id,
+      title:       message || reqType || 'Anfrage',
+      description: message,
+      budget:      amountEur,
+      reqType,
+    });
+    if (!validResult.valid) {
+      globalMutationGuard.unlock(guardKey);
+      return { error: validResult.errors[0] };
+    }
+
     setLoading(true); setError(null);
     try {
       // 1. Chat für diese Anfrage erstellen
