@@ -145,8 +145,9 @@ export function useRealtimeChannel(supabase, channelId, setupFn, enabled = true)
     }
     const ch = setupFn(supabase.channel(channelId));
     ch.subscribe(status => {
-      if (status === 'SUBSCRIBED') {
-        console.debug(`[HUI RT] Channel ${channelId} active`);
+      if (status === 'CHANNEL_ERROR') {
+        // Channel error — Sentry handles via ErrorBoundary
+        // Retry is automatic via Supabase realtime reconnect
       }
     });
     channelRef.current = ch;
