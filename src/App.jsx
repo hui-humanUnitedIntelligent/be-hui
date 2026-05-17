@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
+import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
@@ -43,17 +44,8 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // ── Vollstaendiges Stack-Logging ────────────────────────
-    console.error('[HUI ErrorBoundary] CRASH:', error.message);
-    console.error('[HUI ErrorBoundary] Stack:', error.stack);
-    console.error('[HUI ErrorBoundary] ComponentStack:', errorInfo?.componentStack);
-    console.error('[HUI ErrorBoundary] LastFeedComponent:', window.__HUI_LAST_FEED_COMPONENT__);
-    console.error('[HUI ErrorBoundary] document.hidden:', document.hidden);
-    console.error('[HUI ErrorBoundary] visibilityState:', document.visibilityState);
-    console.error('[HUI ErrorBoundary] userAgent:', navigator.userAgent);
-    console.error('[HUI ErrorBoundary] RetryCount:', this.state.retryCount);
-
     // ── Sentry: Crash mit vollem Kontext senden ──────────────
+    // console.error entfernt — Sentry loggt vollständig (Phase 4B)
     const eventId = sentryCapture(error, {
       source:              'ErrorBoundary',
       component_stack:     errorInfo?.componentStack || '',
@@ -67,7 +59,6 @@ class ErrorBoundary extends React.Component {
                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
     });
     if (eventId) {
-      console.error('[HUI ErrorBoundary] Sentry Event ID:', eventId);
       this.setState({ sentryEventId: eventId });
     }
 
@@ -81,7 +72,7 @@ class ErrorBoundary extends React.Component {
         if (document.visibilityState === 'visible') {
           document.removeEventListener('visibilitychange', this._visibilityHandler);
           this._visibilityHandler = null;
-          console.log('[HUI ErrorBoundary] Auto-retry after visibility restore');
+          // auto-retry nach visibility restore (geloggt in Sentry)
           this.setState(prev => ({
             hasError: false, error: null,
             retryCount: prev.retryCount + 1
