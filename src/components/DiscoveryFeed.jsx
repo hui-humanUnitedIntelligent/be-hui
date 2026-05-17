@@ -1239,7 +1239,7 @@ function MomenteViewer({ stories, startIdx=0, onClose }) {
   if (!current) return null;
 
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:9000, background:"#000",
+    <div style={{ position:"fixed", inset:0, zIndex:500   /* Z.fullscreen */, background:"#000",
       display:"flex", flexDirection:"column" }}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
 
@@ -1349,7 +1349,7 @@ function MomentCard({ item, onView, variant = "hero" }) {
     <>
       {fullscreen && (
         <div onClick={() => setFullscreen(false)} style={{
-          position:"fixed", inset:0, zIndex:1000,
+          position:"fixed", inset:0, zIndex:500   /* Z.fullscreen */,
           background:"rgba(0,0,0,0.92)", backdropFilter:"blur(20px)",
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
@@ -2353,7 +2353,7 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
         {/* ── DEBUG OVERLAY — temporär ── */}
         {process.env.NODE_ENV !== "production" || window.__HUI_DEBUG__ ? (
           <div style={{
-            position:"fixed", top:50, right:8, zIndex:9999,
+            position:"fixed", top:50, right:8, zIndex:500   /* Z.fullscreen */,
             background:"rgba(0,0,0,0.75)", color:"white", borderRadius:8,
             padding:"6px 10px", fontSize:10, fontFamily:"monospace", lineHeight:1.7,
             pointerEvents:"none",
