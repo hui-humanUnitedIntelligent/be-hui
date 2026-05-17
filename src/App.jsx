@@ -1,31 +1,46 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
 
-// ── Route-Level Pages ─────────────────────────────────────────
-// Single Source of Truth: jede Route hat genau eine zuständige Komponente
-import Home          from './pages/Home'           // Haupt-App-Shell + Tab-Navigation
-import ImpactPage    from './pages/ImpactPage'     // Impact-Tab (auch intern genutzt)
-import LoginPage     from './pages/LoginPage'      // Auth-Gate
-import Admin         from './pages/Admin'           // Admin-only
-import AuthCallback  from './pages/AuthCallback'   // OAuth-Callback
-import DiagnosePage  from './pages/DiagnosePage'   // Developer Diagnose
-import CreatorStudio from './pages/CreatorStudio'  // Creator Studio /studio
+// ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
+import LoginPage    from './pages/LoginPage'
+import AuthCallback from './pages/AuthCallback'
 
-// ── Overlay-Level Components ──────────────────────────────────
-// Diese werden als Overlays innerhalb von Home.jsx geöffnet, nicht als Routes
-// Ausnahme: ProfilePage + WirkerProfilePage haben eigene Routes für Deep-Links
-import ProfilePage     from './components/ProfilePage'      // Öffentliches Profil (Props-basiert)
-import WirkerProfilePage from './components/WirkerProfilePage' // Creator-Profil
-import WorkDetailPage   from './components/WorkDetailPage'  // Werk-Detail
+// ── LAZY: Alle anderen Routes ───────────────────────────────────
+// Erzeugen separate Chunks → schnellerer Initial-Load
+// WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
+const Home              = lazy(() => import('./pages/Home'))
+const ImpactPage        = lazy(() => import('./pages/ImpactPage'))
+const Admin             = lazy(() => import('./pages/Admin'))
+const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
+const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
+const ProfilePage       = lazy(() => import('./components/ProfilePage'))
+const WirkerProfilePage = lazy(() => import('./components/WirkerProfilePage'))
+const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
-// ── Deprecated Route-Stubs ────────────────────────────────────
-// Diese Pages existieren als Stubs damit alte Links nicht crashen
-// Die echte Logik ist in components/ oder Home.jsx
-// BookingFlow: Route entfernt — Buchungen laufen über WirkerProfilePage.RequestSheet
+// ── Suspense Fallback ────────────────────────────────────────────
+// Ruhig, markenfrei — kein Spinner-Stress
+function HuiSuspense({ children }) {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: '100dvh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', background: '#F9F7F4',
+        flexDirection: 'column', gap: 16,
+      }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: '50%',
+          border: '2px solid #EEEBE6', borderTopColor: '#16D7C5',
+          animation: 'hui-spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes hui-spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    }>{children}</Suspense>
+  );
+}
 
 
 /* ── Error Boundary ────────────────────────────────────────────────── */
@@ -278,55 +293,64 @@ function OwnProfileRedirect() {
 /* ── App Routes ────────────────────────────────────────────────────── */
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Auth */}
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/login" element={<LoginPage />} />
+    // HuiSuspense wraps all lazy routes — zeigt ruhigen Ladeindikator
+    <HuiSuspense>
+      <Routes>
+        {/* Auth — EAGER (kein lazy) */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* Root redirect */}
-      <Route path="/" element={<Navigate to="/Home" replace />} />
+        {/* Root redirect */}
+        <Route path="/" element={<Navigate to="/Home" replace />} />
 
-      {/* Main App */}
-      <Route path="/Home" element={
-        <ProtectedRoute><Home /></ProtectedRoute>
-      }/>
+        {/* Main App — LAZY */}
+        <Route path="/Home" element={
+          <ProtectedRoute><Home /></ProtectedRoute>
+        }/>
 
-      {/* Work Detail */}
-      <Route path="/work/:id" element={
-        <ProtectedRoute><WorkDetailPage /></ProtectedRoute>
-      }/>
+        {/* Work Detail — LAZY */}
+        <Route path="/work/:id" element={
+          <ProtectedRoute><WorkDetailPage /></ProtectedRoute>
+        }/>
 
-      {/* Public Profile — Instagram-style Creator Page */}
-      <Route path="/profile/:username" element={
-        <ProtectedRoute><WirkerProfileRouteWrapper /></ProtectedRoute>
-      }/>
+        {/* Public Profile — LAZY (~140KB WirkerProfilePage nur bei Bedarf) */}
+        <Route path="/profile/:username" element={
+          <ProtectedRoute><WirkerProfileRouteWrapper /></ProtectedRoute>
+        }/>
 
-      {/* /profile/me — shortcut to own public profile */}
-      <Route path="/profile/me" element={
-        <ProtectedRoute><OwnProfileRedirect /></ProtectedRoute>
-      }/>
+        {/* /profile/me shortcut */}
+        <Route path="/profile/me" element={
+          <ProtectedRoute><OwnProfileRedirect /></ProtectedRoute>
+        }/>
 
-      {/* Legacy routes */}
-      <Route path="/impact" element={
-        <ProtectedRoute><ImpactPage /></ProtectedRoute>
-      }/>
-      {/* Legacy /BookingFlow → Redirect nach /Home */}
-      <Route path="/BookingFlow" element={<Navigate to="/Home" replace />}/>
-      <Route path="/Admin" element={
-        <ProtectedRoute><Admin /></ProtectedRoute>
-      }/>
+        {/* Impact — LAZY */}
+        <Route path="/impact" element={
+          <ProtectedRoute><ImpactPage /></ProtectedRoute>
+        }/>
 
-      {/* 404 fallback → Home (never dead end) */}
-      {/* ── TEMPORÄR: Diagnose-Route — nach Debugging entfernen ── */}
-      <Route path="/diagnose" element={<DiagnosePage />} />
-      <Route path="/studio" element={
-        <ProtectedRoute><CreatorStudio /></ProtectedRoute>
-      }/>
-      <Route path="/studio/:section" element={
-        <ProtectedRoute><CreatorStudio /></ProtectedRoute>
-      }/>
-      <Route path="*" element={<Navigate to="/Home" replace />} />
-    </Routes>
+        {/* Legacy redirect */}
+        <Route path="/BookingFlow" element={<Navigate to="/Home" replace />}/>
+
+        {/* Admin — LAZY */}
+        <Route path="/Admin" element={
+          <ProtectedRoute><Admin /></ProtectedRoute>
+        }/>
+
+        {/* Diagnose — LAZY (nur Dev) */}
+        <Route path="/diagnose" element={<DiagnosePage />} />
+
+        {/* Creator Studio — LAZY */}
+        <Route path="/studio" element={
+          <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+        }/>
+        <Route path="/studio/:section" element={
+          <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+        }/>
+
+        {/* 404 → Home */}
+        <Route path="*" element={<Navigate to="/Home" replace />} />
+      </Routes>
+    </HuiSuspense>
   );
 }
 
