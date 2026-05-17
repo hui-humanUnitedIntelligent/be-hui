@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useStableCallback, useVisibilityPause, throttle } from '../lib/performance/index.js';
 import { supabase }   from "../lib/supabaseClient";
 import ImpactPage     from "./ImpactPage";
 import ProfilePage from "./ProfilePage";
