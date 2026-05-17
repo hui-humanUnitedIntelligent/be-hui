@@ -161,7 +161,9 @@ export function usePresence(userId) {
     }
 
     checkPresence();
-    const interval = setInterval(checkPresence, 3 * 60 * 1000); // alle 3 min
+    const interval = setInterval(() => {
+      if (!document.hidden) checkPresence(); // Pause wenn Tab hidden
+    }, 3 * 60 * 1000);
     return () => { mounted = false; clearInterval(interval); };
   }, [userId]);
 
@@ -183,7 +185,10 @@ export function useOwnPresence(userId) {
 
     // Sofort beim Mount + dann alle 2 Minuten
     touch();
-    const interval = setInterval(touch, 2 * 60 * 1000);
+    // Pause presence updates wenn Tab hidden — spart Battery + Requests
+    const interval = setInterval(() => {
+      if (!document.hidden) touch();
+    }, 2 * 60 * 1000);
 
     // Bei Tab-Aktivierung
     const onVisible = () => { if (!document.hidden) touch(); };
