@@ -508,7 +508,7 @@ function WerkCreateFlow({ onClose, onPublish }) {
                       fontSize:12.5, fontWeight:draft.category===c?700:500,
                       color:draft.category===c?C.gold:C.muted,
                       cursor:"pointer", fontFamily:"inherit",
-                      transition:"all 0.18s" }}>
+                      transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                     {c}
                   </button>
                 ))}
@@ -584,7 +584,7 @@ function WerkCreateFlow({ onClose, onPublish }) {
                         fontSize:12.5, fontWeight:sel?700:500,
                         color:sel?C.teal:C.muted,
                         cursor:"pointer", fontFamily:"inherit",
-                        transition:"all 0.18s" }}>
+                        transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                       {c}
                     </button>
                   );
@@ -775,7 +775,7 @@ function WerkCreateFlow({ onClose, onPublish }) {
                         flex:1, padding:"8px 4px", borderRadius:12, textAlign:"center",
                         background: on ? "rgba(22,215,197,0.08)" : "rgba(0,0,0,0.04)",
                         border: on ? "1.5px solid rgba(22,215,197,0.35)" : "1.5px solid rgba(0,0,0,0.06)",
-                        fontFamily:"inherit", cursor:"pointer", transition:"all .18s",
+                        fontFamily:"inherit", cursor:"pointer", transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                       }}>
                       <div style={{fontSize:14, marginBottom:1}}>{lvl.emoji}</div>
                       <div style={{fontSize:10.5, fontWeight: on ? 800:500,
@@ -837,7 +837,7 @@ function WerkCreateFlow({ onClose, onPublish }) {
               fontSize:15, fontWeight:800, cursor:"pointer",
               fontFamily:"inherit",
               boxShadow:step===0&&!draft.title?"none":`0 5px 22px ${C.tealGlow}`,
-              transition:"all 0.3s" }}>
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
             Weiter →
           </button>
         </div>
@@ -1025,7 +1025,7 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
                         fontSize:12.5, fontWeight:sel?700:500,
                         color:sel?C.teal:C.muted,
                         cursor:"pointer", fontFamily:"inherit",
-                        transition:"all 0.18s" }}>
+                        transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                       {s}
                     </button>
                   );
@@ -1081,7 +1081,7 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
                       fontSize:13, fontWeight:draft.duration===d.v?800:500,
                       color:draft.duration===d.v?C.teal:C.muted,
                       cursor:"pointer", fontFamily:"inherit",
-                      transition:"all 0.18s" }}>
+                      transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                     {d.l}
                   </button>
                 ))}
@@ -1102,7 +1102,7 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
                       background:draft[opt.k]?`${C.teal}14`:C.card,
                       border:`2px solid ${draft[opt.k]?C.teal:C.border}`,
                       cursor:"pointer", fontFamily:"inherit",
-                      transition:"all 0.2s",
+                      transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                       display:"flex", alignItems:"center",
                       gap:8, justifyContent:"center" }}>
                     <span>{opt.icon}</span>
@@ -1150,7 +1150,7 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
                       fontSize:12, fontWeight:draft.days[d]?800:500,
                       color:draft.days[d]?C.teal:C.muted,
                       cursor:"pointer", fontFamily:"inherit",
-                      transition:"all 0.18s" }}>
+                      transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                     {d}
                   </button>
                 ))}
@@ -1177,7 +1177,7 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
                         fontSize:12, fontWeight:sel?700:500,
                         color:sel?C.teal:C.muted,
                         cursor:"pointer", fontFamily:"inherit",
-                        transition:"all 0.18s" }}>
+                        transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                       {t}
                     </button>
                   );
@@ -1291,7 +1291,7 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
               fontSize:15, fontWeight:800, cursor:"pointer",
               fontFamily:"inherit",
               boxShadow:step===0&&!draft.title?"none":`0 5px 22px ${C.tealGlow}`,
-              transition:"all 0.3s" }}>
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
             Weiter →
           </button>
         </div>
