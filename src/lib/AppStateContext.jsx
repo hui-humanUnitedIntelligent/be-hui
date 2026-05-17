@@ -14,6 +14,7 @@
 // - Invalidation gezielt — nie komplett
 
 import React, {
+import { throttle } from './performance/index.js';
   createContext, useContext, useState, useEffect,
   useCallback, useRef, useMemo
 } from "react";
