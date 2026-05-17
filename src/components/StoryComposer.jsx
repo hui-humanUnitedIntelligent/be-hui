@@ -297,7 +297,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
                 background:mood===m.k?"rgba(255,255,255,.25)":"rgba(0,0,0,.3)",
                 color:"white",fontSize:12,fontWeight:700,cursor:"pointer",
                 backdropFilter:"blur(8px)",display:"flex",alignItems:"center",
-                gap:5,transition:"all .18s"}}>
+                gap:5,transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}>
               <span>{m.e}</span><span>{m.l}</span>
             </button>
           ))}
@@ -324,7 +324,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
                       ?`linear-gradient(135deg,${T.teal},${T.coral})`
                       :"rgba(255,255,255,.08)",
                     color:"white",fontSize:12,fontWeight:700,
-                    cursor:"pointer",transition:"all .18s"}}>
+                    cursor:"pointer",transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}>
                   {opt.l}
                 </button>
               ))}
@@ -364,7 +364,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
                       background:g.css,cursor:"pointer",
                       border:`2.5px solid ${gradient.id===g.id?"white":"transparent"}`,
                       boxShadow:gradient.id===g.id?"0 0 0 1px rgba(255,255,255,.3)":"none",
-                      transition:"all .18s"}}/>
+                      transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}/>
                 ))}
                 <button className="sc-tap" onClick={()=>fileRef.current?.click()}
                   style={{flexShrink:0,width:40,height:40,borderRadius:12,
@@ -412,7 +412,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
                 cursor:canPublish?"pointer":"not-allowed",
                 boxShadow:canPublish?`0 6px 24px ${T.tealGlow}`:"none",
                 display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-                transition:"all .22s"}}>
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}>
               {uploading ? (
                 <>
                   <div style={{width:18,height:18,borderRadius:"50%",
