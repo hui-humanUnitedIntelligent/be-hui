@@ -1,6 +1,6 @@
 // DiscoveryFeed.jsx — HUI Home Feed
 // Struktur: Search → HUI Match → Wirker Grid → Werke Grid → Immersiver Discovery Feed
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useMemoizedFeed, createFeedNormalizer, useVisibilityPause, useStableCallback } from '../lib/performance/index.js';
 import { useSoftFade } from "../lib/sessionHooks";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,9 @@ import { useAuth } from "../lib/AuthContext";
 import HuiSearchBar from "./HuiSearchBar";
 import VirtualFeedList, { FeedEndSentinel } from "./VirtualFeedList";
 import LazyImage from "./LazyImage";
+// ── Phase 6B: Progressive Discovery + Device Profile ────────────
+import { useProgressiveDiscovery } from "@/hooks/useProgressiveDiscovery";
+import { useDeviceProfile } from "@/lib/deviceProfile/index";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8",
@@ -1484,6 +1487,22 @@ const MemoImpactCard     = React.memo(ImpactCard);
 export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap, onBuyWerk, onAddToKorb, refreshSignal, storyRefreshKey, onOpenComposer, activeMood }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // ── Phase 6B: Device Profile (adaptive Pipeline-Tiefe) ───────────
+  const deviceProfile = useDeviceProfile();
+
+  // ── Phase 6B: Progressive Discovery (3-Wellen Intelligence) ──────
+  const {
+    feed:       progressiveFeed,
+    wave:       progressiveWave,
+    loading:    progressiveLoading,
+    bridges:    progressiveBridges,
+  } = useProgressiveDiscovery({
+    userProfile: user ? { id: user.id, dna_tags: [] } : null,
+    userFollows: null,
+    activeMood,
+    enabled:     !!user,
+  });
   // ── Echte Supabase-Daten ──────────────────────────────────────────
   const [dbWerke,   setDbWerke]   = useState([]);
   const [dbFeed,    setDbFeed]    = useState([]);
@@ -1813,6 +1832,38 @@ export default function DiscoveryFeed({ onView, onBook, onImpact, onMatch, onMap
   }, []);
 
   useEffect(() => { loadFeed(true); }, []);
+
+  // ── Phase 6B: Progressiven Feed mergen wenn Welle 3 fertig ───────
+  // Welle 3 = vollständige Pipeline (Health + Diversity + Calmness).
+  // Konvertiert in dbFeed-Format damit render-Logik unverändert bleibt.
+  useEffect(() => {
+    if (progressiveWave >= 3 && progressiveFeed.length > 0) {
+      const converted = progressiveFeed.map(item => ({
+        id:              item.id,
+        type:            item._type || item.type || 'werk',
+        title:           item.title         || item.caption || 'Werk',
+        creator:         item.display_name  || item.creator || '',
+        creatorUsername: item.username      || item.creatorUsername || null,
+        creatorImg:      item.avatar_url    || item.creatorImg || null,
+        city:            item.location_label|| item.city || '',
+        price:           item.price != null ? `€ ${Number(item.price).toFixed(0)}` : '',
+        category:        item.category      || item.talent || 'Kreativ',
+        bio:             item.description   || item.bio || item.caption || '',
+        img:             item.cover_url     || item.media_url || item.header_img
+          || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=90',
+        mood:            item.mood          || null,
+        dna_tags:        item.dna_tags      || item.tags || [],
+        _score:          item._score        || 0,
+        _healthMod:      item._healthMod    || 0,
+        _bridgeScore:    item._bridgeScore  || 0,
+        _raw:            item,
+      }));
+      setDbFeed(prev =>
+        // Nur übernehmen wenn progressiver Feed mehr oder gleich viele Items hat
+        converted.length >= prev.length ? converted : prev
+      );
+    }
+  }, [progressiveWave, progressiveFeed.length]);
   useEffect(() => { if (refreshSignal) loadFeed(true); }, [refreshSignal]);
 
   // visibilitychange: iPad Safari Background Resume Recovery
