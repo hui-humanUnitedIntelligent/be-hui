@@ -186,7 +186,7 @@ function AvailabilityEditor({ userId, onClose }) {
 
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)",
-      zIndex:4000, display:"flex", alignItems:"flex-end" }}
+      zIndex:600   /* Z.critical */, display:"flex", alignItems:"flex-end" }}
       onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
       <div style={{ background:C.card, borderRadius:"22px 22px 0 0", width:"100%",
         maxHeight:"85vh", display:"flex", flexDirection:"column",
