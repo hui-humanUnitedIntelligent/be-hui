@@ -119,7 +119,7 @@ function MomentForm({ data, onChange }) {
             : "rgba(0,0,0,0.06)",
           border: data.asStory ? "none" : "1.5px solid rgba(0,0,0,0.14)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          transition:"all 0.18s",
+          transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
         }}>
           {data.asStory && (
             <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
@@ -170,7 +170,7 @@ function WerkForm({ data, onChange }) {
           background: data.onlyPresent ? "#F5A623" : "rgba(0,0,0,0.06)",
           border: data.onlyPresent ? "none" : "1.5px solid rgba(0,0,0,0.14)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          transition:"all 0.18s",
+          transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
         }}>
           {data.onlyPresent && (
             <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
@@ -218,7 +218,7 @@ function WerkForm({ data, onChange }) {
                   borderRadius:12, fontSize:13, fontWeight:600,
                   color: data[item.key] ? C.teal : C.ink2,
                   cursor:"pointer", fontFamily:"inherit",
-                  transition:"all 0.18s",
+                  transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                 }}>
                 {item.label}
               </button>
@@ -284,7 +284,7 @@ function ErlebnisForm({ data, onChange }) {
               borderRadius:12, fontSize:12, fontWeight:600,
               color: data.format === opt.val ? "#A78BFA" : C.ink2,
               cursor:"pointer", fontFamily:"inherit",
-              transition:"all 0.18s",
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
             }}>
             {opt.label}
           </button>
@@ -721,7 +721,7 @@ export default function UniversalPostFlow({ onClose, onSuccess }) {
                 display:"flex", alignItems:"center",
                 justifyContent:"center", gap:8,
                 WebkitTapHighlightColor:"transparent",
-                transition:"all 0.22s",
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
               }}>
               {loading ? (
                 <>
