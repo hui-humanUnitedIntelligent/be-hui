@@ -379,7 +379,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
                     ? "linear-gradient(135deg,#F5A623,#FF8A6B)"
                     : "transparent",
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  transition:"all 0.2s",
+                  transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                 }}>
                   {focusType === opt.key && (
                     <div style={{ width:8, height:8, borderRadius:"50%", background:"white" }}/>
@@ -429,7 +429,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
                     : "rgba(255,255,255,0.15)",
                   border: item.state ? "none" : "1.5px solid rgba(255,255,255,0.3)",
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  transition:"all 0.2s",
+                  transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                   boxShadow: item.state ? `0 2px 12px ${C.tealGlow}` : "none",
                 }}>
                   {item.state && (
