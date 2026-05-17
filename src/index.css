@@ -79,3 +79,82 @@ body {
   70% { transform: scale(0.88); }
   100%{ transform: scale(1); }
 }
+
+
+/* ════════════════════════════════════════════════════════════════
+   HUI Phase 4F — Global Polish System
+   ════════════════════════════════════════════════════════════════ */
+
+/* Skeleton — einheitliche Animation für alle Ladezustände */
+@keyframes huiSkeleton {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.hui-skeleton {
+  background: linear-gradient(
+    90deg,
+    #F0EDEA 25%,
+    #E8E5E2 50%,
+    #F0EDEA 75%
+  );
+  background-size: 200% 100%;
+  animation: huiSkeleton 1.6s ease-in-out infinite;
+  border-radius: 10px;
+}
+
+/* Tap-Feedback — verhindert 300ms iOS delay */
+button, a, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth-Scroll für alle Scroll-Container */
+.hui-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hui-scroll::-webkit-scrollbar { display: none; }
+
+/* Breathe Animation (HUI Orb) */
+@keyframes huiBreathe {
+  0%, 100% { transform: scale(1);    opacity: 0.92; }
+  50%       { transform: scale(1.03); opacity: 1; }
+}
+
+/* FadeUp — Feed-Cards, Overlay-Content */
+@keyframes huiFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton Pulse (für Avatar-Kreise) */
+@keyframes huiPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* iOS Safe Area — BottomNav */
+.hui-safe-bottom {
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+}
+
+/* Scrollbar-Hide global */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; }
+
+/* Smooth font rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus-Ring — zugänglich aber minimal */
+:focus-visible {
+  outline: 2px solid #16D7C5;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) { outline: none; }
