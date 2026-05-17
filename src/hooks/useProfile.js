@@ -1,3 +1,9 @@
+// ═══════════════════════════════════════════════════════════════
+// STATUS: LEGACY — Phase 4A.5
+// Diese Datei wird von keinem aktiven Modul importiert.
+// NICHT LÖSCHEN — nur dokumentiert für spätere Bereinigung.
+// Ersatz: siehe docs/LEGACY_MAP.md
+// ═══════════════════════════════════════════════════════════════
 // src/hooks/useProfile.js — v2
 // Service-backed, no direct supabase queries
 import { useProfile, useProfileUpdate } from './useProfile.v2';
