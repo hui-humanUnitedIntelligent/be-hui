@@ -16,6 +16,7 @@ const Home              = lazy(() => import('./pages/Home'))
 const ImpactPage        = lazy(() => import('./pages/ImpactPage'))
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
+const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const ProfilePage       = lazy(() => import('./components/ProfilePage'))
 const WirkerProfilePage = lazy(() => import('./components/WirkerProfilePage'))
@@ -338,6 +339,11 @@ function AppRoutes() {
 
         {/* Diagnose — LAZY (nur Dev) */}
         <Route path="/diagnose" element={<DiagnosePage />} />
+
+        {/* Platform Dashboard — intern, Admin-only */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute><PlatformDashboard /></ProtectedRoute>
+        }/>
 
         {/* Creator Studio — LAZY */}
         <Route path="/studio" element={
