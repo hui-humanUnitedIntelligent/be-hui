@@ -236,14 +236,24 @@ function OwnProfileRedirect() {
         .select('username')
         .eq('id', user.id)
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) {
+            // Fallback bei DB-Fehler: user.id als Identifier
+            navigate(`/profile/${user.id}`, { replace: true });
+            return;
+          }
           if (data?.username) {
             navigate(`/profile/${data.username}`, { replace: true });
           } else {
-            // Fallback: user.id als identifier
             navigate(`/profile/${user.id}`, { replace: true });
           }
+        })
+        .catch(() => {
+          navigate(`/profile/${user.id}`, { replace: true });
         });
+    }).catch(() => {
+      // supabaseClient import failed — navigate with user.id
+      navigate(`/profile/${user.id}`, { replace: true });
     });
   }, [user?.id]);
 
