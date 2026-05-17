@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T20:17:35Z — Phase 8A: Global Creative Federation
+// HUI build 2026-05-17T20:31:32Z — Phase 8B: Distributed Cultural Stewardship
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
