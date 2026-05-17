@@ -29,6 +29,11 @@ import { getCacheStats } from '@/lib/cache/index';
 import { getRealtimeStats } from '@/lib/realtime/index';
 import { getPipelineStats } from '@/lib/pipeline/profiler';
 import { useCommunityHealth } from '@/hooks/useCommunityHealth';
+import { useFeatureFlags, getReleaseStatus } from '@/lib/release/index';
+import { getDegradationStatus } from '@/lib/degradation/index';
+import { getProtectionStatus } from '@/lib/protection/index';
+import { getRecoveryStatus } from '@/lib/recovery/index';
+import { runPreflight } from '@/lib/release/preflight';
 import { validateBudgets } from '@/lib/budgets/index';
 
 // ── Farb-System ────────────────────────────────────────────────
@@ -370,7 +375,186 @@ export default function PlatformDashboard() {
         </Section>
       )}
 
+      {/* 9. Release & Feature Flags */}
+      <Section title="Feature Flags & Kill Switches" icon="🚦" accent={C.gold}>
+        <FlagSection />
+      </Section>
+
+      {/* 10. Degradation + Protection */}
+      <Section title="Runtime Protection" icon="🛡️" accent={C.coral}>
+        <ProtectionSection />
+      </Section>
+
+      {/* 11. Recovery Status */}
+      <Section title="Recovery Status" icon="🔄" accent={C.teal}>
+        <RecoverySection />
+      </Section>
+
+      {/* 12. Preflight */}
+      <Section title="Deployment Preflight" icon="✈️" accent={C.gold}>
+        <PreflightSection />
+      </Section>
+
       <div style={{ height: 40 }} />
     </div>
   );
 }
+
+// ── Sub-Sektionen ──────────────────────────────────────────────
+
+function FlagSection() {
+  const { status, toggle, killAll, recover } = useFeatureFlags();
+  const killSwitches = Object.entries(status.flags)
+    .filter(([, f]) => f.killSwitch)
+    .slice(0, 8);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button onClick={killAll} style={{
+          background: '#FFEBEE', border: `1px solid ${C.red}`, borderRadius: 8,
+          padding: '6px 14px', cursor: 'pointer', fontSize: 12,
+          color: C.red, fontWeight: 700,
+        }}>⚠ Emergency Downgrade</button>
+        <button onClick={recover} style={{
+          background: '#E8F5E9', border: `1px solid ${C.green}`, borderRadius: 8,
+          padding: '6px 14px', cursor: 'pointer', fontSize: 12,
+          color: C.green, fontWeight: 700,
+        }}>✓ Recover All</button>
+      </div>
+      <MetricRow label="Total Flags"    value={status.summary.total} />
+      <MetricRow label="Aktiv"          value={status.summary.active} />
+      <MetricRow label="Überschrieben"  value={status.summary.overridden}
+        warn={status.summary.overridden > 0} />
+      <MetricRow label="Deaktiviert"    value={status.summary.disabled}
+        warn={status.summary.disabled > 0} />
+      <div style={{ marginTop: 12, fontSize: 11, color: C.muted, marginBottom: 6 }}>
+        KILL SWITCHES
+      </div>
+      {killSwitches.map(([key, f]) => (
+        <div key={key} style={{ display: 'flex', justifyContent: 'space-between',
+          padding: '5px 0', borderBottom: `1px solid ${C.border}`, alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: f.active ? C.ink : C.muted }}>{key}</span>
+          <button onClick={() => toggle(key)} style={{
+            background: f.active ? '#E8F5E9' : '#FFEBEE',
+            border: 'none', borderRadius: 999, padding: '3px 10px',
+            cursor: 'pointer', fontSize: 11, fontWeight: 700,
+            color: f.active ? C.green : C.red,
+          }}>{f.active ? 'ON' : 'OFF'}</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProtectionSection() {
+  const [prot, setProt] = React.useState(getProtectionStatus);
+  const [deg,  setDeg]  = React.useState(getDegradationStatus);
+  React.useEffect(() => {
+    const iv = setInterval(() => {
+      setProt(getProtectionStatus());
+      setDeg(getDegradationStatus());
+    }, 10_000);
+    return () => clearInterval(iv);
+  }, []);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 8 }}>
+        <Pill level={deg.level === 'FULL' ? 'stable' : 'degraded'} label={`Mode: ${deg.level}`} />
+        {!deg.isNormal && (
+          <span style={{ marginLeft: 8, fontSize: 12, color: C.coral }}>
+            Grund: {deg.reason}
+          </span>
+        )}
+      </div>
+      <MetricRow label="Auto-Protection aktiv"
+        value={prot.active ? 'Ja' : 'Nein'}
+        warn={prot.active} ok={!prot.active} />
+      <MetricRow label="Clean Checks bis Recovery"
+        value={prot.active ? `${prot.cleanChecks}/${3}` : '–'} />
+      {prot.activeReasons.length > 0 && (
+        <div style={{ fontSize: 12, color: C.coral, marginTop: 8 }}>
+          Auslöser: {prot.activeReasons.join(', ')}
+        </div>
+      )}
+      {prot.recentEvents.slice(-3).map((e, i) => (
+        <div key={i} style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>
+          {e.type}: {e.level} — {e.reason}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecoverySection() {
+  const { status, recover } = useRecovery();
+  const systems = ['worker', 'cache', 'realtime', 'discovery'];
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        {systems.map(s => (
+          <button key={s} onClick={() => recover(s)} style={{
+            background: C.card, border: `1px solid ${C.border}`, borderRadius: 8,
+            padding: '5px 12px', cursor: 'pointer', fontSize: 11, color: C.muted,
+          }}>↺ {s}</button>
+        ))}
+        <button onClick={() => recover('all')} style={{
+          background: '#E6FAF8', border: `1px solid ${C.teal}`, borderRadius: 8,
+          padding: '5px 12px', cursor: 'pointer', fontSize: 11, color: C.teal, fontWeight: 700,
+        }}>↺ All</button>
+      </div>
+      <MetricRow label="Recovery Events" value={status.totalEvents} />
+      <MetricRow label="Hydration Attempts" value={status.hydrationAttempts}
+        warn={status.hydrationAttempts > 1} />
+      {status.recentRecoveries.slice(-3).map((e, i) => (
+        <div key={i} style={{ fontSize: 11, color: e.success ? C.green : C.coral, marginTop: 4 }}>
+          {e.success ? '✓' : '✗'} {e.system} → {e.strategy}
+          {e.detail ? ` (${e.detail})` : ''}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PreflightSection() {
+  const [result, setResult] = React.useState(null);
+  const [running, setRunning] = React.useState(false);
+
+  const run = async () => {
+    setRunning(true);
+    const r = await runPreflight();
+    setResult(r);
+    setRunning(false);
+  };
+
+  return (
+    <div>
+      <button onClick={run} disabled={running} style={{
+        background: running ? C.border : '#E6FAF8',
+        border: `1px solid ${C.teal}`, borderRadius: 8,
+        padding: '7px 16px', cursor: running ? 'wait' : 'pointer',
+        fontSize: 12, color: C.teal, fontWeight: 700, marginBottom: 12,
+      }}>{running ? 'Prüfe…' : '▶ Preflight starten'}</button>
+
+      {result && (
+        <div>
+          <Pill level={result.pass ? 'stable' : 'degraded'}
+            label={result.pass ? `✅ ${result.summary.passed}/${result.summary.total} Checks bestanden` : `❌ ${result.summary.failed} Fehler`} />
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>
+            Dauer: {result.summary.durationMs}ms · {result.timestamp?.slice(11,19)}
+          </div>
+          {result.failures.map((f, i) => (
+            <div key={i} style={{ marginTop: 8, fontSize: 12, color: C.red }}>
+              ❌ {f.check}: {f.issues.join(' — ')}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Re-import für RecoverySection
+import { useRecovery } from '@/lib/recovery/index';
