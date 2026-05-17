@@ -1,5 +1,8 @@
 // WirkerProfilePage.jsx — HUI v3
 import { usePresence, getPresenceLabel } from "../lib/sessionHooks";
+import { Z, useOverlay } from '../lib/overlay/index.js';
+import { useViewMode, EMPTY_STATES } from '../lib/interaction/index.js';
+import { feedback } from '../lib/feedback/index.js';
 import { useBookingActions, getTrustSignals, REQ_TYPES, MOODS, BOOKING_STATUS } from "../lib/bookingContext";
 import { getSoftStatus, AMBIENT_CSS, TRANSITIONS } from "../lib/journeyContext";
 import { useReputation, useRecommendationActions, computeReputationSignals,
