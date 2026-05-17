@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T13:37:17Z — Phase 5B: Component Decomposition
+// HUI build 2026-05-17T13:48:20Z — Phase 5C: Intelligence Layer
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
