@@ -274,6 +274,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
+  const { toggleLikeWork, toggleSaveWork, toggleFollow } = useAppState();
 
   const [werk,    setWerk]    = useState(null);
   const [creator, setCreator] = useState(null);
@@ -339,47 +340,36 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     }
   }, [user?.id]);
 
-  /* ── Toggle Like ─────────────────────────────────────────────────── */
+  /* ── Toggle Like — via AppStateContext (Single Owner) ───────────── */
   const handleLike = useCallback(async () => {
     if (!user?.id) return;
     const newLiked = !liked;
+    // Optimistic local UI
     setLiked(newLiked);
     setLikeCount(c => newLiked ? c + 1 : Math.max(0, c - 1));
-    if (newLiked) {
-      await supabase.from("work_likes").upsert({ work_id: id, user_id: user.id });
-    } else {
-      await supabase.from("work_likes").delete()
-        .eq("work_id", id).eq("user_id", user.id);
-    }
-  }, [user?.id, id, liked]);
+    // DB-Sync via AppStateContext — kein direktes supabase.from() hier
+    await toggleLikeWork(id);
+  }, [user?.id, id, liked, toggleLikeWork]);
 
-  /* ── Toggle Save ─────────────────────────────────────────────────── */
+  /* ── Toggle Save — via AppStateContext (Single Owner) ───────────── */
   const handleSave = useCallback(async () => {
     if (!user?.id) return;
     const newSaved = !saved;
+    // Optimistic local UI
     setSaved(newSaved);
-    if (newSaved) {
-      await supabase.from("work_saves").upsert({ work_id: id, user_id: user.id });
-    } else {
-      await supabase.from("work_saves").delete()
-        .eq("work_id", id).eq("user_id", user.id);
-    }
-  }, [user?.id, id, saved]);
+    // DB-Sync via AppStateContext — kein direktes supabase.from() hier
+    await toggleSaveWork(id);
+  }, [user?.id, id, saved, toggleSaveWork]);
 
-  /* ── Toggle Follow ───────────────────────────────────────────────── */
+  /* ── Toggle Follow — via AppStateContext (Single Owner) ─────────── */
   const handleFollow = useCallback(async () => {
     if (!user?.id || !creator?.id) return;
     const newFollowing = !following;
+    // Optimistic local UI
     setFollowing(newFollowing);
-    if (newFollowing) {
-      await supabase.from("follows").upsert({
-        follower_id: user.id, following_id: creator.id
-      });
-    } else {
-      await supabase.from("follows").delete()
-        .eq("follower_id", user.id).eq("following_id", creator.id);
-    }
-  }, [user?.id, creator?.id, following]);
+    // DB-Sync via AppStateContext.toggleFollow — kein direktes supabase.from() hier
+    await toggleFollow(creator.id);
+  }, [user?.id, creator?.id, following, toggleFollow]);
 
   /* ── Submit Comment ──────────────────────────────────────────────── */
   const handleComment = useCallback(async () => {
