@@ -442,6 +442,10 @@ export function AppStateProvider({ children }) {
   }, []);
 
   // ────────────────────────────────────────────────────────────
+  // Stable isLoading selector — nicht inline im useMemo!
+  const isLoading = useCallback((key) => !!loadingStates[key], [loadingStates]);
+
+  // ────────────────────────────────────────────────────────────
   // Context value
   // ────────────────────────────────────────────────────────────
   const value = useMemo(() => ({
@@ -452,7 +456,7 @@ export function AppStateProvider({ children }) {
 
     // ── Loading / Errors ──────────────────────────────────────
     loadingStates, errorStates,
-    isLoading: (key) => !!loadingStates[key],
+    isLoading,
 
     // ── UI State ──────────────────────────────────────────────
     uiState, updateUI, switchTab,
@@ -479,7 +483,7 @@ export function AppStateProvider({ children }) {
     loadOwnWorks, loadOwnExperiences, loadBookings,
     loadNotifications, loadFollows,
     toggleFollow, toggleSaveWork, toggleLikeWork,
-    updateOwnProfile, markNotifsRead, invalidate,
+    updateOwnProfile, markNotifsRead, invalidate, isLoading,
   ]);
 
   return (
