@@ -721,7 +721,7 @@ export default function DiscoverPage({ onMap, onView, refreshSignal }) {
                     boxShadow: searchFocus
                       ? `0 4px 20px ${C.tealGlow}`
                       : "0 2px 8px rgba(0,0,0,0.05)",
-                    transition:"all .22s" }}/>
+                    transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}/>
                 {searchQ && (
                   <button
                     onClick={() => setSearchQ("")}
