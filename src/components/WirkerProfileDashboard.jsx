@@ -343,18 +343,36 @@ export default function CreatorDashboard({ onClose, onCreateWork, onCreateExp })
   useEffect(() => { load(); }, [load]);
 
   async function handleAcceptBooking(id) {
-    await supabase.from("bookings").update({ status:"confirmed" }).eq("id", id);
+    if (!user?.id) return;
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "confirmed", updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("wirker_user_id", user.id);
+    if (error) { console.error("[Dashboard] accept failed:", error.message); return; }
     setBookings(prev => prev.map(b => b.id===id ? {...b, status:"confirmed"} : b));
   }
 
   async function handleDeclineBooking(id) {
-    await supabase.from("bookings").update({ status:"declined" }).eq("id", id);
+    if (!user?.id) return;
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "declined", updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("wirker_user_id", user.id);
+    if (error) { console.error("[Dashboard] decline failed:", error.message); return; }
     setBookings(prev => prev.map(b => b.id===id ? {...b, status:"declined"} : b));
   }
 
   async function handleToggleWork(w) {
-    const newStatus = w.status==="published" ? "draft" : "published";
-    await supabase.from("works").update({ status:newStatus }).eq("id", w.id);
+    if (!user?.id) return;
+    const newStatus = w.status === "published" ? "draft" : "published";
+    const { error } = await supabase
+      .from("works")
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", w.id)
+      .eq("user_id", user.id);
+    if (error) { console.error("[Dashboard] toggle failed:", error.message); return; }
     setWorks(prev => prev.map(wk => wk.id===w.id ? {...wk, status:newStatus} : wk));
   }
 
