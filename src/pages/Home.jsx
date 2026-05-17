@@ -1115,7 +1115,7 @@ function KorbPage({ cart, onClose }) {
                   background:active?`${C.teal}0D`:C.card,
                   borderRadius:20,
                   border:`1.5px solid ${active?C.teal:"rgba(0,0,0,0.06)"}`,
-                  cursor:"pointer", transition:"all 0.2s" }}>
+                  cursor:"pointer", transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
                 <Korb count={s.n} size={52} onClick={()=>{}}/>
                 <div style={{ flex:1 }}>
                   <div style={{ fontWeight:700, fontSize:14, color:C.ink,
