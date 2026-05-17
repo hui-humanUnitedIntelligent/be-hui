@@ -22,6 +22,7 @@
 // VERBOTEN: z-index > 1000 (außer Toast)
 // ═══════════════════════════════════════════════════════════════
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 export const Z = {
   base:        10,   // BottomNav, AppHeader
   sticky:      50,   // Floating hints, Tooltips
@@ -100,7 +101,6 @@ export function backdropStyle(visible, zIndex) {
 //   overlay.open()
 //   overlay.close()
 //   <div style={slideUpStyle(overlay.visible, Z.overlay1)}>
-import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useOverlay({
   defaultOpen   = false,
