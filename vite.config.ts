@@ -1,4 +1,4 @@
-// HUI build — Phase 6B: Runtime Architecture & Delivery Optimization
+// HUI build 2026-05-17T16:37:18Z — Phase 6B: Runtime Architecture & Delivery Optimization
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
