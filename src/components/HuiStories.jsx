@@ -282,7 +282,7 @@ function StoryViewer({ story, allStories, storyIndex, onClose, onNext, onPrev, o
             cursor:"pointer", fontFamily:"inherit",
             fontSize:11, fontWeight:700,
             color: saved ? C.teal : "rgba(255,255,255,0.85)",
-            transition:"all 0.2s",
+            transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
             display:"flex", alignItems:"center", gap:5 }}>
           <span>{saved ? "♥" : "♡"}</span>
           <span>{saved ? "Gespeichert" : "Speichern"}</span>
@@ -326,7 +326,7 @@ function StoryViewer({ story, allStories, storyIndex, onClose, onNext, onPrev, o
               borderRadius:18, padding:"13px 18px",
               width:"100%", cursor:"pointer",
               fontFamily:"inherit", marginBottom:10,
-              transition:"all 0.2s" }}>
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */ }}>
             <div style={{ width:34, height:34, borderRadius:11,
               background:`linear-gradient(135deg,${C.teal},${C.coral})`,
               display:"flex", alignItems:"center",
