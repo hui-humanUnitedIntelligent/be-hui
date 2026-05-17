@@ -453,7 +453,7 @@ function FilterSheet({filter,setFilter,radiusStage,setRadiusStage,
                   color:availability===a.key?"white":C.muted,
                   cursor:"pointer",fontFamily:"inherit",
                   boxShadow:availability===a.key?`0 2px 10px ${C.tealGlow}`:"none",
-                  transition:"all .18s",WebkitTapHighlightColor:"transparent"}}>
+                  transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,WebkitTapHighlightColor:"transparent"}}>
                 {a.label}
               </button>))}
           </div>
@@ -641,7 +641,7 @@ export default function LiveMapPage({onView,onMatch,onClose,fullscreen}){
                 border:"none",fontSize:13,
                 display:"flex",alignItems:"center",justifyContent:"center",
                 boxShadow:sheetOpen?`0 3px 12px ${C.tealGlow}`:"none",
-                transition:"all .22s",
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                 WebkitTapHighlightColor:"transparent",cursor:"pointer"}}>
               ⚙
             </button>
