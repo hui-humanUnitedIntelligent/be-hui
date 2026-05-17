@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T19:02:05Z — Phase 7C: Living Creative Spaces
+// HUI build 2026-05-17T19:13:33Z — Phase 7D: Real-World Resonance Layer
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
