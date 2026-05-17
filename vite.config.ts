@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T10:05:24Z — Phase 4D: Performance + Rendering Optimization complete
+// HUI build 2026-05-17T10:17:57Z — Phase 4E: UX Coherence + Overlay Governance complete
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
