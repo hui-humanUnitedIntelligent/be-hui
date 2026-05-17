@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T07:28:31Z — Phase 4A consolidation complete
+// HUI build 2026-05-17T09:42:43Z — Phase 4B: Error Model + Reliability System complete
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
