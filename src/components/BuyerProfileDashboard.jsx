@@ -47,7 +47,7 @@ function RatingModal({ item, onClose, onSubmit }) {
   const [stars, setStars] = useState(0);
   const [text, setText] = useState("");
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 700, display: "flex", alignItems: "flex-end" }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300  /* Z.overlay */, display: "flex", alignItems: "flex-end" }}>
       <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 430, margin: "0 auto", padding: "22px 20px 36px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ fontWeight: 800, fontSize: 17 }}>Empfehlung abgeben</div>
