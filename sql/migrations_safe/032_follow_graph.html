@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>HUI Migration 032 — Follow Graph Foundation</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #0f0f0f; color: #e2e8f0; margin: 0; padding: 24px; }
+  .header { background: #1a1a2e; border: 1px solid #16D7C5; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  h1 { color: #16D7C5; margin: 0 0 8px; font-size: 22px; }
+  .badge { display: inline-block; background: #16D7C522; color: #16D7C5; border: 1px solid #16D7C544; border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 700; margin-right: 8px; }
+  .badge.orange { background: #FF8A6B22; color: #FF8A6B; border-color: #FF8A6B44; }
+  .info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .info-card { background: #1e1e2e; border: 1px solid #333; border-radius: 10px; padding: 14px; }
+  .info-card .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .info-card .value { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+  .sql-block { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .sql-header { background: #1a1a1a; padding: 10px 16px; font-size: 12px; color: #666; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+  .sql-header .title { color: #16D7C5; font-weight: 700; }
+  pre { margin: 0; padding: 16px; font-size: 12.5px; line-height: 1.65; overflow-x: auto; color: #c8d3e6; white-space: pre-wrap; }
+  .copy-btn { background: #16D7C5; color: #000; border: none; border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 700; cursor: pointer; }
+  .copy-btn:hover { background: #12b5a5; }
+  .checks { background: #0d1b0d; border: 1px solid #1a3a1a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
+  .checks h3 { color: #4ade80; margin: 0 0 12px; font-size: 14px; }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; font-size: 13px; }
+  .check .icon { color: #4ade80; font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .step { background: #1a1a2e; border: 1px solid #333; border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; }
+  .step-num { color: #16D7C5; font-weight: 800; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🕸️ Migration 032 — Follow Graph Foundation</h1>
+  <div>
+    <span class="badge">Phase 5D.1</span>
+    <span class="badge">Human Graph</span>
+    <span class="badge orange">⚠ Manuell ausführen</span>
+  </div>
+  <div class="info">
+    <div class="info-card"><div class="label">Tabelle</div><div class="value">public.follows</div></div>
+    <div class="info-card"><div class="label">Spalten</div><div class="value">follower_id / followed_id</div></div>
+    <div class="info-card"><div class="label">Safety</div><div class="value">RLS + No Self-Follow</div></div>
+    <div class="info-card"><div class="label">Indexe</div><div class="value">5 optimierte Indexe</div></div>
+    <div class="info-card"><div class="label">Funktionen</div><div class="value">4 Graph-Helpers</div></div>
+    <div class="info-card"><div class="label">AppState-Komp.</div><div class="value">✅ followed_id</div></div>
+  </div>
+</div>
+
+<div class="checks">
+  <h3>✅ Was diese Migration erstellt</h3>
+  <div class="check"><span class="icon">✓</span><span><strong>follows</strong> Tabelle mit UUID PK, follower_id, followed_id, timestamps</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>No-Self-Follow</strong> CHECK constraint + RLS double-check</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>UNIQUE(follower_id, followed_id)</strong> — kein Duplicate Edge</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>ON DELETE CASCADE</strong> — kein Orphan-Follow wenn Profil gelöscht</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>5 Indexe</strong>: follower, followed, mutual, created, recent (30d)</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>RLS</strong>: SELECT public (Graph braucht es), INSERT/DELETE nur eigen</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>4 SQL-Funktionen</strong>: get_mutual_follows, is_mutual_follow, get_follow_counts, get_shared_connections</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>follow_graph_health</strong> View für Observability</span></div>
+  <div class="check"><span class="icon">✓</span><span><strong>AppStateContext kompatibel</strong> — nutzt followed_id (identisch)</span></div>
+</div>
+
+<div class="step">
+  <div class="step-num">SCHRITT 1 — SQL ausführen</div>
+  <p style="font-size:13px;color:#aaa;margin:6px 0 0">Supabase Dashboard → SQL Editor → New Query → einfügen → Run</p>
+</div>
+<div class="step">
+  <div class="step-num">SCHRITT 2 — Validieren</div>
+  <p style="font-size:13px;color:#aaa;margin:6px 0 0">SELECT * FROM follow_graph_health; → total_follows=0, kein Fehler</p>
+</div>
+<div class="step">
+  <div class="step-num">SCHRITT 3 — RLS prüfen</div>
+  <p style="font-size:13px;color:#aaa;margin:6px 0 0">INSERT self-follow testen → muss FEHLSCHLAGEN (Constraint)</p>
+</div>
+
+<div class="sql-block">
+  <div class="sql-header">
+    <span class="title">032_follow_graph.sql — vollständige Migration</span>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('sql').textContent)">Kopieren</button>
+  </div>
+  <pre id="sql">-- ═══════════════════════════════════════════════════════════════════
+-- HUI — Migration 032: Follow Graph Foundation
+-- Phase 5D.1 Hotfix — 2026-05-17
+-- ═══════════════════════════════════════════════════════════════════
+--
+-- ZWECK:
+-- Produktionsreife follows-Tabelle als Fundament des Human Graph.
+-- Spaltenname: followed_id (konsistent mit AppStateContext.jsx)
+--
+-- SICHERHEIT:
+-- • Kein Self-Follow (CHECK constraint)
+-- • UNIQUE(follower_id, followed_id) — kein Duplicate Edge
+-- • ON DELETE CASCADE — kein Orphan-Follow
+-- • RLS aktiviert — nur eigene Follows manipulierbar
+-- • Vollständige Indexe für Graph-Queries
+--
+-- WICHTIG — Spaltenname:
+-- AppStateContext.jsx nutzt "followed_id" (nicht "following_id").
+-- Diese Migration ist konsistent damit.
+--
+-- AUSFÜHREN: Supabase SQL Editor → Run
+-- ═══════════════════════════════════════════════════════════════════
+
+BEGIN;
+
+-- ── 1. Tabelle erstellen (idempotent) ─────────────────────────────
+CREATE TABLE IF NOT EXISTS public.follows (
+  id           uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  follower_id  uuid        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  followed_id  uuid        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at   timestamptz DEFAULT now() NOT NULL,
+  updated_at   timestamptz DEFAULT now() NOT NULL,
+
+  -- Safety: kein Self-Follow
+  CONSTRAINT no_self_follow CHECK (follower_id != followed_id),
+
+  -- Kein Duplicate Edge
+  CONSTRAINT unique_follow    UNIQUE (follower_id, followed_id)
+);
+
+-- ── 2. Indexe für Graph-Queries ────────────────────────────────────
+
+-- Wem folgt User X? (loadFollows, useFollowStatus)
+CREATE INDEX IF NOT EXISTS idx_follows_follower
+  ON public.follows (follower_id, followed_id);
+
+-- Wer folgt User X? (follower count, bridge calc)
+CREATE INDEX IF NOT EXISTS idx_follows_followed
+  ON public.follows (followed_id, follower_id);
+
+-- Mutual-follow Query: beide Richtungen gleichzeitig
+CREATE INDEX IF NOT EXISTS idx_follows_mutual
+  ON public.follows (follower_id, followed_id, created_at DESC);
+
+-- Zeitbasiert (follow churn, network growth metrics)
+CREATE INDEX IF NOT EXISTS idx_follows_created
+  ON public.follows (created_at DESC);
+
+-- Für affinity queries: wer hat neulich gefolgt?
+CREATE INDEX IF NOT EXISTS idx_follows_recent
+  ON public.follows (followed_id, created_at DESC)
+  WHERE created_at &gt; now() - interval '30 days';
+
+-- ── 3. Updated_at Trigger ──────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.set_follows_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_follows_updated_at ON public.follows;
+CREATE TRIGGER trg_follows_updated_at
+  BEFORE UPDATE ON public.follows
+  FOR EACH ROW EXECUTE FUNCTION public.set_follows_updated_at();
+
+-- ── 4. RLS aktivieren ──────────────────────────────────────────────
+ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
+
+-- Cleanup: alte Policies entfernen (idempotent)
+DROP POLICY IF EXISTS "follows_select_own"   ON public.follows;
+DROP POLICY IF EXISTS "follows_select_public" ON public.follows;
+DROP POLICY IF EXISTS "follows_insert_own"   ON public.follows;
+DROP POLICY IF EXISTS "follows_delete_own"   ON public.follows;
+DROP POLICY IF EXISTS "follows_update_deny"  ON public.follows;
+
+-- ── 5. RLS Policies ────────────────────────────────────────────────
+
+-- SELECT: eigene Follows lesen + öffentliche Follows sehen
+-- (Discovery und Graph brauchen fremde follows zum Lesen)
+CREATE POLICY "follows_select_public"
+  ON public.follows FOR SELECT
+  TO authenticated
+  USING (true);
+-- RATIONALE: Follow-Verbindungen sind öffentlich (wie auf jeder Plattform).
+-- Nur die Manipulation ist geschützt.
+
+-- INSERT: nur eigene Follows erstellen
+CREATE POLICY "follows_insert_own"
+  ON public.follows FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    follower_id = auth.uid()
+    AND followed_id != auth.uid()  -- Doppel-Schutz zusätzlich zu CHECK constraint
+  );
+
+-- DELETE: nur eigene Follows löschen
+CREATE POLICY "follows_delete_own"
+  ON public.follows FOR DELETE
+  TO authenticated
+  USING (follower_id = auth.uid());
+
+-- UPDATE: verboten (follows werden nur erstellt oder gelöscht)
+CREATE POLICY "follows_update_deny"
+  ON public.follows FOR UPDATE
+  TO authenticated
+  USING (false);
+
+-- ── 6. Hilfsfunktionen für Graph-Queries ──────────────────────────
+
+-- Mutual Follows zwischen zwei Usern prüfen
+CREATE OR REPLACE FUNCTION public.get_mutual_follows(user_a uuid, user_b uuid)
+RETURNS TABLE(user_id uuid) LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT f1.followed_id AS user_id
+  FROM public.follows f1
+  INNER JOIN public.follows f2
+    ON f1.followed_id = f2.followed_id
+  WHERE f1.follower_id = user_a
+    AND f2.follower_id = user_b
+    AND f1.followed_id != user_a
+    AND f1.followed_id != user_b;
+$$;
+
+-- Gegenseitige Follows (A folgt B UND B folgt A)
+CREATE OR REPLACE FUNCTION public.is_mutual_follow(user_a uuid, user_b uuid)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.follows WHERE follower_id = user_a AND followed_id = user_b
+  ) AND EXISTS (
+    SELECT 1 FROM public.follows WHERE follower_id = user_b AND followed_id = user_a
+  );
+$$;
+
+-- Follower Count (für Profile-Anzeige — ohne Ranking-Obsession)
+CREATE OR REPLACE FUNCTION public.get_follow_counts(target_id uuid)
+RETURNS TABLE(followers bigint, following bigint) LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT
+    (SELECT count(*) FROM public.follows WHERE followed_id = target_id) AS followers,
+    (SELECT count(*) FROM public.follows WHERE follower_id = target_id) AS following;
+$$;
+
+-- Gemeinsame Connections (für Graph-Nähe)
+CREATE OR REPLACE FUNCTION public.get_shared_connections(user_a uuid, user_b uuid, lim int DEFAULT 20)
+RETURNS TABLE(profile_id uuid, display_name text, avatar_url text) LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT p.id, p.display_name, p.avatar_url
+  FROM public.follows fa
+  INNER JOIN public.follows fb
+    ON fa.followed_id = fb.followed_id
+  INNER JOIN public.profiles p
+    ON p.id = fa.followed_id
+  WHERE fa.follower_id = user_a
+    AND fb.follower_id = user_b
+    AND fa.followed_id != user_a
+    AND fa.followed_id != user_b
+  LIMIT lim;
+$$;
+
+-- ── 7. Integrity View (für Observability) ─────────────────────────
+CREATE OR REPLACE VIEW public.follow_graph_health AS
+SELECT
+  count(*)                                         AS total_follows,
+  count(DISTINCT follower_id)                      AS unique_followers,
+  count(DISTINCT followed_id)                      AS unique_followed,
+  (SELECT count(*) FROM public.follows f1
+   WHERE EXISTS (
+     SELECT 1 FROM public.follows f2
+     WHERE f2.follower_id = f1.followed_id
+       AND f2.followed_id = f1.follower_id
+   )) / 2                                          AS mutual_follow_pairs,
+  round(avg(
+    (SELECT count(*) FROM public.follows f2
+     WHERE f2.follower_id = f1.followed_id)
+  )::numeric, 2)                                   AS avg_followers_per_creator,
+  max(created_at)                                  AS last_follow_at
+FROM public.follows f1;
+
+-- Anmerkung: View ist nur für Admins und Health-Monitoring.
+-- Kein Follower-Leaderboard. Kein Ranking.
+
+COMMIT;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- VALIDIERUNG (nach Ausführung prüfen):
+-- ═══════════════════════════════════════════════════════════════════
+--
+-- SELECT * FROM follow_graph_health;
+-- → Sollte: total_follows=0, Tables korrekt, keine Fehler
+--
+-- INSERT INTO follows (follower_id, followed_id)
+-- VALUES (auth.uid(), auth.uid());
+-- → Sollte FEHLSCHLAGEN (no_self_follow constraint)
+--
+-- INSERT INTO follows (follower_id, followed_id)
+-- VALUES ('...', '...'); -- zweimal gleich
+-- → Zweiter INSERT sollte FEHLSCHLAGEN (unique_follow constraint)
+--
+-- ═══════════════════════════════════════════════════════════════════
+</pre>
+</div>
+
+</body>
+</html>
