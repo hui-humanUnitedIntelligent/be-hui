@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T14:14:57Z — Phase 5D: Human Graph Intelligence
+// HUI build 2026-05-17T14:26:21Z — Phase 5E: Contextual Experience Intelligence
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
