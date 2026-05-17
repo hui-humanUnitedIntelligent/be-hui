@@ -71,7 +71,7 @@ export default function FavoritesPage() {
               borderBottom:tab===t.key?`2.5px solid ${C.coral}`:"2.5px solid transparent",
               fontSize:13, fontWeight:tab===t.key?800:500,
               color:tab===t.key?C.coral:C.muted,
-              transition:"all 0.2s",
+              transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
               WebkitTapHighlightColor:"transparent" }}>
             {t.label} <span style={{ fontWeight:800 }}>{t.count}</span>
           </button>
