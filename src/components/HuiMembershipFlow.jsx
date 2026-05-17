@@ -175,7 +175,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     <>
       <style>{CSS}</style>
       <div style={{
-        position:"fixed", inset:0, zIndex:3200,
+        position:"fixed", inset:0, zIndex:610   /* Z.membership */,
         background:"linear-gradient(145deg,#0A1E1E,#0D0A08)",
         display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center",
@@ -246,7 +246,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
 
       {/* Full screen overlay */}
       <div style={{
-        position:"fixed", inset:0, zIndex:3100,
+        position:"fixed", inset:0, zIndex:610   /* Z.membership */,
         fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
         overflow:"hidden",
       }}>
