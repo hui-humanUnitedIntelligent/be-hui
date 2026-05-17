@@ -24,6 +24,70 @@ export async function cachedQuery(key, queryFn, ttlMs = 30000) {
   return result;
 }
 
+
+// ── Stale-While-Revalidate ────────────────────────────────────────
+// Gibt sofort gecachte Daten zurück, aktualisiert im Hintergrund.
+// Usage: const data = await staleWhileRevalidate('key', fetchFn, ttlMs)
+const _swrPending = new Map(); // Verhindert parallele Requests für denselben Key
+
+export async function staleWhileRevalidate(key, fetchFn, ttlMs = 30000, onUpdate = null) {
+  const hit = _queryCache.get(key);
+  const now = Date.now();
+  const isStale = !hit || (now - hit.ts > ttlMs);
+
+  // Sofortige Antwort mit gecachten Daten (auch wenn stale)
+  if (hit && !hit.data.error) {
+    if (isStale && !_swrPending.has(key)) {
+      // Background-Revalidation — kein await
+      _swrPending.set(key, true);
+      fetchFn().then(result => {
+        if (!result.error) {
+          _queryCache.set(key, { data: result, ts: Date.now() });
+          onUpdate?.(result); // Callback für State-Update
+        }
+        _swrPending.delete(key);
+      }).catch(() => _swrPending.delete(key));
+    }
+    return hit.data; // Stale Daten sofort zurückgeben
+  }
+
+  // Kein Cache vorhanden — warte auf erste Ladung
+  // Dedup: Parallele Requests für denselben Key werden zusammengeführt
+  if (_swrPending.has(key)) {
+    // Warte auf das laufende Request
+    while (_swrPending.has(key)) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+    const freshHit = _queryCache.get(key);
+    return freshHit?.data ?? { data: null, error: 'Cache miss after wait' };
+  }
+
+  _swrPending.set(key, true);
+  try {
+    const result = await fetchFn();
+    if (!result.error) _queryCache.set(key, { data: result, ts: Date.now() });
+    return result;
+  } finally {
+    _swrPending.delete(key);
+  }
+}
+
+// ── Visibility-aware Fetch ────────────────────────────────────────
+// Verzögert Fetches wenn Tab hidden ist.
+export async function visibilityAwareFetch(fetchFn) {
+  if (!document.hidden) return fetchFn();
+  // Tab hidden — warte auf visibility-change
+  return new Promise((resolve) => {
+    const handler = () => {
+      if (!document.hidden) {
+        document.removeEventListener('visibilitychange', handler);
+        fetchFn().then(resolve).catch(() => resolve({ data: null, error: 'fetch failed' }));
+      }
+    };
+    document.addEventListener('visibilitychange', handler, { passive: true });
+  });
+}
+
 // ─── 2. Batchable Promise.all helper ────────────────────────────────
 /**
  * Run multiple queries in parallel, catch individual failures.
