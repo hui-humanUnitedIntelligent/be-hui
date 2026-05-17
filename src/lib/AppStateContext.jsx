@@ -377,9 +377,23 @@ export function AppStateProvider({ children }) {
       .subscribe();
     realtimeChannels.current.push(chatChannel);
 
+    // ── Offline/Reconnect Guard ──────────────────────────────
+    // Wenn der User nach Offline wieder online geht,
+    // werden kritische Daten automatisch neu geladen.
+    function handleOnline() {
+      // Sanfter Reconnect: kritische Daten neu laden
+      Promise.allSettled([
+        loadNotifications(),
+        loadBookings(true),
+      ]).catch(() => {}); // safeAsync — kein Crash bei Reconnect
+    }
+
+    window.addEventListener('online', handleOnline);
+
     return () => {
       realtimeChannels.current.forEach(ch => supabase.removeChannel(ch));
       realtimeChannels.current = [];
+      window.removeEventListener('online', handleOnline);
     };
   }, [user?.id]);
 
