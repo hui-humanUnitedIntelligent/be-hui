@@ -506,6 +506,43 @@ export const useAppState = () => {
 // Selective hooks — vermeiden unnötige re-renders
 // ────────────────────────────────────────────────────────────────
 
+
+// ────────────────────────────────────────────────────────────────
+// Phase 4D.2 — Selective Hooks (Performance)
+// Consumer rendern NUR wenn ihre eigenen Daten sich ändern.
+// ────────────────────────────────────────────────────────────────
+
+/** Nur Booking-Daten — rendert nicht bei Notif/Chat-Changes */
+export const useBookings = () => {
+  const { bookings, loadBookings } = useAppState();
+  return { bookings, loadBookings };
+};
+
+/** Nur Chat-Liste — rendert nicht bei Booking-Changes */
+export const useChats = () => {
+  const { chats } = useAppState();
+  return { chats };
+};
+
+/** Nur eigene Works */
+export const useMyWorks = () => {
+  const { ownWorks, loadOwnWorks } = useAppState();
+  return { ownWorks, loadOwnWorks };
+};
+
+/** Nur Follow-Status für einen User */
+export const useFollow = (userId) => {
+  const { follows, toggleFollow } = useAppState();
+  const isFollowing = useMemo(
+    () => userId ? follows.has(String(userId)) : false,
+    [follows, userId]
+  );
+  return { isFollowing, toggleFollow };
+};
+
+/** Nur UI-State (Overlays, Tab) — kein Datenzugriff */
+export { useUIState };  // re-export already defined above
+
 /** Nur Notification-Count — re-rendert nur wenn Count sich ändert */
 // useUnreadChatTotal — delegiert an useChatList (Phase 3B)
 // Importiert als Kompat-Layer damit bestehender Code weiterläuft
