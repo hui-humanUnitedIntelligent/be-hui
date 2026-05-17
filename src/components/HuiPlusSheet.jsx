@@ -92,7 +92,7 @@ export default function HuiPlusSheet({ onSelect, onClose }) {
       <div
         onClick={onClose}
         style={{
-          position:"fixed", inset:0, zIndex:2000,
+          position:"fixed", inset:0, zIndex:200   /* Z.sheet1 */,
           background:"rgba(0,0,0,0.35)",
           backdropFilter:"blur(8px)",
           WebkitBackdropFilter:"blur(8px)",
@@ -102,7 +102,7 @@ export default function HuiPlusSheet({ onSelect, onClose }) {
 
       {/* ── Sheet ── */}
       <div style={{
-        position:"fixed", bottom:0, left:0, right:0, zIndex:2001,
+        position:"fixed", bottom:0, left:0, right:0, zIndex:201   /* Z.sheet1Top */,
         background:C.card,
         borderRadius:"28px 28px 0 0",
         paddingBottom:"max(24px, env(safe-area-inset-bottom, 24px))",
