@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T10:31:49Z — Phase 4F: Visual Coherence + Token System complete
+// HUI build 2026-05-17T13:22:43Z — Runtime fix: React-Imports hoisted, unused imports removed
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
