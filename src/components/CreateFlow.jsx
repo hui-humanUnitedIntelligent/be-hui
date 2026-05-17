@@ -943,7 +943,7 @@ function ExperienceCreateFlow({ onClose, onPublish }) {
           status:"published",
         });
       }
-    } catch(e) {}
+    } catch(e) { console.error("[CreateFlow]", e?.message || e); }
     setLoading(false);
     setDone(true);
   };
