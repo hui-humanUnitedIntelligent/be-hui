@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T17:41:39Z — Phase 6F: Identity & Presence Layer
+// HUI build 2026-05-17T18:09:31Z — Phase 6G: Presence UI & Collaborative Experience
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
