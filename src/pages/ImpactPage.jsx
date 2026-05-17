@@ -957,7 +957,7 @@ export default function ImpactPage({ currentUser }) {
                 fontWeight: activeFilter===f.key ? 700 : 500,
                 fontFamily:"inherit", whiteSpace:"nowrap",
                 boxShadow: activeFilter===f.key ? `0 4px 12px ${C.tealGlow}` : "none",
-                transition:"all 0.22s",
+                transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */,
                 WebkitTapHighlightColor:"transparent" }}>
               {f.icon} {f.label}
             </button>
