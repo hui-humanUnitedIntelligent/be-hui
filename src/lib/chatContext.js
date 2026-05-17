@@ -16,6 +16,7 @@
 // recommendation / system_message
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { feedback } from './feedback/index.js';
 import { assertAuthenticated, globalMutationGuard } from './security/index.js';
 import { validateMessage } from './validation/index.js';
 import { supabase } from "./supabaseClient";
