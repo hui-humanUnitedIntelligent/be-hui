@@ -17,6 +17,7 @@
 //   offline  — persistent, auto-dismiss bei reconnect
 // ═══════════════════════════════════════════════════════════════
 
+import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -180,7 +181,6 @@ export const FEEDBACK_MESSAGES = {
 
 // ── useFeedback Hook ──────────────────────────────────────────
 // Convenience hook für Komponenten.
-import { useCallback } from 'react';
 
 export function useFeedback() {
   const success = useCallback((msg, opts) => feedback.success(msg, opts), []);
