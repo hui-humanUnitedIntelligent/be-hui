@@ -14,6 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ── Touch-Target-Mindestgröße ─────────────────────────────────
+import { useCallback, useEffect, useState } from 'react';
 export const MIN_TOUCH = 44; // px — Apple HIG Standard
 
 // ── Standard Tap-Styles ───────────────────────────────────────
@@ -68,7 +69,6 @@ export function iconReactionStyle(active, { activeColor = '#16D7C5', inactiveCol
 // Usage:
 //   const tap = useTapState()
 //   <button {...tap.handlers} style={tap.style}>…</button>
-import { useState, useCallback } from 'react';
 
 export function useTapState() {
   const [pressed, setPressed] = useState(false);
@@ -183,7 +183,6 @@ export const SCROLL_CONTAINER = {
 // ── useKeyboardAware Hook ─────────────────────────────────────
 // Passt Layout an wenn iOS Keyboard öffnet.
 // Verhindert dass Input-Fields vom Keyboard verdeckt werden.
-import { useEffect } from 'react';
 
 export function useKeyboardAware(containerRef) {
   useEffect(() => {
