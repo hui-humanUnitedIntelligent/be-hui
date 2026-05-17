@@ -251,7 +251,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
         story_id: current.id,
         created_at: new Date().toISOString(),
       });
-    } catch(_) {}
+    } catch(_) { /* story transition — suppress */ }
     setSentReply(true);
     setReplyText('');
     setTimeout(() => { setReplyOpen(false); setSentReply(false); setPaused(false); }, 1500);
