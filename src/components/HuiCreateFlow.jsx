@@ -531,7 +531,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                       padding:"5px 13px", borderRadius:99, fontWeight:700,
                       cursor:"pointer", fontFamily:"inherit",
                       WebkitTapHighlightColor:"transparent",
-                      transition:"all .14s",
+                      transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
                     }}
                   >{btn.label}</button>
                 ))}
@@ -596,7 +596,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                       : "rgba(0,0,0,0.04)",
                     color:   sel ? C.teal : C.ink3,
                     boxShadow: sel ? `0 0 0 1.5px ${C.teal}55` : `0 0 0 1px rgba(0,0,0,0.08)`,
-                    transition:"all .15s ease",
+                    transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
                     transform: sel ? "scale(1.04)" : "scale(1)",
                   }}>
                   {m.label}
@@ -619,7 +619,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 color: showLoc ? C.teal : C.muted,
                 fontSize:13, fontWeight:600,
                 cursor: loading ? "not-allowed" : "pointer",
-                transition:"all .15s",
+                transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
               }}>
               📍 {showLoc && location ? location.slice(0,15) + (location.length>15?"…":"") : "Ort"}
             </button>
@@ -638,7 +638,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 border:"1.5px solid rgba(0,0,0,0.08)",
                 color:C.muted, fontSize:13, fontWeight:600,
                 cursor: loading ? "not-allowed" : "pointer",
-                transition:"all .15s",
+                transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
               }}>
               {visibility==="public" ? "🌍 Alle"
                 : visibility==="followers" ? "👥 Follower"
