@@ -1394,7 +1394,7 @@ class ToolErrorBoundary extends React.Component {
 
 function OwnerToolOverlay({ activeTool, user, profile, onClose, onSave }) {
   const OL = {
-    position:"fixed", inset:0, zIndex:950,
+    position:"fixed", inset:0, zIndex:300   /* Z.overlay */,
     background:"#F9F7F4", overflowY:"auto",
     fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif",
     animation:"fadeIn .18s ease both",
@@ -1745,7 +1745,7 @@ function DayDetailSheet({ dateStr, slots, bookings, onClose, onAddSlot, onDelete
   }
 
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:980, display:"flex",
+    <div style={{ position:"fixed", inset:0, zIndex:301   /* Z.overlayTop */, display:"flex",
       flexDirection:"column", justifyContent:"flex-end" }}
       onClick={onClose}>
       {/* Backdrop */}
@@ -3041,7 +3041,7 @@ Grund: `);
 // ── Shared Sheet Primitives ───────────────────────────────────────
 function BottomSheet({ children, onClose, tall }) {
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:980,
+    <div style={{ position:"fixed", inset:0, zIndex:301   /* Z.overlayTop */,
       display:"flex", flexDirection:"column", justifyContent:"flex-end" }}
       onClick={onClose}>
       <div style={{ position:"absolute", inset:0,
