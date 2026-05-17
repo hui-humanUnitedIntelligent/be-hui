@@ -63,7 +63,7 @@ function TagPicker({ options, selected, onToggle, color = C.teal }) {
               fontSize:12.5, fontWeight: active ? 700 : 500,
               color: active ? "white" : C.ink2,
               cursor:"pointer", fontFamily:"inherit",
-              transition:"all .14s ease",
+              transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
             }}>
             {opt}
           </button>
@@ -264,7 +264,7 @@ export default function EditProfile({ user, profile: initProfile, onClose, onSav
               color: section===s.key ? C.teal : C.muted,
               borderBottom: section===s.key ? `2.5px solid ${C.teal}` : "2.5px solid transparent",
               cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap",
-              transition:"all .14s",
+              transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
             }}>
             {s.label}
           </button>
@@ -366,7 +366,7 @@ export default function EditProfile({ user, profile: initProfile, onClose, onSav
                     border: form.focus_type===opt.key ? "none" : `1.5px solid ${C.border}`,
                     fontSize:11.5, fontWeight: form.focus_type===opt.key ? 800 : 500,
                     color: form.focus_type===opt.key ? "white" : C.ink2,
-                    cursor:"pointer", transition:"all .14s", textAlign:"center",
+                    cursor:"pointer", transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */, textAlign:"center",
                     boxShadow: form.focus_type===opt.key ? `0 4px 14px rgba(22,215,197,0.3)` : "none",
                   }}>
                   {opt.label}
