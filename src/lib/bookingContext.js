@@ -15,6 +15,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { assertAuthenticated, assertCreator, globalMutationGuard } from './security/index.js';
+import { feedback, FEEDBACK_MESSAGES } from './feedback/index.js';
 import { validateBookingRequest, assertValid } from './validation/index.js';
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
