@@ -343,6 +343,8 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           signals: reputationSignals, collabSummary } = useReputation(profile);
   const { sendVerifiedRecommendation } = useRecommendationActions();
   const trustSignals = getTrustSignals(profile);
+  // Phase 6G: Creative Presence Engine
+  const { presence: creativePresence } = usePresence(profile?.id || null);
 
   const isOwner = !!(
     user?.id &&
@@ -763,7 +765,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
           {/* ── Phase 6G: Presence Layer ── */}
           {/* Resonance Signature — kreative Handschrift in Sprache */}
-          {presence?.signature?.full && (
+          {creativePresence?.signature?.full && (
             <div style={{
               fontSize: 12, color: "rgba(0,0,0,0.38)",
               fontStyle: "italic", letterSpacing: "0.01em",
@@ -781,7 +783,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               display: "flex", gap: 6, flexWrap: "wrap",
               marginBottom: 10,
             }}>
-              {presence?.rhythm?.key && presence.rhythm.key !== 'consistent' && (
+              {creativePresence?.rhythm?.key && presence.rhythm.key !== 'consistent' && (
                 <span style={{
                   fontSize: 11, color: "rgba(0,0,0,0.42)",
                   background: "rgba(0,0,0,0.04)",
@@ -793,7 +795,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                   {presence.rhythm.label}
                 </span>
               )}
-              {presence?.continuity?.isBridge && (
+              {creativePresence?.continuity?.isBridge && (
                 <span style={{
                   fontSize: 11, color: "rgba(0,0,0,0.42)",
                   background: "rgba(0,0,0,0.04)",
@@ -2880,7 +2882,7 @@ function RequestSheet({ profile, user, onClose }) {
                   fontStyle: "italic", marginTop: 4,
                   fontWeight: 400,
                 }}>
-                  {presence.collaboration.style?.description}
+                  {creativePresence?.collaboration.style?.description}
                 </div>
               )}
             </div>
