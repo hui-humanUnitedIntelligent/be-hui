@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
     // oder kurz async (bei Token-Refresh). Wir verlassen uns darauf als
     // primäre Quelle.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("[HUI Auth] event:", event, "user:", session?.user?.id || "null");
+      // auth event (Sentry handles errors)
 
       const u = applySession(session);
 
@@ -116,7 +116,7 @@ export function AuthProvider({ children }) {
       await new Promise(r => setTimeout(r, 350));
       if (authSettledRef.current) return;  // onAuthStateChange war schneller
 
-      console.log("[HUI Auth] getSession() Sicherheitsnetz aktiv");
+      // getSession Sicherheitsnetz aktiv
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (authSettledRef.current) return;  // onAuthStateChange hat zwischenzeitlich gefeuert
