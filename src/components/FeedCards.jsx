@@ -208,11 +208,11 @@ function ServiceCard({ item, liked, onLike, faved, onFav, onViewWirker, onBookSe
         } catch(ex) {}
         window.open(data.checkoutUrl, '_self');
       } else {
-        alert('Stripe-Fehler: ' + (data.error || 'Unbekannt'));
+        console.error('[FeedCards] Stripe error:', data.error); // LEGACY
         setConfirming(false);
       }
     } catch(err) {
-      alert('Verbindungsfehler: ' + err.message);
+      console.error('[FeedCards] Connection error:', err.message); // LEGACY
       setConfirming(false);
     }
   };
