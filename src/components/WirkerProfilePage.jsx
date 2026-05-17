@@ -889,7 +889,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                     border:`1.5px solid rgba(22,215,197,0.22)`,
                     borderRadius:16, fontSize:13, fontWeight:700,
                     color:C.teal, fontFamily:"inherit",
-                    transition:"all .15s ease" }}>
+                    transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */ }}>
                   💬 Nachricht
                 </button>
                 {/* MEHR (...) */}
@@ -2127,7 +2127,7 @@ function InlineAvailability({ user, onBack }) {
                   alignItems:"center", justifyContent:"center",
                   gap:2, padding:"4px 2px",
                   opacity: isPast ? 0.38 : 1,
-                  transition:"all .14s ease",
+                  transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
                   fontFamily:"inherit",
                 }}>
                 <span style={{
@@ -2190,7 +2190,7 @@ function InlineAvailability({ user, onBack }) {
                       : "rgba(0,0,0,0.04)",
                     border: isSel ? "none" : `1.5px solid ${TC.border}`,
                     cursor:"pointer", textAlign:"center",
-                    transition:"all .14s ease",
+                    transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
                   }}>
                   <div style={{ fontSize:10.5, fontWeight:700,
                     color: isSel ? "rgba(255,255,255,0.75)" : TC.muted,
@@ -2509,7 +2509,7 @@ function InlineInsights({ user, profile, onBack }) {
                 cursor:"pointer", fontFamily:"inherit",
                 whiteSpace:"nowrap", flexShrink:0,
                 boxShadow: filter===f.key ? `0 3px 12px ${TC.tealGlow}` : "none",
-                transition:"all .15s ease",
+                transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
               }}>
               {f.label}
             </button>
@@ -2841,7 +2841,7 @@ function RequestSheet({ profile, user, onClose }) {
                   border: reqType===rt.key ? "none" : `1.5px solid rgba(0,0,0,0.07)`,
                   cursor:"pointer", fontFamily:"inherit", textAlign:"left",
                   boxShadow: reqType===rt.key ? `0 4px 14px ${TC.tealGlow}` : "none",
-                  transition:"all .15s" }}>
+                  transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */ }}>
                 <div style={{ fontSize:22, marginBottom:8 }}>{rt.icon}</div>
                 <div style={{ fontWeight:800, fontSize:13.5,
                   color: reqType===rt.key ? "white" : TC.ink }}>
