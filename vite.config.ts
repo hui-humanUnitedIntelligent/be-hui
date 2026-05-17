@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T13:22:43Z — Runtime fix: React-Imports hoisted, unused imports removed
+// HUI build 2026-05-17T13:27:44Z — Phase 5A: Production Hardening
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
