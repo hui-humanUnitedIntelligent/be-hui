@@ -1,4 +1,4 @@
-// HUI 2026-05-18T14:56:13Z feat: NotificationCenter v3 Bewegungen
+// HUI 2026-05-18T15:06:40Z feat: FavoritesPage Dein Raum v2
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
