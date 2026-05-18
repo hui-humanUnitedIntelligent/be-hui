@@ -17,7 +17,7 @@ import StoryComposer      from "../components/StoryComposer";
 import WerkPublisher      from "../components/WerkPublisher";
 import ExperienceCreator  from "../components/ExperienceCreator";
 import QuickCreateSheet   from "../components/QuickCreateSheet";
-import WirkerProfilePage from "../pages/wirker-profile";
+const WirkerProfilePage = React.lazy(() => import('../pages/wirker-profile/index.jsx'));
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
 import HuiSearchBar   from "../components/HuiSearchBar";
 import LiveMapPage    from "./LiveMapPage";
@@ -1287,6 +1287,7 @@ export default function Home() {
           onMoodSelect={(m)=>{ setActiveMood(m); setShowMatch(false); }}
           onView={w=>{setShowWirker(w);setShowMatch(false);}}/> }
         {showWirker && (
+          <React.Suspense fallback={null}>
           <WirkerProfilePage
             wirker={showWirker}
             onClose={() => setShowWirker(null)}
@@ -1303,6 +1304,7 @@ export default function Home() {
               setShowWirker(null);
             }}
           />
+          </React.Suspense>
         )}
         {(showKorb||showWerkeKorb) && <WerkeKorb
           items={cart}
