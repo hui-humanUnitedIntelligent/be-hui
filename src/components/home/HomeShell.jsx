@@ -109,24 +109,24 @@ export default function HomeShell({ children }) {
   }, [_setTab]);
 
   // ── openOwnProfile — öffnet eigenes Profil als Overlay ──────
+  // Robust: funktioniert auch wenn authProfile noch lädt
   const openOwnProfile = useCallback(() => {
-    if (authProfile?.id || user?.id) {
-      setShowWirker({
-        id:           authProfile?.id   || user?.id,
-        user_id:      authProfile?.id   || user?.id,
-        username:     authProfile?.username     || null,
-        display_name: authProfile?.display_name || null,
-        avatar_url:   authProfile?.avatar_url   || null,
-        header_img:   authProfile?.header_img   || null,
-        talent:       authProfile?.talent       || null,
-        focus_type:   authProfile?.focus_type   || "hybrid",
-        bio:          authProfile?.bio          || null,
-        dna_tags:     authProfile?.dna_tags     || [],
-        _isOwnerView: true,
-      });
-    } else {
-      console.warn("[HUI] openOwnProfile: kein authProfile vorhanden");
-    }
+    const id = authProfile?.id || user?.id || null;
+    // Immer setShowWirker aufrufen — auch mit minimalen Daten
+    setShowWirker({
+      id:           id,
+      user_id:      id,
+      username:     authProfile?.username     || null,
+      display_name: authProfile?.display_name || authProfile?.email?.split("@")[0] || "Mein Profil",
+      avatar_url:   authProfile?.avatar_url   || null,
+      header_img:   authProfile?.header_img   || null,
+      talent:       authProfile?.talent       || null,
+      focus_type:   authProfile?.focus_type   || "hybrid",
+      bio:          authProfile?.bio          || null,
+      dna_tags:     authProfile?.dna_tags     || [],
+      _isOwnerView: true,
+    });
+  }, [authProfile, user, setShowWirker]);
   }, [authProfile, user]);
 
   // ── onTab handler — für BottomNav ────────────────────────────
