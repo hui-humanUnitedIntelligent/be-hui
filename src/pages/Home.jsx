@@ -60,7 +60,7 @@ function HomeInner() {
     setShowWirker,
     showChat,         setShowChat,
     showNotifs,       setShowNotifs,
-    showProfile,      setShowProfile,
+    // showProfile: via ProfileLauncher nicht mehr nötig
     showMap,          setShowMap,
     showMatch,        setShowMatch,
     showMembership,   setShowMembership,
@@ -256,9 +256,7 @@ function HomeInner() {
         )}
 
         {/* ProfilePage Fallback — nur für "Mein Konto" ohne authProfile */}
-        {showProfile && (
-          <ProfilePageFallback onClose={() => setShowProfile(false)}/>
-        )}
+        {/* showProfile: Fallback entfernt — Profil läuft über ProfileLauncher */}
 
         {/* Story Viewer */}
         {activeStory && (
