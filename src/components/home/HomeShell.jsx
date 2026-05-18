@@ -64,7 +64,7 @@ export default function HomeShell({ children }) {
   const [showWirker,            setShowWirker]           = useState(null);
   const [showChat,              setShowChat]             = useState(false);
   const [showNotifs,            setShowNotifs]           = useState(false);
-  const [showProfile,           setShowProfile]          = useState(false);
+  // showProfile entfernt — Profil läuft über setShowWirker(ownProfile)
   const [showMap,               setShowMap]              = useState(false);
   const [showMatch,             setShowMatch]            = useState(false);
   const [showMembership,        setShowMembership]       = useState(false);
@@ -125,7 +125,7 @@ export default function HomeShell({ children }) {
         _isOwnerView: true,
       });
     } else {
-      setShowProfile(true);
+      console.warn("[HUI] openOwnProfile: kein authProfile vorhanden");
     }
   }, [authProfile, user]);
 
@@ -151,7 +151,7 @@ export default function HomeShell({ children }) {
     showWirker, setShowWirker,
     showChat, setShowChat,
     showNotifs, setShowNotifs,
-    showProfile, setShowProfile,
+    // showProfile entfernt aus Context
     showMap, setShowMap,
     showMatch, setShowMatch,
     showMembership, setShowMembership,
