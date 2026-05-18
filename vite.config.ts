@@ -1,4 +1,4 @@
-// HUI 2026-05-18T18:22:11Z feat: ProfilePage v2
+// HUI 2026-05-18T18:25:46Z fix: WirkerProfilePage imports
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
