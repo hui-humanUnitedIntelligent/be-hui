@@ -1,4 +1,4 @@
-// HUI 2026-05-18T10:13:13Z fix: PlatformDashboard import clean
+// HUI 2026-05-18T10:18:26Z fix: ChatPage import deduplicated
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
