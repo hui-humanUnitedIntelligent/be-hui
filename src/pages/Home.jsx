@@ -278,22 +278,24 @@ function Korb({ count=0, size=32, onClick }) {
    HEADER — minimal glass
 ═══════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════════
-   HUI MATCH HEADER — v4
-   Kein Logo. Match-Bar ist Mittelpunkt. Mood-Tuner rechts.
-   DNA: Türkis · Coral · Cream · Glassmorphism · iOS-Premium
+/* ═══════════════════════════════════════════════════════════════
+   HUI MATCH HEADER — v5
+   Eine einzige Bar. Kein Logo. Kompakt. Premium iOS.
+   Layout: [ Match-Bar (flex:1) ] [ Zauber ] [ Notif ] [ Chat ]
+   DNA: Türkis · Coral/Gold · Glassmorphism · SF Pro Feeling
 ═══════════════════════════════════════════════════════════════ */
 
 const MOODS = [
-  { key:"ruhe",       label:"Ruhig",       emoji:"🌿", color:"#16D7C5" },
-  { key:"kreativ",    label:"Kreativ",     emoji:"✦",  color:"#FF8A6B" },
-  { key:"inspiriert", label:"Inspirierend",emoji:"💫", color:"#F5A623" },
-  { key:"wirkung",    label:"Wirkung",     emoji:"🌱", color:"#16D7C5" },
-  { key:"sozial",     label:"Sozial",      emoji:"🤝", color:"#FF8A6B" },
-  { key:"fokus",      label:"Fokus",       emoji:"◎",  color:"#16D7C5" },
-  { key:"natur",      label:"Natur",       emoji:"🍃", color:"#16D7C5" },
-  { key:"offen",      label:"Offen",       emoji:"∞",  color:"#F5A623" },
-  { key:"lernen",     label:"Lernen",      emoji:"📖", color:"#16D7C5" },
-  { key:"aktiv",      label:"Aktiv",       emoji:"⚡", color:"#FF8A6B" },
+  { key:"ruhe",       label:"Ruhig",        emoji:"🌿", color:"#16D7C5" },
+  { key:"kreativ",    label:"Kreativ",      emoji:"✦",  color:"#FF8A6B" },
+  { key:"inspiriert", label:"Inspirierend", emoji:"💫", color:"#F5A623" },
+  { key:"wirkung",    label:"Wirkung",      emoji:"🌱", color:"#16D7C5" },
+  { key:"sozial",     label:"Sozial",       emoji:"🤝", color:"#FF8A6B" },
+  { key:"fokus",      label:"Fokus",        emoji:"◎",  color:"#16D7C5" },
+  { key:"natur",      label:"Natur",        emoji:"🍃", color:"#16D7C5" },
+  { key:"offen",      label:"Offen",        emoji:"∞",  color:"#F5A623" },
+  { key:"lernen",     label:"Lernen",       emoji:"📖", color:"#16D7C5" },
+  { key:"aktiv",      label:"Aktiv",        emoji:"⚡", color:"#FF8A6B" },
 ];
 
 const MATCH_PLACEHOLDERS = [
@@ -302,408 +304,318 @@ const MATCH_PLACEHOLDERS = [
   "Heute etwas Ruhiges…",
   "Menschen in meiner Nähe…",
   "Ich brauche Inspiration…",
-  "Ich möchte etwas beitragen…",
+  "Etwas Sinnvolles beitragen…",
   "Verbinde mich mit Energie…",
-  "Zeig mir etwas Überraschendes…",
+  "Zeig mir Überraschendes…",
 ];
 
+/* ── Mood Panel ──────────────────────────────────────────────── */
 function MoodPanel({ activeMood, onSelect, onClose }) {
-  const [visible, setVisible] = React.useState(false);
-  React.useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
-  const handleClose = () => { setVisible(false); setTimeout(onClose, 220); };
-  const handleSelect = (mood) => {
-    setVisible(false);
-    setTimeout(() => onSelect(mood), 180);
-  };
+  const [vis, setVis] = React.useState(false);
+  React.useEffect(() => { requestAnimationFrame(() => setVis(true)); }, []);
+  const close  = () => { setVis(false); setTimeout(onClose, 200); };
+  const select = (m) => { setVis(false); setTimeout(() => onSelect(m), 160); };
 
   return (
-    <div
-      onClick={handleClose}
-      style={{
-        position:"fixed", inset:0, zIndex:500,
-        background: visible ? "rgba(0,0,0,0.18)" : "rgba(0,0,0,0)",
-        backdropFilter: visible ? "blur(6px)" : "blur(0px)",
-        WebkitBackdropFilter: visible ? "blur(6px)" : "blur(0px)",
-        transition:"background 0.22s ease, backdrop-filter 0.22s ease",
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          position:"absolute", top:"env(safe-area-inset-top,0)",
-          left:16, right:16, marginTop:72,
-          background:"rgba(255,251,248,0.96)",
-          backdropFilter:"blur(40px) saturate(1.8)",
-          WebkitBackdropFilter:"blur(40px) saturate(1.8)",
-          borderRadius:28,
-          border:"1px solid rgba(22,215,197,0.18)",
-          boxShadow:"0 24px 60px rgba(0,0,0,0.16), 0 0 0 1px rgba(255,255,255,0.8) inset",
-          padding:"20px 18px 24px",
-          transform: visible ? "translateY(0) scale(1)" : "translateY(-18px) scale(0.97)",
-          opacity: visible ? 1 : 0,
-          transition:"transform 0.26s cubic-bezier(0.34,1.4,0.64,1), opacity 0.22s ease",
-        }}
-      >
-        {/* Titel */}
+    <div onClick={close} style={{
+      position:"fixed", inset:0, zIndex:500,
+      background: vis ? "rgba(0,0,0,0.16)" : "rgba(0,0,0,0)",
+      backdropFilter: vis ? "blur(6px)" : "none",
+      WebkitBackdropFilter: vis ? "blur(6px)" : "none",
+      transition:"background 0.2s, backdrop-filter 0.2s",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        position:"absolute",
+        top:"calc(env(safe-area-inset-top,0px) + 58px)",
+        left:12, right:12,
+        background:"rgba(255,251,248,0.97)",
+        backdropFilter:"blur(40px) saturate(1.9)",
+        WebkitBackdropFilter:"blur(40px) saturate(1.9)",
+        borderRadius:24,
+        border:"1px solid rgba(22,215,197,0.16)",
+        boxShadow:"0 20px 50px rgba(0,0,0,0.14), 0 0 0 1px rgba(255,255,255,0.9) inset",
+        padding:"18px 16px 20px",
+        transform: vis ? "translateY(0) scale(1)" : "translateY(-12px) scale(0.97)",
+        opacity: vis ? 1 : 0,
+        transition:"transform 0.24s cubic-bezier(0.34,1.4,0.64,1), opacity 0.2s ease",
+      }}>
         <div style={{
-          fontSize:12, fontWeight:700, letterSpacing:1.2, color:"rgba(30,30,30,0.4)",
-          textTransform:"uppercase", marginBottom:16, textAlign:"center",
-        }}>
-          Deine Energie heute
-        </div>
+          fontSize:11, fontWeight:700, letterSpacing:1.1, color:"rgba(30,30,30,0.38)",
+          textTransform:"uppercase", marginBottom:14, textAlign:"center",
+        }}>Deine Energie heute</div>
 
-        {/* Mood Grid */}
-        <div style={{
-          display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:10,
-        }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
           {MOODS.map(m => {
-            const isActive = activeMood?.key === m.key;
+            const on = activeMood?.key === m.key;
             return (
-              <button
-                key={m.key}
-                onClick={() => handleSelect(m)}
-                style={{
-                  background: isActive
-                    ? `linear-gradient(135deg, ${m.color}22, ${m.color}11)`
-                    : "rgba(255,255,255,0.7)",
-                  border: isActive
-                    ? `1.5px solid ${m.color}55`
-                    : "1.5px solid rgba(0,0,0,0.06)",
-                  borderRadius:18,
-                  padding:"12px 6px 10px",
-                  display:"flex", flexDirection:"column",
-                  alignItems:"center", gap:5,
-                  cursor:"pointer",
-                  WebkitTapHighlightColor:"transparent",
-                  transition:"transform 0.14s ease, box-shadow 0.14s ease",
-                  boxShadow: isActive
-                    ? `0 4px 16px ${m.color}33`
-                    : "0 1px 4px rgba(0,0,0,0.05)",
-                  transform: isActive ? "scale(1.04)" : "scale(1)",
-                }}
-              >
-                <span style={{ fontSize:20, lineHeight:1 }}>{m.emoji}</span>
+              <button key={m.key} onClick={() => select(m)} style={{
+                background: on ? `${m.color}18` : "rgba(255,255,255,0.7)",
+                border: `1.5px solid ${on ? m.color+"44" : "rgba(0,0,0,0.06)"}`,
+                borderRadius:16, padding:"10px 4px 8px",
+                display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                cursor:"pointer", WebkitTapHighlightColor:"transparent",
+                transition:"transform 0.12s, box-shadow 0.12s",
+                boxShadow: on ? `0 4px 14px ${m.color}28` : "0 1px 3px rgba(0,0,0,0.04)",
+                transform: on ? "scale(1.05)" : "scale(1)",
+              }}>
+                <span style={{ fontSize:18, lineHeight:1 }}>{m.emoji}</span>
                 <span style={{
-                  fontSize:10, fontWeight:600, color: isActive ? m.color : "rgba(40,40,40,0.65)",
-                  letterSpacing:0.2, textAlign:"center", lineHeight:1.2,
+                  fontSize:9.5, fontWeight:600, lineHeight:1.2, textAlign:"center",
+                  color: on ? m.color : "rgba(40,40,40,0.62)", letterSpacing:0.1,
                 }}>{m.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Reset */}
         {activeMood && (
-          <button
-            onClick={() => handleSelect(null)}
-            style={{
-              display:"block", margin:"16px auto 0",
-              background:"none", border:"none", cursor:"pointer",
-              fontSize:12, color:"rgba(80,80,80,0.5)", fontWeight:500,
-              WebkitTapHighlightColor:"transparent",
-            }}
-          >
-            Stimmung zurücksetzen
-          </button>
+          <button onClick={() => select(null)} style={{
+            display:"block", margin:"14px auto 0",
+            background:"none", border:"none", cursor:"pointer",
+            fontSize:11.5, color:"rgba(80,80,80,0.45)", fontWeight:500,
+            WebkitTapHighlightColor:"transparent",
+          }}>Stimmung zurücksetzen</button>
         )}
       </div>
     </div>
   );
 }
 
-function Header({ userName, avatarUrl, activeMood, onMoodSelect, onMatchFocus, onChat, onNotif, msgCount=0, notifCount=0 }) {
-  const [showMoodPanel, setShowMoodPanel] = React.useState(false);
-  const [inputVal,      setInputVal]      = React.useState("");
-  const [phIdx,         setPhIdx]         = React.useState(0);
-  const [phVisible,     setPhVisible]     = React.useState(true);
+/* ── Header ──────────────────────────────────────────────────── */
+function Header({ userName, avatarUrl, activeMood, onMoodSelect, onMatchFocus,
+                  onChat, onNotif, msgCount=0, notifCount=0 }) {
+
+  const [showMood, setShowMood] = React.useState(false);
+  const [input,   setInput]    = React.useState("");
+  const [phIdx,   setPhIdx]    = React.useState(0);
+  const [phVis,   setPhVis]    = React.useState(true);
   const inputRef = React.useRef(null);
 
-  // Rotierender Placeholder
+  /* Rotierender Placeholder */
   React.useEffect(() => {
     const t = setInterval(() => {
-      setPhVisible(false);
-      setTimeout(() => {
-        setPhIdx(i => (i + 1) % MATCH_PLACEHOLDERS.length);
-        setPhVisible(true);
-      }, 350);
-    }, 4200);
+      setPhVis(false);
+      setTimeout(() => { setPhIdx(i => (i+1) % MATCH_PLACEHOLDERS.length); setPhVis(true); }, 320);
+    }, 4000);
     return () => clearInterval(t);
   }, []);
 
-  const activeMoodColor = activeMood?.color || "#16D7C5";
-  const hasInput = inputVal.trim().length > 0;
-  const hasMood  = !!activeMood;
+  const mc  = activeMood?.color || "#16D7C5";
+  const has = !!activeMood;
+  const hasInput = input.trim().length > 0;
 
   return (
     <>
-      {/* Sticky Header-Bar */}
+      {/* ── Sticky Bar ─────────────────────────────────────────── */}
       <div style={{
         position:"sticky", top:0, zIndex:60,
-        background:"rgba(255,251,248,0.92)",
+        background:"rgba(255,251,248,0.93)",
         backdropFilter:"blur(32px) saturate(1.7)",
         WebkitBackdropFilter:"blur(32px) saturate(1.7)",
-        borderBottom: hasMood
-          ? `1px solid ${activeMoodColor}30`
-          : "1px solid rgba(0,0,0,0.05)",
-        transition:"border-color 0.4s ease",
+        borderBottom: has ? `1px solid ${mc}28` : "1px solid rgba(0,0,0,0.045)",
+        transition:"border-color 0.35s",
       }}>
-        {/* Safe area top */}
         <div style={{ height:"env(safe-area-inset-top,0)" }}/>
 
-        {/* Inner row */}
+        {/* ── Single Row ─────────────────────────────────────── */}
         <div style={{
           display:"flex", alignItems:"center",
-          padding:"10px 14px 10px 14px", gap:10,
+          padding:"8px 12px",           /* kompakter: 8px statt 10px */
+          gap:8,
         }}>
 
-          {/* ── MATCH BAR (Hauptelement) ────────────────────────── */}
-          <div
-            onClick={() => { inputRef.current?.focus(); onMatchFocus?.(); }}
+          {/* ── MATCH BAR ────────────────────────────────────── */}
+          <div onClick={() => { inputRef.current?.focus(); onMatchFocus?.(); }}
             style={{
-              flex:1, position:"relative",
-              display:"flex", alignItems:"center", gap:10,
-              height:44,
-              background: hasMood
-                ? `linear-gradient(135deg, ${activeMoodColor}14, rgba(255,251,248,0.95))`
-                : "rgba(255,255,255,0.85)",
-              backdropFilter:"blur(16px)",
-              WebkitBackdropFilter:"blur(16px)",
+              flex:1, display:"flex", alignItems:"center", gap:8,
+              height:38,               /* 38px statt 44px — kompakter */
+              background: has
+                ? `linear-gradient(135deg,${mc}12,rgba(255,251,248,0.96))`
+                : "rgba(255,255,255,0.88)",
+              backdropFilter:"blur(12px)",
+              WebkitBackdropFilter:"blur(12px)",
               borderRadius:999,
-              border: hasMood
-                ? `1.5px solid ${activeMoodColor}45`
-                : "1.5px solid rgba(22,215,197,0.28)",
-              boxShadow: hasMood
-                ? `0 0 0 4px ${activeMoodColor}12, 0 4px 18px rgba(0,0,0,0.07)`
-                : "0 0 0 3px rgba(22,215,197,0.09), 0 4px 18px rgba(0,0,0,0.06)",
-              padding:"0 14px",
+              border: `1.5px solid ${has ? mc+"42" : "rgba(22,215,197,0.25)"}`,
+              boxShadow: has
+                ? `0 0 0 3px ${mc}10, 0 3px 14px rgba(0,0,0,0.06)`
+                : "0 0 0 2.5px rgba(22,215,197,0.08), 0 3px 14px rgba(0,0,0,0.05)",
+              padding:"0 12px",
               cursor:"text",
-              transition:"border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease",
+              transition:"border-color 0.3s, box-shadow 0.3s, background 0.3s",
             }}
           >
-            {/* Resonanz-Icon */}
-            <div style={{ flexShrink:0, lineHeight:0, opacity: hasMood ? 0.9 : 0.45 }}>
-              {hasMood ? (
-                <span style={{ fontSize:16 }}>{activeMood.emoji}</span>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="7" cy="7" r="4.5" stroke="#16D7C5" strokeWidth="1.6"/>
-                  <path d="M11 11 L14.5 14.5" stroke="#16D7C5" strokeWidth="1.6"
-                    strokeLinecap="round"/>
-                  <path d="M5 7 Q7 4.5 9 7 Q7 9.5 5 7Z"
-                    fill="#16D7C5" opacity="0.4"/>
-                </svg>
-              )}
+            {/* Icon */}
+            <div style={{ flexShrink:0, lineHeight:0, opacity: has ? 0.85 : 0.4 }}>
+              {has
+                ? <span style={{ fontSize:14 }}>{activeMood.emoji}</span>
+                : (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="6" cy="6" r="4" stroke="#16D7C5" strokeWidth="1.5"/>
+                    <path d="M9.5 9.5 L12.5 12.5" stroke="#16D7C5" strokeWidth="1.5"
+                      strokeLinecap="round"/>
+                    <path d="M4.5 6 Q6 4 7.5 6 Q6 8 4.5 6Z"
+                      fill="#16D7C5" opacity="0.38"/>
+                  </svg>
+                )
+              }
             </div>
 
-            {/* Input / Placeholder */}
-            <div style={{ flex:1, position:"relative", overflow:"hidden", height:44,
-              display:"flex", alignItems:"center" }}>
+            {/* Input + animated placeholder */}
+            <div style={{ flex:1, position:"relative", height:38, display:"flex", alignItems:"center" }}>
               <input
                 ref={inputRef}
-                value={inputVal}
-                onChange={e => setInputVal(e.target.value)}
+                value={input}
+                onChange={e => setInput(e.target.value)}
                 style={{
                   position:"absolute", inset:0,
                   background:"transparent", border:"none", outline:"none",
-                  fontSize:14, fontWeight:500,
+                  fontSize:13.5, fontWeight:500,
                   color:"rgba(20,20,20,0.85)",
-                  fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
-                  letterSpacing:0.1,
+                  fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif",
+                  letterSpacing:0.1, padding:"0 2px",
                   WebkitTapHighlightColor:"transparent",
-                  padding:"0 2px",
                 }}
                 placeholder=""
               />
-              {/* Animated Placeholder */}
               {!hasInput && (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position:"absolute", left:2,
-                    fontSize:14, fontWeight:500,
-                    color: hasMood
-                      ? `${activeMoodColor}80`
-                      : "rgba(140,140,140,0.65)",
-                    pointerEvents:"none",
-                    opacity: phVisible ? 1 : 0,
-                    transform: phVisible ? "translateY(0)" : "translateY(5px)",
-                    transition:"opacity 0.35s ease, transform 0.35s ease",
-                    whiteSpace:"nowrap",
-                  }}
-                >
+                <span aria-hidden="true" style={{
+                  position:"absolute", left:2, pointerEvents:"none",
+                  fontSize:13.5, fontWeight:500,
+                  color: has ? `${mc}72` : "rgba(130,130,130,0.62)",
+                  opacity: phVis ? 1 : 0,
+                  transform: phVis ? "translateY(0)" : "translateY(4px)",
+                  transition:"opacity 0.3s ease, transform 0.3s ease",
+                  whiteSpace:"nowrap", overflow:"hidden",
+                  maxWidth:"100%",
+                }}>
                   {MATCH_PLACEHOLDERS[phIdx]}
                 </span>
               )}
             </div>
 
-            {/* Clear wenn Input */}
             {hasInput && (
-              <button
-                onClick={e => { e.stopPropagation(); setInputVal(""); }}
+              <button onClick={e => { e.stopPropagation(); setInput(""); }}
                 style={{
-                  flexShrink:0, width:20, height:20, borderRadius:"50%",
-                  background:"rgba(0,0,0,0.12)", border:"none",
+                  flexShrink:0, width:18, height:18, borderRadius:"50%",
+                  background:"rgba(0,0,0,0.11)", border:"none",
                   display:"flex", alignItems:"center", justifyContent:"center",
                   cursor:"pointer", WebkitTapHighlightColor:"transparent",
-                  fontSize:11, color:"rgba(60,60,60,0.7)", fontWeight:700,
-                }}
-              >✕</button>
+                  fontSize:10, color:"rgba(60,60,60,0.65)", fontWeight:700,
+                }}>✕</button>
             )}
           </div>
 
-          {/* ── MOOD TUNER BUTTON (Zauber-Button) ───────────────── */}
-          <button
-            onClick={() => setShowMoodPanel(p => !p)}
-            style={{
-              flexShrink:0,
-              width:44, height:44, borderRadius:"50%",
-              background: hasMood
-                ? `linear-gradient(135deg, ${activeMoodColor}, ${activeMoodColor}CC)`
-                : "linear-gradient(135deg, #F5A623, #FF8A6B)",
-              border: hasMood
-                ? `1.5px solid ${activeMoodColor}55`
-                : "1.5px solid rgba(245,166,35,0.35)",
-              boxShadow: hasMood
-                ? `0 0 0 4px ${activeMoodColor}22, 0 6px 20px ${activeMoodColor}44`
-                : "0 0 0 4px rgba(245,166,35,0.18), 0 6px 20px rgba(255,138,107,0.35)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer",
-              WebkitTapHighlightColor:"transparent",
-              transition:"transform 0.18s ease, box-shadow 0.25s ease",
-              transform: showMoodPanel ? "scale(0.92) rotate(22deg)" : "scale(1) rotate(0deg)",
-            }}
-          >
-            {hasMood ? (
-              <span style={{ fontSize:18, lineHeight:1 }}>{activeMood.emoji}</span>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M9 1.5 L10.5 6.5 L15.5 6.5 L11.5 9.5 L13 14.5 L9 11.5 L5 14.5 L6.5 9.5 L2.5 6.5 L7.5 6.5 Z"
-                  fill="white" opacity="0.95"/>
-              </svg>
-            )}
+          {/* ── ZAUBER / MOOD TUNER ──────────────────────────── */}
+          <button onClick={() => setShowMood(p => !p)} style={{
+            flexShrink:0, width:38, height:38, borderRadius:"50%",
+            background: has
+              ? `linear-gradient(135deg,${mc},${mc}BB)`
+              : "linear-gradient(135deg,#F5A623,#FF8A6B)",
+            border:`1.5px solid ${has ? mc+"44" : "rgba(245,166,35,0.32)"}`,
+            boxShadow: has
+              ? `0 0 0 3px ${mc}1E, 0 5px 16px ${mc}38`
+              : "0 0 0 3px rgba(245,166,35,0.16), 0 5px 16px rgba(255,138,107,0.30)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer", WebkitTapHighlightColor:"transparent",
+            transition:"transform 0.18s ease, box-shadow 0.22s ease",
+            transform: showMood ? "scale(0.90) rotate(20deg)" : "scale(1) rotate(0deg)",
+          }}>
+            {has
+              ? <span style={{ fontSize:16, lineHeight:1 }}>{activeMood.emoji}</span>
+              : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 1 L9.5 5.5 H14.5 L10.5 8.5 L12 13 L8 10 L4 13 L5.5 8.5 L1.5 5.5 H6.5 Z"
+                    fill="white" opacity="0.94"/>
+                </svg>
+              )
+            }
           </button>
 
-
-          {/* ── NOTIF BUTTON ─────────────────────────────────── */}
-          <button
-            onClick={onNotif}
-            style={{
-              flexShrink:0,
-              width:40, height:40, borderRadius:"50%",
-              background:"rgba(255,255,255,0.82)",
-              backdropFilter:"blur(16px)",
-              WebkitBackdropFilter:"blur(16px)",
-              border:"1.5px solid rgba(22,215,197,0.2)",
-              boxShadow:"0 2px 10px rgba(0,0,0,0.07), 0 0 0 3px rgba(22,215,197,0.07)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer", position:"relative",
-              WebkitTapHighlightColor:"transparent",
-              transition:"transform 0.16s ease, box-shadow 0.16s ease",
-            }}
-            onTouchStart={e => e.currentTarget.style.transform="scale(0.90)"}
-            onTouchEnd={e   => e.currentTarget.style.transform="scale(1)"}
-          >
-            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-              {/* Bell — organisch, ruhig */}
-              <path d="M8.5 2.5 C5.5 2.5 4 5 4 7.5 L4 10.5 L3 12 L14 12 L13 10.5 L13 7.5 C13 5 11.5 2.5 8.5 2.5Z"
-                fill="rgba(22,215,197,0.12)" stroke="#16D7C5" strokeWidth="1.4" strokeLinejoin="round"/>
-              <path d="M7 12.5 Q7.5 14 8.5 14 Q9.5 14 10 12.5"
-                stroke="#16D7C5" strokeWidth="1.3" strokeLinecap="round"/>
-              {/* kleine Resonanz-Welle oben */}
-              <path d="M6.5 3.2 Q8.5 1.8 10.5 3.2" stroke="#FF8A6B" strokeWidth="1.1"
-                strokeLinecap="round" opacity="0.6"/>
+          {/* ── NOTIF ─────────────────────────────────────────── */}
+          <button onClick={onNotif} style={{
+            flexShrink:0, width:36, height:36, borderRadius:"50%",
+            background:"rgba(255,255,255,0.80)",
+            backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
+            border:"1.5px solid rgba(22,215,197,0.18)",
+            boxShadow:"0 1px 8px rgba(0,0,0,0.06), 0 0 0 2.5px rgba(22,215,197,0.06)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer", position:"relative",
+            WebkitTapHighlightColor:"transparent",
+            transition:"transform 0.15s ease",
+          }}
+          onTouchStart={e=>e.currentTarget.style.transform="scale(0.88)"}
+          onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}>
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+              <path d="M9 2 C6.2 2 4.5 4.2 4.5 6.5 L4.5 10 L3 11.5 L15 11.5 L13.5 10 L13.5 6.5 C13.5 4.2 11.8 2 9 2Z"
+                fill="rgba(22,215,197,0.10)" stroke="#16D7C5" strokeWidth="1.35" strokeLinejoin="round"/>
+              <path d="M7.2 12 Q7.6 13.5 9 13.5 Q10.4 13.5 10.8 12"
+                stroke="#16D7C5" strokeWidth="1.25" strokeLinecap="round"/>
+              <path d="M6.5 3 Q9 1.5 11.5 3" stroke="#FF8A6B" strokeWidth="1"
+                strokeLinecap="round" opacity="0.55"/>
             </svg>
-            {/* Resonanz-Badge */}
-            {(notifCount ?? 0) > 0 && (
+            {(notifCount??0) > 0 && (
               <div style={{
-                position:"absolute", top:4, right:4,
-                width:8, height:8, borderRadius:"50%",
+                position:"absolute", top:5, right:5,
+                width:7, height:7, borderRadius:"50%",
                 background:"linear-gradient(135deg,#FF8A6B,#FF5F5F)",
                 border:"1.5px solid rgba(255,251,248,0.96)",
-                boxShadow:"0 0 6px rgba(255,138,107,0.65)",
+                boxShadow:"0 0 5px rgba(255,138,107,0.6)",
               }}/>
             )}
           </button>
 
-          {/* ── CHAT BUTTON ──────────────────────────────────── */}
-          <button
-            onClick={onChat}
-            style={{
-              flexShrink:0,
-              width:40, height:40, borderRadius:"50%",
-              background:"rgba(255,255,255,0.82)",
-              backdropFilter:"blur(16px)",
-              WebkitBackdropFilter:"blur(16px)",
-              border:"1.5px solid rgba(22,215,197,0.2)",
-              boxShadow:"0 2px 10px rgba(0,0,0,0.07), 0 0 0 3px rgba(22,215,197,0.07)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer", position:"relative",
-              WebkitTapHighlightColor:"transparent",
-              transition:"transform 0.16s ease, box-shadow 0.16s ease",
-            }}
-            onTouchStart={e => e.currentTarget.style.transform="scale(0.90)"}
-            onTouchEnd={e   => e.currentTarget.style.transform="scale(1)"}
-          >
-            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-              {/* Sprechblase — warm, organisch */}
-              <path d="M2.5 2.5 H14.5 Q15.5 2.5 15.5 3.5 V11.5 Q15.5 12.5 14.5 12.5 H10 L8.5 15 L7 12.5 H2.5 Q1.5 12.5 1.5 11.5 V3.5 Q1.5 2.5 2.5 2.5Z"
-                fill="rgba(22,215,197,0.10)" stroke="#16D7C5" strokeWidth="1.4" strokeLinejoin="round"/>
-              {/* 3 Resonanz-Dots */}
-              <circle cx="5.5"  cy="7.5" r="1" fill="#16D7C5" opacity="0.7"/>
-              <circle cx="8.5"  cy="7.5" r="1" fill="#FF8A6B" opacity="0.7"/>
-              <circle cx="11.5" cy="7.5" r="1" fill="#16D7C5" opacity="0.7"/>
+          {/* ── CHAT ──────────────────────────────────────────── */}
+          <button onClick={onChat} style={{
+            flexShrink:0, width:36, height:36, borderRadius:"50%",
+            background:"rgba(255,255,255,0.80)",
+            backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
+            border:"1.5px solid rgba(22,215,197,0.18)",
+            boxShadow:"0 1px 8px rgba(0,0,0,0.06), 0 0 0 2.5px rgba(22,215,197,0.06)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer", position:"relative",
+            WebkitTapHighlightColor:"transparent",
+            transition:"transform 0.15s ease",
+          }}
+          onTouchStart={e=>e.currentTarget.style.transform="scale(0.88)"}
+          onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}>
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+              <path d="M2 2.5 H16 Q17 2.5 17 3.5 V11.5 Q17 12.5 16 12.5 H10.5 L9 15 L7.5 12.5 H2 Q1 12.5 1 11.5 V3.5 Q1 2.5 2 2.5Z"
+                fill="rgba(22,215,197,0.09)" stroke="#16D7C5" strokeWidth="1.35" strokeLinejoin="round"/>
+              <circle cx="6"  cy="7.5" r="1" fill="#16D7C5" opacity="0.65"/>
+              <circle cx="9"  cy="7.5" r="1" fill="#FF8A6B" opacity="0.65"/>
+              <circle cx="12" cy="7.5" r="1" fill="#16D7C5" opacity="0.65"/>
             </svg>
-            {/* Message Badge */}
-            {(msgCount ?? 0) > 0 && (
+            {(msgCount??0) > 0 && (
               <div style={{
-                position:"absolute", top:4, right:4,
-                minWidth:14, height:14, borderRadius:7,
+                position:"absolute", top:5, right:5,
+                minWidth:13, height:13, borderRadius:7,
                 background:"linear-gradient(135deg,#16D7C5,#11C5B7)",
-                color:"white", fontSize:7.5, fontWeight:800,
+                color:"white", fontSize:7, fontWeight:800,
                 display:"flex", alignItems:"center", justifyContent:"center",
-                padding:"0 2.5px",
+                padding:"0 2px",
                 border:"1.5px solid rgba(255,251,248,0.96)",
-                boxShadow:"0 0 6px rgba(22,215,197,0.55)",
-              }}>{(msgCount ?? 0) > 9 ? "9+" : msgCount}</div>
+                boxShadow:"0 0 5px rgba(22,215,197,0.5)",
+              }}>{(msgCount??0) > 9 ? "9+" : msgCount}</div>
             )}
           </button>
-          {/* ── AVATAR ──────────────────────────────────────────── */}
-          {(avatarUrl || userName) && (
-            <div style={{
-              flexShrink:0,
-              width:36, height:36, borderRadius:"50%",
-              overflow:"hidden",
-              background:`linear-gradient(135deg,#16D7C5,#FF8A6B)`,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontWeight:900, fontSize:13, color:"white",
-              boxShadow:"0 2px 8px rgba(22,215,197,0.25)",
-            }}>
-              {avatarUrl
-                ? <img loading="lazy" decoding="async" src={avatarUrl} alt=""
-                    style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                    onError={e => { e.target.style.display="none"; }}/>
-                : userName?.[0]?.toUpperCase()
-              }
-            </div>
-          )}
+
         </div>
 
-        {/* Aktiver Mood-Streifen */}
-        {hasMood && (
+        {/* Mood-Akzentlinie */}
+        {has && (
           <div style={{
-            height:2,
-            background:`linear-gradient(90deg, transparent, ${activeMoodColor}66, transparent)`,
-            transition:"background 0.4s ease",
+            height:1.5,
+            background:`linear-gradient(90deg,transparent,${mc}55,transparent)`,
+            transition:"background 0.4s",
           }}/>
         )}
       </div>
 
-      {/* Mood Panel */}
-      {showMoodPanel && (
+      {showMood && (
         <MoodPanel
           activeMood={activeMood}
-          onSelect={(m) => { onMoodSelect?.(m); setShowMoodPanel(false); }}
-          onClose={() => setShowMoodPanel(false)}
+          onSelect={(m) => { onMoodSelect?.(m); setShowMood(false); }}
+          onClose={() => setShowMood(false)}
         />
       )}
     </>
