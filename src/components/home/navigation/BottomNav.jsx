@@ -1,33 +1,14 @@
-// navigation/BottomNav.jsx — HUI Bottom Navigation (modular)
-// Eigenständige Komponente — kein State aus Home.jsx
+// navigation/BottomNav.jsx — HUI Bottom Navigation v2
+// HOTFIX: pointer-events inline (kein className-Bug), Profile-Button stabil
 
 import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 
 const BN_CSS = `
-  .hui-bn-pill {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    pointer-events: none;
-  }
-  .hui-bn-inner {
-    margin: 0 10px;
-    margin-bottom: max(10px, env(safe-area-inset-bottom, 10px));
-    background: rgba(255,251,248,0.90);
-    backdrop-filter: blur(36px) saturate(1.8);
-    -webkit-backdrop-filter: blur(36px) saturate(1.8);
-    border-radius: 28px;
-    border: 1px solid rgba(255,255,255,0.65);
-    box-shadow:
-      0 2px 4px rgba(0,0,0,0.03),
-      0 8px 28px rgba(0,0,0,0.09),
-      0 1px 0 rgba(255,255,255,0.92) inset;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 6px;
-    height: 66px;
-    pointer-events: auto;
+  @keyframes hui-orb-pulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(22,215,197,0.45), 0 2px 8px rgba(0,0,0,0.12); }
+    50%      { box-shadow: 0 4px 28px rgba(22,215,197,0.70), 0 2px 8px rgba(0,0,0,0.12); }
   }
   .hui-bn-btn {
     flex: 1; display: flex; flex-direction: column;
@@ -42,14 +23,14 @@ const BN_CSS = `
     width: 56px; height: 56px; border-radius: 50%;
     background: linear-gradient(135deg, #16D7C5, #11C5B7);
     border: 3px solid rgba(255,255,255,0.9);
-    box-shadow: 0 4px 20px rgba(22,215,197,0.45), 0 2px 8px rgba(0,0,0,0.12);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; position: relative; flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.28s cubic-bezier(0.34,1.3,0.64,1),
                 box-shadow 0.28s ease;
+    animation: hui-orb-pulse 3s ease-in-out infinite;
   }
-  .hui-orb-btn:active { transform: scale(0.92); }
+  .hui-orb-btn:active { transform: scale(0.92) !important; }
 `;
 
 export default function BottomNav({
@@ -61,64 +42,70 @@ export default function BottomNav({
   hasTalent   = false,
   authProfile = null,
   orbActive   = false,
-  // onProfile: entfernt — Profil läuft über onTab("profile") → HomeShell.handleTab
 }) {
-  const [orbPulse, setOrbPulse] = React.useState(false);
-
-  React.useEffect(() => {
-    const t = setTimeout(() => setOrbPulse(true), 1800);
-    return () => clearTimeout(t);
-  }, []);
-
   return (
     <>
       <style>{BN_CSS}</style>
-      <div className="hui-bn-pill" style={{
+
+      {/* ── Pill-Wrapper — VOLLSTÄNDIG INLINE um CSS-Klassen-Bug zu umgehen ── */}
+      <div style={{
+        position:"fixed", bottom:0, left:0, right:0, zIndex:100,
+        /* pointer-events MUSS inline stehen — className-Fallback nicht zuverlässig */
+        pointerEvents:"none",
         opacity:    (orbActive ?? false) ? 0 : 1,
         transform:  (orbActive ?? false) ? "translateY(120%)" : "translateY(0)",
         transition: "opacity 0.40s cubic-bezier(0.4,0,0.2,1), transform 0.40s cubic-bezier(0.4,0,0.2,1)",
         willChange: "opacity, transform",
       }}>
-        <div className="hui-bn-inner">
+        {/* ── Innerer Container — pointer-events:auto damit Clicks durchkommen ── */}
+        <div style={{
+          margin:"0 10px",
+          marginBottom:"max(10px, env(safe-area-inset-bottom, 10px))",
+          background:"rgba(255,251,248,0.90)",
+          backdropFilter:"blur(36px) saturate(1.8)",
+          WebkitBackdropFilter:"blur(36px) saturate(1.8)",
+          borderRadius:28,
+          border:"1px solid rgba(255,255,255,0.65)",
+          boxShadow:"0 2px 4px rgba(0,0,0,0.03), 0 8px 28px rgba(0,0,0,0.09), 0 1px 0 rgba(255,255,255,0.92) inset",
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          padding:"4px 6px", height:66,
+          /* KRITISCH: Auto damit der innere Container Clicks empfängt */
+          pointerEvents:"auto",
+        }}>
+
           {NAV_ITEMS.map((item, i) => {
 
-            /* Orb Slot */
+            /* ── Orb Slot (null in Array) ── */
             if (!item) return (
               <button
                 key="orb"
                 className="hui-orb-btn"
                 onClick={() => onOrbAction?.("create")}
                 aria-label={orbActive ? "Schließen" : "Kreativ werden"}
-                aria-expanded={orbActive ?? false}
                 style={{
                   transform: orbActive ? "scale(0.88) rotate(45deg)" : "scale(1) rotate(0deg)",
-                  transition:"transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
                 }}
               >
-                {/* Logo */}
                 <div style={{
                   position:"absolute",
-                  opacity:   (orbActive ?? false) ? 0 : 1,
-                  transform: (orbActive ?? false) ? "scale(0.78) rotate(12deg)" : "scale(1) rotate(0deg)",
-                  transition:"opacity 0.28s ease, transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
+                  opacity:(orbActive??false)?0:1,
+                  transition:"opacity 0.28s ease, transform 0.38s ease",
+                  transform:(orbActive??false)?"scale(0.78)":"scale(1)",
                 }}>
-                  <img src="/hui-logo.jpg" alt="HUI" loading="eager" decoding="async"
+                  <img src="/hui-logo.jpg" alt="HUI"
                     style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover" }}
-                    onError={e => { e.target.style.display="none"; }}/>
+                    onError={e=>{e.target.style.display="none";}}/>
                 </div>
-                {/* ✕ wenn offen */}
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
                   style={{
                     position:"absolute",
-                    opacity:   (orbActive ?? false) ? 1 : 0,
-                    transform: (orbActive ?? false) ? "rotate(0deg) scale(1)" : "rotate(-45deg) scale(0.5)",
-                    transition:"opacity 0.24s ease, transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
+                    opacity:(orbActive??false)?1:0,
+                    transition:"opacity 0.24s ease",
                   }}>
-                  <line x1="2.5" y1="7.5" x2="12.5" y2="7.5" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
-                  <line x1="7.5" y1="2.5" x2="7.5" y2="12.5" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="2" y1="7" x2="12" y2="7" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="7" y1="2" x2="7"  y2="12" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                {/* Notif-Dot */}
-                {!(orbActive ?? false) && (notifCount ?? 0) > 0 && (
+                {!(orbActive??false) && (notifCount??0) > 0 && (
                   <div style={{
                     position:"absolute", top:3, right:3,
                     width:7, height:7, borderRadius:"50%",
@@ -130,9 +117,8 @@ export default function BottomNav({
               </button>
             );
 
-            /* Standard Tab */
+            /* ── Standard Tab ── */
             const isActive = tab === item.key;
-            const badge    = item.key === "profile" ? 0 : 0;
 
             return (
               <NavItem
@@ -140,9 +126,10 @@ export default function BottomNav({
                 item={item}
                 isActive={isActive}
                 onPress={(key) => {
+                  // Direkt onTab aufrufen — kein branching, kein undefined
                   onTab?.(key);
                 }}
-                badge={badge}
+                badge={0}
               />
             );
           })}
