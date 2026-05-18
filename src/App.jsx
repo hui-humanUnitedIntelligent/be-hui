@@ -19,7 +19,7 @@ const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const ProfilePage       = lazy(() => import('./components/ProfilePage'))
-const WirkerProfilePage = lazy(() => import('./components/WirkerProfilePage'))
+const WirkerProfilePage = lazy(() => import('./pages/wirker-profile'))
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
 // ── Suspense Fallback ────────────────────────────────────────────
@@ -271,7 +271,7 @@ function WirkerProfileRouteWrapper() {
       wirker={{ username }}
       onClose={() => navigate(-1)}
       onBook={() => { /* RequestSheet öffnet sich intern in WirkerProfilePage */ }}
-      onMessage={() => { /* Chat intern als Sheet in WirkerProfilePage */ }}
+      onChat={() => { /* Chat intern als Sheet in WirkerProfilePage */ }}
     />
   );
 }
