@@ -11,7 +11,7 @@ import {
   FIELDS,
   PROFILE_FIELDS,
   normalizeProfileInput,
-} from "../../lib/perfUtils";
+} from "../../../lib/perfUtils";
 import { getProfileIdentifier } from "../utils/profileGuards";
 
 /**
