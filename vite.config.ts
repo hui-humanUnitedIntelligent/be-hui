@@ -1,4 +1,4 @@
-// HUI 2026-05-18T21:10:05Z fix: Home clean — ProfileLauncher single source of truth
+// HUI 2026-05-18T21:20:45Z hotfix: BottomNav pointer-events + openOwnProfile robust
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
