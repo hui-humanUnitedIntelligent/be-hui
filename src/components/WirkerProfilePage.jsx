@@ -19,6 +19,7 @@ import { fetchCreatorInsights } from "../lib/InsightsEngine";
 // MeinHUI_SubPages: nur VerfuegbarkeitPage + KontoPage — die anderen sind inline
 import { VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
 import EditProfile from "../pages/EditProfile";
+import { useFollowStatus } from "../lib/AppStateContext";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
 const C = {
@@ -437,7 +438,11 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   }
 
   // ── Follow/Unfollow — über AppStateContext (globaler optimistic update)
-  const { isFollowing: _globalFollowed, toggle: _toggleFollow } = useFollowStatus(profile?.id);
+  // useFollowStatus: aus AppStateContext — gibt Follow-Status + toggle für userId
+  // Defensive: falls profile?.id undefined → uses null → returns {isFollowing:false, toggle:noop}
+  const _followStatus = useFollowStatus(profile?.id ?? null);
+  const _globalFollowed = _followStatus?.isFollowing ?? false;
+  const _toggleFollow   = _followStatus?.toggle ?? (() => Promise.resolve());
   // Sync lokaler followed-State mit globalem Context
   useEffect(() => {
     if (profile?.id) setFollowed(_globalFollowed);
