@@ -1449,6 +1449,9 @@ export default function Home() {
         <Header
           userName={userName}
           avatarUrl={authProfile?.avatar_url || null}
+          activeMood={activeMood}
+          onMoodSelect={setActiveMood}
+          onMatchFocus={() => {}}
         />
 
         <div className="hui-scroll" ref={mainScrollRef}
