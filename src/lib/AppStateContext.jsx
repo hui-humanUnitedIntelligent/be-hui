@@ -593,9 +593,12 @@ export const useNotifCount = () => {
 /** Nur Follow-Status für einen User */
 export const useFollowStatus = (userId) => {
   const { follows, toggleFollow } = useAppState();
+  // Defensive: String-Konversion für Set-Lookup
+  // follows.has(undefined/null) → immer false (kein Crash)
+  const safeId = userId ? String(userId) : null;
   return {
-    isFollowing: follows.has(userId),
-    toggle: () => toggleFollow(userId),
+    isFollowing: safeId ? follows.has(safeId) : false,
+    toggle:      safeId ? () => toggleFollow(safeId) : () => Promise.resolve(),
   };
 };
 
