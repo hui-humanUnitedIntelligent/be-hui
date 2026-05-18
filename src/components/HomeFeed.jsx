@@ -1,250 +1,631 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient";
-import mockWirkerProfiles from "../lib/mockData";
-import VirtualFeedList, { FeedEndSentinel } from './VirtualFeedList';
-import LazyImage from './LazyImage';
-import { sentryCapture } from '../lib/sentry';
+// HomeFeed_v2.jsx — HUI Premium Social Feed
+// Referenz: Screenshot IMG_2347 — Apple + Airbnb + Community DNA
+// Design: helle Oberfläche, weicher Schatten, Glassmorphism, Türkis/Coral
+// Struktur: StickyHeader → StoryLeiste → Heute in deiner Nähe → SozialerFeed → MenschenFürDich
 
-/* ─── Design Tokens ───────────────────────────────── */
+import React, { useState, useRef, useEffect, useCallback } from "react";
+
+/* ─── Design Tokens ──────────────────────────────────────────────────── */
 const T = {
-  teal:       "#3DBFB8",
-  tealSoft:   "#6DD5CF",
-  tealPale:   "#E8F8F7",
-  coral:      "#FF7055",
-  coralSoft:  "#FF9080",
-  coralPale:  "#FFF0EE",
-  cream:      "#FAF8F5",
-  card:       "#FFFFFE",
-  ink:        "#1C1917",
-  ink2:       "#44403C",
-  muted:      "#78716C",
-  border:     "#E7E3DC",
-  gold:       "#F0A500",
-  green:      "#2BA27A",
+  teal:       "#16D7C5",
+  teal2:      "#11C5B7",
+  tealFaint:  "rgba(22,215,197,0.10)",
+  tealGlow:   "rgba(22,215,197,0.18)",
+  coral:      "#FF8A6B",
+  coralFaint: "rgba(255,138,107,0.10)",
+  bg:         "#FAFAF8",
+  surface:    "#FFFFFF",
+  ink:        "#1A1A1A",
+  ink2:       "#3A3A3A",
+  muted:      "rgba(26,26,26,0.45)",
+  muted2:     "rgba(26,26,26,0.28)",
+  border:     "rgba(0,0,0,0.06)",
+  borderSoft: "rgba(0,0,0,0.04)",
+  shadow:     "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06)",
+  shadowHover:"0 2px 8px rgba(0,0,0,0.06), 0 8px 28px rgba(0,0,0,0.10)",
+  radius:     16,
+  radiusLg:   22,
+  radiusSm:   10,
 };
 
-/* ─── Rich feed data ─────────────────────────────── */
-const WIRKERS = Object.values(mockWirkerProfiles);
+/* ─── CSS ─────────────────────────────────────────────────────────────── */
+const CSS = `
+  @keyframes hf-shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+  }
+  @keyframes hf-fade-up {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes hf-pulse-ring {
+    0%,100% { transform:scale(1); opacity:0.6; }
+    50%     { transform:scale(1.15); opacity:0; }
+  }
+  .hf-root {
+    background: #FAFAF8;
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                 "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #1A1A1A;
+    overscroll-behavior: contain;
+  }
+  /* Story Ring */
+  .hf-story-ring {
+    background: linear-gradient(135deg, #16D7C5 0%, #FF8A6B 100%);
+    padding: 2.5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .hf-story-ring--live {
+    background: linear-gradient(135deg, #FF4D4D 0%, #FF8A6B 100%);
+    animation: hf-pulse-ring 2s ease-in-out infinite;
+  }
+  .hf-story-ring--empty {
+    background: rgba(0,0,0,0.10);
+  }
+  /* Tap feedback */
+  .hf-tap { -webkit-tap-highlight-color: transparent; }
+  .hf-tap:active { opacity: 0.75; transform: scale(0.97); transition: all 0.12s; }
+  /* Card hover */
+  .hf-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: box-shadow 0.22s ease, transform 0.22s ease;
+  }
+  .hf-card:active {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 28px rgba(0,0,0,0.10);
+    transform: scale(0.985);
+  }
+  /* Search field */
+  .hf-search {
+    background: rgba(0,0,0,0.055);
+    border: none;
+    border-radius: 22px;
+    padding: 9px 16px 9px 36px;
+    font-size: 14px;
+    color: #1A1A1A;
+    width: 100%;
+    outline: none;
+    font-family: inherit;
+    -webkit-appearance: none;
+  }
+  .hf-search::placeholder { color: rgba(26,26,26,0.40); }
+  .hf-search:focus {
+    background: rgba(22,215,197,0.07);
+    box-shadow: 0 0 0 1.5px rgba(22,215,197,0.30);
+  }
+  /* Feed items animation */
+  .hf-feed-item {
+    animation: hf-fade-up 0.38s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hf-feed-item:nth-child(1) { animation-delay: 0.0s; }
+  .hf-feed-item:nth-child(2) { animation-delay: 0.05s; }
+  .hf-feed-item:nth-child(3) { animation-delay: 0.10s; }
+  .hf-feed-item:nth-child(4) { animation-delay: 0.15s; }
+  /* Like/Kommentar Buttons */
+  .hf-action-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: none; border: none; cursor: pointer;
+    padding: 6px 10px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(26,26,26,0.55);
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-family: inherit;
+  }
+  .hf-action-btn:active {
+    background: rgba(0,0,0,0.05);
+    transform: scale(0.95);
+  }
+  .hf-action-btn--liked {
+    color: #FF4D6B;
+  }
+  /* Event Badge */
+  .hf-badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 20px;
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  /* Scroll snapping für Stories */
+  .hf-scroll-x {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+  }
+  .hf-scroll-x::-webkit-scrollbar { display: none; }
+  .hf-scroll-x > * { scroll-snap-align: start; flex-shrink: 0; }
+`;
 
-const SECTIONS = [
+/* ─── Mock-Daten (werden durch echte Props ersetzt) ──────────────────── */
+const MOCK_STORIES = [
+  { id: "you",  label: "Deine Story", avatar: null,   isYou: true, isLive: false },
+  { id: "mia",  label: "Mia",         avatar: "https://i.pravatar.cc/80?img=47",  isLive: false },
+  { id: "leon", label: "Leon",         avatar: "https://i.pravatar.cc/80?img=51",  isLive: true },
+  { id: "sara", label: "Sara",         avatar: "https://i.pravatar.cc/80?img=45",  isLive: false },
+  { id: "kai",  label: "Kai",          avatar: "https://i.pravatar.cc/80?img=33",  isLive: false },
+  { id: "more", label: "Mehr",         avatar: null,   isMore: true },
+];
+
+const MOCK_EVENTS = [
   {
-    id: "foryou",
-    label: "Für dich",
-    emoji: "✨",
-    tagline: "Ausgewählt für deinen Moment",
-    items: [
-      {
-        id: "f1", type: "talent",
-        wirker: WIRKERS[2], // Marcus – Fotograf
-        emotion: "Marcus fängt Momente ein, die für immer bleiben",
-        mood: "teal",
-      },
-      {
-        id: "f2", type: "werk",
-        img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=900&q=90",
-        title: "Handgedrehte Vase",
-        price: "65 €",
-        emotion: "Sofia formt aus Ton Dinge, die bleiben",
-        wirkerName: "Sofia M.",
-        wirkerImg: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&q=80",
-        mood: "gold",
-        tags: ["Keramik", "Unikat"],
-      },
-      {
-        id: "f3", type: "video",
-        thumb: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=900&q=90",
-        src: "https://www.w3schools.com/html/mov_bbb.mp4",
-        emotion: "Behind the Scenes — ein Imagefilm entsteht",
-        wirkerName: "Marcus B.",
-        wirkerImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
-        mood: "coral",
-      },
-    ],
+    id: "e1", title: "Keramik Workshop",
+    time: "Heute 18:30", location: "München",
+    img: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=80",
+    badge: "Noch 2 Plätze", badgeColor: "#FF8A6B", hasPlay: false,
   },
   {
-    id: "nearby",
-    label: "In deiner Nähe",
-    emoji: "📍",
-    tagline: "Menschen in deiner Stadt",
-    items: [
-      {
-        id: "n1", type: "talent",
-        wirker: WIRKERS[0], // Lars – Keramik
-        emotion: "Lars formt mit seinen Händen Welten aus Ton",
-        mood: "gold",
-      },
-      {
-        id: "n2", type: "werk",
-        img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&q=90",
-        title: "Leder-Rucksack",
-        price: "195 €",
-        emotion: "Tom näht jeden Rucksack von Hand — mit Seele",
-        wirkerName: "Tom H.",
-        wirkerImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80",
-        mood: "teal",
-        tags: ["Handwerk", "Leder"],
-      },
-    ],
+    id: "e2", title: "Live Musik",
+    time: "Heute 20:00", location: "Berlin",
+    img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+    badge: "LIVE", badgeColor: "#FF4D4D", hasPlay: true,
   },
   {
-    id: "inspiration",
-    label: "Inspiration",
-    emoji: "🌱",
-    tagline: "Wirker die die Welt verändern",
-    items: [
-      {
-        id: "i1", type: "impact",
-        img: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=900&q=90",
-        emotion: "Gemeinsam haben wir diesen Monat schon € 3.847 bewegt",
-        poolEur: 3847,
-        mood: "teal",
-      },
-      {
-        id: "i2", type: "talent",
-        wirker: WIRKERS[3], // Maria – Yoga
-        emotion: "Maria bringt in jede Session echte Ruhe und Kraft",
-        mood: "purple",
-      },
-      {
-        id: "i3", type: "werk",
-        img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=900&q=90",
-        title: "Morgen-Yoga-Session",
-        price: "70 €",
-        emotion: "Finde zurück zu dir — eine Stunde reicht",
-        wirkerName: "Maria L.",
-        wirkerImg: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80",
-        mood: "purple",
-        tags: ["Yoga", "Achtsamkeit"],
-      },
-    ],
+    id: "e3", title: "Holz & Design Markt",
+    time: "Morgen 11:00", location: "Hamburg",
+    img: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=300&q=80",
+    badge: null, hasPlay: false,
   },
 ];
 
-/* ─── Mood → Farbe ───────────────────────────────── */
-const MOOD_COLOR = {
-  teal:   T.teal,
-  coral:  T.coral,
-  gold:   T.gold,
-  purple: "#9B7FE8",
-};
+const MOCK_FEED = [
+  {
+    id: "f1",
+    type: "work_upload",
+    avatar: "https://i.pravatar.cc/80?img=47",
+    name: "Mia Kern",
+    action: "hat neue Werke hochgeladen",
+    time: "2 Std.",
+    images: [
+      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&q=80",
+      "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=80",
+      "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=280&q=75",
+    ],
+    caption: "Neue Keramikstücke aus meiner Werkstatt 🌿",
+    likes: 34,
+    comments: 8,
+    viewers: [
+      "https://i.pravatar.cc/32?img=12",
+      "https://i.pravatar.cc/32?img=23",
+      "https://i.pravatar.cc/32?img=34",
+      "https://i.pravatar.cc/32?img=56",
+    ],
+    viewerExtra: 5,
+    liked: false,
+  },
+  {
+    id: "f2",
+    type: "experience",
+    avatar: "https://i.pravatar.cc/80?img=51",
+    name: "Leon Brandt",
+    action: "hat ein Erlebnis geteilt",
+    time: "3 Std.",
+    expImg: "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=500&q=80",
+    expTitle: "Holzarbeiten für Anfänger",
+    expMeta: "Workshop · 2. Juni · Wien",
+    liked: false,
+    saved: false,
+  },
+  {
+    id: "f3",
+    type: "activity",
+    avatar: "https://i.pravatar.cc/80?img=45",
+    name: "Sara Müller",
+    action: "sucht kreative Menschen",
+    time: "1 Std.",
+    caption: "Ich starte ein neues Projekt in Hamburg und suche Leute mit Lust auf Kollaboration 🎨",
+    likes: 12,
+    comments: 3,
+    liked: false,
+  },
+];
 
-/* ─── Like-Button ────────────────────────────────── */
-function LikeBtn({ count = 0 }) {
-  const [liked,  setLiked]  = useState(false);
-  const [n,      setN]      = useState(count);
-  const [anim,   setAnim]   = useState(false);
+const MOCK_PEOPLE = [
+  { id: "p1", name: "Jonas W.", role: "Fotograf", location: "München",
+    avatar: "https://i.pravatar.cc/80?img=11",
+    tags: ["Portrait", "Editorial"], status: "Verfügbar" },
+  { id: "p2", name: "Lena K.", role: "Designerin", location: "Berlin",
+    avatar: "https://i.pravatar.cc/80?img=44",
+    tags: ["Branding", "UX"], status: "Im Studio" },
+  { id: "p3", name: "Tom R.", role: "Musiker", location: "Hamburg",
+    avatar: "https://i.pravatar.cc/80?img=65",
+    tags: ["Jazz", "Live"], status: "Verfügbar" },
+  { id: "p4", name: "Yuki S.", role: "Keramikerin", location: "Wien",
+    avatar: "https://i.pravatar.cc/80?img=56",
+    tags: ["Keramik", "Workshops"], status: null },
+];
 
-  function tap(e) {
-    e.stopPropagation();
-    setAnim(true);
-    setTimeout(() => setAnim(false), 450);
-    setLiked(p => { setN(c => p ? c - 1 : c + 1); return !p; });
+/* ─── Sub-Komponenten ────────────────────────────────────────────────── */
+
+/* Sticky Header */
+function FeedHeader({ user, notifCount = 0, chatCount = 0, onSearch, onNotif, onChat }) {
+  return (
+    <div style={{
+      position: "sticky", top: 0, zIndex: 60,
+      background: "rgba(250,250,248,0.92)",
+      backdropFilter: "blur(24px) saturate(1.6)",
+      WebkitBackdropFilter: "blur(24px) saturate(1.6)",
+      borderBottom: `1px solid ${T.borderSoft}`,
+    }}>
+      {/* safe-area top */}
+      <div style={{ height: "env(safe-area-inset-top, 0)" }} />
+      <div style={{
+        display: "flex", alignItems: "center",
+        padding: "10px 16px 10px 14px", gap: 10,
+      }}>
+        {/* Logo */}
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: `linear-gradient(135deg, ${T.teal}, ${T.teal2})`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: `0 2px 8px ${T.tealGlow}`,
+        }}>
+          <img src="/hui-logo.jpg" alt="HUI"
+            style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover" }}
+            onError={e => { e.target.style.display = "none"; }}
+          />
+        </div>
+
+        {/* Suchfeld */}
+        <div style={{ flex: 1, position: "relative" }}>
+          <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }}
+            width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <circle cx="10.5" cy="10.5" r="7" stroke={T.muted} strokeWidth="1.8"/>
+            <path d="M16 16 L20.5 20.5" stroke={T.muted} strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+          <input
+            className="hf-search"
+            placeholder="Was bewegt dich heute?"
+            onFocus={onSearch}
+            readOnly
+          />
+          {/* Sparkle rechts */}
+          <span style={{
+            position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+            fontSize: 14, opacity: 0.5,
+          }}>✦</span>
+        </div>
+
+        {/* Notif */}
+        <IconBtn count={notifCount} onClick={onNotif}>
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+              stroke={T.ink2} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"
+              stroke={T.ink2} strokeWidth="1.7" strokeLinecap="round"/>
+          </svg>
+        </IconBtn>
+
+        {/* Chat */}
+        <IconBtn count={chatCount} onClick={onChat} accent={T.teal}>
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+              stroke={T.ink2} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
+              fill="none"/>
+          </svg>
+        </IconBtn>
+      </div>
+    </div>
+  );
+}
+
+function IconBtn({ count, onClick, children, accent = T.coral }) {
+  return (
+    <button onClick={onClick} className="hf-tap" style={{
+      position: "relative", background: "none", border: "none",
+      cursor: "pointer", padding: 4, borderRadius: 10,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      width: 36, height: 36,
+    }}>
+      {children}
+      {count > 0 && (
+        <div style={{
+          position: "absolute", top: 1, right: 1,
+          minWidth: 15, height: 15, borderRadius: 999,
+          background: accent,
+          color: "white", fontSize: 9, fontWeight: 800,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "0 3px",
+          border: "2px solid #FAFAF8",
+          boxShadow: `0 1px 4px ${accent}55`,
+        }}>
+          {count > 9 ? "9+" : count}
+        </div>
+      )}
+    </button>
+  );
+}
+
+/* ─── Story-Leiste ─────────────────────────────────────────────────── */
+function StoryLeiste({ stories = MOCK_STORIES, onStory }) {
+  return (
+    <div style={{ padding: "14px 0 4px 0" }}>
+      <div className="hf-scroll-x" style={{ paddingLeft: 16, paddingRight: 16, gap: 14 }}>
+        {stories.map(story => (
+          <StoryItem key={story.id} story={story} onPress={() => onStory?.(story)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StoryItem({ story, onPress }) {
+  if (story.isMore) {
+    return (
+      <button onClick={onPress} className="hf-tap" style={{
+        background: "none", border: "none", cursor: "pointer",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+        padding: 0,
+      }}>
+        <div style={{
+          width: 60, height: 60, borderRadius: "50%",
+          background: "rgba(0,0,0,0.055)",
+          border: `1.5px solid ${T.border}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="8" height="8" rx="2" stroke={T.muted} strokeWidth="1.6"/>
+            <rect x="13" y="3" width="8" height="8" rx="2" stroke={T.muted} strokeWidth="1.6"/>
+            <rect x="3" y="13" width="8" height="8" rx="2" stroke={T.muted} strokeWidth="1.6"/>
+            <rect x="13" y="13" width="8" height="8" rx="2" stroke={T.muted} strokeWidth="1.6"/>
+          </svg>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: -0.1 }}>
+          Mehr
+        </span>
+      </button>
+    );
+  }
+
+  if (story.isYou) {
+    return (
+      <button onClick={onPress} className="hf-tap" style={{
+        background: "none", border: "none", cursor: "pointer",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+        padding: 0,
+      }}>
+        <div style={{ position: "relative" }}>
+          <div className="hf-story-ring hf-story-ring--empty" style={{ padding: 2 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%",
+              background: T.tealFaint,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: "2px solid white",
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke={T.teal} strokeWidth="2.2" strokeLinecap="round"/>
+              </svg>
+            </div>
+          </div>
+          {/* HUI Badge */}
+          <div style={{
+            position: "absolute", bottom: -1, right: -1,
+            width: 20, height: 20, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${T.teal}, ${T.coral})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: "2px solid white",
+          }}>
+            <span style={{ fontSize: 9, fontWeight: 900, color: "white" }}>+</span>
+          </div>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 600, color: T.teal, letterSpacing: -0.1 }}>
+          Deine Story
+        </span>
+      </button>
+    );
   }
 
   return (
-    <button onClick={tap} style={{
-      background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)",
-      WebkitBackdropFilter: "blur(10px)",
-      border: "1px solid rgba(255,255,255,0.28)",
-      borderRadius: 999, padding: "8px 14px",
-      display: "flex", alignItems: "center", gap: 6,
-      cursor: "pointer", WebkitTapHighlightColor: "transparent",
+    <button onClick={onPress} className="hf-tap" style={{
+      background: "none", border: "none", cursor: "pointer",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+      padding: 0,
     }}>
-      <span className={anim ? "hui-heart-anim" : ""}
-        style={{ fontSize: 18, lineHeight: 1,
-          filter: liked ? "none" : "grayscale(1) opacity(0.7)" }}>
-        {liked ? "❤️" : "🤍"}
-      </span>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "white" }}>{n}</span>
-    </button>
-  );
-}
-
-/* ─── Ghost-Button (Save / Share) ────────────────── */
-function GhostBtn({ icon, onTap }) {
-  return (
-    <button onClick={e => { e.stopPropagation(); if (onTap) onTap(); }}
-      style={{
-        width: 40, height: 40, borderRadius: "50%",
-        background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-        border: "1px solid rgba(255,255,255,0.28)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 18, cursor: "pointer",
-        WebkitTapHighlightColor: "transparent",
-        transition: "transform 0.15s",
-      }}
-      onTouchStart={e => e.currentTarget.style.transform = "scale(0.88)"}
-      onTouchEnd={e   => e.currentTarget.style.transform = "scale(1)"}>
-      {icon}
-    </button>
-  );
-}
-
-/* ─── Stories ────────────────────────────────────── */
-function StoriesBar({ onView }) {
-  const stories = [
-    { id: "me",  name: "Du",     img: null,                                                   isMine: true,  hasStory: false },
-    { id: "s1",  name: "Sofia",  img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&q=80", hasStory: true  },
-    { id: "s2",  name: "Marcus", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80", hasStory: true  },
-    { id: "s3",  name: "Maria",  img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&q=80",  hasStory: true  },
-    { id: "s4",  name: "Tom",    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&q=80", hasStory: false },
-    { id: "s5",  name: "Lena",   img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80", hasStory: true  },
-    { id: "s6",  name: "Lars",   img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80", hasStory: false },
-  ];
-
-  return (
-    <div style={{ padding: "14px 0 10px" }}>
-      <div className="scrollbar-hide"
-        style={{ display: "flex", gap: 14, overflowX: "auto", padding: "4px 20px 4px" }}>
-        {stories.map(s => (
-          <div key={s.id}
-            onClick={() => !s.isMine && onView && onView(s.name)}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 6, flexShrink: 0, cursor: s.isMine ? "default" : "pointer" }}>
-
-            <div
-              className={s.hasStory ? "hui-story-ring" : ""}
-              style={{
-                padding: 2.5, borderRadius: "50%",
-                background: s.hasStory
-                  ? `linear-gradient(135deg, ${T.teal}, ${T.coral})`
-                  : T.border,
-                boxShadow: s.hasStory ? "none" : "none",
-              }}>
-              <div style={{ padding: 2, borderRadius: "50%", background: T.cream }}>
-                <div style={{
-                  width: 52, height: 52, borderRadius: "50%", overflow: "hidden",
-                  background: `linear-gradient(135deg, ${T.tealPale}, ${T.coralPale})`,
+      <div style={{ position: "relative" }}>
+        <div className={`hf-story-ring${story.isLive ? " hf-story-ring--live" : ""}`}>
+          <div style={{
+            width: 56, height: 56, borderRadius: "50%",
+            overflow: "hidden", border: "2.5px solid white",
+          }}>
+            {story.avatar
+              ? <img src={story.avatar} alt={story.label}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <div style={{ width: "100%", height: "100%",
+                  background: `linear-gradient(135deg, ${T.teal}, ${T.coral})`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 20, position: "relative",
+                  fontSize: 20, fontWeight: 900, color: "white",
                 }}>
-                  {s.isMine ? (
-                    <>
-                      <span style={{ fontSize: 22 }}>👤</span>
-                      <div style={{
-                        position: "absolute", bottom: 0, right: 0,
-                        width: 18, height: 18, borderRadius: "50%",
-                        background: T.coral, border: `2px solid ${T.cream}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 11, color: "white", fontWeight: 900,
-                      }}>+</div>
-                    </>
-                  ) : s.img ? (
-                    <img loading="lazy" decoding="async" src={s.img} alt={s.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <span style={{ fontWeight: 800, color: T.teal }}>{s.name[0]}</span>
-                  )}
+                  {story.label[0]}
                 </div>
-              </div>
-            </div>
+            }
+          </div>
+        </div>
+        {story.isLive && (
+          <div style={{
+            position: "absolute", bottom: -1, left: "50%", transform: "translateX(-50%)",
+            background: "#FF4D4D", color: "white",
+            fontSize: 8.5, fontWeight: 800, letterSpacing: 0.5,
+            padding: "2px 5px", borderRadius: 99,
+            border: "1.5px solid white",
+          }}>LIVE</div>
+        )}
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 500, color: T.ink2,
+        letterSpacing: -0.1, maxWidth: 62, textAlign: "center",
+        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+      }}>
+        {story.label}
+      </span>
+    </button>
+  );
+}
 
-            <span style={{ fontSize: 10, fontWeight: 600, color: T.ink2,
-              maxWidth: 56, textAlign: "center", overflow: "hidden",
-              textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {s.name}
-            </span>
+/* ─── Heute in deiner Nähe ─────────────────────────────────────────── */
+function HeuteSection({ events = MOCK_EVENTS, onEvent, onMoreEvents }) {
+  return (
+    <div style={{ padding: "20px 16px 0" }}>
+      {/* Section Header */}
+      <div style={{ display: "flex", alignItems: "center",
+        justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+              fill={T.tealFaint} stroke={T.teal} strokeWidth="1.8"/>
+            <circle cx="12" cy="9" r="2.5" fill={T.teal}/>
+          </svg>
+          <span style={{ fontSize: 15, fontWeight: 700, color: T.ink, letterSpacing: -0.3 }}>
+            Heute in deiner Nähe
+          </span>
+        </div>
+        <button onClick={onMoreEvents} className="hf-tap" style={{
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 12.5, fontWeight: 600, color: T.teal,
+          display: "flex", alignItems: "center", gap: 2, padding: "2px 0",
+        }}>
+          Mehr <span style={{ fontSize: 11 }}>›</span>
+        </button>
+      </div>
+
+      {/* Event Cards — horizontaler Scroll */}
+      <div className="hf-scroll-x" style={{ gap: 10, marginLeft: -16, paddingLeft: 16,
+        marginRight: -16, paddingRight: 16 }}>
+        {events.map(ev => (
+          <EventCard key={ev.id} event={ev} onPress={() => onEvent?.(ev)} />
+        ))}
+        {/* Neues Event erstellen */}
+        <button onClick={onMoreEvents} className="hf-tap" style={{
+          width: 110, height: 130, borderRadius: T.radius,
+          background: T.tealFaint,
+          border: `1.5px dashed rgba(22,215,197,0.35)`,
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", gap: 8,
+          cursor: "pointer", flexShrink: 0,
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%",
+            background: "white",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: `0 2px 8px ${T.tealGlow}`,
+          }}>
+            <span style={{ fontSize: 18, color: T.teal, fontWeight: 300 }}>+</span>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 600, color: T.teal,
+            textAlign: "center", lineHeight: 1.3, padding: "0 8px",
+          }}>Neues<br/>Event</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EventCard({ event, onPress }) {
+  return (
+    <button onClick={onPress} className="hf-tap" style={{
+      width: 110, flexShrink: 0, borderRadius: T.radius,
+      overflow: "hidden", cursor: "pointer",
+      background: "none", border: "none", padding: 0,
+      position: "relative",
+    }}>
+      {/* Bild */}
+      <div style={{ width: 110, height: 130, position: "relative" }}>
+        <img src={event.img} alt={event.title}
+          loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "cover",
+            borderRadius: T.radius, display: "block" }}
+        />
+        {/* Gradient Overlay */}
+        <div style={{
+          position: "absolute", inset: 0, borderRadius: T.radius,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.68) 100%)",
+        }}/>
+
+        {/* Play-Button */}
+        {event.hasPlay && (
+          <div style={{
+            position: "absolute", top: "50%", left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 32, height: 32, borderRadius: "50%",
+            background: "rgba(255,255,255,0.22)",
+            backdropFilter: "blur(8px)",
+            border: "1.5px solid rgba(255,255,255,0.50)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+              <path d="M1 1l8 5-8 5V1z" fill="white"/>
+            </svg>
+          </div>
+        )}
+
+        {/* Badge */}
+        {event.badge && (
+          <div className="hf-badge" style={{
+            position: "absolute", top: 8, left: 8,
+            background: event.badgeColor || T.coral,
+            color: "white",
+          }}>
+            {event.badge}
+          </div>
+        )}
+
+        {/* Info */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0,
+          padding: "8px 8px 9px",
+        }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: "white",
+            lineHeight: 1.25, marginBottom: 3 }}>
+            {event.title}
+          </div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.80)", lineHeight: 1.3 }}>
+            {event.time}
+          </div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.65)", lineHeight: 1.3 }}>
+            {event.location}
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ─── Sozialer Feed ─────────────────────────────────────────────────── */
+function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
+  const [liked, setLiked] = useState({});
+
+  function handleLike(id) {
+    setLiked(p => ({ ...p, [id]: !p[id] }));
+    onLike?.(id);
+  }
+
+  return (
+    <div style={{ padding: "24px 0 0" }}>
+      {/* Section Label */}
+      <div style={{ paddingLeft: 16, marginBottom: 14 }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: T.ink, letterSpacing: -0.3 }}>
+          Gerade aktiv
+        </span>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12,
+        paddingLeft: 16, paddingRight: 16 }}>
+        {items.map((item, idx) => (
+          <div key={item.id} className="hf-card hf-feed-item"
+            style={{ animationDelay: `${idx * 0.06}s` }}>
+            <FeedItem
+              item={item}
+              isLiked={!!liked[item.id]}
+              onProfile={() => onProfile?.(item)}
+              onLike={() => handleLike(item.id)}
+              onComment={() => onComment?.(item)}
+            />
           </div>
         ))}
       </div>
@@ -252,672 +633,351 @@ function StoriesBar({ onView }) {
   );
 }
 
-/* ─── STAGE CARD — Talent ────────────────────────── */
-function TalentStageCard({ item, onView, onBook, className = "" }) {
-  const w = item.wirker;
-  const color = MOOD_COLOR[item.mood] || T.teal;
-
+function FeedItem({ item, isLiked, onProfile, onLike, onComment }) {
   return (
-    <div className={`hui-stage-card ${className}`}
-      style={{ margin: "0 18px 24px" }}
-      onClick={() => onView && onView(w.name)}>
-
-      {/* ── Bild — 4:5 aspect ratio ── */}
-      <div style={{
-        position: "relative",
-        paddingTop: "125%", /* 4:5 */
-        overflow: "hidden",
-        background: `linear-gradient(160deg, ${color}30, ${color}10)`,
-      }}>
-        {w.header && (
-          <img loading="lazy" decoding="async" src={w.header} alt=""
-            style={{ position: "absolute", inset: 0,
-              width: "100%", height: "100%", objectFit: "cover",
-              transition: "transform 0.6s ease" }} />
-        )}
-
-        {/* Deep gradient overlay */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: `linear-gradient(
-            to bottom,
-            transparent              0%,
-            transparent             40%,
-            rgba(28, 25, 23, 0.35)  70%,
-            rgba(28, 25, 23, 0.82) 100%
-          )`,
-        }} />
-
-        {/* ── Top: interaction row ── */}
-        <div style={{
-          position: "absolute", top: 14, left: 14, right: 14,
-          display: "flex", justifyContent: "flex-end", gap: 8,
+    <div>
+      {/* Header: Avatar + Name + Time + Menu */}
+      <div style={{ display: "flex", alignItems: "center",
+        padding: "14px 14px 10px", gap: 10 }}>
+        <button onClick={onProfile} className="hf-tap" style={{
+          background: "none", border: "none", cursor: "pointer", padding: 0,
         }}>
-          <GhostBtn icon="⭐" />
-          <GhostBtn icon="↗️" onTap={async () => {
-            if (navigator.share) {
-              try { await navigator.share({ title: w.fullName, url: window.location.href }); } catch {}
-            }
-          }} />
-        </div>
-
-        {/* ── Bottom: content ── */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 18px" }}>
-          {/* Avatar + Name row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: "50%",
-              overflow: "hidden", border: "2px solid rgba(255,255,255,0.6)",
-              flexShrink: 0,
-            }}>
-              <img loading="lazy" decoding="async" src={w.img} alt={w.fullName}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                onError={e => e.target.style.display = "none"} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 15, color: "white", lineHeight: 1.2 }}>
-                {w.fullName || w.name}
-              </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
-                {w.talent} · 📍 {w.location}
-              </div>
-            </div>
-          </div>
-
-          {/* Emotional sentence */}
           <div style={{
-            fontSize: 16, fontWeight: 700, color: "white",
-            lineHeight: 1.45, marginBottom: 14,
-            textShadow: "0 1px 8px rgba(0,0,0,0.3)",
+            width: 40, height: 40, borderRadius: "50%",
+            overflow: "hidden", flexShrink: 0,
+            background: `linear-gradient(135deg, ${T.teal}, ${T.coral})`,
           }}>
-            {item.emotion}
-          </div>
-
-          {/* Empfehlungen + CTA */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {w.recommendations > 0 && (
-              <div style={{
-                background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                borderRadius: 999, padding: "6px 12px",
-                fontSize: 12, fontWeight: 700, color: "white",
-                display: "flex", alignItems: "center", gap: 5,
-              }}>
-                👥 {w.recommendations} Empfehlung{w.recommendations !== 1 ? "en" : ""}
-              </div>
+            {item.avatar && (
+              <img src={item.avatar} alt={item.name}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             )}
-            <div style={{ flex: 1 }} />
-            <LikeBtn count={w.followers || 0} />
           </div>
-
-          {/* Book CTA */}
-          {w.pricePerHour > 0 && (
-            <button
-              onClick={e => { e.stopPropagation(); onBook && onBook(w); }}
-              style={{
-                marginTop: 12, width: "100%", padding: "13px",
-                background: `linear-gradient(135deg, ${color}, ${color}CC)`,
-                color: "white", border: "none",
-                borderRadius: 14, fontSize: 14, fontWeight: 800,
-                cursor: "pointer", WebkitTapHighlightColor: "transparent",
-                boxShadow: `0 4px 16px ${color}40`,
-                transition: "opacity 0.2s",
-              }}>
-              ✨ Talent entdecken · ab {w.pricePerHour} €
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── STAGE CARD — Werk ──────────────────────────── */
-function WerkStageCard({ item, onCart, className = "" }) {
-  const [saved, setSaved] = useState(false);
-  const [added, setAdded] = useState(false);
-  const color = MOOD_COLOR[item.mood] || T.gold;
-
-  function handleCart(e) {
-    e.stopPropagation();
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2200);
-    if (onCart) onCart(item);
-  }
-
-  return (
-    <div className={`hui-stage-card ${className}`}
-      style={{ margin: "0 18px 24px" }}>
-
-      <div style={{ position: "relative", paddingTop: "125%", overflow: "hidden" }}>
-        <img loading="lazy" decoding="async" src={item.img} alt={item.title}
-          style={{ position: "absolute", inset: 0,
-            width: "100%", height: "100%", objectFit: "cover" }} />
-
-        {/* Overlay */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: `linear-gradient(
-            to bottom,
-            transparent 35%,
-            rgba(28,25,23,0.8) 100%
-          )`,
-        }} />
-
-        {/* Top row */}
-        <div style={{
-          position: "absolute", top: 14, left: 14, right: 14,
-          display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-        }}>
-          {/* Werk badge */}
-          <div style={{
-            background: `${color}EE`, borderRadius: 999,
-            padding: "5px 13px", fontSize: 11, fontWeight: 800, color: "white",
-          }}>
-            🎨 Werk · {item.price}
+        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: T.ink,
+            letterSpacing: -0.2, lineHeight: 1.2 }}>
+            {item.name}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <GhostBtn icon={saved ? "⭐" : "☆"}
-              onTap={() => setSaved(p => !p)} />
+          <div style={{ fontSize: 12, color: T.muted, lineHeight: 1.3, marginTop: 1 }}>
+            {item.action} · <span style={{ color: T.muted2 }}>{item.time}</span>
           </div>
         </div>
-
-        {/* Bottom content */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "18px" }}>
-          {/* Creator */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            {item.wirkerImg && (
-              <div style={{ width: 28, height: 28, borderRadius: "50%",
-                overflow: "hidden", border: "1.5px solid rgba(255,255,255,0.6)",
-                flexShrink: 0 }}>
-                <img loading="lazy" decoding="async" src={item.wirkerImg} alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </div>
-            )}
-            <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
-              {item.wirkerName}
-            </span>
-          </div>
-
-          {/* Emotional sentence */}
-          <div style={{
-            fontSize: 16, fontWeight: 700, color: "white",
-            lineHeight: 1.45, marginBottom: 14,
-            textShadow: "0 1px 8px rgba(0,0,0,0.3)",
-          }}>
-            {item.emotion}
-          </div>
-
-          {/* Impact + CTA */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <LikeBtn count={Math.floor(Math.random() * 150) + 40} />
-            <div style={{ flex: 1 }} />
-            <button onClick={handleCart} style={{
-              padding: "10px 18px", borderRadius: 14, border: "none",
-              background: added
-                ? `linear-gradient(135deg, ${T.green}, #34D399)`
-                : `linear-gradient(135deg, ${color}, ${color}CC)`,
-              color: "white", fontWeight: 800, fontSize: 13,
-              cursor: "pointer", transition: "background 0.3s",
-              WebkitTapHighlightColor: "transparent",
-              boxShadow: `0 3px 12px ${color}30`,
-            }}>
-              {added ? "✓ Im Korb" : "🛒 Kaufen"}
-            </button>
-          </div>
-
-          {/* Impact hint */}
-          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 6 }}>
-            <span className="hui-breathe" style={{ fontSize: 11 }}>🌱</span>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", fontStyle: "italic" }}>
-              Mit diesem Kauf unterstützt du echte Projekte
-            </span>
-          </div>
-        </div>
+        {/* Menü */}
+        <button className="hf-tap" style={{
+          background: "none", border: "none", cursor: "pointer",
+          padding: "4px 6px", color: T.muted,
+          fontSize: 16, letterSpacing: 1.5, lineHeight: 1,
+        }}>···</button>
       </div>
 
-      {/* Tags below card */}
-      {item.tags?.length > 0 && (
-        <div style={{ padding: "10px 14px 14px", display: "flex", gap: 6 }}>
-          {item.tags.map((t, i) => (
-            <span key={i} className="hui-chip hui-chip-teal">{t}</span>
-          ))}
+      {/* Content: Werk-Bilder */}
+      {item.type === "work_upload" && item.images && (
+        <div style={{ paddingLeft: 14, paddingRight: 14, marginBottom: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.05fr 0.5fr 0.5fr",
+            gap: 4, borderRadius: T.radiusSm, overflow: "hidden", height: 130 }}>
+            {item.images.slice(0, 3).map((img, i) => (
+              <img key={i} src={img} alt=""
+                loading="lazy"
+                style={{ width: "100%", height: "100%", objectFit: "cover",
+                  display: "block",
+                  borderRadius: i === 0 ? "8px 0 0 8px" : i === 2 ? "0 8px 8px 0" : 0,
+                }}
+              />
+            ))}
+          </div>
         </div>
       )}
-    </div>
-  );
-}
 
-
-/* ─── STAGE CARD — Video ─────────────────────────── */
-function VideoStageCard({ item, className = "" }) {
-  const videoRef  = useRef(null);
-  const wrapRef   = useRef(null);
-  const [playing, setPlaying] = useState(false);
-  const [muted,   setMuted]   = useState(true);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          videoRef.current?.play().catch(() => {});
-          setPlaying(true);
-        } else {
-          videoRef.current?.pause();
-          setPlaying(false);
-        }
-      },
-      { threshold: 0.5 }
-    );
-    if (wrapRef.current) obs.observe(wrapRef.current);
-    return () => obs.disconnect();
-  }, []);
-
-  return (
-    <div ref={wrapRef} className={`hui-stage-card ${className}`}
-      style={{ margin: "0 18px 24px" }}>
-
-      <div style={{ position: "relative", paddingTop: "125%", overflow: "hidden", background: "#0D0D0D" }}>
-        {/* Thumb */}
-        <img loading="lazy" decoding="async" src={item.thumb} alt=""
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover", opacity: playing ? 0 : 1, transition: "opacity 0.5s" }} />
-
-        {/* Video */}
-        <video ref={videoRef} src={item.src} muted={muted} playsInline loop
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover", opacity: playing ? 1 : 0, transition: "opacity 0.5s" }} />
-
-        <div style={{
-          position: "absolute", inset: 0,
-          background: `linear-gradient(to bottom, transparent 30%, rgba(28,25,23,0.82) 100%)`,
-        }} />
-
-        {/* Play state indicator */}
-        {!playing && (
-          <div style={{ position: "absolute", top: "50%", left: "50%",
-            transform: "translate(-50%,-50%)",
-            width: 58, height: 58, borderRadius: "50%",
-            background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22 }}>▶️</div>
-        )}
-
-        {/* Top row */}
-        <div style={{ position: "absolute", top: 14, left: 14, right: 14,
-          display: "flex", justifyContent: "space-between" }}>
-          <div style={{ background: `${T.coral}EE`, borderRadius: 999,
-            padding: "5px 13px", fontSize: 11, fontWeight: 800, color: "white" }}>
-            🎬 Video
-          </div>
-          <button onClick={e => { e.stopPropagation(); setMuted(p => !p); }}
-            style={{ width: 36, height: 36, borderRadius: "50%",
-              background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.28)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 15, cursor: "pointer", WebkitTapHighlightColor: "transparent" }}>
-            {muted ? "🔇" : "🔊"}
-          </button>
-        </div>
-
-        {/* Bottom */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "18px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            {item.wirkerImg && (
-              <div style={{ width: 28, height: 28, borderRadius: "50%",
-                overflow: "hidden", border: "1.5px solid rgba(255,255,255,0.6)" }}>
-                <img loading="lazy" decoding="async" src={item.wirkerImg} alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      {/* Content: Experience-Card */}
+      {item.type === "experience" && (
+        <div style={{ paddingLeft: 14, paddingRight: 14, marginBottom: 10 }}>
+          <div style={{
+            borderRadius: T.radiusSm, overflow: "hidden",
+            background: "rgba(0,0,0,0.02)",
+            border: `1px solid ${T.border}`,
+            display: "flex", height: 80,
+          }}>
+            <img src={item.expImg} alt=""
+              loading="lazy"
+              style={{ width: 90, height: 80, objectFit: "cover", flexShrink: 0 }}
+            />
+            <div style={{ padding: "12px 12px 12px 14px", flex: 1, minWidth: 0,
+              display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.ink,
+                letterSpacing: -0.2, lineHeight: 1.25 }}>
+                {item.expTitle}
               </div>
-            )}
-            <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
-              {item.wirkerName}
-            </span>
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "white",
-            lineHeight: 1.45, marginBottom: 12, textShadow: "0 1px 8px rgba(0,0,0,0.3)" }}>
-            {item.emotion}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <LikeBtn count={item.likes || 0} />
-            <GhostBtn icon="💬" />
-            <div style={{ flex: 1 }} />
-            <GhostBtn icon="↗️" />
+              <div style={{ fontSize: 11.5, color: T.muted, lineHeight: 1.3 }}>
+                {item.expMeta}
+              </div>
+            </div>
+            <button className="hf-tap" style={{
+              background: "none", border: "none", cursor: "pointer",
+              padding: "12px 12px 12px 0", color: T.muted,
+              display: "flex", alignItems: "flex-start",
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
+                  stroke={T.muted} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
+      )}
+
+      {/* Caption */}
+      {item.caption && (
+        <div style={{ paddingLeft: 14, paddingRight: 14, marginBottom: 10 }}>
+          <p style={{ margin: 0, fontSize: 13.5, color: T.ink2, lineHeight: 1.5,
+            letterSpacing: -0.1 }}>
+            {item.caption}
+          </p>
+        </div>
+      )}
+
+      {/* Footer: Likes + Comments + Viewers */}
+      <div style={{
+        display: "flex", alignItems: "center",
+        padding: "4px 8px 10px",
+        borderTop: `1px solid ${T.borderSoft}`,
+        marginTop: 4,
+      }}>
+        {/* Like */}
+        <button onClick={onLike} className={`hf-action-btn${isLiked ? " hf-action-btn--liked" : ""}`}>
+          <span style={{ fontSize: 15 }}>{isLiked ? "❤️" : "🤍"}</span>
+          <span>{(item.likes || 0) + (isLiked ? 1 : 0)}</span>
+        </button>
+        {/* Comment */}
+        <button onClick={onComment} className="hf-action-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+              stroke={T.muted} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span>{item.comments || 0}</span>
+        </button>
+
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+
+        {/* Viewer Avatars */}
+        {item.viewers && (
+          <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+            <div style={{ display: "flex" }}>
+              {item.viewers.slice(0, 4).map((av, i) => (
+                <div key={i} style={{
+                  width: 22, height: 22, borderRadius: "50%",
+                  overflow: "hidden", marginLeft: i === 0 ? 0 : -6,
+                  border: "2px solid white",
+                  background: `linear-gradient(135deg, ${T.teal}, ${T.coral})`,
+                }}>
+                  <img src={av} alt=""
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+              ))}
+            </div>
+            {item.viewerExtra > 0 && (
+              <span style={{ fontSize: 11, color: T.muted, marginLeft: 5, fontWeight: 600 }}>
+                +{item.viewerExtra}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-/* ─── IMPACT CARD ────────────────────────────────── */
-function ImpactStageCard({ item, onImpact, className = "" }) {
+/* ─── Menschen für dich ─────────────────────────────────────────────── */
+function MenschenSection({ people = MOCK_PEOPLE, onPerson }) {
   return (
-    <div className={`hui-stage-card ${className}`}
-      style={{ margin: "0 18px 24px" }}
-      onClick={onImpact}>
-
-      <div style={{ position: "relative", height: 220, overflow: "hidden" }}>
-        <img loading="lazy" decoding="async" src={item.img} alt="" style={{ width: "100%", height: "100%",
-          objectFit: "cover", filter: "brightness(0.72) saturate(1.15)" }} />
-        <div style={{ position: "absolute", inset: 0,
-          background: `linear-gradient(160deg, ${T.teal}88 0%, ${T.coral}55 100%)` }} />
-
-        {/* Euro in center */}
-        <div style={{ position: "absolute", inset: 0,
-          display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontSize: 44, marginBottom: 4 }}>🌱</div>
-          <div style={{ fontWeight: 900, fontSize: 38, color: "white",
-            textShadow: "0 2px 20px rgba(0,0,0,0.3)", lineHeight: 1 }}>
-            € {(item.poolEur||0).toLocaleString("de-DE")}
-          </div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.88)",
-            marginTop: 6, fontWeight: 600 }}>
-            gemeinsam bewegt diesen Monat
-          </div>
-        </div>
+    <div style={{ padding: "24px 0 32px" }}>
+      <div style={{ display: "flex", alignItems: "center",
+        justifyContent: "space-between", paddingLeft: 16, paddingRight: 16, marginBottom: 14 }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: T.ink, letterSpacing: -0.3 }}>
+          Menschen für dich
+        </span>
+        <button className="hf-tap" style={{
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 12.5, fontWeight: 600, color: T.teal,
+          display: "flex", alignItems: "center", gap: 2,
+        }}>
+          Alle <span style={{ fontSize: 11 }}>›</span>
+        </button>
       </div>
 
-      <div style={{ padding: "18px" }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: T.ink, lineHeight: 1.6,
-          marginBottom: 14 }}>
-          {item.emotion}
+      <div className="hf-scroll-x"
+        style={{ gap: 10, paddingLeft: 16, paddingRight: 16 }}>
+        {people.map(person => (
+          <PersonCard key={person.id} person={person}
+            onPress={() => onPerson?.(person)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PersonCard({ person, onPress }) {
+  const [following, setFollowing] = useState(false);
+
+  return (
+    <div className="hf-card" style={{ width: 148, flexShrink: 0 }}>
+      {/* Avatar */}
+      <button onClick={onPress} className="hf-tap" style={{
+        background: "none", border: "none", cursor: "pointer",
+        padding: 0, width: "100%", display: "block",
+      }}>
+        <div style={{ position: "relative", height: 110 }}>
+          <img src={person.avatar} alt={person.name}
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "cover",
+              borderRadius: "16px 16px 0 0" }}
+          />
+          {/* Gradient */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.50) 100%)",
+            borderRadius: "16px 16px 0 0",
+          }}/>
+          {/* Status */}
+          {person.status && (
+            <div style={{
+              position: "absolute", bottom: 8, left: 8,
+              background: "rgba(255,255,255,0.18)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255,255,255,0.30)",
+              borderRadius: 99, padding: "2.5px 7px",
+              fontSize: 9.5, fontWeight: 700, color: "white",
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+              <div style={{
+                width: 5, height: 5, borderRadius: "50%",
+                background: person.status === "Verfügbar" ? "#4ADE80" : T.coral,
+              }}/>
+              {person.status}
+            </div>
+          )}
         </div>
-        <button style={{ width: "100%", padding: "14px",
-          background: `linear-gradient(135deg, ${T.teal}, ${T.tealSoft})`,
-          color: "white", border: "none", borderRadius: 14,
-          fontSize: 14, fontWeight: 800, cursor: "pointer",
-          boxShadow: `0 4px 16px ${T.teal}30`,
-          WebkitTapHighlightColor: "transparent" }}>
-          🌱 Impact ansehen →
+      </button>
+
+      {/* Info */}
+      <div style={{ padding: "10px 12px 12px" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink,
+          letterSpacing: -0.2, marginBottom: 1 }}>
+          {person.name}
+        </div>
+        <div style={{ fontSize: 11.5, color: T.muted, marginBottom: 2 }}>
+          {person.role}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+              fill={T.tealFaint} stroke={T.teal} strokeWidth="2"/>
+          </svg>
+          <span style={{ fontSize: 10.5, color: T.muted }}>{person.location}</span>
+        </div>
+
+        {/* Tags */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
+          {person.tags.slice(0, 2).map(tag => (
+            <span key={tag} style={{
+              fontSize: 9.5, fontWeight: 600, color: T.teal,
+              background: T.tealFaint, borderRadius: 99,
+              padding: "2px 7px",
+            }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Follow Button */}
+        <button onClick={e => { e.stopPropagation(); setFollowing(f => !f); }}
+          className="hf-tap" style={{
+          width: "100%", height: 30,
+          background: following
+            ? "rgba(0,0,0,0.05)"
+            : `linear-gradient(135deg, ${T.teal}, ${T.teal2})`,
+          border: following ? `1px solid ${T.border}` : "none",
+          borderRadius: 99,
+          fontSize: 11.5, fontWeight: 700,
+          color: following ? T.muted : "white",
+          cursor: "pointer",
+          transition: "all 0.22s ease",
+          letterSpacing: 0.1,
+        }}>
+          {following ? "Folge ich" : "Folgen"}
         </button>
       </div>
     </div>
   );
 }
 
-/* ─── Section Header ─────────────────────────────── */
-function SectionHeader({ section, index }) {
-  const colors = [T.teal, T.coral, T.green];
-  const color  = colors[index % colors.length];
-
+/* ─── Trennlinie ─────────────────────────────────────────────────────── */
+function Divider({ mx = 16 }) {
   return (
-    <div style={{ padding: "24px 20px 14px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-        <div style={{
-          width: 3, height: 24, borderRadius: 999,
-          background: `linear-gradient(to bottom, ${color}, ${color}66)`,
-          flexShrink: 0,
-        }} />
-        <span style={{ fontSize: 22 }}>{section.emoji}</span>
-        <div>
-          <div style={{ fontWeight: 900, fontSize: 20, color: T.ink,
-            letterSpacing: -0.03 * 20 }}>{section.label}</div>
-          <div style={{ fontSize: 12, color: T.muted, fontWeight: 600, marginTop: 1 }}>
-            {section.tagline}
-          </div>
-        </div>
-      </div>
-    </div>
+    <div style={{
+      height: 1, margin: `4px ${mx}px`,
+      background: `linear-gradient(90deg, transparent, ${T.border} 30%, ${T.border} 70%, transparent)`,
+    }}/>
   );
 }
 
-
-/* ─── Shimmer Skeleton ───────────────────────────── */
-function SkeletonCard() {
-  return (
-    <div style={{ margin: "0 18px 24px", borderRadius: 22, overflow: "hidden" }}>
-      <div className="hui-shimmer" style={{ paddingTop: "125%", borderRadius: 22 }} />
-    </div>
-  );
-}
-
-
-/* ─── Memoized Stage Cards — prevent re-render on parent state changes ─ */
-const MemoTalentCard  = React.memo(TalentStageCard);
-const MemoWerkCard    = React.memo(WerkStageCard);
-const MemoVideoCard   = React.memo(VideoStageCard);
-const MemoImpactCard  = React.memo(ImpactStageCard);
-
-/* ─── Haupt HomeFeed ─────────────────────────────── */
-/* ─── Haupt HomeFeed ─────────────────────────────── */
-export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact,
-  onLoadMore,
-  loadingMore = false,
-  hasMore = false,
+/* ─── ROOT: HomeFeed ─────────────────────────────────────────────────── */
+export default function HomeFeed({
+  user       = null,
+  stories    = MOCK_STORIES,
+  events     = MOCK_EVENTS,
+  feedItems  = MOCK_FEED,
+  people     = MOCK_PEOPLE,
+  notifCount = 3,
+  chatCount  = 2,
+  onSearch,
+  onNotif,
+  onChat,
+  onStory,
+  onEvent,
+  onMoreEvents,
+  onProfile,
+  onLike,
+  onComment,
+  onPerson,
 }) {
-  const [sections, setSections] = useState(SECTIONS);
-  const [loading,  setLoading]  = useState(true);
-
-  // ── stallTimerRef: useRef statt lokale const ─────────────────────
-  // Grund: `const stallTimer` war im useEffect-Scope gefangen.
-  // Bei alten Bundle-Versionen (Cache) referenzierte der
-  // visibilitychange-Handler denselben stallTimer aus einem
-  // früheren Stand wo beide useEffects noch einer waren.
-  // → ReferenceError: stallTimer is not defined
-  // Lösung: ref lebt im Komponenten-Scope, immer erreichbar.
-  const stallTimerRef = useRef(null);
-
-  // ── useEffect #1: loadLive + Stall-Guard ─────────────────────────
-  useEffect(() => {
-    let mounted   = true;
-    let loadStart = Date.now();
-
-    // Skeleton-Timeout: nach 8s force setLoading(false)
-    // verhindert permanent-skeleton wenn Supabase nicht antwortet
-    stallTimerRef.current = setTimeout(() => {
-      if (!mounted) return;
-      const elapsed = Date.now() - loadStart;
-      console.warn('[HomeFeed] loadLive stalled after ' + Math.round(elapsed/100)/10 + 's');
-      sentryCapture(new Error('HomeFeed loadLive stalled'), {
-        source:          'HomeFeed.loadStall',
-        elapsed_ms:      elapsed,
-        document_hidden: document.hidden,
-        visibility:      document.visibilityState,
-      });
-      setLoading(false);
-    }, 8000);
-
-    async function loadLive() {
-      try {
-        const { data: posts } = await supabase
-          .from("posts")
-          .select("*, profiles(name, profile_image_url)")
-          .order("created_at", { ascending: false })
-          .limit(6);
-        if (!mounted) return;
-        if (posts?.length) {
-          const liveItems = posts.slice(0, 3).map(p => ({
-            id: "live_" + p.id,
-            type: p.type === "video" ? "video" : "werk",
-            img:  p.media_urls?.[0],
-            thumb: p.media_urls?.[0],
-            src:  p.type === "video" ? p.media_urls?.[0] : undefined,
-            emotion: p.caption || "Ein neues Werk ist entstanden",
-            wirkerName: p.profiles?.name || "HUI Wirker",
-            wirkerImg:  p.profiles?.profile_image_url,
-            mood: "teal",
-          }));
-          if (mounted) setSections(prev => {
-            const updated = [...prev];
-            updated[0] = { ...updated[0], items: [...liveItems, ...updated[0].items] };
-            return updated;
-          });
-        }
-      } catch(e) {
-        console.warn('[HomeFeed] loadLive error:', e?.message);
-      }
-      if (mounted) {
-        // Stall-Guard auflösen — Load erfolgreich
-        clearTimeout(stallTimerRef.current);
-        stallTimerRef.current = null;
-        setLoading(false);
-      }
-    }
-
-    loadLive();
-    return () => {
-      mounted = false;
-      // Cleanup: immer via ref — kein Scope-Problem möglich
-      clearTimeout(stallTimerRef.current);
-      stallTimerRef.current = null;
-    };
-  }, []);
-
-  // ── useEffect #2: visibilitychange Resume-Recovery ───────────────
-  // EXPLIZIT GETRENNT von useEffect #1 — kein Zugriff auf stallTimer.
-  // stallTimerRef.current wird hier nur als Sentry-Kontext genutzt,
-  // nie als Kontroll-Flow — damit ist der Crash eliminiert.
-  useEffect(() => {
-    let hiddenAt = 0;
-
-    function onVisibility() {
-      if (document.hidden) {
-        hiddenAt = Date.now();
-        return;
-      }
-      const idleMs = hiddenAt > 0 ? Date.now() - hiddenAt : 0;
-      console.log('[HomeFeed] visibility resume, idle=' + Math.round(idleMs/1000) + 's');
-
-      // Sentry-Kontext: stallTimer-Status (safe — via ref, nie undefined)
-      const hasActiveStall = stallTimerRef.current != null;
-
-      // Nach langem Idle (>60s): loading sicherheitshalber auf false
-      // verhindert stuck-skeleton wenn loadLive während Idle nicht fertig wurde
-      if (idleMs > 60000) {
-        setLoading(false);
-        // Stall-Guard bereinigen (falls noch aktiv — z.B. Tab war lang hidden)
-        if (hasActiveStall) {
-          clearTimeout(stallTimerRef.current);
-          stallTimerRef.current = null;
-        }
-      }
-    }
-
-    document.addEventListener('visibilitychange', onVisibility, { passive: true });
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, []);
-
-  const renderItem = useCallback((item, secIdx, itemIdx) => {
-    if (!item) return null;
-    try {
-      if (typeof window !== 'undefined') {
-        window.__HUI_LAST_FEED_COMPONENT__ =
-          'HomeFeed:' + (item.type || 'unknown') + ':' + (item.id || itemIdx);
-      }
-      const cls = `hui-rise-${Math.min(itemIdx + 1, 4)}`;
-      if (item.type === "talent")
-        return <MemoTalentCard key={item.id} item={item} className={cls}
-                 onView={onViewWirker} onBook={onBook} />;
-      if (item.type === "werk")
-        return <MemoWerkCard key={item.id} item={item} className={cls}
-                 onCart={onAddToCart} />;
-      if (item.type === "video")
-        return <MemoVideoCard key={item.id} item={item} className={cls} />;
-      if (item.type === "impact")
-        return <MemoImpactCard key={item.id} item={item} className={cls}
-                 onImpact={onImpact} />;
-      return null;
-    } catch(err) {
-      sentryCapture(err, {
-        source:     'HomeFeed.renderItem',
-        item_id:    item?.id      ?? null,
-        item_type:  item?.type    ?? 'unknown',
-        item_index: itemIdx,
-        sec_index:  secIdx,
-      });
-      console.error('[HomeFeed] renderItem crash type=' + (item?.type||'?') +
-        ' id=' + (item?.id||itemIdx), err);
-      return null;
-    }
-  }, [onViewWirker, onBook, onAddToCart, onImpact]);
-
-  // ── Virtualization: flatten sections into a single list ────────────
-  // Section headers werden als spezielle Items eingebettet
-  // Typ "__header" → rendert SectionHeader
-  // Typ "__divider" → rendert Trennlinie
-  const flatFeedItems = React.useMemo(() => {
-    const flat = [];
-    sections.forEach((sec, si) => {
-      // Section header als pseudo-item
-      flat.push({ __type: "__header", sec, si, id: `hdr_${sec.id}` });
-      // Echte Items
-      sec.items.forEach((item, ii) => {
-        flat.push({ ...item, __secIdx: si, __itemIdx: ii });
-      });
-      // Trennlinie zwischen Sections (nicht nach letzter)
-      if (si < sections.length - 1) {
-        flat.push({ __type: "__divider", id: `div_${sec.id}` });
-      }
-    });
-    return flat;
-  }, [sections]);
-
-  // ── renderFlatItem: rendert header, divider oder Card ──────────────
-  const renderFlatItem = useCallback((item, index) => {
-    if (!item) return null;
-    try {
-      if (item.__type === "__header") {
-        return <SectionHeader key={item.id} section={item.sec} index={item.si} />;
-      }
-      if (item.__type === "__divider") {
-        return (
-          <div key={item.id}
-            style={{ height: 1, background: T.border, margin: "4px 20px 4px" }} />
-        );
-      }
-      // Echte Feed-Card — renderItem recyceln
-      return renderItem(item, item.__secIdx ?? 0, item.__itemIdx ?? index);
-    } catch(err) {
-      sentryCapture(err, {
-        source:     'HomeFeed.renderFlatItem',
-        item_index: index,
-        item_type:  item?.__type ?? item?.type ?? 'unknown',
-        item_id:    item?.id ?? null,
-      });
-      console.error('[HomeFeed] renderFlatItem crash index=' + index, err);
-      return null;
-    }
-  }, [renderItem]);
-
   return (
-    <div style={{ paddingBottom: 100 }}>
-      {/* Stories */}
-      <StoriesBar onView={onViewWirker} />
+    <>
+      <style>{CSS}</style>
+      <div className="hf-root">
+        <FeedHeader
+          user={user}
+          notifCount={notifCount}
+          chatCount={chatCount}
+          onSearch={onSearch}
+          onNotif={onNotif}
+          onChat={onChat}
+        />
 
-      {/* Divider */}
-      <div style={{ height: 1, background: T.border, margin: "0 20px 4px" }} />
+        <StoryLeiste stories={stories} onStory={onStory} />
 
-      {loading
-        ? [1,2,3].map(i => <SkeletonCard key={i} />)
-        : <VirtualFeedList
-            items={flatFeedItems}
-            renderItem={renderFlatItem}
-            estimatedSize={460}
-            overscan={3}
-            onEndReached={onLoadMore}
-          />
-      }
+        <Divider />
 
-      {/* Infinite scroll — handled by VirtualFeedList.onEndReached */}
-      {!loading && !hasMore && false && (
-        <FeedEndSentinel onVisible={onLoadMore} loading={!!loadingMore} />
-      )}
+        <HeuteSection
+          events={events}
+          onEvent={onEvent}
+          onMoreEvents={onMoreEvents}
+        />
 
-      {/* Footer — only when truly at end */}
-      {!loading && !hasMore && (
-        <div style={{ textAlign: "center", padding: "24px 20px 16px" }}>
-          <div className="hui-breathe" style={{ fontSize: 28, marginBottom: 8 }}>🌱</div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: T.muted }}>
-            Du hast alles gesehen.
-          </div>
-          <div style={{ fontSize: 12, color: T.muted, marginTop: 3 }}>
-            Morgen gibt's Neues.
-          </div>
-        </div>
-      )}
-    </div>
+        <Divider mx={0} />
+
+        <SozialerFeed
+          items={feedItems}
+          onProfile={onProfile}
+          onLike={onLike}
+          onComment={onComment}
+        />
+
+        <MenschenSection people={people} onPerson={onPerson} />
+
+        {/* Bottom Padding für Nav */}
+        <div style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 80px)" }}/>
+      </div>
+    </>
   );
 }
