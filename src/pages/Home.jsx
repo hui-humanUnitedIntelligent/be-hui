@@ -641,7 +641,7 @@ const BN_CSS = `
   }
 `;
 
-function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalent=false, authProfile=null }) {
+function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalent=false, authProfile=null }), orbActive=false,
   const [pressed,   setPressed]  = React.useState(null);
   const [orbOpen,   setOrbOpen]  = React.useState(false);
   const [orbAnim,   setOrbAnim]  = React.useState(false); // breathing
@@ -759,7 +759,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
       )}
 
       {/* Floating Card */}
-      {orbOpen && (
+      {false /* Orb-Card → HuiPlusSheet */ && (
         <div className="hui-orb-card" style={cardStyle} role="dialog" aria-label="HUI Menü">
           {ORB_MENU.map((item, idx) => (
             <React.Fragment key={item.key}>
@@ -791,6 +791,9 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
       <div style={{
         position:"fixed", bottom:0, left:0, right:0, zIndex:100,
         pointerEvents:"none",
+          transform: orbActive ? "translateY(120%)" : "translateY(0)",
+          opacity: orbActive ? 0 : 1,
+          transition:"opacity 0.35s ease, transform 0.35s ease",
       }}>
         <div style={{
           margin:"0 10px",
@@ -818,7 +821,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
               <button
                 key="orb"
                 className={`hui-orb-btn${orbOpen ? " hui-orb-btn--open" : (orbAnim ? " hui-orb-btn--idle" : "")}`}
-                onClick={() => setOrbOpen(o => !o)}
+                onClick={() => onOrbAction?.("create")}
                 aria-label={orbOpen ? "Menü schließen" : "Menü öffnen"}
                 aria-expanded={orbOpen}
               >
@@ -1363,6 +1366,7 @@ export default function Home() {
             switchTab(key);
           }}
           hasTalent={isTalent}
+          orbActive={showPlusSheet}
           authProfile={authProfile}
           notifCount={liveNotifCount}
           msgCount={0}
@@ -1535,6 +1539,7 @@ export default function Home() {
             setCreateType(type);
             setShowCreateFlow(true);
           }}
+          isTalent={isTalent}
         />
       )}
 
