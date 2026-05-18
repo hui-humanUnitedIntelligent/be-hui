@@ -1541,6 +1541,10 @@ export default function Home() {
           activeMood={activeMood}
           onMoodSelect={setActiveMood}
           onMatchFocus={() => {}}
+          onChat={() => setShowChat(true)}
+          onNotif={() => setShowNotifs(true)}
+          msgCount={0}
+          notifCount={liveNotifCount}
         />
 
         <div className="hui-scroll" ref={mainScrollRef}
