@@ -1,4 +1,4 @@
-// HUI build 2026-05-18T07:43:27Z — fix: BookingFlow ReferenceError — safe re-export
+// HUI build 2026-05-18T08:15:29Z — fix: stallTimer ReferenceError eliminiert
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
