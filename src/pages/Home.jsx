@@ -277,82 +277,352 @@ function Korb({ count=0, size=32, onClick }) {
 /* ═══════════════════════════════════════════════════
    HEADER — minimal glass
 ═══════════════════════════════════════════════════ */
-function Header({ userName, avatarUrl }) {
+/* ═══════════════════════════════════════════════════════════════
+   HUI MATCH HEADER — v4
+   Kein Logo. Match-Bar ist Mittelpunkt. Mood-Tuner rechts.
+   DNA: Türkis · Coral · Cream · Glassmorphism · iOS-Premium
+═══════════════════════════════════════════════════════════════ */
+
+const MOODS = [
+  { key:"ruhe",       label:"Ruhig",       emoji:"🌿", color:"#16D7C5" },
+  { key:"kreativ",    label:"Kreativ",     emoji:"✦",  color:"#FF8A6B" },
+  { key:"inspiriert", label:"Inspirierend",emoji:"💫", color:"#F5A623" },
+  { key:"wirkung",    label:"Wirkung",     emoji:"🌱", color:"#16D7C5" },
+  { key:"sozial",     label:"Sozial",      emoji:"🤝", color:"#FF8A6B" },
+  { key:"fokus",      label:"Fokus",       emoji:"◎",  color:"#16D7C5" },
+  { key:"natur",      label:"Natur",       emoji:"🍃", color:"#16D7C5" },
+  { key:"offen",      label:"Offen",       emoji:"∞",  color:"#F5A623" },
+  { key:"lernen",     label:"Lernen",      emoji:"📖", color:"#16D7C5" },
+  { key:"aktiv",      label:"Aktiv",       emoji:"⚡", color:"#FF8A6B" },
+];
+
+const MATCH_PLACEHOLDERS = [
+  "Was bewegt dich heute?",
+  "Ich suche kreative Menschen…",
+  "Heute etwas Ruhiges…",
+  "Menschen in meiner Nähe…",
+  "Ich brauche Inspiration…",
+  "Ich möchte etwas beitragen…",
+  "Verbinde mich mit Energie…",
+  "Zeig mir etwas Überraschendes…",
+];
+
+function MoodPanel({ activeMood, onSelect, onClose }) {
+  const [visible, setVisible] = React.useState(false);
+  React.useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
+  const handleClose = () => { setVisible(false); setTimeout(onClose, 220); };
+  const handleSelect = (mood) => {
+    setVisible(false);
+    setTimeout(() => onSelect(mood), 180);
+  };
+
   return (
-    <div style={{ position:"sticky", top:0, zIndex:60,
-      background:"rgba(255,251,248,0.88)",
-      backdropFilter:"blur(28px) saturate(1.6)",
-      WebkitBackdropFilter:"blur(28px) saturate(1.6)",
-      borderBottom:"1px solid rgba(0,0,0,0.05)" }}>
-      <div style={{ height:"env(safe-area-inset-top,0)" }}/>
-      <div style={{ display:"flex", alignItems:"center",
-        padding:"10px 18px 10px 16px", gap:12 }}>
-
-        {/* ── Logo + wordmark — always visible ── */}
-        <div style={{ display:"flex", alignItems:"center", gap:10, flex:1 }}>
-          <HuiLogo size={38}/>
-
-          <div style={{ lineHeight:1 }}>
-            {/* Line 1: HUI big */}
-            <div style={{ display:"flex", alignItems:"baseline", gap:0,
-              marginBottom:1 }}>
-              <span style={{
-                fontWeight:900, fontSize:18, letterSpacing:-0.5,
-                background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-              }}>H</span>
-              <span style={{
-                fontWeight:700, fontSize:14, color:"rgba(30,30,30,0.75)",
-                letterSpacing:-0.2
-              }}>UI</span>
-              <span style={{ width:1, display:"inline-block" }}/>
-              {/* dot separator */}
-              <span style={{ fontSize:14, color:C.muted2, margin:"0 4px" }}>·</span>
-              <span style={{ fontWeight:900, fontSize:12,
-                background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-                letterSpacing:0.2 }}>
-                H
-              </span>
-              <span style={{ fontWeight:500, fontSize:11,
-                color:"rgba(30,30,30,0.60)", letterSpacing:0 }}>uman </span>
-              <span style={{ fontWeight:900, fontSize:12,
-                background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-                letterSpacing:0.2 }}>
-                U
-              </span>
-              <span style={{ fontWeight:500, fontSize:11,
-                color:"rgba(30,30,30,0.60)" }}>nited </span>
-              <span style={{ fontWeight:900, fontSize:12,
-                background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-                letterSpacing:0.2 }}>
-                I
-              </span>
-              <span style={{ fontWeight:500, fontSize:11,
-                color:"rgba(30,30,30,0.60)" }}>ntelligent</span>
-            </div>
-          </div>
+    <div
+      onClick={handleClose}
+      style={{
+        position:"fixed", inset:0, zIndex:500,
+        background: visible ? "rgba(0,0,0,0.18)" : "rgba(0,0,0,0)",
+        backdropFilter: visible ? "blur(6px)" : "blur(0px)",
+        WebkitBackdropFilter: visible ? "blur(6px)" : "blur(0px)",
+        transition:"background 0.22s ease, backdrop-filter 0.22s ease",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position:"absolute", top:"env(safe-area-inset-top,0)",
+          left:16, right:16, marginTop:72,
+          background:"rgba(255,251,248,0.96)",
+          backdropFilter:"blur(40px) saturate(1.8)",
+          WebkitBackdropFilter:"blur(40px) saturate(1.8)",
+          borderRadius:28,
+          border:"1px solid rgba(22,215,197,0.18)",
+          boxShadow:"0 24px 60px rgba(0,0,0,0.16), 0 0 0 1px rgba(255,255,255,0.8) inset",
+          padding:"20px 18px 24px",
+          transform: visible ? "translateY(0) scale(1)" : "translateY(-18px) scale(0.97)",
+          opacity: visible ? 1 : 0,
+          transition:"transform 0.26s cubic-bezier(0.34,1.4,0.64,1), opacity 0.22s ease",
+        }}
+      >
+        {/* Titel */}
+        <div style={{
+          fontSize:12, fontWeight:700, letterSpacing:1.2, color:"rgba(30,30,30,0.4)",
+          textTransform:"uppercase", marginBottom:16, textAlign:"center",
+        }}>
+          Deine Energie heute
         </div>
 
-        {/* ── Right: Avatar only ── */}
-        {(avatarUrl || userName) && (
-          <div style={{ width:34, height:34, borderRadius:"50%", flexShrink:0,
-            overflow:"hidden",
-            background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontWeight:900, fontSize:13, color:"white",
-            boxShadow:`0 2px 8px ${C.tealGlow}` }}>
-            {avatarUrl
-              ? <img loading="lazy" decoding="async" src={avatarUrl} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
-                  onError={e=>{e.target.style.display="none"}}/>
-              : userName?.[0]?.toUpperCase()
-            }
-          </div>
+        {/* Mood Grid */}
+        <div style={{
+          display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:10,
+        }}>
+          {MOODS.map(m => {
+            const isActive = activeMood?.key === m.key;
+            return (
+              <button
+                key={m.key}
+                onClick={() => handleSelect(m)}
+                style={{
+                  background: isActive
+                    ? `linear-gradient(135deg, ${m.color}22, ${m.color}11)`
+                    : "rgba(255,255,255,0.7)",
+                  border: isActive
+                    ? `1.5px solid ${m.color}55`
+                    : "1.5px solid rgba(0,0,0,0.06)",
+                  borderRadius:18,
+                  padding:"12px 6px 10px",
+                  display:"flex", flexDirection:"column",
+                  alignItems:"center", gap:5,
+                  cursor:"pointer",
+                  WebkitTapHighlightColor:"transparent",
+                  transition:"transform 0.14s ease, box-shadow 0.14s ease",
+                  boxShadow: isActive
+                    ? `0 4px 16px ${m.color}33`
+                    : "0 1px 4px rgba(0,0,0,0.05)",
+                  transform: isActive ? "scale(1.04)" : "scale(1)",
+                }}
+              >
+                <span style={{ fontSize:20, lineHeight:1 }}>{m.emoji}</span>
+                <span style={{
+                  fontSize:10, fontWeight:600, color: isActive ? m.color : "rgba(40,40,40,0.65)",
+                  letterSpacing:0.2, textAlign:"center", lineHeight:1.2,
+                }}>{m.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Reset */}
+        {activeMood && (
+          <button
+            onClick={() => handleSelect(null)}
+            style={{
+              display:"block", margin:"16px auto 0",
+              background:"none", border:"none", cursor:"pointer",
+              fontSize:12, color:"rgba(80,80,80,0.5)", fontWeight:500,
+              WebkitTapHighlightColor:"transparent",
+            }}
+          >
+            Stimmung zurücksetzen
+          </button>
         )}
       </div>
     </div>
+  );
+}
+
+function Header({ userName, avatarUrl, activeMood, onMoodSelect, onMatchFocus }) {
+  const [showMoodPanel, setShowMoodPanel] = React.useState(false);
+  const [inputVal,      setInputVal]      = React.useState("");
+  const [phIdx,         setPhIdx]         = React.useState(0);
+  const [phVisible,     setPhVisible]     = React.useState(true);
+  const inputRef = React.useRef(null);
+
+  // Rotierender Placeholder
+  React.useEffect(() => {
+    const t = setInterval(() => {
+      setPhVisible(false);
+      setTimeout(() => {
+        setPhIdx(i => (i + 1) % MATCH_PLACEHOLDERS.length);
+        setPhVisible(true);
+      }, 350);
+    }, 4200);
+    return () => clearInterval(t);
+  }, []);
+
+  const activeMoodColor = activeMood?.color || "#16D7C5";
+  const hasInput = inputVal.trim().length > 0;
+  const hasMood  = !!activeMood;
+
+  return (
+    <>
+      {/* Sticky Header-Bar */}
+      <div style={{
+        position:"sticky", top:0, zIndex:60,
+        background:"rgba(255,251,248,0.92)",
+        backdropFilter:"blur(32px) saturate(1.7)",
+        WebkitBackdropFilter:"blur(32px) saturate(1.7)",
+        borderBottom: hasMood
+          ? `1px solid ${activeMoodColor}30`
+          : "1px solid rgba(0,0,0,0.05)",
+        transition:"border-color 0.4s ease",
+      }}>
+        {/* Safe area top */}
+        <div style={{ height:"env(safe-area-inset-top,0)" }}/>
+
+        {/* Inner row */}
+        <div style={{
+          display:"flex", alignItems:"center",
+          padding:"10px 14px 10px 14px", gap:10,
+        }}>
+
+          {/* ── MATCH BAR (Hauptelement) ────────────────────────── */}
+          <div
+            onClick={() => { inputRef.current?.focus(); onMatchFocus?.(); }}
+            style={{
+              flex:1, position:"relative",
+              display:"flex", alignItems:"center", gap:10,
+              height:44,
+              background: hasMood
+                ? `linear-gradient(135deg, ${activeMoodColor}14, rgba(255,251,248,0.95))`
+                : "rgba(255,255,255,0.85)",
+              backdropFilter:"blur(16px)",
+              WebkitBackdropFilter:"blur(16px)",
+              borderRadius:999,
+              border: hasMood
+                ? `1.5px solid ${activeMoodColor}45`
+                : "1.5px solid rgba(22,215,197,0.28)",
+              boxShadow: hasMood
+                ? `0 0 0 4px ${activeMoodColor}12, 0 4px 18px rgba(0,0,0,0.07)`
+                : "0 0 0 3px rgba(22,215,197,0.09), 0 4px 18px rgba(0,0,0,0.06)",
+              padding:"0 14px",
+              cursor:"text",
+              transition:"border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease",
+            }}
+          >
+            {/* Resonanz-Icon */}
+            <div style={{ flexShrink:0, lineHeight:0, opacity: hasMood ? 0.9 : 0.45 }}>
+              {hasMood ? (
+                <span style={{ fontSize:16 }}>{activeMood.emoji}</span>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="7" cy="7" r="4.5" stroke="#16D7C5" strokeWidth="1.6"/>
+                  <path d="M11 11 L14.5 14.5" stroke="#16D7C5" strokeWidth="1.6"
+                    strokeLinecap="round"/>
+                  <path d="M5 7 Q7 4.5 9 7 Q7 9.5 5 7Z"
+                    fill="#16D7C5" opacity="0.4"/>
+                </svg>
+              )}
+            </div>
+
+            {/* Input / Placeholder */}
+            <div style={{ flex:1, position:"relative", overflow:"hidden", height:44,
+              display:"flex", alignItems:"center" }}>
+              <input
+                ref={inputRef}
+                value={inputVal}
+                onChange={e => setInputVal(e.target.value)}
+                style={{
+                  position:"absolute", inset:0,
+                  background:"transparent", border:"none", outline:"none",
+                  fontSize:14, fontWeight:500,
+                  color:"rgba(20,20,20,0.85)",
+                  fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
+                  letterSpacing:0.1,
+                  WebkitTapHighlightColor:"transparent",
+                  padding:"0 2px",
+                }}
+                placeholder=""
+              />
+              {/* Animated Placeholder */}
+              {!hasInput && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position:"absolute", left:2,
+                    fontSize:14, fontWeight:500,
+                    color: hasMood
+                      ? `${activeMoodColor}80`
+                      : "rgba(140,140,140,0.65)",
+                    pointerEvents:"none",
+                    opacity: phVisible ? 1 : 0,
+                    transform: phVisible ? "translateY(0)" : "translateY(5px)",
+                    transition:"opacity 0.35s ease, transform 0.35s ease",
+                    whiteSpace:"nowrap",
+                  }}
+                >
+                  {MATCH_PLACEHOLDERS[phIdx]}
+                </span>
+              )}
+            </div>
+
+            {/* Clear wenn Input */}
+            {hasInput && (
+              <button
+                onClick={e => { e.stopPropagation(); setInputVal(""); }}
+                style={{
+                  flexShrink:0, width:20, height:20, borderRadius:"50%",
+                  background:"rgba(0,0,0,0.12)", border:"none",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  cursor:"pointer", WebkitTapHighlightColor:"transparent",
+                  fontSize:11, color:"rgba(60,60,60,0.7)", fontWeight:700,
+                }}
+              >✕</button>
+            )}
+          </div>
+
+          {/* ── MOOD TUNER BUTTON (Zauber-Button) ───────────────── */}
+          <button
+            onClick={() => setShowMoodPanel(p => !p)}
+            style={{
+              flexShrink:0,
+              width:44, height:44, borderRadius:"50%",
+              background: hasMood
+                ? `linear-gradient(135deg, ${activeMoodColor}, ${activeMoodColor}CC)`
+                : "linear-gradient(135deg, #F5A623, #FF8A6B)",
+              border: hasMood
+                ? `1.5px solid ${activeMoodColor}55`
+                : "1.5px solid rgba(245,166,35,0.35)",
+              boxShadow: hasMood
+                ? `0 0 0 4px ${activeMoodColor}22, 0 6px 20px ${activeMoodColor}44`
+                : "0 0 0 4px rgba(245,166,35,0.18), 0 6px 20px rgba(255,138,107,0.35)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer",
+              WebkitTapHighlightColor:"transparent",
+              transition:"transform 0.18s ease, box-shadow 0.25s ease",
+              transform: showMoodPanel ? "scale(0.92) rotate(22deg)" : "scale(1) rotate(0deg)",
+            }}
+          >
+            {hasMood ? (
+              <span style={{ fontSize:18, lineHeight:1 }}>{activeMood.emoji}</span>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 1.5 L10.5 6.5 L15.5 6.5 L11.5 9.5 L13 14.5 L9 11.5 L5 14.5 L6.5 9.5 L2.5 6.5 L7.5 6.5 Z"
+                  fill="white" opacity="0.95"/>
+              </svg>
+            )}
+          </button>
+
+          {/* ── AVATAR ──────────────────────────────────────────── */}
+          {(avatarUrl || userName) && (
+            <div style={{
+              flexShrink:0,
+              width:36, height:36, borderRadius:"50%",
+              overflow:"hidden",
+              background:`linear-gradient(135deg,#16D7C5,#FF8A6B)`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontWeight:900, fontSize:13, color:"white",
+              boxShadow:"0 2px 8px rgba(22,215,197,0.25)",
+            }}>
+              {avatarUrl
+                ? <img loading="lazy" decoding="async" src={avatarUrl} alt=""
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                    onError={e => { e.target.style.display="none"; }}/>
+                : userName?.[0]?.toUpperCase()
+              }
+            </div>
+          )}
+        </div>
+
+        {/* Aktiver Mood-Streifen */}
+        {hasMood && (
+          <div style={{
+            height:2,
+            background:`linear-gradient(90deg, transparent, ${activeMoodColor}66, transparent)`,
+            transition:"background 0.4s ease",
+          }}/>
+        )}
+      </div>
+
+      {/* Mood Panel */}
+      {showMoodPanel && (
+        <MoodPanel
+          activeMood={activeMood}
+          onSelect={(m) => { onMoodSelect?.(m); setShowMoodPanel(false); }}
+          onClose={() => setShowMoodPanel(false)}
+        />
+      )}
+    </>
   );
 }
 
