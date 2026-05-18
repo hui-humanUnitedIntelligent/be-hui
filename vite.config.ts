@@ -1,4 +1,4 @@
-// HUI build 2026-05-17T20:57:16Z — Phase 8D: Humane Digital Civilization Patterns
+// HUI build 2026-05-18T06:37:22Z — Phase X: Auth Experience Redesign
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
