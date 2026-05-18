@@ -35,7 +35,7 @@ import { getProtectionStatus } from '@/lib/protection/index';
 import { getRecoveryStatus } from '@/lib/recovery/index';
 import { runPreflight } from '@/lib/release/preflight';
 import { validateBudgets } from '@/lib/budgets/index';
-import { useRecovery } from "../lib/recovery";
+import { useRecovery } from '@/lib/recovery/index';
 
 // ── Farb-System ────────────────────────────────────────────────
 const C = {
@@ -556,6 +556,3 @@ function PreflightSection() {
     </div>
   );
 }
-
-// Re-import für RecoverySection
-import { useRecovery } from '@/lib/recovery/index';
