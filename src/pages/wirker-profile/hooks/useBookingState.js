@@ -3,9 +3,9 @@
 // REGEL: Keine direkten Supabase-Writes in UI — alles über Context-Actions
 
 import { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import { useBookingActions } from "../../lib/bookingContext";
-import { useFollowStatus } from "../../lib/AppStateContext";
+import { supabase } from "../../../lib/supabaseClient";
+import { useBookingActions } from "../../../lib/bookingContext";
+import { useFollowStatus } from "../../../lib/AppStateContext";
 import { isBookable } from "../utils/profileGuards";
 
 /**
