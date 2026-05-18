@@ -61,7 +61,7 @@ export default function BottomNav({
   hasTalent   = false,
   authProfile = null,
   orbActive   = false,
-  onProfile   = null,
+  // onProfile: entfernt — Profil läuft über onTab("profile") → HomeShell.handleTab
 }) {
   const [orbPulse, setOrbPulse] = React.useState(false);
 
@@ -140,12 +140,7 @@ export default function BottomNav({
                 item={item}
                 isActive={isActive}
                 onPress={(key) => {
-                  if (key === "profile") {
-                    // Profile → via onTab handler (Home.jsx orchestriert)
-                    onTab?.(key);
-                  } else {
-                    onTab?.(key);
-                  }
+                  onTab?.(key);
                 }}
                 badge={badge}
               />
