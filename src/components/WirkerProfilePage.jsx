@@ -777,18 +777,18 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
               marginBottom: 8, lineHeight: 1.5,
               paddingLeft: 2,
             }}>
-              {presence.signature.full}
+              {creativePresence?.signature.full}
             </div>
           )}
 
           {/* Rhythm + Bridge — nur wenn nicht "konstant" oder "Bridge" */}
-          {(presence?.rhythm?.key && presence.rhythm.key !== 'consistent') ||
-           presence?.continuity?.isBridge ? (
+          {(creativePresence?.rhythm?.key && creativePresence?.rhythm.key !== 'consistent') ||
+           creativePresence?.continuity?.isBridge ? (
             <div style={{
               display: "flex", gap: 6, flexWrap: "wrap",
               marginBottom: 10,
             }}>
-              {creativePresence?.rhythm?.key && presence.rhythm.key !== 'consistent' && (
+              {creativePresence?.rhythm?.key && creativePresence?.rhythm.key !== 'consistent' && (
                 <span style={{
                   fontSize: 11, color: "rgba(0,0,0,0.42)",
                   background: "rgba(0,0,0,0.04)",
@@ -796,8 +796,8 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                   border: "1px solid rgba(0,0,0,0.07)",
                   display: "flex", alignItems: "center", gap: 4,
                 }}>
-                  <span style={{ fontSize: 10 }}>{presence.rhythm.icon}</span>
-                  {presence.rhythm.label}
+                  <span style={{ fontSize: 10 }}>{creativePresence?.rhythm.icon}</span>
+                  {creativePresence?.rhythm.label}
                 </span>
               )}
               {creativePresence?.continuity?.isBridge && (
@@ -807,7 +807,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
                   borderRadius: 50, padding: "3px 9px",
                   border: "1px solid rgba(0,0,0,0.07)",
                 }}>
-                  {presence.continuity.domainFamilies.slice(0,2).join(' × ')}
+                  {creativePresence?.continuity.domainFamilies.slice(0,2).join(' × ')}
                 </span>
               )}
             </div>
@@ -2881,7 +2881,7 @@ function RequestSheet({ profile, user, onClose }) {
               letterSpacing:-.3, marginBottom:4 }}>
               Anfrage an {profile?.display_name?.split(" ")[0]}
               {/* Phase 6G: Collaboration Feeling */}
-              {presence?.collaboration && (
+              {creativePresence?.collaboration && (
                 <div style={{
                   fontSize: 12, color: "rgba(0,0,0,0.4)",
                   fontStyle: "italic", marginTop: 4,
