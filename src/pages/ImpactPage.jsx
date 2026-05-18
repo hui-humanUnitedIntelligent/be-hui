@@ -126,7 +126,7 @@ const MOCK_PROJECTS = [
 
 const MOCK_ACTIVITY = [
   { id:"a1", text:"Lea hat für Musikräume abgestimmt", time:"vor 2 Min", avatar:"https://i.pravatar.cc/36?img=11", icon:"🗳" },
-  { id:"a2", text:"Neues Projekt „Kreative Nachbarschaft" eingereicht", time:"vor 15 Min", avatar:null, icon:"🌱" },
+  { id:"a2", text:"Neues Projekt Kreative Nachbarschaft eingereicht", time:"vor 15 Min", avatar:null, icon:"🌱" },
   { id:"a3", text:"Tim hat € 25 zum Impact Pool beigetragen", time:"vor 1 Std", avatar:"https://i.pravatar.cc/36?img=53", icon:"💚" },
   { id:"a4", text:"Das Projekt Wald Klassenzimmer wurde vollständig gefördert 🎉", time:"vor 3 Std", avatar:null, icon:"🎉" },
 ];
