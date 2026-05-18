@@ -81,13 +81,13 @@ const CSS = `
     transform: scale(0.985);
   }
   /* Search field */
-  .hf-search {
-    background: rgba(0,0,0,0.055);
-    border: none;
-    border-radius: 22px;
-    padding: 9px 16px 9px 36px;
-    font-size: 14px;
-    color: #1A1A1A;
+  /* .hf-search { */
+  /* background: rgba(0,0,0,0.055); */
+  /* border: none; */
+  /* border-radius: 22px; */
+  /* padding: 9px 16px 9px 36px; */
+  /* font-size: 14px; */
+  /* color: #1A1A1A; */
     width: 100%;
     outline: none;
     font-family: inherit;
@@ -245,77 +245,7 @@ const MOCK_PEOPLE = [
 
 /* ─── Sub-Komponenten ────────────────────────────────────────────────── */
 
-/* Sticky Header */
-function FeedHeader({ user, notifCount = 0, chatCount = 0, onSearch, onNotif, onChat }) {
-  return (
-    <div style={{
-      position: "sticky", top: 0, zIndex: 60,
-      background: "rgba(250,250,248,0.92)",
-      backdropFilter: "blur(24px) saturate(1.6)",
-      WebkitBackdropFilter: "blur(24px) saturate(1.6)",
-      borderBottom: `1px solid ${T.borderSoft}`,
-    }}>
-      {/* safe-area top */}
-      <div style={{ height: "env(safe-area-inset-top, 0)" }} />
-      <div style={{
-        display: "flex", alignItems: "center",
-        padding: "10px 16px 10px 14px", gap: 10,
-      }}>
-        {/* Logo */}
-        <div style={{
-          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-          background: `linear-gradient(135deg, ${T.teal}, ${T.teal2})`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: `0 2px 8px ${T.tealGlow}`,
-        }}>
-          <img src="/hui-logo.jpg" alt="HUI"
-            style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover" }}
-            onError={e => { e.target.style.display = "none"; }}
-          />
-        </div>
-
-        {/* Suchfeld */}
-        <div style={{ flex: 1, position: "relative" }}>
-          <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }}
-            width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <circle cx="10.5" cy="10.5" r="7" stroke={T.muted} strokeWidth="1.8"/>
-            <path d="M16 16 L20.5 20.5" stroke={T.muted} strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
-          <input
-            className="hf-search"
-            placeholder="Was bewegt dich heute?"
-            onFocus={onSearch}
-            readOnly
-          />
-          {/* Sparkle rechts */}
-          <span style={{
-            position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
-            fontSize: 14, opacity: 0.5,
-          }}>✦</span>
-        </div>
-
-        {/* Notif */}
-        <IconBtn count={notifCount} onClick={onNotif}>
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
-              stroke={T.ink2} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"
-              stroke={T.ink2} strokeWidth="1.7" strokeLinecap="round"/>
-          </svg>
-        </IconBtn>
-
-        {/* Chat */}
-        <IconBtn count={chatCount} onClick={onChat} accent={T.teal}>
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-              stroke={T.ink2} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
-              fill="none"/>
-          </svg>
-        </IconBtn>
-      </div>
-    </div>
-  );
-}
+// FeedHeader entfernt — Header läuft über Home.jsx <Header>
 
 function IconBtn({ count, onClick, children, accent = T.coral }) {
   return (
@@ -945,15 +875,6 @@ export default function HomeFeed({
     <>
       <style>{CSS}</style>
       <div className="hf-root">
-        <FeedHeader
-          user={user}
-          notifCount={notifCount}
-          chatCount={chatCount}
-          onSearch={onSearch}
-          onNotif={onNotif}
-          onChat={onChat}
-        />
-
         <StoryLeiste stories={stories} onStory={onStory} />
 
         <Divider />
