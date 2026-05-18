@@ -31,6 +31,7 @@ import HuiMembershipFlow from "../components/HuiMembershipFlow";
 import HuiCreateFlow  from "../components/HuiCreateFlow";
 import HuiPlusSheet   from "../components/HuiPlusSheet";
 import { useSessionRestore, useScrollMemory, useOwnPresence, useTabKeepAlive } from "../lib/sessionHooks";
+import HomeFeed from "../components/HomeFeed";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1560,21 +1561,23 @@ export default function Home() {
           {/* ── KEEP-ALIVE TABS: display:none statt unmount ──────────────── */}
           {/* Feed — bleibt immer gemountet, scroll position bleibt erhalten */}
           <div style={keepFeed}>
-            <DiscoveryFeed
-              onView={(w) => (w.type==="werk" || (w.price && w.type!=="wirker" && w.type!=="talent" && w.type!=="profile")) ? setShowWerkDetail(w) : setShowWirker(w)}
-              onBook={(w) => {
-                // Buchungsanfrage über WirkerProfilePage.RequestSheet
-                // WirkerProfilePage öffnen → RequestSheet öffnet sich intern
-                setShowWirker(w);
+            <HomeFeed
+              user={currentUser}
+              notifCount={liveNotifCount}
+              chatCount={0}
+              onSearch={() => {}}
+              onNotif={() => setShowNotifs(true)}
+              onChat={() => setShowChat(true)}
+              onStory={(s) => {
+                if (s?.isYou) setShowStoryComposer(true);
+                else if (s) setActiveStory(s);
               }}
-              onImpact={() => switchTab("impact")}
-              onMatch={() => setShowMatch(true)}
-              onMap={() => setShowMap(true)}
-              onBuyWerk={(w) => setShowWerkCheckout([w])}
-              onAddToKorb={(w) => { setCart(p => [...p, w]); }}
-              storyRefreshKey={storyRefreshKey}
-              onOpenComposer={() => setShowStoryComposer(true)}
-              activeMood={activeMood}
+              onEvent={() => {}}
+              onMoreEvents={() => switchTab("discover")}
+              onProfile={(item) => setShowWirker(item)}
+              onLike={() => {}}
+              onComment={() => {}}
+              onPerson={(p) => setShowWirker(p)}
             />
           </div>
           {/* Discover — bleibt gemountet */}
