@@ -690,19 +690,6 @@ function NavIcon({ k, active }) {
     </svg>
   );
 
-  /* PROFILE — abstract face, warm */
-  if(k==="profile") return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      {/* Head circle */}
-      <circle cx="12" cy="8.5" r="4"
-        fill={active ? `${C.teal}18` : "rgba(80,80,80,0.08)"}
-        stroke={col} strokeWidth={sw}/>
-      {/* Shoulders arc */}
-      <path d="M4 21 Q4 15 12 15 Q20 15 20 21"
-        stroke={col} strokeWidth={sw} strokeLinecap="round"
-        fill={active ? `${C.teal}10` : "none"}/>
-    </svg>
-  );
 
   /* CHAT — speech bubble mit warmem Akzent */
   /* PROFIL — organische Presence-Silhouette */
@@ -929,6 +916,7 @@ function BottomNav({
   hasTalent   = false,
   authProfile = null,
   orbActive   = false,
+  onProfile  = null,
 }) {
   const [pressed, setPressed] = React.useState(null);
   const [orbAnim, setOrbAnim] = React.useState(false);
