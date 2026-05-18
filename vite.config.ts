@@ -1,4 +1,4 @@
-// HUI 2026-05-18T16:45:55Z fix: BottomNav Signatur orbActive korrekt
+// HUI 2026-05-18T16:56:55Z fix: BottomNav STABLE no orbOpen
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
