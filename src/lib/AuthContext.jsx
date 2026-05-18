@@ -212,56 +212,86 @@ export function AuthProvider({ children }) {
   }, [user]);
 
 
-  // ── OAuth & Magic Link — Phase X Auth Redesign ─────────────────
-  // Safe-Wrapped: schlagen nie undefined-Fehler —
-  // auch wenn Supabase OAuth Provider nicht konfiguriert ist.
+  // ── OAuth & Magic Link — stabile noopAsync Architektur ────────────
+  //
+  // ARCHITEKTUR-REGEL:
+  // Jede Auth-Methode ist VOR dem Provider-Value vollständig definiert.
+  // noopAsync als Fallback: verhindert undefined-Referenzen im Context-Value.
+  // Kein Auth-Fehler darf jemals die gesamte Seite crashen.
+  //
+  // noopAsync: gibt immer { data: null, error } zurück — nie undefined.
+  // Verhindert: ReferenceError: Can't find variable: signInWithGoogle
+  //             (tritt auf wenn Funktion nicht definiert ist beim Provider-Value)
+
+  const noopAsync = async (methodName) => ({
+    data: null,
+    error: new Error('[HUI Auth] ' + methodName + ' nicht verfügbar')
+  });
 
   const signInWithGoogle = useCallback(async () => {
+    // Defensive: verhindert undefined bei Safari ESModule-Evaluation
+    if (typeof supabase?.auth?.signInWithOAuth !== 'function') {
+      return noopAsync('signInWithGoogle');
+    }
     try {
       return await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: window.location.origin + '/auth/callback' },
       });
     } catch (err) {
-      console.warn('[HUI Auth] Google OAuth nicht verfügbar:', err?.message);
-      return { error: err };
+      console.warn('[HUI Auth] Google OAuth Fehler:', err?.message);
+      return { data: null, error: err };
     }
   }, []);
 
   const signInWithApple = useCallback(async () => {
+    if (typeof supabase?.auth?.signInWithOAuth !== 'function') {
+      return noopAsync('signInWithApple');
+    }
     try {
       return await supabase.auth.signInWithOAuth({
         provider: 'apple',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: window.location.origin + '/auth/callback' },
       });
     } catch (err) {
-      console.warn('[HUI Auth] Apple OAuth nicht verfügbar:', err?.message);
-      return { error: err };
+      console.warn('[HUI Auth] Apple OAuth Fehler:', err?.message);
+      return { data: null, error: err };
     }
   }, []);
 
   const signInWithMagicLink = useCallback(async (email) => {
+    if (typeof supabase?.auth?.signInWithOtp !== 'function') {
+      return noopAsync('signInWithMagicLink');
+    }
     try {
       return await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: window.location.origin + '/auth/callback' },
       });
     } catch (err) {
-      console.warn('[HUI Auth] Magic Link nicht verfügbar:', err?.message);
-      return { error: err };
+      console.warn('[HUI Auth] Magic Link Fehler:', err?.message);
+      return { data: null, error: err };
     }
   }, []);
 
   const resetPassword = useCallback(async (email) => {
+    if (typeof supabase?.auth?.resetPasswordForEmail !== 'function') {
+      return noopAsync('resetPassword');
+    }
     try {
       return await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: window.location.origin + '/auth/callback',
       });
     } catch (err) {
-      console.warn('[HUI Auth] Password Reset nicht verfügbar:', err?.message);
-      return { error: err };
+      console.warn('[HUI Auth] Password Reset Fehler:', err?.message);
+      return { data: null, error: err };
     }
   }, []);
+
+  // Stable noop für alle weiteren Auth-Methoden die noch nicht implementiert
+  // werden könnten — verhindert undefined in Provider Value
+  const signInWithPhone  = useCallback(() => noopAsync('signInWithPhone'), []);
+  const signInWithGitHub = useCallback(() => noopAsync('signInWithGitHub'), []);
 
   const isWirker         = profile?.has_talent_profile || profile?.is_wirker || false;
   const hasTalentProfile = profile?.has_talent_profile || false;
