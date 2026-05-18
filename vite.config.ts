@@ -1,4 +1,4 @@
-// HUI 2026-05-18T13:24:24Z fix: DiscoverPage v3 routing fix
+// HUI 2026-05-18T14:05:35Z feat: ImpactPage v4 premium redesign
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
