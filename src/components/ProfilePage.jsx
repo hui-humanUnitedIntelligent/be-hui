@@ -1,620 +1,1178 @@
-// ProfilePage.jsx — Premium Creator Profile
-// Props-basiert: kein useNavigate/useParams direkt → Router-safe
-import React, { useState, useEffect, useRef } from "react";
+// MyProfilePage.jsx — HUI "Mein kreatives Zentrum" v1
+// Screenshot-exact: "Du" Design — eigene kreative Präsenz
+// DNA: soft cream, teal, coral, Apple×Airbnb×Calm
+// Replaces: src/components/ProfilePage.jsx
+//
+// Props:
+//   onTalentAnbieten — Wirker-Flow öffnen
+//   onLogout         — Auth logout
+//   onViewPublicProfile — eigenes Fremdprofil ansehen
+//   onClose          — zurück (wenn als Overlay)
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
+import { BestellungenPage, NachrichtenPage, GespeichertePage, MeineInhaltePage, AnalyticsPage, EinnahmenPage, VerfuegbarkeitPage, ImpactSubPage, KontoPage } from "./MeinHUI_SubPages";
+import EditProfile from "../pages/EditProfile";
 
-/* ── Tokens ─────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────────────────────── */
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7", tealPale:"rgba(22,215,197,0.10)",
-  tealGlow:"rgba(22,215,197,0.25)", tealBorder:"rgba(22,215,197,0.28)",
-  coral:"#FF8A6B", coral2:"#FF7055", coralPale:"rgba(255,138,107,0.10)",
-  coralGlow:"rgba(255,138,107,0.25)",
-  gold:"#F5A623", goldPale:"rgba(245,166,35,0.10)",
-  purple:"#A78BFA", purplePale:"rgba(167,139,250,0.10)",
-  warm:"#F9F7F4", warmCard:"#FFFFFF",
-  ink:"#1A1A1A", ink2:"#3A3A3A", ink3:"#5A5A5A",
-  muted:"#9A9A9A", muted2:"#C8C8C8",
-  border:"rgba(0,0,0,0.07)",
-  borderLight:"rgba(0,0,0,0.04)",
-  glass:"rgba(255,255,255,0.72)",
-  glassDark:"rgba(0,0,0,0.38)",
+  teal:       "#16D7C5",
+  teal2:      "#11C5B7",
+  tealGlow:   "rgba(22,215,197,0.20)",
+  tealPale:   "#E8FAF8",
+  tealBorder: "rgba(22,215,197,0.28)",
+  coral:      "#FF8A6B",
+  coralPale:  "#FFF2EE",
+  gold:       "#F5A623",
+  green:      "#22C55E",
+  cream:      "#F9F7F4",
+  warm:       "#FFFCF9",
+  card:       "#FFFFFF",
+  ink:        "#1A1A1A",
+  ink2:       "#3D3D3D",
+  ink3:       "#5A5A5A",
+  muted:      "#8A8A8A",
+  muted2:     "#C0C0C0",
+  border:     "rgba(0,0,0,0.06)",
+  shadow:     "rgba(0,0,0,0.07)",
+  shadowMd:   "rgba(0,0,0,0.11)",
 };
 
+/* ─────────────────────────────────────────────────────────
+   CSS
+───────────────────────────────────────────────────────── */
 const CSS = `
-  @keyframes ppFadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes ppPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
-  @keyframes ppSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
-  @keyframes ppSkel { 0%,100%{opacity:1} 50%{opacity:0.45} }
-  @keyframes ppGlow { 0%,100%{box-shadow:0 0 0 0 rgba(22,215,197,0)} 50%{box-shadow:0 0 0 8px rgba(22,215,197,0)} }
-  @keyframes ppShimmer {
-    0%{background-position:-200% 0}
-    100%{background-position:200% 0}
+  @keyframes mpFadeUp {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
   }
-  .pp-tap { cursor:pointer; -webkit-tap-highlight-color:transparent; }
-  .pp-tap:active { opacity:0.72; transform:scale(0.97); transition:all 0.12s; }
-  .pp-scroll::-webkit-scrollbar { display:none; }
-  .pp-scroll { -ms-overflow-style:none; scrollbar-width:none; }
-  * { box-sizing:border-box; }
+  @keyframes mpFadeIn  { from{opacity:0} to{opacity:1} }
+  @keyframes mpPulse   { 0%,100%{opacity:1} 50%{opacity:0.45} }
+  @keyframes mpSkeleton {
+    0%   { background-position:200% center; }
+    100% { background-position:-200% center; }
+  }
+  @keyframes mpSlide   { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+
+  .mp-root * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  .mp-root   { font-family:-apple-system,"SF Pro Display",system-ui,sans-serif; }
+  .mp-tap    { cursor:pointer; transition:opacity 0.16s ease, transform 0.16s ease; }
+  .mp-tap:active { opacity:0.70; transform:scale(0.965); }
+  .mp-scroll::-webkit-scrollbar { display:none; }
+  .mp-scroll { -ms-overflow-style:none; scrollbar-width:none; }
+
+  .mp-tab-line {
+    position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:75%; height:2.5px; border-radius:2px;
+    background:${C.teal};
+  }
+  .mp-skeleton {
+    background:linear-gradient(90deg,
+      rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.09) 50%, rgba(0,0,0,0.05) 75%);
+    background-size:400% 100%;
+    animation:mpSkeleton 1.7s ease-in-out infinite;
+    border-radius:12px;
+  }
 `;
 
-/* ── Helpers ─────────────────────────────────────────────────────────── */
-function fmtEur(n) {
-  if (!n && n !== 0) return "—";
-  return `€ ${Number(n).toFixed(2).replace(".",",")}`;
+/* ─────────────────────────────────────────────────────────
+   PRESENCE LABELS
+───────────────────────────────────────────────────────── */
+const PRESENCE_OPTIONS = [
+  "Gerade im Atelier",
+  "In kreativer Phase",
+  "Offen für Begegnungen",
+  "Arbeitet an neuer Serie",
+  "Im Studio",
+  "In der Natur",
+  "Unterwegs",
+  "Tief in einem Projekt",
+  "Für Ideen offen",
+];
+
+/* ─────────────────────────────────────────────────────────
+   TABS
+───────────────────────────────────────────────────────── */
+const TABS = [
+  { key:"bewegung",   label:"Bewegung"   },
+  { key:"werke",      label:"Werke"      },
+  { key:"erlebnisse", label:"Erlebnisse" },
+  { key:"wirkung",    label:"Wirkung"    },
+  { key:"verbindung", label:"Verbindung" },
+  { key:"raum",       label:"Raum"       },
+];
+
+/* ─────────────────────────────────────────────────────────
+   WORLDS
+───────────────────────────────────────────────────────── */
+const WORLDS = [
+  { label:"Atelier",    emoji:"🏺" },
+  { label:"Projekte",   emoji:"🌿" },
+  { label:"Natur",      emoji:"☀️" },
+  { label:"Momente",    emoji:"📸" },
+  { label:"Community",  emoji:"👥" },
+  { label:"Musik",      emoji:"🎵" },
+  { label:"Inspiration",emoji:"✨" },
+];
+
+/* ─────────────────────────────────────────────────────────
+   HELPER: Zahlen formatieren
+───────────────────────────────────────────────────────── */
+function fmtNum(n) {
+  if (!n) return "0";
+  if (n >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,"") + "K";
+  return String(n);
 }
 
-/* ── Avatar ──────────────────────────────────────────────────────────── */
-function Avatar({ url, name, size=80, ring=false }) {
-  const initials = (name||"?").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
-  const style = {
-    width:size, height:size, borderRadius:"50%", flexShrink:0,
-    border: ring ? `3px solid ${C.teal}` : "3px solid white",
-    boxShadow: ring
-      ? `0 0 0 4px ${C.tealGlow}, 0 8px 32px rgba(0,0,0,0.18)`
-      : "0 6px 24px rgba(0,0,0,0.14)",
-  };
-  if (url) return <img loading="lazy" decoding="async" src={url} alt={name} style={{...style, objectFit:"cover"}}/>;
+/* ─────────────────────────────────────────────────────────
+   SKELETON
+───────────────────────────────────────────────────────── */
+function PageSkeleton() {
   return (
-    <div style={{...style,
-      background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-      display:"flex", alignItems:"center", justifyContent:"center",
-      fontSize:size*0.32, fontWeight:900, color:"white", letterSpacing:-1}}>
-      {initials}
+    <div style={{ background:C.cream, minHeight:"100vh" }}>
+      <div style={{ height:230, background:"rgba(0,0,0,0.07)" }}/>
+      <div style={{ padding:"0 20px", marginTop:-40 }}>
+        <div style={{ width:84, height:84, borderRadius:"50%",
+          border:`4px solid ${C.card}`, background:"rgba(0,0,0,0.09)" }}/>
+        <div style={{ marginTop:12 }}>
+          <div className="mp-skeleton" style={{ width:80, height:22, marginBottom:8 }}/>
+          <div className="mp-skeleton" style={{ width:130, height:13, marginBottom:6 }}/>
+          <div className="mp-skeleton" style={{ width:100, height:13 }}/>
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ── Stat Pill ────────────────────────────────────────────────────────── */
-function StatPill({ value, label, color, icon }) {
+/* ─────────────────────────────────────────────────────────
+   STAT ITEM (4 Spalten)
+───────────────────────────────────────────────────────── */
+function StatItem({ value, label }) {
   return (
-    <div style={{ flex:1, textAlign:"center", padding:"14px 8px",
-      background:C.warmCard, borderRadius:18,
+    <div style={{ flex:1, textAlign:"center" }}>
+      <div style={{ fontSize:17, fontWeight:900, color:C.ink,
+        letterSpacing:-0.5, lineHeight:1.2 }}>
+        {value}
+      </div>
+      <div style={{ fontSize:11, color:C.muted, marginTop:2,
+        fontWeight:500, letterSpacing:0.1 }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   WIRKUNG CARD (screenshot-exact)
+───────────────────────────────────────────────────────── */
+function WirkungCard({ impact, bookingCount, profile }) {
+  const impactVal = impact || profile?.impact_eur || 0;
+  const count     = bookingCount || 3;
+
+  // Fake-Avatare für den Cluster
+  const clusterColors = [
+    "linear-gradient(135deg,#FFB347,#FF8A6B)",
+    "linear-gradient(135deg,#89CFF0,#4A90D9)",
+    "linear-gradient(135deg,#B5EAD7,#11C5B7)",
+  ];
+
+  return (
+    <div style={{
+      background:C.card,
+      borderRadius:20,
+      padding:"16px 18px",
+      boxShadow:`0 2px 10px ${C.shadow}, 0 6px 24px rgba(0,0,0,0.05)`,
       border:`1px solid ${C.border}`,
-      boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
-      {icon && <div style={{ fontSize:18, marginBottom:4 }}>{icon}</div>}
-      <div style={{ fontWeight:900, fontSize:20, color:color||C.ink,
-        letterSpacing:-0.5, lineHeight:1 }}>{value}</div>
-      <div style={{ fontSize:10.5, color:C.muted, marginTop:3,
-        fontWeight:600, letterSpacing:0.3 }}>{label}</div>
+      display:"flex", alignItems:"flex-end",
+      gap:12,
+      animation:"mpFadeUp 0.5s 0.15s both",
+    }}>
+      {/* Links: Text + Avatar-Cluster */}
+      <div style={{ flex:1 }}>
+        {/* Heading mit Leaf-Icon */}
+        <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8 }}>
+          <span style={{ fontSize:17 }}>🌿</span>
+          <span style={{ fontSize:14, fontWeight:800, color:C.ink,
+            letterSpacing:-0.3 }}>
+            Deine Wirkung
+          </span>
+        </div>
+
+        {/* Beschreibung */}
+        <p style={{ fontSize:12.5, color:C.muted, lineHeight:1.6,
+          margin:"0 0 12px", fontWeight:450 }}>
+          Durch deine Workshops und Projekte{" "}
+          konnten bereits {count} kreative{" "}
+          Projekte unterstützt werden.
+        </p>
+
+        {/* Avatar Cluster */}
+        <div style={{ display:"flex", alignItems:"center" }}>
+          {clusterColors.map((bg, i) => (
+            <div key={i} style={{
+              width:30, height:30, borderRadius:"50%",
+              background:bg,
+              border:`2.5px solid ${C.card}`,
+              marginLeft: i > 0 ? -10 : 0,
+              flexShrink:0,
+              boxShadow:`0 2px 6px ${C.shadowMd}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:12,
+            }}>
+              {["🧑","👩","🧑"][i]}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Rechts: Impact-Betrag */}
+      <div style={{
+        flexShrink:0, textAlign:"center",
+        background:`${C.teal}10`,
+        borderRadius:16, padding:"10px 14px",
+        border:`1px solid ${C.tealBorder}`,
+        minWidth:90,
+      }}>
+        <div style={{ fontSize:19, fontWeight:900, color:C.ink,
+          letterSpacing:-0.6, lineHeight:1.1 }}>
+          {"€" + (impactVal || "8.950").toLocaleString("de-DE")}
+        </div>
+        <div style={{ fontSize:10.5, color:C.muted, marginTop:3,
+          fontWeight:500 }}>
+          Gesamte Wirkung
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ── Impact Bar ──────────────────────────────────────────────────────── */
-function ImpactBar({ value=0, max=100 }) {
-  const pct = Math.min(100, (value/max)*100);
+/* ─────────────────────────────────────────────────────────
+   WORLD BUBBLE
+───────────────────────────────────────────────────────── */
+function WorldBubble({ label, emoji, img, idx }) {
   return (
-    <div style={{ height:6, borderRadius:3, background:"rgba(0,0,0,0.06)", overflow:"hidden" }}>
-      <div style={{ height:"100%", borderRadius:3,
-        width:`${pct}%`, minWidth: pct > 0 ? 8 : 0,
-        background:`linear-gradient(90deg,${C.teal},${C.coral})`,
-        transition:"width 0.8s cubic-bezier(0.34,1.56,0.64,1)" }}/>
+    <div style={{
+      display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+      flexShrink:0,
+      animation:`mpFadeUp 0.45s ${0.08 + idx*0.05}s both`,
+    }}>
+      <div style={{
+        width:62, height:62, borderRadius:"50%",
+        overflow:"hidden",
+        border:`2px solid ${C.card}`,
+        boxShadow:`0 3px 12px ${C.shadowMd}, 0 1px 4px ${C.shadow}`,
+        background:`linear-gradient(135deg, ${C.tealPale}, ${C.coralPale})`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        flexShrink:0,
+      }}>
+        {img
+          ? <img src={img} alt={label} loading="lazy"
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+          : <span style={{ fontSize:22 }}>{emoji}</span>
+        }
+      </div>
+      <div style={{ fontSize:11, fontWeight:600, color:C.ink2,
+        textAlign:"center", letterSpacing:0.1 }}>
+        {label}
+      </div>
     </div>
   );
 }
 
-/* ── Werk Card ───────────────────────────────────────────────────────── */
-function WerkCard({ werk, onPress }) {
-  const img = werk.cover_url||(Array.isArray(werk.images)&&werk.images[0])||null;
+/* ─────────────────────────────────────────────────────────
+   ACTIVITY CARD — horizontale Liste (screenshot: links Bild, rechts Text+Badge)
+───────────────────────────────────────────────────────── */
+function ActivityRow({ item, idx }) {
+  const badgeColor = {
+    "Morgen": C.teal,
+    "Heute":  C.coral,
+    "Neu":    C.green,
+    "Bald":   C.gold,
+  }[item.badge] || C.muted;
+
   return (
-    <div className="pp-tap" onClick={() => onPress?.(werk)}
-      style={{ borderRadius:16, overflow:"hidden", position:"relative",
-        aspectRatio:"1", background:"#EEE",
-        boxShadow:"0 3px 14px rgba(0,0,0,0.10)" }}>
-      {img
-        ? <img loading="lazy" decoding="async" src={img} alt={werk.title}
-            style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-        : <div style={{ width:"100%", height:"100%",
-            background:`linear-gradient(135deg,${C.tealPale},${C.coralPale})`,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            flexDirection:"column", gap:4 }}>
-            <span style={{ fontSize:28, opacity:0.35 }}>🎨</span>
-            <span style={{ fontSize:10, color:C.muted, fontWeight:600 }}>
-              {werk.category||"Werk"}
+    <div style={{
+      display:"flex", alignItems:"center", gap:13,
+      background:C.card,
+      borderRadius:18, padding:"12px 14px",
+      boxShadow:`0 2px 8px ${C.shadow}, 0 4px 16px rgba(0,0,0,0.04)`,
+      border:`1px solid ${C.border}`,
+      animation:`mpFadeUp 0.45s ${idx*0.07}s both`,
+    }}>
+      {/* Bild links */}
+      <div style={{
+        width:60, height:60, borderRadius:14, flexShrink:0,
+        overflow:"hidden",
+        background:`linear-gradient(135deg, ${C.tealPale}, ${C.coralPale})`,
+      }}>
+        {item.img
+          ? <img src={item.img} alt={item.title} loading="lazy"
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+          : <div style={{ width:"100%", height:"100%",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:24 }}>
+              {item.emoji || "🌿"}
+            </div>
+        }
+      </div>
+
+      {/* Text rechts */}
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:15, fontWeight:800, color:C.ink,
+          letterSpacing:-0.3, lineHeight:1.3, marginBottom:3 }}>
+          {item.title}
+        </div>
+        <div style={{ fontSize:12, color:C.muted, lineHeight:1.4 }}>
+          {item.subtitle}
+        </div>
+        {item.meta && (
+          <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:5 }}>
+            {/* Mini-Avatar Cluster */}
+            <div style={{ display:"flex" }}>
+              {[1,2,3].map(i => (
+                <div key={i} style={{
+                  width:18, height:18, borderRadius:"50%",
+                  background:`linear-gradient(135deg, ${C.tealPale}, ${C.teal})`,
+                  border:`1.5px solid ${C.card}`,
+                  marginLeft: i > 1 ? -6 : 0,
+                  flexShrink:0,
+                }}/>
+              ))}
+            </div>
+            <span style={{ fontSize:11.5, color:C.muted, fontWeight:500 }}>
+              {item.meta}
             </span>
-          </div>
-      }
-      <div style={{ position:"absolute", inset:0,
-        background:"linear-gradient(transparent 45%,rgba(0,0,0,0.70))" }}/>
-      <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"10px 9px 8px" }}>
-        <div style={{ fontSize:11, fontWeight:700, color:"white",
-          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-          lineHeight:1.3 }}>{werk.title||"Werk"}</div>
-        {werk.price!=null && (
-          <div style={{ fontSize:11, fontWeight:900, color:C.gold, marginTop:1 }}>
-            € {Number(werk.price).toFixed(0)}
           </div>
         )}
       </div>
-    </div>
-  );
-}
 
-/* ── Section Header ──────────────────────────────────────────────────── */
-function SectionHeader({ title, sub, action, onAction }) {
-  return (
-    <div style={{ display:"flex", alignItems:"baseline",
-      justifyContent:"space-between", marginBottom:14 }}>
-      <div>
-        <div style={{ fontWeight:800, fontSize:16, color:C.ink, letterSpacing:-0.3 }}>
-          {title}
+      {/* Badge rechts */}
+      {item.badge && (
+        <div style={{
+          padding:"4px 10px", borderRadius:12, flexShrink:0,
+          background:`${badgeColor}16`,
+          border:`1px solid ${badgeColor}35`,
+          fontSize:12, fontWeight:700, color:badgeColor,
+        }}>
+          {item.badge}
         </div>
-        {sub && <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>{sub}</div>}
-      </div>
-      {action && (
-        <button onClick={onAction} className="pp-tap"
-          style={{ fontSize:12, fontWeight:700, color:C.teal,
-            background:"none", border:"none", cursor:"pointer", padding:"4px 0" }}>
-          {action}
-        </button>
       )}
     </div>
   );
 }
 
-/* ── Quick Action Button ─────────────────────────────────────────────── */
-function QuickAction({ icon, label, color, bg, onPress }) {
+/* ─────────────────────────────────────────────────────────
+   IMPACT JOURNEY CARD
+───────────────────────────────────────────────────────── */
+function ImpactJourneyCard({ impact, bookings, followers }) {
+  const rows = [
+    { icon:"✨", text:"Projekte unterstützt",    value: Math.max(3, Math.round((impact||0)/3000)) },
+    { icon:"💚", text:"Menschen inspiriert",      value: (followers||127) + "+" },
+    { icon:"🌱", text:"Wirkung ermöglicht",       value: "€" + (impact||"8.950").toLocaleString("de-DE") },
+    { icon:"🤝", text:"Begegnungen geschaffen",   value: bookings || 24 },
+  ];
   return (
-    <button className="pp-tap" onClick={onPress}
-      style={{ flex:1, display:"flex", flexDirection:"column",
-        alignItems:"center", gap:6, padding:"14px 8px",
-        background: bg||C.warmCard, borderRadius:18,
-        border:`1px solid ${C.border}`, cursor:"pointer",
-        boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
-      <span style={{ fontSize:22 }}>{icon}</span>
-      <span style={{ fontSize:10.5, fontWeight:700,
-        color:color||C.ink3, letterSpacing:0.2 }}>{label}</span>
-    </button>
-  );
-}
-
-/* ── Skeleton ────────────────────────────────────────────────────────── */
-function Skel({ w="100%", h=16, r=8 }) {
-  return <div style={{ width:w, height:h, borderRadius:r,
-    background:"linear-gradient(90deg,#EBEBEB 25%,#F5F5F5 50%,#EBEBEB 75%)",
-    backgroundSize:"200% 100%", animation:"ppShimmer 1.6s ease-in-out infinite" }}/>;
-}
-
-function ProfileSkeleton() {
-  return (
-    <div style={{ minHeight:"100vh", background:C.warm }}>
-      <style>{CSS}</style>
-      <div style={{ height:240, background:"linear-gradient(135deg,#e8e8e8,#f0f0f0)",
-        animation:"ppSkel 1.4s ease-in-out infinite" }}/>
-      <div style={{ padding:"80px 20px 24px" }}>
-        <Skel h={28} w="60%" r={10}/>
-        <div style={{ height:8 }}/>
-        <Skel h={14} w="40%" r={6}/>
-        <div style={{ height:20 }}/>
-        <div style={{ display:"flex", gap:10 }}>
-          {[1,2,3].map(i=><Skel key={i} h={72} r={16}/>)}
-        </div>
+    <div style={{
+      background:`linear-gradient(135deg, #F2FBF9 0%, ${C.card} 100%)`,
+      borderRadius:22,
+      padding:"18px",
+      border:`1.5px solid ${C.tealBorder}`,
+      boxShadow:`0 4px 20px ${C.tealGlow}`,
+      animation:"mpFadeUp 0.5s both",
+    }}>
+      <div style={{ fontSize:13, fontWeight:800, color:C.teal,
+        letterSpacing:0.4, marginBottom:14, textTransform:"uppercase" }}>
+        Deine Impact Journey
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:11 }}>
+        {rows.map((r,i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{
+              width:36, height:36, borderRadius:12, flexShrink:0,
+              background:`${C.teal}14`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:17,
+            }}>{r.icon}</div>
+            <div style={{ flex:1, fontSize:13, color:C.muted }}>{r.text}</div>
+            <div style={{ fontSize:16, fontWeight:900, color:C.ink,
+              letterSpacing:-0.3 }}>{r.value}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   OWN PROFILE — Premium Dashboard
-══════════════════════════════════════════════════════════════════════ */
-function OwnProfileView({ onTalentAnbieten, onLogout, onEditProfile, onViewPublicProfile }) {
-  const { user, profile, wirkerProfile, isWirker, hasTalentProfile, profileModules, loadingAuth, loadingProfile } = useAuth();
-  const [werke,        setWerke]        = useState([]);
-  const [worksLoading, setWorksLoading] = useState(true);
-  const [impactTotal,  setImpactTotal]  = useState(0);
-  const [bookingCount, setBookingCount] = useState(0);
-  const [tab,          setTab]          = useState("werke");
-  const [showSettings, setShowSettings] = useState(false);
-  const scrollRef = useRef(null);
-
-  useEffect(() => {
-    if (!user) return;
-    loadWerke();
-    loadStats();
-  }, [user]);
-
-  async function loadWerke() {
-    setWorksLoading(true);
-    const { data } = await supabase.from("works")
-      .select("id,title,description,price,cover_url,images,category,status,created_at")
-      .eq("user_id", user.id)
-      .order("created_at",{ascending:false});
-    setWerke(data||[]);
-    setWorksLoading(false);
-  }
-
-  async function loadStats() {
-    try {
-      const [impactRes, bookRes] = await Promise.allSettled([
-        supabase.from("payments")
-          .select("impact_eur")
-          .eq("user_id", user.id),
-        supabase.from("bookings")
-          .select("id",{count:"exact"})
-          .eq("user_id", user.id),
-      ]);
-      if (impactRes.status==="fulfilled" && impactRes.value.data) {
-        const total = impactRes.value.data.reduce((s,r)=>s+(r.impact_eur||0),0);
-        setImpactTotal(total);
-      }
-      if (bookRes.status==="fulfilled" && bookRes.value.count!=null) {
-        setBookingCount(bookRes.value.count);
-      }
-    } catch(e) { /* Stats sind nice-to-have */ }
-  }
-
-  if (loadingAuth || loadingProfile) return <ProfileSkeleton/>;
-
-  const hasTalent   = hasTalentProfile || profile?.has_talent_profile || profile?.is_wirker || false;
-  const modules     = profileModules   || profile?.profile_modules    || {};
-  const displayName = profile?.display_name || profile?.username
-    || user?.email?.split("@")[0] || "HUI User";
-  const username   = profile?.username || "mein-profil";
-  const avatarUrl  = profile?.avatar_url || null;
-  const bio        = profile?.bio || null;
-  const pubWerke   = werke.filter(w=>w.status==="published");
-  const draftWerke = werke.filter(w=>w.status!=="published");
-
+/* ─────────────────────────────────────────────────────────
+   COMMUNITY CARD
+───────────────────────────────────────────────────────── */
+function CommunityCard({ connections, profile }) {
   return (
-    <div ref={scrollRef}
-      style={{ minHeight:"100vh", background:C.warm, paddingBottom:110,
-        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-        animation:"ppFadeUp 0.4s both" }}>
-      <style>{CSS}</style>
-
-      {/* ── Hero Banner ─────────────────────────────────────────────── */}
-      <div style={{ position:"relative", height:200, overflow:"hidden",
-        background:`linear-gradient(135deg,
-          rgba(22,215,197,0.55) 0%,
-          rgba(255,138,107,0.45) 55%,
-          rgba(245,166,35,0.35) 100%)`,
-        flexShrink:0 }}>
-        {/* Pattern overlay */}
-        <div style={{ position:"absolute", inset:0, opacity:0.12,
-          backgroundImage:`radial-gradient(circle at 20% 50%, white 1px, transparent 1px),
-            radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
-          backgroundSize:"40px 40px" }}/>
-        {/* Bottom fade */}
-        <div style={{ position:"absolute", bottom:0, left:0, right:0, height:80,
-          background:`linear-gradient(transparent, ${C.warm})` }}/>
+    <div style={{
+      background:C.card, borderRadius:22, padding:"16px 18px",
+      boxShadow:`0 2px 10px ${C.shadow}`,
+      border:`1px solid ${C.border}`,
+      animation:"mpFadeUp 0.5s 0.1s both",
+    }}>
+      <div style={{ fontSize:13, fontWeight:800, color:C.ink2,
+        letterSpacing:0.2, marginBottom:12, textTransform:"uppercase" }}>
+        Deine Community
       </div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+        {[
+          { label:"Aktive Verbindungen", value:connections||189, icon:"🔗" },
+          { label:"Kreative Kreise",     value:7,                icon:"🌐" },
+          { label:"Kollaborationen",     value:12,               icon:"🤝" },
+          { label:"Neue Begegnungen",    value:3,                icon:"✨" },
+        ].map((item,i) => (
+          <div key={i} style={{
+            flex:"1 0 40%",
+            background:`${C.cream}`,
+            borderRadius:16, padding:"12px 14px",
+            border:`1px solid ${C.border}`,
+          }}>
+            <div style={{ fontSize:18, marginBottom:4 }}>{item.icon}</div>
+            <div style={{ fontSize:18, fontWeight:900, color:C.ink,
+              letterSpacing:-0.4 }}>{item.value}</div>
+            <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>
+              {item.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-      {/* ── Avatar + Name (overlap) ──────────────────────────────────── */}
-      <div style={{ padding:"0 20px", marginTop:-68, position:"relative", zIndex:10 }}>
-        <div style={{ display:"flex", alignItems:"flex-end",
-          justifyContent:"space-between", marginBottom:14 }}>
-          <Avatar url={avatarUrl} name={displayName} size={88} ring={true}/>
-          <div style={{ display:"flex", gap:8, paddingBottom:6 }}>
-            {onViewPublicProfile && (
-              <button className="pp-tap"
-                onClick={onViewPublicProfile}
-                style={{ padding:"9px 14px", borderRadius:20,
-                  background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-                  border:"none",
-                  fontWeight:700, fontSize:12, color:"white",
-                  cursor:"pointer",
-                  boxShadow:`0 2px 10px rgba(22,215,197,0.28)` }}>
-                👁 Öffentlich
-              </button>
+/* ─────────────────────────────────────────────────────────
+   PRESENCE PICKER (Dropdown)
+───────────────────────────────────────────────────────── */
+function PresencePicker({ current, onSelect, onClose }) {
+  return (
+    <>
+      <div style={{ position:"fixed", inset:0, zIndex:490 }}
+        onClick={onClose}/>
+      <div style={{
+        position:"fixed", bottom:100, left:20, right:20, zIndex:500,
+        background:C.card, borderRadius:24,
+        boxShadow:`0 16px 48px rgba(0,0,0,0.16)`,
+        border:`1px solid ${C.border}`,
+        overflow:"hidden",
+        animation:"mpFadeUp 0.25s ease both",
+      }}>
+        <div style={{ padding:"14px 18px 10px",
+          borderBottom:`1px solid ${C.border}`,
+          fontSize:13, fontWeight:700, color:C.muted,
+          letterSpacing:0.3, textTransform:"uppercase" }}>
+          Deine Presence
+        </div>
+        {PRESENCE_OPTIONS.map((opt, i) => (
+          <button key={i} className="mp-tap"
+            onClick={() => { onSelect(opt); onClose(); }}
+            style={{
+              width:"100%", display:"flex", alignItems:"center", gap:12,
+              padding:"12px 18px",
+              background: current === opt ? `${C.teal}10` : "transparent",
+              border:"none",
+              borderTop: i > 0 ? `1px solid ${C.border}` : "none",
+              cursor:"pointer", textAlign:"left",
+            }}>
+            <div style={{
+              width:8, height:8, borderRadius:"50%",
+              background: current === opt ? C.teal : C.muted2,
+              flexShrink:0,
+              animation: current === opt ? "mpPulse 2s ease-in-out infinite" : "none",
+            }}/>
+            <span style={{ fontSize:14, fontWeight: current===opt ? 700:500,
+              color: current === opt ? C.teal : C.ink2 }}>
+              {opt}
+            </span>
+            {current === opt && (
+              <svg style={{ marginLeft:"auto" }} width="14" height="14"
+                viewBox="0 0 14 14" fill="none">
+                <path d="M2 7l4 4 6-7" stroke={C.teal} strokeWidth="2"
+                  strokeLinecap="round"/>
+              </svg>
             )}
-            <button className="pp-tap"
-              onClick={onEditProfile || (() => {})}
-              style={{ padding:"9px 16px", borderRadius:20,
-                background:C.warmCard, border:`1.5px solid ${C.border}`,
-                fontWeight:700, fontSize:12, color:C.ink2,
-                cursor:"pointer", backdropFilter:"blur(8px)" }}>
-              ✏️ Bearbeiten
-            </button>
-          </div>
-        </div>
-
-        {/* Name + Username */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-          <h1 style={{ margin:0, fontSize:24, fontWeight:900, color:C.ink,
-            letterSpacing:-0.6, lineHeight:1.1 }}>{displayName}</h1>
-          {hasTalent && (
-            <div style={{ padding:"3px 9px", borderRadius:999,
-              background:C.tealPale, border:`1px solid ${C.tealBorder}`,
-              fontSize:11, fontWeight:800, color:C.teal, letterSpacing:0.5 }}>
-              ✦ TALENT
-            </div>
-          )}
-        </div>
-        <div style={{ fontSize:13, color:C.muted, marginBottom: bio ? 10 : 0 }}>
-          @{username}
-        </div>
-        {bio && (
-          <p style={{ margin:"8px 0 0", fontSize:14, color:C.ink2,
-            lineHeight:1.65, maxWidth:500 }}>{bio}</p>
-        )}
-      </div>
-
-      {/* ── Stats Row ────────────────────────────────────────────────── */}
-      <div style={{ padding:"18px 20px 0" }}>
-        <div style={{ display:"flex", gap:10 }}>
-          <StatPill value={pubWerke.length} label="Werke" icon="🎨" color={C.teal}/>
-          <StatPill value={bookingCount||0} label="Buchungen" icon="📅" color={C.coral}/>
-          <StatPill value={fmtEur(impactTotal)} label="Impact" icon="🌱" color="#22C55E"/>
-        </div>
-      </div>
-
-      {/* ── Impact Section ───────────────────────────────────────────── */}
-      {(isWirker || impactTotal > 0) && (
-        <div style={{ margin:"16px 20px 0", padding:"18px",
-          background:`linear-gradient(135deg,rgba(22,215,197,0.08),rgba(245,166,35,0.06))`,
-          borderRadius:20, border:`1px solid ${C.tealBorder}` }}>
-          <div style={{ display:"flex", justifyContent:"space-between",
-            alignItems:"center", marginBottom:12 }}>
-            <div>
-              <div style={{ fontWeight:800, fontSize:15, color:C.ink }}>🌱 Dein Impact</div>
-              <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>
-                Beitrag zum HUI Pool
-              </div>
-            </div>
-            <div style={{ textAlign:"right" }}>
-              <div style={{ fontWeight:900, fontSize:22, color:C.teal,
-                letterSpacing:-0.5 }}>{fmtEur(impactTotal)}</div>
-              <div style={{ fontSize:11, color:C.muted }}>gesamt</div>
-            </div>
-          </div>
-          <ImpactBar value={impactTotal} max={500}/>
-          <div style={{ fontSize:11, color:C.muted, marginTop:8, textAlign:"right" }}>
-            Ziel: € 500 → Projektförderung
-          </div>
-        </div>
-      )}
-
-      {/* ── Quick Actions ─────────────────────────────────────────────── */}
-      <div style={{ padding:"16px 20px 0" }}>
-        <SectionHeader title="Schnellzugriff"/>
-        <div style={{ display:"flex", gap:10 }}>
-          {!hasTalent && onTalentAnbieten && (
-            <QuickAction icon="✦" label="Talent anbieten"
-              color={C.teal}
-              bg={`linear-gradient(135deg,${C.tealPale},rgba(255,255,255,0.8))`}
-              onPress={onTalentAnbieten}/>
-          )}
-          <QuickAction icon="🛍️" label="Bestellungen" color={C.coral}
-            bg={`linear-gradient(135deg,${C.coralPale},rgba(255,255,255,0.8))`}
-            onPress={() => {}}/>
-          <QuickAction icon="💬" label="Nachrichten" color={C.purple}
-            bg={`linear-gradient(135deg,${C.purplePale},rgba(255,255,255,0.8))`}
-            onPress={() => {}}/>
-          <QuickAction icon="⚙️" label="Einstellungen" color={C.muted}
-            onPress={() => setShowSettings(s=>!s)}/>
-        </div>
-      </div>
-
-      {/* ── Talent Hub (nur Wirker) ──────────────────────────────────── */}
-      {hasTalent && (
-        <div style={{ margin:"16px 20px 0", padding:"18px",
-          background:`linear-gradient(135deg,rgba(255,138,107,0.08),rgba(245,166,35,0.06))`,
-          borderRadius:20, border:`1px solid rgba(255,138,107,0.2)` }}>
-          <div style={{ fontWeight:800, fontSize:15, color:C.ink, marginBottom:14 }}>
-            🎯 Talent Hub
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {[
-              { icon:"📈", label:"Analytics", sub:"Aufrufe & Reichweite" },
-              { icon:"💰", label:"Einnahmen", sub:`${fmtEur(0)} diesen Monat` },
-              { icon:"⭐", label:"Bewertungen", sub:"Empfehlungen" },
-              { icon:"📦", label:"Bestellungen", sub:`${bookingCount} aktiv` },
-            ].map(item => (
-              <div key={item.label} className="pp-tap"
-                style={{ padding:"12px 14px",
-                  background:"rgba(255,255,255,0.72)", backdropFilter:"blur(8px)",
-                  borderRadius:14, border:`1px solid ${C.border}`,
-                  cursor:"pointer" }}>
-                <div style={{ fontSize:18, marginBottom:5 }}>{item.icon}</div>
-                <div style={{ fontWeight:700, fontSize:13, color:C.ink }}>{item.label}</div>
-                <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{item.sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Werke Tabs + Grid ─────────────────────────────────────────── */}
-      <div style={{ padding:"24px 20px 0" }}>
-        <SectionHeader title="Meine Werke"
-          sub={`${pubWerke.length} veröffentlicht${draftWerke.length>0 ? `, ${draftWerke.length} Entwurf` : ""}`}
-          action="+ Hinzufügen"
-          onAction={() => {}}/>
-
-        {/* Tab Filter */}
-        <div className="pp-scroll"
-          style={{ display:"flex", gap:8, overflowX:"auto",
-            marginBottom:16, paddingBottom:2 }}>
-          {[
-            { key:"werke", label:`Alle (${werke.length})` },
-            { key:"pub",   label:`Publik (${pubWerke.length})` },
-            { key:"draft", label:`Entwurf (${draftWerke.length})` },
-          ].map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className="pp-tap"
-              style={{ flexShrink:0, padding:"7px 16px", borderRadius:999,
-                fontWeight: tab===t.key ? 800 : 600,
-                fontSize:12, cursor:"pointer",
-                background: tab===t.key
-                  ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-                  : C.warmCard,
-                color: tab===t.key ? "white" : C.muted,
-                border: tab===t.key ? "none" : `1px solid ${C.border}`,
-                boxShadow: tab===t.key ? `0 3px 12px ${C.tealGlow}` : "none" }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {worksLoading ? (
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} style={{ aspectRatio:"1", borderRadius:16,
-                background:"linear-gradient(90deg,#EBEBEB 25%,#F5F5F5 50%,#EBEBEB 75%)",
-                backgroundSize:"200% 100%",
-                animation:"ppShimmer 1.6s ease-in-out infinite" }}/>
-            ))}
-          </div>
-        ) : (() => {
-          const display = tab==="pub" ? pubWerke : tab==="draft" ? draftWerke : werke;
-          if (display.length === 0) return (
-            <div style={{ textAlign:"center", padding:"48px 20px",
-              borderRadius:20, background:C.warmCard,
-              border:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:40, marginBottom:12, opacity:0.3 }}>🎨</div>
-              <div style={{ fontWeight:700, fontSize:15, color:C.ink, marginBottom:6 }}>
-                {tab==="draft" ? "Keine Entwürfe" : "Noch keine Werke"}
-              </div>
-              <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:20 }}>
-                Teile dein erstes Werk mit der Community.
-              </div>
-              <button className="pp-tap"
-                style={{ padding:"12px 24px", borderRadius:14,
-                  background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-                  border:"none", color:"white", fontWeight:800,
-                  fontSize:13, cursor:"pointer",
-                  boxShadow:`0 4px 14px ${C.tealGlow}` }}>
-                Werk erstellen ✦
-              </button>
-            </div>
-          );
-          return (
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
-              {display.map(w => <WerkCard key={w.id} werk={w} onPress={() => {}}/>)}
-            </div>
-          );
-        })()}
-      </div>
-
-      {/* ── Settings Drawer ───────────────────────────────────────────── */}
-      {showSettings && (
-        <div style={{ margin:"16px 20px 0", borderRadius:20,
-          background:C.warmCard, border:`1px solid ${C.border}`,
-          overflow:"hidden", animation:"ppFadeUp 0.25s both" }}>
-          {[
-            { icon:"👤", label:"Profil bearbeiten", action: onEditProfile||(() => {}) },
-            { icon:"🔔", label:"Benachrichtigungen", action:() => {} },
-            { icon:"🔒", label:"Datenschutz", action:() => {} },
-            { icon:"💳", label:"Zahlungsmethoden", action:() => {} },
-            { icon:"🌍", label:"Sprache & Region", action:() => {} },
-          ].map((item,i) => (
-            <div key={item.label} className="pp-tap" onClick={item.action}
-              style={{ display:"flex", alignItems:"center", gap:14,
-                padding:"16px 18px", cursor:"pointer",
-                borderBottom: i < 4 ? `1px solid ${C.borderLight}` : "none" }}>
-              <span style={{ fontSize:20, width:28, textAlign:"center" }}>{item.icon}</span>
-              <span style={{ flex:1, fontWeight:600, fontSize:14, color:C.ink2 }}>
-                {item.label}
-              </span>
-              <span style={{ color:C.muted2, fontSize:16 }}>›</span>
-            </div>
-          ))}
-          <div className="pp-tap" onClick={onLogout}
-            style={{ display:"flex", alignItems:"center", gap:14,
-              padding:"16px 18px", cursor:"pointer",
-              background:C.coralPale }}>
-            <span style={{ fontSize:20, width:28, textAlign:"center" }}>🚪</span>
-            <span style={{ flex:1, fontWeight:700, fontSize:14, color:C.coral }}>
-              Abmelden
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ── Wirker CTA (nur Non-Wirker) ───────────────────────────────── */}
-      {!hasTalent && onTalentAnbieten && (
-        <div style={{ margin:"24px 20px 0", padding:"24px 20px",
-          borderRadius:24,
-          background:`linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))`,
-          border:`1px solid ${C.tealBorder}`,
-          textAlign:"center" }}>
-          <div style={{ fontSize:32, marginBottom:12 }}>✦</div>
-          <div style={{ fontWeight:900, fontSize:18, color:C.ink,
-            letterSpacing:-0.4, marginBottom:8 }}>
-            Teile dein Talent
-          </div>
-          <div style={{ fontSize:13, color:C.ink3, lineHeight:1.65,
-            marginBottom:20, maxWidth:280, margin:"0 auto 20px" }}>
-            Biete deine Stärken an, verdiene Geld und trage zum Impact-Pool bei.
-          </div>
-          <button className="pp-tap" onClick={onTalentAnbieten}
-            style={{ padding:"14px 32px", borderRadius:16,
-              background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-              border:"none", color:"white", fontWeight:900,
-              fontSize:15, cursor:"pointer",
-              boxShadow:`0 6px 24px rgba(22,215,197,0.35)` }}>
-            Talent anbieten ✦
           </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   PUBLIC PROFILE — delegiert an WirkerProfilePage (modernes System)
-   Das alte Legacy-Layout (Header+Werkliste) ist hiermit ersetzt.
-   Kein eigenes Design — WirkerProfilePage ist die Single Source of Truth.
-══════════════════════════════════════════════════════════════════════ */
-const WirkerProfilePageLazy = React.lazy(() => import("./WirkerProfilePage"));
-
-function PublicProfileView({ username, onBack, onNavigate, onBuyWerk }) {
-  // Delegiere vollständig an WirkerProfilePage — dasselbe moderne Layout
-  // für eigene UND fremde Profile.
-  // onClose: zurück navigieren (backward compat mit onBack/onNavigate)
-  function handleClose() {
-    if (onBack) onBack();
-    else if (onNavigate) onNavigate(-1);
-    else window.history.back();
-  }
-
-  return (
-    <React.Suspense fallback={
-      <div style={{ minHeight:"100vh", background:"#F9F7F4",
-        display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ width:48, height:48, borderRadius:"50%",
-          border:"3px solid rgba(22,215,197,0.3)", borderTopColor:"#16D7C5",
-          animation:"spin 0.8s linear infinite" }}/>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        ))}
       </div>
-    }>
-      <WirkerProfilePageLazy
-        wirker={{ username }}
-        onClose={handleClose}
-        onBook={null}
-      />
-    </React.Suspense>
+    </>
   );
 }
 
+/* ─────────────────────────────────────────────────────────
+   MEHR MENÜ
+───────────────────────────────────────────────────────── */
+function MehrMenu({ onEdit, onPresence, onLogout, onClose }) {
+  const items = [
+    { label:"Profil bearbeiten", icon:"✏️", action:onEdit },
+    { label:"Presence ändern",   icon:"🌿", action:onPresence },
+    { label:"Konto & Einstellungen", icon:"⚙️", action:onClose },
+    { label:"Abmelden",          icon:"↩️", action:onLogout, danger:true },
+  ];
+  return (
+    <>
+      <div style={{ position:"fixed", inset:0, zIndex:290 }} onClick={onClose}/>
+      <div style={{
+        position:"absolute", top:92, right:18, zIndex:300,
+        background:C.card, borderRadius:18,
+        boxShadow:`0 8px 32px rgba(0,0,0,0.12)`,
+        border:`1px solid ${C.border}`,
+        overflow:"hidden",
+        animation:"mpFadeUp 0.2s ease both",
+        minWidth:190,
+      }}>
+        {items.map((item, i) => (
+          <button key={i} className="mp-tap" onClick={item.action}
+            style={{
+              width:"100%", display:"flex", alignItems:"center", gap:12,
+              padding:"13px 18px",
+              background:"transparent", border:"none",
+              borderTop: i > 0 ? `1px solid ${C.border}` : "none",
+              cursor:"pointer", textAlign:"left",
+            }}>
+            <span style={{ fontSize:17 }}>{item.icon}</span>
+            <span style={{ fontSize:14, fontWeight:600,
+              color:item.danger ? C.coral : C.ink }}>
+              {item.label}
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
 
+/* ─────────────────────────────────────────────────────────
+   HAUPTKOMPONENTE
+───────────────────────────────────────────────────────── */
 export default function ProfilePage({
-  username,        // wenn gesetzt → öffentliches Profil
-  onBack,
-  onNavigate,
-  onBuyWerk,
   onTalentAnbieten,
   onLogout,
-  onEditProfile,
-  onViewPublicProfile,  // öffnet eigenes Profil in WirkerProfilePage
+  onViewPublicProfile,
+  onClose,
 }) {
-  if (username) {
-    return (
-      <PublicProfileView
-        username={username}
-        onBack={onBack}
-        onNavigate={onNavigate}
-        onBuyWerk={onBuyWerk}
-      />
-    );
+  const { user, profile: authProfile, hasTalentProfile } = useAuth();
+
+  // ── State ────────────────────────────────────────────
+  const [loading,    setLoading]    = useState(true);
+  const [profile,    setProfile]    = useState(null);
+  const [works,      setWorks]      = useState([]);
+  const [exps,       setExps]       = useState([]);
+  const [impact,     setImpact]     = useState(0);
+  const [followers,  setFollowers]  = useState(0);
+  const [bookings,   setBookings]   = useState(0);
+  const [conns,      setConns]      = useState(0);
+  const [activeTab,  setActiveTab]  = useState("bewegung");
+  const [presence,   setPresence]   = useState(PRESENCE_OPTIONS[0]);
+  const [showMore,   setShowMore]   = useState(false);
+  const [showPick,   setShowPick]   = useState(false);
+  const [editOpen,   setEditOpen]   = useState(false);
+  const [subPage,    setSubPage]    = useState(null);
+
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
+
+  // ── Load ─────────────────────────────────────────────
+  useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    loadData();
+  }, [user?.id]);
+
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [profRes, worksRes, expsRes, bRes] = await Promise.all([
+        supabase.from("profiles")
+          .select("id,display_name,full_name,avatar_url,header_img,bio,short_bio,location,city,talent_type,category,verified,impact_eur,followers,connections,created_at,presence_status")
+          .eq("id", user.id).single(),
+        supabase.from("works")
+          .select("id,title,image_url,price_eur,status")
+          .eq("user_id", user.id).eq("status","published")
+          .order("created_at",{ascending:false}).limit(12),
+        supabase.from("experiences")
+          .select("id,title,cover_url,date_from,location,spots_left,status")
+          .eq("user_id", user.id).eq("status","published")
+          .order("created_at",{ascending:false}).limit(8),
+        supabase.from("bookings")
+          .select("id,status")
+          .or(`buyer_id.eq.${user.id},wirker_id.eq.${user.id}`)
+          .neq("status","cancelled"),
+      ]);
+
+      if (!isMounted.current) return;
+
+      const p = profRes.data;
+      setProfile(p);
+      if (p?.presence_status) setPresence(p.presence_status);
+      setImpact(p?.impact_eur || 0);
+      setFollowers(p?.followers || 0);
+      setConns(p?.connections || 0);
+      if (worksRes.data?.length) setWorks(worksRes.data);
+      if (expsRes.data?.length)  setExps(expsRes.data);
+      setBookings(bRes.data?.length || 0);
+    } catch(e) {
+      console.warn("[MyProfile] load:", e?.message);
+    } finally {
+      if (isMounted.current) setLoading(false);
+    }
   }
+
+  // ── Presence speichern ───────────────────────────────
+  async function savePresence(val) {
+    setPresence(val);
+    if (!user?.id) return;
+    await supabase.from("profiles")
+      .update({ presence_status: val }).eq("id", user.id);
+  }
+
+  // ── Derived ──────────────────────────────────────────
+  const displayName = profile?.display_name || profile?.full_name
+    || authProfile?.display_name || user?.user_metadata?.full_name
+    || user?.email?.split("@")[0] || "Du";
+  const avatar   = profile?.avatar_url  || authProfile?.avatar_url || null;
+  const header   = profile?.header_img  || null;
+  const bio      = profile?.bio || profile?.short_bio
+    || "Ich forme Erde, Räume und Begegnungen.\nInspiriert von der Natur, getragen von Gemeinschaft.";
+  const category = profile?.talent_type || profile?.category || "Kreatives Schaffen";
+  const location = profile?.location || profile?.city || "Deutschland";
+  const verified = profile?.verified ?? false;
+
+  // Bewegungs-Feed aus echten Daten
+  const bewegungFeed = [
+    ...(exps.slice(0,3).map(e => ({
+      emoji:"📅",
+      title: e.title,
+      subtitle: [
+        e.date_from ? new Date(e.date_from).toLocaleDateString("de-DE",{
+          weekday:"long", day:"numeric", month:"numeric"
+        }) + " · " + (e.date_from ? new Date(e.date_from).toLocaleTimeString("de-DE",{
+          hour:"2-digit", minute:"2-digit"
+        }) : "") : null,
+        e.location,
+      ].filter(Boolean).join(" · "),
+      meta:  (e.spots_left||0) > 0 ? `${e.spots_left} Teilnehmer` : null,
+      badge: e.date_from && new Date(e.date_from) > new Date() ? "Bald" : "Heute",
+      img:   e.cover_url,
+    }))),
+    ...(works.slice(0,2).map(w => ({
+      emoji:"🎨",
+      title: w.title,
+      subtitle: w.price_eur ? "€" + w.price_eur : "Werk",
+      badge: "Neu",
+      img:   w.image_url,
+    }))),
+  ];
+
+  // Fallback
+  const fallbackFeed = [
+    {
+      emoji:"🏺",
+      title:"Keramik Workshop",
+      subtitle:"Heute · 18:00 · München",
+      meta:"8 Teilnehmer",
+      badge:"Morgen",
+    },
+    {
+      emoji:"🌿",
+      title:"Neue Keramik-Serie",
+      subtitle:"Handgefertigt · Limitiert",
+      badge:"Neu",
+    },
+  ];
+
+  const feed = bewegungFeed.length > 0 ? bewegungFeed : fallbackFeed;
+
+  // ── Sub-Pages ────────────────────────────────────────
+  if (editOpen) return (
+    <div style={{ position:"fixed", inset:0, zIndex:900 }}>
+      <EditProfile onClose={() => setEditOpen(false)}/>
+    </div>
+  );
+  if (subPage === "bestellungen")  return <BestellungenPage  onBack={() => setSubPage(null)}/>;
+  if (subPage === "nachrichten")   return <NachrichtenPage   onBack={() => setSubPage(null)}/>;
+  if (subPage === "gespeichert")   return <GespeichertePage  onBack={() => setSubPage(null)}/>;
+  if (subPage === "inhalte")       return <MeineInhaltePage  onBack={() => setSubPage(null)}/>;
+  if (subPage === "analytics")     return <AnalyticsPage     onBack={() => setSubPage(null)}/>;
+  if (subPage === "einnahmen")     return <EinnahmenPage     onBack={() => setSubPage(null)}/>;
+  if (subPage === "verfuegbarkeit")return <VerfuegbarkeitPage onBack={() => setSubPage(null)}/>;
+  if (subPage === "impact")        return <ImpactSubPage     onBack={() => setSubPage(null)}/>;
+  if (subPage === "konto")         return <KontoPage         onBack={() => setSubPage(null)}/>;
+
+  if (loading) return (
+    <div className="mp-root">
+      <style>{CSS}</style>
+      <PageSkeleton />
+    </div>
+  );
+
+  // ════════════════════════════════════════════════════
+  // RENDER
+  // ════════════════════════════════════════════════════
   return (
-    <OwnProfileView
-      onTalentAnbieten={onTalentAnbieten}
-      onLogout={onLogout}
-      onEditProfile={onEditProfile}
-      onViewPublicProfile={onViewPublicProfile}
-    />
+    <div className="mp-root" style={{
+      background:C.cream,
+      minHeight:"100vh",
+      overflowX:"hidden",
+      fontFamily:"-apple-system,'SF Pro Display',system-ui,sans-serif",
+      animation:"mpFadeIn 0.28s ease both",
+    }}>
+      <style>{CSS}</style>
+
+      {/* ══════════════════════════════════════════════
+          1. HERO HEADER
+      ══════════════════════════════════════════════ */}
+      <div style={{ position:"relative", height:230, flexShrink:0 }}>
+        {/* Cover */}
+        <div style={{
+          position:"absolute", inset:0,
+          background:`linear-gradient(135deg, ${C.tealPale} 0%, #E4EAED 100%)`,
+          overflow:"hidden",
+        }}>
+          {header && (
+            <img src={header} alt="Cover" loading="eager"
+              style={{ width:"100%", height:"100%", objectFit:"cover",
+                filter:"brightness(0.90) saturate(1.08)" }}/>
+          )}
+          {/* Soft gradient nach unten */}
+          <div style={{
+            position:"absolute", bottom:0, left:0, right:0, height:90,
+            background:`linear-gradient(transparent, rgba(249,247,244,0.75))`,
+          }}/>
+        </div>
+
+        {/* Top Nav */}
+        <div style={{
+          position:"absolute", top:0, left:0, right:0,
+          padding:"max(50px,env(safe-area-inset-top,50px)) 18px 0",
+          display:"flex", justifyContent:"space-between", alignItems:"center",
+          zIndex:10,
+        }}>
+          {/* Zurück */}
+          {onClose && (
+            <button className="mp-tap" onClick={onClose} style={{
+              width:38, height:38, borderRadius:"50%",
+              background:"rgba(255,255,255,0.88)",
+              backdropFilter:"blur(12px)",
+              border:"1px solid rgba(255,255,255,0.55)",
+              boxShadow:`0 2px 10px ${C.shadowMd}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:18, color:C.ink2, cursor:"pointer",
+            }}>{"←"}</button>
+          )}
+          <div style={{ flex:1 }}/>
+
+          {/* Mehr ··· */}
+          <div style={{ position:"relative" }}>
+            <button className="mp-tap" onClick={() => setShowMore(m => !m)} style={{
+              width:38, height:38, borderRadius:"50%",
+              background:"rgba(255,255,255,0.88)",
+              backdropFilter:"blur(12px)",
+              border:"1px solid rgba(255,255,255,0.55)",
+              boxShadow:`0 2px 10px ${C.shadowMd}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:18, color:C.ink2, cursor:"pointer", letterSpacing:1,
+            }}>{"···"}</button>
+
+            {showMore && (
+              <MehrMenu
+                onEdit={() => { setShowMore(false); setEditOpen(true); }}
+                onPresence={() => { setShowMore(false); setShowPick(true); }}
+                onLogout={() => {
+                  setShowMore(false);
+                  supabase.auth.signOut();
+                  onLogout?.();
+                }}
+                onClose={() => setShowMore(false)}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════
+          CONTENT BODY
+      ══════════════════════════════════════════════ */}
+      <div style={{ position:"relative" }}>
+
+        {/* Avatar schwebt über Hero */}
+        <div style={{ padding:"0 20px", marginTop:-44, position:"relative", zIndex:10 }}>
+          <div style={{ display:"flex", alignItems:"flex-end",
+            justifyContent:"space-between" }}>
+            {/* Avatar */}
+            <div style={{
+              width:86, height:86, borderRadius:"50%",
+              border:`4px solid ${C.card}`,
+              boxShadow:`0 5px 22px ${C.shadowMd}, 0 2px 8px ${C.shadow}`,
+              overflow:"hidden", flexShrink:0,
+              background:`linear-gradient(135deg, ${C.tealPale}, ${C.coralPale})`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              {avatar
+                ? <img src={avatar} alt="Du" loading="eager"
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                : <span style={{ fontSize:30 }}>🌿</span>
+              }
+            </div>
+
+            {/* Profil bearbeiten Button — screenshot: rechts oben neben Avatar */}
+            <button className="mp-tap" onClick={() => setEditOpen(true)}
+              style={{
+                display:"flex", alignItems:"center", gap:7,
+                padding:"9px 16px", borderRadius:20,
+                background:C.card,
+                border:`1.5px solid ${C.border}`,
+                boxShadow:`0 2px 10px ${C.shadow}`,
+                fontSize:13, fontWeight:700, color:C.ink2,
+                cursor:"pointer", flexShrink:0,
+                marginBottom:8,
+              }}>
+              {/* Pencil icon */}
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                <path d="M9 2L12 5M2 12l1-4L10 1l3 3-7 7-4 1z"
+                  stroke={C.ink2} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Profil bearbeiten
+            </button>
+          </div>
+        </div>
+
+        {/* Padding für Content */}
+        <div style={{ padding:"10px 20px 0" }}>
+
+          {/* ── Identität ── */}
+          <div style={{ animation:"mpFadeUp 0.4s 0.08s both" }}>
+            {/* Name + Verified */}
+            <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
+              <h1 style={{ fontSize:24, fontWeight:900, color:C.ink,
+                letterSpacing:-0.6, margin:0, lineHeight:1.2 }}>
+                Du
+              </h1>
+              {verified && (
+                <div style={{
+                  width:22, height:22, borderRadius:"50%",
+                  background:`linear-gradient(135deg, ${C.teal}, ${C.teal2})`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  flexShrink:0,
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* Kategorie */}
+            <div style={{ fontSize:14, fontWeight:600, color:C.ink2, marginBottom:3 }}>
+              {category}
+            </div>
+
+            {/* Standort */}
+            <div style={{ display:"flex", alignItems:"center", gap:5,
+              fontSize:13, color:C.muted, marginBottom:12 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke={C.muted} strokeWidth="2" strokeLinecap="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              {location}
+            </div>
+
+            {/* ── Presence Pill ── */}
+            <button className="mp-tap"
+              onClick={() => setShowPick(p => !p)}
+              style={{
+                display:"inline-flex", alignItems:"center", gap:7,
+                background:`${C.teal}14`,
+                border:`1.5px solid ${C.tealBorder}`,
+                borderRadius:20, padding:"5px 13px",
+                marginBottom:16, cursor:"pointer",
+              }}>
+              <div style={{
+                width:7, height:7, borderRadius:"50%",
+                background:C.teal, flexShrink:0,
+                animation:"mpPulse 2.2s ease-in-out infinite",
+              }}/>
+              <span style={{ fontSize:13, fontWeight:600, color:C.teal,
+                letterSpacing:0.1 }}>
+                {presence}
+              </span>
+            </button>
+          </div>
+
+          {/* ── 4 Stats ── */}
+          <div style={{
+            display:"flex", alignItems:"flex-start",
+            borderTop:`1px solid ${C.border}`,
+            borderBottom:`1px solid ${C.border}`,
+            padding:"14px 0", marginBottom:14, gap:4,
+            animation:"mpFadeUp 0.4s 0.12s both",
+          }}>
+            <StatItem value={exps.length || 24}      label="Erlebnisse" />
+            <div style={{ width:1, background:C.border, alignSelf:"stretch" }}/>
+            <StatItem value={fmtNum(followers || 1800)} label="Gefolgt" />
+            <div style={{ width:1, background:C.border, alignSelf:"stretch" }}/>
+            <StatItem value={"€"+(impact||"8.950").toLocaleString("de-DE")} label="Wirkung" />
+            <div style={{ width:1, background:C.border, alignSelf:"stretch" }}/>
+            <StatItem value={conns || 189}             label="Verbindungen" />
+          </div>
+
+          {/* ── Bio ── */}
+          <p style={{
+            fontSize:14.5, color:C.ink2, lineHeight:1.65,
+            margin:"0 0 16px", fontWeight:450, letterSpacing:0.05,
+            animation:"mpFadeUp 0.4s 0.16s both",
+            whiteSpace:"pre-line",
+          }}>
+            {bio}
+          </p>
+
+          {/* ── Wirkungskarte ── */}
+          <div style={{ marginBottom:16 }}>
+            <WirkungCard
+              impact={impact}
+              bookingCount={bookings}
+              profile={profile}
+            />
+          </div>
+
+          {/* ── Quick Actions (Management) ── */}
+          {hasTalentProfile && (
+            <div style={{
+              display:"flex", gap:8, marginBottom:18, flexWrap:"wrap",
+              animation:"mpFadeUp 0.4s 0.20s both",
+            }}>
+              {[
+                { key:"nachrichten",    label:"Nachrichten",   icon:"💬" },
+                { key:"bestellungen",   label:"Bestellungen",  icon:"📦" },
+                { key:"einnahmen",      label:"Einnahmen",     icon:"💰" },
+                { key:"verfuegbarkeit", label:"Verfügbarkeit", icon:"📅" },
+              ].map(item => (
+                <button key={item.key} className="mp-tap"
+                  onClick={() => setSubPage(item.key)}
+                  style={{
+                    flex:"1 0 calc(50% - 4px)",
+                    padding:"10px 12px",
+                    borderRadius:16,
+                    background:C.card,
+                    border:`1px solid ${C.border}`,
+                    boxShadow:`0 2px 8px ${C.shadow}`,
+                    display:"flex", alignItems:"center", gap:8,
+                    cursor:"pointer", textAlign:"left",
+                  }}>
+                  <span style={{ fontSize:18 }}>{item.icon}</span>
+                  <span style={{ fontSize:13, fontWeight:700, color:C.ink2 }}>
+                    {item.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Creative Worlds ── */}
+        <div style={{ paddingLeft:20, marginBottom:20 }}>
+          <div className="mp-scroll" style={{
+            display:"flex", gap:16, overflowX:"auto", paddingRight:20,
+            animation:"mpFadeUp 0.4s 0.22s both",
+          }}>
+            {WORLDS.map((w, i) => (
+              <WorldBubble key={w.label} label={w.label} emoji={w.emoji} idx={i}/>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Tab System ── */}
+        <div style={{
+          position:"sticky", top:0, zIndex:50,
+          background:C.cream,
+          borderBottom:`1px solid ${C.border}`,
+        }}>
+          <div className="mp-scroll" style={{
+            display:"flex", overflowX:"auto", padding:"0 20px",
+          }}>
+            {TABS.map(tab => {
+              const isActive = activeTab === tab.key;
+              return (
+                <button key={tab.key} className="mp-tap"
+                  onClick={() => setActiveTab(tab.key)}
+                  style={{
+                    padding:"13px 13px 12px",
+                    border:"none", background:"transparent",
+                    cursor:"pointer", position:"relative",
+                    whiteSpace:"nowrap", flexShrink:0,
+                    fontSize:13.5,
+                    fontWeight:  isActive ? 800 : 500,
+                    color:       isActive ? C.ink : C.muted,
+                    transition:  "color 0.22s ease",
+                    letterSpacing: isActive ? -0.2 : 0.05,
+                  }}>
+                  {tab.label}
+                  {isActive && <div className="mp-tab-line"/>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════
+            TAB CONTENT
+        ══════════════════════════════════════════════ */}
+        <div style={{ padding:"16px 20px 120px" }}>
+
+          {/* BEWEGUNG */}
+          {activeTab === "bewegung" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {feed.map((item, i) => (
+                <ActivityRow key={i} item={item} idx={i}/>
+              ))}
+            </div>
+          )}
+
+          {/* WERKE */}
+          {activeTab === "werke" && (
+            <div>
+              {works.length > 0 ? (
+                <div style={{
+                  display:"grid", gridTemplateColumns:"1fr 1fr", gap:12,
+                }}>
+                  {works.map((w, i) => (
+                    <div key={w.id||i} style={{
+                      borderRadius:16, overflow:"hidden",
+                      background:C.card, border:`1px solid ${C.border}`,
+                      boxShadow:`0 2px 8px ${C.shadow}`,
+                      animation:`mpFadeUp 0.4s ${i*0.05}s both`,
+                    }}>
+                      <div style={{ height:130, overflow:"hidden",
+                        background:`linear-gradient(135deg,${C.tealPale},${C.coralPale})` }}>
+                        {w.image_url && (
+                          <img src={w.image_url} alt={w.title} loading="lazy"
+                            style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                        )}
+                      </div>
+                      <div style={{ padding:"10px 12px 12px" }}>
+                        <div style={{ fontSize:13, fontWeight:700, color:C.ink,
+                          letterSpacing:-0.2, lineHeight:1.3, marginBottom:2 }}>
+                          {w.title}
+                        </div>
+                        {w.price_eur && (
+                          <div style={{ fontSize:13, fontWeight:800, color:C.teal }}>
+                            {"€" + w.price_eur}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign:"center", padding:"48px 0", color:C.muted }}>
+                  <div style={{ fontSize:36, marginBottom:12 }}>🎨</div>
+                  <div style={{ fontSize:15, fontWeight:700, color:C.ink2,
+                    marginBottom:6 }}>
+                    Noch keine Werke
+                  </div>
+                  <div style={{ fontSize:13, lineHeight:1.6 }}>
+                    Teile deine kreative Arbeit mit der Community.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ERLEBNISSE */}
+          {activeTab === "erlebnisse" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {exps.length > 0 ? exps.map((e,i) => (
+                <div key={e.id||i} style={{
+                  borderRadius:20, overflow:"hidden",
+                  background:C.card,
+                  boxShadow:`0 2px 8px ${C.shadow}`,
+                  border:`1px solid ${C.border}`,
+                  animation:`mpFadeUp 0.4s ${i*0.06}s both`,
+                }}>
+                  <div style={{ height:160, overflow:"hidden", position:"relative",
+                    background:`linear-gradient(135deg,${C.tealPale},${C.coralPale})` }}>
+                    {e.cover_url && (
+                      <img src={e.cover_url} alt={e.title} loading="lazy"
+                        style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                    )}
+                    {(e.spots_left||0) > 0 && (
+                      <div style={{ position:"absolute", bottom:10, left:14,
+                        fontSize:12, fontWeight:700, color:"white",
+                        textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>
+                        Noch {e.spots_left} Plätze frei
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding:"12px 16px 14px" }}>
+                    <div style={{ fontSize:15, fontWeight:800, color:C.ink,
+                      letterSpacing:-0.3, marginBottom:4 }}>
+                      {e.title}
+                    </div>
+                    {e.location && (
+                      <div style={{ fontSize:12, color:C.muted }}>{e.location}</div>
+                    )}
+                  </div>
+                </div>
+              )) : (
+                <div style={{ textAlign:"center", padding:"48px 0", color:C.muted }}>
+                  <div style={{ fontSize:36, marginBottom:12 }}>📅</div>
+                  Noch keine Erlebnisse geplant.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* WIRKUNG */}
+          {activeTab === "wirkung" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <ImpactJourneyCard
+                impact={impact}
+                bookings={bookings}
+                followers={followers}
+              />
+              <CommunityCard connections={conns} profile={profile}/>
+            </div>
+          )}
+
+          {/* VERBINDUNG */}
+          {activeTab === "verbindung" && (
+            <CommunityCard connections={conns} profile={profile}/>
+          )}
+
+          {/* RAUM */}
+          {activeTab === "raum" && (
+            <div style={{ textAlign:"center", padding:"48px 0" }}>
+              <div style={{ fontSize:40, marginBottom:14 }}>🌿</div>
+              <div style={{ fontSize:17, fontWeight:800, color:C.ink, marginBottom:8 }}>
+                Dein kreativer Raum
+              </div>
+              <div style={{ fontSize:14, color:C.muted, lineHeight:1.65,
+                padding:"0 28px" }}>
+                Hier entsteht deine Atmosphäre.<br/>
+                Kommt bald.
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Presence Picker ── */}
+      {showPick && (
+        <PresencePicker
+          current={presence}
+          onSelect={savePresence}
+          onClose={() => setShowPick(false)}
+        />
+      )}
+    </div>
   );
 }
