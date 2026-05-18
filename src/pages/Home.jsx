@@ -634,7 +634,7 @@ const NAV = [
   {key:"impact",   label:"Impact"},
   null,                               // Orb-Slot
   {key:"discover", label:"Entdecken"},
-  {key:"chat",     label:"Chat"},     // Chat ersetzt Mein HUI
+  {key:"profile",  label:"Profil"},   // Mein Profil — ersetzt Chat
 ];
 
 /* ─── NAV ICONS — custom, characterful, HUI-native ─── */
@@ -709,14 +709,27 @@ function NavIcon({ k, active }) {
   );
 
   /* CHAT — speech bubble mit warmem Akzent */
-  if(k==="chat") return (
+  /* PROFIL — organische Presence-Silhouette */
+  if(k==="profile") return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H7L12 22L17 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
-        fill={active ? `${C.teal}18` : "rgba(80,80,80,0.08)"}
-        stroke={col} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="8"  cy="11" r="1" fill={active ? C.teal : col}/>
-      <circle cx="12" cy="11" r="1" fill={active ? C.coral : col}/>
-      <circle cx="16" cy="11" r="1" fill={active ? C.teal : col}/>
+      {/* Avatar-Ring — soft, leicht elevated */}
+      <circle cx="12" cy="9" r="4"
+        fill={active ? `${C.teal}20` : "rgba(80,80,80,0.07)"}
+        stroke={col} strokeWidth={sw}/>
+      {/* Presence-Aura — nur wenn aktiv */}
+      {active && (
+        <circle cx="12" cy="9" r="5.5"
+          stroke={C.teal} strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5"/>
+      )}
+      {/* Schultern — warm, einladend */}
+      <path d="M4.5 21 Q5 15.5 12 15.5 Q19 15.5 19.5 21"
+        stroke={col} strokeWidth={sw} strokeLinecap="round"
+        fill={active ? `${C.teal}12` : "none"}/>
+      {/* kleiner Wirkungs-Punkt unten */}
+      {active && (
+        <circle cx="12" cy="20.5" r="1"
+          fill={C.coral} opacity="0.7"/>
+      )}
     </svg>
   );
 
@@ -1020,7 +1033,7 @@ function BottomNav({
               <button
                 key={item.key}
                 className="hui-bn-btn"
-                onClick={() => onTab?.(item.key)}
+                onClick={() => item.key === "profile" ? onProfile?.() : onTab?.(item.key)}
                 onTouchStart={() => setPressed(item.key)}
                 onTouchEnd={() => setPressed(null)}
                 style={{ transform: isPressed ? "scale(0.88)" : "scale(1)" }}
@@ -1034,16 +1047,7 @@ function BottomNav({
                   transition:"transform 0.24s cubic-bezier(0.34,1.3,0.64,1)",
                 }}>
                   <NavIcon k={item.key} active={isActive}/>
-                  {item.key === "chat" && (msgCount ?? 0) > 0 && (
-                    <div style={{
-                      position:"absolute", top:-3, right:-5,
-                      minWidth:14, height:14, borderRadius:7,
-                      background:"linear-gradient(135deg,#FF5F5F,#FF8A6B)",
-                      color:"white", fontSize:7.5, fontWeight:800,
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      padding:"0 3px", border:"1.5px solid rgba(255,251,248,0.96)",
-                    }}>{(msgCount ?? 0) > 9 ? "9+" : msgCount}</div>
-                  )}
+
                 </div>
                 <span className={`hui-bn-label${isActive ? " hui-bn-label--active" : ""}`}>
                   {item.label}
