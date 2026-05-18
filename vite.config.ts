@@ -1,4 +1,4 @@
-// HUI 2026-05-18T08:43:31Z fix: Home.jsx import fragment + AuthContext stable
+// HUI 2026-05-18T08:44:15Z ALL AUTH FIXED
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
