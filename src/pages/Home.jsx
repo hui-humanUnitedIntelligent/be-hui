@@ -1017,7 +1017,7 @@ function BottomNav({
               <button
                 key={item.key}
                 className="hui-bn-btn"
-                onClick={() => item.key === "profile" ? onProfile?.() : onTab?.(item.key)}
+                onClick={() => onTab?.(item.key)}
                 onTouchStart={() => setPressed(item.key)}
                 onTouchEnd={() => setPressed(null)}
                 style={{ transform: isPressed ? "scale(0.88)" : "scale(1)" }}
@@ -1504,7 +1504,27 @@ export default function Home() {
         <BottomNav
           tab={tab}
           onTab={(key) => {
-            // Alle Tabs über switchTab — einheitlich, kein showChat-State-Split mehr
+            if (key === "profile") {
+              // Profil-Tab → eigenes Profil als Overlay öffnen
+              if (authProfile?.id || user?.id) {
+                setShowWirker({
+                  id:           authProfile?.id   || user?.id,
+                  user_id:      authProfile?.id   || user?.id,
+                  username:     authProfile?.username     || null,
+                  display_name: authProfile?.display_name || null,
+                  avatar_url:   authProfile?.avatar_url   || null,
+                  header_img:   authProfile?.header_img   || null,
+                  talent:       authProfile?.talent       || null,
+                  focus_type:   authProfile?.focus_type   || "hybrid",
+                  bio:          authProfile?.bio          || null,
+                  dna_tags:     authProfile?.dna_tags     || [],
+                  _isOwnerView: true,
+                });
+              } else {
+                setShowProfile(true);  // Fallback: ProfilePage
+              }
+              return;
+            }
             switchTab(key);
           }}
           hasTalent={isTalent}
@@ -1544,7 +1564,7 @@ export default function Home() {
             }
             if (key === "notifs") setShowNotifs(true);
           }}
-          onProfile={() => setShowProfile(true)}
+          // onProfile via onTab("profile") — kein separates Prop nötig
         />
 
 
