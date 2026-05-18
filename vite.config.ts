@@ -1,4 +1,4 @@
-// HUI 2026-05-18T10:44:17Z feat: DiscoverPage v3 premium
+// HUI 2026-05-18T10:50:14Z feat: wirker-profile modularisiert
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
