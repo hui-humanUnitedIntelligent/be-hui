@@ -1373,8 +1373,8 @@ export default function Home() {
               switchTab("favorites");
             }
             if (key === "create") {
-              if (isTalent) { setCreateType(null); setShowPlusSheet(true); }
-              else setShowMembership(true);
+              setCreateType(null);
+              setShowPlusSheet(true);
             }
             if (key === "profile") {
               // "Mein HUI" → zeigt eigenes Profil als Overlay in Home context
