@@ -1,3 +1,10 @@
+// @deprecated — LEGACY WirkerProfilePage
+// Aktive Version: src/pages/wirker-profile/index.jsx
+// Dieser Import wird im Bundle nicht mehr geladen.
+// Nicht löschen — historische Referenz.
+//
+/* eslint-disable */
+
 // WirkerProfilePage.jsx — HUI Creative Presence Profile v4
 // Screenshot-exact: Mia Kern Design
 // DNA: soft white, mint/teal, warm coral, cinematic, Apple×Airbnb×Calm
