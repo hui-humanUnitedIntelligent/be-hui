@@ -225,7 +225,7 @@ export function AuthProvider({ children }) {
       authChecked,
       authError: null,
       checkUserAuth,
-      signUp, signIn, signOut,
+      signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
       loadProfile, saveProfile, becomeWirker,
       saveWirkerProfile, activateTalentProfile,
       setProfile, setWirkerProfile,
