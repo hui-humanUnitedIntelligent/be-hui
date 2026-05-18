@@ -1,4 +1,4 @@
-// HUI 2026-05-18T20:16:02Z fix: onProfile ReferenceError behoben
+// HUI 2026-05-18T20:21:53Z CRITICAL FIX: onProfile ReferenceError vollständig behoben
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
