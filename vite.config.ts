@@ -1,4 +1,4 @@
-// HUI 2026-05-18T21:08:44Z feat: Profile-System vereinheitlicht — ProfileLauncher, openProfile, BottomNav fix
+// HUI 2026-05-18T21:10:05Z fix: Home clean — ProfileLauncher single source of truth
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
