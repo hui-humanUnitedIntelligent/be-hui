@@ -6,12 +6,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import LazyImage from "./LazyImage";
-import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, buildMock, cachedQuery } from "../lib/profileUtils";
+import { safeQuery, batchQueries, FIELDS, PROFILE_FIELDS, normalizeProfileInput, buildMock, cachedQuery } from "../lib/perfUtils";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useFollowStatus } from "../lib/AppStateContext";
 import { usePresence, resonanceSignature } from "../lib/presence";
-import { useReputation } from "../lib/trust";
+import { useReputation } from "../lib/trustContext";
 import { VerfuegbarkeitPage, KontoPage } from "./MeinHUI_SubPages";
 import EditProfile from "../pages/EditProfile";
 
