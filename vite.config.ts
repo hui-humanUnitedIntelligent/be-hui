@@ -1,4 +1,4 @@
-// HUI 2026-05-18T10:10:32Z fix: CreatorStudio import clean
+// HUI 2026-05-18T10:13:13Z fix: PlatformDashboard import clean
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
