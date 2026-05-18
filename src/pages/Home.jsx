@@ -1,10 +1,8 @@
-// src/pages/Home.jsx — HUI Home Orchestrator v6
+// src/pages/Home.jsx — HUI Home Orchestrator v6.1
 // KEIN Business-Logik. NUR Komposition.
-// Alle States → HomeShell (Context)
-// Alle Sub-Systeme → dedizierte Komponenten
+// EINZIGER Profil-Einstieg: ProfileLauncher
 
-import React, { useState, Suspense } from "react";
-import { useAuth }             from "../lib/AuthContext";
+import React, { Suspense } from "react";
 
 // ── Shell + Context ──────────────────────────────────────────────
 import HomeShell, { useHome }  from "../components/home/HomeShell.jsx";
@@ -15,6 +13,9 @@ import HomeHeader              from "../components/home/header/HomeHeader.jsx";
 // ── Navigation ──────────────────────────────────────────────────
 import BottomNav               from "../components/home/navigation/BottomNav.jsx";
 
+// ── ZENTRALER PROFIL-LAUNCHER (einziger Einstieg für alle Profile)
+import ProfileLauncher         from "../components/home/profile/ProfileLauncher.jsx";
+
 // ── Seiten (Keep-Alive) ──────────────────────────────────────────
 import HomeFeed                from "../components/HomeFeed.jsx";
 import DiscoverPage            from "./DiscoverPage.jsx";
@@ -22,26 +23,22 @@ import ChatPage                from "../components/ChatPage.jsx";
 import ImpactPage              from "./ImpactPage.jsx";
 import FavoritesPage           from "./FavoritesPage.jsx";
 
-// ── Overlays / Lazy ──────────────────────────────────────────────
-const WirkerProfilePage     = React.lazy(() => import("./wirker-profile/index.jsx"));
-const ProfilePage           = React.lazy(() => import("./ProfilePage.jsx"));
-const NotificationCenter    = React.lazy(() => import("../components/NotificationCenter.jsx"));
-const ChatPageOverlay       = React.lazy(() => import("../components/ChatPage.jsx"));
-const LiveMapPage           = React.lazy(() => import("./LiveMapPage.jsx"));
-const HuiMatchOverlay       = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
-const HuiPlusSheet          = React.lazy(() => import("../components/HuiPlusSheet.jsx"));
-const HuiMembershipFlow     = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
-const HuiCreateFlow         = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
-const TalentOnboarding      = React.lazy(() => import("../components/TalentOnboarding.jsx"));
-const StoryComposer         = React.lazy(() => import("../components/StoryComposer.jsx"));
-const WerkPublisher         = React.lazy(() => import("../components/WerkPublisher.jsx"));
-const ExperienceCreator     = React.lazy(() => import("../components/ExperienceCreator.jsx"));
-const { WerkDetail, WerkCheckout } = { WerkDetail: null, WerkCheckout: null }; // Lazy via WerkeShop
-import { StoryBar, StoryViewer }   from "../components/StoryBar.jsx";
+// ── Overlays — alle lazy ─────────────────────────────────────────
+const NotificationCenter   = React.lazy(() => import("../components/NotificationCenter.jsx"));
+const LiveMapPage          = React.lazy(() => import("./LiveMapPage.jsx"));
+const HuiMatchOverlay      = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
+const HuiPlusSheet         = React.lazy(() => import("../components/HuiPlusSheet.jsx"));
+const HuiMembershipFlow    = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
+const HuiCreateFlow        = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
+const TalentOnboarding     = React.lazy(() => import("../components/TalentOnboarding.jsx"));
+const StoryComposer        = React.lazy(() => import("../components/StoryComposer.jsx"));
+const WerkPublisher        = React.lazy(() => import("../components/WerkPublisher.jsx"));
+const ExperienceCreator    = React.lazy(() => import("../components/ExperienceCreator.jsx"));
+const ProfilePageFallback  = React.lazy(() => import("./ProfilePage.jsx"));
+import { StoryViewer }     from "../components/StoryBar.jsx";
 
-// ── Design Token ────────────────────────────────────────────────
+// ── Design ──────────────────────────────────────────────────────
 const C = { cream:"#F9F6F2" };
-
 const GLOBAL_CSS = `
   * { box-sizing: border-box; }
   html, body { margin:0; padding:0; height:100%; overflow:hidden; }
@@ -50,21 +47,17 @@ const GLOBAL_CSS = `
 `;
 
 // ══════════════════════════════════════════════════════════════════
-// HomeInner — liest aus HomeShell-Context, kein State-Management
+// HomeInner — liest aus Context, kein eigenes State-Management
 // ══════════════════════════════════════════════════════════════════
 function HomeInner() {
   const {
-    // Auth
-    user, authProfile, isTalent, currentUser, userName,
-    // Tab
+    isTalent, currentUser,
     tab, handleTab, mainScrollRef,
     keepFeed, keepDiscover, keepChat, keepImpact, keepFavorites,
-    // Mood
     activeMood, setActiveMood,
-    // Notif
     liveNotifCount,
-    // Overlays
-    showWirker,       setShowWirker,
+    authProfile,
+    setShowWirker,
     showChat,         setShowChat,
     showNotifs,       setShowNotifs,
     showProfile,      setShowProfile,
@@ -77,10 +70,7 @@ function HomeInner() {
     showStoryComposer,setShowStoryComposer,
     showWerkPublisher,setShowWerkPublisher,
     showExperienceCreator, setShowExperienceCreator,
-    showWerkDetail,   setShowWerkDetail,
-    showWerkCheckout, setShowWerkCheckout,
     activeStory,      setActiveStory,
-    cart,             setCart,
   } = useHome();
 
   return (
@@ -102,7 +92,7 @@ function HomeInner() {
           onChat={() => setShowChat(true)}
         />
 
-        {/* ── KEEP-ALIVE SCROLL AREA ─────────────────────── */}
+        {/* ── KEEP-ALIVE TABS ────────────────────────────── */}
         <div className="hui-scroll" ref={mainScrollRef}
           style={{ flex:1, overflowY:"auto", overflowX:"hidden",
             WebkitOverflowScrolling:"touch" }}>
@@ -163,26 +153,20 @@ function HomeInner() {
           notifCount={liveNotifCount}
           msgCount={0}
           onOrbAction={(key) => {
-            if (key === "create") {
-              setShowPlusSheet(true);
-            }
+            if (key === "create") setShowPlusSheet(true);
           }}
         />
       </div>
 
       {/* ══════════════════════════════════════════════════
-          OVERLAY LAYER — alle floating Sheets/Pages
+          OVERLAY LAYER
           ══════════════════════════════════════════════════ */}
       <Suspense fallback={null}>
 
-        {/* Wirker / Profil */}
-        {showWirker && (
-          <WirkerProfilePage
-            wirker={showWirker}
-            onClose={() => setShowWirker(null)}
-            onBook={() => {}}
-          />
-        )}
+        {/* ── PROFIL — EINZIGER EINSTIEG ─────────────────
+            ProfileLauncher liest showWirker aus HomeCtx
+            Keine direkte WirkerProfilePage mehr hier   */}
+        <ProfileLauncher/>
 
         {/* Map */}
         {showMap && (
@@ -202,18 +186,18 @@ function HomeInner() {
           />
         )}
 
-        {/* Plus Sheet / Create */}
+        {/* Plus Sheet */}
         {showPlusSheet && (
           <HuiPlusSheet
             isTalent={isTalent}
             onClose={() => setShowPlusSheet(false)}
             onSelect={(type) => {
               setShowPlusSheet(false);
-              if (type === "moment")      setShowStoryComposer(true);
-              else if (type === "werk")   setShowWerkPublisher(true);
+              if (type === "moment")    setShowStoryComposer(true);
+              else if (type === "werk") setShowWerkPublisher(true);
               else if (type === "erlebnis") setShowExperienceCreator(true);
-              else if (type === "wirker") setShowTalentFlow(true);
-              else if (type === "create") setShowCreateFlow(true);
+              else if (type === "wirker")   setShowTalentFlow(true);
+              else if (type === "create")   setShowCreateFlow(true);
             }}
           />
         )}
@@ -222,7 +206,7 @@ function HomeInner() {
         {showTalentFlow && (
           <TalentOnboarding
             onClose={() => setShowTalentFlow(false)}
-            onSuccess={() => { setShowTalentFlow(false); }}
+            onSuccess={() => setShowTalentFlow(false)}
           />
         )}
 
@@ -268,14 +252,12 @@ function HomeInner() {
 
         {/* Create Flow */}
         {showCreateFlow && (
-          <HuiCreateFlow
-            onClose={() => setShowCreateFlow(false)}
-          />
+          <HuiCreateFlow onClose={() => setShowCreateFlow(false)} />
         )}
 
-        {/* Profile Fallback */}
+        {/* ProfilePage Fallback — nur für "Mein Konto" ohne authProfile */}
         {showProfile && (
-          <ProfilePage onClose={() => setShowProfile(false)}/>
+          <ProfilePageFallback onClose={() => setShowProfile(false)}/>
         )}
 
         {/* Story Viewer */}
@@ -292,7 +274,7 @@ function HomeInner() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// Home — Root Export: Shell wraps Inner
+// Home — Root Export
 // ══════════════════════════════════════════════════════════════════
 export default function Home() {
   return (
