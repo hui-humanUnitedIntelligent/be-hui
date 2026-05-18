@@ -6,6 +6,7 @@ import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
+import { useAppState } from "../lib/AppStateContext";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
