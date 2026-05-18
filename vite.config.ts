@@ -1,4 +1,4 @@
-// HUI 2026-05-18T18:54:32Z fix: ALL 30/30 wirker-profile imports resolved
+// HUI 2026-05-18T19:10:51Z build: 15/15 imports clean — production build trigger
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
