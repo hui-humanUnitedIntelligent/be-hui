@@ -1,4 +1,4 @@
-// HUI build 2026-05-18T07:15:34Z — Brand Identity Update: neues Logo systemweit
+// HUI build 2026-05-18T07:43:27Z — fix: BookingFlow ReferenceError — safe re-export
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
