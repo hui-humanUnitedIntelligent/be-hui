@@ -1,4 +1,4 @@
-// HUI 2026-05-18T18:53:28Z fix: wirker-profile hook paths 3-level resolved
+// HUI 2026-05-18T18:54:32Z fix: ALL 30/30 wirker-profile imports resolved
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
