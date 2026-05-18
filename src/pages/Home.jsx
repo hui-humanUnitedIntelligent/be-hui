@@ -17,7 +17,7 @@ import StoryComposer      from "../components/StoryComposer";
 import WerkPublisher      from "../components/WerkPublisher";
 import ExperienceCreator  from "../components/ExperienceCreator";
 import QuickCreateSheet   from "../components/QuickCreateSheet";
-import WirkerProfilePage from "../components/WirkerProfilePage";
+import WirkerProfilePage from "../pages/wirker-profile";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
 import HuiSearchBar   from "../components/HuiSearchBar";
 import LiveMapPage    from "./LiveMapPage";
@@ -1294,7 +1294,7 @@ export default function Home() {
               // WirkerProfile bleibt offen — RequestSheet öffnet sich intern
               // setShowBooking entfernt (BookingFlow nicht mehr in Home)
             }}
-            onMessage={profile => {
+            onChat={profile => {
               // Chat öffnet sich als Sheet innerhalb WirkerProfilePage — handled intern
             }}
             onEdit={() => {
