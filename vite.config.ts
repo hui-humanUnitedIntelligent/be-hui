@@ -1,4 +1,4 @@
-// HUI 2026-05-18T18:42:04Z fix: orbOpen ReferenceError — KEIN orbOpen im Repo, Cache-Invalidierung
+// HUI 2026-05-18T18:45:59Z fix: MIME-type — lazy+explicit index.jsx — cache bust
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
