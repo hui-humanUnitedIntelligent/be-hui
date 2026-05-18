@@ -411,7 +411,7 @@ function MoodPanel({ activeMood, onSelect, onClose }) {
   );
 }
 
-function Header({ userName, avatarUrl, activeMood, onMoodSelect, onMatchFocus }) {
+function Header({ userName, avatarUrl, activeMood, onMoodSelect, onMatchFocus, onChat, onNotif, msgCount=0, notifCount=0 }) {
   const [showMoodPanel, setShowMoodPanel] = React.useState(false);
   const [inputVal,      setInputVal]      = React.useState("");
   const [phIdx,         setPhIdx]         = React.useState(0);
@@ -583,6 +583,90 @@ function Header({ userName, avatarUrl, activeMood, onMoodSelect, onMatchFocus })
             )}
           </button>
 
+
+          {/* ── NOTIF BUTTON ─────────────────────────────────── */}
+          <button
+            onClick={onNotif}
+            style={{
+              flexShrink:0,
+              width:40, height:40, borderRadius:"50%",
+              background:"rgba(255,255,255,0.82)",
+              backdropFilter:"blur(16px)",
+              WebkitBackdropFilter:"blur(16px)",
+              border:"1.5px solid rgba(22,215,197,0.2)",
+              boxShadow:"0 2px 10px rgba(0,0,0,0.07), 0 0 0 3px rgba(22,215,197,0.07)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", position:"relative",
+              WebkitTapHighlightColor:"transparent",
+              transition:"transform 0.16s ease, box-shadow 0.16s ease",
+            }}
+            onTouchStart={e => e.currentTarget.style.transform="scale(0.90)"}
+            onTouchEnd={e   => e.currentTarget.style.transform="scale(1)"}
+          >
+            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+              {/* Bell — organisch, ruhig */}
+              <path d="M8.5 2.5 C5.5 2.5 4 5 4 7.5 L4 10.5 L3 12 L14 12 L13 10.5 L13 7.5 C13 5 11.5 2.5 8.5 2.5Z"
+                fill="rgba(22,215,197,0.12)" stroke="#16D7C5" strokeWidth="1.4" strokeLinejoin="round"/>
+              <path d="M7 12.5 Q7.5 14 8.5 14 Q9.5 14 10 12.5"
+                stroke="#16D7C5" strokeWidth="1.3" strokeLinecap="round"/>
+              {/* kleine Resonanz-Welle oben */}
+              <path d="M6.5 3.2 Q8.5 1.8 10.5 3.2" stroke="#FF8A6B" strokeWidth="1.1"
+                strokeLinecap="round" opacity="0.6"/>
+            </svg>
+            {/* Resonanz-Badge */}
+            {(notifCount ?? 0) > 0 && (
+              <div style={{
+                position:"absolute", top:4, right:4,
+                width:8, height:8, borderRadius:"50%",
+                background:"linear-gradient(135deg,#FF8A6B,#FF5F5F)",
+                border:"1.5px solid rgba(255,251,248,0.96)",
+                boxShadow:"0 0 6px rgba(255,138,107,0.65)",
+              }}/>
+            )}
+          </button>
+
+          {/* ── CHAT BUTTON ──────────────────────────────────── */}
+          <button
+            onClick={onChat}
+            style={{
+              flexShrink:0,
+              width:40, height:40, borderRadius:"50%",
+              background:"rgba(255,255,255,0.82)",
+              backdropFilter:"blur(16px)",
+              WebkitBackdropFilter:"blur(16px)",
+              border:"1.5px solid rgba(22,215,197,0.2)",
+              boxShadow:"0 2px 10px rgba(0,0,0,0.07), 0 0 0 3px rgba(22,215,197,0.07)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", position:"relative",
+              WebkitTapHighlightColor:"transparent",
+              transition:"transform 0.16s ease, box-shadow 0.16s ease",
+            }}
+            onTouchStart={e => e.currentTarget.style.transform="scale(0.90)"}
+            onTouchEnd={e   => e.currentTarget.style.transform="scale(1)"}
+          >
+            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+              {/* Sprechblase — warm, organisch */}
+              <path d="M2.5 2.5 H14.5 Q15.5 2.5 15.5 3.5 V11.5 Q15.5 12.5 14.5 12.5 H10 L8.5 15 L7 12.5 H2.5 Q1.5 12.5 1.5 11.5 V3.5 Q1.5 2.5 2.5 2.5Z"
+                fill="rgba(22,215,197,0.10)" stroke="#16D7C5" strokeWidth="1.4" strokeLinejoin="round"/>
+              {/* 3 Resonanz-Dots */}
+              <circle cx="5.5"  cy="7.5" r="1" fill="#16D7C5" opacity="0.7"/>
+              <circle cx="8.5"  cy="7.5" r="1" fill="#FF8A6B" opacity="0.7"/>
+              <circle cx="11.5" cy="7.5" r="1" fill="#16D7C5" opacity="0.7"/>
+            </svg>
+            {/* Message Badge */}
+            {(msgCount ?? 0) > 0 && (
+              <div style={{
+                position:"absolute", top:4, right:4,
+                minWidth:14, height:14, borderRadius:7,
+                background:"linear-gradient(135deg,#16D7C5,#11C5B7)",
+                color:"white", fontSize:7.5, fontWeight:800,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                padding:"0 2.5px",
+                border:"1.5px solid rgba(255,251,248,0.96)",
+                boxShadow:"0 0 6px rgba(22,215,197,0.55)",
+              }}>{(msgCount ?? 0) > 9 ? "9+" : msgCount}</div>
+            )}
+          </button>
           {/* ── AVATAR ──────────────────────────────────────────── */}
           {(avatarUrl || userName) && (
             <div style={{
@@ -1343,6 +1427,7 @@ export default function Home() {
   const [cart,        setCart]        = useState([]);
   const [notif,       setNotif]       = useState(3);
   const [showChat,     setShowChat]     = useState(false);
+  const [showProfile,  setShowProfile]  = useState(false);
   const [showNotifs,   setShowNotifs]   = useState(false);
   const liveNotifCount = useNotifCount();
   const [userName,    setUserName]    = useState("");
@@ -1555,6 +1640,7 @@ export default function Home() {
             }
             if (key === "notifs") setShowNotifs(true);
           }}
+          onProfile={() => setShowProfile(true)}
         />
 
 
@@ -1667,6 +1753,12 @@ export default function Home() {
         <NotificationCenter
           onClose={() => setShowNotifs(false)}
           onNavigate={(url) => { setShowNotifs(false); }}
+        />
+      )}
+
+      {showProfile && (
+        <ProfilePage
+          onClose={() => setShowProfile(false)}
         />
       )}
 
