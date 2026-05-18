@@ -641,158 +641,35 @@ const BN_CSS = `
   }
 `;
 
-function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalent=false, authProfile=null, orbActive=false, }) {
-  const [pressed,   setPressed]  = React.useState(null);
-  // [AUTO] const [orbOpen,   setOrbOpen]  = React.useState(false);
-  const [orbAnim,   setOrbAnim]  = React.useState(false); // breathing
+function BottomNav({
+  tab,
+  onTab,
+  onOrbAction,
+  notifCount  = 0,
+  msgCount    = 0,
+  hasTalent   = false,
+  authProfile = null,
+  orbActive   = false,
+}) {
+  const [pressed, setPressed] = React.useState(null);
+  const [orbAnim, setOrbAnim] = React.useState(false);
 
-  // Scroll → Orb schließen
-
-
-
-
-
-
-
-
-
-  // Tab-Wechsel → Orb schließen
-  React.useEffect(() => { setOrbOpen(false); }, [tab]);
-
-  // Orb idle breathing — startet nach mount
+  // Idle breathing-Glow startet nach mount
   React.useEffect(() => {
-    const t = setTimeout(() => setOrbAnim(true), 200);
+    const t = setTimeout(() => setOrbAnim(true), 400);
     return () => clearTimeout(t);
   }, []);
-
-  const handleOrbAction = React.useCallback((key) => {
-    setOrbOpen(false);
-    onOrbAction?.(key);
-  }, [onOrbAction]);
-
-  // Orb Menü Karten-Position: direkt über dem Orb, mittig
-  // Orb sitzt mittig. Card-Breite ca. 220px → links: calc(50% - 110px)
-  // Bottom: BottomNav-Höhe + safe-area + 12px Luft
-  // Card: exakt über dem Orb zentriert
-  // BottomNav-Pill: ca. 66px hoch + 10px margin + safe-area
-  // Card bottom: Oberkante Nav + 10px Luft
-  const cardStyle = {
-    left: "50%",
-    // transform ist im @keyframes hui-card-in definiert (translateX(-50%) bleibt erhalten)
-    bottom: `calc(66px + max(10px, env(safe-area-inset-bottom, 10px)) + 12px)`,
-  };
-
-  const ORB_MENU = [
-    {
-      key:"favorites",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF8A6B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-      ),
-      label: "Favoriten",
-      sub:   "Deine gespeicherten Talente",
-    },
-    {
-      key:"create",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="16"/>
-          <line x1="8"  y1="12" x2="16" y2="12"/>
-        </svg>
-      ),
-      label: "Erstellen",
-      sub:   hasTalent ? "Story · Werk · Erlebnis" : "Wirker werden",
-    },
-    {
-      key:"profile",
-      icon: (
-        <div style={{
-          width:26, height:26, borderRadius:"50%", overflow:"hidden", flexShrink:0,
-          background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          {authProfile?.avatar_url
-            ? <img src={authProfile.avatar_url} alt="Profil"
-                style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
-                onError={e=>{e.target.style.display="none";}}/>
-            : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          }
-        </div>
-      ),
-      label: "Mein HUI",
-      sub:   "Profil · Einstellungen · Impact",
-    },
-    {
-      key:"notifs",
-      icon: (
-        <div style={{ position:"relative", width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          {notifCount > 0 && (
-            <div style={{
-              position:"absolute", top:-2, right:-2,
-              minWidth:14, height:14, borderRadius:7,
-              background:"linear-gradient(135deg,#FF5F5F,#FF8A6B)",
-              color:"white", fontSize:8, fontWeight:800,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              padding:"0 3px", border:"1.5px solid rgba(255,251,248,0.96)",
-            }}>{notifCount > 9 ? "9+" : notifCount}</div>
-          )}
-        </div>
-      ),
-      label: "Mitteilungen",
-      sub:   notifCount > 0 ? `${notifCount} neue Benachrichtigung${notifCount>1?"en":""}` : "Keine neuen Mitteilungen",
-    },
-  ];
 
   return (
     <>
       <style>{BN_CSS}</style>
 
-      {/* Overlay zum Schließen */}
-  // [AUTO] {orbOpen && (
-        <div className="hui-orb-overlay" onClick={() => setOrbOpen(false)} aria-hidden="true"/>
-      )}
-
-      {/* Floating Card */}
-      {false /* Orb-Card → HuiPlusSheet */ && (
-        <div className="hui-orb-card" style={cardStyle} role="dialog" aria-label="HUI Menü">
-          {ORB_MENU.map((item, idx) => (
-            <React.Fragment key={item.key}>
-              {idx > 0 && <div className="hui-orb-card-divider"/>}
-              <button
-                className="hui-orb-card-item"
-                onClick={() => handleOrbAction(item.key)}
-                aria-label={item.label}
-              >
-                <div className="hui-orb-card-icon">{item.icon}</div>
-                <div style={{ flex:1, textAlign:"left", minWidth:0 }}>
-                  <div style={{
-                    fontSize:14.5, fontWeight:600, color:"#1A1A1A",
-                    letterSpacing:-0.15, lineHeight:1.25,
-                  }}>{item.label}</div>
-                  <div style={{
-                    fontSize:11.5, color:"rgba(55,55,55,0.48)",
-                    marginTop:2, lineHeight:1.35, fontWeight:400,
-                    letterSpacing:0.05,
-                  }}>{item.sub}</div>
-                </div>
-              </button>
-            </React.Fragment>
-          ))}
-        </div>
-      )}
-
-      {/* Bottom Nav Pill */}
+      {/* ── Bottom Nav Pill ── */}
       <div style={{
         position:"fixed", bottom:0, left:0, right:0, zIndex:100,
         pointerEvents:"none",
-        opacity:    orbActive ? 0 : 1,
-        transform:  orbActive ? "translateY(120%)" : "translateY(0)",
+        opacity:    (orbActive ?? false) ? 0 : 1,
+        transform:  (orbActive ?? false) ? "translateY(120%)" : "translateY(0)",
         transition: "opacity 0.40s cubic-bezier(0.4,0,0.2,1), transform 0.40s cubic-bezier(0.4,0,0.2,1)",
         willChange: "opacity, transform",
       }}>
@@ -817,40 +694,43 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
         }}>
           {NAV.map((item, i) => {
 
-            /* ── Orb Slot ── */
+            /* ── Orb Slot (null in NAV array) ── */
             if (!item) return (
               <button
                 key="orb"
-                className={`hui-orb-btn${orbActive ? " hui-orb-btn--open" : (orbAnim ? " hui-orb-btn--idle" : "")}`}
+                className={`hui-orb-btn${(orbActive ?? false) ? " hui-orb-btn--open" : (orbAnim ? " hui-orb-btn--idle" : "")}`}
                 onClick={() => onOrbAction?.("create")}
-                aria-label={orbActive ? "Schließen" : "Kreativ werden"}
-                aria-expanded={orbActive}
+                aria-label={(orbActive ?? false) ? "Schließen" : "Kreativ werden"}
+                aria-expanded={orbActive ?? false}
               >
                 <div className="hui-orb-ring"/>
                 <div className="hui-orb-highlight"/>
                 <div className="hui-orb-icon">
+                  {/* HUI Logo */}
                   <div style={{
                     position:"absolute",
-                    opacity:   orbActive ? 0.42 : 1,
-                    transform: orbActive ? "scale(0.78) rotate(12deg)" : "scale(1) rotate(0deg)",
+                    opacity:   (orbActive ?? false) ? 0.42 : 1,
+                    transform: (orbActive ?? false) ? "scale(0.78) rotate(12deg)" : "scale(1) rotate(0deg)",
                     transition:"opacity 0.28s ease, transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
                   }}>
                     <img src="/hui-logo.jpg" alt="HUI" loading="eager" decoding="async"
                       style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", display:"block" }}
                       onError={e=>{e.target.style.display="none";}}/>
                   </div>
+                  {/* ✕ wenn Orb-Overlay offen */}
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
                     style={{
                       position:"absolute",
-                      opacity:   orbActive ? 1 : 0,
-                      transform: orbActive ? "rotate(0deg) scale(1)" : "rotate(-45deg) scale(0.4)",
+                      opacity:   (orbActive ?? false) ? 1 : 0,
+                      transform: (orbActive ?? false) ? "rotate(0deg) scale(1)" : "rotate(-45deg) scale(0.4)",
                       transition:"opacity 0.24s ease, transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
                     }}>
                     <line x1="2.5" y1="7.5" x2="12.5" y2="7.5" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
                     <line x1="7.5" y1="2.5" x2="7.5" y2="12.5" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </div>
-                {!orbActive && notifCount > 0 && (
+                {/* Notif-Dot */}
+                {!(orbActive ?? false) && (notifCount ?? 0) > 0 && (
                   <div style={{
                     position:"absolute", top:3, right:3,
                     width:7, height:7, borderRadius:"50%",
@@ -863,7 +743,6 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
             );
 
             /* ── Standard Tab ── */
-            const active    = tab === item.key || (item.key === "chat" && false);
             const isActive  = tab === item.key;
             const isPressed = pressed === item.key;
 
@@ -871,7 +750,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
               <button
                 key={item.key}
                 className="hui-bn-btn"
-                onClick={() => onTab(item.key)}
+                onClick={() => onTab?.(item.key)}
                 onTouchStart={() => setPressed(item.key)}
                 onTouchEnd={() => setPressed(null)}
                 style={{ transform: isPressed ? "scale(0.88)" : "scale(1)" }}
@@ -885,8 +764,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
                   transition:"transform 0.24s cubic-bezier(0.34,1.3,0.64,1)",
                 }}>
                   <NavIcon k={item.key} active={isActive}/>
-                  {/* Chat unread badge */}
-                  {item.key === "chat" && msgCount > 0 && (
+                  {item.key === "chat" && (msgCount ?? 0) > 0 && (
                     <div style={{
                       position:"absolute", top:-3, right:-5,
                       minWidth:14, height:14, borderRadius:7,
@@ -894,7 +772,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
                       color:"white", fontSize:7.5, fontWeight:800,
                       display:"flex", alignItems:"center", justifyContent:"center",
                       padding:"0 3px", border:"1.5px solid rgba(255,251,248,0.96)",
-                    }}>{msgCount > 9 ? "9+" : msgCount}</div>
+                    }}>{(msgCount ?? 0) > 9 ? "9+" : msgCount}</div>
                   )}
                 </div>
                 <span className={`hui-bn-label${isActive ? " hui-bn-label--active" : ""}`}>
