@@ -35,6 +35,7 @@ import { getProtectionStatus } from '@/lib/protection/index';
 import { getRecoveryStatus } from '@/lib/recovery/index';
 import { runPreflight } from '@/lib/release/preflight';
 import { validateBudgets } from '@/lib/budgets/index';
+import { useRecovery } from "../lib/recovery";
 
 // ── Farb-System ────────────────────────────────────────────────
 const C = {
