@@ -2,8 +2,8 @@
 // Brückt Legacy-Presence (online/offline) und Creative-Presence (Phase 6G)
 // REGEL: Kein Crash wenn Presence-Daten fehlen. Alle Returns null-safe.
 
-import { usePresence as usePresenceLegacy, getPresenceLabel } from "../../lib/sessionHooks";
-import { usePresence } from "../../lib/presence/index";
+import { usePresence as usePresenceLegacy, getPresenceLabel } from "../../../lib/sessionHooks";
+import { usePresence } from "../../../lib/presence/index";
 import { hasPresenceData, shouldShowRhythm, shouldShowBridge } from "../utils/profileGuards";
 import { formatRhythm, formatContinuity } from "../utils/profileFormatters";
 
