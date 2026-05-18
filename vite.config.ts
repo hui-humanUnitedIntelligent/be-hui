@@ -1,4 +1,4 @@
-// HUI 2026-05-18T20:09:16Z feat: Navigation v5 — Profil-Tab, Chat+Notif im Header
+// HUI 2026-05-18T20:13:48Z fix: ein Header, FeedHeader entfernt, kompakt 38px
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
