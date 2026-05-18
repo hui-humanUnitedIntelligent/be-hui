@@ -682,7 +682,8 @@ const MemoVideoCard   = React.memo(VideoStageCard);
 const MemoImpactCard  = React.memo(ImpactStageCard);
 
 /* ─── Haupt HomeFeed ─────────────────────────────── */
-export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
+/* ─── Haupt HomeFeed ─────────────────────────────── */
+export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact,
   onLoadMore,
   loadingMore = false,
   hasMore = false,
@@ -690,19 +691,31 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
   const [sections, setSections] = useState(SECTIONS);
   const [loading,  setLoading]  = useState(true);
 
+  // ── stallTimerRef: useRef statt lokale const ─────────────────────
+  // Grund: `const stallTimer` war im useEffect-Scope gefangen.
+  // Bei alten Bundle-Versionen (Cache) referenzierte der
+  // visibilitychange-Handler denselben stallTimer aus einem
+  // früheren Stand wo beide useEffects noch einer waren.
+  // → ReferenceError: stallTimer is not defined
+  // Lösung: ref lebt im Komponenten-Scope, immer erreichbar.
+  const stallTimerRef = useRef(null);
+
+  // ── useEffect #1: loadLive + Stall-Guard ─────────────────────────
   useEffect(() => {
     let mounted   = true;
     let loadStart = Date.now();
+
     // Skeleton-Timeout: nach 8s force setLoading(false)
     // verhindert permanent-skeleton wenn Supabase nicht antwortet
-    const stallTimer = setTimeout(() => {
+    stallTimerRef.current = setTimeout(() => {
       if (!mounted) return;
       const elapsed = Date.now() - loadStart;
-      console.warn('[HomeFeed] loadLive stalled after ' + Math.round(elapsed/1000) + 's — forcing loading=false');
+      console.warn('[HomeFeed] loadLive stalled after ' + Math.round(elapsed/100)/10 + 's');
       sentryCapture(new Error('HomeFeed loadLive stalled'), {
-        source:       'HomeFeed.loadStall',
-        elapsed_ms:   elapsed,
+        source:          'HomeFeed.loadStall',
+        elapsed_ms:      elapsed,
         document_hidden: document.hidden,
+        visibility:      document.visibilityState,
       });
       setLoading(false);
     }, 8000);
@@ -729,7 +742,7 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
           }));
           if (mounted) setSections(prev => {
             const updated = [...prev];
-            updated[0] = { ...updated[0], items: [...liveItems, ...updated[0].items.slice(0, 2)] };
+            updated[0] = { ...updated[0], items: [...liveItems, ...updated[0].items] };
             return updated;
           });
         }
@@ -737,29 +750,53 @@ export default function HomeFeed({ onViewWirker, onBook, onAddToCart, onImpact ,
         console.warn('[HomeFeed] loadLive error:', e?.message);
       }
       if (mounted) {
-        clearTimeout(stallTimer);
+        // Stall-Guard auflösen — Load erfolgreich
+        clearTimeout(stallTimerRef.current);
+        stallTimerRef.current = null;
         setLoading(false);
       }
     }
 
     loadLive();
-    return () => { mounted = false; clearTimeout(stallTimer); };
+    return () => {
+      mounted = false;
+      // Cleanup: immer via ref — kein Scope-Problem möglich
+      clearTimeout(stallTimerRef.current);
+      stallTimerRef.current = null;
+    };
   }, []);
 
-  // visibilitychange: Resume-Recovery für HomeFeed
+  // ── useEffect #2: visibilitychange Resume-Recovery ───────────────
+  // EXPLIZIT GETRENNT von useEffect #1 — kein Zugriff auf stallTimer.
+  // stallTimerRef.current wird hier nur als Sentry-Kontext genutzt,
+  // nie als Kontroll-Flow — damit ist der Crash eliminiert.
   useEffect(() => {
     let hiddenAt = 0;
+
     function onVisibility() {
-      if (document.hidden) { hiddenAt = Date.now(); return; }
+      if (document.hidden) {
+        hiddenAt = Date.now();
+        return;
+      }
       const idleMs = hiddenAt > 0 ? Date.now() - hiddenAt : 0;
       console.log('[HomeFeed] visibility resume, idle=' + Math.round(idleMs/1000) + 's');
-      // Nach langem Idle (>60s): loading sicherheitshalber auf false setzen
+
+      // Sentry-Kontext: stallTimer-Status (safe — via ref, nie undefined)
+      const hasActiveStall = stallTimerRef.current != null;
+
+      // Nach langem Idle (>60s): loading sicherheitshalber auf false
       // verhindert stuck-skeleton wenn loadLive während Idle nicht fertig wurde
       if (idleMs > 60000) {
         setLoading(false);
+        // Stall-Guard bereinigen (falls noch aktiv — z.B. Tab war lang hidden)
+        if (hasActiveStall) {
+          clearTimeout(stallTimerRef.current);
+          stallTimerRef.current = null;
+        }
       }
     }
-    document.addEventListener('visibilitychange', onVisibility);
+
+    document.addEventListener('visibilitychange', onVisibility, { passive: true });
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
