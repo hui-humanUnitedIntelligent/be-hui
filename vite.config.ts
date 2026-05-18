@@ -1,4 +1,4 @@
-// HUI 2026-05-18T10:29:00Z fix: WirkerProfilePage presence ReferenceError
+// HUI 2026-05-18T10:37:48Z stabilization: eslint + plan + hooks clean
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
