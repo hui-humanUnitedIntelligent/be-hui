@@ -1,4 +1,4 @@
-// HUI build 2026-05-18T06:51:10Z — fix: AuthContext ReferenceError resolved
+// HUI build 2026-05-18T07:15:34Z — Brand Identity Update: neues Logo systemweit
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
