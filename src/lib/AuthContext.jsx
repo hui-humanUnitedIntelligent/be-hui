@@ -211,6 +211,58 @@ export function AuthProvider({ children }) {
     return { data, error };
   }, [user]);
 
+
+  // ── OAuth & Magic Link — Phase X Auth Redesign ─────────────────
+  // Safe-Wrapped: schlagen nie undefined-Fehler —
+  // auch wenn Supabase OAuth Provider nicht konfiguriert ist.
+
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      return await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+    } catch (err) {
+      console.warn('[HUI Auth] Google OAuth nicht verfügbar:', err?.message);
+      return { error: err };
+    }
+  }, []);
+
+  const signInWithApple = useCallback(async () => {
+    try {
+      return await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+    } catch (err) {
+      console.warn('[HUI Auth] Apple OAuth nicht verfügbar:', err?.message);
+      return { error: err };
+    }
+  }, []);
+
+  const signInWithMagicLink = useCallback(async (email) => {
+    try {
+      return await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+    } catch (err) {
+      console.warn('[HUI Auth] Magic Link nicht verfügbar:', err?.message);
+      return { error: err };
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email) => {
+    try {
+      return await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      });
+    } catch (err) {
+      console.warn('[HUI Auth] Password Reset nicht verfügbar:', err?.message);
+      return { error: err };
+    }
+  }, []);
+
   const isWirker         = profile?.has_talent_profile || profile?.is_wirker || false;
   const hasTalentProfile = profile?.has_talent_profile || false;
   const profileModules   = profile?.profile_modules || {};
