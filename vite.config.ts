@@ -1,4 +1,4 @@
-// HUI 2026-05-18T16:28:23Z feat: HUI Orb v5 IMMERSIVE FINAL
+// HUI 2026-05-18T16:40:10Z fix: BottomNav orbActive FINAL
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
