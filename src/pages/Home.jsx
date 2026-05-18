@@ -32,6 +32,7 @@ import HuiCreateFlow  from "../components/HuiCreateFlow";
 import HuiPlusSheet   from "../components/HuiPlusSheet";
 import { useSessionRestore, useScrollMemory, useOwnPresence, useTabKeepAlive } from "../lib/sessionHooks";
 import HomeFeed from "../components/HomeFeed";
+import FavoritesPage from "./FavoritesPage";
 
 /* ═══════════════════════════════════════════════════
    BRAND — original HUI DNA
@@ -1243,6 +1244,7 @@ export default function Home() {
   const keepDiscover = useTabKeepAlive(tab === "discover");
   const keepChat     = useTabKeepAlive(tab === "chat");
   const keepImpact   = useTabKeepAlive(tab === "impact");
+  const keepFavorites = useTabKeepAlive(tab === "favorites");
 
   const switchTab = React.useCallback((newTab) => {
     setShowWirker(null);
@@ -1341,6 +1343,15 @@ export default function Home() {
           <div style={keepImpact}>
             <ImpactPage currentUser={currentUser}/>
           </div>
+          {/* Favoriten / Dein Raum — Keep-Alive */}
+          <div style={keepFavorites}>
+            <FavoritesPage
+              currentUser={currentUser}
+              onView={w=>setShowWirker(w)}
+              onImpact={()=>switchTab("impact")}
+              onDiscover={()=>switchTab("discover")}
+            />
+          </div>
           {/* "profile" Tab entfernt — Profil läuft über Orb → setShowWirker (Overlay) */}
           {/* Für tiefes Profil-Editing: /studio Route */}
         </div>
@@ -1359,7 +1370,7 @@ export default function Home() {
             if (key === "favorites") {
               // Saved/Favoriten → zum Discover Tab (dort sind gespeicherte Works sichtbar)
               // Vollständige FavoritesPage kommt in Phase 3 als dedizierter Tab
-              switchTab("discover");
+              switchTab("favorites");
             }
             if (key === "create") {
               if (isTalent) { setCreateType(null); setShowPlusSheet(true); }
