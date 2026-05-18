@@ -1,4 +1,4 @@
-// HUI build 2026-05-18T08:32:53Z — fix: useFollowStatus ReferenceError eliminiert
+// HUI 2026-05-18T08:37:09Z ALL HOOKS FIXED
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
