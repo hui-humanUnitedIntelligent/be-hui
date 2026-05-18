@@ -1,4 +1,4 @@
-// HUI 2026-05-18T16:12:54Z feat: HUI Orb v4 UX
+// HUI 2026-05-18T16:22:36Z fix: Orb immersive fullscreen
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
