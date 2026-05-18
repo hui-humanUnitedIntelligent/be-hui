@@ -1,4 +1,4 @@
-// HUI 2026-05-18T19:10:51Z build: 15/15 imports clean — production build trigger
+// HUI 2026-05-18T20:01:33Z feat: Match Header v4 deployed
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
