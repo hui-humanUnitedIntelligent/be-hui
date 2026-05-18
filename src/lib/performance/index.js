@@ -10,25 +10,83 @@ import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
 
 // ── throttle ─────────────────────────────────────────────────────
 // Führt fn maximal 1× pro `wait` ms aus.
+// .cancel() — bricht pending trailing calls ab (Memory-Leak-safe).
+// .flush()  — führt sofort aus wenn pending.
 export function throttle(fn, wait = 100) {
-  let last = 0;
-  return function throttled(...args) {
-    const now = Date.now();
-    if (now - last >= wait) {
-      last = now;
-      return fn.apply(this, args);
+  let last      = 0;
+  let trailingT = null;
+  let lastArgs  = null;
+
+  function invoke(args) {
+    last = Date.now();
+    return fn.apply(this, args);
+  }
+
+  function throttled(...args) {
+    const now      = Date.now();
+    const remaining = wait - (now - last);
+    lastArgs = args;
+
+    if (remaining <= 0) {
+      // Sofort ausführen
+      if (trailingT) { clearTimeout(trailingT); trailingT = null; }
+      invoke(args);
+    } else if (!trailingT) {
+      // Trailing call: nach remaining ms ausführen
+      trailingT = setTimeout(() => {
+        trailingT = null;
+        if (lastArgs) { invoke(lastArgs); lastArgs = null; }
+      }, remaining);
+    }
+  }
+
+  // cancel: pending trailing call abbrechen
+  throttled.cancel = function () {
+    if (trailingT) { clearTimeout(trailingT); trailingT = null; }
+    last = 0; lastArgs = null;
+  };
+
+  // flush: sofort ausführen wenn pending
+  throttled.flush = function () {
+    if (trailingT) {
+      clearTimeout(trailingT); trailingT = null;
+      if (lastArgs) { invoke(lastArgs); lastArgs = null; }
     }
   };
+
+  return throttled;
 }
 
 // ── debounce ─────────────────────────────────────────────────────
 // Führt fn erst aus wenn `wait` ms ohne weiteren Aufruf vergangen.
+// .cancel() — verhindert pending Ausführung.
+// .flush()  — führt sofort aus wenn pending.
 export function debounce(fn, wait = 300) {
-  let timer;
-  return function debounced(...args) {
+  let timer   = null;
+  let lastArgs = null;
+
+  function debounced(...args) {
+    lastArgs = args;
     clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), wait);
+    timer = setTimeout(() => {
+      timer = null;
+      fn.apply(this, lastArgs);
+      lastArgs = null;
+    }, wait);
+  }
+
+  debounced.cancel = function () {
+    clearTimeout(timer); timer = null; lastArgs = null;
   };
+
+  debounced.flush = function () {
+    if (timer) {
+      clearTimeout(timer); timer = null;
+      if (lastArgs) { fn.apply(this, lastArgs); lastArgs = null; }
+    }
+  };
+
+  return debounced;
 }
 
 // ── useStableCallback ─────────────────────────────────────────────
