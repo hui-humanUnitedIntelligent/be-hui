@@ -643,18 +643,18 @@ const BN_CSS = `
 
 function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalent=false, authProfile=null }), orbActive=false,
   const [pressed,   setPressed]  = React.useState(null);
-  const [orbOpen,   setOrbOpen]  = React.useState(false);
+  // [AUTO] const [orbOpen,   setOrbOpen]  = React.useState(false);
   const [orbAnim,   setOrbAnim]  = React.useState(false); // breathing
 
   // Scroll → Orb schließen
   React.useEffect(() => {
-    if (!orbOpen) return;
+  // [AUTO] if (!orbOpen) return;
     const el = document.querySelector(".hui-scroll");
     if (!el) return;
     const h = () => setOrbOpen(false);
     el.addEventListener("scroll", h, { passive:true });
     return () => el.removeEventListener("scroll", h);
-  }, [orbOpen]);
+  // [AUTO] }, [orbOpen]);
 
   // Tab-Wechsel → Orb schließen
   React.useEffect(() => { setOrbOpen(false); }, [tab]);
@@ -754,7 +754,7 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
       <style>{BN_CSS}</style>
 
       {/* Overlay zum Schließen */}
-      {orbOpen && (
+  // [AUTO] {orbOpen && (
         <div className="hui-orb-overlay" onClick={() => setOrbOpen(false)} aria-hidden="true"/>
       )}
 
@@ -791,9 +791,10 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
       <div style={{
         position:"fixed", bottom:0, left:0, right:0, zIndex:100,
         pointerEvents:"none",
-          transform: orbActive ? "translateY(120%)" : "translateY(0)",
-          opacity: orbActive ? 0 : 1,
-          transition:"opacity 0.35s ease, transform 0.35s ease",
+        opacity:    orbActive ? 0 : 1,
+        transform:  orbActive ? "translateY(120%)" : "translateY(0)",
+        transition: "opacity 0.40s cubic-bezier(0.4,0,0.2,1), transform 0.40s cubic-bezier(0.4,0,0.2,1)",
+        willChange: "opacity, transform",
       }}>
         <div style={{
           margin:"0 10px",
@@ -820,39 +821,36 @@ function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalen
             if (!item) return (
               <button
                 key="orb"
-                className={`hui-orb-btn${orbOpen ? " hui-orb-btn--open" : (orbAnim ? " hui-orb-btn--idle" : "")}`}
+                className={`hui-orb-btn${orbActive ? " hui-orb-btn--open" : (orbAnim ? " hui-orb-btn--idle" : "")}`}
                 onClick={() => onOrbAction?.("create")}
-                aria-label={orbOpen ? "Menü schließen" : "Menü öffnen"}
-                aria-expanded={orbOpen}
+                aria-label={orbActive ? "Schließen" : "Kreativ werden"}
+                aria-expanded={orbActive}
               >
                 <div className="hui-orb-ring"/>
                 <div className="hui-orb-highlight"/>
                 <div className="hui-orb-icon">
-                  {/* Logo — sichtbar wenn geschlossen */}
                   <div style={{
                     position:"absolute",
-                    opacity:   orbOpen ? 0 : 1,
-                    transform: orbOpen ? "scale(0.72) rotate(-18deg)" : "scale(1) rotate(0deg)",
-                    transition:"opacity 0.26s ease, transform 0.34s cubic-bezier(0.34,1.3,0.64,1)",
+                    opacity:   orbActive ? 0.42 : 1,
+                    transform: orbActive ? "scale(0.78) rotate(12deg)" : "scale(1) rotate(0deg)",
+                    transition:"opacity 0.28s ease, transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
                   }}>
                     <img src="/hui-logo.jpg" alt="HUI" loading="eager" decoding="async"
                       style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", display:"block" }}
                       onError={e=>{e.target.style.display="none";}}/>
                   </div>
-                  {/* ✕ — sichtbar wenn offen */}
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
                     style={{
                       position:"absolute",
-                      opacity:   orbOpen ? 1 : 0,
-                      transform: orbOpen ? "rotate(0deg) scale(1)" : "rotate(-45deg) scale(0.55)",
-                      transition:"opacity 0.24s ease, transform 0.34s cubic-bezier(0.34,1.4,0.64,1)",
+                      opacity:   orbActive ? 1 : 0,
+                      transform: orbActive ? "rotate(0deg) scale(1)" : "rotate(-45deg) scale(0.4)",
+                      transition:"opacity 0.24s ease, transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
                     }}>
-                    <line x1="3" y1="9" x2="15" y2="9" stroke="#16D7C5" strokeWidth="2.2" strokeLinecap="round"/>
-                    <line x1="9" y1="3" x2="9"  y2="15" stroke="#16D7C5" strokeWidth="2.2" strokeLinecap="round"/>
+                    <line x1="2.5" y1="7.5" x2="12.5" y2="7.5" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="7.5" y1="2.5" x2="7.5" y2="12.5" stroke="#16D7C5" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </div>
-                {/* Notif-Dot */}
-                {!orbOpen && notifCount > 0 && (
+                {!orbActive && notifCount > 0 && (
                   <div style={{
                     position:"absolute", top:3, right:3,
                     width:7, height:7, borderRadius:"50%",
