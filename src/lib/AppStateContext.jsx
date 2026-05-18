@@ -346,40 +346,58 @@ export function AppStateProvider({ children }) {
     }
   }, [user?.id, setProfile]);
 
-  // ────────────────────────────────────────────────────────────
+  // ────────────────────────────────────────────────────────────────
   // REALTIME SUBSCRIPTIONS
-  // ────────────────────────────────────────────────────────────
+  // ────────────────────────────────────────────────────────────────
+  //
+  // ARCHITEKTUR: Stabile Throttled Refs auf Komponenten-Ebene.
+  // Niemals throttle() inline im .on() aufrufen — das erzeugt bei jedem
+  // user.id-Wechsel eine neue Funktion die nie gecancelled wird (Memory Leak).
+  // Refs leben im Komponenten-Scope → cancel() immer erreichbar.
+  const throttledNotifHandlerRef = useRef(null);
+  const throttledChatHandlerRef  = useRef(null);
+
   useEffect(() => {
     if (!user?.id) return;
 
-    // Cleanup previous channels
+    // Cleanup: Channels + pending Throttle-Timer
     realtimeChannels.current.forEach(ch => supabase.removeChannel(ch));
     realtimeChannels.current = [];
+    throttledNotifHandlerRef.current?.cancel?.();
+    throttledChatHandlerRef.current?.cancel?.();
+
+    // Handler einmal pro user.id instanzieren — nie inline im .on()
+    // Notification: max 1 Update alle 200ms — verhindert Notification-Storm
+    throttledNotifHandlerRef.current = throttle((payload) => {
+      if (!payload?.new) return;
+      setNotifications(prev => [payload.new, ...prev].slice(0, 50));
+    }, 200);
+
+    // Chat: max 1 Update alle 150ms — verhindert Message-Storm
+    throttledChatHandlerRef.current = throttle((payload) => {
+      if (!payload?.new?.chat_id) return;
+      setChats(prev => prev.map(chat =>
+        chat.id === payload.new.chat_id
+          ? { ...chat, last_message: payload.new.text, last_message_at: payload.new.created_at }
+          : chat
+      ));
+    }, 150);
 
     // 1. Notifications — realtime
     const notifChannel = supabase
-      .channel(`asc-notifs:${user.id}`)  // Single-Owner: AppStateContext
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "notifications",
+      .channel(`asc-notifs:${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'notifications',
         filter: `user_id=eq.${user.id}`,
-      }, throttle((payload) => {
-        // Throttle: max 1 Notif-Update alle 200ms — verhindert Storm
-        if (!payload?.new) return;
-        setNotifications(prev => [payload.new, ...prev].slice(0, 50));
-      }, 200))
+      }, throttledNotifHandlerRef.current)
       .subscribe();
     realtimeChannels.current.push(notifChannel);
 
-    // 2. Bookings — realtime (als Creator UND als Client)
-    // useCreatorBookings hat eigenen Realtime-Channel — AppState nur für Client-Sicht
+    // 2. Bookings — realtime (Client-Sicht, kein throttle nötig)
     const bookingChannel = supabase
       .channel(`bookings-client:${user.id}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "bookings",
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'bookings',
         filter: `requester_id=eq.${user.id}`,
       }, () => {
         cache.invalidate(`bookings:${user.id}`);
@@ -391,39 +409,24 @@ export function AppStateProvider({ children }) {
     // 3. Chats — realtime new messages
     const chatChannel = supabase
       .channel(`chats:${user.id}`)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "messages",
-        // Messages in chats where user is participant
-      }, throttle((payload) => {
-        // Throttle: max 1 Chat-Update alle 150ms
-        if (!payload?.new?.chat_id) return;
-        setChats(prev => prev.map(chat =>
-          chat.id === payload.new.chat_id
-            ? { ...chat, last_message: payload.new.text, last_message_at: payload.new.created_at }
-            : chat
-        ));
-      }, 150))
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'messages',
+      }, throttledChatHandlerRef.current)
       .subscribe();
     realtimeChannels.current.push(chatChannel);
 
-    // ── Offline/Reconnect Guard ──────────────────────────────
-    // Wenn der User nach Offline wieder online geht,
-    // werden kritische Daten automatisch neu geladen.
+    // Offline/Reconnect Guard
     function handleOnline() {
-      // Sanfter Reconnect: kritische Daten neu laden
-      Promise.allSettled([
-        loadNotifications(),
-        loadBookings(true),
-      ]).catch(() => {}); // safeAsync — kein Crash bei Reconnect
+      Promise.allSettled([loadNotifications(), loadBookings(true)]).catch(() => {});
     }
-
     window.addEventListener('online', handleOnline);
 
     return () => {
       realtimeChannels.current.forEach(ch => supabase.removeChannel(ch));
       realtimeChannels.current = [];
+      // Throttle cancel — kein Memory Leak, kein Stale-State nach Logout
+      throttledNotifHandlerRef.current?.cancel?.();
+      throttledChatHandlerRef.current?.cancel?.();
       window.removeEventListener('online', handleOnline);
     };
   }, [user?.id]);
