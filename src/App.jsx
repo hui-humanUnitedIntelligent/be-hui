@@ -19,7 +19,7 @@ const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const ProfilePage       = lazy(() => import('./components/ProfilePage'))
-const WirkerProfilePage = lazy(() => import('./pages/wirker-profile'))
+const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
 // ── Suspense Fallback ────────────────────────────────────────────
