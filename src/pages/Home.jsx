@@ -21,7 +21,7 @@ import WirkerProfilePage from "../components/WirkerProfilePage";
 import HuiMatchOverlay from "../components/HuiMatchOverlay";
 import HuiSearchBar   from "../components/HuiSearchBar";
 import LiveMapPage    from "./LiveMapPage";
-import DiscoveryFeed  from "../components/DiscoveryFeed";
+// import DiscoveryFeed  from "../components/DiscoveryFeed";
 import { StoryBar, StoryViewer } from "../components/StoryBar";
 import DiscoverPage   from "./DiscoverPage";
 import ChatPage from "../components/ChatPage";
@@ -1331,7 +1331,6 @@ export default function Home() {
             <DiscoverPage
               onView={w=>setShowWirker(w)}
               onMap={()=>setShowMap(true)}
-              onMatch={()=>setShowMatch(true)}
             />
           </div>
           {/* Chat — bleibt gemountet */}
