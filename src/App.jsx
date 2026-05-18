@@ -141,6 +141,52 @@ class ErrorBoundary extends React.Component {
 }
 
 /* ── HUI Ambient Splash — kein Login-Flash, kein Spinner-Stress ──── */
+/* Inline SVG-Logo: keine externen Abhängigkeiten, immer verfügbar   */
+function HuiSplashLogo({ size = 80 }) {
+  return (
+    <div style={{ width:size, height:size,
+      animation:"hui-logo-breathe 3.5s ease-in-out infinite",
+      filter:"drop-shadow(0 0 16px rgba(22,215,197,0.55)) drop-shadow(0 4px 24px rgba(0,0,0,0.40))" }}>
+      <style>{`@keyframes hui-logo-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}`}</style>
+      <svg width={size} height={size} viewBox="0 0 120 120" fill="none">
+        <defs>
+          <linearGradient id="hsl-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#1ED8C8"/>
+            <stop offset="45%" stopColor="#22D4C4"/>
+            <stop offset="100%" stopColor="#FF7A5C"/>
+          </linearGradient>
+          <linearGradient id="hsl-sh" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="white" stopOpacity="0.28"/>
+            <stop offset="100%" stopColor="white" stopOpacity="0"/>
+          </linearGradient>
+          <radialGradient id="hsl-cr" cx="80%" cy="80%" r="50%">
+            <stop offset="0%" stopColor="#FF8A6B" stopOpacity="0.55"/>
+            <stop offset="100%" stopColor="#FF8A6B" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="hsl-tl" cx="20%" cy="20%" r="50%">
+            <stop offset="0%" stopColor="#22EDD8" stopOpacity="0.40"/>
+            <stop offset="100%" stopColor="#22EDD8" stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hsl-bg)"/>
+        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hsl-cr)"/>
+        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hsl-tl)"/>
+        <rect x="3" y="3" width="114" height="62" rx="30" fill="url(#hsl-sh)"/>
+        <circle cx="60" cy="62" r="38" fill="white" fillOpacity="0.92"/>
+        <path d="M30 42 C28 50 28 62 28 62 C28 74 30 82 30 82" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
+        <path d="M50 42 C52 50 52 62 52 62 C52 74 50 82 50 82" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
+        <path d="M29 62 L51 62" stroke="url(#hsl-bg)" strokeWidth="8" strokeLinecap="round" fill="none"/>
+        <path d="M56 42 L56 68 C56 76 65 83 70 76 C74 69 72 42 72 42" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
+        <circle cx="82" cy="44" r="5.5" fill="url(#hsl-bg)"/>
+        <path d="M82 54 L82 82" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
+        <path d="M72 18 C85 14 100 20 108 32 C114 42 112 55 105 62" stroke="#22EDD8" strokeWidth="6" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
+        <path d="M48 104 C38 108 22 104 14 92 C8 82 10 68 17 60" stroke="#FF8A6B" strokeWidth="6" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
+        <rect x="3" y="3" width="114" height="114" rx="30" fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="1.5"/>
+      </svg>
+    </div>
+  );
+}
+
 function HUILoader() {
   const [timedOut, setTimedOut] = React.useState(false);
   React.useEffect(() => {
@@ -151,25 +197,28 @@ function HUILoader() {
   if (timedOut) return (
     <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", padding:32,
-      background:"#F9F7F4", fontFamily:"-apple-system,sans-serif" }}>
-      <div style={{ fontSize:38, marginBottom:14 }}>🌿</div>
-      <div style={{ fontWeight:800, fontSize:18, color:"#1A1A1A", marginBottom:8 }}>
+      background:"linear-gradient(160deg,#0D1412 0%,#12100E 100%)",
+      fontFamily:"Inter,-apple-system,sans-serif" }}>
+      <HuiSplashLogo size={64}/>
+      <div style={{ fontWeight:800, fontSize:18, color:"rgba(255,255,255,0.90)",
+        marginTop:20, marginBottom:8 }}>
         Verbindung dauert länger als erwartet
       </div>
-      <div style={{ fontSize:13, color:"#888", textAlign:"center",
+      <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", textAlign:"center",
         maxWidth:280, lineHeight:1.65, marginBottom:28 }}>
         Bitte prüfe deine Internetverbindung.
       </div>
       <button onClick={() => window.location.reload()}
-        style={{ padding:"13px 28px", borderRadius:14, background:"#16D7C5",
+        style={{ padding:"13px 28px", borderRadius:14,
+          background:"linear-gradient(135deg,#16D7C5,#0FC4B2)",
           color:"white", border:"none", fontWeight:800, fontSize:14,
-          cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.3)", marginBottom:10 }}>
+          cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.4)", marginBottom:10 }}>
         Neu laden
       </button>
       <button onClick={() => { window.location.href = "/login"; }}
-        style={{ padding:"10px 22px", borderRadius:12,
-          background:"none", border:"1.5px solid rgba(0,0,0,0.10)",
-          color:"#888", fontWeight:600, fontSize:13, cursor:"pointer" }}>
+        style={{ padding:"10px 22px", borderRadius:12, background:"none",
+          border:"1.5px solid rgba(255,255,255,0.12)",
+          color:"rgba(255,255,255,0.45)", fontWeight:600, fontSize:13, cursor:"pointer" }}>
         Zur Anmeldung
       </button>
     </div>
@@ -177,34 +226,23 @@ function HUILoader() {
 
   return (
     <div style={{
-      minHeight:"100vh",
-      display:"flex", flexDirection:"column",
+      minHeight:"100vh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
-      background:"linear-gradient(160deg,#F0FAF9 0%,#FFF9F4 55%,#F9F7F4 100%)",
-      fontFamily:"-apple-system,BlinkMacSystemFont,sans-serif",
+      background:"linear-gradient(160deg,#0A1210 0%,#0E1612 55%,#0D0B09 100%)",
+      fontFamily:"Inter,-apple-system,sans-serif",
     }}>
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:20,
-        animation:"hui-splash-fade 0.55s ease both" }}>
-        <div style={{ animation:"hui-splash-pulse 3s ease-in-out infinite" }}>
-          <img src="/hui-logo.jpg" alt="HUI"
-            style={{ width:72, height:72, borderRadius:"50%", objectFit:"cover",
-              boxShadow:"0 8px 32px rgba(22,215,197,0.22), 0 2px 8px rgba(0,0,0,0.07)",
-              border:"2px solid rgba(255,255,255,0.90)" }}
-            onError={e => { e.target.style.display="none"; }}
-          />
-        </div>
-        <div style={{ fontSize:13, color:"rgba(60,60,60,0.50)", fontWeight:500, letterSpacing:0.3 }}>
-          HUI
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
+        animation:"hui-splash-fade 0.6s ease both" }}>
+        <HuiSplashLogo size={84}/>
+        <div style={{ fontSize:12, color:"rgba(255,255,255,0.30)", fontWeight:600,
+          marginTop:20, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+          Human United Intelligent
         </div>
       </div>
       <style>{`
         @keyframes hui-splash-fade {
-          from { opacity:0; transform:translateY(10px); }
-          to   { opacity:1; transform:translateY(0);    }
-        }
-        @keyframes hui-splash-pulse {
-          0%,100% { transform:scale(1);    }
-          50%      { transform:scale(1.04); }
+          from { opacity:0; transform:translateY(14px); }
+          to   { opacity:1; transform:translateY(0); }
         }
       `}</style>
     </div>
