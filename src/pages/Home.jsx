@@ -641,20 +641,20 @@ const BN_CSS = `
   }
 `;
 
-function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalent=false, authProfile=null }), orbActive=false,
+function BottomNav({ tab, onTab, onOrbAction, notifCount=0, msgCount=0, hasTalent=false, authProfile=null, orbActive=false, }) {
   const [pressed,   setPressed]  = React.useState(null);
   // [AUTO] const [orbOpen,   setOrbOpen]  = React.useState(false);
   const [orbAnim,   setOrbAnim]  = React.useState(false); // breathing
 
   // Scroll → Orb schließen
-  React.useEffect(() => {
-  // [AUTO] if (!orbOpen) return;
-    const el = document.querySelector(".hui-scroll");
-    if (!el) return;
-    const h = () => setOrbOpen(false);
-    el.addEventListener("scroll", h, { passive:true });
-    return () => el.removeEventListener("scroll", h);
-  // [AUTO] }, [orbOpen]);
+
+
+
+
+
+
+
+
 
   // Tab-Wechsel → Orb schließen
   React.useEffect(() => { setOrbOpen(false); }, [tab]);
