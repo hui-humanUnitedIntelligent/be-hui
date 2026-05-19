@@ -84,7 +84,6 @@ export function AppStateProvider({ children }) {
   // ── UI STATE (getrennt von Data) ─────────────────────────────
   const [uiState, setUiState] = useState({
     activeTab:      "feed",
-    showWirker:     null,
     showBooking:    null,
     showChat:       false,
     showNotifs:     false,
@@ -114,7 +113,6 @@ export function AppStateProvider({ children }) {
     setUiState(s => ({
       ...s,
       activeTab:      newTab,
-      showWirker:     null,
       showBooking:    null,
       showChat:       false,
       showNotifs:     false,
