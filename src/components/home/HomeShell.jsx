@@ -100,7 +100,6 @@ export default function HomeShell({ children }) {
 
   /* switchTab — schließt alle Overlays + wechselt Tab */
   const switchTab = useCallback((newTab) => {
-    console.log("[HUI-SHELL] switchTab:", newTab);
     setShowWirker(null);
     setShowWerkDetail(null);
     setShowWerkCheckout(null);
@@ -121,9 +120,6 @@ export default function HomeShell({ children }) {
 
   /* openOwnProfile — öffnet eigenes Profil, robust auch ohne authProfile */
   const openOwnProfile = useCallback(() => {
-    console.log("[OPEN OWN PROFILE]");
-    console.log("[USER]", user?.id, user?.email);
-    console.log("[AUTH PROFILE]", authProfile?.id, authProfile?.display_name);
     const id = authProfile?.id || user?.id || "me";
     const profileData = {
       id,
@@ -141,17 +137,12 @@ export default function HomeShell({ children }) {
       dna_tags:     authProfile?.dna_tags                     || [],
       _isOwnerView: true,
     };
-    console.log("[HUI-SHELL] openOwnProfile:", id, profileData.display_name);
-    console.log("[SET SHOW WIRKER]", profileData?.id, profileData?.display_name);
     setShowWirker(profileData);
   }, [authProfile?.id, authProfile?.display_name, authProfile?.avatar_url, user?.id, setShowWirker]);
 
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
-    console.log("[HANDLE TAB]", key);
-    console.log("[HUI-SHELL] handleTab:", key);
     if (key === "profile") {
-      console.log("[PROFILE FLOW START]");
       openOwnProfile();
       return;
     }
