@@ -415,12 +415,10 @@ export default function ExperienceCreator({ onClose, onSuccess }) {
         const img = images[i];
         const ext = img.file.name.split(".").pop();
         const path = `experiences/${user.id}/${Date.now()}_${i}.${ext}`;
-        console.log("[ExperienceCreator] uploading:", path);
         const { error:upErr } = await supabase.storage
           .from("media").upload(path, img.file, {contentType:img.file.type});
         if (upErr) { console.error("[ExperienceCreator] ❌ storage:", upErr.message, upErr.statusCode); throw upErr; }
         const {data:{publicUrl}} = supabase.storage.from("media").getPublicUrl(path);
-        console.log("[ExperienceCreator] ✓ upload OK:", publicUrl);
         imgUrls.push(publicUrl);
       }
 
