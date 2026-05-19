@@ -9,7 +9,6 @@ import BottomNav                 from "../components/home/navigation/BottomNav.j
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import HomeFeed                  from "../components/HomeFeed.jsx";
 import DiscoverPage              from "./DiscoverPage.jsx";
-import ChatPage                  from "../components/ChatPage.jsx";
 import ImpactPage                from "./ImpactPage.jsx";
 import FavoritesPage             from "./FavoritesPage.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
@@ -46,7 +45,7 @@ function HomeInner() {
     handleTab,
     openOwnProfile,
     mainScrollRef,
-    keepFeed, keepDiscover, keepChat, keepImpact, keepFavorites,
+    keepFeed, keepDiscover,           keepImpact, keepFavorites,
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent,
@@ -136,10 +135,6 @@ function HomeInner() {
 
           <div style={keepDiscover}>
             <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
-          </div>
-
-          <div style={keepChat}>
-            <ChatPage onClose={() => handleTab("feed")}/>
           </div>
 
           <div style={keepImpact}>
