@@ -1,86 +1,182 @@
-// components/chat-center/ConversationList.jsx
-// Kategorisierte Conversation-Liste mit Mock-Daten
+// chat-center/ConversationList.jsx v2
+// Screenshot-exact: Sektionen — Aktive Gespräche, Buchungen, Verbindungen, Impact-Card
 
 import React, { useState } from "react";
 import ConversationCard from "./ConversationCard.jsx";
 
-const C = { teal:"#16D7C5", ink:"#1A1A1A", muted:"rgba(80,80,80,0.5)" };
+const C = { teal:"#16D7C5", teal2:"#11C5B7", coral:"#FF8A6B", ink:"#1A1A1A", muted:"rgba(80,80,80,0.50)" };
 
-const CATEGORIES = [
-  { key:"alle",       label:"Alle"          },
-  { key:"resonanz",   label:"Resonanz"      },
-  { key:"erlebnisse", label:"Erlebnisse"    },
-  { key:"verbindung", label:"Verbindungen"  },
-  { key:"community",  label:"Community"     },
+const MOCK_ACTIVE = [
+  { id:1, name:"Leon Brandt",  last_message:"Ich freue mich auf unser Treffen!", last_at:new Date(Date.now()-240000).toISOString(), unread:2, online:true  },
+  { id:2, name:"Mia Kern",     last_message:"Die neuen Workshop-Termine sind online ✨", last_at:new Date(Date.now()-3000000).toISOString(), unread:1, online:true  },
+  { id:3, name:"Jonas Weber",  last_message:"Danke dir! Das Bild ist wunderschön.", last_at:new Date(Date.now()-7200000).toISOString(), unread:0, online:true  },
+  { id:4, name:"Hanna Vogt",   last_message:"Bis morgen im Studio! 🤸", last_at:new Date(Date.now()-86400000).toISOString(), unread:0, online:false },
 ];
 
-// Repräsentative Mock-Daten
-const MOCK_CONVS = [
-  { id:1, name:"Mia Kern",      last_message:"Danke f\u00fcr deinen Impuls \u2014 hat mich ber\u00fchrt.",  last_at: new Date(Date.now()-120000).toISOString(),   unread:2, online:true,  category:"resonanz"   },
-  { id:2, name:"Leon Velder",   last_message:"Sommer Retreat: Ich freue mich so darauf.",                  last_at: new Date(Date.now()-3600000).toISOString(),  unread:0, online:false, category:"erlebnisse" },
-  { id:3, name:"Hana Mori",     last_message:"Dein Werk hat mich wirklich ber\u00fchrt heute.",             last_at: new Date(Date.now()-7200000).toISOString(),  unread:1, online:true,  category:"verbindung" },
-  { id:4, name:"Urban Atelier", last_message:"Neues Projekt: Wir suchen Mitgestaltende.",                  last_at: new Date(Date.now()-86400000).toISOString(), unread:0, online:false, category:"community"  },
-  { id:5, name:"Sela Park",     last_message:"K\u00f6nnen wir n\u00e4chste Woche mal sprechen?",            last_at: new Date(Date.now()-172800000).toISOString(),unread:3, online:true,  category:"resonanz"   },
-  { id:6, name:"Kai Birmann",   last_message:"Workshop war wundervoll, danke dir.",                        last_at: new Date(Date.now()-259200000).toISOString(),unread:0, online:false, category:"erlebnisse" },
+const MOCK_BOOKINGS = [
+  { id:5, name:"Tim Schmid",  last_message:"Hi! Ich hätte eine Frage zum Workshop.", last_at:new Date(Date.now()-1800000).toISOString(), unread:0, pending:true, online:false },
+  { id:6, name:"Anna Keller", last_message:"Wann ist der nächste Termin?", last_at:new Date(Date.now()-86400000).toISOString(), unread:0, pending:true, online:false },
 ];
 
-export default function ConversationList({ onOpen }) {
-  const [activeCategory, setActiveCategory] = useState("alle");
+const MOCK_CONNECTIONS = [
+  { id:7, name:"Klara M.",  avatar_url:null },
+  { id:8, name:"Paul L.",   avatar_url:null },
+  { id:9, name:"Sophie B.", avatar_url:null },
+];
 
-  const filtered = activeCategory === "alle"
-    ? MOCK_CONVS
-    : MOCK_CONVS.filter(c => c.category === activeCategory);
+const SECTION_LABELS = [
+  { key:"alle",       label:"Alle"               },
+  { key:"buchungen",  label:"Buchungen"           },
+  { key:"kreativ",    label:"Kreative Gespr\u00e4che" },
+  { key:"community",  label:"Community"           },
+];
 
-  const totalUnread = MOCK_CONVS.reduce((s,c) => s + (c.unread||0), 0);
+/* ── Section Header ── */
+function SectionHead({ title, onMore }) {
+  return (
+    <div style={{
+      display:"flex", justifyContent:"space-between", alignItems:"center",
+      padding:"18px 0 10px",
+    }}>
+      <span style={{ fontSize:15, fontWeight:800, color:C.ink }}>{title}</span>
+      {onMore && (
+        <button onClick={onMore} style={{
+          border:"none", background:"none", color:C.teal,
+          fontSize:12, fontWeight:600, cursor:"pointer", padding:0,
+          display:"flex", alignItems:"center", gap:3,
+        }}>Alle <span style={{fontSize:11}}>›</span></button>
+      )}
+    </div>
+  );
+}
+
+/* ── Neue Verbindungen Bubbles ── */
+function ConnectionBubbles({ people }) {
+  return (
+    <div className="hui-scroll" style={{
+      display:"flex", gap:14, overflowX:"auto",
+      padding:"4px 0 18px", WebkitOverflowScrolling:"touch",
+    }}>
+      {people.map(p => (
+        <div key={p.id} style={{ display:"flex", flexDirection:"column",
+          alignItems:"center", gap:6, flexShrink:0 }}>
+          <div style={{
+            width:52, height:52, borderRadius:"50%",
+            background: p.avatar_url
+              ? `url(${p.avatar_url}) center/cover no-repeat`
+              : `linear-gradient(135deg,${C.teal}70,${C.coral}50)`,
+            border:"2px solid rgba(255,255,255,0.9)",
+            boxShadow:"0 3px 10px rgba(0,0,0,0.09)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:18, color:"white", fontWeight:700,
+          }}>{!p.avatar_url && p.name[0]}</div>
+          <span style={{ fontSize:11.5, color:C.ink, fontWeight:500,
+            whiteSpace:"nowrap" }}>{p.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Impact Card (Screenshot: Gemeinsam Wirkung schaffen) ── */
+function ImpactCard() {
+  return (
+    <div style={{
+      borderRadius:20, overflow:"hidden",
+      background:"rgba(255,255,255,0.72)",
+      backdropFilter:"blur(16px)", WebkitBackdropFilter:"blur(16px)",
+      border:"1px solid rgba(22,215,197,0.12)",
+      boxShadow:"0 4px 18px rgba(0,0,0,0.07)",
+      padding:"20px 20px 20px",
+      display:"flex", alignItems:"center", gap:16,
+      marginBottom:24,
+    }}>
+      <div style={{ flex:1 }}>
+        <div style={{ fontSize:16, fontWeight:800, color:C.ink, marginBottom:6 }}>
+          Gemeinsam Wirkung schaffen
+        </div>
+        <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:14 }}>
+          Jedes Gespr\u00e4ch kann der Anfang von etwas Gro\u00dfem sein.
+        </div>
+        <button style={{
+          padding:"9px 18px", borderRadius:99,
+          background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+          border:"none", color:"white", fontSize:13, fontWeight:700,
+          cursor:"pointer",
+          boxShadow:`0 4px 12px rgba(22,215,197,0.30)`,
+          WebkitTapHighlightColor:"transparent",
+        }}>Impact Projekte entdecken</button>
+      </div>
+      <div style={{ fontSize:48, flexShrink:0 }}>🌱</div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+export default function ConversationList({ chats, loading, onOpen }) {
+  const [activeFilter, setActiveFilter] = useState("alle");
+
+  // Echte Chats falls vorhanden, sonst Mock
+  const activeConvs = chats?.length > 0
+    ? chats.filter(c => c.chat_type !== "booking")
+    : MOCK_ACTIVE;
+
+  const bookingConvs = chats?.length > 0
+    ? chats.filter(c => c.chat_type === "booking")
+    : MOCK_BOOKINGS;
 
   return (
-    <div>
-      {/* Category Pills */}
+    <div style={{ padding:"0 16px" }}>
+      {/* Category Filter Pills */}
       <div className="hui-scroll" style={{
-        display:"flex", gap:8,
-        overflowX:"auto", overflowY:"hidden",
-        padding:"0 20px 18px",
-        WebkitOverflowScrolling:"touch",
+        display:"flex", gap:8, overflowX:"auto",
+        padding:"4px 0 16px", WebkitOverflowScrolling:"touch",
       }}>
-        {CATEGORIES.map(cat => {
-          const on = activeCategory === cat.key;
+        {SECTION_LABELS.map(s => {
+          const on = activeFilter === s.key;
           return (
-            <button key={cat.key} onClick={() => setActiveCategory(cat.key)} style={{
-              flexShrink:0, padding:"7px 15px",
-              borderRadius:99,
-              background: on
-                ? `linear-gradient(135deg,${C.teal},#11C5B7)`
-                : "rgba(255,255,255,0.7)",
-              border: on ? "none" : "1px solid rgba(0,0,0,0.09)",
-              boxShadow: on ? "0 3px 10px rgba(22,215,197,0.25)" : "none",
+            <button key={s.key} onClick={() => setActiveFilter(s.key)} style={{
+              flexShrink:0, padding:"7px 16px", borderRadius:99,
+              background: on ? `linear-gradient(135deg,${C.teal},${C.teal2})` : "rgba(255,255,255,0.75)",
+              border: on ? "none" : "1.5px solid rgba(0,0,0,0.08)",
               color: on ? "white" : C.muted,
-              fontSize:12.5, fontWeight: on ? 700 : 500,
-              cursor:"pointer",
+              fontSize:13, fontWeight: on ? 700 : 500,
+              cursor:"pointer", boxShadow: on ? "0 3px 10px rgba(22,215,197,0.25)" : "none",
+              transition:"all 0.16s ease",
               WebkitTapHighlightColor:"transparent",
-              transition:"all 0.18s ease",
-            }}>{cat.label}</button>
+            }}>{s.label}</button>
           );
         })}
       </div>
 
-      {/* Conversation Cards */}
-      <div style={{ padding:"0 16px" }}>
-        {filtered.length === 0 ? (
-          <div style={{
-            textAlign:"center", padding:"56px 20px",
-            color:"rgba(80,80,80,0.3)", fontSize:13,
-          }}>
-            <div style={{ fontSize:32, marginBottom:10 }}>\u2726</div>
-            Noch keine Nachrichten in dieser Kategorie
-          </div>
-        ) : filtered.map(conv => (
-          <ConversationCard
-            key={conv.id}
-            conv={conv}
-            onPress={onOpen}
-          />
-        ))}
-      </div>
+      {/* Aktive Gespräche */}
+      <SectionHead title="Aktive Gespr\u00e4che"/>
+      {loading ? (
+        <div style={{ padding:"24px 0", textAlign:"center", color:C.muted, fontSize:13 }}>
+          Laden\u2026
+        </div>
+      ) : (
+        activeConvs.map(c => (
+          <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
+        ))
+      )}
+
+      {/* Buchungsanfragen */}
+      {bookingConvs.length > 0 && (
+        <>
+          <SectionHead title="Buchungsanfragen" onMore={() => {}}/>
+          {bookingConvs.map(c => (
+            <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
+          ))}
+        </>
+      )}
+
+      {/* Neueste Verbindungen */}
+      <SectionHead title="Neueste Verbindungen" onMore={() => {}}/>
+      <ConnectionBubbles people={MOCK_CONNECTIONS}/>
+
+      {/* Impact Card */}
+      <ImpactCard/>
     </div>
   );
 }
