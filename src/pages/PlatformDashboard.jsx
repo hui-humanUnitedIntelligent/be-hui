@@ -22,16 +22,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import {
+  getObservabilityReport, startFpsTracking, stopFpsTracking,
+  realtimeHealthScore, errorSummary, costSummary, logObservabilitySnapshot,
+} from '@/lib/observability/index';
 
-// Weitere Stubs (realtime/communityHealth/protection/budgets entfernt in Phase A):
+// Stub-Funktionen — Quell-Module in Phase A entfernt:
 function getProtectionStatus() { return null; }
 function getRealtimeStats() { return null; }
 function useCommunityHealth() { return {}; }
 function validateBudgets() { return null; }
-
-  getObservabilityReport, startFpsTracking, stopFpsTracking,
-  realtimeHealthScore, errorSummary, costSummary, logObservabilitySnapshot,
-} from '@/lib/observability/index';
 
 // Stub-Funktionen (Quell-Module in Phase A entfernt):
 function getCacheStats() { return null; }
