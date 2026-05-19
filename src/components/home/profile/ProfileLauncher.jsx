@@ -1,6 +1,6 @@
 // src/components/home/profile/ProfileLauncher.jsx v3
 // Einziger Render-Punkt für WirkerProfilePage
-// Debug-Logs korrekt im Funktionskörper
+// Clean — no debug logs, showWirker scoped in ProfileLauncher() via useHome()
 
 import React, { useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
