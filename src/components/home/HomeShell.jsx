@@ -28,7 +28,7 @@ export default function HomeShell({ children }) {
   /* Auth */
   const {
     user,
-    authProfile,
+    profile: authProfile,
     isWirker: authIsWirker,
     hasTalentProfile,
   } = useAuth();
