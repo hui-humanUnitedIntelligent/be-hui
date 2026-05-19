@@ -25,17 +25,19 @@ import {
   getObservabilityReport, startFpsTracking, stopFpsTracking,
   realtimeHealthScore, errorSummary, costSummary, logObservabilitySnapshot,
 } from '@/lib/observability/index';
-import { getCacheStats } from '@/lib/cache/index';
 import { getRealtimeStats } from '@/lib/realtime/index';
-import { getPipelineStats } from '@/lib/pipeline/profiler';
 import { useCommunityHealth } from '@/hooks/useCommunityHealth';
-import { useFeatureFlags, getReleaseStatus } from '@/lib/release/index';
-import { getDegradationStatus } from '@/lib/degradation/index';
 import { getProtectionStatus } from '@/lib/protection/index';
-import { getRecoveryStatus } from '@/lib/recovery/index';
-import { runPreflight } from '@/lib/release/preflight';
 import { validateBudgets } from '@/lib/budgets/index';
-import { useRecovery } from '@/lib/recovery/index';
+
+// Stub-Funktionen (Quell-Module in Phase A entfernt):
+function getCacheStats() { return null; }
+function getDegradationStatus() { return null; }
+function getPipelineStats() { return null; }
+function runPreflight() { return null; }
+function useFeatureFlags() { return {}; }
+function useRecovery() { return {}; }
+
 
 // ── Farb-System ────────────────────────────────────────────────
 const C = {
