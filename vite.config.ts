@@ -1,4 +1,4 @@
-// HUI 2026-05-19T08:39:33Z CRITICAL-FIX: HomeShell Syntax bereinigt, Profile-Button stabil
+// HUI 2026-05-19T08:50:38Z live-debug: NavItem+BottomNav+HomeShell+ProfileLauncher v3 deployed
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
