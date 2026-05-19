@@ -119,7 +119,8 @@ export default function WirkerProfilePage({
   if (loading && !profile) {
     return (
       <div style={{
-        minHeight:"100vh", background:"#F9F7F4",
+        position:"fixed", inset:0, zIndex:9500,
+        background:"#F9F7F4",
         display:"flex", alignItems:"center", justifyContent:"center",
         fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
       }}>
@@ -129,10 +130,10 @@ export default function WirkerProfilePage({
   }
 
   if (!isProfileReady(profile)) {
-  if (!isProfileReady(profile)) { }
     return (
       <div style={{
-        minHeight:"100vh", background:"#F9F7F4",
+        position:"fixed", inset:0, zIndex:9500,
+        background:"#F9F7F4",
         display:"flex", alignItems:"center", justifyContent:"center", padding:40,
         fontFamily:"-apple-system, BlinkMacSystemFont, sans-serif",
       }}>
@@ -147,9 +148,14 @@ export default function WirkerProfilePage({
   // ── Render ────────────────────────────────────────────────────────
   return (
     <div style={{
-      minHeight:"100vh",
-      background:"#F9F7F4",
-      fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
+      position:    "fixed",
+      inset:       0,
+      zIndex:      9500,
+      background:  "#F9F7F4",
+      fontFamily:  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
+      overflowY:   "auto",
+      overflowX:   "hidden",
+      WebkitOverflowScrolling: "touch",
       paddingBottom: isOwner ? 0 : 90,
     }}>
       <style>{CSS}</style>
