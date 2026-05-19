@@ -1,4 +1,4 @@
-// HUI 2026-05-18T21:20:45Z hotfix: BottomNav pointer-events + openOwnProfile robust
+// HUI 2026-05-19T08:39:33Z CRITICAL-FIX: HomeShell Syntax bereinigt, Profile-Button stabil
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
