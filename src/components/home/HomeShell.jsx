@@ -94,7 +94,6 @@ export default function HomeShell({ children }) {
   /* Keep-Alive */
   const keepFeed      = useTabKeepAlive(tab === "feed");
   const keepDiscover  = useTabKeepAlive(tab === "discover");
-  const keepChat      = useTabKeepAlive(tab === "chat");
   const keepImpact    = useTabKeepAlive(tab === "impact");
   const keepFavorites = useTabKeepAlive(tab === "favorites");
 
@@ -164,7 +163,7 @@ export default function HomeShell({ children }) {
     user, authProfile, isTalent,
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
-    keepFeed, keepDiscover, keepChat, keepImpact, keepFavorites,
+    keepFeed, keepDiscover,           keepImpact, keepFavorites,
     activeMood, setActiveMood,
     liveNotifCount,
     showWirker,            setShowWirker,
