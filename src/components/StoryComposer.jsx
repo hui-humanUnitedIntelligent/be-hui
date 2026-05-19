@@ -79,7 +79,6 @@ export default function StoryComposer({ onClose, onSuccess }) {
     setMediaType(type.startsWith("video") ? "video" : "image");
     const url = URL.createObjectURL(namedFile);
     setMediaPreview(url);
-    console.log("[StoryComposer] file picked:", namedFile.name, namedFile.type, namedFile.size);
   }
 
   async function uploadMedia(file) {
@@ -87,9 +86,6 @@ export default function StoryComposer({ onClose, onSuccess }) {
     const ext    = file.name.split(".").pop() || (file.type.includes("video") ? "mp4" : "jpg");
     const path   = `${user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const bucket = "stories";
-
-    console.log("[StoryComposer] upload start →", bucket + "/" + path);
-    console.log("[StoryComposer] user.id:", user.id, "file:", file.name, file.type, file.size);
 
     const { data: uploadData, error: upErr } = await supabase.storage
       .from(bucket)
@@ -106,7 +102,6 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
     const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
     const publicUrl = urlData?.publicUrl;
-    console.log("[StoryComposer] upload OK →", publicUrl);
     return publicUrl;
   }
 
@@ -126,7 +121,6 @@ export default function StoryComposer({ onClose, onSuccess }) {
       }
 
       // Step 2: Insert story
-      console.log("[StoryComposer] inserting story for user:", user.id);
       const expiresAt = saveHighlight ? null : new Date(Date.now() + 86400000).toISOString();
 
       // Map Composer fields → DB column names
@@ -144,7 +138,6 @@ export default function StoryComposer({ onClose, onSuccess }) {
         expires_at:    expiresAt,
         status:        "published",
       };
-      console.log("[StoryComposer] inserting:", JSON.stringify(storyRow));
 
       const { data, error: dbErr } = await supabase
         .from("stories")
@@ -157,7 +150,6 @@ export default function StoryComposer({ onClose, onSuccess }) {
         throw dbErr;
       }
 
-      console.log("[StoryComposer] story published:", data?.id);
       setUploadPct(100);
       setDone(true);
       setTimeout(() => { if (onSuccess) onSuccess(); onClose(); }, 1800);
