@@ -118,27 +118,37 @@ export default function HomeShell({ children }) {
     _setTab(newTab);
   }, [_setTab]);
 
-  /* openOwnProfile — öffnet eigenes Profil, robust auch ohne authProfile */
+  /* openOwnProfile — öffnet Creator Profile Overlay (Owner View) */
   const openOwnProfile = useCallback(() => {
     const id = authProfile?.id || user?.id || "me";
+    // Übergebe alle relevanten Profil-Felder für CreatorProfilePage
     const profileData = {
       id,
-      user_id:      id,
-      username:     authProfile?.username                     || null,
-      display_name: authProfile?.display_name
-                    || authProfile?.email?.split("@")[0]
-                    || user?.email?.split("@")[0]
-                    || "Mein Profil",
-      avatar_url:   authProfile?.avatar_url                   || null,
-      header_img:   authProfile?.header_img                   || null,
-      talent:       authProfile?.talent                       || null,
-      focus_type:   authProfile?.focus_type                   || "hybrid",
-      bio:          authProfile?.bio                          || null,
-      dna_tags:     authProfile?.dna_tags                     || [],
-      _isOwnerView: true,
+      user_id:        id,
+      username:       authProfile?.username        || null,
+      display_name:   authProfile?.display_name
+                      || authProfile?.email?.split("@")[0]
+                      || user?.email?.split("@")[0]
+                      || "Mein Profil",
+      avatar_url:     authProfile?.avatar_url      || null,
+      header_img:     authProfile?.header_img      || null,
+      talent:         authProfile?.talent          || null,
+      focus_type:     authProfile?.focus_type      || "hybrid",
+      bio:            authProfile?.bio             || null,
+      dna_tags:       authProfile?.dna_tags        || [],
+      location_label: authProfile?.location_label
+                      || authProfile?.location     || null,
+      impact_eur:     authProfile?.impact_eur      || null,
+      is_wirker:      authProfile?.is_wirker
+                      || authProfile?.has_talent_profile || false,
+      current_mood:   authProfile?.current_mood    || null,
+      experiences_count: authProfile?.experiences_count || null,
+      followers_count:   authProfile?.followers_count   || null,
+      connections_count: authProfile?.connections_count || null,
+      _isOwnerView:   true,
     };
     setShowWirker(profileData);
-  }, [authProfile?.id, authProfile?.display_name, authProfile?.avatar_url, user?.id, setShowWirker]);
+  }, [authProfile, user?.id, setShowWirker]);
 
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
