@@ -49,6 +49,7 @@ const CSS = `
  *  onMap:     fn      — Karte
  */
 export default function WirkerProfilePage({
+  console.log("[WIRKER PROFILE PAGE]", rawWirker?.id, rawWirker?._isOwnerView);
   wirker: rawWirker,
   onClose,
   onBook,
@@ -116,6 +117,7 @@ export default function WirkerProfilePage({
   }, []);
 
   // ── Loading ───────────────────────────────────────────────────────
+  console.log("[PROFILE LOADING STATE]", { loading, hasProfile: !!profile });
   if (loading && !profile) {
     return (
       <div style={{
@@ -128,7 +130,9 @@ export default function WirkerProfilePage({
     );
   }
 
+  console.log("[PROFILE NOT READY CHECK]", { profile_id: profile?.id, profile_user_id: profile?.user_id });
   if (!isProfileReady(profile)) {
+  if (!isProfileReady(profile)) { console.log("[PROFILE BLOCKED] isProfileReady=false", profile); }
     return (
       <div style={{
         minHeight:"100vh", background:"#F9F7F4",
