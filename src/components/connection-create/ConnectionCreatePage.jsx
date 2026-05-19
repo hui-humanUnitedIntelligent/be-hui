@@ -231,7 +231,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       position:"fixed", inset:0, zIndex:9450,
       background:C.cream,
       display:"flex", flexDirection:"column",
-      overflow:"hidden",
+      overflow:"clip",   /* iOS-Fix: kein neuer stacking context */
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
       animation:"page-in 0.26s cubic-bezier(0.22,1,0.36,1) both",
     }}>
@@ -290,7 +290,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         key={step}
         style={{
           flex:1, overflowY:"auto", overflowX:"hidden",
-          position:"relative", zIndex:1,
+          position:"relative", zIndex:3,   /* über Atmosphere layers */
           paddingTop:24,
           animation:`step-fade-in 0.28s cubic-bezier(0.22,1,0.36,1) both`,
           display:"flex", flexDirection:"column",
@@ -300,6 +300,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           <StepOneTypeSelection
             value={formData.type}
             onSelect={key => {
+              console.log("[PAGE onSelect]", key);
               setFormData(d => ({ ...d, type: key }));
               goTo(2);
             }}
