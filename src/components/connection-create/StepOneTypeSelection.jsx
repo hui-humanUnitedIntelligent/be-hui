@@ -1,38 +1,32 @@
-// connection-create/StepOneTypeSelection.jsx v3
-// STEP 1 — "Was möchtest du erschaffen?"
-// DIREKTES onClick → onSelect(key) ohne setTimeout, ohne pressedKey-Blocker
-// iOS-sicher: type="button", touch-action:manipulation, kein preventDefault
+// connection-create/StepOneTypeSelection.jsx v4
+// SINGLE SOURCE OF TRUTH: value Prop (kein lokaler active-State)
+// Card-Tap → onSelect(key) → Parent setzt formData.type → value prop updated
+// formData.type startet als "" → Weiter-Button disabled bis Card gewählt
 
-import React, { useState } from "react";
+import React from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 
-const V  = "#8B5CF6";
-const V2 = "#7C3AED";
-const INK  = "#1A1A1A";
-const MUT  = "rgba(80,80,80,0.50)";
+const V   = "#8B5CF6";
+const V2  = "#7C3AED";
+const INK = "#1A1A1A";
+const MUT = "rgba(80,80,80,0.50)";
 
 const CSS = `
-  @keyframes s1-in {
-    from { opacity:0; transform:translateY(18px) scale(0.98); }
+  @keyframes s1-card-in {
+    from { opacity:0; transform:translateY(16px) scale(0.98); }
     to   { opacity:1; transform:translateY(0)    scale(1);    }
   }
   @keyframes s1-glow {
-    0%,100% { box-shadow:0 6px 28px rgba(139,92,246,0.20), 0 0 0 2px rgba(139,92,246,0.26); }
-    50%     { box-shadow:0 10px 40px rgba(139,92,246,0.32), 0 0 0 2.5px rgba(139,92,246,0.38); }
+    0%,100% { box-shadow: 0 6px 28px rgba(139,92,246,0.18), 0 0 0 2px rgba(139,92,246,0.24); }
+    50%     { box-shadow: 0 10px 38px rgba(139,92,246,0.30), 0 0 0 2.5px rgba(139,92,246,0.36); }
   }
   @keyframes s1-float {
-    0%,100% { transform:translateY(0); }
-    50%     { transform:translateY(-3px); }
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-3px); }
   }
 
-  /* iOS-kritisch */
-  .s1-btn {
-    display: block;
-    text-align: left;
-    width: 100%;
-    border: none;
-    outline: none;
-    font-family: inherit;
+  /* iOS: kein 300ms Tap-Delay, kein blaues Highlight */
+  .s1-card {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     user-select: none;
@@ -40,18 +34,14 @@ const CSS = `
     cursor: pointer;
     pointer-events: auto;
   }
-  .s1-btn:active { opacity: 0.85; transform: scale(0.975); }
+  .s1-card:active {
+    transform: scale(0.975) !important;
+    transition: transform 0.08s ease !important;
+  }
 `;
 
 export default function StepOneTypeSelection({ value, onSelect }) {
-  const [active, setActive] = useState(value || null);
-
-  function handleTap(key) {
-    console.log("[STEP1 CLICK]", key);   // Debug: muss in Console erscheinen
-    setActive(key);
-    onSelect?.(key);                      // SOFORT — kein setTimeout
-  }
-
+  // KEIN lokaler State — value kommt direkt vom Parent (formData.type)
   return (
     <div style={{
       flex: 1,
@@ -68,9 +58,9 @@ export default function StepOneTypeSelection({ value, onSelect }) {
       {/* ── Headline ── */}
       <div style={{
         textAlign: "center",
-        marginBottom: 32,
+        marginBottom: 28,
         maxWidth: 400,
-        animation: "s1-in 0.22s ease both",
+        animation: "s1-card-in 0.20s ease both",
       }}>
         <div style={{
           fontSize: 26, fontWeight: 900, color: INK,
@@ -87,44 +77,51 @@ export default function StepOneTypeSelection({ value, onSelect }) {
       <div style={{
         display: "flex",
         flexDirection: "column",
-        gap: 12,
+        gap: 11,
         width: "100%",
         maxWidth: 500,
       }}>
         {CONNECTION_TYPES.map((t, i) => {
-          const on = active === t.key;
+          const on = value === t.key;   // direkt aus value Prop — keine doppelte State
+
           return (
             <button
               key={t.key}
               type="button"
-              className="s1-btn"
-              onClick={() => handleTap(t.key)}
+              className="s1-card"
+              onClick={() => {
+                console.log("[S1 CARD TAP]", t.key);
+                onSelect?.(t.key);
+              }}
               style={{
-                padding: "18px 20px",
-                borderRadius: 22,
+                textAlign: "left",
+                width: "100%",
+                padding: "17px 19px",
+                borderRadius: 20,
                 background: on
-                  ? "linear-gradient(135deg,rgba(139,92,246,0.10),rgba(124,58,237,0.06))"
-                  : "rgba(255,255,255,0.85)",
+                  ? "linear-gradient(135deg,rgba(139,92,246,0.09),rgba(124,58,237,0.05))"
+                  : "rgba(255,255,255,0.88)",
                 border: on
-                  ? `2px solid rgba(139,92,246,0.35)`
-                  : "1.5px solid rgba(230,225,240,0.90)",
+                  ? "2px solid rgba(139,92,246,0.32)"
+                  : "1.5px solid rgba(225,220,238,0.90)",
                 boxShadow: on
-                  ? "0 0 0 0 transparent"
-                  : "0 3px 16px rgba(0,0,0,0.055)",
+                  ? "none"
+                  : "0 2px 14px rgba(0,0,0,0.05)",
                 animation: on
                   ? "s1-glow 3s ease-in-out infinite"
-                  : `s1-in ${0.07 + i * 0.05}s ease both`,
+                  : `s1-card-in ${0.06 + i * 0.045}s ease both`,
                 display: "flex",
                 alignItems: "center",
-                gap: 16,
-                transition: "background 0.15s, border 0.15s",
+                gap: 15,
+                transition: "background 0.14s, border 0.14s",
+                /* Kein transform hier — :active CSS übernimmt */
               }}
             >
-              {/* Icon */}
+              {/* Icon Box */}
               <div style={{
-                width: 52,
-                height: 52,
-                borderRadius: 16,
+                width: 50,
+                height: 50,
+                borderRadius: 15,
                 flexShrink: 0,
                 background: on
                   ? `linear-gradient(135deg,${V},${V2})`
@@ -132,9 +129,9 @@ export default function StepOneTypeSelection({ value, onSelect }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 24,
-                boxShadow: on ? `0 5px 16px rgba(139,92,246,0.28)` : "none",
-                transition: "all 0.20s",
+                fontSize: 23,
+                boxShadow: on ? `0 5px 15px rgba(139,92,246,0.26)` : "none",
+                transition: "all 0.18s ease",
                 animation: on ? "s1-float 3.5s ease-in-out infinite" : "none",
               }}>
                 {t.icon}
@@ -143,17 +140,17 @@ export default function StepOneTypeSelection({ value, onSelect }) {
               {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 16,
+                  fontSize: 15.5,
                   fontWeight: 800,
                   color: on ? V : INK,
                   marginBottom: 3,
                   letterSpacing: -0.25,
-                  transition: "color 0.15s",
+                  transition: "color 0.14s",
                 }}>
                   {t.label}
                 </div>
                 <div style={{
-                  fontSize: 13,
+                  fontSize: 12.5,
                   color: MUT,
                   lineHeight: 1.50,
                 }}>
@@ -161,14 +158,23 @@ export default function StepOneTypeSelection({ value, onSelect }) {
                 </div>
               </div>
 
-              {/* Arrow */}
+              {/* Check / Arrow */}
               <div style={{
-                fontSize: 20,
-                color: on ? V : "rgba(0,0,0,0.15)",
-                transition: "color 0.15s, transform 0.15s",
-                transform: on ? "translateX(2px)" : "translateX(0)",
+                width: 26,
+                height: 26,
+                borderRadius: 8,
                 flexShrink: 0,
-              }}>›</div>
+                background: on ? V : "transparent",
+                border: on ? "none" : "1.5px solid rgba(0,0,0,0.10)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: on ? 13 : 16,
+                color: on ? "white" : "rgba(0,0,0,0.14)",
+                transition: "all 0.16s",
+              }}>
+                {on ? "✓" : "›"}
+              </div>
             </button>
           );
         })}
