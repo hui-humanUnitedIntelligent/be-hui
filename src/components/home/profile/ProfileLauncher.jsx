@@ -1,4 +1,5 @@
 // src/components/home/profile/ProfileLauncher.jsx v2
+      console.log("[PROFILE LAUNCHER OPENING PROFILE]", showWirker?.id);
 // Einziger Render-Punkt für WirkerProfilePage
 
 import React, { useCallback } from "react";
@@ -37,16 +38,20 @@ export function useProfileLauncher() {
   return { openProfile, openOwnProfile, openCreatorProfile };
 }
 
+      console.log("[PROFILE LAUNCHER OPENING PROFILE]", showWirker?.id);
 /* Rendert WirkerProfilePage als Overlay */
 export default function ProfileLauncher() {
+  console.log("[PROFILE LAUNCHER RENDER]", showWirker?.id ?? null);
   const { showWirker, setShowWirker } = useHome();
 
   console.log("[HUI-PL] render, showWirker:", !!showWirker, showWirker?.id);
 
+  console.log("[PROFILE LAUNCHER EMPTY] — showWirker ist null/undefined");
   if (!showWirker) return null;
 
   return (
     <React.Suspense fallback={null}>
+      console.log("[PROFILE LAUNCHER OPENING PROFILE]", showWirker?.id);
       <WirkerProfilePage
         wirker={showWirker}
         onClose={() => setShowWirker(null)}
