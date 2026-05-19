@@ -36,8 +36,7 @@ const TABS = [
 /* ── Bio / Intro ─────────────────────────────────────────────── */
 function CreatorBio({ profile }) {
   const bio = profile?.bio
-    || "Ich forme Erde, Räume und Begegnungen.
-Inspiriert von der Natur, getragen von Gemeinschaft.";
+    || "Ich forme Erde, R\u00e4ume und Begegnungen.\nInspiriert von der Natur, getragen von Gemeinschaft.";
   return (
     <div style={{ padding:"16px 20px 0" }}>
       <p style={{
