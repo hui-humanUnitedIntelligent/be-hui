@@ -121,6 +121,9 @@ export default function HomeShell({ children }) {
 
   /* openOwnProfile — öffnet eigenes Profil, robust auch ohne authProfile */
   const openOwnProfile = useCallback(() => {
+    console.log("[OPEN OWN PROFILE]");
+    console.log("[USER]", user?.id, user?.email);
+    console.log("[AUTH PROFILE]", authProfile?.id, authProfile?.display_name);
     const id = authProfile?.id || user?.id || "me";
     const profileData = {
       id,
@@ -139,13 +142,16 @@ export default function HomeShell({ children }) {
       _isOwnerView: true,
     };
     console.log("[HUI-SHELL] openOwnProfile:", id, profileData.display_name);
+    console.log("[SET SHOW WIRKER]", profileData?.id, profileData?.display_name);
     setShowWirker(profileData);
   }, [authProfile?.id, authProfile?.display_name, authProfile?.avatar_url, user?.id, setShowWirker]);
 
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
+    console.log("[HANDLE TAB]", key);
     console.log("[HUI-SHELL] handleTab:", key);
     if (key === "profile") {
+      console.log("[PROFILE FLOW START]");
       openOwnProfile();
       return;
     }
