@@ -15,13 +15,11 @@ export function useProfileLauncher() {
 
   const openProfile = useCallback((data) => {
     if (!data) return;
-    console.log("[HUI-PL] openProfile:", data?.id);
     setShowWirker(data);
   }, [setShowWirker]);
 
   const openOwnProfile = useCallback(() => {
     const id = authProfile?.id || user?.id || null;
-    console.log("[HUI-PL] openOwnProfile via hook:", id);
     setShowWirker({
       id,
       user_id:      id,
@@ -43,14 +41,10 @@ export default function ProfileLauncher() {
   const { showWirker, setShowWirker } = useHome();
 
   // Trace-Log: immer sichtbar beim Re-render
-  console.log("[PROFILE LAUNCHER RENDER]", showWirker?.id ?? null);
 
   if (!showWirker) {
-    console.log("[PROFILE LAUNCHER EMPTY] — showWirker ist null/undefined");
     return null;
   }
-
-  console.log("[PROFILE LAUNCHER OPENING PROFILE]", showWirker?.id);
 
   return (
     <React.Suspense fallback={null}>
