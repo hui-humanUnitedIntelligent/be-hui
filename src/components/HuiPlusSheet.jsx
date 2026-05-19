@@ -601,7 +601,7 @@ function DetailCard({ node, isTalent, onAction, onClose }) {
   const locked = !node.forAll && !isTalent;
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:8500,
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"flex-end",
     }}
