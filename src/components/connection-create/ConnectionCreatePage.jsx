@@ -303,7 +303,10 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
             onSelect={key => {
               console.log("[PAGE onSelect]", key);
               setFormData(d => ({ ...d, type: key }));
-              /* goTo(2) NICHT hier — User tappt Weiter-Button */
+            }}
+            onAdvance={() => {
+              console.log("[PAGE onAdvance] goTo(2)");
+              goTo(2);
             }}
           />
         )}
@@ -322,14 +325,17 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         )}
       </div>
 
-      {/* ── Floating Navigation ── */}
-      <FloatingNav
-        step={step}
-        canNext={canNext}
-        onBack={() => goTo(step - 1)}
-        onNext={handleNext}
-        isLast={step === 3}
-      />
+      {/* ── Floating Navigation (Step 2+3) ── */}
+      {/* Step 1 hat eigenen Weiter-Button inline nach den Cards */}
+      {step > 1 && (
+        <FloatingNav
+          step={step}
+          canNext={canNext}
+          onBack={() => goTo(step - 1)}
+          onNext={handleNext}
+          isLast={step === 3}
+        />
+      )}
     </div>
   );
 }
