@@ -474,7 +474,7 @@ function NodeHint({ node, onOpen }) {
 function ImpactDetail({ onAction, onClose }) {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:8500,
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"flex-end",
     }}
@@ -787,6 +787,7 @@ export default function HuiPlusSheet({
 
   // ── Action ───────────────────────────────────────────────────────
   const handleAction = useCallback((type) => {
+    console.log("[ORB CONNECT TAP] type:", type);
     setDetailNode(null);
     setImpactOpen(false);
     onSelect?.(type);
