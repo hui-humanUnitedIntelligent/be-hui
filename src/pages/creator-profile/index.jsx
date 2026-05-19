@@ -1,9 +1,7 @@
-// src/pages/creator-profile/index.jsx
-// HUI Creator Profile — Owner View
-// Cinematic creator dashboard — NOT a social media profile
-//
-// REGEL: Nur laden wenn wirker._isOwnerView === true
-// REGEL: Kein direkter Supabase-Write. Daten kommen via props/context.
+// src/pages/creator-profile/index.jsx v2
+// HUI Creator Profile — OWNER VIEW ONLY
+// Cinematic creator dashboard
+// DEBUG: zeigt "CREATOR PROFILE ACTIVE" Banner temporär
 
 import React, { useState } from "react";
 import CreatorHero            from "../../components/creator-profile/CreatorHero.jsx";
@@ -14,7 +12,6 @@ import CreatorSpacesSection   from "../../components/creator-profile/CreatorSpac
 import CreatorWorksSection    from "../../components/creator-profile/CreatorWorksSection.jsx";
 import CreatorFloatingActions from "../../components/creator-profile/CreatorFloatingActions.jsx";
 
-/* ── Design Tokens ─────────────────────────────────────────── */
 const C = {
   teal:   "#16D7C5",
   coral:  "#FF8A6B",
@@ -23,7 +20,6 @@ const C = {
   cream:  "#F9F7F4",
 };
 
-/* ── Tab config ─────────────────────────────────────────────── */
 const TABS = [
   { key:"bewegung",   label:"Bewegung"    },
   { key:"werke",      label:"Werke"       },
@@ -33,7 +29,26 @@ const TABS = [
   { key:"raum",       label:"Raum"        },
 ];
 
-/* ── Bio / Intro ─────────────────────────────────────────────── */
+function DebugBanner() {
+  return (
+    <div style={{
+      position:"fixed",
+      top:0, left:0, right:0,
+      zIndex:99999,
+      background:"rgba(22,215,197,0.92)",
+      color:"white",
+      fontSize:11,
+      fontWeight:700,
+      textAlign:"center",
+      padding:"4px 8px",
+      letterSpacing:1,
+      pointerEvents:"none",
+    }}>
+      CREATOR PROFILE ACTIVE
+    </div>
+  );
+}
+
 function CreatorBio({ profile }) {
   const bio = profile?.bio
     || "Ich forme Erde, R\u00e4ume und Begegnungen.\nInspiriert von der Natur, getragen von Gemeinschaft.";
@@ -49,7 +64,6 @@ function CreatorBio({ profile }) {
   );
 }
 
-/* ── Tab Bar ─────────────────────────────────────────────────── */
 function TabBar({ active, onChange }) {
   return (
     <div className="hui-scroll" style={{
@@ -72,7 +86,9 @@ function TabBar({ active, onChange }) {
               cursor:"pointer",
               fontSize:13.5, fontWeight: isActive ? 700 : 500,
               color: isActive ? C.teal : C.muted,
-              borderBottom: isActive ? `2.5px solid ${C.teal}` : "2.5px solid transparent",
+              borderBottom: isActive
+                ? ("2.5px solid " + C.teal)
+                : "2.5px solid transparent",
               transition:"color 0.18s, border-color 0.18s",
               WebkitTapHighlightColor:"transparent",
               touchAction:"manipulation",
@@ -84,7 +100,6 @@ function TabBar({ active, onChange }) {
   );
 }
 
-/* ── Main Page ──────────────────────────────────────────────── */
 export default function CreatorProfilePage({
   wirker:  rawWirker,
   profile: externalProfile,
@@ -95,81 +110,66 @@ export default function CreatorProfilePage({
   onAction,
 }) {
   const [activeTab, setActiveTab] = useState("bewegung");
-
-  // Profile: entweder extern übergeben oder aus rawWirker bauen
   const profile = externalProfile || rawWirker || {};
 
-  function handleClose() {
-    onClose?.();
-  }
-  function handleEdit() {
-    onAction?.("edit");
-  }
-  function handleAction(key) {
-    onAction?.(key);
-  }
+  function handleClose()    { onClose?.(); }
+  function handleEdit()     { onAction?.("edit"); }
+  function handleAction(k)  { onAction?.(k); }
 
   return (
-    <div style={{
-      position:   "fixed",
-      inset:      0,
-      zIndex:     9500,
-      background: C.cream,
-      display:    "flex",
-      flexDirection: "column",
-      overflowY:  "hidden",
-    }}>
+    <>
+      {/* ── Debug Banner ── TEMPORÄR ── */}
+      <DebugBanner />
 
-      {/* Scrollable content */}
-      <div
-        className="hui-scroll"
-        style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}
-      >
-        {/* ── Hero: cinematic atmosphere ── */}
-        <CreatorHero
-          profile={profile}
-          onClose={handleClose}
-          onEdit={handleEdit}
-        />
-
-        {/* ── Identity: name, talent, location, mood ── */}
-        <CreatorIdentityCard
-          profile={profile}
-          onEdit={handleEdit}
-        />
-
-        {/* ── Stats: HUI metrics ── */}
-        <CreatorStatsBar profile={profile}/>
-
-        {/* ── Bio / Intro ── */}
-        <CreatorBio profile={profile}/>
-
-        {/* ── Impact Card ── */}
-        <CreatorImpactCard profile={profile}/>
-
-        {/* ── Creative Spaces (horizontal scroll) ── */}
-        <CreatorSpacesSection profile={profile}/>
-
-        {/* ── Tab Bar ── */}
-        <div style={{ marginTop:20 }}>
-          <TabBar active={activeTab} onChange={setActiveTab}/>
-        </div>
-
-        {/* ── Tab Content ── */}
-        <div style={{ paddingTop:16, paddingBottom:20 }}>
-          <CreatorWorksSection
-            activeTab={activeTab}
-            works={works}
-            experiences={experiences}
+      <div style={{
+        position:      "fixed",
+        inset:         0,
+        zIndex:        9500,
+        background:    C.cream,
+        display:       "flex",
+        flexDirection: "column",
+        overflowY:     "hidden",
+        fontFamily:    "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      }}>
+        {/* Scrollable content */}
+        <div
+          className="hui-scroll"
+          style={{
+            flex:1,
+            overflowY:"auto",
+            overflowX:"hidden",
+            WebkitOverflowScrolling:"touch",
+            paddingTop: 18, /* Platz für Debug-Banner */
+          }}
+        >
+          <CreatorHero
+            profile={profile}
+            onClose={handleClose}
+            onEdit={handleEdit}
           />
+          <CreatorIdentityCard
+            profile={profile}
+            onEdit={handleEdit}
+          />
+          <CreatorStatsBar profile={profile}/>
+          <CreatorBio profile={profile}/>
+          <CreatorImpactCard profile={profile}/>
+          <CreatorSpacesSection profile={profile}/>
+          <div style={{ marginTop:20 }}>
+            <TabBar active={activeTab} onChange={setActiveTab}/>
+          </div>
+          <div style={{ paddingTop:16, paddingBottom:20 }}>
+            <CreatorWorksSection
+              activeTab={activeTab}
+              works={works}
+              experiences={experiences}
+            />
+          </div>
+          <div style={{ height:24 }}/>
         </div>
 
-        {/* Bottom padding for floating bar */}
-        <div style={{ height:24 }}/>
+        <CreatorFloatingActions onAction={handleAction}/>
       </div>
-
-      {/* ── Floating Action Bar (sticky bottom) ── */}
-      <CreatorFloatingActions onAction={handleAction}/>
-    </div>
+    </>
   );
 }
