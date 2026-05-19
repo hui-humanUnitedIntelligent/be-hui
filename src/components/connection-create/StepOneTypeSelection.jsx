@@ -1,7 +1,7 @@
-// connection-create/StepOneTypeSelection.jsx v4
-// SINGLE SOURCE OF TRUTH: value Prop (kein lokaler active-State)
-// Card-Tap → onSelect(key) → Parent setzt formData.type → value prop updated
-// formData.type startet als "" → Weiter-Button disabled bis Card gewählt
+// connection-create/StepOneTypeSelection.jsx v5
+// ROOT CAUSE FIX: Weiter-Button direkt nach den Cards (inline, im Scroll-Container)
+// Kein sticky/fixed/Portal — einfach an der richtigen Stelle im DOM
+// Props: value (formData.type), onSelect (setzt type), onAdvance (goTo 2)
 
 import React from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
@@ -14,7 +14,7 @@ const MUT = "rgba(80,80,80,0.50)";
 const CSS = `
   @keyframes s1-card-in {
     from { opacity:0; transform:translateY(16px) scale(0.98); }
-    to   { opacity:1; transform:translateY(0)    scale(1);    }
+    to   { opacity:1; transform:translateY(0) scale(1); }
   }
   @keyframes s1-glow {
     0%,100% { box-shadow: 0 6px 28px rgba(139,92,246,0.18), 0 0 0 2px rgba(139,92,246,0.24); }
@@ -24,8 +24,15 @@ const CSS = `
     0%,100% { transform: translateY(0); }
     50%     { transform: translateY(-3px); }
   }
+  @keyframes s1-btn-appear {
+    from { opacity:0; transform:translateY(10px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes s1-btn-pulse {
+    0%,100% { box-shadow: 0 8px 28px rgba(139,92,246,0.32); }
+    50%     { box-shadow: 0 12px 40px rgba(139,92,246,0.50); }
+  }
 
-  /* iOS: kein 300ms Tap-Delay, kein blaues Highlight */
   .s1-card {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -34,14 +41,20 @@ const CSS = `
     cursor: pointer;
     pointer-events: auto;
   }
-  .s1-card:active {
-    transform: scale(0.975) !important;
-    transition: transform 0.08s ease !important;
+  .s1-card:active { transform: scale(0.975) !important; }
+
+  .s1-next-btn {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    cursor: pointer;
+    pointer-events: auto;
   }
+  .s1-next-btn:active { transform: scale(0.97) !important; }
 `;
 
-export default function StepOneTypeSelection({ value, onSelect }) {
-  // KEIN lokaler State — value kommt direkt vom Parent (formData.type)
+export default function StepOneTypeSelection({ value, onSelect, onAdvance }) {
+  const hasSelection = !!value;
+
   return (
     <div style={{
       flex: 1,
@@ -82,8 +95,7 @@ export default function StepOneTypeSelection({ value, onSelect }) {
         maxWidth: 500,
       }}>
         {CONNECTION_TYPES.map((t, i) => {
-          const on = value === t.key;   // direkt aus value Prop — keine doppelte State
-
+          const on = value === t.key;
           return (
             <button
               key={t.key}
@@ -104,9 +116,7 @@ export default function StepOneTypeSelection({ value, onSelect }) {
                 border: on
                   ? "2px solid rgba(139,92,246,0.32)"
                   : "1.5px solid rgba(225,220,238,0.90)",
-                boxShadow: on
-                  ? "none"
-                  : "0 2px 14px rgba(0,0,0,0.05)",
+                boxShadow: on ? "none" : "0 2px 14px rgba(0,0,0,0.05)",
                 animation: on
                   ? "s1-glow 3s ease-in-out infinite"
                   : `s1-card-in ${0.06 + i * 0.045}s ease both`,
@@ -114,23 +124,17 @@ export default function StepOneTypeSelection({ value, onSelect }) {
                 alignItems: "center",
                 gap: 15,
                 transition: "background 0.14s, border 0.14s",
-                /* Kein transform hier — :active CSS übernimmt */
               }}
             >
-              {/* Icon Box */}
+              {/* Icon */}
               <div style={{
-                width: 50,
-                height: 50,
-                borderRadius: 15,
-                flexShrink: 0,
+                width: 50, height: 50, borderRadius: 15, flexShrink: 0,
                 background: on
                   ? `linear-gradient(135deg,${V},${V2})`
                   : "rgba(139,92,246,0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 23,
-                boxShadow: on ? `0 5px 15px rgba(139,92,246,0.26)` : "none",
+                boxShadow: on ? "0 5px 15px rgba(139,92,246,0.26)" : "none",
                 transition: "all 0.18s ease",
                 animation: on ? "s1-float 3.5s ease-in-out infinite" : "none",
               }}>
@@ -140,44 +144,99 @@ export default function StepOneTypeSelection({ value, onSelect }) {
               {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 15.5,
-                  fontWeight: 800,
+                  fontSize: 15.5, fontWeight: 800,
                   color: on ? V : INK,
-                  marginBottom: 3,
-                  letterSpacing: -0.25,
+                  marginBottom: 3, letterSpacing: -0.25,
                   transition: "color 0.14s",
                 }}>
                   {t.label}
                 </div>
-                <div style={{
-                  fontSize: 12.5,
-                  color: MUT,
-                  lineHeight: 1.50,
-                }}>
+                <div style={{ fontSize: 12.5, color: MUT, lineHeight: 1.50 }}>
                   {t.desc}
                 </div>
               </div>
 
               {/* Check / Arrow */}
               <div style={{
-                width: 26,
-                height: 26,
-                borderRadius: 8,
-                flexShrink: 0,
+                width: 26, height: 26, borderRadius: 8, flexShrink: 0,
                 background: on ? V : "transparent",
                 border: on ? "none" : "1.5px solid rgba(0,0,0,0.10)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: on ? 13 : 16,
                 color: on ? "white" : "rgba(0,0,0,0.14)",
                 transition: "all 0.16s",
               }}>
-                {on ? "✓" : "›"}
+                {on ? "\u2713" : "\u203a"}
               </div>
             </button>
           );
         })}
+      </div>
+
+      {/* ══ WEITER-BUTTON — DIREKT NACH DEN CARDS ══
+          Kein sticky, kein fixed, kein Portal.
+          Einfach inline im selben Scroll-Container.
+          Erscheint sofort nach Card-Auswahl.
+      */}
+      <div style={{
+        width: "100%",
+        maxWidth: 500,
+        marginTop: 20,
+        animation: hasSelection ? "s1-btn-appear 0.22s cubic-bezier(0.22,1,0.36,1) both" : "none",
+      }}>
+        <button
+          type="button"
+          className="s1-next-btn"
+          onClick={() => {
+            console.log("[S1 WEITER]", value);
+            onAdvance?.();
+          }}
+          disabled={!hasSelection}
+          style={{
+            width: "100%",
+            height: 54,
+            borderRadius: 99,
+            background: hasSelection
+              ? `linear-gradient(135deg,${V} 0%,${V2} 100%)`
+              : "rgba(139,92,246,0.14)",
+            border: "none",
+            color: hasSelection ? "white" : "rgba(139,92,246,0.40)",
+            fontSize: 17,
+            fontWeight: 800,
+            letterSpacing: -0.2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            transition: "background 0.20s, color 0.20s, box-shadow 0.20s",
+            animation: hasSelection ? "s1-btn-pulse 2.5s ease-in-out infinite" : "none",
+            cursor: hasSelection ? "pointer" : "default",
+          }}
+        >
+          {hasSelection ? (
+            <>
+              Weiter
+              <span style={{ fontSize: 20, lineHeight: 1, marginLeft: 2 }}>→</span>
+            </>
+          ) : (
+            "Kategorie w\u00e4hlen"
+          )}
+        </button>
+
+        {/* Micro-Hint */}
+        {hasSelection && (
+          <div style={{
+            textAlign: "center",
+            fontSize: 12,
+            color: MUT,
+            marginTop: 10,
+            animation: "s1-btn-appear 0.18s 0.10s ease both",
+          }}>
+            Du hast gew\u00e4hlt: <strong style={{ color: V }}>{
+              CONNECTION_TYPES.find(t => t.key === value)?.label
+            }</strong>
+          </div>
+        )}
       </div>
     </div>
   );
