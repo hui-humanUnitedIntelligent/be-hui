@@ -1,9 +1,8 @@
-// hooks/useWirkerProfile.js
-// Zentraler Daten-Hook für WirkerProfile
-// Kapselt alle Supabase-Queries: profile, works, experiences, recommendations
+// hooks/useWirkerProfile.js v2
+// KRITISCH-FIX: deps auf primitive IDs stabilisiert (kein Object-Loop mehr)
 // REGEL: Kein direkter Supabase-Zugriff in UI-Komponenten
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import {
   safeQuery,
@@ -14,11 +13,6 @@ import {
 } from "../../../lib/perfUtils";
 import { getProfileIdentifier } from "../utils/profileGuards";
 
-/**
- * Lädt alle Profildaten für eine WirkerProfile-Seite.
- * @param {object} rawWirker - Rohes Wirker-Objekt (aus Navigation/Props)
- * @returns {{ profile, works, experiences, recommendations, loading, reload }}
- */
 export function useWirkerProfile(rawWirker) {
   const [profile,  setProfile]  = useState(null);
   const [works,    setWorks]    = useState([]);
@@ -27,47 +21,54 @@ export function useWirkerProfile(rawWirker) {
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState(null);
 
+  // ── KRITISCH: Stabile primitive IDs als deps — kein Objekt-Loop ──
+  const stableId       = rawWirker?.user_id || rawWirker?.id       || null;
+  const stableUsername = rawWirker?.username                        || null;
+  const stableName     = rawWirker?.name                            || null;
+
+  // rawWirker Ref für den loadData-Callback (ohne Neu-Trigger)
+  const rawRef = useRef(rawWirker);
+  useEffect(() => { rawRef.current = rawWirker; }, [rawWirker]);
+
   const loadData = useCallback(async () => {
-    if (!rawWirker) { setLoading(false); return; }
+    const raw = rawRef.current;
+    if (!raw) { setLoading(false); return; }
+
     setLoading(true);
     setError(null);
 
     try {
-      const identifier = getProfileIdentifier(rawWirker);
-
-      // ── Profil laden (3 Fallback-Strategien) ──────────────────────
       let profileData = null;
 
-      // 1. Direkt per user_id / id
-      if (rawWirker.user_id || rawWirker.id) {
-        const uid = rawWirker.user_id || rawWirker.id;
+      // 1. Per user_id / id
+      if (stableId) {
         const res = await safeQuery(
-          supabase.from("profiles").select(PROFILE_FIELDS).eq("id", uid).single()
+          supabase.from("profiles").select(PROFILE_FIELDS).eq("id", stableId).single()
         );
-        profileData = res.data;
+        profileData = res?.data || null;
       }
 
       // 2. Fallback: per username
-      if (!profileData && rawWirker.username) {
+      if (!profileData && stableUsername) {
         const res = await safeQuery(
           supabase.from("profiles")
             .select(PROFILE_FIELDS)
-            .eq("username", rawWirker.username)
+            .eq("username", stableUsername)
             .single()
         );
-        profileData = res.data;
+        profileData = res?.data || null;
       }
 
-      // 3. Fallback: per display_name (unsauber, aber besser als Crash)
-      if (!profileData && rawWirker.name) {
+      // 3. Fallback: per display_name
+      if (!profileData && stableName) {
         const res = await safeQuery(
           supabase.from("profiles")
             .select(PROFILE_FIELDS)
-            .ilike("display_name", rawWirker.name)
+            .ilike("display_name", stableName)
             .limit(1)
             .single()
         );
-        profileData = res.data;
+        profileData = res?.data || null;
       }
 
       const uid = profileData?.id;
@@ -99,27 +100,39 @@ export function useWirkerProfile(rawWirker) {
           ),
         ]);
 
-        setWorks(worksRes?.data   || []);
-        setExps(expsRes?.data     || []);
-        setRecs(recsRes?.data     || []);
+        setWorks(worksRes?.data  || []);
+        setExps(expsRes?.data    || []);
+        setRecs(recsRes?.data    || []);
       }
 
-      // Normalisieren + setzen
       if (profileData) {
         setProfile(normalizeProfileInput(profileData));
       } else {
-        // Fallback: rawWirker direkt normalisieren
-        setProfile(normalizeProfileInput(rawWirker));
+        // Fallback: rawWirker als Profil-Basis
+        // Normalisieren damit isProfileReady() greift
+        const fallback = normalizeProfileInput({
+          ...raw,
+          id: stableId || raw.id || null,
+          user_id: stableId || raw.user_id || null,
+          display_name: raw.display_name || raw.name || "HUI Creator",
+        });
+        setProfile(fallback);
       }
 
     } catch (err) {
+      console.error("[useWirkerProfile] Fehler:", err);
       setError(err);
       // Kein Crash: rawWirker als Fallback
-      setProfile(normalizeProfileInput(rawWirker));
+      const fallback = normalizeProfileInput({
+        ...rawRef.current,
+        id: stableId || null,
+        user_id: stableId || null,
+      });
+      setProfile(fallback);
     } finally {
       setLoading(false);
     }
-  }, [rawWirker]);
+  }, [stableId, stableUsername, stableName]); // ← primitives, kein Loop
 
   useEffect(() => { loadData(); }, [loadData]);
 
