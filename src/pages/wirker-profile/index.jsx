@@ -1,130 +1,83 @@
-// src/pages/wirker-profile/index.jsx
-// WirkerProfile — Root-Orchestrator v2.0
-// Modular: Hooks → Sections → Components
-// REGEL: Kein direkter Supabase-Write. Kein Business-Logic im JSX.
-// REGEL: Alle Hooks top-level, stabile Reihenfolge.
+// src/pages/wirker-profile/index.jsx v3
+// HUI Public Wirker Profile — Screenshot-exact nach Mia Kern Design
+// PUBLIC VIEW ONLY — _isOwnerView === false
+//
+// REGEL: Keine Owner-Actions. Kein Edit. Kein Dashboard.
+// REGEL: Alle neuen Komponenten aus components/wirker-profile/
 
 import React, { useState, useCallback } from "react";
 import { useAuth }     from "../../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useReputation, useRecommendationActions } from "../../lib/trustContext";
-import { getTrustSignals }  from "../../lib/bookingContext";
-import { getSoftStatus }    from "../../lib/journeyContext";
 
-// ── Eigene Hooks ────────────────────────────────────────────────────
+// ── Vorhandene Hooks (unverändert) ───────────────────────────
 import { useWirkerProfile }  from "./hooks/useWirkerProfile";
 import { usePresenceBridge } from "./hooks/usePresenceBridge";
 import { useBookingState }   from "./hooks/useBookingState";
 
-// ── Sections ────────────────────────────────────────────────────────
-import { HeroSection }     from "./sections/HeroSection";
-import { PresenceSection } from "./sections/PresenceSection";
-import { GallerySection }  from "./sections/GallerySection";
-import { BookingSection }  from "./sections/BookingSection";
+// ── NEUE Komponenten ─────────────────────────────────────────
+import WirkerHero           from "../../components/wirker-profile/WirkerHero.jsx";
+import WirkerIdentity       from "../../components/wirker-profile/WirkerIdentity.jsx";
+import WirkerConnectionCard from "../../components/wirker-profile/WirkerConnectionCard.jsx";
+import WirkerBio            from "../../components/wirker-profile/WirkerBio.jsx";
+import WirkerSpaces         from "../../components/wirker-profile/WirkerSpaces.jsx";
+import WirkerTabContent     from "../../components/wirker-profile/WirkerTabContent.jsx";
+import WirkerFloatingBook   from "../../components/wirker-profile/WirkerFloatingBook.jsx";
 
-// ── Components ──────────────────────────────────────────────────────
-import { ProfileHeader } from "./components/ProfileHeader";
+/* ── Guards (bewahrt) ────────────────────────────────────────── */
+import { isProfileReady } from "./utils/profileGuards";
 
-// ── Guards ──────────────────────────────────────────────────────────
-import { isOwnerProfile, isProfileReady } from "./utils/profileGuards";
-
-/* ── CSS (einmalig, minimal) ─────────────────────────────────────── */
+/* ── CSS ─────────────────────────────────────────────────────── */
 const CSS = `
-  @keyframes fadeUp {
-    from { opacity:0; transform:translateY(12px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
   * { box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  .hui-scroll {
+    scrollbar-width:none; -ms-overflow-style:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .hui-scroll::-webkit-scrollbar { display:none; }
 `;
 
 /**
- * WirkerProfilePage — Haupteinstiegspunkt.
+ * WirkerProfilePage — PUBLIC VIEW.
  *
- * Props (unverändert — rückwärtskompatibel):
- *  wirker:    object  — rohes Wirker-Objekt aus Navigation
- *  onClose:   fn      — zurück navigieren
- *  onBook:    fn      — Booking-Flow öffnen
- *  onChat:    fn      — Chat öffnen
- *  onImpact:  fn      — Impact-Seite
- *  onMap:     fn      — Karte
+ * Props:
+ *   wirker   — rohes Wirker-Objekt aus Navigation / App.jsx route
+ *   onClose  — zurück
+ *   onBook   — Booking öffnen
+ *   onChat   — Chat öffnen
  */
 export default function WirkerProfilePage({
   wirker: rawWirker,
   onClose,
   onBook,
   onChat,
-  onImpact,
-  onMap,
 }) {
   const { user }  = useAuth();
   const navigate  = useNavigate();
 
-  // ── 1. Profildaten ────────────────────────────────────────────────
-  const {
-    profile, works, experiences, recommendations, loading,
-  } = useWirkerProfile(rawWirker);
+  /* ── Daten ── */
+  const { profile, works, experiences, loading } = useWirkerProfile(rawWirker);
+  const { presenceStatus, presenceInfo }         = usePresenceBridge(profile?.id ?? null);
+  const { followed, followLoading, toggleFollow, bookable } =
+    useBookingState({ profile, user });
 
-  // ── 2. Presence ───────────────────────────────────────────────────
-  const {
-    presenceStatus, presenceInfo,
-    hasCreative, showRhythm, showBridge,
-    rhythm, continuity, signature,
-  } = usePresenceBridge(profile?.id ?? null);
+  /* ── UI State ── */
+  const [activeTab, setActiveTab] = useState("bewegung");
+  const [showMore,  setShowMore]  = useState(false);
 
-  // ── 3. Booking + Follow State ─────────────────────────────────────
-  const {
-    showChat,    setShowChat,
-    showRequest, setShowRequest,
-    showMore,    setShowMore,
-    followed,    followLoading,
-    toggleFollow, bookable,
-  } = useBookingState({ profile, user });
+  /* ── Handlers ── */
+  const handleClose = useCallback(() => { onClose?.() || navigate(-1); }, [onClose, navigate]);
+  const handleChat  = useCallback(() => { if (onChat) onChat(profile); }, [onChat, profile]);
+  const handleBook  = useCallback(() => { if (onBook) onBook(profile); }, [onBook, profile]);
 
-  // ── 4. UI State ───────────────────────────────────────────────────
-  const [activeTab,  setActiveTab]  = useState("werke");
-  const [heroLoaded, setHeroLoaded] = useState(false);
-  const [activeTool, setActiveTool] = useState(null);
-
-  // ── 5. Derived ────────────────────────────────────────────────────
-  const isOwner = isOwnerProfile(user, profile);
-
-  // ── 6. Handlers ───────────────────────────────────────────────────
-  const handleClose = useCallback(() => {
-    onClose?.() || navigate(-1);
-  }, [onClose, navigate]);
-
-  const handleBook = useCallback(() => {
-    if (onBook) onBook(profile);
-    else setShowRequest(true);
-  }, [onBook, profile, setShowRequest]);
-
-  const handleChat = useCallback(() => {
-    if (onChat) onChat(profile);
-    else setShowChat(true);
-  }, [onChat, profile, setShowChat]);
-
-  const handleEdit = useCallback(() => {
-    setActiveTool("edit");
-  }, []);
-
-  const handleWorkPress = useCallback((work) => {
-    // Navigation zur Werk-Detail-Seite oder onView
-  }, []);
-
-  const handleExpPress = useCallback((exp) => {
-    // Navigation zur Erlebnis-Detail
-  }, []);
-
-  // ── Loading ───────────────────────────────────────────────────────
+  /* ── Loading ── */
   if (loading && !profile) {
     return (
       <div style={{
         position:"fixed", inset:0, zIndex:9500,
         background:"#F9F7F4",
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
       }}>
-        <div style={{ opacity:0.3, fontSize:13, color:"#888" }}>Laden…</div>
+        <div style={{ fontSize:13, color:"rgba(80,80,80,0.35)" }}>Laden\u2026</div>
       </div>
     );
   }
@@ -134,83 +87,78 @@ export default function WirkerProfilePage({
       <div style={{
         position:"fixed", inset:0, zIndex:9500,
         background:"#F9F7F4",
-        display:"flex", alignItems:"center", justifyContent:"center", padding:40,
-        fontFamily:"-apple-system, BlinkMacSystemFont, sans-serif",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        flexDirection:"column", gap:12,
       }}>
-        <div style={{ textAlign:"center", opacity:0.4 }}>
-          <div style={{ fontSize:36, marginBottom:12 }}>✦</div>
-          <div style={{ fontSize:13, color:"#888" }}>Profil nicht gefunden</div>
-        </div>
+        <div style={{ fontSize:36, opacity:0.25 }}>\u2726</div>
+        <div style={{ fontSize:13, color:"rgba(80,80,80,0.4)" }}>Profil nicht gefunden</div>
       </div>
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────
+  /* ── Render ── */
   return (
     <div style={{
-      position:    "fixed",
-      inset:       0,
-      zIndex:      9500,
-      background:  "#F9F7F4",
-      fontFamily:  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
-      overflowY:   "auto",
-      overflowX:   "hidden",
-      WebkitOverflowScrolling: "touch",
-      paddingBottom: isOwner ? 0 : 90,
+      position:   "fixed",
+      inset:      0,
+      zIndex:     9500,
+      background: "#F9F7F4",
+      display:    "flex",
+      flexDirection: "column",
+      overflow:   "hidden",
+      fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
     }}>
       <style>{CSS}</style>
 
-      {/* ── Sticky Back-Bar ────────────────────────────────────────── */}
-      <ProfileHeader
-        onClose={handleClose}
-        onMore={() => setShowMore(true)}
-        isOwner={isOwner}
-        heroLoaded={heroLoaded}
-      />
+      {/* Scrollable main area */}
+      <div className="hui-scroll" style={{
+        flex:1, overflowY:"auto", overflowX:"hidden",
+      }}>
 
-      {/* ── Hero: Bild + Avatar + Name + Actions ───────────────────── */}
-      <HeroSection
+        {/* 1. Cinematic Hero */}
+        <WirkerHero
+          profile={profile}
+          onClose={handleClose}
+          onMore={() => setShowMore(true)}
+        />
+
+        {/* 2. Identity: Name, Stats, Mood */}
+        <WirkerIdentity profile={profile}/>
+
+        {/* 3. Connection Actions */}
+        <WirkerConnectionCard
+          profile={profile}
+          followed={followed}
+          followLoading={followLoading}
+          onChat={handleChat}
+          onFollow={toggleFollow}
+          onBook={handleBook}
+        />
+
+        {/* 4. Bio */}
+        <WirkerBio profile={profile} onBook={handleBook} bookable={bookable}/>
+
+        {/* 5. Creative Spaces */}
+        <WirkerSpaces/>
+
+        {/* 6. Tabs + Content */}
+        <WirkerTabContent
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          works={works}
+          experiences={experiences}
+        />
+
+        {/* Bottom padding for sticky bar */}
+        <div style={{ height:20 }}/>
+      </div>
+
+      {/* 7. Sticky Floating CTA */}
+      <WirkerFloatingBook
         profile={profile}
-        presenceInfo={presenceInfo}
-        presenceStatus={presenceStatus}
-        isOwner={isOwner}
-        followed={followed}
-        followLoading={followLoading}
-        bookable={bookable}
-        onHeroLoad={() => setHeroLoaded(true)}
+        onBook={handleBook}
         onFollow={toggleFollow}
-        onChat={handleChat}
-        onBook={handleBook}
-        onEdit={handleEdit}
-      />
-
-      {/* ── Presence: Signatur + Rhythmus + Bridge ─────────────────── */}
-      <PresenceSection
-        signature={signature}
-        rhythm={rhythm}
-        continuity={continuity}
-        showRhythm={showRhythm}
-        showBridge={showBridge}
-        hasCreative={hasCreative}
-      />
-
-      {/* ── Gallery: Werke / Erlebnisse / Empfehlungen ─────────────── */}
-      <GallerySection
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        works={works}
-        experiences={experiences}
-        recommendations={recommendations}
-        onWorkPress={handleWorkPress}
-        onExpPress={handleExpPress}
-      />
-
-      {/* ── Floating Booking CTA ───────────────────────────────────── */}
-      <BookingSection
-        isOwner={isOwner}
-        bookable={bookable}
-        profile={profile}
-        onBook={handleBook}
+        followed={followed}
       />
     </div>
   );
