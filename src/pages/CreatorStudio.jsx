@@ -16,7 +16,7 @@ import {
   AnalyticsPage, EinnahmenPage, VerfuegbarkeitPage,
   ImpactSubPage, KontoPage, MeineInhaltePage,
   BestellungenPage, ReputationInsightsPage,
-} from "../components/MeinHUI_SubPages";
+} from "./studio/StudioSubPages";
 
 const C = {
   teal:"#16D7C5", teal2:"#11C5B7", tealGlow:"rgba(22,215,197,0.18)",
