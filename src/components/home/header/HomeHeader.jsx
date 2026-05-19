@@ -1,6 +1,6 @@
 // header/HomeHeader.jsx — HUI Match Header (Orchestrator)
 // Sticky Header: MatchBar + MoodOrb + Notif + Chat
-// Keine Business-Logik — nur Komposition der Header-Teile
+// FIX: touchAction:manipulation am Container, trace logs
 
 import React from "react";
 import MatchBar           from "./MatchBar.jsx";
@@ -23,6 +23,11 @@ export default function HomeHeader({
   const mc  = activeMood?.color || "#16D7C5";
   const has = !!activeMood;
 
+  function handleChat() {
+    console.log("[HOME HEADER CHAT]");
+    onChat?.();
+  }
+
   return (
     <>
       {/* ── Sticky Bar ─────────────────────────────────────── */}
@@ -35,12 +40,14 @@ export default function HomeHeader({
           ? `1px solid ${mc}28`
           : "1px solid rgba(0,0,0,0.045)",
         transition:"border-color 0.35s ease",
+        touchAction:"manipulation",
       }}>
         <div style={{ height:"env(safe-area-inset-top,0)" }}/>
 
         <div style={{
           display:"flex", alignItems:"center",
           padding:"8px 12px", gap:8,
+          touchAction:"manipulation",
         }}>
           <MatchBar
             activeMood={activeMood}
@@ -56,10 +63,9 @@ export default function HomeHeader({
 
           <NotificationButton count={notifCount} onPress={onNotif}/>
 
-          <MessageButton count={msgCount} onPress={onChat}/>
+          <MessageButton count={msgCount} onPress={handleChat}/>
         </div>
 
-        {/* Mood-Akzentlinie */}
         {has && (
           <div style={{
             height:1.5,
@@ -69,7 +75,6 @@ export default function HomeHeader({
         )}
       </div>
 
-      {/* Mood Panel */}
       {showMood && (
         <MoodSheet
           activeMood={activeMood}
