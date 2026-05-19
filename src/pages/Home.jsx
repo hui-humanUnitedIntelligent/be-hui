@@ -13,6 +13,7 @@ import ChatPage                  from "../components/ChatPage.jsx";
 import ImpactPage                from "./ImpactPage.jsx";
 import FavoritesPage             from "./FavoritesPage.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
+import ChatCenterOverlay from "../components/chat-center/ChatCenterOverlay.jsx";
 
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
@@ -177,6 +178,11 @@ function HomeInner() {
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
       <ProfileLauncher/>
+
+      {/* ── HUI Resonanz Center ─────────────────────────────────── */}
+      {showChat && (
+        <ChatCenterOverlay onClose={() => setShowChat(false)}/>
+      )}
 
       <Suspense fallback={null}>
         {showMap && (
