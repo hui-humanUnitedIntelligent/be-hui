@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
+import React, { useMemo, createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 
@@ -297,21 +297,26 @@ export function AuthProvider({ children }) {
   const hasTalentProfile = profile?.has_talent_profile || false;
   const profileModules   = profile?.profile_modules || {};
 
+  // useMemo: verhindert unnötige Re-renders aller Consumer
+  // wenn sich unrelevante Parent-States ändern
+  const ctxValue = useMemo(() => ({
+    user, profile, wirkerProfile,
+    isAuthenticated, isWirker, hasTalentProfile, profileModules,
+    loadingAuth,
+    isLoadingAuth: loadingAuth,   // Alias für components/ProtectedRoute.jsx
+    loadingProfile,
+    authChecked,
+    authError: null,
+    checkUserAuth,
+    signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
+    loadProfile, saveProfile, becomeWirker,
+    saveWirkerProfile, activateTalentProfile,
+    setProfile, setWirkerProfile,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked]);
+
   return (
-    <AuthContext.Provider value={{
-      user, profile, wirkerProfile,
-      isAuthenticated, isWirker, hasTalentProfile, profileModules,
-      loadingAuth,
-      isLoadingAuth: loadingAuth,   // Alias für components/ProtectedRoute.jsx
-      loadingProfile,
-      authChecked,
-      authError: null,
-      checkUserAuth,
-      signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
-      loadProfile, saveProfile, becomeWirker,
-      saveWirkerProfile, activateTalentProfile,
-      setProfile, setWirkerProfile,
-    }}>
+    <AuthContext.Provider value={ctxValue}>
       {children}
     </AuthContext.Provider>
   );
