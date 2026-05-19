@@ -1,5 +1,6 @@
-// src/pages/Home.jsx — HUI Home Orchestrator v7
-// Profil-Button: direkte Verdrahtung, kein Context-Indirektions-Bug
+// src/pages/Home.jsx — HUI Home Orchestrator v8
+// SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
+// iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
 import React, { Suspense } from "react";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
@@ -13,7 +14,6 @@ import ImpactPage                from "./ImpactPage.jsx";
 import FavoritesPage             from "./FavoritesPage.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 
-/* Lazy Overlays */
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
@@ -26,10 +26,15 @@ const WerkPublisher       = React.lazy(() => import("../components/WerkPublisher
 const ExperienceCreator   = React.lazy(() => import("../components/ExperienceCreator.jsx"));
 
 const C = { cream: "#F9F6F2" };
+
 const GLOBAL_CSS = `
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-  .hui-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+  .hui-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
   .hui-scroll::-webkit-scrollbar { display: none; }
 `;
 
@@ -61,13 +66,14 @@ function HomeInner() {
     activeStory,       setActiveStory,
   } = useHome();
 
-  /* onTab-Handler: profile → direkt openOwnProfile, rest → handleTab */
+  /* onTab: profile → openOwnProfile direkt, sonst handleTab */
   function onTabPress(key) {
-    console.log("[HUI-HOME] onTabPress:", key);
+    console.log("[PROFILE TAB CLICKED] key:", key);
     if (key === "profile") {
-      console.log("[HUI-HOME] -> openOwnProfile()");
+      console.log("[HANDLE TAB] profile → openOwnProfile()");
       openOwnProfile();
     } else {
+      console.log("[HANDLE TAB]", key);
       handleTab(key);
     }
   }
@@ -76,13 +82,16 @@ function HomeInner() {
     <>
       <style>{GLOBAL_CSS}</style>
 
+      {/* ── Haupt-Layout: KEIN overflow:hidden hier ────────────── */}
+      {/* overflow:hidden würde in iOS Safari pointer-events auf    */}
+      {/* position:fixed Kinder vererben → BottomNav tot           */}
       <div style={{
-        height: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        background: C.cream,
-        position: "relative",
+        height:          "100dvh",
+        display:         "flex",
+        flexDirection:   "column",
+        background:      C.cream,
+        position:        "relative",
+        /* overflow:hidden BEWUSST WEGGELASSEN — Safari Fix */
       }}>
 
         {/* Header */}
@@ -99,8 +108,12 @@ function HomeInner() {
         <div
           className="hui-scroll"
           ref={mainScrollRef}
-          style={{ flex: 1, overflowY: "auto", overflowX: "hidden",
-            WebkitOverflowScrolling: "touch" }}
+          style={{
+            flex:       1,
+            overflowY:  "auto",
+            overflowX:  "hidden",
+            /* Kein overflow:hidden am Wrapper */
+          }}
         >
           <div style={keepFeed}>
             <HomeFeed
@@ -145,29 +158,30 @@ function HomeInner() {
           </div>
         </div>
 
-        {/* Bottom Nav — onTab direkt verdrahtet */}
-        <BottomNav
-          tab={tab}
-          onTab={onTabPress}
-          hasTalent={isTalent}
-          orbActive={showPlusSheet}
-          authProfile={authProfile}
-          notifCount={liveNotifCount}
-          msgCount={0}
-          onOrbAction={(key) => {
-            if (key === "create") setShowPlusSheet(true);
-          }}
-        />
       </div>
+      {/* ↑ overflow:hidden Container endet hier — BottomNav ist DRAUSSEN */}
+
+      {/* ── BottomNav: AUSSERHALB des overflow:hidden Divs ─────────
+          KRITISCH für iOS Safari: position:fixed Elements müssen
+          außerhalb von overflow:hidden Parents stehen damit
+          pointer-events korrekt funktionieren                      */}
+      <BottomNav
+        tab={tab}
+        onTab={onTabPress}
+        hasTalent={isTalent}
+        orbActive={showPlusSheet}
+        authProfile={authProfile}
+        notifCount={liveNotifCount}
+        msgCount={0}
+        onOrbAction={(key) => {
+          if (key === "create") setShowPlusSheet(true);
+        }}
+      />
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
-
-      {/* PROFIL: ProfileLauncher liest showWirker aus Context */}
       <ProfileLauncher/>
 
-      {/* Alle anderen Overlays in Suspense */}
       <Suspense fallback={null}>
-
         {showMap && (
           <LiveMapPage
             onView={w => { setShowWirker(w); setShowMap(false); }}
@@ -175,7 +189,6 @@ function HomeInner() {
             onClose={() => setShowMap(false)}
           />
         )}
-
         {showMatch && (
           <HuiMatchOverlay
             onClose={() => setShowMatch(false)}
@@ -183,71 +196,61 @@ function HomeInner() {
             onView={w => { setShowWirker(w); setShowMatch(false); }}
           />
         )}
-
         {showPlusSheet && (
           <HuiPlusSheet
             isTalent={isTalent}
             onClose={() => setShowPlusSheet(false)}
             onSelect={(type) => {
               setShowPlusSheet(false);
-              if (type === "moment")      setShowStoryComposer(true);
-              else if (type === "werk")   setShowWerkPublisher(true);
+              if (type === "moment")        setShowStoryComposer(true);
+              else if (type === "werk")     setShowWerkPublisher(true);
               else if (type === "erlebnis") setShowExperienceCreator(true);
-              else if (type === "wirker") setShowTalentFlow(true);
-              else if (type === "create") setShowCreateFlow(true);
+              else if (type === "wirker")   setShowTalentFlow(true);
+              else if (type === "create")   setShowCreateFlow(true);
             }}
           />
         )}
-
         {showTalentFlow && (
           <TalentOnboarding
             onClose={() => setShowTalentFlow(false)}
             onSuccess={() => setShowTalentFlow(false)}
           />
         )}
-
         {showStoryComposer && (
           <StoryComposer
             onClose={() => setShowStoryComposer(false)}
             onPublished={() => setShowStoryComposer(false)}
           />
         )}
-
         {showWerkPublisher && (
           <WerkPublisher
             onClose={() => setShowWerkPublisher(false)}
             onPublished={() => setShowWerkPublisher(false)}
           />
         )}
-
         {showExperienceCreator && (
           <ExperienceCreator
             onClose={() => setShowExperienceCreator(false)}
             onPublished={() => setShowExperienceCreator(false)}
           />
         )}
-
         {showNotifs && (
           <NotificationCenter
             onClose={() => setShowNotifs(false)}
             onNavigate={() => setShowNotifs(false)}
           />
         )}
-
         {showMembership && (
           <HuiMembershipFlow
             onClose={() => setShowMembership(false)}
             onSuccess={() => setShowMembership(false)}
           />
         )}
-
         {showCreateFlow && (
           <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
         )}
-
       </Suspense>
 
-      {/* StoryViewer — kein lazy nötig */}
       {activeStory && (
         <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
       )}
@@ -255,7 +258,6 @@ function HomeInner() {
   );
 }
 
-/* Root Export */
 export default function Home() {
   return (
     <HomeShell>
