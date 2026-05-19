@@ -1,112 +1,230 @@
-// connection-create/ConnectionCreatePage.jsx
-// HUI "Neue Verbindung erstellen" — Screenshot-exact 3-Spalten Layout
-// Links: Typ-Auswahl | Mitte: Formular | Rechts: Live-Preview
+// connection-create/ConnectionCreatePage.jsx v2
+// HUI "Neue Verbindung erstellen" — 3-Step Emotional Flow
+// Step 1: Inspiration (Typ wählen)
+// Step 2: Ausdruck (Details)
+// Step 3: Realität (Preview + Publish)
 //
-// zIndex: 9450 — über HuiPlusSheet (9000) unter Profil (9500)
+// zIndex: 9450
 
-import React, { useState, useCallback } from "react";
-import ConnectionTypeSidebar from "./ConnectionTypeSidebar.jsx";
-import ConnectionForm        from "./ConnectionForm.jsx";
-import ConnectionPreviewCard from "./ConnectionPreviewCard.jsx";
-import { useAuth }           from "../../lib/AuthContext.jsx";
+import React, { useState, useCallback, useRef } from "react";
+import StepProgressBar        from "./StepProgressBar.jsx";
+import StepOneTypeSelection   from "./StepOneTypeSelection.jsx";
+import StepTwoConnectionDetails from "./StepTwoConnectionDetails.jsx";
+import StepThreePreview       from "./StepThreePreview.jsx";
+import { useAuth }            from "../../lib/AuthContext.jsx";
 
 const C = {
   violet:"#8B5CF6", violet2:"#7C3AED",
-  ink:"#1A1A1A", muted:"rgba(80,80,80,0.50)",
-  cream:"#F2F1EF",
+  ink:"#1A1A1A", muted:"rgba(80,80,80,0.48)",
+  cream:"#F0EEF5",
 };
 
 const CSS = `
   * { box-sizing:border-box; -webkit-font-smoothing:antialiased; }
-  html { scroll-behavior:smooth; }
   .hui-scroll {
     scrollbar-width:none; -ms-overflow-style:none;
     -webkit-overflow-scrolling:touch;
   }
   .hui-scroll::-webkit-scrollbar { display:none; }
-  @keyframes cc-page-in {
-    from { opacity:0; transform:translateY(18px); }
-    to   { opacity:1; transform:translateY(0); }
+
+  @keyframes page-in {
+    from{ opacity:0; transform:translateY(22px) scale(0.98); }
+    to  { opacity:1; transform:translateY(0) scale(1); }
   }
-  @keyframes atm-drift {
+  @keyframes step-fade-in {
+    from{ opacity:0; transform:translateX(18px); }
+    to  { opacity:1; transform:translateX(0); }
+  }
+  @keyframes step-fade-out {
+    from{ opacity:1; transform:translateX(0); }
+    to  { opacity:0; transform:translateX(-18px); }
+  }
+  @keyframes atm-a {
     0%,100%{transform:translate(0,0) scale(1);}
-    50%{transform:translate(12px,-8px) scale(1.04);}
+    50%    {transform:translate(14px,-10px) scale(1.05);}
+  }
+  @keyframes atm-b {
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%    {transform:translate(-10px,12px) scale(1.04);}
+  }
+  @keyframes atm-c {
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%    {transform:translate(8px,8px) scale(1.03);}
+  }
+  @keyframes nav-up {
+    from{opacity:0;transform:translateY(14px);}
+    to  {opacity:1;transform:translateY(0);}
   }
 `;
 
-/* ── Cinematic Atmosphere ── */
-function Atmosphere() {
+/* ── Step Atmosphere: subtile Farbe ändert sich je Step ── */
+const STEP_ATMOSPHERES = {
+  1: { c1:"rgba(139,92,246,0.07)", c2:"rgba(22,215,197,0.05)", c3:"rgba(255,138,107,0.04)" },
+  2: { c1:"rgba(22,215,197,0.08)", c2:"rgba(139,92,246,0.05)", c3:"rgba(255,138,107,0.04)" },
+  3: { c1:"rgba(139,92,246,0.10)", c2:"rgba(139,92,246,0.06)", c3:"rgba(22,215,197,0.05)" },
+};
+
+function Atmosphere({ step }) {
+  const a = STEP_ATMOSPHERES[step] || STEP_ATMOSPHERES[1];
   return (
     <>
       <div style={{
-        position:"fixed", top:"-20%", right:"-10%",
-        width:"50vw", height:"50vw", borderRadius:"50%",
-        background:"radial-gradient(ellipse,rgba(139,92,246,0.07) 0%,transparent 68%)",
-        filter:"blur(40px)", pointerEvents:"none", zIndex:0,
-        animation:"atm-drift 18s ease-in-out infinite",
+        position:"fixed", top:"-15%", right:"-8%",
+        width:"55vw", height:"55vw", maxWidth:520, borderRadius:"50%",
+        background:`radial-gradient(ellipse,${a.c1} 0%,transparent 68%)`,
+        filter:"blur(50px)", pointerEvents:"none", zIndex:0,
+        animation:"atm-a 16s ease-in-out infinite",
+        transition:"background 1.2s ease",
       }}/>
       <div style={{
-        position:"fixed", bottom:"-15%", left:"-8%",
-        width:"40vw", height:"40vw", borderRadius:"50%",
-        background:"radial-gradient(ellipse,rgba(22,215,197,0.06) 0%,transparent 68%)",
+        position:"fixed", bottom:"-12%", left:"-6%",
+        width:"45vw", height:"45vw", maxWidth:420, borderRadius:"50%",
+        background:`radial-gradient(ellipse,${a.c2} 0%,transparent 68%)`,
+        filter:"blur(40px)", pointerEvents:"none", zIndex:0,
+        animation:"atm-b 20s ease-in-out infinite",
+        transition:"background 1.2s ease",
+      }}/>
+      <div style={{
+        position:"fixed", top:"45%", left:"30%",
+        width:"30vw", height:"30vw", maxWidth:280, borderRadius:"50%",
+        background:`radial-gradient(ellipse,${a.c3} 0%,transparent 70%)`,
         filter:"blur(35px)", pointerEvents:"none", zIndex:0,
-        animation:"atm-drift 22s ease-in-out infinite reverse",
+        animation:"atm-c 24s ease-in-out infinite",
+        transition:"background 1.2s ease",
       }}/>
     </>
   );
 }
 
-/* ── Glass Card Wrapper ── */
-function GlassPanel({ children, style }) {
+/* ── Step Titel ── */
+const STEP_META = {
+  1: { emoji:"✨", hint:"W\u00e4hle einen Moment" },
+  2: { emoji:"\uD83D\uDCDD", hint:"Gib deiner Verbindung Form" },
+  3: { emoji:"\uD83C\uDF1F", hint:"Bereit zum Teilen" },
+};
+
+/* ── Floating Navigation (sticky unten) ── */
+function FloatingNav({ step, canNext, onBack, onNext, isLast }) {
   return (
     <div style={{
-      background:"rgba(255,255,255,0.82)",
-      backdropFilter:"blur(22px)", WebkitBackdropFilter:"blur(22px)",
-      border:"1px solid rgba(255,255,255,0.72)",
-      borderRadius:24,
-      boxShadow:"0 6px 28px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)",
-      ...style,
+      position:"sticky", bottom:0, zIndex:10, flexShrink:0,
+      padding:"14px 20px max(20px,env(safe-area-inset-bottom,20px))",
+      background:"rgba(240,238,245,0.88)",
+      backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
+      borderTop:"1px solid rgba(139,92,246,0.08)",
+      display:"flex", gap:12, alignItems:"center",
+      animation:"nav-up 0.25s ease both",
     }}>
-      {children}
+      {/* Zurück */}
+      {step > 1 ? (
+        <button onClick={onBack} style={{
+          height:48, paddingInline:22, borderRadius:99,
+          background:"rgba(255,255,255,0.82)",
+          border:"1.5px solid rgba(139,92,246,0.18)",
+          color:C.muted, fontSize:14.5, fontWeight:600,
+          cursor:"pointer", flexShrink:0,
+          WebkitTapHighlightColor:"transparent",
+          transition:"transform 0.14s",
+          display:"flex", alignItems:"center", gap:6,
+        }}
+        onTouchStart={e=>e.currentTarget.style.transform="scale(0.96)"}
+        onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+        >← Zurück</button>
+      ) : (
+        <div style={{ flex:"none", width:10 }}/>
+      )}
+
+      {/* Weiter / Veröffentlichen */}
+      <button
+        onClick={onNext}
+        disabled={!canNext}
+        style={{
+          flex:1, height:50, borderRadius:99,
+          background: canNext
+            ? `linear-gradient(135deg,${C.violet} 0%,${C.violet2} 100%)`
+            : "rgba(139,92,246,0.18)",
+          border:"none",
+          color: canNext ? "white" : "rgba(139,92,246,0.50)",
+          fontSize:16, fontWeight:800,
+          cursor: canNext ? "pointer" : "default",
+          transition:"all 0.2s",
+          boxShadow: canNext ? "0 6px 20px rgba(139,92,246,0.30)" : "none",
+          letterSpacing:-0.2,
+          WebkitTapHighlightColor:"transparent",
+          display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+        }}
+        onTouchStart={e=>canNext&&(e.currentTarget.style.transform="scale(0.97)")}
+        onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
+      >
+        {isLast ? (
+          <>Verbindung ver\u00f6ffentlichen
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
+                stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+          </>
+        ) : (
+          <>Weiter <span style={{fontSize:17}}>→</span></>
+        )}
+      </button>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   HAUPT-KOMPONENTE
+   HAUPT-ORCHESTRATOR
 ══════════════════════════════════════════════════════════════════ */
 export default function ConnectionCreatePage({ onClose, onPublish }) {
   const { user } = useAuth();
-  console.log("[CONNECTION PAGE RENDER]");
 
-  const [activeType, setActiveType] = useState("treffen");
-  const [formData,   setFormData]   = useState({
-    title:"",
-    description:"",
-    date:"",
-    time:"20:00",
-    location:"",
+  const [step,       setStep]       = useState(1);
+  const [animDir,    setAnimDir]    = useState("in");
+  const [publishing, setPublishing] = useState(false);
+  const scrollRef = useRef(null);
+
+  const [formData, setFormData] = useState({
+    type:        "treffen",
+    title:       "",
+    description: "",
+    date:        new Date().toISOString().slice(0,10),
+    time:        "20:00",
+    location:    "",
     participants: 30,
-    cost:"free",
-    costAmount:"",
-    mood:"gesellig",
-    visibility:"public",
-    openness:"open",
-    extras:"",
+    cost:        "free",
+    costAmount:  "",
+    mood:        "gesellig",
+    visibility:  "public",
+    openness:    "open",
+    extras:      "",
   });
 
-  const handlePublish = useCallback(async () => {
-    if (!formData.title.trim()) return;
-    try {
-      onPublish?.({ ...formData, type: activeType, creator_id: user?.id });
-      onClose?.();
-    } catch(e) {
-      console.error("[ConnectionCreate] publish error:", e);
-    }
-  }, [formData, activeType, user?.id, onPublish, onClose]);
+  /* Navigation */
+  function goTo(newStep) {
+    setAnimDir(newStep > step ? "in" : "out");
+    setStep(newStep);
+    scrollRef.current?.scrollTo({ top:0, behavior:"smooth" });
+  }
 
-  const previewData = { ...formData, type: activeType };
-  const canPublish  = formData.title.trim().length > 2;
+  const handleNext = useCallback(async () => {
+    if (step < 3) { goTo(step + 1); return; }
+    // Step 3: Publish
+    setPublishing(true);
+    try {
+      await new Promise(r => setTimeout(r, 800)); // simulate
+      onPublish?.({ ...formData, creator_id: user?.id });
+      onClose?.();
+    } catch {
+      setPublishing(false);
+    }
+  }, [step, formData, user?.id, onPublish, onClose]);
+
+  /* Can proceed? */
+  const canNext =
+    step === 1 ? !!formData.type :
+    step === 2 ? formData.title?.trim().length > 1 :
+    true;
+
+  const meta = STEP_META[step];
 
   return (
     <div style={{
@@ -115,117 +233,98 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       display:"flex", flexDirection:"column",
       overflow:"hidden",
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-      animation:"cc-page-in 0.24s ease both",
+      animation:"page-in 0.26s cubic-bezier(0.22,1,0.36,1) both",
     }}>
       <style>{CSS}</style>
-      <Atmosphere/>
 
-      {/* ── Sticky Top Bar ── */}
+      {/* Atmosphere — ändert sich sanft pro Step */}
+      <Atmosphere step={step}/>
+
+      {/* ── TopBar ── */}
       <div style={{
-        position:"relative", zIndex:10, flexShrink:0,
-        padding:"max(48px,env(safe-area-inset-top,48px)) 20px 14px",
-        background:"rgba(242,241,239,0.90)",
-        backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
-        borderBottom:"1px solid rgba(139,92,246,0.08)",
-        display:"flex", alignItems:"center", gap:12,
-      }}>
-        {/* × Schließen */}
-        <button onClick={onClose} style={{
-          width:36, height:36, borderRadius:"50%",
-          background:"rgba(0,0,0,0.06)", border:"none",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          cursor:"pointer", fontSize:17, color:C.muted, flexShrink:0,
-          WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-        }}>×</button>
-
-        {/* Title Center */}
-        <div style={{ flex:1, textAlign:"center" }}>
-          <div style={{
-            fontSize:18, fontWeight:800, color:C.ink, letterSpacing:-0.4,
-          }}>Neue Verbindung erstellen</div>
-          <div style={{ fontSize:12.5, color:C.muted, marginTop:1 }}>
-            Teile, was du vorhast und lade andere ein.
-          </div>
-        </div>
-
-        {/* Posten Button */}
-        <button
-          onClick={handlePublish}
-          disabled={!canPublish}
-          style={{
-            padding:"9px 18px", borderRadius:99,
-            background: canPublish
-              ? `linear-gradient(135deg,${C.violet},${C.violet2})`
-              : "rgba(0,0,0,0.08)",
-            border:"none",
-            color: canPublish ? "white" : C.muted,
-            fontSize:13.5, fontWeight:700, cursor: canPublish ? "pointer" : "default",
-            display:"flex", alignItems:"center", gap:6,
-            boxShadow: canPublish ? "0 4px 14px rgba(139,92,246,0.32)" : "none",
-            transition:"all 0.18s", flexShrink:0,
-            WebkitTapHighlightColor:"transparent",
-          }}
-        >
-          Verbindung posten
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-              stroke="currentColor" strokeWidth="2.2"
-              strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
-
-      {/* ── 3-Spalten Body ── */}
-      <div className="hui-scroll" style={{
-        flex:1, overflowY:"auto", overflowX:"hidden",
-        position:"relative", zIndex:1,
-        padding:"20px 16px max(24px,env(safe-area-inset-bottom,24px))",
+        position:"relative", zIndex:5, flexShrink:0,
+        padding:"max(50px,env(safe-area-inset-top,50px)) 20px 14px",
+        background:"rgba(240,238,245,0.88)",
+        backdropFilter:"blur(28px) saturate(1.6)",
+        WebkitBackdropFilter:"blur(28px) saturate(1.6)",
+        borderBottom:"1px solid rgba(139,92,246,0.07)",
       }}>
         <div style={{
-          display:"grid",
-          gridTemplateColumns:"minmax(200px,260px) 1fr minmax(240px,320px)",
-          gap:16, alignItems:"start",
-          maxWidth:1100, margin:"0 auto",
-          // Mobile: single column
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          marginBottom:18,
         }}>
+          {/* × Schließen */}
+          <button onClick={onClose} style={{
+            width:36, height:36, borderRadius:"50%",
+            background:"rgba(255,255,255,0.72)", border:"1px solid rgba(0,0,0,0.08)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer", fontSize:17, color:C.muted,
+            WebkitTapHighlightColor:"transparent",
+          }}>×</button>
 
-          {/* ── LINKS: Typ-Sidebar ── */}
-          <GlassPanel style={{ padding:"20px 16px", gridColumn:"1" }}>
-            <ConnectionTypeSidebar
-              active={activeType}
-              onChange={setActiveType}
-            />
-          </GlassPanel>
-
-          {/* ── MITTE: Formular ── */}
-          <GlassPanel style={{ padding:"22px 20px", gridColumn:"2" }}>
-            <ConnectionForm
-              data={formData}
-              onChange={setFormData}
-            />
-          </GlassPanel>
-
-          {/* ── RECHTS: Live Preview ── */}
-          <div style={{ gridColumn:"3" }}>
+          {/* Title */}
+          <div style={{ textAlign:"center" }}>
             <div style={{
-              fontSize:12, fontWeight:700, color:C.muted,
-              marginBottom:10, letterSpacing:0.1,
-            }}>Vorschau</div>
-            <ConnectionPreviewCard data={previewData}/>
+              fontSize:15.5, fontWeight:800, color:C.ink, letterSpacing:-0.3,
+            }}>
+              <span style={{ marginRight:5 }}>{meta.emoji}</span>
+              Neue Verbindung
+            </div>
+            <div style={{ fontSize:11.5, color:C.muted, marginTop:2 }}>
+              {meta.hint}
+            </div>
           </div>
 
+          {/* Spacer */}
+          <div style={{ width:36 }}/>
         </div>
 
-        {/* Mobile responsive: bei kleinen Screens stack */}
-        <style>{`
-          @media (max-width: 900px) {
-            .cc-grid { grid-template-columns: 1fr !important; }
-          }
-          @media (max-width: 600px) {
-            .cc-grid > div { grid-column: 1 !important; }
-          }
-        `}</style>
+        {/* Progress Bar */}
+        <StepProgressBar step={step}/>
       </div>
+
+      {/* ── Step Content ── */}
+      <div
+        ref={scrollRef}
+        className="hui-scroll"
+        key={step}
+        style={{
+          flex:1, overflowY:"auto", overflowX:"hidden",
+          position:"relative", zIndex:1,
+          paddingTop:24,
+          animation:`step-fade-in 0.28s cubic-bezier(0.22,1,0.36,1) both`,
+          display:"flex", flexDirection:"column",
+        }}
+      >
+        {step === 1 && (
+          <StepOneTypeSelection
+            value={formData.type}
+            onChange={v => setFormData(d => ({ ...d, type:v }))}
+          />
+        )}
+        {step === 2 && (
+          <StepTwoConnectionDetails
+            data={formData}
+            onChange={setFormData}
+          />
+        )}
+        {step === 3 && (
+          <StepThreePreview
+            data={{ ...formData }}
+            onPublish={handleNext}
+            publishing={publishing}
+          />
+        )}
+      </div>
+
+      {/* ── Floating Navigation ── */}
+      <FloatingNav
+        step={step}
+        canNext={canNext}
+        onBack={() => goTo(step - 1)}
+        onNext={handleNext}
+        isLast={step === 3}
+      />
     </div>
   );
 }
