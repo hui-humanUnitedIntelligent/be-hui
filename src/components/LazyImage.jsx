@@ -88,7 +88,6 @@ export default function LazyImage({
           if (!rect) { setVisible(true); return; }
           const inViewport = rect.top < window.innerHeight + 600;
           if (inViewport) {
-            console.log('[LazyImage] IO-Freeze recovery: force visible', src?.slice(0, 40));
             setVisible(true);
           }
         } catch {
