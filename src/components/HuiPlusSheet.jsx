@@ -761,30 +761,6 @@ export default function HuiPlusSheet({
   }, [impactOpen, detailNode, onClose]);
 
   // ── Node Tap ─────────────────────────────────────────────────────
-  const handleNodeTap = useCallback(node => {
-    if (activeNode?.key === node.key) {
-      // Zweiter Tap: öffnen
-      if (node.isImpact) { setImpactOpen(true); setActiveNode(null); }
-      else               { setDetailNode(node);  setActiveNode(null); }
-    } else {
-      setActiveNode(node);
-    }
-  }, [activeNode]);
-
-  // ── Open from Hint Bar ───────────────────────────────────────────
-  const handleHintOpen = useCallback(() => {
-    if (!activeNode) return;
-    if (activeNode.isImpact) { setImpactOpen(true); setActiveNode(null); }
-    else                     { setDetailNode(activeNode); setActiveNode(null); }
-  }, [activeNode]);
-
-  // ── Orb tap: wenn Node aktiv → öffnen ───────────────────────────
-  const handleOrbTap = useCallback(() => {
-    if (!activeNode) return;
-    if (activeNode.isImpact) { setImpactOpen(true); setActiveNode(null); }
-    else                     { setDetailNode(activeNode); setActiveNode(null); }
-  }, [activeNode]);
-
   // ── Action ───────────────────────────────────────────────────────
   const handleAction = useCallback((type) => {
     console.log("[ORB CONNECT TAP] type:", type);
@@ -793,6 +769,40 @@ export default function HuiPlusSheet({
     onSelect?.(type);
     onClose?.();
   }, [onSelect, onClose]);
+
+  const handleNodeTap = useCallback(node => {
+    if (activeNode?.key === node.key) {
+      // Zweiter Tap: öffnen
+      if (node.isImpact) { setImpactOpen(true); setActiveNode(null); }
+      // "verbindung" → direkt ConnectionCreatePage öffnen, kein Popup
+      else if (node.cta === "connect") {
+        console.log("[ORB VERBINDUNG DIRECT] → connect");
+        setActiveNode(null);
+        handleAction("connect");
+      }
+      else               { setDetailNode(node);  setActiveNode(null); }
+    } else {
+      setActiveNode(node);
+    }
+  }, [activeNode, handleAction]);
+
+  // ── Open from Hint Bar ───────────────────────────────────────────
+  const handleHintOpen = useCallback(() => {
+    if (!activeNode) return;
+    if (activeNode.isImpact) { setImpactOpen(true); setActiveNode(null); }
+    else if (activeNode.cta === "connect") { setActiveNode(null); handleAction("connect"); }
+    else                     { setDetailNode(activeNode); setActiveNode(null); }
+  }, [activeNode, handleAction]);
+
+  // ── Orb tap: wenn Node aktiv → öffnen ───────────────────────────
+  const handleOrbTap = useCallback(() => {
+    if (!activeNode) return;
+    if (activeNode.isImpact) { setImpactOpen(true); setActiveNode(null); }
+    else if (activeNode.cta === "connect") { setActiveNode(null); handleAction("connect"); }
+    else                     { setDetailNode(activeNode); setActiveNode(null); }
+  }, [activeNode, handleAction]);
+
+
 
   // ── Node Radius: responsiv ────────────────────────────────────────
   const R = Math.min(vw, vh) * 0.30;          // 30% der kleineren Seite
