@@ -245,7 +245,7 @@ export default function SupportSheet({ project, currentUser, onClose, onSuccess 
                 return (
                   <button key={p.amount} className="ss-tap"
                     onClick={() => { setSelected(p.amount); setUseCustom(false); }}
-                    style={{ padding:"14px 12px", borderRadius:16, border:"none",
+                    style={{ padding:"14px 12px", borderRadius:16,
                       background: isActive
                         ? `linear-gradient(135deg,${C.teal}18,${C.teal}0A)`
                         : C.cream,
