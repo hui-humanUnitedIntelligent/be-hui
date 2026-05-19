@@ -17,7 +17,7 @@ import React, {
   createContext, useContext, useState, useEffect,
   useCallback, useRef, useMemo
 } from "react";
-// throttle — inline (performance/index.js wurde in Phase A Cleanup entfernt)
+// throttle — inline impl. Build-ID:1779199372 (performance module removed in Phase A)
 // Minimale Impl: identisch zur vorherigen Verwendung (leading-edge, cancel support)
 function throttle(fn, wait = 300) {
   let lastCall = 0;
