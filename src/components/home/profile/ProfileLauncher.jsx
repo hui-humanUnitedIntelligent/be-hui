@@ -1,17 +1,32 @@
-// src/components/home/profile/ProfileLauncher.jsx v4
-// Router: _isOwnerView → CreatorProfilePage, else → WirkerProfilePage
-// Single render-point for all profile overlays
+// src/components/home/profile/ProfileLauncher.jsx v5
+// ROUTING: showWirker._isOwnerView === true → CreatorProfilePage
+//          sonst                           → WirkerProfilePage
+// WICHTIG: CreatorProfilePage ist STATISCH importiert (kein lazy) → kein Suspense-Blackout
 
 import React, { useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 
-/* ── Lazy loads ── */
+// ── STATISCH: sofort verfügbar, kein lazy-Blackout ──────────────
+// CreatorProfilePage wird immer mitgeladen (Teil des Home-Chunks)
+import CreatorProfilePage from "../../../pages/creator-profile/index.jsx";
+
+// ── LAZY: WirkerProfilePage nur bei Bedarf (~140KB) ─────────────
 const WirkerProfilePage = React.lazy(
   () => import("../../../pages/wirker-profile/index.jsx")
 );
-const CreatorProfilePage = React.lazy(
-  () => import("../../../pages/creator-profile/index.jsx")
-);
+
+/* ── Loading Fallback ── */
+function ProfileLoadingFallback() {
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:9500,
+      background:"#F9F7F4",
+      display:"flex", alignItems:"center", justifyContent:"center",
+    }}>
+      <div style={{ opacity:0.25, fontSize:13, color:"#888" }}>Lade Profil…</div>
+    </div>
+  );
+}
 
 /* ── Hook: imperativer Zugriff ── */
 export function useProfileLauncher() {
@@ -26,16 +41,16 @@ export function useProfileLauncher() {
     const id = authProfile?.id || user?.id || null;
     setShowWirker({
       id,
-      user_id:      id,
-      display_name: authProfile?.display_name || "Mein Profil",
-      avatar_url:   authProfile?.avatar_url   || null,
-      header_img:   authProfile?.header_img   || null,
-      talent:       authProfile?.talent       || null,
-      bio:          authProfile?.bio          || null,
-      impact_eur:   authProfile?.impact_eur   || null,
+      user_id:        id,
+      display_name:   authProfile?.display_name || "Mein Profil",
+      avatar_url:     authProfile?.avatar_url   || null,
+      header_img:     authProfile?.header_img   || null,
+      talent:         authProfile?.talent       || null,
+      bio:            authProfile?.bio          || null,
+      impact_eur:     authProfile?.impact_eur   || null,
       location_label: authProfile?.location_label || authProfile?.location || null,
-      is_wirker:    authProfile?.is_wirker    || authProfile?.has_talent_profile || false,
-      _isOwnerView: true,
+      is_wirker:      authProfile?.is_wirker || authProfile?.has_talent_profile || false,
+      _isOwnerView:   true,
     });
   }, [authProfile, user, setShowWirker]);
 
@@ -46,38 +61,43 @@ export function useProfileLauncher() {
   return { openProfile, openOwnProfile, openCreatorProfile };
 }
 
-/* ── Rendert Profil-Overlay ── */
+/* ════════════════════════════════════════════════════════════
+   ProfileLauncher — einziger Render-Punkt für alle Profile
+   ════════════════════════════════════════════════════════════ */
 export default function ProfileLauncher() {
   const { showWirker, setShowWirker } = useHome();
 
+  // Nichts anzeigen wenn kein Profil offen
   if (!showWirker) return null;
 
   const isOwnerView = showWirker._isOwnerView === true;
 
   const handleClose  = () => setShowWirker(null);
   const handleAction = (key) => {
-    // Creator Studio etc. — später erweiterbar
-    if (key === "edit") {
-      // TODO: openEditProfile
-    }
+    // Erweiterbar: Studio, Edit, etc.
+    console.log("[ProfileLauncher] action:", key);
   };
 
+  // ── OWNER VIEW → CreatorProfilePage (statisch, sofort) ──────
+  if (isOwnerView) {
+    return (
+      <CreatorProfilePage
+        wirker={showWirker}
+        onClose={handleClose}
+        onAction={handleAction}
+      />
+    );
+  }
+
+  // ── PUBLIC VIEW → WirkerProfilePage (lazy) ──────────────────
   return (
-    <React.Suspense fallback={null}>
-      {isOwnerView ? (
-        <CreatorProfilePage
-          wirker={showWirker}
-          onClose={handleClose}
-          onAction={handleAction}
-        />
-      ) : (
-        <WirkerProfilePage
-          wirker={showWirker}
-          onClose={handleClose}
-          onBook={() => {}}
-          onChat={() => {}}
-        />
-      )}
+    <React.Suspense fallback={<ProfileLoadingFallback />}>
+      <WirkerProfilePage
+        wirker={showWirker}
+        onClose={handleClose}
+        onBook={() => {}}
+        onChat={() => {}}
+      />
     </React.Suspense>
   );
 }
