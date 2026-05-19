@@ -1,15 +1,19 @@
-// src/components/home/profile/ProfileLauncher.jsx v3
-// Einziger Render-Punkt für WirkerProfilePage
-// Clean — no debug logs, showWirker scoped in ProfileLauncher() via useHome()
+// src/components/home/profile/ProfileLauncher.jsx v4
+// Router: _isOwnerView → CreatorProfilePage, else → WirkerProfilePage
+// Single render-point for all profile overlays
 
 import React, { useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 
+/* ── Lazy loads ── */
 const WirkerProfilePage = React.lazy(
   () => import("../../../pages/wirker-profile/index.jsx")
 );
+const CreatorProfilePage = React.lazy(
+  () => import("../../../pages/creator-profile/index.jsx")
+);
 
-/* ── Hook-Variante für imperativen Zugriff ── */
+/* ── Hook: imperativer Zugriff ── */
 export function useProfileLauncher() {
   const { setShowWirker, authProfile, user } = useHome();
 
@@ -25,6 +29,12 @@ export function useProfileLauncher() {
       user_id:      id,
       display_name: authProfile?.display_name || "Mein Profil",
       avatar_url:   authProfile?.avatar_url   || null,
+      header_img:   authProfile?.header_img   || null,
+      talent:       authProfile?.talent       || null,
+      bio:          authProfile?.bio          || null,
+      impact_eur:   authProfile?.impact_eur   || null,
+      location_label: authProfile?.location_label || authProfile?.location || null,
+      is_wirker:    authProfile?.is_wirker    || authProfile?.has_talent_profile || false,
       _isOwnerView: true,
     });
   }, [authProfile, user, setShowWirker]);
@@ -36,24 +46,38 @@ export function useProfileLauncher() {
   return { openProfile, openOwnProfile, openCreatorProfile };
 }
 
-/* ── Rendert WirkerProfilePage als Overlay ── */
+/* ── Rendert Profil-Overlay ── */
 export default function ProfileLauncher() {
   const { showWirker, setShowWirker } = useHome();
 
-  // Trace-Log: immer sichtbar beim Re-render
+  if (!showWirker) return null;
 
-  if (!showWirker) {
-    return null;
-  }
+  const isOwnerView = showWirker._isOwnerView === true;
+
+  const handleClose  = () => setShowWirker(null);
+  const handleAction = (key) => {
+    // Creator Studio etc. — später erweiterbar
+    if (key === "edit") {
+      // TODO: openEditProfile
+    }
+  };
 
   return (
     <React.Suspense fallback={null}>
-      <WirkerProfilePage
-        wirker={showWirker}
-        onClose={() => setShowWirker(null)}
-        onBook={() => {}}
-        onChat={() => {}}
-      />
+      {isOwnerView ? (
+        <CreatorProfilePage
+          wirker={showWirker}
+          onClose={handleClose}
+          onAction={handleAction}
+        />
+      ) : (
+        <WirkerProfilePage
+          wirker={showWirker}
+          onClose={handleClose}
+          onBook={() => {}}
+          onChat={() => {}}
+        />
+      )}
     </React.Suspense>
   );
 }
