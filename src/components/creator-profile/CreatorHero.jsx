@@ -1,0 +1,101 @@
+// components/creator-profile/CreatorHero.jsx
+// Cinematic fullscreen hero — Creator identity + atmosphere
+// NO legacy imports. Pure presentational.
+
+import React, { useState } from "react";
+
+const C = {
+  teal:   "#16D7C5",
+  coral:  "#FF8A6B",
+  cream:  "#F9F7F4",
+  ink:    "#1A1A1A",
+};
+
+const MOODS = [
+  "Gerade im Atelier",
+  "Im kreativen Flow",
+  "Arbeitet an neuen Werken",
+  "Zwischen Projekten",
+  "Offen für Begegnungen",
+];
+
+export default function CreatorHero({ profile, onClose, onEdit }) {
+  const [imgError, setImgError] = useState(false);
+  const heroUrl  = profile?.header_img || profile?.bg || null;
+  const avatarUrl= profile?.avatar_url || profile?.img || null;
+  const name     = profile?.display_name || profile?.name || "Du";
+  const talent   = profile?.talent || profile?.focus_type || "Kreative:r";
+  const location = profile?.location_label || profile?.location || profile?.city || null;
+  const mood     = profile?.current_mood || MOODS[0];
+
+  return (
+    <div style={{ position:"relative", width:"100%", height:300, flexShrink:0 }}>
+
+      {/* ── Hintergrundbild ── */}
+      <div style={{
+        position:"absolute", inset:0,
+        background: heroUrl && !imgError
+          ? `url(${heroUrl}) center/cover no-repeat`
+          : "linear-gradient(135deg,#1a2a2a 0%,#2d4040 40%,#16D7C525 100%)",
+        borderRadius: 0,
+      }}>
+        {heroUrl && !imgError && (
+          <img src={heroUrl} alt="" onError={() => setImgError(true)}
+            style={{ display:"none" }}/>
+        )}
+      </div>
+
+      {/* ── Cinematic gradient overlay ── */}
+      <div style={{
+        position:"absolute", inset:0,
+        background:"linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.05) 30%, rgba(249,247,244,0) 55%, rgba(249,247,244,0.85) 80%, rgba(249,247,244,1) 100%)",
+      }}/>
+
+      {/* ── Ambient teal glow ── */}
+      <div style={{
+        position:"absolute", bottom:0, left:"50%",
+        transform:"translateX(-50%)",
+        width:320, height:180,
+        background:"radial-gradient(ellipse, rgba(22,215,197,0.12) 0%, transparent 70%)",
+        pointerEvents:"none",
+      }}/>
+
+      {/* ── Nav: Zurück + Mehr ── */}
+      <div style={{
+        position:"absolute", top:0, left:0, right:0,
+        display:"flex", justifyContent:"space-between", alignItems:"center",
+        padding:"52px 20px 0",
+      }}>
+        <button onClick={onClose} style={{
+          width:38, height:38, borderRadius:"50%",
+          background:"rgba(0,0,0,0.35)",
+          backdropFilter:"blur(12px)",
+          border:"none", cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          color:"white", fontSize:18,
+        }}>←</button>
+        <button onClick={onEdit} style={{
+          width:38, height:38, borderRadius:"50%",
+          background:"rgba(0,0,0,0.35)",
+          backdropFilter:"blur(12px)",
+          border:"none", cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          color:"white", fontSize:16,
+        }}>···</button>
+      </div>
+
+      {/* ── Avatar — schwebt über Hero ── */}
+      <div style={{
+        position:"absolute", bottom:-48, left:20,
+        width:88, height:88, borderRadius:"50%",
+        border:"3.5px solid white",
+        boxShadow:"0 8px 32px rgba(22,215,197,0.28), 0 2px 12px rgba(0,0,0,0.18)",
+        background: avatarUrl
+          ? `url(${avatarUrl}) center/cover no-repeat`
+          : "linear-gradient(135deg,#16D7C5,#FF8A6B)",
+        flexShrink:0,
+        zIndex:2,
+      }}/>
+    </div>
+  );
+}
