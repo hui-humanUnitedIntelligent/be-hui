@@ -77,6 +77,7 @@ function GlassPanel({ children, style }) {
 ══════════════════════════════════════════════════════════════════ */
 export default function ConnectionCreatePage({ onClose, onPublish }) {
   const { user } = useAuth();
+  console.log("[CONNECTION PAGE RENDER]");
 
   const [activeType, setActiveType] = useState("treffen");
   const [formData,   setFormData]   = useState({
