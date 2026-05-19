@@ -299,7 +299,10 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         {step === 1 && (
           <StepOneTypeSelection
             value={formData.type}
-            onChange={v => setFormData(d => ({ ...d, type:v }))}
+            onSelect={key => {
+              setFormData(d => ({ ...d, type: key }));
+              goTo(2);
+            }}
           />
         )}
         {step === 2 && (
