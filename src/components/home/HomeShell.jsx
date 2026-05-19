@@ -80,6 +80,7 @@ export default function HomeShell({ children }) {
   const [showMembership,         setShowMembership]        = useState(false);
   const [showPlusSheet,          setShowPlusSheet]         = useState(false);
   const [showCreateFlow,         setShowCreateFlow]        = useState(false);
+  const [showConnect,            setShowConnect]           = useState(false);
   const [showTalentFlow,         setShowTalentFlow]        = useState(false);
   const [showStoryComposer,      setShowStoryComposer]     = useState(false);
   const [showWerkPublisher,      setShowWerkPublisher]     = useState(false);
@@ -174,6 +175,7 @@ export default function HomeShell({ children }) {
     showMembership,        setShowMembership,
     showPlusSheet,         setShowPlusSheet,
     showCreateFlow,        setShowCreateFlow,
+    showConnect,           setShowConnect,
     showTalentFlow,        setShowTalentFlow,
     showStoryComposer,     setShowStoryComposer,
     showWerkPublisher,     setShowWerkPublisher,
