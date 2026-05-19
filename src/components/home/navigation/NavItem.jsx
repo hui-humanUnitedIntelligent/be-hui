@@ -55,8 +55,6 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
   const touchMoved = React.useRef(false);
 
   function fire() {
-    console.log("[NAV ITEM TOUCH]", item?.key);
-    console.log("[PROFILE TAB CLICKED]", item?.key);
     if (typeof onPress === "function") {
       onPress(item.key);
     } else {
@@ -72,14 +70,12 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
     touchMoved.current = true;
   }
   function handleTouchEnd(e) {
-    console.log("[NAV ITEM TOUCH END]", item?.key);
     setPressed(false);
     if (touchMoved.current) return; /* Scroll — nicht feuern */
     e.preventDefault();             /* verhindert ghost onClick */
     fire();
   }
   function handleClick(e) {
-    console.log("[NAV ITEM CLICK]", item?.key);
     /* Nur als Fallback für Nicht-Touch (Desktop, Maus) */
     if (e.detail === 0) return;     /* synth. Event nach Touch — überspringen */
     fire();
