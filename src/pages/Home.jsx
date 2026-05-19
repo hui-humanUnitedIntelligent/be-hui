@@ -13,6 +13,7 @@ import ImpactPage                from "./ImpactPage.jsx";
 import FavoritesPage             from "./FavoritesPage.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay from "../components/chat-center/ChatCenterOverlay.jsx";
+const ConnectionCreatePage = React.lazy(() => import("../components/connection-create/ConnectionCreatePage.jsx"));
 
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
@@ -59,6 +60,7 @@ function HomeInner() {
     showMembership,    setShowMembership,
     showPlusSheet,     setShowPlusSheet,
     showCreateFlow,    setShowCreateFlow,
+    showConnect,       setShowConnect,
     showTalentFlow,    setShowTalentFlow,
     showStoryComposer, setShowStoryComposer,
     showWerkPublisher, setShowWerkPublisher,
@@ -177,6 +179,16 @@ function HomeInner() {
       {/* ── Overlay Layer ──────────────────────────────────────── */}
       <ProfileLauncher/>
 
+      {/* ── Connection Create ───────────────────────────────────── */}
+      <Suspense fallback={null}>
+        {showConnect && (
+          <ConnectionCreatePage
+            onClose={() => setShowConnect(false)}
+            onPublish={() => setShowConnect(false)}
+          />
+        )}
+      </Suspense>
+
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && (
         <ChatCenterOverlay
@@ -213,6 +225,7 @@ function HomeInner() {
               else if (type === "erlebnis") setShowExperienceCreator(true);
               else if (type === "wirker")   setShowTalentFlow(true);
               else if (type === "create")   setShowCreateFlow(true);
+              else if (type === "connect")  setShowConnect(true);
             }}
           />
         )}
