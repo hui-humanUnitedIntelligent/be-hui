@@ -1,4 +1,4 @@
-// HUI 2026-05-19T09:32:38Z fix: useWirkerProfile Object-Loop + openOwnProfile stable deps
+// HUI 2026-05-19T09:39:30Z SAFARI-FIX: BottomNav außerhalb overflow:hidden, NavItem onTouchEnd, zIndex:9999
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
