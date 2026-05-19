@@ -68,12 +68,9 @@ function HomeInner() {
 
   /* onTab: profile → openOwnProfile direkt, sonst handleTab */
   function onTabPress(key) {
-    console.log("[PROFILE TAB CLICKED] key:", key);
     if (key === "profile") {
-      console.log("[HANDLE TAB] profile → openOwnProfile()");
       openOwnProfile();
     } else {
-      console.log("[HANDLE TAB]", key);
       handleTab(key);
     }
   }
