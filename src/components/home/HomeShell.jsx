@@ -127,7 +127,6 @@ export default function HomeShell({ children }) {
       _isOwnerView: true,
     });
   }, [authProfile, user, setShowWirker]);
-  }, [authProfile, user]);
 
   // ── onTab handler — für BottomNav ────────────────────────────
   const handleTab = useCallback((key) => {
