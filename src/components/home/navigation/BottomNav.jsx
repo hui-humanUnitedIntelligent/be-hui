@@ -112,7 +112,6 @@ export default function BottomNav({
                   animation:      "hui-orb-pulse 3s ease-in-out infinite",
                   transform:      isHidden ? "scale(0.88) rotate(45deg)" : "scale(1) rotate(0deg)",
                   transition:     "transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
-                  border:         "none",
                   outline:        "none",
                 }}
               >
