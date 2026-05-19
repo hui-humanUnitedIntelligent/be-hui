@@ -183,7 +183,10 @@ function HomeInner() {
       <Suspense fallback={null}>
         {showConnect && (
           <ConnectionCreatePage
-            onClose={() => setShowConnect(false)}
+            onClose={() => {
+              console.log("[CONNECTION PAGE CLOSE]");
+              setShowConnect(false);
+            }}
             onPublish={() => setShowConnect(false)}
           />
         )}
@@ -219,13 +222,19 @@ function HomeInner() {
             isTalent={isTalent}
             onClose={() => setShowPlusSheet(false)}
             onSelect={(type) => {
+              console.log("[OPEN CONNECT FLOW] type:", type);
               setShowPlusSheet(false);
               if (type === "moment")        setShowStoryComposer(true);
               else if (type === "werk")     setShowWerkPublisher(true);
               else if (type === "erlebnis") setShowExperienceCreator(true);
               else if (type === "wirker")   setShowTalentFlow(true);
               else if (type === "create")   setShowCreateFlow(true);
-              else if (type === "connect")  setShowConnect(true);
+              // Alle connect-verwandten keys öffnen ConnectionCreatePage
+              else if (type === "connect" || type === "kollab" ||
+                       type === "mentor"  || type === "partner") {
+                console.log("[SET SHOW CONNECT] true");
+                setShowConnect(true);
+              }
             }}
           />
         )}
