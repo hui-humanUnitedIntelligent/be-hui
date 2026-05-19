@@ -421,12 +421,10 @@ export default function WerkPublisher({ onClose, onSuccess }) {
         const img = images[i];
         const ext  = img.file.name.split(".").pop();
         const path = `works/${user.id}/${Date.now()}_${i}.${ext}`;
-        console.log(`[WerkPublisher] uploading ${i+1}/${images.length}:`, path);
         const { error: upErr } = await supabase.storage
           .from("media").upload(path, img.file, { contentType: img.file.type });
         if (upErr) { console.error("[WerkPublisher] ❌ storage error:", upErr.message, upErr.statusCode); throw upErr; }
         const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
-        console.log("[WerkPublisher] ✓ upload OK:", publicUrl);
         imageUrls.push(publicUrl);
         if (i===coverIdx) coverUrl = publicUrl;
       }
