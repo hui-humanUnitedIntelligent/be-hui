@@ -1,4 +1,4 @@
-// HUI 2026-05-19T08:50:38Z live-debug: NavItem+BottomNav+HomeShell+ProfileLauncher v3 deployed
+// HUI 2026-05-19T08:52:01Z Home v7: direkte onTabPress-Verdrahtung, Profile-Button stabil
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
