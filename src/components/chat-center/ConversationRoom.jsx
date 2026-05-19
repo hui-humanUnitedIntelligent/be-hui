@@ -1,142 +1,94 @@
-// components/chat-center/ConversationRoom.jsx
-// Einzelner Chat-Raum — cinematic, ruhig
-// Öffnet sich über ConversationList wenn conv angetippt
+// chat-center/ConversationRoom.jsx v2
+// Cinematic conversation room — vollständig orchestriert
+// ChatAtmosphere + ChatHeader + ChatMessages + ChatInput
 
-import React, { useState, useRef, useEffect } from "react";
-import MessageBubble from "./MessageBubble.jsx";
+import React, { useState, useCallback } from "react";
+import ChatAtmosphere from "./ChatAtmosphere.jsx";
+import ChatHeader     from "./ChatHeader.jsx";
+import ChatMessages   from "./ChatMessages.jsx";
+import ChatInput      from "./ChatInput.jsx";
+import { useChatThread } from "../../lib/chatContext.js";
+import { useAuth }       from "../../lib/AuthContext.jsx";
 
-const C = {
-  teal:"#16D7C5", teal2:"#11C5B7", coral:"#FF8A6B",
-  ink:"#1A1A1A", muted:"rgba(80,80,80,0.52)", cream:"#F9F7F4",
+const CSS = `
+  .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
+  .hui-scroll::-webkit-scrollbar{display:none;}
+`;
+
+// Mock Event Preview für Demo
+const MOCK_EVENT = {
+  title:"Klangreise \u2013 Live im Atelier",
+  when_full:"24. Mai \u00b7 18:00",
+  location_label:"Berlin",
+  cover_url: null,
 };
 
-// Repräsentative Mock-Nachrichten
-function getMockMessages(conv) {
-  const base = new Date(Date.now() - 3600000);
+// Repräsentative Mock-Nachrichten wenn kein Supabase-Chat vorhanden
+function getMockMsgs(conv) {
+  const base = Date.now() - 3600000;
   return [
-    { id:1, text:"Hey, deine letzte Story hat mich wirklich ber\u00fchrt.", own:false, created_at: new Date(base.getTime()+0).toISOString() },
-    { id:2, text:"Das freut mich sehr \u2014 ich wollte etwas Echtes zeigen.", own:true,  created_at: new Date(base.getTime()+120000).toISOString() },
-    { id:3, text:"Magst du mal bei einem meiner Workshops vorbeikommen?",    own:false, created_at: new Date(base.getTime()+240000).toISOString() },
-    { id:4, text:"Sehr gerne! Wann ist der n\u00e4chste?",                   own:true,  created_at: new Date(base.getTime()+360000).toISOString() },
-    { id:5, text:conv?.last_message || "Danke f\u00fcr deine Resonanz.",     own:false, created_at: new Date(Date.now()-120000).toISOString() },
+    { id:1, text:"Hey! Sch\u00f6n von dir zu h\u00f6ren \uD83D\uDE0A\nDanke f\u00fcr dein Interesse an meinem Workshop.", own:false, created_at:new Date(base).toISOString(), sender_name: conv?.name },
+    { id:2, text:"Hallo Leon! Ich freue mich schon sehr darauf. Kannst du mir noch sagen, was ich mitbringen sollte?", own:true, created_at:new Date(base+900000).toISOString(), read:true },
+    { id:3, text:"Gerne! Alles, was dich inspiriert \u2013 und wenn du ein Instrument hast, bring es mit. Ansonsten ist alles da im Atelier.", own:false, created_at:new Date(base+1020000).toISOString(), sender_name: conv?.name, reaction:"\u2764\uFE0F 1" },
+    { id:4, text:"Perfekt, danke dir! \uD83C\uDF89\uD83D\uDC4B", own:true, created_at:new Date(base+1200000).toISOString(), read:true },
+    { id:5, text:"Ich freue mich auf unser Treffen! \uD83C\uDF3F\u2728", own:false, created_at:new Date(base+3540000).toISOString(), sender_name: conv?.name },
   ];
 }
 
 export default function ConversationRoom({ conv, onBack }) {
-  const [text, setText]   = useState("");
-  const [msgs, setMsgs]   = useState(() => getMockMessages(conv));
-  const endRef             = useRef(null);
+  const { user } = useAuth();
+  const chatId = conv?.id;
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior:"smooth" }); }, [msgs]);
+  // Echte Supabase Messages wenn Chat-ID vorhanden
+  const { messages: liveMessages, sendMessage, loading } =
+    (typeof chatId === "string" || typeof chatId === "number")
+      ? useChatThread(chatId)
+      : { messages:[], sendMessage:null, loading:false };
 
-  function sendMsg() {
-    if (!text.trim()) return;
-    setMsgs(m => [...m, {
-      id: Date.now(), text: text.trim(), own:true,
-      created_at: new Date().toISOString(),
-    }]);
-    setText("");
-  }
+  // Fallback: Mock-Nachrichten wenn noch keine echten da
+  const messages = liveMessages?.length > 0
+    ? liveMessages.map(m => ({
+        ...m,
+        own: m.sender_id === user?.id,
+        avatar: conv?.avatar_url,
+        sender_name: conv?.name,
+      }))
+    : getMockMsgs(conv);
 
-  const avatarBg = conv?.avatar_url
-    ? `url(${conv.avatar_url}) center/cover no-repeat`
-    : `linear-gradient(135deg,${C.teal}80,${C.coral}60)`;
+  const [typing, setTyping] = useState(false);
+
+  const handleSend = useCallback(async (text) => {
+    if (sendMessage) {
+      await sendMessage({ text, type:"text" });
+    }
+    // Typing simulation für Demo
+    setTyping(false);
+  }, [sendMessage]);
 
   return (
     <div style={{
-      position:"absolute", inset:0, background:C.cream,
-      display:"flex", flexDirection:"column", zIndex:2,
+      position:"absolute", inset:0, zIndex:3,
+      display:"flex", flexDirection:"column",
+      overflow:"hidden",
+      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
     }}>
-      {/* ── Header ── */}
-      <div style={{
-        display:"flex", alignItems:"center", gap:12,
-        padding:"16px 16px 14px",
-        background:"rgba(249,247,244,0.92)",
-        backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
-        borderBottom:"1px solid rgba(0,0,0,0.07)",
-        flexShrink:0,
-      }}>
-        <button onClick={onBack} style={{
-          width:36, height:36, borderRadius:"50%",
-          background:"rgba(22,215,197,0.10)",
-          border:"none", cursor:"pointer",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:17, color:C.teal,
-          WebkitTapHighlightColor:"transparent",
-        }}>←</button>
+      <style>{CSS}</style>
 
-        <div style={{
-          width:40, height:40, borderRadius:"50%",
-          background:avatarBg, flexShrink:0,
-          border:"2px solid rgba(255,255,255,0.9)",
-          boxShadow:"0 2px 8px rgba(0,0,0,0.10)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:16, color:"white", fontWeight:700,
-        }}>
-          {!conv?.avatar_url && (conv?.name||"?")[0].toUpperCase()}
-        </div>
+      {/* Atmosphärischer Hintergrund */}
+      <ChatAtmosphere dark={false}/>
 
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:15, fontWeight:700, color:C.ink }}>{conv?.name}</div>
-          <div style={{ fontSize:11.5, color:C.teal, fontWeight:500 }}>Gerade kreativ</div>
-        </div>
-      </div>
+      {/* Header */}
+      <ChatHeader conv={conv} onBack={onBack}/>
 
-      {/* ── Messages ── */}
-      <div className="hui-scroll" style={{
-        flex:1, overflowY:"auto", paddingTop:16, paddingBottom:8,
-      }}>
-        {msgs.map(m => <MessageBubble key={m.id} msg={m}/>)}
-        <div ref={endRef}/>
-      </div>
+      {/* Nachrichten */}
+      <ChatMessages
+        messages={messages}
+        typing={typing}
+        event={MOCK_EVENT}
+      />
 
-      {/* ── Input ── */}
-      <div style={{
-        display:"flex", gap:10, alignItems:"flex-end",
-        padding:"10px 16px max(16px, env(safe-area-inset-bottom,16px))",
-        background:"rgba(249,247,244,0.94)",
-        backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
-        borderTop:"1px solid rgba(0,0,0,0.07)",
-        flexShrink:0,
-      }}>
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); }}}
-          placeholder="Schreib etwas R\u00e4ume-\u00d6ffnendes\u2026"
-          rows={1}
-          style={{
-            flex:1, resize:"none", border:"1.5px solid rgba(22,215,197,0.20)",
-            borderRadius:22, padding:"10px 14px",
-            fontSize:14, lineHeight:1.5,
-            background:"rgba(255,255,255,0.80)",
-            outline:"none", color:C.ink,
-            fontFamily:"inherit",
-            maxHeight:100, overflowY:"auto",
-          }}
-        />
-        <button
-          onClick={sendMsg}
-          disabled={!text.trim()}
-          style={{
-            width:42, height:42, borderRadius:"50%",
-            background: text.trim()
-              ? `linear-gradient(135deg,${C.teal},${C.teal2})`
-              : "rgba(0,0,0,0.08)",
-            border:"none", cursor: text.trim() ? "pointer" : "default",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            flexShrink:0, transition:"background 0.2s",
-            boxShadow: text.trim() ? "0 4px 12px rgba(22,215,197,0.30)" : "none",
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M22 2L11 13" stroke="white" strokeWidth="2.2"
-              strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" strokeWidth="2.2"
-              strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
+      {/* Input */}
+      <ChatInput onSend={handleSend}/>
     </div>
   );
 }
