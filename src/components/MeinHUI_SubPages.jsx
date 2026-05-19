@@ -1,3 +1,9 @@
+/**
+ * @deprecated Phase B — Scheduled for Modularization
+ * Dieses Monolith-File (92KB) wird in Phase C in dedizierte
+ * Studio-Submodule aufgeteilt. Aktuell noch aktiv in CreatorStudio.jsx.
+ * TODO: Aufteilen in src/pages/studio/<Modul>.jsx
+ */
 // MeinHUI_SubPages.jsx — HUI Sub-Page Router
 // Öffnet sich als Full-Screen Overlay, bleibt im HUI-Design
 // Verwendet bestehende Supabase-Tabellen
