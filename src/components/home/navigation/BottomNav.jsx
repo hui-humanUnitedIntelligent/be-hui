@@ -27,6 +27,7 @@ export default function BottomNav({
   }, []);
 
   function handleTabPress(key) {
+    console.log("[BOTTOM NAV] forwarding:", key, "| onTab type:", typeof onTab);
     console.log("[HANDLE TAB]", key, "| onTab type:", typeof onTab);
     if (typeof onTab === "function") {
       onTab(key);
