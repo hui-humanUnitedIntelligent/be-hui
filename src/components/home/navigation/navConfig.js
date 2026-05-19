@@ -9,7 +9,7 @@ export const NAV_ITEMS = [
 ];
 
 // Tabs die im Keep-Alive Modus bleiben (nie unmounten)
-export const KEEP_ALIVE_TABS = ["feed", "discover", "chat", "impact", "favorites"];
+export const KEEP_ALIVE_TABS = ["feed", "discover",         "impact", "favorites"];
 
 // Tabs die "echte" Seiten sind (nicht Overlays)
 export const PAGE_TABS = ["feed", "discover", "impact", "favorites"];
