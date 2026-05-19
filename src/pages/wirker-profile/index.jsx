@@ -49,7 +49,6 @@ const CSS = `
  *  onMap:     fn      — Karte
  */
 export default function WirkerProfilePage({
-  console.log("[WIRKER PROFILE PAGE]", rawWirker?.id, rawWirker?._isOwnerView);
   wirker: rawWirker,
   onClose,
   onBook,
@@ -57,6 +56,7 @@ export default function WirkerProfilePage({
   onImpact,
   onMap,
 }) {
+  console.log("[WIRKER PROFILE PAGE]", rawWirker?.id, rawWirker?._isOwnerView);
   const { user }  = useAuth();
   const navigate  = useNavigate();
 
