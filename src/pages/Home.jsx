@@ -98,7 +98,10 @@ function HomeInner() {
           notifCount={liveNotifCount}
           msgCount={0}
           onNotif={() => setShowNotifs(true)}
-          onChat={() => setShowChat(true)}
+          onChat={() => {
+            console.log("[SET SHOW CHAT] true");
+            setShowChat(true);
+          }}
         />
 
         {/* Scroll-Bereich */}
@@ -176,7 +179,12 @@ function HomeInner() {
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && (
-        <ChatCenterOverlay onClose={() => setShowChat(false)}/>
+        <ChatCenterOverlay
+          onClose={() => {
+            console.log("[CHAT OVERLAY CLOSE]");
+            setShowChat(false);
+          }}
+        />
       )}
 
       <Suspense fallback={null}>
