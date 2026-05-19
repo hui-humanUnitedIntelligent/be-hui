@@ -1,4 +1,4 @@
-// HUI 2026-05-19T08:52:01Z Home v7: direkte onTabPress-Verdrahtung, Profile-Button stabil
+// HUI 2026-05-19T09:32:38Z fix: useWirkerProfile Object-Loop + openOwnProfile stable deps
 import path from 'path'
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
