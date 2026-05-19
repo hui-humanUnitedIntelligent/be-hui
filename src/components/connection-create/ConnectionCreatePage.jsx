@@ -149,6 +149,7 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast }) {
           cursor: canNext ? "pointer" : "default",
           transition:"all 0.2s",
           boxShadow: canNext ? "0 6px 20px rgba(139,92,246,0.30)" : "none",
+          animation: canNext ? "nav-btn-pulse 2.5s ease-in-out infinite" : "none",
           letterSpacing:-0.2,
           WebkitTapHighlightColor:"transparent",
           display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -183,7 +184,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
   const scrollRef = useRef(null);
 
   const [formData, setFormData] = useState({
-    type:        "treffen",
+    type:        "",           /* leer → Weiter disabled bis Card getappt */
     title:       "",
     description: "",
     date:        new Date().toISOString().slice(0,10),
@@ -302,7 +303,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
             onSelect={key => {
               console.log("[PAGE onSelect]", key);
               setFormData(d => ({ ...d, type: key }));
-              goTo(2);
+              /* goTo(2) NICHT hier — User tappt Weiter-Button */
             }}
           />
         )}
