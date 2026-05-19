@@ -23,12 +23,9 @@ export default function BottomNav({
   msgCount    = 0,
 }) {
   React.useEffect(() => {
-    console.log("[HUI-BN] mounted | onTab:", typeof onTab, "| tab:", tab);
   }, []);
 
   function handleTabPress(key) {
-    console.log("[BOTTOM NAV] forwarding:", key, "| onTab type:", typeof onTab);
-    console.log("[HANDLE TAB]", key, "| onTab type:", typeof onTab);
     if (typeof onTab === "function") {
       onTab(key);
     } else {
@@ -91,11 +88,9 @@ export default function BottomNav({
                 aria-label="Kreativ werden"
                 onTouchEnd={(e) => {
                   e.preventDefault();
-                  console.log("[HUI-BN] Orb touch");
                   onOrbAction?.("create");
                 }}
                 onClick={() => {
-                  console.log("[HUI-BN] Orb click");
                   onOrbAction?.("create");
                 }}
                 style={{
