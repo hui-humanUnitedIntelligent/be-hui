@@ -17,7 +17,29 @@ import React, {
   createContext, useContext, useState, useEffect,
   useCallback, useRef, useMemo
 } from "react";
-import { throttle } from './performance/index.js';
+// throttle — inline (performance/index.js wurde in Phase A Cleanup entfernt)
+// Minimale Impl: identisch zur vorherigen Verwendung (leading-edge, cancel support)
+function throttle(fn, wait = 300) {
+  let lastCall = 0;
+  let timer    = null;
+  function throttled(...args) {
+    const now = Date.now();
+    const remaining = wait - (now - lastCall);
+    if (remaining <= 0) {
+      if (timer) { clearTimeout(timer); timer = null; }
+      lastCall = now;
+      fn(...args);
+    } else if (!timer) {
+      timer = setTimeout(() => {
+        lastCall = Date.now();
+        timer    = null;
+        fn(...args);
+      }, remaining);
+    }
+  }
+  throttled.cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  return throttled;
+}
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 
