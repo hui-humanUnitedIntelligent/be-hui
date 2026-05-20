@@ -882,26 +882,26 @@ export default function HuiPlusSheet({
   }, [onSelect, onClose]);
 
   const handleNodeTap = useCallback(node => {
-    if (activeNode?.key === node.key) {
-      if (node.isImpact) {
-        setImpactOpen(true);
-        setActiveNode(null);
-      } else if (node.cta === "story" || node.cta === "teilen" || node.key === "teilen") {
-        console.log("[ORB TEILEN DIRECT] → story");
-        setActiveNode(null);
-        handleAction("story");
-      } else if (node.cta === "connect") {
-        console.log("[ORB VERBINDUNG DIRECT] → connect");
-        setActiveNode(null);
-        handleAction("connect");
-      } else {
-        setDetailNode(node);
-        setActiveNode(null);
-      }
+    if (isTransitioning) return;
+    // SINGLE-TAP: Teilen / Verbindung / Impact → sofort auslösen
+    if (node.key === "teilen" || node.cta === "story") {
+      setActiveNode(null);
+      handleAction("story");
+    } else if (node.cta === "connect") {
+      setActiveNode(null);
+      handleAction("connect");
+    } else if (node.isImpact) {
+      setActiveNode(null);
+      setImpactOpen(true);
+    } else if (activeNode?.key === node.key) {
+      // 2. Tap auf Werk/Erlebnis → DetailCard
+      setDetailNode(node);
+      setActiveNode(null);
     } else {
+      // 1. Tap auf Werk/Erlebnis → aktivieren + Hint
       setActiveNode(node);
     }
-  }, [activeNode, handleAction]);
+  }, [activeNode, handleAction, isTransitioning]);
 
   const handleHintOpen = useCallback(() => {
     if (!activeNode) return;
