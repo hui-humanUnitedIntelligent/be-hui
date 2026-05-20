@@ -99,8 +99,8 @@ const CSS = `
 
   /* ── Nodes ── */
   @keyframes nodeIn {
-    0%   { opacity:0; transform:translate(var(--nx),var(--ny)) scale(0.55); }
-    100% { opacity:1; transform:translate(var(--nx),var(--ny)) scale(1); }
+    0%   { opacity:0; transform:scale(0.55); }
+    100% { opacity:1; transform:scale(1); }
   }
   /* Float: nur translateY — Position via top/left/margin fix gesetzt */
   @keyframes floatA { 0%,100%{transform:translateY(0px)}  50%{transform:translateY(-7px)} }
@@ -117,7 +117,7 @@ const CSS = `
   }
   @keyframes blobFloat2 {
     0%,100% { transform:translate(-50%,-50%) scale(1)    rotate(0deg); }
-    40%     { transform:translate(-48%,-52%) scale(1.06) rotate(-5deg); }
+    40%     { transform:translate(-48%,-52%) scale(1.04) rotate(-4deg); }
     70%     { transform:translate(-50%,-50%) scale(0.96) rotate(3deg); }
   }
   @keyframes blobFloat3 {
