@@ -24,7 +24,7 @@ const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembership
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
-const WerkPublisher       = React.lazy(() => import("../components/WerkPublisher.jsx"));
+const WorkFlow            = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
 const ExperienceCreator   = React.lazy(() => import("../components/ExperienceCreator.jsx"));
 
 const C = { cream: "#F9F6F2" };
@@ -265,7 +265,7 @@ function HomeInner() {
           />
         )}
         {showWerkPublisher && (
-          <WerkPublisher
+          <WorkFlow
             onClose={() => setShowWerkPublisher(false)}
             onPublished={() => setShowWerkPublisher(false)}
           />
