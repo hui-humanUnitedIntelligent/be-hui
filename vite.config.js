@@ -1,7 +1,5 @@
-// HUI vite.config.js — Safari MIME-safe
-// - manualChunks: kritische Overlays gebündelt → weniger Chunks
-// - assetsDir: "assets" explizit → vercel.json passt korrekt
-// - chunkSizeWarningLimit erhöht
+// HUI vite.config.js — Safari MIME-safe v2
+// manualChunks: Supabase entfernt (war leer wegen dynamic import in App.jsx)
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -23,22 +21,14 @@ export default defineConfig({
     chunkSizeWarningLimit: 1800,
     rollupOptions: {
       output: {
-        /* Kritische Overlays in einem Chunk — Safari lädt weniger Requests */
         manualChunks(id) {
-          // React + React-DOM → eigener stabiler Chunk
           if (id.includes('node_modules/react/') ||
               id.includes('node_modules/react-dom/')) {
             return 'vendor-react';
           }
-          // Supabase → eigener Chunk
-          if (id.includes('node_modules/@supabase/')) {
-            return 'vendor-supabase';
-          }
-          // Framer Motion → eigener Chunk (groß)
           if (id.includes('node_modules/framer-motion')) {
             return 'vendor-framer';
           }
-          // HUI Overlay-Flows → ein gemeinsamer Chunk (weniger HTTP-Requests)
           if (id.includes('src/components/HuiPlusSheet') ||
               id.includes('src/components/HuiMatchOverlay') ||
               id.includes('src/components/HuiMembershipFlow') ||
@@ -47,7 +37,6 @@ export default defineConfig({
               id.includes('src/components/connection-create/')) {
             return 'hui-overlays';
           }
-          // Profile-System → ein Chunk
           if (id.includes('src/pages/creator-profile/') ||
               id.includes('src/pages/wirker-profile/')) {
             return 'hui-profiles';
