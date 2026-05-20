@@ -764,11 +764,20 @@ export default function HuiPlusSheet({
   // ── Action ───────────────────────────────────────────────────────
   const handleAction = useCallback((type) => {
     console.log("[ORB ACTION] type:", type);
+    // TIMING FIX: Erst alle internen States cleanen + Orb schliessen,
+    // dann im nächsten Microtask onSelect aufrufen.
+    // So ist HuiPlusSheet vollständig unmounted bevor TeilenFlow mounted.
     setDetailNode(null);
     setActiveNode(null);
     setImpactOpen(false);
-    onSelect?.(type);
+    // Orb schliessen — synchron
     onClose?.();
+    // onSelect im nächsten Tick — nach HuiPlusSheet unmount
+    // requestAnimationFrame gibt React einen vollen Render-Pass Zeit
+    window.requestAnimationFrame(() => {
+      console.log("[ORB ACTION RAF] onSelect:", type);
+      onSelect?.(type);
+    });
   }, [onSelect, onClose]);
 
   const handleNodeTap = useCallback(node => {
