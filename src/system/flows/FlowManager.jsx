@@ -25,9 +25,10 @@
 import React, { useCallback } from "react";
 
 // Statische Imports — kein Lazy, kein Suspense, kein Race
-import TeilenFlow        from "../../components/teilen/TeilenFlow.jsx";
+import TeilenFlow          from "../../components/teilen/TeilenFlow.jsx";
 import ConnectionCreatePage from "../../components/connection-create/ConnectionCreatePage.jsx";
-import ExperienceCreator from "../../components/ExperienceCreator.jsx";
+import ExperienceCreator   from "../../components/ExperienceCreator.jsx";
+import WorkFlow            from "./work/WorkFlow.jsx";
 
 /* ── Flow-Key → Komponente Mapping ─────────────────────────── */
 // Erweitern: einfach neuen case + Import hinzufügen.
@@ -45,6 +46,21 @@ export function FlowManager({
   if (!activeFlow) return null;
 
   switch (activeFlow) {
+
+    // ── Werk erschaffen ────────────────────────────────────
+    case "werk":
+    case "kunstwerk":
+    case "handwerk":
+    case "design":
+    case "digital":
+    case "sammler":
+      return (
+        <WorkFlow
+          key="flow-werk"
+          onClose={close}
+          onPublished={close}
+        />
+      );
 
     // ── Teilen ─────────────────────────────────────────────
     case "story":
