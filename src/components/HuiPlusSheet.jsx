@@ -99,15 +99,15 @@ const CSS = `
 
   /* ── Nodes ── */
   @keyframes nodeIn {
-    0%   { opacity:0; transform:translate(var(--nx0),var(--ny0)) scale(0.25); }
-    65%  { opacity:1; transform:translate(var(--nx),var(--ny))   scale(1.06); }
-    100% {            transform:translate(var(--nx),var(--ny))   scale(1); }
+    0%   { opacity:0; transform:translate(var(--nx),var(--ny)) scale(0.55); }
+    100% { opacity:1; transform:translate(var(--nx),var(--ny)) scale(1); }
   }
-  @keyframes floatA { 0%,100%{transform:translate(var(--nx),calc(var(--ny) + 0px))}  50%{transform:translate(var(--nx),calc(var(--ny) - 9px))} }
-  @keyframes floatB { 0%,100%{transform:translate(var(--nx),calc(var(--ny) + 5px))}  50%{transform:translate(var(--nx),calc(var(--ny) - 7px))} }
-  @keyframes floatC { 0%,100%{transform:translate(var(--nx),calc(var(--ny) - 4px))}  50%{transform:translate(var(--nx),calc(var(--ny) + 8px))} }
-  @keyframes floatD { 0%,100%{transform:translate(var(--nx),calc(var(--ny) + 7px))}  50%{transform:translate(var(--nx),calc(var(--ny) - 6px))} }
-  @keyframes floatE { 0%,100%{transform:translate(var(--nx),calc(var(--ny) - 5px))}  50%{transform:translate(var(--nx),calc(var(--ny) + 8px))} }
+  /* Float: nur translateY — Position via top/left/margin fix gesetzt */
+  @keyframes floatA { 0%,100%{transform:translateY(0px)}  50%{transform:translateY(-7px)} }
+  @keyframes floatB { 0%,100%{transform:translateY(4px)}  50%{transform:translateY(-5px)} }
+  @keyframes floatC { 0%,100%{transform:translateY(-3px)} 50%{transform:translateY(6px)} }
+  @keyframes floatD { 0%,100%{transform:translateY(5px)}  50%{transform:translateY(-4px)} }
+  @keyframes floatE { 0%,100%{transform:translateY(-4px)} 50%{transform:translateY(6px)} }
 
   /* ── Background Blobs ── */
   @keyframes blobFloat1 {
@@ -162,7 +162,7 @@ const CSS = `
     cursor:pointer;
     transition:transform 0.16s ease, opacity 0.16s ease;
   }
-  .orb-tap:active { transform:scale(0.93) !important; opacity:0.75; }
+  .orb-tap:active { opacity:0.70; }
   .orb-no-scroll::-webkit-scrollbar { display:none; }
   .orb-no-scroll { -ms-overflow-style:none; scrollbar-width:none; }
 `;
@@ -431,78 +431,77 @@ function LogoOrb({ size=100, activeColor=null }) {
 /* ─────────────────────────────────────────────────
    NODE BUTTON — glass card, pastel glow, light
 ───────────────────────────────────────────────── */
-function NodeBtn({ node, idx, active, dimmed, locked, onTap, radius }) {
-  const {x,y}    = polar(node.angle, radius);
-  const {x:x0,y:y0} = polar(node.angle, 20);
-
-  const SIZE = active ? 72 : 62;
-  const FONT = active ? 29 : 24;
+function NodeBtn({ node, idx, active, dimmed, locked, onTap, isTransitioning, posLeft, posTop }) {
+  // POSITION: fix via posLeft/posTop Props — SIZE ist IMMER 62px
+  // Active-State: nur visuell (glow + border) — keine Größenänderung
+  const SIZE = 62;
+  const FONT = 24;
 
   return (
     <div
       className="orb-tap"
-      onClick={() => !locked && onTap(node)}
+      onClick={() => {
+        if (locked || isTransitioning) return;
+        onTap(node);
+      }}
       style={{
         position:"absolute",
-        left:"50%", top:"50%",
-        "--nx":  `${x - SIZE/2}px`,
-        "--ny":  `${y - SIZE/2}px`,
-        "--nx0": `${x0 - SIZE/2}px`,
-        "--ny0": `${y0 - SIZE/2}px`,
+        left:`calc(50% + ${posLeft}px)`,
+        top:`calc(50% + ${posTop}px)`,
         width:SIZE, height:SIZE,
-        animation:[
-          `nodeIn 0.55s cubic-bezier(0.34,1.38,0.64,1) ${node.delay}s both`,
-          `${node.floatAnim} ${3.4+idx*0.4}s ease-in-out ${node.delay+0.8}s infinite`,
-        ].join(", "),
+        // Entry animation: einfaches fade+scale, kein bounce, kein translate
+        animation:`nodeIn 0.40s ease-out ${node.delay}s both, ${node.floatAnim} ${3.8+idx*0.4}s ease-in-out ${node.delay+0.5}s infinite`,
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start",
-        zIndex:5,
-        cursor:  locked ? "default" : "pointer",
-        opacity: locked ? 0.30 : dimmed ? 0.22 : 1,
+        zIndex: active ? 6 : 5,
+        cursor:  (locked || isTransitioning) ? "default" : "pointer",
+        opacity: locked ? 0.30 : dimmed ? 0.20 : 1,
         filter:  locked ? "grayscale(0.6)" : "none",
-        transition:"opacity 0.38s ease, filter 0.38s ease",
+        transition:"opacity 0.22s ease",
+        pointerEvents: (locked || isTransitioning) ? "none" : "auto",
       }}
     >
-      {/* Soft glow halo */}
+      {/* Glow halo — pointer-events:none */}
       <div style={{
         position:"absolute", inset:-10, borderRadius:"50%",
-        background:`radial-gradient(circle, ${node.glow}${active?"0.22":"0.06"}) 0%, transparent 68%)`,
-        transition:"background 0.38s ease",
+        background:`radial-gradient(circle, ${node.glow}${active?"0.20":"0.05"}) 0%, transparent 68%)`,
+        transition:"background 0.22s ease",
         pointerEvents:"none",
+        zIndex:0,
       }}/>
 
-      {/* Glass circle */}
+      {/* Glass circle — fixed size, nur visueller state */}
       <div style={{
         width:SIZE, height:SIZE, borderRadius:"50%", flexShrink:0,
         background: active
-          ? `linear-gradient(145deg, ${node.color}22 0%, ${node.color}10 100%)`
+          ? `linear-gradient(145deg, ${node.color}20 0%, ${node.color}0a 100%)`
           : "rgba(255,255,255,0.82)",
         backdropFilter:"blur(20px) saturate(1.4)",
         WebkitBackdropFilter:"blur(20px) saturate(1.4)",
         border: active
-          ? `2px solid ${node.color}70`
+          ? `2px solid ${node.color}65`
           : "1.5px solid rgba(255,255,255,0.75)",
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:FONT,
+        // Nur box-shadow + border transition — kein scale, kein bounce
         boxShadow: active
           ? [
-              `0 0 0 5px ${node.glow}0.12)`,
-              `0 10px 28px ${node.glow}0.25)`,
+              `0 0 0 4px ${node.glow}0.10)`,
+              `0 8px 24px ${node.glow}0.22)`,
               `inset 0 1px 0 rgba(255,255,255,0.90)`,
             ].join(",")
           : [
-              `0 6px 20px rgba(0,0,0,0.06)`,
-              `0 2px 6px rgba(0,0,0,0.04)`,
+              `0 4px 16px rgba(0,0,0,0.05)`,
               `inset 0 1px 0 rgba(255,255,255,0.95)`,
             ].join(","),
-        transition:"all 0.38s cubic-bezier(0.34,1.20,0.64,1)",
-        position:"relative",
+        transition:"background 0.22s ease, border 0.22s ease, box-shadow 0.22s ease",
+        position:"relative", zIndex:1,
       }}>
         {node.icon}
-        {/* Glass highlight */}
+        {/* Glass highlight — decorative only */}
         <div style={{
-          position:"absolute", top:8, left:10, width:18, height:8,
+          position:"absolute", top:8, left:10, width:16, height:7,
           borderRadius:"50%",
-          background:"radial-gradient(ellipse, rgba(255,255,255,0.70) 0%, transparent 100%)",
+          background:"radial-gradient(ellipse, rgba(255,255,255,0.65) 0%, transparent 100%)",
           filter:"blur(2px)", transform:"rotate(-18deg)",
           pointerEvents:"none",
         }}/>
@@ -510,12 +509,13 @@ function NodeBtn({ node, idx, active, dimmed, locked, onTap, radius }) {
 
       {/* Label */}
       <div style={{
-        marginTop:7, fontSize:10, fontWeight:700, lineHeight:1.25,
+        marginTop:6, fontSize:10, fontWeight:700, lineHeight:1.25,
         color: active ? node.color : T.ink2,
         textAlign:"center",
-        transition:"color 0.32s ease",
+        transition:"color 0.22s ease",
         whiteSpace:"nowrap",
         letterSpacing:0.15,
+        pointerEvents:"none",
       }}>
         {node.label}
         {locked && (
@@ -838,12 +838,13 @@ export default function HuiPlusSheet({
   isTalent  = false,
   isTrusted = false,
 }) {
-  const [mounted,    setMounted]    = useState(false);
-  const [activeNode, setActiveNode] = useState(null);
-  const [detailNode, setDetailNode] = useState(null);
-  const [impactOpen, setImpactOpen] = useState(false);
-  const [vw,         setVw]         = useState(window.innerWidth);
-  const [vh,         setVh]         = useState(window.innerHeight);
+  const [mounted,         setMounted]         = useState(false);
+  const [activeNode,      setActiveNode]      = useState(null);
+  const [detailNode,      setDetailNode]      = useState(null);
+  const [impactOpen,      setImpactOpen]      = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [vw,              setVw]              = useState(window.innerWidth);
+  const [vh,              setVh]              = useState(window.innerHeight);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 16);
@@ -1023,18 +1024,25 @@ export default function HuiPlusSheet({
         }}>
           {/* Nodes */}
           {NODES.map((node, i) => {
-            const locked = !node.forAll && !isTalent;
-            const dimmed = activeNode !== null && activeNode.key !== node.key;
+            const locked  = !node.forAll && !isTalent;
+            const dimmed  = activeNode !== null && activeNode.key !== node.key;
+            const active  = activeNode?.key === node.key;
+            const SIZE    = 62; // konstant — kein Sprung bei active
+            // Position: direkt via style, nicht via CSS-Variablen
+            const {x,y}  = polar(node.angle, orbR);
             return (
               <NodeBtn
                 key={node.key}
                 node={node}
                 idx={i}
-                active={activeNode?.key === node.key}
+                active={active}
                 dimmed={dimmed}
                 locked={locked}
+                isTransitioning={isTransitioning}
                 onTap={handleNodeTap}
-                radius={orbR}
+                // Position direkt als style übergeben
+                posLeft={x - SIZE/2}
+                posTop={y - SIZE/2}
               />
             );
           })}
