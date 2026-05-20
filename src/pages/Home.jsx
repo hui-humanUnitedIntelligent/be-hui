@@ -236,19 +236,32 @@ function HomeInner() {
               // onSelect kommt per requestAnimationFrame NACH dem Unmount.
               // Wir setzen hier nur den Ziel-Flow-State.
               console.log("[HOME onSelect]", type);
+              // ── Teilen ──────────────────────────────────────────
               if (type === "moment" || type === "story" || type === "teilen") {
                 setShowTeilen(true);
-              } else if (type === "werk") {
+              // ── Werk erschaffen ──────────────────────────────────
+              } else if (type === "werk" ||
+                         type === "kunstwerk" || type === "handwerk" ||
+                         type === "design"    || type === "digital"  ||
+                         type === "sammler") {
                 setShowWerkPublisher(true);
-              } else if (type === "erlebnis") {
+              // ── Erlebnis öffnen ──────────────────────────────────
+              } else if (type === "experience" || type === "erlebnis" ||
+                         type === "workshop"   || type === "retreat"  ||
+                         type === "event"      || type === "session"  ||
+                         type === "erlebnis_s") {
                 setShowExperienceCreator(true);
-              } else if (type === "wirker") {
+              // ── Verbindung ───────────────────────────────────────
+              } else if (type === "connect" || type === "kollab" ||
+                         type === "mentor"  || type === "partner" ||
+                         type === "community") {
+                setShowConnect(true);
+              // ── Wirker werden ────────────────────────────────────
+              } else if (type === "wirker" || type === "membership") {
                 setShowTalentFlow(true);
+              // ── Create ──────────────────────────────────────────
               } else if (type === "create") {
                 setShowCreateFlow(true);
-              } else if (type === "connect" || type === "kollab" ||
-                         type === "mentor"  || type === "partner") {
-                setShowConnect(true);
               }
             }}
           />
