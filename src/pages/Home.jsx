@@ -15,6 +15,8 @@ import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay from "../components/chat-center/ChatCenterOverlay.jsx";
 import ConnectionCreatePage from "../components/connection-create/ConnectionCreatePage.jsx";
 import TeilenFlow from "../components/teilen/TeilenFlow.jsx";
+import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
+import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
 
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
@@ -24,9 +26,6 @@ const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembership
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
-// Statische Imports — kein Suspense-Hang bei ersten Aufruf
-import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
-import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
 const ExperienceCreator   = React.lazy(() => import("../components/ExperienceCreator.jsx"));
 
 const C = { cream: "#F9F6F2" };
