@@ -75,9 +75,8 @@ function CountedTextarea({ label, required, placeholder, value, onChange, max=50
 
 /* ── Step 2 ──────────────────────────────────────────────────── */
 export function ImpactStep2Vision({ form, onFormChange, onNext }) {
-  const canNext = form.problem.trim().length >= 10
-    && form.vision.trim().length >= 10
-    && form.funding.trim().length > 0;
+  // Finanzierungsbetrag ist der einzige harte Pflichtblock in Step 2
+  const canNext = form.funding.trim().length > 0;
 
   return (
     <div style={{ padding:"24px 20px 24px",
