@@ -27,7 +27,7 @@ import React, { useCallback } from "react";
 // Statische Imports — kein Lazy, kein Suspense, kein Race
 import TeilenFlow          from "../../components/teilen/TeilenFlow.jsx";
 import ConnectionCreatePage from "../../components/connection-create/ConnectionCreatePage.jsx";
-import ExperienceCreator   from "../../components/ExperienceCreator.jsx";
+import ExperienceFlow      from "./experience/ExperienceFlow.jsx";
 import WorkFlow            from "./work/WorkFlow.jsx";
 
 /* ── Flow-Key → Komponente Mapping ─────────────────────────── */
