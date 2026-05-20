@@ -69,6 +69,7 @@ function HomeInner() {
     showStoryComposer, setShowStoryComposer,
     showWerkPublisher, setShowWerkPublisher,
     showExperienceCreator, setShowExperienceCreator,
+    showImpactFlow,         setShowImpactFlow,
     activeStory,       setActiveStory,
   } = useHome();
 
