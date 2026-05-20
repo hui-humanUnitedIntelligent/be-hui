@@ -1,5 +1,6 @@
-// HUI vite.config.js — Safari MIME-safe v2
-// manualChunks: Supabase entfernt (war leer wegen dynamic import in App.jsx)
+// HUI vite.config.js — Safari MIME-safe v3
+// manualChunks: hui-overlays/hui-profiles circular chunk behoben
+// TeilenFlow + ConnectionCreate sind statisch → kein chunk nötig
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -22,24 +23,18 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // React vendor
           if (id.includes('node_modules/react/') ||
               id.includes('node_modules/react-dom/')) {
             return 'vendor-react';
           }
+          // Framer Motion (groß, selten geändert)
           if (id.includes('node_modules/framer-motion')) {
             return 'vendor-framer';
           }
-          if (id.includes('src/components/HuiPlusSheet') ||
-              id.includes('src/components/HuiMatchOverlay') ||
-              id.includes('src/components/HuiMembershipFlow') ||
-              id.includes('src/components/HuiCreateFlow') ||
-              id.includes('src/components/teilen/') ||
-              id.includes('src/components/connection-create/')) {
-            return 'hui-overlays';
-          }
-          if (id.includes('src/pages/creator-profile/') ||
-              id.includes('src/pages/wirker-profile/')) {
-            return 'hui-profiles';
+          // Alle anderen node_modules → vendor
+          if (id.includes('node_modules/')) {
+            return 'vendor-misc';
           }
         },
       },
