@@ -39,7 +39,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  </head>
+    <script>
+    /* Safari MIME-Type Chunk Recovery */
+    window.addEventListener("error", function(e) {
+      var msg = e && e.message || "";
+      if (
+        msg.indexOf("MIME") !== -1 ||
+        msg.indexOf("Failed to fetch dynamically imported module") !== -1 ||
+        msg.indexOf("Importing a module script failed") !== -1 ||
+        msg.indexOf("text/html is not a valid JavaScript") !== -1
+      ) {
+        // Verhindere Loop: nur wenn noch kein Reload lief
+        if (!sessionStorage.getItem("hui_mime_reload")) {
+          sessionStorage.setItem("hui_mime_reload", "1");
+          console.warn("[HUI] MIME error — reloading for clean chunk fetch");
+          window.location.reload(true);
+        } else {
+          sessionStorage.removeItem("hui_mime_reload");
+          console.error("[HUI] MIME error persists after reload — please clear cache");
+        }
+      }
+    });
+    /* Clear reload flag on successful load */
+    window.addEventListener("load", function() {
+      sessionStorage.removeItem("hui_mime_reload");
+    });
+  </script>
+</head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
