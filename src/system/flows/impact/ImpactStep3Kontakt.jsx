@@ -55,8 +55,8 @@ function LinkField({ icon, platform, placeholder, value, onChange }) {
 
 /* ── Step 3 ──────────────────────────────────────────────────── */
 export function ImpactStep3Kontakt({ form, onFormChange, onNext }) {
-  const canNext = form.contactName.trim().length >= 2
-    && form.email.trim().includes("@");
+  // Nur Name ist Pflicht für Step 3
+  const canNext = form.contactName.trim().length >= 2;
 
   return (
     <div style={{ padding:"24px 20px 24px",
