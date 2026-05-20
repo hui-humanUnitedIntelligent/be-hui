@@ -132,7 +132,7 @@ export const NODES = [
     action:      "impact",
     ctaLabel:    "Vision einreichen",
     forAll:      true,
-    isImpact:    true,
+    isImpact:    false,
     directAction: true,
     sub: [
       { key:"idee",     icon:"💡", label:"Idee einreichen"     },
