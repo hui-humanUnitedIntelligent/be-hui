@@ -272,9 +272,8 @@ function HomeInner() {
           />
         )}
         {showExperienceCreator && (
-          <ExperienceCreator
+          <ExperienceFlow
             onClose={() => setShowExperienceCreator(false)}
-            onPublished={() => setShowExperienceCreator(false)}
           />
         )}
         {showNotifs && (
