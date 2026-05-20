@@ -96,19 +96,34 @@ export function ImpactHeader({ step, onBack, onClose }) {
 
 /* ── Weiter CTA (geteilt) ─────────────────────────────────────── */
 export function ImpactNextBtn({ label="Weiter →", onClick, disabled }) {
+  const handleClick = () => {
+    console.log("[ImpactNextBtn] click — disabled:", disabled);
+    if (!disabled && onClick) onClick();
+  };
   return (
-    <button onClick={!disabled ? onClick : undefined} style={{
-      width:"100%", height:54, borderRadius:18, border:"none",
-      background: disabled
-        ? "rgba(26,26,46,0.08)"
-        : `linear-gradient(135deg, ${IT.teal} 0%, #06B6D4 100%)`,
-      color: disabled ? IT.ink4 : "#fff",
-      fontSize:16, fontWeight:800,
-      cursor: disabled ? "default" : "pointer",
-      boxShadow: disabled ? "none" : "0 8px 24px rgba(10,191,184,0.26)",
-      transition:"all 0.22s ease",
-      display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-    }}>{label}</button>
+    <button
+      type="button"
+      onClick={handleClick}
+      onTouchEnd={e => { e.preventDefault(); handleClick(); }}
+      style={{
+        width:"100%", height:54, borderRadius:18, border:"none",
+        background: disabled
+          ? "rgba(26,26,46,0.08)"
+          : `linear-gradient(135deg, ${IT.teal} 0%, #06B6D4 100%)`,
+        color: disabled ? IT.ink4 : "#fff",
+        fontSize:16, fontWeight:800,
+        cursor: disabled ? "not-allowed" : "pointer",
+        boxShadow: disabled ? "none" : "0 8px 24px rgba(10,191,184,0.26)",
+        transition:"all 0.22s ease",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+        touchAction:"manipulation",
+        WebkitTapHighlightColor:"transparent",
+        userSelect:"none",
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
