@@ -86,7 +86,7 @@ export const NODES = [
     action:      "werk",
     ctaLabel:    "Werk erstellen",
     forAll:      false,
-    directAction: false,
+    directAction: true,
     sub: [
       { key:"kunstwerk", icon:"🖼",  label:"Kunstwerk"          },
       { key:"handwerk",  icon:"🏺",  label:"Handwerk"           },
@@ -109,7 +109,7 @@ export const NODES = [
     action:      "experience",
     ctaLabel:    "Erlebnis öffnen",
     forAll:      false,
-    directAction: false,
+    directAction: true,
     sub: [
       { key:"workshop",   icon:"🔨", label:"Workshop"  },
       { key:"retreat",    icon:"🌲", label:"Retreat"   },
