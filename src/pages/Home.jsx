@@ -25,6 +25,7 @@ const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
 const WorkFlow            = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
+const ExperienceFlow      = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
 const ExperienceCreator   = React.lazy(() => import("../components/ExperienceCreator.jsx"));
 
 const C = { cream: "#F9F6F2" };
