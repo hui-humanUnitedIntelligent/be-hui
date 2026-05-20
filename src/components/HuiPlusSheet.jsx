@@ -869,17 +869,22 @@ export default function HuiPlusSheet({
   }, [impactOpen, detailNode, onClose]);
 
   // ── handleAction: TIMING FIX (onClose first, onSelect in RAF) ──
+  // ── handleAction: Click-Lock + Timing Fix ──────────────────────
   const handleAction = useCallback((type) => {
-    console.log("[ORB ACTION] type:", type);
+    if (isTransitioning) return;   // Click-Lock: verhindert Race Conditions
+    setIsTransitioning(true);
     setDetailNode(null);
     setActiveNode(null);
     setImpactOpen(false);
+    // Orb zuerst schliessen — synchron
     onClose?.();
+    // Flow im nächsten Frame mounten — PlusSheet ist bereits unmounted
     window.requestAnimationFrame(() => {
-      console.log("[ORB ACTION RAF] onSelect:", type);
       onSelect?.(type);
+      // Lock nach 500ms freigeben
+      setTimeout(() => setIsTransitioning(false), 500);
     });
-  }, [onSelect, onClose]);
+  }, [onSelect, onClose, isTransitioning]);
 
   const handleNodeTap = useCallback(node => {
     if (isTransitioning) return;
@@ -904,12 +909,11 @@ export default function HuiPlusSheet({
   }, [activeNode, handleAction, isTransitioning]);
 
   const handleHintOpen = useCallback(() => {
-    if (!activeNode) return;
+    if (!activeNode || isTransitioning) return;
     if (activeNode.isImpact) {
       setImpactOpen(true);
       setActiveNode(null);
     } else if (activeNode.cta === "story" || activeNode.cta === "teilen" || activeNode.key === "teilen") {
-      console.log("[ORB HINT TEILEN] → story");
       setActiveNode(null);
       handleAction("story");
     } else if (activeNode.cta === "connect") {
@@ -919,15 +923,14 @@ export default function HuiPlusSheet({
       setDetailNode(activeNode);
       setActiveNode(null);
     }
-  }, [activeNode, handleAction]);
+  }, [activeNode, handleAction, isTransitioning]);
 
   const handleOrbTap = useCallback(() => {
-    if (!activeNode) return;
+    if (!activeNode || isTransitioning) return;
     if (activeNode.isImpact) {
       setImpactOpen(true);
       setActiveNode(null);
     } else if (activeNode.cta === "story" || activeNode.cta === "teilen" || activeNode.key === "teilen") {
-      console.log("[ORB TAP TEILEN] → story");
       setActiveNode(null);
       handleAction("story");
     } else if (activeNode.cta === "connect") {
@@ -937,7 +940,7 @@ export default function HuiPlusSheet({
       setDetailNode(activeNode);
       setActiveNode(null);
     }
-  }, [activeNode, handleAction]);
+  }, [activeNode, handleAction, isTransitioning]);
 
   const R    = Math.min(vw, vh) * 0.30;
   const orbR = Math.min(Math.max(R, 100), 155);
