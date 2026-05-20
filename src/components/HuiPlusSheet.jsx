@@ -763,8 +763,9 @@ export default function HuiPlusSheet({
   // ── Node Tap ─────────────────────────────────────────────────────
   // ── Action ───────────────────────────────────────────────────────
   const handleAction = useCallback((type) => {
-    console.log("[ORB CONNECT TAP] type:", type);
+    console.log("[ORB ACTION] type:", type);
     setDetailNode(null);
+    setActiveNode(null);
     setImpactOpen(false);
     onSelect?.(type);
     onClose?.();
@@ -772,16 +773,25 @@ export default function HuiPlusSheet({
 
   const handleNodeTap = useCallback(node => {
     if (activeNode?.key === node.key) {
-      // Zweiter Tap: öffnen
-      if (node.isImpact) { setImpactOpen(true); setActiveNode(null); }
-      // "verbindung" → direkt ConnectionCreatePage öffnen, kein Popup
-      else if (node.cta === "connect") {
+      // Zweiter Tap: Aktion direkt auslösen
+      if (node.isImpact) {
+        setImpactOpen(true);
+        setActiveNode(null);
+      } else if (node.cta === "story" || node.cta === "teilen" || node.key === "teilen") {
+        // Teilen → direkt TeilenFlow öffnen, kein DetailCard
+        console.log("[ORB TEILEN DIRECT] → story");
+        setActiveNode(null);
+        handleAction("story");
+      } else if (node.cta === "connect") {
         console.log("[ORB VERBINDUNG DIRECT] → connect");
         setActiveNode(null);
         handleAction("connect");
+      } else {
+        setDetailNode(node);
+        setActiveNode(null);
       }
-      else               { setDetailNode(node);  setActiveNode(null); }
     } else {
+      // Erster Tap: Node aktivieren
       setActiveNode(node);
     }
   }, [activeNode, handleAction]);
@@ -789,17 +799,39 @@ export default function HuiPlusSheet({
   // ── Open from Hint Bar ───────────────────────────────────────────
   const handleHintOpen = useCallback(() => {
     if (!activeNode) return;
-    if (activeNode.isImpact) { setImpactOpen(true); setActiveNode(null); }
-    else if (activeNode.cta === "connect") { setActiveNode(null); handleAction("connect"); }
-    else                     { setDetailNode(activeNode); setActiveNode(null); }
+    if (activeNode.isImpact) {
+      setImpactOpen(true);
+      setActiveNode(null);
+    } else if (activeNode.cta === "story" || activeNode.cta === "teilen" || activeNode.key === "teilen") {
+      console.log("[ORB HINT TEILEN] → story");
+      setActiveNode(null);
+      handleAction("story");
+    } else if (activeNode.cta === "connect") {
+      setActiveNode(null);
+      handleAction("connect");
+    } else {
+      setDetailNode(activeNode);
+      setActiveNode(null);
+    }
   }, [activeNode, handleAction]);
 
   // ── Orb tap: wenn Node aktiv → öffnen ───────────────────────────
   const handleOrbTap = useCallback(() => {
     if (!activeNode) return;
-    if (activeNode.isImpact) { setImpactOpen(true); setActiveNode(null); }
-    else if (activeNode.cta === "connect") { setActiveNode(null); handleAction("connect"); }
-    else                     { setDetailNode(activeNode); setActiveNode(null); }
+    if (activeNode.isImpact) {
+      setImpactOpen(true);
+      setActiveNode(null);
+    } else if (activeNode.cta === "story" || activeNode.cta === "teilen" || activeNode.key === "teilen") {
+      console.log("[ORB TAP TEILEN] → story");
+      setActiveNode(null);
+      handleAction("story");
+    } else if (activeNode.cta === "connect") {
+      setActiveNode(null);
+      handleAction("connect");
+    } else {
+      setDetailNode(activeNode);
+      setActiveNode(null);
+    }
   }, [activeNode, handleAction]);
 
 
