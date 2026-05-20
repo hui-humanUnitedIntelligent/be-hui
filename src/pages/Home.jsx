@@ -13,8 +13,8 @@ import ImpactPage                from "./ImpactPage.jsx";
 import FavoritesPage             from "./FavoritesPage.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay from "../components/chat-center/ChatCenterOverlay.jsx";
-const ConnectionCreatePage = React.lazy(() => import("../components/connection-create/ConnectionCreatePage.jsx"));
-const TeilenFlow           = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
+import ConnectionCreatePage from "../components/connection-create/ConnectionCreatePage.jsx";
+import TeilenFlow from "../components/teilen/TeilenFlow.jsx";
 
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
@@ -182,27 +182,23 @@ function HomeInner() {
       <ProfileLauncher/>
 
       {/* ── Connection Create ───────────────────────────────────── */}
-      <Suspense fallback={null}>
-        {showConnect && (
-          <ConnectionCreatePage
-            onClose={() => {
-              console.log("[CONNECTION PAGE CLOSE]");
-              setShowConnect(false);
-            }}
-            onPublish={() => setShowConnect(false)}
-          />
-        )}
-      </Suspense>
+      {showConnect && (
+        <ConnectionCreatePage
+          onClose={() => {
+            console.log("[CONNECTION PAGE CLOSE]");
+            setShowConnect(false);
+          }}
+          onPublish={() => setShowConnect(false)}
+        />
+      )}
 
       {/* ── Teilen Flow ─────────────────────────────────────────── */}
-      <Suspense fallback={null}>
-        {showTeilen && (
-          <TeilenFlow
-            onClose={() => setShowTeilen(false)}
-            onPublished={() => setShowTeilen(false)}
-          />
-        )}
-      </Suspense>
+      {showTeilen && (
+        <TeilenFlow
+          onClose={() => setShowTeilen(false)}
+          onPublished={() => setShowTeilen(false)}
+        />
+      )}
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && (
@@ -234,18 +230,23 @@ function HomeInner() {
             isTalent={isTalent}
             onClose={() => setShowPlusSheet(false)}
             onSelect={(type) => {
-              console.log("[OPEN CONNECT FLOW] type:", type);
-              setShowPlusSheet(false);
-              if (type === "moment" || type === "story" || type === "teilen")
-                                          setShowTeilen(true);
-              else if (type === "werk")     setShowWerkPublisher(true);
-              else if (type === "erlebnis") setShowExperienceCreator(true);
-              else if (type === "wirker")   setShowTalentFlow(true);
-              else if (type === "create")   setShowCreateFlow(true);
-              // Alle connect-verwandten keys öffnen ConnectionCreatePage
-              else if (type === "connect" || type === "kollab" ||
-                       type === "mentor"  || type === "partner") {
-                console.log("[SET SHOW CONNECT] true");
+              // TIMING FIX: kein setShowPlusSheet(false) hier —
+              // HuiPlusSheet ruft onClose() selbst auf (synchron, vor RAF).
+              // onSelect kommt per requestAnimationFrame NACH dem Unmount.
+              // Wir setzen hier nur den Ziel-Flow-State.
+              console.log("[HOME onSelect]", type);
+              if (type === "moment" || type === "story" || type === "teilen") {
+                setShowTeilen(true);
+              } else if (type === "werk") {
+                setShowWerkPublisher(true);
+              } else if (type === "erlebnis") {
+                setShowExperienceCreator(true);
+              } else if (type === "wirker") {
+                setShowTalentFlow(true);
+              } else if (type === "create") {
+                setShowCreateFlow(true);
+              } else if (type === "connect" || type === "kollab" ||
+                         type === "mentor"  || type === "partner") {
                 setShowConnect(true);
               }
             }}
