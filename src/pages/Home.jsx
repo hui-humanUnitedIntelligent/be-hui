@@ -14,6 +14,7 @@ import FavoritesPage             from "./FavoritesPage.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay from "../components/chat-center/ChatCenterOverlay.jsx";
 const ConnectionCreatePage = React.lazy(() => import("../components/connection-create/ConnectionCreatePage.jsx"));
+const TeilenFlow           = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
 
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
@@ -61,6 +62,7 @@ function HomeInner() {
     showPlusSheet,     setShowPlusSheet,
     showCreateFlow,    setShowCreateFlow,
     showConnect,       setShowConnect,
+    showTeilen,        setShowTeilen,
     showTalentFlow,    setShowTalentFlow,
     showStoryComposer, setShowStoryComposer,
     showWerkPublisher, setShowWerkPublisher,
@@ -192,6 +194,16 @@ function HomeInner() {
         )}
       </Suspense>
 
+      {/* ── Teilen Flow ─────────────────────────────────────────── */}
+      <Suspense fallback={null}>
+        {showTeilen && (
+          <TeilenFlow
+            onClose={() => setShowTeilen(false)}
+            onPublished={() => setShowTeilen(false)}
+          />
+        )}
+      </Suspense>
+
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && (
         <ChatCenterOverlay
@@ -224,7 +236,8 @@ function HomeInner() {
             onSelect={(type) => {
               console.log("[OPEN CONNECT FLOW] type:", type);
               setShowPlusSheet(false);
-              if (type === "moment")        setShowStoryComposer(true);
+              if (type === "moment" || type === "story" || type === "teilen")
+                                          setShowTeilen(true);
               else if (type === "werk")     setShowWerkPublisher(true);
               else if (type === "erlebnis") setShowExperienceCreator(true);
               else if (type === "wirker")   setShowTalentFlow(true);
