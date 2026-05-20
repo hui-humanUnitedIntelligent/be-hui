@@ -24,8 +24,9 @@ const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembership
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
-const WorkFlow            = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
-const ExperienceFlow      = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
+// Statische Imports — kein Suspense-Hang bei ersten Aufruf
+import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
+import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
 const ExperienceCreator   = React.lazy(() => import("../components/ExperienceCreator.jsx"));
 
 const C = { cream: "#F9F6F2" };
