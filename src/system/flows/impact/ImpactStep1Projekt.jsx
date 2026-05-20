@@ -106,8 +106,8 @@ export function ImpactStep1Projekt({
   const pdfRef   = useRef();
   const fileRef  = useRef();
 
-  const canNext = form.projectName.trim().length >= 2
-    && form.shortDesc.trim().length >= 10;
+  // Nur Projektname ist Pflichtfeld für Step 1
+  const canNext = form.projectName.trim().length >= 2;
 
   const addFiles = useCallback(list => {
     const arr = Array.from(list).map(f => ({
