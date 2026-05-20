@@ -102,7 +102,7 @@ export function FlowManager({
     case "session":
     case "erlebnis_s":
       return (
-        <ExperienceCreator
+        <ExperienceFlow
           key="flow-experience"
           onClose={close}
         />
