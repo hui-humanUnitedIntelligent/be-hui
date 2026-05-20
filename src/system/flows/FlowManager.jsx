@@ -28,6 +28,7 @@ import React, { useCallback } from "react";
 import TeilenFlow          from "../../components/teilen/TeilenFlow.jsx";
 import ConnectionCreatePage from "../../components/connection-create/ConnectionCreatePage.jsx";
 import ExperienceFlow      from "./experience/ExperienceFlow.jsx";
+import ImpactFlow          from "./impact/ImpactFlow.jsx";
 import WorkFlow            from "./work/WorkFlow.jsx";
 
 /* ── Flow-Key → Komponente Mapping ─────────────────────────── */
@@ -108,13 +109,18 @@ export function FlowManager({
         />
       );
 
-    // ── Impact-Actions (ImpactDetail handelt intern) ───────
-    // Diese werden direkt im OrbSystem/ImpactDetail behandelt.
-    // Falls sie durch die Detail-Card kommen:
+    // ── Wirkung starten (ImpactPool Bewerbung) ────────────
+    case "impact":
     case "idee":
     case "wirkraum":
     case "einreich":
-      return null; // ImpactDetail handelt dies intern
+    case "wirkung":
+      return (
+        <ImpactFlow
+          key="flow-impact"
+          onClose={close}
+        />
+      );
 
     // ── Unbekannt ──────────────────────────────────────────
     default:
