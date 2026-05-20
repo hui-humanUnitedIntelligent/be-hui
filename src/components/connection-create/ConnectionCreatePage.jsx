@@ -4,7 +4,7 @@
 // Step 2: Ausdruck (Details)
 // Step 3: Realität (Preview + Publish)
 //
-// zIndex: 9450
+// zIndex: 10100 (über BottomNav 9999)
 
 import React, { useState, useCallback, useRef } from "react";
 import StepProgressBar        from "./StepProgressBar.jsx";
@@ -229,7 +229,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9450,
+      position:"fixed", inset:0, zIndex:10100,  /* über BottomNav (9999) */
       background:C.cream,
       display:"flex", flexDirection:"column",
       overflow:"clip",   /* iOS-Fix: kein neuer stacking context */
@@ -291,8 +291,9 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         key={step}
         style={{
           flex:1, overflowY:"auto", overflowX:"hidden",
-          position:"relative", zIndex:3,   /* über Atmosphere layers */
+          position:"relative", zIndex:3,
           paddingTop:24,
+          paddingBottom:24,  /* Weiter-Button scrollt vollständig sichtbar */
           animation:`step-fade-in 0.28s cubic-bezier(0.22,1,0.36,1) both`,
           display:"flex", flexDirection:"column",
         }}
