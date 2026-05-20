@@ -17,6 +17,7 @@ import ConnectionCreatePage from "../components/connection-create/ConnectionCrea
 import TeilenFlow from "../components/teilen/TeilenFlow.jsx";
 import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
 import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
+import ImpactFlow    from "../system/flows/impact/ImpactFlow.jsx";
 
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
@@ -259,6 +260,11 @@ function HomeInner() {
               // ── Wirker werden ────────────────────────────────────
               } else if (type === "wirker" || type === "membership") {
                 setShowTalentFlow(true);
+              // ── Impact / Wirkung starten ────────────────────────
+              } else if (type === "impact" || type === "idee" ||
+                         type === "wirkraum" || type === "einreich" ||
+                         type === "wirkung") {
+                setShowImpactFlow(true);
               // ── Create ──────────────────────────────────────────
               } else if (type === "create") {
                 setShowCreateFlow(true);
@@ -303,6 +309,11 @@ function HomeInner() {
         )}
         {showCreateFlow && (
           <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
+        )}
+        {showImpactFlow && (
+          <ImpactFlow
+            onClose={() => setShowImpactFlow(false)}
+          />
         )}
       </Suspense>
 
