@@ -86,6 +86,7 @@ export default function HomeShell({ children }) {
   const [showStoryComposer,      setShowStoryComposer]     = useState(false);
   const [showWerkPublisher,      setShowWerkPublisher]     = useState(false);
   const [showExperienceCreator,  setShowExperienceCreator] = useState(false);
+  const [showImpactFlow,         setShowImpactFlow]         = useState(false);
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
@@ -108,6 +109,7 @@ export default function HomeShell({ children }) {
     setShowStoryComposer(false);
     setShowWerkPublisher(false);
     setShowExperienceCreator(false);
+    setShowImpactFlow(false);
     setShowMatch(false);
     setShowMap(false);
     setShowChat(false);
@@ -183,6 +185,7 @@ export default function HomeShell({ children }) {
     showStoryComposer,     setShowStoryComposer,
     showWerkPublisher,     setShowWerkPublisher,
     showExperienceCreator, setShowExperienceCreator,
+    showImpactFlow,         setShowImpactFlow,
     showWerkDetail,        setShowWerkDetail,
     showWerkCheckout,      setShowWerkCheckout,
     showWerkeKorb,         setShowWerkeKorb,
