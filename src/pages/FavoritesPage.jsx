@@ -164,7 +164,7 @@ function HeroCard({ item, onDetails }) {
           boxShadow:"0 2px 8px rgba(0,0,0,0.15)",
         }}
       >
-        {liked ? "\u2665" : "\u2661"}
+        {resonated ? "✦" : "✦"}
       </button>
 
       {/* Content */}
@@ -282,7 +282,7 @@ function CreatorCard({ person, idx, onView }) {
             boxShadow:"0 2px 6px rgba(0,0,0,0.12)",
           }}
         >
-          {liked ? "\u2665" : "\u2661"}
+          {resonated ? "✦" : "✦"}
         </button>
       </div>
       {/* Info */}
@@ -361,7 +361,7 @@ function WorkCard({ work, idx, onView }) {
             boxShadow:"0 2px 6px rgba(0,0,0,0.12)",
           }}
         >
-          {liked ? "\u2665" : "\u2661"}
+          {resonated ? "✦" : "✦"}
         </button>
       </div>
       <div style={{ padding:"8px 10px 10px" }}>
@@ -436,7 +436,7 @@ function ExperienceCard({ exp, idx, onView }) {
             fontSize:13, color: resonated ? "#fff" : C.coral,
           }}
         >
-          {liked ? "\u2665" : "\u2661"}
+          {resonated ? "✦" : "✦"}
         </button>
       </div>
       {/* Info */}
