@@ -2,7 +2,7 @@
 // Step 3 — Veröffentlichung: Sichtbarkeit + immersive Live-Vorschau
 
 import React from "react";
-import { ET } from "./ExperienceFlow.jsx";
+import { ET } from "./ExperienceTokens.js";
 
 /* ── Sichtbarkeits-Cards ────────────────────────────────────── */
 function VisibilityCard({ icon, label, sub, active, onClick }) {
