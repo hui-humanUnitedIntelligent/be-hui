@@ -18,8 +18,8 @@ export default function NotificationButton({ count=0, onPress }) {
         display:"flex", alignItems:"center", justifyContent:"center",
         cursor:"pointer", position:"relative",
         WebkitTapHighlightColor:"transparent",
-        transform: pressed ? "scale(0.88)" : "scale(1)",
-        transition:"transform 0.15s ease",
+        transform: pressed ? "scale(0.92)" : "scale(1)",
+        transition:"transform 0.22s ease",
       }}
       onTouchStart={() => setPressed(true)}
       onTouchEnd={() => setPressed(false)}
@@ -36,9 +36,9 @@ export default function NotificationButton({ count=0, onPress }) {
         <div style={{
           position:"absolute", top:5, right:5,
           width:7, height:7, borderRadius:"50%",
-          background:"linear-gradient(135deg,#FF8A6B,#FF5F5F)",
-          border:"1.5px solid rgba(255,251,248,0.96)",
-          boxShadow:"0 0 5px rgba(255,138,107,0.6)",
+          background:"rgba(22,215,197,0.85)",
+          border:"1.5px solid rgba(255,251,248,0.98)",
+          boxShadow:"0 0 5px rgba(22,215,197,0.40)",
         }}/>
       )}
     </button>
