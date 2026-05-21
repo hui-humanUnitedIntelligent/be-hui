@@ -35,7 +35,7 @@ const CSS = `
     100% { background-position:  200% 0; }
   }
   @keyframes hf-fade-up {
-    from { opacity:0; transform:translateY(10px); }
+    from { opacity:0; transform:translateY(6px); }
     to   { opacity:1; transform:translateY(0); }
   }
   @keyframes hf-pulse-ring {
@@ -43,7 +43,7 @@ const CSS = `
     50%     { transform:scale(1.15); opacity:0; }
   }
   .hf-root {
-    background: #FAFAF8;
+    background: #FBFAF8;
     min-height: 100%;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
                  "Segoe UI", system-ui, sans-serif;
@@ -74,7 +74,7 @@ const CSS = `
     border-radius: 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
     overflow: hidden;
-    transition: box-shadow 0.22s ease, transform 0.22s ease;
+    transition: box-shadow 0.35s ease, transform 0.35s ease;
   }
   .hf-card:active {
     box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 28px rgba(0,0,0,0.10);
@@ -190,7 +190,7 @@ const MOCK_FEED = [
       "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=280&q=75",
     ],
     caption: "Neue Keramikstücke aus meiner Werkstatt 🌿",
-    likes: 34,
+    resonanz: 34,
     comments: 8,
     viewers: [
       "https://i.pravatar.cc/32?img=12",
@@ -199,7 +199,7 @@ const MOCK_FEED = [
       "https://i.pravatar.cc/32?img=56",
     ],
     viewerExtra: 5,
-    liked: false,
+    resonated: false,
   },
   {
     id: "f2",
@@ -211,7 +211,7 @@ const MOCK_FEED = [
     expImg: "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=500&q=80",
     expTitle: "Holzarbeiten für Anfänger",
     expMeta: "Workshop · 2. Juni · Wien",
-    liked: false,
+    resonated: false,
     saved: false,
   },
   {
@@ -222,9 +222,9 @@ const MOCK_FEED = [
     action: "sucht kreative Menschen",
     time: "1 Std.",
     caption: "Ich starte ein neues Projekt in Hamburg und suche Leute mit Lust auf Kollaboration 🎨",
-    likes: 12,
+    resonanz: 12,
     comments: 3,
-    liked: false,
+    resonated: false,
   },
 ];
 
@@ -674,7 +674,7 @@ function FeedItem({ item, isLiked, onProfile, onLike, onComment }) {
       }}>
         {/* Like */}
         <button onClick={onLike} className={`hf-action-btn${isLiked ? " hf-action-btn--liked" : ""}`}>
-          <span style={{ fontSize: 15 }}>{isLiked ? "❤️" : "🤍"}</span>
+          <span style={{ fontSize: 15 }}>{isLiked ? "✦" : "🤍"}</span>
           <span>{(item.likes || 0) + (isLiked ? 1 : 0)}</span>
         </button>
         {/* Comment */}
