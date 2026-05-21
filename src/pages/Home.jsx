@@ -8,16 +8,18 @@ import HomeHeader                from "../components/home/header/HomeHeader.jsx"
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import HomeFeed                  from "../components/HomeFeed.jsx";
-import DiscoverPage              from "./DiscoverPage.jsx";
-import ImpactPage                from "./ImpactPage.jsx";
-import FavoritesPage             from "./FavoritesPage.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
-import ChatCenterOverlay from "../components/chat-center/ChatCenterOverlay.jsx";
-import ConnectionCreatePage from "../components/connection-create/ConnectionCreatePage.jsx";
-import TeilenFlow from "../components/teilen/TeilenFlow.jsx";
-import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
-import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
-import ImpactFlow    from "../system/flows/impact/ImpactFlow.jsx";
+import ChatCenterOverlay         from "../components/chat-center/ChatCenterOverlay.jsx";
+import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
+// ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
+const DiscoverPage   = React.lazy(() => import("./DiscoverPage.jsx"));
+const ImpactPage     = React.lazy(() => import("./ImpactPage.jsx"));
+const FavoritesPage  = React.lazy(() => import("./FavoritesPage.jsx"));
+// ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
+const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
+const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
+const ExperienceFlow = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
+const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlow.jsx"));
 
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
