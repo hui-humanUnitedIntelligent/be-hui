@@ -243,7 +243,7 @@ const MOCK_ERLEBNISSE = [
     spots:12,
   },
   {
-    id:"e4", title:"Community Dinner",
+    id:"e4", title:"Gemeinschafts-Abend",
     img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
     category:"Gemeinschaft", city:"Hamburg", date:"25. Mai",
     badge:"Beliebt", badgeColor: C.coral,
