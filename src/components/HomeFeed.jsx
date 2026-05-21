@@ -3,6 +3,7 @@
 // Design: helle Oberfläche, weicher Schatten, Glassmorphism, Türkis/Coral
 // Struktur: StickyHeader → StoryLeiste → Heute in deiner Nähe → SozialerFeed → MenschenFürDich
 
+import { useFeedData, useResonanceState } from '../lib/AppStateContext';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 
 /* ─── Design Tokens ──────────────────────────────────────────────────── */
