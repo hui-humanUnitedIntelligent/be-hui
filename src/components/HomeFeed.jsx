@@ -121,7 +121,7 @@ const CSS = `
     background: rgba(0,0,0,0.05);
     transform: scale(0.95);
   }
-  .hf-action-btn--liked {
+  .hf-action-btn--resonated {
     color: #FF4D6B;
   }
   /* Event Badge */
@@ -147,7 +147,7 @@ const CSS = `
 
 /* ─── Mock-Daten (werden durch echte Props ersetzt) ──────────────────── */
 const MOCK_STORIES = [
-  { id: "you",  label: "Deine Story", avatar: null,   isYou: true, isLive: false },
+  { id: "you",  label: "Dein Moment", avatar: null,   isYou: true, isLive: false },
   { id: "mia",  label: "Mia",         avatar: "https://i.pravatar.cc/80?img=47",  isLive: false },
   { id: "leon", label: "Leon",         avatar: "https://i.pravatar.cc/80?img=51",  isLive: true },
   { id: "sara", label: "Sara",         avatar: "https://i.pravatar.cc/80?img=45",  isLive: false },
@@ -274,7 +274,7 @@ function IconBtn({ count, onClick, children, accent = T.coral }) {
   );
 }
 
-/* ─── Story-Leiste ─────────────────────────────────────────────────── */
+/* ─── Momente-Leiste ─────────────────────────────────────────────────── */
 function StoryLeiste({ stories = MOCK_STORIES, onStory }) {
   return (
     <div style={{ padding: "14px 0 4px 0" }}>
@@ -347,7 +347,7 @@ function StoryItem({ story, onPress }) {
           </div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 600, color: T.teal, letterSpacing: -0.1 }}>
-          Deine Story
+          Dein Moment
         </span>
       </button>
     );
@@ -412,7 +412,7 @@ function HeuteSection({ events = MOCK_EVENTS, onEvent, onMoreEvents }) {
             <circle cx="12" cy="9" r="2.5" fill={T.teal}/>
           </svg>
           <span style={{ fontSize: 15, fontWeight: 700, color: T.ink, letterSpacing: -0.3 }}>
-            Heute in deiner Nähe
+            Erlebnisse in deiner Nähe
           </span>
         </div>
         <button onClick={onMoreEvents} className="hf-tap" style={{
@@ -526,7 +526,7 @@ function EventCard({ event, onPress }) {
   );
 }
 
-/* ─── Sozialer Feed ─────────────────────────────────────────────────── */
+/* ─── Gemeinschaft Feed ─────────────────────────────────────────────────── */
 function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
   const [liked, setLiked] = useState({});
 
@@ -717,7 +717,7 @@ function FeedItem({ item, isLiked, onProfile, onLike, onComment }) {
   );
 }
 
-/* ─── Menschen für dich ─────────────────────────────────────────────── */
+/* ─── Begegnungen ─────────────────────────────────────────────── */
 function MenschenSection({ people = MOCK_PEOPLE, onPerson }) {
   return (
     <div style={{ padding: "24px 0 32px" }}>
