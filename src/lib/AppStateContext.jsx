@@ -26,7 +26,8 @@ function throttle(fn, wait = 300) {
     const now = Date.now();
     const remaining = wait - (now - lastCall);
     if (remaining <= 0) {
-      if (timer) { clearTimeout(timer); timer = null; }
+      // FIX: defensive guard — timer kann undefined sein bei erstem Aufruf
+      if (timer != null) { clearTimeout(timer); timer = null; }
       lastCall = now;
       fn(...args);
     } else if (!timer) {
