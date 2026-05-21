@@ -2,7 +2,7 @@
 // Step 3 — Veröffentlichung: Sichtbarkeit + Live-Vorschau
 
 import React from "react";
-import { WT } from "./WorkFlow.jsx";
+import { WT } from "./WorkTokens.js";
 
 /* ── Sichtbarkeits-Card ──────────────────────────────────────── */
 function VisibilityCard({ icon, label, sub, active, onClick }) {
