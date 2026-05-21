@@ -341,7 +341,7 @@ export function AppStateProvider({ children }) {
     } else {
       await supabase.from("work_likes").insert({ user_id: user.id, work_id: workId });
     }
-  }, [user?.id, likedWorks]);
+  }, [user?.id, inspiredWorks]);
 
   // ────────────────────────────────────────────────────────────
   // PROFILE UPDATE — zentrales Update, invalidiert alle Caches
@@ -624,7 +624,7 @@ export const useFollowStatus = (userId) => {
 
 /** Nur Save/Like Status für ein Werk */
 export const useWorkInteraction = (workId) => {
-  const { savedWorks, likedWorks, toggleSaveWork, toggleLikeWork } = useAppState();
+  const { savedWorks, inspiredWorks, toggleSaveWork, toggleLikeWork } = useAppState();
   return {
     isSaved: savedWorks.has(workId),
     isLiked: inspiredWorks.has(workId),  // @deprecated — use isInspired
