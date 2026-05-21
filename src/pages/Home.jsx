@@ -35,7 +35,10 @@ const C = { cream: "#F9F6F2" };
 
 const GLOBAL_CSS = `
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  html, body { margin: 0; padding: 0; }
+  /* Safari Fix: overflow:hidden auf body bricht Layout-Viewport-Berechnung.
+     Scroll-Lock läuft über #root + Feed-Container, NICHT body. */
+  #root { width: 100%; max-width: 100%; overflow-x: hidden; }
   .hui-scroll {
     scrollbar-width: none;
     -ms-overflow-style: none;
