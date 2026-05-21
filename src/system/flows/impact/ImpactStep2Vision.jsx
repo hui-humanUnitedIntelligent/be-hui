@@ -2,7 +2,7 @@
 // Step 2 — Vision & Finanzierung
 
 import React, { useState } from "react";
-import { IT, IInput, ITextarea, ImpactNextBtn } from "./ImpactTokens.js";
+import { IT, IInput, ITextarea, ImpactNextBtn } from "./ImpactTokens.jsx";
 
 /* ── Großes Finanzierungs-Eingabefeld ─────────────────────────── */
 function FundingInput({ value, onChange }) {
