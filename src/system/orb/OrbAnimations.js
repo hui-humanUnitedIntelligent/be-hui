@@ -64,9 +64,9 @@ export const ORB_CSS = `
   /* ── Node Float — nur translateY, Position nie verändert ── */
   @keyframes orbFloatA { 0%,100%{transform:translateY(0px)}  50%{transform:translateY(-7px)} }
   @keyframes orbFloatB { 0%,100%{transform:translateY(4px)}  50%{transform:translateY(-5px)} }
-  @keyframes orbFloatC { 0%,100%{transform:translateY(-3px)} 50%{transform:translateY(6px)}  }
+  @keyframes orbFloatC { 0%,100%{transform:translateY(-3px)} 50%{transform:translateY(4px)}  }
   @keyframes orbFloatD { 0%,100%{transform:translateY(5px)}  50%{transform:translateY(-4px)} }
-  @keyframes orbFloatE { 0%,100%{transform:translateY(-4px)} 50%{transform:translateY(6px)}  }
+  @keyframes orbFloatE { 0%,100%{transform:translateY(-4px)} 50%{transform:translateY(4px)}  }
 
   /* ── Atmosphere Blobs ───────────────────────────────────── */
   @keyframes orbBlobA {
@@ -102,7 +102,7 @@ export const ORB_CSS = `
     to   { opacity:1; transform:translateX(-50%) translateY(0);    }
   }
   @keyframes orbFadeUp {
-    from { opacity:0; transform:translateY(8px); }
+    from { opacity:0; transform:translateY(5px); }
     to   { opacity:1; transform:translateY(0);   }
   }
   @keyframes orbFadeIn {
