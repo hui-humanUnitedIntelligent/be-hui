@@ -114,12 +114,32 @@ export default function WirkerIdentity({ profile }) {
         borderRadius:18,
         boxShadow:"0 2px 14px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03)",
         overflow:"hidden",
-        marginBottom:20,
+        marginBottom:12,
       }}>
         <StatCol value={fmt(erlebnisse)} label="Erlebnisse"/>
         <StatCol value={fmt(gefolgt)}   label="Gefolgt" dimmed/>
         <StatCol value={wirkungFmt}     label="Wirkung"/>
         <StatCol value={fmt(verbindungen)} label="Verbindungen" last/>
+      </div>
+
+      {/* Subtiles Empfehlungs-Signal — kein Rating, kein Stern */}
+      <div style={{
+        display:"flex", alignItems:"center", gap:6,
+        marginBottom:20, flexWrap:"wrap",
+      }}>
+        {[
+          "✦ Wird oft weiterempfohlen",
+          "✦ Schöne Begegnungen entstehen",
+        ].map((signal, i) => (
+          <div key={i} style={{
+            display:"inline-flex", alignItems:"center",
+            padding:"4px 11px", borderRadius:99,
+            background:"rgba(22,215,197,0.07)",
+            border:"1px solid rgba(22,215,197,0.16)",
+            fontSize:11.5, color:"rgba(22,215,197,0.85)",
+            fontWeight:500, letterSpacing:0.1,
+          }}>{signal}</div>
+        ))}
       </div>
 
       <style>{`
