@@ -62,9 +62,9 @@ export default function WirkerConnectionCard({
           onTouchStart={e => e.currentTarget.style.transform="scale(0.94)"}
           onTouchEnd={e => e.currentTarget.style.transform="scale(1)"}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill={liked ? C.coral : "none"}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill={resonated ? C.coral : "none"}>
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-              stroke={liked ? C.coral : "rgba(80,80,80,0.5)"} strokeWidth="1.8"
+              stroke={resonated ? C.coral : "rgba(80,80,80,0.5)"} strokeWidth="1.8"
               strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
