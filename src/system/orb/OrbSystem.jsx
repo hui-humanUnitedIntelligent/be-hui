@@ -58,10 +58,20 @@ export default function OrbSystem({
   }, []);
 
   // ── Responsive Viewport ──────────────────────────────────────
-  const [vw, setVw] = useState(window.innerWidth);
-  const [vh, setVh] = useState(window.innerHeight);
+  // Safari Fix: visualViewport.width ist der sichtbare Viewport (ohne Scrollbar),
+  // window.innerWidth ist der Layout-Viewport (kann auf iPad groesser sein).
+  function getVw() { return (window.visualViewport?.width  ?? window.innerWidth);  }
+  function getVh() { return (window.visualViewport?.height ?? window.innerHeight); }
+  const [vw, setVw] = useState(getVw);
+  const [vh, setVh] = useState(getVh);
   useEffect(() => {
-    const fn = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
+    const fn = () => { setVw(getVw()); setVh(getVh()); };
+    // visualViewport resize: praeziser als window resize auf iOS
+    const vvp = window.visualViewport;
+    if (vvp) {
+      vvp.addEventListener("resize", fn);
+      return () => vvp.removeEventListener("resize", fn);
+    }
     window.addEventListener("resize", fn, { passive: true });
     return () => window.removeEventListener("resize", fn);
   }, []);
@@ -86,7 +96,7 @@ export default function OrbSystem({
   const ambientColor = orb.activeNode?.color || T.teal;
 
   // ── Stage-Größe ─────────────────────────────────────────────
-  const stageW = orbR * 2 + 180;
+  const stageW = Math.min(orbR * 2 + 180, vw - 32); // Safari: nie breiter als Viewport
   const stageH = orbR * 2 + 200;
 
   return (
