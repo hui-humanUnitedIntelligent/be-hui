@@ -517,8 +517,8 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const [experiences,   setExperiences]   = useState(MOCK_ERLEBNISSE);
   const [talents,       setTalents]       = useState([]);
   const [loading,       setLoading]       = useState(false);
-  const [likedHero,     setLikedHero]     = useState(new Set());
-  const [likedWerke,    setLikedWerke]    = useState(new Set());
+  const [inspiredHero,  setInspiredHero]  = useState(new Set());
+  const [inspiredWerke, setInspiredWerke] = useState(new Set());
   const [showSearch,    setShowSearch]    = useState(false);
   const [searchQ,       setSearchQ]       = useState("");
   const searchRef = useRef(null);
@@ -580,8 +580,8 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
     if (showSearch) setTimeout(() => searchRef.current?.focus(), 80);
   }, [showSearch]);
 
-  const toggleLikeHero  = id => setLikedHero(s  => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const toggleLikeWerk  = id => setLikedWerke(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleInspireHero  = id => setInspiredHero(s  => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleInspireWerk  = id => setInspiredWerke(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const handleView = item => onView?.(item);
 
@@ -727,8 +727,8 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
               item={item}
               idx={i}
               onPress={handleView}
-              liked={likedHero.has(item.id)}
-              onLike={toggleLikeHero}
+              liked={inspiredHero.has(item.id)}
+              onLike={toggleInspireHero}
             />
           ))}
         </div>
@@ -758,8 +758,8 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
                 item={werk}
                 idx={i}
                 onPress={handleView}
-                liked={likedWerke.has(werk.id)}
-                onLike={toggleLikeWerk}
+                liked={inspiredWerke.has(werk.id)}
+                onLike={toggleInspireWerk}
               />
             ))
           }
