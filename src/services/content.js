@@ -25,7 +25,7 @@
 import { supabase }      from '../lib/supabaseClient';
 import { sentryCapture } from '../lib/sentry.js';
 import { cachedQuery, safeQuery, CACHE_TTL } from '../lib/perfUtils.js';
-import { createResonance, removeResonance, getResonanceSummary }
+import { createResonance, removeResonance, getResonanceScore }
   from '../lib/resonance/index.js';
 import { canCreateContent, canPublish, CONTENT_TYPES } from '../lib/roles/index.js';
 
