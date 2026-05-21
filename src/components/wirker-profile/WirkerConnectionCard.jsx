@@ -14,7 +14,7 @@ export default function WirkerConnectionCard({
   profile, followed, followLoading,
   onChat, onFollow, onBook,
 }) {
-  const [liked, setLiked] = useState(false);
+  const [resonated, setResonated] = useState(false);
 
   return (
     <div style={{ padding:"0 20px 16px" }}>
@@ -47,7 +47,7 @@ export default function WirkerConnectionCard({
 
         {/* ── Herz Button ── */}
         <button
-          onClick={() => setLiked(l => !l)}
+          onClick={() => setResonated(l => !l)}
           style={{
             width:48, height:48, borderRadius:"50%",
             background:"white",
