@@ -47,11 +47,11 @@ export const feedService = {
         // feed_posts: Gedanken (eigene + Followed)
         safeQuery(
           supabase.from('feed_posts')
-            .select(\`
+            .select(`
               id, user_id, caption, media_url, media_type,
               mood, location, created_at,
               profile:user_id(id, display_name, avatar_url, talent, location_label)
-            \`)
+            `)
             .eq('is_archived', false)
             .gte('created_at', since)
             .order('created_at', { ascending: false })
@@ -61,11 +61,11 @@ export const feedService = {
         // works: Veröffentlichte Werke
         safeQuery(
           supabase.from('works')
-            .select(\`
+            .select(`
               id, title, description, cover_url, category, price, status,
               creator_id, created_at,
               profile:creator_id(id, display_name, avatar_url, talent)
-            \`)
+            `)
             .eq('status', 'published')
             .gte('created_at', since)
             .order('created_at', { ascending: false })
@@ -189,11 +189,11 @@ export const worksService = {
   async getWork(id) {
     try {
       const { data, error } = await supabase.from('works')
-        .select(\`
+        .select(`
           id, title, description, cover_url, images, category, medium,
           price, status, visibility, tags, location_text, creator_id, created_at,
           profile:creator_id(id, display_name, avatar_url, talent, location_label, bio)
-        \`)
+        `)
         .eq('id', id)
         .single();
       if (error) throw error;
@@ -208,10 +208,10 @@ export const worksService = {
   async getPublishedWorks({ limit = 16, category = null, excludeIds = [] } = {}) {
     try {
       let q = supabase.from('works')
-        .select(\`
+        .select(`
           id, title, cover_url, category, price, creator_id, created_at,
           profile:creator_id(id, display_name, avatar_url, talent)
-        \`)
+        `)
         .eq('status', 'published')
         .eq('visibility', 'public')
         .order('created_at', { ascending: false })
@@ -354,7 +354,7 @@ export const storageService = {
     // Validierung
     const MAX_SIZE_MB = 10;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      return { error: \`Datei zu groß (max \${MAX_SIZE_MB}MB)\` };
+      return { error: `Datei zu groß (max ${MAX_SIZE_MB}MB)` };
     }
 
     const ALLOWED = ['image/jpeg','image/png','image/webp','image/gif','video/mp4','application/pdf'];
@@ -364,7 +364,7 @@ export const storageService = {
 
     try {
       const ext  = file.name.split('.').pop().toLowerCase();
-      const path = \`\${folder || 'uploads'}/\${userId}/\${Date.now()}-\${Math.random().toString(36).slice(2,8)}.\${ext}\`;
+      const path = `${folder || 'uploads'}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from(bucket)
@@ -401,7 +401,7 @@ export const storageService = {
         urls.push(r.value.url);
         paths.push(r.value.path);
       } else {
-        errors.push(\`Datei \${i+1}: \${r.reason?.message || r.value?.error || 'Fehler'}\`);
+        errors.push(`Datei ${i+1}: ${r.reason?.message || r.value?.error || 'Fehler'}`);
       }
     });
 
@@ -449,10 +449,10 @@ export const discoverService = {
         // Werke: neueste veröffentlichte
         safeQuery(
           supabase.from('works')
-            .select(\`
+            .select(`
               id, title, cover_url, category, price, creator_id,
               profile:creator_id(display_name, avatar_url)
-            \`)
+            `)
             .eq('status', 'published')
             .eq('visibility', 'public')
             .order('created_at', { ascending: false })
@@ -462,10 +462,10 @@ export const discoverService = {
         // Erlebnisse
         safeQuery(
           supabase.from('experiences')
-            .select(\`
+            .select(`
               id, title, cover_url, price, location_text, duration,
               profile:user_id(display_name, avatar_url)
-            \`)
+            `)
             .eq('status', 'published')
             .order('created_at', { ascending: false })
             .limit(Math.ceil(limit / 2))
