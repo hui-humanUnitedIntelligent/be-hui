@@ -93,7 +93,7 @@ export function AppStateProvider({ children }) {
   const [notifications,  setNotifications]  = useState([]);
   const [follows,        setFollows]        = useState(new Set()); // Set<userId>
   const [savedWorks,     setSavedWorks]     = useState(new Set()); // Set<workId>
-  const [likedWorks,     setLikedWorks]     = useState(new Set()); // Set<workId>
+  const [inspiredWorks,  setInspiredWorks]  = useState(new Set()); // Set<workId> — resonated
 
   // ── LOADING / ERROR STATE ────────────────────────────────────
   const [loadingStates,  setLoadingStates]  = useState({});
@@ -331,11 +331,11 @@ export function AppStateProvider({ children }) {
 
   const toggleLikeWork = useCallback(async (workId) => {
     if (!user?.id || !workId) return;
-    const isLiked = likedWorks.has(workId);
-    setLikedWorks(prev => {
-      const next = new Set(prev); isLiked ? next.delete(workId) : next.add(workId); return next;
+    const isInspiredNow = inspiredWorks.has(workId);
+    setInspiredWorks(prev => {
+      const next = new Set(prev); isInspiredNow ? next.delete(workId) : next.add(workId); return next;
     });
-    if (isLiked) {
+    if (isInspiredNow) {
       await supabase.from("work_likes").delete()
         .eq("user_id", user.id).eq("work_id", workId);
     } else {
@@ -483,7 +483,7 @@ export function AppStateProvider({ children }) {
       setNotifications([]);
       setFollows(new Set());
       setSavedWorks(new Set());
-      setLikedWorks(new Set());
+      setInspiredWorks(new Set());
       cache.clear();
     }
   }, [user]);
@@ -506,7 +506,7 @@ export function AppStateProvider({ children }) {
     // ── Data ──────────────────────────────────────────────────
     ownWorks, ownExperiences, bookings, chats,
     notifications, unreadNotifCount,
-    follows, savedWorks, likedWorks,
+    follows, savedWorks, inspiredWorks,
 
     // ── Loading / Errors ──────────────────────────────────────
     loadingStates, errorStates,
@@ -530,7 +530,7 @@ export function AppStateProvider({ children }) {
   }), [
     ownWorks, ownExperiences, bookings, chats,
     notifications, unreadNotifCount,
-    follows, savedWorks, likedWorks,
+    follows, savedWorks, inspiredWorks,
     loadingStates, errorStates,
     uiState,
     updateUI, switchTab,
@@ -627,8 +627,8 @@ export const useWorkInteraction = (workId) => {
   const { savedWorks, likedWorks, toggleSaveWork, toggleLikeWork } = useAppState();
   return {
     isSaved: savedWorks.has(workId),
-    isLiked: likedWorks.has(workId),  // @deprecated — use isInspired
-    isInspired: likedWorks.has(workId),
+    isLiked: inspiredWorks.has(workId),  // @deprecated — use isInspired
+    isInspired: inspiredWorks.has(workId),
     toggleSave: () => toggleSaveWork(workId),
     toggleLike: () => toggleLikeWork(workId),
   };
