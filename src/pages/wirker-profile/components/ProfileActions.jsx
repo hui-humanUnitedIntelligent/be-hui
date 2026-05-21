@@ -41,23 +41,24 @@ export function ProfileActions({
         disabled={followLoading}
         style={{
           flex: 1,
-          height: 42,
-          borderRadius: 14,
+          height: 44,
+          borderRadius: 16,
           border: followed
-            ? `1.5px solid rgba(22,215,197,0.4)`
+            ? `1.5px solid rgba(22,215,197,0.35)`
             : "none",
           background: followed
-            ? C.tealPale
-            : `linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
+            ? "rgba(22,215,197,0.08)"
+            : `linear-gradient(135deg, rgba(22,215,197,0.90) 0%, rgba(17,197,183,0.90) 100%)`,
           color: followed ? C.teal2 : "#fff",
-          fontSize: 14, fontWeight: 700,
+          fontSize: 14, fontWeight: 600,
           cursor: followLoading ? "default" : "pointer",
           opacity: followLoading ? 0.7 : 1,
-          transition: "all 0.2s ease",
-          boxShadow: followed ? "none" : "0 4px 14px rgba(22,215,197,0.30)",
+          transition: "all 0.35s ease",
+          boxShadow: followed ? "none" : "0 4px 18px rgba(22,215,197,0.22)",
+          backdropFilter: followed ? "blur(8px)" : "none",
         }}
       >
-        {followLoading ? "…" : followed ? "Folge ich" : "Folgen"}
+        {followLoading ? "…" : followed ? "Verbunden ✦" : "Verbinden"}
       </button>
 
       {/* Chat */}
@@ -66,8 +67,8 @@ export function ProfileActions({
         style={{
           width: 42, height: 42,
           borderRadius: 14,
-          background: "#f0f0f0",
-          border: "none", cursor: "pointer",
+          background: "rgba(248,247,255,0.9)",
+          border: "1px solid rgba(0,0,0,0.06)", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 18,
           transition: "background 0.15s",
