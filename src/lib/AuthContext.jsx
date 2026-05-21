@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
         // Profil existiert noch nicht → anlegen
         const { data: newProf } = await withTimeout(
           supabase.from("profiles").upsert({
-            id: userId, display_name: "", role: "basisuser",
+            id: userId, display_name: "", role: "basis_user",
             is_wirker: false, has_talent_profile: false, profile_modules: {},
           }).select().single(), 6000
         );
@@ -293,23 +293,61 @@ export function AuthProvider({ children }) {
   const signInWithPhone  = useCallback(() => noopAsync('signInWithPhone'), []);
   const signInWithGitHub = useCallback(() => noopAsync('signInWithGitHub'), []);
 
-  const isWirker         = profile?.has_talent_profile || profile?.is_wirker || false;
+
+  const refreshProfile = useCallback(async () => {
+    if (!user?.id) return;
+    profileLoadingRef.current = false;  // Force-reload erlauben
+    await loadProfile(user.id);
+  }, [user?.id, loadProfile]);
+
+  const activateMembership = useCallback(async () => {
+    if (!user?.id) return { error: "Nicht eingeloggt" };
+    try {
+      const { data, error } = await withTimeout(
+        supabase.from("profiles")
+          .update({
+            is_member:    true,
+            role:         "member",
+            member_since: new Date().toISOString(),
+            updated_at:   new Date().toISOString(),
+          })
+          .eq("id", user.id)
+          .select()
+          .single()
+      );
+      if (error) throw error;
+      if (data) {
+        setProfile(data);
+        // Session-Refresh: Supabase-Token-Claims aktualisieren
+        await supabase.auth.refreshSession();
+      }
+      return { data };
+    } catch (err) {
+      console.warn("[HUI Auth] activateMembership:", err.message);
+      return { error: err.message };
+    }
+  }, [user?.id]);
+
+    const isWirker         = profile?.has_talent_profile || profile?.is_wirker || false;
   const hasTalentProfile = profile?.has_talent_profile || false;
   const profileModules   = profile?.profile_modules || {};
 
   // useMemo: verhindert unnötige Re-renders aller Consumer
   // wenn sich unrelevante Parent-States ändern
   const ctxValue = useMemo(() => ({
-    user, profile, wirkerProfile,
+    user, profile,
+    authProfile: profile,          // Alias: HomeShell + alle Components nutzen authProfile
+    wirkerProfile,
     isAuthenticated, isWirker, hasTalentProfile, profileModules,
     loadingAuth,
-    isLoadingAuth: loadingAuth,   // Alias für components/ProtectedRoute.jsx
+    isLoadingAuth: loadingAuth,    // Alias für components/ProtectedRoute.jsx
     loadingProfile,
     authChecked,
     authError: null,
     checkUserAuth,
     signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
-    loadProfile, saveProfile, becomeWirker,
+    loadProfile, saveProfile, refreshProfile, becomeWirker,
+    activateMembership,
     saveWirkerProfile, activateTalentProfile,
     setProfile, setWirkerProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
