@@ -30,15 +30,15 @@ const CSS = `
   * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
   @keyframes fadeUp {
-    from { opacity:0; transform:translateY(8px); }
+    from { opacity:0; transform:translateY(5px); }
     to   { opacity:1; transform:translateY(0); }
   }
   @keyframes scaleIn {
-    from { opacity:0; transform:scale(0.96); }
+    from { opacity:0; transform:scale(0.98); }
     to   { opacity:1; transform:scale(1); }
   }
   @keyframes pillIn {
-    from { opacity:0; transform:translateX(8px); }
+    from { opacity:0; transform:translateX(5px); }
     to   { opacity:1; transform:translateX(0); }
   }
 
@@ -55,7 +55,8 @@ const CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .dp-hero-card:active {
-    transform: scale(0.975);
+    transform: scale(0.984);
+    opacity: 0.96;
   }
 
   .dp-werk-card {
@@ -95,7 +96,7 @@ const CSS = `
     -webkit-tap-highlight-color: transparent;
     white-space: nowrap;
   }
-  .dp-pill:active { transform: scale(0.95); }
+  .dp-pill:active { transform: scale(0.97); }
 
   .dp-like-btn {
     position: absolute;
@@ -600,7 +601,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   return (
     <div style={{
       minHeight:"100vh",
-      background: C.warm,
+      background: "rgb(254,252,250)",
       fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
       paddingBottom: 100,
     }}>
@@ -717,7 +718,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
           style={{
             display:"flex", gap:14,
             overflowX:"auto",
-            padding:"4px 20px 8px",
+            padding:"6px 20px 12px",
           }}
         >
           {(filteredHero.length > 0 ? filteredHero : heroItems).map((item, i) => (
