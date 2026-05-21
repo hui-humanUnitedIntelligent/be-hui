@@ -872,6 +872,18 @@ export default function HomeFeed({
   onComment,
   onPerson,
 }) {
+  // ── Echte Daten laden wenn feedItems nicht als Prop übergeben ──
+  const { items: liveFeed, loading: feedLoading } = useFeedData({
+    enabled: feedItems === null,   // nur laden wenn kein Prop übergeben
+    limit:   12,
+  });
+  const { toggle: toggleResonance, isResonated } = useResonanceState();
+
+  // Effektive Feed-Items: Prop hat Vorrang → Fallback echte Daten → Mocks
+  const effectiveFeedItems = feedItems !== null
+    ? feedItems
+    : (liveFeed.length > 0 ? liveFeed : MOCK_FEED);
+
   return (
     <>
       <style>{CSS}</style>
@@ -889,9 +901,12 @@ export default function HomeFeed({
         <Divider mx={0} />
 
         <SozialerFeed
-          items={feedItems}
+          items={effectiveFeedItems}
           onProfile={onProfile}
-          onLike={onLike}
+          onLike={(id) => {
+            toggleResonance(id, 'work', 'inspired');
+            onLike?.(id);
+          }}
           onComment={onComment}
         />
 
