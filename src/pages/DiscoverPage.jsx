@@ -111,11 +111,11 @@ const CSS = `
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.15s ease;
+    transition: transform 0.25s ease, opacity 0.25s ease;
     -webkit-tap-highlight-color: transparent;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   }
-  .dp-like-btn:active { transform: scale(0.88); }
+  .dp-like-btn:active { transform: scale(0.92); opacity: 0.80; }
 
   .dp-search-btn {
     width: 38px; height: 38px;
@@ -281,9 +281,9 @@ function HeroCard({ item, idx, onPress, liked, onLike }) {
       className="dp-hero-card"
       onClick={() => onPress?.(item)}
       style={{
-        width: 220, height: 270,
-        animation:`scaleIn 0.4s ${idx*0.08}s both`,
-        boxShadow:"0 8px 32px rgba(0,0,0,0.16)",
+        width: 240, height: 296,
+        animation:`scaleIn 0.5s ${idx*0.10}s both`,
+        boxShadow:"0 6px 24px rgba(0,0,0,0.11)",
       }}
     >
       {/* Bild */}
@@ -298,7 +298,7 @@ function HeroCard({ item, idx, onPress, liked, onLike }) {
       {/* Gradient Overlay */}
       <div style={{
         position:"absolute", inset:0,
-        background:"linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.72) 100%)",
+        background:"linear-gradient(to bottom, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.60) 100%)",
         pointerEvents:"none",
       }}/>
 
@@ -320,8 +320,8 @@ function HeroCard({ item, idx, onPress, liked, onLike }) {
         className="dp-like-btn"
         onClick={e => { e.stopPropagation(); onLike?.(item.id); }}
       >
-        <span style={{ fontSize:15, color: liked ? C.coral : C.muted }}>
-          {liked ? "♥" : "♡"}
+        <span style={{ fontSize:14, color: liked ? C.teal : "rgba(255,255,255,0.80)" }}>
+          {liked ? "✦" : "✦"}
         </span>
       </button>
 
@@ -361,8 +361,8 @@ function WerkCard({ item, idx, onPress, liked, onLike }) {
       className="dp-werk-card"
       onClick={() => onPress?.(item)}
       style={{
-        width: 150,
-        animation:`fadeUp 0.4s ${0.1 + idx*0.07}s both`,
+        width: 165,
+        animation:`fadeUp 0.55s ${0.12 + idx*0.09}s both`,
       }}
     >
       {/* Bild */}
@@ -392,13 +392,13 @@ function WerkCard({ item, idx, onPress, liked, onLike }) {
           borderRadius:8, padding:"3px 8px",
           fontSize:12, fontWeight:600, color:C.muted,
         }}>
-          <span style={{ color: C.coral, fontSize:11 }}>♥</span>
+          <span style={{ color: C.teal, fontSize:10 }}>✦</span>
           {item.resonanz}
         </div>
       </div>
 
       {/* Info */}
-      <div style={{ padding:"10px 10px 12px" }}>
+      <div style={{ padding:"12px 10px 14px" }}>
         <div style={{
           fontSize:13, fontWeight:700, color:C.ink,
           lineHeight:1.3, marginBottom:6,
@@ -430,9 +430,9 @@ function ErlebnisCard({ item, idx, onPress }) {
       className="dp-erlebnis-card"
       onClick={() => onPress?.(item)}
       style={{
-        height: 168,
-        animation:`fadeUp 0.45s ${0.15 + idx*0.1}s both`,
-        boxShadow:"0 4px 20px rgba(0,0,0,0.12)",
+        height: 180,
+        animation:`fadeUp 0.55s ${0.18 + idx*0.12}s both`,
+        boxShadow:"0 3px 16px rgba(0,0,0,0.09)",
       }}
     >
       <img
@@ -444,7 +444,7 @@ function ErlebnisCard({ item, idx, onPress }) {
       {/* Gradient */}
       <div style={{
         position:"absolute", inset:0,
-        background:"linear-gradient(to bottom, rgba(0,0,0,0.0) 30%, rgba(0,0,0,0.68) 100%)",
+        background:"linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.56) 100%)",
       }}/>
 
       {/* Badge */}
@@ -710,7 +710,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       {/* ════════════════════════════════════════
           HERO DISCOVERY CARDS
       ════════════════════════════════════════ */}
-      <div style={{ marginBottom:28 }}>
+      <div style={{ marginBottom:36 }}>
         <SectionHeader title="Heute könnte dich das berühren ✦" />
         <div
           className="dp-scroll"
@@ -736,7 +736,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       {/* ════════════════════════════════════════
           BELIEBTE WERKE
       ════════════════════════════════════════ */}
-      <div style={{ marginBottom:28 }}>
+      <div style={{ marginBottom:36 }}>
         <SectionHeader
           title="Werke die resonieren"
           onAll={() => onView?.({ type:"werke_liste" })}
@@ -768,7 +768,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       {/* ════════════════════════════════════════
           ERLEBNISSE ENTDECKEN
       ════════════════════════════════════════ */}
-      <div style={{ marginBottom:28 }}>
+      <div style={{ marginBottom:36 }}>
         <SectionHeader
           title="Begegnungen & Erlebnisse"
           onAll={() => onView?.({ type:"erlebnisse_liste" })}
