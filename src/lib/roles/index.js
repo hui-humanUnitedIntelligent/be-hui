@@ -193,3 +193,95 @@ export function useUserRole() {
     ROLES,
   };
 }
+
+// ─────────────────────────────────────────────────────────────
+// PHASE 2: CONTENT-BERECHTIGUNGEN
+// Zentrale Prüfung für alle Content-Operationen
+// ─────────────────────────────────────────────────────────────
+
+// Content-Typen
+export const CONTENT_TYPES = {
+  POST:       'post',        // Gedanken / Feed-Posts
+  WORK:       'work',        // Werke veröffentlichen
+  EXPERIENCE: 'experience',  // Erlebnisse anbieten
+  STORY:      'story',       // Stories posten
+  IMPACT:     'impact',      // Impact-Projekte einreichen
+};
+
+// Wer darf welche Inhalte erstellen?
+// BasisUser:  nur Resonanz geben + speichern
+// Member:     Gedanken teilen, Stories
+// Talent:     alles — Werke, Erlebnisse, Impact
+const CONTENT_PERMISSIONS = {
+  [CONTENT_TYPES.POST]:       ['member', 'talent', 'guardian', 'impact_team', 'moderator', 'admin'],
+  [CONTENT_TYPES.WORK]:       ['talent', 'guardian', 'moderator', 'admin'],
+  [CONTENT_TYPES.EXPERIENCE]: ['talent', 'guardian', 'moderator', 'admin'],
+  [CONTENT_TYPES.STORY]:      ['member', 'talent', 'guardian', 'moderator', 'admin'],
+  [CONTENT_TYPES.IMPACT]:     ['member', 'talent', 'guardian', 'impact_team', 'moderator', 'admin'],
+};
+
+// canCreateContent — zentrale Berechtigungsprüfung
+// Gibt { allowed: bool, reason: string } zurück — nie undefined
+export function canCreateContent(profile, contentType) {
+  if (!profile) {
+    return { allowed: false, reason: 'Bitte melde dich an.' };
+  }
+
+  const role = getUserRole(profile);
+  const allowed_roles = CONTENT_PERMISSIONS[contentType] || [];
+
+  // Prüfe: ist Rolle in der allowed-Liste?
+  const allowed = allowed_roles.includes(role) ||
+                  profile?.is_moderator ||
+                  profile?.is_guardian;
+
+  if (!allowed) {
+    // Ruhige, menschliche Fehlermeldung — keine technische Sprache
+    const messages = {
+      [CONTENT_TYPES.WORK]:       'Werde Talent um Werke zu veröffentlichen. ✦',
+      [CONTENT_TYPES.EXPERIENCE]: 'Werde Talent um Erlebnisse anzubieten. ✦',
+      [CONTENT_TYPES.POST]:       'Werde Mitglied um Gedanken zu teilen. ✦',
+      [CONTENT_TYPES.STORY]:      'Werde Mitglied um Stories zu teilen. ✦',
+      [CONTENT_TYPES.IMPACT]:     'Werde Mitglied um Wirkung einzureichen. ✦',
+    };
+    return {
+      allowed: false,
+      reason:  messages[contentType] || 'Diese Aktion ist für deine aktuelle Rolle nicht verfügbar.',
+      role,
+    };
+  }
+
+  return { allowed: true, role };
+}
+
+// canPublish — Alias für Veröffentlichungs-Checks
+export const canPublish = canCreateContent;
+
+// canResonate — BasisUser dürfen immer resonieren
+// (Resonanz ist für alle offen — das ist die Basis der Gemeinschaft)
+export function canResonate(profile) {
+  if (!profile) return { allowed: false, reason: 'Anmeldung erforderlich.' };
+  return { allowed: true };  // Jeder darf resonieren
+}
+
+// canSave — Inhalte speichern (alle dürfen)
+export const canSave = canResonate;
+
+// canDiscover — Entdecken (alle dürfen)
+export const canDiscover = (profile) => ({ allowed: true });
+
+// Rollen-Hierarchie für UI-Feedback
+export const ROLE_LABELS = {
+  basis_user: 'Entdecker',
+  member:     'Mitglied',
+  talent:     'Talent',
+  guardian:   'Guardian',
+  impact_team:'Impact-Team',
+  moderator:  'Moderator',
+  admin:      'Admin',
+};
+
+export function getRoleLabel(profile) {
+  const role = getUserRole(profile);
+  return ROLE_LABELS[role] || 'Entdecker';
+}
