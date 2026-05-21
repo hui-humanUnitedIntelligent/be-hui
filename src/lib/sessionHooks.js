@@ -172,31 +172,52 @@ export function usePresence(userId) {
 
 // useOwnPresence — setzt eigene last_seen
 export function useOwnPresence(userId) {
+  // FIX: alle Timer als Refs — kein Scope-Problem bei userId-Wechsel
+  const intervalRef    = useRef(null);
+  const mountedRef     = useRef(false);
+  const listenerRef    = useRef(null);
+
   useEffect(() => {
     if (!userId) return;
 
+    mountedRef.current = true;
+
     async function touch() {
+      if (!mountedRef.current) return;
       try {
         await supabase.from("profiles")
           .update({ last_seen: new Date().toISOString() })
           .eq("id", userId);
-      } catch { /* silent */ }
+      } catch { /* silent — kein Crash bei Netzwerkproblemen */ }
     }
 
-    // Sofort beim Mount + dann alle 2 Minuten
+    // Sofort beim Mount
     touch();
+
     // Pause presence updates wenn Tab hidden — spart Battery + Requests
-    const interval = setInterval(() => {
-      if (!document.hidden) touch();
+    // FIX: via Ref → sauber clearable
+    intervalRef.current = setInterval(() => {
+      if (!document.hidden && mountedRef.current) touch();
     }, 2 * 60 * 1000);
 
-    // Bei Tab-Aktivierung
-    const onVisible = () => { if (!document.hidden) touch(); };
-    document.addEventListener("visibilitychange", onVisible);
+    // FIX: Listener via Ref → symmetrisches add/remove auch bei userId-Wechsel
+    const onVisible = () => {
+      if (!document.hidden && mountedRef.current) touch();
+    };
+    listenerRef.current = onVisible;
+    document.addEventListener("visibilitychange", onVisible, { passive: true });
 
     return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisible);
+      mountedRef.current = false;
+      // FIX: Ref-basiertes cleanup — kein dangling interval/listener
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (listenerRef.current) {
+        document.removeEventListener("visibilitychange", listenerRef.current);
+        listenerRef.current = null;
+      }
     };
   }, [userId]);
 }
