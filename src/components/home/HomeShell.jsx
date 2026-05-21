@@ -31,6 +31,7 @@ export default function HomeShell({ children }) {
     profile: authProfile,
     isWirker: authIsWirker,
     hasTalentProfile,
+    refreshProfile,
   } = useAuth();
 
   const liveNotifCount = useNotifCount();
