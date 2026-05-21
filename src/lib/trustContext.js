@@ -20,31 +20,31 @@ import { useAuth } from "./AuthContext";
 // ────────────────────────────────────────────────────────────────
 export const REPUTATION_QUALITIES = {
   // Verlässlichkeit
-  quick_response:        { label: "Antwortet zügig",             icon: "⚡", category: "reliability" },
-  high_completion:       { label: "Zuverlässige Abschlüsse",     icon: "✓",  category: "reliability" },
-  trusted_communication: { label: "Vertrauensvolle Kommunikation",icon: "💬", category: "reliability" },
+  quick_response:        { label: "Präsent & erreichbar",             icon: "⚡", category: "reliability" },
+  high_completion:       { label: "Schöne Begegnungen entstehen",icon: "✦",  category: "reliability" },
+  trusted_communication: { label: "Kommuniziert mit Herz",icon: "💬", category: "reliability" },
   // Zusammenarbeit
-  creative_collab:       { label: "Kreative Zusammenarbeit",     icon: "🤝", category: "collaboration" },
-  repeat_clients:        { label: "Wiederkehrende Zusammenarbeit",icon: "↩",  category: "collaboration" },
-  community_active:      { label: "Aktive Community",            icon: "✦",  category: "collaboration" },
+  creative_collab:       { label: "Kreativität entsteht gemeinsam",     icon: "🤝", category: "collaboration" },
+  repeat_clients:        { label: "Begegnungen die bleiben",icon: "↩",  category: "collaboration" },
+  community_active:      { label: "Lebt Gemeinschaft",            icon: "✦",  category: "collaboration" },
   // Qualität
-  frequently_recommended:{ label: "Häufig weiterempfohlen",      icon: "⭐", category: "quality" },
-  project_verified:      { label: "Verifizierte Projekte",       icon: "◎",  category: "quality" },
-  long_term_collab:      { label: "Langfristige Zusammenarbeit", icon: "🌱", category: "quality" },
+  frequently_recommended:{ label: "Wird oft weiterempfohlen ✦",  icon: "✦",  category: "quality" },
+  project_verified:      { label: "Geteilte Begegnungen ✦",      icon: "🌱", category: "quality" },
+  long_term_collab:      { label: "Echte Verbindungen entstehen", icon: "🌱", category: "quality" },
 };
 
 // Collab-Typen für Recommendations
 export const COLLAB_MOODS = [
-  "entspannt", "kreativ", "professionell", "inspirierend",
-  "experimentell", "ruhig", "intensiv", "spielerisch",
+  "ruhig und tief", "kreativ", "menschlich", "inspirierend",
+  "experimentell", "still und konzentriert", "intensiv", "spielerisch",
 ];
 
 export const OUTCOME_QUALITIES = [
-  "sehr gut",
-  "außergewöhnlich",
-  "genau was ich mir vorgestellt habe",
-  "hat meine Erwartungen übertroffen",
-  "einzigartig",
+  "eine schöne Begegnung",
+  "außergewöhnlich berührend",
+  "genau das, was ich mir gewünscht habe",
+  "hat mich tief beeindruckt",
+  "eine einzigartige Resonanz",
 ];
 
 // ────────────────────────────────────────────────────────────────
