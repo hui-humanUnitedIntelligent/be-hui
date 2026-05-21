@@ -85,16 +85,35 @@ export async function staleWhileRevalidate(key, fetchFn, ttlMs = 30000, onUpdate
 
 // ── Visibility-aware Fetch ────────────────────────────────────────
 // Verzögert Fetches wenn Tab hidden ist.
-export async function visibilityAwareFetch(fetchFn) {
+export async function visibilityAwareFetch(fetchFn, timeoutMs = 30_000) {
   if (!document.hidden) return fetchFn();
+
   // Tab hidden — warte auf visibility-change
+  // FIX: Timeout nach 30s → kein ewiger Memory-Leak
   return new Promise((resolve) => {
+    let resolved = false;
+    let fallbackTimer = null;
+
+    function cleanup() {
+      document.removeEventListener('visibilitychange', handler);
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+    }
+
     const handler = () => {
-      if (!document.hidden) {
-        document.removeEventListener('visibilitychange', handler);
-        fetchFn().then(resolve).catch(() => resolve({ data: null, error: 'fetch failed' }));
-      }
+      if (document.hidden || resolved) return;
+      resolved = true;
+      cleanup();
+      fetchFn().then(resolve).catch(() => resolve({ data: null, error: 'fetch failed' }));
     };
+
+    // Absoluter Fallback: nach timeoutMs auflösen statt ewig hängen
+    fallbackTimer = setTimeout(() => {
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      resolve({ data: null, error: 'visibilityAwareFetch timeout' });
+    }, timeoutMs);
+
     document.addEventListener('visibilitychange', handler, { passive: true });
   });
 }
