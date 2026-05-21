@@ -176,9 +176,10 @@ import { useMemo } from 'react';
 import { useAuth } from '../AuthContext.jsx';
 
 export function useUserRole() {
-  const { authProfile } = useAuth();
+  const { authProfile, profile } = useAuth();
+  const _profile = authProfile ?? profile;  // authProfile Alias jetzt im Context
 
-  const role = useMemo(() => getUserRole(authProfile), [authProfile]);
+  const role = useMemo(() => getUserRole(_profile), [_profile]);
 
   return {
     role,
