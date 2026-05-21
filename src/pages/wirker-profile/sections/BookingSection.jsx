@@ -29,26 +29,36 @@ export function BookingSection({ isOwner, bookable, profile, onBook }) {
       position: "fixed",
       bottom: 0, left: 0, right: 0,
       zIndex: 80,
-      padding: "12px 20px 28px",
-      background: "rgba(254,252,250,0.95)",
-      backdropFilter: "blur(16px)",
-      WebkitBackdropFilter: "blur(16px)",
-      borderTop: "1px solid rgba(0,0,0,0.07)",
+      padding: "10px 20px 28px",
+      background: "rgba(254,252,250,0.97)",
+      backdropFilter: "blur(20px)",
+      WebkitBackdropFilter: "blur(20px)",
+      borderTop: "1px solid rgba(0,0,0,0.05)",
     }}>
+      {/* Subtiles Vertrauenssignal */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+        marginBottom:8,
+        fontSize:11, color:"rgba(80,80,80,0.50)", fontWeight:500,
+      }}>
+        <span style={{ color:"rgba(22,215,197,0.70)" }}>✦</span>
+        <span>Sicher begleitet durch HUI</span>
+        <span style={{ color:"rgba(22,215,197,0.70)" }}>✦</span>
+      </div>
       <button
         onClick={onBook}
         style={{
-          width: "100%", height: 50,
-          borderRadius: 16,
+          width: "100%", height: 52,
+          borderRadius: 18,
           background: `linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
           color: "#fff", border: "none",
-          fontSize: 15, fontWeight: 800,
+          fontSize: 15, fontWeight: 700,
           cursor: "pointer",
-          boxShadow: "0 6px 22px rgba(22,215,197,0.35)",
+          boxShadow: "0 5px 18px rgba(22,215,197,0.22)",
           letterSpacing: -0.2,
         }}
       >
-        Anfrage an {name} senden
+        Begegnung mit {name} öffnen ❖
       </button>
     </div>
   );
