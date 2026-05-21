@@ -18,7 +18,7 @@ export default function WirkerBio({ profile, onBook, bookable }) {
       {/* Bio Text */}
       <p style={{
         margin:"0 0 16px",
-        fontSize:14.5.5, lineHeight:1.68,
+        fontSize:14.5, lineHeight:1.65,
         color:"rgba(30,30,30,0.70)",
         fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif",
         whiteSpace:"pre-line",
