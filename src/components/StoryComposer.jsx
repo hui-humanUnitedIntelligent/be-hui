@@ -125,19 +125,28 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
       // Map Composer fields → DB column names
       // Nur Spalten die im originalen CREATE TABLE existieren (009_story_system_fix.sql)
+      // FIX: stories-Tabelle Schema:
+      //   user_id, media_url, media_type, caption, text_overlay,
+      //   mood, location, is_highlight, expires_at, created_at
+      // Felder status/visibility/username/avatar_url/allow_comments
+      // existieren NICHT → silent 400-Fehler verhindert Insert.
       const storyRow = {
-        user_id:       user.id,
-        username:      profile?.display_name || profile?.username || user.email?.split("@")[0] || "HUI User",
-        avatar_url:    profile?.avatar_url   || null,
-        media_url:     mediaUrl              || null,
-        media_type:    mediaUrl ? mediaType  : "text",
-        text_overlay:  text.trim()           || null,
-        visibility:    visibility,
-        allow_comments:allowComments,
-        is_highlight:  saveHighlight,
-        expires_at:    expiresAt,
-        status:        "published",
+        user_id:      user.id,
+        media_url:    mediaUrl            || null,
+        media_type:   mediaUrl ? mediaType : "text",
+        caption:      text.trim()         || null,
+        text_overlay: text.trim()         || null,
+        is_highlight: saveHighlight       || false,
+        expires_at:   expiresAt,
+        // status/visibility/username: NICHT in stories — entfernt
       };
+      console.info('[StoryComposer] Publishing story:', {
+        user_id: storyRow.user_id,
+        media_type: storyRow.media_type,
+        has_media: !!storyRow.media_url,
+        is_highlight: storyRow.is_highlight,
+        expires_at: storyRow.expires_at,
+      });
 
       const { data, error: dbErr } = await supabase
         .from("stories")
@@ -146,9 +155,16 @@ export default function StoryComposer({ onClose, onSuccess }) {
         .single();
 
       if (dbErr) {
-        console.error("[StoryComposer] db insert error:", dbErr);
+        console.error('[StoryComposer] DB INSERT FEHLER:', {
+          code: dbErr.code,
+          message: dbErr.message,
+          details: dbErr.details,
+          hint: dbErr.hint,
+          storyRow,
+        });
         throw dbErr;
       }
+      console.info('[StoryComposer] Story gespeichert:', { id: data?.id });
 
       setUploadPct(100);
       setDone(true);
