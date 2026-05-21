@@ -177,7 +177,13 @@ function HomeInner() {
         notifCount={liveNotifCount}
         msgCount={0}
         onOrbAction={(key) => {
-          if (key === "create") setShowPlusSheet(true);
+          if (key !== "create") return;
+          // BasisUser: sanftes Membership-Onboarding statt Creator-Sheet
+          if (!isTalent) {
+            setShowMembership(true);
+            return;
+          }
+          setShowPlusSheet(true);
         }}
       />
 
@@ -239,7 +245,8 @@ function HomeInner() {
               // Wir setzen hier nur den Ziel-Flow-State.
               console.log("[HOME onSelect]", type);
               // ── Teilen ──────────────────────────────────────────
-              if (type === "moment" || type === "story" || type === "teilen") {
+              if (type === "teilen" || type === "story" || type === "moment" ||
+                  type === "thought") {
                 setShowTeilen(true);
               // ── Werk erschaffen ──────────────────────────────────
               } else if (type === "werk" ||
@@ -254,9 +261,9 @@ function HomeInner() {
                          type === "erlebnis_s") {
                 setShowExperienceCreator(true);
               // ── Verbindung ───────────────────────────────────────
-              } else if (type === "connect" || type === "kollab" ||
-                         type === "mentor"  || type === "partner" ||
-                         type === "community") {
+              } else if (type === "connect" || type === "connection" ||
+                         type === "kollab"  || type === "mentor"  ||
+                         type === "partner" || type === "community") {
                 setShowConnect(true);
               // ── Wirker werden ────────────────────────────────────
               } else if (type === "wirker" || type === "membership") {
