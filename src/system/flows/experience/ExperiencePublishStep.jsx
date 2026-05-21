@@ -18,7 +18,7 @@ function VisibilityCard({ icon, label, sub, active, onClick }) {
       cursor:"pointer",
       display:"flex", flexDirection:"column",
       alignItems:"center", gap:6,
-      transition:"all 0.20s ease",
+      transition:"all 0.30s ease",
       boxShadow: active ? `0 4px 16px rgba(10,191,184,0.14)` : "none",
     }}>
       <div style={{
@@ -167,8 +167,8 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
           {form.category && (
             <MetaRow icon="🏷" label="Kategorie" value={form.category}/>
           )}
-          <MetaRow icon="⚡" label="Buchung"
-            value={form.bookingMode==="direct" ? "Sofortbuchung" : "Auf Anfrage"}/>
+          <MetaRow icon="❖" label="Einladung"
+            value={form.bookingMode==="direct" ? "Direkte Einladung" : "Auf Anfrage"}/>
         </div>
       </div>
     </div>
@@ -202,22 +202,22 @@ export function ExperiencePublishStep({
       <div style={{ marginBottom:20 }}>
         <h1 style={{ fontSize:22, fontWeight:900, color:ET.ink,
           letterSpacing:-0.5, margin:0 }}>
-          Veröffentlichung<span style={{ color:ET.teal, marginLeft:3 }}>·</span>
+          Dein Erlebnis<span style={{ color:ET.teal, marginLeft:3 }}>·</span>
         </h1>
         <p style={{ fontSize:13, color:ET.ink3, margin:"5px 0 0" }}>
-          Wähle, wie dein Erlebnis sichtbar sein soll.
+          Teile deine Einladung mit der Welt ❖
         </p>
       </div>
 
       {/* ── Sichtbarkeit ── */}
       <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-        <VisibilityCard icon="🌐" label="Öffentlich" sub="Für alle sichtbar"
+        <VisibilityCard icon="🌐" label="Offen" sub="Für alle erlebbar"
           active={form.visibility==="public"}
           onClick={() => onFormChange({ visibility:"public" })}/>
-        <VisibilityCard icon="👥" label="Nur Community" sub="Nur HUI Mitglieder"
+        <VisibilityCard icon="👥" label="Gemeinschaft" sub="Im Resonanzraum"
           active={form.visibility==="community"}
           onClick={() => onFormChange({ visibility:"community" })}/>
-        <VisibilityCard icon="🔒" label="Privat" sub="Nur für dich"
+        <VisibilityCard icon="🔒" label="Privat" sub="Dein stiller Raum"
           active={form.visibility==="private"}
           onClick={() => onFormChange({ visibility:"private" })}/>
       </div>
@@ -253,8 +253,8 @@ export function ExperiencePublishStep({
           color: saving ? ET.ink3 : "#fff",
           fontSize:16, fontWeight:900, cursor: saving ? "default" : "pointer",
           boxShadow: saving ? "none"
-            : "0 10px 28px rgba(10,191,184,0.28)",
-          transition:"all 0.22s ease",
+            : "0 8px 22px rgba(10,191,184,0.20)",
+          transition:"all 0.32s ease",
           display:"flex", alignItems:"center", justifyContent:"center", gap:8,
           marginBottom:10,
         }}
@@ -264,7 +264,7 @@ export function ExperiencePublishStep({
             Wird veröffentlicht…
           </span>
         ) : (
-          "✨ Erlebnis anbieten"
+          "Erlebnis öffnen ❖"
         )}
       </button>
 
