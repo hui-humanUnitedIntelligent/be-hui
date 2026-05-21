@@ -2,7 +2,7 @@
 // Step 1 — Projekt vorstellen
 
 import React, { useRef, useCallback } from "react";
-import { IT, IInput, ITextarea, ImpactNextBtn } from "./ImpactTokens.js";
+import { IT, IInput, ITextarea, ImpactNextBtn } from "./ImpactTokens.jsx";
 
 /* ── Upload Button ────────────────────────────────────────────── */
 function UploadBtn({ icon, label, color, bg, onClick }) {
