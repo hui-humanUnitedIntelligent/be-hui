@@ -57,16 +57,16 @@ export const ORB_CSS = `
   /* ── Node Entry ─────────────────────────────────────────── */
   /* ease-out: kein Bounce, direkt zur Position                */
   @keyframes orbNodeIn {
-    0%   { opacity:0; transform:scale(0.55); }
+    0%   { opacity:0; transform:scale(0.72); }
     100% { opacity:1; transform:scale(1);   }
   }
 
   /* ── Node Float — nur translateY, Position nie verändert ── */
-  @keyframes orbFloatA { 0%,100%{transform:translateY(0px)}  50%{transform:translateY(-7px)} }
-  @keyframes orbFloatB { 0%,100%{transform:translateY(4px)}  50%{transform:translateY(-5px)} }
-  @keyframes orbFloatC { 0%,100%{transform:translateY(-3px)} 50%{transform:translateY(4px)}  }
-  @keyframes orbFloatD { 0%,100%{transform:translateY(5px)}  50%{transform:translateY(-4px)} }
-  @keyframes orbFloatE { 0%,100%{transform:translateY(-4px)} 50%{transform:translateY(4px)}  }
+  @keyframes orbFloatA { 0%,100%{transform:translateY(0px)}  50%{transform:translateY(-4px)} }
+  @keyframes orbFloatB { 0%,100%{transform:translateY(2px)}  50%{transform:translateY(-3px)} }
+  @keyframes orbFloatC { 0%,100%{transform:translateY(-2px)} 50%{transform:translateY(2px)}  }
+  @keyframes orbFloatD { 0%,100%{transform:translateY(2px)}  50%{transform:translateY(-3px)} }
+  @keyframes orbFloatE { 0%,100%{transform:translateY(-2px)} 50%{transform:translateY(3px)}  }
 
   /* ── Atmosphere Blobs ───────────────────────────────────── */
   @keyframes orbBlobA {
@@ -86,7 +86,7 @@ export const ORB_CSS = `
 
   /* ── Partikel ───────────────────────────────────────────── */
   @keyframes orbParticle {
-    0%   { opacity:0; transform:translate(0,0) scale(0); }
+    0%   { opacity:0; transform:translate(0,0) scale(0.2); }
     20%  { opacity:0.50; }
     80%  { opacity:0.18; }
     100% { opacity:0; transform:translate(var(--pdx),var(--pdy)) scale(0); }
