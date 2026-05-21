@@ -2,7 +2,7 @@
 // Step 2 — Werk Informationen: Preis, Versand, Details
 
 import React from "react";
-import { WT } from "./WorkFlow.jsx";
+import { WT } from "./WorkTokens.js";
 
 const CATEGORIES = [
   "Fotografie","Digitale Kunst","Illustration","Design","Malerei",
