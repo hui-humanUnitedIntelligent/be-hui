@@ -33,9 +33,9 @@ export default function WirkerConnectionCard({
             display:"flex", alignItems:"center", justifyContent:"center",
             gap:8,
             WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-            transition:"transform 0.15s ease, box-shadow 0.15s ease",
+            transition:"transform 0.25s ease, box-shadow 0.25s ease",
           }}
-          onTouchStart={e => e.currentTarget.style.transform="scale(0.97)"}
+          onTouchStart={e => e.currentTarget.style.transform="scale(0.984)"}
           onTouchEnd={e => e.currentTarget.style.transform="scale(1)"}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
@@ -56,10 +56,10 @@ export default function WirkerConnectionCard({
             display:"flex", alignItems:"center", justifyContent:"center",
             cursor:"pointer",
             WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-            transition:"transform 0.15s ease",
+            transition:"transform 0.25s ease",
             flexShrink:0,
           }}
-          onTouchStart={e => e.currentTarget.style.transform="scale(0.9)"}
+          onTouchStart={e => e.currentTarget.style.transform="scale(0.94)"}
           onTouchEnd={e => e.currentTarget.style.transform="scale(1)"}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill={liked ? C.coral : "none"}>
