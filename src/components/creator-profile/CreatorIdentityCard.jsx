@@ -82,13 +82,14 @@ export default function CreatorIdentityCard({ profile, onEdit }) {
         {/* Edit Button */}
         <button onClick={onEdit} style={{
           display:"flex", alignItems:"center", gap:6,
-          padding:"8px 14px", borderRadius:99,
-          background:"white",
-          border:"1px solid rgba(0,0,0,0.10)",
-          boxShadow:"0 2px 8px rgba(0,0,0,0.06)",
+          padding:"8px 16px", borderRadius:20,
+          background:"rgba(22,215,197,0.07)",
+          border:"1px solid rgba(22,215,197,0.22)",
+          boxShadow:"none",
           cursor:"pointer",
-          fontSize:13, fontWeight:600, color:C.ink2,
+          fontSize:13, fontWeight:600, color:C.teal,
           whiteSpace:"nowrap",
+          transition:"all 0.22s ease",
         }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
