@@ -158,3 +158,37 @@ body {
   border-radius: 4px;
 }
 :focus:not(:focus-visible) { outline: none; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SAFARI/IPAD RESPONSIVE FIX — chirurgisch, kein Redesign
+   Behebt: horizontalen Overflow, fehlenden max-width Guard,
+           dvh-Inkompatibilität auf älteren Safari-Versionen.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Overflow-Guard: verhindert horizontales Überlaufen auf iPad */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* body: kein margin/padding-Artefakt */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* dvh-Fallback für ältere Safari-Versionen:
+   100dvh (dynamic viewport height) wird seit Safari 15.4 unterstützt.
+   Auf älteren iPads fallback auf 100vh + -webkit-fill-available */
+@supports not (height: 100dvh) {
+  .hui-full-height {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+}
+.hui-full-height {
+  height: 100dvh;
+}
