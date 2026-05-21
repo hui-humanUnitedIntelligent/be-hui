@@ -16,17 +16,17 @@ function timeAgo(iso) {
 }
 
 const MOODS = [
-  { icon:"\uD83C\uDFB5", label:"Musik & Klang" },
-  { icon:"\uD83C\uDFA8", label:"Keramik & Handwerk" },
-  { icon:"\uD83D\uDCF8", label:"Fotografie & Film" },
-  { icon:"\uD83E\uDDD8", label:"Yoga & Bewegung" },
-  { icon:"\u2728",       label:"Kreative:r" },
+  { icon:"🎵", label:"Musik & Klang" },
+  { icon:"🏺", label:"Keramik & Handwerk" },
+  { icon:"📸", label:"Fotografie & Film" },
+  { icon:"🧘", label:"Yoga & Bewegung" },
+  { icon:"✦",  label:"Im kreativen Fluss" },
 ];
 
 export default function ConversationCard({ conv, onPress, isActive }) {
   const name       = conv.name || conv.other_profile?.display_name || "?";
   const avatar     = conv.avatar_url || conv.other_profile?.avatar_url;
-  const lastMsg    = conv.last_message || "Neue Verbindung";
+  const lastMsg    = conv.last_message || "Eine Verbindung entsteht ✦";
   const unread     = conv.unread || 0;
   const online     = conv.online ?? (conv.other_profile?.last_seen
     ? (Date.now() - new Date(conv.other_profile.last_seen)) < 300000 : false);
@@ -38,7 +38,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
       onClick={() => onPress?.(conv)}
       style={{
         width:"100%", textAlign:"left",
-        padding:"13px 14px",
+        padding:"15px 14px",
         background: isActive
           ? "rgba(22,215,197,0.06)"
           : "rgba(255,255,255,0.68)",
@@ -48,14 +48,14 @@ export default function ConversationCard({ conv, onPress, isActive }) {
           : "1px solid rgba(255,255,255,0.55)",
         borderRadius:16,
         boxShadow: unread > 0
-          ? "0 4px 18px rgba(0,0,0,0.08)"
-          : "0 2px 10px rgba(0,0,0,0.05)",
+          ? "0 2px 12px rgba(0,0,0,0.06)"
+          : "0 2px 8px rgba(0,0,0,0.04)",
         display:"flex", alignItems:"center", gap:12,
         cursor:"pointer", marginBottom:8,
         WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-        transition:"transform 0.14s ease, background 0.18s",
+        transition:"transform 0.28s ease, background 0.30s, box-shadow 0.30s",
       }}
-      onTouchStart={e => e.currentTarget.style.transform="scale(0.985)"}
+      onTouchStart={e => e.currentTarget.style.transform="scale(0.992)"}
       onTouchEnd={e   => e.currentTarget.style.transform="scale(1)"}
     >
       {/* Avatar */}
@@ -70,14 +70,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:18, color:"white", fontWeight:700,
         }}>{!avatar && initials}</div>
-        {online && (
-          <div style={{
-            position:"absolute", bottom:1, right:1,
-            width:11, height:11, borderRadius:"50%",
-            background:"#22C55E", border:"2px solid #F2F4F8",
-            boxShadow:"0 0 5px rgba(34,197,94,0.7)",
-          }}/>
-        )}
+        {/* Kein Online-Status-Dot — kein Presence-Druck */}
       </div>
 
       {/* Content */}
