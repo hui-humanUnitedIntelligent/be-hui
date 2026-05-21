@@ -2,7 +2,7 @@
 // Step 1 — Werk erstellen: Titel, Beschreibung, Medien-Galerie
 
 import React, { useRef, useCallback } from "react";
-import { WT } from "./WorkFlow.jsx";
+import { WT } from "./WorkTokens.js";
 
 /* ── Shared Input Styles ─────────────────────────────────────── */
 const inputStyle = {
