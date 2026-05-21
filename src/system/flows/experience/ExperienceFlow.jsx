@@ -81,7 +81,7 @@ export function ExpHeader({ step, onBack, onClose }) {
       <div style={{ flex:1, display:"flex", flexDirection:"column", gap:4 }}>
         <div style={{ fontSize:11, color:ET.ink3, fontWeight:600,
           letterSpacing:0.3, textAlign:"center" }}>
-          Schritt {step+1} von 3
+          ❖ {["Idee","Details","Freigabe"][step]}
         </div>
         <ProgressBar step={step} />
       </div>
