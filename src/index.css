@@ -234,3 +234,29 @@ html, body {
   overflow-x: hidden !important;
   max-width: 100vw !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SAFARI/IPAD FINAL VIEWPORT GUARD — produktionsreif
+   Kein Debug mehr. Nur stabile Constraints.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Harter Overflow-Guard — verhindert horizontales Scrolling */
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+  /* KEIN overflow-y:hidden — Safari bricht Layout-Viewport */
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+  /* KEIN height:100% — kollidiert mit dvh auf iPad */
+  /* KEIN overflow:hidden — blockiert position:fixed pointer-events */
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  /* KEIN overflow:hidden auf y — BottomNav muss clickbar bleiben */
+}
