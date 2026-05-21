@@ -30,6 +30,7 @@ import { OrbCenter }                  from "./OrbCenter.jsx";
 import { OrbNode }                    from "./OrbNode.jsx";
 import { OrbHintBar, OrbDetailCard, OrbImpactDetail } from "./OrbHintCard.jsx";
 import { useOrbState }                from "./OrbState.js";
+import { useUserRole } from '../../lib/roles/index.js';
 import {
   Z, T, NODES, NODE_SIZE, ORBIT_RATIO, ORB_MIN, ORB_MAX, MOUNT_DELAY_MS,
 } from "./OrbConfig.js";
@@ -47,6 +48,8 @@ export default function OrbSystem({
   isTalent  = false,
   isTrusted = false,
 }) {
+  // canUseOrb(nodeKey) prüft Rollen zentral — ersetzt verteilte isTalent-Checks
+  const { canUseOrb, role } = useUserRole();
   // ── Mount Animation ──────────────────────────────────────────
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -152,7 +155,9 @@ export default function OrbSystem({
         }}>
           {/* Nodes */}
           {NODES.map((node, i) => {
-            const locked = !node.forAll && !isTalent;
+            // Zentrale Rollenprüfung: canUseOrb(node.key) prüft Rolle aus Rollen-System
+        // isTalent-Prop bleibt für backward-compat; canUseOrb ist die neue Wahrheit
+        const locked = !node.forAll && !isTalent && !canUseOrb(node.key);
             const active = orb.activeNode?.key === node.key;
             const dimmed = orb.activeNode !== null && !active;
             const { x, y } = polar(node.angle, orbR);
