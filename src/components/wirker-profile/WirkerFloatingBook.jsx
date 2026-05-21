@@ -28,7 +28,7 @@ export default function WirkerFloatingBook({ profile, onBook, onFollow, followed
           WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
         }}
       >
-        Erlebnis buchen
+        Begegnung anfragen
       </button>
       <button
         onClick={onFollow}
