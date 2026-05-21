@@ -166,3 +166,94 @@ export async function flagContent({
     return { error: err.message };
   }
 }
+
+
+// ─────────────────────────────────────────────────────────────
+// PHASE C: LIVE-ERLEBNIS QUALITÄTS-SIGNALE
+// ─────────────────────────────────────────────────────────────
+
+// isExperienceTrustworthy — prüft ob ein Erlebnis vertrauenswürdig wirkt
+// Keine harte Blockierung — nur Hinweis an Creator wenn etwas fehlt.
+export function isExperienceTrustworthy(experience, creatorProfile) {
+  const signals = [];
+  const missing = [];
+
+  // Positive Signale
+  if (experience.cover_url)          signals.push('Bild vorhanden');
+  if (experience.description?.length > 100) signals.push('Ausführliche Beschreibung');
+  if (experience.location_text)      signals.push('Ort angegeben');
+  if (experience.duration)           signals.push('Dauer bekannt');
+  if (creatorProfile?.has_talent_profile)   signals.push('Verifizierter Creator');
+  if ((creatorProfile?.booking_count || 0) > 0) signals.push('Erfahrener Gastgeber');
+
+  // Fehlende Signale (ruhige Hinweise — keine Fehlermeldungen)
+  if (!experience.description)       missing.push('Beschreibung könnte helfen');
+  if (!experience.cover_url)         missing.push('Ein Bild schafft Vertrauen');
+  if (!experience.max_participants)  missing.push('Teilnehmerzahl klärt Erwartungen');
+
+  const trustworthy = signals.length >= 3;
+  return { trustworthy, signals, missing };
+}
+
+// liveExperienceRhythm — stellt sicher dass Live-Erlebnisse ruhig bleiben
+// Verhindert "Event-Plattform"-Energie: keine Countdown-Stress-UX
+export const LIVE_EXPERIENCE_PRINCIPLES = {
+  no_countdown_pressure: true,       // Kein Countdown-Timer der Druck erzeugt
+  no_spots_left_spam:    true,       // Kein "Nur noch 2 Plätze!" Spam
+  clear_cancellation:    true,       // Klare, menschliche Stornierungslogik
+  human_confirmation:    true,       // Bestätigung klingt menschlich, nicht transaktional
+  safety_first:          true,       // Sicherheitsgefühl vor Konversionsoptimierung
+};
+
+// getCommunityResonanceProfile — qualitatives Profil eines Resonanzraums
+// Für interne Analyse und Guardian-Hinweise
+export async function getCommunityResonanceProfile(communityId) {
+  try {
+    const [membersRes, eventsRes] = await Promise.all([
+      supabase.from('community_members')
+        .select('user_id, role, joined_at')
+        .eq('community_id', communityId),
+      supabase.from('platform_events')
+        .select('event_type, actor_id, created_at')
+        .eq('target_id', communityId)
+        .eq('target_type', 'community')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .limit(200),
+    ]);
+
+    const members  = membersRes.data  || [];
+    const events   = eventsRes.data   || [];
+    const guardians = members.filter(m => m.role === 'guardian');
+    const uniqueActors = new Set(events.map(e => e.actor_id)).size;
+    const ageInDays = members.length > 0
+      ? Math.floor((Date.now() - new Date(Math.min(...members.map(m => new Date(m.joined_at)))).getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+
+    const participationRate = members.length > 0 ? uniqueActors / members.length : 0;
+
+    const { getResonanceQuality } = await import('./index.js');
+    const qualityScore = getResonanceQuality({
+      memberCount:        members.length,
+      participationRate,
+      avgResonanceDepth:  events.length > 0 ? events.length / uniqueActors : 0,
+      hasGuardian:        guardians.length > 0,
+      ageInDays,
+    });
+
+    return {
+      memberCount:     members.length,
+      guardianCount:   guardians.length,
+      eventCount:      events.length,
+      uniqueActors,
+      participationRate: Math.round(participationRate * 100),
+      ageInDays,
+      qualityScore,
+      isHealthy:       qualityScore >= 60,
+      isQuiet:         events.length < 5,  // Stille ist OK — nicht pathologisch
+      needsGuardian:   guardians.length === 0 && members.length > 10,
+    };
+  } catch (err) {
+    sentryCapture(err, { context: 'getCommunityResonanceProfile' });
+    return { qualityScore: 50, isHealthy: true, isQuiet: false };
+  }
+}
