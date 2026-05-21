@@ -1,17 +1,18 @@
 // components/wirker-profile/WirkerSpaces.jsx
-// Kreativ-Welten — horizontal scrollende runde Bubbles
-// Screenshot-exact: Atelier, Projekte, Natur, Momente, Community
+// Resonanzräume — horizontal scrollende runde Bubbles
+// HUI: menschliche Räume statt kreative Kategorien
 
 import React from "react";
 
-const C = { teal:"#16D7C5", coral:"#FF8A6B", ink:"#1A1A1A" };
+const C = { teal:"#16D7C5", coral:"#FF8A6B", ink:"#1A1A1A", muted:"rgba(80,80,80,0.55)" };
 
+// Resonanzräume statt Kategorien-Labels
 const DEFAULT_SPACES = [
-  { key:"atelier",   label:"Atelier",   emoji:"🏺", color:"#16D7C5" },
-  { key:"projekte",  label:"Projekte",  emoji:"✦",  color:"#FF8A6B" },
-  { key:"natur",     label:"Natur",     emoji:"🌿", color:"#4CAF50" },
-  { key:"momente",   label:"Momente",   emoji:"✨", color:"#A78BFA" },
-  { key:"community", label:"Community", emoji:"🫂", color:"#FF8A6B" },
+  { key:"atelier",    label:"Atelier",        emoji:"🏺", color:"#16D7C5" },
+  { key:"begegnungen",label:"Begegnungen",    emoji:"🫂",  color:"#FF8A6B" },
+  { key:"natur",      label:"Natur & Stille", emoji:"🌿", color:"#4CAF50" },
+  { key:"momente",    label:"Momente",        emoji:"✦",  color:"#A78BFA" },
+  { key:"wirkung",    label:"Wirkung",        emoji:"🌱", color:"#10B981" },
 ];
 
 function Bubble({ space }) {
@@ -21,25 +22,31 @@ function Bubble({ space }) {
       gap:7, flexShrink:0, cursor:"pointer",
     }}>
       <div style={{
-        width:70, height:70, borderRadius:"50%",
+        width:72, height:72, borderRadius:"50%",
         background: space.img
           ? `url(${space.img}) center/cover no-repeat`
-          : `linear-gradient(135deg,${space.color}28,${space.color}14)`,
-        border:`1.5px solid ${space.color}30`,
+          : `linear-gradient(135deg,${space.color}22,${space.color}10)`,
+        border:`1.5px solid ${space.color}28`,
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:28,
-        boxShadow:`0 4px 14px ${space.color}20`,
+        boxShadow:`0 4px 16px ${space.color}18`,
         overflow:"hidden",
-        transition:"transform 0.2s ease",
+        transition:"transform 0.28s ease, box-shadow 0.28s ease",
       }}
-      onTouchStart={e => e.currentTarget.style.transform="scale(0.93)"}
-      onTouchEnd={e => e.currentTarget.style.transform="scale(1)"}
+      onTouchStart={e => {
+        e.currentTarget.style.transform="scale(0.92)";
+        e.currentTarget.style.boxShadow=`0 2px 8px ${space.color}18`;
+      }}
+      onTouchEnd={e => {
+        e.currentTarget.style.transform="scale(1)";
+        e.currentTarget.style.boxShadow=`0 4px 16px ${space.color}18`;
+      }}
       >
         {!space.img && space.emoji}
       </div>
       <span style={{
-        fontSize:12, color:C.ink, fontWeight:500,
-        textAlign:"center", whiteSpace:"nowrap",
+        fontSize:11.5, color:C.muted, fontWeight:500,
+        textAlign:"center", whiteSpace:"nowrap", lineHeight:1.3,
       }}>{space.label}</span>
     </div>
   );
@@ -51,10 +58,12 @@ export default function WirkerSpaces({ spaces }) {
     <div
       className="hui-scroll"
       style={{
-        display:"flex", gap:18,
+        display:"flex", gap:20,
         overflowX:"auto", overflowY:"hidden",
-        padding:"6px 20px 18px",
+        padding:"8px 20px 20px",
         WebkitOverflowScrolling:"touch",
+        scrollbarWidth:"none",
+        msOverflowStyle:"none",
       }}
     >
       {items.map(s => <Bubble key={s.key} space={s}/>)}
