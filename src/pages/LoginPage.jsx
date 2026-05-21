@@ -502,7 +502,7 @@ export default function LoginPage() {
   // SPLASH SCREEN
   // ════════════════════════════════════════════════════
   if (mode === 'splash') return (
-    <div style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden',
+    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', /* = minHeight: '-webkit-fill-available' auf iOS < 15.4 */, overflow: 'hidden',
       display: 'flex', flexDirection: 'column' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
 
@@ -558,7 +558,7 @@ export default function LoginPage() {
   // ONBOARDING LIGHT (nach Registrierung)
   // ════════════════════════════════════════════════════
   if (mode === 'onboarding') return (
-    <div style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden',
+    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', /* = minHeight: '-webkit-fill-available' auf iOS < 15.4 */, overflow: 'hidden',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: '0 24px' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
@@ -649,7 +649,7 @@ export default function LoginPage() {
                      :                       handleForgot;
 
   return (
-    <div style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden',
+    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', /* = minHeight: '-webkit-fill-available' auf iOS < 15.4 */, overflow: 'hidden',
       display: 'flex', flexDirection: 'column' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
 
