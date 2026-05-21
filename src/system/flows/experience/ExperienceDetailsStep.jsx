@@ -2,7 +2,7 @@
 // Step 2 — Angebotsdetails: Preis, Dauer, Ort, Verfügbarkeit
 
 import React from "react";
-import { ET, EInput, ESelect } from "./ExperienceFlow.jsx";
+import { ET, EInput, ESelect } from "./ExperienceTokens.js";
 
 const DURATIONS  = ["30 Minuten","1 Stunde","2 Stunden","Individuell"];
 const AVAIL_DAYS = [
