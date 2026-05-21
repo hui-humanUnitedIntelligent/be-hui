@@ -101,6 +101,18 @@ export const feedService = {
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         .slice(0, limit);
 
+      // Pipeline-Logging (dev + Sentry-Kontext)
+      console.info('[feedService] Pipeline:', {
+        posts_raw:    postsRes.data?.length ?? 0,
+        works_raw:    worksRes.data?.length ?? 0,
+        posts_norm:   posts.length,
+        works_norm:   works.length,
+        merged_total: merged.length,
+        since,
+        posts_error:  postsRes.error?.message || null,
+        works_error:  worksRes.error?.message || null,
+      });
+
       return { items: merged, total: merged.length, error: null };
     } catch (err) {
       sentryCapture(err, { context: 'feedService.getHomeFeed' });
@@ -472,6 +484,15 @@ export const discoverService = {
         ),
       ]);
 
+      // Pipeline-Logging
+      console.info('[discoverService] Pipeline:', {
+        talents_raw:  talentsRes.data?.length ?? 0,
+        works_raw:    worksRes.data?.length   ?? 0,
+        exp_raw:      expRes.data?.length     ?? 0,
+        talents_error: talentsRes.error?.message || null,
+        works_error:   worksRes.error?.message   || null,
+        exp_error:     expRes.error?.message     || null,
+      });
       return {
         talents:     talentsRes.data     || [],
         works:       (worksRes.data      || []).map(w => ({
