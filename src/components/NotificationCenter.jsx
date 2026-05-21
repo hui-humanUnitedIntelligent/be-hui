@@ -106,18 +106,18 @@ const MOCK_NOTIFS = [
   { id:"n1", type:"begegnung", message:"Mia hat auf deine Anfrage geantwortet.",
     body:"Keramik & Handwerk 🏺", created_at:new Date(Date.now()-25*60000).toISOString(),
     read:false, avatar:"https://i.pravatar.cc/52?img=47", unread_count:2,
-    action_label:"Antwort lesen", action_url:"/chat" },
-  { id:"n2", type:"buchung", message:"Dein Keramik Workshop beginnt morgen.",
+    action_label:"Resonanz lesen", action_url:"/chat" },
+  { id:"n2", type:"buchung", message:"Deine Begegnung mit Mia beginnt morgen ✦",
     body:"18:00 · Atelier Mia · Berlin", created_at:new Date(Date.now()-45*60000).toISOString(),
     read:false, avatar:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=80&q=75",
-    action_label:"Details ansehen", action_url:"/bookings", is_image:true },
+    action_label:"Begegnung ansehen", action_url:"/bookings", is_image:true },
   { id:"n3", type:"impact", message:"Durch deine letzte Buchung wurden \u20ac2,25 dem Impact Pool hinzugef\u00fcgt.",
     body:"", created_at:new Date(Date.now()-90*60000).toISOString(),
     read:false, avatar:null, icon_override:"🌿" },
   { id:"n4", type:"community", message:"127 Menschen unterst\u00fctzen jetzt das Projekt Musikr\u00e4ume f\u00fcr junge K\u00fcnstler.",
     body:"", created_at:new Date(Date.now()-3*60*60000).toISOString(),
     read:false, avatar:"https://i.pravatar.cc/52?img=53", group_avatars:["https://i.pravatar.cc/28?img=21","https://i.pravatar.cc/28?img=36","https://i.pravatar.cc/28?img=9"] },
-  { id:"n5", type:"begegnung", message:"Leon hat dein Werk gespeichert.",
+  { id:"n5", type:"begegnung", message:"Leon hat dein Werk in seinen Raum aufgenommen ❖",
     body:"", created_at:new Date(Date.now()-60*60*24*1000).toISOString(),
     read:true, avatar:"https://i.pravatar.cc/52?img=53", icon_override:"❤️" },
   { id:"n6", type:"inspiration", message:"Ein neues Erlebnis k\u00f6nnte zu deinem kreativen Rhythmus passen.",
@@ -133,7 +133,7 @@ const MOCK_CHAT = {
   other_profile:{ display_name:"Mia Kern", avatar_url:"https://i.pravatar.cc/80?img=47",
     talent:"Keramik & Handwerk", location:"Berlin" },
   presence:"präsent", presenceLabel:"Gerade im Atelier",
-  booking_title:"Keramik Workshop Formen der Erde",
+  booking_title:"Begegnung ❖ Formen der Erde",
   category:"Keramik & Handwerk", categoryIcon:"\uD83C\uDFFA",
 };
 
@@ -154,7 +154,7 @@ const MOCK_MESSAGES = [
     created_at:new Date(Date.now()-36*60000).toISOString() },
 ];
 
-const PILLS = ["Alle","Begegnungen","Buchungen","Wirkung","Inspiration"];
+const PILLS = ["Alle","Begegnungen","Begleitung","Wirkung","Inspiration"];
 
 function timeFmt(iso) {
   if (!iso) return "";
@@ -700,7 +700,7 @@ function NotifFeed({
     if (onlyImportant && n.read) return false;
     if (activeFilter === "Alle") return true;
     if (activeFilter === "Begegnungen") return n.type === "begegnung";
-    if (activeFilter === "Buchungen")   return n.type === "buchung";
+    if (activeFilter === "Begleitung")  return n.type === "buchung";
     if (activeFilter === "Wirkung")     return n.type === "impact";
     if (activeFilter === "Inspiration") return n.type === "inspiration";
     return true;
