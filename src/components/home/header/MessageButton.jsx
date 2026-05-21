@@ -1,7 +1,6 @@
 // header/MessageButton.jsx — HUI Chat/Resonanz Button
 // FIX: onTouchEnd löst onPress direkt aus (iOS sticky-overflow safety)
 // FIX: touchAction:manipulation entfernt 300ms delay
-// FIX: console.log trace temporär für Debug
 
 import React from "react";
 
@@ -11,13 +10,11 @@ export default function MessageButton({ count=0, onPress }) {
   function handleTouchEnd(e) {
     e.preventDefault();          // verhindert ghost-click delay
     setPressed(false);
-    console.log("[CHAT BUTTON TOUCH]");
     onPress?.();                 // direkt auslösen — nicht auf onClick warten
   }
 
   function handleClick(e) {
     // Fallback für Desktop/non-touch
-    console.log("[CHAT BUTTON CLICK]");
     onPress?.();
   }
 
@@ -37,8 +34,8 @@ export default function MessageButton({ count=0, onPress }) {
         cursor:"pointer", position:"relative",
         WebkitTapHighlightColor:"transparent",
         touchAction:"manipulation",
-        transform: pressed ? "scale(0.88)" : "scale(1)",
-        transition:"transform 0.12s ease",
+        transform: pressed ? "scale(0.92)" : "scale(1)",
+        transition:"transform 0.22s ease",
         userSelect:"none", WebkitUserSelect:"none",
       }}
     >
