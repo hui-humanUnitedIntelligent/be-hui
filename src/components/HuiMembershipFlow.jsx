@@ -17,11 +17,11 @@ const CSS = `
     to   { opacity:1; transform:scale(1); }
   }
   @keyframes hmfSlide {
-    from { opacity:0; transform:translateX(40px); }
+    from { opacity:0; transform:translateX(22px); }
     to   { opacity:1; transform:translateX(0); }
   }
   @keyframes hmfSlideUp {
-    from { opacity:0; transform:translateY(28px); }
+    from { opacity:0; transform:translateY(16px); }
     to   { opacity:1; transform:translateY(0); }
   }
   @keyframes hmfPulse {
@@ -34,16 +34,16 @@ const CSS = `
   }
   @keyframes hmfKen {
     from { transform:scale(1); }
-    to   { transform:scale(1.08); }
+    to   { transform:scale(1.04); }
   }
   @keyframes hmfShimmer {
     0%   { background-position: -300% 0; }
     100% { background-position: 300% 0; }
   }
   @keyframes hmfSuccess {
-    0%   { transform:scale(0.5) rotate(-10deg); opacity:0; }
-    60%  { transform:scale(1.2) rotate(3deg); opacity:1; }
-    100% { transform:scale(1) rotate(0deg); }
+    0%   { transform:scale(0.7); opacity:0; }
+    60%  { transform:scale(1.08); opacity:1; }
+    100% { transform:scale(1); opacity:1; }
   }
   @keyframes hmfDotPulse {
     0%,100% { transform:scale(1); opacity:0.4; }
@@ -76,7 +76,7 @@ const CARDS = [
     tag: "Impact",
     tagColor: "#A78BFA",
     title: "Gemeinsam\nbewirken",
-    sub:  "Ein Teil jeder Transaktion fließt in echte Herzensprojekte. Du machst den Unterschied.",
+    sub:  "Ein Teil jeder Begegnung fließt in echte Herzensprojekte. Gemeinsam bewirken wir etwas.",
     accent: "#A78BFA",
     grad: "linear-gradient(180deg, rgba(0,0,0,0) 25%, rgba(8,5,25,0.82) 62%, rgba(8,5,25,0.97) 100%)",
   },
@@ -92,10 +92,10 @@ const CARDS = [
   },
   {
     img: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/1f05aec0c_generated_image.png",
-    tag: "Schritt 5 von 5",
+    tag: "Letzte Einladung",
     tagColor: C.coral,
     title: "Mitglied\nwerden",
-    sub:  "Werde Teil von etwas Echtem. Bestätige kurz — und los geht's.",
+    sub:  "Du darfst Teil von etwas Menschlichem werden ❖ Keine Eile — nur wenn du bereit bist.",
     accent: C.coral,
     grad: "linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(25,10,5,0.82) 58%, rgba(25,10,5,0.97) 100%)",
   },
@@ -195,24 +195,24 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
         <div style={{ textAlign:"center", padding:"0 36px", position:"relative", zIndex:1 }}>
           {/* Emoji burst */}
           <div style={{
-            fontSize:80, marginBottom:24,
+            fontSize:60, marginBottom:20,
             animation:"hmfSuccess 0.6s cubic-bezier(0.34,1.4,0.64,1) both",
             display:"block",
-          }}>🎉</div>
+          }}>✦</div>
 
           <div style={{
             fontWeight:900, fontSize:28, color:"#FFFFFF",
             letterSpacing:-1, lineHeight:1.1, marginBottom:14,
             animation:"hmfSlideUp 0.5s 0.2s ease both",
           }}>
-            Willkommen in<br/>der HUI-Familie!
+            Du bist angekommen.<br/>Willkommen.
           </div>
           <div style={{
             fontSize:15, color:"rgba(255,255,255,0.6)", lineHeight:1.65,
             animation:"hmfSlideUp 0.5s 0.35s ease both",
           }}>
-            Du bist jetzt Teil von etwas Echtem.<br/>
-            Teile, verbinde, bewirke.
+            Nimm dir Zeit. Entdecke.<br/>
+            HUI ist dein Raum.
           </div>
 
           {/* Teal shimmer line */}
@@ -230,7 +230,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
             <div key={i} style={{
               width:8, height:8, borderRadius:"50%",
               background:C.teal,
-              animation:`hmfDotPulse 1.2s ${i * 0.18}s ease-in-out infinite`,
+              animation:`hmfDotPulse 1.8s ${i * 0.28}s ease-in-out infinite`,
             }}/>
           ))}
         </div>
@@ -256,7 +256,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
           backgroundImage:`url(${card.img})`,
           backgroundSize:"cover",
           backgroundPosition:"center",
-          animation:"hmfKen 8s ease-in-out both",
+          animation:"hmfKen 12s ease-in-out both",
         }}/>
 
         {/* Gradient overlay */}
@@ -349,9 +349,9 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
             animation:"hmfSlideUp 0.45s 0.15s cubic-bezier(0.34,1.2,0.64,1) both",
           }}>
             {[
-              { key:"works",       icon:"🎨", label:"Ich erschaffe Werke",   sub:"Gemälde, Musik, Fotos, Objekte…" },
+              { key:"works",       icon:"🎨", label:"Ich bringe Werke in die Welt",   sub:"Gemälde, Musik, Fotos, Objekte…" },
               { key:"experiences", icon:"✨", label:"Ich begleite Menschen", sub:"Kurse, Events, Sessions, Reisen…" },
-              { key:"hybrid",      icon:"⚡", label:"Beides gleich",          sub:"Kreativ & präsent" },
+              { key:"hybrid",      icon:"⚡", label:"Beides — ich folge dem Fluss",          sub:"Kreativ & präsent" },
             ].map(opt => (
               <button key={opt.key}
                 onClick={() => setFocusType(opt.key)}
@@ -368,7 +368,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
                   borderRadius:16, padding:"12px 16px",
                   cursor:"pointer", fontFamily:"inherit",
                   textAlign:"left", width:"100%",
-                  transition:"all 0.22s cubic-bezier(0.34,1.2,0.64,1)",
+                  transition:"all 0.32s cubic-bezier(0.22,1,0.36,1)",
                   WebkitTapHighlightColor:"transparent",
                 }}>
                 {/* Radio circle */}
@@ -419,7 +419,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
                   : "rgba(255,255,255,0.18)"}`,
                 borderRadius:16, padding:"13px 16px",
                 cursor:"pointer", textAlign:"left",
-                transition:"all 0.22s cubic-bezier(0.34,1.2,0.64,1)",
+                transition:"all 0.32s cubic-bezier(0.22,1,0.36,1)",
                 WebkitTapHighlightColor:"transparent",
               }}>
                 <div style={{
