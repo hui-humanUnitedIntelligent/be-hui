@@ -871,11 +871,11 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   const [activeFilter,  setActiveFilter]  = useState("Alle");
   const [activeNotif,   setActiveNotif]   = useState(null);
   const [weeklyEur,     setWeeklyEur]     = useState(8950);
-  const [isWide,        setIsWide]        = useState(window.innerWidth >= 768);
+  const [isWide,        setIsWide]        = useState(window.innerWidth >= 1024);
 
   // ── Window Resize ─────────────────────────────────────────────────
   useEffect(() => {
-    const fn = () => setIsWide(window.innerWidth >= 768);
+    const fn = () => setIsWide(window.innerWidth >= 1024);
     window.addEventListener("resize", fn);
     return () => window.removeEventListener("resize", fn);
   }, []);
