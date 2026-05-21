@@ -261,7 +261,7 @@ function LoadingDot() {
 function AtmosphericBackground({ imgIdx = 0 }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden' }}>
-      {/* Cinematic Bild */}
+      {}
       <img
         src={BG_IMAGES[imgIdx]}
         alt=""
@@ -274,17 +274,17 @@ function AtmosphericBackground({ imgIdx = 0 }) {
           transform: 'scale(1.04)',
         }}
       />
-      {/* Teal-Hauch oben */}
+      {}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(160deg, rgba(22,215,197,0.18) 0%, transparent 45%)',
       }}/>
-      {/* Dunkel-Overlay unten — für Lesbarkeit */}
+      {}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.82) 100%)',
       }}/>
-      {/* Warmer Coral-Hauch rechts unten */}
+      {}
       <div style={{
         position: 'absolute',
         right: '-10%', bottom: '-10%',
@@ -292,7 +292,7 @@ function AtmosphericBackground({ imgIdx = 0 }) {
         background: 'radial-gradient(circle, rgba(255,138,107,0.14) 0%, transparent 70%)',
         pointerEvents: 'none',
       }}/>
-      {/* Noise texture overlay für Tiefe */}
+      {}
       <div style={{
         position: 'absolute', inset: 0,
         backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.75\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.04\'/%3E%3C/svg%3E")',
@@ -502,11 +502,11 @@ export default function LoginPage() {
   // SPLASH SCREEN
   // ════════════════════════════════════════════════════
   if (mode === 'splash') return (
-    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', /* = minHeight: '-webkit-fill-available' auf iOS < 15.4 */, overflow: 'hidden',
+    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', overflow: 'hidden',
       display: 'flex', flexDirection: 'column' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
 
-      {/* Logo oben */}
+      {}
       <div style={{ position: 'relative', zIndex: 1, padding: 'max(52px,env(safe-area-inset-top,52px)) 28px 0',
         display: 'flex', alignItems: 'center', gap: 12 }}>
         <HuiLogo size={44} />
@@ -520,7 +520,7 @@ export default function LoginPage() {
 
       <div style={{ flex: 1 }}/>
 
-      {/* Hero Text + CTAs */}
+      {}
       <div style={{ position: 'relative', zIndex: 1, padding: '0 28px max(48px,env(safe-area-inset-bottom,48px))' }}>
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontWeight: 900, fontSize: 42, color: T.white, letterSpacing: -1.8,
@@ -558,7 +558,7 @@ export default function LoginPage() {
   // ONBOARDING LIGHT (nach Registrierung)
   // ════════════════════════════════════════════════════
   if (mode === 'onboarding') return (
-    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', /* = minHeight: '-webkit-fill-available' auf iOS < 15.4 */, overflow: 'hidden',
+    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: '0 24px' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
@@ -649,18 +649,18 @@ export default function LoginPage() {
                      :                       handleForgot;
 
   return (
-    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', /* = minHeight: '-webkit-fill-available' auf iOS < 15.4 */, overflow: 'hidden',
+    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', overflow: 'hidden',
       display: 'flex', flexDirection: 'column' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
 
-      {/* Scrollable content */}
+      {}
       <div style={{
         position: 'relative', zIndex: 1, flex: 1,
         display: 'flex', flexDirection: 'column',
         padding: 'max(52px,env(safe-area-inset-top,52px)) 20px max(32px,env(safe-area-inset-bottom,32px))',
         overflowY: 'auto',
       }}>
-        {/* Back Button */}
+        {}
         <button type="button" onClick={() => { clearMessages(); setMode('splash'); }}
           style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer',
             color: T.muted, fontSize: 14, fontFamily: 'inherit', padding: '4px 0', marginBottom: 24,
@@ -668,7 +668,7 @@ export default function LoginPage() {
           ← Zurück
         </button>
 
-        {/* Logo zentriert */}
+        {}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
           marginBottom: 32, ...fadeStyle }}>
           <HuiLogo size={52} />
@@ -676,9 +676,9 @@ export default function LoginPage() {
             textTransform: 'uppercase' }}>Human United Intelligent</div>
         </div>
 
-        {/* Card */}
+        {}
         <div style={{ ...cardStyle, ...fadeStyle }}>
-          {/* Headline */}
+          {}
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontWeight: 900, fontSize: 26, color: T.white, letterSpacing: -0.8,
               lineHeight: 1.2, marginBottom: 8, whiteSpace: 'pre-line' }}>
@@ -689,7 +689,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Social Login — nur bei login/register */}
+          {}
           {(mode === 'login' || mode === 'register') && (
             <>
               <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
@@ -713,9 +713,9 @@ export default function LoginPage() {
             </>
           )}
 
-          {/* Form */}
+          {}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* Name-Feld nur bei Register */}
+            {}
             {mode === 'register' && (
               <GlassInput
                 id="fullname"
@@ -727,7 +727,7 @@ export default function LoginPage() {
               />
             )}
 
-            {/* E-Mail */}
+            {}
             <GlassInput
               id="email"
               type="email"
@@ -737,7 +737,7 @@ export default function LoginPage() {
               autoComplete="email"
             />
 
-            {/* Passwort — nicht bei magic/forgot */}
+            {}
             {(mode === 'login' || mode === 'register') && (
               <GlassInput
                 id="password"
@@ -757,18 +757,18 @@ export default function LoginPage() {
               />
             )}
 
-            {/* Fehlermeldung */}
+            {}
             {err && <ErrorMessage msg={err} />}
             {success && <SuccessMessage msg={success} />}
 
-            {/* Submit */}
+            {}
             <div style={{ marginTop: 4 }}>
               <PrimaryBtn type="submit" loading={loading} disabled={loading}>
                 {loading ? 'Bitte warten…' : copy.cta}
               </PrimaryBtn>
             </div>
 
-            {/* Forgot Password Link */}
+            {}
             {mode === 'login' && (
               <div style={{ textAlign: 'center', marginTop: -4 }}>
                 <button type="button" onClick={() => { clearMessages(); setMode('forgot'); }}
@@ -779,7 +779,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Magic Link Option */}
+            {}
             {(mode === 'login' || mode === 'register') && (
               <>
                 <Divider label="oder" />
@@ -803,7 +803,7 @@ export default function LoginPage() {
             )}
           </form>
 
-          {/* Mode Switch */}
+          {}
           <div style={{ marginTop: 20, textAlign: 'center', borderTop: `1px solid ${T.glassBorder}`, paddingTop: 20 }}>
             <button type="button" onClick={() => { clearMessages(); setMode(copy.switchMode); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer',
@@ -813,7 +813,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', lineHeight: 1.8 }}>
             Mit der Registrierung stimmst du den <span style={{ textDecoration: 'underline' }}>Nutzungsbedingungen</span> zu.
