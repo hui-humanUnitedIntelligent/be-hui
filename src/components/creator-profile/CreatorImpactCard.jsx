@@ -1,5 +1,5 @@
 // components/creator-profile/CreatorImpactCard.jsx
-// "Deine Wirkung" — emotional impact section
+// "Deine Resonanz & Wirkung" — emotional impact section
 
 import React from "react";
 
