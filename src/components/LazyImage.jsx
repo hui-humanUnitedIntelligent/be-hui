@@ -1,10 +1,11 @@
 // LazyImage.jsx — HUI Performance Component
 // Lazy loading + progressive + WebP + Blur-up
-// v2: iPad Safari background resume recovery
+// v3: stallTimer-Bugfix + sauberes visibilitychange cleanup
 //  - visibilitychange fallback wenn IntersectionObserver nach Idle einfriert
 //  - 8s skeleton timeout als Sicherheitsnetz
 //  - sentryCapture für stalled loading
-// Kein visuelles Redesign — nur bessere Performance
+//  - FIXES: visibilityTimerRef für cleanup, stale closure fix via Ref
+// Kein visuelles Redesign — nur bessere Stabilität
 
 import React, { useState, useEffect, useRef } from 'react';
 import { optimizeImg } from '../lib/perfUtils';
@@ -28,24 +29,47 @@ export default function LazyImage({
   const imgRef    = useRef(null);
   const wrapRef   = useRef(null);
   const mountedRef = useRef(true);
-  // Für Timeout-Tracking
-  const loadStartRef   = useRef(null);
-  const timeoutRef     = useRef(null);
-  const obsRef         = useRef(null);
+
+  // ── Timer Refs — alle Timers zentralisiert ────────────────────
+  // FIX: stallTimer war nicht per useRef verwaltet → ReferenceError
+  // Alle Timers als Refs: sauber clearable, kein Scope-Problem
+  const loadStartRef       = useRef(null);
+  const timeoutRef         = useRef(null);   // 8s skeleton-Timeout
+  const visibilityTimerRef = useRef(null);   // 400ms IO-Freeze-Recovery Timer (NEU)
+  const obsRef             = useRef(null);
+  // visibleRef: spiegelt visible State für Closures (Stale-Closure-Fix)
+  const visibleRef         = useRef(false);
 
   const optimized = visible && src
     ? optimizeImg(src, { w: width || 800, q: quality })
     : null;
 
-  // ── Cleanup ──────────────────────────────────────────────────
+  // ── Mount/Unmount Cleanup ─────────────────────────────────────
   useEffect(() => {
     mountedRef.current = true;
+    visibleRef.current = false;
     return () => {
       mountedRef.current = false;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      obsRef.current?.disconnect();
+      // FIX: alle Timers beim Unmount clearen — kein dangling timer
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (visibilityTimerRef.current) {
+        clearTimeout(visibilityTimerRef.current);
+        visibilityTimerRef.current = null;
+      }
+      if (obsRef.current) {
+        obsRef.current.disconnect();
+        obsRef.current = null;
+      }
     };
   }, []);
+
+  // visibleRef synchron halten (Stale-Closure-Fix)
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
 
   // ── IntersectionObserver + visibilitychange fallback ─────────
   // Problem (iPad Safari): Nach langem Background-Idle friert der
@@ -66,6 +90,7 @@ export default function LazyImage({
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && mountedRef.current) {
         setVisible(true);
+        visibleRef.current = true;
         obs.disconnect();
         obsRef.current = null;
       }
@@ -75,36 +100,46 @@ export default function LazyImage({
     obsRef.current = obs;
 
     // visibilitychange fallback — iPad Safari IO-Freeze Recovery
+    // FIX A: visibilityTimerRef statt anonymem setTimeout
+    // FIX B: visibleRef.current statt veraltetes visible (Stale-Closure-Fix)
     function onVisibility() {
       if (document.visibilityState !== 'visible') return;
-      if (visible || !mountedRef.current) return;
+      // FIX: visibleRef.current statt visible (Closure-Bug)
+      if (visibleRef.current || !mountedRef.current) return;
+
       // IO könnte eingefroren sein → nach 400ms Force-load
-      // (Zeit damit normaler IO noch feuern kann wenn er noch läuft)
-      setTimeout(() => {
-        if (!mountedRef.current) return;
-        // Prüfe ob Element im sichtbaren Bereich liegt
+      // FIX: Timer via Ref → sauber clearable
+      if (visibilityTimerRef.current) {
+        clearTimeout(visibilityTimerRef.current);
+      }
+      visibilityTimerRef.current = setTimeout(() => {
+        visibilityTimerRef.current = null;
+        if (!mountedRef.current || visibleRef.current) return;
         try {
           const rect = wrapRef.current?.getBoundingClientRect();
           if (!rect) { setVisible(true); return; }
           const inViewport = rect.top < window.innerHeight + 600;
-          if (inViewport) {
-            setVisible(true);
-          }
+          if (inViewport) setVisible(true);
         } catch {
           setVisible(true);
         }
       }, 400);
     }
 
-    document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('visibilitychange', onVisibility, { passive: true });
+
     return () => {
+      // FIX: symmetrisches cleanup — addEventlistener / removeEventListener
       obs.disconnect();
       obsRef.current = null;
       document.removeEventListener('visibilitychange', onVisibility);
+      // FIX: visibilityTimer clearen wenn Effect re-runs
+      if (visibilityTimerRef.current) {
+        clearTimeout(visibilityTimerRef.current);
+        visibilityTimerRef.current = null;
+      }
     };
-  // visible als Dep damit onVisibility-closure aktuell ist
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src]);
+  }, [src]);   // src-Dep: bei neuem src → IO neu aufsetzen
 
   // ── Skeleton-Timeout: >8s → force loaded ─────────────────────
   // Sicherheitsnetz: wenn Bild-Load nach 8s noch nicht abgeschlossen
@@ -113,24 +148,29 @@ export default function LazyImage({
     if (!visible || loaded || error) return;
     loadStartRef.current = Date.now();
     timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null;
       if (!mountedRef.current || loaded || error) return;
       const stalledMs = Date.now() - (loadStartRef.current || 0);
-      console.warn('[LazyImage] Loading stalled after ' + Math.round(stalledMs/1000) + 's:', src?.slice(0, 60));
       sentryCapture(new Error('LazyImage loading stalled'), {
-        source:      'LazyImage.skeletonTimeout',
-        src_prefix:  src?.slice(0, 60) ?? null,
-        stalled_ms:  stalledMs,
+        source:          'LazyImage.skeletonTimeout',
+        src_prefix:      src?.slice(0, 60) ?? null,
+        stalled_ms:      stalledMs,
         document_hidden: document.hidden,
       });
-      // Skeleton entfernen — kein Bild erzwingen da src evtl. invalide
       setError(true);
     }, 8000);
-    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, [visible, loaded, error, src]);
 
   function handleLoad() {
     if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
     setLoaded(true);
+    visibleRef.current = true;
     onLoadProp?.();
   }
 
@@ -202,12 +242,12 @@ export default function LazyImage({
           {...rest}
         />
       )}
-      <style>{`
+      <style>{\`
         @keyframes shimmerSkel {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
-      `}</style>
+      \`}</style>
     </div>
   );
 }
