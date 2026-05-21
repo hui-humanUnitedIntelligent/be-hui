@@ -6,7 +6,7 @@ import React, { useRef } from "react";
 
 const C = { teal:"#16D7C5", teal2:"#11C5B7", muted:"rgba(80,80,80,0.45)" };
 
-export default function ChatInput({ onSend, placeholder = "Nachricht schreiben\u2026" }) {
+export default function ChatInput({ onSend, placeholder = "Schreib etwas Echtes\u2026" }) {
   const [text, setText] = React.useState("");
   const [focused, setFocused] = React.useState(false);
   const textRef = useRef(null);
@@ -41,7 +41,7 @@ export default function ChatInput({ onSend, placeholder = "Nachricht schreiben\u
           background:"rgba(255,255,255,0.75)",
           border:"1px solid rgba(0,0,0,0.08)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          cursor:"pointer", color:C.muted, fontSize:20, fontWeight:300,
+          cursor:"pointer", color:C.muted, fontSize:18, fontWeight:300,
           WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
           boxShadow:"0 2px 8px rgba(0,0,0,0.06)",
         }}>+</button>
@@ -58,7 +58,7 @@ export default function ChatInput({ onSend, placeholder = "Nachricht schreiben\u
           boxShadow: focused
             ? "0 0 0 3px rgba(22,215,197,0.10), 0 4px 14px rgba(0,0,0,0.06)"
             : "0 2px 8px rgba(0,0,0,0.05)",
-          transition:"border 0.2s, box-shadow 0.2s, background 0.2s",
+          transition:"border 0.32s ease, box-shadow 0.32s ease, background 0.28s ease",
           backdropFilter:"blur(12px)",
         }}>
           <textarea
@@ -83,7 +83,7 @@ export default function ChatInput({ onSend, placeholder = "Nachricht schreiben\u
             flexShrink:0, background:"none", border:"none",
             cursor:"pointer", fontSize:19, padding:0, lineHeight:1,
             WebkitTapHighlightColor:"transparent",
-          }}>🙂</button>
+          }}>✦</button>
         </div>
 
         {/* Send / Mikro */}
@@ -98,7 +98,7 @@ export default function ChatInput({ onSend, placeholder = "Nachricht schreiben\u
             display:"flex", alignItems:"center", justifyContent:"center",
             cursor: hasTeal ? "pointer" : "default",
             boxShadow: hasTeal
-              ? "0 5px 16px rgba(22,215,197,0.38), 0 2px 6px rgba(0,0,0,0.06)"
+              ? "0 4px 14px rgba(22,215,197,0.24), 0 2px 5px rgba(0,0,0,0.04)"
               : "0 2px 8px rgba(0,0,0,0.06)",
             transition:"background 0.2s, box-shadow 0.2s",
             WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
