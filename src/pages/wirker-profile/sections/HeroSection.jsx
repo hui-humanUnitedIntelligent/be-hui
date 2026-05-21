@@ -76,7 +76,7 @@ export function HeroSection({
         {/* Gradient Overlay */}
         <div style={{
           position:"absolute", inset:0,
-          background:"linear-gradient(to bottom, rgba(0,0,0,0.0) 50%, rgba(0,0,0,0.35) 100%)",
+          background:"linear-gradient(to bottom, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.22) 100%)",
           pointerEvents:"none",
         }}/>
       </div>
@@ -85,14 +85,14 @@ export function HeroSection({
       <div style={{ padding:"0 20px 8px", background:C.cream }}>
         {/* Avatar (überlappt Hero) */}
         <div style={{
-          marginTop: -40,
-          marginBottom: 12,
+          marginTop: -44,
+          marginBottom: 14,
         }}>
           <div style={{
-            width: 80, height: 80, borderRadius: "50%",
-            border: "3px solid #fff",
+            width: 84, height: 84, borderRadius: "50%",
+            border: "3.5px solid rgba(255,255,255,0.96)",
             overflow: "hidden",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.14)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)",
             background: C.cream,
           }}>
             <img
