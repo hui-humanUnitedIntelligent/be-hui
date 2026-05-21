@@ -44,6 +44,8 @@
 html { -webkit-text-size-adjust: 100%; }
 
 body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
                'Inter', 'Segoe UI', system-ui, sans-serif;
