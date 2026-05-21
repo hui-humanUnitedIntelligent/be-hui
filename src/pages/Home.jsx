@@ -96,7 +96,11 @@ function HomeInner() {
       {/* position:fixed Kinder vererben → BottomNav tot           */}
       <div style={{
         height:          "100dvh",         /* dvh: Safari 15.4+ */
-        minHeight:       "-webkit-fill-available", /* iOS Safari Fallback */
+        /* minHeight:-webkit-fill-available ENTFERNT:
+           Kollidiert mit height:100dvh auf iPad Safari.
+           -webkit-fill-available = Layout-Viewport (~1070px),
+           100dvh = Visual-Viewport (~940px).
+           min() gewinnt → Container zu groß → Safari-Scaling. */
         display:         "flex",
         flexDirection:   "column",
         background:      C.cream,
