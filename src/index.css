@@ -162,29 +162,34 @@ body {
 :focus:not(:focus-visible) { outline: none; }
 
 /* ═══════════════════════════════════════════════════════════════
-   SAFARI/IPAD RESPONSIVE FIX — chirurgisch, kein Redesign
-   Behebt: horizontalen Overflow, fehlenden max-width Guard,
-           dvh-Inkompatibilität auf älteren Safari-Versionen.
+   SAFARI / iPAD — VIEWPORT FIX (final, produktionsreif)
+   Keine Debug-Regeln. Keine !important Overrides.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Overflow-Guard: verhindert horizontales Überlaufen auf iPad */
+/* 1. Overflow-Guard — verhindert horizontales Scrolling auf iPad */
 html,
 body,
 #root {
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
+  max-width: 100%;      /* nie breiter als Viewport */
+  overflow-x: hidden;   /* kein horizontaler Overflow */
 }
 
-/* body: kein margin/padding-Artefakt */
+/* 2. Body — kein Margin/Padding-Artefakt, kein height-Konflikt */
 body {
   margin: 0;
   padding: 0;
+  /* KEIN height:100% — kollidiert mit dvh auf iPad Safari */
+  /* KEIN overflow:hidden — blockiert pointer-events auf fixed */
 }
 
-/* dvh-Fallback für ältere Safari-Versionen:
-   100dvh (dynamic viewport height) wird seit Safari 15.4 unterstützt.
-   Auf älteren iPads fallback auf 100vh + -webkit-fill-available */
+/* 3. Text-Inflation verhindern — iOS Safari skaliert sonst Fonts hoch */
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 4. dvh-Fallback für Safari < 15.4 */
 @supports not (height: 100dvh) {
   .hui-full-height {
     height: 100vh;
@@ -193,70 +198,4 @@ body {
 }
 .hui-full-height {
   height: 100dvh;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   HUI SAFARI DEBUG OVERLAY — TEMPORÄR
-   Entfernen nach Root-Cause-Identifikation.
-   Commit-Tag: [DEBUG] — suchen und revertieren.
-   ═══════════════════════════════════════════════════════════════
-
-   ANLEITUNG für Safari iPad:
-   1. Lade App neu
-   2. Schau welche roten Rahmen aus dem Bildschirm rausragen
-   3. Der äußerste herausragende Container = Root Cause
-
-   BEDEUTUNG der Farben:
-   - Rot (0.08 alpha)  = alle Container
-   - Cyan (2px solid)  = html/body/#root selbst
-   ═══════════════════════════════════════════════════════════════ */
-
-/* Alle Container sichtbar machen */
-* {
-  outline: 1px solid rgba(255, 0, 0, 0.08) !important;
-}
-
-/* html/body/#root explizit markieren */
-html {
-  outline: 2px solid rgba(0, 200, 255, 0.5) !important;
-}
-body {
-  outline: 2px solid rgba(0, 150, 255, 0.5) !important;
-}
-#root {
-  outline: 2px solid rgba(0, 255, 150, 0.5) !important;
-}
-
-/* Harter overflow-Guard als Diagnose:
-   WENN Scaling aufhört → overflow kommt von statischem Element.
-   WENN Scaling weitergeht → kommt von position:fixed Element. */
-html, body {
-  overflow-x: hidden !important;
-  max-width: 100vw !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SAFARI/IPAD FINAL VIEWPORT GUARD — produktionsreif
-   Kein Debug mehr. Nur stabile Constraints.
-   ═══════════════════════════════════════════════════════════════ */
-
-/* Harter Overflow-Guard — verhindert horizontales Scrolling */
-html {
-  overflow-x: hidden;
-  max-width: 100%;
-  /* KEIN overflow-y:hidden — Safari bricht Layout-Viewport */
-}
-
-body {
-  overflow-x: hidden;
-  max-width: 100%;
-  /* KEIN height:100% — kollidiert mit dvh auf iPad */
-  /* KEIN overflow:hidden — blockiert position:fixed pointer-events */
-}
-
-#root {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  /* KEIN overflow:hidden auf y — BottomNav muss clickbar bleiben */
 }
