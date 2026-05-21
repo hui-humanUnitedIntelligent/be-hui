@@ -2,7 +2,7 @@
 // Step 4 — Bewerbung prüfen & absenden
 
 import React from "react";
-import { IT } from "./ImpactFlow.jsx";
+import { IT } from "./ImpactTokens.js";
 
 /* ── Review Row ───────────────────────────────────────────────── */
 function ReviewRow({ label, value, highlight }) {
