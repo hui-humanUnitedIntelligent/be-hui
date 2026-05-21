@@ -648,3 +648,123 @@ export const useUIState = () => {
 
 // Re-export cache for emergency direct access
 export { cache as huiCache };
+// ─────────────────────────────────────────────────────────────
+// PHASE 2: ECHTE FEED-DATEN
+// ─────────────────────────────────────────────────────────────
+
+// useFeedData — lädt echten HomeFeed
+// Ersetzt MOCK_FEED in HomeFeed.jsx wenn Props übergeben werden
+export function useFeedData({ enabled = true, limit = 12 } = {}) {
+  const { user } = useAppState();
+  const [items,   setItems]   = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error,   setError]   = React.useState(null);
+  const loadedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!enabled || !user?.id || loadedRef.current) return;
+    loadedRef.current = true;
+
+    setLoading(true);
+    feedService.getHomeFeed({ userId: user.id, limit })
+      .then(({ items: data, error: err }) => {
+        if (!err && data?.length) setItems(data);
+        if (err) setError(err);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [user?.id, enabled, limit]);
+
+  const refresh = React.useCallback(() => {
+    if (!user?.id) return;
+    loadedRef.current = false;
+    setLoading(true);
+    feedService.getHomeFeed({ userId: user.id, limit })
+      .then(({ items: data, error: err }) => {
+        if (!err && data?.length) setItems(data);
+        loadedRef.current = true;
+      })
+      .finally(() => setLoading(false));
+  }, [user?.id, limit]);
+
+  return { items, loading, error, refresh };
+}
+
+// useDiscoverData — lädt echte Discover-Inhalte
+export function useDiscoverData({ enabled = true, limit = 12 } = {}) {
+  const { user } = useAppState();
+  const [data,    setData]    = React.useState({ talents: [], works: [], experiences: [] });
+  const [loading, setLoading] = React.useState(false);
+  const [error,   setError]   = React.useState(null);
+  const loadedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!enabled || loadedRef.current) return;
+    loadedRef.current = true;
+
+    setLoading(true);
+    discoverService.getDiscovery({ userId: user?.id, limit })
+      .then(result => {
+        if (!result.error) setData(result);
+        if (result.error) setError(result.error);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [user?.id, enabled, limit]);
+
+  return { ...data, loading, error };
+}
+
+// useResonanceState — verwaltet Resonanz-Status für UI (optimistisch)
+// Ersetzt den alten inspired/liked State in Feeds
+export function useResonanceState() {
+  const { user } = useAppState();
+  const [resonated, setResonated] = React.useState({});  // { [targetId]: Set<type> }
+
+  const toggle = React.useCallback(async (targetId, targetType, resonanceType = 'inspired') => {
+    if (!user?.id) return;
+
+    // Optimistisches UI-Update
+    setResonated(prev => {
+      const next = { ...prev };
+      const current = next[targetId] || new Set();
+      const updated = new Set(current);
+      if (updated.has(resonanceType)) {
+        updated.delete(resonanceType);
+      } else {
+        updated.add(resonanceType);
+      }
+      next[targetId] = updated;
+      return next;
+    });
+
+    // DB async (fire-and-forget, Fehler nicht Block-UI)
+    try {
+      const { resonanceService } = await import('../services/content.js');
+      const hasIt = (resonated[targetId] || new Set()).has(resonanceType);
+      await resonanceService.toggle({
+        user, targetType, targetId, resonanceType, currentState: hasIt
+      });
+    } catch (e) {
+      // Optimistisches UI-Update zurückrollen bei Fehler
+      setResonated(prev => {
+        const next = { ...prev };
+        const current = next[targetId] || new Set();
+        const updated = new Set(current);
+        if (updated.has(resonanceType)) {
+          updated.delete(resonanceType);
+        } else {
+          updated.add(resonanceType);
+        }
+        next[targetId] = updated;
+        return next;
+      });
+    }
+  }, [user, resonated]);
+
+  const isResonated = React.useCallback((targetId, resonanceType = 'inspired') => {
+    return (resonated[targetId] || new Set()).has(resonanceType);
+  }, [resonated]);
+
+  return { resonated, toggle, isResonated };
+}
