@@ -282,8 +282,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
-  const [liked,     setLiked]     = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  const [resonated,     setResonated]     = useState(false);
+  const [resonanceCount, setResonanceCount] = useState(0);
   const [saved,     setSaved]     = useState(false);
   const [shareOk,   setShareOk]   = useState(false);
   const [following, setFollowing] = useState(false);
@@ -308,7 +308,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       const { count: lc } = await supabase
         .from("work_likes").select("id", { count:"exact" })
         .eq("work_id", werkId);
-      setLikeCount(lc || 0);
+      setResonanceCount(lc || 0);
 
       // Saved?
       const { data: saveRow } = await supabase
@@ -344,13 +344,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   /* ── Toggle Like — via AppStateContext (Single Owner) ───────────── */
   const handleLike = useCallback(async () => {
     if (!user?.id) return;
-    const newLiked = !liked;
+    const newResonated = !resonated;
     // Optimistic local UI
-    setLiked(newLiked);
-    setLikeCount(c => newLiked ? c + 1 : Math.max(0, c - 1));
+    setResonated(newResonated);
+    setResonanceCount(c => newResonated ? c + 1 : Math.max(0, c - 1));
     // DB-Sync via AppStateContext — kein direktes supabase.from() hier
     await toggleLikeWork(id);
-  }, [user?.id, id, liked, toggleLikeWork]);
+  }, [user?.id, id, resonated, toggleLikeWork]);
 
   /* ── Toggle Save — via AppStateContext (Single Owner) ───────────── */
   const handleSave = useCallback(async () => {
@@ -639,9 +639,9 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           display:"flex", justifyContent:"space-around",
           boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
           <IconBtn
-            icon={liked ? "❤️" : "🤍"}
-            label={likeCount > 0 ? String(likeCount) : "Like"}
-            active={liked}
+            icon={resonated ? "✦" : "✦"}
+            label={resonanceCount > 0 ? String(resonanceCount) : "Resonanz"}
+            active={resonated}
             color={C.coral}
             onPress={handleLike}
           />
