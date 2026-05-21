@@ -40,9 +40,9 @@ const C = {
 ══════════════════════════════════════════════════════════════ */
 const CSS = `
   * { box-sizing:border-box; -webkit-font-smoothing:antialiased; }
-  @keyframes fadeUp  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp  { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
   @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
-  @keyframes msgIn   { from{opacity:0;transform:translateY(8px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes msgIn   { from{opacity:0;transform:translateY(5px) scale(0.98)} to{opacity:1;transform:translateY(0) scale(1)} }
   @keyframes slideR  { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
   @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.35} }
   @keyframes glow    { 0%,100%{box-shadow:0 0 0 0 rgba(32,211,194,0)} 50%{box-shadow:0 0 0 8px rgba(32,211,194,0.12)} }
@@ -52,12 +52,12 @@ const CSS = `
   .nc-scroll { -ms-overflow-style:none; scrollbar-width:none; }
   .nc-tap {
     -webkit-tap-highlight-color:transparent;
-    transition:transform 0.15s ease, opacity 0.15s ease;
+    transition:transform 0.28s ease, opacity 0.22s ease;
     cursor:pointer;
   }
-  .nc-tap:active { transform:scale(0.94); opacity:0.8; }
+  .nc-tap:active { transform:scale(0.97); opacity:0.88; }
   .nc-card {
-    transition:box-shadow 0.2s ease, transform 0.2s ease;
+    transition:box-shadow 0.32s ease, transform 0.32s ease;
   }
   .nc-card:active { transform:scale(0.98); }
   .nc-pill {
@@ -132,7 +132,7 @@ const MOCK_NOTIFS = [
 const MOCK_CHAT = {
   other_profile:{ display_name:"Mia Kern", avatar_url:"https://i.pravatar.cc/80?img=47",
     talent:"Keramik & Handwerk", location:"Berlin" },
-  presence:"online", presenceLabel:"Gerade im Atelier",
+  presence:"präsent", presenceLabel:"Gerade im Atelier",
   booking_title:"Keramik Workshop Formen der Erde",
   category:"Keramik & Handwerk", categoryIcon:"\uD83C\uDFFA",
 };
