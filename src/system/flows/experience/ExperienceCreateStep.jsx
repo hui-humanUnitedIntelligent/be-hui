@@ -2,7 +2,7 @@
 // Step 1 — Fähigkeit vorstellen: Titel, Beschreibung, Medien
 
 import React, { useRef, useCallback } from "react";
-import { ET, EInput } from "./ExperienceFlow.jsx";
+import { ET, EInput } from "./ExperienceTokens.js";
 
 const EXAMPLES = [
   "Gitarrenunterricht für Anfänger",
