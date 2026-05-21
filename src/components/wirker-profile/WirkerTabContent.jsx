@@ -15,7 +15,7 @@ const TABS = [
   { key:"werke",      label:"Werke"      },
   { key:"erlebnisse", label:"Erlebnisse" },
   { key:"wirkung",    label:"Wirkung"    },
-  { key:"verbindung", label:"Verbindung" },
+  { key:"verbindung", label:"Resonanz"   },
   { key:"raum",       label:"Raum"       },
 ];
 
