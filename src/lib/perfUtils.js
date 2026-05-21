@@ -1,3 +1,14 @@
+
+// ─── Cache TTL Konstanten ───────────────────────────────────────
+export const CACHE_TTL = {
+  profiles:     60_000,   // 60 Sekunden
+  works:        30_000,   // 30 Sekunden
+  experiences:  30_000,
+  feed:         20_000,   // 20 Sekunden — Feed ist dynamisch
+  discover:     60_000,
+  notifications: 15_000,
+};
+
 // hui-perf-utils.js — HUI Performance Utilities
 // Zentrale Helfer für Queries, Lazy Images, Virtualisierung
 // Kein visuelles Design — nur Technik
