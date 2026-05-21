@@ -131,6 +131,7 @@ function ProgressDots({ step, total, accent }) {
 
 // ── MAIN ─────────────────────────────────────────────────────────────────
 export default function HuiMembershipFlow({ onComplete, onClose }) {
+  const { activateMembership, refreshProfile } = useAuth();
   const { user } = useAuth();
   const [step,        setStep]        = useState(0);
   const [animKey,     setAnimKey]     = useState(0);
@@ -163,6 +164,11 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
       // Delegate to parent — activateTalentProfile() in AuthContext
       // writes has_talent_profile=true to Supabase AND updates in-memory profile
       setDone(true);
+      // Membership wirklich in DB aktivieren
+      activateMembership().then(({ error }) => {
+        if (error) console.warn('[HUI Membership] DB-Update Fehler:', error);
+        else refreshProfile().catch(() => {});
+      }).catch(() => {});
       setTimeout(() => onComplete?.(focusType || 'hybrid'), 2200);
     } catch(err) {
       setError("Etwas ist schiefgelaufen. Bitte nochmal.");
