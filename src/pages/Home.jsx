@@ -92,12 +92,16 @@ function HomeInner() {
       {/* overflow:hidden würde in iOS Safari pointer-events auf    */}
       {/* position:fixed Kinder vererben → BottomNav tot           */}
       <div style={{
-        height:          "100dvh",
+        height:          "100dvh",         /* dvh: Safari 15.4+ */
+        minHeight:       "-webkit-fill-available", /* iOS Safari Fallback */
         display:         "flex",
         flexDirection:   "column",
         background:      C.cream,
         position:        "relative",
-        /* overflow:hidden BEWUSST WEGGELASSEN — Safari Fix */
+        width:           "100%",           /* kein overflow über Viewport */
+        maxWidth:        "100%",
+        overflowX:       "hidden",
+        /* overflow:hidden BEWUSST WEGGELASSEN — Safari pointer-events Fix */
       }}>
 
         {/* Header */}
