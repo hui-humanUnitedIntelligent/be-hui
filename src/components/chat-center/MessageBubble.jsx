@@ -9,11 +9,11 @@ const C = { teal:"#16D7C5", teal2:"#11C5B7", teal3:"#0FAAA0", coral:"#FF8A6B" };
 
 const CSS = `
   @keyframes mb-in-own {
-    from{opacity:0;transform:translateX(14px) scale(0.96);}
+    from{opacity:0;transform:translateX(8px) scale(0.98);}
     to{opacity:1;transform:translateX(0) scale(1);}
   }
   @keyframes mb-in-other {
-    from{opacity:0;transform:translateX(-14px) scale(0.96);}
+    from{opacity:0;transform:translateX(-8px) scale(0.98);}
     to{opacity:1;transform:translateX(0) scale(1);}
   }
   @keyframes mb-typing {
@@ -47,8 +47,8 @@ export function TypingBubble() {
         {[0,1,2].map(i => (
           <div key={i} style={{
             width:7, height:7, borderRadius:"50%",
-            background:"rgba(22,215,197,0.65)",
-            animation:`mb-typing 1.2s ${i*0.18}s ease-in-out infinite`,
+            background:"rgba(22,215,197,0.45)",
+            animation:`mb-typing 1.8s ${i*0.28}s ease-in-out infinite`,
           }}/>
         ))}
       </div>
@@ -66,7 +66,7 @@ export default function MessageBubble({ msg }) {
       justifyContent: own ? "flex-end" : "flex-start",
       alignItems:"flex-end", gap:9,
       padding:"3px 16px 10px",
-      animation: own ? "mb-in-own 0.22s ease both" : "mb-in-other 0.22s ease both",
+      animation: own ? "mb-in-own 0.40s cubic-bezier(0.22,1,0.36,1) both" : "mb-in-other 0.40s cubic-bezier(0.22,1,0.36,1) both",
     }}>
       <style>{CSS}</style>
 
@@ -97,12 +97,12 @@ export default function MessageBubble({ msg }) {
         {own ? (
           /* ── Eigene Nachricht: Teal gradient, glow ── */
           <div style={{
-            padding:"13px 18px",
-            background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 55%, ${C.teal3} 100%)`,
+            padding:"14px 20px",
+            background:`linear-gradient(160deg, rgba(22,215,197,0.88) 0%, rgba(17,197,183,0.92) 100%)`,
             borderRadius:"22px 22px 6px 22px",
             color:"white",
-            fontSize:14.5, lineHeight:1.60,
-            boxShadow:`0 6px 22px rgba(22,215,197,0.32), 0 2px 8px rgba(0,0,0,0.06)`,
+            fontSize:14.5, lineHeight:1.70,
+            boxShadow:`0 4px 16px rgba(22,215,197,0.18), 0 2px 6px rgba(0,0,0,0.04)`,
             position:"relative",
           }}>
             {/* Subtle inner glow */}
@@ -116,13 +116,13 @@ export default function MessageBubble({ msg }) {
         ) : (
           /* ── Fremde Nachricht: Glass surface ── */
           <div style={{
-            padding:"13px 18px",
+            padding:"14px 20px",
             background:"rgba(255,255,255,0.68)",
             backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
             borderRadius:"22px 22px 22px 6px",
             border:"1px solid rgba(255,255,255,0.62)",
             color:"#1A1A1A",
-            fontSize:14.5, lineHeight:1.60,
+            fontSize:14.5, lineHeight:1.70,
             boxShadow:"0 4px 18px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)",
           }}>{msg.text}</div>
         )}
@@ -145,13 +145,7 @@ export default function MessageBubble({ msg }) {
               boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
             }}>{msg.reaction}</div>
           )}
-          {/* Doppel-Haken (gelesen) */}
-          {own && msg.read && (
-            <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-              <path d="M1 5l3 3 5-6" stroke={C.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M5 5l3 3 5-6" stroke={C.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
+          {/* Kein Seen-Stress: gelesen-Haken entfernt */}
         </div>
       </div>
     </div>
