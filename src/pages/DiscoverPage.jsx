@@ -30,7 +30,7 @@ const CSS = `
   * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
   @keyframes fadeUp {
-    from { opacity:0; transform:translateY(14px); }
+    from { opacity:0; transform:translateY(8px); }
     to   { opacity:1; transform:translateY(0); }
   }
   @keyframes scaleIn {
@@ -51,7 +51,7 @@ const CSS = `
     overflow: hidden;
     position: relative;
     cursor: pointer;
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
     -webkit-tap-highlight-color: transparent;
   }
   .dp-hero-card:active {
