@@ -45,13 +45,19 @@ export function StoryBar({ onStoryClick }) {
 
   async function loadStories() {
     const now = new Date().toISOString();
+    // FIX: stories-Tabelle hat kein 'status'-Feld → war silent fail (0 Ergebnisse)
+    // FIX: username/avatar_url nicht in stories → via profile join laden
     const { data, error } = await supabase
       .from('stories')
-      .select('id, user_id, username, avatar_url, media_url, media_type, text_overlay, is_highlight, created_at, expires_at')
-      .eq('status','published')
-      .or(`expires_at.gt.${now},is_highlight.eq.true`)
+      .select(`
+        id, user_id, media_url, media_type, caption, text_overlay,
+        is_highlight, created_at, expires_at,
+        profile:user_id(display_name, avatar_url)
+      `)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
       .order('created_at', { ascending: false })
       .limit(50);
+    console.info('[StoryBar] Query result:', { count: data?.length, error: error?.message });
 
     if (error) { console.warn('[StoryBar] load error:', error.message); return; }
     if (!data?.length) return;
@@ -66,12 +72,16 @@ export function StoryBar({ onStoryClick }) {
     }
 
     // Group by user_id
+    // FIX: username/avatar_url kommen jetzt aus profile-join
     const map = {};
     for (const s of data) {
       const uid = s.user_id;
-      if (!map[uid]) map[uid] = { uid, username: s.username || 'Anonym', avatar_url: s.avatar_url, stories: [] };
-      map[uid].stories.push(s);
+      const displayName = s.profile?.display_name || 'Anonym';
+      const avatarUrl   = s.profile?.avatar_url   || null;
+      if (!map[uid]) map[uid] = { uid, username: displayName, avatar_url: avatarUrl, stories: [] };
+      map[uid].stories.push({ ...s, username: displayName, avatar_url: avatarUrl });
     }
+    console.info('[StoryBar] Groups built:', Object.keys(map).length);
     setGroups(Object.values(map));
   }
 
