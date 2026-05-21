@@ -117,7 +117,7 @@ const PILLS = ["Alles","Menschen","Werke","Erlebnisse","Wirkung","Orte"];
    HERO CARD
 ══════════════════════════════════════════════════════════════ */
 function HeroCard({ item, onDetails }) {
-  const [liked, setLiked] = useState(false);
+  const [resonated, setResonated] = useState(false);
   return (
     <div style={{
       margin:"0 20px",
@@ -153,14 +153,14 @@ function HeroCard({ item, onDetails }) {
       {/* Heart */}
       <button
         className="fr-heart fr-tap"
-        onClick={e => { e.stopPropagation(); setLiked(p => !p); }}
+        onClick={e => { e.stopPropagation(); setResonated(p => !p); }}
         style={{
           position:"absolute", top:12, right:12,
           width:34, height:34, borderRadius:"50%",
-          background: liked ? C.coral : "rgba(255,255,255,0.88)",
+          background: resonated ? C.coral : "rgba(255,255,255,0.88)",
           backdropFilter:"blur(6px)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:16, color: liked ? "#fff" : C.coral,
+          fontSize:16, color: resonated ? "#fff" : C.coral,
           boxShadow:"0 2px 8px rgba(0,0,0,0.15)",
         }}
       >
@@ -236,7 +236,7 @@ function CreatorSection({ people, onView }) {
 }
 
 function CreatorCard({ person, idx, onView }) {
-  const [liked, setLiked] = useState(false);
+  const [resonated, setResonated] = useState(false);
   return (
     <div
       className="fr-card fr-tap"
@@ -271,14 +271,14 @@ function CreatorCard({ person, idx, onView }) {
         {/* Heart */}
         <button
           className="fr-heart fr-tap"
-          onClick={e => { e.stopPropagation(); setLiked(p => !p); }}
+          onClick={e => { e.stopPropagation(); setResonated(p => !p); }}
           style={{
             position:"absolute", top:8, right:8,
             width:28, height:28, borderRadius:"50%",
-            background: liked ? C.coral : "rgba(255,255,255,0.88)",
+            background: resonated ? C.coral : "rgba(255,255,255,0.88)",
             backdropFilter:"blur(6px)",
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:13, color: liked ? "#fff" : C.coral,
+            fontSize:13, color: resonated ? "#fff" : C.coral,
             boxShadow:"0 2px 6px rgba(0,0,0,0.12)",
           }}
         >
@@ -319,7 +319,7 @@ function WorksGrid({ works, onView }) {
 }
 
 function WorkCard({ work, idx, onView }) {
-  const [liked, setLiked] = useState(false);
+  const [resonated, setResonated] = useState(false);
   return (
     <div
       className="fr-card fr-tap"
@@ -350,14 +350,14 @@ function WorkCard({ work, idx, onView }) {
         {/* Heart */}
         <button
           className="fr-heart fr-tap"
-          onClick={e => { e.stopPropagation(); setLiked(p => !p); }}
+          onClick={e => { e.stopPropagation(); setResonated(p => !p); }}
           style={{
             position:"absolute", top:8, right:8,
             width:28, height:28, borderRadius:"50%",
-            background: liked ? C.coral : "rgba(255,255,255,0.88)",
+            background: resonated ? C.coral : "rgba(255,255,255,0.88)",
             backdropFilter:"blur(6px)",
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:13, color: liked ? "#fff" : C.coral,
+            fontSize:13, color: resonated ? "#fff" : C.coral,
             boxShadow:"0 2px 6px rgba(0,0,0,0.12)",
           }}
         >
@@ -396,7 +396,7 @@ function ExperienceCards({ experiences, onView }) {
 }
 
 function ExperienceCard({ exp, idx, onView }) {
-  const [liked, setLiked] = useState(false);
+  const [resonated, setResonated] = useState(false);
   return (
     <div
       className="fr-card fr-tap"
@@ -426,14 +426,14 @@ function ExperienceCard({ exp, idx, onView }) {
         {/* Heart */}
         <button
           className="fr-heart fr-tap"
-          onClick={e => { e.stopPropagation(); setLiked(p => !p); }}
+          onClick={e => { e.stopPropagation(); setResonated(p => !p); }}
           style={{
             position:"absolute", top:8, right:8,
             width:28, height:28, borderRadius:"50%",
-            background: liked ? C.coral : "rgba(255,255,255,0.88)",
+            background: resonated ? C.coral : "rgba(255,255,255,0.88)",
             backdropFilter:"blur(6px)",
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:13, color: liked ? "#fff" : C.coral,
+            fontSize:13, color: resonated ? "#fff" : C.coral,
           }}
         >
           {liked ? "\u2665" : "\u2661"}
