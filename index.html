@@ -40,30 +40,81 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script>
-    /* Safari MIME-Type Chunk Recovery */
-    window.addEventListener("error", function(e) {
-      var msg = e && e.message || "";
-      if (
-        msg.indexOf("MIME") !== -1 ||
-        msg.indexOf("Failed to fetch dynamically imported module") !== -1 ||
-        msg.indexOf("Importing a module script failed") !== -1 ||
-        msg.indexOf("text/html is not a valid JavaScript") !== -1
-      ) {
-        // Verhindere Loop: nur wenn noch kein Reload lief
-        if (!sessionStorage.getItem("hui_mime_reload")) {
-          sessionStorage.setItem("hui_mime_reload", "1");
-          console.warn("[HUI] MIME error — reloading for clean chunk fetch");
-          window.location.reload(true);
-        } else {
-          sessionStorage.removeItem("hui_mime_reload");
-          console.error("[HUI] MIME error persists after reload — please clear cache");
-        }
+    /* ─────────────────────────────────────────────────────────────
+       HUI Chunk Recovery v2
+       Fängt ab:
+         • MIME-Type Fehler   ("text/html is not a valid JavaScript")
+         • Chunk-Load-Fehler  ("Failed to fetch dynamically imported module")
+         • Safari-spezifisch  ("Importing a module script failed")
+         • ChunkLoadError     (Vite/Webpack chunk hash mismatch)
+       Strategie:
+         • Genau 1 controlled hard reload (sessionStorage-Flag)
+         • Loop-Schutz: nach Reload kein weiterer Trigger
+         • Nach erfolgreichem Load: Flag bereinigen
+       ───────────────────────────────────────────────────────────── */
+    (function() {
+      var RELOAD_KEY = "hui_chunk_reload";
+      var RELOAD_TS_KEY = "hui_chunk_reload_ts";
+
+      function isChunkError(msg, src) {
+        if (!msg && !src) return false;
+        var text = (msg || "") + " " + (src || "");
+        return (
+          text.indexOf("text/html is not a valid JavaScript") !== -1 ||
+          text.indexOf("MIME type") !== -1 ||
+          text.indexOf("Failed to fetch dynamically imported module") !== -1 ||
+          text.indexOf("Importing a module script failed") !== -1 ||
+          text.indexOf("ChunkLoadError") !== -1 ||
+          text.indexOf("Loading chunk") !== -1 ||
+          text.indexOf("Loading CSS chunk") !== -1 ||
+          text.indexOf("dynamically imported module") !== -1
+        );
       }
-    });
-    /* Clear reload flag on successful load */
-    window.addEventListener("load", function() {
-      sessionStorage.removeItem("hui_mime_reload");
-    });
+
+      function doReload() {
+        var now = Date.now();
+        var lastTs = parseInt(sessionStorage.getItem(RELOAD_TS_KEY) || "0", 10);
+        // Loop-Schutz: kein Reload wenn vor weniger als 10s schon einer lief
+        if (sessionStorage.getItem(RELOAD_KEY) && (now - lastTs) < 10000) {
+          sessionStorage.removeItem(RELOAD_KEY);
+          sessionStorage.removeItem(RELOAD_TS_KEY);
+          console.error("[HUI] Chunk error persists after reload — cache clear needed");
+          return;
+        }
+        sessionStorage.setItem(RELOAD_KEY, "1");
+        sessionStorage.setItem(RELOAD_TS_KEY, String(now));
+        console.warn("[HUI] Chunk/MIME error detected — controlled reload");
+        window.location.reload();
+      }
+
+      // ── window.onerror: synchrone Fehler (Safari, Firefox) ──
+      var _prevOnerror = window.onerror;
+      window.onerror = function(msg, src, line, col, err) {
+        if (isChunkError(msg, src)) { doReload(); return true; }
+        if (_prevOnerror) return _prevOnerror(msg, src, line, col, err);
+        return false;
+      };
+
+      // ── window.addEventListener error: Script-Tag Fehler ──
+      window.addEventListener("error", function(e) {
+        var msg = (e && e.message) || "";
+        var src = (e && e.filename) || "";
+        if (isChunkError(msg, src)) { doReload(); }
+      }, true); // capture phase — wichtig für Script-Load-Fehler
+
+      // ── unhandledrejection: Promise-basierte import() Fehler ──
+      window.addEventListener("unhandledrejection", function(e) {
+        var reason = e && e.reason;
+        var msg = (reason && (reason.message || String(reason))) || "";
+        if (isChunkError(msg, "")) { e.preventDefault(); doReload(); }
+      });
+
+      // ── Erfolgreicher Load: Flags bereinigen ──
+      window.addEventListener("load", function() {
+        sessionStorage.removeItem(RELOAD_KEY);
+        sessionStorage.removeItem(RELOAD_TS_KEY);
+      });
+    })();
   </script>
 </head>
   <body>
