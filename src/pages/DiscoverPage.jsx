@@ -804,6 +804,76 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
         </div>
       </div>
 
+
+      {/* ════════════════════════════════════════
+          RESONANZPFAD — was gerade entsteht
+      ════════════════════════════════════════ */}
+      <div style={{ marginBottom:36 }}>
+        <div style={{
+          display:"flex", justifyContent:"space-between", alignItems:"baseline",
+          padding:"0 20px", marginBottom:14,
+        }}>
+          <span style={{
+            fontSize:18, fontWeight:800, color:C.ink, letterSpacing:-0.4,
+          }}>Was gerade entsteht ✦</span>
+          <span style={{ fontSize:12, color:C.muted, fontWeight:500 }}>
+            Gemeinschaft wächst
+          </span>
+        </div>
+        <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", gap:12 }}>
+          {[
+            {
+              icon:"🌿", headline:"Menschen aus deiner Nähe", 
+              sub:"Kreative die ähnliche Resonanzräume entdecken",
+              accent: C.teal,
+            },
+            {
+              icon:"✦", headline:"Diese Gemeinschaft wächst gerade schön",
+              sub:"Keramik & Handwerk · München · 23 Menschen",
+              accent: C.coral,
+            },
+            {
+              icon:"🌱", headline:"Wirkung entsteht",
+              sub:"Neue Impact-Projekte in deiner Region",
+              accent:"#10B981",
+            },
+          ].map((item, i) => (
+            <div key={i} style={{
+              display:"flex", alignItems:"center", gap:14,
+              padding:"16px 18px",
+              background:"rgba(255,255,255,0.75)",
+              backdropFilter:"blur(12px)",
+              borderRadius:20,
+              border:`1px solid rgba(0,0,0,0.05)`,
+              boxShadow:"0 2px 12px rgba(0,0,0,0.04)",
+              cursor:"pointer",
+              transition:"transform 0.30s ease, box-shadow 0.30s ease",
+            }}
+            onTouchStart={e => { e.currentTarget.style.transform="scale(0.985)"; e.currentTarget.style.boxShadow="0 1px 6px rgba(0,0,0,0.04)"; }}
+            onTouchEnd={e   => { e.currentTarget.style.transform="scale(1)";     e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.04)"; }}
+            >
+              <div style={{
+                width:46, height:46, borderRadius:14, flexShrink:0,
+                background:`${item.accent}14`,
+                border:`1px solid ${item.accent}22`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:20,
+              }}>{item.icon}</div>
+              <div style={{ flex:1 }}>
+                <div style={{
+                  fontSize:14, fontWeight:700, color:C.ink,
+                  lineHeight:1.3, marginBottom:3,
+                }}>{item.headline}</div>
+                <div style={{
+                  fontSize:12, color:C.muted, fontWeight:400, lineHeight:1.4,
+                }}>{item.sub}</div>
+              </div>
+              <div style={{ color:C.muted, fontSize:16, opacity:0.5 }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ════════════════════════════════════════
           MAP BUTTON (floating)
       ════════════════════════════════════════ */}
@@ -813,18 +883,19 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
             onClick={onMap}
             style={{
               display:"flex", alignItems:"center", gap:8,
-              background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
+              background:`linear-gradient(160deg, rgba(22,215,197,0.88) 0%, rgba(17,197,183,0.90) 100%)`,
               color:"#fff", border:"none",
               borderRadius:999,
-              padding:"12px 24px",
-              fontSize:14, fontWeight:700,
+              padding:"13px 28px",
+              fontSize:14, fontWeight:600,
               cursor:"pointer",
-              boxShadow:`0 6px 20px rgba(22,215,197,0.35)`,
-              letterSpacing:-0.2,
+              boxShadow:`0 5px 18px rgba(22,215,197,0.25)`,
+              letterSpacing:-0.1,
+              transition:"all 0.30s ease",
             }}
           >
             <span>🗺</span>
-            Auf Karte entdecken
+            In deiner Nähe entdecken
           </button>
         </div>
       )}
