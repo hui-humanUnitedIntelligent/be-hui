@@ -2,7 +2,7 @@
 // Step 3 — Kontakt & Online Präsenz
 
 import React from "react";
-import { IT, IInput, ImpactNextBtn } from "./ImpactFlow.jsx";
+import { IT, IInput, ImpactNextBtn } from "./ImpactTokens.js";
 
 /* ── Label + Input ───────────────────────────────────────────── */
 function Field({ label, required, placeholder, value, onChange, type="text" }) {
