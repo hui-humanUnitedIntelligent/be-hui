@@ -10,20 +10,28 @@ const C = {
   muted: "rgba(80,80,80,0.58)", cream: "#F9F7F4",
 };
 
-function StatCol({ value, label, last }) {
+function StatCol({ value, label, last, dimmed }) {
   return (
     <div style={{
-      flex:1, display:"flex", flexDirection:"column",
+      flex: dimmed ? 0.7 : 1,
+      display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
-      padding:"14px 4px",
-      borderRight: last ? "none" : "1px solid rgba(0,0,0,0.07)",
+      padding:"16px 4px",
+      borderRight: last ? "none" : "1px solid rgba(0,0,0,0.055)",
     }}>
       <span style={{
-        fontSize:19, fontWeight:800, color:C.ink,
-        letterSpacing:-0.3, lineHeight:1.1,
+        fontSize: dimmed ? 14 : 18,
+        fontWeight: dimmed ? 500 : 800,
+        color: dimmed ? C.muted : C.ink,
+        letterSpacing: dimmed ? 0 : -0.3,
+        lineHeight:1.1, opacity: dimmed ? 0.65 : 1,
         fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+        transition:"opacity 0.2s",
       }}>{value}</span>
-      <span style={{ fontSize:11, color:C.muted, fontWeight:500, marginTop:3 }}>{label}</span>
+      <span style={{
+        fontSize:10.5, color:C.muted, fontWeight:500, marginTop:3,
+        opacity: dimmed ? 0.55 : 0.85,
+      }}>{label}</span>
     </div>
   );
 }
@@ -104,12 +112,12 @@ export default function WirkerIdentity({ profile }) {
         display:"flex",
         background:"white",
         borderRadius:18,
-        boxShadow:"0 2px 10px rgba(0,0,0,0.06)",
+        boxShadow:"0 2px 14px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03)",
         overflow:"hidden",
-        marginBottom:16,
+        marginBottom:20,
       }}>
         <StatCol value={fmt(erlebnisse)} label="Erlebnisse"/>
-        <StatCol value={fmt(gefolgt)}   label="Gefolgt"/>
+        <StatCol value={fmt(gefolgt)}   label="Gefolgt" dimmed/>
         <StatCol value={wirkungFmt}     label="Wirkung"/>
         <StatCol value={fmt(verbindungen)} label="Verbindungen" last/>
       </div>
