@@ -59,9 +59,9 @@ export const NODES = [
     angle:       -90,
     floatAnim:   "orbFloatA",
     delay:       0.08,
-    desc:        "Zeige etwas, das dich bewegt.",
+    desc:        "Teile einen Moment, der dich berührt hat.",
     action:      "story",
-    ctaLabel:    "Jetzt teilen",
+    ctaLabel:    "Moment teilen ✦",
     forAll:      true,
     directAction: true,   // ← Single-Tap
     sub: [
@@ -82,9 +82,9 @@ export const NODES = [
     angle:       -18,
     floatAnim:   "orbFloatB",
     delay:       0.16,
-    desc:        "Deine Kunst, dein Handwerk oder Design.",
+    desc:        "Deine Schöpfung verdient einen Raum in der Welt.",
     action:      "werk",
-    ctaLabel:    "Werk erstellen",
+    ctaLabel:    "Werk öffnen",
     forAll:      false,
     directAction: true,
     sub: [
@@ -105,9 +105,9 @@ export const NODES = [
     angle:       54,
     floatAnim:   "orbFloatC",
     delay:       0.24,
-    desc:        "Lade Menschen in einen besonderen Moment.",
+    desc:        "Öffne eine Begegnung — ein Erlebnis das verbindet.",
     action:      "experience",
-    ctaLabel:    "Erlebnis öffnen",
+    ctaLabel:    "Einladung öffnen",
     forAll:      false,
     directAction: true,
     sub: [
@@ -121,16 +121,16 @@ export const NODES = [
   {
     key:         "wirkung",
     label:       "Wirkung starten",
-    icon:        "❤️",
-    color:       "#FB923C",
-    dark:        "#EA580C",
-    glow:        "rgba(251,146,60,",
+    icon:        "🌱",
+    color:       "#10B981",
+    dark:        "#059669",
+    glow:        "rgba(16,185,129,",
     angle:       126,
     floatAnim:   "orbFloatD",
     delay:       0.32,
-    desc:        "Reiche eine Vision für echten Impact ein.",
+    desc:        "Starte etwas das bleibt — echte Wirkung entsteht.",
     action:      "impact",
-    ctaLabel:    "Vision einreichen",
+    ctaLabel:    "Wirkung starten",
     forAll:      true,
     isImpact:    false,
     directAction: true,
@@ -150,16 +150,16 @@ export const NODES = [
     angle:       198,
     floatAnim:   "orbFloatE",
     delay:       0.40,
-    desc:        "Finde kreative Menschen und kollaboriere.",
+    desc:        "Finde Menschen mit ähnlicher Resonanz ✦",
     action:      "connect",
-    ctaLabel:    "Verbindungen finden",
+    ctaLabel:    "Verbindung öffnen ✦",
     forAll:      true,
     directAction: true,
     sub: [
-      { key:"kollab",    icon:"🤝", label:"Kollaboration"    },
-      { key:"mentor",    icon:"🎓", label:"Mentor finden"    },
+      { key:"kollab",    icon:"🤝", label:"Gemeinsam schaffen"    },
+      { key:"mentor",    icon:"🎓", label:"Begleitung finden"    },
       { key:"partner",   icon:"🔗", label:"Projektpartner"   },
-      { key:"community", icon:"🌐", label:"Community"        },
+      { key:"community", icon:"🌐", label:"Resonanzraum"        },
     ],
   },
 ];
@@ -179,5 +179,5 @@ export const ORB_MIN     = 100;  // px
 export const ORB_MAX     = 155;  // px
 
 /* ── Timing ─────────────────────────────────────────────────── */
-export const TRANSITION_LOCK_MS = 500; // Click-Lock Dauer nach Action
-export const MOUNT_DELAY_MS     = 16;  // Erstmount-Delay für Animation
+export const TRANSITION_LOCK_MS = 380; // Click-Lock — kurz genug für Responsiveness
+export const MOUNT_DELAY_MS     = 40;  // Erstmount-Delay — bewusstes Erscheinen
