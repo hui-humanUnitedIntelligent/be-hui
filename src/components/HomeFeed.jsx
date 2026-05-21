@@ -528,10 +528,10 @@ function EventCard({ event, onPress }) {
 
 /* ─── Gemeinschaft Feed ─────────────────────────────────────────────────── */
 function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
-  const [liked, setLiked] = useState({});
+  const [inspired, setInspired] = useState({});
 
   function handleLike(id) {
-    setLiked(p => ({ ...p, [id]: !p[id] }));
+    setInspired(p => ({ ...p, [id]: !p[id] }));
     onLike?.(id);
   }
 
@@ -551,7 +551,7 @@ function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
             style={{ animationDelay: `${idx * 0.06}s` }}>
             <FeedItem
               item={item}
-              isLiked={!!liked[item.id]}
+              isLiked={!!inspired[item.id]}
               onProfile={() => onProfile?.(item)}
               onLike={() => handleLike(item.id)}
               onComment={() => onComment?.(item)}
@@ -673,9 +673,9 @@ function FeedItem({ item, isLiked, onProfile, onLike, onComment }) {
         marginTop: 4,
       }}>
         {/* Like */}
-        <button onClick={onLike} className={`hf-action-btn${isLiked ? " hf-action-btn--liked" : ""}`}>
-          <span style={{ fontSize: 15 }}>{isLiked ? "✦" : "🤍"}</span>
-          <span>{(item.likes || 0) + (isLiked ? 1 : 0)}</span>
+        <button onClick={onLike} className={`hf-action-btn${isLiked ? " hf-action-btn--inspired" : ""}`}>
+          <span style={{ fontSize: 15, color: isLiked ? "#16D7C5" : "rgba(80,80,80,0.5)" }}>✦</span>
+          <span>{(item.resonanz || 0) + (isLiked ? 1 : 0)}</span>
         </button>
         {/* Comment */}
         <button onClick={onComment} className="hf-action-btn">
