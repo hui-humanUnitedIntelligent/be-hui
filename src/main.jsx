@@ -1,44 +1,26 @@
-// src/main.jsx
+// src/main.jsx — BOOT ISOLATION MODE
+// Fatal handlers ZUERST — vor jedem anderen Import
+window.__HUI_BOOT_START__ = Date.now();
+console.log('[BOOT] main.jsx starting');
+
+window.onerror = function(msg, src, line, col, err) {
+  console.error('[FATAL]', msg, src + ':' + line, err);
+};
+window.onunhandledrejection = function(e) {
+  console.error('[PROMISE]', e.reason);
+};
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import { initSentry, sentryCapture } from './lib/sentry'
 
-// ── Sentry: als allererstes initialisieren ───────────────────────
-// Muss vor ReactDOM.createRoot() stehen damit alle Errors gefangen werden
-initSentry();
-
-// ── Global: unhandled Promise Rejections ────────────────────────
-// Fängt async-Crashes die keinen try/catch haben
-window.addEventListener('unhandledrejection', (event) => {
-  const err = event.reason instanceof Error
-    ? event.reason
-    : new Error(String(event.reason ?? 'Unhandled rejection'));
-  console.error('[HUI] unhandledrejection:', err);
-  sentryCapture(err, {
-    source:          'unhandledrejection',
-    document_hidden: document.hidden,
-    href:            window.location.href,
-  });
-});
-
-// ── Global: uncaught JS errors ───────────────────────────────────
-// Ergänzt Sentry's eigenen Handler mit HUI-Kontext
-window.addEventListener('error', (event) => {
-  if (!event.error) return;          // ignore cross-origin resource errors
-  console.error('[HUI] uncaught error:', event.error);
-  sentryCapture(event.error, {
-    source:          'window.onerror',
-    filename:        event.filename,
-    lineno:          event.lineno,
-    colno:           event.colno,
-    document_hidden: document.hidden,
-  });
-});
+console.log('[BOOT] imports resolved — mounting React');
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
+
+console.log('[BOOT] ReactDOM.createRoot called');
