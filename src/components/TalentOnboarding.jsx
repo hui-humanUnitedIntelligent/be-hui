@@ -1,4 +1,4 @@
-// TalentOnboarding v2 — "Dein Talent anbieten"
+// TalentOnboarding v2 — "Deinen Raum öffnen"
 // 3 Steps: Identität → Module → Profil
 // Props-only, kein useNavigate/useParams, router-safe
 import React, { useState, useEffect, useCallback } from "react";
@@ -19,14 +19,14 @@ const T = {
 };
 
 const CSS = `
-  @keyframes toUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes toUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes toIn{from{opacity:0}to{opacity:1}}
-  @keyframes toSlide{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes toSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
   @keyframes toSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   @keyframes toFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
   @keyframes toPop{0%{transform:scale(0.7)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
-  .t-tap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .14s,opacity .14s}
-  .t-tap:active{transform:scale(0.94)!important;opacity:.72}
+  .t-tap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .24s ease,opacity .22s ease}
+  .t-tap:active{transform:scale(0.96)!important;opacity:.80}
   .t-scroll::-webkit-scrollbar{display:none}
   .t-scroll{-ms-overflow-style:none;scrollbar-width:none}
 `;
