@@ -155,8 +155,10 @@ export default function WorkFlow({ onClose }) {
         if (i === 0) coverUrl = publicUrl;
       }
       // 2. DB Insert
-      const { error: dbErr } = await supabase.from("works").insert({
-        user_id:     user.id,
+      // FIX: works-Tabelle nutzt 'creator_id' nicht 'user_id'
+      // FIX: visibility muss explizit 'public' sein wenn nicht gesetzt
+      const workPayload = {
+        creator_id:  user.id,          // ← FIX: war user_id → unsichtbar im Feed
         title:       form.title.trim(),
         description: form.description.trim(),
         category:    form.category,
@@ -165,19 +167,34 @@ export default function WorkFlow({ onClose }) {
         for_sale:    form.priceMode !== "free",
         sale_mode:   form.priceMode,
         price:       form.price ? parseFloat(form.price) : null,
-        shipping:    form.shipping,
+        shipping:    form.shipping     || false,
         shipping_cost: form.shippingCost ? parseFloat(form.shippingCost) : null,
-        shipping_time: form.shippingTime,
-        shipping_countries: form.shippingCountries,
-        file_format: form.fileFormat,
-        size:        form.size,
-        materials:   form.materials,
-        condition:   form.condition,
-        visibility:  form.visibility,
+        shipping_time: form.shippingTime   || null,
+        shipping_countries: form.shippingCountries || null,
+        file_format: form.fileFormat   || null,
+        size:        form.size         || null,
+        materials:   form.materials    || null,
+        condition:   form.condition    || null,
+        visibility:  form.visibility   || "public",  // ← FIX: Fallback sicherstellen
         status:      "published",
         created_at:  new Date().toISOString(),
+      };
+      console.info("[WorkFlow] Publishing work:", {
+        creator_id: workPayload.creator_id,
+        title: workPayload.title,
+        status: workPayload.status,
+        visibility: workPayload.visibility,
+        cover_url: workPayload.cover_url ? "✅" : "❌ leer",
       });
-      if (dbErr) throw dbErr;
+      const { data: workData, error: dbErr } = await supabase.from("works")
+        .insert(workPayload)
+        .select("id, status, visibility, creator_id")
+        .single();
+      if (dbErr) {
+        console.error("[WorkFlow] DB Insert FEHLER:", dbErr);
+        throw dbErr;
+      }
+      console.info("[WorkFlow] Werk gespeichert:", workData);
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
