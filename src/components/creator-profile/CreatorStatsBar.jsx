@@ -5,20 +5,26 @@ import React from "react";
 
 const C = { teal:"#16D7C5", coral:"#FF8A6B", ink:"#1A1A1A", muted:"rgba(80,80,80,0.55)" };
 
-function StatItem({ value, label }) {
+function StatItem({ value, label, dimmed }) {
   return (
     <div style={{
-      flex:1, display:"flex", flexDirection:"column",
+      flex: dimmed ? 0.75 : 1,
+      display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
-      padding:"14px 6px",
-      borderRight:"1px solid rgba(0,0,0,0.06)",
+      padding:"16px 6px",
+      borderRight:"1px solid rgba(0,0,0,0.05)",
     }}>
       <span style={{
-        fontSize:20, fontWeight:800, color:C.ink,
-        letterSpacing:-0.3,
+        fontSize: dimmed ? 14 : 19,
+        fontWeight: dimmed ? 500 : 800,
+        color: dimmed ? C.muted : C.ink,
+        letterSpacing: dimmed ? 0 : -0.3,
+        opacity: dimmed ? 0.60 : 1,
         fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+        transition:"opacity 0.2s",
       }}>{value}</span>
-      <span style={{ fontSize:11, color:C.muted, fontWeight:500, marginTop:2 }}>{label}</span>
+      <span style={{ fontSize:10.5, color:C.muted, fontWeight:500, marginTop:2,
+        opacity: dimmed ? 0.5 : 0.85 }}>{label}</span>
     </div>
   );
 }
@@ -43,23 +49,17 @@ export default function CreatorStatsBar({ profile }) {
 
   return (
     <div style={{
-      margin:"20px 20px 0",
+      margin:"22px 20px 0",
       background:"white",
       borderRadius:20,
-      boxShadow:"0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
+      boxShadow:"0 2px 16px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03)",
       overflow:"hidden",
       display:"flex",
     }}>
       <StatItem value={fmt(erlebnisse)} label="Erlebnisse"/>
-      <StatItem value={fmt(gefolgt)}   label="Gefolgt"/>
+      <StatItem value={fmt(gefolgt)}   label="Gefolgt" dimmed/>
       <StatItem value={wirkungDisplay} label="Wirkung"/>
-      <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"14px 6px" }}>
-        <span style={{ fontSize:20, fontWeight:800, color:C.ink, letterSpacing:-0.3,
-          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif" }}>
-          {fmt(verbindungen)}
-        </span>
-        <span style={{ fontSize:11, color:C.muted, fontWeight:500, marginTop:2 }}>Verbindungen</span>
-      </div>
+      <StatItem value={fmt(verbindungen)} label="Verbindungen"/>
     </div>
   );
 }
