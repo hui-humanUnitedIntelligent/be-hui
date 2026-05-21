@@ -627,7 +627,8 @@ export const useWorkInteraction = (workId) => {
   const { savedWorks, likedWorks, toggleSaveWork, toggleLikeWork } = useAppState();
   return {
     isSaved: savedWorks.has(workId),
-    isLiked: likedWorks.has(workId),
+    isLiked: likedWorks.has(workId),  // @deprecated — use isInspired
+    isInspired: likedWorks.has(workId),
     toggleSave: () => toggleSaveWork(workId),
     toggleLike: () => toggleLikeWork(workId),
   };
