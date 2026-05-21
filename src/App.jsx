@@ -82,25 +82,33 @@ class ErrorBoundary extends React.Component {
     // if (eventId) Sentry.showReportDialog({ eventId });
 
     // Auto-retry nach Idle-Crash: wenn Tab wieder sichtbar wird, einmal versuchen
+    // FIX: Cleanup immer via _visibilityHandler — kein doppelter Listener
+    if (this._visibilityHandler) {
+      document.removeEventListener('visibilitychange', this._visibilityHandler);
+      this._visibilityHandler = null;
+    }
+
     if (this.state.retryCount < 2) {
-      this._visibilityHandler = () => {
-        if (document.visibilityState === 'visible') {
-          document.removeEventListener('visibilitychange', this._visibilityHandler);
-          this._visibilityHandler = null;
-          // auto-retry nach visibility restore (geloggt in Sentry)
-          this.setState(prev => ({
-            hasError: false, error: null,
-            retryCount: prev.retryCount + 1
-          }));
-        }
+      const handler = () => {
+        if (document.visibilityState !== 'visible') return;
+        // FIX: cleanup vor setState — kein Listener nach Retry
+        document.removeEventListener('visibilitychange', handler);
+        this._visibilityHandler = null;
+        this.setState(prev => ({
+          hasError: false, error: null,
+          retryCount: prev.retryCount + 1
+        }));
       };
-      document.addEventListener('visibilitychange', this._visibilityHandler);
+      this._visibilityHandler = handler;
+      document.addEventListener('visibilitychange', handler, { passive: true });
     }
   }
 
   componentWillUnmount() {
+    // FIX: Defensive null-check — kein Fehler wenn nie gesetzt
     if (this._visibilityHandler) {
       document.removeEventListener('visibilitychange', this._visibilityHandler);
+      this._visibilityHandler = null;
     }
   }
 
