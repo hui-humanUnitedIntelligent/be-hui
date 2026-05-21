@@ -748,7 +748,7 @@ export function useResonanceState() {
 
     // DB async (fire-and-forget, Fehler nicht Block-UI)
     try {
-      const { resonanceService } = await import('../services/content.js');
+      // resonanceService — statisch importiert (Top-Level), kein lazy import nötig
       const hasIt = (resonated[targetId] || new Set()).has(resonanceType);
       await resonanceService.toggle({
         user, targetType, targetId, resonanceType, currentState: hasIt
