@@ -239,7 +239,7 @@ export default function WorkFlow({ onClose }) {
       WebkitBackdropFilter:"blur(8px)",
       display:"flex", alignItems:"flex-end", justifyContent:"center",
       // iPad: zentriert
-      ...(window.innerWidth >= 768 && {
+      ...(window.innerWidth >= 1024 && {
         alignItems:"center",
       }),
     }}
@@ -248,9 +248,9 @@ export default function WorkFlow({ onClose }) {
       {/* Card-Container */}
       <div style={{
         width:"100%",
-        maxWidth: window.innerWidth >= 768 ? 440 : "100%",
+        maxWidth: window.innerWidth >= 1024 ? 440 : "100%",
         background:WT.card,
-        borderRadius: window.innerWidth >= 768 ? 28 : "28px 28px 0 0",
+        borderRadius: window.innerWidth >= 1024 ? 28 : "28px 28px 0 0",
         overflow:"hidden",
         maxHeight:"92vh",
         display:"flex", flexDirection:"column",
