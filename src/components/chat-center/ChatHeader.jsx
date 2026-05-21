@@ -46,14 +46,7 @@ export default function ChatHeader({ conv, onBack }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:16, color:"white", fontWeight:700,
         }}>{!avatar && initials}</div>
-        {online && (
-          <div style={{
-            position:"absolute", bottom:1, right:1,
-            width:10, height:10, borderRadius:"50%",
-            background:C.teal, border:"2px solid #F2F4F8",
-            boxShadow:`0 0 6px ${C.teal}`,
-          }}/>
-        )}
+        {/* Kein aggressiver Online-Punkt — Presence im Mood-Label */}
       </div>
 
       {/* Name + Info */}
@@ -70,7 +63,7 @@ export default function ChatHeader({ conv, onBack }) {
           {talent && mood && <span style={{ fontSize:10, color:"rgba(0,0,0,0.20)" }}>·</span>}
           {mood && (
             <span style={{
-              fontSize:12, color:C.teal, fontWeight:600,
+              fontSize:12, color:"rgba(22,215,197,0.85)", fontWeight:500,
               display:"flex", alignItems:"center", gap:4,
             }}>
               <span style={{ fontSize:10 }}>✦</span>{mood}
@@ -87,6 +80,7 @@ export default function ChatHeader({ conv, onBack }) {
         cursor:"pointer", flexShrink:0, letterSpacing:1.5,
         fontSize:14, color:C.muted,
         WebkitTapHighlightColor:"transparent",
+        transition:"opacity 0.2s ease",
       }}>···</button>
 
       {/* Telefon */}
