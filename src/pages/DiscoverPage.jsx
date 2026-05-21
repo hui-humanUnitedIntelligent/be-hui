@@ -91,7 +91,7 @@ const CSS = `
     cursor: pointer;
     border: none;
     outline: none;
-    transition: all 0.18s ease;
+    transition: all 0.28s ease;
     -webkit-tap-highlight-color: transparent;
     white-space: nowrap;
   }
@@ -153,7 +153,7 @@ const CSS = `
 
 /* ── Kategorien ─────────────────────────────────────────────── */
 const PILLS = [
-  { id:"alle",       label:"Für dich" },
+  { id:"alle",       label:"Für dich ✦" },
   { id:"kunst",      label:"Kunst" },
   { id:"handwerk",   label:"Handwerk" },
   { id:"musik",      label:"Musik" },
@@ -170,25 +170,25 @@ const MOCK_HERO = [
     id:"h1", title:"Die Kunst der\nStillen Keramik",
     img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&q=80",
     creator:"Mia Kern", creatorImg:"https://i.pravatar.cc/40?img=47",
-    badge:"Neu", category:"Handwerk",
+    badge:"✦ Entsteht gerade", category:"Handwerk",
   },
   {
     id:"h2", title:"Waldspaziergang\n& Achtsamkeit",
     img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80",
     creator:"Sara Voss", creatorImg:"https://i.pravatar.cc/40?img=11",
-    badge:"Beliebt", category:"Natur",
+    badge:"✦ Resonanz", category:"Natur",
   },
   {
     id:"h3", title:"Upcycling\naus Alt mach Neu",
     img:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=80",
     creator:"Kai Müller", creatorImg:"https://i.pravatar.cc/40?img=52",
-    badge:"Empfohlen", category:"Design",
+    badge:"✦ Empfohlen", category:"Design",
   },
   {
     id:"h4", title:"Licht & Klang\nAbend",
     img:"https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
     creator:"Elena Roth", creatorImg:"https://i.pravatar.cc/40?img=23",
-    badge:"Heute", category:"Musik",
+    badge:"✦ Heute", category:"Musik",
   },
 ];
 
@@ -196,27 +196,27 @@ const MOCK_WERKE = [
   {
     id:"w1", title:'Wandbild "Harmonie"',
     img:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&q=75",
-    price:120, likes:32, creator:"Julia Brandt", creatorImg:"https://i.pravatar.cc/32?img=9",
+    price:120, resonanz:32, creator:"Julia Brandt", creatorImg:"https://i.pravatar.cc/32?img=9",
   },
   {
     id:"w2", title:"Handgemachte Schale",
     img:"https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=400&q=75",
-    price:85, likes:18, creator:"Mia Kern", creatorImg:"https://i.pravatar.cc/32?img=47",
+    price:85, resonanz:18, creator:"Mia Kern", creatorImg:"https://i.pravatar.cc/32?img=47",
   },
   {
     id:"w3", title:"Holzlampe Eiche",
     img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75",
-    price:150, likes:41, creator:"Leon Brandt", creatorImg:"https://i.pravatar.cc/32?img=53",
+    price:150, resonanz:41, creator:"Leon Brandt", creatorImg:"https://i.pravatar.cc/32?img=53",
   },
   {
     id:"w4", title:"Acryl Bild Meer",
     img:"https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=400&q=75",
-    price:95, likes:27, creator:"Sara Voss", creatorImg:"https://i.pravatar.cc/32?img=11",
+    price:95, resonanz:27, creator:"Sara Voss", creatorImg:"https://i.pravatar.cc/32?img=11",
   },
   {
     id:"w5", title:"Keramik Vase",
     img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=75",
-    price:68, likes:15, creator:"Anna Feld", creatorImg:"https://i.pravatar.cc/32?img=32",
+    price:68, resonanz:15, creator:"Anna Feld", creatorImg:"https://i.pravatar.cc/32?img=32",
   },
 ];
 
@@ -225,28 +225,28 @@ const MOCK_ERLEBNISSE = [
     id:"e1", title:"Keramik Drehen",
     img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&q=80",
     category:"Workshop", city:"München", date:"18. Mai",
-    badge:"Noch 3 Plätze", badgeColor: C.teal,
+    badge:"✦ Noch 3 Plätze", badgeColor: C.teal,
     spots:3,
   },
   {
     id:"e2", title:"Gitarren Abend",
     img:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&q=80",
     category:"Musik", city:"Berlin", date:"19. Mai",
-    badge:"Sehr beliebt", badgeColor: C.coral,
+    badge:"✦ Berührt Menschen", badgeColor: C.coral,
     spots:8,
   },
   {
     id:"e3", title:"Natur Retreat",
     img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80",
     category:"Wellness", city:"Schwarzwald", date:"24. Mai",
-    badge:"Neu", badgeColor: C.gold,
+    badge:"✦ Entsteht gerade", badgeColor: C.gold,
     spots:12,
   },
   {
     id:"e4", title:"Gemeinschafts-Abend",
     img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
     category:"Gemeinschaft", city:"Hamburg", date:"25. Mai",
-    badge:"Beliebt", badgeColor: C.coral,
+    badge:"✦ Resonanz", badgeColor: C.coral,
     spots:6,
   },
 ];
@@ -393,7 +393,7 @@ function WerkCard({ item, idx, onPress, liked, onLike }) {
           fontSize:12, fontWeight:600, color:C.muted,
         }}>
           <span style={{ color: C.coral, fontSize:11 }}>♥</span>
-          {item.likes}
+          {item.resonanz}
         </div>
       </div>
 
@@ -550,7 +550,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
                        || w.images?.[0]
                        || MOCK_WERKE[i % MOCK_WERKE.length].img,
           price:       w.price || MOCK_WERKE[i % MOCK_WERKE.length].price,
-          likes:       Math.floor(Math.random() * 50) + 5,
+          resonanz:    Math.floor(Math.random() * 50) + 5,
           creator:     w.profile?.display_name || w.profile?.full_name || MOCK_WERKE[i % MOCK_WERKE.length].creator,
           creatorImg:  `https://i.pravatar.cc/32?img=${(i % 50) + 1}`,
           type:        "werk",
@@ -711,7 +711,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
           HERO DISCOVERY CARDS
       ════════════════════════════════════════ */}
       <div style={{ marginBottom:28 }}>
-        <SectionHeader title="Inspiration für dich" />
+        <SectionHeader title="Heute könnte dich das berühren ✦" />
         <div
           className="dp-scroll"
           style={{
@@ -738,7 +738,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       ════════════════════════════════════════ */}
       <div style={{ marginBottom:28 }}>
         <SectionHeader
-          title="Beliebte Werke"
+          title="Werke die resonieren"
           onAll={() => onView?.({ type:"werke_liste" })}
         />
         <div
@@ -770,7 +770,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       ════════════════════════════════════════ */}
       <div style={{ marginBottom:28 }}>
         <SectionHeader
-          title="Erlebnisse entdecken"
+          title="Begegnungen & Erlebnisse"
           onAll={() => onView?.({ type:"erlebnisse_liste" })}
         />
         {/* 2-spaltig Grid */}
