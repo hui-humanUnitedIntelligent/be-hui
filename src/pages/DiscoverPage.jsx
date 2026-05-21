@@ -512,8 +512,11 @@ function SectionHeader({ title, onAll }) {
 /* ── Main Component ─────────────────────────────────────────── */
 export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const [activeCategory, setActiveCategory] = useState("alle");
+  // ── Echte Discover-Daten ────────────────────────────────────
+  const { works: liveWorks, talents: liveTalents, loading: discoverLoading } = useDiscoverData({ enabled: true, limit: 16 });
+
   const [heroItems,     setHeroItems]     = useState(MOCK_HERO);
-  const [works,         setWorks]         = useState(MOCK_WERKE);
+  const [works,         setWorks]         = useState(MOCK_WERKE);  // Fallback; wird durch liveWorks überschrieben
   const [experiences,   setExperiences]   = useState(MOCK_ERLEBNISSE);
   const [talents,       setTalents]       = useState([]);
   const [loading,       setLoading]       = useState(false);
@@ -579,6 +582,18 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   useEffect(() => {
     if (showSearch) setTimeout(() => searchRef.current?.focus(), 80);
   }, [showSearch]);
+
+  // Echte Werke aus DB einmergen (überschreiben Mocks wenn vorhanden)
+  React.useEffect(() => {
+    if (liveWorks?.length > 0) {
+      setWorks(prev => {
+        // Merge: DB-Werke vorne, Mocks als Fallback hinten
+        const dbIds = new Set(liveWorks.map(w => w.id));
+        const mockRest = prev.filter(m => !dbIds.has(m.id));
+        return [...liveWorks, ...mockRest].slice(0, 16);
+      });
+    }
+  }, [liveWorks]);
 
   const toggleInspireHero  = id => setInspiredHero(s  => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleInspireWerk  = id => setInspiredWerke(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
