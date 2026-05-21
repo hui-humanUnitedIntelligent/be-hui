@@ -672,11 +672,16 @@ export function HighlightsRow({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
+    // FIX: stories hat kein status-Feld + kein username/avatar_url
     supabase.from('stories')
-      .select('id, user_id, username, avatar_url, media_url, media_type, text_overlay, is_highlight, created_at')
+      .select(`
+        id, user_id, media_url, media_type, caption, text_overlay,
+        is_highlight, created_at, expires_at,
+        profile:user_id(display_name, avatar_url)
+      `)
       .eq('user_id', userId)
       .eq('is_highlight', true)
-      .eq('status', 'published')
+      // .eq('status','published') -- ENTFERNT: Spalte existiert nicht
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data?.length) setHighlights(data); });
   }, [userId]);
