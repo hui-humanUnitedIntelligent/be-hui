@@ -1,5 +1,5 @@
 // ImpactPage.jsx — HUI Impact Pool v4
-// Screenshot-exact: Hero → Verteilung → Projekte → Activity → Stimmen
+// HUI Impact: Hero → Verteilung → Projekte → Activity → Resonanzen
 // Props-kompatibel: ImpactPage({ currentUser }) — unverändert
 // REGEL: Kein Supabase in UI-Komponenten. Alle Queries in Hauptkomponente.
 
@@ -74,12 +74,12 @@ const CSS = `
     transition:transform 0.18s ease, box-shadow 0.18s ease;
   }
   .ip-card-btn:active { transform:scale(0.97); }
-  .ip-vote-btn {
+  .ip-resonanz-btn {
     border:none; cursor:pointer; outline:none;
     -webkit-tap-highlight-color:transparent;
     transition:all 0.22s ease;
   }
-  .ip-vote-btn:active { transform:scale(0.92); }
+  .ip-resonanz-btn:active { transform:scale(0.92); }
 `;
 
 /* ══════════════════════════════════════════════════════════════════
@@ -92,7 +92,7 @@ const MOCK_PROJECTS = [
     story:"Ein Netzwerk von Reparaturcafés, die Menschen zusammenbringen und Ressourcen schonen.",
     category:"Gemeinschaft", categoryColor: C.teal,
     img:"https://images.unsplash.com/photo-1556909114-44e4e6b65b4a?w=600&q=80",
-    raised:48650, goal:80000, votes:1248, status:"featured",
+    raised:48650, goal:80000, resonanz:1248, status:"featured",
     badge:"Sehr beliebt", badgeColor: C.coral,
   },
   {
@@ -101,7 +101,7 @@ const MOCK_PROJECTS = [
     story:"Bezahlbare Proberäume und Studios für aufstrebende Musiker:innen.",
     category:"Kunst & Kultur", categoryColor: C.gold,
     img:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&q=80",
-    raised:36200, goal:80000, votes:876, status:"active",
+    raised:36200, goal:80000, resonanz:876, status:"active",
     badge:"Beliebt", badgeColor: C.coral,
   },
   {
@@ -110,7 +110,7 @@ const MOCK_PROJECTS = [
     story:"Urbane Gärten als grüne Lungen und Begegnungsorte in der Stadt.",
     category:"Umwelt & Nachhaltigkeit", categoryColor: C.green,
     img:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80",
-    raised:22480, goal:60000, votes:532, status:"voting",
+    raised:22480, goal:60000, resonanz:532, status:"voting",
     badge:"Neu", badgeColor: C.teal,
   },
   {
@@ -119,7 +119,7 @@ const MOCK_PROJECTS = [
     story:"Kostenlose Kunst-Workshops für Kinder aus einkommensschwachen Familien.",
     category:"Bildung & Entwicklung", categoryColor: C.coral,
     img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80",
-    raised:18730, goal:40000, votes:421, status:"growing",
+    raised:18730, goal:40000, resonanz:421, status:"growing",
     badge:"Neu", badgeColor: C.teal,
   },
 ];
@@ -132,7 +132,7 @@ const MOCK_ACTIVITY = [
 ];
 
 const DISTRIBUTION = [
-  { pct:40, label:"Community Vote",      sub:"Was euch bewegt",                      color:C.teal,  dash:40 },
+  { pct:40, label:"Community Resonanz",      sub:"Was euch bewegt",                      color:C.teal,  dash:40 },
   { pct:30, label:"Wirkungsfaktoren",    sub:"Aktivität, Vertrauen, Transparenz",    color:C.coral, dash:30 },
   { pct:20, label:"HUI Kurations-Team",  sub:"Für Balance & Vielfalt",               color:C.gold,  dash:20 },
   { pct:10, label:"Förderraum",          sub:"Für neue & spontane Ideen",            color:C.green, dash:10 },
@@ -256,7 +256,7 @@ function ImpactHeroSection({ poolTotal, weeklyInflow, onVote }) {
         <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
           <button
             onClick={onVote}
-            className="ip-vote-btn"
+            className="ip-resonanz-btn"
             style={{
               display:"flex", alignItems:"center", gap:7,
               background:C.teal,
@@ -269,7 +269,7 @@ function ImpactHeroSection({ poolTotal, weeklyInflow, onVote }) {
             <span>🌿</span> Stimme geben
           </button>
           <button
-            className="ip-vote-btn"
+            className="ip-resonanz-btn"
             style={{
               display:"flex", alignItems:"center", gap:7,
               background:"rgba(255,255,255,0.15)",
@@ -498,7 +498,7 @@ function ImpactProjectCard({ project, idx, votedIds, votesLeft, onOpen, onVote }
         )}
         {/* Heart */}
         <button
-          className="ip-vote-btn"
+          className="ip-resonanz-btn"
           onClick={e => { e.stopPropagation(); }}
           style={{
             position:"absolute", top:10, right:10,
@@ -561,7 +561,7 @@ function ImpactProjectCard({ project, idx, votedIds, votesLeft, onOpen, onVote }
               {fmt(project.votes)} dabei
             </span>
             <button
-              className="ip-vote-btn"
+              className="ip-resonanz-btn"
               onClick={e => { e.stopPropagation(); }}
               style={{
                 width:24, height:24, borderRadius:"50%",
