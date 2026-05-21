@@ -119,7 +119,7 @@ function ImageGallery({ images, title }) {
     <div className="wd-swipe" ref={trackRef}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
       style={{ position:"relative", width:"100%",
-        height:"clamp(280px, 58vw, 520px)", overflow:"hidden",
+        height:"clamp(280px, 42vh, 480px)", overflow:"hidden",
         background:"#111" }}>
 
       {/* Image */}
@@ -578,7 +578,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
 
         {/* Title */}
         <div style={{ padding:"12px 20px 0" }}>
-          <h1 style={{ margin:0, fontSize:"clamp(22px,5.5vw,30px)",
+          <h1 style={{ margin:0, fontSize:"clamp(20px,2.2rem,30px)",
             fontWeight:900, color:C.ink, letterSpacing:-0.8, lineHeight:1.15 }}>
             {werk.title || "Unbekanntes Werk"}
           </h1>
