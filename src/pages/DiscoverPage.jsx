@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from "../lib/perfUtils";
+import { useDiscoverData } from "../lib/AppStateContext";
 
 /* ── Design Tokens ─────────────────────────────────────────── */
 const C = {
