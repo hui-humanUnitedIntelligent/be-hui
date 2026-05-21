@@ -56,7 +56,8 @@ export default function BottomNav({
         opacity:    isHidden ? 0 : 1,
         transform:  isHidden ? "translateY(120%)" : "translateY(0)",
         transition: "opacity 0.40s cubic-bezier(0.4,0,0.2,1), transform 0.40s cubic-bezier(0.4,0,0.2,1)",
-        willChange: "opacity, transform",
+        /* willChange ENTFERNT: erzeugt GPU-Layer auf Safari/iPad
+           der Layout-Viewport-Recalculation triggert → Scaling-Bug */
       }}>
         {/* Glasspill — der einzige klickbare Bereich */}
         <div style={{
