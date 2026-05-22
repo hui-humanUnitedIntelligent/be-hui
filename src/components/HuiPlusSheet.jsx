@@ -23,7 +23,7 @@ function OrbFailsafe({ onClose }) {
   );
 }
 
-export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTrusted = false, onMounted = null }) {
+export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTrusted = false, onMounted = null, visible = false }) {
   const [hasFailed, setHasFailed] = useState(false);
   const [orbMounted, setOrbMounted] = useState(false);
   const timerRef = useRef(null);
@@ -42,7 +42,16 @@ export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTr
 
   if (hasFailed) return <OrbFailsafe onClose={onClose} />;
 
+  // Phase 16.3: NEVER conditionally unmount — visibility via opacity only
+  const orbVisStyle = {
+    opacity:       visible ? 1 : 0,
+    pointerEvents: visible ? "auto" : "none",
+    transition:    "opacity 0.48s cubic-bezier(0.22,1,0.36,1)",
+    willChange:    "opacity",
+  };
+
   return (
+    <div style={orbVisStyle} aria-hidden={!visible}>
     <OrbSystemWrapper
       onSelect={onSelect}
       onClose={onClose}
@@ -52,14 +61,17 @@ export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTr
         setOrbMounted(true);
         clearTimeout(timerRef.current);
         console.log("[HUI ORB] contentMounted=true overlayActive=true");
-        // Phase 16.2: bubble to parent Home.jsx → confirmSurface("orb")
-        onMounted?.();
+        // Phase 16.3: confirmSurface only fires if currently visible
+        if (visible) {
+          onMounted?.();  // → confirmSurface("orb") in Home.jsx
+        }
       }}
       onFail={() => {
         setHasFailed(true);
         cleanupOrbEnvironment({ reason: "orb-render-failure" });
       }}
     />
+  </div>
   );
 }
 

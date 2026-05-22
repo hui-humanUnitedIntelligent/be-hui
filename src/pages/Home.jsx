@@ -106,6 +106,7 @@ function HomeInner() {
 
   // ── World Surface Controller — single authority blur/feed/nav ──
   const {
+    worldState,
     worldTokens,
     openSurface,
     closeSurface,
@@ -177,7 +178,8 @@ function HomeInner() {
             overflowX:  "hidden",
             /* Kein overflow:hidden am Wrapper */
             // World softens when Orb opens — atmospheric depth
-            ...(activeSurface ? worldTokens.feedContainerStyle : (orbBackdrop?.worldContainerStyle ?? {})),
+            // Phase 16.3: WorldSurface is sole authority — no orbBackdrop fallback
+            ...worldTokens.feedContainerStyle,
           }}
         >
           <div style={keepFeed}>
@@ -242,13 +244,13 @@ function HomeInner() {
         tab={tab}
         onTab={onTabPress}
         hasTalent={isTalent}
-        orbActive={isOrbOpen || showMembership || showTalentFlow}
+        orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
         navDrift={
           (showMembership || showTalentFlow)
             ? { opacity: 0, transform: "translateY(120%)",
                 transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
                 pointerEvents: "none" }
-            : activeSurface ? worldTokens.navStyle : orbNavDrift
+            : activeSurface ? worldTokens.navStyle : {}  /* Phase 16.3: no orbNavDrift parallel */
         }
         authProfile={authProfile}
         notifCount={liveNotifCount}
@@ -348,19 +350,29 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {showPlusSheet && SAFE_MODE.orb && (
-          <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem">
+        {/* Phase 16.3: HuiPlusSheet ALWAYS mounted — visible prop controls render */}
+        {SAFE_MODE.orb && (
+          <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem"
+            onError={() => {
+              console.warn("[WORLD SURFACE] SafeRender.onError → forceRecoverWorld");
+              forceRecoverWorld("safe-render-error");
+              setShowPlusSheet(false);
+              closeOrbWorld("error");
+            }}
+          >
             <HuiPlusSheet
             isTalent={isTalent}
+            visible={showPlusSheet}
             onMounted={() => {
-              confirmSurface("orb");  // Phase 16.2: activates blur/feed/nav
-              console.log("[WORLD SURFACE] overlay confirmed via HuiPlusSheet.onMounted");
+              console.log("[ORB] mounted");
+              confirmSurface("orb");
+              console.log("[ORB] confirmSurface fired");
             }}
             onClose={() => {
+              console.log("[ORB] close — resurfacing world");
               setShowPlusSheet(false);
-              closeSurface("orb", "user-close");  // Phase 16.2
+              closeSurface("orb", "user-close");
               closeOrbWorld("user-close");
-              console.log("[HUI ORB] closed — world resurfacing");
             }}
             onSelect={(type) => {
               // TIMING FIX: kein setShowPlusSheet(false) hier —
@@ -403,7 +415,7 @@ function HomeInner() {
             }}
             />
           </SafeRender>
-        )}
+        )}}
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
             <TalentOnboarding
@@ -479,6 +491,27 @@ function HomeInner() {
         <SafeRender flag="storyViewer" label="StoryViewer">
           <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
         </SafeRender>
+      )}
+
+      {/* Phase 16.3: World Surface Debug — remove before prod */}
+      {process.env.NODE_ENV !== "production" && (
+        <div style={{
+          position:"fixed", top:8, right:8, zIndex:99999,
+          background:"rgba(0,0,0,0.85)", backdropFilter:"blur(8px)",
+          borderRadius:10, padding:"8px 12px", fontSize:11,
+          fontFamily:"monospace", color:"#fff", lineHeight:1.7,
+          pointerEvents:"none", userSelect:"none",
+          border:"1px solid rgba(255,255,255,0.15)",
+          minWidth:190,
+        }}>
+          <div style={{ color:"#16D7C5", fontWeight:700, marginBottom:3 }}>🌍 World Surface</div>
+          <div>surface: <b style={{color: activeSurface ? "#FF8A6B":"#aaa"}}>{activeSurface ?? "null"}</b></div>
+          <div>confirmed: <b style={{color: worldState?.overlayConfirmed ? "#16D7C5":"#aaa"}}>{String(worldState?.overlayConfirmed??false)}</b></div>
+          <div>feedVisible: <b style={{color: worldState?.feedVisible ? "#16D7C5":"#FF8A6B"}}>{String(worldState?.feedVisible??true)}</b></div>
+          <div>blurActive: <b style={{color: worldState?.blurActive ? "#FF8A6B":"#aaa"}}>{String(worldState?.blurActive??false)}</b></div>
+          <div>navLocked: <b style={{color: worldState?.navLocked ? "#FF8A6B":"#aaa"}}>{String(worldState?.navLocked??false)}</b></div>
+          <div>sheet: <b style={{color: showPlusSheet ? "#FF8A6B":"#aaa"}}>{String(showPlusSheet)}</b></div>
+        </div>
       )}
     </>
   );

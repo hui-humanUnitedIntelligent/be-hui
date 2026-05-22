@@ -1094,9 +1094,10 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
   function handleCta() {
     if (step === 7) { handleFinish(); return; }
     if (step === 8) {
-      // Phase 15.2: cleanup FIRST, then close
+      // Phase 16.3: save already done in step 7.
+      // Order: cleanup → close surface → notify parent
       cleanupOrbEnvironment({ reason: "membership-complete" });
-      onComplete?.();
+      onComplete?.();  // Home.jsx: closeSurface("membership", "complete") + closeOrbWorld
       return;
     }
     next();

@@ -257,18 +257,23 @@ export function useSoftFade(loading, delay = 0) {
 // ────────────────────────────────────────────────────────────────
 // useTabKeepAlive
 // Verhindert dass Tab-Content unmountet wenn Tab gewechselt wird
-// Nutze display:none statt unmount
+// Nutze opacity:0 statt unmount (display:none verboten — Phase 16.3)
 //
 // Usage:
 //   const style = useTabKeepAlive(tab === "feed");
 //   <div style={style}> <DiscoveryFeed .../> </div>
 // ────────────────────────────────────────────────────────────────
 export function useTabKeepAlive(isActive) {
+  // Phase 16.3: NEVER display:none — feed must stay mounted always.
+  // Visibility controlled only via opacity + pointer-events + aria.
   return {
-    display: isActive ? "block" : "none",
-    // Wenn nicht aktiv: pointer-events off + aria hidden
+    opacity:       isActive ? 1 : 0,
     pointerEvents: isActive ? "auto" : "none",
-    userSelect: isActive ? "auto" : "none",
+    userSelect:    isActive ? "auto" : "none",
+    // Accessibility: screen readers skip inactive tabs
+    "aria-hidden": isActive ? undefined : true,
+    transition:    "opacity 0.32s cubic-bezier(0.22,1,0.36,1)",
+    willChange:    "opacity",
   };
 }
 

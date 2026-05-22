@@ -66,10 +66,19 @@ export function WorldSurfaceProvider({ children }) {
     activeIdRef.current = null;
     setWorldState(prev => {
       if (!prev.activeSurface && !prev.blurActive) return prev;
-      console.log("[WORLD SURFACE] world restored", { reason, was: prev.activeSurface });
+      console.log("[WORLD SURFACE] world restored", {
+        reason,
+        was:         prev.activeSurface,
+        blurActive:  prev.blurActive,
+        feedRestored: "opacity→1",
+        navRestored:  "translateY→0",
+        blurRemoved:  "filter→none",
+        focusReset:   "pointer-events→auto",
+      });
       return buildClosedState(prev);
     });
     cleanupOrbEnvironment({ reason: `surface-recovery-${reason}` });
+    console.log("[WORLD SURFACE] feed restored | nav restored | blur removed | focus reset");
   }, [clearRecovery]);
 
   // ── openSurface — Phase 1: snapshot + lock ────────────────────
