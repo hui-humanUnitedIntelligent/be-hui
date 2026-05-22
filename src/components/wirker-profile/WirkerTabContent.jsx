@@ -1,3 +1,4 @@
+import { createTabItem, filterValidPages } from '../../lib/factories/createTabPage.js';
 // components/wirker-profile/WirkerTabContent.jsx
 // Tab Bar + Content Sections
 // Screenshot-exact: Bewegung | Werke | Erlebnisse | Wirkung | Verbindung | Raum
@@ -10,14 +11,14 @@ const C = {
   muted:"rgba(80,80,80,0.55)", cream:"#F9F7F4",
 };
 
-const TABS = [
-  { key:"bewegung",   label:"Bewegung"   },
-  { key:"werke",      label:"Werke"      },
-  { key:"erlebnisse", label:"Erlebnisse" },
-  { key:"wirkung",    label:"Wirkung"    },
-  { key:"verbindung", label:"Resonanz"   },
-  { key:"raum",       label:"Raum"       },
-];
+const TABS = filterValidPages([
+  createTabItem({ key:"bewegung",   label:"Bewegung"   }),
+  createTabItem({ key:"werke",      label:"Werke"      }),
+  createTabItem({ key:"erlebnisse", label:"Erlebnisse" }),
+  createTabItem({ key:"wirkung",    label:"Wirkung"    }),
+  createTabItem({ key:"verbindung", label:"Resonanz"   }),
+  createTabItem({ key:"raum",       label:"Raum"       }),
+]);
 
 /* ── Activity Card — Screenshot-exact ── */
 function ActivityCard({ item }) {

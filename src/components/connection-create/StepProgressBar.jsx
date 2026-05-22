@@ -1,13 +1,14 @@
+import { createTabItem, filterValidPages } from "../../lib/factories/createTabPage.js";
 // connection-create/StepProgressBar.jsx
 // 3-Step Fortschrittsanzeige — subtil, ruhig, keine Zahlen-Technik-Optik
 
 import React from "react";
 
-const STEPS = [
-  { key:1, label:"Inspiration" },
-  { key:2, label:"Ausdruck"    },
-  { key:3, label:"Realit\u00e4t"   },
-];
+const STEPS = filterValidPages([
+  createTabItem({ key:"1", label:"Inspiration" }),
+  createTabItem({ key:"2", label:"Ausdruck"    }),
+  createTabItem({ key:"3", label:"Realität"    }),
+]);
 
 const C = { violet:"#8B5CF6", muted:"rgba(80,80,80,0.35)", cream:"rgba(139,92,246,0.12)" };
 

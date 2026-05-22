@@ -1,3 +1,4 @@
+import { createTabItem, filterValidPages } from '../../../lib/factories/createTabPage.js';
 // sections/GallerySection.jsx
 // Tab-Navigation + Content: Werke / Erlebnisse / Empfehlungen
 // REGEL: Kein Supabase. Daten kommen per Props.
@@ -13,11 +14,11 @@ const C = {
   cream:   "#F9F7F4",
 };
 
-const TABS = [
-  { key:"werke",          label:"Werke"         },
-  { key:"erlebnisse",     label:"Erlebnisse"    },
-  { key:"empfehlungen",   label:"Empfehlungen"  },
-];
+const TABS = filterValidPages([
+  createTabItem({ key:"werke",        label:"Werke"        }),
+  createTabItem({ key:"erlebnisse",   label:"Erlebnisse"   }),
+  createTabItem({ key:"empfehlungen", label:"Empfehlungen" }),
+]);
 
 /**
  * @param {{

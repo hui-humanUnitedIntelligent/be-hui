@@ -1,3 +1,4 @@
+import { createTabItem, filterValidPages } from '../../lib/factories/createTabPage.js';
 // src/pages/creator-profile/index.jsx v2
 // HUI Creator Profile — OWNER VIEW ONLY
 // Cinematic creator dashboard
@@ -20,14 +21,14 @@ const C = {
   cream:  "#F9F7F4",
 };
 
-const TABS = [
-  { key:"bewegung",   label:"Bewegung"    },
-  { key:"werke",      label:"Werke"       },
-  { key:"erlebnisse", label:"Erlebnisse"  },
-  { key:"wirkung",    label:"Wirkung"     },
-  { key:"verbindung", label:"Verbindung"  },
-  { key:"raum",       label:"Raum"        },
-];
+const TABS = filterValidPages([
+  createTabItem({ key:"bewegung",   label:"Bewegung"   }),
+  createTabItem({ key:"werke",      label:"Werke"      }),
+  createTabItem({ key:"erlebnisse", label:"Erlebnisse" }),
+  createTabItem({ key:"wirkung",    label:"Wirkung"    }),
+  createTabItem({ key:"verbindung", label:"Verbindung" }),
+  createTabItem({ key:"raum",       label:"Raum"       }),
+]);
 
 function DebugBanner() {
   return (

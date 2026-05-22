@@ -21,6 +21,22 @@ const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
+// ── Route Factory ──────────────────────────────────────────────────────────
+import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
+
+// Normalisierte, validierte Route-Definitionen
+// Alle Routen gehen durch createTabPage() — kein undefined-component möglich
+export const APP_ROUTES = filterValidPages([
+  createTabPage({ key:'home',      route:'/Home',           component:Home,              title:'HUI',         protectedRoute:true,  preload:true  }),
+  createTabPage({ key:'impact',    route:'/impact',         component:ImpactPage,        title:'Impact',      protectedRoute:true,  preload:false }),
+  createTabPage({ key:'work',      route:'/work/:id',       component:WorkDetailPage,    title:'Werk',        protectedRoute:true,  preload:false }),
+  createTabPage({ key:'profile',   route:'/profile/:username', component:WirkerProfilePage, title:'Profil',  protectedRoute:true,  preload:false }),
+  createTabPage({ key:'admin',     route:'/Admin',          component:Admin,             title:'Admin',       protectedRoute:true,  preload:false }),
+  createTabPage({ key:'diagnose',  route:'/diagnose',       component:DiagnosePage,      title:'Diagnose',    protectedRoute:false, preload:false }),
+  createTabPage({ key:'dashboard', route:'/dashboard',      component:PlatformDashboard, title:'Dashboard',   protectedRoute:true,  preload:false }),
+  createTabPage({ key:'studio',    route:'/studio',         component:CreatorStudio,     title:'Studio',      protectedRoute:true,  preload:false }),
+])
+
 // ── Suspense Fallback ────────────────────────────────────────────
 // Ruhig, markenfrei — kein Spinner-Stress
 function HuiSuspense({ children }) {
@@ -338,6 +354,14 @@ function OwnProfileRedirect() {
 
 /* ── App Routes ────────────────────────────────────────────────────── */
 function AppRoutes() {
+  // ── Route-Validierung beim Render ──────────────────────────────────
+  // APP_ROUTES wurde durch createTabPage() normalisiert.
+  // Ungültige Einträge (null) wurden durch filterValidPages() entfernt.
+  // Diese Log-Zeile bestätigt im DEV-Modus die valide Route-Liste:
+  if (import.meta.env.DEV) {
+    console.log('[HUI ROUTES]', APP_ROUTES.map(r => r.key + ' → ' + r.route));
+  }
+
   return (
     // HuiSuspense wraps all lazy routes — zeigt ruhigen Ladeindikator
     <HuiSuspense>
