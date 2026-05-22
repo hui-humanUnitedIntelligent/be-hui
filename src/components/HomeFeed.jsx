@@ -22,6 +22,12 @@ import {
   QUIET_QUOTE_POOL,
   intelligentMicroMoment,
 } from "../lib/feedIntelligence.js";
+import {
+  selectWarmthBoost,
+  selectGlowBoost,
+  selectCardDelay,
+  isFallbackMemory,
+} from "../lib/intelligence/index.js";
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
 const T = {
@@ -629,14 +635,17 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
   const curated = useMemo(() => {
     const now  = new Date();
     const safe = filterValidFeedItems(rawItems);
-    // Pass raw (non-frozen) items to allow enrichment
+    // Pass raw (non-frozen) items to allow enrichment + relationship tokens
     const enrichable = safe.map(item => ({ ...item }));
     return curateHumaneFeed(enrichable, {
       now,
-      diversity: true,
-      pacing:    true,
-      rebalance: true,
-      maxItems:  40,
+      diversity:     true,
+      pacing:        true,
+      rebalance:     true,
+      maxItems:      40,
+      // Viewer context: enables relationship memory in curation
+      // In production: replace with authProfile from AuthContext
+      viewerContext: null,   // null = no relationship signals (graceful fallback)
     });
   }, [rawItems]);
 
@@ -718,7 +727,8 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 paddingTop:    gapBefore,
                 paddingLeft:   padH,
                 paddingRight:  padH,
-                animationDelay:`${Math.min(si * 0.055, 1.4)}s`,
+                // _cardDelay: familiar creators appear slightly sooner (0.72–1.0 multiplier)
+                animationDelay:`${Math.min(si * 0.055 * (item._cardDelay ?? 1.0), 1.4)}s`,
               }}>
               <RhythmCard
                 item={item}

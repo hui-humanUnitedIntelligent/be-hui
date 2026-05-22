@@ -1,4 +1,4 @@
-// feedIntelligence.js — HUI Feed Intelligence v1
+// feedIntelligence.js — HUI Feed Intelligence v1 + Relationship Memory v1
 //
 // Philosophy: "walking through a living creative world, not consuming content"
 //
@@ -53,6 +53,15 @@ function getDensity(item) {
 // SECTION 2: TIME-OF-DAY ATMOSPHERE
 // Subtle tone adjustments — NOT dramatic theme switches.
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── Relationship Memory integration (lazy import — only used when viewer context provided)
+// Direct import avoids circular deps
+import {
+  buildRelationshipMemory,
+  attachRelationshipToFeedItem,
+  relationshipOrderingBoost,
+  mockInteractionsFromItem,
+} from "./intelligence/relationshipMemory.js";
 
 export const TIME_ATMOSPHERES = {
   morning: {           // 05:00–11:59
@@ -354,11 +363,13 @@ const QUIET_QUOTE_POOL = [
  */
 export function curateHumaneFeed(rawItems = [], options = {}) {
   const {
-    now        = new Date(),
-    diversity  = true,
-    pacing     = true,
-    rebalance  = true,
-    maxItems   = 50,
+    now             = new Date(),
+    diversity       = true,
+    pacing          = true,
+    rebalance       = true,
+    maxItems        = 50,
+    viewerContext   = null,   // { id, interests, mood } — for relationship memory
+    relationshipMap = null,   // Map<creatorId, RelationshipMemory> — pre-built or null
   } = options;
 
   const atmosphere = getTimeAtmosphere(now);
@@ -388,10 +399,30 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
   // NOT a full re-sort — preserves chronological feeling
   const softSorted = softBubble(scored, 4);
 
+  // ── Step 2b: Apply relationship memory boost (very gentle — max +15%)
+  // Only active when viewerContext is provided
+  const withRelationship = viewerContext
+    ? softSorted.map(s => {
+        const creatorId = s.item.creatorId || s.item.userId || s.item.name || s.item.id;
+        const memory    = (relationshipMap && relationshipMap.get(creatorId))
+          || buildRelationshipMemory(
+              viewerContext,
+              { id: creatorId, talent: s.item.talent, tags: [] },
+              mockInteractionsFromItem(s.item, viewerContext.id || ""),
+             );
+        const boost     = relationshipOrderingBoost(memory);
+        return {
+          ...s,
+          resonanceScore: s.resonanceScore + boost,
+          _memory:        memory,
+        };
+      })
+    : softSorted;
+
   // ── Step 3: Creator diversity
   const diversified = diversity
-    ? enforceCreatorDiversity(softSorted.map(s => s.item))
-    : softSorted.map(s => s.item);
+    ? enforceCreatorDiversity(withRelationship.map(s => ({ ...s.item, _memory: s._memory })))
+    : withRelationship.map(s => ({ ...s.item, _memory: s._memory }));
 
   // ── Step 4: Content type rebalancing
   const rebalanced = rebalance
@@ -430,15 +461,26 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
       recentDensities.length = 0;
     }
 
-    // ── Derive micro-moment (contextual, not random)
-    const microMoment = intelligentMicroMoment(item, prevItem, idx);
+    // ── Attach relationship memory tokens if present
+    const memory = item._memory || null;
 
-    // ── Enrich item with atmosphere + presence
+    // ── Derive micro-moment — prefer relationship micro-moment if more contextual
+    const feedMicroMoment     = intelligentMicroMoment(item, prevItem, idx);
+    const relationMicroMoment = memory && !memory._fallback ? (memory.microMoment || null) : null;
+    const microMoment         = relationMicroMoment || feedMicroMoment;
+
+    // ── Enrich item with atmosphere + presence + relationship tokens
     const enrichedItem = {
       ...item,
-      _atmosphere: atmosphere.id,
+      _atmosphere:   atmosphere.id,
       presenceState: item.presenceState || derivePresenceFromItem(item),
       microMoment,
+      // Relationship atmosphere tokens (zero-cost if no relationship)
+      _warmthBoost:  memory?._warmthBoost  ?? 0,
+      _motionCalm:   memory?._motionCalm   ?? 0,
+      _glowBoost:    memory?._glowBoost    ?? 0,
+      _cardDelay:    memory?._cardDelay    ?? 1.0,
+      _relationship: memory || null,
     };
 
     sequence.push({

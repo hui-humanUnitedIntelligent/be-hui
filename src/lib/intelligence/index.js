@@ -1,16 +1,14 @@
 // src/lib/intelligence/index.js
 // HUI Intelligence Layer — clean re-export surface
+// v1: Emotional Identity
+// v2: + Relationship Memory
 
+// ── Emotional Identity ────────────────────────────────────────────────────
 export {
-  // Core engine
   buildEmotionalIdentity,
   identityDrift,
-
-  // Integration helpers
   attachEmotionalIdentity,
   quickIdentityFromProfile,
-
-  // Memoized selectors
   selectAnimationSpeed,
   selectMotionScale,
   selectAmbientGlow,
@@ -18,11 +16,32 @@ export {
   selectAtmosphereLabel,
   isFallbackIdentity,
   debugIdentitySummary,
-
-  // Archetype data (for UI that needs to enumerate them)
   EMOTIONAL_ARCHETYPES,
-
-  // Archetype type reference (for documentation)
-  // quiet_creator | warm_connector | deep_reflector
-  // gentle_inspirer | curious_explorer | steady_presence
 } from "./emotionalIdentity.js";
+
+// ── Relationship Memory ───────────────────────────────────────────────────
+export {
+  // Core engine
+  buildRelationshipMemory,
+  relationshipDrift,
+  decayedSignal,
+
+  // Feed integration
+  attachRelationshipToFeedItem,
+  relationshipOrderingBoost,
+  mockInteractionsFromItem,
+
+  // Selectors
+  selectWarmthBoost,
+  selectMotionCalm,
+  selectCardDelay,
+  selectGlowBoost,
+  selectRelationshipState,
+  selectMicroMoment,
+  isFallbackMemory,
+  debugMemorySummary,
+
+  // Data constants
+  RELATIONSHIP_STATES,
+  MEMORY_HALF_LIVES,
+} from "./relationshipMemory.js";
