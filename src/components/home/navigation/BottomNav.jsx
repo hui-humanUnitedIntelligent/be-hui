@@ -8,6 +8,7 @@
 import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
+import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { SAFE_MODE } from "../../../config/safeMode.js";
 
 const CSS = `
@@ -94,8 +95,8 @@ export default function BottomNav({
         }}>
 
           {console.log('[HUI MAP DEBUG] NAV_ITEMS', NAV_ITEMS) || null}
-          {(NAV_ITEMS || []).filter(item => item && typeof item === 'object' && item.key).map((item) => {
-            const isOrb = item.key === "orb";
+          {(NAV_ITEMS || []).map(validateNavItem).filter(Boolean).map((item) => {
+            const isOrb = item.isOrb === true;
 
             if (isOrb) {
               return (
