@@ -745,7 +745,12 @@ function VoteAllocationWidget({ votesLeft, totalVotes, votedIds, projects }) {
 /* ══════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════ */
-export default function ImpactPage({ currentUser }) {
+export default function ImpactPage({ currentUser: _currentUser }) {
+  // Phase 16.7.1: never undefined — null-safe fallback
+  const currentUser = _currentUser ?? {
+    id: null, full_name: "", display_name: "", email: "",
+    membership_type: "free", has_talent_profile: false,
+  };
   // ── State ──────────────────────────────────────────────────────────
   const [projects,      setProjects]     = useState([]);
   const [poolTotal,     setPoolTotal]    = useState(0);

@@ -23,6 +23,7 @@ import {
   useLivingMemory,
   useDwellTracker,
 } from "../lib/intelligence/persistence/useLivingMemory.js";
+import { useAuth } from "../lib/AuthContext";
 import {
   resolveMemoryTokens,
   applyMemoryToCardStyle,
@@ -40,6 +41,24 @@ import {
   selectCardDelay,
   isFallbackMemory,
 } from "../lib/intelligence/index.js";
+
+/* ─── Phase 16.7.1: Null-safe fallbacks (never undefined downstream) ──────── */
+const EMPTY_PROFILE = Object.freeze({
+  id: null, full_name: "", display_name: "", email: "",
+  avatar_url: null, img: null, membership_type: "free",
+  has_talent_profile: false, dna_tags: [], location: "",
+});
+
+const FALLBACK_VIEWER_CONTEXT = Object.freeze({
+  viewerId: "anonymous", isMember: false, hasTalent: false,
+  recentInteractions: [], trustedCreators: [], relationshipDepths: {},
+  totalMemorySignals: 0, knownCreatorCount: 0,
+  emotionalRhythm: { tone: "open", energy: 0.5 },
+  viewingPatterns: { depth: "explorer", dwellAvgMs: 0, revisitRate: 0 },
+  resonanceBias: "balanced", creativeAffinity: [],
+  timeOfDay: "day", id: null, interests: [], mood: "",
+  _hydrated: false, _fallback: true,
+});
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
 const T = {
@@ -425,6 +444,14 @@ export default function HomeFeed({
   const feedData  = useFeedData?.() || {};
   const liveItems = feedItems || feedData?.feedItems || MOCK_FEED;
 
+  // Phase 16.8: debug hydration state
+  React.useEffect(() => {
+    console.log("[HUI FEED] HomeFeed mounted/updated", {
+      liveItemsCount: liveItems?.length ?? 0,
+      source: feedItems ? "prop" : feedData?.feedItems ? "context" : "mock",
+    });
+  });
+
   return (
     <div className="hf-root" style={{ paddingBottom:28, width:"100%" }}>
       <style>{CSS}</style>
@@ -637,12 +664,23 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
   const rawItems = items || MOCK_FEED;
   const [reactions, setReactions] = useState({});
 
+  // Phase 16.7.1: user from AuthContext — was undeclared (ReferenceError → SafeBoundary → null)
+  // Always provide EMPTY_PROFILE fallback — never undefined downstream
+  const { profile: _authUser } = useAuth();
+  const authUser = _authUser ?? EMPTY_PROFILE;
+
+  // ── Phase 16.8: Stable creator ID string for memo dep ────────────────────
+  // Computed outside useMemo to avoid stale closure
+  const creatorIdStr = (rawItems||[])
+    .map(i => i.creator_id||i.user_id||i.creatorId||"")
+    .filter(Boolean).join(",");
+
   // ── Phase 16: Living Memory ───────────────────────────────────────────────
   // Extracts all creator IDs from feed for memory pre-build
   const feedCreatorIds = useMemo(() =>
     [...new Set((rawItems||[]).map(i => i.creator_id||i.user_id||i.creatorId).filter(Boolean))],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [(rawItems||[]).map(i=>i.creator_id||i.user_id||i.creatorId).join(",")]
+    [creatorIdStr]  // Phase 16.8: stable string dep, not inline expression
   );
 
   const {
@@ -650,7 +688,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
     recordReaction: memRecordReaction,
     recordProfileVisit,
     getRelationshipDepth,
-  } = useLivingMemory(user, feedCreatorIds);
+  } = useLivingMemory(authUser, feedCreatorIds);
 
   const handleReaction = useCallback((itemId, type) => {
     setReactions(prev => {
@@ -704,8 +742,8 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
       pacing:      true,
       rebalance:   true,
       maxItems:    40,
-      // Phase 16: viewerContext always hydrated from living memory
-      viewerContext,
+      // Phase 16.7.1: viewerContext always has fallback — never blocks render
+      viewerContext: viewerContext ?? FALLBACK_VIEWER_CONTEXT,
       relationshipMap,
     });
   // viewerContext is derived from viewerContext object identity
@@ -714,17 +752,31 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
 
   const { atmosphere, sharedAtmosphere, resonanceSpaces, worldState, sequence, stats } = curated;
 
-  // DEV: uncomment to debug intelligence layers
-  // console.log("[HUI World]", worldState?.temperature?.id, "| Space:", resonanceSpaces?.dominant?.id);
+  // Phase 16.8: debug — tap this in browser console to diagnose
+  React.useEffect(() => {
+    const cardCount = (sequence || []).filter(s => s.kind === "card").length;
+    console.log("[HUI FEED] RhythmicFeed", {
+      rawItemsCount:   rawItems?.length ?? 0,
+      curatedCards:    cardCount,
+      viewerContextId: viewerContext?.viewerId ?? "anonymous",
+      hydrated:        viewerContext?._hydrated ?? false,
+      authUserId:      authUser?.id ?? null,
+      feedCreatorIds:  feedCreatorIds?.length ?? 0,
+    });
+  }, [sequence?.length, viewerContext?.viewerId]);
 
   // ── World breath — synchronized motion pacing
   const worldBreath = worldState?.breath;
   const feedSurface = worldState?.feed;
 
-  // DEV: log curation stats (removed in production by tree-shaking)
-  // console.log("[HUI Feed]", stats);
-
-  if ((sequence || []).filter(s => s.kind === "card").length === 0) {
+  // Phase 16.7.1: debug log before early return
+  const cardCount = (sequence || []).filter(s => s.kind === "card").length;
+  if (cardCount === 0) {
+    console.warn("[HUI FEED] RhythmicFeed: sequence empty", {
+      rawItemsCount: rawItems?.length ?? 0,
+      viewerContextId: (viewerContext ?? FALLBACK_VIEWER_CONTEXT)?.viewerId ?? "?",
+      authUserId: authUser?.id ?? null,
+    });
     return <FeedEmptyState />;
   }
 
@@ -826,7 +878,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 relationshipDepth={getRelationshipDepth(
                   item?.creator_id || item?.user_id || item?.creatorId
                 )}
-                viewerId={user?.id || null}
+                viewerId={authUser?.id || null}
                 microMoment={item.microMoment ?? null}
                 onProfile={() => {
                   const cid = item?.creator_id || item?.user_id || item?.creatorId;

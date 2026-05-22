@@ -94,8 +94,20 @@ export function useLivingMemory(profile, feedCreatorIds = []) {
     return viewerContext.relationshipDepths[creatorId] || null;
   }, [viewerContext]);
 
+  // Phase 16.7.1: final safety net — viewerContext TRULY never null
+  const safeViewerContext = viewerContext ?? {
+    viewerId: "anonymous", isMember: false, hasTalent: false,
+    recentInteractions: [], trustedCreators: [], relationshipDepths: {},
+    totalMemorySignals: 0, knownCreatorCount: 0,
+    emotionalRhythm: { tone: "open", energy: 0.5 },
+    viewingPatterns: { depth: "explorer", dwellAvgMs: 0, revisitRate: 0 },
+    resonanceBias: "balanced", creativeAffinity: [],
+    timeOfDay: "day", id: null, interests: [], mood: "",
+    _hydrated: false, _fallback: true,
+  };
+
   return {
-    viewerContext,          // rich viewer context (never null)
+    viewerContext: safeViewerContext, // rich viewer context (TRULY never null)
     record,                 // recordMemory(creatorId, field, amount)
     dwell,                  // recordDwell(creatorId, ms)
     recordReaction,         // recordReaction(creatorId, 'resonanz'|'berührt'|'inspiriert')

@@ -542,7 +542,10 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const [prevCategory, setPrevCategory]   = useState("alle");
   const [districtTransition, setDistrictTransition] = useState(false);
   // ── Echte Discover-Daten ────────────────────────────────────
-  const { works: liveWorks, talents: liveTalents, loading: discoverLoading } = useDiscoverData({ enabled: true, limit: 16 });
+  // Phase 16.7.1: always null-safe
+  const { works: _liveWorks, talents: _liveTalents, loading: discoverLoading } = useDiscoverData({ enabled: true, limit: 16 });
+  const liveWorks    = _liveWorks   ?? [];
+  const liveTalents  = _liveTalents ?? [];
 
   const [heroItems,     setHeroItems]     = useState(MOCK_HERO);
   const [works,         setWorks]         = useState(MOCK_WERKE);  // Fallback; wird durch liveWorks überschrieben
@@ -617,7 +620,15 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
         setTalents(filterValidProfiles(profilesRes.data));
       }
     } catch (err) {
-      // silent — Mocks bleiben
+      // Phase 16.7.1: Never silent — always log
+      const stackStr = err?.stack ? err.stack.split("\n").slice(0, 4).join("\n") : "";
+      console.error("[HUI FEED CRASH]", {
+        component: "DiscoverPage.loadData",
+        error: err?.message || String(err),
+        stack: stackStr,
+        timestamp: new Date().toISOString(),
+      });
+      // Mocks bleiben als Fallback
     } finally {
       setLoading(false);
     }

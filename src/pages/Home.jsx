@@ -150,6 +150,14 @@ function HomeInner() {
 
       // Force repaint on active tab div (async, cancel-aware)
       const activeTabRef = tabRefs[tab];
+      // Phase 16.7.1: expose crash context globally for ErrorBoundary/SafeBoundary
+      if (typeof window !== "undefined") {
+        window.__HUI_WORLD_STATE__ = {
+          ...(window.__HUI_WORLD_STATE__ || {}),
+          activeTab: tab,
+          membershipType: isMember ? "member" : "free",
+        };
+      }
       if (activeTabRef?.current) {
         paintManager.current.repaint(activeTabRef.current, `tab-${tab}`);
       }

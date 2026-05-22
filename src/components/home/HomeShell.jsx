@@ -46,10 +46,11 @@ export default function HomeShell({ children }) {
   } = useAuth();
 
   // authProfile normalisieren — kommt roh aus Supabase
+  // Phase 16.7.1: include membership_type + talent in deps
   const safeAuthProfile = useMemo(
     () => authProfile ? createProfileItem(authProfile) : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [authProfile?.id, authProfile?.updated_at]
+    [authProfile?.id, authProfile?.updated_at, authProfile?.membership_type, authProfile?.has_talent_profile]
   );
 
   const liveNotifCount = useNotifCount();
@@ -78,6 +79,8 @@ export default function HomeShell({ children }) {
   /* User data */
   const [currentUser, setCurrentUser] = useState(null);
   const [userName,    setUserName]    = useState("");
+  // Phase 16.7.1: depend on membership + talent changes, not only id
+  // Membership transition (basic→member) keeps same id but changes membership_type
   useEffect(() => {
     if (authProfile) {
       setCurrentUser(authProfile);
@@ -86,8 +89,20 @@ export default function HomeShell({ children }) {
         authProfile.email?.split("@")[0] ||
         ""
       );
+      // Expose on window for ErrorBoundary crash context
+      if (typeof window !== "undefined") {
+        window.__HUI_WORLD_STATE__ = {
+          ...(window.__HUI_WORLD_STATE__ || {}),
+          membershipType: authProfile.membership_type ?? "free",
+        };
+      }
     }
-  }, [authProfile?.id]);
+  }, [
+    authProfile?.id,
+    authProfile?.membership_type,   // catches basic → member transition
+    authProfile?.has_talent_profile, // catches talent onboarding
+    authProfile?.updated_at,        // catches any profile refresh
+  ]);
 
   /* Mood */
   const [activeMood, setActiveMood] = useState(null);
