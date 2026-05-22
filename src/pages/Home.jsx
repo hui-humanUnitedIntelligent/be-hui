@@ -3,6 +3,8 @@
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
 import React, { Suspense } from "react";
+import { SAFE_MODE } from "../config/safeMode.js";
+import { SafeRender } from "../config/SafeRender.jsx";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
@@ -32,6 +34,15 @@ const StoryComposer       = React.lazy(() => import("../components/StoryComposer
 const ExperienceCreator   = React.lazy(() => import("../components/ExperienceCreator.jsx"));
 
 const C = { cream: "#F9F6F2" };
+
+const SAFE_MOTION_CSS = SAFE_MODE.motion ? '' : `
+  /* SafeMode.motion=false: Alle Animationen deaktiviert */
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+`;
 
 const GLOBAL_CSS = `
   * { box-sizing: border-box; }
@@ -90,7 +101,7 @@ function HomeInner() {
 
   return (
     <>
-      <style>{GLOBAL_CSS}</style>
+      <style>{GLOBAL_CSS + SAFE_MOTION_CSS}</style>
 
       {/* ── Haupt-Layout: KEIN overflow:hidden hier ────────────── */}
       {/* overflow:hidden würde in iOS Safari pointer-events auf    */}
@@ -136,28 +147,38 @@ function HomeInner() {
           }}
         >
           <div style={keepFeed}>
-            <HomeFeed
-              user={currentUser}
-              notifCount={liveNotifCount}
-              chatCount={0}
-              onSearch={() => {}}
-              onNotif={() => setShowNotifs(true)}
-              onChat={() => setShowChat(true)}
-              onStory={(s) => {
-                if (s?.isYou) setShowStoryComposer(true);
-                else if (s) setActiveStory(s);
-              }}
-              onEvent={() => {}}
-              onMoreEvents={() => handleTab("discover")}
-              onProfile={(item) => setShowWirker(item)}
-              onLike={() => {}}
-              onComment={() => {}}
-              onPerson={(p) => setShowWirker(p)}
-            />
+            {SAFE_MODE.homeFeed ? (
+              <SafeRender flag="homeFeed" label="HomeFeed">
+                <HomeFeed
+                  user={currentUser}
+                  notifCount={liveNotifCount}
+                  chatCount={0}
+                  onSearch={() => {}}
+                  onNotif={() => setShowNotifs(true)}
+                  onChat={() => setShowChat(true)}
+                  onStory={(s) => {
+                    if (s?.isYou) setShowStoryComposer(true);
+                    else if (s) setActiveStory(s);
+                  }}
+                  onEvent={() => {}}
+                  onMoreEvents={() => handleTab("discover")}
+                  onProfile={(item) => setShowWirker(item)}
+                  onLike={() => {}}
+                  onComment={() => {}}
+                  onPerson={(p) => setShowWirker(p)}
+                />
+              </SafeRender>
+            ) : (
+              <div style={{ padding: "40px 24px", textAlign: "center", color: "#999", fontSize: 14 }}>
+                Feed lädt…
+              </div>
+            )}
           </div>
 
           <div style={keepDiscover}>
-            <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
+            <SafeRender flag="discoverFeed" label="DiscoverPage">
+              <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
+            </SafeRender>
           </div>
 
           <div style={keepImpact}>
@@ -205,49 +226,56 @@ function HomeInner() {
       <ProfileLauncher/>
 
       {/* ── Connection Create ───────────────────────────────────── */}
-      {showConnect && (
-        <ConnectionCreatePage
-          onClose={() => {
-            setShowConnect(false);
-          }}
-          onPublish={() => setShowConnect(false)}
-        />
+      {showConnect && SAFE_MODE.connectFlow && (
+        <SafeRender flag="connectFlow" label="ConnectionCreatePage">
+          <ConnectionCreatePage
+            onClose={() => setShowConnect(false)}
+            onPublish={() => setShowConnect(false)}
+          />
+        </SafeRender>
       )}
 
       {/* ── Teilen Flow ─────────────────────────────────────────── */}
-      {showTeilen && (
-        <TeilenFlow
-          onClose={() => setShowTeilen(false)}
-          onPublished={() => setShowTeilen(false)}
-        />
+      {showTeilen && SAFE_MODE.teilenFlow && (
+        <SafeRender flag="teilenFlow" label="TeilenFlow">
+          <TeilenFlow
+            onClose={() => setShowTeilen(false)}
+            onPublished={() => setShowTeilen(false)}
+          />
+        </SafeRender>
       )}
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
-      {showChat && (
-        <ChatCenterOverlay
-          onClose={() => {
-            setShowChat(false);
-          }}
-        />
+      {showChat && SAFE_MODE.chatCenter && (
+        <SafeRender flag="chatCenter" label="ChatCenterOverlay">
+          <ChatCenterOverlay
+            onClose={() => setShowChat(false)}
+          />
+        </SafeRender>
       )}
 
       <Suspense fallback={null}>
-        {showMap && (
-          <LiveMapPage
-            onView={w => { setShowWirker(w); setShowMap(false); }}
-            onMatch={() => { setShowMatch(true); setShowMap(false); }}
-            onClose={() => setShowMap(false)}
-          />
+        {showMap && SAFE_MODE.liveMap && (
+          <SafeRender flag="liveMap" label="LiveMapPage">
+            <LiveMapPage
+              onView={w => { setShowWirker(w); setShowMap(false); }}
+              onMatch={() => { setShowMatch(true); setShowMap(false); }}
+              onClose={() => setShowMap(false)}
+            />
+          </SafeRender>
         )}
-        {showMatch && (
-          <HuiMatchOverlay
-            onClose={() => setShowMatch(false)}
-            onMoodSelect={(m) => { setActiveMood(m); setShowMatch(false); }}
-            onView={w => { setShowWirker(w); setShowMatch(false); }}
-          />
+        {showMatch && SAFE_MODE.matchOverlay && (
+          <SafeRender flag="matchOverlay" label="HuiMatchOverlay">
+            <HuiMatchOverlay
+              onClose={() => setShowMatch(false)}
+              onMoodSelect={(m) => { setActiveMood(m); setShowMatch(false); }}
+              onView={w => { setShowWirker(w); setShowMatch(false); }}
+            />
+          </SafeRender>
         )}
-        {showPlusSheet && (
-          <HuiPlusSheet
+        {showPlusSheet && SAFE_MODE.orb && (
+          <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem">
+            <HuiPlusSheet
             isTalent={isTalent}
             onClose={() => setShowPlusSheet(false)}
             onSelect={(type) => {
@@ -289,59 +317,76 @@ function HomeInner() {
                 setShowCreateFlow(true);
               }
             }}
-          />
+            />
+          </SafeRender>
         )}
-        {showTalentFlow && (
-          <TalentOnboarding
-            onClose={() => setShowTalentFlow(false)}
-            onSuccess={() => setShowTalentFlow(false)}
-          />
+        {showTalentFlow && SAFE_MODE.talentFlow && (
+          <SafeRender flag="talentFlow" label="TalentOnboarding">
+            <TalentOnboarding
+              onClose={() => setShowTalentFlow(false)}
+              onSuccess={() => setShowTalentFlow(false)}
+            />
+          </SafeRender>
         )}
-        {showStoryComposer && (
-          <StoryComposer
-            onClose={() => setShowStoryComposer(false)}
-            onPublished={() => setShowStoryComposer(false)}
-          />
+        {showStoryComposer && SAFE_MODE.storyComposer && (
+          <SafeRender flag="storyComposer" label="StoryComposer">
+            <StoryComposer
+              onClose={() => setShowStoryComposer(false)}
+              onPublished={() => setShowStoryComposer(false)}
+            />
+          </SafeRender>
         )}
-        {showWerkPublisher && (
-          <WorkFlow
-            onClose={() => setShowWerkPublisher(false)}
-            onPublished={() => setShowWerkPublisher(false)}
-          />
+        {showWerkPublisher && SAFE_MODE.werkFlow && (
+          <SafeRender flag="werkFlow" label="WorkFlow">
+            <WorkFlow
+              onClose={() => setShowWerkPublisher(false)}
+              onPublished={() => setShowWerkPublisher(false)}
+            />
+          </SafeRender>
         )}
-        {showExperienceCreator && (
-          <ExperienceFlow
-            onClose={() => setShowExperienceCreator(false)}
-          />
+        {showExperienceCreator && SAFE_MODE.experienceFlow && (
+          <SafeRender flag="experienceFlow" label="ExperienceFlow">
+            <ExperienceFlow
+              onClose={() => setShowExperienceCreator(false)}
+            />
+          </SafeRender>
         )}
-        {showNotifs && (
-          <NotificationCenter
-            onClose={() => setShowNotifs(false)}
-            onNavigate={() => setShowNotifs(false)}
-          />
+        {showNotifs && SAFE_MODE.notifications && (
+          <SafeRender flag="notifications" label="NotificationCenter">
+            <NotificationCenter
+              onClose={() => setShowNotifs(false)}
+              onNavigate={() => setShowNotifs(false)}
+            />
+          </SafeRender>
         )}
-        {showMembership && (
-          <HuiMembershipFlow
-            onClose={() => setShowMembership(false)}
-            onComplete={() => {
-              setShowMembership(false);
-              // Profil neu laden — isMember wird aus DB aktualisiert
-              // AuthContext.refreshProfile() aktualisiert profile.is_member
-            }}
-          />
+        {showMembership && SAFE_MODE.membership && (
+          <SafeRender flag="membership" label="HuiMembershipFlow">
+            <HuiMembershipFlow
+              onClose={() => setShowMembership(false)}
+              onComplete={() => {
+                setShowMembership(false);
+              }}
+            />
+          </SafeRender>
         )}
-        {showCreateFlow && (
-          <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
+        {showCreateFlow && SAFE_MODE.createFlow && (
+          <SafeRender flag="createFlow" label="HuiCreateFlow">
+            <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
+          </SafeRender>
         )}
-        {showImpactFlow && (
-          <ImpactFlow
-            onClose={() => setShowImpactFlow(false)}
-          />
+        {showImpactFlow && SAFE_MODE.impactFlow && (
+          <SafeRender flag="impactFlow" label="ImpactFlow">
+            <ImpactFlow
+              onClose={() => setShowImpactFlow(false)}
+            />
+          </SafeRender>
         )}
       </Suspense>
 
-      {activeStory && (
-        <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
+      {activeStory && SAFE_MODE.storyViewer && (
+        <SafeRender flag="storyViewer" label="StoryViewer">
+          <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
+        </SafeRender>
       )}
     </>
   );

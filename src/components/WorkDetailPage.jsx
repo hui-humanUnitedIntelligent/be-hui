@@ -788,7 +788,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             <div className="wd-scroll"
               style={{ display:"flex", gap:12, overflowX:"auto",
                 padding:"0 20px 4px" }}>
-              {related.map(w => (
+              {console.log('[HUI MAP DEBUG] WorkDetailPage.jsx.related', related) || null}
+          {(related || []).filter(w => w && typeof w === 'object').map(w => (
                 <RelatedCard key={w.id} werk={w}
                   onClick={id => navigate(`/work/${id}`)}/>
               ))}

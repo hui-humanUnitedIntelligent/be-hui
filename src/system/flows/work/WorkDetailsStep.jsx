@@ -52,7 +52,7 @@ function PricePills({ value, onChange }) {
   ];
   return (
     <div style={{ display:"flex", gap:8 }}>
-      {opts.map(o => {
+      {(opts||[]).filter(o=>o&&o.key).map(o => {
         const active = value === o.key;
         return (
           <button key={o.key} onClick={() => onChange(o.key)} style={{

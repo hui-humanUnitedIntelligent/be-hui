@@ -57,7 +57,8 @@ function ConnectionBubbles({ people }) {
       display:"flex", gap:14, overflowX:"auto",
       padding:"4px 0 18px", WebkitOverflowScrolling:"touch",
     }}>
-      {people.map(p => (
+      {console.log('[HUI MAP DEBUG] ConversationList.people', people) || null}
+          {(people||[]).filter(p=>p&&(p.id||p.user_id)).map(p => (
         <div key={p.id} style={{ display:"flex", flexDirection:"column",
           alignItems:"center", gap:6, flexShrink:0 }}>
           <div style={{
@@ -132,7 +133,7 @@ export default function ConversationList({ chats, loading, onOpen }) {
         display:"flex", gap:8, overflowX:"auto",
         padding:"4px 0 16px", WebkitOverflowScrolling:"touch",
       }}>
-        {SECTION_LABELS.map(s => {
+        {(SECTION_LABELS||[]).filter(s=>s&&s.key).map(s => {
           const on = activeFilter === s.key;
           return (
             <button key={s.key} onClick={() => setActiveFilter(s.key)} style={{

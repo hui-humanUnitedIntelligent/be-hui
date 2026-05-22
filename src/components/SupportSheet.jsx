@@ -240,7 +240,7 @@ export default function SupportSheet({ project, currentUser, onClose, onSuccess 
             {/* Preset buttons */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
               gap:10, marginBottom:14 }}>
-              {PRESETS.map(p => {
+              {(PRESETS||[]).filter(p=>p&&p.key).map(p => {
                 const isActive = !useCustom && selected === p.amount;
                 return (
                   <button key={p.amount} className="ss-tap"

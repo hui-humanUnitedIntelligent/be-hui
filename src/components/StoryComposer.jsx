@@ -297,7 +297,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
           padding:"12px 16px 14px",
           display:"flex",gap:8,overflowX:"auto",
           background:"linear-gradient(transparent,rgba(0,0,0,.5))"}}>
-          {MOODS.map(m=>(
+          {(MOODS||[]).filter(m=>m&&m.key).map(m=>(
             <button key={m.k} className="sc-tap"
               onClick={e=>{e.stopPropagation();setMood(p=>p===m.k?null:m.k);}}
               style={{flexShrink:0,padding:"6px 12px",borderRadius:999,

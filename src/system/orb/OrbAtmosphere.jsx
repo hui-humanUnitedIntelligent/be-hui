@@ -9,9 +9,10 @@
 
 import React, { useMemo } from "react";
 import { Z } from "./OrbConfig.js";
+import { SAFE_MODE } from "../../config/safeMode.js";
 
 /* ── Hintergrund-Blobs ──────────────────────────────────────── */
-export function OrbAtmosphere({ ambientColor }) {
+function OrbAtmosphere({ ambientColor }) {
   return (
     <>
       {/* Mint blob — oben links */}
@@ -70,7 +71,7 @@ export function OrbAtmosphere({ ambientColor }) {
 }
 
 /* ── Partikel ─────────────────────────────────────────────────── */
-export function OrbParticles({ color }) {
+function OrbParticles({ color }) {
   const items = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
     id: i,
     x:   (Math.random() - 0.5) * 300,
@@ -89,7 +90,7 @@ export function OrbParticles({ color }) {
       pointerEvents:"none",
       zIndex:Z.atmosphere,
     }}>
-      {items.map(p => (
+      {(items||[]).filter(p=>p&&typeof p==='object').map(p => (
         <div key={p.id} style={{
           position:"absolute",
           left:p.x, top:p.y,
@@ -105,3 +106,44 @@ export function OrbParticles({ color }) {
     </div>
   );
 }
+
+
+/* ── SAFE_MODE Export Wrapper ─────────────────────────────────── */
+const _OrbAtmosphereRaw = OrbAtmosphere;
+function OrbAtmosphereSafe(props) {
+  React.useEffect(() => {
+    console.log('[HUI Render Debug] OrbAtmosphere mounted');
+    return () => console.log('[HUI Render Debug] OrbAtmosphere unmounted');
+  }, []);
+  if (!SAFE_MODE.ambient) {
+    console.info('[HUI SafeMode] OrbAtmosphere deaktiviert');
+    return null;
+  }
+  try {
+    return <_OrbAtmosphereRaw {...props} />;
+  } catch (e) {
+    console.error('[HUI Render Debug] OrbAtmosphere failed', e);
+    return null;
+  }
+}
+export { OrbAtmosphereSafe as OrbAtmosphere };
+
+/* ── OrbParticles SafeMode Wrapper ──────────────────────────── */
+const _OrbParticlesRaw = OrbParticles;
+function OrbParticlesSafe(props) {
+  React.useEffect(() => {
+    console.log('[HUI Render Debug] OrbParticles mounted');
+    return () => console.log('[HUI Render Debug] OrbParticles unmounted');
+  }, []);
+  if (!SAFE_MODE.particles) {
+    console.info('[HUI SafeMode] OrbParticles deaktiviert');
+    return null;
+  }
+  try {
+    return <_OrbParticlesRaw {...props} />;
+  } catch (e) {
+    console.error('[HUI Render Debug] OrbParticles failed', e);
+    return null;
+  }
+}
+export { OrbParticlesSafe as OrbParticles };

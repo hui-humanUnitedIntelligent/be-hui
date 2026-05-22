@@ -8,6 +8,7 @@
 import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
+import { SAFE_MODE } from "../../../config/safeMode.js";
 
 const CSS = `
   @keyframes bn-orb-pulse {
@@ -92,7 +93,8 @@ export default function BottomNav({
           touchAction:   "manipulation",
         }}>
 
-          {NAV_ITEMS.map((item) => {
+          {console.log('[HUI MAP DEBUG] NAV_ITEMS', NAV_ITEMS) || null}
+          {(NAV_ITEMS || []).filter(item => item && typeof item === 'object' && item.key).map((item) => {
             const isOrb = item.key === "orb";
 
             if (isOrb) {

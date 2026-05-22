@@ -108,7 +108,7 @@ export default function CreatorWorksSection({ activeTab, works, experiences, act
     const items = (activities?.length ? activities : mockActivities);
     return (
       <div style={{ padding:"0 20px" }}>
-        {items.map(item => <ActivityCard key={item.id} item={item}/>)}
+        {(items||[]).filter(item=>item&&item.id).map(item => <ActivityCard key={item.id} item={item}/>)}
       </div>
     );
   }
@@ -120,7 +120,7 @@ export default function CreatorWorksSection({ activeTab, works, experiences, act
         display:"flex", gap:14, overflowX:"auto",
         padding:"0 20px 20px", WebkitOverflowScrolling:"touch",
       }}>
-        {items.map(w => <WorkCard key={w.id} work={w}/>)}
+        {(items||[]).filter(w=>w&&w.id).map(w => <WorkCard key={w.id} work={w}/>)}
       </div>
     );
   }
@@ -129,7 +129,7 @@ export default function CreatorWorksSection({ activeTab, works, experiences, act
     const items = experiences?.length ? experiences : mockActivities;
     return (
       <div style={{ padding:"0 20px" }}>
-        {items.map(item => <ActivityCard key={item.id} item={item}/>)}
+        {(items||[]).filter(item=>item&&item.id).map(item => <ActivityCard key={item.id} item={item}/>)}
       </div>
     );
   }

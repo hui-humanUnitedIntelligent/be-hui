@@ -138,7 +138,7 @@ export async function getPublicTrustSignals(userId) {
       counts[s.signal_type] = (counts[s.signal_type] || 0) + 1;
     });
 
-    const signals = Object.entries(counts)
+    const signals = Object.entries(counts||{})
       .filter(([type, count]) => {
         // Mindest-Schwellen für Sichtbarkeit
         if (type === 'booking_completed'    && count < 1) return false;

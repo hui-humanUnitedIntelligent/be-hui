@@ -61,7 +61,7 @@ export default function ConnectionTypeSidebar({ active, onChange }) {
         marginBottom:4, letterSpacing:0.1,
       }}>Was m\u00f6chtest du erstellen?</div>
 
-      {CONNECTION_TYPES.map(t => {
+      {(CONNECTION_TYPES||[]).filter(t=>t&&t.key).map(t => {
         const on = active === t.key;
         return (
           <button

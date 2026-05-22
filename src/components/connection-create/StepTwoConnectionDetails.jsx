@@ -336,7 +336,7 @@ const MOOD_OPTS = [
 function MoodRow({ value, onChange }) {
   return (
     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-      {MOOD_OPTS.map(m => {
+      {(MOOD_OPTS||[]).filter(m=>m&&m.key).map(m => {
         const on = value === m.key;
         return (
           <button key={m.key} onClick={() => onChange(m.key)} style={{

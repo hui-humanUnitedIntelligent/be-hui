@@ -399,7 +399,7 @@ function StepCreate({ mode, data, onChange }) {
               Stimmung (optional)
             </div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-              {MOODS.map(m => {
+              {(MOODS||[]).filter(m=>m&&m.key).map(m => {
                 const on = data.mood === m.k;
                 return (
                   <button

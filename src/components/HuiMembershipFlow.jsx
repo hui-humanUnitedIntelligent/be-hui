@@ -1042,7 +1042,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
 
       {/* Preload */}
       <div style={{ display: "none" }} aria-hidden="true">
-        {Object.values(IMG).map((s, i) => <img key={i} src={s} alt="" loading="eager" />)}
+        {Object.values(IMG||{}).map((s, i) => s ? <img key={i} src={s} alt="" loading="eager" /> : null)}
       </div>
 
       {step === 1 && <S1 onNext={next} data={data} setData={setData} />}

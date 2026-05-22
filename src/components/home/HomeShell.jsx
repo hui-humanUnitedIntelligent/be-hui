@@ -12,6 +12,7 @@ import {
   useOwnPresence,
   useTabKeepAlive,
 } from "../../lib/sessionHooks";
+import { SAFE_MODE } from "../../config/safeMode.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
 const HomeCtx = createContext(null);

@@ -34,6 +34,7 @@ import { useUserRole } from '../../lib/roles/index.js';
 import {
   Z, T, NODES, NODE_SIZE, ORBIT_RATIO, ORB_MIN, ORB_MAX, MOUNT_DELAY_MS,
 } from "./OrbConfig.js";
+import { SAFE_MODE } from "../../config/safeMode.js";
 
 /* ── polar(): Winkel + Radius → px-Offset vom Zentrum ───────── */
 function polar(angleDeg, r) {
@@ -42,6 +43,15 @@ function polar(angleDeg, r) {
 }
 
 /* ── Main Component ─────────────────────────────────────────── */
+// ── Debug Log ─────────────────────────────────────────────────
+function useOrbDebugLog(label) {
+  React.useEffect(() => {
+    console.log('[HUI Render Debug]', label, 'mounted');
+    return () => console.log('[HUI Render Debug]', label, 'unmounted');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
+
 export default function OrbSystem({
   onAction,
   onClose,
@@ -77,6 +87,7 @@ export default function OrbSystem({
   }, []);
 
   // ── Orb State (komplett isoliert) ───────────────────────────
+  useOrbDebugLog('OrbSystem');
   const orb = useOrbState({ onAction, onClose });
 
   // ── Escape Key ──────────────────────────────────────────────
@@ -126,10 +137,10 @@ export default function OrbSystem({
         }}
       >
         {/* ── Atmosphere: blobs + ambient — alles pointer-events:none */}
-        <OrbAtmosphere ambientColor={orb.activeNode?.color} />
+        {SAFE_MODE.ambient && <OrbAtmosphere ambientColor={orb.activeNode?.color} />}
 
         {/* ── Partikel (erst nach mount) */}
-        {mounted && (
+        {mounted && SAFE_MODE.particles && (
           <OrbParticles color={`${ambientColor}38`} />
         )}
 

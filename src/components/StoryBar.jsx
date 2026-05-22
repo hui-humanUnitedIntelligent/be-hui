@@ -68,7 +68,7 @@ export function StoryBar({ onStoryClick }) {
         .from('story_views')
         .select('story_id')
         .eq('viewer_id', user.id);
-      if (views) setViewedIds(new Set(views.map(v => v.story_id)));
+      if (views && Array.isArray(views)) setViewedIds(new Set(views.filter(v=>v&&v.story_id).map(v => v.story_id)));
     }
 
     // Group by user_id
@@ -81,8 +81,8 @@ export function StoryBar({ onStoryClick }) {
       if (!map[uid]) map[uid] = { uid, username: displayName, avatar_url: avatarUrl, stories: [] };
       map[uid].stories.push({ ...s, username: displayName, avatar_url: avatarUrl });
     }
-    console.info('[StoryBar] Groups built:', Object.keys(map).length);
-    setGroups(Object.values(map));
+    console.info('[StoryBar] Groups built:', Object.keys(map||{}).length);
+    setGroups(Object.values(map||{}));
   }
 
   if (!groups.length) return null;
@@ -543,7 +543,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
 
           {/* Quick Reactions */}
           <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
-            {REACTIONS.map(r => (
+            {(REACTIONS||[]).filter(r=>r&&r.key).map(r => (
               <button key={r} className="hui-sv-tap"
                 onClick={() => handleReaction(r)}
                 style={{

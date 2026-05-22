@@ -581,7 +581,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
             Stimmung
           </div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-            {MOODS.map(m => {
+            {(MOODS||[]).filter(m=>m&&m.key).map(m => {
               const sel = moodTags.includes(m.key);
               return (
                 <button key={m.key}
@@ -1042,7 +1042,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
                 <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
                   textTransform:"uppercase", letterSpacing:0.5 }}>Energie</div>
                 <div className="hcf2-pill-row">
-                  {ENERGY_LEVELS.map(e => (
+                  {(ENERGY_LEVELS||[]).filter(e=>e&&e.key).map(e => (
                     <Pill key={e.value||e} label={e.label||e}
                       selected={energy===(e.value||e)}
                       color={C.gold}
@@ -1266,7 +1266,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
 
         <CollapseSection title="Sprache" icon="🗣️" accent={C.teal}>
           <div className="hcf2-pill-row">
-            {LANGS.map(l => (
+            {(LANGS||[]).filter(l=>l&&l.key).map(l => (
               <Pill key={l} label={l} selected={lang===l} color={C.teal}
                 onClick={() => setLang(l)}/>
             ))}
@@ -1291,7 +1291,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
               <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
                 textTransform:"uppercase", letterSpacing:0.5 }}>Soziale Energie</div>
               <div className="hcf2-pill-row">
-                {SOCIAL_ENERGY_OPTIONS.map(s => (
+                {(SOCIAL_ENERGY_OPTIONS||[]).filter(s=>s&&s.key).map(s => (
                   <Pill key={s.value||s} label={s.label||s}
                     selected={social===(s.value||s)}
                     color={C.coral}

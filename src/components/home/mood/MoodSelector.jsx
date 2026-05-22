@@ -7,7 +7,7 @@ import { MOODS } from "./moodConfig.js";
 export default function MoodSelector({ activeMood, onSelect }) {
   return (
     <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
-      {MOODS.map(m => {
+      {(MOODS||[]).filter(m=>m&&m.key).map(m => {
         const on = activeMood?.key === m.key;
         return (
           <button

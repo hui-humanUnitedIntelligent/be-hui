@@ -83,7 +83,7 @@ function S1({ f, set, onNext }) {
             color:T.muted,letterSpacing:.5}}>KATEGORIE</p>
           <div className="wp-scroll"
             style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:2}}>
-            {CATEGORIES.map(c=>(
+            {(CATEGORIES||[]).filter(c=>c&&c.key).map(c=>(
               <button key={c} className="wp-tap"
                 onClick={()=>set({...f,category:c})}
                 style={{flexShrink:0,padding:"8px 14px",borderRadius:999,

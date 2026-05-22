@@ -49,7 +49,7 @@ function PricePills({ value, onChange }) {
   ];
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-      {opts.map(o => {
+      {(opts||[]).filter(o=>o&&o.key).map(o => {
         const active = value === o.k;
         return (
           <button key={o.k} onClick={() => onChange(o.k)} style={{
@@ -74,7 +74,7 @@ function PricePills({ value, onChange }) {
 function DurationPills({ value, onChange }) {
   return (
     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-      {DURATIONS.map(d => {
+      {(DURATIONS||[]).filter(d=>d&&d.key).map(d => {
         const active = value === d;
         return (
           <button key={d} onClick={() => onChange(d)} style={{
@@ -102,7 +102,7 @@ function LocationPills({ value, onChange }) {
   ];
   return (
     <div style={{ display:"flex", gap:8 }}>
-      {opts.map(o => {
+      {(opts||[]).filter(o=>o&&o.key).map(o => {
         const active = value === o.k;
         return (
           <button key={o.k} onClick={() => onChange(o.k)} style={{
@@ -131,7 +131,7 @@ function DayPicker({ value, onChange }) {
   );
   return (
     <div style={{ display:"flex", gap:6 }}>
-      {AVAIL_DAYS.map(d => {
+      {(AVAIL_DAYS||[]).filter(d=>d&&d.key).map(d => {
         const active = value.includes(d.k);
         return (
           <button key={d.k} onClick={() => toggle(d.k)} style={{
@@ -153,7 +153,7 @@ function DayPicker({ value, onChange }) {
 function TimePills({ value, onChange }) {
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-      {AVAIL_TIMES.map(t => {
+      {(AVAIL_TIMES||[]).filter(t=>t&&t.key).map(t => {
         const active = value === t.k;
         return (
           <button key={t.k} onClick={() => onChange(t.k)} style={{

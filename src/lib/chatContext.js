@@ -112,7 +112,8 @@ export function useChatList() {
       if (!rawChats) { setLoading(false); return; }
 
       // Anreichern: other_profile + unread für diesen User
-      const enriched = rawChats.map(c => {
+      console.log('[HUI MAP DEBUG] rawChats', rawChats);
+  const enriched = (rawChats||[]).filter(c=>c&&c.id).map(c => {
         const isA  = c.participant_a === user.id;
         const other = isA ? c.profile_b : c.profile_a;
         const unread = isA ? (c.unread_a || 0) : (c.unread_b || 0);
@@ -241,7 +242,7 @@ export function useChatThread(chatId) {
         event: "UPDATE", schema: "public", table: "messages",
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
-        setMessages(prev => prev.map(m =>
+        setMessages(prev => (prev||[]).map(m =>
           m.id === payload.new.id ? { ...m, ...payload.new } : m
         ));
       })

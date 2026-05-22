@@ -83,7 +83,7 @@ export function AppStateProvider({ children }) {
       .select("following_id")
       .eq("follower_id", user.id)
       .then(({ data }) => {
-        if (data) setFollowedIds(data.map(r => r.following_id));
+        if (data && Array.isArray(data)) setFollowedIds((data).filter(r=>r&&r.following_id).map(r => r.following_id));
       })
       .catch(() => {}); // silent
   }, [user?.id]);

@@ -56,7 +56,8 @@ export default function CreatorSpacesSection({ profile, spaces, images }) {
           WebkitOverflowScrolling:"touch",
         }}
       >
-        {items.map(s => (
+        {console.log('[HUI MAP DEBUG] CreatorSpacesSection.jsx.items', items) || null}
+          {(items || []).filter(s => s && typeof s === 'object').map(s => (
           <SpaceBubble key={s.key} space={s} images={images}/>
         ))}
       </div>

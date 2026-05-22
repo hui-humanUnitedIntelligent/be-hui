@@ -125,7 +125,7 @@ export async function visibilityAwareFetch(fetchFn, timeoutMs = 30_000) {
  */
 export async function batchQueries(...promises) {
   return Promise.all(
-    promises.map(p => p.catch(e => ({ data: null, error: { message: e.message } })))
+    (promises||[]).filter(p=>p&&typeof p.then==='function').map(p => p.catch(e => ({ data: null, error: { message: e.message } })))
   );
 }
 

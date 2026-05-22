@@ -74,7 +74,7 @@ function TabBar({ active, onChange }) {
       WebkitOverflowScrolling:"touch",
       gap:0,
     }}>
-      {TABS.map(t => {
+      {(TABS||[]).filter(t=>t&&t.key).map(t => {
         const isActive = active === t.key;
         return (
           <button

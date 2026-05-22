@@ -46,7 +46,7 @@ export function GallerySection({
         padding: "0 20px",
         gap: 0,
       }}>
-        {TABS.map(tab => {
+        {(TABS||[]).filter(tab=>tab&&tab.key).map(tab => {
           const active = activeTab === tab.key;
           return (
             <button

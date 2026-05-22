@@ -3,7 +3,7 @@
 export const NAV_ITEMS = [
   { key:"feed",     label:"Home"      },
   { key:"impact",   label:"Impact"    },
-  null,                                  // Orb-Slot
+  { key:"orb",      label:"",   isOrb: true },   // Orb-Slot — KEIN null mehr
   { key:"discover", label:"Entdecken" },
   { key:"profile",  label:"Profil"    },
 ];

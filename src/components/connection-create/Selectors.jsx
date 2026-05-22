@@ -75,7 +75,7 @@ export function MoodSelector({ value, onChange }) {
   return (
     <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
       <style>{CSS}</style>
-      {MOODS.map(m => {
+      {(MOODS||[]).filter(m=>m&&m.key).map(m => {
         const on = value === m.key;
         return (
           <button key={m.key} onClick={() => onChange(m.key)} style={{

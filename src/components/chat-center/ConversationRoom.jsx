@@ -47,7 +47,7 @@ export default function ConversationRoom({ conv, onBack }) {
 
   // Fallback: Mock-Nachrichten wenn noch keine echten da
   const messages = liveMessages?.length > 0
-    ? liveMessages.map(m => ({
+    ? (liveMessages||[]).filter(m=>m&&m.id).map(m => ({
         ...m,
         own: m.sender_id === user?.id,
         avatar: conv?.avatar_url,

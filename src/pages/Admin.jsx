@@ -111,7 +111,8 @@ export default function Admin() {
       {tab === "wirker" && (
         <div style={card}>
           <div style={{ fontWeight: 700, marginBottom: 12 }}>✨ Alle Wirker ({wirker.length})</div>
-          {wirker.map(w => (
+          {console.log('[HUI MAP DEBUG] Admin.jsx.wirker', wirker) || null}
+          {(wirker || []).filter(w => w && typeof w === 'object').map(w => (
             <div key={w.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
               <div style={{ width: 36, height: 36, borderRadius: "50%", background: C.teal + "30", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>✨</div>
               <div>
@@ -127,7 +128,8 @@ export default function Admin() {
       {tab === "payments" && (
         <div style={card}>
           <div style={{ fontWeight: 700, marginBottom: 12 }}>💳 Alle Buchungen ({payments.length})</div>
-          {payments.map(p => (
+          {console.log('[HUI MAP DEBUG] Admin.jsx.payments', payments) || null}
+          {(payments || []).filter(p => p && typeof p === 'object').map(p => (
             <div key={p.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{p.wirker_name || p.item_name}</span>
@@ -142,7 +144,8 @@ export default function Admin() {
       {tab === "projekte" && (
         <div style={card}>
           <div style={{ fontWeight: 700, marginBottom: 12 }}>🌍 Impact Projekte ({projects.length})</div>
-          {projects.map(p => (
+          {console.log('[HUI MAP DEBUG] Admin.jsx.projects', projects) || null}
+          {(projects || []).filter(p => p && typeof p === 'object').map(p => (
             <div key={p.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
               <div style={{ fontWeight: 600, fontSize: 14 }}>{p.name || p.title}</div>
               <div style={{ color: C.sub, fontSize: 12, marginTop: 2 }}>{p.category} · {p.status}</div>

@@ -821,7 +821,7 @@ function NotifFeed({
         {filtered.length === 0 ? (
           <EmptyState onDiscover={onClose} />
         ) : (
-          Object.entries(groups).map(([key, items]) => {
+          Object.entries(groups||{}).map(([key, items]) => {
             if (!items.length) return null;
             return (
               <div key={key}>

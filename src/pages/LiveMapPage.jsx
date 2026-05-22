@@ -374,7 +374,7 @@ function FilterSheet({filter,setFilter,radiusStage,setRadiusStage,
           {/* Type filter chips */}
           <div className="lm-scroll"
             style={{display:"flex",gap:6,overflowX:"auto",marginBottom:16,paddingBottom:2}}>
-            {FTYPES.map(f=>{
+            {(FTYPES||[]).filter(f=>f&&f.key).map(f=>{
               if (!f || !f.key) return null; const act=filter===f.key;
               return(
                 <button key={f.key} data-bubble="1" className="lm-tap"
@@ -400,7 +400,7 @@ function FilterSheet({filter,setFilter,radiusStage,setRadiusStage,
           </div>
           {/* 4 stage cards */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            {STAGE_DEFS.map(s=>{
+            {(STAGE_DEFS||[]).filter(s=>s&&s.key).map(s=>{
               const act=radiusStage===s.stage;
               return(
                 <button key={s.stage} data-bubble="1" className="lm-tap"
@@ -667,7 +667,7 @@ export default function LiveMapPage({onView,onMatch,onClose,fullscreen}){
           <div className="lm-scroll"
             style={{display:"flex",gap:6,overflowX:"auto",
               paddingTop:8,paddingBottom:2}}>
-            {FTYPES.map(f=>{
+            {(FTYPES||[]).filter(f=>f&&f.key).map(f=>{
               if (!f || !f.key) return null; const act=filter===f.key;
               return(<button key={f.key} data-bubble="1" className="lm-tap"
                 onClick={()=>setFilter(f.key)}

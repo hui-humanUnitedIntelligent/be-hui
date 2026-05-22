@@ -5,6 +5,7 @@
 
 import { useFeedData, useResonanceState } from '../lib/AppStateContext';
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { SAFE_MODE } from "../config/safeMode.js";
 
 /* ─── Design Tokens ──────────────────────────────────────────────────── */
 const T = {

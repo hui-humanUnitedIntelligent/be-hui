@@ -115,7 +115,7 @@ function TabBar({ active, onChange }) {
       padding:"0 20px", gap:0,
       WebkitOverflowScrolling:"touch",
     }}>
-      {TABS.map(t => {
+      {(TABS||[]).filter(t=>t&&t.key).map(t => {
         const on = active === t.key;
         return (
           <button key={t.key} onClick={() => onChange(t.key)} style={{
@@ -166,7 +166,7 @@ export default function WirkerTabContent({
       const items = activities?.length ? activities : MOCK_ACTIVITIES;
       return (
         <div style={{ padding:"16px 20px 0" }}>
-          {items.map(i => <ActivityCard key={i.id} item={i}/>)}
+          {(items||[]).filter(i=>i&&i.id).map(i => <ActivityCard key={i.id} item={i}/>)}
         </div>
       );
     }
@@ -177,7 +177,7 @@ export default function WirkerTabContent({
           display:"flex", gap:14, overflowX:"auto",
           padding:"16px 20px", WebkitOverflowScrolling:"touch",
         }}>
-          {items.map(w => <WorkCard key={w.id} work={w}/>)}
+          {(items||[]).filter(w=>w&&w.id).map(w => <WorkCard key={w.id} work={w}/>)}
         </div>
       );
     }
@@ -185,7 +185,7 @@ export default function WirkerTabContent({
       const items = experiences?.length ? experiences : MOCK_ACTIVITIES;
       return (
         <div style={{ padding:"16px 20px 0" }}>
-          {items.map(i => <ActivityCard key={i.id} item={i}/>)}
+          {(items||[]).filter(i=>i&&i.id).map(i => <ActivityCard key={i.id} item={i}/>)}
         </div>
       );
     }
