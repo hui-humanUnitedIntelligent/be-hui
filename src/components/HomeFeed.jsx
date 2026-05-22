@@ -18,13 +18,16 @@ import {
 } from "./CreatorPresence.jsx";
 import {
   buildRelationshipMemory,
-  relationshipDrift,
 } from "../lib/intelligence/relationshipMemory.js";
 import {
-  buildInteractionMap,
-  recordInteraction,
-  getKnownCreatorIds,
-} from "../lib/intelligence/interactionStore.js";
+  useLivingMemory,
+  useDwellTracker,
+} from "../lib/intelligence/persistence/useLivingMemory.js";
+import {
+  resolveMemoryTokens,
+  applyMemoryToCardStyle,
+  memoryAdjustedDelay,
+} from "../lib/intelligence/persistence/memoryTokens.js";
 import {
   curateHumaneFeed,
   getTimeAtmosphere,
@@ -632,25 +635,32 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
   const rawItems = items || MOCK_FEED;
   const [reactions, setReactions] = useState({});
 
+  // ── Phase 16: Living Memory ───────────────────────────────────────────────
+  // Extracts all creator IDs from feed for memory pre-build
+  const feedCreatorIds = useMemo(() =>
+    [...new Set((rawItems||[]).map(i => i.creator_id||i.user_id||i.creatorId).filter(Boolean))],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [(rawItems||[]).map(i=>i.creator_id||i.user_id||i.creatorId).join(",")]
+  );
+
+  const {
+    viewerContext,
+    recordReaction: memRecordReaction,
+    recordProfileVisit,
+    getRelationshipDepth,
+  } = useLivingMemory(user, feedCreatorIds);
+
   const handleReaction = useCallback((itemId, type) => {
     setReactions(prev => {
       const cur = prev[itemId] || {};
       return { ...prev, [itemId]: { ...cur, [type]: !cur[type] } };
     });
     onLike?.(itemId);
-    // Phase 8: record emotional interaction signal in local store
-    if (user?.id) {
-      const item = (rawItems || []).find(i => i.id === itemId);
-      const cid  = item?.creator_id || item?.user_id || item?.creatorId;
-      if (cid && cid !== user.id) {
-        const ev = type === "berührt" ? "berührtGiven"
-          : type === "resonanz"  ? "resonanzGiven"
-          : type === "inspiriert"? "inspiredGiven"
-          : "resonanzGiven";
-        recordInteraction(user.id, cid, ev);
-      }
-    }
-  }, [onLike, user?.id, rawItems]);
+    // Phase 16: record via Living Memory hook (throttled, debounced)
+    const feedItem = (rawItems || []).find(i => i.id === itemId);
+    const cid = feedItem?.creator_id || feedItem?.user_id || feedItem?.creatorId;
+    if (cid) memRecordReaction(cid, type);
+  }, [onLike, memRecordReaction, rawItems]);
 
   // ── Feed Intelligence: humane curation ──────────────────────────────────
   const curated = useMemo(() => {
@@ -658,61 +668,47 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
     const safe = filterValidFeedItems(rawItems);
     // Pass raw (non-frozen) items to allow enrichment + relationship tokens
     const enrichable = safe.map(item => ({ ...item }));
-    // Phase 8: pre-build relationship map for all creators in feed
-    // Only runs when user is authenticated — graceful fallback to null otherwise
+    // Phase 16: viewerContext from useLivingMemory — never null,
+    // contains full relationship depths pre-built from localStorage
+    // Build relationship map from pre-computed depths in viewerContext
     let relationshipMap = null;
-    if (user?.id && enrichable.length > 0) {
-      const creatorIds = [...new Set(
-        enrichable
-          .map(i => i.creator_id || i.user_id || i.creatorId)
-          .filter(Boolean)
-      )];
-      if (creatorIds.length > 0) {
-        const interactionMap = buildInteractionMap(user.id, creatorIds);
-        if (interactionMap.size > 0) {
-          relationshipMap = new Map();
-          const viewerCtx = {
-            id:        user.id,
-            interests: user.dna_tags || user.skills || [],
-            mood:      user.mood || "",
-          };
-          for (const [creatorId, interactions] of interactionMap) {
-            // Creator profile from feed items (best-effort)
-            const creatorItem = enrichable.find(
-              i => (i.creator_id || i.user_id || i.creatorId) === creatorId
-            );
-            const creatorCtx = creatorItem ? {
-              id:   creatorId,
-              talent: creatorItem.creator_talent || creatorItem.talent || "",
-              tags:   creatorItem.creator_tags   || creatorItem.tags   || [],
-              mood:   creatorItem.creator_mood   || "",
-            } : { id: creatorId };
-
-            const memory = buildRelationshipMemory(viewerCtx, creatorCtx, interactions);
-            if (!memory._fallback) relationshipMap.set(creatorId, memory);
+    if (viewerContext.relationshipDepths && enrichable.length > 0) {
+      const depths = viewerContext.relationshipDepths;
+      const entries = Object.entries(depths);
+      if (entries.length > 0) {
+        relationshipMap = new Map();
+        for (const [creatorId, depth] of entries) {
+          // Re-use pre-built relationship tokens directly (avoid re-computation)
+          if (depth?.state) {
+            relationshipMap.set(creatorId, {
+              state:          depth.state,
+              resonanceScore: depth.resonanceScore || 0,
+              warmthBoost:    depth.warmthBoost    || 0,
+              motionCalm:     depth.motionCalm     || 0,
+              glowBoost:      depth.glowBoost      || 0,
+              cardDelay:      depth.cardDelay      || 1.0,
+              microMoment:    depth.microMoment    || null,
+              _fallback:      false,
+            });
           }
-          if (relationshipMap.size === 0) relationshipMap = null;
         }
+        if (relationshipMap.size === 0) relationshipMap = null;
       }
     }
 
     return curateHumaneFeed(enrichable, {
       now,
-      diversity:     true,
-      pacing:        true,
-      rebalance:     true,
-      maxItems:      40,
-      // Viewer context: enables relationship memory in curation
-      // In production: replace with authProfile from AuthContext
-      // Phase 8: viewer context — enables relationship memory
-      viewerContext: user?.id ? {
-        id:        user.id,
-        interests: user.dna_tags || user.skills || [],
-        mood:      user.mood || "",
-      } : null,
-      relationshipMap,   // Phase 8: pre-built from localStorage interaction signals
+      diversity:   true,
+      pacing:      true,
+      rebalance:   true,
+      maxItems:    40,
+      // Phase 16: viewerContext always hydrated from living memory
+      viewerContext,
+      relationshipMap,
     });
-  }, [rawItems, user?.id]);   // re-curate if viewer changes
+  // viewerContext is derived from viewerContext object identity
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawItems, viewerContext]);
 
   const { atmosphere, sharedAtmosphere, resonanceSpaces, worldState, sequence, stats } = curated;
 
@@ -825,15 +821,14 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 resonanceSpaces={resonanceSpaces}
                 worldState={worldState}
                 itemReactions={reactions[item.id] || {}}
-                warmthBoost={item._warmthBoost  ?? 0}
-                glowBoost={item._glowBoost     ?? 0}
-                motionCalm={item._motionCalm   ?? 0}
-                microMoment={item.microMoment  ?? null}
+                relationshipDepth={getRelationshipDepth(
+                  item?.creator_id || item?.user_id || item?.creatorId
+                )}
+                viewerId={user?.id || null}
+                microMoment={item.microMoment ?? null}
                 onProfile={() => {
-                  if (user?.id) {
-                    const cid = item?.creator_id || item?.user_id || item?.creatorId;
-                    if (cid && cid !== user.id) recordInteraction(user.id, cid, "profileViewCount");
-                  }
+                  const cid = item?.creator_id || item?.user_id || item?.creatorId;
+                  if (cid) recordProfileVisit(cid);
                   onProfile?.(item);
                 }}
                 onReaction={(type) => handleReaction(item.id, type)}
@@ -855,21 +850,26 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
 function RhythmCard({
   item, state, atmosphere, sharedAtmosphere, resonanceSpaces, worldState,
   itemReactions, onProfile, onReaction, onComment,
-  // Phase 8: relationship memory tokens
-  warmthBoost = 0, glowBoost = 0, motionCalm = 0, microMoment = null,
+  // Phase 16: living memory tokens
+  relationshipDepth = null, viewerId = null, microMoment = null,
 }) {
   const isResonated = itemReactions.resonanz;
+  const creatorId   = item?.creator_id || item?.user_id || item?.creatorId;
 
-  // Phase 8: warmth glow — purely atmospheric, very subtle
-  // warmthBoost: 0 (strangers) → 0.40 (trusted_presence)
-  // Maps to rgba opacity: max 0.10 at full warmth (barely visible)
-  const warmthGlowOpacity = warmthBoost * 0.25;  // 0 → 0.10
-  const warmthGlowColor   = warmthBoost > 0.20
-    ? `rgba(255,138,107,${warmthGlowOpacity})`    // coral — warmth
-    : `rgba(22,215,197,${warmthGlowOpacity})`;    // teal  — fresh
+  // ── Resolve memory tokens (memoized per relationship state) ────────────
+  const mt = useMemo(() => resolveMemoryTokens(relationshipDepth), [relationshipDepth?.state]);
+
+  // ── Dwell tracking (IntersectionObserver, passive) ─────────────────────
+  const { ref: dwellRef } = useDwellTracker(viewerId, creatorId);
+
+  // ── Animation: calm for familiar creators ──────────────────────────────
+  // Never re-renders on scroll — purely CSS multiplier
+  const cardAnimStyle = mt.isFamiliar
+    ? { animationDuration: `${(1 / mt.animationMultiplier).toFixed(2)}` }
+    : {};
 
   return (
-    <div style={{ position:"relative" }}>
+    <div ref={dwellRef} style={{ position:"relative" }}>
       {/* Resonance glow (user-triggered) */}
       {isResonated && (
         <div style={{
@@ -880,21 +880,20 @@ function RhythmCard({
           animation:"hf-glow-breathe 4s ease-in-out infinite",
         }}/>
       )}
-      {/* Phase 8: relationship warmth — atmospheric familiarity glow */}
-      {warmthBoost > 0.10 && (
+      {/* Phase 16: relationship warmth — atmospheric familiarity glow */}
+      {mt.isFamiliar && (
         <div style={{
           position:"absolute", inset:-8, zIndex:0,
-          background:`radial-gradient(ellipse at 50% 30%, ${warmthGlowColor} 0%, transparent 65%)`,
+          background:`radial-gradient(ellipse at 50% 30%, ${mt.ambientGlow} 0%, transparent 65%)`,
           borderRadius:32, pointerEvents:"none",
-          // motionCalm: familiar people feel slightly slower, calmer
-          transition:`opacity ${0.9 + motionCalm}s ease`,
+          transition:`opacity ${0.9 + mt.motionCalm}s ease`,
         }}/>
       )}
       <div style={{ position:"relative", zIndex:1 }}>
-        {state === "hero"       && <HeroCard       item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} />}
-        {state === "note"       && <NoteCard        item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} />}
-        {state === "experience" && <ExperienceCard  item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} />}
-        {state === "resonance"  && <ResonanceCard   item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} />}
+        {state === "hero"       && <HeroCard       item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+        {state === "note"       && <NoteCard        item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+        {state === "experience" && <ExperienceCard  item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+        {state === "resonance"  && <ResonanceCard   item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
       </div>
     </div>
   );
@@ -904,7 +903,7 @@ function RhythmCard({
    STATE 1 — HERO MOMENT
    Large immersive. Full-width. Used for rich multi-image work uploads.
    ═══════════════════════════════════════════════════════════════════════════ */
-function HeroCard({ item, itemReactions, onProfile, onReaction, onComment }) {
+function HeroCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const [imgIdx, setImgIdx] = useState(0);
   const creator = useCreator(item);
   const images = item.images || (item.media ? [item.media[0]] : []);
@@ -915,7 +914,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment }) {
     <div className="hf-card-base hf-hero">
       {/* Creator presence header */}
       <CreatorPresenceHeader item={item} creator={creator} onProfile={onProfile}
-        compact={false} microMoment={microMoment} />
+        compact={false} microMoment={microMoment} memoryTokens={memoryTokens} />
 
       {/* Full-width hero media */}
       {hasImages && (
@@ -984,7 +983,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment }) {
    STATE 2 — CREATOR NOTE
    Compact text-focused. Soft minimal. No large media.
    ═══════════════════════════════════════════════════════════════════════════ */
-function NoteCard({ item, itemReactions, onProfile, onReaction, onComment }) {
+function NoteCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
   const microMoment = item.microMoment || null;
 
@@ -1031,7 +1030,7 @@ function NoteCard({ item, itemReactions, onProfile, onReaction, onComment }) {
    STATE 3 — EXPERIENCE CARD
    Warm social energy. Event/gathering/workshop.
    ═══════════════════════════════════════════════════════════════════════════ */
-function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment }) {
+function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
   const src = item.expImg || item.media?.[0];
   const microMoment = item.microMoment || null;
@@ -1047,7 +1046,7 @@ function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment 
       }}/>
 
       <CreatorPresenceHeader item={item} creator={creator} onProfile={onProfile}
-        compact={false} microMoment={microMoment} />
+        compact={false} microMoment={microMoment} memoryTokens={memoryTokens} />
 
       {/* Experience block: image + info */}
       {src && (
@@ -1099,7 +1098,7 @@ function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment 
    STATE 4 — COMMUNITY RESONANCE
    Compact. Interaction-focused. Feels human and alive.
    ═══════════════════════════════════════════════════════════════════════════ */
-function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment }) {
+function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
   const img = item.images?.[0] || item.media?.[0] || item.expImg;
 

@@ -1,6 +1,6 @@
 import React, { useMemo, createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
-import { clearInteractionStore } from "./intelligence/interactionStore.js";
+import { clearMemoryStore } from "./intelligence/persistence/interactionMemoryStore.js";
 import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 
 const AuthContext = createContext(null);

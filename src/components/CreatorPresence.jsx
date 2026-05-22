@@ -187,6 +187,7 @@ export function PresenceAvatar({
   isVerified = false,
   isLive = false,
   emotionalIdentity = null,   // optional — enriches ring speed + glow
+  memoryTokens = null,        // Phase 16: living memory tokens from resolveMemoryTokens()
   className = "",
 }) {
   useEffect(() => { injectPresenceCSS(); }, []);
@@ -243,11 +244,18 @@ export function PresenceAvatar({
         position: "relative",
         zIndex: 1,
         background: `linear-gradient(135deg, #16D7C5, #FF8A6B)`,
-        boxShadow: ps
-          ? `0 0 0 2px rgba(255,255,255,0.92), 0 2px 12px ${glowColor || ps.colorGlow}`
-          : "0 0 0 2px rgba(255,255,255,0.92), 0 2px 10px rgba(22,215,197,0.14)",
+        // Phase 16: warmth ring for familiar creators (very subtle — +1px warm border)
+        boxShadow: (() => {
+          const base = ps
+            ? `0 0 0 2px rgba(255,255,255,0.92), 0 2px 12px ${glowColor || ps.colorGlow}`
+            : "0 0 0 2px rgba(255,255,255,0.92), 0 2px 10px rgba(22,215,197,0.14)";
+          if (memoryTokens?.isFamiliar && memoryTokens.avatarWarmth !== "transparent") {
+            return `${base}, 0 0 0 3px ${memoryTokens.avatarWarmth}`;
+          }
+          return base;
+        })(),
         flexShrink: 0,
-        transition: "box-shadow 0.6s ease",
+        transition: "box-shadow 0.8s ease",
       }}>
         {src
           ? <img src={src} alt={name || ""}
@@ -318,8 +326,9 @@ export function CreatorPresenceHeader({
   item,
   creator,
   onProfile,
-  compact   = false,
-  microMoment = null,  // optional string shown below header
+  compact     = false,
+  microMoment = null,
+  memoryTokens = null,  // Phase 16: living memory tokens
 }) {
   useEffect(() => { injectPresenceCSS(); }, []);
 
@@ -356,6 +365,7 @@ export function CreatorPresenceHeader({
             presenceState={item.presenceState || null}
             isVerified={creator.isVerified}
             isLive={item.isLive}
+            memoryTokens={memoryTokens}
           />
 
           {/* Identity block */}

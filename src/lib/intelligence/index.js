@@ -96,3 +96,32 @@ export {
   getKnownCreatorIds,
   clearInteractionStore,
 } from "./interactionStore.js";
+
+// ─────────────────────────────────────────────────────────────────
+// LAYER 8b: Living Memory Persistence (v2) — throttled, versioned, hydrated
+// ─────────────────────────────────────────────────────────────────
+export {
+  recordMemory,
+  recordDwell,
+  readCreatorMemory,
+  buildMemoryMap,
+  hydrateStore,
+  clearMemoryStore,
+  flushAllPending,
+} from "./persistence/interactionMemoryStore.js";
+
+export {
+  buildViewerContext,
+  buildAnonymousViewerContext,
+} from "./persistence/viewerContext.js";
+
+export {
+  resolveMemoryTokens,
+  applyMemoryToCardStyle,
+  memoryAdjustedDelay,
+} from "./persistence/memoryTokens.js";
+
+export {
+  useLivingMemory,
+  useDwellTracker,
+} from "./persistence/useLivingMemory.js";
