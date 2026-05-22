@@ -649,7 +649,10 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
     });
   }, [rawItems]);
 
-  const { atmosphere, sequence, stats } = curated;
+  const { atmosphere, sharedAtmosphere, sequence, stats } = curated;
+
+  // DEV: atmosphere debug — remove before release
+  // if (sharedAtmosphere) console.log("[HUI Atm]", debugAtmosphereSummary?.(sharedAtmosphere));
 
   // DEV: log curation stats (removed in production by tree-shaking)
   // console.log("[HUI Feed]", stats);
@@ -706,6 +709,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 <QuietSpace
                   quoteIdx={slot.quoteIdx || 0}
                   atmosphere={atmosphere}
+                  sharedAtmosphere={sharedAtmosphere}
                 />
               </div>
             );
@@ -728,12 +732,16 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 paddingLeft:   padH,
                 paddingRight:  padH,
                 // _cardDelay: familiar creators appear slightly sooner (0.72–1.0 multiplier)
-                animationDelay:`${Math.min(si * 0.055 * (item._cardDelay ?? 1.0), 1.4)}s`,
+                // _scaledDelay: already multiplied by stagger + relationship _cardDelay
+                animationDelay:`${slot._scaledDelay != null
+                  ? Math.min(slot._scaledDelay, 1.6)
+                  : Math.min(si * 0.055 * (item._cardDelay ?? 1.0), 1.4)}s`,
               }}>
               <RhythmCard
                 item={item}
                 state={state}
                 atmosphere={atmosphere}
+                sharedAtmosphere={sharedAtmosphere}
                 itemReactions={reactions[item.id] || {}}
                 onProfile={() => onProfile?.(item)}
                 onReaction={(type) => handleReaction(item.id, type)}
@@ -752,7 +760,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    RHYTHM CARD — routes to the correct visual state
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmCard({ item, state, atmosphere, itemReactions, onProfile, onReaction, onComment }) {
+function RhythmCard({ item, state, atmosphere, sharedAtmosphere, itemReactions, onProfile, onReaction, onComment }) {
   const isResonated = itemReactions.resonanz;
 
   return (
@@ -1054,7 +1062,7 @@ function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment }
    STATE 5 — QUIET SPACE
    Visual breathing. Atmospheric quote. Soft haze.
    ═══════════════════════════════════════════════════════════════════════════ */
-function QuietSpace({ quoteIdx = 0, atmosphere = null }) {
+function QuietSpace({ quoteIdx = 0, atmosphere = null, sharedAtmosphere = null }) {
   // Use atmosphere's time-of-day quote pool if available
   const pool  = (atmosphere?.quotePool?.length > 0) ? atmosphere.quotePool : AMBIENT_QUOTES;
   const quote = pool[quoteIdx % pool.length];

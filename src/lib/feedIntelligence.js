@@ -54,14 +54,21 @@ function getDensity(item) {
 // Subtle tone adjustments — NOT dramatic theme switches.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Relationship Memory integration (lazy import — only used when viewer context provided)
-// Direct import avoids circular deps
+// ── Relationship Memory integration
 import {
   buildRelationshipMemory,
   attachRelationshipToFeedItem,
   relationshipOrderingBoost,
   mockInteractionsFromItem,
 } from "./intelligence/relationshipMemory.js";
+
+// ── Shared Atmosphere integration
+import {
+  buildSharedAtmosphere,
+  applyAtmosphereToFeed,
+  mockActivityFromFeed,
+  mockResonanceFromFeed,
+} from "./intelligence/sharedAtmosphere.js";
 
 export const TIME_ATMOSPHERES = {
   morning: {           // 05:00–11:59
@@ -370,6 +377,8 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
     maxItems        = 50,
     viewerContext   = null,   // { id, interests, mood } — for relationship memory
     relationshipMap = null,   // Map<creatorId, RelationshipMemory> — pre-built or null
+    sharedAtm       = null,   // pre-built SharedAtmosphere — or built from feed signals
+    pastAtmosphere  = null,   // previous SharedAtmosphere for drift blending
   } = options;
 
   const atmosphere = getTimeAtmosphere(now);
@@ -382,10 +391,20 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
   if (items.length === 0) {
     return {
       atmosphere,
+      sharedAtmosphere: null,
       sequence: [],
       stats: { totalCards:0, quietCount:0, diversityApplied:false, avgWeight:0 },
     };
   }
+
+  // ── Step 1b: Build shared atmosphere from feed signals
+  // Uses the feed itself + time-of-day to derive collective emotional weather.
+  // If a pre-built or drifted atmosphere is passed in, use it directly.
+  const collectiveAtm = sharedAtm || (() => {
+    const activity  = mockActivityFromFeed(items);
+    const resonance = mockResonanceFromFeed(items);
+    return buildSharedAtmosphere(items, activity, resonance, atmosphere.id);
+  })();
 
   // ── Step 2: Score resonance → soft-sort (stable, not aggressive)
   const scored = items.map(item => ({
@@ -502,16 +521,21 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
     ? weights.reduce((a,b) => a+b, 0) / weights.length
     : 0;
 
+  // ── Step 6: Apply shared atmosphere to sequence (stagger scaling + surface tints)
+  const atmosphericSequence = applyAtmosphereToFeed(sequence, collectiveAtm);
+
   return {
     atmosphere,
-    sequence,
+    sharedAtmosphere: collectiveAtm,
+    sequence: atmosphericSequence,
     quotePool: atmosphere.quotePool,
     stats: {
       totalCards:       rebalanced.length,
       quietCount,
       diversityApplied: diversity,
       avgWeight:        Math.round(avgWeight * 100) / 100,
-      sequenceLength:   sequence.length,
+      sequenceLength:   atmosphericSequence.length,
+      atmosphereState:  collectiveAtm?.id || null,
     },
   };
 }

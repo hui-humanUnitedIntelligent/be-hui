@@ -2,6 +2,7 @@
 // HUI Intelligence Layer — clean re-export surface
 // v1: Emotional Identity
 // v2: + Relationship Memory
+// v3: + Shared Atmosphere
 
 // ── Emotional Identity ────────────────────────────────────────────────────
 export {
@@ -21,17 +22,12 @@ export {
 
 // ── Relationship Memory ───────────────────────────────────────────────────
 export {
-  // Core engine
   buildRelationshipMemory,
   relationshipDrift,
   decayedSignal,
-
-  // Feed integration
   attachRelationshipToFeedItem,
   relationshipOrderingBoost,
   mockInteractionsFromItem,
-
-  // Selectors
   selectWarmthBoost,
   selectMotionCalm,
   selectCardDelay,
@@ -40,8 +36,33 @@ export {
   selectMicroMoment,
   isFallbackMemory,
   debugMemorySummary,
-
-  // Data constants
   RELATIONSHIP_STATES,
   MEMORY_HALF_LIVES,
 } from "./relationshipMemory.js";
+
+// ── Shared Atmosphere ─────────────────────────────────────────────────────
+export {
+  // Core engine
+  buildSharedAtmosphere,
+  atmosphereDrift,
+
+  // Feed integration
+  applyAtmosphereToFeed,
+
+  // Mock factories (dev mode)
+  mockActivityFromFeed,
+  mockResonanceFromFeed,
+
+  // Selectors
+  selectSurfaceTint,
+  selectAtmMotionScale,
+  selectStaggerMultiplier,
+  selectGlowSoftening,
+  selectWhisper,
+  selectQuietSpaceTone,
+  isFallbackAtmosphere,
+  debugAtmosphereSummary,
+
+  // Data constants
+  COLLECTIVE_ATMOSPHERES,
+} from "./sharedAtmosphere.js";
