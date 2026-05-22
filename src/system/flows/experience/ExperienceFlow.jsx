@@ -207,7 +207,7 @@ export default function ExperienceFlow({ onClose }) {
   );
 
   /* ── Overlay ───────────────────────────────────────────────── */
-  const isTablet = window.innerWidth >= 1024;
+  const isTablet = false; // HUI mobile-only — immer Bottom-Sheet
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:9200,

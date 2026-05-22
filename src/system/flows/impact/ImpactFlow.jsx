@@ -245,7 +245,7 @@ export default function ImpactFlow({ onClose }) {
   );
 
   /* ── Overlay Shell ───────────────────────────────────────────── */
-  const isTablet = window.innerWidth >= 1024;
+  const isTablet = false; // HUI mobile-only — immer Bottom-Sheet
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:9300,

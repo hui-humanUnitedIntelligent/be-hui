@@ -1044,14 +1044,9 @@ export default function ChatPage({ onClose }) {
   const { user } = useAuth();
   const { chats: dbChats, loading, markChatRead } = useChatList();
   const [activeChat, setActiveChat] = useState(null);
-  const [isWide,     setIsWide]     = useState(window.innerWidth >= 1024);
-
-  // ── Window-Resize ─────────────────────────────────────────────────
-  useEffect(() => {
-    const fn = () => setIsWide(window.innerWidth >= 1024);
-    window.addEventListener("resize", fn);
-    return () => window.removeEventListener("resize", fn);
-  }, []);
+  // HUI ist Mobile-Only — kein 2-Spalten Chat auf iPad.
+  // isWide bleibt immer false: Bottom-Sheet, kein Split-View.
+  const isWide = false;
 
   // ── Chat-Thread für aktiven Chat ──────────────────────────────────
   const { messages, sendMessage } = useChatThread(activeChat?.id ?? null);
