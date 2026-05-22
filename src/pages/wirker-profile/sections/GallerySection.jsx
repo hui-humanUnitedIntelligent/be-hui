@@ -4,6 +4,7 @@ import { createTabItem, filterValidPages } from '../../../lib/factories/createTa
 // REGEL: Kein Supabase. Daten kommen per Props.
 
 import React from "react";
+import { filterValidFeedItems, createWorkItem, createExperienceItem } from '../../../lib/factories/createFeedItem.js';
 
 const C = {
   teal:    "#16D7C5",
@@ -36,6 +37,10 @@ export function GallerySection({
   works, experiences, recommendations,
   onWorkPress, onExpPress,
 }) {
+  const safeWorks       = React.useMemo(() => filterValidFeedItems((works      ||[]).map(createWorkItem)),       [works]);
+  const safeExperiences = React.useMemo(() => filterValidFeedItems(safeExperiences.map(createExperienceItem)), [experiences]);
+  const safeRecs        = React.useMemo(() => filterValidFeedItems(recommendations||[]),                         [recommendations]);
+
   return (
     <div>
       {/* Sticky Tab Bar */}

@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }          from "../lib/supabaseClient";
+import { createImpactItem, filterValidFeedItems }
+                             from "../lib/factories/createFeedItem.js";
 import { safeQuery, FIELDS } from "../lib/perfUtils";
 import SupportSheet           from "../components/SupportSheet";
 
@@ -772,24 +774,19 @@ export default function ImpactPage({ currentUser }) {
         ]);
 
         if (projRes.data?.length > 0) {
-          setProjects(projRes.data.map((p, i) => ({
-            id:            p.id,
-            title:         p.name,
+          setProjects(filterValidFeedItems(projRes.data.map((p, i) => createImpactItem({
+            ...p,
             short:         (p.description || "").slice(0, 80),
-            story:         p.description || "",
             category:      p.category   || "Gemeinschaft",
             categoryColor: p.color      || C.teal,
             img:           p.icon?.startsWith("http") ? p.icon : MOCK_PROJECTS[i % 4].img,
-            raised:        p.awarded_eur || 0,
             goal:          10000,
-            votes:         p.votes      || 0,
-            status:        p.status     || "growing",
             badge:         p.status === "featured" ? "Sehr beliebt"
                          : p.status === "active"   ? "Beliebt"
                          : "Neu",
             badgeColor:    p.status === "featured" ? C.coral
                          : p.status === "active"   ? C.coral : C.teal,
-          })));
+          }))));
         } else {
           setProjects(MOCK_PROJECTS);
         }

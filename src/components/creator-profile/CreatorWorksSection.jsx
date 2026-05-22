@@ -1,3 +1,4 @@
+import { filterValidFeedItems, createWorkItem, createExperienceItem } from '../../lib/factories/createFeedItem.js';
 // components/creator-profile/CreatorWorksSection.jsx
 // Werke / Aktivitäts-Tab content
 
@@ -94,6 +95,10 @@ function WorkCard({ work }) {
 }
 
 export default function CreatorWorksSection({ activeTab, works, experiences, activities }) {
+  // Normalisierung — Props könnten rohe Supabase-Objekte sein
+  const safeWorks       = React.useMemo(() => filterValidFeedItems((works      ||[]).map(createWorkItem)),       [works]);
+  const safeExperiences = React.useMemo(() => filterValidFeedItems((experiences||[]).map(createExperienceItem)), [experiences]);
+  const safeActivities  = React.useMemo(() => filterValidFeedItems(activities  ||[]),                            [activities]);
   const mockActivities = [
     { id:1, title:"Keramik Workshop", when_full:"Heute · 18:00", location_label:"München", time_label:"Morgen", participants:8, cover_url:null },
     { id:2, title:"Töpferkurs für Anfänger", when_full:"Fr · 15:00", location_label:"München", time_label:"Diese Woche", participants:5, cover_url:null },
@@ -108,7 +113,7 @@ export default function CreatorWorksSection({ activeTab, works, experiences, act
     const items = (activities?.length ? activities : mockActivities);
     return (
       <div style={{ padding:"0 20px" }}>
-        {(items||[]).filter(item=>item&&item.id).map(item => <ActivityCard key={item.id} item={item}/>)}
+        {safeActivities.map(item => <ActivityCard key={item.id} item={item}/>)}
       </div>
     );
   }
@@ -120,7 +125,7 @@ export default function CreatorWorksSection({ activeTab, works, experiences, act
         display:"flex", gap:14, overflowX:"auto",
         padding:"0 20px 20px", WebkitOverflowScrolling:"touch",
       }}>
-        {(items||[]).filter(w=>w&&w.id).map(w => <WorkCard key={w.id} work={w}/>)}
+        {safeWorks.map(w => <WorkCard key={w.id} work={w}/>)}
       </div>
     );
   }
@@ -129,7 +134,7 @@ export default function CreatorWorksSection({ activeTab, works, experiences, act
     const items = experiences?.length ? experiences : mockActivities;
     return (
       <div style={{ padding:"0 20px" }}>
-        {(items||[]).filter(item=>item&&item.id).map(item => <ActivityCard key={item.id} item={item}/>)}
+        {safeActivities.map(item => <ActivityCard key={item.id} item={item}/>)}
       </div>
     );
   }

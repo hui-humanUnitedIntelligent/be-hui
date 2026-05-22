@@ -4,6 +4,7 @@
 // Struktur: StickyHeader → StoryLeiste → Heute in deiner Nähe → SozialerFeed → MenschenFürDich
 
 import { useFeedData, useResonanceState } from '../lib/AppStateContext';
+import { createFeedItem, filterValidFeedItems } from '../lib/factories/createFeedItem.js';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { SAFE_MODE } from "../config/safeMode.js";
 
@@ -530,6 +531,11 @@ function EventCard({ event, onPress }) {
 
 /* ─── Gemeinschaft Feed ─────────────────────────────────────────────────── */
 function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
+  // Normalisierung: Rohdaten → sichere FeedItems (einmal, beim Eingang)
+  const safeItems = React.useMemo(
+    () => filterValidFeedItems(items || MOCK_FEED),
+    [items]
+  );
   const [inspired, setInspired] = useState({});
 
   function handleLike(id) {
@@ -548,7 +554,7 @@ function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12,
         paddingLeft: 16, paddingRight: 16 }}>
-        {(items || []).filter(Boolean).map((item, idx) => (
+        {safeItems.map((item, idx) => (
           <div key={item.id} className="hf-card hf-feed-item"
             style={{ animationDelay: `${idx * 0.06}s` }}>
             <FeedItem

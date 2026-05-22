@@ -3,7 +3,9 @@
 // Struktur: Header → Pills → Hero Cards → Beliebte Werke → Erlebnisse
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase }             from "../lib/supabaseClient";
+import { createWorkItem, createFeedItem, filterValidFeedItems }
+                               from "../lib/factories/createFeedItem.js";
 import { normalizeProfileInput, PROFILE_FIELDS } from "../lib/perfUtils";
 import { useDiscoverData } from "../lib/AppStateContext";
 
@@ -551,28 +553,27 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
 
       // Werke aus DB
       if (worksRes.data?.length > 0) {
-        const mapped = worksRes.data.map((w, i) => ({
-          id:          w.id,
-          title:       w.title || MOCK_WERKE[i % MOCK_WERKE.length].title,
-          img:         storageUrl("works", w.cover_url)
-                       || w.images?.[0]
-                       || MOCK_WERKE[i % MOCK_WERKE.length].img,
-          price:       w.price || MOCK_WERKE[i % MOCK_WERKE.length].price,
-          resonanz:    Math.floor(Math.random() * 50) + 5,
-          creator:     w.profile?.display_name || w.profile?.full_name || MOCK_WERKE[i % MOCK_WERKE.length].creator,
-          creatorImg:  `https://i.pravatar.cc/32?img=${(i % 50) + 1}`,
-          type:        "werk",
-          raw:         w,
-        }));
+        const mapped = worksRes.data.map((w, i) => {
+          const mock = MOCK_WERKE[i % MOCK_WERKE.length];
+          return createWorkItem({
+            ...w,
+            img:       storageUrl("works", w.cover_url) || w.images?.[0] || mock.img,
+            resonanz:  Math.floor(Math.random() * 50) + 5,
+            creator:   w.profile || { name: mock.creator, img: `https://i.pravatar.cc/32?img=${(i%50)+1}` },
+            creatorImg:`https://i.pravatar.cc/32?img=${(i % 50) + 1}`,
+            title:     w.title || mock.title,
+            price:     w.price || mock.price,
+          });
+        }).filter(Boolean);
         setWorks(mapped);
       }
 
       // Talents aus DB → Hero Cards
       if (profilesRes.data?.length > 0) {
-        setTalents(profilesRes.data.map((p, i) => ({
+        setTalents(profilesRes.data.map((p, i) => createFeedItem({
           ...normalizeProfileInput(p),
           type: "wirker",
-        })));
+        })).filter(Boolean));
       }
     } catch (err) {
       // silent — Mocks bleiben
@@ -591,10 +592,11 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   React.useEffect(() => {
     if (liveWorks?.length > 0) {
       setWorks(prev => {
-        // Merge: DB-Werke vorne, Mocks als Fallback hinten
-        const dbIds = new Set(liveWorks.map(w => w.id));
+        // Merge: DB-Werke normalisiert vorne, Mocks als Fallback hinten
+        const normalized = filterValidFeedItems(liveWorks.map(w => createWorkItem(w)));
+        const dbIds = new Set(normalized.map(w => w.id));
         const mockRest = prev.filter(m => !dbIds.has(m.id));
-        return [...liveWorks, ...mockRest].slice(0, 16);
+        return [...normalized, ...mockRest].slice(0, 16);
       });
     }
   }, [liveWorks]);
