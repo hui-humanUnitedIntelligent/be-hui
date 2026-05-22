@@ -3,6 +3,14 @@
 // "soft human atmosphere in a shared creative space"
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import {
+  selectAnimationSpeed,
+  selectAmbientGlow,
+  selectGlassOpacity,
+  selectMotionScale,
+  selectAtmosphereLabel,
+  isFallbackIdentity,
+} from "../lib/intelligence/emotionalIdentity.js";
 
 /* ─── Presence Token System ──────────────────────────────────────────────
    5 emotional presence states. No hard badges, no gamification icons.
@@ -178,11 +186,20 @@ export function PresenceAvatar({
   presenceState = null,   // null | "creating" | "resonating" | "gathering" | "reflecting" | "welcoming"
   isVerified = false,
   isLive = false,
+  emotionalIdentity = null,   // optional — enriches ring speed + glow
   className = "",
 }) {
   useEffect(() => { injectPresenceCSS(); }, []);
 
   const ps = presenceState ? PRESENCE_STATES[presenceState] : null;
+
+  // Identity-aware visual overrides (only applied if identity present + not fallback)
+  const hasIdentity  = emotionalIdentity && !isFallbackIdentity(emotionalIdentity);
+  const auraSpeed    = hasIdentity ? selectAnimationSpeed(emotionalIdentity) : ps?.auraSpeed;
+  const glowColor    = hasIdentity ? selectAmbientGlow(emotionalIdentity)    : ps?.colorGlow;
+  const ringOpacity  = hasIdentity
+    ? (emotionalIdentity.ringOpacity ?? ps?.ringOpacity ?? 0.28)
+    : (ps?.ringOpacity ?? 0.28);
 
   return (
     <div style={{ position:"relative", flexShrink:0, width:size, height:size }}>
@@ -202,8 +219,8 @@ export function PresenceAvatar({
         <div className="cp-ring cp-ring--slow" style={{
           inset: -6, zIndex: 0,
           border: `1.5px solid ${ps.color}`,
-          opacity: ps.ringOpacity * 0.6,
-          "--cp-speed": ps.auraSpeed,
+          opacity: ringOpacity * 0.6,
+          "--cp-speed": auraSpeed || ps.auraSpeed,
         }}/>
       )}
 
@@ -212,8 +229,8 @@ export function PresenceAvatar({
         <div className="cp-ring cp-ring--aura" style={{
           inset: -3, zIndex: 0,
           border: `1.5px solid ${ps.color}`,
-          opacity: ps.ringOpacity,
-          "--cp-speed": ps.auraSpeed,
+          opacity: ringOpacity,
+          "--cp-speed": auraSpeed || ps.auraSpeed,
         }}/>
       )}
 
@@ -227,7 +244,7 @@ export function PresenceAvatar({
         zIndex: 1,
         background: `linear-gradient(135deg, #16D7C5, #FF8A6B)`,
         boxShadow: ps
-          ? `0 0 0 2px rgba(255,255,255,0.92), 0 2px 12px ${ps.colorGlow}`
+          ? `0 0 0 2px rgba(255,255,255,0.92), 0 2px 12px ${glowColor || ps.colorGlow}`
           : "0 0 0 2px rgba(255,255,255,0.92), 0 2px 10px rgba(22,215,197,0.14)",
         flexShrink: 0,
         transition: "box-shadow 0.6s ease",

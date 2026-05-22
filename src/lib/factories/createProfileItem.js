@@ -1,5 +1,5 @@
 // src/lib/factories/createProfileItem.js
-// Profile Data Normalization Layer — Phase 4
+// Profile Data Normalization Layer — Phase 4 + Emotional Identity v1
 //
 // REGEL: Supabase-Profil-Objekte NIEMALS direkt rendern.
 //        Immer zuerst durch createProfileItem() normalisieren.
@@ -106,6 +106,11 @@ export const createProfileItem = (raw = {}) => {
 
     // Escape hatch
     _raw: raw,
+
+    // Emotional Identity — derived lazily on first access
+    // Populated by attachEmotionalIdentity() or quickIdentityFromProfile()
+    // NEVER display scores to users — only use visual tokens (motionScale, ambientColor, etc.)
+    emotionalIdentity: null,  // null until explicitly built — zero cost if unused
   });
 };
 
