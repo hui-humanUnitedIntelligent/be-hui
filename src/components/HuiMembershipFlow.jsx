@@ -13,6 +13,8 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import GuidanceFooter from "./guidance/GuidanceFooter.jsx";
+import { useGuidance } from "./guidance/GuidanceContext.jsx";
 import { useAuth } from "../lib/AuthContext";
 
 // ─── Images ───────────────────────────────────────────────────────────────────
@@ -105,17 +107,21 @@ function HuiLogo({ size = 56, glow = false, float = false }) {
 // ─── Progress Bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ step, total }) {
   return (
-    <div style={{ display: "flex", gap: 5, width: "100%" }}>
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} style={{
-          flex: 1, height: "1.5px", borderRadius: 999,
-          background: i < step
-            ? `linear-gradient(90deg,${T.teal},${T.coral})`
-            : "rgba(255,255,255,0.15)",
-          boxShadow: i === step - 1 ? `0 0 6px rgba(22,215,197,0.7)` : "none",
-          transition: "background 0.5s ease",
-        }} />
-      ))}
+    <div style={{ display:"flex", gap:4, width:"100%", padding:"0 2px" }}>
+      {Array.from({ length: total }).map((_, i) => {
+        const filled    = i < step;
+        const isCurrent = i === step - 1;
+        return (
+          <div key={i} style={{
+            flex:1, height:2, borderRadius:99,
+            background: filled
+              ? `linear-gradient(90deg, ${T.teal}CC 0%, ${T.teal}88 100%)`
+              : "rgba(255,255,255,0.09)",
+            boxShadow: (filled && isCurrent) ? `0 0 5px rgba(22,215,197,0.30)` : "none",
+            transition: "background 0.65s cubic-bezier(0.22,1,0.36,1), box-shadow 0.65s ease",
+          }} />
+        );
+      })}
     </div>
   );
 }
@@ -143,7 +149,7 @@ function StepHeader({ step, total, label, accent = T.teal }) {
         }} />
         <span style={{
           fontSize: 10.5, fontWeight: 700, color: accent,
-          letterSpacing: "0.12em", textTransform: "uppercase",
+          letterSpacing: "0.08em", textTransform: "uppercase",
         }}>{label}</span>
       </div>
       <span style={{ marginLeft: "auto", fontSize: 11, color: T.muted, fontWeight: 500 }}>
@@ -178,9 +184,9 @@ function Scene({ src, children, gradientStart = "65%", bottomColor = T.bg }) {
           180deg,
           rgba(6,10,20,0.08)  0%,
           rgba(6,10,20,0.15) 25%,
-          rgba(6,10,20,0.42) ${gradientStart},
-          rgba(6,10,20,0.88) 78%,
-          rgba(6,10,20,1.00) 90%
+          rgba(6,10,20,0.45) ${gradientStart},
+          rgba(6,10,20,0.93) 80%,
+          rgba(6,10,20,1.00) 88%
         )`,
       }} />
 
@@ -221,7 +227,7 @@ function DarkScene({ children, bgSrc, opacity = 0.38 }) {
           }} />
           <div style={{
             position: "absolute", inset: 0,
-            background: "linear-gradient(180deg, rgba(6,10,20,0.55) 0%, rgba(6,10,20,0.78) 50%, rgba(6,10,20,0.97) 100%)",
+            background: "linear-gradient(180deg, rgba(6,10,20,0.60) 0%, rgba(6,10,20,0.82) 50%, rgba(6,10,20,0.98) 100%)",
           }} />
         </>
       )}
@@ -256,25 +262,34 @@ function Btn({ onClick, disabled, children, variant = "teal" }) {
     },
   }[variant];
 
+  // Phase 15: teal variant uses GuidanceFooter CTA style; keep ghost/coral in Btn
+  // For teal, callers should prefer <GuidanceFooter cta=... /> where possible
   return (
     <button
       className="hmf4-tap hmf4-btn"
       onClick={onClick}
       disabled={disabled}
       style={{
-        width: "100%", padding: "18.5px 28px",
+        width: "100%",
+        height: variant === "teal" ? 58 : "auto",
+        padding: variant === "teal" ? "0 28px" : "16px 28px",
         borderRadius: 18, border: "none",
         fontFamily: "inherit",
-        fontSize: 16, fontWeight: 700, letterSpacing: -0.3,
+        fontSize: variant === "teal" ? 17 : 16,
+        fontWeight: 700,
+        letterSpacing: variant === "teal" ? "-0.02em" : "-0.02em",
         cursor: disabled ? "not-allowed" : "pointer",
         display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
         background: disabled ? "rgba(255,255,255,0.07)" : cfg.bg,
         color: disabled ? T.muted : cfg.color,
-        opacity: disabled ? 0.45 : 1,
+        opacity: disabled ? 0.42 : 1,
+        filter: disabled ? "saturate(0.7)" : "none",
         boxShadow: disabled ? "none" : cfg.shadow,
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-        transition: "transform 0.12s ease, opacity 0.15s ease",
+        transition: "transform 0.42s cubic-bezier(0.22,1,0.36,1), box-shadow 0.42s cubic-bezier(0.22,1,0.36,1), opacity 0.42s cubic-bezier(0.22,1,0.36,1)",
+        isolation: "isolate",
+        contain: "layout paint",
+        WebkitTapHighlightColor: "transparent",
+        touchAction: "manipulation",
       }}>
       {children}
     </button>
@@ -476,14 +491,16 @@ function S1({ onNext, data, setData }) {
         {sp(20)}
 
         <h1 style={{
-          fontWeight: 800, fontSize: 38, color: T.text,
-          letterSpacing: -1.4, lineHeight: 1.1, margin: 0,
+          fontWeight: 800, fontSize: 34, color: T.text,
+          letterSpacing: -1.2, lineHeight: 1.12, margin: 0,
+          maxWidth: 290,
           animation: "hmf4-rise 0.65s 0.05s ease both",
         }}>Was beschreibt<br/>dich mehr?</h1>
         {sp(10)}
 
         <p style={{
-          fontSize: 16, color: T.soft, lineHeight: 1.65, margin: 0,
+          fontSize: 15, color: T.soft, lineHeight: 1.70, margin: 0,
+          maxWidth: 260,
           animation: "hmf4-rise 0.65s 0.10s ease both",
         }}>Wähle deinen Weg.<br/>Du kannst ihn jederzeit anpassen.</p>
         {sp(24)}
@@ -502,6 +519,7 @@ function S1({ onNext, data, setData }) {
         <div style={{ animation: "hmf4-rise 0.55s 0.32s ease both" }}>
           <Btn onClick={onNext} disabled={!data.focus}>Weiter →</Btn>
         </div>
+        <div style={{ height: 8 }} />
       </div>
     </Scene>
   );

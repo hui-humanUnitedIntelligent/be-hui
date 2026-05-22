@@ -63,6 +63,8 @@ export default function BottomNav({
         bottom: 0, left: 0, right: 0,
         zIndex: 9999,
         pointerEvents: "none",
+        contain: "layout paint",
+        isolation: "isolate",
         // World-layer drift: nav softens + drifts down when Orb opens (stays visible)
         opacity:    navDrift ? navDrift.opacity   : (isHidden ? 0 : 1),
         transform:  navDrift ? navDrift.transform : (isHidden ? "translateY(130%)" : "translateY(0)"),
@@ -95,6 +97,8 @@ export default function BottomNav({
           justifyContent: "space-between",
           padding:        "4px 10px",
           height:         66,
+          contain:        "layout paint",
+          isolation:      "isolate",
 
           /* WICHTIG: auto damit Pill Touches empfängt */
           pointerEvents: "auto",

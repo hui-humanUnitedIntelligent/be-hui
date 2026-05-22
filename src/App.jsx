@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from '
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
 import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
+import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -438,10 +439,12 @@ export default function App() {
         <AuthProvider>
         <AppStateProvider>
       <OrbWorldProvider>
+      <GuidanceProvider>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
-          </OrbWorldProvider>
+          </GuidanceProvider>
+      </OrbWorldProvider>
       </AppStateProvider>
       </AuthProvider>
       </BrowserRouter>
