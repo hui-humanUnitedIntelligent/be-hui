@@ -148,7 +148,9 @@ export function deriveWorldTokens(state) {
   const navDrift  = confirmed ? (reg.navDrift    ?? 0)   : 0;
   const navOp     = confirmed ? (reg.navOpacity  ?? 1)   : 1;
   const dimAlpha  = confirmed ? (reg.dimAlpha    ?? 0)   : 0;
-  const dur       = reg.duration ?? "680ms";
+  // Phase 16.5: when closing (no surface), use instant restore for active tab
+  const isClosing = !state.activeSurface;
+  const dur       = isClosing ? "280ms" : (reg.duration ?? "680ms");
   const ease      = reg.easing   ?? "cubic-bezier(0.22,1,0.36,1)";
 
   return Object.freeze({
@@ -157,18 +159,20 @@ export function deriveWorldTokens(state) {
     // Blur handled by dimStyle overlay.
     // pointerEvents: always auto on scroll container.
     feedContainerStyle: {
-      transform:     `scale(${feedScale})`,
+      transform:     feedScale === 1 ? "none" : `scale(${feedScale})`,
       transformOrigin: "top center",
-      transition:    `transform ${dur} ${ease}`,
-      willChange:    "transform",
-      pointerEvents: "auto",  // scroll container always interactive
+      // Phase 16.5: transition only when actually animating (scale !== 1)
+      transition:    feedScale !== 1 ? `transform ${dur} ${ease}` : "none",
+      // willChange intentionally OMITTED — set/cleared imperatively via
+      // safariPaintRecovery.stripGpuHints() to avoid persistent GPU layers.
+      pointerEvents: "auto",
     },
     // BottomNav — always mounted, visual modulation only
     navStyle: {
       opacity:       navOp,
       transform:     `translateY(${navDrift}px)`,
       transition:    `opacity ${dur} ${ease}, transform ${dur} ${ease}`,
-      willChange:    "opacity, transform",
+      // willChange omitted — cleared by safariPaintRecovery after animation
       pointerEvents: state.navLocked ? "none" : "auto",
     },
     // Dim overlay behind surface
@@ -180,7 +184,7 @@ export function deriveWorldTokens(state) {
       WebkitBackdropFilter: confirmed ? `blur(${blur})` : "none",
       transition:           `background ${dur} ${ease}, backdrop-filter ${dur} ${ease}`,
       pointerEvents:        "none",   // NEVER blocks interaction — visual only
-      willChange:           "background, backdrop-filter",
+      // willChange omitted — dim layer is position:fixed, no compositing needed
     },
     _surfaceId:  state.activeSurface,
     _confirmed:  confirmed,

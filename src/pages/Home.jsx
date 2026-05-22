@@ -2,7 +2,7 @@
 // SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useRef, useCallback } from "react";
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
@@ -13,6 +13,7 @@ import {
 } from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
+import { forceTabRepaint, stripGpuHints } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
@@ -68,6 +69,15 @@ const GLOBAL_CSS = `
 
 /* ══════════════════════════════════════════════════════════════ */
 function HomeInner() {
+  // Phase 16.5: Tab element refs for imperative Safari paint recovery
+  const tabRefs = {
+    feed:      React.useRef(null),
+    discover:  React.useRef(null),
+    impact:    React.useRef(null),
+    favorites: React.useRef(null),
+  };
+  const scrollContainerRef = React.useRef(null);
+
   const {
     tab,
     handleTab,
@@ -122,6 +132,27 @@ function HomeInner() {
       handleTab("feed");
     }
   }, [tab, handleTab]);
+
+  // Phase 16.5: Safari Paint Recovery
+  // When activeSurface becomes null (surface closed), force a repaint on the
+  // active tab div to prevent Safari compositor cache from leaving a white tab.
+  React.useEffect(() => {
+    if (activeSurface !== null) return;  // only run on close transition (null)
+
+    // Wait for CSS close-transition to complete (280ms) + buffer
+    const t = setTimeout(() => {
+      // Strip GPU hints from scroll container to release Safari's compositor layer
+      stripGpuHints(scrollContainerRef.current, "scroll-container");
+
+      // Force repaint on the currently active tab wrapper div
+      const activeTabRef = tabRefs[tab];
+      if (activeTabRef?.current) {
+        forceTabRepaint(activeTabRef.current, tab);
+      }
+    }, 320);  // 280ms close-transition + 40ms safety buffer
+
+    return () => clearTimeout(t);
+  }, [activeSurface]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* onTab: profile → openOwnProfile direkt, sonst handleTab */
   function onTabPress(key) {
@@ -183,7 +214,7 @@ function HomeInner() {
         {/* Scroll-Bereich */}
         <div
           className="hui-scroll"
-          ref={mainScrollRef}
+          ref={(el) => { mainScrollRef.current = el; scrollContainerRef.current = el; }}
           style={{
             flex:        1,
             overflowY:   "auto",
@@ -195,7 +226,7 @@ function HomeInner() {
             ...worldTokens.feedContainerStyle,
           }}
         >
-          <div style={keepFeed}>
+          <div ref={tabRefs.feed} style={keepFeed}>
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="HomeFeed">
                 <HomeFeed
@@ -224,17 +255,17 @@ function HomeInner() {
             )}
           </div>
 
-          <div style={keepDiscover}>
+          <div ref={tabRefs.discover} style={keepDiscover}>
             <SafeRender flag="discoverFeed" label="DiscoverPage">
               <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
             </SafeRender>
           </div>
 
-          <div style={keepImpact}>
+          <div ref={tabRefs.impact} style={keepImpact}>
             <ImpactPage currentUser={currentUser}/>
           </div>
 
-          <div style={keepFavorites}>
+          <div ref={tabRefs.favorites} style={keepFavorites}>
             <FavoritesPage
               currentUser={currentUser}
               onView={w => setShowWirker(w)}

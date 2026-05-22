@@ -167,8 +167,10 @@ const CSS = `
   /* ── Card surfaces ──────────────── */
   .hf-card-base {
     background: rgba(255,255,255,0.80);
-    backdrop-filter: blur(18px) saturate(1.35);
-    -webkit-backdrop-filter: blur(18px) saturate(1.35);
+    /* Phase 16.5: backdrop-filter removed from scroll-child elements.
+       Causes Safari stacking context issues when inside transformed parent.
+       Use background-color with opacity instead. */
+    background: rgba(249, 247, 244, 0.94);
     border: 1px solid rgba(255,255,255,0.58);
     position: relative;
     overflow: hidden;
@@ -933,7 +935,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment, memor
               <div style={{
                 position:"absolute", top:10, right:10, zIndex:2,
                 background:"rgba(0,0,0,0.38)",
-                backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
+                /* Phase 16.5: backdrop-filter removed — Safari scroll child */
                 borderRadius:20, padding:"3px 10px",
                 fontSize:10, fontWeight:600, color:"white",
                 border:"1px solid rgba(255,255,255,0.14)",
@@ -1512,7 +1514,7 @@ function PersonCard({ person, onPress }) {
             <div style={{
               position:"absolute", bottom:7, left:7,
               background:"rgba(255,255,255,0.15)",
-              backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+              /* Phase 16.5: backdrop-filter removed — Safari scroll child */
               border:"1px solid rgba(255,255,255,0.26)",
               borderRadius:99, padding:"2.5px 7px",
               fontSize:9, fontWeight:700, color:"white",

@@ -31,7 +31,7 @@ export function getTabStyle(tabId, activeTab, activeSurface) {
       pointerEvents: "none",       // surface captures all interaction
       userSelect:    "none",
       transition:    TAB_TRANSITION,
-      willChange:    "opacity",
+    // willChange: omitted (safariPaintRecovery manages GPU hints)
     };
   }
 
@@ -42,7 +42,7 @@ export function getTabStyle(tabId, activeTab, activeSurface) {
     pointerEvents: isActive ? "auto" : "none",
     userSelect:    isActive ? "auto" : "none",
     transition:    TAB_TRANSITION,
-    willChange:    "opacity",
+    // willChange: omitted (safariPaintRecovery manages GPU hints)
   };
 }
 
