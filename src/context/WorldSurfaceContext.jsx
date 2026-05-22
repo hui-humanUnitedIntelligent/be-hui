@@ -164,6 +164,21 @@ export function WorldSurfaceProvider({ children }) {
     cleanupOrbEnvironment({ reason: "WorldSurfaceProvider-unmount" });
   }, [clearRecovery]);
 
+  // Phase 16.6: Sync world state to window for ErrorBoundary crash diagnostics
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.__HUI_WORLD_STATE__ = {
+        activeSurface:    worldState.activeSurface    ?? null,
+        overlayConfirmed: worldState.overlayConfirmed ?? false,
+        feedVisible:      worldState.feedVisible      ?? true,
+        blurActive:       worldState.blurActive       ?? false,
+        navLocked:        worldState.navLocked         ?? false,
+        activeTab:        window.__HUI_WORLD_STATE__?.activeTab ?? "feed",
+        repaintPhase:     window.__HUI_WORLD_STATE__?.repaintPhase ?? null,
+      };
+    }
+  }, [worldState]);
+
   const worldTokens = useMemo(() => deriveWorldTokens(worldState), [worldState]);
 
   const value = useMemo(() => ({

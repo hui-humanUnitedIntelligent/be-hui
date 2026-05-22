@@ -13,7 +13,7 @@ import {
 } from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
-import { forceTabRepaint, stripGpuHints } from "../lib/world/safariPaintRecovery.js";
+import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
@@ -69,7 +69,7 @@ const GLOBAL_CSS = `
 
 /* ══════════════════════════════════════════════════════════════ */
 function HomeInner() {
-  // Phase 16.5: Tab element refs for imperative Safari paint recovery
+  // Phase 16.6: Tab element refs for imperative Safari paint recovery
   const tabRefs = {
     feed:      React.useRef(null),
     discover:  React.useRef(null),
@@ -77,6 +77,8 @@ function HomeInner() {
     favorites: React.useRef(null),
   };
   const scrollContainerRef = React.useRef(null);
+  // PaintRecoveryManager — tracks rAF handles, cleaned up on unmount
+  const paintManager = React.useRef(new PaintRecoveryManager());
 
   const {
     tab,
@@ -133,26 +135,38 @@ function HomeInner() {
     }
   }, [tab, handleTab]);
 
-  // Phase 16.5: Safari Paint Recovery
-  // When activeSurface becomes null (surface closed), force a repaint on the
-  // active tab div to prevent Safari compositor cache from leaving a white tab.
+  // Phase 16.6: Safari Paint Recovery — safe, cancel-aware
+  // When activeSurface→null (surface closed), trigger repaint on active tab.
+  // Uses PaintRecoveryManager to track + cancel all rAF handles.
   React.useEffect(() => {
-    if (activeSurface !== null) return;  // only run on close transition (null)
+    if (activeSurface !== null) return;  // only on close
 
-    // Wait for CSS close-transition to complete (280ms) + buffer
+    // Cancel any in-flight recovery from previous close
+    paintManager.current.cleanup();
+
     const t = setTimeout(() => {
-      // Strip GPU hints from scroll container to release Safari's compositor layer
-      stripGpuHints(scrollContainerRef.current, "scroll-container");
+      // Strip GPU hints from scroll container (synchronous, safe)
+      paintManager.current.stripHints(scrollContainerRef.current, "scroll-container");
 
-      // Force repaint on the currently active tab wrapper div
+      // Force repaint on active tab div (async, cancel-aware)
       const activeTabRef = tabRefs[tab];
       if (activeTabRef?.current) {
-        forceTabRepaint(activeTabRef.current, tab);
+        paintManager.current.repaint(activeTabRef.current, `tab-${tab}`);
       }
-    }, 320);  // 280ms close-transition + 40ms safety buffer
+    }, 320);  // after 280ms close-transition + 40ms buffer
 
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      // Cancel any pending rAF on cleanup (tab switch / unmount)
+      paintManager.current.cleanup();
+    };
   }, [activeSurface]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Phase 16.6: Cleanup on unmount — cancel all pending repaint rAFs
+  React.useEffect(() => {
+    const mgr = paintManager.current;
+    return () => mgr.cleanup();
+  }, []);
 
   /* onTab: profile → openOwnProfile direkt, sonst handleTab */
   function onTabPress(key) {

@@ -1,93 +1,162 @@
-// src/lib/world/safariPaintRecovery.js — Phase 16.5
-// Safari GPU-Layer Paint Recovery
+// src/lib/world/safariPaintRecovery.js — Phase 16.6
+// Safe Imperative Repaint — ZERO display mutations, ZERO crashes
 //
-// PROBLEM: After GPU-composited transitions (transform/opacity/backdrop-filter),
-// Safari on iPad caches the compositing layer and refuses to repaint.
-// Symptoms: White tab, invisible content, correct DOM state.
-//
-// SOLUTION: forceTabRepaint() uses a double-rAF + display-none flicker
-// (imperatively, invisible to user) to invalidate Safari's compositor cache.
+// DESIGN RULES:
+//   1. NEVER mutate display — React owns the DOM tree.
+//      display:none on React-managed nodes detaches event listeners,
+//      corrupts React's fiber tree, and causes the ErrorBoundary crash.
+//   2. EVERY DOM access guarded with isConnected + null check.
+//   3. ALL rAF handles tracked — cancelled on cleanup.
+//   4. NO throw — only console.warn on failure.
+//   5. safeRepaint() uses translateZ(0) nudge instead of display toggle.
 
-// ─── isSafari detection ────────────────────────────────────────────────────
+// ─── Safari detection ─────────────────────────────────────────────────────
 const isSafariLike = () =>
   typeof navigator !== "undefined" &&
   /Safari/i.test(navigator.userAgent) &&
   !/Chrome|Chromium|CriOS|FxiOS/i.test(navigator.userAgent);
 
-// ─── forceReflow ───────────────────────────────────────────────────────────
-// Reading offsetHeight forces the browser to flush pending layout.
-function forceReflow(el) {
-  // eslint-disable-next-line no-unused-expressions
-  void el.offsetHeight;
+// ─── Safe DOM guard ───────────────────────────────────────────────────────
+function isLiveNode(node) {
+  return !!(node && node.isConnected && node.style);
 }
 
-// ─── forceTabRepaint ───────────────────────────────────────────────────────
-// Imperatively forces a Safari paint+composite refresh on a DOM element.
-//
-// TECHNIQUE (3-phase):
-//   Phase 1: strip GPU hints (will-change, transform:scale, contain)
-//   Phase 2: display-none / reflow / display-restore (Safari compositor reset)
-//   Phase 3: requestAnimationFrame double-pass to let the browser repaint
-//
-// @param {HTMLElement|null} el    — the tab container element
-// @param {string}           tabId — for logging
-export function forceTabRepaint(el, tabId = "unknown") {
-  if (!el) return;
+// ─── Safe reflow ──────────────────────────────────────────────────────────
+// offsetHeight read forces layout flush. Only call on connected nodes.
+function safeReflow(node, label) {
+  if (!isLiveNode(node)) return;
+  try {
+    // eslint-disable-next-line no-unused-expressions
+    void node.offsetHeight;
+  } catch (e) {
+    console.warn(`[PAINT] reflow failed — ${label}:`, e.message);
+  }
+}
 
-  const safari = isSafariLike();
-  console.log(`[PAINT] tab restored — ${tabId} (safari=${safari})`);
+// ─── safeRepaint ─────────────────────────────────────────────────────────
+// Phase 16.6 canonical implementation.
+// Uses translateZ(0) nudge to force compositor refresh — ZERO display toggles.
+//
+// Returns a cancel() function — call on unmount / tab-switch.
+//
+// @param {HTMLElement|null} node
+// @param {string}           label  — for logging
+// @returns {{ cancel: () => void }}
+export function safeRepaint(node, label = "node") {
+  if (!isLiveNode(node)) {
+    console.warn(`[PAINT] safeRepaint skipped — ${label} not connected`);
+    return { cancel: () => {} };
+  }
 
-  // Phase 1: strip persistent GPU hints synchronously
-  const prev = {
-    willChange:  el.style.willChange,
-    transform:   el.style.transform,
-    contain:     el.style.contain,
+  let raf1 = null, raf2 = null;
+  let cancelled = false;
+
+  const cancel = () => {
+    cancelled = true;
+    if (raf1) { cancelAnimationFrame(raf1); raf1 = null; }
+    if (raf2) { cancelAnimationFrame(raf2); raf2 = null; }
   };
-  el.style.willChange = "auto";
-  el.style.contain    = "";
 
-  // If element still carries a scale transform from surface animation,
-  // reset it so Safari doesn't use the scaled compositor snapshot.
-  if (el.style.transform && el.style.transform !== "none" && el.style.transform !== "") {
-    el.style.transform = "none";
-    console.log(`[PAINT] transform reset — ${tabId}`);
+  try {
+    // Phase 1: Set willChange to hint compositor — then reflow
+    node.style.willChange = "transform";
+    safeReflow(node, label);
+
+    raf1 = requestAnimationFrame(() => {
+      if (cancelled || !isLiveNode(node)) return;
+
+      try {
+        // Phase 2: Add translateZ(0) — forces new compositor layer
+        const cur = node.style.transform || "";
+        const hasZ = cur.includes("translateZ(0)");
+        if (!hasZ) {
+          node.style.transform = cur ? `${cur} translateZ(0)` : "translateZ(0)";
+        }
+        // Force reflow so the layer is actually created
+        safeReflow(node, label);
+        console.log(`[PAINT] tab restored — ${label}`);
+
+        raf2 = requestAnimationFrame(() => {
+          if (cancelled || !isLiveNode(node)) return;
+
+          try {
+            // Phase 3: Remove translateZ nudge — layer update committed
+            const t = node.style.transform || "";
+            node.style.transform = t
+              .replace(" translateZ(0)", "")
+              .replace("translateZ(0) ", "")
+              .replace("translateZ(0)",  "")
+              .trim();
+
+            // If transform is now empty / "none", clear it
+            if (!node.style.transform || node.style.transform === "none") {
+              node.style.transform = "";
+            }
+
+            // Release GPU hint
+            node.style.willChange = "auto";
+            console.log(`[PAINT] reflow forced — ${label} (double-pass complete)`);
+          } catch (e) {
+            console.warn(`[PAINT] phase3 failed — ${label}:`, e.message);
+          }
+        });
+      } catch (e) {
+        console.warn(`[PAINT] phase2 failed — ${label}:`, e.message);
+      }
+    });
+  } catch (e) {
+    console.warn(`[PAINT] safeRepaint init failed — ${label}:`, e.message);
+    return { cancel };
   }
 
-  forceReflow(el);
-  console.log(`[PAINT] reflow forced — ${tabId}`);
-
-  if (safari) {
-    // Phase 2: display-none flicker — Safari compositor cache invalidation.
-    // Done inside rAF so it's never painted to screen as a blank frame.
-    requestAnimationFrame(() => {
-      el.style.display = "none";
-      forceReflow(el);                         // flush display:none
-      el.style.display = "";                   // restore (inherits from CSS)
-      forceReflow(el);                         // flush restore
-      console.log(`[PAINT] contain removed — ${tabId}`);
-
-      // Phase 3: second rAF — browser now has a clean repaint ticket.
-      requestAnimationFrame(() => {
-        // Final will-change cleanup after animation settles.
-        el.style.willChange = "auto";
-        console.log(`[PAINT] reflow forced — ${tabId} (double-pass complete)`);
-      });
-    });
-  } else {
-    // Non-Safari: single rAF + will-change cleanup is sufficient.
-    requestAnimationFrame(() => {
-      el.style.willChange = "auto";
-    });
-  }
+  return { cancel };
 }
 
 // ─── stripGpuHints ────────────────────────────────────────────────────────
-// Strip will-change and contain from a scroll container after surface close.
-// Call on the scroll container ref after closeSurface().
-export function stripGpuHints(el, label = "container") {
-  if (!el) return;
-  el.style.willChange = "auto";
-  el.style.contain    = "";
-  forceReflow(el);
-  console.log(`[PAINT] contain removed — ${label}`);
+// Strips willChange + contain from a container after surface close.
+export function stripGpuHints(node, label = "container") {
+  if (!isLiveNode(node)) return { cancel: () => {} };
+
+  try {
+    node.style.willChange = "auto";
+    node.style.contain    = "";
+    safeReflow(node, label);
+    console.log(`[PAINT] contain removed — ${label}`);
+  } catch (e) {
+    console.warn(`[PAINT] stripGpuHints failed — ${label}:`, e.message);
+  }
+
+  return { cancel: () => {} };
+}
+
+// ─── forceTabRepaint ──────────────────────────────────────────────────────
+// Alias for safeRepaint — backward compat with Home.jsx
+export function forceTabRepaint(node, label) {
+  return safeRepaint(node, label);
+}
+
+// ─── PaintRecoveryManager ─────────────────────────────────────────────────
+// Tracks active rAF handles. Call cleanup() on unmount.
+export class PaintRecoveryManager {
+  constructor() {
+    this._handles = new Set();
+  }
+
+  repaint(node, label) {
+    const handle = safeRepaint(node, label);
+    this._handles.add(handle);
+    return handle;
+  }
+
+  stripHints(node, label) {
+    return stripGpuHints(node, label);
+  }
+
+  cleanup() {
+    console.log(`[PAINT] recovery manager cleanup — ${this._handles.size} handles`);
+    for (const h of this._handles) {
+      try { h.cancel(); } catch (_) {}
+    }
+    this._handles.clear();
+  }
 }

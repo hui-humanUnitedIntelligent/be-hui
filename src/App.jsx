@@ -65,6 +65,37 @@ function HuiSuspense({ children }) {
 /* ── Error Boundary ────────────────────────────────────────────────── */
 // Globaler letzter Feed-Kontext fuer ErrorBoundary-Diagnose
 window.__HUI_LAST_FEED_COMPONENT__ = null;
+window.__HUI_WORLD_STATE__         = { activeSurface: null, activeTab: "feed", repaintPhase: null };
+
+// Phase 16.6: Global error tracer for crash diagnostics
+if (typeof window !== "undefined" && !window.__HUI_ERROR_TRACER__) {
+  window.__HUI_ERROR_TRACER__ = true;
+
+  window.addEventListener("error", (e) => {
+    const ws = window.__HUI_WORLD_STATE__ || {};
+    console.error("[HUI GLOBAL ERROR]", {
+      message:       e.message,
+      filename:      e.filename,
+      line:          e.lineno,
+      col:           e.colno,
+      stack:         e.error?.stack?.slice(0, 400),
+      activeSurface: ws.activeSurface,
+      activeTab:     ws.activeTab,
+      repaintPhase:  ws.repaintPhase,
+    });
+  });
+
+  window.addEventListener("unhandledrejection", (e) => {
+    const ws = window.__HUI_WORLD_STATE__ || {};
+    console.error("[HUI UNHANDLED REJECTION]", {
+      reason:        String(e.reason),
+      stack:         e.reason?.stack?.slice(0, 400),
+      activeSurface: ws.activeSurface,
+      activeTab:     ws.activeTab,
+      repaintPhase:  ws.repaintPhase,
+    });
+  });
+}
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -80,10 +111,15 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // ── Sentry: Crash mit vollem Kontext senden ──────────────
     // console.error entfernt — Sentry loggt vollständig (Phase 4B)
+    const ws = window.__HUI_WORLD_STATE__ || {};
     const eventId = sentryCapture(error, {
       source:              'ErrorBoundary',
       component_stack:     errorInfo?.componentStack || '',
       last_feed_component: window.__HUI_LAST_FEED_COMPONENT__ || null,
+      // Phase 16.6: World state at time of crash
+      active_surface:      ws.activeSurface   ?? null,
+      active_tab:          ws.activeTab        ?? null,
+      repaint_phase:       ws.repaintPhase     ?? null,
       document_hidden:     document.hidden,
       visibility_state:    document.visibilityState,
       user_agent:          navigator.userAgent,
@@ -92,6 +128,8 @@ class ErrorBoundary extends React.Component {
       is_ipad:             /iPad/.test(navigator.userAgent) ||
                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
     });
+    // Store on instance for render-time display
+    this._worldState = ws;
     if (eventId) {
       this.setState({ sentryEventId: eventId });
     }
@@ -160,6 +198,24 @@ class ErrorBoundary extends React.Component {
             color:"#888", fontWeight:600, fontSize:13, cursor:"pointer" }}>
           Trotzdem versuchen
         </button>
+        {/* Phase 16.6: Dev world state — only in development */}
+        {process.env.NODE_ENV !== "production" && (
+          <details style={{ marginTop:20, maxWidth:340, width:"100%", textAlign:"left" }}>
+            <summary style={{ fontSize:11, color:"#aaa", cursor:"pointer", paddingLeft:4 }}>
+              Dev: Crash-Kontext
+            </summary>
+            <pre style={{
+              fontSize:9.5, color:"#888", background:"rgba(0,0,0,0.04)",
+              padding:10, borderRadius:8, overflow:"auto", marginTop:6,
+              lineHeight:1.55, maxHeight:200,
+            }}>
+              {`surface:  ${(this._worldState||{}).activeSurface ?? "null"}\n` +
+               `tab:      ${(this._worldState||{}).activeTab     ?? "?"}\n`    +
+               `repaint:  ${(this._worldState||{}).repaintPhase  ?? "none"}\n`  +
+               `error:    ${this.state.error?.toString()?.slice(0, 120) ?? "?"}`}
+            </pre>
+          </details>
+        )}
       </div>
     );
     return this.props.children;

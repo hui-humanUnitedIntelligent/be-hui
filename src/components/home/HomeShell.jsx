@@ -156,6 +156,10 @@ export default function HomeShell({ children }) {
     setShowPlusSheet(false);
     setCreateType(null);
     _setTab(newTab);
+    // Phase 16.6: sync activeTab to window for ErrorBoundary diagnostics
+    if (typeof window !== "undefined" && window.__HUI_WORLD_STATE__) {
+      window.__HUI_WORLD_STATE__.activeTab = newTab;
+    }
   }, [_setTab]);
 
   /* openOwnProfile — öffnet Creator Profile Overlay (Owner View) */
