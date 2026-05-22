@@ -649,10 +649,10 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
     });
   }, [rawItems]);
 
-  const { atmosphere, sharedAtmosphere, sequence, stats } = curated;
+  const { atmosphere, sharedAtmosphere, resonanceSpaces, sequence, stats } = curated;
 
-  // DEV: atmosphere debug — remove before release
-  // if (sharedAtmosphere) console.log("[HUI Atm]", debugAtmosphereSummary?.(sharedAtmosphere));
+  // DEV: uncomment to debug intelligence layers
+  // console.log("[HUI Atm]", sharedAtmosphere?.id, "| Space:", resonanceSpaces?.dominant?.id);
 
   // DEV: log curation stats (removed in production by tree-shaking)
   // console.log("[HUI Feed]", stats);
@@ -681,14 +681,20 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
           )}
         </div>
 
-        {/* Soft community presence — no aggressive counter */}
+        {/* Community presence — space-aware, never aggressive */}
         <div style={{
           display:"flex", alignItems:"center", gap:5,
           fontSize:11, color:T.muted, fontWeight:500,
         }}>
           <span className="hf-presence-dot" style={{
             width:6, height:6, borderRadius:"50%",
-            background:"#4ADE80", display:"inline-block",
+            // Presence dot color shifts with dominant space
+            background: resonanceSpaces?.dominant?.id === "night_presence"
+              ? "#6B8AC4"
+              : resonanceSpaces?.dominant?.id === "warm_creation"
+              ? "#F5A623"
+              : "#4ADE80",
+            display:"inline-block",
           }}/>
           <span>12 jetzt aktiv</span>
         </div>
@@ -710,6 +716,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                   quoteIdx={slot.quoteIdx || 0}
                   atmosphere={atmosphere}
                   sharedAtmosphere={sharedAtmosphere}
+                  resonanceSpaces={resonanceSpaces}
                 />
               </div>
             );
@@ -742,6 +749,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 state={state}
                 atmosphere={atmosphere}
                 sharedAtmosphere={sharedAtmosphere}
+                resonanceSpaces={resonanceSpaces}
                 itemReactions={reactions[item.id] || {}}
                 onProfile={() => onProfile?.(item)}
                 onReaction={(type) => handleReaction(item.id, type)}
@@ -760,7 +768,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    RHYTHM CARD — routes to the correct visual state
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmCard({ item, state, atmosphere, sharedAtmosphere, itemReactions, onProfile, onReaction, onComment }) {
+function RhythmCard({ item, state, atmosphere, sharedAtmosphere, resonanceSpaces, itemReactions, onProfile, onReaction, onComment }) {
   const isResonated = itemReactions.resonanz;
 
   return (
@@ -1062,7 +1070,7 @@ function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment }
    STATE 5 — QUIET SPACE
    Visual breathing. Atmospheric quote. Soft haze.
    ═══════════════════════════════════════════════════════════════════════════ */
-function QuietSpace({ quoteIdx = 0, atmosphere = null, sharedAtmosphere = null }) {
+function QuietSpace({ quoteIdx = 0, atmosphere = null, sharedAtmosphere = null, resonanceSpaces = null }) {
   // Use atmosphere's time-of-day quote pool if available
   const pool  = (atmosphere?.quotePool?.length > 0) ? atmosphere.quotePool : AMBIENT_QUOTES;
   const quote = pool[quoteIdx % pool.length];

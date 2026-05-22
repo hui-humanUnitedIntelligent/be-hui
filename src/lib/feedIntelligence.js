@@ -70,6 +70,15 @@ import {
   mockResonanceFromFeed,
 } from "./intelligence/sharedAtmosphere.js";
 
+// ── Resonance Spaces integration
+import {
+  buildResonanceSpaces,
+  registerMockFactories,
+} from "./intelligence/resonanceSpaces.js";
+
+// Register mock factories once (avoids circular import in resonanceSpaces)
+registerMockFactories(mockActivityFromFeed, mockResonanceFromFeed);
+
 export const TIME_ATMOSPHERES = {
   morning: {           // 05:00–11:59
     id:          "morning",
@@ -379,6 +388,7 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
     relationshipMap = null,   // Map<creatorId, RelationshipMemory> — pre-built or null
     sharedAtm       = null,   // pre-built SharedAtmosphere — or built from feed signals
     pastAtmosphere  = null,   // previous SharedAtmosphere for drift blending
+    spacesResult    = null,   // pre-built ResonanceSpacesResult — or built from feed
   } = options;
 
   const atmosphere = getTimeAtmosphere(now);
@@ -398,13 +408,20 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
   }
 
   // ── Step 1b: Build shared atmosphere from feed signals
-  // Uses the feed itself + time-of-day to derive collective emotional weather.
-  // If a pre-built or drifted atmosphere is passed in, use it directly.
   const collectiveAtm = sharedAtm || (() => {
     const activity  = mockActivityFromFeed(items);
     const resonance = mockResonanceFromFeed(items);
     return buildSharedAtmosphere(items, activity, resonance, atmosphere.id);
   })();
+
+  // ── Step 1c: Build resonance spaces from collective signals
+  // Spaces emerge organically — no user action required.
+  const resonanceSpaces = spacesResult || buildResonanceSpaces(
+    items,
+    collectiveAtm,
+    collectiveAtm.feedSignals?.activity || mockActivityFromFeed(items),
+    {},  // relationships: empty in feed context (enriched at call-site if available)
+  );
 
   // ── Step 2: Score resonance → soft-sort (stable, not aggressive)
   const scored = items.map(item => ({
@@ -527,6 +544,7 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
   return {
     atmosphere,
     sharedAtmosphere: collectiveAtm,
+    resonanceSpaces,
     sequence: atmosphericSequence,
     quotePool: atmosphere.quotePool,
     stats: {
@@ -535,7 +553,9 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
       diversityApplied: diversity,
       avgWeight:        Math.round(avgWeight * 100) / 100,
       sequenceLength:   atmosphericSequence.length,
-      atmosphereState:  collectiveAtm?.id || null,
+      atmosphereState:  collectiveAtm?.id  || null,
+      dominantSpace:    resonanceSpaces?.dominant?.id || null,
+      activeSpaceCount: resonanceSpaces?.spaces?.length || 0,
     },
   };
 }
