@@ -85,3 +85,14 @@ export {
   // Data
   WORLD_TEMPERATURES, WORLD_SURFACES,
 } from "./worldContinuity.js";
+
+// ─────────────────────────────────────────────────────────────────
+// LAYER 8: Interaction Store — privacy-safe local interaction memory
+// ─────────────────────────────────────────────────────────────────
+export {
+  recordInteraction,
+  readInteractions,
+  buildInteractionMap,
+  getKnownCreatorIds,
+  clearInteractionStore,
+} from "./interactionStore.js";

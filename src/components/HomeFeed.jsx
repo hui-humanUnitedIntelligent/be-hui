@@ -17,6 +17,15 @@ import {
   derivePresenceState,
 } from "./CreatorPresence.jsx";
 import {
+  buildRelationshipMemory,
+  relationshipDrift,
+} from "../lib/intelligence/relationshipMemory.js";
+import {
+  buildInteractionMap,
+  recordInteraction,
+  getKnownCreatorIds,
+} from "../lib/intelligence/interactionStore.js";
+import {
   curateHumaneFeed,
   getTimeAtmosphere,
   QUIET_QUOTE_POOL,
@@ -629,7 +638,19 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
       return { ...prev, [itemId]: { ...cur, [type]: !cur[type] } };
     });
     onLike?.(itemId);
-  }, [onLike]);
+    // Phase 8: record emotional interaction signal in local store
+    if (user?.id) {
+      const item = (rawItems || []).find(i => i.id === itemId);
+      const cid  = item?.creator_id || item?.user_id || item?.creatorId;
+      if (cid && cid !== user.id) {
+        const ev = type === "berührt" ? "berührtGiven"
+          : type === "resonanz"  ? "resonanzGiven"
+          : type === "inspiriert"? "inspiredGiven"
+          : "resonanzGiven";
+        recordInteraction(user.id, cid, ev);
+      }
+    }
+  }, [onLike, user?.id, rawItems]);
 
   // ── Feed Intelligence: humane curation ──────────────────────────────────
   const curated = useMemo(() => {
@@ -637,6 +658,44 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
     const safe = filterValidFeedItems(rawItems);
     // Pass raw (non-frozen) items to allow enrichment + relationship tokens
     const enrichable = safe.map(item => ({ ...item }));
+    // Phase 8: pre-build relationship map for all creators in feed
+    // Only runs when user is authenticated — graceful fallback to null otherwise
+    let relationshipMap = null;
+    if (user?.id && enrichable.length > 0) {
+      const creatorIds = [...new Set(
+        enrichable
+          .map(i => i.creator_id || i.user_id || i.creatorId)
+          .filter(Boolean)
+      )];
+      if (creatorIds.length > 0) {
+        const interactionMap = buildInteractionMap(user.id, creatorIds);
+        if (interactionMap.size > 0) {
+          relationshipMap = new Map();
+          const viewerCtx = {
+            id:        user.id,
+            interests: user.dna_tags || user.skills || [],
+            mood:      user.mood || "",
+          };
+          for (const [creatorId, interactions] of interactionMap) {
+            // Creator profile from feed items (best-effort)
+            const creatorItem = enrichable.find(
+              i => (i.creator_id || i.user_id || i.creatorId) === creatorId
+            );
+            const creatorCtx = creatorItem ? {
+              id:   creatorId,
+              talent: creatorItem.creator_talent || creatorItem.talent || "",
+              tags:   creatorItem.creator_tags   || creatorItem.tags   || [],
+              mood:   creatorItem.creator_mood   || "",
+            } : { id: creatorId };
+
+            const memory = buildRelationshipMemory(viewerCtx, creatorCtx, interactions);
+            if (!memory._fallback) relationshipMap.set(creatorId, memory);
+          }
+          if (relationshipMap.size === 0) relationshipMap = null;
+        }
+      }
+    }
+
     return curateHumaneFeed(enrichable, {
       now,
       diversity:     true,
@@ -645,9 +704,15 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
       maxItems:      40,
       // Viewer context: enables relationship memory in curation
       // In production: replace with authProfile from AuthContext
-      viewerContext: null,   // null = no relationship signals (graceful fallback)
+      // Phase 8: viewer context — enables relationship memory
+      viewerContext: user?.id ? {
+        id:        user.id,
+        interests: user.dna_tags || user.skills || [],
+        mood:      user.mood || "",
+      } : null,
+      relationshipMap,   // Phase 8: pre-built from localStorage interaction signals
     });
-  }, [rawItems]);
+  }, [rawItems, user?.id]);   // re-curate if viewer changes
 
   const { atmosphere, sharedAtmosphere, resonanceSpaces, worldState, sequence, stats } = curated;
 
@@ -760,7 +825,17 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 resonanceSpaces={resonanceSpaces}
                 worldState={worldState}
                 itemReactions={reactions[item.id] || {}}
-                onProfile={() => onProfile?.(item)}
+                warmthBoost={item._warmthBoost  ?? 0}
+                glowBoost={item._glowBoost     ?? 0}
+                motionCalm={item._motionCalm   ?? 0}
+                microMoment={item.microMoment  ?? null}
+                onProfile={() => {
+                  if (user?.id) {
+                    const cid = item?.creator_id || item?.user_id || item?.creatorId;
+                    if (cid && cid !== user.id) recordInteraction(user.id, cid, "profileViewCount");
+                  }
+                  onProfile?.(item);
+                }}
                 onReaction={(type) => handleReaction(item.id, type)}
                 onComment={() => onComment?.(item)}
               />
@@ -777,12 +852,25 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    RHYTHM CARD — routes to the correct visual state
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmCard({ item, state, atmosphere, sharedAtmosphere, resonanceSpaces, worldState, itemReactions, onProfile, onReaction, onComment }) {
+function RhythmCard({
+  item, state, atmosphere, sharedAtmosphere, resonanceSpaces, worldState,
+  itemReactions, onProfile, onReaction, onComment,
+  // Phase 8: relationship memory tokens
+  warmthBoost = 0, glowBoost = 0, motionCalm = 0, microMoment = null,
+}) {
   const isResonated = itemReactions.resonanz;
+
+  // Phase 8: warmth glow — purely atmospheric, very subtle
+  // warmthBoost: 0 (strangers) → 0.40 (trusted_presence)
+  // Maps to rgba opacity: max 0.10 at full warmth (barely visible)
+  const warmthGlowOpacity = warmthBoost * 0.25;  // 0 → 0.10
+  const warmthGlowColor   = warmthBoost > 0.20
+    ? `rgba(255,138,107,${warmthGlowOpacity})`    // coral — warmth
+    : `rgba(22,215,197,${warmthGlowOpacity})`;    // teal  — fresh
 
   return (
     <div style={{ position:"relative" }}>
-      {/* Ambient glow when resonated */}
+      {/* Resonance glow (user-triggered) */}
       {isResonated && (
         <div style={{
           position:"absolute", inset:-16, zIndex:0,
@@ -790,6 +878,16 @@ function RhythmCard({ item, state, atmosphere, sharedAtmosphere, resonanceSpaces
           borderRadius:36, pointerEvents:"none",
           transition:"opacity 0.7s ease",
           animation:"hf-glow-breathe 4s ease-in-out infinite",
+        }}/>
+      )}
+      {/* Phase 8: relationship warmth — atmospheric familiarity glow */}
+      {warmthBoost > 0.10 && (
+        <div style={{
+          position:"absolute", inset:-8, zIndex:0,
+          background:`radial-gradient(ellipse at 50% 30%, ${warmthGlowColor} 0%, transparent 65%)`,
+          borderRadius:32, pointerEvents:"none",
+          // motionCalm: familiar people feel slightly slower, calmer
+          transition:`opacity ${0.9 + motionCalm}s ease`,
         }}/>
       )}
       <div style={{ position:"relative", zIndex:1 }}>
