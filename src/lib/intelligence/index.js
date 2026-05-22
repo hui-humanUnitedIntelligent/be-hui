@@ -47,6 +47,30 @@ export {
   selectRevealDelay, isEmptyWorld, debugWorldSummary, DISCOVER_DISTRICTS,
 } from "./discoverWorld.js";
 
+// ─────────────────────────────────────────────────────────────
+// LAYER 7: World Polish — last-mile CSS/animation utilities
+// ─────────────────────────────────────────────────────────────
+export {
+  // Orb
+  orbAtmosphereFromWorld,
+  // Profiles
+  profileAtmosphereFromWorld,
+  // Discover districts
+  districtTransitionTokens,
+  // Empty states
+  emptyStateFromWorld,
+  // Motion harmonization
+  harmonizedMotion,
+  // Settings screens
+  settingsAtmosphereFromWorld,
+  // Notification quietness
+  quietNotificationTokens,
+  // Tab transitions
+  carryOverEntryStyle,
+  // Global CSS
+  WORLD_CSS,
+} from "./worldPolish.js";
+
 export {
   // Core engine
   buildWorldContinuity, worldDrift, buildWorldFromLayers,

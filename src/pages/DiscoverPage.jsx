@@ -17,6 +17,11 @@ import {
   assignItemsToDistricts,
   isEmptyWorld,
 } from "../lib/intelligence/discoverWorld.js";
+import {
+  districtTransitionTokens,
+  emptyStateFromWorld,
+  harmonizedMotion,
+} from "../lib/intelligence/worldPolish.js";
 import { supabase }             from "../lib/supabaseClient";
 import { createWorkItem, createFeedItem, filterValidFeedItems }
                                from "../lib/factories/createFeedItem.js";
@@ -534,6 +539,8 @@ function SectionHeader({ title, onAll }) {
 /* ── Main Component ─────────────────────────────────────────── */
 export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const [activeCategory, setActiveCategory] = useState("alle");
+  const [prevCategory, setPrevCategory]   = useState("alle");
+  const [districtTransition, setDistrictTransition] = useState(false);
   // ── Echte Discover-Daten ────────────────────────────────────
   const { works: liveWorks, talents: liveTalents, loading: discoverLoading } = useDiscoverData({ enabled: true, limit: 16 });
 
@@ -559,6 +566,10 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const dDelay  = selectRevealDelay(discoverWorld);
   const dPath   = selectWanderingPath(discoverWorld);
   const dWhisper= selectWorldWhisper(discoverWorld);
+
+  // World Polish — harmonized motion tokens
+  const dHarmony = harmonizedMotion(null, "discover");
+  const dEmpty   = emptyStateFromWorld(null, "discover");
   const [inspiredHero,  setInspiredHero]  = useState(new Set());
   const [inspiredWerke, setInspiredWerke] = useState(new Set());
   const [showSearch,    setShowSearch]    = useState(false);
@@ -774,7 +785,12 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
             <button
               key={pill.id}
               className="dp-pill"
-              onClick={() => setActiveCategory(pill.id)}
+              onClick={() => {
+                setPrevCategory(activeCategory);
+                setDistrictTransition(true);
+                setActiveCategory(pill.id);
+                setTimeout(() => setDistrictTransition(false), 380);
+              }}
               style={{
                 background: active
                   ? (glowColor
@@ -802,7 +818,11 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       {/* ════════════════════════════════════════
           HERO DISCOVERY CARDS
       ════════════════════════════════════════ */}
-      <div style={{ marginBottom:36 }}>
+      <div style={{
+        marginBottom:36,
+        opacity: districtTransition ? 0.70 : 1,
+        transition:`opacity ${dHarmony.medium} ${dHarmony.easeEntry}`,
+      }}>
         <SectionHeader
           title={dPath[0]
             ? `${dPath[0].district.invitation} ✦`

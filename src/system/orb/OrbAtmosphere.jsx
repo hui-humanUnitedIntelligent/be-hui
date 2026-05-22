@@ -10,9 +10,11 @@
 import React, { useMemo } from "react";
 import { Z } from "./OrbConfig.js";
 import { SAFE_MODE } from "../../config/safeMode.js";
+import { orbAtmosphereFromWorld } from "../../lib/intelligence/worldPolish.js";
 
 /* ── Hintergrund-Blobs ──────────────────────────────────────── */
-function OrbAtmosphere({ ambientColor }) {
+function OrbAtmosphere({ ambientColor, worldState = null }) {
+  const orbAtm = orbAtmosphereFromWorld(worldState);
   return (
     <>
       {/* Mint blob — oben links */}
@@ -22,7 +24,7 @@ function OrbAtmosphere({ ambientColor }) {
         borderRadius:"62% 38% 55% 45% / 50% 60% 40% 50%",
         background:"radial-gradient(ellipse, rgba(22,215,197,0.09) 0%, transparent 70%)",
         filter:"blur(52px)",
-        animation:"orbBlobA 15s ease-in-out infinite",
+        animation:orbAtm.blobAnimA,
         pointerEvents:"none",
         transform:"translate(-50%,-50%)",
         zIndex:Z.atmosphere,
@@ -33,9 +35,9 @@ function OrbAtmosphere({ ambientColor }) {
         position:"absolute", left:"78%", top:"35%",
         width:260, height:240,
         borderRadius:"45% 55% 40% 60% / 55% 45% 60% 40%",
-        background:"radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%)",
+        background:`radial-gradient(ellipse, rgba(245,166,35,${orbAtm.warmthAlpha}) 0%, transparent 70%)`,
         filter:"blur(58px)",
-        animation:"orbBlobB 20s ease-in-out 2s infinite",
+        animation:orbAtm.blobAnimB,
         pointerEvents:"none",
         transform:"translate(-50%,-50%)",
         zIndex:Z.atmosphere,
@@ -48,7 +50,7 @@ function OrbAtmosphere({ ambientColor }) {
         borderRadius:"55% 45% 60% 40% / 45% 60% 40% 55%",
         background:"radial-gradient(ellipse, rgba(255,138,107,0.07) 0%, transparent 70%)",
         filter:"blur(62px)",
-        animation:"orbBlobC 25s ease-in-out 5s infinite",
+        animation:orbAtm.blobAnimC,
         pointerEvents:"none",
         transform:"translate(-50%,-50%)",
         zIndex:Z.atmosphere,

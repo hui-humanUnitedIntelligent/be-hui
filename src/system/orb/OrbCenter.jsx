@@ -9,10 +9,13 @@
 
 import React from "react";
 import { Z, T } from "./OrbConfig.js";
+import { orbAtmosphereFromWorld } from "../../lib/intelligence/worldPolish.js";
 
-export function OrbCenter({ size = 100, activeColor, onClick }) {
+export function OrbCenter({ size = 100, activeColor, onClick, worldState = null }) {
   const glowColor   = activeColor || T.teal;
   const isCoralMode = activeColor === T.coral;
+  // World-aware atmosphere tokens (null-safe — defaults built in)
+  const orbAtm = orbAtmosphereFromWorld(worldState);
 
   return (
     <div
@@ -31,24 +34,24 @@ export function OrbCenter({ size = 100, activeColor, onClick }) {
       <div style={{
         position:"absolute", inset:-22, borderRadius:"50%",
         border:`1.5px solid ${glowColor}`,
-        opacity:0.14,
-        animation:"orbRingPulse 4s ease-in-out infinite",
+        opacity:orbAtm.ringOpacity1,
+        animation:orbAtm.ring1Anim,
         pointerEvents:"none",
         zIndex:Z.rings,
       }}/>
       <div style={{
         position:"absolute", inset:-42, borderRadius:"50%",
         border:`1px solid ${glowColor}`,
-        opacity:0.07,
-        animation:"orbRingPulse2 5.5s ease-in-out 1s infinite",
+        opacity:orbAtm.ringOpacity2,
+        animation:orbAtm.ring2Anim,
         pointerEvents:"none",
         zIndex:Z.rings,
       }}/>
       <div style={{
         position:"absolute", inset:-64, borderRadius:"50%",
         border:`1px solid ${glowColor}`,
-        opacity:0.04,
-        animation:"orbRingPulse2 7s ease-in-out 2s infinite",
+        opacity:orbAtm.ringOpacity3,
+        animation:orbAtm.ring3Anim,
         pointerEvents:"none",
         zIndex:Z.rings,
       }}/>
@@ -56,8 +59,8 @@ export function OrbCenter({ size = 100, activeColor, onClick }) {
       {/* ── Logo-Sphäre ─────────────────────────────────── */}
       <div style={{
         width:size, height:size, borderRadius:"50%", overflow:"hidden",
-        animation: isCoralMode ? "orbBreathCoral 4.5s ease-in-out infinite"
-                                : "orbBreath 4.5s ease-in-out infinite",
+        animation: isCoralMode ? `orbBreathCoral ${orbAtm.breathDuration} ease-in-out infinite`
+                                : orbAtm.breathAnim,
         background:"linear-gradient(145deg, rgba(255,255,255,0.88) 0%, rgba(240,252,250,0.78) 100%)",
         boxShadow:[
           `0 0 0 2px ${glowColor}28`,

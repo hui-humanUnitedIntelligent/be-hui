@@ -4,6 +4,7 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // Public View only — keine Owner-Actions
 
 import React, { useState } from "react";
+import { profileAtmosphereFromWorld } from "../../lib/intelligence/worldPolish.js";
 
 const C = {
   teal: "#16D7C5", coral: "#FF8A6B",

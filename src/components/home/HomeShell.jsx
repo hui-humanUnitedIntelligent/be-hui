@@ -18,6 +18,7 @@ import {
   computeTransitionCarryOver,
   mockWorldFromAtmosphere,
 } from "../../lib/intelligence/worldContinuity.js";
+import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
 const HomeCtx = createContext(null);
@@ -217,8 +218,11 @@ export default function HomeShell({ children }) {
   };
 
   return (
-    <HomeCtx.Provider value={ctx}>
+    <>
+      <style>{WORLD_CSS}</style>
+      <HomeCtx.Provider value={ctx}>
       {children}
     </HomeCtx.Provider>
+    </>
   );
 }

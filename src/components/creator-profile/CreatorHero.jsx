@@ -4,6 +4,7 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // NO legacy imports. Pure presentational.
 
 import React, { useState } from "react";
+import { profileAtmosphereFromWorld } from "../../lib/intelligence/worldPolish.js";
 
 const C = {
   teal:   "#16D7C5",
@@ -20,7 +21,8 @@ const MOODS = [
   "Offen für Begegnungen",
 ];
 
-export default function CreatorHero({ profile, onClose, onEdit }) {
+export default function CreatorHero({ profile, onClose, onEdit, worldState = null }) {
+  const atmosTokens = profileAtmosphereFromWorld(worldState, profile);
   const p = (profile && profile.displayName) ? profile : createProfileItem(profile || {});
   const [imgError, setImgError] = useState(false);
   const heroUrl  = p?.banner  || null;
@@ -53,13 +55,14 @@ export default function CreatorHero({ profile, onClose, onEdit }) {
         background:"linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.05) 30%, rgba(249,247,244,0) 55%, rgba(249,247,244,0.85) 80%, rgba(249,247,244,1) 100%)",
       }}/>
 
-      {/* ── Ambient teal glow ── */}
+      {/* ── Ambient atmosphere glow — world-temperature aware ── */}
       <div style={{
         position:"absolute", bottom:0, left:"50%",
         transform:"translateX(-50%)",
         width:320, height:180,
-        background:"radial-gradient(ellipse, rgba(22,215,197,0.12) 0%, transparent 70%)",
+        background: atmosTokens.ambientGlow || "radial-gradient(ellipse, rgba(22,215,197,0.10) 0%, transparent 70%)",
         pointerEvents:"none",
+        transition:"background 1.2s ease",
       }}/>
 
       {/* ── Nav: Zurück + Mehr ── */}

@@ -55,8 +55,9 @@ function useOrbDebugLog(label) {
 export default function OrbSystem({
   onAction,
   onClose,
-  isTalent  = false,
-  isTrusted = false,
+  isTalent   = false,
+  isTrusted  = false,
+  worldState = null,   // World Continuity state — for atmosphere sync
 }) {
   // canUseOrb(nodeKey) prüft Rollen zentral — ersetzt verteilte isTalent-Checks
   const { canUseOrb, role } = useUserRole();
