@@ -29,7 +29,8 @@ class SafeBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    const { label } = this.props;
+    const { label, onError } = this.props;
+    try { onError?.(error); } catch (_) {}
     console.error(
       `[HUI Render Debug] ${label} failed`,
       error,
@@ -49,7 +50,7 @@ class SafeBoundary extends React.Component {
 }
 
 /* ── SafeRender Komponente ────────────────────────────────────── */
-export function SafeRender({ flag, label, children, fallback = null }) {
+export function SafeRender({ flag, label, children, fallback = null, onError = null }) {
   // 1. SAFE_MODE Check
   if (!SAFE_MODE[flag]) {
     console.info(`[HUI SafeMode] ${label || flag} deaktiviert (safe mode)`);
@@ -67,7 +68,7 @@ export function SafeRender({ flag, label, children, fallback = null }) {
 
   // 3. ErrorBoundary Catch
   return (
-    <SafeBoundary label={label || flag} fallback={fallback}>
+    <SafeBoundary label={label || flag} fallback={fallback} onError={onError}>
       {children}
     </SafeBoundary>
   );

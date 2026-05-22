@@ -4,6 +4,7 @@
 
 import React, { Suspense, useEffect } from "react";
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
+import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import {
   orbBackdropTokens,
@@ -103,6 +104,16 @@ function HomeInner() {
     backdrop: orbBackdrop, navDrift: orbNavDrift,
   } = useOrbWorld();
 
+  // ── World Surface Controller — single authority blur/feed/nav ──
+  const {
+    worldTokens,
+    openSurface,
+    closeSurface,
+    confirmSurface,
+    forceRecoverWorld,
+    activeSurface,
+  } = useWorldSurface();
+
   // Debug guard: tab should never be "orb"
   React.useEffect(() => {
     if (tab === "orb") {
@@ -166,7 +177,7 @@ function HomeInner() {
             overflowX:  "hidden",
             /* Kein overflow:hidden am Wrapper */
             // World softens when Orb opens — atmospheric depth
-            ...(orbBackdrop?.worldContainerStyle ?? {}),
+            ...(activeSurface ? worldTokens.feedContainerStyle : (orbBackdrop?.worldContainerStyle ?? {})),
           }}
         >
           <div style={keepFeed}>
@@ -237,7 +248,7 @@ function HomeInner() {
             ? { opacity: 0, transform: "translateY(120%)",
                 transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
                 pointerEvents: "none" }
-            : orbNavDrift
+            : activeSurface ? worldTokens.navStyle : orbNavDrift
         }
         authProfile={authProfile}
         notifCount={liveNotifCount}
@@ -261,6 +272,7 @@ function HomeInner() {
           // Basis-User: Membership-Journey (no blur needed)
           if (!isMember) {
             console.log("[HUI ORB] → membership flow");
+            openSurface("membership");  // Phase 16.2
             setShowMembership(true);
             return;
           }
@@ -275,6 +287,7 @@ function HomeInner() {
 
           // Validated: open world layer + mount orb content atomically
           console.log("[HUI ORB] → opening orb world (member)");
+          openSurface("orb");  // Phase 16.2: WorldSurface authority — blur after confirmation
           openOrbWorld({
             source:           "orb-button",
             originTab:        tab,
@@ -339,8 +352,13 @@ function HomeInner() {
           <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem">
             <HuiPlusSheet
             isTalent={isTalent}
+            onMounted={() => {
+              confirmSurface("orb");  // Phase 16.2: activates blur/feed/nav
+              console.log("[WORLD SURFACE] overlay confirmed via HuiPlusSheet.onMounted");
+            }}
             onClose={() => {
               setShowPlusSheet(false);
+              closeSurface("orb", "user-close");  // Phase 16.2
               closeOrbWorld("user-close");
               console.log("[HUI ORB] closed — world resurfacing");
             }}
@@ -429,11 +447,13 @@ function HomeInner() {
           <SafeRender flag="membership" label="HuiMembershipFlow">
             <HuiMembershipFlow
               onClose={() => {
+                closeSurface("membership", "user-close");  // Phase 16.2
                 cleanupOrbEnvironment({ reason: "membership-close" });
                 setShowMembership(false);
               }}
               onComplete={() => {
                 // Phase 15.2: cleanup → close Orb world → close modal
+                closeSurface("membership", "complete");  // Phase 16.2
                 cleanupOrbEnvironment({ reason: "membership-complete" });
                 closeOrbWorld("membership-complete");
                 setShowMembership(false);

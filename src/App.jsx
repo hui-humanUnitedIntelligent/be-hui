@@ -4,6 +4,7 @@ import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
+import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
 import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
 import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
 
@@ -438,13 +439,15 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
         <AppStateProvider>
-      <OrbWorldProvider>
+      <WorldSurfaceProvider>
+            <OrbWorldProvider>
       <GuidanceProvider>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
           </GuidanceProvider>
       </OrbWorldProvider>
+          </WorldSurfaceProvider>
       </AppStateProvider>
       </AuthProvider>
       </BrowserRouter>

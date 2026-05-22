@@ -1,6 +1,6 @@
 // HuiPlusSheet.jsx — WRAPPER v8 (Phase 15.3 Ghost-State-Fix)
 // Phase 15.3: Blur/Overlay NEVER active without mounted OrbContent.
-// No more return null on failure — failsafe close instead.
+// Failsafe close on all failure paths — never leaves world frozen.
 
 import React, { useEffect, useRef, useState } from "react";
 import OrbSystem from "../system/orb/OrbSystem.jsx";
@@ -23,7 +23,7 @@ function OrbFailsafe({ onClose }) {
   );
 }
 
-export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTrusted = false }) {
+export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTrusted = false, onMounted = null }) {
   const [hasFailed, setHasFailed] = useState(false);
   const [orbMounted, setOrbMounted] = useState(false);
   const timerRef = useRef(null);
@@ -52,6 +52,8 @@ export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTr
         setOrbMounted(true);
         clearTimeout(timerRef.current);
         console.log("[HUI ORB] contentMounted=true overlayActive=true");
+        // Phase 16.2: bubble to parent Home.jsx → confirmSurface("orb")
+        onMounted?.();
       }}
       onFail={() => {
         setHasFailed(true);
