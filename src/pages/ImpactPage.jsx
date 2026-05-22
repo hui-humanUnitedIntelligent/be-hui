@@ -11,6 +11,84 @@ import { safeQuery, FIELDS } from "../lib/perfUtils";
 import SupportSheet           from "../components/SupportSheet";
 
 /* ══════════════════════════════════════════════════════════════════
+   PHASE 16.8 — IMPACT ISOLATION LAYER
+   Rule: Impact renders with EMPTY data before Intelligence.
+   Rule: No crash ever reaches global ErrorBoundary from here.
+   Rule: Every failure is logged + locally recoverable.
+══════════════════════════════════════════════════════════════════ */
+
+// ── Safe helpers ─────────────────────────────────────────────────
+function safeArr(v) { return Array.isArray(v) ? v : []; }
+function logImpact(label, data) {
+  const ws = typeof window !== "undefined" ? (window.__HUI_WORLD_STATE__ || {}) : {};
+  console.log("[IMPACT]", label, {
+    mounted: true,
+    activeTab: ws.activeTab ?? null,
+    membershipType: ws.membershipType ?? null,
+    activeSurface: ws.activeSurface ?? null,
+    ...data,
+    ts: new Date().toISOString(),
+  });
+}
+function logImpactCrash(component, error) {
+  const ws = typeof window !== "undefined" ? (window.__HUI_WORLD_STATE__ || {}) : {};
+  console.error("[IMPACT TREE]", {
+    component,
+    error: error?.message || String(error),
+    stack: error?.stack ? error.stack.split("\n").slice(0, 5).join("\n") : "",
+    activeTab: ws.activeTab ?? null,
+    membershipType: ws.membershipType ?? null,
+    activeSurface: ws.activeSurface ?? null,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// ── Local Recovery Fallback (NOT fullscreen, NOT modal) ──────────
+function ImpactRecoveryFallback({ section = "Impact", onRetry }) {
+  return (
+    <div style={{
+      padding: "28px 20px", textAlign: "center",
+      background: "rgba(249,247,244,0.95)", borderRadius: 20,
+      margin: "12px 20px",
+    }}>
+      <div style={{ fontSize: 28, marginBottom: 8 }}>🌿</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A1A", marginBottom: 6 }}>
+        {section} lädt…
+      </div>
+      <div style={{ fontSize: 12, color: "#888", marginBottom: onRetry ? 16 : 0, lineHeight: 1.5 }}>
+        Kurzer Moment — die Welt kommt gleich.
+      </div>
+      {onRetry && (
+        <button onClick={onRetry} style={{
+          padding: "9px 20px", borderRadius: 12,
+          background: "linear-gradient(135deg,#16D7C5,#0DBFB5)",
+          border: "none", color: "#fff", fontWeight: 700,
+          fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+        }}>Erneut versuchen</button>
+      )}
+    </div>
+  );
+}
+
+// ── ImpactErrorBoundary — local, non-blocking ─────────────────────
+class ImpactErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { crashed: false }; }
+  static getDerivedStateFromError() { return { crashed: true }; }
+  componentDidCatch(error) { logImpactCrash(this.props.label || "section", error); }
+  render() {
+    if (this.state.crashed) {
+      return (
+        <ImpactRecoveryFallback
+          section={this.props.label || "Impact"}
+          onRetry={() => this.setState({ crashed: false })}
+        />
+      );
+    }
+    return this.props.children;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
    DESIGN TOKENS
 ══════════════════════════════════════════════════════════════════ */
 const C = {
@@ -599,7 +677,7 @@ function LiveImpactFeed({ activities }) {
         display:"flex", gap:12, overflowX:"auto",
         paddingBottom:4,
       }}>
-        {activities.map((a, i) => (
+        {safeArr(activities).map((a, i) => (
           <div key={a.id} style={{
             flexShrink:0, width:180,
             background:C.cream,
@@ -646,7 +724,9 @@ function LiveImpactFeed({ activities }) {
 
 /* ── VoteAllocationWidget ────────────────────────────────────────── */
 function VoteAllocationWidget({ votesLeft, totalVotes, votedIds, projects }) {
-  const used = totalVotes - votesLeft;
+  const safeVotedIds = safeArr(votedIds);
+  const safeProjects = safeArr(projects);
+  const used = (totalVotes || 1) - (votesLeft || 0);
 
   return (
     <div style={{
@@ -679,7 +759,7 @@ function VoteAllocationWidget({ votesLeft, totalVotes, votedIds, projects }) {
 
       {/* Vote Dots */}
       <div style={{ display:"flex", gap:8, marginBottom:14 }}>
-        {Array.from({ length: totalVotes }).map((_, i) => (
+        {Array.from({ length: Math.max(1, totalVotes || 1) }).map((_, i) => (
           <div key={i} style={{
             width:36, height:36, borderRadius:12,
             background: i < used
@@ -704,13 +784,13 @@ function VoteAllocationWidget({ votesLeft, totalVotes, votedIds, projects }) {
       </div>
 
       {/* Unterstützte Projekte */}
-      {votedIds.length > 0 && (
+      {safeVotedIds.length > 0 && (
         <div>
           <div style={{ fontSize:11, color:C.muted, marginBottom:6, fontWeight:600, letterSpacing:0.3 }}>
             DU UNTERSTÜTZT
           </div>
-          {projects
-            .filter(p => votedIds.includes(p.id))
+          {safeProjects
+            .filter(p => safeVotedIds.includes(p.id))
             .map(p => (
               <div key={p.id} style={{
                 display:"flex", alignItems:"center", gap:8,
@@ -854,12 +934,18 @@ export default function ImpactPage({ currentUser: _currentUser }) {
   }, [votesLeft, currentUser?.id, projects]);
 
   // ── Gefilterte Projekte ────────────────────────────────────────────
+  const safeProjects = safeArr(projects);
   const filtered = activeCategory === "Alle Projekte"
-    ? projects
-    : projects.filter(p => p.category === activeCategory);
+    ? safeProjects
+    : safeProjects.filter(p => p.category === activeCategory);
 
   // ── Loading ────────────────────────────────────────────────────────
-  if (loading) return (
+  // ── Mount log ─────────────────────────────────────────────────────
+  // (runs inline — useEffect would be too late for crash diagnosis)
+
+  if (loading) {
+    logImpact("mount:loading", { userId: currentUser?.id ?? null });
+    return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"center",
       height:"70vh", flexDirection:"column", gap:12,
@@ -873,7 +959,15 @@ export default function ImpactPage({ currentUser: _currentUser }) {
       }}/>
       <div style={{ fontSize:13, color:C.muted }}>Wirkung wird geladen…</div>
     </div>
-  );
+    );
+  }
+
+  logImpact("mount:ready", {
+    userId: currentUser?.id ?? null,
+    projectsCount: safeProjects.length,
+    filteredCount: filtered.length,
+    membershipType: currentUser?.membership_type ?? "free",
+  });
 
   // ── Render ─────────────────────────────────────────────────────────
   return (
@@ -885,22 +979,29 @@ export default function ImpactPage({ currentUser: _currentUser }) {
       <style>{CSS}</style>
 
       {/* ── 1. HERO ─────────────────────────────────────────────────── */}
-      <ImpactHeroSection
-        poolTotal={poolTotal}
-        weeklyInflow={weeklyInflow}
-        onVote={() => setSelected(projects[0])}
-      />
+      <ImpactErrorBoundary label="HeroSection">
+        <ImpactHeroSection
+          poolTotal={poolTotal}
+          weeklyInflow={weeklyInflow}
+          onVote={() => setSelected(safeProjects[0] ?? null)}
+        />
+      </ImpactErrorBoundary>
 
       {/* ── 2. VERTEILUNG ───────────────────────────────────────────── */}
-      <ImpactDistributionSection />
+      <ImpactErrorBoundary label="DistributionSection">
+        <ImpactDistributionSection />
+      </ImpactErrorBoundary>
 
       {/* ── 3. KATEGORIE PILLS ──────────────────────────────────────── */}
-      <ImpactStatsBar
-        activeCategory={activeCategory}
-        onCategory={setActiveCategory}
-      />
+      <ImpactErrorBoundary label="StatsBar">
+        <ImpactStatsBar
+          activeCategory={activeCategory}
+          onCategory={setActiveCategory}
+        />
+      </ImpactErrorBoundary>
 
       {/* ── 4. AKTIVE PROJEKTE ──────────────────────────────────────── */}
+      <ImpactErrorBoundary label="ProjectCards">
       <div style={{ margin:"20px 0 0" }}>
         <div style={{
           display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -924,7 +1025,7 @@ export default function ImpactPage({ currentUser: _currentUser }) {
           display:"flex", gap:14,
           overflowX:"auto", padding:"4px 20px 8px",
         }}>
-          {(filtered.length > 0 ? filtered : projects).map((p, i) => (
+          {(filtered.length > 0 ? filtered : safeProjects).map((p, i) => (
             <ImpactProjectCard
               key={p.id}
               project={p}
@@ -938,22 +1039,28 @@ export default function ImpactPage({ currentUser: _currentUser }) {
         </div>
       </div>
 
+      </ImpactErrorBoundary>
+
       {/* ── 5. LIVE ACTIVITY ────────────────────────────────────────── */}
-      <LiveImpactFeed activities={MOCK_ACTIVITY} />
+      <ImpactErrorBoundary label="LiveImpactFeed">
+        <LiveImpactFeed activities={MOCK_ACTIVITY} />
+      </ImpactErrorBoundary>
 
       {/* ── 6. STIMMEN WIDGET ───────────────────────────────────────── */}
-      <VoteAllocationWidget
-        votesLeft={votesLeft}
-        totalVotes={totalVotes}
-        votedIds={votedIds}
-        projects={projects}
-      />
+      <ImpactErrorBoundary label="VoteWidget">
+        <VoteAllocationWidget
+          votesLeft={votesLeft}
+          totalVotes={totalVotes}
+          votedIds={safeArr(votedIds)}
+          projects={safeProjects}
+        />
+      </ImpactErrorBoundary>
 
       {/* ── Support Sheet ───────────────────────────────────────────── */}
       {supportProject && (
         <SupportSheet
           project={supportProject}
-          user={currentUser}
+          currentUser={currentUser}
           onClose={() => setSupportProject(null)}
         />
       )}

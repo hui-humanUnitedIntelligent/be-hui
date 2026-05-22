@@ -26,6 +26,7 @@ export const SAFE_MODE = {
   // Feed & Content — Kern-UX
   homeFeed:      true,
   discoverFeed:  true,
+  impactPage:    true,
   onboarding:    true,
 
   // Cinematic Layer — isoliert deaktivierbar

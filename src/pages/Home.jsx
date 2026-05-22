@@ -284,7 +284,9 @@ function HomeInner() {
           </div>
 
           <div ref={tabRefs.impact} style={keepImpact}>
-            <ImpactPage currentUser={currentUser}/>
+            <SafeRender flag="impactPage" label="ImpactPage">
+              <ImpactPage currentUser={currentUser}/>
+            </SafeRender>
           </div>
 
           <div ref={tabRefs.favorites} style={keepFavorites}>
