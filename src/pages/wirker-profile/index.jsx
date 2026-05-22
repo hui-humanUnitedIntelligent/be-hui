@@ -5,7 +5,8 @@
 // REGEL: Keine Owner-Actions. Kein Edit. Kein Dashboard.
 // REGEL: Alle neuen Komponenten aus components/wirker-profile/
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useAuth }     from "../../lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -55,7 +56,11 @@ export default function WirkerProfilePage({
   const navigate  = useNavigate();
 
   /* ── Daten ── */
-  const { profile, works, experiences, loading } = useWirkerProfile(rawWirker);
+  // rawWirker normalisieren — kann aus Navigation kommen (unsicheres Objekt)
+  const safeRawWirker = useMemo(() => createProfileItem(rawWirker), [
+    rawWirker?.id, rawWirker?.user_id, rawWirker?.username,
+  ]);
+  const { profile, works, experiences, loading } = useWirkerProfile(safeRawWirker?._raw || rawWirker);
   const { presenceStatus, presenceInfo }         = usePresenceBridge(profile?.id ?? null);
   const { followed, followLoading, toggleFollow, bookable } =
     useBookingState({ profile, user });

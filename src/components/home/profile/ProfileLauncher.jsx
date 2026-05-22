@@ -1,3 +1,4 @@
+import { createProfileItem } from "../../../lib/factories/createProfileItem.js";
 // src/components/home/profile/ProfileLauncher.jsx v5
 // ROUTING: showWirker._isOwnerView === true → CreatorProfilePage
 //          sonst                           → WirkerProfilePage
@@ -42,8 +43,8 @@ export function useProfileLauncher() {
     setShowWirker({
       id,
       user_id:        id,
-      display_name:   authProfile?.display_name || "Mein Profil",
-      avatar_url:     authProfile?.avatar_url   || null,
+      display_name:   safeProfile?.displayName   || authProfile?.display_name || "Mein Profil",
+      avatar_url:     safeProfile?.avatar        || authProfile?.avatar_url   || null,
       header_img:     authProfile?.header_img   || null,
       talent:         authProfile?.talent       || null,
       bio:            authProfile?.bio          || null,
@@ -69,6 +70,9 @@ export default function ProfileLauncher() {
 
   // Nichts anzeigen wenn kein Profil offen
   if (!showWirker) return null;
+
+  // showWirker normalisieren — kann rohe nav-Daten enthalten
+  const safeProfile = createProfileItem(showWirker);
 
   const isOwnerView = showWirker._isOwnerView === true;
 

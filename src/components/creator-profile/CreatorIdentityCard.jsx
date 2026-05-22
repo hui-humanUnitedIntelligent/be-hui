@@ -1,3 +1,4 @@
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // components/creator-profile/CreatorIdentityCard.jsx
 // Name, Identity, Location, Mood pill, Edit button
 
@@ -21,11 +22,12 @@ const MOODS = [
 ];
 
 export default function CreatorIdentityCard({ profile, onEdit }) {
-  const name    = profile?.display_name || profile?.name || "Du";
-  const talent  = profile?.talent || profile?.focus_type || "Kreative:r";
-  const location= profile?.location_label || profile?.location || "München, Deutschland";
-  const mood    = profile?.current_mood || MOODS[0];
-  const isVerified = profile?.is_wirker || profile?.has_talent_profile;
+  const p = (profile && profile.displayName) ? profile : createProfileItem(profile || {});
+  const name    = p?.displayName || "Du";
+  const talent  = p?.talent || "Kreative:r";
+  const location= p?.location || "München, Deutschland";
+  const mood    = p?.currentMood || MOODS[0];
+  const isVerified = p?.isVerified;
 
   return (
     <div style={{ padding:"58px 20px 0", background:"transparent" }}>

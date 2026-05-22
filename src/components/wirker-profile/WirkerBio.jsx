@@ -1,3 +1,4 @@
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // components/wirker-profile/WirkerBio.jsx
 // Emotionale Bio-Sektion + Book CTA
 
@@ -10,7 +11,8 @@ const C = {
 };
 
 export default function WirkerBio({ profile, onBook, bookable }) {
-  const bio = profile?.bio
+  const p   = (profile && profile.displayName) ? profile : createProfileItem(profile || {});
+  const bio = p?.bio
     || "Ich forme Erde, R\u00e4ume und Begegnungen.\nInspiriert von der Natur, getragen von Gemeinschaft.";
 
   return (

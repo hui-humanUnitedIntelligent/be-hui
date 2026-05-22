@@ -1,3 +1,4 @@
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // components/creator-profile/CreatorStatsBar.jsx
 // HUI-style metrics — Wirkung statt Vanity
 
@@ -30,8 +31,9 @@ function StatItem({ value, label, dimmed }) {
 }
 
 export default function CreatorStatsBar({ profile }) {
+  const p = (profile && profile.displayName) ? profile : createProfileItem(profile || {});
   const erlebnisse  = profile?.experiences_count || profile?.bookings || 24;
-  const gefolgt     = profile?.followers_count   || profile?.followers || "1,8K";
+  const gefolgt     = p?.stats?.followers   || "1,8K";
   const wirkung     = profile?.impact_eur        || profile?.impactEur || "€8.950";
   const verbindungen= profile?.connections_count || profile?.recommendations_count || 189;
 

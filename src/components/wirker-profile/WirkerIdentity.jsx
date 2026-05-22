@@ -1,3 +1,4 @@
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // components/wirker-profile/WirkerIdentity.jsx
 // Name, Talent, Location, Mood-Pill, 4-Spalten Stats
 // Screenshot-exact nach Mia Kern Design
@@ -37,16 +38,22 @@ function StatCol({ value, label, last, dimmed }) {
 }
 
 export default function WirkerIdentity({ profile }) {
-  const name     = profile?.display_name || profile?.name || "Kreative:r";
-  const talent   = profile?.talent || profile?.focus_type || "Kreative:r";
-  const location = profile?.location_label || profile?.location || profile?.city || null;
-  const mood     = profile?.current_mood || "Gerade im Atelier";
-  const verified = profile?.is_wirker || profile?.has_talent_profile || false;
+  // Normalisierung — profile kann normalizeProfileInput-Output oder createProfileItem-Output sein
+  const p = (profile && profile.displayName)
+    ? profile                           // schon normalisiert
+    : createProfileItem(profile || {}); // raw → ProfileItem
 
-  const erlebnisse   = profile?.experiences_count || profile?.bookings || 128;
-  const gefolgt      = profile?.followers_count   || "2,4K";
-  const wirkung      = profile?.impact_eur        || 8950;
-  const verbindungen = profile?.connections_count || 312;
+  const name     = p?.displayName  || "Kreative:r";
+
+  const talent   = p?.talent      || "Kreative:r";
+  const location = p?.location    || null;
+  const mood     = p?.currentMood || "Gerade im Atelier";
+  const verified = p?.isVerified  || false;
+
+  const erlebnisse   = p?.stats?.experiences || p?._raw?.bookings || 128;
+  const gefolgt      = p?.stats?.followers   || "2,4K";
+  const wirkung      = p?.stats?.resonance   || 8950;
+  const verbindungen = p?.stats?.connections || 312;
 
   const wirkungFmt = typeof wirkung === "number"
     ? "\u20AC" + wirkung.toLocaleString("de-DE")

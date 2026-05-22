@@ -1,3 +1,4 @@
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // components/creator-profile/CreatorHero.jsx
 // Cinematic fullscreen hero — Creator identity + atmosphere
 // NO legacy imports. Pure presentational.
@@ -20,13 +21,14 @@ const MOODS = [
 ];
 
 export default function CreatorHero({ profile, onClose, onEdit }) {
+  const p = (profile && profile.displayName) ? profile : createProfileItem(profile || {});
   const [imgError, setImgError] = useState(false);
-  const heroUrl  = profile?.header_img || profile?.bg || null;
-  const avatarUrl= profile?.avatar_url || profile?.img || null;
-  const name     = profile?.display_name || profile?.name || "Du";
-  const talent   = profile?.talent || profile?.focus_type || "Kreative:r";
-  const location = profile?.location_label || profile?.location || profile?.city || null;
-  const mood     = profile?.current_mood || MOODS[0];
+  const heroUrl  = p?.banner  || null;
+  const avatarUrl= p?.avatar  || null;
+  const name     = p?.displayName || "Du";
+  const talent   = p?.talent || "Kreative:r";
+  const location = p?.location || null;
+  const mood     = p?.currentMood || MOODS[0];
 
   return (
     <div style={{ position:"relative", width:"100%", height:300, flexShrink:0 }}>

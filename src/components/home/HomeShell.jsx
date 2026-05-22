@@ -5,6 +5,7 @@ import React, {
   useState, useCallback, useEffect, createContext, useContext,
 } from "react";
 import { useAuth }        from "../../lib/AuthContext";
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useNotifCount }  from "../../lib/AppStateContext";
 import {
   useSessionRestore,
@@ -35,6 +36,13 @@ export default function HomeShell({ children }) {
     isMember,
     refreshProfile,
   } = useAuth();
+
+  // authProfile normalisieren — kommt roh aus Supabase
+  const safeAuthProfile = useMemo(
+    () => authProfile ? createProfileItem(authProfile) : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [authProfile?.id, authProfile?.updated_at]
+  );
 
   const liveNotifCount = useNotifCount();
 

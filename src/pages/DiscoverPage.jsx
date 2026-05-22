@@ -6,6 +6,8 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }             from "../lib/supabaseClient";
 import { createWorkItem, createFeedItem, filterValidFeedItems }
                                from "../lib/factories/createFeedItem.js";
+import { createProfileItem, filterValidProfiles }
+                               from "../lib/factories/createProfileItem.js";
 import { normalizeProfileInput, PROFILE_FIELDS } from "../lib/perfUtils";
 import { useDiscoverData } from "../lib/AppStateContext";
 
@@ -570,10 +572,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
 
       // Talents aus DB → Hero Cards
       if (profilesRes.data?.length > 0) {
-        setTalents(profilesRes.data.map((p, i) => createFeedItem({
-          ...normalizeProfileInput(p),
-          type: "wirker",
-        })).filter(Boolean));
+        setTalents(filterValidProfiles(profilesRes.data));
       }
     } catch (err) {
       // silent — Mocks bleiben

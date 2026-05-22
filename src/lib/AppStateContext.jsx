@@ -178,9 +178,7 @@ export function useDiscoverData({ enabled = true, limit = 16 } = {}) {
     ])
     .then(([profilesRes, worksRes]) => {
       if (cancelled) return;
-      setTalents(filterValidFeedItems((profilesRes.data || []).map(p =>
-        createFeedItem({ ...p, type: 'wirker', name: p.display_name || p.full_name })
-      )));
+      setTalents(filterValidProfiles(profilesRes.data || []));
       setWorks(filterValidFeedItems((worksRes.data || []).map(createWorkItem)));
     })
     .catch(() => {})

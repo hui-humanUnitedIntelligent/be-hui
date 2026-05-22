@@ -1,3 +1,4 @@
+import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // components/wirker-profile/WirkerHero.jsx
 // Cinematic Hero — Screenshot-exact nach Mia Kern Design
 // Public View only — keine Owner-Actions

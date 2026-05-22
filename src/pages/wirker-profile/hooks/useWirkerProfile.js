@@ -11,6 +11,10 @@ import {
   PROFILE_FIELDS,
   normalizeProfileInput,
 } from "../../../lib/perfUtils";
+import { createProfileItem, filterValidProfiles }
+  from "../../../lib/factories/createProfileItem.js";
+import { createWorkItem, createExperienceItem, filterValidFeedItems }
+  from "../../../lib/factories/createFeedItem.js";
 import { getProfileIdentifier } from "../utils/profileGuards";
 
 export function useWirkerProfile(rawWirker) {
@@ -100,22 +104,22 @@ export function useWirkerProfile(rawWirker) {
           ),
         ]);
 
-        setWorks(worksRes?.data  || []);
-        setExps(expsRes?.data    || []);
-        setRecs(recsRes?.data    || []);
+        setWorks(filterValidFeedItems((worksRes?.data  || []).map(createWorkItem)));
+        setExps(filterValidFeedItems((expsRes?.data   || []).map(createExperienceItem)));
+        setRecs(recsRes?.data || []);  // recs haben kein eigenes Schema — passthrough
       }
 
       if (profileData) {
-        setProfile(normalizeProfileInput(profileData));
+        setProfile(createProfileItem(normalizeProfileInput(profileData)));
       } else {
         // Fallback: rawWirker als Profil-Basis
         // Normalisieren damit isProfileReady() greift
-        const fallback = normalizeProfileInput({
+        const fallback = createProfileItem(normalizeProfileInput({
           ...raw,
           id: stableId || raw.id || null,
           user_id: stableId || raw.user_id || null,
           display_name: raw.display_name || raw.name || "HUI Creator",
-        });
+        }));
         setProfile(fallback);
       }
 
@@ -123,11 +127,11 @@ export function useWirkerProfile(rawWirker) {
       console.error("[useWirkerProfile] Fehler:", err);
       setError(err);
       // Kein Crash: rawWirker als Fallback
-      const fallback = normalizeProfileInput({
+      const fallback = createProfileItem(normalizeProfileInput({
         ...rawRef.current,
         id: stableId || null,
         user_id: stableId || null,
-      });
+      }));
       setProfile(fallback);
     } finally {
       setLoading(false);
