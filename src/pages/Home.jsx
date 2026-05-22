@@ -4,6 +4,7 @@
 
 import React, { Suspense, useEffect } from "react";
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
+import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import {
   orbBackdropTokens,
   orbNavDriftTokens,
@@ -245,7 +246,8 @@ function HomeInner() {
           if (key !== "create") return;
           // Basis-User (nicht Mitglied): Membership-Journey starten
           if (!isMember) {
-            setShowMembership(true);
+            // Phase 15.2: only open membership if user is not already a member
+            if (!isMember) setShowMembership(true);
             return;
           }
           // Mitglied: Orb World Layer öffnen
@@ -403,8 +405,14 @@ function HomeInner() {
         {showMembership && SAFE_MODE.membership && (
           <SafeRender flag="membership" label="HuiMembershipFlow">
             <HuiMembershipFlow
-              onClose={() => setShowMembership(false)}
+              onClose={() => {
+                cleanupOrbEnvironment({ reason: "membership-close" });
+                setShowMembership(false);
+              }}
               onComplete={() => {
+                // Phase 15.2: cleanup → close Orb world → close modal
+                cleanupOrbEnvironment({ reason: "membership-complete" });
+                closeOrbWorld("membership-complete");
                 setShowMembership(false);
               }}
             />

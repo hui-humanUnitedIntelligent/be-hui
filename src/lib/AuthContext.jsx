@@ -24,12 +24,26 @@ async function withTimeout(promise, ms = 8000) {
 //   4. ProtectedRoute wartet auf loadingAuth=false bevor redirect
 export function AuthProvider({ children }) {
   const [user,            setUser]            = useState(null);
-  const [profile,         setProfile]         = useState(null);
   const [wirkerProfile,   setWirkerProfile]   = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingAuth,     setLoadingAuth]     = useState(true);
   const [loadingProfile,  setLoadingProfile]  = useState(false);
   const [authChecked,     setAuthChecked]     = useState(false);
+
+  // Phase 15.2: Boot restore — hydrate membership from localStorage
+  // Prevents Orb from showing during the DB load gap on page refresh
+  const [profile, setProfile] = useState(() => {
+    try {
+      const isMem  = localStorage.getItem("hui_is_member") === "1";
+      const mType  = localStorage.getItem("hui_membership_type") || "free";
+      const talent = localStorage.getItem("hui_talent") === "1";
+      // Only hydrate membership flags — full profile comes from DB
+      if (isMem) {
+        return { is_member: true, membership_type: mType, has_talent_profile: talent };
+      }
+    } catch (_) {}
+    return null;
+  });
 
   const profileLoadingRef = useRef(false);
   const authSettledRef    = useRef(false);  // verhindert doppelten Bootstrap
@@ -59,6 +73,8 @@ export function AuthProvider({ children }) {
       if (prof) {
         setProfile(prof);
         if (prof.has_talent_profile) localStorage.setItem("hui_talent", "1");
+        if (prof.is_member) localStorage.setItem("hui_is_member", "1");
+        if (prof.membership_type) localStorage.setItem("hui_membership_type", prof.membership_type);
         if (prof.is_wirker) {
           const { data: wp } = await withTimeout(
             supabase.from("wirker_profiles").select(FIELDS.wirker).eq("user_id", userId).single(), 6000
@@ -306,10 +322,11 @@ export function AuthProvider({ children }) {
       const { data, error } = await withTimeout(
         supabase.from("profiles")
           .update({
-            is_member:    true,
-            role:         "member",
-            member_since: new Date().toISOString(),
-            updated_at:   new Date().toISOString(),
+            is_member:       true,
+            membership_type: "member",   // ← SINGLE SOURCE OF TRUTH
+            role:            "member",
+            member_since:    new Date().toISOString(),
+            updated_at:      new Date().toISOString(),
           })
           .eq("id", user.id)
           .select()
@@ -318,6 +335,9 @@ export function AuthProvider({ children }) {
       if (error) throw error;
       if (data) {
         setProfile(data);
+        // Persist membership in localStorage (boot restore)
+        localStorage.setItem("hui_membership_type", data.membership_type || "member");
+        localStorage.setItem("hui_is_member", "1");
         // Session-Refresh: Supabase-Token-Claims aktualisieren
         await supabase.auth.refreshSession();
       }
@@ -330,7 +350,10 @@ export function AuthProvider({ children }) {
 
     const isWirker         = profile?.has_talent_profile || profile?.is_wirker || false;
   const hasTalentProfile = profile?.has_talent_profile || false;
-  const isMember         = profile?.is_member || false;
+  // Single source of truth: membership_type + is_member (both updated together)
+  const membershipType   = profile?.membership_type || "free";
+  const isMember         = profile?.is_member === true || membershipType === "member" ||
+                           membershipType === "creator" || membershipType === "guide" || false;
   const profileModules   = profile?.profile_modules || {};
 
   // useMemo: verhindert unnötige Re-renders aller Consumer
@@ -339,7 +362,7 @@ export function AuthProvider({ children }) {
     user, profile,
     authProfile: profile,          // Alias: HomeShell + alle Components nutzen authProfile
     wirkerProfile,
-    isAuthenticated, isWirker, hasTalentProfile, isMember, profileModules,
+    isAuthenticated, isWirker, hasTalentProfile, isMember, membershipType, profileModules,
     loadingAuth,
     isLoadingAuth: loadingAuth,    // Alias für components/ProtectedRoute.jsx
     loadingProfile,
@@ -352,7 +375,7 @@ export function AuthProvider({ children }) {
     saveWirkerProfile, activateTalentProfile,
     setProfile, setWirkerProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked]);
+  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked]); // membershipType is derived from profile
 
   return (
     <AuthContext.Provider value={ctxValue}>

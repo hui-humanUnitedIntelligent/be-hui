@@ -15,6 +15,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import GuidanceFooter from "./guidance/GuidanceFooter.jsx";
 import { useGuidance } from "./guidance/GuidanceContext.jsx";
+import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import { useAuth } from "../lib/AuthContext";
 
 // ─── Images ───────────────────────────────────────────────────────────────────
@@ -1017,7 +1018,7 @@ function S8() {
 // MAIN
 // ══════════════════════════════════════════════════════════════════════════════
 // ── Per-step CTA config ──────────────────────────────────────────────────────
-function useStepCta(step, data, loading) {
+function useStepCta(step, data, loading, saveError = null) {
   // Returns { label, disabled, hint } for the current step
   return React.useMemo(() => {
     const configs = {
@@ -1029,7 +1030,7 @@ function useStepCta(step, data, loading) {
       6: { label: "Weiter",                   disabled: false,                hint: null },
       7: { label: loading
               ? "Einen Moment …"
-              : "Zustimmen & Mitglied werden", disabled: !data.agbAll||loading, hint: "Du kannst jederzeit kündigen" },
+              : "Zustimmen & Mitglied werden", disabled: !data.agbAll||loading, hint: saveError || "Du kannst jederzeit kündigen" },
       8: { label: "Zur HUI-Welt",             disabled: false,                hint: "Willkommen in der Gemeinschaft" },
     };
     return configs[step] ?? configs[1];
@@ -1047,29 +1048,57 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
   // ── Register with Guidance System ─────────────────────────────
   useEffect(() => {
     enterFlow("membership");
-    return () => exitFlow();
+    return () => {
+      exitFlow();
+      // Phase 15.2: always cleanup on unmount (covers error boundaries + hard unmounts)
+      cleanupOrbEnvironment({ reason: "membership-unmount" });
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const next = useCallback(() => setStep(s => Math.min(s + 1, 8)), []);
 
+  // Phase 15.2: save → sync → advance. Never close on error.
+  const [saveError, setSaveError] = useState(null);
+
   const handleFinish = useCallback(async () => {
     if (!data.agbAll || loading) return;
+    setSaveError(null);
     setLoading(true);
     try {
-      await activateMembership?.();
-      if (data.focus && activateTalentProfile) activateTalentProfile(data.focus).catch(() => {});
-      refreshProfile?.().catch(() => {});
-    } catch (e) { /* silent */ } finally { setLoading(false); }
-    setStep(8);
+      // 1. Save to DB (single source of truth)
+      const result = await activateMembership?.();
+      if (result?.error) {
+        setSaveError("Speichern fehlgeschlagen. Bitte nochmal versuchen.");
+        return;
+      }
+      // 2. Activate talent profile if focus was selected
+      if (data.focus && activateTalentProfile) {
+        await activateTalentProfile(data.focus).catch(() => {});
+      }
+      // 3. Sync profile from DB
+      await refreshProfile?.().catch(() => {});
+      // 4. Advance to success screen (orb stays open until user presses CTA in S8)
+      setStep(8);
+    } catch (e) {
+      setSaveError("Verbindungsfehler. Bitte nochmal versuchen.");
+      console.warn("[HUI MF] handleFinish error:", e?.message);
+    } finally {
+      setLoading(false);
+    }
   }, [data, loading, activateMembership, activateTalentProfile, refreshProfile]);
 
   // ── CTA config for current step ───────────────────────────────
-  const ctaCfg = useStepCta(step, data, loading);
+  const ctaCfg = useStepCta(step, data, loading, saveError);
 
   function handleCta() {
     if (step === 7) { handleFinish(); return; }
-    if (step === 8) { onComplete?.(); return; }
+    if (step === 8) {
+      // Phase 15.2: cleanup FIRST, then close
+      cleanupOrbEnvironment({ reason: "membership-complete" });
+      onComplete?.();
+      return;
+    }
     next();
   }
 
@@ -1123,7 +1152,10 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
         />
       </div>
 
-      {step <= 6 && <CloseBtn onClose={onClose} />}
+      {step <= 6 && <CloseBtn onClose={() => {
+        cleanupOrbEnvironment({ reason: "user-close" });
+        onClose?.();
+      }} />}
 
       {loading && (
         <div style={{

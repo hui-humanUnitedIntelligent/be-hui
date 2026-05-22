@@ -13,6 +13,7 @@ import {
   FOCUS_MODES, FLOW_DEFAULT_MODE,
   ORB_GUIDANCE_NORMAL, ORB_GUIDANCE_REDUCED,
 } from "./guidanceTokens.js";
+import { cleanupOrbEnvironment } from "../../lib/cleanup/cleanupOrbEnvironment.js";
 import { resolveFocusMode, resolveOrbGuidanceState, focusModeTransitionMs } from
   "../../lib/guidance/focusSystem.js";
 import { detectVisualNoise, computeReadabilityAdjustments } from
@@ -89,6 +90,8 @@ export function GuidanceProvider({ children }) {
     setIsFlowActive(false);
     setFlowType(null);
     setOverride(null);
+    // Phase 15.2: ensure environment is always clean after any flow exits
+    cleanupOrbEnvironment({ reason: "guidance-exitFlow", afterMs: 300 });
   }, []);
 
   const setFocusMode = useCallback((modeId) => {

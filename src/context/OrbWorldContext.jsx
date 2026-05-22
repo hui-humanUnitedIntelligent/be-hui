@@ -28,6 +28,7 @@ import {
   assertValidTab,
   validateOrbState,
 } from "../lib/world/orbLayer.js";
+import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 
 // ─────────────────────────────────────────────────────────────────
 // Context
@@ -107,6 +108,10 @@ export function OrbWorldProvider({ children }) {
 
       return next;
     });
+
+    // Phase 15.2: run environment cleanup AFTER close animation (900ms)
+    // This catches any stray body locks / overlays the orb may have set
+    cleanupOrbEnvironment({ reason, afterMs: 900 });
   }, []);
 
   // ── Derived tokens (memoized) ──────────────────────────────
