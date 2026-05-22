@@ -649,10 +649,14 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
     });
   }, [rawItems]);
 
-  const { atmosphere, sharedAtmosphere, resonanceSpaces, sequence, stats } = curated;
+  const { atmosphere, sharedAtmosphere, resonanceSpaces, worldState, sequence, stats } = curated;
 
   // DEV: uncomment to debug intelligence layers
-  // console.log("[HUI Atm]", sharedAtmosphere?.id, "| Space:", resonanceSpaces?.dominant?.id);
+  // console.log("[HUI World]", worldState?.temperature?.id, "| Space:", resonanceSpaces?.dominant?.id);
+
+  // ── World breath — synchronized motion pacing
+  const worldBreath = worldState?.breath;
+  const feedSurface = worldState?.feed;
 
   // DEV: log curation stats (removed in production by tree-shaking)
   // console.log("[HUI Feed]", stats);
@@ -688,13 +692,17 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
         }}>
           <span className="hf-presence-dot" style={{
             width:6, height:6, borderRadius:"50%",
-            // Presence dot color shifts with dominant space
-            background: resonanceSpaces?.dominant?.id === "night_presence"
+            // Presence dot color shifts with world temperature
+            background: worldState?.temperature?.id === "night_still"
               ? "#6B8AC4"
-              : resonanceSpaces?.dominant?.id === "warm_creation"
+              : worldState?.temperature?.id === "warm_creative"
               ? "#F5A623"
+              : worldState?.temperature?.id === "human_warm"
+              ? "#FF8A6B"
               : "#4ADE80",
             display:"inline-block",
+            // World breath: dot pulses in sync with world rhythm
+            animationDuration: worldBreath?.period || "16s",
           }}/>
           <span>12 jetzt aktiv</span>
         </div>
@@ -750,6 +758,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
                 atmosphere={atmosphere}
                 sharedAtmosphere={sharedAtmosphere}
                 resonanceSpaces={resonanceSpaces}
+                worldState={worldState}
                 itemReactions={reactions[item.id] || {}}
                 onProfile={() => onProfile?.(item)}
                 onReaction={(type) => handleReaction(item.id, type)}
@@ -768,7 +777,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    RHYTHM CARD — routes to the correct visual state
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmCard({ item, state, atmosphere, sharedAtmosphere, resonanceSpaces, itemReactions, onProfile, onReaction, onComment }) {
+function RhythmCard({ item, state, atmosphere, sharedAtmosphere, resonanceSpaces, worldState, itemReactions, onProfile, onReaction, onComment }) {
   const isResonated = itemReactions.resonanz;
 
   return (

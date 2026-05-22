@@ -14,6 +14,10 @@ import {
   useTabKeepAlive,
 } from "../../lib/sessionHooks";
 import { SAFE_MODE } from "../../config/safeMode.js";
+import {
+  computeTransitionCarryOver,
+  mockWorldFromAtmosphere,
+} from "../../lib/intelligence/worldContinuity.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
 const HomeCtx = createContext(null);
@@ -48,6 +52,8 @@ export default function HomeShell({ children }) {
 
   /* Tab */
   const [tab, _setTab]          = useSessionRestore("feed");
+  const [prevTab, setPrevTab]   = React.useState("feed");
+  const [carryOver, setCarryOver] = React.useState(null);
   const { ref: mainScrollRef }  = useScrollMemory(tab);
   useOwnPresence(user?.id);
 
@@ -113,6 +119,9 @@ export default function HomeShell({ children }) {
 
   /* switchTab — schließt alle Overlays + wechselt Tab */
   const switchTab = useCallback((newTab) => {
+    // World continuity: track tab transition for atmospheric carry-over
+    setPrevTab(tab);
+    setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
     setShowWirker(null);
     setShowWerkDetail(null);
     setShowWerkCheckout(null);
@@ -180,6 +189,7 @@ export default function HomeShell({ children }) {
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
     keepFeed, keepDiscover,           keepImpact, keepFavorites,
+    prevTab, carryOver,
     activeMood, setActiveMood,
     liveNotifCount,
     showWirker,            setShowWirker,

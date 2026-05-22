@@ -76,8 +76,13 @@ import {
   registerMockFactories,
 } from "./intelligence/resonanceSpaces.js";
 
-// Register mock factories once (avoids circular import in resonanceSpaces)
+// Register mock factories once
 registerMockFactories(mockActivityFromFeed, mockResonanceFromFeed);
+
+// ── World Continuity integration
+import {
+  buildWorldContinuity,
+} from "./intelligence/worldContinuity.js";
 
 export const TIME_ATMOSPHERES = {
   morning: {           // 05:00–11:59
@@ -389,6 +394,7 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
     sharedAtm       = null,   // pre-built SharedAtmosphere — or built from feed signals
     pastAtmosphere  = null,   // previous SharedAtmosphere for drift blending
     spacesResult    = null,   // pre-built ResonanceSpacesResult — or built from feed
+    worldState      = null,   // pre-built WorldState — or built from all layers
   } = options;
 
   const atmosphere = getTimeAtmosphere(now);
@@ -415,12 +421,21 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
   })();
 
   // ── Step 1c: Build resonance spaces from collective signals
-  // Spaces emerge organically — no user action required.
   const resonanceSpaces = spacesResult || buildResonanceSpaces(
     items,
     collectiveAtm,
     collectiveAtm.feedSignals?.activity || mockActivityFromFeed(items),
-    {},  // relationships: empty in feed context (enriched at call-site if available)
+    {},
+  );
+
+  // ── Step 1d: Build world continuity — the whole organism
+  const world = worldState || buildWorldContinuity(
+    collectiveAtm,          // shared atmosphere
+    resonanceSpaces,        // resonance spaces
+    {},                     // relationships (enriched at call-site)
+    [],                     // identities  (enriched at call-site)
+    {},                     // discover world (separate page, injected externally)
+    collectiveAtm.feedSignals || {},
   );
 
   // ── Step 2: Score resonance → soft-sort (stable, not aggressive)
@@ -506,17 +521,24 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
     const microMoment         = relationMicroMoment || feedMicroMoment;
 
     // ── Enrich item with atmosphere + presence + relationship tokens
+    const worldFeed   = world?.feed || {};
+
     const enrichedItem = {
       ...item,
-      _atmosphere:   atmosphere.id,
-      presenceState: item.presenceState || derivePresenceFromItem(item),
+      _atmosphere:       atmosphere.id,
+      presenceState:     item.presenceState || derivePresenceFromItem(item),
       microMoment,
-      // Relationship atmosphere tokens (zero-cost if no relationship)
-      _warmthBoost:  memory?._warmthBoost  ?? 0,
-      _motionCalm:   memory?._motionCalm   ?? 0,
-      _glowBoost:    memory?._glowBoost    ?? 0,
-      _cardDelay:    memory?._cardDelay    ?? 1.0,
-      _relationship: memory || null,
+      // Relationship tokens
+      _warmthBoost:      memory?._warmthBoost  ?? 0,
+      _motionCalm:       memory?._motionCalm   ?? 0,
+      _glowBoost:        memory?._glowBoost    ?? 0,
+      _cardDelay:        memory?._cardDelay    ?? 1.0,
+      _relationship:     memory || null,
+      // World continuity tokens (additive nudges, max ±8%)
+      _worldTemperature: world?.temperature?.id  || "calm_flowing",
+      _worldWarmthNudge: worldFeed.warmthNudge   ?? 0,
+      _worldGlowScale:   worldFeed.glowScale     ?? 1.0,
+      _worldBreathPeriod:worldFeed.breathPeriod  ?? "16s",
     };
 
     sequence.push({
@@ -545,6 +567,7 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
     atmosphere,
     sharedAtmosphere: collectiveAtm,
     resonanceSpaces,
+    worldState: world,
     sequence: atmosphericSequence,
     quotePool: atmosphere.quotePool,
     stats: {
@@ -554,8 +577,9 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
       avgWeight:        Math.round(avgWeight * 100) / 100,
       sequenceLength:   atmosphericSequence.length,
       atmosphereState:  collectiveAtm?.id  || null,
-      dominantSpace:    resonanceSpaces?.dominant?.id || null,
-      activeSpaceCount: resonanceSpaces?.spaces?.length || 0,
+      dominantSpace:    resonanceSpaces?.dominant?.id  || null,
+      activeSpaceCount: resonanceSpaces?.spaces?.length  || 0,
+      worldTemperature: world?.temperature?.id           || null,
     },
   };
 }

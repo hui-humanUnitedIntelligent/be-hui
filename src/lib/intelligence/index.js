@@ -1,7 +1,12 @@
-// src/lib/intelligence/index.js
-// HUI Intelligence Layer — v5
-// v1: Emotional Identity  v2: +Relationship Memory
-// v3: +Shared Atmosphere  v4: +Resonance Spaces  v5: +Discover World
+// src/lib/intelligence/index.js — HUI Intelligence Platform v6
+// One continuous living world, composed of six interconnected layers.
+//
+// v1: Emotional Identity     — every person has a signature
+// v2: Relationship Memory    — trust grows between people
+// v3: Shared Atmosphere      — the community has weather
+// v4: Resonance Spaces       — the world has rooms
+// v5: Discover World         — the world has geography
+// v6: World Continuity       — the world breathes as one
 
 export {
   buildEmotionalIdentity, identityDrift, attachEmotionalIdentity, quickIdentityFromProfile,
@@ -35,11 +40,24 @@ export {
 
 export {
   buildDiscoverWorld, discoverDrift, assignItemsToDistricts,
-  mockDiscoverWorldFromFeed,
-  pillToDistrict, getDistrictVisual,
+  mockDiscoverWorldFromFeed, pillToDistrict, getDistrictVisual,
   selectDiscoverAmbient, selectPrimaryDistrict, selectWanderingPath,
-  selectWorldWhisper, selectDistrictAccent, selectDiscoverBg,
-  selectDiscoverMotionScale, selectRevealDelay,
-  isEmptyWorld, debugWorldSummary,
-  DISCOVER_DISTRICTS,
+  selectWorldWhisper as selectDiscoverWhisper,
+  selectDistrictAccent, selectDiscoverBg, selectDiscoverMotionScale,
+  selectRevealDelay, isEmptyWorld, debugWorldSummary, DISCOVER_DISTRICTS,
 } from "./discoverWorld.js";
+
+export {
+  // Core engine
+  buildWorldContinuity, worldDrift, buildWorldFromLayers,
+  // Convenience
+  computeTransitionCarryOver, mockWorldFromAtmosphere,
+  // Selectors
+  selectTemperatureId, selectWorldBreath, selectSurface, selectCarryOver,
+  selectWorldWhisper, selectTraces,
+  selectSurfaceMotionScale, selectSurfaceGlowScale,
+  selectWarmthNudge, selectBreathPeriod,
+  isEmptyWorldState, debugWorldState,
+  // Data
+  WORLD_TEMPERATURES, WORLD_SURFACES,
+} from "./worldContinuity.js";
