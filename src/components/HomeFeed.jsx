@@ -9,6 +9,14 @@ import React, {
   useState, useRef, useEffect, useCallback, useMemo,
 } from "react";
 import { SAFE_MODE } from "../config/safeMode.js";
+import {
+  CreatorPresenceHeader,
+  PresencePersonCard,
+  PresenceAvatar,
+  PresenceLabel,
+  derivePresenceState,
+  deriveMicroMoment,
+} from "./CreatorPresence.jsx";
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
 const T = {
@@ -337,7 +345,7 @@ const MOCK_EVENTS = [
 ];
 
 const MOCK_FEED = [
-  { id:"f1", type:"work_upload", rhythmState:"hero",
+  { id:"f1", type:"work_upload", rhythmState:"hero", presenceState:"creating",
     name:"Lena Morgenstern", talent:"Keramik", location:"Rostock",
     avatar:"https://i.pravatar.cc/80?img=47", isVerified:true,
     caption:"Neue Schalen aus dem Brennofen — jede ein Unikat aus lokalem Ton.",
@@ -349,13 +357,13 @@ const MOCK_FEED = [
     resonanz:34, berührt:12, begleitet:7,
     viewers:["https://i.pravatar.cc/32?img=12","https://i.pravatar.cc/32?img=23",
              "https://i.pravatar.cc/32?img=34"], viewerExtra:8, time:"vor 2 Std." },
-  { id:"f2", type:"note", rhythmState:"note",
+  { id:"f2", type:"note", rhythmState:"note", presenceState:"reflecting",
     name:"Marcus Keil", talent:"Musik", location:"München",
     avatar:"https://i.pravatar.cc/80?img=51", isVerified:false,
     caption:"Manchmal entsteht das Schönste, wenn man aufhört, etwas erschaffen zu wollen. Heute im Studio einfach gespielt — keine Erwartung, nur Klang.",
     resonanz:18, berührt:9, begleitet:4,
     viewers:[], viewerExtra:0, time:"vor 3 Std." },
-  { id:"f3", type:"experience", rhythmState:"experience",
+  { id:"f3", type:"experience", rhythmState:"experience", presenceState:"gathering",
     name:"Studio Fink", talent:"Keramik & Ton", location:"München Schwabing",
     avatar:"https://i.pravatar.cc/80?img=44", isVerified:true,
     caption:"Stille Hände, lebendiger Ton — komm in den Kreis.",
@@ -365,7 +373,7 @@ const MOCK_FEED = [
     resonanz:26, berührt:11, begleitet:14,
     viewers:["https://i.pravatar.cc/32?img=20","https://i.pravatar.cc/32?img=21"],
     viewerExtra:5, time:"vor 5 Std." },
-  { id:"f4", type:"work_upload", rhythmState:"resonance",
+  { id:"f4", type:"work_upload", rhythmState:"resonance", presenceState:"resonating",
     name:"Yuki Tanaka", talent:"Illustration", location:"Hamburg",
     avatar:"https://i.pravatar.cc/80?img=45", isVerified:true,
     caption:"Herbst-Serie 2025 — Tinte auf Reispapier.",
@@ -377,11 +385,11 @@ const MOCK_FEED = [
 
 const MOCK_PEOPLE = [
   { id:"p1", name:"Sophie H.", role:"Textil & Druck", location:"Berlin",
-    tags:["Stoff","Natur"], status:"Verfügbar", avatar:"https://i.pravatar.cc/200?img=32" },
+    tags:["Stoff","Natur"], presenceState:"creating", status:"Verfügbar", avatar:"https://i.pravatar.cc/200?img=32" },
   { id:"p2", name:"Tom B.",    role:"Fotografie",      location:"Leipzig",
-    tags:["Analog","Portrait"], status:"Im Atelier",   avatar:"https://i.pravatar.cc/200?img=53" },
+    tags:["Analog","Portrait"], presenceState:"reflecting", status:"Im Atelier",   avatar:"https://i.pravatar.cc/200?img=53" },
   { id:"p3", name:"Elena V.",  role:"Keramik",         location:"Köln",
-    tags:["Ton","Gefäße"], status:"Verfügbar",          avatar:"https://i.pravatar.cc/200?img=41" },
+    tags:["Ton","Gefäße"], presenceState:"resonating", status:"Verfügbar",          avatar:"https://i.pravatar.cc/200?img=41" },
   { id:"p4", name:"Nico F.",   role:"Holzarbeit",      location:"München",
     tags:["Möbel","Handwerk"], status:null,             avatar:"https://i.pravatar.cc/200?img=68" },
 ];
@@ -620,10 +628,14 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
   }, [onLike]);
 
   // Build rhythm sequence — inject quiet spaces organically
+  // Also auto-derive presenceState for items that don't have one
   const rhythmSequence = useMemo(() => {
     const seq = [];
     safeItems.forEach((item, idx) => {
-      seq.push({ kind:"card", item, idx });
+      const enrichedItem = item.presenceState
+        ? item
+        : { ...item, presenceState: derivePresenceState(item) };
+      seq.push({ kind:"card", item: enrichedItem, idx });
       // Insert quiet space after every 3rd card (not at end)
       if ((idx + 1) % 3 === 0 && idx < safeItems.length - 1) {
         seq.push({ kind:"quiet", idx });
@@ -742,11 +754,13 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment }) {
   const creator = useCreator(item);
   const images = item.images || (item.media ? [item.media[0]] : []);
   const hasImages = images.length > 0;
+  const microMoment = useMemo(() => deriveMicroMoment(item, 0), [item.id]);
 
   return (
     <div className="hf-card-base hf-hero">
-      {/* Creator header */}
-      <CreatorHeader item={item} creator={creator} onProfile={onProfile} compact={false} />
+      {/* Creator presence header */}
+      <CreatorPresenceHeader item={item} creator={creator} onProfile={onProfile}
+        compact={false} microMoment={microMoment} />
 
       {/* Full-width hero media */}
       {hasImages && (
@@ -817,6 +831,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 function NoteCard({ item, itemReactions, onProfile, onReaction, onComment }) {
   const creator = useCreator(item);
+  const microMoment = useMemo(() => deriveMicroMoment(item, 1), [item.id]);
 
   return (
     <div className="hf-card-base hf-note" style={{
@@ -828,7 +843,8 @@ function NoteCard({ item, itemReactions, onProfile, onReaction, onComment }) {
         background:`linear-gradient(90deg, transparent, ${T.tealMid}, transparent)`,
       }}/>
 
-      <CreatorHeader item={item} creator={creator} onProfile={onProfile} compact={true} />
+      <CreatorPresenceHeader item={item} creator={creator} onProfile={onProfile}
+        compact={true} microMoment={microMoment} />
 
       {/* Large atmospheric quote text */}
       <div style={{ padding:"4px 18px 14px" }}>
@@ -863,6 +879,7 @@ function NoteCard({ item, itemReactions, onProfile, onReaction, onComment }) {
 function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment }) {
   const creator = useCreator(item);
   const src = item.expImg || item.media?.[0];
+  const microMoment = useMemo(() => deriveMicroMoment(item, 2), [item.id]);
 
   return (
     <div className="hf-card-base hf-experience" style={{
@@ -874,7 +891,8 @@ function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment 
         background:`linear-gradient(90deg, transparent 0%, ${T.coral}55 40%, ${T.teal}44 80%, transparent 100%)`,
       }}/>
 
-      <CreatorHeader item={item} creator={creator} onProfile={onProfile} compact={false} />
+      <CreatorPresenceHeader item={item} creator={creator} onProfile={onProfile}
+        compact={false} microMoment={microMoment} />
 
       {/* Experience block: image + info */}
       {src && (
@@ -933,25 +951,17 @@ function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment }
   return (
     <div className="hf-card-base hf-resonance">
       <div style={{ display:"flex", alignItems:"flex-start", padding:"12px 13px 0", gap:11 }}>
-        {/* Compact avatar */}
+        {/* Compact avatar with presence */}
         <button onClick={onProfile} className="hf-tap" style={{
           background:"none", border:"none", cursor:"pointer", padding:0, flexShrink:0,
         }}>
-          <div style={{
-            width:44, height:44, borderRadius:"50%", overflow:"hidden", flexShrink:0,
-            background:`linear-gradient(135deg, ${T.teal}, ${T.coral})`,
-            boxShadow:`0 0 0 2px rgba(255,255,255,0.90), 0 2px 8px rgba(22,215,197,0.14)`,
-          }}>
-            {creator.avatar
-              ? <img src={creator.avatar} alt={creator.displayName}
-                  style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
-              : <div style={{ width:"100%", height:"100%", display:"flex",
-                  alignItems:"center", justifyContent:"center",
-                  fontSize:17, fontWeight:700, color:"white" }}>
-                  {(creator.displayName||"?")[0].toUpperCase()}
-                </div>
-            }
-          </div>
+          <PresenceAvatar
+            src={creator.avatar}
+            name={creator.displayName}
+            size={44}
+            presenceState={item.presenceState || null}
+            isVerified={creator.isVerified}
+          />
         </button>
 
         {/* Content */}
@@ -971,6 +981,13 @@ function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment }
           <div style={{ fontSize:11.5, color:T.muted, marginBottom:6 }}>
             {creator.talent}{creator.location ? ` · ${creator.location}` : ""}
           </div>
+
+          {/* Presence label */}
+          {item.presenceState && (
+            <div style={{ marginBottom:4 }}>
+              <PresenceLabel presenceState={item.presenceState} />
+            </div>
+          )}
 
           {/* Caption */}
           {item.caption && (
@@ -1308,7 +1325,7 @@ function MenschenSection({ people, onPerson }) {
       </div>
       <div className="hf-scroll-x" style={{ gap:9, paddingLeft:14, paddingRight:14 }}>
         {(people || []).filter(Boolean).map(p => (
-          <PersonCard key={p.id} person={p} onPress={() => onPerson?.(p)} />
+          <PresencePersonCard key={p.id} person={p} onPress={() => onPerson?.(p)} />
         ))}
       </div>
     </div>
