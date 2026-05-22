@@ -1,29 +1,47 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   HUI Design System v1.0 — Global Styles
+   Apple Vision Pro × Headspace × A24 × Nothing Phone
+   Emotional, human, cinematic — kein SaaS, kein Dashboard
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS Custom Properties ─────────────────────────────────────────────────── */
 :root {
-  --teal:      #16D7C5;
-  --teal2:     #11C5B7;
-  --tealPale:  #E6FAF8;
-  --coral:     #FF8A6B;
-  --coral2:    #FF7B72;
-  --coralPale: #FFF2EE;
-  --cream:     #F9F6F2;
-  --creamWarm: #FFF9F4;
-  --card:      #FFFFFF;
-  --ink:       #1A1A1A;
-  --muted:     #888888;
-  --muted2:    #BBBBBB;
-  --gold:      #F59E0B;
-  --green:     #10B981;
+  /* Brand */
+  --hui-teal:     #16D7C5;
+  --hui-teal2:    #0DBFB5;
+  --hui-coral:    #FF8A6B;
+  --hui-gold:     #F5A623;
 
+  /* Dark BG */
+  --hui-bg:       #060A14;
+  --hui-bg2:      #0B1120;
+  --hui-bg3:      #111827;
+
+  /* Light BG */
+  --hui-cream:    #F9F7F4;
+  --hui-warm:     #FEFCFA;
+  --hui-white:    #FFFFFF;
+
+  /* Radius */
+  --hui-r-sm:     12px;
+  --hui-r-md:     16px;
+  --hui-r-lg:     20px;
+  --hui-r-xl:     24px;
+  --hui-r-xxl:    28px;
+  --hui-r-pill:   999px;
+
+  /* Motion */
+  --hui-ease:     cubic-bezier(0.22, 1, 0.36, 1);
+  --hui-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --hui-decel:    cubic-bezier(0, 0, 0.2, 1);
+
+  /* ShadCN compat */
   --background: 36 25% 97%;
   --foreground: 0 0% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 10%;
   --primary: 177 78% 45%;
   --primary-foreground: 0 0% 100%;
   --secondary: 36 20% 95%;
@@ -38,79 +56,125 @@
   --input: 0 0% 93%;
   --ring: 177 78% 45%;
   --radius: 0.75rem;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+/* ── Box Model Reset ───────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
-body {
+/* ── Viewport Fix — Safari / iPad ──────────────────────────────────────────── */
+html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;    /* kein horizontales Scrollen */
+}
+
+html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+/* ── Body ──────────────────────────────────────────────────────────────────── */
+body {
   margin: 0;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-               'Inter', 'Segoe UI', system-ui, sans-serif;
+               'Helvetica Neue', 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #F9F6F2;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--hui-cream);
   color: #1A1A1A;
   overscroll-behavior: none;
+  /* KEIN height:100% — kollidiert mit dvh auf iPad Safari */
+  /* KEIN overflow:hidden — blockiert touch events auf fixed elements */
 }
 
-.hui-scroll::-webkit-scrollbar { display: none; }
-.hui-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+/* ── Scrollbar Hide — global ───────────────────────────────────────────────── */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; }
 
-.hui-card-tap {
-  transition: transform 0.2s cubic-bezier(0.34,1.4,0.64,1);
-}
-.hui-card-tap:active { transform: scale(0.965); }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-@keyframes breathe {
-  0%,100% { transform: scale(1) translateY(0); }
-  50%      { transform: scale(1.04) translateY(-2px); }
-}
-@keyframes heartPop {
-  0%  { transform: scale(1); }
-  40% { transform: scale(1.55); }
-  70% { transform: scale(0.88); }
-  100%{ transform: scale(1); }
-}
-
-
-/* ════════════════════════════════════════════════════════════════
-   HUI Phase 4F — Global Polish System
-   ════════════════════════════════════════════════════════════════ */
-
-/* Skeleton — einheitliche Animation für alle Ladezustände */
-@keyframes huiSkeleton {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-.hui-skeleton {
-  background: linear-gradient(
-    90deg,
-    #F0EDEA 25%,
-    #E8E5E2 50%,
-    #F0EDEA 75%
-  );
-  background-size: 200% 100%;
-  animation: huiSkeleton 1.6s ease-in-out infinite;
-  border-radius: 10px;
-}
-
-/* Tap-Feedback — verhindert 300ms iOS delay */
+/* ── Touch / Tap ───────────────────────────────────────────────────────────── */
 button, a, [role="button"] {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Smooth-Scroll für alle Scroll-Container */
+/* ── Focus ─────────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--hui-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ── dvh Fallback (Safari < 15.4) ─────────────────────────────────────────── */
+@supports not (height: 100dvh) {
+  .hui-full-height { height: 100vh; height: -webkit-fill-available; }
+}
+.hui-full-height { height: 100dvh; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ANIMATION LIBRARY — Alle App-weiten Animationen hier definiert.
+   Namen: ds-* damit keine Konflikte mit Komponenten-Animationen entstehen.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Einblend-Animationen */
+@keyframes ds-fade-in  { from{opacity:0} to{opacity:1} }
+@keyframes ds-fade-up  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes ds-fade-down{ from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes ds-scale-in { from{opacity:0;transform:scale(0.90)} to{opacity:1;transform:scale(1)} }
+@keyframes ds-scale-pop{ from{opacity:0;transform:scale(0.80)} to{opacity:1;transform:scale(1)} }
+
+/* Sheet Animationen */
+@keyframes ds-slide-up { from{opacity:0;transform:translateY(100%)} to{opacity:1;transform:translateY(0)} }
+@keyframes ds-slide-dn { from{opacity:0;transform:translateY(-100%)} to{opacity:1;transform:translateY(0)} }
+@keyframes ds-slide-in-l { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes ds-slide-in-r { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+
+/* Atmosphärische Bewegungen */
+@keyframes ds-float    { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-8px)} }
+@keyframes ds-breathe  { 0%,100%{opacity:.55;transform:scale(1)} 50%{opacity:.90;transform:scale(1.06)} }
+@keyframes ds-pulse    { 0%,100%{opacity:1} 50%{opacity:.5} }
+@keyframes ds-pulse-ring{ 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.18);opacity:0} }
+
+/* Rotationale Bewegungen */
+@keyframes ds-spin-cw  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes ds-spin-ccw { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+
+/* Cinematisch */
+@keyframes ds-ken-burns{ from{transform:scale(1.00) translateY(0px)} to{transform:scale(1.07) translateY(-6px)} }
+@keyframes ds-shimmer  { 0%{background-position:-300% 0} 100%{background-position:300% 0} }
+@keyframes ds-skeleton { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* Legacy Namen — für bestehende Komponenten */
+@keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes slideUp  { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes breathe  { 0%,100%{transform:scale(1) translateY(0)} 50%{transform:scale(1.04) translateY(-2px)} }
+@keyframes spin     { to{transform:rotate(360deg)} }
+@keyframes heartPop { 0%{transform:scale(1)} 40%{transform:scale(1.55)} 70%{transform:scale(0.88)} 100%{transform:scale(1)} }
+@keyframes huiFadeUp{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes huiBreathe{ 0%,100%{transform:scale(1);opacity:.92} 50%{transform:scale(1.03);opacity:1} }
+@keyframes huiSkeleton{0%{background-position:200% 0} 100%{background-position:-200% 0}}
+@keyframes huiPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+@keyframes hui-orb-pulse {
+  0%,100% { box-shadow: 0 4px 20px rgba(22,215,197,0.40), 0 2px 8px rgba(0,0,0,0.12); }
+  50%     { box-shadow: 0 4px 32px rgba(22,215,197,0.65), 0 2px 8px rgba(0,0,0,0.12); }
+}
+@keyframes hf-fade-up { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+@keyframes hf-shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes hf-pulse-ring { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.15);opacity:0} }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES — Design System
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Scroll Container */
 .hui-scroll {
   overflow-y: auto;
   overflow-x: hidden;
@@ -120,82 +184,80 @@ button, a, [role="button"] {
 }
 .hui-scroll::-webkit-scrollbar { display: none; }
 
-/* Breathe Animation (HUI Orb) */
-@keyframes huiBreathe {
-  0%, 100% { transform: scale(1);    opacity: 0.92; }
-  50%       { transform: scale(1.03); opacity: 1; }
+/* Tap Feedback */
+.hui-tap {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 160ms var(--hui-ease), opacity 140ms var(--hui-ease);
+}
+.hui-tap:active { transform: scale(0.968); opacity: 0.88; }
+
+/* Card Tap — etwas subtiler */
+.hui-card-tap {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 180ms var(--hui-ease);
+}
+.hui-card-tap:active { transform: scale(0.97); }
+
+/* Skeleton */
+.hui-skeleton {
+  background: linear-gradient(90deg, #EDEAE7 25%, #E2DFDC 50%, #EDEAE7 75%);
+  background-size: 200% 100%;
+  animation: ds-skeleton 1.6s ease-in-out infinite;
+  border-radius: 10px;
+}
+.hui-skeleton-dark {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: ds-skeleton 1.8s ease-in-out infinite;
 }
 
-/* FadeUp — Feed-Cards, Overlay-Content */
-@keyframes huiFadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Safe Areas */
+.hui-safe-top    { padding-top:    max(20px, env(safe-area-inset-top, 20px)); }
+.hui-safe-bottom { padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
+
+/* Glassmorphism Cards — Light */
+.hui-glass-light {
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.07);
 }
 
-/* Skeleton Pulse (für Avatar-Kreise) */
-@keyframes huiPulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+/* Glassmorphism Cards — Dark */
+.hui-glass-dark {
+  background: rgba(255,255,255,0.065);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.28), 0 4px 20px rgba(0,0,0,0.18),
+              inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
-/* iOS Safe Area — BottomNav */
-.hui-safe-bottom {
-  padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+/* Vignette Overlay */
+.hui-vignette {
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(6,10,20,0.42) 100%);
 }
 
-/* Scrollbar-Hide global */
-* { scrollbar-width: none; -ms-overflow-style: none; }
-*::-webkit-scrollbar { display: none; }
-
-/* Smooth font rendering */
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Teal Glow Border — sparsam */
+.hui-teal-glow {
+  box-shadow: 0 0 0 1px rgba(22,215,197,0.25),
+              0 0 16px rgba(22,215,197,0.22),
+              0 4px 20px rgba(22,215,197,0.12);
 }
 
-/* Focus-Ring — zugänglich aber minimal */
-:focus-visible {
-  outline: 2px solid #16D7C5;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-:focus:not(:focus-visible) { outline: none; }
-
-/* ═══════════════════════════════════════════════════════════════
-   SAFARI / iPAD — VIEWPORT FIX (final, produktionsreif)
-   Keine Debug-Regeln. Keine !important Overrides.
-   ═══════════════════════════════════════════════════════════════ */
-
-/* 1. Overflow-Guard — verhindert horizontales Scrolling auf iPad */
-html,
-body,
-#root {
-  width: 100%;
-  max-width: 100%;      /* nie breiter als Viewport */
-  overflow-x: hidden;   /* kein horizontaler Overflow */
+/* Feed Animation */
+.hui-feed-card {
+  animation: ds-fade-up 0.45s var(--hui-ease) both;
 }
 
-/* 2. Body — kein Margin/Padding-Artefakt, kein height-Konflikt */
-body {
-  margin: 0;
-  padding: 0;
-  /* KEIN height:100% — kollidiert mit dvh auf iPad Safari */
-  /* KEIN overflow:hidden — blockiert pointer-events auf fixed */
-}
-
-/* 3. Text-Inflation verhindern — iOS Safari skaliert sonst Fonts hoch */
-body {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-/* 4. dvh-Fallback für Safari < 15.4 */
-@supports not (height: 100dvh) {
-  .hui-full-height {
-    height: 100vh;
-    height: -webkit-fill-available;
-  }
-}
-.hui-full-height {
-  height: 100dvh;
+/* Story Ring Gradient */
+.hui-story-ring {
+  background: linear-gradient(135deg, var(--hui-teal) 0%, var(--hui-coral) 100%);
 }

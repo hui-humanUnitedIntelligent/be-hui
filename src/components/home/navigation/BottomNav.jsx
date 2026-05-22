@@ -1,14 +1,32 @@
-// BottomNav.jsx v4 — iOS Safari Final Fix
-// KRITISCH: Kein pointerEvents:none am Outer-Div
-// iOS Safari blockiert touch-events auf position:fixed innerhalb pointer-events:none
+/**
+ * BottomNav v5 — HUI Design System
+ *
+ * Glassmorphism Nav Pill — Apple-level
+ * Licht: rgba(255,251,248,0.94) + blur(36px) + saturate(1.8)
+ * Safari-Fix: pointerEvents:none auf Outer, auto auf Pill
+ */
 import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 
-const ORB_PULSE_CSS = `
-  @keyframes hui-orb-pulse {
-    0%,100% { box-shadow: 0 4px 20px rgba(22,215,197,0.45), 0 2px 8px rgba(0,0,0,0.12); }
-    50%      { box-shadow: 0 4px 28px rgba(22,215,197,0.70), 0 2px 8px rgba(0,0,0,0.12); }
+const CSS = `
+  @keyframes bn-orb-pulse {
+    0%,100% { box-shadow:
+      0 0 0 0px rgba(22,215,197,0.00),
+      0 4px 18px rgba(22,215,197,0.38),
+      0 2px 6px rgba(0,0,0,0.14); }
+    50%     { box-shadow:
+      0 0 0 6px rgba(22,215,197,0.08),
+      0 4px 26px rgba(22,215,197,0.60),
+      0 2px 6px rgba(0,0,0,0.14); }
+  }
+  @keyframes bn-orb-idle {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.03); }
+  }
+  .bn-orb-btn {
+    animation: bn-orb-pulse 3.5s ease-in-out infinite,
+               bn-orb-idle  4.0s ease-in-out infinite;
   }
 `;
 
@@ -22,130 +40,111 @@ export default function BottomNav({
   hasTalent   = false,
   msgCount    = 0,
 }) {
-  React.useEffect(() => {
-  }, []);
+  const isHidden = orbActive ?? false;
 
   function handleTabPress(key) {
-    if (typeof onTab === "function") {
-      onTab(key);
-    } else {
-      console.error("[HUI-BN] onTab kein function!", typeof onTab);
-    }
+    if (typeof onTab === "function") onTab(key);
   }
-
-  const isHidden = orbActive ?? false;
 
   return (
     <>
-      <style>{ORB_PULSE_CSS}</style>
+      <style>{CSS}</style>
 
-      {/*
-        SAFARI-FIX: Outer-Div hat pointerEvents:auto (NICHT none)
-        Das "none" am Outer verursachte den Bug auf iOS/iPad Safari.
-        Stattdessen: Der Outer-Div ist transparent für Klicks durch
-        background:transparent + nur der Glasspill-Bereich fängt Events.
-      */}
+      {/* Outer — pointerEvents:none damit Inhalte dahinter klickbar bleiben */}
       <div style={{
-        position:   "fixed",
-        bottom:     0,
-        left:       0,
-        right:      0,
-        zIndex:     9999,            /* Hoch genug über allem */
-        /* KEIN pointerEvents:none — Safari Bug */
-        pointerEvents: "none",       /* Transparent-Bereich drumherum */
-        opacity:    isHidden ? 0 : 1,
-        transform:  isHidden ? "translateY(120%)" : "translateY(0)",
-        transition: "opacity 0.40s cubic-bezier(0.4,0,0.2,1), transform 0.40s cubic-bezier(0.4,0,0.2,1)",
-        /* willChange ENTFERNT: erzeugt GPU-Layer auf Safari/iPad
-           der Layout-Viewport-Recalculation triggert → Scaling-Bug */
+        position: "fixed",
+        bottom: 0, left: 0, right: 0,
+        zIndex: 9999,
+        pointerEvents: "none",
+        opacity:   isHidden ? 0 : 1,
+        transform: isHidden ? "translateY(130%)" : "translateY(0)",
+        transition: "opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)",
       }}>
-        {/* Glasspill — der einzige klickbare Bereich */}
+        {/* Glass Pill — einziger klickbarer Bereich */}
         <div style={{
-          margin:               "0 10px",
-          marginBottom:         "max(12px, env(safe-area-inset-bottom, 12px))",
-          background:           "rgba(255,251,248,0.94)",
-          backdropFilter:       "blur(36px) saturate(1.8)",
-          WebkitBackdropFilter: "blur(36px) saturate(1.8)",
-          borderRadius:         28,
-          border:               "1px solid rgba(255,255,255,0.70)",
-          boxShadow:            "0 2px 4px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.10), 0 1px 0 rgba(255,255,255,0.9) inset",
-          display:              "flex",
-          alignItems:           "center",
-          justifyContent:       "space-between",
-          padding:              "4px 8px",
-          height:               66,
-          /* KRITISCH: auto damit dieser Bereich Touches empfängt */
-          pointerEvents:        "auto",
-          touchAction:          "manipulation",
+          margin:       "0 12px",
+          marginBottom: "max(14px, env(safe-area-inset-bottom, 14px))",
+
+          /* Glas-Optik — warm, matt, hochwertig */
+          background:           "rgba(253,251,248,0.93)",
+          backdropFilter:       "blur(36px) saturate(1.9)",
+          WebkitBackdropFilter: "blur(36px) saturate(1.9)",
+          borderRadius: 28,
+
+          /* Mehrstufige Border + Shadow für Tiefe */
+          border:     "1px solid rgba(255,255,255,0.72)",
+          boxShadow:  [
+            "0 1px 0 rgba(255,255,255,0.95) inset",   /* top highlight */
+            "0 -1px 0 rgba(0,0,0,0.03) inset",        /* bottom inner shadow */
+            "0 2px 6px rgba(0,0,0,0.04)",             /* tight drop */
+            "0 10px 40px rgba(0,0,0,0.10)",           /* soft ambient */
+            "0 1px 2px rgba(0,0,0,0.06)",             /* definition */
+          ].join(", "),
+
+          display:        "flex",
+          alignItems:     "center",
+          justifyContent: "space-between",
+          padding:        "4px 10px",
+          height:         66,
+
+          /* WICHTIG: auto damit Pill Touches empfängt */
+          pointerEvents: "auto",
+          touchAction:   "manipulation",
         }}>
 
-          {NAV_ITEMS.map((item, idx) => {
+          {NAV_ITEMS.map((item) => {
+            const isOrb = item.key === "orb";
 
-            /* Orb-Slot */
-            if (!item) return (
-              <button
-                key="orb"
-                type="button"
-                aria-label="Kreativ werden"
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  onOrbAction?.("create");
-                }}
-                onClick={() => {
-                  onOrbAction?.("create");
-                }}
-                style={{
-                  width:          56,
-                  height:         56,
-                  borderRadius:   "50%",
-                  background:     "linear-gradient(135deg,#16D7C5,#11C5B7)",
-                  border:         "3px solid rgba(255,255,255,0.92)",
-                  boxShadow:      "0 4px 20px rgba(22,215,197,0.48)",
-                  display:        "flex",
-                  alignItems:     "center",
-                  justifyContent: "center",
-                  cursor:         "pointer",
-                  position:       "relative",
-                  flexShrink:     0,
-                  WebkitTapHighlightColor: "transparent",
-                  touchAction:    "manipulation",
-                  pointerEvents:  "auto",
-                  animation:      "hui-orb-pulse 3s ease-in-out infinite",
-                  transform:      isHidden ? "scale(0.88) rotate(45deg)" : "scale(1) rotate(0deg)",
-                  transition:     "transform 0.38s cubic-bezier(0.34,1.3,0.64,1)",
-                  outline:        "none",
-                }}
-              >
-                <img
-                  src="/hui-logo.jpg"
-                  alt="HUI"
-                  style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", pointerEvents:"none" }}
-                  onError={e => { e.target.style.display = "none"; }}
-                />
-                {!isHidden && notifCount > 0 && (
-                  <div style={{
-                    position:"absolute", top:2, right:2,
-                    width:8, height:8, borderRadius:"50%",
-                    background:"linear-gradient(135deg,#FF8A6B,#FF5F5F)",
-                    border:"1.5px solid rgba(255,251,248,0.95)",
-                    pointerEvents:"none",
-                  }}/>
-                )}
-              </button>
-            );
+            if (isOrb) {
+              return (
+                <button
+                  key="orb"
+                  className="bn-orb-btn"
+                  onClick={() => onOrbAction?.("create")}
+                  style={{
+                    width: 52, height: 52,
+                    borderRadius: "50%",
+                    border: "none",
+                    padding: 0, cursor: "pointer",
+                    flexShrink: 0,
+                    overflow: "hidden",
+                    /* Teal → Coral gradient */
+                    background: "linear-gradient(135deg, #16D7C5 0%, #FF8A6B 100%)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    WebkitTapHighlightColor: "transparent",
+                    touchAction: "manipulation",
+                    transition: "transform 0.14s ease",
+                  }}
+                  onPointerDown={e => { e.currentTarget.style.transform = "scale(0.93)"; }}
+                  onPointerUp={e   => { e.currentTarget.style.transform = "scale(1)"; }}
+                  onPointerLeave={e=> { e.currentTarget.style.transform = "scale(1)"; }}
+                >
+                  <img
+                    src="/hui-logo-real.jpg"
+                    alt="HUI"
+                    style={{
+                      width: "100%", height: "100%",
+                      objectFit: "cover", display: "block",
+                      borderRadius: "50%",
+                    }}
+                    onError={e => { e.target.src = "/hui-logo.jpg"; }}
+                  />
+                </button>
+              );
+            }
 
-            /* Standard Tab */
+            const isActive = tab === item.key;
             return (
               <NavItem
                 key={item.key}
                 item={item}
-                isActive={tab === item.key}
-                onPress={handleTabPress}
-                badge={0}
+                active={isActive}
+                badge={item.key === "notifs" ? notifCount : item.key === "chat" ? msgCount : 0}
+                onPress={() => handleTabPress(item.key)}
+                authProfile={authProfile}
               />
             );
           })}
-
         </div>
       </div>
     </>

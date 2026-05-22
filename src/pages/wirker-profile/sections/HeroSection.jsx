@@ -12,12 +12,16 @@ import {
 
 const C = {
   teal:    "#16D7C5",
-  teal2:   "#11C5B7",
+  teal2:   "#0DBFB5",
   coral:   "#FF8A6B",
+  gold:    "#F5A623",
   ink:     "#1A1A1A",
   ink2:    "#3A3A3A",
-  muted:   "#888",
+  muted:   "#888888",
+  muted2:  "#C8C8C8",
   cream:   "#F9F7F4",
+  border:  "rgba(0,0,0,0.07)",
+  shadow:  "0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.08)",
 };
 
 /**
@@ -52,8 +56,8 @@ export function HeroSection({
       {/* ── Hero Image ─────────────────────────────────────────────── */}
       <div style={{
         position: "relative",
-        height: 280,
-        background: `linear-gradient(160deg, ${C.teal}22 0%, ${C.coral}11 100%)`,
+        height: 320,
+        background: `linear-gradient(160deg, rgba(22,215,197,0.15) 0%, rgba(255,138,107,0.08) 100%)`,
         overflow: "hidden",
       }}>
         {heroUrl ? (

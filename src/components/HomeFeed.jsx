@@ -14,7 +14,7 @@ const T = {
   tealGlow:   "rgba(22,215,197,0.18)",
   coral:      "#FF8A6B",
   coralFaint: "rgba(255,138,107,0.10)",
-  bg:         "#FAFAF8",
+  bg:         "#F9F7F4",
   surface:    "#FFFFFF",
   ink:        "#1A1A1A",
   ink2:       "#3A3A3A",
@@ -22,11 +22,11 @@ const T = {
   muted2:     "rgba(26,26,26,0.28)",
   border:     "rgba(0,0,0,0.06)",
   borderSoft: "rgba(0,0,0,0.04)",
-  shadow:     "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06)",
-  shadowHover:"0 2px 8px rgba(0,0,0,0.06), 0 8px 28px rgba(0,0,0,0.10)",
-  radius:     16,
-  radiusLg:   22,
-  radiusSm:   10,
+  shadow:     "0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
+  shadowHover:"0 2px 8px rgba(0,0,0,0.07), 0 10px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.85)",
+  radius:     18,
+  radiusLg:   24,
+  radiusSm:   12,
 };
 
 /* ─── CSS ─────────────────────────────────────────────────────────────── */
