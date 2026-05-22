@@ -24,7 +24,6 @@ export default function HomeHeader({
   const has = !!activeMood;
 
   function handleChat() {
-    console.log("[HOME HEADER CHAT]");
     onChat?.();
   }
 

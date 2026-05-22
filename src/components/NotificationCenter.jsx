@@ -871,9 +871,14 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   const [activeFilter,  setActiveFilter]  = useState("Alle");
   const [activeNotif,   setActiveNotif]   = useState(null);
   const [weeklyEur,     setWeeklyEur]     = useState(8950);
-  // HUI ist Mobile-Only — kein 2-Spalten Notification-Center.
-  // isWide bleibt immer false.
-  const isWide = false;
+  // Desktop >= 1200px: 2-Spalten Layout.
+  // Mobile + Tablet (< 1200px): Mobile-UI.
+  const [isWide, setIsWide] = React.useState(window.innerWidth >= 1200);
+  React.useEffect(() => {
+    const fn = () => setIsWide(window.innerWidth >= 1200);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
 
   // ── Daten laden ───────────────────────────────────────────────────
   useEffect(() => {

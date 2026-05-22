@@ -142,7 +142,7 @@ function StepWhere({ value, onSelect, onNext }) {
               key={c.key}
               type="button"
               className="tf-tap"
-              onClick={() => { console.log("[TEILEN where]", c.key); onSelect(c.key); }}
+              onClick={() => { onSelect(c.key); }}
               style={{
                 textAlign:"left", width:"100%",
                 padding:"22px 22px",

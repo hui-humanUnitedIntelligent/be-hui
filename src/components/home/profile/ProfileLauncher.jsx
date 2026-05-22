@@ -75,7 +75,6 @@ export default function ProfileLauncher() {
   const handleClose  = () => setShowWirker(null);
   const handleAction = (key) => {
     // Erweiterbar: Studio, Edit, etc.
-    console.log("[ProfileLauncher] action:", key);
   };
 
   // ── OWNER VIEW → CreatorProfilePage (statisch, sofort) ──────

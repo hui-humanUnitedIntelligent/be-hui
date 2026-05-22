@@ -1044,9 +1044,14 @@ export default function ChatPage({ onClose }) {
   const { user } = useAuth();
   const { chats: dbChats, loading, markChatRead } = useChatList();
   const [activeChat, setActiveChat] = useState(null);
-  // HUI ist Mobile-Only — kein 2-Spalten Chat auf iPad.
-  // isWide bleibt immer false: Bottom-Sheet, kein Split-View.
-  const isWide = false;
+  // Desktop >= 1200px: 2-Spalten Chat.
+  // Mobile + Tablet (< 1200px): Mobile-UI, kein Split-View.
+  const [isWide, setIsWide] = React.useState(window.innerWidth >= 1200);
+  React.useEffect(() => {
+    const fn = () => setIsWide(window.innerWidth >= 1200);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
 
   // ── Chat-Thread für aktiven Chat ──────────────────────────────────
   const { messages, sendMessage } = useChatThread(activeChat?.id ?? null);

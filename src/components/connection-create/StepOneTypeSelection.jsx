@@ -102,7 +102,6 @@ export default function StepOneTypeSelection({ value, onSelect, onAdvance }) {
               type="button"
               className="s1-card"
               onClick={() => {
-                console.log("[S1 CARD TAP]", t.key);
                 onSelect?.(t.key);
               }}
               style={{
@@ -188,7 +187,6 @@ export default function StepOneTypeSelection({ value, onSelect, onAdvance }) {
           type="button"
           className="s1-next-btn"
           onClick={() => {
-            console.log("[S1 WEITER]", value);
             onAdvance?.();
           }}
           disabled={!hasSelection}

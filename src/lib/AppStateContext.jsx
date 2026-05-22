@@ -26,7 +26,7 @@ export function AppStateProvider({ children }) {
   // ── Navigation / UI State ──────────────────────────────────────
   const [activeTab,    setActiveTab]    = useState("home");
   const [isMobile,     setIsMobile]     = useState(
-    typeof window !== "undefined" ? window.innerWidth < 1024 : true
+    typeof window !== "undefined" ? window.innerWidth < 1200 : true
   );
 
   // Resize listener — useRef um Leak zu verhindern (Stabilisierungsregel)
@@ -35,7 +35,7 @@ export function AppStateProvider({ children }) {
     function onResize() {
       if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
       resizeTimerRef.current = setTimeout(() => {
-        setIsMobile(window.innerWidth < 1024);
+        setIsMobile(window.innerWidth < 1200);
       }, 150);
     }
     window.addEventListener("resize", onResize);

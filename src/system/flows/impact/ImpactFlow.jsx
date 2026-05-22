@@ -97,7 +97,6 @@ export function ImpactHeader({ step, onBack, onClose }) {
 /* ── Weiter CTA (geteilt) ─────────────────────────────────────── */
 export function ImpactNextBtn({ label="Weiter →", onClick, disabled }) {
   const handleClick = () => {
-    console.log("[ImpactNextBtn] click — disabled:", disabled);
     if (!disabled && onClick) onClick();
   };
   return (
@@ -245,7 +244,7 @@ export default function ImpactFlow({ onClose }) {
   );
 
   /* ── Overlay Shell ───────────────────────────────────────────── */
-  const isTablet = false; // HUI mobile-only — immer Bottom-Sheet
+  const isTablet = window.innerWidth >= 1200; // Desktop: zentriertes Sheet
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:9300,

@@ -239,7 +239,7 @@ export default function WorkFlow({ onClose }) {
       WebkitBackdropFilter:"blur(8px)",
       display:"flex", alignItems:"flex-end", justifyContent:"center",
       // iPad: zentriert
-      ...(false && {  // HUI mobile-only: kein Desktop-Sheet
+      ...(window.innerWidth >= 1200 && {  // Desktop: zentriertes Sheet
         alignItems:"center",
       }),
     }}
@@ -248,9 +248,9 @@ export default function WorkFlow({ onClose }) {
       {/* Card-Container */}
       <div style={{
         width:"100%",
-        maxWidth: "100%",  // immer volles Bottom-Sheet
+        maxWidth: window.innerWidth >= 1200 ? 440 : "100%",
         background:WT.card,
-        borderRadius: "28px 28px 0 0",  // immer Bottom-Sheet Radius
+        borderRadius: window.innerWidth >= 1200 ? 28 : "28px 28px 0 0",
         overflow:"hidden",
         maxHeight:"92vh",
         display:"flex", flexDirection:"column",

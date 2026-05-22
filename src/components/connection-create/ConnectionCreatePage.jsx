@@ -302,11 +302,9 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           <StepOneTypeSelection
             value={formData.type}
             onSelect={key => {
-              console.log("[PAGE onSelect]", key);
               setFormData(d => ({ ...d, type: key }));
             }}
             onAdvance={() => {
-              console.log("[PAGE onAdvance] goTo(2)");
               goTo(2);
             }}
           />

@@ -119,7 +119,6 @@ function HomeInner() {
           msgCount={0}
           onNotif={() => setShowNotifs(true)}
           onChat={() => {
-            console.log("[SET SHOW CHAT] true");
             setShowChat(true);
           }}
         />
@@ -207,7 +206,6 @@ function HomeInner() {
       {showConnect && (
         <ConnectionCreatePage
           onClose={() => {
-            console.log("[CONNECTION PAGE CLOSE]");
             setShowConnect(false);
           }}
           onPublish={() => setShowConnect(false)}
@@ -226,7 +224,6 @@ function HomeInner() {
       {showChat && (
         <ChatCenterOverlay
           onClose={() => {
-            console.log("[CHAT OVERLAY CLOSE]");
             setShowChat(false);
           }}
         />
@@ -256,7 +253,6 @@ function HomeInner() {
               // HuiPlusSheet ruft onClose() selbst auf (synchron, vor RAF).
               // onSelect kommt per requestAnimationFrame NACH dem Unmount.
               // Wir setzen hier nur den Ziel-Flow-State.
-              console.log("[HOME onSelect]", type);
               // ── Teilen ──────────────────────────────────────────
               if (type === "teilen" || type === "story" || type === "moment" ||
                   type === "thought") {
