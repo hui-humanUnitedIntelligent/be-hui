@@ -286,7 +286,7 @@ function CostRow({ value, onChange }) {
   return (
     <div>
       <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-        {COST_OPTS.map(o => {
+        {COST_OPTS.filter(o => o && o.key).map(o => {
           const on = value === o.key;
           return (
             <button key={o.key} onClick={() => onChange(o.key)} style={{
@@ -378,7 +378,7 @@ const VIS_OPTS = [
 function VisibilityRow({ value, onChange }) {
   return (
     <div style={{ display:"flex", gap:9, flexWrap:"wrap" }}>
-      {VIS_OPTS.map(v => {
+      {VIS_OPTS.filter(v => v && v.key).map(v => {
         const on = value === v.key;
         return (
           <button key={v.key} onClick={() => onChange(v.key)} style={{
@@ -430,7 +430,7 @@ const OPEN_OPTS = [
 function OpennessRow({ value, onChange }) {
   return (
     <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-      {OPEN_OPTS.map(o => {
+      {OPEN_OPTS.filter(o => o && o.key).map(o => {
         const on = value === o.key;
         return (
           <button key={o.key} onClick={() => onChange(o.key)} style={{

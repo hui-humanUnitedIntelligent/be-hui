@@ -686,7 +686,7 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
         display:"flex", gap:7, overflowX:"auto",
         padding:"10px 16px", flexShrink:0,
       }}>
-        {CATS.map(cat => {
+        {(CATS || []).filter(Boolean).map(cat => {
           const active = activeCategory === cat;
           return (
             <button key={cat} className="cp-pill"
@@ -716,7 +716,7 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
               fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
               AKTIVE GESPRAECHE
             </div>
-            {allActive.map(chat => (
+            {(allActive || []).filter(Boolean).map(chat => (
               <ChatConversationCard
                 key={chat.id}
                 chat={chat}
@@ -737,7 +737,7 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
               </span>
               <span style={{ fontSize:11.5, color:C.teal, fontWeight:700, cursor:"pointer" }}>›</span>
             </div>
-            {bookingChats.map(chat => (
+            {(bookingChats || []).filter(Boolean).map(chat => (
               <ChatConversationCard
                 key={chat.id}
                 chat={chat}
@@ -768,7 +768,7 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
             }}>🔍</div>
             <span style={{ fontSize:10.5, color:C.muted }}>Entdecken</span>
           </div>
-          {connections.map(conn => (
+          {(connections || []).filter(Boolean).map(conn => (
             <div key={conn.id} style={{ display:"flex", flexDirection:"column",
               alignItems:"center", gap:5 }}>
               <img src={conn.img} alt={conn.name}
@@ -935,7 +935,7 @@ function ChatDetailView({ chat, messages, onBack, onSend, isWide }) {
           </span>
         </div>
 
-        {msgList.map((msg, i) => (
+        {(msgList || []).filter(Boolean).map((msg, i) => (
           <MessageBubble
             key={msg.id || i}
             msg={msg}

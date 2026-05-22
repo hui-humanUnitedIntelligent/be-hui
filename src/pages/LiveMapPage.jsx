@@ -375,7 +375,7 @@ function FilterSheet({filter,setFilter,radiusStage,setRadiusStage,
           <div className="lm-scroll"
             style={{display:"flex",gap:6,overflowX:"auto",marginBottom:16,paddingBottom:2}}>
             {FTYPES.map(f=>{
-              const act=filter===f.key;
+              if (!f || !f.key) return null; const act=filter===f.key;
               return(
                 <button key={f.key} data-bubble="1" className="lm-tap"
                   onClick={()=>setFilter(f.key)}
@@ -668,7 +668,7 @@ export default function LiveMapPage({onView,onMatch,onClose,fullscreen}){
             style={{display:"flex",gap:6,overflowX:"auto",
               paddingTop:8,paddingBottom:2}}>
             {FTYPES.map(f=>{
-              const act=filter===f.key;
+              if (!f || !f.key) return null; const act=filter===f.key;
               return(<button key={f.key} data-bubble="1" className="lm-tap"
                 onClick={()=>setFilter(f.key)}
                 style={{padding:"5px 12px",borderRadius:999,flexShrink:0,

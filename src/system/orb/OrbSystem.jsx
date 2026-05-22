@@ -164,7 +164,7 @@ export default function OrbSystem({
           pointerEvents:"none",
         }}>
           {/* Nodes */}
-          {NODES.map((node, i) => {
+          {(NODES || []).filter(node => node && node.key).map((node, i) => {
             // Zentrale Rollenprüfung: canUseOrb(node.key) prüft Rolle aus Rollen-System
         // isTalent-Prop bleibt für backward-compat; canUseOrb ist die neue Wahrheit
         const locked = !node.forAll && !isTalent && !canUseOrb(node.key);

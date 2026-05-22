@@ -156,7 +156,7 @@ export default function ConversationList({ chats, loading, onOpen }) {
           Laden\u2026
         </div>
       ) : (
-        activeConvs.map(c => (
+        (activeConvs || []).filter(c => c && c.id).map(c => (
           <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
         ))
       )}
@@ -165,7 +165,7 @@ export default function ConversationList({ chats, loading, onOpen }) {
       {bookingConvs.length > 0 && (
         <>
           <SectionHead title="Buchungsanfragen" onMore={() => {}}/>
-          {bookingConvs.map(c => (
+          {(bookingConvs || []).filter(c => c && c.id).map(c => (
             <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
           ))}
         </>

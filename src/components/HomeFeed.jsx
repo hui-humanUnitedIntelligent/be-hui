@@ -280,7 +280,7 @@ function StoryLeiste({ stories = MOCK_STORIES, onStory }) {
   return (
     <div style={{ padding: "14px 0 4px 0" }}>
       <div className="hf-scroll-x" style={{ paddingLeft: 16, paddingRight: 16, gap: 14 }}>
-        {stories.map(story => (
+        {(stories || []).filter(Boolean).map(story => (
           <StoryItem key={story.id} story={story} onPress={() => onStory?.(story)} />
         ))}
       </div>
@@ -428,7 +428,7 @@ function HeuteSection({ events = MOCK_EVENTS, onEvent, onMoreEvents }) {
       {/* Event Cards — horizontaler Scroll */}
       <div className="hf-scroll-x" style={{ gap: 10, marginLeft: -16, paddingLeft: 16,
         marginRight: -16, paddingRight: 16 }}>
-        {events.map(ev => (
+        {(events || []).filter(Boolean).map(ev => (
           <EventCard key={ev.id} event={ev} onPress={() => onEvent?.(ev)} />
         ))}
         {/* Neues Event erstellen */}
@@ -547,7 +547,7 @@ function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12,
         paddingLeft: 16, paddingRight: 16 }}>
-        {items.map((item, idx) => (
+        {(items || []).filter(Boolean).map((item, idx) => (
           <div key={item.id} className="hf-card hf-feed-item"
             style={{ animationDelay: `${idx * 0.06}s` }}>
             <FeedItem
@@ -606,7 +606,7 @@ function FeedItem({ item, isLiked, onProfile, onLike, onComment }) {
         <div style={{ paddingLeft: 14, paddingRight: 14, marginBottom: 10 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1.05fr 0.5fr 0.5fr",
             gap: 4, borderRadius: T.radiusSm, overflow: "hidden", height: 130 }}>
-            {item.images.slice(0, 3).map((img, i) => (
+            {(item.images || []).slice(0, 3).map((img, i) => (
               <img key={i} src={img} alt=""
                 loading="lazy"
                 style={{ width: "100%", height: "100%", objectFit: "cover",
@@ -694,7 +694,7 @@ function FeedItem({ item, isLiked, onProfile, onLike, onComment }) {
         {item.viewers && (
           <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
             <div style={{ display: "flex" }}>
-              {item.viewers.slice(0, 4).map((av, i) => (
+              {(item.viewers || []).slice(0, 4).map((av, i) => (
                 <div key={i} style={{
                   width: 22, height: 22, borderRadius: "50%",
                   overflow: "hidden", marginLeft: i === 0 ? 0 : -6,
@@ -738,7 +738,7 @@ function MenschenSection({ people = MOCK_PEOPLE, onPerson }) {
 
       <div className="hf-scroll-x"
         style={{ gap: 10, paddingLeft: 16, paddingRight: 16 }}>
-        {people.map(person => (
+        {(people || []).filter(Boolean).map(person => (
           <PersonCard key={person.id} person={person}
             onPress={() => onPerson?.(person)} />
         ))}
@@ -809,7 +809,7 @@ function PersonCard({ person, onPress }) {
 
         {/* Tags */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
-          {person.tags.slice(0, 2).map(tag => (
+          {(person.tags || []).slice(0, 2).map(tag => (
             <span key={tag} style={{
               fontSize: 9.5, fontWeight: 600, color: T.teal,
               background: T.tealFaint, borderRadius: 99,

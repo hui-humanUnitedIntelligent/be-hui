@@ -35,7 +35,7 @@ function PillSelector({ options, value, onChange, multi=false }) {
   return (
     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
       <style>{CSS}</style>
-      {options.map(o => {
+      {options.filter(o => o && o.key).map(o => {
         const on = isOn(o.key);
         return (
           <button key={o.key} onClick={() => toggle(o.key)} style={{
@@ -120,7 +120,7 @@ export function VisibilitySelector({ value, onChange }) {
   return (
     <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
       <style>{CSS}</style>
-      {VISIBILITY.map(v => {
+      {VISIBILITY.filter(v => v && v.key).map(v => {
         const on = value === v.key;
         return (
           <button key={v.key} onClick={() => onChange(v.key)} style={{
@@ -183,7 +183,7 @@ export function OpennessPicker({ value, onChange }) {
   return (
     <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
       <style>{CSS}</style>
-      {opts.map(o => {
+      {opts.filter(o => o && o.key).map(o => {
         const on = value === o.key;
         return (
           <button key={o.key} onClick={() => onChange(o.key)} style={{

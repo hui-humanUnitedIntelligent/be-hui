@@ -699,7 +699,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                   fontSize:13, color:"#888" }}>
                   Noch kein Kommentar. Sei der Erste.
                 </div>
-              ) : comments.map(c => (
+              ) : (comments || []).filter(c => c && (c.id || c.user_id)).map(c => (
                 <div key={c.id} style={{ display:"flex", gap:10, padding:"10px 14px",
                   borderBottom:`1px solid ${C.border}` }}>
                   <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0,

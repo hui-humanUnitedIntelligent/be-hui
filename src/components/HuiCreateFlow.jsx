@@ -821,7 +821,7 @@ function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
       {/* Type Cards */}
       <div className="hcf2-scroll" style={{ flex:1, padding:"0 18px" }}>
         <div style={{ display:"flex", gap:10, marginBottom:16 }}>
-          {TYPES.map((t, idx) => (
+          {(TYPES || []).filter(t => t && t.key).map((t, idx) => (
             <button
               key={t.key}
               className="hcf2-type-card hcf2-animate"
@@ -992,7 +992,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
             <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
               textTransform:"uppercase", letterSpacing:0.5 }}>Kategorie</div>
             <div className="hcf2-pill-row">
-              {WERK_CATS.map(c => (
+              {(WERK_CATS || []).filter(Boolean).map(c => (
                 <Pill key={c} label={c} selected={cat===c} color={C.teal}
                   onClick={() => setCat(c===cat ? "" : c)}/>
               ))}
@@ -1229,7 +1229,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
             textTransform:"uppercase", letterSpacing:0.5 }}>Kategorie</div>
           <div className="hcf2-pill-row">
-            {ERLE_CATS.map(c => (
+            {(ERLE_CATS || []).filter(Boolean).map(c => (
               <Pill key={c} label={c} selected={cat===c} color={C.purple}
                 onClick={() => setCat(c===cat?"":c)}/>
             ))}
@@ -1450,7 +1450,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
 
         {/* ── Type Cards ── */}
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-          {TYPES.map((t, idx) => (
+          {(TYPES || []).filter(t => t && t.key).map((t, idx) => (
             <button
               key={t.key}
               className="hcf2-tap"

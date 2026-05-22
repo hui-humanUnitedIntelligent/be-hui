@@ -230,7 +230,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
             <select style={select} value={form.category}
               onChange={e => onFormChange({ category: e.target.value })}>
               <option value="">Wählen…</option>
-              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+              {(CATEGORIES || []).filter(Boolean).map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
           <div style={{ flex:1 }}>
@@ -269,7 +269,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
               display:"block", marginBottom:5 }}>Zustand</label>
             <select style={select} value={form.condition}
               onChange={e => onFormChange({ condition: e.target.value })}>
-              {CONDITIONS.map(c => <option key={c}>{c}</option>)}
+              {(CONDITIONS || []).filter(Boolean).map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
         )}

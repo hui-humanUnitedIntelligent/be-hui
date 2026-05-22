@@ -12,6 +12,7 @@
 
 import React from "react";
 import OrbSystem from "../system/orb/OrbSystem.jsx";
+import { withErrorBoundary } from './ErrorBoundary.jsx';
 
 export default function HuiPlusSheet({
   onSelect,
@@ -19,12 +20,18 @@ export default function HuiPlusSheet({
   isTalent  = false,
   isTrusted = false,
 }) {
-  return (
-    <OrbSystem
-      onAction={onSelect}
-      onClose={onClose}
-      isTalent={isTalent}
-      isTrusted={isTrusted}
-    />
-  );
+  // Defensive guard — OrbSystem darf niemals die App crashen
+  try {
+    return (
+      <OrbSystem
+        onAction={onSelect}
+        onClose={onClose}
+        isTalent={isTalent ?? false}
+        isTrusted={isTrusted ?? false}
+      />
+    );
+  } catch (e) {
+    console.error('[HuiPlusSheet] OrbSystem crash:', e);
+    return null;  // Graceful: Orb nicht zeigen statt crashen
+  }
 }

@@ -66,7 +66,7 @@ export default function WirkerSpaces({ spaces }) {
         msOverflowStyle:"none",
       }}
     >
-      {items.map(s => <Bubble key={s.key} space={s}/>)}
+      {(items || []).filter(s => s && s.key).map(s => <Bubble key={s.key} space={s}/>)}
     </div>
   );
 }

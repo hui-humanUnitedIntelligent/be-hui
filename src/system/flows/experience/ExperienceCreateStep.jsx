@@ -188,7 +188,7 @@ export function ExperienceCreateStep({
         <div style={{
           display:"flex", flexWrap:"wrap", gap:6,
         }}>
-          {CATEGORIES.slice(0,8).map(c => (
+          {(CATEGORIES || []).filter(Boolean).slice(0,8).map(c => (
             <button key={c} onClick={() => onFormChange({ category: c })} style={{
               fontSize:11.5, padding:"6px 12px", borderRadius:20,
               border: form.category===c
@@ -200,7 +200,7 @@ export function ExperienceCreateStep({
               transition:"all 0.16s ease",
             }}>{c}</button>
           ))}
-          {CATEGORIES.slice(8).map(c => (
+          {(CATEGORIES || []).filter(Boolean).slice(8).map(c => (
             <button key={c} onClick={() => onFormChange({ category: c })} style={{
               fontSize:11.5, padding:"6px 12px", borderRadius:20,
               border: form.category===c

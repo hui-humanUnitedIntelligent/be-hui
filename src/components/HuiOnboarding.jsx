@@ -475,7 +475,7 @@ function Screen1({ onNext, data, setData }) {
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
-          {choices.map(c => (
+          {(choices || []).filter(c => c && c.key).map(c => (
             <SelectCard
               key={c.key}
               icon={c.icon}

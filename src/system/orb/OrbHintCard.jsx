@@ -48,7 +48,7 @@ export function OrbHintBar({ node, onOpen }) {
         background:`linear-gradient(135deg, ${node.color}, ${node.dark})`,
         border:"none", borderRadius:14, padding:"8px 15px",
         fontSize:13, fontWeight:700, color:"#fff", cursor:"pointer",
-        boxShadow:`0 4px 12px ${node.glow}0.28)`,
+        boxShadow:`0 4px 12px ${node.glow || 'rgba(22,215,197,'}0.28)`,
         marginLeft:4,
         pointerEvents:"auto",
       }}>
@@ -147,7 +147,7 @@ export function OrbDetailCard({ node, isTalent, onAction, onClose }) {
 
         {/* Sub-Items */}
         <div style={{ padding:"12px 20px 0" }}>
-          {node.sub.map((item, i) => (
+          {(node.sub || []).filter(item => item && item.key).map((item, i) => (
             <button key={item.key} className="orb-tap"
               onClick={() => !locked && onAction(item.key)}
               disabled={locked}
@@ -188,7 +188,7 @@ export function OrbDetailCard({ node, isTalent, onAction, onClose }) {
                 width:"100%", height:50, borderRadius:17, border:"none",
                 background:`linear-gradient(135deg,${node.color},${node.dark})`,
                 color:"#fff", fontSize:14.5, fontWeight:800, cursor:"pointer",
-                boxShadow:`0 6px 20px ${node.glow}0.26)`,
+                boxShadow:`0 6px 20px ${node.glow || 'rgba(22,215,197,'}0.26)`,
               }}>{node.ctaLabel} →</button>
           )}
         </div>
@@ -287,7 +287,7 @@ export function OrbImpactDetail({ onAction, onClose }) {
 
         {/* Steps */}
         <div style={{ padding:"12px 22px 0" }}>
-          {IMPACT_STEPS.map((s, i) => (
+          {(IMPACT_STEPS || []).filter(s => s && s.icon).map((s, i) => (
             <div key={i} style={{ display:"flex", gap:11, marginBottom:11 }}>
               <div style={{
                 width:33, height:33, borderRadius:10, flexShrink:0,

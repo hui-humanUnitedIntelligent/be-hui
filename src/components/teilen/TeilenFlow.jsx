@@ -135,7 +135,7 @@ function StepWhere({ value, onSelect, onNext }) {
 
       {/* Cards */}
       <div style={{ width:"100%", maxWidth:480, display:"flex", flexDirection:"column", gap:14 }}>
-        {cards.map((c, i) => {
+        {(cards || []).filter(c => c && c.key).map((c, i) => {
           const on = value === c.key;
           return (
             <button

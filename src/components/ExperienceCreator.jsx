@@ -93,7 +93,7 @@ function S1({ f, set, onNext }) {
           <p style={{margin:"0 0 8px",fontSize:11,fontWeight:700,
             color:T.muted,letterSpacing:.5}}>STIMMUNG</p>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-            {MOODS.map((m,i)=>{
+            {(MOODS || []).filter(Boolean).map((m,i)=>{
               const on=f.mood===m.k;
               return (
                 <div key={m.k} className="ec-tap"
@@ -115,7 +115,7 @@ function S1({ f, set, onNext }) {
         {/* Kategorie */}
         <div className="ec-scroll"
           style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:2}}>
-          {CATEGORIES.map(c=>(
+          {(CATEGORIES || []).filter(Boolean).map(c=>(
             <button key={c} className="ec-tap"
               onClick={()=>set({...f,category:c})}
               style={{flexShrink:0,padding:"8px 14px",borderRadius:999,
@@ -330,7 +330,7 @@ function S4({ f, set, onPublish, onBack, saving, error }) {
       </div>
 
       <div style={{display:"flex",flexDirection:"column",gap:9}}>
-        {BOOKING_MODES.map((m,i)=>{
+        {(BOOKING_MODES || []).filter(Boolean).map((m,i)=>{
           const on=f.bookingMode===m.k;
           return (
             <div key={m.k} className="ec-tap"

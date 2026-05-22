@@ -555,7 +555,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
 
                 {/* Mood-Karten */}
                 <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
-                  {MOODS.map((m, i) => (
+                  {(MOODS || []).filter(Boolean).map((m, i) => (
                     <button key={m.key} className="hmo-tap"
                       onClick={() => handleMoodSelect(m)}
                       style={{ width:"100%", display:"flex", alignItems:"center", gap:16,
@@ -662,7 +662,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                       </div>
                     )}
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                      {results.map((item, i) => (
+                      {(results || []).filter(Boolean).map((item, i) => (
                         <ResultCard key={item.id||i} item={item} idx={i}
                           moodColor={moodColor}
                           onOpen={v => { onView?.(v); onClose(); }}/>
@@ -705,7 +705,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                       </div>
                     </div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                      {surprises.map((item, i) => (
+                      {(surprises || []).filter(Boolean).map((item, i) => (
                         <ResultCard key={item.id||i} item={item} idx={i}
                           moodColor="#F5A623"
                           onOpen={v => { onView?.(v); onClose(); }}/>

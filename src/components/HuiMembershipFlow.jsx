@@ -489,7 +489,7 @@ function S1({ onNext, data, setData }) {
         {sp(24)}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {opts.map((o, i) => (
+          {(opts || []).filter(o => o && o.k).map((o, i) => (
             <div key={o.k} style={{ animation: `hmf4-rise 0.55s ${0.13 + i * 0.06}s ease both` }}>
               <SelectCard icon={o.icon} title={o.t} subtitle={o.s}
                 selected={data.focus === o.k}
