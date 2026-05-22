@@ -4,6 +4,7 @@ import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
+import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -436,10 +437,12 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
         <AppStateProvider>
+      <OrbWorldProvider>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
-          </AppStateProvider>
+          </OrbWorldProvider>
+      </AppStateProvider>
       </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

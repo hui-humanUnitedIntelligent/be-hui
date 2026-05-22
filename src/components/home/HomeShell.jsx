@@ -19,6 +19,8 @@ import {
   mockWorldFromAtmosphere,
 } from "../../lib/intelligence/worldContinuity.js";
 import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
+import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
+import { assertValidTab } from "../../lib/world/orbLayer.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
 const HomeCtx = createContext(null);
@@ -96,6 +98,10 @@ export default function HomeShell({ children }) {
   const [showMap,                setShowMap]               = useState(false);
   const [showMatch,              setShowMatch]             = useState(false);
   const [showMembership,         setShowMembership]        = useState(false);
+  // ── Orb World Layer — replaces showPlusSheet as single source of truth
+  const { openOrbWorld, closeOrbWorld, isOrbOpen, orbState } = useOrbWorld();
+  // Legacy alias — HuiPlusSheet consumers use setShowPlusSheet(false) to close
+  // We keep the state for SafeRender gating ONLY
   const [showPlusSheet,          setShowPlusSheet]         = useState(false);
   const [showCreateFlow,         setShowCreateFlow]        = useState(false);
   const [showConnect,            setShowConnect]           = useState(false);
@@ -120,6 +126,8 @@ export default function HomeShell({ children }) {
 
   /* switchTab — schließt alle Overlays + wechselt Tab */
   const switchTab = useCallback((newTab) => {
+    // GUARD: Orb is a world-layer, never a tab destination
+    if (!assertValidTab(newTab)) return;
     // World continuity: track tab transition for atmospheric carry-over
     setPrevTab(tab);
     setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
@@ -191,6 +199,7 @@ export default function HomeShell({ children }) {
     tab, switchTab, handleTab, mainScrollRef,
     keepFeed, keepDiscover,           keepImpact, keepFavorites,
     prevTab, carryOver,
+    isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
     activeMood, setActiveMood,
     liveNotifCount,
     showWirker,            setShowWirker,

@@ -2,7 +2,13 @@
 // SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
+import { useOrbWorld } from "../context/OrbWorldContext.jsx";
+import {
+  orbBackdropTokens,
+  orbNavDriftTokens,
+  assertValidTab,
+} from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
@@ -90,6 +96,20 @@ function HomeInner() {
     activeStory,       setActiveStory,
   } = useHome();
 
+  // ── Orb World Layer — above navigation ─────────────────────
+  const {
+    openOrbWorld, closeOrbWorld, isOrbOpen, orbState,
+    backdrop: orbBackdrop, navDrift: orbNavDrift,
+  } = useOrbWorld();
+
+  // Debug guard: tab should never be "orb"
+  React.useEffect(() => {
+    if (tab === "orb") {
+      console.warn("[HUI INVALID ORB ROUTE] tab=orb detected. Resetting to feed.");
+      handleTab("feed");
+    }
+  }, [tab, handleTab]);
+
   /* onTab: profile → openOwnProfile direkt, sonst handleTab */
   function onTabPress(key) {
     if (key === "profile") {
@@ -144,6 +164,8 @@ function HomeInner() {
             overflowY:  "auto",
             overflowX:  "hidden",
             /* Kein overflow:hidden am Wrapper */
+            // World softens when Orb opens — atmospheric depth
+            ...(orbBackdrop?.worldContainerStyle ?? {}),
           }}
         >
           <div style={keepFeed}>
@@ -206,7 +228,8 @@ function HomeInner() {
         tab={tab}
         onTab={onTabPress}
         hasTalent={isTalent}
-        orbActive={showPlusSheet}
+        orbActive={isOrbOpen}
+        navDrift={orbNavDrift}
         authProfile={authProfile}
         notifCount={liveNotifCount}
         msgCount={0}
@@ -217,7 +240,13 @@ function HomeInner() {
             setShowMembership(true);
             return;
           }
-          // Mitglied: echter Orb öffnet sich
+          // Mitglied: Orb World Layer öffnen
+          console.log("[HUI ORB] button pressed — opening world layer");
+          openOrbWorld({
+            source:          "orb-button",
+            originTab:       tab,
+            worldTemperature: "calm_flowing",
+          });
           setShowPlusSheet(true);
         }}
       />
@@ -277,7 +306,11 @@ function HomeInner() {
           <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem">
             <HuiPlusSheet
             isTalent={isTalent}
-            onClose={() => setShowPlusSheet(false)}
+            onClose={() => {
+              setShowPlusSheet(false);
+              closeOrbWorld("user-close");
+              console.log("[HUI ORB] closed — world resurfacing");
+            }}
             onSelect={(type) => {
               // TIMING FIX: kein setShowPlusSheet(false) hier —
               // HuiPlusSheet ruft onClose() selbst auf (synchron, vor RAF).

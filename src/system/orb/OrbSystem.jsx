@@ -45,11 +45,8 @@ function polar(angleDeg, r) {
 /* ── Main Component ─────────────────────────────────────────── */
 // ── Debug Log ─────────────────────────────────────────────────
 function useOrbDebugLog(label) {
-  React.useEffect(() => {
-    console.log('[HUI Render Debug]', label, 'mounted');
-    return () => console.log('[HUI Render Debug]', label, 'unmounted');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Phase 14: debug logs now handled by OrbWorldContext
+  void label;
 }
 
 export default function OrbSystem({
@@ -64,8 +61,15 @@ export default function OrbSystem({
   // ── Mount Animation ──────────────────────────────────────────
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), MOUNT_DELAY_MS);
-    return () => clearTimeout(t);
+    console.log("[HUI ORB] overlay mounted — overlay state: open");
+    const t = setTimeout(() => {
+      setMounted(true);
+      console.log("[HUI ORB] overlay fully visible — nodes arriving");
+    }, MOUNT_DELAY_MS);
+    return () => {
+      clearTimeout(t);
+      console.log("[HUI ORB] overlay unmounted — world resurfacing");
+    };
   }, []);
 
   // ── Responsive Viewport ──────────────────────────────────────

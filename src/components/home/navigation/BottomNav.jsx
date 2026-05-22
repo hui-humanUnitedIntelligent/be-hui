@@ -38,11 +38,16 @@ export default function BottomNav({
   onOrbAction,
   notifCount  = 0,
   orbActive   = false,
+  navDrift    = null,    // OrbWorldContext drift tokens (opacity/transform)
   authProfile = null,
   hasTalent   = false,
   msgCount    = 0,
 }) {
-  const isHidden = orbActive ?? false;
+  // orbActive: legacy — still controls hard hide for non-world-layer use cases
+  // navDrift: world-layer drift — soft opacity + translateY (nav stays mounted)
+  const isHidden = (orbActive && !navDrift) ?? false;
+
+  console.log("[HUI NAV] orbActive", orbActive, "navDrift", !!navDrift, "isHidden", isHidden);
 
   function handleTabPress(key) {
     if (typeof onTab === "function") onTab(key);
@@ -58,9 +63,11 @@ export default function BottomNav({
         bottom: 0, left: 0, right: 0,
         zIndex: 9999,
         pointerEvents: "none",
-        opacity:   isHidden ? 0 : 1,
-        transform: isHidden ? "translateY(130%)" : "translateY(0)",
-        transition: "opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)",
+        // World-layer drift: nav softens + drifts down when Orb opens (stays visible)
+        opacity:    navDrift ? navDrift.opacity   : (isHidden ? 0 : 1),
+        transform:  navDrift ? navDrift.transform : (isHidden ? "translateY(130%)" : "translateY(0)"),
+        transition: navDrift ? navDrift.transition
+          : "opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)",
       }}>
         {/* Glass Pill — einziger klickbarer Bereich */}
         <div style={{
@@ -94,7 +101,7 @@ export default function BottomNav({
           touchAction:   "manipulation",
         }}>
 
-          {console.log('[HUI MAP DEBUG] NAV_ITEMS', NAV_ITEMS) || null}
+
           {(NAV_ITEMS || []).map(validateNavItem).filter(Boolean).map((item) => {
             const isOrb = item.isOrb === true;
 
