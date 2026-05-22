@@ -330,6 +330,7 @@ export function AuthProvider({ children }) {
 
     const isWirker         = profile?.has_talent_profile || profile?.is_wirker || false;
   const hasTalentProfile = profile?.has_talent_profile || false;
+  const isMember         = profile?.is_member || false;
   const profileModules   = profile?.profile_modules || {};
 
   // useMemo: verhindert unnötige Re-renders aller Consumer
@@ -338,7 +339,7 @@ export function AuthProvider({ children }) {
     user, profile,
     authProfile: profile,          // Alias: HomeShell + alle Components nutzen authProfile
     wirkerProfile,
-    isAuthenticated, isWirker, hasTalentProfile, profileModules,
+    isAuthenticated, isWirker, hasTalentProfile, isMember, profileModules,
     loadingAuth,
     isLoadingAuth: loadingAuth,    // Alias für components/ProtectedRoute.jsx
     loadingProfile,

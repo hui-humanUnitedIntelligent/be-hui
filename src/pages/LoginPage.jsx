@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import HuiOnboarding from '../components/HuiOnboarding.jsx';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
@@ -556,23 +555,15 @@ export default function LoginPage() {
   );
 
   // ════════════════════════════════════════════════════
-  // ONBOARDING JOURNEY — 8 Screens (HuiOnboarding)
+  // NACH REGISTRIERUNG — direkt zur App
+  // Das Membership-Onboarding startet NICHT hier.
+  // Es wird beim ersten Tippen auf den HUI-Button (Orb)
+  // ausgelöst — für Basis-User als Freischaltungs-Journey.
   // ════════════════════════════════════════════════════
-  if (mode === 'onboarding') return (
-    <HuiOnboarding
-      onComplete={(data) => {
-        // Fokus in Supabase speichern (optional, non-blocking)
-        if (data.focus) {
-          supabase
-            .from('profiles')
-            .update({ onboarding_focus: data.focus, onboarding_done: true })
-            .eq('id', supabase.auth.getUser?.()?.data?.user?.id)
-            .then(() => {});
-        }
-        navigate('/Home', { replace: true });
-      }}
-    />
-  );
+  if (mode === 'onboarding') {
+    navigate('/Home', { replace: true });
+    return null;
+  }
 
   // ════════════════════════════════════════════════════
   // LOGIN / REGISTER / MAGIC / FORGOT — gemeinsames Layout

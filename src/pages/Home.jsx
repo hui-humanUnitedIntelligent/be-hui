@@ -58,6 +58,7 @@ function HomeInner() {
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent,
+    isMember,
     currentUser,
     authProfile,
     setShowWirker,
@@ -190,11 +191,12 @@ function HomeInner() {
         msgCount={0}
         onOrbAction={(key) => {
           if (key !== "create") return;
-          // BasisUser: sanftes Membership-Onboarding statt Creator-Sheet
-          if (!isTalent) {
+          // Basis-User (nicht Mitglied): Membership-Journey starten
+          if (!isMember) {
             setShowMembership(true);
             return;
           }
+          // Mitglied: echter Orb öffnet sich
           setShowPlusSheet(true);
         }}
       />
@@ -321,7 +323,11 @@ function HomeInner() {
         {showMembership && (
           <HuiMembershipFlow
             onClose={() => setShowMembership(false)}
-            onSuccess={() => setShowMembership(false)}
+            onComplete={() => {
+              setShowMembership(false);
+              // Profil neu laden — isMember wird aus DB aktualisiert
+              // AuthContext.refreshProfile() aktualisiert profile.is_member
+            }}
           />
         )}
         {showCreateFlow && (

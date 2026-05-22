@@ -31,6 +31,7 @@ export default function HomeShell({ children }) {
     profile: authProfile,
     isWirker: authIsWirker,
     hasTalentProfile,
+    isMember,
     refreshProfile,
   } = useAuth();
 
@@ -166,7 +167,7 @@ export default function HomeShell({ children }) {
 
   /* Context Value */
   const ctx = {
-    user, authProfile, isTalent,
+    user, authProfile, isTalent, isMember,
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
     keepFeed, keepDiscover,           keepImpact, keepFavorites,
