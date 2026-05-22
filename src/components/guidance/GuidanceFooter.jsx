@@ -83,7 +83,23 @@ export default function GuidanceFooter({
     <>
       <style>{CSS}</style>
       <div style={{
-        ...footerStyle,
+        // GuidanceFooter: position-agnostic — parent controls sticky vs fixed
+        // Only visual styles from footerStyle (background, blur, border, shadow, radius)
+        minHeight:            footerStyle.minHeight,
+        display:              footerStyle.display,
+        alignItems:           footerStyle.alignItems,
+        justifyContent:       footerStyle.justifyContent,
+        padding:              footerStyle.padding,
+        borderRadius:         footerStyle.borderRadius,
+        background:           footerStyle.background,
+        backdropFilter:       footerStyle.backdropFilter,
+        WebkitBackdropFilter: footerStyle.WebkitBackdropFilter,
+        border:               footerStyle.border,
+        boxShadow:            footerStyle.boxShadow,
+        isolation:            footerStyle.isolation,
+        contain:              footerStyle.contain,
+        width:                "100%",
+        boxSizing:            "border-box",
         animation: `guidanceReveal ${G_MOTION.reveal} ${animDelay} cubic-bezier(0.22,1,0.36,1) both`,
         flexDirection:"column",
         gap:12,

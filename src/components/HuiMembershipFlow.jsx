@@ -471,7 +471,7 @@ const sp = h => <div style={{ height: h }} />;
 // Vollbild-Hände+Pflanze. Gradient von unten. Content im unteren Drittel.
 // KEINE leere Fläche oben — das Bild FÜHRT die Komposition.
 // ══════════════════════════════════════════════════════════════════════════════
-function S1({ onNext, data, setData }) {
+function S1({ data, setData }) {
   const opts = [
     { k: "works",       icon: "🎨", t: "Ich bringe Werke in die Welt",  s: "Gemälde, Musik, Fotos, Objekte …" },
     { k: "experiences", icon: "✨", t: "Ich begleite Menschen",          s: "Kurse, Events, Sessions, Reisen …" },
@@ -484,7 +484,7 @@ function S1({ onNext, data, setData }) {
       <div style={{ flex: 1, minHeight: "32%" }} />
 
       {/* Content — schwebt im unteren Bereich des Bildes */}
-      <div style={{ padding: "0 24px max(44px, env(safe-area-inset-bottom, 44px))" }}>
+      <div style={{ padding: "0 24px 160px" }}>
 
         <StepHeader step={1} total={7} label="Dein Fokus" />
         <ProgressBar step={1} total={7} />
@@ -516,10 +516,7 @@ function S1({ onNext, data, setData }) {
         </div>
         {sp(22)}
 
-        <div style={{ animation: "hmf4-rise 0.55s 0.32s ease both" }}>
-          <Btn onClick={onNext} disabled={!data.focus}>Weiter →</Btn>
-        </div>
-        <div style={{ height: 8 }} />
+        {/* CTA rendered by global GuidanceFooter in root — see HuiMembershipFlow */}
       </div>
     </Scene>
   );
@@ -531,11 +528,11 @@ function S1({ onNext, data, setData }) {
 // Atelier-Stimmung fullscreen. Künstlerin dominant oben.
 // Text + Button schweben über Gradient.
 // ══════════════════════════════════════════════════════════════════════════════
-function S2({ onNext }) {
+function S2() {
   return (
     <Scene src={IMG.s2} gradientStart="48%">
       <div style={{ flex: 1, minHeight: "40%" }} />
-      <div style={{ padding: "0 24px max(44px, env(safe-area-inset-bottom, 44px))" }}>
+      <div style={{ padding: "0 24px 160px" }}>
 
         <StepHeader step={2} total={7} label="Dein Talent" accent={T.gold} />
         <ProgressBar step={2} total={7} />
@@ -558,7 +555,7 @@ function S2({ onNext }) {
         {sp(32)}
 
         <div style={{ animation: "hmf4-rise 0.55s 0.15s ease both" }}>
-          <Btn onClick={onNext}>Weiter →</Btn>
+{/* CTA → GuidanceFooter */}
         </div>
       </div>
     </Scene>
@@ -571,11 +568,11 @@ function S2({ onNext }) {
 // Menschen in goldener Stunde. Offen und warm.
 // Glassmorphism-Panel für die Community-Facts.
 // ══════════════════════════════════════════════════════════════════════════════
-function S3({ onNext }) {
+function S3() {
   return (
     <Scene src={IMG.s3} gradientStart="50%">
       <div style={{ flex: 1, minHeight: "35%" }} />
-      <div style={{ padding: "0 24px max(44px, env(safe-area-inset-bottom, 44px))" }}>
+      <div style={{ padding: "0 24px 160px" }}>
 
         <StepHeader step={3} total={7} label="Gemeinschaft" />
         <ProgressBar step={3} total={7} />
@@ -621,7 +618,7 @@ function S3({ onNext }) {
           ))}
         </div>
 
-        <Btn onClick={onNext}>Weiter →</Btn>
+{/* CTA → GuidanceFooter */}
       </div>
     </Scene>
   );
@@ -632,11 +629,11 @@ function S3({ onNext }) {
 // SCREEN 4 — GEMEINSAM ENTSTEHT ETWAS GRÖSSERES
 // Epischer Sonnenaufgang. Coral-Energie. Feature-Punkte.
 // ══════════════════════════════════════════════════════════════════════════════
-function S4({ onNext }) {
+function S4() {
   return (
     <Scene src={IMG.s4} gradientStart="45%">
       <div style={{ flex: 1, minHeight: "38%" }} />
-      <div style={{ padding: "0 24px max(44px, env(safe-area-inset-bottom, 44px))" }}>
+      <div style={{ padding: "0 24px 160px" }}>
 
         <StepHeader step={4} total={7} label="Deine Wirkung" accent={T.coral} />
         <ProgressBar step={4} total={7} />
@@ -655,7 +652,7 @@ function S4({ onNext }) {
           <Feature icon="✦"  text="Bewirke gemeinsam Großes"              accent="rgba(245,166,35," delay={240} />
         </div>
 
-        <Btn onClick={onNext} variant="coral">Los geht's →</Btn>
+{/* CTA → GuidanceFooter */}
       </div>
     </Scene>
   );
@@ -667,11 +664,11 @@ function S4({ onNext }) {
 // Dark atmospheric — Partikel, meditativ.
 // Großes Headline-zentriertes Layout.
 // ══════════════════════════════════════════════════════════════════════════════
-function S5({ onNext }) {
+function S5() {
   return (
     <DarkScene bgSrc={IMG.s5} opacity={0.40}>
       <div style={{
-        padding: "max(62px, env(safe-area-inset-top, 62px)) 24px max(44px, env(safe-area-inset-bottom, 44px))",
+        padding: "max(62px, env(safe-area-inset-top, 62px)) 24px 160px",
       }}>
         {/* Logo oben — subtil */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
@@ -710,7 +707,7 @@ function S5({ onNext }) {
           background: "linear-gradient(90deg, transparent, rgba(22,215,197,0.32), transparent)",
         }} />
 
-        <Btn onClick={onNext}>Weiter →</Btn>
+{/* CTA → GuidanceFooter */}
       </div>
     </DarkScene>
   );
@@ -721,11 +718,11 @@ function S5({ onNext }) {
 // SCREEN 6 — GESCHÜTZTER RAUM
 // Clean, minimalistisch, Vertrauen. Glas-Ästhetik.
 // ══════════════════════════════════════════════════════════════════════════════
-function S6({ onNext }) {
+function S6() {
   return (
     <DarkScene bgSrc={IMG.s6} opacity={0.28}>
       <div style={{
-        padding: "max(62px, env(safe-area-inset-top, 62px)) 24px max(44px, env(safe-area-inset-bottom, 44px))",
+        padding: "max(62px, env(safe-area-inset-top, 62px)) 24px 160px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
           <HuiLogo size={36} />
@@ -777,7 +774,7 @@ function S6({ onNext }) {
           </div>
         </div>
 
-        <Btn onClick={onNext}>Weiter →</Btn>
+{/* CTA → GuidanceFooter */}
       </div>
     </DarkScene>
   );
@@ -789,13 +786,13 @@ function S6({ onNext }) {
 // Apple Pay Level. Zeremoniell. Hoch.
 // Logo prominent. Emotionale Checkbox.
 // ══════════════════════════════════════════════════════════════════════════════
-function S7({ onNext, data, setData, loading }) {
+function S7({ data, setData, loading }) {
   const agreed = data.agbAll;
 
   return (
     <DarkScene bgSrc={IMG.s7} opacity={0.20}>
       <div style={{
-        padding: "max(62px, env(safe-area-inset-top, 62px)) 24px max(44px, env(safe-area-inset-bottom, 44px))",
+        padding: "max(62px, env(safe-area-inset-top, 62px)) 24px 160px",
       }}>
         {/* Logo + Progress */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 32 }}>
@@ -871,11 +868,7 @@ function S7({ onNext, data, setData, loading }) {
           </div>
         </button>
 
-        <div style={{ animation: "hmf4-rise 0.6s 0.21s ease both" }}>
-          <Btn onClick={onNext} disabled={!agreed || loading}>
-            {loading ? "Einen Moment …" : "Zustimmen & Mitglied werden"}
-          </Btn>
-        </div>
+{/* CTA → GuidanceFooter */}
 
         {agreed && (
           <p style={{
@@ -895,7 +888,7 @@ function S7({ onNext, data, setData, loading }) {
 // Kosmischer Orb fullscreen. Großer Reveal. Das Ziel der ganzen Reise.
 // Phasen-Animation: 3 Stufen.
 // ══════════════════════════════════════════════════════════════════════════════
-function S8({ onDone }) {
+function S8() {
   const [ph, setPh] = useState(0);
   useEffect(() => {
     const t1 = setTimeout(() => setPh(1), 150);
@@ -929,7 +922,7 @@ function S8({ onDone }) {
       {/* Content — bottom anchored */}
       <div style={{
         position: "absolute", bottom: 0, left: 0, right: 0,
-        padding: "0 28px max(56px, env(safe-area-inset-bottom, 56px))",
+        padding: "0 28px 160px",
         textAlign: "center", zIndex: 2,
       }}>
         {/* ORB — Das Herz des Finales */}
@@ -1003,13 +996,7 @@ function S8({ onDone }) {
         </div>
 
         {/* CTA — Phase 3 */}
-        <div style={{
-          opacity: ph >= 3 ? 1 : 0,
-          transform: ph >= 3 ? "translateY(0)" : "translateY(10px)",
-          transition: "all 0.55s ease",
-        }}>
-          <Btn onClick={onDone}>Los geht's →</Btn>
-        </div>
+        {/* CTA → GuidanceFooter */}
 
         {/* Shimmer */}
         <div style={{
@@ -1029,12 +1016,40 @@ function S8({ onDone }) {
 // ══════════════════════════════════════════════════════════════════════════════
 // MAIN
 // ══════════════════════════════════════════════════════════════════════════════
+// ── Per-step CTA config ──────────────────────────────────────────────────────
+function useStepCta(step, data, loading) {
+  // Returns { label, disabled, hint } for the current step
+  return React.useMemo(() => {
+    const configs = {
+      1: { label: "Weiter",                   disabled: !data.focus,          hint: "Du kannst deinen Weg jederzeit anpassen" },
+      2: { label: "Weiter",                   disabled: false,                hint: null },
+      3: { label: "Weiter",                   disabled: false,                hint: null },
+      4: { label: "Los geht's",               disabled: false,                hint: null },
+      5: { label: "Weiter",                   disabled: false,                hint: null },
+      6: { label: "Weiter",                   disabled: false,                hint: null },
+      7: { label: loading
+              ? "Einen Moment …"
+              : "Zustimmen & Mitglied werden", disabled: !data.agbAll||loading, hint: "Du kannst jederzeit kündigen" },
+      8: { label: "Zur HUI-Welt",             disabled: false,                hint: "Willkommen in der Gemeinschaft" },
+    };
+    return configs[step] ?? configs[1];
+  }, [step, data.focus, data.agbAll, loading]);
+}
+
 export default function HuiMembershipFlow({ onComplete, onClose }) {
   const { activateMembership, refreshProfile, activateTalentProfile } = useAuth();
+  const { enterFlow, exitFlow } = useGuidance();
 
   const [step,    setStep]    = useState(1);
   const [loading, setLoading] = useState(false);
   const [data,    setData]    = useState({ focus: null, agbAll: false });
+
+  // ── Register with Guidance System ─────────────────────────────
+  useEffect(() => {
+    enterFlow("membership");
+    return () => exitFlow();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const next = useCallback(() => setStep(s => Math.min(s + 1, 8)), []);
 
@@ -1049,12 +1064,22 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     setStep(8);
   }, [data, loading, activateMembership, activateTalentProfile, refreshProfile]);
 
+  // ── CTA config for current step ───────────────────────────────
+  const ctaCfg = useStepCta(step, data, loading);
+
+  function handleCta() {
+    if (step === 7) { handleFinish(); return; }
+    if (step === 8) { onComplete?.(); return; }
+    next();
+  }
+
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 9800,
       background: T.bg, overflow: "hidden",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
       WebkitFontSmoothing: "antialiased",
+      display: "flex", flexDirection: "column",
     }}>
       <style>{CSS}</style>
 
@@ -1063,14 +1088,40 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
         {Object.values(IMG||{}).map((s, i) => s ? <img key={i} src={s} alt="" loading="eager" /> : null)}
       </div>
 
-      {step === 1 && <S1 onNext={next} data={data} setData={setData} />}
-      {step === 2 && <S2 onNext={next} />}
-      {step === 3 && <S3 onNext={next} />}
-      {step === 4 && <S4 onNext={next} />}
-      {step === 5 && <S5 onNext={next} />}
-      {step === 6 && <S6 onNext={next} />}
-      {step === 7 && <S7 onNext={handleFinish} data={data} setData={setData} loading={loading} />}
-      {step === 8 && <S8 onDone={() => onComplete?.()} />}
+      {/* ── Step content — fills flex space ──────────────────── */}
+      <div style={{ flex:1, position:"relative", overflow:"hidden" }}>
+        {step === 1 && <S1 data={data} setData={setData} />}
+        {step === 2 && <S2 />}
+        {step === 3 && <S3 />}
+        {step === 4 && <S4 />}
+        {step === 5 && <S5 />}
+        {step === 6 && <S6 />}
+        {step === 7 && <S7 data={data} setData={setData} loading={loading} />}
+        {step === 8 && <S8 />}
+      </div>
+
+      {/* ── Global GuidanceFooter — ONE footer for entire flow ── */}
+      {/* Position: fixed — always above everything, safe-area aware */}
+      <div style={{
+        position:      "fixed",
+        bottom:        "calc(env(safe-area-inset-bottom, 0px) + 18px)",
+        left:          18,
+        right:         18,
+        zIndex:        9810,   // above content (9800) — below nothing in this flow
+        isolation:     "isolate",
+        contain:       "layout paint",
+        // Reveal animation
+        animation:     "hmf4-rise 0.52s cubic-bezier(0.22,1,0.36,1) both",
+      }}>
+        <GuidanceFooter
+          cta={ctaCfg.label}
+          onCta={handleCta}
+          disabled={ctaCfg.disabled}
+          loading={loading && step === 7}
+          hint={ctaCfg.hint}
+          secondary={step <= 6 && step > 1 ? { label: "Zurück", onClick: () => setStep(s => Math.max(s-1,1)) } : null}
+        />
+      </div>
 
       {step <= 6 && <CloseBtn onClose={onClose} />}
 

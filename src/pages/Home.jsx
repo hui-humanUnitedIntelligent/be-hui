@@ -224,12 +224,20 @@ function HomeInner() {
           KRITISCH für iOS Safari: position:fixed Elements müssen
           außerhalb von overflow:hidden Parents stehen damit
           pointer-events korrekt funktionieren                      */}
+      {/* BottomNav: hidden during membership + all fullscreen flows
+          NEVER unmounted — just opacity:0 + translateY(120%) */}
       <BottomNav
         tab={tab}
         onTab={onTabPress}
         hasTalent={isTalent}
-        orbActive={isOrbOpen}
-        navDrift={orbNavDrift}
+        orbActive={isOrbOpen || showMembership || showTalentFlow}
+        navDrift={
+          (showMembership || showTalentFlow)
+            ? { opacity: 0, transform: "translateY(120%)",
+                transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
+                pointerEvents: "none" }
+            : orbNavDrift
+        }
         authProfile={authProfile}
         notifCount={liveNotifCount}
         msgCount={0}
