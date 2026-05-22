@@ -244,17 +244,40 @@ function HomeInner() {
         msgCount={0}
         onOrbAction={(key) => {
           if (key !== "create") return;
-          // Basis-User (nicht Mitglied): Membership-Journey starten
+
+          // Phase 15.3: Safe Opening Pipeline
+          // RULE: overlay activation ONLY after content validation
+          // RULE: never openOrbWorld() before canRenderOrbContent check
+
+          const canRenderOrbContent = SAFE_MODE.orb;
+
+          console.log("[HUI ORB] tap", {
+            membershipType: isMember ? "member+" : "basis",
+            canRenderOrbContent,
+            isMember,
+            isTalent,
+          });
+
+          // Basis-User: Membership-Journey (no blur needed)
           if (!isMember) {
-            // Phase 15.2: only open membership if user is not already a member
-            if (!isMember) setShowMembership(true);
+            console.log("[HUI ORB] → membership flow");
+            setShowMembership(true);
             return;
           }
-          // Mitglied: Orb World Layer öffnen
-          console.log("[HUI ORB] button pressed — opening world layer");
+
+          // Member+: validate content renderable BEFORE activating any overlay
+          if (!canRenderOrbContent) {
+            // Ghost-State-Guard: SAFE_MODE.orb disabled
+            // Do NOT open overlay — do NOT activate blur
+            console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE, skip open");
+            return;
+          }
+
+          // Validated: open world layer + mount orb content atomically
+          console.log("[HUI ORB] → opening orb world (member)");
           openOrbWorld({
-            source:          "orb-button",
-            originTab:       tab,
+            source:           "orb-button",
+            originTab:        tab,
             worldTemperature: "calm_flowing",
           });
           setShowPlusSheet(true);

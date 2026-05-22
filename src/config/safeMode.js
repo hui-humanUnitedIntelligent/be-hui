@@ -29,9 +29,9 @@ export const SAFE_MODE = {
   onboarding:    true,
 
   // Cinematic Layer — isoliert deaktivierbar
-  orb:           false,
-  particles:     false,
-  ambient:       false,
+  orb:           true,    // Phase 15.3: FIXED — was false → Ghost State
+  particles:     true,    // Phase 15.3: re-enabled (orb depends on this)
+  ambient:       true,    // Phase 15.3: re-enabled (orb atmosphere)
   motion:        false,
 
   // Overlay-Systeme — bei Bedarf isolierbar

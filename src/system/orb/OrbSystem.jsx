@@ -35,6 +35,7 @@ import {
   Z, T, NODES, NODE_SIZE, ORBIT_RATIO, ORB_MIN, ORB_MAX, MOUNT_DELAY_MS,
 } from "./OrbConfig.js";
 import { SAFE_MODE } from "../../config/safeMode.js";
+import MemberOrbHome from "./MemberOrbHome.jsx";
 
 /* ── polar(): Winkel + Radius → px-Offset vom Zentrum ───────── */
 function polar(angleDeg, r) {
@@ -58,6 +59,14 @@ export default function OrbSystem({
 }) {
   // canUseOrb(nodeKey) prüft Rollen zentral — ersetzt verteilte isTalent-Checks
   const { canUseOrb, role } = useUserRole();
+
+  // Phase 15.3: resolve membershipType for routing
+  // basis → orb shows member-home (but blocked before mount in Home.jsx)
+  // member/creator/guide → show OrbSystem nodes
+  const membershipType = role === "talent"      ? "creator"
+    : role === "guardian" || role === "moderator" ? "guide"
+    : role === "member"                           ? "member"
+    : "basis";
   // ── Mount Animation ──────────────────────────────────────────
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -114,6 +123,18 @@ export default function OrbSystem({
   // ── Stage-Größe ─────────────────────────────────────────────
   const stageW = Math.min(orbR * 2 + 180, vw - 32); // Safari: nie breiter als Viewport
   const stageH = orbR * 2 + 200;
+
+  // Phase 15.3: Debug log — Aufgabe 7
+  // Temporär: Ghost-State sofort sichtbar im Console
+  React.useEffect(() => {
+    console.log("[HUI ORB]", {
+      membershipType,
+      resolvedRoute:   membershipType === "basis" ? "membership" : "orb-nodes",
+      contentMounted:  mounted,
+      overlayActive:   true,  // always true when OrbSystem is in DOM
+      canRenderContent: true, // OrbSystem IS the content — if mounted, it renders
+    });
+  }, [mounted, membershipType]);
 
   return (
     <>
