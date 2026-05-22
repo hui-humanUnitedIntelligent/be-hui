@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import HuiOnboarding from '../components/HuiOnboarding.jsx';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
@@ -555,55 +556,22 @@ export default function LoginPage() {
   );
 
   // ════════════════════════════════════════════════════
-  // ONBOARDING LIGHT (nach Registrierung)
+  // ONBOARDING JOURNEY — 8 Screens (HuiOnboarding)
   // ════════════════════════════════════════════════════
   if (mode === 'onboarding') return (
-    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      padding: '0 24px' }}>
-      <AtmosphericBackground imgIdx={bgIdx} />
-      <div style={{ ...cardStyle, ...fadeStyle, textAlign: 'center' }}>
-        <HuiLogo size={56} />
-        <div style={{ marginTop: 24, fontWeight: 900, fontSize: 26, color: T.white,
-          letterSpacing: -0.8, lineHeight: 1.2, marginBottom: 8 }}>
-          Schön, dass du da bist.
-        </div>
-        <div style={{ fontSize: 15, color: T.muted, lineHeight: 1.65, marginBottom: 32 }}>
-          Was suchst du gerade?
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
-          {[
-            { key: 'collab',   label: 'Kreative Zusammenarbeit' },
-            { key: 'local',    label: 'Lokale Resonanz' },
-            { key: 'spaces',   label: 'Ruhige kreative Räume' },
-            { key: 'impulse',  label: 'Neue kreative Impulse' },
-          ].map(opt => (
-            <button key={opt.key} type="button"
-              onClick={() => { setIntent(opt.key); setTimeout(() => navigate('/Home', {replace:true}), 300); }}
-              style={{
-                padding: '14px 20px',
-                background: intent === opt.key ? 'rgba(22,215,197,0.18)' : T.glass,
-                border: `1.5px solid ${intent === opt.key ? T.glassFocus : T.glassBorder}`,
-                borderRadius: 14,
-                color: T.white, fontSize: 15, fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
-                transition: 'background 200ms ease, border-color 200ms ease',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-              onMouseEnter={e => { if (intent !== opt.key) e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
-              onMouseLeave={e => { if (intent !== opt.key) e.currentTarget.style.background = T.glass; }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        <button type="button" onClick={() => navigate('/Home', {replace:true})}
-          style={{ background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 13, color: T.muted, fontFamily: 'inherit' }}>
-          Überspringen — ich erkunde selbst
-        </button>
-      </div>
-    </div>
+    <HuiOnboarding
+      onComplete={(data) => {
+        // Fokus in Supabase speichern (optional, non-blocking)
+        if (data.focus) {
+          supabase
+            .from('profiles')
+            .update({ onboarding_focus: data.focus, onboarding_done: true })
+            .eq('id', supabase.auth.getUser?.()?.data?.user?.id)
+            .then(() => {});
+        }
+        navigate('/Home', { replace: true });
+      }}
+    />
   );
 
   // ════════════════════════════════════════════════════
