@@ -2,7 +2,7 @@
 // Single Source of Truth für alle Home-States + Profil-Flow
 
 import React, {
-  useState, useCallback, useEffect, createContext, useContext,
+  useState, useCallback, useEffect, useMemo, createContext, useContext,
 } from "react";
 import { useAuth }        from "../../lib/AuthContext";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";

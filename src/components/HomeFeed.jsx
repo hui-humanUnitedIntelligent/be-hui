@@ -5,7 +5,7 @@
 
 import { useFeedData, useResonanceState } from '../lib/AppStateContext';
 import { createFeedItem, filterValidFeedItems } from '../lib/factories/createFeedItem.js';
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { SAFE_MODE } from "../config/safeMode.js";
 
 /* ─── Design Tokens ──────────────────────────────────────────────────── */
@@ -532,7 +532,7 @@ function EventCard({ event, onPress }) {
 /* ─── Gemeinschaft Feed ─────────────────────────────────────────────────── */
 function SozialerFeed({ items = MOCK_FEED, onProfile, onLike, onComment }) {
   // Normalisierung: Rohdaten → sichere FeedItems (einmal, beim Eingang)
-  const safeItems = React.useMemo(
+  const safeItems = useMemo(
     () => filterValidFeedItems(items || MOCK_FEED),
     [items]
   );

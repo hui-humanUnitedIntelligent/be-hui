@@ -11,7 +11,7 @@
 
 import React, {
   createContext, useContext,
-  useState, useEffect, useCallback, useRef,
+  useState, useEffect, useCallback, useRef, useMemo,
 } from "react";
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
