@@ -152,14 +152,16 @@ export function deriveWorldTokens(state) {
   const ease      = reg.easing   ?? "cubic-bezier(0.22,1,0.36,1)";
 
   return Object.freeze({
-    // Feed container — always mounted, opacity/filter only
+    // Phase 16.4: feedContainerStyle — scroll container scale only.
+    // Opacity handled by tabVisibilityController.
+    // Blur handled by dimStyle overlay.
+    // pointerEvents: always auto on scroll container.
     feedContainerStyle: {
-      opacity:       feedOp,
-      filter:        `blur(${blur})`,
       transform:     `scale(${feedScale})`,
-      pointerEvents: state.feedVisible ? "auto" : "none",
-      transition:    `opacity ${dur} ${ease}, filter ${dur} ${ease}, transform ${dur} ${ease}`,
-      willChange:    "filter, opacity, transform",
+      transformOrigin: "top center",
+      transition:    `transform ${dur} ${ease}`,
+      willChange:    "transform",
+      pointerEvents: "auto",  // scroll container always interactive
     },
     // BottomNav — always mounted, visual modulation only
     navStyle: {
@@ -171,12 +173,14 @@ export function deriveWorldTokens(state) {
     },
     // Dim overlay behind surface
     dimStyle: {
-      position: "fixed", inset: 0, zIndex: 8990,
-      background:         `rgba(20,20,30,${dimAlpha})`,
-      backdropFilter:     confirmed ? "blur(2px)" : "none",
-      WebkitBackdropFilter: confirmed ? "blur(2px)" : "none",
-      transition:         `background ${dur} ${ease}`,
-      pointerEvents:      confirmed ? "auto" : "none",
+      position:             "fixed", inset: 0,
+      zIndex:               8985,   // Phase 16.4: above tab content, below overlays
+      background:           `rgba(20,20,30,${dimAlpha})`,
+      backdropFilter:       confirmed ? `blur(${blur})` : "none",
+      WebkitBackdropFilter: confirmed ? `blur(${blur})` : "none",
+      transition:           `background ${dur} ${ease}, backdrop-filter ${dur} ${ease}`,
+      pointerEvents:        "none",   // NEVER blocks interaction — visual only
+      willChange:           "background, backdrop-filter",
     },
     _surfaceId:  state.activeSurface,
     _confirmed:  confirmed,

@@ -11,8 +11,9 @@ import {
   useSessionRestore,
   useScrollMemory,
   useOwnPresence,
-  useTabKeepAlive,
 } from "../../lib/sessionHooks";
+import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
+import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
 import { SAFE_MODE } from "../../config/safeMode.js";
 import {
   computeTransitionCarryOver,
@@ -119,10 +120,16 @@ export default function HomeShell({ children }) {
   const [cart,                   setCart]                  = useState([]);
 
   /* Keep-Alive */
-  const keepFeed      = useTabKeepAlive(tab === "feed");
-  const keepDiscover  = useTabKeepAlive(tab === "discover");
-  const keepImpact    = useTabKeepAlive(tab === "impact");
-  const keepFavorites = useTabKeepAlive(tab === "favorites");
+  // Phase 16.4: Tab visibility via tabVisibilityController (single authority)
+  // activeSurface from WorldSurface — no local opacity state
+  const { activeSurface } = useWorldSurface();
+  const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
+    useTabStyles(tab, activeSurface);
+  // Legacy aliases for backward compat during transition
+  const keepFeed      = tabFeed;
+  const keepDiscover  = tabDiscover;
+  const keepImpact    = tabImpact;
+  const keepFavorites = tabFavorites;
 
   /* switchTab — schließt alle Overlays + wechselt Tab */
   const switchTab = useCallback((newTab) => {
@@ -197,7 +204,9 @@ export default function HomeShell({ children }) {
     user, authProfile, isTalent, isMember,
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
-    keepFeed, keepDiscover,           keepImpact, keepFavorites,
+    keepFeed, keepDiscover, keepImpact, keepFavorites,
+    tabFeed,  tabDiscover,  tabImpact,  tabFavorites,
+    activeSurface,
     prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
     activeMood, setActiveMood,
