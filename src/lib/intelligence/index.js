@@ -1,57 +1,45 @@
 // src/lib/intelligence/index.js
-// HUI Intelligence Layer — clean re-export surface
-// v1: Emotional Identity
-// v2: + Relationship Memory
-// v3: + Shared Atmosphere
-// v4: + Resonance Spaces
+// HUI Intelligence Layer — v5
+// v1: Emotional Identity  v2: +Relationship Memory
+// v3: +Shared Atmosphere  v4: +Resonance Spaces  v5: +Discover World
 
-// ── Emotional Identity ────────────────────────────────────────────────────
 export {
-  buildEmotionalIdentity, identityDrift,
-  attachEmotionalIdentity, quickIdentityFromProfile,
-  selectAnimationSpeed, selectMotionScale, selectAmbientGlow,
-  selectGlassOpacity, selectAtmosphereLabel,
-  isFallbackIdentity, debugIdentitySummary,
-  EMOTIONAL_ARCHETYPES,
+  buildEmotionalIdentity, identityDrift, attachEmotionalIdentity, quickIdentityFromProfile,
+  selectAnimationSpeed, selectMotionScale, selectAmbientGlow, selectGlassOpacity,
+  selectAtmosphereLabel, isFallbackIdentity, debugIdentitySummary, EMOTIONAL_ARCHETYPES,
 } from "./emotionalIdentity.js";
 
-// ── Relationship Memory ───────────────────────────────────────────────────
 export {
   buildRelationshipMemory, relationshipDrift, decayedSignal,
   attachRelationshipToFeedItem, relationshipOrderingBoost, mockInteractionsFromItem,
   selectWarmthBoost, selectMotionCalm, selectCardDelay, selectGlowBoost,
-  selectRelationshipState, selectMicroMoment,
-  isFallbackMemory, debugMemorySummary,
+  selectRelationshipState, selectMicroMoment, isFallbackMemory, debugMemorySummary,
   RELATIONSHIP_STATES, MEMORY_HALF_LIVES,
 } from "./relationshipMemory.js";
 
-// ── Shared Atmosphere ─────────────────────────────────────────────────────
 export {
   buildSharedAtmosphere, atmosphereDrift, applyAtmosphereToFeed,
   mockActivityFromFeed, mockResonanceFromFeed,
   selectSurfaceTint, selectAtmMotionScale, selectStaggerMultiplier,
   selectGlowSoftening, selectWhisper, selectQuietSpaceTone,
-  isFallbackAtmosphere, debugAtmosphereSummary,
-  COLLECTIVE_ATMOSPHERES,
+  isFallbackAtmosphere, debugAtmosphereSummary, COLLECTIVE_ATMOSPHERES,
 } from "./sharedAtmosphere.js";
 
-// ── Resonance Spaces ──────────────────────────────────────────────────────
 export {
-  // Core engine
-  buildResonanceSpaces, spaceFade,
-
-  // Space memory traces
-  createSpaceTrace, spaceReEntryWarmth,
-
-  // Mock factory
+  buildResonanceSpaces, spaceFade, createSpaceTrace, spaceReEntryWarmth,
   mockResonanceSpacesFromFeed, registerMockFactories,
-
-  // Selectors
-  selectDominantSpace, selectAmbient, selectSpaceWhisper,
-  selectSpaceMotionScale, selectFloatPeriod, selectPresenceSync,
-  selectSpaceSurfaceTint, selectRingPulse,
-  isEmptySpaceResult, debugSpacesSummary,
-
-  // Archetype data
-  SPACE_ARCHETYPES,
+  selectDominantSpace, selectAmbient, selectSpaceWhisper, selectSpaceMotionScale,
+  selectFloatPeriod, selectPresenceSync, selectSpaceSurfaceTint, selectRingPulse,
+  isEmptySpaceResult, debugSpacesSummary, SPACE_ARCHETYPES,
 } from "./resonanceSpaces.js";
+
+export {
+  buildDiscoverWorld, discoverDrift, assignItemsToDistricts,
+  mockDiscoverWorldFromFeed,
+  pillToDistrict, getDistrictVisual,
+  selectDiscoverAmbient, selectPrimaryDistrict, selectWanderingPath,
+  selectWorldWhisper, selectDistrictAccent, selectDiscoverBg,
+  selectDiscoverMotionScale, selectRevealDelay,
+  isEmptyWorld, debugWorldSummary,
+  DISCOVER_DISTRICTS,
+} from "./discoverWorld.js";

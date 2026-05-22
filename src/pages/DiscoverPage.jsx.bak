@@ -2,21 +2,7 @@
 // Screenshot-exact rebuild: Airbnb × Apple × Pinterest × HUI
 // Struktur: Header → Pills → Hero Cards → Beliebte Werke → Erlebnisse
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import {
-  mockDiscoverWorldFromFeed,
-  selectDiscoverAmbient,
-  selectDiscoverBg,
-  selectDiscoverMotionScale,
-  selectRevealDelay,
-  selectPrimaryDistrict,
-  selectWanderingPath,
-  selectWorldWhisper,
-  selectDistrictAccent,
-  pillToDistrict,
-  assignItemsToDistricts,
-  isEmptyWorld,
-} from "../lib/intelligence/discoverWorld.js";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }             from "../lib/supabaseClient";
 import { createWorkItem, createFeedItem, filterValidFeedItems }
                                from "../lib/factories/createFeedItem.js";
@@ -542,23 +528,6 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const [experiences,   setExperiences]   = useState(MOCK_ERLEBNISSE);
   const [talents,       setTalents]       = useState([]);
   const [loading,       setLoading]       = useState(false);
-
-  // ── Discover World — derived from feed signals
-  const discoverWorld = useMemo(() => {
-    const allItems = [...works, ...experiences].map(item => ({
-      ...item,
-      type: item.type || (experiences.includes(item) ? "experience" : "work_upload"),
-    }));
-    return mockDiscoverWorldFromFeed(allItems, null);
-  }, [works, experiences]);
-
-  const dAmb    = selectDiscoverAmbient(discoverWorld);
-  const dAccent = selectDistrictAccent(discoverWorld);
-  const dBg     = selectDiscoverBg(discoverWorld);
-  const dMotion = selectDiscoverMotionScale(discoverWorld);
-  const dDelay  = selectRevealDelay(discoverWorld);
-  const dPath   = selectWanderingPath(discoverWorld);
-  const dWhisper= selectWorldWhisper(discoverWorld);
   const [inspiredHero,  setInspiredHero]  = useState(new Set());
   const [inspiredWerke, setInspiredWerke] = useState(new Set());
   const [showSearch,    setShowSearch]    = useState(false);
@@ -652,29 +621,11 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   return (
     <div style={{
       minHeight:"100vh",
-      background: dBg || "rgb(254,252,250)",
+      background: "rgb(254,252,250)",
       fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
       paddingBottom: 100,
     }}>
       <style>{CSS}</style>
-
-      {/* ── World whisper — very rare atmospheric text, not a notification */}
-      {dWhisper && (
-        <div style={{
-          margin:"0 20px", marginTop:8, marginBottom:-4,
-          padding:"8px 14px",
-          background:"rgba(255,255,255,0.65)",
-          backdropFilter:"blur(12px)",
-          WebkitBackdropFilter:"blur(12px)",
-          borderRadius:12,
-          border:`1px solid ${dAccent}22`,
-          fontSize:11.5, color:dAccent, fontWeight:500,
-          letterSpacing:"0.01em", opacity:0.90,
-          transition:"opacity 1.5s ease",
-        }}>
-          ✦ {dWhisper}
-        </div>
-      )}
 
       {/* ════════════════════════════════════════
           STICKY HEADER
@@ -722,23 +673,11 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
         ) : (
           /* Normal Mode */
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <div>
-              <span style={{
-                fontSize:26, fontWeight:900, color:C.ink, letterSpacing:-0.8,
-                display:"block",
-              }}>
-                Entdecken
-              </span>
-              {dPath[0] && (
-                <span style={{
-                  fontSize:11, color: dAccent, fontWeight:600, letterSpacing:"0.04em",
-                  opacity:0.85, display:"block", marginTop:1,
-                  transition:"color 1.2s ease",
-                }}>
-                  {dPath[0].district.invitation}
-                </span>
-              )}
-            </div>
+            <span style={{
+              fontSize:26, fontWeight:900, color:C.ink, letterSpacing:-0.8,
+            }}>
+              Entdecken
+            </span>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <button className="dp-search-btn" onClick={() => setShowSearch(true)}>
                 🔍
@@ -764,12 +703,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
         }}
       >
         {PILLS.map((pill, i) => {
-          const active   = activeCategory === pill.id;
-          const distId   = pillToDistrict(pill.id);
-          // Pills glow in district's accent color when that district is primary
-          const isPrimary= distId && selectPrimaryDistrict(discoverWorld) === distId;
-          const glowColor= isPrimary ? dAccent : null;
-
+          const active = activeCategory === pill.id;
           return (
             <button
               key={pill.id}
@@ -777,20 +711,15 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
               onClick={() => setActiveCategory(pill.id)}
               style={{
                 background: active
-                  ? (glowColor
-                      ? `linear-gradient(135deg, ${glowColor} 0%, ${C.coral} 100%)`
-                      : `linear-gradient(135deg, ${C.teal} 0%, ${C.coral} 100%)`)
+                  ? `linear-gradient(135deg, ${C.teal} 0%, ${C.coral} 100%)`
                   : C.card,
                 color: active ? "#fff" : C.ink2,
                 boxShadow: active
-                  ? `0 4px 16px ${glowColor ? glowColor + "55" : "rgba(22,215,197,0.30)"}`
-                  : glowColor
-                    ? `0 0 0 1.5px ${glowColor}44`
-                    : "0 1px 6px rgba(0,0,0,0.07)",
+                  ? `0 4px 16px rgba(22,215,197,0.30)`
+                  : "0 1px 6px rgba(0,0,0,0.07)",
                 animation: `pillIn 0.3s ${i*0.04}s both`,
                 fontWeight: active ? 700 : 500,
                 transform: active ? "scale(1.04)" : "scale(1)",
-                transition:"box-shadow 0.8s ease, background 0.5s ease",
               }}
             >
               {pill.label}
@@ -803,12 +732,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
           HERO DISCOVERY CARDS
       ════════════════════════════════════════ */}
       <div style={{ marginBottom:36 }}>
-        <SectionHeader
-          title={dPath[0]
-            ? `${dPath[0].district.invitation} ✦`
-            : "Heute könnte dich das berühren ✦"}
-          subtitle={dPath[0]?.district?.invitationSub || ""}
-        />
+        <SectionHeader title="Heute könnte dich das berühren ✦" />
         <div
           className="dp-scroll"
           style={{
@@ -918,13 +842,23 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
           </span>
         </div>
         <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", gap:12 }}>
-          {(dPath.length > 0 ? dPath : [{district:{id:"gentle_resonance",invitation:"Kreative Welt",invitationSub:"Entdecke was gerade entsteht"},position:0}]).map((stop,i) => {
-            const ICONS = {quiet_makers:"🌿",night_thoughts:"🌙",warm_gatherings:"🤝",living_works:"✦",gentle_resonance:"🎨",creative_rituals:"🕯️",human_connection:"💛",slow_inspiration:"🌱"};
-            const ACCS  = {quiet_makers:"#8B96B5",night_thoughts:"#6B82C4",warm_gatherings:"#FF8A6B",living_works:"#C4973A",gentle_resonance:"#16D7C5",creative_rituals:"#9B8BC4",human_connection:"#F5A623",slow_inspiration:"#7CC8A0"};
-            const d     = stop.district;
-            const icon  = ICONS[d.id] || "✦";
-            const accent= ACCS[d.id]  || C.teal;
-            return (
+          {[
+            {
+              icon:"🌿", headline:"Menschen aus deiner Nähe", 
+              sub:"Kreative die ähnliche Resonanzräume entdecken",
+              accent: C.teal,
+            },
+            {
+              icon:"✦", headline:"Diese Gemeinschaft wächst gerade schön",
+              sub:"Keramik & Handwerk · München · 23 Menschen",
+              accent: C.coral,
+            },
+            {
+              icon:"🌱", headline:"Wirkung entsteht",
+              sub:"Neue Impact-Projekte in deiner Region",
+              accent:"#10B981",
+            },
+          ].map((item, i) => (
             <div key={i} style={{
               display:"flex", alignItems:"center", gap:14,
               padding:"16px 18px",
@@ -941,24 +875,23 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
             >
               <div style={{
                 width:46, height:46, borderRadius:14, flexShrink:0,
-                background:`${accent}14`,
-                border:`1px solid ${accent}22`,
+                background:`${item.accent}14`,
+                border:`1px solid ${item.accent}22`,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 fontSize:20,
-              }}>{icon}</div>
+              }}>{item.icon}</div>
               <div style={{ flex:1 }}>
                 <div style={{
                   fontSize:14, fontWeight:700, color:C.ink,
                   lineHeight:1.3, marginBottom:3,
-                }}>{d.invitation}</div>
+                }}>{item.headline}</div>
                 <div style={{
                   fontSize:12, color:C.muted, fontWeight:400, lineHeight:1.4,
-                }}>{d.invitationSub}</div>
+                }}>{item.sub}</div>
               </div>
               <div style={{ color:C.muted, fontSize:16, opacity:0.5 }}>›</div>
             </div>
-            );
-          })}
+          ))}
         </div>
       </div>
 
