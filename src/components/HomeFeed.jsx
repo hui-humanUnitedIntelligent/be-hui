@@ -15,8 +15,13 @@ import {
   PresenceAvatar,
   PresenceLabel,
   derivePresenceState,
-  deriveMicroMoment,
 } from "./CreatorPresence.jsx";
+import {
+  curateHumaneFeed,
+  getTimeAtmosphere,
+  QUIET_QUOTE_POOL,
+  intelligentMicroMoment,
+} from "../lib/feedIntelligence.js";
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
 const T = {
@@ -73,15 +78,10 @@ function getRhythmState(item, idx) {
   return RHYTHM_MAP[idx % RHYTHM_MAP.length];
 }
 
-/* ─── Ambient Quotes (Quiet Space) ──────────────────────────────────────── */
-const AMBIENT_QUOTES = [
-  "Teile heute etwas, das dich bewegt.",
-  "Jede echte Wirkung beginnt mit einem kleinen Impuls.",
-  "Vielleicht inspiriert dein Moment heute jemand anderen.",
-  "Kreativität ist kein Zustand — sie ist eine Begegnung.",
-  "Was entsteht, wenn du aufhörst zu warten?",
-  "Ein Werk trägt mehr in sich als der Moment seiner Schöpfung.",
-];
+/* ─── Ambient Quotes — sourced from feedIntelligence ────────────────────── */
+// QUIET_QUOTE_POOL is imported from feedIntelligence.js
+// Keeping AMBIENT_QUOTES as alias for QuietSpace component
+const AMBIENT_QUOTES = QUIET_QUOTE_POOL;
 
 /* ─── CSS ───────────────────────────────────────────────────────────────── */
 const CSS = `
@@ -610,13 +610,11 @@ function EventCard({ event, onPress }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   RHYTHMIC FEED — orchestrates the 5 visual states
+   RHYTHMIC FEED — Feed Intelligence v1
+   Replaces mechanical sequence with humane curation.
    ═══════════════════════════════════════════════════════════════════════════ */
 function RhythmicFeed({ items, onProfile, onLike, onComment }) {
-  const safeItems = useMemo(
-    () => filterValidFeedItems(items || MOCK_FEED),
-    [items]
-  );
+  const rawItems = items || MOCK_FEED;
   const [reactions, setReactions] = useState({});
 
   const handleReaction = useCallback((itemId, type) => {
@@ -627,35 +625,51 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
     onLike?.(itemId);
   }, [onLike]);
 
-  // Build rhythm sequence — inject quiet spaces organically
-  // Also auto-derive presenceState for items that don't have one
-  const rhythmSequence = useMemo(() => {
-    const seq = [];
-    safeItems.forEach((item, idx) => {
-      const enrichedItem = item.presenceState
-        ? item
-        : { ...item, presenceState: derivePresenceState(item) };
-      seq.push({ kind:"card", item: enrichedItem, idx });
-      // Insert quiet space after every 3rd card (not at end)
-      if ((idx + 1) % 3 === 0 && idx < safeItems.length - 1) {
-        seq.push({ kind:"quiet", idx });
-      }
+  // ── Feed Intelligence: humane curation ──────────────────────────────────
+  const curated = useMemo(() => {
+    const now  = new Date();
+    const safe = filterValidFeedItems(rawItems);
+    // Pass raw (non-frozen) items to allow enrichment
+    const enrichable = safe.map(item => ({ ...item }));
+    return curateHumaneFeed(enrichable, {
+      now,
+      diversity: true,
+      pacing:    true,
+      rebalance: true,
+      maxItems:  40,
     });
-    return seq;
-  }, [safeItems]);
+  }, [rawItems]);
 
-  if (safeItems.length === 0) {
+  const { atmosphere, sequence, stats } = curated;
+
+  // DEV: log curation stats (removed in production by tree-shaking)
+  // console.log("[HUI Feed]", stats);
+
+  if ((sequence || []).filter(s => s.kind === "card").length === 0) {
     return <FeedEmptyState />;
   }
 
   return (
     <div style={{ padding:"18px 0 0" }}>
+
+      {/* ── Section header with time-of-day atmosphere ──────────────── */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         paddingLeft:16, paddingRight:16, marginBottom:16,
       }}>
-        <span className="hf-section-label">Gerade aktiv</span>
-        {/* Live presence indicator */}
+        <div>
+          <span className="hf-section-label">{atmosphere.feedLabel}</span>
+          {atmosphere.feedTagline && (
+            <div style={{
+              fontSize:11, color:T.muted, marginTop:2,
+              fontStyle:"italic", letterSpacing:-0.05,
+            }}>
+              {atmosphere.feedTagline}
+            </div>
+          )}
+        </div>
+
+        {/* Soft community presence — no aggressive counter */}
         <div style={{
           display:"flex", alignItems:"center", gap:5,
           fontSize:11, color:T.muted, fontWeight:500,
@@ -664,43 +678,52 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
             width:6, height:6, borderRadius:"50%",
             background:"#4ADE80", display:"inline-block",
           }}/>
-          12 jetzt aktiv
+          <span>12 jetzt aktiv</span>
         </div>
       </div>
 
-      {/* Rhythm flow — variable gaps by state */}
+      {/* ── Curated feed sequence ─────────────────────────────────── */}
       <div style={{ display:"flex", flexDirection:"column" }}>
-        {rhythmSequence.map((slot, si) => {
+        {(sequence || []).map((slot, si) => {
+          if (!slot || typeof slot !== "object") return null;
+
           if (slot.kind === "quiet") {
             return (
-              <div key={`quiet-${slot.idx}`}
+              <div key={`quiet-${si}`}
                 className="hf-reveal"
-                style={{ animationDelay:`${si * 0.05 + 0.1}s` }}>
-                <QuietSpace quoteIdx={Math.floor(slot.idx / 3) % AMBIENT_QUOTES.length} />
+                style={{
+                  animationDelay:`${Math.min(si * 0.05 + 0.08, 1.2)}s`,
+                }}>
+                <QuietSpace
+                  quoteIdx={slot.quoteIdx || 0}
+                  atmosphere={atmosphere}
+                />
               </div>
             );
           }
 
-          const { item, idx } = slot;
-          const state = getRhythmState(item, idx);
+          if (slot.kind !== "card" || !slot.item) return null;
 
-          // Variable gap before card based on rhythm state
-          const gapBefore = state === "hero" ? 18 : state === "quiet" ? 0 : 12;
-          // Variable horizontal padding by state
-          const padH = state === "hero" ? 0 : state === "resonance" ? 16 : 14;
+          const { item } = slot;
+          const state = getRhythmState(item, slot.idx || 0);
+
+          // Variable gap + padding by rhythm state
+          const gapBefore = state === "hero" ? 18 : 12;
+          const padH      = state === "hero" ? 0  : state === "resonance" ? 16 : 14;
 
           return (
-            <div key={item.id}
+            <div key={item.id || si}
               className="hf-reveal"
               style={{
-                paddingTop: gapBefore,
-                paddingLeft: padH,
-                paddingRight: padH,
-                animationDelay:`${si * 0.06}s`,
+                paddingTop:    gapBefore,
+                paddingLeft:   padH,
+                paddingRight:  padH,
+                animationDelay:`${Math.min(si * 0.055, 1.4)}s`,
               }}>
               <RhythmCard
                 item={item}
                 state={state}
+                atmosphere={atmosphere}
                 itemReactions={reactions[item.id] || {}}
                 onProfile={() => onProfile?.(item)}
                 onReaction={(type) => handleReaction(item.id, type)}
@@ -711,7 +734,6 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
         })}
       </div>
 
-      {/* Bottom breathing space */}
       <div style={{ height:24 }} />
     </div>
   );
@@ -720,7 +742,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    RHYTHM CARD — routes to the correct visual state
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmCard({ item, state, itemReactions, onProfile, onReaction, onComment }) {
+function RhythmCard({ item, state, atmosphere, itemReactions, onProfile, onReaction, onComment }) {
   const isResonated = itemReactions.resonanz;
 
   return (
@@ -754,7 +776,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment }) {
   const creator = useCreator(item);
   const images = item.images || (item.media ? [item.media[0]] : []);
   const hasImages = images.length > 0;
-  const microMoment = useMemo(() => deriveMicroMoment(item, 0), [item.id]);
+  const microMoment = item.microMoment || null;
 
   return (
     <div className="hf-card-base hf-hero">
@@ -831,7 +853,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 function NoteCard({ item, itemReactions, onProfile, onReaction, onComment }) {
   const creator = useCreator(item);
-  const microMoment = useMemo(() => deriveMicroMoment(item, 1), [item.id]);
+  const microMoment = item.microMoment || null;
 
   return (
     <div className="hf-card-base hf-note" style={{
@@ -879,7 +901,7 @@ function NoteCard({ item, itemReactions, onProfile, onReaction, onComment }) {
 function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment }) {
   const creator = useCreator(item);
   const src = item.expImg || item.media?.[0];
-  const microMoment = useMemo(() => deriveMicroMoment(item, 2), [item.id]);
+  const microMoment = item.microMoment || null;
 
   return (
     <div className="hf-card-base hf-experience" style={{
@@ -1022,8 +1044,10 @@ function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment }
    STATE 5 — QUIET SPACE
    Visual breathing. Atmospheric quote. Soft haze.
    ═══════════════════════════════════════════════════════════════════════════ */
-function QuietSpace({ quoteIdx = 0 }) {
-  const quote = AMBIENT_QUOTES[quoteIdx % AMBIENT_QUOTES.length];
+function QuietSpace({ quoteIdx = 0, atmosphere = null }) {
+  // Use atmosphere's time-of-day quote pool if available
+  const pool  = (atmosphere?.quotePool?.length > 0) ? atmosphere.quotePool : AMBIENT_QUOTES;
+  const quote = pool[quoteIdx % pool.length];
 
   return (
     <div style={{
