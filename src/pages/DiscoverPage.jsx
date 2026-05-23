@@ -591,8 +591,9 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
           .limit(12),
         supabase
           .from("works")
-          .select(`id,title,category,price,cover_url,images,description,
-            profile:user_id(display_name,full_name,avatar_url)`)
+          .select(`id,title,category,price,cover_url,cover_index,media_urls,media_url,
+            thumbnail_url,description,likes_count,views_count,post_type,creator_id,
+            profile:creator_id(display_name,username,avatar_url)`)
           .eq("status", "published")
           .order("created_at", { ascending: false })
           .limit(16),
@@ -602,14 +603,17 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       if (worksRes.data?.length > 0) {
         const mapped = worksRes.data.map((w, i) => {
           const mock = MOCK_WERKE[i % MOCK_WERKE.length];
+          const coverImg = w.cover_url
+            || (Array.isArray(w.media_urls) ? w.media_urls[0] : null)
+            || w.media_url || w.thumbnail_url || mock.img;
           return createWorkItem({
             ...w,
-            img:       storageUrl("works", w.cover_url) || w.images?.[0] || mock.img,
-            resonanz:  Math.floor(Math.random() * 50) + 5,
+            img:       storageUrl("works", coverImg) || coverImg || mock.img,
+            resonanz:  (w.likes_count ?? 0) + Math.floor(Math.random() * 10) + 1,
             creator:   w.profile || { name: mock.creator, img: `https://i.pravatar.cc/32?img=${(i%50)+1}` },
-            creatorImg:`https://i.pravatar.cc/32?img=${(i % 50) + 1}`,
+            creatorImg: w.profile?.avatar_url || `https://i.pravatar.cc/32?img=${(i % 50) + 1}`,
             title:     w.title || mock.title,
-            price:     w.price || mock.price,
+            price:     w.price ?? w.price_eur ?? mock.price,
           });
         }).filter(Boolean);
         setWorks(mapped);
