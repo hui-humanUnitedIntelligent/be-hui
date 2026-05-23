@@ -305,7 +305,7 @@ function ImpactPageInner({ currentUser }) {
         <CommunityEnergy voices={voices} count={_projects.length} />
       )}
 
-      {loading ? <ImpactSkeleton /> : <ProjectSection projects={_projects} onVote={onVote} userVotes={userVotes} />}
+      {loading ? <ImpactSkeleton /> : <ProjectSection projects={_projects} onVote={castVote} userVotes={userVotes} />}
 
       <JoinSection onOpenFlow={() => setShowPropose(true)} />
 
@@ -736,7 +736,7 @@ function PoolStats({ count, voices, given }) {
 /* ══════════════════════════════════════════════════════════════════
    PROJECT SECTION
 ══════════════════════════════════════════════════════════════════ */
-function ProjectSection({ projects, onVote, userVotes = [] }) {
+function ProjectSection({ projects, onVote = () => {}, userVotes = [] }) {
   const _p = safeArr(projects);
   console.log("[IMPACT STEP]", { phase: "ProjectSection-render", count: _p.length });
   return (
@@ -784,7 +784,7 @@ function ProjectSection({ projects, onVote, userVotes = [] }) {
 /* ══════════════════════════════════════════════════════════════════
    PROJECT CARD — Editorial Calm · Story Energy · Luxury Material
 ══════════════════════════════════════════════════════════════════ */
-function ProjectCard({ project:p, rank, onVote, userVotes = [] }) {
+function ProjectCard({ project:p, rank, onVote = () => {}, userVotes = [] }) {
   // Phase 23: voted kommt vom persistierten userVotes, kein lokaler State nötig
   const voted  = userVotes.some(v => v.project_id === p.id);
   // Phase 23: votes kommen direkt von props (optimistisch von ImpactPage geupdated)
