@@ -22,25 +22,9 @@ import HomeFeed                  from "../components/HomeFeed.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay         from "../components/chat-center/ChatCenterOverlay.jsx";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
-// ── Tab-Pages: PHASE 17 AUDIT — inline stubs (kein lazy, kein import)
-function DiscoverPage() {
-  return (
-    <div style={{minHeight:"100vh",background:"#FF8A6B",display:"flex",
-      alignItems:"center",justifyContent:"center",fontSize:28,
-      fontWeight:900,color:"#fff"}}>
-      ✅ DISCOVER ALIVE (Phase 17 Stub)
-    </div>
-  );
-}
-function ImpactPage() {
-  return (
-    <div style={{minHeight:"100vh",background:"#16D7C5",display:"flex",
-      alignItems:"center",justifyContent:"center",fontSize:28,
-      fontWeight:900,color:"#fff"}}>
-      ✅ IMPACT ALIVE (Phase 17 Stub)
-    </div>
-  );
-}
+// ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
+const DiscoverPage   = React.lazy(() => import("./DiscoverPage.jsx"));
+const ImpactPage     = React.lazy(() => import("./ImpactPage.jsx"));
 const FavoritesPage  = React.lazy(() => import("./FavoritesPage.jsx"));
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
 const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
@@ -293,18 +277,23 @@ function HomeInner() {
             )}
           </div>
 
-          {/* Phase 16.8.5: ABSOLUTE MINIMUM — hardcoded visibility, no controller */}
-          {tab === "discover" && (
-            <div style={{ minHeight:"100vh", position:"relative" }}>
-              <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
-            </div>
-          )}
+          {/* Phase 17.1 FIX: tabVisibilityController liefert jetzt position:absolute
+               für inaktive Tabs → kein Flow-Space-Problem mehr */}
+          <div ref={tabRefs.discover} style={keepDiscover}>
+            <Suspense fallback={<div style={{padding:40,color:"#16D7C5",fontSize:18}}>Entdecken lädt…</div>}>
+              <SafeRender flag="discoverFeed" label="DiscoverPage">
+                <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
+              </SafeRender>
+            </Suspense>
+          </div>
 
-          {tab === "impact" && (
-            <div style={{ minHeight:"100vh", position:"relative" }}>
-              <ImpactPage currentUser={currentUser}/>
-            </div>
-          )}
+          <div ref={tabRefs.impact} style={keepImpact}>
+            <Suspense fallback={<div style={{padding:40,color:"#16D7C5",fontSize:18}}>Impact lädt…</div>}>
+              <SafeRender flag="impactPage" label="ImpactPage">
+                <ImpactPage currentUser={currentUser}/>
+              </SafeRender>
+            </Suspense>
+          </div>
 
           <div ref={tabRefs.favorites} style={keepFavorites}>
             <Suspense fallback={null}>

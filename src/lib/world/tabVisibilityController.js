@@ -12,8 +12,16 @@
 const TAB_TRANSITION = "opacity 0.28s cubic-bezier(0.22,1,0.36,1)";
 
 // ─── getTabStyle ───────────────────────────────────────────────────────────
-// Returns CSS object for a tab-level div wrapper.
-// ONLY controls active/inactive visibility — surface dimming is via dimStyle.
+// Phase 17.1 ROOT CAUSE FIX:
+//
+// PROBLEM: Inactive tabs (opacity:0) remained in document flow with full height.
+// Impact/Discover tab divs rendered BELOW the invisible feed div — outside viewport.
+//
+// FIX: Inactive tabs → position:absolute, removes from flow, no height contribution.
+//      Active tab    → position:relative, normal flow.
+//
+// This is the standard keep-alive tab pattern (same as browser tab bars,
+// React Native TabView, etc.)
 //
 // @param {string}      tabId         — "feed"|"discover"|"impact"|"favorites"
 // @param {string}      activeTab     — current active tab
@@ -21,28 +29,34 @@ const TAB_TRANSITION = "opacity 0.28s cubic-bezier(0.22,1,0.36,1)";
 export function getTabStyle(tabId, activeTab, activeSurface) {
   const isActive = tabId === activeTab;
 
-  // When surface is active: dim overlay covers everything visually.
-  // Tab divs: active tab stays opacity:1 (dim overlay darkens it),
-  //           inactive tabs: opacity:0 + no pointer-events.
-  // pointerEvents: none for ALL tabs when surface active.
-  if (activeSurface !== null) {
+  // Inactive tab: pulled OUT of document flow via position:absolute.
+  // Still mounted (keep-alive), but takes NO height → active tab is always at top.
+  if (!isActive) {
     return {
-      opacity:       isActive ? 1 : 0,
-      pointerEvents: "none",       // surface captures all interaction
+      position:      "absolute",
+      top:           0,
+      left:          0,
+      width:         "100%",
+      opacity:       0,
+      pointerEvents: "none",
       userSelect:    "none",
+      // No transition on position change — instant removal from flow
+      // Opacity transition kept for visual polish when switching back
       transition:    TAB_TRANSITION,
-    // willChange: omitted (safariPaintRecovery manages GPU hints)
+      // zIndex:0 ensures active tab (position:relative, z-index:auto) is above
+      zIndex:        0,
     };
   }
 
-  // No surface — active tab: fully visible. Inactive: hidden.
-  // INVARIANT: when activeSurface===null, activeTab MUST have opacity:1.
+  // Active tab: normal document flow, fully visible.
+  // pointerEvents: none if surface is open (surface overlay captures interaction)
   return {
-    opacity:       isActive ? 1 : 0,
-    pointerEvents: isActive ? "auto" : "none",
-    userSelect:    isActive ? "auto" : "none",
+    position:      "relative",
+    opacity:       1,
+    pointerEvents: activeSurface !== null ? "none" : "auto",
+    userSelect:    activeSurface !== null ? "none" : "auto",
     transition:    TAB_TRANSITION,
-    // willChange: omitted (safariPaintRecovery manages GPU hints)
+    zIndex:        "auto",
   };
 }
 
@@ -54,11 +68,12 @@ export function getTabVisualState(tabId, activeTab, activeSurface) {
   return {
     tabId,
     isActive,
-    visible:       isActive && !surfActive,
+    visible:       isActive,
     opacity:       isActive ? 1 : 0,
-    pointerEvents: surfActive ? "none" : (isActive ? "auto" : "none"),
-    transform:     "none",
-    zIndex:        isActive ? 1 : 0,
+    position:      isActive ? "relative" : "absolute",
+    inFlow:        isActive,           // key: inactive tabs are out of document flow
+    pointerEvents: !isActive || surfActive ? "none" : "auto",
+    zIndex:        isActive ? "auto" : 0,
     activeSurface: activeSurface ?? "none",
     activeTab,
   };
