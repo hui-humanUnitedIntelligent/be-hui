@@ -750,7 +750,16 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawItems, viewerContext]);
 
-  const { atmosphere, sharedAtmosphere, resonanceSpaces, worldState, sequence, stats } = curated;
+  // Phase 16.8.2: Full shape guaranteed by curateHumaneFeed — but guard anyway
+  const {
+    atmosphere      = null,
+    sharedAtmosphere = null,
+    resonanceSpaces  = { spaces:[], dominant:null, _empty:true },
+    worldState       = { id:"calm_empty", breath:{ period:"16s" }, temperature:{ id:"warm_creative" }, motion:{ scale:1 }, _empty:true },
+    sequence         = [],
+    quotePool        = [],
+    stats            = { totalCards:0, quietCount:0, diversityApplied:false, avgWeight:0 },
+  } = curated ?? {};
 
   // Phase 16.8: debug — tap this in browser console to diagnose
   React.useEffect(() => {
@@ -907,7 +916,9 @@ function RhythmCard({
   // Phase 16: living memory tokens
   relationshipDepth = null, viewerId = null, microMoment = null,
 }) {
-  const isResonated = itemReactions.resonanz;
+  // Phase 16.8.2: item guard — never crash on undefined during tab hydration
+  if (!item) return null;
+  const isResonated = (itemReactions || {}).resonanz;
   const creatorId   = item?.creator_id || item?.user_id || item?.creatorId;
 
   // ── Resolve memory tokens (memoized per relationship state) ────────────
@@ -960,6 +971,7 @@ function RhythmCard({
 function HeroCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const [imgIdx, setImgIdx] = useState(0);
   const creator = useCreator(item);
+  if (!item) return null;
   const images = item.images || (item.media ? [item.media[0]] : []);
   const hasImages = images.length > 0;
   const microMoment = item.microMoment || null;
@@ -1039,6 +1051,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment, memor
    ═══════════════════════════════════════════════════════════════════════════ */
 function NoteCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
+  if (!item) return null;
   const microMoment = item.microMoment || null;
 
   return (
@@ -1086,6 +1099,7 @@ function NoteCard({ item, itemReactions, onProfile, onReaction, onComment, memor
    ═══════════════════════════════════════════════════════════════════════════ */
 function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
+  if (!item) return null;
   const src = item.expImg || item.media?.[0];
   const microMoment = item.microMoment || null;
 
@@ -1154,6 +1168,7 @@ function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment,
    ═══════════════════════════════════════════════════════════════════════════ */
 function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
+  if (!item) return null;
   const img = item.images?.[0] || item.media?.[0] || item.expImg;
 
   return (
@@ -1623,16 +1638,25 @@ function PersonCard({ person, onPress }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    HOOK: useCreator — normalize feed item to safe creator profile
    ═══════════════════════════════════════════════════════════════════════════ */
-function useCreator(item) {
+// Phase 16.8.2: SAFE_ITEM guard — item may be undefined during tab hydration
+const EMPTY_CREATOR_ITEM = {
+  id: null, creatorId: null, userId: null, name: null,
+  avatar: null, talent: null, category: null, location: null,
+  isVerified: false, creator: null, profile: null, author: null,
+};
+
+function useCreator(rawItem) {
+  // RULE: Hooks cannot throw — guard item before ANY property access
+  const item = rawItem ?? EMPTY_CREATOR_ITEM;
   return useMemo(() => createProfileItem({
-    id:           item.creatorId || item.userId || item.id,
-    display_name: item.name     || item.creator?.name,
-    avatar_url:   item.avatar   || item.creator?.avatar,
-    talent:       item.talent   || item.category,
-    location:     item.location || item.creator?.location,
-    is_wirker:    item.isVerified || item.creator?.isVerified,
+    id:           item.creatorId  || item.userId    || item.id,
+    display_name: item.name       || item.creator?.name  || item.profile?.name || item.author?.name,
+    avatar_url:   item.avatar     || item.creator?.avatar || item.profile?.avatar_url,
+    talent:       item.talent     || item.category,
+    location:     item.location   || item.creator?.location || item.profile?.location,
+    is_wirker:    item.isVerified || item.creator?.isVerified || false,
   }), [
-    item.id, item.creatorId, item.name,
+    item.id, item.creatorId, item.userId, item.name,
     item.avatar, item.talent, item.location, item.isVerified,
   ]);
 }

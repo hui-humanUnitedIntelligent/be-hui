@@ -405,11 +405,23 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
     .slice(0, maxItems);
 
   if (items.length === 0) {
+    // Phase 16.8.2: ALWAYS return complete shape — never undefined fields downstream
+    const emptyWorld = {
+      id: "calm_empty", breath: { period:"16s", easing:"ease-in-out" },
+      temperature: { id:"warm_creative", label:"Warm Creative" },
+      motion: { scale:1, calm:1 }, surface: { feed:atmosphere?.id || "morning_gold" },
+      _empty: true,
+    };
     return {
       atmosphere,
       sharedAtmosphere: null,
+      resonanceSpaces:  { spaces:[], dominant:null, _empty:true },
+      worldState:       emptyWorld,
+      quotePool:        atmosphere?.quotePool || [],
       sequence: [],
-      stats: { totalCards:0, quietCount:0, diversityApplied:false, avgWeight:0 },
+      stats: { totalCards:0, quietCount:0, diversityApplied:false, avgWeight:0,
+               sequenceLength:0, atmosphereState:atmosphere?.id||null,
+               dominantSpace:null, activeSpaceCount:0, worldTemperature:"calm_empty" },
     };
   }
 
@@ -566,10 +578,10 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
   return {
     atmosphere,
     sharedAtmosphere: collectiveAtm,
-    resonanceSpaces,
-    worldState: world,
+    resonanceSpaces:  resonanceSpaces ?? { spaces:[], dominant:null, _empty:true },
+    worldState:       world ?? { id:"calm_empty", breath:{ period:"16s" }, temperature:{ id:"warm_creative" }, motion:{ scale:1 }, _empty:true },
     sequence: atmosphericSequence,
-    quotePool: atmosphere.quotePool,
+    quotePool: atmosphere?.quotePool || [],
     stats: {
       totalCards:       rebalanced.length,
       quietCount,

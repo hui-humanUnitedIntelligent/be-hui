@@ -74,7 +74,21 @@ function ImpactRecoveryFallback({ section = "Impact", onRetry }) {
 class ImpactErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { crashed: false }; }
   static getDerivedStateFromError() { return { crashed: true }; }
-  componentDidCatch(error) { logImpactCrash(this.props.label || "section", error); }
+  componentDidCatch(error, info) {
+    const ws = typeof window !== "undefined" ? (window.__HUI_WORLD_STATE__ || {}) : {};
+    console.error("[IMPACT TREE FULL ERROR]", {
+      label:          this.props.label || "section",
+      error:          error,
+      message:        error?.message || String(error),
+      stack:          error?.stack || "(no stack)",
+      componentStack: info?.componentStack || "(no component stack)",
+      membershipType: ws.membershipType ?? null,
+      activeSurface:  ws.activeSurface  ?? null,
+      activeTab:      ws.activeTab      ?? null,
+      ts:             new Date().toISOString(),
+    });
+    logImpactCrash(this.props.label || "section", error);
+  }
   render() {
     if (this.state.crashed) {
       return (
@@ -826,6 +840,13 @@ function VoteAllocationWidget({ votesLeft, totalVotes, votedIds, projects }) {
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════ */
 export default function ImpactPage({ currentUser: _currentUser }) {
+  // ── PHASE 16.8.1: STEP-BY-STEP CRASH ISOLATION ──────────────────
+  console.log("[IMPACT PAGE START]", {
+    _currentUser_type: typeof _currentUser,
+    _currentUser_id: _currentUser?.id ?? null,
+    ts: new Date().toISOString(),
+  });
+
   // Phase 16.7.1: never undefined — null-safe fallback
   const currentUser = _currentUser ?? {
     id: null, full_name: "", display_name: "", email: "",
@@ -842,6 +863,9 @@ export default function ImpactPage({ currentUser: _currentUser }) {
   const [loading,       setLoading]      = useState(true);
   const [supportProject, setSupportProject] = useState(null);
   const [selected,      setSelected]     = useState(null);
+
+  // ── PHASE 16.8.1: Trace after all useState ──────────────────────
+  console.log("[IMPACT] after hooks (useState done)");
 
   // ── Daten laden ────────────────────────────────────────────────────
   useEffect(() => {
@@ -933,6 +957,9 @@ export default function ImpactPage({ currentUser: _currentUser }) {
     } catch { /* Rollback nicht nötig — optimistisch */ }
   }, [votesLeft, currentUser?.id, projects]);
 
+  // ── PHASE 16.8.1: After all useEffect/useCallback ──────────────
+  console.log("[IMPACT] after effects+callbacks — before memo/derived");
+
   // ── Gefilterte Projekte ────────────────────────────────────────────
   const safeProjects = safeArr(projects);
   const filtered = activeCategory === "Alle Projekte"
@@ -942,6 +969,14 @@ export default function ImpactPage({ currentUser: _currentUser }) {
   // ── Loading ────────────────────────────────────────────────────────
   // ── Mount log ─────────────────────────────────────────────────────
   // (runs inline — useEffect would be too late for crash diagnosis)
+
+  console.log("[IMPACT] before render", {
+    loading,
+    projectsCount: safeProjects?.length ?? -1,
+    filteredCount: filtered?.length ?? -1,
+    membershipType: currentUser?.membership_type ?? "free",
+    userId: currentUser?.id ?? null,
+  });
 
   if (loading) {
     logImpact("mount:loading", { userId: currentUser?.id ?? null });
@@ -968,6 +1003,19 @@ export default function ImpactPage({ currentUser: _currentUser }) {
     filteredCount: filtered.length,
     membershipType: currentUser?.membership_type ?? "free",
   });
+
+  // ── PHASE 16.8.1: Global debug inspector ──────────────────────
+  if (typeof window !== "undefined") {
+    window.__HUI_IMPACT_DEBUG__ = {
+      mounted: true,
+      safeProjectsCount: safeProjects.length,
+      filteredCount: filtered.length,
+      currentUserId: currentUser?.id ?? null,
+      membershipType: currentUser?.membership_type ?? "free",
+      loading,
+      ts: new Date().toISOString(),
+    };
+  }
 
   // ── Render ─────────────────────────────────────────────────────────
   return (
