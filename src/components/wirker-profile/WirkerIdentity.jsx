@@ -1,161 +1,152 @@
-import { createProfileItem } from "../../lib/factories/createProfileItem.js";
-// components/wirker-profile/WirkerIdentity.jsx
-// Name, Talent, Location, Mood-Pill, 4-Spalten Stats
-// Screenshot-exact nach Mia Kern Design
-
+// WirkerIdentity.jsx — Phase 24: Creator Identity Strip
+// Direkt unter dem Hero — Avatar, Name, Actions
 import React from "react";
-import { HUI } from "../../design/hui.design.js";
+import { useTap } from "../../design/hui.hooks.js";
 
-const C = {
-  teal: HUI.COLOR.teal, coral: HUI.COLOR.coral,
-  ink: HUI.COLOR.ink, ink2: HUI.COLOR.ink2,
-  muted: "rgba(80,80,80,0.58)", cream: HUI.COLOR.cream,
-};
+const safeStr = (v, fb = "") => (typeof v === "string" && v.length > 0 ? v : fb);
 
-function StatCol({ value, label, last, dimmed }) {
+export default function WirkerIdentity({ profile = {}, followed, followLoading, onFollow, onChat, onShare }) {
+  const shareTap  = useTap();
+  const followTap = useTap();
+
+  const name      = safeStr(profile?.display_name || profile?.name, "Creator");
+  const location  = safeStr(profile?.location, "");
+  const type      = safeStr(profile?.type || profile?.talent, "Creator");
+  const verified  = profile?.verified ?? false;
+  const presence  = safeStr(profile?.presence_status, "Gerade im Atelier");
+  const avatarUrl = safeStr(profile?.img, `https://i.pravatar.cc/80?u=${profile?.id || "hui"}`);
+
   return (
     <div style={{
-      flex: dimmed ? 0.7 : 1,
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center",
-      padding:"16px 4px",
-      borderRight: last ? "none" : "1px solid rgba(0,0,0,0.055)",
+      width: "100%",
+      background: "white",
+      borderBottom: "1px solid rgba(0,0,0,0.06)",
+      padding: "0 20px 16px",
     }}>
-      <span style={{
-        fontSize: dimmed ? 14 : 18,
-        fontWeight: dimmed ? 500 : 800,
-        color: dimmed ? C.muted : C.ink,
-        letterSpacing: dimmed ? 0 : -0.3,
-        lineHeight:1.1, opacity: dimmed ? 0.65 : 1,
-        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-        transition:"opacity 0.2s",
-      }}>{value}</span>
-      <span style={{
-        fontSize:10.5, color:C.muted, fontWeight:500, marginTop:3,
-        opacity: dimmed ? 0.55 : 0.85,
-      }}>{label}</span>
-    </div>
-  );
-}
-
-export default function WirkerIdentity({ profile }) {
-  // Normalisierung — profile kann normalizeProfileInput-Output oder createProfileItem-Output sein
-  const p = (profile && profile.displayName)
-    ? profile                           // schon normalisiert
-    : createProfileItem(profile || {}); // raw → ProfileItem
-
-  const name     = p?.displayName  || "Kreative:r";
-
-  const talent   = p?.talent      || "Kreative:r";
-  const location = p?.location    || null;
-  const mood     = p?.currentMood || "Gerade im Atelier";
-  const verified = p?.isVerified  || false;
-
-  const erlebnisse   = p?.stats?.experiences || p?._raw?.bookings || 128;
-  const gefolgt      = p?.stats?.followers   || "2,4K";
-  const wirkung      = p?.stats?.resonance   || 8950;
-  const verbindungen = p?.stats?.connections || 312;
-
-  const wirkungFmt = typeof wirkung === "number"
-    ? "\u20AC" + wirkung.toLocaleString("de-DE")
-    : String(wirkung);
-
-  const fmt = v => {
-    if (typeof v === "number" && v >= 1000)
-      return (v/1000).toFixed(1).replace(".0","") + "K";
-    return String(v);
-  };
-
-  return (
-    <div style={{ padding:"54px 20px 0", background:C.cream }}>
-
-      {/* Name + Verified */}
-      <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
-        <span style={{
-          fontSize:24, fontWeight:800, color:C.ink,
-          letterSpacing:-0.5, lineHeight:1.2,
-          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-        }}>{name}</span>
-        {verified && (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{flexShrink:0}}>
-            <circle cx="10" cy="10" r="10" fill={C.teal}/>
-            <path d="M6 10.5L8.5 13L14 7.5" stroke="white" strokeWidth="1.8"
-              strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        )}
-      </div>
-
-      {/* Talent */}
-      <div style={{ fontSize:14.5, color:C.ink2, fontWeight:500, marginBottom:4 }}>{talent}</div>
-
-      {/* Location */}
-      {location && (
-        <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:10 }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
-              fill={C.muted}/>
-          </svg>
-          <span style={{ fontSize:13, color:C.muted }}>{location}</span>
+      <div style={{
+        display: "flex",
+        alignItems: "flex-end",
+        gap: 14,
+        paddingTop: 0,
+        marginTop: -36,
+      }}>
+        {/* Avatar — schwebt über Hero */}
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <img
+            src={avatarUrl}
+            alt={name}
+            style={{
+              width: 72, height: 72,
+              borderRadius: "50%",
+              border: "4px solid white",
+              objectFit: "cover",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+              background: "#f0f0f0",
+            }}
+            onError={e => { e.target.src = `https://i.pravatar.cc/80?u=${name}`; }}
+          />
+          {/* Online dot */}
+          <div style={{
+            position: "absolute", bottom: 4, right: 4,
+            width: 14, height: 14, borderRadius: "50%",
+            background: "#22C55E",
+            border: "2px solid white",
+          }} />
         </div>
-      )}
 
-      {/* Mood Pill */}
-      <div style={{
-        display:"inline-flex", alignItems:"center", gap:6,
-        padding:"5px 13px", borderRadius:99,
-        background:"rgba(22,215,197,0.09)",
-        border:"1px solid rgba(22,215,197,0.22)",
-        marginBottom:18,
-      }}>
-        <div style={{
-          width:7, height:7, borderRadius:"50%", background:C.teal,
-          boxShadow:"0 0 7px rgba(22,215,197,0.7)",
-          animation:"wm-pulse 2.2s ease-in-out infinite",
-        }}/>
-        <span style={{ fontSize:12.5, fontWeight:600, color:C.teal }}>{mood}</span>
+        {/* Name + Meta */}
+        <div style={{ flex: 1, paddingBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{
+              fontSize: 17, fontWeight: 800,
+              color: "#1A1A1A", letterSpacing: "-0.025em",
+            }}>{name}</span>
+            {verified && (
+              <span style={{
+                background: "#0DC4B5", color: "white",
+                fontSize: 10, fontWeight: 800,
+                borderRadius: 99, padding: "2px 7px",
+              }}>✓</span>
+            )}
+          </div>
+          <div style={{
+            fontSize: 12, color: "#888",
+            fontWeight: 500, marginTop: 2,
+          }}>
+            {type}{location ? ` · ${location}` : ""}
+          </div>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 5, marginTop: 4,
+          }}>
+            <div style={{
+              width: 7, height: 7, borderRadius: "50%",
+              background: "#22C55E",
+              animation: "pulse 2s infinite",
+            }} />
+            <span style={{ fontSize: 11, color: "#0DC4B5", fontWeight: 600 }}>
+              {presence}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Bar */}
+      {/* Action Buttons */}
       <div style={{
-        display:"flex",
-        background:"white",
-        borderRadius:18,
-        boxShadow:"0 2px 14px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03)",
-        overflow:"hidden",
-        marginBottom:12,
+        display: "flex", gap: 8, marginTop: 14,
+        alignItems: "center",
       }}>
-        <StatCol value={fmt(erlebnisse)} label="Erlebnisse"/>
-        <StatCol value={fmt(gefolgt)}   label="Gefolgt" dimmed/>
-        <StatCol value={wirkungFmt}     label="Wirkung"/>
-        <StatCol value={fmt(verbindungen)} label="Verbindungen" last/>
-      </div>
+        {/* Teilen */}
+        <button
+          {...shareTap}
+          onClick={onShare}
+          style={{
+            background: "#0DC4B5",
+            border: "none", borderRadius: 99,
+            padding: "10px 22px",
+            color: "white", fontSize: 13, fontWeight: 700,
+            cursor: "pointer",
+            flex: 1,
+            boxShadow: "0 4px 16px rgba(13,196,181,0.30)",
+          }}
+        >Teilen</button>
 
-      {/* Subtiles Empfehlungs-Signal — kein Rating, kein Stern */}
-      <div style={{
-        display:"flex", alignItems:"center", gap:6,
-        marginBottom:20, flexWrap:"wrap",
-      }}>
-        {[
-          "✦ Wird oft weiterempfohlen",
-          "✦ Schöne Begegnungen entstehen",
-        ].map((signal, i) => (
-          <div key={i} style={{
-            display:"inline-flex", alignItems:"center",
-            padding:"4px 11px", borderRadius:99,
-            background:"rgba(22,215,197,0.07)",
-            border:"1px solid rgba(22,215,197,0.16)",
-            fontSize:11.5, color:"rgba(22,215,197,0.85)",
-            fontWeight:500, letterSpacing:0.1,
-          }}>{signal}</div>
-        ))}
-      </div>
+        {/* Nachricht */}
+        <button
+          onClick={onChat}
+          style={{
+            background: "rgba(13,196,181,0.08)",
+            border: "1.5px solid rgba(13,196,181,0.25)",
+            borderRadius: 99, width: 40, height: 40,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: 16,
+          }}
+        >✉️</button>
 
-      <style>{`
-        @keyframes wm-pulse {
-          0%,100%{opacity:1;box-shadow:0 0 7px rgba(22,215,197,0.7);}
-          50%{opacity:0.55;box-shadow:0 0 14px rgba(22,215,197,0.5);}
-        }
-      `}</style>
+        {/* Speichern */}
+        <button style={{
+          background: "rgba(0,0,0,0.05)",
+          border: "1.5px solid rgba(0,0,0,0.10)",
+          borderRadius: 99, width: 40, height: 40,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", fontSize: 16,
+        }}>🔖</button>
+
+        {/* Follow */}
+        <button
+          {...followTap}
+          onClick={onFollow}
+          disabled={followLoading}
+          style={{
+            background: followed ? "rgba(0,0,0,0.06)" : "rgba(13,196,181,0.08)",
+            border: `1.5px solid ${followed ? "rgba(0,0,0,0.12)" : "rgba(13,196,181,0.30)"}`,
+            borderRadius: 99, padding: "9px 14px",
+            color: followed ? "#888" : "#0DC4B5",
+            fontSize: 12, fontWeight: 700,
+            cursor: followLoading ? "default" : "pointer",
+            opacity: followLoading ? 0.6 : 1,
+          }}
+        >{followed ? "Gefolgt" : "Folgen"}</button>
+      </div>
     </div>
   );
 }
