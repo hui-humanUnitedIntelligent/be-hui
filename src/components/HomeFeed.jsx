@@ -5,6 +5,7 @@
 import { useFeedData }           from '../lib/AppStateContext';
 import { filterValidFeedItems }  from '../lib/factories/createFeedItem.js';
 import { createProfileItem }     from '../lib/factories/createProfileItem.js';
+import { useScrollEntry } from "../design/hui.hooks.js";
 import React, {
   useState, useRef, useEffect, useCallback, useMemo,
 } from "react";
@@ -25,6 +26,7 @@ import {
 } from "../lib/intelligence/persistence/useLivingMemory.js";
 import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { IX } from "../design/hui.interaction.js";
 import {
   resolveMemoryTokens,
   applyMemoryToCardStyle,
@@ -124,7 +126,7 @@ function getRhythmState(item, idx) {
 const AMBIENT_QUOTES = QUIET_QUOTE_POOL;
 
 /* ─── CSS ───────────────────────────────────────────────────────────────── */
-const CSS = `
+const CSS = IX.CSS + `
   /* ── Keyframes ─────────────────── */
   @keyframes hf-fade-up {
     from { opacity:0; transform:translateY(10px); }
@@ -134,23 +136,15 @@ const CSS = `
     from { opacity:0; }
     to   { opacity:1; }
   }
-  @keyframes hf-ambient-drift {
-    0%   { transform: scale(1.00) translate(0px,    0px)   rotate(0deg);   opacity:0.55; }
-    33%  { transform: scale(1.08) translate(18px,  -12px)  rotate(120deg); opacity:0.80; }
-    66%  { transform: scale(0.96) translate(-10px,  16px)  rotate(240deg); opacity:0.60; }
-    100% { transform: scale(1.00) translate(0px,    0px)   rotate(360deg); opacity:0.55; }
-  }
-  @keyframes hf-haze-float {
-    0%,100% { transform: translateY(0px)   scaleX(1.00); opacity:0.40; }
-    50%     { transform: translateY(-14px) scaleX(1.06); opacity:0.65; }
-  }
+  /* hf-ambient-drift → huiGlowDrift (via IX.CSS) */
+  /* hf-haze-float entfernt — Phase 22 Motion Noise Reduction */
   @keyframes hf-glow-breathe {
-    0%,100% { opacity:0.45; transform:scale(1.00); }
-    50%     { opacity:0.80; transform:scale(1.06); }
+    0%,100% { opacity:0.28; transform:scale(1.00); }
+    50%     { opacity:0.52; transform:scale(1.03); }
   }
   @keyframes hf-story-pulse {
-    0%,100% { transform:scale(1.00); opacity:0.65; }
-    50%     { transform:scale(1.20); opacity:0; }
+    0%,100% { transform:scale(1.00); opacity:0.50; }
+    50%     { transform:scale(1.14); opacity:0; }
   }
   @keyframes hf-quiet-shimmer {
     0%   { background-position: -200% 0; }
@@ -182,8 +176,8 @@ const CSS = `
   }
   .hf-tap:active {
     opacity: 0.70;
-    transform: scale(0.972);
-    transition: opacity 0.08s ease, transform 0.08s ease;
+    transform: scale(0.980) translateY(1px);
+    transition: opacity 0120ms cubic-bezier(0.22,1,0.36,1), transform 0120ms cubic-bezier(0.22,1,0.36,1);
   }
 
   /* ── Card surfaces ──────────────── */
@@ -226,7 +220,7 @@ const CSS = `
                 box-shadow 0.45s cubic-bezier(0.22,1,0.36,1);
   }
   .hf-hero:active {
-    transform: scale(0.985) translateY(-2px);
+    transform: scale(0.984) translateY(1.5px);
     box-shadow: 0 18px 60px rgba(0,0,0,0.14), 0 4px 14px rgba(0,0,0,0.07);
   }
 
@@ -238,7 +232,8 @@ const CSS = `
     transition: transform 0.35s ease, box-shadow 0.35s ease;
   }
   .hf-note:active {
-    transform: scale(0.990);
+    transform: scale(0.978) translateY(1px) !important;
+    opacity: 0.90 !important;
     box-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 6px 22px rgba(0,0,0,0.08);
   }
 
@@ -250,7 +245,7 @@ const CSS = `
     transition: transform 0.4s ease, box-shadow 0.4s ease;
   }
   .hf-experience:active {
-    transform: scale(0.987);
+    transform: scale(0.982) translateY(1.5px);
   }
 
   /* ── Resonance card ─────────────── */
@@ -260,7 +255,7 @@ const CSS = `
                 inset 0 1px 0 rgba(255,255,255,0.90);
     transition: transform 0.3s ease;
   }
-  .hf-resonance:active { transform: scale(0.992); }
+  .hf-resonance:active { transform: scale(0.982) translateY(1.5px); }
 
   /* ── Reaction buttons ────────────── */
   .hf-react-btn {
@@ -274,7 +269,7 @@ const CSS = `
     transition:background 0.22s ease, color 0.22s ease, transform 0.12s ease;
     font-family:inherit; line-height:1; letter-spacing:-0.1px;
   }
-  .hf-react-btn:active { transform:scale(0.90); }
+  .hf-react-btn:active { transform:scale(0.930) translateY(0.5px); }
   .hf-react-btn--active { color:#16D7C5; background:rgba(22,215,197,0.08); }
   .hf-react-btn--warm.hf-react-btn--active { color:#FF8A6B; background:rgba(255,138,107,0.08); }
 
@@ -350,7 +345,7 @@ const CSS = `
   .hf-haze {
     position:absolute;
     pointer-events:none;
-    animation:hf-haze-float 10s ease-in-out infinite;
+    /* Phase 22: kein float auf Haze-Element */
   }
 
   /* ── Badge ───────────────────────── */
@@ -456,7 +451,7 @@ export default function HomeFeed({
   });
 
   return (
-    <div className="hf-root" style={{ paddingBottom:28, width:"100%" }}>
+    <div className="hf-root" style={{ paddingBottom:80, width:"100%" }}>
       <style>{CSS}</style>
 
       {/* ── Living Background System ──────────────────────────────────── */}
@@ -503,24 +498,24 @@ function AmbientBackground() {
       <div className="hf-ambient-blob" style={{
         width:380, height:380,
         top:-100, right:-100,
-        background:"rgba(22,215,197,0.055)",
-        animation:"hf-ambient-drift 18s ease-in-out infinite",
+        background:"rgba(22,215,197,0.040)",
+        animation:"huiGlowDrift 18s ease-in-out infinite",
       }}/>
       {/* Coral field — bottom left */}
       <div className="hf-ambient-blob" style={{
         width:280, height:280,
         bottom:60, left:-80,
-        background:"rgba(255,138,107,0.040)",
-        animation:"hf-ambient-drift 24s ease-in-out infinite",
+        background:"rgba(255,138,107,0.028)",
+        animation:"huiGlowDrift 24s ease-in-out infinite",
         animationDelay:"-8s",
       }}/>
       {/* Mid-page warmth */}
       <div className="hf-ambient-blob" style={{
         width:220, height:160,
         top:"42%", left:"20%",
-        background:"rgba(255,240,220,0.060)",
+        background:"rgba(255,240,220,0.038)",
         borderRadius:"60% 40% 55% 45% / 50% 60% 40% 50%",
-        animation:"hf-ambient-drift 30s ease-in-out infinite",
+        animation:"huiGlowDrift 30s ease-in-out infinite",
         animationDelay:"-14s",
       }}/>
       {/* Depth haze — top vignette */}
@@ -545,7 +540,7 @@ function AmbientBackground() {
    ═══════════════════════════════════════════════════════════════════════════ */
 function StoryLeiste({ stories, onStory }) {
   return (
-    <div style={{ paddingTop:14, paddingBottom:6 }}>
+    <div style={{ paddingTop:20, paddingBottom:12 }}>
       <div className="hf-scroll-x" style={{ gap:13, paddingLeft:16, paddingRight:16 }}>
         {stories.map(s => (
           <StoryBubble key={s.id} story={s} onPress={() => onStory?.(s)} />
@@ -602,7 +597,7 @@ function StoryBubble({ story, onPress }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 function EventsSection({ events, onEvent }) {
   return (
-    <div style={{ paddingTop:6, paddingBottom:2 }}>
+    <div style={{ paddingTop:12, paddingBottom:8 }}>
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         paddingLeft:16, paddingRight:16, marginBottom:11,
@@ -930,6 +925,16 @@ function RhythmCard({
   // ── Dwell tracking (IntersectionObserver, passive) ─────────────────────
   const { ref: dwellRef } = useDwellTracker(viewerId, creatorId);
 
+  // ── Scroll Entry — sanftes Ankommen, einmalig ──────────────────────────
+  // Kein Stagger (würde hektisch wirken), nur ruhiges opacity + slide
+  const { ref: entryRef, entryStyle } = useScrollEntry(0, 0.06);
+
+  // ── Refs zusammenführen ────────────────────────────────────────────────
+  const combinedRef = (el) => {
+    if (dwellRef) dwellRef.current = el;
+    if (entryRef) entryRef.current = el;
+  };
+
   // ── Animation: calm for familiar creators ──────────────────────────────
   // Never re-renders on scroll — purely CSS multiplier
   const cardAnimStyle = mt.isFamiliar
@@ -937,7 +942,7 @@ function RhythmCard({
     : {};
 
   return (
-    <div ref={dwellRef} style={{ position:"relative" }}>
+    <div ref={combinedRef} style={{ position:"relative", ...entryStyle }}>
       {/* Resonance glow (user-triggered) */}
       {isResonated && (
         <div style={{
@@ -945,7 +950,7 @@ function RhythmCard({
           background:"radial-gradient(ellipse at 50% 60%, rgba(22,215,197,0.08) 0%, transparent 70%)",
           borderRadius:36, pointerEvents:"none",
           transition:"opacity 0.7s ease",
-          animation:"hf-glow-breathe 4s ease-in-out infinite",
+          /* Phase 22: Glow-Breathe entfernt — kein Motion-Noise auf Cards */
         }}/>
       )}
       {/* Phase 16: relationship warmth — atmospheric familiarity glow */}
@@ -1497,7 +1502,7 @@ function FeedEmptyState() {
         width:240, height:180,
         background:"radial-gradient(ellipse, rgba(22,215,197,0.10) 0%, transparent 70%)",
         pointerEvents:"none",
-        animation:"hf-glow-breathe 5s ease-in-out infinite",
+        /* Phase 22: sanftes atmosphärisches Glow */
       }}/>
 
       {/* Orb visual */}
@@ -1508,7 +1513,7 @@ function FeedEmptyState() {
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:24, marginBottom:20,
         boxShadow:`0 0 32px ${T.tealGlow}`,
-        animation:"hf-glow-breathe 4s ease-in-out infinite",
+        animation:"huiBreathe 4.8s ease-in-out infinite",
       }}>✦</div>
 
       {/* Emotional copy */}

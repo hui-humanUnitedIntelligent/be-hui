@@ -27,7 +27,7 @@ const CSS = `
   @keyframes toFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
   @keyframes toPop{0%{transform:scale(0.7)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
   .t-tap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .24s ease,opacity .22s ease}
-  .t-tap:active{transform:scale(0.96)!important;opacity:.80}
+  .t-tap:active{transform:scale(0.965) translateY(1px)!important;opacity:.80}
   .t-scroll::-webkit-scrollbar{display:none}
   .t-scroll{-ms-overflow-style:none;scrollbar-width:none}
 `;

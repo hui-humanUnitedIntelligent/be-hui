@@ -1,3 +1,5 @@
+import { EASE as IX_EASE, DUR as IX_DUR } from "./hui.interaction.js";
+
 /**
  * ════════════════════════════════════════════════════════════════
  *  HUI DESIGN SYSTEM — Phase 20
@@ -228,35 +230,37 @@ const RADIUS = {
 };
 
 // ─────────────────────────────────────────────────────────────────
-//  MOTION-SYSTEM — organisch, ruhig, menschlich
+//  MOTION-SYSTEM — Phase 22: Delegation an IX (hui.interaction.js)
+//  Diese Werte spiegeln die IX-Werte für Rückwärtskompatibilität.
 // ─────────────────────────────────────────────────────────────────
 
 const MOTION = {
-  // Durations
-  instant:   "100ms",
-  fast:      "160ms",
-  normal:    "220ms",
-  calm:      "320ms",
-  slow:      "500ms",
-  cinematic: "800ms",
+  // Durations (in ms → string)
+  instant:   `${IX_DUR.tap}ms`,
+  fast:      `${IX_DUR.micro}ms`,
+  normal:    `${IX_DUR.normal}ms`,
+  calm:      `${IX_DUR.page}ms`,
+  slow:      `${IX_DUR.mood}ms`,
+  cinematic: `${IX_DUR.cinematic}ms`,
 
-  // Easing
-  ease:      "ease",
-  easeOut:   "cubic-bezier(0.16, 1, 0.3, 1)",          // Sanft auslaufen
-  easeIn:    "cubic-bezier(0.4, 0, 1, 1)",              // Sanft einlaufen
-  spring:    "cubic-bezier(0.34, 1.56, 0.64, 1)",       // Organischer Spring
-  springCalm:"cubic-bezier(0.22, 1.0,  0.36, 1)",       // Ruhigerer Spring
-  gentle:    "cubic-bezier(0.25, 0.46, 0.45, 0.94)",    // Sehr sanft
+  // Easings — aus IX (identisch, aber als Referenz)
+  ease:       "ease",
+  easeOut:    IX_EASE.out,
+  easeOutSoft:IX_EASE.outSoft,
+  easeIn:     IX_EASE.in,
+  spring:     "cubic-bezier(0.34, 1.56, 0.64, 1)",  // HUI-spezifisch (Orb-Nodes)
+  springCalm: IX_EASE.outSoft,
+  gentle:     IX_EASE.outGentle,
 
-  // Standard-Transitions (als String direkt nutzbar)
-  cardHover:    "transform 0.20s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.20s ease, border-color 0.20s ease",
-  buttonHover:  "all 0.22s cubic-bezier(0.34,1.56,0.64,1)",
-  opacityFade:  "opacity 0.28s ease, transform 0.28s ease",
-  colorShift:   "color 0.18s ease, background 0.18s ease",
+  // Standard-Transitions
+  cardHover:    `transform ${IX_DUR.normal}ms ${IX_EASE.out}, box-shadow ${IX_DUR.normal}ms ${IX_EASE.out}`,
+  buttonHover:  `all ${IX_DUR.micro}ms ${IX_EASE.out}`,
+  opacityFade:  `opacity ${IX_DUR.page}ms ${IX_EASE.out}, transform ${IX_DUR.page}ms ${IX_EASE.out}`,
+  colorShift:   `color ${IX_DUR.micro}ms ${IX_EASE.outGentle}, background ${IX_DUR.micro}ms ${IX_EASE.outGentle}`,
 
   // Card-Touch-Scale
-  pressScale:  "scale(0.982)",
-  idleScale:   "scale(1)",
+  pressScale: "scale(0.984) translateY(1.5px)",
+  idleScale:  "scale(1) translateY(0)",
 };
 
 // ─────────────────────────────────────────────────────────────────

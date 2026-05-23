@@ -56,7 +56,7 @@ const CSS = `
     -webkit-user-select: none;
     cursor: pointer;
   }
-  .tf-tap:active { transform: scale(0.96) !important; transition: transform .08s ease !important; }
+  .tf-tap:active { transform: scale(0.965) translateY(1px) !important; transition: transform 120ms cubic-bezier(0.22,1,0.36,1) !important; }
 
   .tf-scroll::-webkit-scrollbar { display: none; }
   .tf-scroll { -ms-overflow-style:none; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
@@ -218,7 +218,7 @@ function StepWhere({ value, onSelect, onNext }) {
             fontSize:17, fontWeight:800, letterSpacing:-.2,
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             transition:"background .18s, color .18s",
-            animation: value ? "tf-pulse 2.5s ease-in-out infinite" : "none",
+            animation: value ? "tf-pulse 3.6s ease-in-out infinite" : "none",
             cursor: value ? "pointer" : "default",
           }}
         >
@@ -608,7 +608,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
             fontSize:18, fontWeight:800, letterSpacing:-.2,
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             boxShadow:"0 8px 28px rgba(139,92,246,.30)",
-            animation: publishing ? "none" : "tf-pulse 2.5s ease-in-out infinite",
+            animation: publishing ? "none" : "tf-pulse 3.6s ease-in-out infinite",
             cursor: publishing ? "default" : "pointer",
           }}
         >
@@ -829,7 +829,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
               fontSize:16, fontWeight:800, letterSpacing:-.2,
               display:"flex", alignItems:"center", justifyContent:"center", gap:8,
               boxShadow:"0 6px 20px rgba(139,92,246,.28)",
-              animation:"tf-pulse 2.5s ease-in-out infinite",
+              animation:"tf-pulse 3.6s ease-in-out infinite",
             }}
           >
             Vorschau ansehen\u00a0\u00a0<span style={{fontSize:18}}>→</span>

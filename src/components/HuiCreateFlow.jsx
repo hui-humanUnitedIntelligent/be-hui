@@ -133,7 +133,7 @@ const CSS = `
     cursor:pointer; -webkit-tap-highlight-color:transparent;
     letter-spacing:-0.2px; transition:all .25s ease;
   }
-  .hcf2-publish-btn:active { transform:scale(0.97); }
+  .hcf2-publish-btn:active { transform:scale(0.982) translateY(1.5px); }
 
   .hcf2-type-card {
     flex:1; padding:18px 14px; border-radius:20px;
@@ -144,7 +144,7 @@ const CSS = `
     background:rgba(0,0,0,0.03);
     font-family:inherit;
   }
-  .hcf2-type-card:active { transform:scale(0.94); }
+  .hcf2-type-card:active { transform:scale(0.965) translateY(1px); }
 
   @media (prefers-reduced-motion:no-preference) {
     .hcf2-animate { animation:hcf2-up .32s cubic-bezier(0.34,1.2,0.64,1) both; }
@@ -679,7 +679,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
       {/* ── Publish Button ── */}
       <div style={{ padding:"12px 18px 20px", flexShrink:0 }}>
         <button
-          className="hcf2-publish-btn"
+          className="hcf2-publish-btn hui-cta"
           disabled={!canPost}
           onClick={publish}
           style={{
@@ -1070,7 +1070,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
       {/* Publish */}
       <div style={{ padding:"12px 18px 18px", flexShrink:0 }}>
         <button
-          className="hcf2-publish-btn"
+          className="hcf2-publish-btn hui-cta"
           disabled={!canPublish || loading}
           onClick={handlePublish}
           style={{
@@ -1316,7 +1316,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
       {/* Publish */}
       <div style={{ padding:"12px 18px 18px", flexShrink:0 }}>
         <button
-          className="hcf2-publish-btn"
+          className="hcf2-publish-btn hui-cta"
           disabled={!canPublish || loading}
           onClick={handlePublish}
           style={{

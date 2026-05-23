@@ -6,6 +6,7 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import React, { useState } from "react";
 import { profileAtmosphereFromWorld } from "../../lib/intelligence/worldPolish.js";
 import { HUI } from "../../design/hui.design.js";
+import { IX } from "../../design/hui.interaction.js";
 
 const C = {
   teal:   HUI.COLOR.teal,

@@ -1,8 +1,9 @@
 // NavItem.jsx v4 — iPad Safari Fix
 // onTouchEnd als primärer Handler (kein 300ms onClick-Delay auf iOS)
 // touch-action: manipulation + -webkit-tap-highlight-color: transparent
-import React from "react";
+import React, { useState } from "react";
 import { HUI } from "../../../design/hui.design.js";
+import { IX, DUR, EASE } from "../../../design/hui.interaction.js";
 
 const C = { teal: HUI.COLOR.teal, coral: HUI.COLOR.coral };
 
@@ -52,8 +53,9 @@ function NavIcon({ k, active }) {
 
 export default function NavItem({ item, isActive, onPress, badge = 0 }) {
   const [pressed, setPressed] = React.useState(false);
-  /* touchMoved: verhindert Auslösung wenn User scrollt */
   const touchMoved = React.useRef(false);
+  const col = isActive ? C.teal : "rgba(80,80,80,0.55)";
+  const sw  = isActive ? 1.7 : 1.4;
 
   function fire() {
     if (typeof onPress === "function") {
@@ -63,7 +65,7 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
     }
   }
 
-  function handleTouchStart(e) {
+  function handleTouchStart() {
     touchMoved.current = false;
     setPressed(true);
   }
@@ -72,13 +74,12 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
   }
   function handleTouchEnd(e) {
     setPressed(false);
-    if (touchMoved.current) return; /* Scroll — nicht feuern */
-    e.preventDefault();             /* verhindert ghost onClick */
+    if (touchMoved.current) return;
+    e.preventDefault();
     fire();
   }
   function handleClick(e) {
-    /* Nur als Fallback für Nicht-Touch (Desktop, Maus) */
-    if (e.detail === 0) return;     /* synth. Event nach Touch — überspringen */
+    if (e.detail === 0) return;
     fire();
   }
 
@@ -87,47 +88,36 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
       type="button"
       aria-label={item.label}
       aria-current={isActive ? "page" : undefined}
-      style={{
-        flex:            1,
-        display:         "flex",
-        flexDirection:   "column",
-        alignItems:      "center",
-        justifyContent:  "center",
-        gap:             2,
-        border:          "none",
-        background:      "none",
-        cursor:          "pointer",
-        padding:         "6px 2px",
-        borderRadius:    18,
-        position:        "relative",
-        minHeight:       54,
-        /* iOS Safari — kein Tap-Delay, kein Ghost-Click */
-        WebkitTapHighlightColor: "transparent",
-        touchAction:             "manipulation",
-        /* Pointer-Events MUSS auto sein */
-        pointerEvents:   "auto",
-        userSelect:      "none",
-        /* Press-Feedback */
-        transform:  pressed ? "scale(0.88)" : "scale(1)",
-        transition: "transform 0.14s ease",
-      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onClick={handleClick}
+      style={{
+        background:              "none",
+        border:                  "none",
+        outline:                 "none",
+        display:                 "flex",
+        flexDirection:           "column",
+        alignItems:              "center",
+        gap:                     3,
+        padding:                 "8px 12px",
+        borderRadius:            16,
+        cursor:                  "pointer",
+        userSelect:              "none",
+        WebkitTapHighlightColor: "transparent",
+        touchAction:             "manipulation",
+        // Phase 22: Tap-Feedback
+        opacity:    pressed ? 0.72 : 1,
+        transform:  pressed ? "scale(0.88) translateY(1px)" : "scale(1)",
+        transition: pressed
+          ? "transform 120ms cubic-bezier(0.22,1,0.36,1), opacity 120ms ease"
+          : "transform 220ms cubic-bezier(0.16,1,0.30,1), opacity 200ms ease",
+      }}
     >
-      {isActive && (
-        <div style={{
-          position:   "absolute", inset: 0, borderRadius: 18,
-          background: `linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.06))`,
-          zIndex:     0,
-          pointerEvents: "none",
-        }}/>
-      )}
       <div style={{
         position:  "relative", zIndex: 1,
         transform: isActive ? "translateY(-1px) scale(1.06)" : "translateY(0) scale(1)",
-        transition: "transform 0.24s cubic-bezier(0.34,1.3,0.64,1)",
+        transition:"transform 0.24s cubic-bezier(0.22,1,0.36,1)",
         pointerEvents: "none",
       }}>
         <NavIcon k={item.key} active={isActive}/>
@@ -135,7 +125,7 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
           <div style={{
             position: "absolute", top:-3, right:-5,
             minWidth:14, height:14, borderRadius:7,
-            background:"linear-gradient(135deg,#FF5F5F,#FF8A6B)",
+            background:"linear-gradient(135deg,#FF5F5F,rgba(244,115,85,0.9))",
             color:"white", fontSize:7.5, fontWeight:800,
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"0 3px", border:"1.5px solid rgba(255,251,248,0.96)",
@@ -144,14 +134,14 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
         )}
       </div>
       <span style={{
-        fontSize:    10,
-        fontWeight:  isActive ? 700 : 500,
-        color:       isActive ? C.teal : "rgba(80,80,80,0.6)",
-        letterSpacing: isActive ? 0.3 : 0.1,
-        marginTop:   3,
-        lineHeight:  1,
-        pointerEvents: "none",
-        userSelect:  "none",
+        fontSize:     10,
+        fontWeight:   isActive ? 700 : 500,
+        color:        isActive ? C.teal : "rgba(80,80,80,0.6)",
+        letterSpacing:isActive ? 0.3 : 0.1,
+        marginTop:    3,
+        lineHeight:   1,
+        pointerEvents:"none",
+        userSelect:   "none",
       }}>
         {item.label}
       </span>
@@ -161,6 +151,7 @@ export default function NavItem({ item, isActive, onPress, badge = 0 }) {
           background:`linear-gradient(135deg,${C.teal},${C.coral})`,
           boxShadow:`0 0 4px ${C.teal}66`,
           pointerEvents:"none",
+          animation:"huiPulse 2.6s ease-in-out infinite",
         }}/>
       )}
     </button>

@@ -1,3 +1,5 @@
+import { IX } from "../../design/hui.interaction.js";
+
 // src/lib/world/tabVisibilityController.js — Phase 16.4
 // SINGLE SOURCE OF TRUTH for tab visibility.
 //
@@ -9,7 +11,8 @@
 //      Individual tab divs only control whether THIS tab is the active one.
 
 // ─── Timing ────────────────────────────────────────────────────────────────
-const TAB_TRANSITION = "opacity 0.28s cubic-bezier(0.22,1,0.36,1)";
+// Phase 22: HUI Interaction Language
+const TAB_TRANSITION = `opacity ${IX.DUR.page}ms ${IX.EASE.cinematic}, transform ${IX.DUR.page}ms ${IX.EASE.cinematic}`;
 
 // ─── getTabStyle ───────────────────────────────────────────────────────────
 // Phase 17.1 ROOT CAUSE FIX:
@@ -38,12 +41,10 @@ export function getTabStyle(tabId, activeTab, activeSurface) {
       left:          0,
       width:         "100%",
       opacity:       0,
+      transform:     "translateY(4px) scale(0.999)",
       pointerEvents: "none",
       userSelect:    "none",
-      // No transition on position change — instant removal from flow
-      // Opacity transition kept for visual polish when switching back
       transition:    TAB_TRANSITION,
-      // zIndex:0 ensures active tab (position:relative, z-index:auto) is above
       zIndex:        0,
     };
   }
@@ -53,6 +54,7 @@ export function getTabStyle(tabId, activeTab, activeSurface) {
   return {
     position:      "relative",
     opacity:       1,
+    transform:     "translateY(0) scale(1)",
     pointerEvents: activeSurface !== null ? "none" : "auto",
     userSelect:    activeSurface !== null ? "none" : "auto",
     transition:    TAB_TRANSITION,

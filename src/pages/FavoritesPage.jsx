@@ -4,6 +4,7 @@
 // REGEL: Kein direkter Supabase in UI-Unterokomponenten. Queries top-level.
 
 import { HUI } from "../design/hui.design.js";
+import { IX } from "../design/hui.interaction.js";
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -48,11 +49,11 @@ const CSS = `
     transition:transform 0.16s ease, opacity 0.16s ease;
     cursor:pointer;
   }
-  .fr-tap:active { transform:scale(0.95); opacity:0.85; }
+  .fr-tap:active { transform:scale(0.965) translateY(1px); opacity:0.85; }
   .fr-card {
     transition:box-shadow 0.2s ease, transform 0.2s ease;
   }
-  .fr-card:active { transform:scale(0.97); }
+  .fr-card:active { transform:scale(0.982) translateY(1.5px); }
   .fr-pill {
     flex-shrink:0; border-radius:999px;
     font-size:13px; font-weight:600;
@@ -61,7 +62,7 @@ const CSS = `
     -webkit-tap-highlight-color:transparent;
     white-space:nowrap;
   }
-  .fr-pill:active { transform:scale(0.94); }
+  .fr-pill:active { transform:scale(0.965) translateY(1px); }
   .fr-heart { border:none; cursor:pointer; background:none; transition:transform 0.2s ease; }
   .fr-heart:active { animation:heartPop 0.35s ease; }
   .fr-skel {

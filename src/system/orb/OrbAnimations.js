@@ -1,3 +1,5 @@
+import { IX } from "../../design/hui.interaction.js";
+
 // src/system/orb/OrbAnimations.js
 // ═══════════════════════════════════════════════════════════════
 // HUI ORB — Zentrales Animations-System
@@ -8,7 +10,7 @@
 // NUR:  opacity, leichte scale, sanfter glow, translateY
 // ═══════════════════════════════════════════════════════════════
 
-export const ORB_CSS = `
+export const ORB_CSS = IX.CSS + `
   /* ── Overlay Entry ──────────────────────────────────────── */
   @keyframes orbOverlayIn {
     from { opacity:0; }
@@ -115,13 +117,17 @@ export const ORB_CSS = `
   }
 
   /* ── Tap Utility Class ──────────────────────────────────── */
+  /* hui-tap aus IX.CSS ist bereits eingebunden */
   .orb-tap {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     cursor: pointer;
-    transition: opacity 0.16s ease;
   }
-  .orb-tap:active { opacity: 0.68; }
+  .orb-tap:active {
+    transform: scale(0.92) translateY(1px);
+    opacity: 0.72;
+    transition: transform 120ms cubic-bezier(0.22,1,0.36,1), opacity 120ms ease;
+  }
 
   /* ── Scrollbar Hide ─────────────────────────────────────── */
   .orb-scroll::-webkit-scrollbar { display:none; }

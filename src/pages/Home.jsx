@@ -39,6 +39,7 @@ const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
 import HuiPlusSheet from "../components/HuiPlusSheet.jsx";
+import { IX } from "../design/hui.interaction.js";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
@@ -56,18 +57,12 @@ const SAFE_MOTION_CSS = SAFE_MODE.motion ? '' : `
   }
 `;
 
-const GLOBAL_CSS = `
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  /* Safari Fix: overflow:hidden auf body bricht Layout-Viewport-Berechnung.
-     Scroll-Lock läuft über #root + Feed-Container, NICHT body. */
-  #root { width: 100%; max-width: 100%; overflow-x: hidden; }
-  .hui-scroll {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .hui-scroll::-webkit-scrollbar { display: none; }
+const GLOBAL_CSS = IX.CSS + `
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body { margin: 0; padding: 0; background: #F9F7F4; }
+  #root { width: 100%; max-width: 100%; overflow-x: hidden; background: #F9F7F4; }
+  /* Phase 22: Keine Text-Select beim Tap */
+  button, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 `;
 
 /* ══════════════════════════════════════════════════════════════ */
@@ -241,13 +236,14 @@ function HomeInner() {
           className="hui-scroll"
           ref={(el) => { mainScrollRef.current = el; scrollContainerRef.current = el; }}
           style={{
-            flex:        1,
-            overflowY:   "auto",
-            overflowX:   "hidden",
-            position:    "relative",
-            // Phase 16.4: scale-only atmospheric depth effect.
-            // Opacity: NOT here (handled per tab by tabVisibilityController).
-            // Blur:    NOT here (handled by dimStyle fixed overlay).
+            flex:         1,
+            overflowY:    "auto",
+            overflowX:    "hidden",
+            position:     "relative",
+            // Phase 22: Atmosphärische Kontinuität beim Tab-Wechsel
+            // Sanfte background-transition — gibt das Gefühl von
+            // "Raum-Wechsel" statt "Screen-Wechsel"
+            transition:   "background-color 320ms cubic-bezier(0.16,1,0.30,1)",
             ...worldTokens.feedContainerStyle,
           }}
         >
@@ -274,8 +270,17 @@ function HomeInner() {
                 />
               </SafeRender>
             ) : (
-              <div style={{ padding: "40px 24px", textAlign: "center", color: "#999", fontSize: 14 }}>
-                Feed lädt…
+              <div style={{
+                padding:"40px 20px", textAlign:"center",
+                display:"flex", flexDirection:"column", alignItems:"center", gap:16,
+              }}>
+                <div style={{ width:56, height:56, borderRadius:18,
+                  background:"linear-gradient(135deg,rgba(13,196,181,0.10),rgba(244,115,85,0.07))",
+                  animation:"huiBreathe 4.8s ease-in-out infinite",
+                  border:"1px solid rgba(13,196,181,0.12)",
+                }}/>
+                <div style={{ fontSize:13, color:"rgba(20,20,34,0.32)", fontWeight:500,
+                  letterSpacing:"-0.005em", animation:"huiFadeIn 0.6s ease" }}>Atmet…</div>
               </div>
             )}
           </div>
@@ -283,7 +288,8 @@ function HomeInner() {
           {/* Phase 17.1 FIX: tabVisibilityController liefert jetzt position:absolute
                für inaktive Tabs → kein Flow-Space-Problem mehr */}
           <div ref={tabRefs.discover} style={keepDiscover}>
-            <Suspense fallback={<div style={{padding:40,color:"#16D7C5",fontSize:18}}>Entdecken lädt…</div>}>
+            <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
+  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
                 <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
               </SafeRender>
@@ -291,7 +297,8 @@ function HomeInner() {
           </div>
 
           <div ref={tabRefs.impact} style={keepImpact}>
-            <Suspense fallback={<div style={{padding:40,color:"#16D7C5",fontSize:18}}>Impact lädt…</div>}>
+            <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
+  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Impact-Raum öffnet sich…</div>}>
               <SafeRender flag="impactPage" label="ImpactPage">
                 <ImpactPage currentUser={currentUser}/>
               </SafeRender>
@@ -609,32 +616,32 @@ function HomeInner() {
           border:"1px solid rgba(255,255,255,0.15)",
           minWidth:200,
         }}>
-          <div style={{ color:"#16D7C5", fontWeight:700, marginBottom:3, fontSize:11 }}>
+          <div style={{ color:HUI.COLOR.teal, fontWeight:700, marginBottom:3, fontSize:11 }}>
             🌍 World Surface
           </div>
-          <div>surface: <b style={{color: activeSurface ? "#FF8A6B":"#aaa"}}>
+          <div>surface: <b style={{color: activeSurface ? HUI.COLOR.coral:"#aaa"}}>
             {activeSurface ?? "null"}
           </b></div>
-          <div>confirmed: <b style={{color: worldState?.overlayConfirmed ? "#16D7C5":"#aaa"}}>
+          <div>confirmed: <b style={{color: worldState?.overlayConfirmed ? HUI.COLOR.teal:"#aaa"}}>
             {String(worldState?.overlayConfirmed ?? false)}
           </b></div>
-          <div>navLocked: <b style={{color: worldState?.navLocked ? "#FF8A6B":"#aaa"}}>
+          <div>navLocked: <b style={{color: worldState?.navLocked ? HUI.COLOR.coral:"#aaa"}}>
             {String(worldState?.navLocked ?? false)}
           </b></div>
-          <div>sheet: <b style={{color: showPlusSheet ? "#FF8A6B":"#aaa"}}>
+          <div>sheet: <b style={{color: showPlusSheet ? HUI.COLOR.coral:"#aaa"}}>
             {String(showPlusSheet)}
           </b></div>
 
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.12)", margin:"5px 0 3px" }} />
           <div style={{ color:"#a8d8cf", fontWeight:700, marginBottom:2 }}>📋 Tabs</div>
-          <div>activeTab: <b style={{color:"#16D7C5"}}>{tab}</b></div>
-          <div>feed op: <b style={{color: keepFeed?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
+          <div>activeTab: <b style={{color:HUI.COLOR.teal}}>{tab}</b></div>
+          <div>feed op: <b style={{color: keepFeed?.opacity === 1 ? HUI.COLOR.teal:HUI.COLOR.coral}}>
             {keepFeed?.opacity ?? "?"}
           </b></div>
-          <div>impact op: <b style={{color: keepImpact?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
+          <div>impact op: <b style={{color: keepImpact?.opacity === 1 ? HUI.COLOR.teal:HUI.COLOR.coral}}>
             {keepImpact?.opacity ?? "?"}
           </b></div>
-          <div>discover op: <b style={{color: keepDiscover?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
+          <div>discover op: <b style={{color: keepDiscover?.opacity === 1 ? HUI.COLOR.teal:HUI.COLOR.coral}}>
             {keepDiscover?.opacity ?? "?"}
           </b></div>
           <div>tab→ptr: <b style={{color:"#aaa"}}>

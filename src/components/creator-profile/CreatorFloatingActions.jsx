@@ -3,6 +3,7 @@
 
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
+import { IX } from "../../design/hui.interaction.js";
 
 const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, cream:HUI.COLOR.cream };
 

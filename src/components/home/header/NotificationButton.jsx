@@ -18,7 +18,7 @@ export default function NotificationButton({ count=0, onPress }) {
         display:"flex", alignItems:"center", justifyContent:"center",
         cursor:"pointer", position:"relative",
         WebkitTapHighlightColor:"transparent",
-        transform: pressed ? "scale(0.92)" : "scale(1)",
+        transform: pressed ? "scale(0.930) translateY(0.5px)" : "scale(1)",
         transition:"transform 0.22s ease",
       }}
       onTouchStart={() => setPressed(true)}

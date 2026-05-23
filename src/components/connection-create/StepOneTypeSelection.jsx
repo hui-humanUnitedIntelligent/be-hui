@@ -41,7 +41,7 @@ const CSS = `
     cursor: pointer;
     pointer-events: auto;
   }
-  .s1-card:active { transform: scale(0.975) !important; }
+  .s1-card:active { transform: scale(0.982) translateY(1.5px) !important; }
 
   .s1-next-btn {
     -webkit-tap-highlight-color: transparent;
@@ -49,7 +49,7 @@ const CSS = `
     cursor: pointer;
     pointer-events: auto;
   }
-  .s1-next-btn:active { transform: scale(0.97) !important; }
+  .s1-next-btn:active { transform: scale(0.982) translateY(1.5px) !important; }
 `;
 
 export default function StepOneTypeSelection({ value, onSelect, onAdvance }) {

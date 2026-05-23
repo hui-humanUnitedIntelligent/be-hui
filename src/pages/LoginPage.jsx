@@ -155,9 +155,9 @@ function PrimaryBtn({ children, onClick, type = 'button', disabled, loading }) {
         position: 'relative',
         overflow: 'hidden',
       }}
-      onMouseDown={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.98)'; }}
+      onMouseDown={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.965) translateY(1px)'; }}
       onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-      onTouchStart={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.98)'; }}
+      onTouchStart={e => { if (!disabled) e.currentTarget.style.transform = 'scale(0.965) translateY(1px)'; }}
       onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
     >
       {loading ? (

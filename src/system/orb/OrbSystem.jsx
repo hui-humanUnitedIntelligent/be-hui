@@ -177,7 +177,7 @@ export default function OrbSystem({
           left:0, right:0,
           textAlign:"center",
           pointerEvents:"none",
-          animation:"orbFadeUp 0.45s 0.10s both",
+          animation:"huiFadeSlideUp 0.45s 0.10s both",
           zIndex:Z.hints,
         }}>
           <div style={{
@@ -247,7 +247,7 @@ export default function OrbSystem({
             bottom:"calc(max(32px,env(safe-area-inset-bottom,32px)) + 12px)",
             left:0, right:0, textAlign:"center",
             pointerEvents:"none",
-            animation:"orbFadeUp 0.6s 0.9s both",
+            animation:"huiFadeSlideUp 0.6s 0.9s both",
             zIndex:Z.hints,
           }}>
             <div style={{ fontSize:11, color:T.ink4, letterSpacing:0.4 }}>
@@ -273,7 +273,7 @@ export default function OrbSystem({
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:16, color:T.ink3,
             boxShadow:"0 4px 12px rgba(0,0,0,0.06)",
-            animation:"orbFadeUp 0.5s 0.5s both",
+            animation:"huiFadeSlideUp 0.5s 0.5s both",
             zIndex:Z.hints,
             pointerEvents:"auto",
           }}
@@ -285,7 +285,7 @@ export default function OrbSystem({
           bottom:"max(7px,env(safe-area-inset-bottom,7px))",
           left:0, right:0, textAlign:"center",
           pointerEvents:"none",
-          animation:"orbFadeUp 0.7s 0.7s both",
+          animation:"huiFadeSlideUp 0.7s 0.7s both",
         }}>
           <div style={{ fontSize:10, color:T.ink4, letterSpacing:0.5 }}>
             ✦  Hier beginnt deine Wirkung  ✦

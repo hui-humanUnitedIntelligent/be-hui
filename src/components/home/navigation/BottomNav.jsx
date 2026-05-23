@@ -11,6 +11,7 @@ import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { SAFE_MODE } from "../../../config/safeMode.js";
 import { HUI } from "../../../design/hui.design.js";
+import { IX } from "../../../design/hui.interaction.js";
 
 const CSS = `
   @keyframes bn-orb-pulse {
@@ -28,8 +29,12 @@ const CSS = `
     50%     { transform: scale(1.03); }
   }
   .bn-orb-btn {
-    animation: bn-orb-pulse 3.5s ease-in-out infinite,
-               bn-orb-idle  4.0s ease-in-out infinite;
+    animation: huiOrbPulse 3.6s cubic-bezier(0.25,0.46,0.45,0.94) infinite,
+               huiNavOrbIdle 4.2s cubic-bezier(0.25,0.46,0.45,0.94) infinite;
+  }
+  .bn-orb-btn:active {
+    transform: scale(0.930) translateY(0.5px) !important;
+    transition: transform 120ms cubic-bezier(0.22,1,0.36,1) !important;
   }
 `;
 
@@ -102,6 +107,7 @@ export default function BottomNav({
 
           /* WICHTIG: auto damit Pill Touches empfängt */
           pointerEvents: "auto",
+          WebkitTapHighlightColor: "transparent",
           touchAction:   "manipulation",
         }}>
 

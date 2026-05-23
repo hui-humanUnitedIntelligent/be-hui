@@ -30,6 +30,7 @@ import { createProfileItem, filterValidProfiles }
 import { normalizeProfileInput, PROFILE_FIELDS } from "../lib/perfUtils";
 import { useDiscoverData } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
+import { IX } from "../design/hui.interaction.js";
 
 /* ── Design Tokens — via HUI Design System (Phase 20) ─────── */
 const C = {
@@ -87,7 +88,7 @@ const CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .dp-hero-card:active {
-    transform: scale(0.984);
+    transform: scale(0.982) translateY(1.5px);
     opacity: 0.96;
   }
 
@@ -101,7 +102,7 @@ const CSS = `
     -webkit-tap-highlight-color: transparent;
     box-shadow: 0 2px 12px rgba(0,0,0,0.07);
   }
-  .dp-werk-card:active { transform: scale(0.97); }
+  .dp-werk-card:active { transform: scale(0.982) translateY(1.5px); }
 
   .dp-erlebnis-card {
     flex: 1;
@@ -113,7 +114,7 @@ const CSS = `
     transition: transform 0.2s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  .dp-erlebnis-card:active { transform: scale(0.97); }
+  .dp-erlebnis-card:active { transform: scale(0.982) translateY(1.5px); }
 
   .dp-pill {
     flex-shrink: 0;
@@ -128,7 +129,7 @@ const CSS = `
     -webkit-tap-highlight-color: transparent;
     white-space: nowrap;
   }
-  .dp-pill:active { transform: scale(0.97); }
+  .dp-pill:active { transform: scale(0.982) translateY(1.5px); }
 
   .dp-like-btn {
     position: absolute;
@@ -148,7 +149,7 @@ const CSS = `
     -webkit-tap-highlight-color: transparent;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   }
-  .dp-like-btn:active { transform: scale(0.92); opacity: 0.80; }
+  .dp-like-btn:active { transform: scale(0.930) translateY(0.5px); opacity: 0.80; }
 
   .dp-search-btn {
     width: 38px; height: 38px;

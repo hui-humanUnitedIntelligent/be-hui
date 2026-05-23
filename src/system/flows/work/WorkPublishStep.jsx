@@ -230,7 +230,7 @@ export function WorkPublishStep({ form, mediaFiles, profile, onFormChange,
               width:18, height:18, borderRadius:"50%",
               border:"2.5px solid rgba(26,26,46,0.15)",
               borderTopColor:WT.ink3,
-              animation:"orbNodeIn 0.8s linear infinite",
+              animation:"huiOrbNodeIn 0.8s linear infinite",
               display:"inline-block",
             }}/>
             Wird veröffentlicht…

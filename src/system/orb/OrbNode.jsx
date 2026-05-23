@@ -1,3 +1,4 @@
+import { IX } from "../../design/hui.interaction.js";
 // src/system/orb/OrbNode.jsx
 // ═══════════════════════════════════════════════════════════════
 // HUI ORB — Einzelner Node
@@ -40,7 +41,7 @@ export function OrbNode({
         // Entry: einfaches ease-out, kein Bounce
         // Float: nur translateY — Position wird nie verändert
         animation:[
-          `orbNodeIn 0.38s ease-out ${node.delay}s both`,
+          `huiOrbNodeIn 0.38s ease-out ${node.delay}s both`,
           `${node.floatAnim} ${3.8 + idx * 0.4}s ease-in-out ${node.delay + 0.5}s infinite`,
         ].join(", "),
         display:"flex", flexDirection:"column",

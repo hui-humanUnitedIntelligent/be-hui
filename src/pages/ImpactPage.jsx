@@ -2,9 +2,11 @@
 // Kein Rebuild. Bestehende Struktur. Nur Tiefe, Ruhe, Premium-Qualität.
 // Editorial calm · Cinematic image world · Warm material system
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useScrollEntry } from "../design/hui.hooks.js";
 import { supabase } from "../lib/supabaseClient";
 import { HUI } from "../design/hui.design.js";
+import { IX } from "../design/hui.interaction.js";
 
 // ── Safe Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -172,7 +174,7 @@ export default function ImpactPage({ currentUser }) {
     }}>
 
       {/* ── CSS keyframes — via HUI Design System ── */}
-      <style>{HUI.KEYFRAMES.replace(/hui-/g,'ip-')}</style>
+      <style>{IX.CSS + HUI.KEYFRAMES.replace(/hui-/g,'ip-')}</style>
 
       {/* Sektionen fließen ineinander — kein harter Sprung */}
       <ImpactHero pool={pool} tick={TICKS[tickIdx]} />
@@ -184,6 +186,10 @@ export default function ImpactPage({ currentUser }) {
 
       {/* Sanfter Übergang Stats → Projects */}
       <SectionBridge from={T.page} to={T.page} accent={T.teal} />
+
+      {!loading && projects.length > 0 && (
+        <CommunityEnergy voices={voices} count={projects.length} />
+      )}
 
       {loading ? <ImpactSkeleton /> : <ProjectSection projects={projects} />}
 
@@ -225,14 +231,14 @@ function ImpactHero({ pool, tick }) {
         position:"absolute", top:-90, right:-70, width:340, height:340,
         borderRadius:"50%",
         background:"radial-gradient(circle, rgba(230,165,50,0.15) 0%, transparent 58%)",
-        animation:"ip-breathe 7s ease-in-out infinite",
+        animation:"huiBreathe 7s ease-in-out infinite",
         pointerEvents:"none",
       }}/>
       <div style={{
         position:"absolute", bottom:-50, left:-60, width:280, height:280,
         borderRadius:"50%",
         background:"radial-gradient(circle, rgba(13,196,181,0.12) 0%, transparent 58%)",
-        animation:"ip-breathe 9s ease-in-out 1.5s infinite",
+        animation:"huiBreathe 9s ease-in-out 1.5s infinite",
         pointerEvents:"none",
       }}/>
 
@@ -278,10 +284,10 @@ function ImpactHero({ pool, tick }) {
 
         {/* Floating symbols — über Bild, sanft */}
         {[
-          { e:"🌱", t:"10%", r:"20%", d:"0s",   a:"ip-float",  s:30 },
-          { e:"🤝", t:"30%", r:"7%",  d:"0.8s", a:"ip-floatB", s:26 },
-          { e:"💛", t:"55%", r:"30%", d:"1.5s", a:"ip-float",  s:24 },
-          { e:"✨", t:"72%", r:"10%", d:"0.5s", a:"ip-floatB", s:20 },
+          { e:"🌱", t:"10%", r:"20%", d:"0s",   a:"huiFloat",  s:30 },
+          { e:"🤝", t:"30%", r:"7%",  d:"0.8s", a:"huiFloatB", s:26 },
+          { e:"💛", t:"55%", r:"30%", d:"1.5s", a:"huiFloat",  s:24 },
+          { e:"✨", t:"72%", r:"10%", d:"0.5s", a:"huiFloatB", s:20 },
         ].map((f,i) => (
           <div key={i} style={{
             position:"absolute", top:f.t, right:f.r, fontSize:f.s,
@@ -315,7 +321,7 @@ function ImpactHero({ pool, tick }) {
             width:6, height:6, borderRadius:"50%", background:T.teal,
             boxShadow:`0 0 10px ${T.teal}`,
             display:"inline-block",
-            animation:"ip-pulse 2.6s ease-in-out infinite",
+            animation:"huiPulse 2.6s ease-in-out infinite",
           }}/>
         </div>
 
@@ -403,7 +409,7 @@ function ImpactHero({ pool, tick }) {
             <span style={{
               width:5, height:5, borderRadius:"50%", background:T.coral,
               display:"inline-block",
-              animation:"ip-pulse 1.8s ease-in-out infinite",
+              animation:"huiPulse 1.8s ease-in-out infinite",
             }}/>
             <span style={{ fontSize:9, color:T.coral, fontWeight:900,
               letterSpacing:"0.13em", textTransform:"uppercase" }}>Live</span>
@@ -411,7 +417,7 @@ function ImpactHero({ pool, tick }) {
           <span style={{
             fontSize:12, color:T.ink2, lineHeight:1.5,
             fontWeight:420, letterSpacing:"-0.005em",
-            animation:"ip-fadein 0.55s ease",
+            animation:"huiFadeIn 0.55s ease",
           }} key={tick}>{tick}</span>
         </div>
       </div>
@@ -419,12 +425,70 @@ function ImpactHero({ pool, tick }) {
   );
 }
 
+
 /* ══════════════════════════════════════════════════════════════════
-   POOL STATS — lebendig, kein Analytics-Panel
+   COMMUNITY ENERGY — Zeigt: Menschen bewegen gemeinsam etwas
+   Klein, warm, menschlich — keine KPI, keine Zahlen-Dashboard-Optik.
+══════════════════════════════════════════════════════════════════ */
+const ENERGY_HINTS = [
+  "Menschen unterstützen gerade aktiv",
+  "Stimmen wurden diese Woche abgegeben",
+  "neue Projekte wurden vorgeschlagen",
+  "der Community ist beim Wirkung schaffen",
+];
+
+function CommunityEnergy({ voices, count }) {
+  const { ref, entryStyle } = useScrollEntry(80, 0.07);
+  const [hint, setHint] = useState(0);
+
+  // Sanfter Wechsel alle 4.5s
+  useEffect(() => {
+    const t = setInterval(() => setHint(h => (h + 1) % ENERGY_HINTS.length), 4500);
+    return () => clearInterval(t);
+  }, []);
+
+  const vals = [voices || 47, voices || 47, count || 3, 84];
+
+  return (
+    <div ref={ref} style={{ padding:"4px 18px 0", ...entryStyle }}>
+      <div style={{
+        display:"flex", alignItems:"center", gap:12,
+        padding:"14px 18px",
+        background:"rgba(13,196,181,0.045)",
+        borderRadius:16,
+        border:"1px solid rgba(13,196,181,0.10)",
+      }}>
+        {/* Pulsierender Dot — einziger "lebendig"-Marker */}
+        <div style={{
+          width:8, height:8, borderRadius:"50%",
+          background:T.teal,
+          flexShrink:0,
+          animation:"huiPulse 3.2s ease-in-out infinite",
+          boxShadow:`0 0 8px ${T.teal}80`,
+        }}/>
+
+        {/* Text — wechselt sanft */}
+        <span style={{
+          fontSize:13, color:T.ink, lineHeight:1.4,
+          fontWeight:500, letterSpacing:"-0.01em",
+          transition:"opacity 0.32s ease",
+        }}>
+          <strong style={{ color:T.teal, fontWeight:800 }}>{vals[hint]}</strong>
+          {" "}{ENERGY_HINTS[hint]}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   POOL STATS
+ — lebendig, kein Analytics-Panel
 ══════════════════════════════════════════════════════════════════ */
 function PoolStats({ count, voices, given }) {
+  const { ref, entryStyle } = useScrollEntry(0, 0.06);
   return (
-    <div style={{ padding:"8px 18px 16px" }}>
+    <div ref={ref} style={{ padding:"8px 18px 16px", ...entryStyle }}>
       <div style={{
         background:T.glassDeep,
         backdropFilter:"blur(24px) saturate(1.4)",
@@ -600,6 +664,8 @@ function ProjectCard({ project:p, rank }) {
   const [votes,  setVotes]  = useState(p.votes);
   const [press,  setPress]  = useState(false);
   const [imgErr, setImgErr] = useState(false);
+  // Phase 22: Sanftes Scroll-Entry — jede Card kommt ruhig an
+  const { ref: cardRef, entryStyle } = useScrollEntry(rank * 60, 0.08);
 
   const isTop  = rank === 0;
   const accent = p.color ?? T.teal;
@@ -608,6 +674,7 @@ function ProjectCard({ project:p, rank }) {
 
   return (
     <div
+      ref={cardRef}
       onPointerDown={() => setPress(true)}
       onPointerUp={()   => setPress(false)}
       onPointerLeave={()=> setPress(false)}
@@ -617,9 +684,15 @@ function ProjectCard({ project:p, rank }) {
         overflow: "hidden",
         boxShadow: press ? S.cardHov : S.card,
         border: `1px solid ${press ? accent+"38" : T.line}`,
-        transform: press ? "scale(0.982)" : "scale(1)",
-        // Spring easing für premium Touch-Gefühl
-        transition: "transform 0.20s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.20s ease, border-color 0.20s ease",
+        transform: press
+          ? "scale(0.982) translateY(1.5px)"
+          : (entryStyle.transform ?? "scale(1)"),
+        opacity: entryStyle.opacity ?? 1,
+        // Scroll-Entry + Press kombiniert:
+        // Entry-Transition läuft einmal, dann übernimmt Press-Transition
+        transition: press
+          ? "transform 120ms cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s ease, border-color 0.18s ease"
+          : (entryStyle.transition ?? "transform 200ms cubic-bezier(0.16,1,0.30,1), box-shadow 0.22s ease, border-color 0.22s ease"),
       }}
     >
 
@@ -673,7 +746,7 @@ function ProjectCard({ project:p, rank }) {
           width:120, height:120, borderRadius:"50%",
           background:`radial-gradient(circle, ${glow} 0%, transparent 70%)`,
           pointerEvents:"none",
-          animation:"ip-glow 4s ease-in-out infinite",
+          animation:"huiGlowDrift 4s ease-in-out infinite",
         }}/>
 
         {/* Top-left: Leading badge */}
@@ -903,9 +976,10 @@ function ImpactSkeleton() {
 ══════════════════════════════════════════════════════════════════ */
 function JoinSection() {
   const [hov, setHov] = useState(false);
+  const { ref, entryStyle } = useScrollEntry(0, 0.04);
 
   return (
-    <div style={{ padding:"32px 18px 0" }}>
+    <div ref={ref} style={{ padding:"32px 18px 0", ...entryStyle }}>
       <div style={{
         background:`
           radial-gradient(ellipse 85% 65% at 15% 0%,   rgba(13,196,181,0.09) 0%, transparent 55%),
@@ -966,9 +1040,13 @@ function JoinSection() {
             boxShadow: hov
               ? `0 14px 40px rgba(13,196,181,0.42), 0 4px 12px rgba(13,196,181,0.25)`
               : `0 6px 24px rgba(13,196,181,0.30), 0 2px 6px rgba(13,196,181,0.18)`,
-            transform: hov ? "translateY(-2px) scale(1.015)" : "translateY(0) scale(1)",
-            transition:"all 0.24s cubic-bezier(0.34,1.56,0.64,1)",
+            transform: hov ? "translateY(-1.5px) scale(1.006)" : "translateY(0) scale(1)",
+            transition: "transform 200ms cubic-bezier(0.16,1,0.30,1), box-shadow 200ms cubic-bezier(0.16,1,0.30,1)",
           }}
+          className="hui-cta"
+          onPointerDown={e=>{e.currentTarget.style.transform="scale(0.960) translateY(2px)";e.currentTarget.style.filter="brightness(0.90)";}}
+          onPointerUp={e=>{e.currentTarget.style.transform="";e.currentTarget.style.filter="";}}
+          onPointerLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.filter="";}}
         >
           Projekt vorschlagen ✨
         </button>

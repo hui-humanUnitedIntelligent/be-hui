@@ -155,7 +155,9 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast }) {
           WebkitTapHighlightColor:"transparent",
           display:"flex", alignItems:"center", justifyContent:"center", gap:8,
         }}
-        onTouchStart={e=>canNext&&(e.currentTarget.style.transform="scale(0.97)")}
+        onTouchStart={e=>{if(canNext){e.currentTarget.style.transform="scale(0.965) translateY(1px)";e.currentTarget.style.transition="transform 120ms cubic-bezier(0.22,1,0.36,1)";}}}
+        onPointerUp={e=>{e.currentTarget.style.transform="";e.currentTarget.style.transition="transform 200ms cubic-bezier(0.16,1,0.30,1)"}}
+        onPointerLeave={e=>{e.currentTarget.style.transform=""}}
         onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
       >
         {isLast ? (

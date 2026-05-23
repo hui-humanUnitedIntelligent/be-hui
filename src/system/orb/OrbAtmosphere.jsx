@@ -1,3 +1,4 @@
+import { IX } from "../../design/hui.interaction.js";
 // src/system/orb/OrbAtmosphere.jsx
 // ═══════════════════════════════════════════════════════════════
 // HUI ORB — Atmosphäre-Layer
@@ -22,8 +23,8 @@ function OrbAtmosphere({ ambientColor, worldState = null }) {
         position:"absolute", left:"20%", top:"18%",
         width:320, height:280,
         borderRadius:"62% 38% 55% 45% / 50% 60% 40% 50%",
-        background:"radial-gradient(ellipse, rgba(22,215,197,0.09) 0%, transparent 70%)",
-        filter:"blur(52px)",
+        background:"radial-gradient(ellipse, rgba(22,215,197,0.065) 0%, transparent 72%)",
+        filter:"blur(64px)",
         animation:orbAtm.blobAnimA,
         pointerEvents:"none",
         transform:"translate(-50%,-50%)",
@@ -36,7 +37,7 @@ function OrbAtmosphere({ ambientColor, worldState = null }) {
         width:260, height:240,
         borderRadius:"45% 55% 40% 60% / 55% 45% 60% 40%",
         background:`radial-gradient(ellipse, rgba(245,166,35,${orbAtm.warmthAlpha}) 0%, transparent 70%)`,
-        filter:"blur(58px)",
+        filter:"blur(70px)",
         animation:orbAtm.blobAnimB,
         pointerEvents:"none",
         transform:"translate(-50%,-50%)",
@@ -48,8 +49,8 @@ function OrbAtmosphere({ ambientColor, worldState = null }) {
         position:"absolute", left:"50%", top:"74%",
         width:340, height:220,
         borderRadius:"55% 45% 60% 40% / 45% 60% 40% 55%",
-        background:"radial-gradient(ellipse, rgba(255,138,107,0.07) 0%, transparent 70%)",
-        filter:"blur(62px)",
+        background:"radial-gradient(ellipse, rgba(255,138,107,0.052) 0%, transparent 72%)",
+        filter:"blur(76px)",
         animation:orbAtm.blobAnimC,
         pointerEvents:"none",
         transform:"translate(-50%,-50%)",
@@ -62,7 +63,7 @@ function OrbAtmosphere({ ambientColor, worldState = null }) {
           position:"absolute", left:"50%", top:"42%",
           transform:"translate(-50%,-50%)",
           width:460, height:360,
-          background:`radial-gradient(ellipse, ${ambientColor}07 0%, transparent 65%)`,
+          background:`radial-gradient(ellipse, ${ambientColor}05 0%, transparent 70%)`,
           pointerEvents:"none",
           zIndex:Z.atmosphere,
           transition:"background 0.70s ease",
@@ -74,7 +75,7 @@ function OrbAtmosphere({ ambientColor, worldState = null }) {
 
 /* ── Partikel ─────────────────────────────────────────────────── */
 function OrbParticles({ color }) {
-  const items = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
+  const items = useMemo(() => Array.from({ length: 9 }, (_, i) => ({
     id: i,
     x:   (Math.random() - 0.5) * 300,
     y:   (Math.random() - 0.5) * 300,

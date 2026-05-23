@@ -18,6 +18,7 @@ import { useGuidance } from "./guidance/GuidanceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { IX } from "../design/hui.interaction.js";
 
 // ─── Images ───────────────────────────────────────────────────────────────────
 const IMG = {
@@ -60,9 +61,9 @@ const CSS = `
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
-  .hmf4-tap:active { opacity: 0.82; transform: scale(0.975); }
+  .hmf4-tap:active { opacity: 0.82; transform: scale(0.982) translateY(1.5px); }
 
-  .hmf4-btn:active { transform: scale(0.965) !important; }
+  .hmf4-btn:active { transform: scale(0.965) translateY(1px) !important; transition: transform 0.12s cubic-bezier(0.22,1,0.36,1) !important; }
 `;
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
@@ -303,7 +304,7 @@ function Btn({ onClick, disabled, children, variant = "teal" }) {
 function SelectCard({ icon, title, subtitle, selected, onClick }) {
   return (
     <button
-      className="hmf4-tap"
+      className="hmf4-tap hui-tap"
       onClick={onClick}
       style={{
         width: "100%", padding: "15px 17px",
@@ -406,7 +407,7 @@ function SafetyRow({ icon, text, delay = 0 }) {
 function LegalRow({ label }) {
   const [p, setP] = useState(false);
   return (
-    <div className="hmf4-tap"
+    <div className="hmf4-tap hui-tap"
       onPointerDown={() => setP(true)}
       onPointerUp={() => setP(false)}
       onPointerLeave={() => setP(false)}
@@ -450,7 +451,7 @@ function Feature({ icon, text, accent = "rgba(22,215,197,", delay = 0 }) {
 // ─── Close Button ─────────────────────────────────────────────────────────────
 function CloseBtn({ onClose }) {
   return (
-    <button className="hmf4-tap" onClick={onClose} style={{
+    <button className="hmf4-tap hui-tap" onClick={onClose} style={{
       position: "absolute",
       top: "max(20px, env(safe-area-inset-top, 20px))",
       right: 20, zIndex: 200,
@@ -830,7 +831,7 @@ function S7({ data, setData, loading }) {
 
         {/* Emotionale Checkbox */}
         <button
-          className="hmf4-tap"
+          className="hmf4-tap hui-tap"
           onClick={() => setData(d => ({ ...d, agbAll: !d.agbAll }))}
           style={{
             width: "100%", padding: "17px 18px", borderRadius: 18, border: "none",

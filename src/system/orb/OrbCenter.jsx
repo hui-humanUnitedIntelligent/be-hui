@@ -1,3 +1,4 @@
+import { IX } from "../../design/hui.interaction.js";
 // src/system/orb/OrbCenter.jsx
 // ═══════════════════════════════════════════════════════════════
 // HUI ORB — Zentrale Logo-Sphäre
@@ -25,7 +26,7 @@ export function OrbCenter({ size = 100, activeColor, onClick, worldState = null 
         position:"relative", zIndex:Z.center,
         width:size, height:size,
         display:"flex", alignItems:"center", justifyContent:"center",
-        animation:"orbLogoIn 0.50s ease-out 0.05s both",
+        animation:"huiScaleIn 0.55s cubic-bezier(0.16,1,0.30,1) 0.06s both",
         // Pointer-Events nur auf diesem Element (nicht auf Ringen)
         pointerEvents:"auto",
       }}
@@ -59,7 +60,7 @@ export function OrbCenter({ size = 100, activeColor, onClick, worldState = null 
       {/* ── Logo-Sphäre ─────────────────────────────────── */}
       <div style={{
         width:size, height:size, borderRadius:"50%", overflow:"hidden",
-        animation: isCoralMode ? `orbBreathCoral ${orbAtm.breathDuration} ease-in-out infinite`
+        animation: isCoralMode ? `huiOrbBreathCoral ${orbAtm.breathDuration} ease-in-out infinite`
                                 : orbAtm.breathAnim,
         background:"linear-gradient(145deg, rgba(255,255,255,0.88) 0%, rgba(240,252,250,0.78) 100%)",
         boxShadow:[

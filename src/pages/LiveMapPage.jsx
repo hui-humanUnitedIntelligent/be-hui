@@ -591,7 +591,7 @@ export default function LiveMapPage({onView,onMatch,onClose,fullscreen}){
               background:`rgba(22,215,197,0.16)`,
               "--s0":"0 0 0 0 rgba(22,215,197,0.25)",
               "--s1":"0 0 0 14px rgba(22,215,197,0)",
-              animation:"orbBreath 2.4s ease-in-out infinite"}}/>
+              animation:"huiOrbBreath 2.4s ease-in-out infinite"}}/>
             <div style={{width:"100%",height:"100%",borderRadius:"50%",
               background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
               border:"3px solid white",

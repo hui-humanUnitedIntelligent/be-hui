@@ -89,7 +89,7 @@ export function OrbDetailCard({ node, isTalent, onAction, onClose }) {
           borderRadius:"30px 30px 0 0",
           padding:"0 0 max(30px,env(safe-area-inset-bottom,30px))",
           boxShadow:"0 -10px 44px rgba(0,0,0,0.07), 0 -2px 10px rgba(0,0,0,0.03)",
-          animation:"orbSheetUp 0.36s cubic-bezier(0.32,0.72,0,1) both",
+          animation:"huiSheetUp 0.36s cubic-bezier(0.32,0.72,0,1) both",
           overflow:"hidden",
           border:`1.5px solid ${node.color}18`,
           borderBottom:"none",
@@ -238,7 +238,7 @@ export function OrbImpactDetail({ onAction, onClose }) {
           border:"1.5px solid rgba(251,146,60,0.14)",
           borderBottom:"none",
           boxShadow:"0 -14px 52px rgba(251,146,60,0.09), 0 -3px 16px rgba(0,0,0,0.05)",
-          animation:"orbSheetUp 0.40s cubic-bezier(0.32,0.72,0,1) both",
+          animation:"huiSheetUp 0.40s cubic-bezier(0.32,0.72,0,1) both",
           overflow:"hidden",
         }}
       >

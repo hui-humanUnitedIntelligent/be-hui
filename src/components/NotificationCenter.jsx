@@ -56,11 +56,11 @@ const CSS = `
     transition:transform 0.28s ease, opacity 0.22s ease;
     cursor:pointer;
   }
-  .nc-tap:active { transform:scale(0.97); opacity:0.88; }
+  .nc-tap:active { transform:scale(0.982) translateY(1.5px); opacity:0.88; }
   .nc-card {
     transition:box-shadow 0.32s ease, transform 0.32s ease;
   }
-  .nc-card:active { transform:scale(0.98); }
+  .nc-card:active { transform:scale(0.982) translateY(1.5px); }
   .nc-pill {
     flex-shrink:0; border-radius:999px;
     font-size:13px; font-weight:600;
@@ -69,7 +69,7 @@ const CSS = `
     -webkit-tap-highlight-color:transparent;
     white-space:nowrap;
   }
-  .nc-pill:active { transform:scale(0.95); }
+  .nc-pill:active { transform:scale(0.965) translateY(1px); }
   .nc-skel {
     background:linear-gradient(90deg,#f0ede8 0%,#e8e4df 50%,#f0ede8 100%);
     background-size:200% 100%;
@@ -297,7 +297,7 @@ function NotifCard({ n, onAction, idx }) {
             width:10, height:10, borderRadius:"50%",
             background:C.teal,
             border:"1.5px solid #fff",
-            animation:"glow 2s ease infinite",
+            animation:"glow 4.0s ease-in-out infinite",
           }}/>
         )}
       </div>

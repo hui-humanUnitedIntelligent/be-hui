@@ -34,7 +34,7 @@ export default function MessageButton({ count=0, onPress }) {
         cursor:"pointer", position:"relative",
         WebkitTapHighlightColor:"transparent",
         touchAction:"manipulation",
-        transform: pressed ? "scale(0.92)" : "scale(1)",
+        transform: pressed ? "scale(0.930) translateY(0.5px)" : "scale(1)",
         transition:"transform 0.22s ease",
         userSelect:"none", WebkitUserSelect:"none",
       }}

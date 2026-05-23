@@ -63,7 +63,7 @@ const CSS = `
     -webkit-tap-highlight-color:transparent;
     transition:transform 0.15s ease, opacity 0.15s ease;
   }
-  .cp-tap:active { transform:scale(0.94); opacity:0.8; }
+  .cp-tap:active { transform:scale(0.965) translateY(1px); opacity:0.8; }
   .cp-card-hover {
     transition:background 0.18s ease, box-shadow 0.18s ease;
   }
@@ -80,8 +80,8 @@ const CSS = `
     transition:all 0.18s ease; -webkit-tap-highlight-color:transparent;
     white-space:nowrap;
   }
-  .cp-pill:active { transform:scale(0.95); }
-  .cp-input-send:active { transform:scale(0.90); }
+  .cp-pill:active { transform:scale(0.965) translateY(1px); }
+  .cp-input-send:active { transform:scale(0.930) translateY(0.5px); }
 `;
 
 /* ══════════════════════════════════════════════════════════════
@@ -234,7 +234,7 @@ function PresenceBadge({ status, label, size = "sm" }) {
       <div style={{
         width:7, height:7, borderRadius:"50%", flexShrink:0,
         background: color,
-        animation: status === "online" ? "pulse 2s ease infinite" : "none",
+        animation: status === "online" ? "pulse 3.2s ease-in-out infinite" : "none",
       }}/>
       <span style={{ fontSize:11.5, color:C.teal, fontWeight:600, letterSpacing:0.1 }}>
         {label || (status === "online" ? "Aktiv" : "Offline")}
