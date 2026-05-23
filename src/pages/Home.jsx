@@ -26,7 +26,8 @@ import ConnectionCreatePage      from "../components/connection-create/Connectio
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 import DiscoverPage  from "./DiscoverPage.jsx";
 import ImpactPage    from "./ImpactPage.jsx";
-const FavoritesPage  = React.lazy(() => import("./FavoritesPage.jsx"));
+// PHASE 18: FavoritesPage direkte import (Safari-safe)
+import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
 const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
 const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
@@ -36,12 +37,13 @@ const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlo
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
-const HuiPlusSheet        = React.lazy(() => import("../components/HuiPlusSheet.jsx"));
+// PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
+import HuiPlusSheet from "../components/HuiPlusSheet.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
-const ExperienceCreator   = React.lazy(() => import("../components/ExperienceCreator.jsx"));
+// ExperienceCreator: removed (ExperienceFlow used instead — dead import)
 
 const C = { cream: "#F9F6F2" };
 
@@ -297,7 +299,20 @@ function HomeInner() {
           </div>
 
           <div ref={tabRefs.favorites} style={keepFavorites}>
-            <Suspense fallback={null}>
+            <Suspense fallback={<div style={{
+          position:'fixed',inset:0,display:'flex',
+          alignItems:'center',justifyContent:'center',
+          background:'rgba(249,247,244,0.85)',zIndex:8000,
+          backdropFilter:'blur(6px)'
+        }}>
+          <div style={{
+            width:36,height:36,borderRadius:'50%',
+            border:'3px solid rgba(22,215,197,0.2)',
+            borderTopColor:'#16D7C5',
+            animation:'hui-spin 0.7s linear infinite',
+          }}/>
+          <style>{'@keyframes hui-spin{to{transform:rotate(360deg)}}'}</style>
+        </div>}>
               <FavoritesPage
                 currentUser={currentUser}
                 onView={w => setShowWirker(w)}
@@ -408,7 +423,20 @@ function HomeInner() {
         </SafeRender>
       )}
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<div style={{
+          position:'fixed',inset:0,display:'flex',
+          alignItems:'center',justifyContent:'center',
+          background:'rgba(249,247,244,0.85)',zIndex:8000,
+          backdropFilter:'blur(6px)'
+        }}>
+          <div style={{
+            width:36,height:36,borderRadius:'50%',
+            border:'3px solid rgba(22,215,197,0.2)',
+            borderTopColor:'#16D7C5',
+            animation:'hui-spin 0.7s linear infinite',
+          }}/>
+          <style>{'@keyframes hui-spin{to{transform:rotate(360deg)}}'}</style>
+        </div>}>
         {showMap && SAFE_MODE.liveMap && (
           <SafeRender flag="liveMap" label="LiveMapPage">
             <LiveMapPage

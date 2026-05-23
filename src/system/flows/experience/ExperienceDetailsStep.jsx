@@ -157,7 +157,7 @@ function TimePills({ value, onChange }) {
         const active = value === t.k;
         return (
           <button key={t.k} onClick={() => onChange(t.k)} style={{
-            padding:"10px 12px", borderRadius:13, border:"none",
+            padding:"10px 12px", borderRadius:13,
             background: active
               ? "rgba(10,191,184,0.10)"
               : "rgba(26,26,46,0.04)",

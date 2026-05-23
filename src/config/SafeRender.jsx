@@ -143,10 +143,14 @@ export function SafeRender({
   minimal = false,
   onError = null,
 }) {
-  // 1. SAFE_MODE Check
+  // 1. SAFE_MODE Check — NEVER return null silently, show disabled state
   if (!SAFE_MODE[flag]) {
-    console.info(`[HUI SafeMode] ${label || flag} deaktiviert`);
-    return null;
+    // Only log in dev — no console spam in production
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+      console.info(`[HUI SafeMode] ${label || flag} deaktiviert`);
+    }
+    // Return empty non-null node — no white screen, no layout shift
+    return <span data-safe-mode-disabled={flag} style={{ display: 'none' }} />;
   }
 
   // 2. ErrorBoundary Catch — NEVER returns null silently
