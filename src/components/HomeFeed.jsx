@@ -305,7 +305,7 @@ const CSS = IX.CSS + `
   .hf-story-ring--live {
     background:linear-gradient(135deg,#FF4D4D 0%,#FF8A6B 100%);
     padding:2.5px;
-    animation:hf-story-pulse 2s ease-in-out infinite;
+    animation:hf-story-pulse 4s ease-in-out infinite;  /* Phase 23: ruhiger */
   }
   .hf-story-ring--empty { background:rgba(0,0,0,0.08); padding:2.5px; }
 
@@ -438,6 +438,8 @@ export default function HomeFeed({
   stories   = null, feedItems = null, events = null, people = null,
   onProfile = null, onStory   = null, onEvent = null,
   onLike    = null, onComment = null,
+  onDiscover = null,  // Phase 23: Empty State → Discover
+  onShare    = null,  // Phase 23: Empty State → Teilen
 }) {
   const feedData  = useFeedData?.() || {};
   const liveItems = feedItems || feedData?.feedItems || MOCK_FEED;
@@ -784,7 +786,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
       viewerContextId: (viewerContext ?? FALLBACK_VIEWER_CONTEXT)?.viewerId ?? "?",
       authUserId: authUser?.id ?? null,
     });
-    return <FeedEmptyState />;
+    return <FeedEmptyState onDiscover={onDiscover} onShare={onShare} />;
   }
 
   return (
@@ -1489,7 +1491,7 @@ function ViewerStack({ viewers, extra }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    EMPTY STATE — human emotional guidance
    ═══════════════════════════════════════════════════════════════════════════ */
-function FeedEmptyState() {
+function FeedEmptyState({ onDiscover, onShare }) {
   return (
     <div style={{
       display:"flex", flexDirection:"column", alignItems:"center",
@@ -1536,6 +1538,41 @@ function FeedEmptyState() {
         marginTop:28, width:40, height:1,
         background:`linear-gradient(90deg, transparent, ${T.tealMid}, transparent)`,
       }}/>
+
+      {/* Phase 23: sinnvoller nächster Schritt */}
+      <div style={{ marginTop:24, display:"flex", gap:10, flexWrap:"wrap", justifyContent:"center" }}>
+        {onDiscover && (
+          <button
+            onClick={onDiscover}
+            style={{
+              padding:"10px 20px", borderRadius:24,
+              background:`linear-gradient(135deg, ${T.teal}, ${T.tealDark})`,
+              border:"none", color:"#fff", fontSize:13, fontWeight:600,
+              cursor:"pointer", letterSpacing:-0.1,
+              boxShadow:`0 4px 14px ${T.tealGlow}`,
+              WebkitTapHighlightColor:"transparent",
+            }}
+          >
+            Menschen entdecken →
+          </button>
+        )}
+        {onShare && (
+          <button
+            onClick={onShare}
+            style={{
+              padding:"10px 20px", borderRadius:24,
+              background:"rgba(255,255,255,0.72)",
+              border:`1px solid ${T.tealMid}`,
+              color:T.ink, fontSize:13, fontWeight:600,
+              cursor:"pointer", letterSpacing:-0.1,
+              backdropFilter:"blur(12px)",
+              WebkitTapHighlightColor:"transparent",
+            }}
+          >
+            Moment teilen ✦
+          </button>
+        )}
+      </div>
     </div>
   );
 }

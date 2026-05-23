@@ -3,9 +3,10 @@
 // Editorial calm · Cinematic image world · Warm material system
 
 import React, { useState, useEffect, useRef } from "react";
-import { useScrollEntry } from "../design/hui.hooks.js";
+import { useScrollEntry, useTap } from "../design/hui.hooks.js";
 import { supabase } from "../lib/supabaseClient";
 import { HUI } from "../design/hui.design.js";
+import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";  // Phase 23: Echter 4-Step Einreichungs-Wizard
 import { IX } from "../design/hui.interaction.js";
 
 // ── Safe Helpers ──────────────────────────────────────────────────
@@ -120,9 +121,14 @@ const TICKS = [
    ROOT
 ════════════════════════════════════════════════════════════════ */
 export default function ImpactPage({ currentUser }) {
-  const [projects, setProjects] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [tickIdx,  setTickIdx]  = useState(0);
+  const [projects,    setProjects]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [tickIdx,     setTickIdx]     = useState(0);
+  // Phase 23: Vote Persistenz + Projekt-Einreichung
+  const [showPropose,  setShowPropose]  = useState(false);
+  const [activeRound, setActiveRound] = useState(null);
+  const [userVotes,   setUserVotes]   = useState([]);  // [{project_id, weight}]
+  const [voteLoading, setVoteLoading] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setTickIdx(i => (i+1) % TICKS.length), 4600);
@@ -162,6 +168,54 @@ export default function ImpactPage({ currentUser }) {
     return () => { dead = true; };
   }, []);
 
+  // Phase 23: ActiveRound + UserVotes laden
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    let dead = false;
+    (async () => {
+      try {
+        const now = new Date();
+        const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        const { data: round } = await db.getActiveRound(month).catch(() => ({ data: null }));
+        if (dead) return;
+        if (round) {
+          setActiveRound(round);
+          const { data: votes } = await db.getUserVotesThisRound(currentUser.id, round.id).catch(() => ({ data: [] }));
+          if (!dead) setUserVotes(safeArr(votes));
+        }
+      } catch { /* silent — Votes sind optional */ }
+    })();
+    return () => { dead = true; };
+  }, [currentUser?.id]);
+
+  // Phase 23: echtes Vote abgeben
+  const castVote = async (projectId) => {
+    if (!currentUser?.id || voteLoading) return;
+    const alreadyVoted = userVotes.some(v => v.project_id === projectId);
+    if (alreadyVoted) return;
+
+    // Optimistic UI — sofort anzeigen
+    setUserVotes(prev => [...prev, { project_id: projectId, weight: 1 }]);
+    setProjects(prev => prev.map(p =>
+      p.id === projectId ? { ...p, votes: p.votes + 1, supporters: p.supporters + 1 } : p
+    ));
+
+    if (!activeRound?.id) return;  // Kein aktiver Round → nur UI
+    setVoteLoading(true);
+    try {
+      const voteWeight = currentUser?.is_wirker ? 2 : 1;
+      const { error } = await db.castVote(currentUser.id, projectId, activeRound.id, voteWeight);
+      if (error) {
+        // Rollback bei Fehler
+        setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
+        setProjects(prev => prev.map(p =>
+          p.id === projectId ? { ...p, votes: p.votes - 1, supporters: p.supporters - 1 } : p
+        ));
+      }
+    } catch { /* silent */ }
+    finally { setVoteLoading(false); }
+  };
+
   const voices = projects.reduce((s,p) => s + p.votes, 0);
   const given  = projects.reduce((s,p) => s + p.awarded_eur, 0);
   const pool   = Math.max(given + 795, 2840);
@@ -193,7 +247,16 @@ export default function ImpactPage({ currentUser }) {
 
       {loading ? <ImpactSkeleton /> : <ProjectSection projects={projects} />}
 
-      <JoinSection />
+      <JoinSection onOpenFlow={() => setShowPropose(true)} />
+
+      {/* Phase 23: Echter 4-Step Einreichungs-Wizard */}
+      {showPropose && (
+        <React.Suspense fallback={null}>
+          <ImpactFlow
+            onClose={() => setShowPropose(false)}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }
@@ -291,7 +354,7 @@ function ImpactHero({ pool, tick }) {
         ].map((f,i) => (
           <div key={i} style={{
             position:"absolute", top:f.t, right:f.r, fontSize:f.s,
-            animation:`${f.a} 4.5s ease-in-out ${f.d} infinite`,
+            animation:`${f.a} 9s ease-in-out ${f.d} infinite`  /* Phase 23: Blobs langsam */,
             filter:"drop-shadow(0 3px 12px rgba(0,0,0,0.16))",
             zIndex:2, pointerEvents:"none",
           }}>{f.e}</div>
@@ -321,7 +384,7 @@ function ImpactHero({ pool, tick }) {
             width:6, height:6, borderRadius:"50%", background:T.teal,
             boxShadow:`0 0 10px ${T.teal}`,
             display:"inline-block",
-            animation:"huiPulse 2.6s ease-in-out infinite",
+            animation:"huiPulse 4.8s ease-in-out infinite"  /* Phase 23 */,
           }}/>
         </div>
 
@@ -409,7 +472,7 @@ function ImpactHero({ pool, tick }) {
             <span style={{
               width:5, height:5, borderRadius:"50%", background:T.coral,
               display:"inline-block",
-              animation:"huiPulse 1.8s ease-in-out infinite",
+              animation:"huiPulse 3.6s ease-in-out infinite"  /* Phase 23 */,
             }}/>
             <span style={{ fontSize:9, color:T.coral, fontWeight:900,
               letterSpacing:"0.13em", textTransform:"uppercase" }}>Live</span>
@@ -648,7 +711,7 @@ function ProjectSection({ projects }) {
         ? <EmptyState />
         : <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
             {projects.map((p,i) => (
-              <ProjectCard key={p.id} project={p} rank={i} />
+              <ProjectCard key={p.id} project={p} rank={i} onVote={castVote} userVotes={userVotes} />
             ))}
           </div>
       }
@@ -659,13 +722,14 @@ function ProjectSection({ projects }) {
 /* ══════════════════════════════════════════════════════════════════
    PROJECT CARD — Editorial Calm · Story Energy · Luxury Material
 ══════════════════════════════════════════════════════════════════ */
-function ProjectCard({ project:p, rank }) {
-  const [voted,  setVoted]  = useState(false);
-  const [votes,  setVotes]  = useState(p.votes);
+function ProjectCard({ project:p, rank, onVote, userVotes = [] }) {
+  // Phase 23: voted kommt vom persistierten userVotes, kein lokaler State nötig
+  const voted  = userVotes.some(v => v.project_id === p.id);
+  // Phase 23: votes kommen direkt von props (optimistisch von ImpactPage geupdated)
   const [press,  setPress]  = useState(false);
   const [imgErr, setImgErr] = useState(false);
   // Phase 22: Sanftes Scroll-Entry — jede Card kommt ruhig an
-  const { ref: cardRef, entryStyle } = useScrollEntry(rank * 60, 0.08);
+  const { ref: cardRef, entryStyle } = useScrollEntry(rank * 25, 0.08);
 
   const isTop  = rank === 0;
   const accent = p.color ?? T.teal;
@@ -746,7 +810,7 @@ function ProjectCard({ project:p, rank }) {
           width:120, height:120, borderRadius:"50%",
           background:`radial-gradient(circle, ${glow} 0%, transparent 70%)`,
           pointerEvents:"none",
-          animation:"huiGlowDrift 4s ease-in-out infinite",
+          animation:"huiGlowDrift 8s ease-in-out infinite"  /* Phase 23 */,
         }}/>
 
         {/* Top-left: Leading badge */}
@@ -866,7 +930,7 @@ function ProjectCard({ project:p, rank }) {
           </div>
           <div style={{ flex:1 }}>
             <span style={{ fontSize:12, color:T.muted, fontWeight:550 }}>
-              {votes} Stimmen
+              {p.votes} Stimmen
             </span>
             <span style={{
               fontSize:12, color:T.teal, fontWeight:720,
@@ -887,7 +951,7 @@ function ProjectCard({ project:p, rank }) {
 
         {/* CTA — schlank, warm, einladend (nicht aggressiv) */}
         <button
-          onClick={() => { if(!voted){ setVoted(true); setVotes(v=>v+1); } }}
+          onClick={() => { if(!voted) onVote?.(p.id); }}
           style={{
             width:"100%",
             padding: voted ? "11px 0" : "12px 0",
@@ -963,7 +1027,7 @@ function ImpactSkeleton() {
           <div style={{
             position:"absolute", inset:0,
             background:"linear-gradient(90deg, transparent 0%, rgba(13,196,181,0.055) 50%, transparent 100%)",
-            animation:`ip-shimmer 2.2s ease-in-out ${i*0.35}s infinite`,
+            animation:`ip-shimmer 3.6s ease-in-out ${i*0.55}s infinite`  /* Phase 23 */,
           }}/>
         </div>
       ))}
@@ -974,9 +1038,9 @@ function ImpactSkeleton() {
 /* ══════════════════════════════════════════════════════════════════
    JOIN SECTION
 ══════════════════════════════════════════════════════════════════ */
-function JoinSection() {
-  const [hov, setHov] = useState(false);
-  const { ref, entryStyle } = useScrollEntry(0, 0.04);
+function JoinSection({ onOpenFlow }) {
+  const { ref, entryStyle }   = useScrollEntry(0, 0.04);
+  const { tapProps, tapStyle } = useTap("cta");  // Phase 23: useTap System
 
   return (
     <div ref={ref} style={{ padding:"32px 18px 0", ...entryStyle }}>
@@ -1029,24 +1093,17 @@ function JoinSection() {
         </div>
 
         <button
-          onPointerEnter={() => setHov(true)}
-          onPointerLeave={() => setHov(false)}
+          {...tapProps}
+          onClick={() => onOpenFlow?.()}
           style={{
             padding:"14px 38px", borderRadius:16,
             background:`linear-gradient(135deg, ${T.teal}, ${T.coral})`,
             border:"none", color:"#fff",
             fontSize:14, fontWeight:750, cursor:"pointer",
             fontFamily:T.ff, letterSpacing:"-0.01em",
-            boxShadow: hov
-              ? `0 14px 40px rgba(13,196,181,0.42), 0 4px 12px rgba(13,196,181,0.25)`
-              : `0 6px 24px rgba(13,196,181,0.30), 0 2px 6px rgba(13,196,181,0.18)`,
-            transform: hov ? "translateY(-1.5px) scale(1.006)" : "translateY(0) scale(1)",
-            transition: "transform 200ms cubic-bezier(0.16,1,0.30,1), box-shadow 200ms cubic-bezier(0.16,1,0.30,1)",
+            boxShadow:`0 6px 24px rgba(13,196,181,0.30), 0 2px 6px rgba(13,196,181,0.18)`,
+            ...tapStyle,
           }}
-          className="hui-cta"
-          onPointerDown={e=>{e.currentTarget.style.transform="scale(0.960) translateY(2px)";e.currentTarget.style.filter="brightness(0.90)";}}
-          onPointerUp={e=>{e.currentTarget.style.transform="";e.currentTarget.style.filter="";}}
-          onPointerLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.filter="";}}
         >
           Projekt vorschlagen ✨
         </button>

@@ -115,7 +115,7 @@ function ImpactCard() {
 }
 
 /* ══════════════════════════════════════════════════════════════ */
-export default function ConversationList({ chats, loading, onOpen }) {
+export default function ConversationList({ chats, loading, onOpen, onDiscover }) {
   const [activeFilter, setActiveFilter] = useState("alle");
 
   // Echte Chats falls vorhanden, sonst Mock
@@ -156,6 +156,40 @@ export default function ConversationList({ chats, loading, onOpen }) {
       {loading ? (
         <div style={{ padding:"24px 0", textAlign:"center", color:C.muted, fontSize:13 }}>
           Laden\u2026
+        </div>
+      ) : chats?.length === 0 ? (
+        /* Phase 23: Echter Empty State — keine Mock-Gespräche */
+        <div style={{
+          padding:"32px 0 16px", textAlign:"center",
+          display:"flex", flexDirection:"column", alignItems:"center", gap:12,
+        }}>
+          <div style={{
+            width:48, height:48, borderRadius:"50%",
+            background:`linear-gradient(135deg,${C.teal}30,${C.coral}20)`,
+            border:`1.5px solid ${C.teal}40`,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:20,
+          }}>💬</div>
+          <p style={{ margin:0, fontSize:15, fontWeight:600, color:C.ink, letterSpacing:-0.2 }}>
+            Dieser Raum sammelt noch Resonanz.
+          </p>
+          <p style={{ margin:0, fontSize:13, color:C.muted, maxWidth:220, lineHeight:1.6 }}>
+            Entdecke Menschen, deren Werk dich berührt — und beginne ein Gespräch.
+          </p>
+          {onDiscover && (
+            <button
+              onClick={onDiscover}
+              style={{
+                marginTop:4, padding:"10px 22px", borderRadius:24,
+                background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+                border:"none", color:"#fff", fontSize:13, fontWeight:600,
+                cursor:"pointer", boxShadow:"0 4px 14px rgba(22,215,197,0.28)",
+                WebkitTapHighlightColor:"transparent",
+              }}
+            >
+              Menschen entdecken →
+            </button>
+          )}
         </div>
       ) : (
         (activeConvs || []).filter(c => c && c.id).map(c => (

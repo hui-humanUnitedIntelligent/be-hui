@@ -124,10 +124,10 @@ const PRESENCE_CSS = `
     background-clip:padding-box;
   }
   .cp-ring--aura {
-    animation: cp-aura-breathe var(--cp-speed, 8s) ease-in-out infinite;
+    animation: cp-aura-breathe var(--cp-speed, 18s) ease-in-out infinite;  /* Phase 23: sehr langsam */
   }
   .cp-ring--slow {
-    animation: cp-aura-slow var(--cp-speed, 12s) ease-in-out infinite;
+    animation: cp-aura-slow var(--cp-speed, 26s) ease-in-out infinite;  /* Phase 23: kaum wahrnehmbar */
   }
 
   /* ── Presence label ─────────────── */
@@ -152,7 +152,7 @@ const PRESENCE_CSS = `
 
   /* ── Card alive ─────────────────── */
   .cp-card-alive {
-    animation: cp-card-alive var(--cp-speed, 10s) ease-in-out infinite;
+    /* Phase 23: cp-card-alive deaktiviert — Motion Noise Reduction */
   }
 
   /* ── Ambient glow behind avatar ─── */
@@ -161,7 +161,7 @@ const PRESENCE_CSS = `
     border-radius:50%;
     pointer-events:none;
     filter:blur(10px);
-    animation: cp-glow-float var(--cp-speed, 8s) ease-in-out infinite;
+    animation: cp-glow-float var(--cp-speed, 20s) ease-in-out infinite;  /* Phase 23: atmosphärisch */
   }
 `;
 

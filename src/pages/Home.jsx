@@ -92,6 +92,7 @@ function HomeInner() {
     authProfile,
     setShowWirker,
     showChat,          setShowChat,
+    chatRecipient,     setChatRecipient,   // Phase 23: direkter Chat-Einstieg
     showNotifs,        setShowNotifs,
     showMap,           setShowMap,
     showMatch,         setShowMatch,
@@ -267,6 +268,8 @@ function HomeInner() {
                   onLike={() => {}}
                   onComment={() => {}}
                   onPerson={(p) => setShowWirker(p)}
+                  onDiscover={() => handleTab("discover")}
+                  onShare={() => setShowTeilen(true)}
                 />
               </SafeRender>
             ) : (
@@ -425,7 +428,16 @@ function HomeInner() {
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
-            onClose={() => setShowChat(false)}
+            onClose={() => {
+              setShowChat(false);
+              setChatRecipient(null);
+            }}
+            initialRecipient={chatRecipient}
+            onDiscoverClose={() => {
+              setShowChat(false);
+              setChatRecipient(null);
+              handleTab("discover");   // Phase 23: Chat leer → Discover
+            }}
           />
         </SafeRender>
       )}
@@ -563,7 +575,38 @@ function HomeInner() {
           <SafeRender flag="notifications" label="NotificationCenter">
             <NotificationCenter
               onClose={() => setShowNotifs(false)}
-              onNavigate={() => setShowNotifs(false)}
+              onNavigate={(target) => {
+                // Phase 23: echte Navigation aus Notifications heraus
+                setShowNotifs(false);
+                if (!target) return;
+
+                // String-Shortcuts
+                if (target === "chat")    { setShowChat(true); return; }
+                if (target === "impact")  { handleTab("impact"); return; }
+                if (target === "feed")    { handleTab("home"); return; }
+                if (target === "discover"){ handleTab("discover"); return; }
+
+                // Objekt: { type, id, ... }
+                if (typeof target === "object") {
+                  if (target.type === "chat" && target.recipientId) {
+                    setChatRecipient({
+                      id:           target.recipientId,
+                      display_name: target.recipientName || "Creator",
+                      avatar_url:   target.recipientAvatar || null,
+                    });
+                    setShowChat(true);
+                    return;
+                  }
+                  if (target.type === "profile" && target.userId) {
+                    setShowWirker({ id: target.userId, user_id: target.userId });
+                    return;
+                  }
+                  if (target.type === "impact") {
+                    handleTab("impact");
+                    return;
+                  }
+                }
+              }}
             />
           </SafeRender>
         )}

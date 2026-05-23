@@ -135,9 +135,21 @@ export default function BottomNav({
                     touchAction: "manipulation",
                     transition: "transform 0.14s ease",
                   }}
-                  onPointerDown={e => { e.currentTarget.style.transform = "scale(0.93)"; }}
-                  onPointerUp={e   => { e.currentTarget.style.transform = "scale(1)"; }}
-                  onPointerLeave={e=> { e.currentTarget.style.transform = "scale(1)"; }}
+                  onPointerDown={e => {
+                    e.currentTarget.style.transform = "scale(0.94) translateY(1px)";
+                    e.currentTarget.style.filter    = "brightness(0.92)";
+                    e.currentTarget.style.transition= "transform 120ms cubic-bezier(0.22,1,0.36,1), filter 120ms cubic-bezier(0.22,1,0.36,1)";
+                  }}
+                  onPointerUp={e => {
+                    e.currentTarget.style.transform = "scale(1) translateY(0)";
+                    e.currentTarget.style.filter    = "brightness(1)";
+                    e.currentTarget.style.transition= "transform 200ms cubic-bezier(0.16,1,0.30,1), filter 200ms cubic-bezier(0.16,1,0.30,1)";
+                  }}
+                  onPointerLeave={e => {
+                    e.currentTarget.style.transform = "scale(1) translateY(0)";
+                    e.currentTarget.style.filter    = "brightness(1)";
+                    e.currentTarget.style.transition= "transform 200ms cubic-bezier(0.16,1,0.30,1)";
+                  }}
                 >
                   <img
                     src="/hui-logo-real.jpg"

@@ -66,7 +66,11 @@ export function useProfileLauncher() {
    ProfileLauncher — einziger Render-Punkt für alle Profile
    ════════════════════════════════════════════════════════════ */
 export default function ProfileLauncher() {
-  const { showWirker, setShowWirker } = useHome();
+  const {
+    showWirker, setShowWirker,
+    setShowChat, setChatRecipient,
+    setShowConnect,             // für "Buchen" → ConnectionCreate als Alternative
+  } = useHome();
 
   // Nichts anzeigen wenn kein Profil offen
   if (!showWirker) return null;
@@ -76,10 +80,29 @@ export default function ProfileLauncher() {
 
   const isOwnerView = showWirker._isOwnerView === true;
 
-  const handleClose  = () => setShowWirker(null);
-  const handleAction = (key) => {
-    // Erweiterbar: Studio, Edit, etc.
+  const handleClose = () => setShowWirker(null);
+
+  // Phase 23: Echte Verbindung — Chat direkt mit diesem Creator öffnen
+  const handleChat = (profile) => {
+    // Normalisiere Empfänger für ChatCenter
+    const recipient = {
+      id:           profile?.id || profile?.user_id,
+      display_name: profile?.display_name || profile?.full_name || profile?.name || "Creator",
+      avatar_url:   profile?.avatar_url   || profile?.img       || null,
+      talent:       profile?.talent       || null,
+    };
+    setChatRecipient(recipient);
+    setShowChat(true);
+    setShowWirker(null);  // Profil schließen, Chat öffnet sich
   };
+
+  // Phase 23: Buchen → ConnectionCreate (Booking-Request) oder direkter Chat
+  const handleBook = (profile) => {
+    // Buchen = Verbindungs-Request mit Booking-Intent
+    handleChat(profile);  // Vorerst: Chat öffnen (Booking ist Conversation-basiert)
+  };
+
+  const handleAction = (key) => { /* Studio, Edit, etc. — erweiterbar */ };
 
   // ── OWNER VIEW → CreatorProfilePage (statisch, sofort) ──────
   if (isOwnerView) {
@@ -98,8 +121,8 @@ export default function ProfileLauncher() {
       <WirkerProfilePage
         wirker={showWirker}
         onClose={handleClose}
-        onBook={() => {}}
-        onChat={() => {}}
+        onBook={handleBook}
+        onChat={handleChat}
       />
     </React.Suspense>
   );

@@ -110,6 +110,7 @@ export default function HomeShell({ children }) {
   /* Overlays */
   const [showWirker,             setShowWirker]            = useState(null);
   const [showChat,               setShowChat]              = useState(false);
+  const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
   const [showNotifs,             setShowNotifs]            = useState(false);
   const [showMap,                setShowMap]               = useState(false);
   const [showMatch,              setShowMatch]             = useState(false);
@@ -232,6 +233,7 @@ export default function HomeShell({ children }) {
     liveNotifCount,
     showWirker,            setShowWirker,
     showChat,              setShowChat,
+    chatRecipient,         setChatRecipient,
     showNotifs,            setShowNotifs,
     showMap,               setShowMap,
     showMatch,             setShowMatch,

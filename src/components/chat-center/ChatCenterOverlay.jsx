@@ -50,7 +50,7 @@ function ComposeBtn() {
 }
 
 /* ── LIST PANEL ── */
-function ListPanel({ onClose, onOpen, chats, loading, activeId }) {
+function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose }) {
   const [search, setSearch] = useState("");
 
   return (
@@ -134,7 +134,8 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId }) {
           chats={chats}
           loading={loading}
           onOpen={onOpen}
-        />
+          onDiscover={onDiscoverClose}
+          />
       </div>
     </div>
   );
@@ -143,8 +144,26 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId }) {
 /* ══════════════════════════════════════════════════════════════
    HAUPT-OVERLAY
 ══════════════════════════════════════════════════════════════ */
-export default function ChatCenterOverlay({ onClose }) {
+export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
+
+  // Phase 23: Wenn von Profil aus geöffnet → direkt in Conversation
+  React.useEffect(() => {
+    if (initialRecipient?.id && !activeConv) {
+      // Künstliche Conversation aus Recipient erstellen
+      setActiveConv({
+        id:         `direct_${initialRecipient.id}`,
+        name:       initialRecipient.display_name || "Creator",
+        avatar_url: initialRecipient.avatar_url   || null,
+        talent:     initialRecipient.talent        || null,
+        mood:       "Echte Verbindung",
+        online:     true,
+        _recipientId: initialRecipient.id,
+        _directMode:  true,
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { chats, loading, unreadTotal } = useChatList();
 
   // Wenn Conv geöffnet: normalize conv shape
@@ -186,6 +205,7 @@ export default function ChatCenterOverlay({ onClose }) {
           chats={chats}
           loading={loading}
           activeId={activeConv?.id}
+          onDiscoverClose={onDiscoverClose}
         />
       </div>
 

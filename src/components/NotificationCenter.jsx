@@ -905,9 +905,25 @@ export default function NotificationCenter({ onClose, onNavigate }) {
         loadNotifications();
       } catch { /* silent */ }
     }
-    // Begegnung/Buchung → Chat-Detail
+    // Phase 23: Type-basierte echte Navigation
     if (n.type === "begegnung" || n.type === "buchung") {
-      setActiveNotif(n);
+      // Chat direkt öffnen wenn Sender bekannt
+      if (n.sender_id && onNavigate) {
+        onNavigate({
+          type:           "chat",
+          recipientId:    n.sender_id,
+          recipientName:  n.sender_name  || n.from_name || null,
+          recipientAvatar:n.sender_avatar || n.from_avatar || null,
+        });
+      } else {
+        setActiveNotif(n);  // Fallback: Detail-Ansicht
+      }
+    } else if (n.type === "impact" || n.type === "community") {
+      onNavigate?.("impact");
+    } else if (n.type === "inspiration") {
+      onNavigate?.("discover");
+    } else if (n.type === "follow" && n.sender_id) {
+      onNavigate?.({ type: "profile", userId: n.sender_id });
     } else if (n.action_url && onNavigate) {
       onNavigate(n.action_url);
     }
