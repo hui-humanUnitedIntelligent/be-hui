@@ -23,8 +23,9 @@ import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay         from "../components/chat-center/ChatCenterOverlay.jsx";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
-const DiscoverPage   = React.lazy(() => import("./DiscoverPage.jsx"));
-const ImpactPage     = React.lazy(() => import("./ImpactPage.jsx"));
+// PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
+import DiscoverPage  from "./DiscoverPage.jsx";
+import ImpactPage    from "./ImpactPage.jsx";
 const FavoritesPage  = React.lazy(() => import("./FavoritesPage.jsx"));
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
 const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
@@ -491,7 +492,7 @@ function HomeInner() {
             }}
             />
           </SafeRender>
-        )}}
+        )}
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
             <TalentOnboarding

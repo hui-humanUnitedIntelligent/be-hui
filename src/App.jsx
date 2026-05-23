@@ -12,11 +12,13 @@ import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
 import LoginPage    from './pages/LoginPage'
 import AuthCallback from './pages/AuthCallback'
 
+import { supabase } from './lib/supabaseClient'
+
 // ── LAZY: Alle anderen Routes ───────────────────────────────────
 // Erzeugen separate Chunks → schnellerer Initial-Load
 // WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
 const Home              = lazy(() => import('./pages/Home'))
-const ImpactPage        = lazy(() => import('./pages/ImpactPage'))
+import ImpactPage from './pages/ImpactPage'
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
@@ -367,30 +369,20 @@ function OwnProfileRedirect() {
   React.useEffect(() => {
     if (!user?.id) return;
     // Username aus Supabase holen
-    import('./lib/supabaseClient').then(({ supabase }) => {
-      supabase.from('profiles')
-        .select('username')
-        .eq('id', user.id)
-        .single()
-        .then(({ data, error }) => {
-          if (error) {
-            // Fallback bei DB-Fehler: user.id als Identifier
-            navigate(`/profile/${user.id}`, { replace: true });
-            return;
-          }
-          if (data?.username) {
-            navigate(`/profile/${data.username}`, { replace: true });
-          } else {
-            navigate(`/profile/${user.id}`, { replace: true });
-          }
-        })
-        .catch(() => {
+    supabase.from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data?.username) {
           navigate(`/profile/${user.id}`, { replace: true });
-        });
-    }).catch(() => {
-      // supabaseClient import failed — navigate with user.id
-      navigate(`/profile/${user.id}`, { replace: true });
-    });
+          return;
+        }
+        navigate(`/profile/${data.username}`, { replace: true });
+      })
+      .catch(() => {
+        navigate(`/profile/${user.id}`, { replace: true });
+      });
   }, [user?.id]);
 
   // Loading state — kurze Animation
