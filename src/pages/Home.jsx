@@ -277,30 +277,26 @@ function HomeInner() {
             )}
           </div>
 
-          {/* Phase 16.8.3: individueller Suspense pro lazy Tab — kein shared fallback-block */}
-          <div ref={tabRefs.discover} style={{
-            ...keepDiscover,
-            opacity: tab === "discover" ? 1 : keepDiscover?.opacity ?? 0,
-            pointerEvents: tab === "discover" ? "auto" : keepDiscover?.pointerEvents ?? "none",
-          }}>
-            <Suspense fallback={null}>
-              <SafeRender flag="discoverFeed" label="DiscoverPage">
-                <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
-              </SafeRender>
-            </Suspense>
-          </div>
+          {/* Phase 16.8.5: ABSOLUTE MINIMUM — hardcoded visibility, no controller */}
+          {tab === "discover" && (
+            <div style={{ minHeight:"100vh", position:"relative" }}>
+              <Suspense fallback={<div style={{padding:40,color:"#16D7C5",fontSize:24}}>Discover lädt…</div>}>
+                <SafeRender flag="discoverFeed" label="DiscoverPage">
+                  <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
+                </SafeRender>
+              </Suspense>
+            </div>
+          )}
 
-          <div ref={tabRefs.impact} style={{
-            ...keepImpact,
-            opacity: tab === "impact" ? 1 : keepImpact?.opacity ?? 0,
-            pointerEvents: tab === "impact" ? "auto" : keepImpact?.pointerEvents ?? "none",
-          }}>
-            <Suspense fallback={null}>
-              <SafeRender flag="impactPage" label="ImpactPage">
-                <ImpactPage currentUser={currentUser}/>
-              </SafeRender>
-            </Suspense>
-          </div>
+          {tab === "impact" && (
+            <div style={{ minHeight:"100vh", position:"relative" }}>
+              <Suspense fallback={<div style={{padding:40,color:"#16D7C5",fontSize:24}}>Impact lädt…</div>}>
+                <SafeRender flag="impactPage" label="ImpactPage">
+                  <ImpactPage currentUser={currentUser}/>
+                </SafeRender>
+              </Suspense>
+            </div>
+          )}
 
           <div ref={tabRefs.favorites} style={keepFavorites}>
             <Suspense fallback={null}>
