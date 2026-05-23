@@ -277,6 +277,8 @@ function HomeInner() {
             )}
           </div>
 
+          {/* Phase 16.8.2: Suspense required for React.lazy tabs */}
+          <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F9F7F4" }} />}>
           <div ref={tabRefs.discover} style={keepDiscover}>
             <SafeRender flag="discoverFeed" label="DiscoverPage">
               <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
@@ -297,6 +299,7 @@ function HomeInner() {
               onDiscover={() => handleTab("discover")}
             />
           </div>
+          </Suspense>{/* end lazy tabs Suspense */}
         </div>
 
       </div>
