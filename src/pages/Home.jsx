@@ -278,7 +278,11 @@ function HomeInner() {
           </div>
 
           {/* Phase 16.8.3: individueller Suspense pro lazy Tab — kein shared fallback-block */}
-          <div ref={tabRefs.discover} style={keepDiscover}>
+          <div ref={tabRefs.discover} style={{
+            ...keepDiscover,
+            opacity: tab === "discover" ? 1 : keepDiscover?.opacity ?? 0,
+            pointerEvents: tab === "discover" ? "auto" : keepDiscover?.pointerEvents ?? "none",
+          }}>
             <Suspense fallback={null}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
                 <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
@@ -286,7 +290,11 @@ function HomeInner() {
             </Suspense>
           </div>
 
-          <div ref={tabRefs.impact} style={keepImpact}>
+          <div ref={tabRefs.impact} style={{
+            ...keepImpact,
+            opacity: tab === "impact" ? 1 : keepImpact?.opacity ?? 0,
+            pointerEvents: tab === "impact" ? "auto" : keepImpact?.pointerEvents ?? "none",
+          }}>
             <Suspense fallback={null}>
               <SafeRender flag="impactPage" label="ImpactPage">
                 <ImpactPage currentUser={currentUser}/>
