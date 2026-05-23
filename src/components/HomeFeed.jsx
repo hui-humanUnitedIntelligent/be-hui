@@ -24,6 +24,7 @@ import {
   useDwellTracker,
 } from "../lib/intelligence/persistence/useLivingMemory.js";
 import { useAuth } from "../lib/AuthContext";
+import { HUI } from "../design/hui.design.js";
 import {
   resolveMemoryTokens,
   applyMemoryToCardStyle,
@@ -62,29 +63,31 @@ const FALLBACK_VIEWER_CONTEXT = Object.freeze({
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
 const T = {
-  teal:        "#16D7C5",
-  teal2:       "#11C5B7",
-  tealFaint:   "rgba(22,215,197,0.07)",
-  tealMid:     "rgba(22,215,197,0.13)",
-  tealGlow:    "rgba(22,215,197,0.20)",
-  coral:       "#FF8A6B",
-  coralFaint:  "rgba(255,138,107,0.07)",
-  coralGlow:   "rgba(255,138,107,0.16)",
-  bg:          "#F9F7F4",
-  surface:     "rgba(255,255,255,0.80)",
-  surfaceWarm: "rgba(252,250,248,0.88)",
-  ink:         "#1A1A1A",
-  ink2:        "#3A3A3A",
-  ink3:        "#5A5A5A",
-  muted:       "rgba(26,26,26,0.40)",
-  muted2:      "rgba(26,26,26,0.22)",
-  border:      "rgba(0,0,0,0.042)",
-  borderSoft:  "rgba(0,0,0,0.028)",
-  shadowSm:    "0 1px 4px rgba(0,0,0,0.04), 0 2px 10px rgba(0,0,0,0.035)",
-  shadowMd:    "0 2px 14px rgba(0,0,0,0.055), 0 1px 3px rgba(0,0,0,0.028)",
-  shadowLg:    "0 6px 28px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)",
-  shadowHero:  "0 12px 48px rgba(0,0,0,0.12), 0 3px 10px rgba(0,0,0,0.06)",
-  r20: 20, r24: 24, r16: 16, r12: 12, r8: 8,
+  // ── Phase 21: HUI Design System ──────────────────────────────
+  teal:        HUI.COLOR.teal,
+  teal2:       HUI.COLOR.tealDeep,
+  tealFaint:   "rgba(13,196,181,0.07)",
+  tealMid:     "rgba(13,196,181,0.13)",
+  tealGlow:    HUI.COLOR.tealGlow,
+  coral:       HUI.COLOR.coral,
+  coralFaint:  "rgba(244,115,85,0.07)",
+  coralGlow:   HUI.COLOR.coralGlow,
+  bg:          HUI.COLOR.cream,
+  surface:     HUI.SURFACE.glass,
+  surfaceWarm: HUI.SURFACE.glassMid,
+  ink:         HUI.COLOR.ink,
+  ink2:        HUI.COLOR.ink2,
+  ink3:        HUI.COLOR.inkMid,
+  muted:       HUI.COLOR.muted,
+  muted2:      HUI.COLOR.faint,
+  border:      HUI.SURFACE.border ?? "rgba(0,0,0,0.048)",
+  borderSoft:  "rgba(0,0,0,0.030)",
+  shadowSm:    HUI.SHADOW.sm,
+  shadowMd:    HUI.SHADOW.md,
+  shadowLg:    HUI.SHADOW.lg,
+  shadowHero:  HUI.SHADOW.xl,
+  r20: HUI.RADIUS.lg, r24: HUI.RADIUS.xl, r16: HUI.RADIUS.md,
+  r12: HUI.RADIUS.sm, r8:  HUI.RADIUS.xs,
 };
 
 /* ─── Feed Rhythm Sequence ───────────────────────────────────────────────
@@ -372,7 +375,7 @@ const MOCK_EVENTS = [
   { id:"e1", title:"Keramik Workshop",
     time:"Heute 18:30", location:"München",
     img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80",
-    badge:"Noch 2 Plätze", badgeColor:"#FF8A6B" },
+    badge:"Noch 2 Plätze", badgeColor:HUI.COLOR.coral },
   { id:"e2", title:"Live Musik Session",
     time:"Heute 20:00", location:"Berlin",
     img:"https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80",
@@ -820,9 +823,9 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
             background: worldState?.temperature?.id === "night_still"
               ? "#6B8AC4"
               : worldState?.temperature?.id === "warm_creative"
-              ? "#F5A623"
+              ? HUI.COLOR.gold
               : worldState?.temperature?.id === "human_warm"
-              ? "#FF8A6B"
+              ? HUI.COLOR.coral
               : "#4ADE80",
             display:"inline-block",
             // World breath: dot pulses in sync with world rhythm

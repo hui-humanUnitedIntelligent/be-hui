@@ -3,16 +3,17 @@
 import React, { useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
+import { HUI } from "../design/hui.design.js";
 
 const T = {
-  gold:"#F5A623",   goldGlow:"rgba(245,166,35,.32)",  goldBg:"rgba(245,166,35,.09)",
-  teal:"#16D7C5",   tealGlow:"rgba(22,215,197,.28)",  tealBg:"rgba(22,215,197,.09)",
-  coral:"#FF8A6B",  coralBg:"rgba(255,138,107,.09)",
-  purple:"#A78BFA", purpleBg:"rgba(167,139,250,.10)",
+  gold:HUI.COLOR.gold,   goldGlow:"rgba(245,166,35,.32)",  goldBg:"rgba(245,166,35,.09)",
+  teal:HUI.COLOR.teal,   tealGlow:"rgba(22,215,197,.28)",  tealBg:"rgba(22,215,197,.09)",
+  coral:HUI.COLOR.coral,  coralBg:"rgba(255,138,107,.09)",
+  purple:HUI.COLOR.violetLight, purpleBg:"rgba(167,139,250,.10)",
   green:"#22C55E",  greenBg:"rgba(34,197,94,.10)",
-  ink:"#1A1A1A", ink2:"#3A3A3A", ink3:"#6A6A6A",
-  muted:"#9A9A9A", border:"rgba(0,0,0,.08)",
-  warm:"#F9F7F4", card:"#FFFFFF",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, ink3:HUI.COLOR.muted,
+  muted:HUI.COLOR.muted, border:"rgba(0,0,0,.08)",
+  warm:HUI.COLOR.cream, card:"#FFFFFF",
 };
 
 const MOODS = [

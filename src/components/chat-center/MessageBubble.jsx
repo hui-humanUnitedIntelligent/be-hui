@@ -4,8 +4,9 @@
 // Fremde: dark glass surface
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", teal2:"#11C5B7", teal3:"#0FAAA0", coral:"#FF8A6B" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, teal3:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral };
 
 const CSS = `
   @keyframes mb-in-own {
@@ -121,7 +122,7 @@ export default function MessageBubble({ msg }) {
             backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
             borderRadius:"22px 22px 22px 6px",
             border:"1px solid rgba(255,255,255,0.62)",
-            color:"#1A1A1A",
+            color:HUI.COLOR.ink,
             fontSize:14.5, lineHeight:1.70,
             boxShadow:"0 4px 18px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)",
           }}>{msg.text}</div>

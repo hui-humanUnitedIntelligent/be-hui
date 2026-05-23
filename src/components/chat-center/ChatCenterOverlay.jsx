@@ -10,8 +10,9 @@ import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
 import { useChatList }  from "../../lib/chatContext.js";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", teal2:"#11C5B7", ink:"#1A1A1A", muted:"rgba(80,80,80,0.50)" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
 
 const CSS = `
   * { box-sizing:border-box; -webkit-font-smoothing:antialiased; }

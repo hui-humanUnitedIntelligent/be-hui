@@ -1,3 +1,6 @@
+// Phase 21: HUI Design System
+import { HUI } from "../../design/hui.design.js";
+
 // src/system/orb/OrbConfig.js
 // ═══════════════════════════════════════════════════════════════
 // HUI ORB — Zentrale Konfiguration
@@ -22,25 +25,25 @@ export const Z = {
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 export const T = {
-  // Brand
-  teal:    "#0ABFB8",   tealD:   "#0891B2",
-  coral:   "#FB923C",   coralD:  "#EA580C",
-  violet:  "#8B5CF6",   violetD: "#7C3AED",
-  blue:    "#38BDF8",   blueD:   "#0EA5E9",
-  gold:    "#F59E0B",   goldD:   "#D97706",
-  // Background
-  bgGrad: "linear-gradient(160deg, #F8F7FF 0%, #F0FDF9 40%, #FFF7F0 80%, #F8F7FF 100%)",
-  // Glass
-  glass:       "rgba(255,255,255,0.82)",
-  glassStrong: "rgba(255,255,255,0.92)",
-  glassBorder: "rgba(255,255,255,0.75)",
+  // ── Phase 21: HUI Design System ──────────────────────────────
+  teal:    HUI.COLOR.teal,      tealD:   HUI.COLOR.tealDeep,
+  coral:   HUI.COLOR.coral,     coralD:  HUI.COLOR.coralDeep,
+  violet:  HUI.COLOR.violet,    violetD: "#6452C4",
+  blue:    "#38BDF8",           blueD:   "#0EA5E9",
+  gold:    HUI.COLOR.gold,      goldD:   "#B8801E",
+  // Background — warmes HUI Fundament statt kalt-blau
+  bgGrad:  HUI.GRADIENT.hero,
+  // Glass — HUI Material System
+  glass:       HUI.SURFACE.glass,
+  glassStrong: HUI.SURFACE.glassTop,
+  glassBorder: "rgba(255,252,248,0.82)",
   // Typography
-  ink:  "#1A1A2E",
-  ink2: "rgba(26,26,46,0.65)",
-  ink3: "rgba(26,26,46,0.40)",
-  ink4: "rgba(26,26,46,0.22)",
+  ink:  HUI.COLOR.ink,
+  ink2: "rgba(20,20,34,0.62)",
+  ink3: "rgba(20,20,34,0.40)",
+  ink4: "rgba(20,20,34,0.22)",
   // Helpers
-  white: "#FFFFFF",
+  white: HUI.COLOR.white,
 };
 
 /* ── Node Definitionen ──────────────────────────────────────── */
@@ -53,7 +56,7 @@ export const NODES = [
     key:         "teilen",
     label:       "Teilen",
     icon:        "🌿",
-    color:       "#0ABFB8",
+    color:       HUI.COLOR.teal,
     dark:        "#0891B2",
     glow:        "rgba(10,191,184,",
     angle:       -90,
@@ -76,7 +79,7 @@ export const NODES = [
     key:         "werk",
     label:       "Werk erschaffen",
     icon:        "🎨",
-    color:       "#FB923C",
+    color:       HUI.COLOR.coral,
     dark:        "#EA580C",
     glow:        "rgba(251,146,60,",
     angle:       -18,
@@ -144,7 +147,7 @@ export const NODES = [
     key:         "verbindung",
     label:       "Verbindung",
     icon:        "👥",
-    color:       "#8B5CF6",
+    color:       HUI.COLOR.violet,
     dark:        "#7C3AED",
     glow:        "rgba(139,92,246,",
     angle:       198,

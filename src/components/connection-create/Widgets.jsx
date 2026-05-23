@@ -2,10 +2,11 @@
 // ParticipantStepper, LocationPicker, MediaAttachmentBar
 
 import React, { useState } from "react";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  violet:"#8B5CF6", teal:"#16D7C5",
-  ink:"#1A1A1A", muted:"rgba(80,80,80,0.52)",
+  violet:HUI.COLOR.violet, teal:HUI.COLOR.teal,
+  ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.52)",
   border:"rgba(0,0,0,0.08)",
 };
 

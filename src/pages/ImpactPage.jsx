@@ -47,7 +47,7 @@ const T = {
   line:      "rgba(0,0,0,0.048)",
   lineSoft:  "rgba(0,0,0,0.030)",
 
-  ff: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+  ff: HUI.FONT.family,
 };
 
 // ── Schatten-System — luxuriös, diffus ────────────────────────────

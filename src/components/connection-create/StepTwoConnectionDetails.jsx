@@ -4,11 +4,12 @@
 // Kosten → Stimmung → Sichtbarkeit → Offenheit → Extras → Medien
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
 // ── Farben ──────────────────────────────────────────────────────────
 const C = {
-  violet: "#8B5CF6", violet2: "#7C3AED",
-  ink:    "#1A1A1A", ink2: "#2D2D2D",
+  violet: HUI.COLOR.violet, violet2: "#7C3AED",
+  ink:    HUI.COLOR.ink, ink2: HUI.COLOR.inkMid,
   muted:  "rgba(80,80,80,0.52)",
   border: "rgba(0,0,0,0.08)",
   fieldBg:"rgba(255,255,255,0.85)",

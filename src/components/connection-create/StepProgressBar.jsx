@@ -3,6 +3,7 @@ import { createTabItem, filterValidPages } from "../../lib/factories/createTabPa
 // 3-Step Fortschrittsanzeige — subtil, ruhig, keine Zahlen-Technik-Optik
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
 const STEPS = filterValidPages([
   createTabItem({ key:"1", label:"Inspiration" }),
@@ -10,7 +11,7 @@ const STEPS = filterValidPages([
   createTabItem({ key:"3", label:"Realität"    }),
 ]);
 
-const C = { violet:"#8B5CF6", muted:"rgba(80,80,80,0.35)", cream:"rgba(139,92,246,0.12)" };
+const C = { violet:HUI.COLOR.violet, muted:"rgba(80,80,80,0.35)", cream:"rgba(139,92,246,0.12)" };
 
 const CSS = `
   @keyframes spb-glow {

@@ -4,11 +4,12 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // Screenshot-exact nach Mia Kern Design
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal: "#16D7C5", coral: "#FF8A6B",
-  ink: "#1A1A1A", ink2: "#3A3A3A",
-  muted: "rgba(80,80,80,0.58)", cream: "#F9F7F4",
+  teal: HUI.COLOR.teal, coral: HUI.COLOR.coral,
+  ink: HUI.COLOR.ink, ink2: HUI.COLOR.ink2,
+  muted: "rgba(80,80,80,0.58)", cream: HUI.COLOR.cream,
 };
 
 function StatCol({ value, label, last, dimmed }) {

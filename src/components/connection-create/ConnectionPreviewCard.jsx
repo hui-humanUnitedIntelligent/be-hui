@@ -4,11 +4,12 @@
 
 import React from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  violet:"#8B5CF6", violet2:"#7C3AED",
-  teal:"#16D7C5", ink:"#1A1A1A",
-  muted:"rgba(80,80,80,0.55)", cream:"#F9F7F4",
+  violet:HUI.COLOR.violet, violet2:"#7C3AED",
+  teal:HUI.COLOR.teal, ink:HUI.COLOR.ink,
+  muted:"rgba(80,80,80,0.55)", cream:HUI.COLOR.cream,
 };
 
 const MOOD_ICONS = {

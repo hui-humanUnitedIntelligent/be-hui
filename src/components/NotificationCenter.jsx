@@ -7,28 +7,29 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }    from "../lib/supabaseClient";
 import { useAppState } from "../lib/AppStateContext";
+import { HUI } from "../design/hui.design.js";
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS
 ══════════════════════════════════════════════════════════════ */
 const C = {
-  teal:      "#20D3C2",
-  teal2:     "#16BFB0",
-  tealPale:  "#E8FAF8",
+  teal:      HUI.COLOR.teal,
+  teal2:     HUI.COLOR.tealDeep,
+  tealPale:  HUI.COLOR.tealPale,
   tealGlow:  "rgba(32,211,194,0.22)",
-  coral:     "#FF8A7A",
-  coralPale: "#FFF2EE",
+  coral:     HUI.COLOR.coral,
+  coralPale: HUI.COLOR.coralPale,
   coralGlow: "rgba(255,138,122,0.18)",
-  gold:      "#F6C768",
+  gold:      HUI.COLOR.goldLight,
   goldPale:  "#FFFBEB",
   green:     "#22C55E",
   greenPale: "#ECFDF5",
   violet:    "#9B72CF",
-  cream:     "#FAF8F5",
-  warm:      "#FEFCF9",
+  cream:     HUI.COLOR.cream,
+  warm:      HUI.COLOR.creamSoft,
   card:      "rgba(255,255,255,0.95)",
   ink:       "#1E1E1E",
-  ink2:      "#3A3A3A",
+  ink2:      HUI.COLOR.ink2,
   muted:     "#8A8A8A",
   muted2:    "#C5C5C5",
   border:    "rgba(0,0,0,0.07)",

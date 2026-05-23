@@ -12,10 +12,11 @@ import StepOneTypeSelection   from "./StepOneTypeSelection.jsx";
 import StepTwoConnectionDetails from "./StepTwoConnectionDetails.jsx";
 import StepThreePreview       from "./StepThreePreview.jsx";
 import { useAuth }            from "../../lib/AuthContext.jsx";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  violet:"#8B5CF6", violet2:"#7C3AED",
-  ink:"#1A1A1A", muted:"rgba(80,80,80,0.48)",
+  violet:HUI.COLOR.violet, violet2:"#7C3AED",
+  ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.48)",
   cream:"#F0EEF5",
 };
 

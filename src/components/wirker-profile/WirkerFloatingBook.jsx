@@ -2,8 +2,9 @@
 // Sticky floating CTA am unteren Rand
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", teal2:"#11C5B7", coral:"#FF8A6B", cream:"#F9F7F4" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, cream:HUI.COLOR.cream };
 
 export default function WirkerFloatingBook({ profile, onBook, onFollow, followed }) {
   return (

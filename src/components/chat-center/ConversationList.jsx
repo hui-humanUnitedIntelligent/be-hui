@@ -3,8 +3,9 @@
 
 import React, { useState } from "react";
 import ConversationCard from "./ConversationCard.jsx";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", teal2:"#11C5B7", coral:"#FF8A6B", ink:"#1A1A1A", muted:"rgba(80,80,80,0.50)" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
 
 const MOCK_ACTIVE = [
   { id:1, name:"Leon Brandt",  last_message:"Ich freue mich auf unser Treffen!", last_at:new Date(Date.now()-240000).toISOString(), unread:2, online:true  },

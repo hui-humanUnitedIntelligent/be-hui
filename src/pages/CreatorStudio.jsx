@@ -8,6 +8,7 @@ import { useAppState } from "../lib/AppStateContext";
 import { useCreatorBookings, BOOKING_STATUS } from "../lib/bookingContext";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabaseClient";
+import { HUI } from "../design/hui.design.js";
 import {
   getAmbientGreeting, useCreatorJourney, getSoftStatus,
   AMBIENT_CSS, TRANSITIONS,
@@ -19,11 +20,11 @@ import {
 } from "./studio/StudioSubPages";
 
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7", tealGlow:"rgba(22,215,197,0.18)",
-  coral:"#FF8A6B", coralGlow:"rgba(255,138,107,0.15)",
-  gold:"#F5A623", green:"#10B981", violet:"#8B5CF6",
-  cream:"#F9F7F4", warm:"#FEFCFA", card:"#FFFFFF",
-  ink:"#1A1A1A", ink2:"#3A3A3A", muted:"#888", muted2:"#C0C0C0",
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealGlow:"rgba(22,215,197,0.18)",
+  coral:HUI.COLOR.coral, coralGlow:"rgba(255,138,107,0.15)",
+  gold:HUI.COLOR.gold, green:"#10B981", violet:HUI.COLOR.violet,
+  cream:HUI.COLOR.cream, warm:HUI.COLOR.creamSoft, card:"#FFFFFF",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, muted:"#888", muted2:"#C0C0C0",
   border:"rgba(0,0,0,0.06)",
 };
 

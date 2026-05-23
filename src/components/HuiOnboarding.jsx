@@ -5,16 +5,17 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { HUI } from "../design/hui.design.js";
 
 // ══════════════════════════════════════════════════════════════════
 // DESIGN TOKENS
 // ══════════════════════════════════════════════════════════════════
 const T = {
-  teal:    '#16D7C5',
+  teal:    HUI.COLOR.teal,
   tealDim: 'rgba(22,215,197,0.15)',
-  coral:   '#FF8A6B',
-  gold:    '#F5A623',
-  white:   '#FFFFFF',
+  coral:   HUI.COLOR.coral,
+  gold:    HUI.COLOR.gold,
+  white:   HUI.COLOR.white,
   offwhite:'rgba(255,255,255,0.88)',
   muted:   'rgba(255,255,255,0.52)',
   dim:     'rgba(255,255,255,0.28)',
@@ -62,11 +63,11 @@ function HuiLogo({ size = 56, glow = false }) {
           {/* i — Schaft schräg */}
           <rect x="47" y="18" width="9" height="36" rx="4.5" fill="url(#lg1)" transform="rotate(-8 47 18)"/>
           {/* Coral-Kurve unten rechts */}
-          <path d="M38 52 Q52 62 64 48" stroke="#FF8A6B" strokeWidth="7" fill="none" strokeLinecap="round" opacity="0.9"/>
+          <path d="M38 52 Q52 62 64 48" stroke={HUI.COLOR.coral} strokeWidth="7" fill="none" strokeLinecap="round" opacity="0.9"/>
           <defs>
             <linearGradient id="lg1" x1="0" y1="0" x2="68" y2="58" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#4ECDC4"/>
-              <stop offset="100%" stopColor="#16D7C5"/>
+              <stop offset="100%" stopColor={HUI.COLOR.teal}/>
             </linearGradient>
           </defs>
         </svg>
@@ -527,7 +528,7 @@ function Screen2({ onNext }) {
           background: 'rgba(245,166,35,0.18)',
           border: '1px solid rgba(245,166,35,0.4)',
           borderRadius: 20, padding: '4px 12px',
-          fontSize: 12, fontWeight: 600, color: '#F5A623',
+          fontSize: 12, fontWeight: 600, color: HUI.COLOR.gold,
           backdropFilter: 'blur(8px)',
         }}>● Dein Talent</div>
         <div style={{
@@ -727,7 +728,7 @@ function Screen4({ onNext }) {
           {[
             { icon: '🌿', color: '#4ECDC4', title: 'Teile dein Talent mit der Welt' },
             { icon: '❤️', color: '#FF6B6B', title: 'Verbinde dich mit echten Menschen' },
-            { icon: '✦',  color: '#F5A623', title: 'Bewirke gemeinsam Großes' },
+            { icon: '✦',  color: HUI.COLOR.gold, title: 'Bewirke gemeinsam Großes' },
           ].map((item, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: 16,

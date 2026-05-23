@@ -3,8 +3,9 @@ import { filterValidFeedItems, createWorkItem, createExperienceItem } from '../.
 // Werke / Aktivitäts-Tab content
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", coral:"#FF8A6B", ink:"#1A1A1A", ink2:"#3A3A3A", muted:"rgba(80,80,80,0.55)", cream:"#F9F7F4" };
+const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, muted:"rgba(80,80,80,0.55)", cream:HUI.COLOR.cream };
 
 function ActivityCard({ item }) {
   const coverBg = item.cover_url

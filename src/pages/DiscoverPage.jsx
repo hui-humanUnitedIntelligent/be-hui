@@ -960,7 +960,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
         <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", gap:12 }}>
           {(dPath.length > 0 ? dPath : [{district:{id:"gentle_resonance",invitation:"Kreative Welt",invitationSub:"Entdecke was gerade entsteht"},position:0}]).map((stop,i) => {
             const ICONS = {quiet_makers:"🌿",night_thoughts:"🌙",warm_gatherings:"🤝",living_works:"✦",gentle_resonance:"🎨",creative_rituals:"🕯️",human_connection:"💛",slow_inspiration:"🌱"};
-            const ACCS  = {quiet_makers:"#8B96B5",night_thoughts:"#6B82C4",warm_gatherings:"#FF8A6B",living_works:"#C4973A",gentle_resonance:"#16D7C5",creative_rituals:"#9B8BC4",human_connection:"#F5A623",slow_inspiration:"#7CC8A0"};
+            const ACCS  = {quiet_makers:"#8B96B5",night_thoughts:"#6B82C4",warm_gatherings:HUI.COLOR.coral,living_works:"#C4973A",gentle_resonance:HUI.COLOR.teal,creative_rituals:"#9B8BC4",human_connection:HUI.COLOR.gold,slow_inspiration:"#7CC8A0"};
             const d     = stop.district;
             const icon  = ICONS[d.id] || "✦";
             const accent= ACCS[d.id]  || C.teal;

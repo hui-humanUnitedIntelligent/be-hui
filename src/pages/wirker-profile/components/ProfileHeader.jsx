@@ -3,10 +3,11 @@
 // REGEL: Kein State, rein presentational
 
 import React from "react";
+import { HUI } from "../../../design/hui.design.js";
 
 const C = {
-  teal: "#16D7C5",
-  ink:  "#1A1A1A",
+  teal: HUI.COLOR.teal,
+  ink:  HUI.COLOR.ink,
   card: "#FFFFFF",
 };
 

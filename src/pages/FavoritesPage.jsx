@@ -12,20 +12,20 @@ import { supabase } from "../lib/supabaseClient";
 ══════════════════════════════════════════════════════════════ */
 const C = {
   teal:      HUI.COLOR.teal,
-  teal2:     "#16BFB0",
-  tealPale:  "#E8FAF8",
+  teal2:     HUI.COLOR.tealDeep,
+  tealPale:  HUI.COLOR.tealPale,
   tealGlow:  "rgba(32,211,194,0.22)",
   coral:     HUI.COLOR.coral,
-  coralPale: "#FFF2EE",
+  coralPale: HUI.COLOR.coralPale,
   coralGlow: "rgba(255,138,122,0.18)",
-  gold:      "#F6C768",
+  gold:      HUI.COLOR.goldLight,
   goldPale:  "#FFFBEB",
   green:     "#22C55E",
   cream:     HUI.COLOR.cream,
-  warm:      "#FEFCF9",
+  warm:      HUI.COLOR.creamSoft,
   card:      "rgba(255,255,255,0.95)",
   ink:       "#1E1E1E",
-  ink2:      "#3A3A3A",
+  ink2:      HUI.COLOR.ink2,
   muted:     "#8A8A8A",
   muted2:    "#C5C5C5",
   border:    "rgba(0,0,0,0.07)",
@@ -92,9 +92,9 @@ const MOCK_HERO = {
 
 const MOCK_PEOPLE = [
   { id:"p1", name:"Leon Brandt",  talent:"Musik & Klang",       img:"https://i.pravatar.cc/220?img=53", status:"Gerade im Atelier",  statusColor:"#22C55E" },
-  { id:"p2", name:"Mia Kern",     talent:"Keramik & Handwerk",  img:"https://i.pravatar.cc/220?img=47", status:"Nimmt sich Zeit",     statusColor:"#F6C768" },
-  { id:"p3", name:"Jonas Weber",  talent:"Fotografie & Film",   img:"https://i.pravatar.cc/220?img=52", status:"Unterwegs",           statusColor:"#FF8A7A" },
-  { id:"p4", name:"Hanna Vogt",   talent:"Yoga & Bewegung",     img:"https://i.pravatar.cc/220?img=11", status:"In der Natur",        statusColor:"#20D3C2" },
+  { id:"p2", name:"Mia Kern",     talent:"Keramik & Handwerk",  img:"https://i.pravatar.cc/220?img=47", status:"Nimmt sich Zeit",     statusColor:HUI.COLOR.goldLight },
+  { id:"p3", name:"Jonas Weber",  talent:"Fotografie & Film",   img:"https://i.pravatar.cc/220?img=52", status:"Unterwegs",           statusColor:HUI.COLOR.coral },
+  { id:"p4", name:"Hanna Vogt",   talent:"Yoga & Bewegung",     img:"https://i.pravatar.cc/220?img=11", status:"In der Natur",        statusColor:HUI.COLOR.teal },
 ];
 
 const MOCK_WORKS = [

@@ -5,14 +5,15 @@ import { createTabItem, filterValidPages } from '../../../lib/factories/createTa
 
 import React from "react";
 import { filterValidFeedItems, createWorkItem, createExperienceItem } from '../../../lib/factories/createFeedItem.js';
+import { HUI } from "../../../design/hui.design.js";
 
 const C = {
-  teal:    "#16D7C5",
-  teal2:   "#11C5B7",
-  ink:     "#1A1A1A",
+  teal:    HUI.COLOR.teal,
+  teal2:   HUI.COLOR.tealDeep,
+  ink:     HUI.COLOR.ink,
   muted:   "#888",
   border:  "rgba(0,0,0,0.07)",
-  cream:   "#F9F7F4",
+  cream:   HUI.COLOR.cream,
 };
 
 const TABS = filterValidPages([

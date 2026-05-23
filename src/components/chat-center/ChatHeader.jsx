@@ -3,8 +3,9 @@
 // Glassmorphism header, cinematic
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", teal2:"#11C5B7", ink:"#1A1A1A", muted:"rgba(80,80,80,0.55)" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
 export default function ChatHeader({ conv, onBack }) {
   const name   = conv?.name   || "Gespräch";

@@ -7,14 +7,15 @@ import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
 import { useAppState } from "../lib/AppStateContext";
+import { HUI } from "../design/hui.design.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7", tealPale:"#E6FAF8", tealGlow:"rgba(22,215,197,0.22)",
-  coral:"#FF8A6B", coral2:"#FF7055", coralPale:"#FFF2EE", coralGlow:"rgba(255,138,107,0.22)",
-  gold:"#F5A623", goldGlow:"rgba(245,166,35,0.18)",
-  warm:"#F9F7F4", card:"#FFFFFF",
-  ink:"#1A1A1A", ink2:"#3A3A3A",
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealPale:HUI.COLOR.tealPale, tealGlow:"rgba(22,215,197,0.22)",
+  coral:HUI.COLOR.coral, coral2:HUI.COLOR.coral, coralPale:HUI.COLOR.coralPale, coralGlow:"rgba(255,138,107,0.22)",
+  gold:HUI.COLOR.gold, goldGlow:"rgba(245,166,35,0.18)",
+  warm:HUI.COLOR.cream, card:"#FFFFFF",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
   muted:"#888", muted2:"#BBB",
   border:"rgba(0,0,0,0.07)",
 };
@@ -682,8 +683,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                 onKeyDown={e => e.key==="Enter" && handleComment()}
                 placeholder="Dein Kommentar..."
                 style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:50,
-                  padding:"9px 14px", fontSize:13, color:"#1A1A1A",
-                  fontFamily:"inherit", outline:"none", background:"#F9F6F2" }}
+                  padding:"9px 14px", fontSize:13, color:HUI.COLOR.ink,
+                  fontFamily:"inherit", outline:"none", background:HUI.COLOR.cream }}
               />
               <button onClick={handleComment} disabled={!commentInput.trim() || submittingComment}
                 style={{ padding:"9px 16px", background:`linear-gradient(135deg,#16D7C5,#11C5B7)`,
@@ -705,7 +706,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                   <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0,
                     background:"linear-gradient(135deg,#16D7C544,#FF8A6B44)",
                     overflow:"hidden", display:"flex", alignItems:"center",
-                    justifyContent:"center", fontWeight:700, fontSize:13, color:"#16D7C5" }}>
+                    justifyContent:"center", fontWeight:700, fontSize:13, color:HUI.COLOR.teal }}>
                     {c.profiles?.avatar_url
                       ? <img src={c.profiles.avatar_url} alt=""
                           style={{ width:"100%", height:"100%", objectFit:"cover" }} />
@@ -713,14 +714,14 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                   </div>
                   <div style={{ flex:1 }}>
                     <div style={{ display:"flex", gap:6, alignItems:"baseline", marginBottom:2 }}>
-                      <span style={{ fontWeight:700, fontSize:12, color:"#1A1A1A" }}>
+                      <span style={{ fontWeight:700, fontSize:12, color:HUI.COLOR.ink }}>
                         {c.profiles?.display_name || "Nutzer"}
                       </span>
                       <span style={{ fontSize:10, color:"#BBB" }}>
                         {new Date(c.created_at).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}
                       </span>
                     </div>
-                    <div style={{ fontSize:13, color:"#3A3A3A", lineHeight:1.5 }}>{c.text}</div>
+                    <div style={{ fontSize:13, color:HUI.COLOR.ink2, lineHeight:1.5 }}>{c.text}</div>
                   </div>
                 </div>
               ))}

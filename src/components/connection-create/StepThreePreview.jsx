@@ -4,11 +4,12 @@
 
 import React, { useState } from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
+import { HUI } from "../../design/hui.design.js";
 
 // ── Farben ──────────────────────────────────────────────────────────
 const C = {
-  violet:"#8B5CF6", violet2:"#7C3AED", violet3:"#6D28D9",
-  ink:"#1A1A1A", ink2:"#2D2D2D",
+  violet:HUI.COLOR.violet, violet2:"#7C3AED", violet3:"#6D28D9",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.inkMid,
   muted:"rgba(80,80,80,0.52)",
   border:"rgba(0,0,0,0.07)",
   cream:"#F2F0F8",

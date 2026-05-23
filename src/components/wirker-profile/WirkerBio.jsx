@@ -3,10 +3,11 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // Emotionale Bio-Sektion + Book CTA
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7",
-  ink:"#1A1A1A", cream:"#F9F7F4",
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep,
+  ink:HUI.COLOR.ink, cream:HUI.COLOR.cream,
   muted:"rgba(80,80,80,0.62)",
 };
 

@@ -10,12 +10,13 @@ import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { SAFE_MODE } from "../../../config/safeMode.js";
+import { HUI } from "../../../design/hui.design.js";
 
 const CSS = `
   @keyframes bn-orb-pulse {
     0%,100% { box-shadow:
       0 0 0 0px rgba(22,215,197,0.00),
-      0 4px 18px rgba(22,215,197,0.38),
+      0 4px 18px rgba(13,196,181,0.38),
       0 2px 6px rgba(0,0,0,0.14); }
     50%     { box-shadow:
       0 0 0 6px rgba(22,215,197,0.08),
@@ -47,7 +48,6 @@ export default function BottomNav({
   // navDrift: world-layer drift — soft opacity + translateY (nav stays mounted)
   const isHidden = (orbActive && !navDrift) ?? false;
 
-  console.log("[HUI NAV] orbActive", orbActive, "navDrift", !!navDrift, "isHidden", isHidden);
 
   function handleTabPress(key) {
     if (typeof onTab === "function") onTab(key);
@@ -123,7 +123,7 @@ export default function BottomNav({
                     flexShrink: 0,
                     overflow: "hidden",
                     /* Teal → Coral gradient */
-                    background: "linear-gradient(135deg, #16D7C5 0%, #FF8A6B 100%)",
+                    background: `linear-gradient(135deg, ${HUI.COLOR.teal} 0%, ${HUI.COLOR.coral} 100%)`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     WebkitTapHighlightColor: "transparent",
                     touchAction: "manipulation",

@@ -7,15 +7,16 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
+import { HUI } from "../../design/hui.design.js";
 
 /* ── Tokens ── */
 const C = {
-  teal:   "#0ABFB8",
+  teal:   HUI.COLOR.teal,
   teal2:  "#0891B2",
-  violet: "#8B5CF6",
+  violet: HUI.COLOR.violet,
   violet2:"#7C3AED",
-  peach:  "#FB923C",
-  ink:    "#1A1A2E",
+  peach:  HUI.COLOR.coral,
+  ink:    HUI.COLOR.ink,
   muted:  "rgba(26,26,46,0.48)",
   bg:     "#F8F7FC",
   card:   "rgba(255,255,255,0.90)",

@@ -6,20 +6,21 @@ import React from "react";
 import LazyImage from "../../../components/LazyImage";
 import { PresenceBadge } from "../components/PresenceBadge";
 import { ProfileActions } from "../components/ProfileActions";
+import { HUI } from "../../../design/hui.design.js";
 import {
   formatDisplayName, formatTalent, formatLocation, formatAvatarUrl, formatHeroUrl,
 } from "../utils/profileFormatters";
 
 const C = {
-  teal:    "#16D7C5",
-  teal2:   "#0DBFB5",
-  coral:   "#FF8A6B",
-  gold:    "#F5A623",
-  ink:     "#1A1A1A",
-  ink2:    "#3A3A3A",
-  muted:   "#888888",
+  teal:    HUI.COLOR.teal,
+  teal2:   HUI.COLOR.tealDeep,
+  coral:   HUI.COLOR.coral,
+  gold:    HUI.COLOR.gold,
+  ink:     HUI.COLOR.ink,
+  ink2:    HUI.COLOR.ink2,
+  muted:   HUI.COLOR.muted,
   muted2:  "#C8C8C8",
-  cream:   "#F9F7F4",
+  cream:   HUI.COLOR.cream,
   border:  "rgba(0,0,0,0.07)",
   shadow:  "0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.08)",
 };

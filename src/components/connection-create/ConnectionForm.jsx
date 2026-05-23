@@ -6,11 +6,12 @@
 import React from "react";
 import { MoodSelector, VisibilitySelector, CostSelector, OpennessPicker } from "./Selectors.jsx";
 import { ParticipantStepper, LocationPicker, MediaAttachmentBar } from "./Widgets.jsx";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  violet:"#8B5CF6", ink:"#1A1A1A",
+  violet:HUI.COLOR.violet, ink:HUI.COLOR.ink,
   muted:"rgba(80,80,80,0.52)", border:"rgba(0,0,0,0.08)",
-  cream:"#F9F7F4",
+  cream:HUI.COLOR.cream,
 };
 
 const CSS = `

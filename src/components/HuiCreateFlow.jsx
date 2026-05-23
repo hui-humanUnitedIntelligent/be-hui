@@ -14,15 +14,16 @@ import { useDraftPersist } from "../lib/sessionHooks";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
+import { HUI } from "../design/hui.design.js";
 import {
   MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS
 } from "../lib/moodUtils";
 
 /* ── Tokens ─────────────────────────────────────────────────────── */
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7",
-  coral:"#FF8A6B", gold:"#F5A623", purple:"#A78BFA",
-  cream:"#F9F7F4", ink:"#1A1A1A", ink2:"#3A3A3A", ink3:"#5A5A5A",
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep,
+  coral:HUI.COLOR.coral, gold:HUI.COLOR.gold, purple:HUI.COLOR.violetLight,
+  cream:HUI.COLOR.cream, ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, ink3:HUI.COLOR.muted,
   muted:"rgba(60,60,60,0.50)", border:"rgba(0,0,0,0.07)",
 };
 
@@ -1378,7 +1379,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
       label: "Moment",
       sub:   "Schneller spontaner Post",
       grad:  `linear-gradient(135deg, rgba(22,215,197,0.12) 0%, rgba(22,215,197,0.04) 100%)`,
-      accent: "#16D7C5",
+      accent: HUI.COLOR.teal,
       border: "rgba(22,215,197,0.25)",
     },
     {
@@ -1387,7 +1388,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
       label: "Werk",
       sub:   "Produkt · Kunst · Portfolio",
       grad:  `linear-gradient(135deg, rgba(255,138,107,0.12) 0%, rgba(255,138,107,0.04) 100%)`,
-      accent: "#FF8A6B",
+      accent: HUI.COLOR.coral,
       border: "rgba(255,138,107,0.25)",
     },
     {
@@ -1396,7 +1397,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
       label: "Erlebnis",
       sub:   "Event · Workshop · Session",
       grad:  `linear-gradient(135deg, rgba(245,166,35,0.12) 0%, rgba(245,166,35,0.04) 100%)`,
-      accent: "#F5A623",
+      accent: HUI.COLOR.gold,
       border: "rgba(245,166,35,0.25)",
     },
     {
@@ -1405,7 +1406,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
       label: "Story",
       sub:   "Temporär · Tagesbericht",
       grad:  `linear-gradient(135deg, rgba(167,139,250,0.12) 0%, rgba(167,139,250,0.04) 100%)`,
-      accent: "#A78BFA",
+      accent: HUI.COLOR.violetLight,
       border: "rgba(167,139,250,0.25)",
     },
   ];

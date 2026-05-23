@@ -6,10 +6,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
+import { HUI } from "../design/hui.design.js";
 
 const C = {
-  teal:'#16D7C5', coral:'#FF8A6B', gold:'#F5A623',
-  ink:'#1A1A1A', muted:'#888', cream:'#F9F6F2',
+  teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, gold:HUI.COLOR.gold,
+  ink:HUI.COLOR.ink, muted:'#888', cream:HUI.COLOR.cream,
 };
 
 const CSS = `

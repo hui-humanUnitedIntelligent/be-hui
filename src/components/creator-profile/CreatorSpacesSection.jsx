@@ -2,16 +2,17 @@
 // Creative Worlds — horizontal scroll bubbles
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", coral:"#FF8A6B", ink:"#1A1A1A", muted:"rgba(80,80,80,0.55)" };
+const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
 const DEFAULT_SPACES = [
-  { key:"atelier",    label:"Atelier",    emoji:"🏺", color:"#16D7C5" },
-  { key:"projekte",   label:"Projekte",   emoji:"✦",  color:"#FF8A6B" },
+  { key:"atelier",    label:"Atelier",    emoji:"🏺", color:HUI.COLOR.teal },
+  { key:"projekte",   label:"Projekte",   emoji:"✦",  color:HUI.COLOR.coral },
   { key:"natur",      label:"Natur",      emoji:"🌿", color:"#4CAF50" },
-  { key:"momente",    label:"Momente",    emoji:"✨", color:"#A78BFA" },
-  { key:"community",  label:"Community",  emoji:"🫂", color:"#FF8A6B" },
-  { key:"reisen",     label:"Reisen",     emoji:"🗺️", color:"#16D7C5" },
+  { key:"momente",    label:"Momente",    emoji:"✨", color:HUI.COLOR.violetLight },
+  { key:"community",  label:"Community",  emoji:"🫂", color:HUI.COLOR.coral },
+  { key:"reisen",     label:"Reisen",     emoji:"🗺️", color:HUI.COLOR.teal },
   { key:"musik",      label:"Klang",      emoji:"🎵", color:"#FFB347" },
 ];
 

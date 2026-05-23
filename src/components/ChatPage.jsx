@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuth }    from "../lib/AuthContext";
 import { AMBIENT_CSS, getSoftStatus } from "../lib/journeyContext";
+import { HUI } from "../design/hui.design.js";
 import {
   useDraftPersist, useScrollMemory,
   usePresence, getPresenceLabel,
@@ -19,20 +20,20 @@ import {
    DESIGN TOKENS
 ══════════════════════════════════════════════════════════════ */
 const C = {
-  teal:      "#20D3C2",
-  teal2:     "#16BFB0",
-  tealPale:  "#E8FAF8",
+  teal:      HUI.COLOR.teal,
+  teal2:     HUI.COLOR.tealDeep,
+  tealPale:  HUI.COLOR.tealPale,
   tealGlow:  "rgba(32,211,194,0.22)",
-  coral:     "#FF8A7A",
+  coral:     HUI.COLOR.coral,
   coralGlow: "rgba(255,138,122,0.18)",
-  gold:      "#F6C768",
+  gold:      HUI.COLOR.goldLight,
   green:     "#4CAF85",
   greenDot:  "#22C55E",
-  cream:     "#FAF8F5",
-  warm:      "#FEFCF9",
+  cream:     HUI.COLOR.cream,
+  warm:      HUI.COLOR.creamSoft,
   card:      "rgba(255,255,255,0.96)",
   ink:       "#1E1E1E",
-  ink2:      "#3A3A3A",
+  ink2:      HUI.COLOR.ink2,
   muted:     "#8A8A8A",
   muted2:    "#C5C5C5",
   border:    "rgba(0,0,0,0.07)",

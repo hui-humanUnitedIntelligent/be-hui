@@ -3,12 +3,13 @@
 // REGEL: Nur sichtbar wenn !isOwner && bookable
 
 import React from "react";
+import { HUI } from "../../../design/hui.design.js";
 
 const C = {
-  teal:  "#16D7C5",
-  teal2: "#11C5B7",
-  coral: "#FF8A6B",
-  ink:   "#1A1A1A",
+  teal:  HUI.COLOR.teal,
+  teal2: HUI.COLOR.tealDeep,
+  coral: HUI.COLOR.coral,
+  ink:   HUI.COLOR.ink,
 };
 
 /**

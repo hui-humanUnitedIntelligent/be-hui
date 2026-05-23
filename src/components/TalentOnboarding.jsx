@@ -4,18 +4,19 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
+import { HUI } from "../design/hui.design.js";
 
 /* ── Design Tokens ──────────────────────────────────────────────────── */
 const T = {
-  teal:"#16D7C5", teal2:"#0EC4B3", tealGlow:"rgba(22,215,197,0.28)",
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,0.28)",
   tealBg:"rgba(22,215,197,0.09)", tealBorder:"rgba(22,215,197,0.26)",
-  coral:"#FF8A6B", coralBg:"rgba(255,138,107,0.09)",
-  gold:"#F5A623",  goldBg:"rgba(245,166,35,0.09)",
-  purple:"#A78BFA",purpleBg:"rgba(167,139,250,0.10)",
+  coral:HUI.COLOR.coral, coralBg:"rgba(255,138,107,0.09)",
+  gold:HUI.COLOR.gold,  goldBg:"rgba(245,166,35,0.09)",
+  purple:HUI.COLOR.violetLight,purpleBg:"rgba(167,139,250,0.10)",
   green:"#22C55E", greenBg:"rgba(34,197,94,0.10)",
-  warm:"#F9F7F4", card:"#FFFFFF",
-  ink:"#1A1A1A", ink2:"#3A3A3A", ink3:"#6A6A6A",
-  muted:"#9A9A9A", border:"rgba(0,0,0,0.07)",
+  warm:HUI.COLOR.cream, card:"#FFFFFF",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, ink3:HUI.COLOR.muted,
+  muted:HUI.COLOR.muted, border:"rgba(0,0,0,0.07)",
 };
 
 const CSS = `

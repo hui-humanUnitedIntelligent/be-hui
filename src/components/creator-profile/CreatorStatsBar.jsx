@@ -3,8 +3,9 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 // HUI-style metrics — Wirkung statt Vanity
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", coral:"#FF8A6B", ink:"#1A1A1A", muted:"rgba(80,80,80,0.55)" };
+const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
 function StatItem({ value, label, dimmed }) {
   return (

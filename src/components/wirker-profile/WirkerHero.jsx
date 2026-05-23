@@ -5,10 +5,11 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 
 import React, { useState } from "react";
 import { profileAtmosphereFromWorld } from "../../lib/intelligence/worldPolish.js";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal: "#16D7C5", coral: "#FF8A6B",
-  ink: "#1A1A1A", cream: "#F9F7F4",
+  teal: HUI.COLOR.teal, coral: HUI.COLOR.coral,
+  ink: HUI.COLOR.ink, cream: HUI.COLOR.cream,
 };
 
 export default function WirkerHero({ profile, onClose, onMore }) {

@@ -3,13 +3,14 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
+import { HUI } from "../design/hui.design.js";
 
 const T = {
-  teal:"#16D7C5", tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
-  coral:"#FF8A6B",
-  gold:"#F5A623",  purple:"#A78BFA", green:"#22C55E",
-  ink:"#1A1A1A", ink3:"#6A6A6A", muted:"#9A9A9A",
-  border:"rgba(0,0,0,.08)", warm:"#F9F7F4",
+  teal:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
+  coral:HUI.COLOR.coral,
+  gold:HUI.COLOR.gold,  purple:HUI.COLOR.violetLight, green:"#22C55E",
+  ink:HUI.COLOR.ink, ink3:HUI.COLOR.muted, muted:HUI.COLOR.muted,
+  border:"rgba(0,0,0,.08)", warm:HUI.COLOR.cream,
 };
 
 const GRADIENTS = [

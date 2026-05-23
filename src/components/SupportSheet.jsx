@@ -3,14 +3,15 @@
 
 import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { HUI } from "../design/hui.design.js";
 
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7", tealGlow:"rgba(22,215,197,0.22)",
-  coral:"#FF8A6B", coralGlow:"rgba(255,138,107,0.22)",
-  gold:"#F5A623",
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealGlow:"rgba(22,215,197,0.22)",
+  coral:HUI.COLOR.coral, coralGlow:"rgba(255,138,107,0.22)",
+  gold:HUI.COLOR.gold,
   green:"#3DB87A",
-  cream:"#F9F6F2", card:"#FFFFFF",
-  ink:"#1A1A1A", ink2:"#3A3A3A",
+  cream:HUI.COLOR.cream, card:"#FFFFFF",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
   muted:"#888", border:"rgba(0,0,0,0.07)",
 };
 

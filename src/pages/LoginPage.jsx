@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
+import { HUI } from "../design/hui.design.js";
 
 // ── Design Tokens ───────────────────────────────────────────────
 const T = {
-  teal:    '#16D7C5',
+  teal:    HUI.COLOR.teal,
   teal2:   '#0FC4B2',
-  coral:   '#FF8A6B',
-  white:   '#FFFFFF',
+  coral:   HUI.COLOR.coral,
+  white:   HUI.COLOR.white,
   ink:     '#0D0D0D',
   muted:   'rgba(255,255,255,0.55)',
   glass:   'rgba(255,255,255,0.07)',
@@ -49,8 +50,8 @@ function HuiLogo({ size = 64, glow = true }) {
             <stop offset="100%" stopColor="white" stopOpacity="0"/>
           </linearGradient>
           <radialGradient id="hl-cr" cx="80%" cy="80%" r="50%">
-            <stop offset="0%" stopColor="#FF8A6B" stopOpacity="0.55"/>
-            <stop offset="100%" stopColor="#FF8A6B" stopOpacity="0"/>
+            <stop offset="0%" stopColor={HUI.COLOR.coral} stopOpacity="0.55"/>
+            <stop offset="100%" stopColor={HUI.COLOR.coral} stopOpacity="0"/>
           </radialGradient>
           <radialGradient id="hl-tl" cx="20%" cy="20%" r="50%">
             <stop offset="0%" stopColor="#22EDD8" stopOpacity="0.40"/>
@@ -69,7 +70,7 @@ function HuiLogo({ size = 64, glow = true }) {
         <circle cx="82" cy="44" r="5.5" fill="url(#hl-bg)"/>
         <path d="M82 54 L82 82" stroke="url(#hl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
         <path d="M72 18 C85 14 100 20 108 32 C114 42 112 55 105 62" stroke="#22EDD8" strokeWidth="7" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
-        <path d="M48 104 C38 108 22 104 14 92 C8 82 10 68 17 60" stroke="#FF8A6B" strokeWidth="7" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
+        <path d="M48 104 C38 108 22 104 14 92 C8 82 10 68 17 60" stroke={HUI.COLOR.coral} strokeWidth="7" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
         <rect x="3" y="3" width="114" height="114" rx="30" fill="none" stroke="white" strokeOpacity="0.18" strokeWidth="1.5"/>
       </svg>
     </div>
@@ -342,7 +343,7 @@ function SuccessMessage({ msg }) {
       border: '1px solid rgba(22,215,197,0.30)',
       borderRadius: 12,
       fontSize: 14,
-      color: '#16D7C5',
+      color: HUI.COLOR.teal,
       lineHeight: 1.5,
     }}>
       {msg}

@@ -2,8 +2,9 @@
 // onTouchEnd als primärer Handler (kein 300ms onClick-Delay auf iOS)
 // touch-action: manipulation + -webkit-tap-highlight-color: transparent
 import React from "react";
+import { HUI } from "../../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", coral:"#FF8A6B" };
+const C = { teal: HUI.COLOR.teal, coral: HUI.COLOR.coral };
 
 function NavIcon({ k, active }) {
   const col = active ? C.teal : "rgba(80,80,80,0.55)";

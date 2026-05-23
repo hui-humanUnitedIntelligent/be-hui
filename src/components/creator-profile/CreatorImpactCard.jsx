@@ -2,8 +2,9 @@
 // "Deine Resonanz & Wirkung" — emotional impact section
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", coral:"#FF8A6B", ink:"#1A1A1A", ink2:"#3A3A3A", muted:"rgba(80,80,80,0.6)" };
+const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, muted:"rgba(80,80,80,0.6)" };
 
 const MOCK_SUPPORTERS = [
   { id:1, avatar:null, name:"Anna" },
@@ -13,7 +14,7 @@ const MOCK_SUPPORTERS = [
 
 function AvatarBubble({ person, offset }) {
   const initials = (person.name || "?")[0].toUpperCase();
-  const colors   = ["#16D7C5","#FF8A6B","#A78BFA"];
+  const colors   = [HUI.COLOR.teal,HUI.COLOR.coral,HUI.COLOR.violetLight];
   const bg       = colors[offset % colors.length];
   return (
     <div style={{

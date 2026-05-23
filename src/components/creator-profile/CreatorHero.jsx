@@ -5,12 +5,13 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 
 import React, { useState } from "react";
 import { profileAtmosphereFromWorld } from "../../lib/intelligence/worldPolish.js";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal:   "#16D7C5",
-  coral:  "#FF8A6B",
-  cream:  "#F9F7F4",
-  ink:    "#1A1A1A",
+  teal:   HUI.COLOR.teal,
+  coral:  HUI.COLOR.coral,
+  cream:  HUI.COLOR.cream,
+  ink:    HUI.COLOR.ink,
 };
 
 const MOODS = [

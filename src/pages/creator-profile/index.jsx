@@ -12,13 +12,14 @@ import CreatorImpactCard      from "../../components/creator-profile/CreatorImpa
 import CreatorSpacesSection   from "../../components/creator-profile/CreatorSpacesSection.jsx";
 import CreatorWorksSection    from "../../components/creator-profile/CreatorWorksSection.jsx";
 import CreatorFloatingActions from "../../components/creator-profile/CreatorFloatingActions.jsx";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal:   "#16D7C5",
-  coral:  "#FF8A6B",
-  ink:    "#1A1A1A",
+  teal:   HUI.COLOR.teal,
+  coral:  HUI.COLOR.coral,
+  ink:    HUI.COLOR.ink,
   muted:  "rgba(80,80,80,0.55)",
-  cream:  "#F9F7F4",
+  cream:  HUI.COLOR.cream,
 };
 
 const TABS = filterValidPages([

@@ -3,8 +3,9 @@
 // REGEL: Nur rendern wenn shouldShowBridge === true
 
 import React from "react";
+import { HUI } from "../../../design/hui.design.js";
 
-const C = { teal: "#16D7C5" };
+const C = { teal: HUI.COLOR.teal };
 
 /**
  * @param {{ continuity: { isBridge: boolean, domains: string[], label: string } | null }} props

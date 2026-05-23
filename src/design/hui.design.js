@@ -50,9 +50,11 @@ const COLOR = {
   violet:      "#7264D6",   // Kreativ-Violett — Bildung, Kunst
   violetLight: "#9488E8",   // Hell-Violett
   violetPale:  "#F0EEFF",   // Violett-Hintergrund
+  violetDeep:  "#5448B8",   // Dunkles Violett für Pressed/Active
   violetGlow:  "rgba(114,100,214,0.16)",
 
   sage:        "#6BAE8F",   // Sage-Grün — Natur, Nachhaltigkeit
+  sageDeep:    "#4D9B74",   // Dunkles Sage für Kontrast
   sagePale:    "#EEF7F2",   // Sage-Hintergrund
   sageGlow:    "rgba(107,174,143,0.15)",
 

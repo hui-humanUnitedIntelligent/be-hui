@@ -1,16 +1,17 @@
 // LiveMapPage.jsx — HUI Discovery v6
 // Karte atmet. UI schwebt. Nicht umgekehrt.
 import React, { useState, useEffect, useRef } from "react";
+import { HUI } from "../design/hui.design.js";
 
 const C = {
-  teal:"#16D7C5", teal2:"#11C5B7",
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep,
   tealGlow:"rgba(22,215,197,0.25)",
-  coral:"#FF8A6B", coralGlow:"rgba(255,138,107,0.22)",
-  gold:"#F5A623",
+  coral:HUI.COLOR.coral, coralGlow:"rgba(255,138,107,0.22)",
+  gold:HUI.COLOR.gold,
   green:"#3DB87A", greenGlow:"rgba(61,184,122,0.22)",
   violet:"#9B72CF", violetGlow:"rgba(155,114,207,0.22)",
-  cream:"#F9F6F2", warm:"#FFF9F4",
-  ink:"#1A1A1A", ink2:"#3A3A3A",
+  cream:HUI.COLOR.cream, warm:"#FFF9F4",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
   muted:"#888", muted2:"#BBBBBB",
   border:"rgba(0,0,0,0.06)",
 };

@@ -3,8 +3,9 @@
 // Floating glass surface, teal send glow
 
 import React, { useRef } from "react";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", teal2:"#11C5B7", muted:"rgba(80,80,80,0.45)" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, muted:"rgba(80,80,80,0.45)" };
 
 export default function ChatInput({ onSend, placeholder = "Schreib etwas Echtes\u2026" }) {
   const [text, setText] = React.useState("");
@@ -72,7 +73,7 @@ export default function ChatInput({ onSend, placeholder = "Schreib etwas Echtes\
             rows={1}
             style={{
               flex:1, border:"none", background:"none", outline:"none",
-              fontSize:14.5, lineHeight:1.55, color:"#1A1A1A",
+              fontSize:14.5, lineHeight:1.55, color:HUI.COLOR.ink,
               fontFamily:"inherit", resize:"none",
               maxHeight:100, overflowY:"auto",
               WebkitOverflowScrolling:"touch",

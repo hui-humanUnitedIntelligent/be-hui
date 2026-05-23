@@ -3,13 +3,14 @@
 // REGEL: Kein direkter Supabase-Write — alles via Props/Callbacks
 
 import React from "react";
+import { HUI } from "../../../design/hui.design.js";
 
 const C = {
-  teal:     "#16D7C5",
-  teal2:    "#11C5B7",
-  tealPale: "#E6FAF8",
-  coral:    "#FF8A6B",
-  ink:      "#1A1A1A",
+  teal:     HUI.COLOR.teal,
+  teal2:    HUI.COLOR.tealDeep,
+  tealPale: HUI.COLOR.tealPale,
+  coral:    HUI.COLOR.coral,
+  ink:      HUI.COLOR.ink,
   muted:    "#888",
 };
 

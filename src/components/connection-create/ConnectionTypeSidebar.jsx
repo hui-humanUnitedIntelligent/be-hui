@@ -3,12 +3,13 @@
 // Screenshot-exact: weiche Karten, aktiver Typ mit Lila-Glow
 
 import React from "react";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  violet:"#8B5CF6", violet2:"#7C3AED",
-  ink:"#1A1A1A", ink2:"#3A3A3A",
+  violet:HUI.COLOR.violet, violet2:"#7C3AED",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
   muted:"rgba(80,80,80,0.55)",
-  cream:"#F9F7F4", white:"rgba(255,255,255,0.92)",
+  cream:HUI.COLOR.cream, white:"rgba(255,255,255,0.92)",
 };
 
 export const CONNECTION_TYPES = [

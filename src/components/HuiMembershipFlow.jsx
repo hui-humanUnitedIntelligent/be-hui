@@ -17,6 +17,7 @@ import GuidanceFooter from "./guidance/GuidanceFooter.jsx";
 import { useGuidance } from "./guidance/GuidanceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import { useAuth } from "../lib/AuthContext";
+import { HUI } from "../design/hui.design.js";
 
 // ─── Images ───────────────────────────────────────────────────────────────────
 const IMG = {
@@ -66,10 +67,11 @@ const CSS = `
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 const T = {
-  teal:    "#16D7C5",
-  coral:   "#FF8A6B",
-  gold:    "#F5A623",
-  white:   "#FFFFFF",
+  // ── Phase 21: HUI Design System ──────────────────────────────
+  teal:    HUI.COLOR.teal,
+  coral:   HUI.COLOR.coral,
+  gold:    HUI.COLOR.gold,
+  white:   HUI.COLOR.white,
   text:    "rgba(255,255,255,0.95)",
   soft:    "rgba(255,255,255,0.75)",
   muted:   "rgba(255,255,255,0.48)",
@@ -1107,7 +1109,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     <div style={{
       position: "fixed", inset: 0, zIndex: 9800,
       background: T.bg, overflow: "hidden",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+      fontFamily: HUI.FONT.family,
       WebkitFontSmoothing: "antialiased",
       display: "flex", flexDirection: "column",
     }}>

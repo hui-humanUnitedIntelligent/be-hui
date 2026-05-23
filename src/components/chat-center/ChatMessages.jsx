@@ -4,8 +4,9 @@
 
 import React, { useRef, useEffect } from "react";
 import MessageBubble, { TypingBubble } from "./MessageBubble.jsx";
+import { HUI } from "../../design/hui.design.js";
 
-const C = { teal:"#16D7C5", ink:"#1A1A1A", muted:"rgba(80,80,80,0.45)" };
+const C = { teal:HUI.COLOR.teal, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.45)" };
 
 const CSS = `
   .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}

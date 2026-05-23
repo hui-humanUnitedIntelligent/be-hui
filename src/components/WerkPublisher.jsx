@@ -3,14 +3,15 @@
 import React, { useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
+import { HUI } from "../design/hui.design.js";
 
 const T = {
-  coral:"#FF8A6B", coralGlow:"rgba(255,138,107,.3)", coralBg:"rgba(255,138,107,.09)",
-  teal:"#16D7C5",  tealGlow:"rgba(22,215,197,.28)",  tealBg:"rgba(22,215,197,.09)",
-  gold:"#F5A623",  goldBg:"rgba(245,166,35,.09)",
-  ink:"#1A1A1A", ink2:"#3A3A3A", ink3:"#6A6A6A",
-  muted:"#9A9A9A", border:"rgba(0,0,0,.08)",
-  warm:"#F9F7F4", card:"#FFFFFF",
+  coral:HUI.COLOR.coral, coralGlow:"rgba(255,138,107,.3)", coralBg:"rgba(255,138,107,.09)",
+  teal:HUI.COLOR.teal,  tealGlow:"rgba(22,215,197,.28)",  tealBg:"rgba(22,215,197,.09)",
+  gold:HUI.COLOR.gold,  goldBg:"rgba(245,166,35,.09)",
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, ink3:HUI.COLOR.muted,
+  muted:HUI.COLOR.muted, border:"rgba(0,0,0,.08)",
+  warm:HUI.COLOR.cream, card:"#FFFFFF",
 };
 
 const CATEGORIES = [
