@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
+import { FeedService } from "../../../services/db.js";
 import { useBookingActions } from "../../../lib/bookingContext";
 import { useFollowStatus } from "../../../lib/AppStateContext";
 import { isBookable } from "../utils/profileGuards";
@@ -85,6 +86,13 @@ export function useBookingState({ profile, user }) {
         await supabase
           .from("follows")
           .insert({ follower_id: user.id, following_id: profile.id });
+        // Phase 23: Follow → Feed Activity (silent, non-blocking)
+        FeedService.createActivity(
+          user.id,
+          'follow',
+          `folgt jetzt ${profile?.display_name || profile?.name || 'einem Creator'}`,
+          {}
+        ).catch(() => {});
       }
     } catch {
       // Rollback bei Fehler

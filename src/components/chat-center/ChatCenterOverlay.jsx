@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useChatList }  from "../../lib/chatContext.js";
 import { HUI } from "../../design/hui.design.js";
 
@@ -146,6 +147,7 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose 
 ══════════════════════════════════════════════════════════════ */
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
+  const { openCreatorProfile } = useProfileLauncher();
 
   // Phase 23: Wenn von Profil aus geöffnet → direkt in Conversation
   React.useEffect(() => {
@@ -218,6 +220,16 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           <ConversationRoom
             conv={activeConv}
             onBack={() => setActiveConv(null)}
+            onOpenProfile={(conv) => {
+              // Phase 23: Chat → Profil öffnen
+              // Chat schließt sich, Profil öffnet sich
+              const userId = conv?.user_id || conv?.id;
+              if (userId) openCreatorProfile(userId, {
+                display_name: conv?.name,
+                avatar_url:   conv?.avatar_url,
+                talent:       conv?.talent,
+              });
+            }}
           />
         </div>
       )}

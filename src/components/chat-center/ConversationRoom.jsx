@@ -35,7 +35,7 @@ function getMockMsgs(conv) {
   ];
 }
 
-export default function ConversationRoom({ conv, onBack }) {
+export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   const { user } = useAuth();
   const chatId = conv?.id;
 
@@ -78,7 +78,7 @@ export default function ConversationRoom({ conv, onBack }) {
       <ChatAtmosphere dark={false}/>
 
       {/* Header */}
-      <ChatHeader conv={conv} onBack={onBack}/>
+      <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
 
       {/* Nachrichten */}
       <ChatMessages

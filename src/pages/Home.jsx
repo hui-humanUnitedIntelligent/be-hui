@@ -266,7 +266,16 @@ function HomeInner() {
                   onMoreEvents={() => handleTab("discover")}
                   onProfile={(item) => setShowWirker(item)}
                   onLike={() => {}}
-                  onComment={() => {}}
+                  onComment={(item) => {
+                    // Phase 23: Kommentar = Gespräch mit Creator
+                    const userId = item?.user_id || item?.author_id || item?.id;
+                    const name   = item?.display_name || item?.author || item?.name || "Creator";
+                    const avatar = item?.avatar_url   || item?.avatar || null;
+                    if (userId) {
+                      setChatRecipient({ id: userId, display_name: name, avatar_url: avatar });
+                      setShowChat(true);
+                    }
+                  }}
                   onPerson={(p) => setShowWirker(p)}
                   onDiscover={() => handleTab("discover")}
                   onShare={() => setShowTeilen(true)}

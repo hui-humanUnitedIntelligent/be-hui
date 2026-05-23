@@ -5,9 +5,51 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useScrollEntry, useTap } from "../design/hui.hooks.js";
 import { supabase } from "../lib/supabaseClient";
+import { FeedService, ImpactService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";  // Phase 23: Echter 4-Step Einreichungs-Wizard
 import { IX } from "../design/hui.interaction.js";
+
+// ── ErrorBoundary — ImpactPage Crash Isolation ───────────────────
+class ImpactErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { crashed: false, error: null }; }
+  static getDerivedStateFromError(error) { return { crashed: true, error }; }
+  componentDidCatch(error, info) {
+    console.error("[IMPACT CRASH]", {
+      error:          error?.message,
+      stack:          error?.stack,
+      componentStack: info?.componentStack,
+    });
+  }
+  render() {
+    if (this.state.crashed) {
+      return (
+        <div style={{
+          padding:40, textAlign:"center", fontFamily:"-apple-system,sans-serif",
+          color:"#888", background:"#F9F7F4", minHeight:"60vh",
+          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+        }}>
+          <div style={{ fontSize:32, marginBottom:16 }}>🌱</div>
+          <div style={{ fontSize:16, fontWeight:600, marginBottom:8, color:"#333" }}>
+            Etwas ist schiefgelaufen
+          </div>
+          <div style={{ fontSize:13, marginBottom:24, maxWidth:280 }}>
+            {this.state.error?.message || "Unbekannter Fehler"}
+          </div>
+          <button
+            onClick={() => this.setState({ crashed: false, error: null })}
+            style={{
+              background:"#16D7C5", color:"white", border:"none",
+              borderRadius:20, padding:"10px 24px", fontSize:14,
+              cursor:"pointer", fontWeight:600,
+            }}
+          >Neu laden</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ── Safe Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -120,7 +162,7 @@ const TICKS = [
 /* ════════════════════════════════════════════════════════════════
    ROOT
 ════════════════════════════════════════════════════════════════ */
-export default function ImpactPage({ currentUser }) {
+function ImpactPageInner({ currentUser }) {
   const [projects,    setProjects]    = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [tickIdx,     setTickIdx]     = useState(0);
@@ -173,17 +215,21 @@ export default function ImpactPage({ currentUser }) {
     if (!currentUser?.id) return;
     let dead = false;
     (async () => {
+      console.log("[IMPACT STEP]", { phase: "round-vote-load", userId: currentUser.id });
       try {
-        const now = new Date();
-        const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-        const { data: round } = await db.getActiveRound(month).catch(() => ({ data: null }));
+        // FIX: ImpactService.getCurrentRound() — db war undefined (ReferenceError)
+        const { data: round, error: rErr } = await ImpactService.getCurrentRound().catch(() => ({ data: null, error: null }));
+        console.log("[IMPACT API]", { phase: "getCurrentRound", round, rErr });
         if (dead) return;
-        if (round) {
+        if (round?.id) {
           setActiveRound(round);
-          const { data: votes } = await db.getUserVotesThisRound(currentUser.id, round.id).catch(() => ({ data: [] }));
+          const { data: votes, error: vErr } = await ImpactService.getUserVotesThisRound(currentUser.id, round.id).catch(() => ({ data: [], error: null }));
+          console.log("[IMPACT API]", { phase: "getUserVotes", votes, vErr });
           if (!dead) setUserVotes(safeArr(votes));
         }
-      } catch { /* silent — Votes sind optional */ }
+      } catch(e) {
+        console.error("[IMPACT CRASH]", { phase: "round-vote-load", error: e?.message, stack: e?.stack });
+      }
     })();
     return () => { dead = true; };
   }, [currentUser?.id]);
@@ -204,20 +250,34 @@ export default function ImpactPage({ currentUser }) {
     setVoteLoading(true);
     try {
       const voteWeight = currentUser?.is_wirker ? 2 : 1;
-      const { error } = await db.castVote(currentUser.id, projectId, activeRound.id, voteWeight);
+      const { error } = await ImpactService.castVote(currentUser.id, projectId, activeRound.id, voteWeight);
       if (error) {
         // Rollback bei Fehler
         setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
         setProjects(prev => prev.map(p =>
           p.id === projectId ? { ...p, votes: p.votes - 1, supporters: p.supporters - 1 } : p
         ));
+      } else {
+        // Phase 23: Erfolgreicher Vote → Activity im Feed erzeugen
+        const proj = safeArr(projects).find(p => p.id === projectId);
+        if (proj) {
+          FeedService.createActivity(
+            currentUser.id,
+            'impact_vote',
+            `hat das Projekt „${proj.name}" unterstützt`,
+            {}
+          ).catch(() => {}); // silent — Feed-Activity ist nicht kritisch
+        }
       }
     } catch { /* silent */ }
     finally { setVoteLoading(false); }
   };
 
-  const voices = projects.reduce((s,p) => s + p.votes, 0);
-  const given  = projects.reduce((s,p) => s + p.awarded_eur, 0);
+  // FIX: safeArr Guards — projects könnte kurz undefined sein
+  const _projects = safeArr(projects);
+  console.log("[IMPACT STEP]", { phase: "derived-totals", projectCount: _projects.length, loading });
+  const voices = _projects.reduce((s,p) => s + safeNum(p?.votes), 0);
+  const given  = _projects.reduce((s,p) => s + safeNum(p?.awarded_eur), 0);
   const pool   = Math.max(given + 795, 2840);
 
   return (
@@ -236,16 +296,16 @@ export default function ImpactPage({ currentUser }) {
       {/* Sanfter Übergang Hero → Stats */}
       <SectionBridge from={T.hero} to={T.page} />
 
-      <PoolStats count={projects.length} voices={voices} given={given} />
+      <PoolStats count={_projects.length} voices={voices} given={given} />
 
       {/* Sanfter Übergang Stats → Projects */}
       <SectionBridge from={T.page} to={T.page} accent={T.teal} />
 
-      {!loading && projects.length > 0 && (
-        <CommunityEnergy voices={voices} count={projects.length} />
+      {!loading && _projects.length > 0 && (
+        <CommunityEnergy voices={voices} count={_projects.length} />
       )}
 
-      {loading ? <ImpactSkeleton /> : <ProjectSection projects={projects} />}
+      {loading ? <ImpactSkeleton /> : <ProjectSection projects={_projects} onVote={onVote} userVotes={userVotes} />}
 
       <JoinSection onOpenFlow={() => setShowPropose(true)} />
 
@@ -676,7 +736,9 @@ function PoolStats({ count, voices, given }) {
 /* ══════════════════════════════════════════════════════════════════
    PROJECT SECTION
 ══════════════════════════════════════════════════════════════════ */
-function ProjectSection({ projects }) {
+function ProjectSection({ projects, onVote, userVotes = [] }) {
+  const _p = safeArr(projects);
+  console.log("[IMPACT STEP]", { phase: "ProjectSection-render", count: _p.length });
   return (
     <div style={{ padding:"0 18px" }}>
       <div style={{
@@ -704,14 +766,14 @@ function ProjectSection({ projects }) {
           border:"1px solid rgba(13,196,181,0.20)",
           borderRadius:99, padding:"7px 16px",
           letterSpacing:"-0.01em",
-        }}>{projects.length} aktiv</div>
+        }}>{_p.length} aktiv</div>
       </div>
 
-      {projects.length === 0
+      {_p.length === 0
         ? <EmptyState />
         : <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-            {projects.map((p,i) => (
-              <ProjectCard key={p.id} project={p} rank={i} onVote={castVote} userVotes={userVotes} />
+            {_p.map((p,i) => (
+              <ProjectCard key={p?.id ?? i} project={p} rank={i} onVote={onVote} userVotes={userVotes} />
             ))}
           </div>
       }
@@ -1109,5 +1171,14 @@ function JoinSection({ onOpenFlow }) {
         </button>
       </div>
     </div>
+  );
+}
+
+// Wrapped export mit ErrorBoundary
+export default function ImpactPage(props) {
+  return (
+    <ImpactErrorBoundary>
+      <ImpactPageInner {...props} />
+    </ImpactErrorBoundary>
   );
 }

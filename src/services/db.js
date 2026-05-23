@@ -503,6 +503,20 @@ export const FeedService = {
       page
     ));
   },
+
+  // Phase 23: Aktivität → Feed einspeisen (Impact Vote, Follow, etc.)
+  async createActivity(userId, type, caption, meta = {}) {
+    return safeQuery(
+      supabase.from('feed_items').insert({
+        user_id:    userId,
+        type:       type,          // 'impact_vote' | 'follow' | 'resonance'
+        caption:    caption,
+        likes_count: 0,
+        created_at: new Date().toISOString(),
+        ...meta,                   // optional: work_id, experience_id, project_id
+      }).select('id').single()
+    );
+  },
 };
 
 // ─── MATCH SCORES ────────────────────────────────────────────
