@@ -54,21 +54,6 @@ function EditFAB({ onAction }) {
   );
 }
 
-// ── DEBUG BANNER — remove after confirming render ───────────────
-function DebugBanner() {
-  return (
-    <div style={{
-      position:"fixed",top:0,left:0,right:0,zIndex:99999,
-      background:"#FF3333",color:"white",
-      fontSize:11,fontWeight:800,textAlign:"center",
-      padding:"5px 8px",letterSpacing:1,
-      pointerEvents:"none",
-    }}>
-      PHASE 24 CREATOR PROFILE ACTIVE
-    </div>
-  );
-}
-
 export default function CreatorProfilePage({
   wirker:  rawWirker,
   profile: externalProfile,
@@ -104,9 +89,6 @@ export default function CreatorProfilePage({
       paddingBottom:120,
     }}>
       <style>{GLOBAL_CSS}</style>
-
-      {/* RED BANNER — confirms Phase 24 is rendering */}
-      <DebugBanner />
 
       {/* 1. HERO */}
       <WirkerHero
