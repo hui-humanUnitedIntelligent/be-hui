@@ -277,29 +277,33 @@ function HomeInner() {
             )}
           </div>
 
-          {/* Phase 16.8.2: Suspense required for React.lazy tabs */}
-          <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F9F7F4" }} />}>
+          {/* Phase 16.8.3: individueller Suspense pro lazy Tab — kein shared fallback-block */}
           <div ref={tabRefs.discover} style={keepDiscover}>
-            <SafeRender flag="discoverFeed" label="DiscoverPage">
-              <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
-            </SafeRender>
+            <Suspense fallback={null}>
+              <SafeRender flag="discoverFeed" label="DiscoverPage">
+                <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
+              </SafeRender>
+            </Suspense>
           </div>
 
           <div ref={tabRefs.impact} style={keepImpact}>
-            <SafeRender flag="impactPage" label="ImpactPage">
-              <ImpactPage currentUser={currentUser}/>
-            </SafeRender>
+            <Suspense fallback={null}>
+              <SafeRender flag="impactPage" label="ImpactPage">
+                <ImpactPage currentUser={currentUser}/>
+              </SafeRender>
+            </Suspense>
           </div>
 
           <div ref={tabRefs.favorites} style={keepFavorites}>
-            <FavoritesPage
-              currentUser={currentUser}
-              onView={w => setShowWirker(w)}
-              onImpact={() => handleTab("impact")}
-              onDiscover={() => handleTab("discover")}
-            />
+            <Suspense fallback={null}>
+              <FavoritesPage
+                currentUser={currentUser}
+                onView={w => setShowWirker(w)}
+                onImpact={() => handleTab("impact")}
+                onDiscover={() => handleTab("discover")}
+              />
+            </Suspense>
           </div>
-          </Suspense>{/* end lazy tabs Suspense */}
         </div>
 
       </div>
