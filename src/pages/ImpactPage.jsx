@@ -80,7 +80,7 @@ export default function ImpactPage({ currentUser }) {
         log("LOAD START");
         const { data, error: qErr } = await supabase
           .from("impact_projects")
-          .select("id, name, category, description, goal_eur, raised_eur, votes, status, tags, icon, color, website")
+          .select("id, name, category, description, icon, color, votes, status, month, awarded_eur, website, tags")
           .eq("status", "active")
           .order("votes", { ascending: false })
           .limit(12);
@@ -89,29 +89,29 @@ export default function ImpactPage({ currentUser }) {
         if (qErr) throw qErr;
 
         const safe = safeArr(data).map(p => ({
-          id:          p.id          ?? "unknown",
-          name:        safeStr(p.name, "Unbekanntes Projekt"),
-          category:    safeStr(p.category, "Gemeinschaft"),
-          description: safeStr(p.description, ""),
-          goal_eur:    safeNum(p.goal_eur),
-          raised_eur:  safeNum(p.raised_eur),
-          votes:       safeNum(p.votes),
-          status:      safeStr(p.status, "active"),
-          tags:        safeArr(p.tags),
-          icon:        safeStr(p.icon, "🌱"),
-          color:       safeStr(p.color, C.teal),
-          website:     safeStr(p.website),
+          id:           p.id           ?? "unknown",
+          name:         safeStr(p.name, "Unbekanntes Projekt"),
+          category:     safeStr(p.category, "Gemeinschaft"),
+          description:  safeStr(p.description, ""),
+          icon:         safeStr(p.icon, "🌱"),
+          color:        safeStr(p.color, C.teal),
+          votes:        safeNum(p.votes),
+          status:       safeStr(p.status, "active"),
+          month:        safeStr(p.month, ""),
+          awarded_eur:  safeNum(p.awarded_eur),
+          website:      safeStr(p.website),
+          tags:         safeArr(p.tags),
         }));
 
-        // Stats aus Projekten ableiten
-        const totalRaised = safe.reduce((s, p) => s + p.raised_eur, 0);
-        const totalVoices = safe.reduce((s, p) => s + p.votes, 0);
+        // Stats aus echten Supabase-Feldern ableiten
+        const totalAwarded = safe.reduce((s, p) => s + p.awarded_eur, 0);
+        const totalVoices  = safe.reduce((s, p) => s + p.votes, 0);
         setStats({
-          total_pool_eur:    totalRaised,
-          distributed_eur:  totalRaised * 0.4,
+          total_pool_eur:    totalAwarded,
+          distributed_eur:  totalAwarded,
           active_projects:  safe.length,
           community_voices: totalVoices,
-          this_month_eur:   totalRaised * 0.1,
+          this_month_eur:   totalAwarded,
         });
         setProjects(safe);
         log("LOAD OK", { count: safe.length });
@@ -275,8 +275,9 @@ function ImpactProjects({ projects, safeUser }) {
 
 /* ── ImpactProjectCard ────────────────────────────────────────── */
 function ImpactProjectCard({ project, safeUser }) {
-  const pct = project.goal_eur > 0
-    ? Math.min(100, Math.round((project.raised_eur / project.goal_eur) * 100))
+  // awarded_eur = bisher ausgeschütteter Betrag aus dem Pool
+  const pct = project.awarded_eur > 0
+    ? Math.min(100, Math.round((project.awarded_eur / 500) * 100))
     : 0;
 
   return (
@@ -323,11 +324,11 @@ function ImpactProjectCard({ project, safeUser }) {
       )}
 
       {/* Progress Bar */}
-      {project.goal_eur > 0 && (
+      {project.awarded_eur > 0 && (
         <div style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between",
             marginBottom: 4, fontSize: 11, color: C.muted }}>
-            <span>€{project.raised_eur.toLocaleString("de-DE")} gesammelt</span>
+            <span>€{project.awarded_eur.toLocaleString("de-DE")} ausgeschüttet</span>
             <span>{pct}%</span>
           </div>
           <div style={{ height: 6, borderRadius: 6, background: C.border, overflow: "hidden" }}>
