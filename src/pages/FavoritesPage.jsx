@@ -3,6 +3,7 @@
 // Props: FavoritesPage({ currentUser, onView, onImpact }) — modular, keine Monolith
 // REGEL: Kein direkter Supabase in UI-Unterokomponenten. Queries top-level.
 
+import { HUI } from "../design/hui.design.js";
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -10,17 +11,17 @@ import { supabase } from "../lib/supabaseClient";
    DESIGN TOKENS
 ══════════════════════════════════════════════════════════════ */
 const C = {
-  teal:      "#20D3C2",
+  teal:      HUI.COLOR.teal,
   teal2:     "#16BFB0",
   tealPale:  "#E8FAF8",
   tealGlow:  "rgba(32,211,194,0.22)",
-  coral:     "#FF8A7A",
+  coral:     HUI.COLOR.coral,
   coralPale: "#FFF2EE",
   coralGlow: "rgba(255,138,122,0.18)",
   gold:      "#F6C768",
   goldPale:  "#FFFBEB",
   green:     "#22C55E",
-  cream:     "#FAF8F5",
+  cream:     HUI.COLOR.cream,
   warm:      "#FEFCF9",
   card:      "rgba(255,255,255,0.95)",
   ink:       "#1E1E1E",

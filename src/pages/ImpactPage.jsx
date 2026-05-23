@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { HUI } from "../design/hui.design.js";
 
 // ── Safe Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -170,16 +171,8 @@ export default function ImpactPage({ currentUser }) {
       paddingBottom:130, overflowX:"hidden",
     }}>
 
-      {/* ── CSS keyframes — alle CSS-only ── */}
-      <style>{`
-        @keyframes ip-pulse   { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.65)} }
-        @keyframes ip-fadein  { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes ip-float   { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-9px) rotate(2deg)} }
-        @keyframes ip-floatB  { 0%,100%{transform:translateY(0) rotate(1deg)}  50%{transform:translateY(-6px) rotate(-2deg)} }
-        @keyframes ip-shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(230%)} }
-        @keyframes ip-breathe { 0%,100%{transform:scale(1) rotate(0deg)} 50%{transform:scale(1.06) rotate(1deg)} }
-        @keyframes ip-glow    { 0%,100%{opacity:0.5} 50%{opacity:1} }
-      `}</style>
+      {/* ── CSS keyframes — via HUI Design System ── */}
+      <style>{HUI.KEYFRAMES.replace(/hui-/g,'ip-')}</style>
 
       {/* Sektionen fließen ineinander — kein harter Sprung */}
       <ImpactHero pool={pool} tick={TICKS[tickIdx]} />

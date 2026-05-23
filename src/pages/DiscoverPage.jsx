@@ -29,27 +29,32 @@ import { createProfileItem, filterValidProfiles }
                                from "../lib/factories/createProfileItem.js";
 import { normalizeProfileInput, PROFILE_FIELDS } from "../lib/perfUtils";
 import { useDiscoverData } from "../lib/AppStateContext";
+import { HUI } from "../design/hui.design.js";
 
-/* ── Design Tokens ─────────────────────────────────────────── */
+/* ── Design Tokens — via HUI Design System (Phase 20) ─────── */
 const C = {
-  teal:      "#16D7C5",
-  teal2:     "#0DBFB5",
-  tealPale:  "#E6FAF8",
-  tealGlow:  "rgba(22,215,197,0.12)",
-  coral:     "#FF8A6B",
-  coralPale: "#FFF2EE",
-  gold:      "#F5A623",
+  // Primär-Brand — jetzt aus HUI.COLOR
+  teal:      HUI.COLOR.teal,
+  teal2:     HUI.COLOR.tealDeep,
+  tealPale:  HUI.COLOR.tealPale,
+  tealGlow:  HUI.COLOR.tealGlow,
+  coral:     HUI.COLOR.coral,
+  coralPale: HUI.COLOR.coralPale,
+  gold:      HUI.COLOR.gold,
   green:     "#10B981",
-  cream:     "#F9F7F4",
-  warm:      "#FEFCFA",
-  card:      "rgba(255,255,255,0.97)",
-  cardShadow:"0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
-  ink:       "#1A1A1A",
-  ink2:      "#3A3A3A",
-  muted:     "#888888",
-  muted2:    "#C8C8C8",
-  border:    "rgba(0,0,0,0.07)",
-  borderSoft:"rgba(0,0,0,0.04)",
+  // Surfaces — aus HUI.COLOR
+  cream:     HUI.COLOR.cream,
+  warm:      HUI.COLOR.creamSoft,
+  card:      "rgba(255,252,248,0.97)",
+  cardShadow: HUI.SHADOW.md + ", inset 0 1px 0 rgba(255,255,255,0.80)",
+  // Typography
+  ink:       HUI.COLOR.ink,
+  ink2:      HUI.COLOR.ink2,
+  muted:     HUI.COLOR.muted,
+  muted2:    HUI.COLOR.faint,
+  // Borders
+  border:    HUI.SURFACE.border ?? "rgba(0,0,0,0.055)",
+  borderSoft:"rgba(0,0,0,0.035)",
 };
 
 /* ── CSS ────────────────────────────────────────────────────── */
