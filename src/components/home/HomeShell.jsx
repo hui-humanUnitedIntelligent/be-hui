@@ -2,7 +2,7 @@
 // Single Source of Truth für alle Home-States + Profil-Flow
 
 import React, {
-  useState, useCallback, useEffect, useMemo, createContext, useContext,
+  useState, useCallback, useEffect, useMemo, useRef, createContext, useContext,
 } from "react";
 import { useAuth }        from "../../lib/AuthContext";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
@@ -23,6 +23,7 @@ import {
 import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
 import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
 import { assertValidTab } from "../../lib/world/orbLayer.js";
+import { FlowCtx, createFlowStore } from "../../core/hui.flow.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
 const HomeCtx = createContext(null);
@@ -116,6 +117,9 @@ export default function HomeShell({ children }) {
   const [showMap,                setShowMap]               = useState(false);
   const [showMatch,              setShowMatch]             = useState(false);
   const [showMembership,         setShowMembership]        = useState(false);
+
+  /* Flow Memory (Phase 2) — LIFO-Stack, kein Re-render */
+  const flowStore = useRef(createFlowStore()).current;
   // ── Orb World Layer — replaces showPlusSheet as single source of truth
   const { openOrbWorld, closeOrbWorld, isOrbOpen, orbState } = useOrbWorld();
   // Legacy alias — HuiPlusSheet consumers use setShowPlusSheet(false) to close
@@ -255,6 +259,7 @@ export default function HomeShell({ children }) {
     activeStory,           setActiveStory,
     cart,                  setCart,
     openOwnProfile,
+    flowStore,          // Phase 2: Flow Memory
   };
 
   return (

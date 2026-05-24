@@ -12,7 +12,6 @@
 // ══════════════════════════════════════════════════════════════════
 
 import { useCallback, useContext, createContext } from "react";
-import { FlowCtx } from "./hui.flow.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
