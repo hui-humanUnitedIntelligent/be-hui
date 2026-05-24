@@ -162,7 +162,10 @@ export function useAppState() {
 // HomeFeed: gibt NOOP zurueck — Feed laeuft ueber interne Mock-Daten
 // bis Phase 2 aktiviert wird
 // useFeedData: Phase 4D — echte Feed-Daten aus Supabase
-// Quellen: works + profiles (echte Creator-Aktivitäten)
+// Schema-korrekt nach Analyse der tatsächlichen DB-Struktur:
+//   works:       user_id (kein creator_id), status='published'
+//   experiences: user_id (kein creator_id), status='published', date (kein date_start)
+//   profiles:    SELECT PUBLIC (RLS: true)
 export function useFeedData(_opts) {
   const { user } = useAuth();
   const [items,   setItems]   = React.useState([]);
@@ -170,18 +173,23 @@ export function useFeedData(_opts) {
   const [error,   setError]   = React.useState(null);
 
   const load = React.useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      // Parallele Queries: works + erfahrungen der gefolgten Creator + eigene
-      const [worksRes, expsRes] = await Promise.allSettled([
+      // Parallele Queries — schema-korrekt
+      const [worksRes, expsRes, beitraegeRes] = await Promise.allSettled([
+
+        // works: user_id, JOIN profiles via works_user_id_fkey
         supabase
           .from("works")
           .select(`
-            id, title, cover_url, category, description, media_urls, price,
-            creator_id, status, created_at, updated_at,
-            profile:profiles!works_creator_id_fkey(
+            id, title, cover_url, media_url, category, description,
+            caption, tags, price, status, user_id, creator_id, created_at,
+            profile:profiles(
               id, display_name, avatar_url, talent, location_label
             )
           `)
@@ -189,31 +197,52 @@ export function useFeedData(_opts) {
           .order("created_at", { ascending: false })
           .limit(20),
 
+        // experiences: user_id, date (nicht date_start), status='published'
         supabase
           .from("experiences")
           .select(`
-            id, title, cover_url, category, description, price, date_start,
-            location_label, max_participants, status, creator_id, created_at,
-            profile:profiles!experiences_creator_id_fkey(
+            id, title, cover_url, media_url, category, description,
+            caption, price, duration, format, location_text, date,
+            max_participants, status, user_id, created_at,
+            profile:profiles(
               id, display_name, avatar_url, talent, location_label
             )
           `)
-          .eq("status", "open")
-          .order("date_start", { ascending: true })
+          .eq("status", "published")
+          .order("date", { ascending: true })
+          .limit(10),
+
+        // beitraege: öffentlich lesbar, kein JOIN nötig (separat profile laden)
+        supabase
+          .from("beitraege")
+          .select("id, user_id, src, type, caption, created_at")
+          .order("created_at", { ascending: false })
           .limit(10),
       ]);
 
-      const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
-      const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
+      const works    = worksRes.status    === "fulfilled" ? (worksRes.value?.data    || []) : [];
+      const exps     = expsRes.status     === "fulfilled" ? (expsRes.value?.data     || []) : [];
+      const beitr    = beitraegeRes.status === "fulfilled" ? (beitraegeRes.value?.data || []) : [];
 
-      if (worksRes.status === "rejected")
-        console.warn("[HUI_FEED] works query failed:", worksRes.reason?.message);
-      if (expsRes.status === "rejected")
-        console.warn("[HUI_FEED] experiences query failed:", expsRes.reason?.message);
+      // Fehler loggen — aber nicht crashen
+      if (worksRes.status    === "rejected") console.warn("[HUI_FEED] works failed:", worksRes.reason?.message);
+      if (expsRes.status     === "rejected") console.warn("[HUI_FEED] experiences failed:", expsRes.reason?.message);
+      if (beitraegeRes.status === "rejected") console.warn("[HUI_FEED] beitraege failed:", beitraegeRes.reason?.message);
 
-      // Normalisieren → Feed-Shape
+      // Query-Fehler loggen (Supabase gibt {data:null, error:{...}} zurück)
+      if (worksRes.value?.error)    console.warn("[HUI_FEED] works error:", worksRes.value.error.code, worksRes.value.error.message);
+      if (expsRes.value?.error)     console.warn("[HUI_FEED] experiences error:", expsRes.value.error.code, expsRes.value.error.message);
+      if (beitraegeRes.value?.error) console.warn("[HUI_FEED] beitraege error:", beitraegeRes.value.error.code, beitraegeRes.value.error.message);
+
+      console.log("[HUI_FEED]", {
+        works:      works.length,
+        experiences: exps.length,
+        beitraege:  beitr.length,
+      });
+
+      // ── Normalisierung → Feed-Shape ──
       const workItems = works
-        .filter(w => w?.id && w.profile?.id)
+        .filter(w => w?.id)
         .map(w => ({
           id:            w.id,
           type:          "work_upload",
@@ -223,20 +252,17 @@ export function useFeedData(_opts) {
           talent:        w.profile?.talent || w.category || "Kunst",
           location:      w.profile?.location_label || "",
           avatar:        w.profile?.avatar_url || null,
-          creator_id:    w.creator_id,
-          caption:       w.description || w.title || "",
-          images:        w.media_urls?.length > 0 ? w.media_urls : (w.cover_url ? [w.cover_url] : []),
-          resonanz:      0,
-          berührt:       0,
-          begleitet:     0,
-          viewers:       [],
-          viewerExtra:   0,
+          creator_id:    w.creator_id || w.user_id,
+          caption:       w.caption || w.description || w.title || "",
+          images:        w.media_url ? [w.media_url] : (w.cover_url ? [w.cover_url] : []),
+          resonanz:      0, berührt: 0, begleitet: 0,
+          viewers: [], viewerExtra: 0,
           time:          _relTime(w.created_at),
           _raw:          w,
         }));
 
       const expItems = exps
-        .filter(e => e?.id && e.profile?.id)
+        .filter(e => e?.id)
         .map(e => ({
           id:            "exp_" + e.id,
           type:          "experience",
@@ -244,45 +270,64 @@ export function useFeedData(_opts) {
           presenceState: "gathering",
           name:          e.profile?.display_name || "Creator",
           talent:        e.profile?.talent || e.category || "Erlebnis",
-          location:      e.location_label || e.profile?.location_label || "",
+          location:      e.location_text || e.profile?.location_label || "",
           avatar:        e.profile?.avatar_url || null,
-          creator_id:    e.creator_id,
-          caption:       e.description || e.title,
-          expImg:        e.cover_url || null,
+          creator_id:    e.user_id,
+          caption:       e.caption || e.description || e.title,
+          expImg:        e.cover_url || e.media_url || null,
           expTitle:      e.title,
           expMeta:       [
-            e.date_start ? new Date(e.date_start).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"short"}) : null,
-            e.location_label,
-            e.price ? e.price + " €" : null,
+            e.date ? new Date(e.date).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"short"}) : null,
+            e.location_text,
+            e.price ? e.price + " €" : null,
           ].filter(Boolean).join(" · "),
-          resonanz:      0,
-          berührt:       0,
-          begleitet:     0,
-          viewers:       [],
-          viewerExtra:   0,
-          time:          _relTime(e.created_at),
-          _raw:          e,
+          resonanz: 0, berührt: 0, begleitet: 0,
+          viewers: [], viewerExtra: 0,
+          time:    _relTime(e.created_at),
+          _raw:    e,
         }));
 
-      // Mischen: 1 Experience alle 3 Works
+      const beitrItems = beitr
+        .filter(b => b?.id && b.src)
+        .map(b => ({
+          id:            "beitr_" + b.id,
+          type:          b.type === "note" ? "note" : "work_upload",
+          rhythmState:   "resonance",
+          presenceState: "reflecting",
+          name:          "Creator",
+          talent:        "",
+          location:      "",
+          avatar:        null,
+          creator_id:    b.user_id,
+          caption:       b.caption || "",
+          images:        b.src ? [b.src] : [],
+          resonanz: 0, berührt: 0, begleitet: 0,
+          viewers: [], viewerExtra: 0,
+          time:    _relTime(b.created_at),
+          _raw:    b,
+        }));
+
+      // Mischen: Works + Experiences + Beiträge
       const mixed = [];
-      let ei = 0;
+      let ei = 0, bi = 0;
       workItems.forEach((w, i) => {
         mixed.push(w);
-        if ((i + 1) % 3 === 0 && ei < expItems.length) {
-          mixed.push(expItems[ei++]);
-        }
+        if ((i + 1) % 3 === 0 && ei < expItems.length)    mixed.push(expItems[ei++]);
+        if ((i + 1) % 5 === 0 && bi < beitrItems.length)  mixed.push(beitrItems[bi++]);
       });
-      // Restliche Experiences anhängen
-      while (ei < expItems.length) mixed.push(expItems[ei++]);
+      while (ei < expItems.length)    mixed.push(expItems[ei++]);
+      while (bi < beitrItems.length)  mixed.push(beitrItems[bi++]);
 
       console.log("[HUI_REALITY] feed resolved ✓", {
-        works: workItems.length, experiences: expItems.length, total: mixed.length
+        works: workItems.length,
+        experiences: expItems.length,
+        beitraege: beitrItems.length,
+        total: mixed.length,
       });
 
       setItems(mixed);
     } catch(err) {
-      console.error("[HUI_FEED] load failed:", err?.message);
+      console.error("[HUI_FEED] load exception:", err?.message);
       setError(err?.message || "Feed konnte nicht geladen werden");
     } finally {
       setLoading(false);

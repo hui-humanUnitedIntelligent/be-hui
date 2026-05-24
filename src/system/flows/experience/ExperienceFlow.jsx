@@ -152,28 +152,52 @@ export default function ExperienceFlow({ onClose }) {
         imgUrls.push(publicUrl);
       }
       // 2. DB Insert
-      const { error: dbErr } = await supabase.from("experiences").insert({
+      // ── Schema-korrekter Insert (experiences-Tabelle) ──────────
+      // Bekannte Spalten: user_id, title, description, category, duration,
+      //   price, format, location_text, max_participants, booking_mode,
+      //   date, cover_url, media_url, media_type, mood_tags, status, visibility
+      // NICHT in Schema: sale_mode, avail_days, avail_times, images[]
+      const expPayload = {
         user_id:          user.id,
-        title:            form.title.trim(),
-        description:      form.description.trim(),
-        category:         form.category,
-        duration:         form.duration === "Individuell" ? form.durationCustom : form.duration,
+        title:            form.title ? form.title.trim() : "Erlebnis",
+        description:      form.description ? form.description.trim() : null,
+        category:         form.category    || null,
+        duration:         form.duration === "Individuell"
+                            ? (form.durationCustom || null)
+                            : (form.duration || null),
         price:            form.price ? parseFloat(form.price) : null,
-        sale_mode:        form.priceMode,
-        format:           form.locationType,
-        location_text:    form.locationText.trim(),
+        format:           form.locationType || form.format || null,
+        location_text:    form.locationText ? form.locationText.trim() : null,
         max_participants: form.maxParticipants ? parseInt(form.maxParticipants) : null,
-        booking_mode:     form.bookingMode,
-        avail_days:       form.availDays,
-        avail_times:      form.availTimes,
-        images:           imgUrls,
-        cover_url:        imgUrls[0] || null,
-        media_url:        imgUrls[0] || null,
-        visibility:       form.visibility,
+        booking_mode:     form.bookingMode  || "direct",
+        cover_url:        imgUrls[0]        || null,
+        media_url:        imgUrls[0]        || null,
+        media_type:       "image",
         status:           "published",
-        created_at:       new Date().toISOString(),
+      };
+      console.info("[HUI_PUBLISH] experiences payload:", {
+        user_id:     expPayload.user_id,
+        title:       expPayload.title,
+        status:      expPayload.status,
+        format:      expPayload.format,
+        cover_url:   expPayload.cover_url ? "✅" : "❌ leer",
       });
-      if (dbErr) throw dbErr;
+      const { data: expData, error: dbErr } = await supabase
+        .from("experiences")
+        .insert(expPayload)
+        .select("id, status, user_id")
+        .single();
+      if (dbErr) {
+        console.error("[HUI_PUBLISH_ERROR] experiences INSERT fehlgeschlagen:", {
+          code:    dbErr.code,
+          message: dbErr.message,
+          hint:    dbErr.hint,
+          details: dbErr.details,
+          payload: expPayload,
+        });
+        throw new Error(`Erlebnis konnte nicht gespeichert werden: ${dbErr.message} (${dbErr.code})`);
+      }
+      console.info("[HUI_REALITY] experience published ✓", expData?.id);
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {

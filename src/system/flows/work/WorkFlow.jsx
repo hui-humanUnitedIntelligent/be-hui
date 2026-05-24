@@ -157,44 +157,51 @@ export default function WorkFlow({ onClose }) {
       // 2. DB Insert
       // FIX: works-Tabelle nutzt 'creator_id' nicht 'user_id'
       // FIX: visibility muss explizit 'public' sein wenn nicht gesetzt
+      // ── Schema-korrekter Insert (works-Tabelle) ──────────────────
+      // Bekannte Spalten: user_id, creator_id, title, description, category,
+      //   cover_url, media_url, media_type, caption, price, for_sale,
+      //   location_text, tags, mood_tags, atmosphere_tags, visibility, status
+      // NICHT in Schema: sale_mode, shipping_*, file_format, size, materials,
+      //   condition, images (JSONB-Spalte existiert aber images[] nicht)
       const workPayload = {
-        creator_id:  user.id,          // ← FIX: war user_id → unsichtbar im Feed
-        title:       form.title.trim(),
-        description: form.description.trim(),
-        category:    form.category,
-        cover_url:   coverUrl,
-        images:      imageUrls,
+        user_id:     user.id,          // RLS INSERT: auth.uid() = user_id
+        creator_id:  user.id,          // Doppelt gesetzt — beide Spalten vorhanden
+        title:       form.title.trim() || "Werk",
+        description: form.description ? form.description.trim() : null,
+        category:    form.category     || null,
+        cover_url:   coverUrl          || null,
+        media_url:   imageUrls[0]      || coverUrl || null,
+        media_type:  (mediaFiles[0]?.file?.type?.startsWith("video")) ? "video" : "image",
+        caption:     form.description  ? form.description.trim().slice(0,500) : null,
+        price:       form.price        ? parseFloat(form.price) : null,
         for_sale:    form.priceMode !== "free",
-        sale_mode:   form.priceMode,
-        price:       form.price ? parseFloat(form.price) : null,
-        shipping:    form.shipping     || false,
-        shipping_cost: form.shippingCost ? parseFloat(form.shippingCost) : null,
-        shipping_time: form.shippingTime   || null,
-        shipping_countries: form.shippingCountries || null,
-        file_format: form.fileFormat   || null,
-        size:        form.size         || null,
-        materials:   form.materials    || null,
-        condition:   form.condition    || null,
-        visibility:  form.visibility   || "public",  // ← FIX: Fallback sicherstellen
+        visibility:  form.visibility   || "public",
         status:      "published",
-        created_at:  new Date().toISOString(),
       };
-      console.info("[WorkFlow] Publishing work:", {
+      console.info("[HUI_PUBLISH] works payload:", {
+        user_id:    workPayload.user_id,
         creator_id: workPayload.creator_id,
-        title: workPayload.title,
-        status: workPayload.status,
+        title:      workPayload.title,
+        status:     workPayload.status,
         visibility: workPayload.visibility,
-        cover_url: workPayload.cover_url ? "✅" : "❌ leer",
+        cover_url:  workPayload.cover_url ? "✅" : "❌ leer",
+        media_url:  workPayload.media_url  ? "✅" : "❌ leer",
       });
       const { data: workData, error: dbErr } = await supabase.from("works")
         .insert(workPayload)
-        .select("id, status, visibility, creator_id")
+        .select("id, status, visibility, user_id")
         .single();
       if (dbErr) {
-        console.error("[WorkFlow] DB Insert FEHLER:", dbErr);
-        throw dbErr;
+        console.error("[HUI_PUBLISH_ERROR] works INSERT fehlgeschlagen:", {
+          code:    dbErr.code,
+          message: dbErr.message,
+          hint:    dbErr.hint,
+          details: dbErr.details,
+          payload: workPayload,
+        });
+        throw new Error(`Werk konnte nicht gespeichert werden: ${dbErr.message} (${dbErr.code})`);
       }
-      console.info("[WorkFlow] Werk gespeichert:", workData);
+      console.info("[HUI_REALITY] work published ✓", workData?.id, workData);
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {

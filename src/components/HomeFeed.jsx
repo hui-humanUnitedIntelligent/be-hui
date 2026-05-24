@@ -466,19 +466,18 @@ export default function HomeFeed({
     onEvent?.(ev);
   }, [actions, onEvent]);
   const feedData  = useFeedData?.() || {};
-  // Phase 4D: echte Daten aus feedData.feedItems — MOCK_FEED nur wenn 0 DB-Einträge UND loading=false
+  // Phase 4D: echte Daten aus DB — kein Mock-Fallback
   const realItems = feedData?.feedItems || feedData?.items || [];
   const liveItems = feedItems
     ?? (realItems.length > 0 ? realItems : null)
-    ?? (feedData?.loading ? [] : null)   // während loading: leere Liste (kein Mock)
-    ?? MOCK_FEED;                        // nur im allersten Render bevor Hook initialisiert
+    ?? [];    // ehrliche Leere — kein Mock
   // Logging
   React.useEffect(() => {
     console.log("[HUI_FEED] source:", {
-      fromProp:     feedItems ? feedItems.length : null,
-      fromDB:       realItems.length,
-      loading:      feedData?.loading,
-      activeSrc:    feedItems ? "prop" : realItems.length>0 ? "db" : feedData?.loading ? "loading" : "mock",
+      fromProp:  feedItems ? feedItems.length : null,
+      fromDB:    realItems.length,
+      loading:   feedData?.loading,
+      activeSrc: feedItems ? "prop" : realItems.length > 0 ? "db" : "empty",
     });
   }, [realItems.length, feedData?.loading]);  // eslint-disable-line
 
