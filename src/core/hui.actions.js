@@ -220,7 +220,7 @@ export function buildActions(shell) {
       const rec = rawRec ? normalizeRecipient(rawRec) : null;
       if (rec) setChatRecipient?.(rec);
       // Semantic guard (DEV): prüft ob der Chat-Payload vollständig ist
-      checkSemantics("OPEN_CHAT", { recipient: rec, source: payload.source });
+      checkSemantics("OPEN_CHAT", { recipient: rec, source: payload?.source || S.SYSTEM });
       // Phase 2: wenn Profil offen war → Return merken
       // NICHT setShowWirker(null) — Profil bleibt gemounted (LOOP 1)
       const chatSource = payload?.source || S.SYSTEM;
@@ -271,7 +271,7 @@ export function buildActions(shell) {
       const safeExp  = normalizeExperience(experience);
       const safeCr   = creator ? normalizeCreator(creator) : null;
       // Semantic guard (DEV)
-      checkSemantics("BOOK_EXPERIENCE", { experience: safeExp, creator: safeCr, source: payload.source });
+      checkSemantics("BOOK_EXPERIENCE", { experience: safeExp, creator: safeCr, source: payload?.source || S.SYSTEM });
       // Set recipient so Connect-Sheet weiß wer gebucht wird
       if (safeCr) setChatRecipient?.(safeCr);
       // Flow-Log
