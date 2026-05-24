@@ -18,6 +18,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { Suspense, lazy } from "react";
+import { getRhythmMargin, getEnergyLabel } from "../feedRhythmEngine.js";
 
 const MomentCard     = lazy(() => import("./MomentCard.jsx"));
 const ExperienceCard = lazy(() => import("./ExperienceCard.jsx"));
@@ -60,8 +61,8 @@ function resolveType(item) {
   return "moment"; // graceful default
 }
 
-/* ── Spacing per Type ────────────────────────────────────────── */
-const BOTTOM_MARGIN = {
+/* ── Spacing: _rhythm.marginBottom (von rhythmizeFeed) oder Fallback ── */
+const FALLBACK_MARGIN = {
   moment:     10,
   experience: 16,
   work:       12,
@@ -85,8 +86,14 @@ function CardSkeleton({ type }) {
 export default function FeedRouter({ item, onProfile, onReaction, onBook, onDetail, itemReactions = {} }) {
   if (!item) return null;
 
+  // Phase 4D: Ghost-Items sind unsichtbare Atemräume — nur Spacing, kein Inhalt
+  if (item._isGhost) {
+    return <div style={{ height: getRhythmMargin(item) || 8, display:"block" }} />;
+  }
+
   const type  = resolveType(item);
-  const mbPx  = BOTTOM_MARGIN[type] || 12;
+  // Phase 4D: Spacing von Rhythm Engine — sonst Typ-Fallback
+  const mbPx  = getRhythmMargin(item) || FALLBACK_MARGIN[type] || 12;
 
   const sharedProps = {
     item,
@@ -95,8 +102,27 @@ export default function FeedRouter({ item, onProfile, onReaction, onBook, onDeta
     itemReactions,
   };
 
+  // Dev-only: Energy Badge
+  const energyBadge = process.env.NODE_ENV !== "production"
+    ? getEnergyLabel(item)
+    : null;
+
   return (
-    <div style={{ marginBottom: mbPx }}>
+    <div style={{ marginBottom: mbPx, position:"relative" }}>
+      {energyBadge && (
+        <div style={{
+          position:"absolute", top:8, right:20, zIndex:9999,
+          padding:"2px 7px", borderRadius:50,
+          background:`${energyBadge.color}22`,
+          border:`1px solid ${energyBadge.color}55`,
+          fontSize:9, fontWeight:700,
+          color: energyBadge.color,
+          pointerEvents:"none", userSelect:"none",
+          fontFamily:"monospace", letterSpacing:"0.04em",
+        }}>
+          {energyBadge.label} · mb:{mbPx}
+        </div>
+      )}
       <Suspense fallback={<CardSkeleton type={type} />}>
         {type === "experience" ? (
           <ExperienceCard {...sharedProps} onBook={onBook} />

@@ -16,6 +16,7 @@ import React, {
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
 import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow } from "../system/feed/feedNormalizer.js";
+import { rhythmizeFeed } from "../feed/feedRhythmEngine.js";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -282,16 +283,16 @@ export function useFeedData(_opts) {
         id: e.id, type: e.type, name: e.name, expTitle: e.expTitle,
         creator_id: e.creator_id, expImg: e.expImg, expMeta: e.expMeta, time: e.time
       })));
-      // ── Mischen: Works + Experiences + Beiträge
-      const mixed = [];
-      let ei = 0, bi = 0;
-      workItems.forEach((w, i) => {
-        mixed.push(w);
-        if ((i + 1) % 3 === 0 && ei < expItems.length)    mixed.push(expItems[ei++]);
-        if ((i + 1) % 5 === 0 && bi < beitrItems.length)  mixed.push(beitrItems[bi++]);
+      // ── Phase 4D: Feed Rhythm Engine — kein naives Mischen mehr
+      // Alle normalisierten Items → rhythmizeFeed entscheidet Reihenfolge
+      const allItems = [...workItems, ...expItems, ...beitrItems];
+      // Zeitsortierung als Basis (neuestes zuerst)
+      allItems.sort((a, b) => {
+        const ta = a._raw?.created_at ? new Date(a._raw.created_at).getTime() : 0;
+        const tb = b._raw?.created_at ? new Date(b._raw.created_at).getTime() : 0;
+        return tb - ta;
       });
-      while (ei < expItems.length)    mixed.push(expItems[ei++]);
-      while (bi < beitrItems.length)  mixed.push(beitrItems[bi++]);
+      const mixed = rhythmizeFeed(allItems);
 
       console.log("[HUI_FEED_MIXED]", mixed.map(i => ({
         id: i.id, type: i.type, rhythmState: i.rhythmState, name: i.name
