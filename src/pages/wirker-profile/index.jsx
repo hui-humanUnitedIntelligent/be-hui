@@ -918,7 +918,7 @@ function FloatingBookCTA({ onBook, profileName }) {
 // ═══════════════════════════════════════════════════════════════
 // ROOT — WirkerProfilePage (VISITOR)
 // ═══════════════════════════════════════════════════════════════
-export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onChat }) {
+export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onChat, _zIndex = 9500 }) {
   const safe    = useMemo(() => createProfileItem(rawWirker), [
     rawWirker?.id, rawWirker?.user_id,
   ]);
@@ -955,14 +955,21 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:_zIndex,
       overflowY:"auto", overflowX:"hidden",
       background:C.cream,
+      animation:"hui-profile-enter 220ms cubic-bezier(0.22,1,0.36,1) both",
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
       WebkitOverflowScrolling:"touch",
       paddingBottom:"max(120px, calc(100px + env(safe-area-inset-bottom,0px)))",
     }}>
       <style>{HUI.KEYFRAMES}</style>
+      <style>{`
+        @keyframes hui-profile-enter {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       <style>{`
         *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
         ::-webkit-scrollbar{display:none}

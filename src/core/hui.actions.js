@@ -12,6 +12,7 @@
 // ══════════════════════════════════════════════════════════════════
 
 import { useCallback, useContext, createContext } from "react";
+import { FlowCtx } from "./hui.flow.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -104,6 +105,8 @@ export function buildActions(shell) {
     // Profile
     setShowWirker,
     openOwnProfile,
+    // Flow Memory (Phase 2)
+    flowStore,
     // Chat
     setShowChat,
     setChatRecipient,
@@ -148,10 +151,11 @@ export function buildActions(shell) {
     [A.OPEN_PROFILE]: (payload = {}) => {
       logAction(A.OPEN_PROFILE, payload);
       const { creator, creatorId, source, ...rest } = payload;
-      // Accept either a full creator object or just an id
       const data = creator
         ? creator
         : { id: creatorId, user_id: creatorId, ...rest };
+      // Phase 2: Flow Stack — merke Navigations-Ursprung
+      flowStore?.push({ surface: "profile", creatorId: creatorId ?? data?.id, creator: data, source });
       setShowWirker?.(data);
     },
 
@@ -176,7 +180,9 @@ export function buildActions(shell) {
         ...rest,
       } : chatRecipient);
       if (rec) setChatRecipient?.(rec);
-      setShowWirker?.(null);   // close profile if open
+      // Phase 2: wenn Profil offen war → Return merken
+      // NICHT setShowWirker(null) — Profil bleibt gemounted (LOOP 1)
+      flowStore?.push({ surface: "chat", recipient: rec });
       setShowChat?.(true);
     },
 

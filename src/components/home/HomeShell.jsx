@@ -260,11 +260,13 @@ export default function HomeShell({ children }) {
   return (
     <>
       <style>{WORLD_CSS}</style>
+      <FlowCtx.Provider value={flowStore}>
       <HomeCtx.Provider value={ctx}>
         <HuiActionProvider>
           {children}
         </HuiActionProvider>
       </HomeCtx.Provider>
+    </FlowCtx.Provider>
     </>
   );
 }

@@ -233,7 +233,7 @@ function CreatorSection({ people, onView }) {
         overflowX:"auto", padding:"4px 20px 8px",
       }}>
         {people.map((p, i) => (
-          <CreatorCard key={p.id} person={p} idx={i} onView={handleView} />
+          <CreatorCard key={p.id} person={p} idx={i} onView={onView} />
         ))}
       </div>
     </div>
@@ -317,7 +317,7 @@ function WorksGrid({ works, onView }) {
         overflowX:"auto", padding:"4px 20px 8px",
       }}>
         {works.map((w, i) => (
-          <WorkCard key={w.id} work={w} idx={i} onView={handleView} />
+          <WorkCard key={w.id} work={w} idx={i} onView={onView} />
         ))}
       </div>
     </div>
@@ -395,7 +395,7 @@ function ExperienceCards({ experiences, onView }) {
         overflowX:"auto", padding:"4px 20px 8px",
       }}>
         {experiences.map((e, i) => (
-          <ExperienceCard key={e.id} exp={e} idx={i} onView={handleView} />
+          <ExperienceCard key={e.id} exp={e} idx={i} onView={onView} />
         ))}
       </div>
     </div>

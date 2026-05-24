@@ -15,6 +15,7 @@ import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
+import { useHuiFlow } from "../core/hui.flow.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
@@ -108,6 +109,9 @@ function HomeInner() {
     showImpactFlow,         setShowImpactFlow,
     activeStory,       setActiveStory,
   } = useHome();
+
+  // Phase 2: Flow Memory System
+  const flow = useHuiFlow();
 
   // ── Orb World Layer — above navigation ─────────────────────
   const {
@@ -440,11 +444,18 @@ function HomeInner() {
             onClose={() => {
               setShowChat(false);
               setChatRecipient(null);
+              // Phase 2 LOOP 1: Return zum Profil wenn Chat vom Profil aus kam
+              const returnProfile = flow.getReturnProfile();
+              if (returnProfile) {
+                flow.clearReturnProfile();
+                setTimeout(() => setShowWirker(returnProfile), 80);
+              }
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
               setShowChat(false);
               setChatRecipient(null);
+              flow.clearReturnProfile(); // kein Return bei Discover-Navigate
               handleTab("discover");   // Phase 23: Chat leer → Discover
             }}
           />
