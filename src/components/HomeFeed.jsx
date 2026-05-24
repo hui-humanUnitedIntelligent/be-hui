@@ -30,6 +30,7 @@ import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
 import InvitationCard from "../content/invitation/InvitationCard.jsx";
+import FeedRouter from "../feed/cards/FeedRouter.jsx";
 import {
   resolveMemoryTokens,
   applyMemoryToCardStyle,
@@ -259,6 +260,34 @@ const CSS = IX.CSS + `
     transition: transform 0.3s ease;
   }
   .hf-resonance:active { transform: scale(0.982) translateY(1.5px); }
+
+  /* ── Phase 4C: Invitation warm pulse ──── */
+  @keyframes hf-inv-pulse {
+    0%,100% { box-shadow: 0 2px 14px rgba(139,92,246,0.08), 0 1px 4px rgba(0,0,0,0.035); }
+    50%     { box-shadow: 0 4px 22px rgba(139,92,246,0.14), 0 2px 6px rgba(0,0,0,0.04); }
+  }
+  .hf-invitation {
+    border-radius: 20px;
+    animation: hf-inv-pulse 4s ease-in-out infinite;
+    transition: transform 0.3s ease;
+  }
+  .hf-invitation:active { transform: scale(0.978) translateY(1px); }
+
+  /* ── Phase 4C: Work gallery ──── */
+  .hf-work {
+    border-radius: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.04);
+    transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), box-shadow 0.38s ease;
+  }
+  .hf-work:active { transform: scale(0.980) translateY(2px); }
+
+  /* ── Phase 4C: Moment diary ──── */
+  .hf-moment {
+    border-radius: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.032), 0 3px 12px rgba(0,0,0,0.038);
+    transition: transform 0.32s ease, opacity 0.18s ease;
+  }
+  .hf-moment:active { transform: scale(0.976) translateY(1px); opacity: 0.88; }
 
   /* ── Reaction buttons ────────────── */
   .hf-react-btn {
@@ -1049,17 +1078,13 @@ function RhythmCard({
         }}/>
       )}
       <div style={{ position:"relative", zIndex:1 }}>
-        {/* Phase 4B: content_type-Router — Einladungen immer als InvitationCard */}
-        {(item.type === "invitation" || item.content_type === "invitation" || item._raw?.type === "invitation") ? (
-          <InvitationCard item={item} onProfile={onProfile} onReaction={onReaction} />
-        ) : (
-          <>
-            {state === "hero"       && <HeroCard       item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
-            {state === "note"       && <NoteCard        item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
-            {state === "experience" && <ExperienceCard  item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
-            {state === "resonance"  && <ResonanceCard   item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
-          </>
-        )}
+        {/* Phase 4C: FeedRouter — content_type bestimmt Card-DNA */}
+        <FeedRouter
+          item={item}
+          onProfile={onProfile}
+          onReaction={onReaction}
+          itemReactions={itemReactions}
+        />
       </div>
     </div>
   );

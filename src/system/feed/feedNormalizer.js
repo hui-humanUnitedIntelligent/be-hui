@@ -75,7 +75,7 @@ function extractCreator(raw) {
 }
 
 const TYPE_MAP = {
-  werk: "work_upload", work: "work_upload", work_upload: "work_upload",
+  werk: "work", work: "work", work_upload: "work",
   erlebnis: "experience", experience: "experience", event: "experience",
   impact: "impact", impact_project: "impact",
   story: "story", moment: "story",
@@ -92,6 +92,7 @@ function normalizeType(raw) {
 function defaultRhythmState(type, existing) {
   if (existing) return existing;
   if (type === "experience") return "experience";
+  if (type === "work") return "hero";  // WorkCard nutzt eigene DNA
   if (type === "note")       return "note";
   if (type === "impact")     return "resonance";
   if (type === "invitation") return "resonance"; // InvitationCard nutzt eigene Struktur
@@ -143,6 +144,7 @@ export function normalizeFeedItem(raw) {
     const result = {
       id:            String(raw.id),
       type,
+      content_type:  type,   // Phase 4C: FeedRouter nutzt content_type als Entscheider
       title,
       caption:       safeStr(raw.caption || raw.description || raw.story),
       description:   safeStr(raw.description || raw.caption || raw.story),
