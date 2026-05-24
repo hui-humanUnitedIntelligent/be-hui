@@ -376,6 +376,7 @@ function ExpOwnerCard({ exp }) {
 }
 
 function OwnerExperiences({ experiences }) {
+  const ownerExpActions = useHuiActions();
   const { ref, style } = useEntry(80);
   const items = safeArr(experiences).length ? safeArr(experiences) : SEED_EXP;
 
@@ -393,9 +394,15 @@ function OwnerExperiences({ experiences }) {
             Deine aktiven kreativen Raume.
           </div>
         </div>
-        <span style={{fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>
+        <button
+          onClick={() => ownerExpActions[A.OPEN_EXPERIENCE_MANAGER]?.()}
+          style={{
+            background:"none",border:"none",padding:0,
+            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
+            whiteSpace:"nowrap",touchAction:"manipulation",fontFamily:"inherit",
+          }}>
           Alle verwalten →
-        </span>
+        </button>
       </div>
 
       <div style={{
@@ -405,9 +412,14 @@ function OwnerExperiences({ experiences }) {
         {items.map(e => <ExpOwnerCard key={e.id} exp={e}/>)}
 
         {/* Add new card */}
-        <div style={{
-          flexShrink:0,width:140,borderRadius:R.lg,
-          border:`2px dashed ${C.teal}44`,
+        <button
+          onClick={() => ownerExpActions[A.CREATE_EXPERIENCE]?.()}
+          style={{
+            flexShrink:0,width:140,borderRadius:R.lg,
+            border:`2px dashed ${C.teal}44`,
+            background:"none",padding:0,cursor:"pointer",
+            touchAction:"manipulation",fontFamily:"inherit",
+            textAlign:"left",
           display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
           gap:8,cursor:"pointer",minHeight:240,touchAction:"manipulation",
         }}>
@@ -420,7 +432,7 @@ function OwnerExperiences({ experiences }) {
           <span style={{fontSize:10,fontWeight:700,color:C.teal,textAlign:"center",lineHeight:1.3}}>
             Neues Erlebnis<br/>erstellen
           </span>
-        </div>
+        </button>
 
         <div style={{flexShrink:0,width:6}}/>
       </div>
@@ -581,8 +593,10 @@ const WORLDS = [
 function WorldPortal({ world }) {
   const [hov, setHov] = useState(false);
   const { props, scale } = usePress();
+  const portalActions = useHuiActions();
   return (
     <div {...props}
+      onClick={() => portalActions[A.OPEN_WORLD]?.({ worldId: world.id, world })}
       onPointerEnter={()=>setHov(true)}
       onPointerLeave={()=>{setHov(false);}}
       style={{
@@ -620,6 +634,7 @@ function WorldPortal({ world }) {
 
 function OwnerSpaces({ spaces }) {
   const { ref, style } = useEntry(60);
+  const worldMgmtActions = useHuiActions();
   const worlds = safeArr(spaces).length ? safeArr(spaces) : WORLDS;
   return (
     <div ref={ref} style={{ ...style, width:"100%", background:"white", padding:"22px 0 18px" }}>
@@ -631,7 +646,13 @@ function OwnerSpaces({ spaces }) {
           <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>Deine Welten</div>
           <div style={{fontSize:11,color:C.muted,marginTop:2}}>Portale in deine kreativen Raume.</div>
         </div>
-        <span style={{fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer"}}>Verwalten →</span>
+        <button
+          onClick={() => worldMgmtActions[A.OPEN_WORLD]?.({ view:"manage" })}
+          style={{
+            background:"none",border:"none",padding:0,
+            fontSize:11,color:C.teal,fontWeight:700,
+            cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+          }}>Verwalten →</button>
       </div>
       <div style={{
         display:"flex",gap:14,overflowX:"auto",scrollbarWidth:"none",
@@ -739,7 +760,7 @@ export default function CreatorProfilePage({
       "Raum offnen":     () => actions[A.OPEN_ROOM]?.(),
       "Moment teilen":   () => actions[A.OPEN_STORY_COMPOSER]?.(),
       "Community":       () => actions[A.OPEN_COMMUNITY]?.(),
-      "Einnahmen":       () => {},   // future: earnings overlay
+      "Einnahmen":       () => actions[A.OPEN_EARNINGS]?.(),
       "Kalender":        () => actions[A.OPEN_CALENDAR]?.(),
       "Wirkung":         () => actions[A.OPEN_IMPACT]?.(),
       "Atelier":         () => actions[A.OPEN_OWN_PROFILE]?.(),
