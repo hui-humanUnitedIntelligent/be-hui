@@ -80,6 +80,7 @@ const TYPE_MAP = {
   impact: "impact", impact_project: "impact",
   story: "story", moment: "story",
   note: "note", thought: "note",
+  invitation: "invitation", einladung: "invitation",
   post: "post", beitrag: "post",
 };
 
@@ -93,6 +94,7 @@ function defaultRhythmState(type, existing) {
   if (type === "experience") return "experience";
   if (type === "note")       return "note";
   if (type === "impact")     return "resonance";
+  if (type === "invitation") return "resonance"; // InvitationCard nutzt eigene Struktur
   return "hero";
 }
 

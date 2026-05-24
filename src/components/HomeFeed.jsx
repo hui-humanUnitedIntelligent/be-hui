@@ -29,6 +29,7 @@ import {
 import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
+import InvitationCard from "../content/invitation/InvitationCard.jsx";
 import {
   resolveMemoryTokens,
   applyMemoryToCardStyle,
@@ -1048,10 +1049,17 @@ function RhythmCard({
         }}/>
       )}
       <div style={{ position:"relative", zIndex:1 }}>
-        {state === "hero"       && <HeroCard       item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
-        {state === "note"       && <NoteCard        item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
-        {state === "experience" && <ExperienceCard  item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
-        {state === "resonance"  && <ResonanceCard   item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+        {/* Phase 4B: content_type-Router — Einladungen immer als InvitationCard */}
+        {(item.type === "invitation" || item.content_type === "invitation" || item._raw?.type === "invitation") ? (
+          <InvitationCard item={item} onProfile={onProfile} onReaction={onReaction} />
+        ) : (
+          <>
+            {state === "hero"       && <HeroCard       item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+            {state === "note"       && <NoteCard        item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+            {state === "experience" && <ExperienceCard  item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+            {state === "resonance"  && <ResonanceCard   item={item} itemReactions={itemReactions} onProfile={onProfile} onReaction={onReaction} onComment={onComment} memoryTokens={mt} />}
+          </>
+        )}
       </div>
     </div>
   );

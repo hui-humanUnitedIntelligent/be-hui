@@ -41,6 +41,8 @@ const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverl
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
 import HuiPlusSheet from "../components/HuiPlusSheet.jsx";
 import { IX } from "../design/hui.interaction.js";
+import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
+import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
@@ -107,6 +109,8 @@ function HomeInner() {
     showWerkPublisher, setShowWerkPublisher,
     showExperienceCreator, setShowExperienceCreator,
     showImpactFlow,         setShowImpactFlow,
+    showContentSelector,    setShowContentSelector,
+    showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
   } = useHome();
 
@@ -402,15 +406,10 @@ function HomeInner() {
             return;
           }
 
-          // Validated: open world layer + mount orb content atomically
-          console.log("[HUI ORB] → opening orb world (member)");
-          openSurface("orb");  // Phase 16.2: WorldSurface authority — blur after confirmation
-          openOrbWorld({
-            source:           "orb-button",
-            originTab:        tab,
-            worldTemperature: "calm_flowing",
-          });
-          setShowPlusSheet(true);
+          // Phase 4B: ContentTypeSelector statt direktem Orb-Overlay
+          // Mitglieder wählen zuerst den Content-Typ
+          console.log("[HUI ORB] → ContentTypeSelector öffnen (Phase 4B)");
+          setShowContentSelector(true);
         }}
       />
 
@@ -661,6 +660,35 @@ function HomeInner() {
           </SafeRender>
         )}
       </Suspense>
+
+      {/* Phase 4B: Content Type Selector — öffnet sich statt Orb für Mitglieder */}
+      {showContentSelector && (
+        <ContentTypeSelector
+          visible={showContentSelector}
+          onClose={() => setShowContentSelector(false)}
+          onSelect={(type) => {
+            setShowContentSelector(false);
+            // Routing: type → richtiger Flow
+            if (type === "moment") {
+              setShowTeilen(true);
+            } else if (type === "experience") {
+              setShowExperienceCreator(true);
+            } else if (type === "work") {
+              setShowWerkPublisher(true);
+            } else if (type === "invitation") {
+              setShowInvitationFlow(true);
+            }
+          }}
+        />
+      )}
+
+      {/* Phase 4B: Einladung erstellen Flow */}
+      {showInvitationFlow && (
+        <InvitationFlow
+          visible={showInvitationFlow}
+          onClose={() => setShowInvitationFlow(false)}
+        />
+      )}
 
       {activeStory && SAFE_MODE.storyViewer && (
         <SafeRender flag="storyViewer" label="StoryViewer">
