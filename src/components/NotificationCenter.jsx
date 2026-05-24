@@ -918,6 +918,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
     if (n.type === "begegnung" || n.type === "buchung") {
       if (n.sender_id) {
         actions[A.OPEN_CHAT]?.({
+          source: S.NOTIFICATIONS,
           recipient: {
             id:           n.sender_id,
             display_name: n.sender_name   || n.from_name   || null,

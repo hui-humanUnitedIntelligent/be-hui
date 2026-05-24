@@ -9,6 +9,7 @@ import NotificationButton from "./NotificationButton.jsx";
 import MessageButton      from "./MessageButton.jsx";
 import MoodSheet          from "../mood/MoodSheet.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
+import { S } from "../../../core/hui.sources.js";
 
 export default function HomeHeader({
   activeMood,
@@ -27,7 +28,7 @@ export default function HomeHeader({
 
   // Route through Action Engine — prop fallbacks for non-HomeShell contexts
   function handleChat() {
-    actions[A.OPEN_CHAT]?.() || onChat?.();
+    actions[A.OPEN_CHAT]?.({ source: S.HOME }) || onChat?.();
   }
 
   function handleNotif() {

@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { HUI } from "../../design/hui.design.js";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
 
 const C = HUI.COLOR;
 const Sh = HUI.SHADOW;
@@ -420,8 +421,8 @@ function OwnerExperiences({ experiences }) {
             background:"none",padding:0,cursor:"pointer",
             touchAction:"manipulation",fontFamily:"inherit",
             textAlign:"left",
-          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-          gap:8,cursor:"pointer",minHeight:240,touchAction:"manipulation",
+            display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+            gap:8,minHeight:240,
         }}>
           <div style={{
             width:40,height:40,borderRadius:"50%",
@@ -746,10 +747,10 @@ export default function CreatorProfilePage({
   const handleClose  = useCallback(() => { onClose?.(); }, [onClose]);
   const handleAction = useCallback((k) => {
     // Route known actions through engine, fallback to prop
-    if (k === "chat")    return actions[A.OPEN_CHAT]?.({});
+    if (k === "chat")    return actions[A.OPEN_CHAT]?.({ source: S.OWNER_PROFILE });
     if (k === "impact")  return actions[A.OPEN_IMPACT]?.();
     if (k === "orb")     return actions[A.OPEN_ORB]?.();
-    if (k === "booking") return actions[A.OPEN_BOOKING]?.({});
+    if (k === "booking") return actions[A.OPEN_BOOKING]?.({ source: S.OWNER_PROFILE });
     onAction?.(k);
   }, [actions, onAction]);
 

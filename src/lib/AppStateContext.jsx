@@ -239,6 +239,9 @@ export function useFeedData(_opts) {
       if (beitraegeRes.value?.error) console.warn("[HUI_FEED] beitraege error:", beitraegeRes.value.error.code, beitraegeRes.value.error.message);
 
       // Detailliertes Debug für Phase 4F
+      // ── PHASE 4I: PIPELINE TRACE ──────────────────────────────────
+      console.log("[HUI_FEED_RAW_EXPERIENCES]", exps);
+      console.log("[HUI_FEED_RAW_WORKS]", works);
       console.log("[HUI_FEED] works count:", works.length);
       console.log("[HUI_FEED] experiences count:", exps.length);
       console.log("[HUI_FEED] beitraege count:", beitr.length);
@@ -325,7 +328,15 @@ export function useFeedData(_opts) {
           _raw:    b,
         }));
 
-      // Mischen: Works + Experiences + Beiträge
+      // ── PHASE 4I: NORMALIZED TRACE ─────────────────────────────────
+      console.log("[HUI_FEED_NORMALIZED_WORKS]", workItems.map(w => ({
+        id: w.id, type: w.type, name: w.name, creator_id: w.creator_id, time: w.time
+      })));
+      console.log("[HUI_FEED_NORMALIZED_EXPERIENCES]", expItems.map(e => ({
+        id: e.id, type: e.type, name: e.name, expTitle: e.expTitle,
+        creator_id: e.creator_id, expImg: e.expImg, expMeta: e.expMeta, time: e.time
+      })));
+      // ── Mischen: Works + Experiences + Beiträge
       const mixed = [];
       let ei = 0, bi = 0;
       workItems.forEach((w, i) => {
@@ -336,6 +347,9 @@ export function useFeedData(_opts) {
       while (ei < expItems.length)    mixed.push(expItems[ei++]);
       while (bi < beitrItems.length)  mixed.push(beitrItems[bi++]);
 
+      console.log("[HUI_FEED_MIXED]", mixed.map(i => ({
+        id: i.id, type: i.type, rhythmState: i.rhythmState, name: i.name
+      })));
       console.log("[HUI_FEED] normalized items:", mixed.length);
       console.log("[HUI_REALITY] feed resolved ✓", {
         works: workItems.length,

@@ -260,8 +260,11 @@ export function validate(actionName, rawPayload) {
     }
   }
 
-  // Sicherer Klon mit source-Fallback
-  return Object.assign({ source: "system" }, payload);
+  // Sicherer Klon — source IMMER als String, niemals undefined/null (Phase 4G)
+  const safeSrc = (typeof payload.source === "string" && payload.source.length > 0)
+    ? payload.source
+    : "system";
+  return Object.assign({}, payload, { source: safeSrc });
 }
 
 // ─── DEV: Contract-Inspektor ───────────────────────────────────────

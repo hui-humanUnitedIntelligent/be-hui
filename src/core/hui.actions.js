@@ -181,13 +181,16 @@ export function buildActions(shell) {
       const payload = validate("OPEN_PROFILE", rawPayload);
       if (!payload) return;
       logAction(A.OPEN_PROFILE, payload);
-      const { creator, creatorId, source, ...rest } = payload;
+      // Defensive destructure — source immer mit Fallback (Phase 4G)
+      const safePayload = payload ?? {};
+      const { creator, creatorId, source: rawSource, ...rest } = safePayload;
+      const source = rawSource || S.SYSTEM;
       const data = creator
         ? creator
         : { id: creatorId, user_id: creatorId, ...rest };
       // Phase 2: Flow Stack — merke Navigations-Ursprung
       logFlow(source, S.VISITOR_PROFILE);
-      flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source: source || S.SYSTEM });
+      flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source });
       setShowWirker?.(data);
     },
 
@@ -220,8 +223,9 @@ export function buildActions(shell) {
       checkSemantics("OPEN_CHAT", { recipient: rec, source: payload.source });
       // Phase 2: wenn Profil offen war → Return merken
       // NICHT setShowWirker(null) — Profil bleibt gemounted (LOOP 1)
-      logFlow(payload.source, S.CHAT);
-      flowStore?.push({ surface: S.CHAT, recipient: rec, source: payload.source || S.SYSTEM });
+      const chatSource = payload?.source || S.SYSTEM;
+      logFlow(chatSource, S.CHAT);
+      flowStore?.push({ surface: S.CHAT, recipient: rec, source: chatSource });
       setShowChat?.(true);
     },
 
@@ -271,7 +275,8 @@ export function buildActions(shell) {
       // Set recipient so Connect-Sheet weiß wer gebucht wird
       if (safeCr) setChatRecipient?.(safeCr);
       // Flow-Log
-      logFlow(payload.source, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
+      const bookSource = payload?.source || S.SYSTEM;
+      logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
       setShowConnect?.(true);
     },
 

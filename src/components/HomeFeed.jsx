@@ -462,7 +462,7 @@ export default function HomeFeed({
   }, [actions, onShare]);
 
   const handleEvent = React.useCallback((ev) => {
-    actions[A.OPEN_EXPERIENCE]?.({ experience: ev });
+    actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.HOME });
     onEvent?.(ev);
   }, [actions, onEvent]);
   const feedData  = useFeedData?.() || {};
@@ -471,15 +471,25 @@ export default function HomeFeed({
   const liveItems = feedItems
     ?? (realItems.length > 0 ? realItems : null)
     ?? [];    // ehrliche Leere — kein Mock
-  // Logging
+  // ── PHASE 4I: RENDER TRACE ─────────────────────────────────────────
   React.useEffect(() => {
-    console.log("[HUI_FEED] source:", {
+    console.log("[HUI_FEED_RENDER_INPUT]", {
       fromProp:  feedItems ? feedItems.length : null,
       fromDB:    realItems.length,
       loading:   feedData?.loading,
       activeSrc: feedItems ? "prop" : realItems.length > 0 ? "db" : "empty",
+      liveItems: liveItems.length,
     });
-  }, [realItems.length, feedData?.loading]);  // eslint-disable-line
+    if (liveItems.length > 0) {
+      console.log("[HUI_FEED_RENDER_ITEMS]", liveItems.map(i => ({
+        id: i.id, type: i.type, rhythmState: i.rhythmState,
+        name: i.name, creator_id: i.creator_id,
+      })));
+    }
+    if (realItems.length === 0 && !feedData?.loading) {
+      console.warn("[HUI_FEED_EMPTY] DB returned 0 items — check RLS / user auth");
+    }
+  }, [liveItems.length, realItems.length, feedData?.loading]);  // eslint-disable-line
 
   // Phase 16.8: debug hydration state
   React.useEffect(() => {
@@ -749,7 +759,15 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
   // ── Feed Intelligence: humane curation ──────────────────────────────────
   const curated = useMemo(() => {
     const now  = new Date();
+    // ── PHASE 4I: CURATE TRACE ──────────────────────────────────────
+    console.log("[HUI_FEED_CURATE_INPUT]", rawItems.map(i => ({
+      id: i.id, type: i.type, rhythmState: i.rhythmState, name: i.name
+    })));
     const safe = filterValidFeedItems(rawItems);
+    console.log("[HUI_FEED_AFTER_FILTER]", safe.map(i => ({
+      id: i.id, type: i.type, rhythmState: i.rhythmState,
+      title: i.title, creator: i.creator?.name
+    })));
     // Pass raw (non-frozen) items to allow enrichment + relationship tokens
     const enrichable = safe.map(item => ({ ...item }));
     // Phase 16: viewerContext from useLivingMemory — never null,
@@ -780,7 +798,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       }
     }
 
-    return curateHumaneFeed(enrichable, {
+    const _curated = curateHumaneFeed(enrichable, {
       now,
       diversity:   true,
       pacing:      true,
@@ -790,6 +808,25 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       viewerContext: viewerContext ?? FALLBACK_VIEWER_CONTEXT,
       relationshipMap,
     });
+    // ── PHASE 4I: CURATED TRACE ──────────────────────────────────────
+    const _seq = _curated?.sequence || [];
+    const _cards = _seq.filter(s => s.kind === "card");
+    console.log("[HUI_FEED_CURATED]", {
+      sequenceLength: _seq.length,
+      cardCount: _cards.length,
+      cards: _cards.map(s => ({
+        id: s.item?.id, type: s.item?.type, title: s.item?.title,
+        creator: s.item?.creator?.name, rhythmState: s.item?.rhythmState,
+      })),
+      stats: _curated?.stats,
+    });
+    if (_cards.length === 0 && enrichable.length > 0) {
+      console.error("[HUI_FEED_CURATED_EMPTY] enrichable had items but curated produced 0 cards!", {
+        enrichableTypes: enrichable.map(i => i.type),
+        enrichableIds:   enrichable.map(i => i.id),
+      });
+    }
+    return _curated;
   // viewerContext is derived from viewerContext object identity
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawItems, viewerContext]);
