@@ -10,11 +10,11 @@
 | Metrik | Wert |
 |---|---|
 | **Interaktive Elemente gesamt** | ~127 |
-| **Bereits auf HUI_ACTIONS migriert** | 30 (~24%) | ✅ Batch 1+2+3 done |
-| **Legacy setState / direkte Calls** | 69 (~54%) |
+| **Bereits auf HUI_ACTIONS migriert** | 35 (~28%) | ✅ Batch 1+2+3+4 done |
+| **Legacy setState / direkte Calls** | 64 (~50%) |
 | **Dead / Placeholder** | 18 (~14%) |
 | **Missing Backend** | 10 (~8%) |
-| **Migration Score** | **24% — Batch 1+2+3 ✅ / Batch 4 next** |
+| **Migration Score** | **28% — Batch 1-4 ✅ / Batch 5 next** |
 
 ---
 
@@ -161,15 +161,15 @@
 | Screen | Element | Type | Current Behavior | Action | Status | Target | Missing |
 |---|---|---|---|---|---|---|---|
 | Notifs | Öffnen (Bell-Button) | Button | `setShowNotifs(true)` | `A.OPEN_NOTIFICATIONS` | `legacy` | `A.OPEN_NOTIFICATIONS` | Migration |
-| Notifs | Notification Card tap | Card | `handleAction(n)` → `onNavigate` | `A.OPEN_PROFILE` / tab | `partial` | Diverse Actions | onNavigate → Actions migrieren |
-| Notifs | Typ: Neue Resonanz | Card | `onNavigate({ type:"profile" })` | `A.OPEN_PROFILE` | `partial` | `A.OPEN_PROFILE` | Legacy navigate |
-| Notifs | Typ: Neues Booking | Card | `onNavigate(...)` | `A.OPEN_BOOKING` | `partial` | `A.OPEN_BOOKING` | Legacy navigate |
-| Notifs | Typ: Impact | Card | `onNavigate("impact")` | `A.OPEN_IMPACT` | `legacy` | `A.OPEN_IMPACT` | Migration |
-| Notifs | Typ: Discover | Card | `onNavigate("discover")` | `A.GO_DISCOVER` | `legacy` | `A.GO_DISCOVER` | Migration |
+| Notifs | Notification Card tap | Card | Action Engine via `handleAction(n)` | diverse | `migrated ✅` | — | — |
+| Notifs | Typ: follow | Card | `A.OPEN_PROFILE` { creatorId, creator } + `onClose` | `A.OPEN_PROFILE` | `migrated ✅` | — | — |
+| Notifs | Typ: begegnung/buchung | Card | `A.OPEN_CHAT` { recipient } + `onClose` | `A.OPEN_CHAT` | `migrated ✅` | — | — |
+| Notifs | Typ: impact/community | Card | `A.GO_IMPACT` + `onClose` | `A.GO_IMPACT` | `migrated ✅` | — | — |
+| Notifs | Typ: inspiration | Card | `A.GO_DISCOVER` + `onClose` | `A.GO_DISCOVER` | `migrated ✅` | — | — |
 | Notifs | Filter Pills | Pills | `onFilterChange(pill)` intern | — | `working` | — | Intern ok |
 | Notifs | "Nur Wichtige" Toggle | Toggle | `setOnlyImportant` intern | — | `working` | — | Intern ok |
-| Notifs | Empty State CTA | Button | `onDiscover → onClose` | `A.GO_DISCOVER` | `legacy` | `A.GO_DISCOVER` | Migration |
-| Notifs | Settings ⚙️ | Button | `onSettings` — kein Handler | — | `dead` | — | Handler + Screen fehlen |
+| Notifs | Empty State CTA | Button | `A.GO_DISCOVER` via emptyActions | `A.GO_DISCOVER` | `migrated ✅` | — | — |
+| Notifs | Settings ⚙️ | Button | `A.OPEN_NOTIFICATIONS_SETTINGS` | — | `migrated ✅` | — | Screen noch pending |
 
 ---
 
@@ -346,8 +346,8 @@ Diese Flows sind für die Nutzererfahrung am kritischsten und derzeit broken:
 ### Batch 3 — Visitor Profile tote Links ✅ DONE 2026-05-24
 - ~~Alle "→" Links mit echten Actions verdrahten~~ ✅ (8 Links migriert)
 
-### Batch 4 — Notification Engine (4 Elemente)
-- `onNavigate` → Action Engine migrieren
+### Batch 4 — Notification Engine ✅ DONE 2026-05-24
+- ~~`onNavigate` string-basiert → Action Engine~~ ✅ (5 Typen + EmptyState + Settings = 7 migriert)
 
 ### Batch 5 — Discover + Favorites (8 Elemente)
 - Alle onView → `A.OPEN_PROFILE` / `A.OPEN_EXPERIENCE`

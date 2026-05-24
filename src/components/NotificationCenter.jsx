@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }    from "../lib/supabaseClient";
 import { useAppState } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
+import { useHuiActions, A } from "../core/hui.actions.js";
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -373,6 +374,11 @@ function NotifCard({ n, onAction, idx }) {
    EMPTY STATE
 ══════════════════════════════════════════════════════════════ */
 function EmptyState({ onDiscover }) {
+  const emptyActions = useHuiActions();
+  function handleDiscover() {
+    emptyActions[A.GO_DISCOVER]?.();
+    onDiscover?.();
+  }
   return (
     <div style={{
       flex:1, display:"flex", flexDirection:"column",
@@ -397,7 +403,7 @@ function EmptyState({ onDiscover }) {
         maxWidth:260, marginBottom:28 }}>
         Sobald Begegnungen, Projekte oder kreative Impulse entstehen, erscheinen sie hier.
       </div>
-      <button onClick={onDiscover} style={{
+      <button onClick={handleDiscover} style={{
         background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
         color:"#fff", border:"none", borderRadius:16,
         padding:"12px 26px", fontSize:14, fontWeight:700,
@@ -842,7 +848,7 @@ function NotifFeed({
             );
           })
         )}
-        <InspireBanner onSettings={() => {}} />
+        <InspireBanner onSettings={() => actions[A.OPEN_NOTIFICATIONS_SETTINGS]?.()} />
       </div>
     </div>
   );
@@ -861,6 +867,7 @@ export function useNotifCount() {
    Props: { onClose, onNavigate } — unverändert
 ══════════════════════════════════════════════════════════════ */
 export default function NotificationCenter({ onClose, onNavigate }) {
+  const actions = useHuiActions();
   // ── Hooks (stabile Reihenfolge) ───────────────────────────────────
   const {
     notifications,
@@ -897,37 +904,45 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Notif-Action ──────────────────────────────────────────────────
+  // ── Notif-Action — Batch 4: Action Engine ───────────────────────
   const handleAction = useCallback(async (n) => {
+    // 1. Mark read in DB
     if (!n.read) {
       try {
         await supabase.from("notifications").update({ read:true }).eq("id", n.id);
         loadNotifications();
       } catch { /* silent */ }
     }
-    // Phase 23: Type-basierte echte Navigation
+    // 2. Route via Action Engine — type-safe, logged
     if (n.type === "begegnung" || n.type === "buchung") {
-      // Chat direkt öffnen wenn Sender bekannt
-      if (n.sender_id && onNavigate) {
-        onNavigate({
-          type:           "chat",
-          recipientId:    n.sender_id,
-          recipientName:  n.sender_name  || n.from_name || null,
-          recipientAvatar:n.sender_avatar || n.from_avatar || null,
+      if (n.sender_id) {
+        actions[A.OPEN_CHAT]?.({
+          recipient: {
+            id:           n.sender_id,
+            display_name: n.sender_name   || n.from_name   || null,
+            avatar_url:   n.sender_avatar || n.from_avatar || null,
+          },
         });
+        onClose?.();
       } else {
-        setActiveNotif(n);  // Fallback: Detail-Ansicht
+        setActiveNotif(n); // fallback: inline detail
       }
     } else if (n.type === "impact" || n.type === "community") {
-      onNavigate?.("impact");
+      actions[A.GO_IMPACT]?.();
+      onClose?.();
     } else if (n.type === "inspiration") {
-      onNavigate?.("discover");
+      actions[A.GO_DISCOVER]?.();
+      onClose?.();
     } else if (n.type === "follow" && n.sender_id) {
-      onNavigate?.({ type: "profile", userId: n.sender_id });
-    } else if (n.action_url && onNavigate) {
-      onNavigate(n.action_url);
+      actions[A.OPEN_PROFILE]?.({
+        creatorId: n.sender_id,
+        creator: { name: n.sender_name || null, avatar_url: n.sender_avatar || null },
+      });
+      onClose?.();
+    } else if (n.action_url) {
+      onNavigate?.(n.action_url); // generic fallback for unknown types
     }
-  }, [loadNotifications, onNavigate]);
+  }, [actions, loadNotifications, onNavigate, onClose]);
 
   const handleMarkAllRead = useCallback(async () => {
     try {
