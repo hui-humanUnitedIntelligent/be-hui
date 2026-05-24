@@ -54,7 +54,7 @@ export function useBookingState({ profile, user }) {
       .from("follows")
       .select("id")
       .eq("follower_id", user.id)
-      .eq("following_id", profile.id)
+      .eq("followed_id", profile.id)
       .maybeSingle()
       .then(({ data }) => {
         if (mounted) setFollowed(!!data);
@@ -81,11 +81,11 @@ export function useBookingState({ profile, user }) {
           .from("follows")
           .delete()
           .eq("follower_id", user.id)
-          .eq("following_id", profile.id);
+          .eq("followed_id", profile.id);
       } else {
         await supabase
           .from("follows")
-          .insert({ follower_id: user.id, following_id: profile.id });
+          .insert({ follower_id: user.id, followed_id: profile.id });
         // Phase 23: Follow → Feed Activity (silent, non-blocking)
         FeedService.createActivity(
           user.id,

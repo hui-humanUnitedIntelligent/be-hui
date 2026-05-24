@@ -9,6 +9,7 @@ import { S } from "../../core/hui.sources.js";
 import { HUI } from "../../design/hui.design.js";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
+import { useWirkerProfile } from "./hooks/useWirkerProfile.js";
 
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
@@ -923,8 +924,15 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const safe    = useMemo(() => createProfileItem(rawWirker), [
     rawWirker?.id, rawWirker?.user_id,
   ]);
-  const profile = safe?._raw || rawWirker || {};
   const actions = useHuiActions();
+
+  // Phase 3: echte Profil-Daten + Experiences aus Supabase
+  const { profile: liveProfile, exps: liveExps, works: liveWorks } = useWirkerProfile(rawWirker);
+
+  // Merge: liveProfile wenn geladen, sonst rawWirker als Fallback
+  const profile = liveProfile?._raw || liveProfile || safe?._raw || rawWirker || {};
+  // Experiences: echte Supabase-Daten bevorzugt, SEED als Fallback (im Component)
+  const experiences = liveExps?.length > 0 ? liveExps : null;
 
   const name = safeStr(profile?.display_name || profile?.name, "Creator");
 
@@ -981,7 +989,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
       <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat}/>
       <StatsStrip    profile={profile}/>
-      <VisitorExperiences experiences={null} onBook={handleBook}/>
+      <VisitorExperiences experiences={experiences} onBook={handleBook}/>
       <AboutSection  profile={profile}/>
       <MomentsSection moments={null}/>
       <ResonanceCommunity community={null}/>

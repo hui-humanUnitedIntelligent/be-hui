@@ -10,7 +10,8 @@ import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
-import { useChatList }  from "../../lib/chatContext.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { useChatList, findOrCreateChat }  from "../../lib/chatContext.js";
 import { HUI } from "../../design/hui.design.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
@@ -148,24 +149,55 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose 
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
   const { openCreatorProfile } = useProfileLauncher();
+  const { user } = useAuth();
 
-  // Phase 23: Wenn von Profil aus geöffnet → direkt in Conversation
+  // Phase 3: Wenn von Profil aus geöffnet → echten Chat in DB finden/erstellen
   React.useEffect(() => {
-    if (initialRecipient?.id && !activeConv) {
-      // Künstliche Conversation aus Recipient erstellen
+    if (!initialRecipient?.id || activeConv) return;
+    const recipientId = initialRecipient.id;
+
+    if (user?.id) {
+      // Echten Chat-Record holen oder erstellen
+      findOrCreateChat({
+        userId:      user.id,
+        otherUserId: recipientId,
+        chatType:    "direct",
+      }).then(chatRecord => {
+        setActiveConv({
+          id:         chatRecord?.id || `direct_${recipientId}`,
+          name:       initialRecipient.display_name || "Creator",
+          avatar_url: initialRecipient.avatar_url   || null,
+          talent:     initialRecipient.talent        || null,
+          mood:       "Echte Verbindung",
+          online:     true,
+          _recipientId: recipientId,
+        });
+      }).catch(() => {
+        // Fallback: UI funktioniert weiter, aber ohne Persistenz
+        setActiveConv({
+          id:         `direct_${recipientId}`,
+          name:       initialRecipient.display_name || "Creator",
+          avatar_url: initialRecipient.avatar_url   || null,
+          talent:     initialRecipient.talent        || null,
+          mood:       "Echte Verbindung",
+          online:     true,
+          _recipientId: recipientId,
+        });
+      });
+    } else {
+      // User noch nicht geladen — temporäre Conv
       setActiveConv({
-        id:         `direct_${initialRecipient.id}`,
+        id:         `direct_${recipientId}`,
         name:       initialRecipient.display_name || "Creator",
         avatar_url: initialRecipient.avatar_url   || null,
         talent:     initialRecipient.talent        || null,
         mood:       "Echte Verbindung",
         online:     true,
-        _recipientId: initialRecipient.id,
-        _directMode:  true,
+        _recipientId: recipientId,
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.id]);
   const { chats, loading, unreadTotal } = useChatList();
 
   // Wenn Conv geöffnet: normalize conv shape

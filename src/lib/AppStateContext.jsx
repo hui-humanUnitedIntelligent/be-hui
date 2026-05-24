@@ -80,10 +80,10 @@ export function AppStateProvider({ children }) {
     if (!user?.id) return;
     supabase
       .from("follows")
-      .select("following_id")
+      .select("followed_id")
       .eq("follower_id", user.id)
       .then(({ data }) => {
-        if (data && Array.isArray(data)) setFollowedIds((data).filter(r=>r&&r.following_id).map(r => r.following_id));
+        if (data && Array.isArray(data)) setFollowedIds((data).filter(r=>r&&r.followed_id).map(r => r.followed_id));
       })
       .catch(() => {}); // silent
   }, [user?.id]);
@@ -100,10 +100,10 @@ export function AppStateProvider({ children }) {
         await supabase.from("follows")
           .delete()
           .eq("follower_id", user.id)
-          .eq("following_id", targetId);
+          .eq("followed_id", targetId);
       } else {
         await supabase.from("follows")
-          .insert({ follower_id: user.id, following_id: targetId });
+          .insert({ follower_id: user.id, followed_id: targetId });
       }
     } catch {
       // Rollback bei Fehler
