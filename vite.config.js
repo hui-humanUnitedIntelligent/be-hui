@@ -2,13 +2,22 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
-// Minimal stable config — kein manualChunks, kein rollupOptions
-// @ Alias benoetigt fuer src/pages/PlatformDashboard und andere @/lib imports
+// Build: 1779641709 — forces new bundle hash (Vercel cache bust)
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // Timestamp im Namen → Vercel kann nicht cachen
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
     },
   },
 })

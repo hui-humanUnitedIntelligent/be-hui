@@ -1,10 +1,10 @@
+// Build: 2026-05-24T16:55:29Z
 // src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
-import { BUILD_VERSION } from "./lib/BUILD_VERSION.js";
 
 initSentry();
 
