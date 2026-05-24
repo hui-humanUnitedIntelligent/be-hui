@@ -202,9 +202,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover })
         </>
       )}
 
-      {/* Neueste Verbindungen */}
-      <SectionHead title="Neueste Verbindungen" onMore={() => {}}/>
-      <ConnectionBubbles people={MOCK_CONNECTIONS}/>
+      {/* Neueste Verbindungen — wird geladen wenn follows-Daten verfügbar */}
 
       {/* Impact Card */}
       <ImpactCard/>

@@ -646,7 +646,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
   // People/Works/Experiences: DB oder Mock
   const [people,      setPeople]      = useState(MOCK_PEOPLE);
   const [works,       setWorks]       = useState(MOCK_WORKS);
-  const [experiences, setExperiences] = useState(MOCK_EXPERIENCES);
+  const [experiences, setExperiences] = useState([]);
   const [heroItem,    setHeroItem]    = useState(MOCK_HERO);
   const [loading,     setLoading]     = useState(false);
 
@@ -657,6 +657,36 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
       try {
         setLoading(true);
         // Impact-Daten: payments des Users
+        // Phase 4C: echte Experiences laden
+        const { data: userExps } = await supabase
+          .from("experiences")
+          .select(`
+            id, title, cover_url, category, description, price,
+            date_start, location_label, max_participants, status, creator_id,
+            profile:profiles!experiences_creator_id_fkey(
+              id, display_name, avatar_url, talent
+            )
+          `)
+          .eq("status", "open")
+          .order("date_start", { ascending: true })
+          .limit(20);
+
+        if (userExps && userExps.length > 0) {
+          setExperiences(userExps.map(e => ({
+            id:          e.id,
+            title:       e.title,
+            creator:     e.profile?.display_name || "Creator",
+            category:    e.category || "Erlebnis",
+            location:    e.location_label || "",
+            date:        e.date_start ? new Date(e.date_start).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}) : null,
+            price:       e.price,
+            cover:       e.cover_url,
+            status:      e.status,
+            _raw:        e,
+          })));
+          console.log("[HUI_REALITY] experience hydrated ✓", userExps.length);
+        }
+
         const { data: payments } = await supabase
           .from("payments")
           .select("impact_eur")

@@ -20,6 +20,7 @@ import { feedback } from './feedback/index.js';
 import { assertAuthenticated, globalMutationGuard } from './security/index.js';
 import { validateMessage } from './validation/index.js';
 import { supabase } from "./supabaseClient";
+import { notifyMessage } from "./notificationService";
 import { useAuth } from "./AuthContext";
 
 // ────────────────────────────────────────────────────────────────
@@ -329,11 +330,38 @@ export function useChatThread(chatId) {
         return { error: error.message, code: error.code };
       }
 
-      console.log("[HUI_MESSAGE_INSERT] ✓ persistiert, id:", insertedData?.id);
+      console.log("[HUI_REALITY] chat persisted ✓", insertedData?.id);
       // Optimistic message mit echter ID ersetzen
       setMessages(prev => prev.map(m =>
         m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
       ));
+
+      // Phase 4E: Notification an Gesprächspartner (non-blocking)
+      if (insertedData?.id && chatId) {
+        Promise.resolve().then(async () => {
+          try {
+            const { data: chatRow } = await supabase
+              .from("chats")
+              .select("participant_a, participant_b")
+              .eq("id", chatId)
+              .single();
+            if (!chatRow) return;
+            const recipientId = chatRow.participant_a === user?.id
+              ? chatRow.participant_b
+              : chatRow.participant_a;
+            const { data: me } = await supabase
+              .from("profiles").select("display_name").eq("id", user?.id).single();
+            await notifyMessage({
+              senderId:    user?.id,
+              recipientId,
+              senderName:  me?.display_name || "Jemand",
+              chatId,
+              preview:     payload?.text || "",
+            });
+          } catch { /* notification failure is non-critical */ }
+        });
+      }
+
       return { success: true, id: insertedData?.id };
 
     } catch(e) {

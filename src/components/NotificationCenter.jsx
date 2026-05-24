@@ -952,7 +952,8 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   }, [markNotifsRead]);
 
   // ── Daten: DB oder Mock ───────────────────────────────────────────
-  const notifList = notifications?.length > 0 ? notifications : MOCK_NOTIFS;
+  // Phase 4E: kein Mock-Fallback — echter Empty State
+  const notifList = notifications || [];
 
   // ── Render ─────────────────────────────────────────────────────────
   return (

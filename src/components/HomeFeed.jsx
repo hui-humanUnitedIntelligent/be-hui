@@ -466,7 +466,21 @@ export default function HomeFeed({
     onEvent?.(ev);
   }, [actions, onEvent]);
   const feedData  = useFeedData?.() || {};
-  const liveItems = feedItems || feedData?.feedItems || MOCK_FEED;
+  // Phase 4D: echte Daten aus feedData.feedItems — MOCK_FEED nur wenn 0 DB-Einträge UND loading=false
+  const realItems = feedData?.feedItems || feedData?.items || [];
+  const liveItems = feedItems
+    ?? (realItems.length > 0 ? realItems : null)
+    ?? (feedData?.loading ? [] : null)   // während loading: leere Liste (kein Mock)
+    ?? MOCK_FEED;                        // nur im allersten Render bevor Hook initialisiert
+  // Logging
+  React.useEffect(() => {
+    console.log("[HUI_FEED] source:", {
+      fromProp:     feedItems ? feedItems.length : null,
+      fromDB:       realItems.length,
+      loading:      feedData?.loading,
+      activeSrc:    feedItems ? "prop" : realItems.length>0 ? "db" : feedData?.loading ? "loading" : "mock",
+    });
+  }, [realItems.length, feedData?.loading]);  // eslint-disable-line
 
   // Phase 16.8: debug hydration state
   React.useEffect(() => {
@@ -685,7 +699,8 @@ function EventCard({ event, onPress }) {
    Replaces mechanical sequence with humane curation.
    ═══════════════════════════════════════════════════════════════════════════ */
 function RhythmicFeed({ items, onProfile, onLike, onComment }) {
-  const rawItems = items || MOCK_FEED;
+  // Phase 4D: kein Mock wenn items[] und loading — echter Empty State bevorzugt
+  const rawItems = (items && items.length > 0) ? items : [];
   const [reactions, setReactions] = useState({});
 
   // Phase 16.7.1: user from AuthContext — was undeclared (ReferenceError → SafeBoundary → null)
