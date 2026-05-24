@@ -340,9 +340,11 @@ export function useFeedData(_opts) {
         }))
         .filter(Boolean);
 
-      console.log("[HUI_FEED] invitations count:", invItems.length);
+      // Phase 4E: Max 2 Invitations pro Feed-Load (Rhythm Engine braucht Luft)
+      const invItemsCapped = invItems.slice(0, 2);
+      console.log("[HUI_FEED] invitations count:", invItemsCapped.length, "of", invItems.length);
 
-      const allItems = [...workItems, ...expItems, ...beitrItems, ...invItems];
+      const allItems = [...workItems, ...expItems, ...beitrItems, ...invItemsCapped];
       // Zeitsortierung als Basis (neuestes zuerst)
       allItems.sort((a, b) => {
         const ta = a._raw?.created_at ? new Date(a._raw.created_at).getTime() : 0;

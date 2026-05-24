@@ -121,21 +121,21 @@ export function rhythmizeFeed(rawItems) {
   // Sichere Kopie (nie original mutieren)
   const items = rawItems.filter(Boolean).map(item => ({ ...item }));
 
-  // Ghost-Padding: sicherstellen dass genug Moments vorhanden sind
-  // Regel: mind. 1 Moment pro 2 Experience/Work-Items
-  const heavyCount = items.filter(i => {
-    const ct = resolveContentType(i);
-    return ct === "experience" || ct === "work";
-  }).length;
+  // Ghost-Padding: sicherstellen dass genug nicht-Invitation Items vorhanden sind
+  const heavyCount  = items.filter(i => { const ct=resolveContentType(i); return ct==="experience"||ct==="work"; }).length;
   const momentCount = items.filter(i => resolveContentType(i) === "moment").length;
   const invCount    = items.filter(i => resolveContentType(i) === "invitation").length;
-  // Wie viele Moments fehlen?
-  const neededMoments = Math.max(0, Math.ceil(heavyCount / 2) - momentCount);
+  const nonInvCount = heavyCount + momentCount;
+
+  // Regel 1: mind. 1 Moment pro 2 Heavy-Items
+  const neededForHeavy = Math.max(0, Math.ceil(heavyCount / 2) - momentCount);
+  // Regel 2: für jedes Paar Invitations → garantiert 1 Ghost-Separator dazwischen
+  // Stellt sicher dass nie Inv→Inv direkt im Safety-Valve-Fallback erzwungen wird
+  const neededForInv = invCount > 1 ? (invCount - 1) : 0;  // mind. (N-1) Ghosts für N Invitations
+  const neededMoments = Math.max(neededForHeavy, neededForInv);
   for (let g = 0; g < neededMoments; g++) {
     items.push(createGhostMoment(g));
   }
-  // Invitations: max 1 pro 5 echte Items → überschüssige ans Ende verschieben
-  // (werden durch isAllowed natürlich verteilt — kein hard-cap hier nötig)
 
   // R7: Mindestens 1 Moment am Anfang (sanfter Einstieg)
   // — stelle sicher dass item[0] oder item[1] ein Moment ist
@@ -219,7 +219,7 @@ export function rhythmizeFeed(rawItems) {
         // R4: Invitation spacing
         if (ct === "invitation") {
           const lastInvIdx = [...placed].reverse().findIndex(p => resolveContentType(p) === "invitation");
-          if (lastInvIdx !== -1 && lastInvIdx <= 2) ok = false;  // Safety: lockerer (≥3)
+          if (lastInvIdx !== -1 && lastInvIdx === 0) ok = false;  // Safety: nie direkt hintereinander
         }
         // R6: Experience spacing Safety-lockerer (nur 1 andere dazwischen)
         if (ct === "experience") {
@@ -234,9 +234,27 @@ export function rhythmizeFeed(rawItems) {
         }
       }
     }
-    // Stufe 2: Absoluter Fallback — nimm irgendetwas
+    // Stufe 2: Absoluter Fallback — nimm irgendetwas AUSSER direkte Inv→Inv
     if (!placed1) {
-      for (const type of ["moment", "invitation", "work", "experience"]) {
+      // Zuerst alles außer Invitation versuchen
+      for (const type of ["moment", "work", "experience", "invitation"]) {
+        const q = queues[type];
+        if (cursors[type] >= q.length) continue;
+        // Harte Grenze: Invitation nie direkt nach Invitation (auch im letzten Fallback)
+        const ct = resolveContentType(q[cursors[type]]);
+        if (ct === "invitation") {
+          const lastType = placed.length > 0 ? resolveContentType(placed[placed.length - 1]) : null;
+          if (lastType === "invitation") continue;  // überspringen
+        }
+        placed.push(q[cursors[type]]);
+        cursors[type]++;
+        placed1 = true;
+        break;
+      }
+    }
+    // Stufe 3: Wirklich letzter Ausweg (alle anderen Typen erschöpft)
+    if (!placed1) {
+      for (const type of ["invitation", "moment", "work", "experience"]) {
         const q = queues[type];
         if (cursors[type] < q.length) {
           placed.push(q[cursors[type]]);
@@ -279,6 +297,25 @@ export function rhythmizeFeed(rawItems) {
       works:       result.filter(i => i._rhythm.contentType === "work").length,
       invitations: result.filter(i => i._rhythm.contentType === "invitation").length,
     });
+  }
+
+  // ── POST-PROCESSING: Harte Garantie — nie Invitation direkt nach Invitation ──
+  // Falls Safety-Valve-Fallback es trotzdem erzwingt → Ghost-Separator einschleusen
+  let ghostPostIdx = 9000;
+  for (let i = result.length - 1; i >= 1; i--) {
+    if (
+      result[i]?._rhythm?.contentType === "invitation" &&
+      result[i - 1]?._rhythm?.contentType === "invitation"
+    ) {
+      const ghost = createGhostMoment(ghostPostIdx++);
+      ghost._rhythm = {
+        position:     i,
+        contentType:  "moment",
+        energyScore:  0,
+        marginBottom: 8,
+      };
+      result.splice(i, 0, ghost);
+    }
   }
 
   return result;
