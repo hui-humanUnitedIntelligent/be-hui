@@ -15,6 +15,7 @@ import React, {
 } from "react";
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
+import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow } from "../system/feed/feedNormalizer.js";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -256,77 +257,22 @@ export function useFeedData(_opts) {
       }
 
       // ── Normalisierung → Feed-Shape ──
+      // Phase 4F: feedNormalizer — robust gegen partial DB rows
       const workItems = works
-        .filter(w => w?.id)
-        .map(w => ({
-          id:            w.id,
-          type:          "work_upload",
-          rhythmState:   "hero",
-          presenceState: "creating",
-          name:          w.profile?.display_name || "Creator",
-          talent:        w.profile?.talent || w.category || "Kunst",
-          location:      w.profile?.location_label || "",
-          avatar:        w.profile?.avatar_url || null,
-          creator_id:    w.creator_id || w.user_id,
-          caption:       w.caption || w.description || w.title || "",
-          images:        w.media_url ? [w.media_url] : (w.cover_url ? [w.cover_url] : []),
-          resonanz:      0, berührt: 0, begleitet: 0,
-          viewers: [], viewerExtra: 0,
-          time:          _relTime(w.created_at),
-          _raw:          w,
-        }));
+        .map(w => normalizeWorkRow(w))
+        .filter(Boolean);
 
+      // Phase 4F: feedNormalizer — Experience rows robust normalisiert
       const expItems = exps
-        .filter(e => e?.id)
-        .map(e => ({
-          id:            "exp_" + e.id,
-          type:          "experience",
-          rhythmState:   "experience",
-          presenceState: "gathering",
-          name:          e.profile?.display_name || "Creator",
-          talent:        e.profile?.talent || e.category || "Erlebnis",
-          location:      e.location_text || e.profile?.location_label || "",
-          avatar:        e.profile?.avatar_url || null,
-          creator_id:    e.user_id,
-          caption:       e.caption || e.description || e.title,
-          expImg:        e.cover_url || e.media_url || null,
-          expTitle:      e.title,
-          expMeta:       [
-            e.date ? new Date(e.date).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"short"}) : null,
-            e.location_text,
-            e.price ? e.price + " €" : (e.pricing_type === "free" ? "Kostenlos" : null),
-            (e.participant_limit || e.max_participants)
-              ? `Max. ${e.participant_limit || e.max_participants} Personen`
-              : null,
-          ].filter(Boolean).join(" · "),
-          bookingMode:   e.booking_mode || "direct",
-          pricingType:   e.pricing_type  || "fixed",
-          expType:       e.experience_type || null,
-          resonanz: 0, berührt: 0, begleitet: 0,
-          viewers: [], viewerExtra: 0,
-          time:    _relTime(e.created_at),
-          _raw:    e,
-        }));
+        .map(e => normalizeExperienceRow(e))
+        .filter(Boolean);
 
+
+      // Phase 4F: feedNormalizer — Beiträge robust normalisiert
       const beitrItems = beitr
-        .filter(b => b?.id && b.src)
-        .map(b => ({
-          id:            "beitr_" + b.id,
-          type:          b.type === "note" ? "note" : "work_upload",
-          rhythmState:   "resonance",
-          presenceState: "reflecting",
-          name:          "Creator",
-          talent:        "",
-          location:      "",
-          avatar:        null,
-          creator_id:    b.user_id,
-          caption:       b.caption || "",
-          images:        b.src ? [b.src] : [],
-          resonanz: 0, berührt: 0, begleitet: 0,
-          viewers: [], viewerExtra: 0,
-          time:    _relTime(b.created_at),
-          _raw:    b,
-        }));
+        .map(b => normalizeBeitragRow(b))
+        .filter(Boolean);
+
 
       // ── PHASE 4I: NORMALIZED TRACE ─────────────────────────────────
       console.log("[HUI_FEED_NORMALIZED_WORKS]", workItems.map(w => ({

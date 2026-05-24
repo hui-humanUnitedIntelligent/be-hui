@@ -1065,7 +1065,7 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment, memor
   const [imgIdx, setImgIdx] = useState(0);
   const creator = useCreator(item);
   if (!item) return null;
-  const images = item.images || (item.media ? [item.media[0]] : []);
+  const images = (Array.isArray(item.images) ? item.images : []).filter(Boolean);
   const hasImages = images.length > 0;
   const microMoment = item.microMoment || null;
 
@@ -1075,51 +1075,63 @@ function HeroCard({ item, itemReactions, onProfile, onReaction, onComment, memor
       <CreatorPresenceHeader item={item} creator={creator} onProfile={onProfile}
         compact={false} microMoment={microMoment} memoryTokens={memoryTokens} />
 
-      {/* Full-width hero media */}
-      {hasImages && (
-        <div style={{ position:"relative" }}>
-          <div className="hf-media-wrap" style={{ height:260 }}>
-            <img src={images[imgIdx]} alt="" loading="lazy"
-              style={{
-                width:"100%", height:"100%", objectFit:"cover", display:"block",
-                transition:"opacity 0.35s ease",
-              }}
-            />
-          </div>
-          {/* Counter + nav */}
-          {images.length > 1 && (
-            <>
-              <div style={{
-                position:"absolute", top:10, right:10, zIndex:2,
-                background:"rgba(0,0,0,0.38)",
-                /* Phase 16.5: backdrop-filter removed — Safari scroll child */
-                borderRadius:20, padding:"3px 10px",
-                fontSize:10, fontWeight:600, color:"white",
-                border:"1px solid rgba(255,255,255,0.14)",
+      {/* Full-width hero media — Phase 4F: Gradient-Fallback wenn keine Bilder */}
+      <div style={{ position:"relative" }}>
+        <div className="hf-media-wrap" style={{ height:260 }}>
+          {hasImages
+            ? <img src={images[imgIdx]} alt="" loading="lazy"
+                style={{
+                  width:"100%", height:"100%", objectFit:"cover", display:"block",
+                  transition:"opacity 0.35s ease",
+                }}
+              />
+            : <div style={{
+                width:"100%", height:"100%",
+                background:`linear-gradient(135deg, ${T.teal}25 0%, ${T.coral}18 50%, ${T.teal}15 100%)`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                flexDirection:"column", gap:8,
               }}>
-                {imgIdx + 1}/{images.length}
+                <div style={{ fontSize:42, opacity:0.5 }}>✨</div>
+                {(item.title || item.expTitle) && (
+                  <div style={{
+                    fontSize:15, fontWeight:700, color:T.ink,
+                    textAlign:"center", padding:"0 24px", lineHeight:1.3,
+                  }}>{item.title || item.expTitle}</div>
+                )}
               </div>
-              {/* Thumbnail dots */}
-              <div style={{
-                position:"absolute", bottom:10, left:0, right:0,
-                display:"flex", justifyContent:"center", gap:5, zIndex:2,
-              }}>
-                {images.map((_, i) => (
-                  <button key={i} onClick={() => setImgIdx(i)} className="hf-tap"
-                    style={{
-                      width: i === imgIdx ? 18 : 6,
-                      height:6, borderRadius:3,
-                      background: i === imgIdx ? "white" : "rgba(255,255,255,0.45)",
-                      border:"none", cursor:"pointer", padding:0,
-                      transition:"width 0.25s ease, background 0.25s ease",
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
+          }
         </div>
-      )}
+        {/* Counter + nav — nur wenn mehrere Bilder */}
+        {hasImages && images.length > 1 && (
+          <>
+            <div style={{
+              position:"absolute", top:10, right:10, zIndex:2,
+              background:"rgba(0,0,0,0.38)",
+              borderRadius:20, padding:"3px 10px",
+              fontSize:10, fontWeight:600, color:"white",
+              border:"1px solid rgba(255,255,255,0.14)",
+            }}>
+              {imgIdx + 1}/{images.length}
+            </div>
+            <div style={{
+              position:"absolute", bottom:10, left:0, right:0,
+              display:"flex", justifyContent:"center", gap:5, zIndex:2,
+            }}>
+              {images.map((_, i) => (
+                <button key={i} onClick={() => setImgIdx(i)} className="hf-tap"
+                  style={{
+                    width: i === imgIdx ? 18 : 6,
+                    height:6, borderRadius:3,
+                    background: i === imgIdx ? "white" : "rgba(255,255,255,0.45)",
+                    border:"none", cursor:"pointer", padding:0,
+                    transition:"width 0.25s ease, background 0.25s ease",
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Caption */}
       {item.caption && (
@@ -1210,37 +1222,44 @@ function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment,
         compact={false} microMoment={microMoment} memoryTokens={memoryTokens} />
 
       {/* Experience block: image + info */}
-      {src && (
-        <div style={{ margin:"0 14px 12px" }}>
-          <div className="hf-card-base" style={{
-            borderRadius:T.r12, overflow:"hidden",
-            boxShadow: T.shadowSm,
-            display:"flex",
+      {/* Phase 4F: Image-Block immer rendern — Gradient-Fallback wenn kein Bild */}
+      <div style={{ margin:"0 14px 12px" }}>
+        <div className="hf-card-base" style={{
+          borderRadius:T.r12, overflow:"hidden",
+          boxShadow: T.shadowSm,
+          display:"flex",
+        }}>
+          <div className="hf-media-wrap" style={{ width:92, height:96, flexShrink:0 }}>
+            {src
+              ? <img src={src} alt="" loading="lazy"
+                  style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+              : <div style={{
+                  width:"100%", height:"100%", display:"flex",
+                  alignItems:"center", justifyContent:"center",
+                  background:`linear-gradient(135deg, ${T.teal}33 0%, ${T.coral}22 100%)`,
+                  fontSize:28,
+                }}>✨</div>
+            }
+          </div>
+          <div style={{
+            flex:1, padding:"12px 13px",
+            display:"flex", flexDirection:"column", justifyContent:"center", gap:5,
+            background:"rgba(255,255,255,0.55)",
           }}>
-            <div className="hf-media-wrap" style={{ width:92, height:96, flexShrink:0 }}>
-              <img src={src} alt="" loading="lazy"
-                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+            <div style={{ fontSize:13.5, fontWeight:700, color:T.ink,
+              letterSpacing:-0.25, lineHeight:1.22 }}>
+              {item.expTitle || item.title || "Erlebnis"}
+            </div>
+            <div style={{ fontSize:11.5, color:T.muted, lineHeight:1.38 }}>
+              {item.expMeta || item.description || ""}
             </div>
             <div style={{
-              flex:1, padding:"12px 13px",
-              display:"flex", flexDirection:"column", justifyContent:"center", gap:5,
-              background:"rgba(255,255,255,0.55)",
-            }}>
-              <div style={{ fontSize:13.5, fontWeight:700, color:T.ink,
-                letterSpacing:-0.25, lineHeight:1.22 }}>
-                {item.expTitle || item.title}
-              </div>
-              <div style={{ fontSize:11.5, color:T.muted, lineHeight:1.38 }}>
-                {item.expMeta || item.description}
-              </div>
-              <div style={{
-                display:"inline-flex", alignItems:"center", gap:3, marginTop:1,
-                fontSize:11, fontWeight:700, color:T.coral,
-              }}>{"Jetzt anmelden ›"}</div>
-            </div>
+              display:"inline-flex", alignItems:"center", gap:3, marginTop:1,
+              fontSize:11, fontWeight:700, color:T.coral,
+            }}>{"Jetzt anmelden ›"}</div>
           </div>
         </div>
-      )}
+      </div>
 
       {item.caption && (
         <div style={{ padding:"0 16px 8px" }}>
