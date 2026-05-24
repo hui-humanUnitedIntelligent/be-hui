@@ -444,21 +444,31 @@ export async function findOrCreateChat({
 }) {
   if (!userId || !otherUserId) return null;
 
-  // Existing chat suchen
-  const { data: existing } = await supabase
+  // Existing chat suchen — direkte Suche nach beiden Kombinationen
+  // (participant_a=userId AND participant_b=otherUserId)
+  // OR (participant_a=otherUserId AND participant_b=userId)
+  const { data: existing, error: findError } = await supabase
     .from("chats")
-    .select("id, chat_type, state, last_message, booking_id")
-    .or(`participant_a.eq.${userId},participant_b.eq.${userId}`)
-    .or(`participant_a.eq.${otherUserId},participant_b.eq.${otherUserId}`)
+    .select("id, participant_a, participant_b, chat_type, state, last_message, booking_id")
+    .or(
+      `and(participant_a.eq.${userId},participant_b.eq.${otherUserId}),` +
+      `and(participant_a.eq.${otherUserId},participant_b.eq.${userId})`
+    )
     .eq("state", "open")
     .order("last_message_at", { ascending: false })
-    .limit(10);
+    .limit(5);
 
-  // Prüfen ob ein bestehender Chat zwischen den zwei Usern existiert
-  const match = (existing || []).find(c => {
-    const parties = [c.participant_a, c.participant_b];
-    return parties.includes(userId) && parties.includes(otherUserId);
-  });
+  if (findError) {
+    console.error("[HUI_CHAT] findOrCreateChat SELECT fehlgeschlagen:", findError.message, findError.code);
+    // Trotzdem weiterversuchen — neuen Chat erstellen
+  }
+
+  console.log("[HUI_CHAT] findOrCreateChat: gefundene Chats:", existing?.length ?? 0, existing?.map(c=>c.id));
+
+  const match = (existing || []).find(c =>
+    (c.participant_a === userId && c.participant_b === otherUserId) ||
+    (c.participant_a === otherUserId && c.participant_b === userId)
+  );
 
   if (match) {
     console.log("[HUI_CHAT] findOrCreateChat: bestehender Chat gefunden:", match.id);

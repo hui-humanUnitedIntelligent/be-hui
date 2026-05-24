@@ -18,6 +18,7 @@ import { HUI } from "../../design/hui.design.js";
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
 
 const CSS = `
+  @keyframes hui-spin { to { transform: rotate(360deg); } }
   * { box-sizing:border-box; -webkit-font-smoothing:antialiased; }
   .hui-scroll {
     scrollbar-width:none; -ms-overflow-style:none;
@@ -153,66 +154,72 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   const { openCreatorProfile } = useProfileLauncher();
   const { user } = useAuth();
 
-  // Phase 3: Wenn von Profil aus geöffnet → echten Chat in DB finden/erstellen
-  React.useEffect(() => {
-    if (!initialRecipient?.id || activeConv) return;
-    const recipientId = initialRecipient.id;
+  // initialRecipient: von Profil/Action aus Chat öffnen
+  // KEIN fake-ID Fallback. Nur echte UUID oder kein Conv.
+  const [loadingConv, setLoadingConv] = React.useState(false);
 
-    if (user?.id) {
-      // Echten Chat-Record holen oder erstellen
-      findOrCreateChat({
-        userId:      user.id,
-        otherUserId: recipientId,
-        chatType:    "direct",
-      }).then(chatRecord => {
-        setActiveConv({
-          id:         chatRecord?.id || `direct_${recipientId}`,
-          name:       initialRecipient.display_name || "Creator",
-          avatar_url: initialRecipient.avatar_url   || null,
-          talent:     initialRecipient.talent        || null,
-          mood:       "Echte Verbindung",
-          online:     true,
-          _recipientId: recipientId,
-        });
-      }).catch(() => {
-        // Fallback: UI funktioniert weiter, aber ohne Persistenz
-        setActiveConv({
-          id:         `direct_${recipientId}`,
-          name:       initialRecipient.display_name || "Creator",
-          avatar_url: initialRecipient.avatar_url   || null,
-          talent:     initialRecipient.talent        || null,
-          mood:       "Echte Verbindung",
-          online:     true,
-          _recipientId: recipientId,
-        });
-      });
-    } else {
-      // User noch nicht geladen — temporäre Conv
-      setActiveConv({
-        id:         `direct_${recipientId}`,
-        name:       initialRecipient.display_name || "Creator",
-        avatar_url: initialRecipient.avatar_url   || null,
-        talent:     initialRecipient.talent        || null,
-        mood:       "Echte Verbindung",
-        online:     true,
-        _recipientId: recipientId,
-      });
+  React.useEffect(() => {
+    if (!initialRecipient?.id) return;
+    if (activeConv) return;
+    if (!user?.id) {
+      // user noch nicht geladen — Effekt läuft erneut sobald user?.id sich setzt
+      console.log("[HUI_CHAT] initialRecipient: warte auf user.id…");
+      return;
     }
+    const recipientId = initialRecipient.id;
+    console.log("[HUI_CHAT] initialRecipient → findOrCreateChat", {
+      userId: user.id, recipientId, name: initialRecipient.display_name,
+    });
+    setLoadingConv(true);
+    findOrCreateChat({
+      userId:      user.id,
+      otherUserId: recipientId,
+      chatType:    "direct",
+    })
+      .then(chatRecord => {
+        console.log("[HUI_CHAT] initialRecipient chatRecord:", chatRecord);
+        const realId = chatRecord?.id;
+        if (!realId) {
+          console.error("[HUI_CHAT] initialRecipient: kein chatRecord.id!", chatRecord);
+          return; // kein Conv öffnen — Fehler wurde in findOrCreateChat geloggt
+        }
+        console.log("[HUI_CHAT] ✓ Conv öffnen:", realId);
+        setActiveConv({
+          id:           realId,
+          name:         initialRecipient.display_name || "Creator",
+          avatar_url:   initialRecipient.avatar_url   || null,
+          talent:       initialRecipient.talent        || null,
+          mood:         "Echte Verbindung",
+          online:       true,
+          _recipientId: recipientId,
+        });
+      })
+      .catch(err => {
+        console.error("[HUI_CHAT] initialRecipient: Exception:", err?.message, err);
+      })
+      .finally(() => setLoadingConv(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, initialRecipient?.id]);
   const { chats, loading, unreadTotal } = useChatList();
 
   // Wenn Conv geöffnet: normalize conv shape
   function openConv(rawConv) {
+    const realId = rawConv?.id;
+    if (!realId || typeof realId === "number") {
+      console.error("[HUI_CHAT] openConv: ungültige id:", realId, rawConv);
+      return;
+    }
     const other = rawConv.other_profile || {};
+    console.log("[HUI_CHAT] openConv:", realId, rawConv.name || other.display_name);
     setActiveConv({
-      id:         rawConv.id,
-      name:       rawConv.name || other.display_name || "Gespr\u00e4ch",
-      avatar_url: rawConv.avatar_url || other.avatar_url || null,
-      talent:     rawConv.talent || other.focus_type || null,
-      mood:       rawConv.mood || (other.availability === "busy" ? "Gerade kreativ im Studio" : "Im Atelier"),
-      online:     rawConv.online ?? true,
+      id:           realId,
+      name:         rawConv.name || other.display_name || "Gespräch",
+      avatar_url:   rawConv.avatar_url || other.avatar_url || null,
+      talent:       rawConv.talent || other.focus_type || null,
+      mood:         rawConv.mood || (other.availability === "busy" ? "Gerade kreativ im Studio" : "Im Atelier"),
+      online:       rawConv.online ?? true,
       last_message: rawConv.last_message,
+      other_profile: rawConv.other_profile || null,
     });
   }
 
@@ -291,6 +298,26 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             });
           }}
         />
+      )}
+
+      {/* ── CONV LOADING ── */}
+      {loadingConv && !activeConv && (
+        <div style={{
+          position:"absolute", inset:0, zIndex:3,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(249,247,244,0.95)", backdropFilter:"blur(20px)",
+        }}>
+          <div style={{ textAlign:"center" }}>
+            <div style={{
+              width:40, height:40, borderRadius:"50%",
+              border:"3px solid rgba(22,215,197,0.2)",
+              borderTop:"3px solid #16D7C5",
+              animation:"hui-spin 0.9s linear infinite",
+              margin:"0 auto 12px",
+            }}/>
+            <div style={{ fontSize:13, color:"#999" }}>Verbindung wird vorbereitet…</div>
+          </div>
+        </div>
       )}
 
       {/* ── ROOM PANEL — slides in über Liste auf Mobile ── */}

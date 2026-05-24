@@ -118,14 +118,9 @@ function ImpactCard() {
 export default function ConversationList({ chats, loading, onOpen, onDiscover }) {
   const [activeFilter, setActiveFilter] = useState("alle");
 
-  // Echte Chats falls vorhanden, sonst Mock
-  const activeConvs = chats?.length > 0
-    ? chats.filter(c => c.chat_type !== "booking")
-    : MOCK_ACTIVE;
-
-  const bookingConvs = chats?.length > 0
-    ? chats.filter(c => c.chat_type === "booking")
-    : MOCK_BOOKINGS;
+  // Nur echte Daten — kein Mock-Fallback
+  const activeConvs  = (chats || []).filter(c => c?.id && c.chat_type !== "booking");
+  const bookingConvs = (chats || []).filter(c => c?.id && c.chat_type === "booking");
 
   return (
     <div style={{ padding:"0 16px" }}>
