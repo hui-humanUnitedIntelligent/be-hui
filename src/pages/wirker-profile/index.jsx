@@ -129,6 +129,7 @@ function FollowBtn({ followed, onFollow }) {
 }
 
 function VisitorHero({ profile, onClose, onBook, onChat }) {
+  const heroActions = useHuiActions();
   const [mounted, setMounted] = useState(false);
   const [followed, setFollowed] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
@@ -351,12 +352,16 @@ function VisitorHero({ profile, onClose, onBook, onChat }) {
                 {liveCount} dabei
               </span>
             </div>
-            <div style={{
-              fontSize:10,color:C.tealLight,fontWeight:700,cursor:"pointer",
-              paddingTop:6,borderTop:"1px solid rgba(255,255,255,.09)",
-            }}>
+            <button
+              onClick={() => heroActions[A.OPEN_ROOM]?.({ creatorId: profile?.id || profile?.user_id })}
+              style={{
+                background:"none",border:"none",padding:0,width:"100%",textAlign:"left",
+                fontSize:10,color:C.tealLight,fontWeight:700,cursor:"pointer",
+                paddingTop:6,borderTop:"1px solid rgba(255,255,255,.09)",
+                touchAction:"manipulation",fontFamily:"inherit",
+              }}>
               Atelier live betreten →
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -534,6 +539,7 @@ function ExpCard({ exp, onBook }) {
 }
 
 function VisitorExperiences({ experiences, onBook }) {
+  const expActions = useHuiActions();
   const { ref, style } = useEntry(60);
   const items = safeArr(experiences).length ? safeArr(experiences) : SEED_EXP;
   return (
@@ -545,9 +551,15 @@ function VisitorExperiences({ experiences, onBook }) {
         <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
           Erlebnisse & Angebote
         </div>
-        <span style={{fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>
+        <button
+          onClick={() => expActions[A.OPEN_EXPERIENCE]?.({ view: "alle", creatorId: null })}
+          style={{
+            background:"none",border:"none",padding:0,
+            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
+            whiteSpace:"nowrap",touchAction:"manipulation",fontFamily:"inherit",
+          }}>
           Alle Erlebnisse anzeigen →
-        </span>
+        </button>
       </div>
       <div style={{
         display:"flex",gap:10,overflowX:"auto",scrollbarWidth:"none",
@@ -586,6 +598,7 @@ function Sparkline({ vals = [], color = C.teal }) {
 }
 
 function AboutSection({ profile }) {
+  const aboutActions = useHuiActions();
   const { ref, style } = useEntry(40);
   const name      = safeStr(profile?.display_name || profile?.name, "lars.platin");
   const bio       = safeStr(profile?.bio, "Ich glaube an die Kraft echter Räume. Räume, in denen wir kreativ sein dürfen. Uns zeigen dürfen. Wachsen dürfen. Gemeinsam.");
@@ -613,10 +626,13 @@ function AboutSection({ profile }) {
             fontSize:12,color:"rgba(30,30,30,.65)",lineHeight:1.65,
             margin:"0 0 12px",fontFamily:"-apple-system,BlinkMacSystemFont,'Georgia',serif",
           }}>{bio}</p>
-          <button style={{
-            background:"none",border:"none",padding:0,
-            fontSize:11,fontWeight:700,color:C.teal,cursor:"pointer",touchAction:"manipulation",
-          }}>Mehr über meine Reise →</button>
+          <button
+            onClick={() => aboutActions[A.OPEN_WORLD]?.({ section: "reise" })}
+            style={{
+              background:"none",border:"none",padding:0,
+              fontSize:11,fontWeight:700,color:C.teal,cursor:"pointer",touchAction:"manipulation",
+              fontFamily:"inherit",
+            }}>Mehr über meine Reise →</button>
         </div>
 
         {/* CENTER: cinematic image */}
@@ -674,7 +690,9 @@ function AboutSection({ profile }) {
           <button style={{
             background:"none",border:"none",padding:"8px 0 0",
             fontSize:11,fontWeight:700,color:C.teal,cursor:"pointer",touchAction:"manipulation",display:"block",
-          }}>Mehr Wirkung ansehen →</button>
+          }}
+            onClick={() => aboutActions[A.GO_IMPACT]?.()}
+          >Mehr Wirkung ansehen →</button>
         </div>
       </div>
     </div>
@@ -725,6 +743,7 @@ function MomentCard({ m }) {
 }
 
 function MomentsSection({ moments }) {
+  const momentActions = useHuiActions();
   const { ref, style } = useEntry(60);
   const items = safeArr(moments).length ? safeArr(moments) : SEED_MOMENTS;
   return (
@@ -736,9 +755,15 @@ function MomentsSection({ moments }) {
         <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
           Momente aus meinem Raum
         </div>
-        <span style={{fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer"}}>
+        <button
+          onClick={() => momentActions[A.OPEN_MOMENT]?.({ view: "alle" })}
+          style={{
+            background:"none",border:"none",padding:0,
+            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
+            touchAction:"manipulation",fontFamily:"inherit",
+          }}>
           Alle Momente ansehen →
-        </span>
+        </button>
       </div>
       <div style={{
         display:"flex",gap:9,overflowX:"auto",scrollbarWidth:"none",
@@ -763,11 +788,16 @@ const SEED_COMMUNITY = [
 ];
 
 function ResonanceRow({ m }) {
+  const rowActions = useHuiActions();
   return (
-    <div style={{
-      display:"flex",alignItems:"center",gap:10,
-      padding:"10px 0",borderBottom:"1px solid rgba(0,0,0,.045)",
-    }}>
+    <button
+      onClick={() => rowActions[A.OPEN_PROFILE]?.({ creatorId: m?.id, creator: m })}
+      style={{
+        display:"flex",alignItems:"center",gap:10,
+        padding:"10px 0",borderBottom:"1px solid rgba(0,0,0,.045)",
+        background:"none",border:"none",width:"100%",textAlign:"left",
+        cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+      }}>
       <div style={{position:"relative",flexShrink:0}}>
         <img src={m.av} alt={m.name}
           style={{width:38,height:38,borderRadius:"50%",objectFit:"cover",background:C.creamDeep}}
@@ -785,11 +815,12 @@ function ResonanceRow({ m }) {
         }}>{m.role}</div>
       </div>
       <div style={{fontSize:9,color:C.muted,fontWeight:500,flexShrink:0,whiteSpace:"nowrap"}}>{m.time}</div>
-    </div>
+    </button>
   );
 }
 
 function ResonanceCommunity({ community }) {
+  const communityActions = useHuiActions();
   const { ref, style } = useEntry(80);
   const members = safeArr(community).length ? safeArr(community) : SEED_COMMUNITY;
   return (
@@ -800,9 +831,15 @@ function ResonanceCommunity({ community }) {
         <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
           Menschen in Resonanz
         </div>
-        <span style={{fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer"}}>
+        <button
+          onClick={() => communityActions[A.OPEN_COMMUNITY]?.({ view: "alle" })}
+          style={{
+            background:"none",border:"none",padding:0,
+            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
+            touchAction:"manipulation",fontFamily:"inherit",
+          }}>
           Alle Menschen ansehen →
-        </span>
+        </button>
       </div>
       <div style={{
         background:"white",borderRadius:R.md,

@@ -10,11 +10,11 @@
 | Metrik | Wert |
 |---|---|
 | **Interaktive Elemente gesamt** | ~127 |
-| **Bereits auf HUI_ACTIONS migriert** | 22 (~17%) | ✅ Batch 1+2 done |
-| **Legacy setState / direkte Calls** | 77 (~61%) |
+| **Bereits auf HUI_ACTIONS migriert** | 30 (~24%) | ✅ Batch 1+2+3 done |
+| **Legacy setState / direkte Calls** | 69 (~54%) |
 | **Dead / Placeholder** | 18 (~14%) |
 | **Missing Backend** | 10 (~8%) |
-| **Migration Score** | **17% — Batch 1+2 ✅ / Batch 3 next** |
+| **Migration Score** | **24% — Batch 1+2+3 ✅ / Batch 4 next** |
 
 ---
 
@@ -91,19 +91,19 @@
 | VisitorProfile | Stat: Erlebnisse | StatItem | Kein onClick | — | `placeholder` | Detail-View? | Tap-Ziel unklar |
 | VisitorProfile | Stat: Menschen | StatItem | Kein onClick | — | `placeholder` | Community-View? | Tap-Ziel unklar |
 | VisitorProfile | Stat: Resonanz | StatItem | Kein onClick | — | `placeholder` | — | Intentional? |
-| VisitorProfile | Experience Card — "Mehr erfahren →" | Button | `onBook?.(exp)` | `A.BOOK_EXPERIENCE` | `partial` | `A.BOOK_EXPERIENCE` | onBook aus FloatingCTA kommt, exp-Detail fehlt |
+| VisitorProfile | Experience Card — "Mehr erfahren →" | Button | `A.BOOK_EXPERIENCE` via handleBook | `A.BOOK_EXPERIENCE` | `migrated ✅` | — | — |
 | VisitorProfile | Experience Card (Card selbst) | Card | press-feedback only | `A.OPEN_EXPERIENCE` | `dead` | `A.OPEN_EXPERIENCE` | Kein onClick auf Card |
 | VisitorProfile | Moment Card | Card | press-feedback only | `A.OPEN_MOMENT` | `dead` | `A.OPEN_MOMENT` | Action + Zielscreen fehlen |
-| VisitorProfile | Community Row | ListItem | Kein onClick | — | `placeholder` | `A.OPEN_PROFILE` | Person-Tap fehlt |
+| VisitorProfile | Community Row (ResonanceRow) | Button | `A.OPEN_PROFILE` { creatorId, creator } | `A.OPEN_PROFILE` | `migrated ✅` | — | — |
 | VisitorProfile | "Atelier live betreten →" | Link | Kein onClick | — | `dead` | `A.OPEN_ROOM` | Zielscreen fehlt |
 | VisitorProfile | Floating "Erlebnis buchen" CTA | FloatingCTA | `onBook?.(profile, exp)` | `A.BOOK_EXPERIENCE` | `partial` | `A.BOOK_EXPERIENCE` | BookingFlow nicht voll implementiert |
 | VisitorProfile | Share ⬆ Button | Button | Kein onClick | — | `dead` | `A.SHARE_MOMENT` | Handler fehlt |
 | VisitorProfile | Menu ··· Button | Button | Kein onClick | — | `dead` | — | Optionsmenü fehlt |
-| VisitorProfile | "Mehr über meine Reise →" | Link | Kein onClick | — | `dead` | `A.OPEN_WORLD` | Zielscreen unklar |
-| VisitorProfile | "Mehr Wirkung ansehen →" | Link | Kein onClick | — | `dead` | `A.OPEN_IMPACT` | Navigation fehlt |
-| VisitorProfile | "Alle Menschen ansehen →" | Link | Kein onClick | — | `dead` | `A.OPEN_COMMUNITY` | Zielscreen fehlt |
-| VisitorProfile | "Alle Erlebnisse anzeigen →" | Link | Kein onClick | — | `dead` | `A.OPEN_EXPERIENCE` | Zielscreen fehlt |
-| VisitorProfile | "Alle Momente ansehen →" | Link | Kein onClick | — | `dead` | — | Zielscreen fehlt |
+| VisitorProfile | "Mehr über meine Reise →" | Button | `A.OPEN_WORLD` { section: reise } | `A.OPEN_WORLD` | `migrated ✅` | — | — |
+| VisitorProfile | "Mehr Wirkung ansehen →" | Button | `A.GO_IMPACT` | `A.GO_IMPACT` | `migrated ✅` | — | — |
+| VisitorProfile | "Alle Menschen ansehen →" | Button | `A.OPEN_COMMUNITY` { view: alle } | `A.OPEN_COMMUNITY` | `migrated ✅` | — | — |
+| VisitorProfile | "Alle Erlebnisse anzeigen →" | Button | `A.OPEN_EXPERIENCE` { view: alle } | `A.OPEN_EXPERIENCE` | `migrated ✅` | — | — |
+| VisitorProfile | "Alle Momente ansehen →" | Button | `A.OPEN_MOMENT` { view: alle } | `A.OPEN_MOMENT` | `migrated ✅` | — | — |
 
 ---
 
@@ -343,8 +343,8 @@ Diese Flows sind für die Nutzererfahrung am kritischsten und derzeit broken:
 - ~~Event Card → `A.OPEN_EXPERIENCE`~~ ✅
 - ~~EmptyState CTAs → `A.GO_DISCOVER` / `A.OPEN_STORY_COMPOSER`~~ ✅
 
-### Batch 3 — Visitor Profile tote Links (8 Elemente)
-- Alle "→" Links mit echten Actions verdrahten
+### Batch 3 — Visitor Profile tote Links ✅ DONE 2026-05-24
+- ~~Alle "→" Links mit echten Actions verdrahten~~ ✅ (8 Links migriert)
 
 ### Batch 4 — Notification Engine (4 Elemente)
 - `onNavigate` → Action Engine migrieren
