@@ -15,6 +15,13 @@ import { useCallback, useContext, createContext } from "react";
 import { validate, SOURCE } from "./hui.contracts.js";
 import { S, SURFACE_LABEL } from "./hui.sources.js";
 import { ECHO, flowSignal } from "./hui.flow.states.js";
+import {
+  normalizeRecipient,
+  normalizeCreator,
+  normalizeExperience,
+  checkSemantics,
+  INTENT,
+} from "./hui.semantics.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -200,13 +207,17 @@ export function buildActions(shell) {
       if (!payload) return;
       logAction(A.OPEN_CHAT, payload);
       const { recipient, recipientId, name, avatar, ...rest } = payload;
-      const rec = recipient ?? (recipientId ? {
+      // Semantic: normalizeRecipient schützt vor rohen Supabase-Objekten
+      var rawRec = recipient ?? (recipientId ? {
         id: recipientId,
-        display_name: name ?? "Creator",
+        display_name: name ?? null,
         avatar_url: avatar ?? null,
         ...rest,
       } : chatRecipient);
+      const rec = rawRec ? normalizeRecipient(rawRec) : null;
       if (rec) setChatRecipient?.(rec);
+      // Semantic guard (DEV): prüft ob der Chat-Payload vollständig ist
+      checkSemantics("OPEN_CHAT", { recipient: rec, source: payload.source });
       // Phase 2: wenn Profil offen war → Return merken
       // NICHT setShowWirker(null) — Profil bleibt gemounted (LOOP 1)
       logFlow(payload.source, S.CHAT);
@@ -238,6 +249,8 @@ export function buildActions(shell) {
         actions[A.OPEN_PROFILE]({
           creatorId: creatorId ?? experience?.creator_id,
           _highlightExp: experience?.id ?? null,
+          source: payload.source || S.SYSTEM,  // source durchreichen
+          intent: INTENT.EXPLORE,              // semantic intent
         });
       } else {
         // No creator context — open connect sheet
@@ -250,8 +263,15 @@ export function buildActions(shell) {
       if (!payload) return;
       logAction(A.BOOK_EXPERIENCE, payload);
       const { experience, creator } = payload;
-      // Set recipient for booking chat
-      if (creator) setChatRecipient?.(creator);
+      // Semantic: normalizeCreator → sicheres Recipient-Objekt für Booking-Chat
+      const safeExp  = normalizeExperience(experience);
+      const safeCr   = creator ? normalizeCreator(creator) : null;
+      // Semantic guard (DEV)
+      checkSemantics("BOOK_EXPERIENCE", { experience: safeExp, creator: safeCr, source: payload.source });
+      // Set recipient so Connect-Sheet weiß wer gebucht wird
+      if (safeCr) setChatRecipient?.(safeCr);
+      // Flow-Log
+      logFlow(payload.source, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
       setShowConnect?.(true);
     },
 
@@ -266,17 +286,24 @@ export function buildActions(shell) {
       switchTab?.("impact");
     },
 
-    [A.SEND_RESONANCE]: (payload = {}) => {
+    [A.SEND_RESONANCE]: (rawPayload) => {
+      const payload = validate("SEND_RESONANCE", rawPayload);
+      if (!payload) return;
       logAction(A.SEND_RESONANCE, payload);
+      // Semantic guard (DEV)
+      checkSemantics("SEND_RESONANCE", payload);
       // Fire-and-forget resonance — actual write handled by caller
       // Payload: { targetId, type: "profile"|"moment"|"experience" }
       flowSignal.emit("echo", { type: ECHO.SOFT_GLOW, action: A.SEND_RESONANCE, data: payload });
     },
 
     // ── SOCIAL ────────────────────────────────────────────────────
-    [A.FOLLOW_CREATOR]: (payload = {}) => {
+    [A.FOLLOW_CREATOR]: (rawPayload) => {
+      const payload = validate("FOLLOW_CREATOR", rawPayload);
+      if (!payload) return;
       logAction(A.FOLLOW_CREATOR, payload);
-      // Payload: { creatorId, following: boolean }
+      // Semantic guard (DEV)
+      checkSemantics("FOLLOW_CREATOR", payload);
       // Actual Supabase write handled by caller — Signal für UI-Echo
       flowSignal.emit("echo", { type: ECHO.WARMTH, action: A.FOLLOW_CREATOR, data: payload });
     },

@@ -941,6 +941,8 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
   const handleChat = useCallback(() => {
     if (actions[A.OPEN_CHAT]) {
+      // PHASE 2C: source + vollständiges recipient-Objekt
+      // normalizeRecipient() läuft in OPEN_CHAT — hier rohe Daten ok
       actions[A.OPEN_CHAT]({
         recipient: {
           id:           profile?.id || profile?.user_id,
@@ -948,6 +950,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
           avatar_url:   profile?.img || profile?.avatar_url || null,
           talent:       profile?.talent || null,
         },
+        source: S.VISITOR_PROFILE,  // LOOP 1: Return zum Profil nach Chat-Close
       });
     } else {
       onChat?.(profile);
