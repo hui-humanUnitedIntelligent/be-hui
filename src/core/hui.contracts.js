@@ -20,6 +20,8 @@
 //   const { creator, creatorId, source } = p;
 // ══════════════════════════════════════════════════════════════════
 
+import { S, isValidSource, SURFACE_LABEL } from "./hui.sources.js";
+
 const isDev = import.meta.env?.DEV ?? false;
 
 // ─── Source-Konstanten ─────────────────────────────────────────────
@@ -243,13 +245,19 @@ export function validate(actionName, rawPayload) {
     }
   }
 
-  // Source-Hinweis
-  if (isDev && !payload.source) {
-    console.info(
-      "[HUI_FLOW] A." + actionName + ": kein source gesetzt. " +
-      "Flow-Memory kann Return-Context nicht tracken. " +
-      "Ergaenze source: SOURCE.DISCOVER, SOURCE.FEED etc."
-    );
+  // Source-Validierung — Hinweis bei fehlendem oder ungültigem Source
+  if (isDev) {
+    if (!payload.source) {
+      console.info(
+        "[HUI_CONTRACT] A." + actionName + ": kein source gesetzt. " +
+        "Nutze S.DISCOVER, S.FEED etc. aus hui.sources.js"
+      );
+    } else if (!isValidSource(payload.source)) {
+      console.warn(
+        "[HUI_CONTRACT] A." + actionName + ': unbekannter source-Wert: "' + payload.source + '". ' +
+        "Verwende nur Werte aus S (hui.sources.js)"
+      );
+    }
   }
 
   // Sicherer Klon mit source-Fallback

@@ -4,6 +4,7 @@
 // REGEL: Kein direkter Supabase in UI-Unterokomponenten. Queries top-level.
 
 import { HUI } from "../design/hui.design.js";
+import { S } from "../core/hui.sources.js";
 import { IX } from "../design/hui.interaction.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
 import React, { useState, useEffect, useCallback } from "react";
@@ -617,9 +618,9 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
   const handleView = React.useCallback((item) => {
     const t = item?.type || "work_upload";
     if (t === "profile" || t === "talent" || item?.talent) {
-      actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item, source: "favorites" });
+      actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item, source: S.FAVORITES });
     } else if (t === "experience" || t === "erlebnis") {
-      actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: "favorites" });
+      actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: S.FAVORITES });
     } else {
       actions[A.OPEN_WERK]?.({ werk: item });
     }

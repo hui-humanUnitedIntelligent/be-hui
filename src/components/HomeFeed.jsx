@@ -3,6 +3,7 @@
 // System: 5 visual feed states with organic rhythm.
 
 import { useFeedData }           from '../lib/AppStateContext';
+import { S } from "../core/hui.sources.js";
 import { filterValidFeedItems }  from '../lib/factories/createFeedItem.js';
 import { createProfileItem }     from '../lib/factories/createProfileItem.js';
 import { useHuiActions, A }      from '../core/hui.actions.js';
@@ -446,7 +447,7 @@ export default function HomeFeed({
 
   const handleProfile = React.useCallback((item) => {
     const creatorId = item?.creator_id || item?.user_id || item?.creatorId || item?.id;
-    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: "feed" });
+    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: S.HOME });
     onProfile?.(item);
   }, [actions, onProfile]);
 

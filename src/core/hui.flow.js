@@ -20,6 +20,7 @@
 // ══════════════════════════════════════════════════════════════════
 
 import { useContext, createContext } from "react";
+import { S, SURFACE_LABEL } from "./hui.sources.js";
 
 // ─── Flow Entry Schema ─────────────────────────────────────────────
 // {
@@ -30,6 +31,8 @@ import { useContext, createContext } from "react";
 //   scrollKey?: string   — sessionStorage key für Scroll-Position
 //   timestamp:  number
 // }
+
+const isDev = import.meta.env?.DEV ?? false;
 
 // ─── Context ───────────────────────────────────────────────────────
 export const FlowCtx = createContext(null);
@@ -67,8 +70,17 @@ export function createFlowStore() {
     // ── Stack Operations ─────────────────────────────────────────
     push(entry) {
       if (!entry?.surface) return; // kein leerer Eintrag
-      stack.push({ timestamp: Date.now(), ...entry });
+      var e = Object.assign({ timestamp: Date.now() }, entry);
+      stack.push(e);
       if (stack.length > 10) stack.shift(); // Rolling window
+      if (isDev) {
+        var surfLabel = SURFACE_LABEL[e.surface] || e.surface;
+        var fromLabel = e.source ? (SURFACE_LABEL[e.source] || e.source) : null;
+        var msg = "[HUI_FLOW] → " + surfLabel;
+        if (fromLabel) msg += " from " + fromLabel;
+        if (e.creatorId) msg += " (id:" + e.creatorId + ")";
+        console.log(msg);
+      }
     },
 
     pop() {
@@ -90,6 +102,10 @@ export function createFlowStore() {
     //   flow.getReturnProfile() → Profil wieder öffnen
     setReturnProfile(profile) {
       _returnProfile = profile ?? null;
+      if (isDev && profile) {
+        var name = profile.display_name || profile.name || profile.id || "?";
+        console.log("[HUI_FLOW] ReturnProfile gesetzt:", name);
+      }
     },
 
     getReturnProfile() {
@@ -97,6 +113,9 @@ export function createFlowStore() {
     },
 
     clearReturnProfile() {
+      if (isDev && _returnProfile) {
+        console.log("[HUI_FLOW] ReturnProfile geleert");
+      }
       _returnProfile = null;
     },
   };

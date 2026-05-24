@@ -1,4 +1,5 @@
 import { createProfileItem } from "../../../lib/factories/createProfileItem.js";
+import { S } from "../../../core/hui.sources.js";
 // src/components/home/profile/ProfileLauncher.jsx v5
 // ROUTING: showWirker._isOwnerView === true → CreatorProfilePage
 //          sonst                           → WirkerProfilePage
@@ -39,7 +40,7 @@ export function useProfileLauncher() {
   const openProfile = useCallback((data) => {
     if (!data) return;
     // Push source surface so Return weiß woher wir kamen
-    actions[A.OPEN_PROFILE]?.({ creator: data, source: "system" });
+    actions[A.OPEN_PROFILE]?.({ creator: data, source: S.SYSTEM });
   }, [actions]);
 
   const openOwnProfile = useCallback(() => {
@@ -47,7 +48,7 @@ export function useProfileLauncher() {
   }, [actions]);
 
   const openCreatorProfile = useCallback((id, extra = {}) => {
-    actions[A.OPEN_PROFILE]?.({ creatorId: id, source: "system", ...extra });
+    actions[A.OPEN_PROFILE]?.({ creatorId: id, source: S.SYSTEM, ...extra });
   }, [actions]);
 
   return { openProfile, openOwnProfile, openCreatorProfile };

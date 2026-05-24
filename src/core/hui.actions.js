@@ -13,19 +13,41 @@
 
 import { useCallback, useContext, createContext } from "react";
 import { validate, SOURCE } from "./hui.contracts.js";
+import { S, SURFACE_LABEL } from "./hui.sources.js";
+import { ECHO, flowSignal } from "./hui.flow.states.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
 
 function logAction(name, payload) {
   if (isDev) {
+    var src = payload?.source;
+    var srcLabel = src ? (" from " + src) : "";
     console.log(
-      `%c[HUI_ACTION] %c${name}`,
+      "%c[HUI_ACTION]%c " + name + srcLabel,
       "color:#0DC4B5;font-weight:800",
       "color:#1a1a2e;font-weight:600",
       payload ?? ""
     );
   }
+}
+
+function logFlow(from, to, extra) {
+  if (!isDev) return;
+  var LABELS = SURFACE_LABEL || {};
+  var f = LABELS[from] || from || "?";
+  var t = LABELS[to]   || to   || "?";
+  console.log("%c[HUI_FLOW]%c " + f + " → " + t,
+    "color:#A78BFA;font-weight:700", "color:#4B5563", extra || "");
+}
+
+function logReturn(from, to) {
+  if (!isDev) return;
+  var LABELS = SURFACE_LABEL || {};
+  var f = LABELS[from] || from || "?";
+  var t = LABELS[to]   || to   || "?";
+  console.log("%c[HUI_RETURN]%c ← " + f + " → " + t,
+    "color:#F59E0B;font-weight:700", "color:#4B5563");
 }
 
 // ─── Action Names (constants — use these, not raw strings) ─────────
@@ -157,7 +179,8 @@ export function buildActions(shell) {
         ? creator
         : { id: creatorId, user_id: creatorId, ...rest };
       // Phase 2: Flow Stack — merke Navigations-Ursprung
-      flowStore?.push({ surface: "profile", creatorId: creatorId ?? data?.id, creator: data, source });
+      logFlow(source, S.VISITOR_PROFILE);
+      flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source: source || S.SYSTEM });
       setShowWirker?.(data);
     },
 
@@ -186,7 +209,8 @@ export function buildActions(shell) {
       if (rec) setChatRecipient?.(rec);
       // Phase 2: wenn Profil offen war → Return merken
       // NICHT setShowWirker(null) — Profil bleibt gemounted (LOOP 1)
-      flowStore?.push({ surface: "chat", recipient: rec });
+      logFlow(payload.source, S.CHAT);
+      flowStore?.push({ surface: S.CHAT, recipient: rec, source: payload.source || S.SYSTEM });
       setShowChat?.(true);
     },
 
@@ -246,15 +270,15 @@ export function buildActions(shell) {
       logAction(A.SEND_RESONANCE, payload);
       // Fire-and-forget resonance — actual write handled by caller
       // Payload: { targetId, type: "profile"|"moment"|"experience" }
-      if (isDev) console.log("[HUI] Resonance sent:", payload);
+      flowSignal.emit("echo", { type: ECHO.SOFT_GLOW, action: A.SEND_RESONANCE, data: payload });
     },
 
     // ── SOCIAL ────────────────────────────────────────────────────
     [A.FOLLOW_CREATOR]: (payload = {}) => {
       logAction(A.FOLLOW_CREATOR, payload);
       // Payload: { creatorId, following: boolean }
-      // Actual Supabase write handled by caller
-      if (isDev) console.log("[HUI] Follow toggled:", payload);
+      // Actual Supabase write handled by caller — Signal für UI-Echo
+      flowSignal.emit("echo", { type: ECHO.WARMTH, action: A.FOLLOW_CREATOR, data: payload });
     },
 
     [A.SHARE_MOMENT]: (rawPayload) => {
