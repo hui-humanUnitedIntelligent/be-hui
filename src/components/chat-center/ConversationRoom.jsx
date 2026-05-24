@@ -52,27 +52,34 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       ? getMockMsgs(conv)   // nur bei fake-ID als UX-Platzhalter
       : [];                 // echter Chat — echter leerer State
 
-  const [typing, setTyping] = useState(false);
+  const [typing,  setTyping]  = useState(false);
+  const [sending, setSending] = useState(false);
 
   const handleSend = useCallback(async (text) => {
-    if (!text?.trim()) return;
+    if (!text?.trim() || sending) return;
     console.log("[HUI_CHAT] sending message, chatId:", chatId);
-    if (sendMessage) {
-      const result = await sendMessage({ text, msgType: "text" });
-      if (result?.error) {
-        console.warn("[HUI_CHAT] send failed:", result.error);
-      } else {
-        console.log("[HUI_MESSAGE] message persisted ✓");
+    setSending(true);
+    try {
+      if (sendMessage) {
+        const result = await sendMessage({ text, msgType: "text" });
+        if (result?.error) {
+          console.warn("[HUI_CHAT] send failed:", result.error);
+        } else {
+          console.log("[HUI_MESSAGE] message persisted ✓");
+        }
       }
+    } finally {
+      setSending(false);
+      setTyping(false);
     }
-    setTyping(false);
-  }, [sendMessage, chatId]);
+  }, [sendMessage, chatId, sending]);
 
   return (
     <div style={{
       position:"absolute", inset:0, zIndex:3,
       display:"flex", flexDirection:"column",
-      overflow:"hidden",
+      // overflow-x hidden, overflow-y visible → ChatInput bleibt sichtbar
+      overflowX:"hidden", overflowY:"hidden",
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
     }}>
       <style>{CSS}</style>
@@ -90,8 +97,15 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
         event={null}
       />
 
-      {/* Input */}
-      <ChatInput onSend={handleSend}/>
+      {/* Composer — sticky bottom, safe-area aware */}
+      <div style={{
+        position:"relative",
+        zIndex:10,
+        flexShrink:0,
+        width:"100%",
+      }}>
+        <ChatInput onSend={handleSend} sending={sending}/>
+      </div>
     </div>
   );
 }

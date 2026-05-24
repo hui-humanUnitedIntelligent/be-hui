@@ -297,7 +297,9 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       {activeConv && (
         <div style={{
           position:"absolute", inset:0, zIndex:2,
+          display:"flex", flexDirection:"column",
           animation:"cc-room-in 0.22s ease both",
+          // Kein overflow:hidden — ChatInput muss bis zum Boden sichtbar sein
         }}>
           <ConversationRoom
             conv={activeConv}
