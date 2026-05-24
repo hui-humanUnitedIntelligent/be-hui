@@ -5,6 +5,7 @@
 import { useFeedData }           from '../lib/AppStateContext';
 import { filterValidFeedItems }  from '../lib/factories/createFeedItem.js';
 import { createProfileItem }     from '../lib/factories/createProfileItem.js';
+import { useHuiActions, A }      from '../core/hui.actions.js';
 import { useScrollEntry } from "../design/hui.hooks.js";
 import React, {
   useState, useRef, useEffect, useCallback, useMemo,
@@ -438,9 +439,31 @@ export default function HomeFeed({
   stories   = null, feedItems = null, events = null, people = null,
   onProfile = null, onStory   = null, onEvent = null,
   onLike    = null, onComment = null,
-  onDiscover = null,  // Phase 23: Empty State → Discover
-  onShare    = null,  // Phase 23: Empty State → Teilen
+  onDiscover = null,
+  onShare    = null,
 }) {
+  const actions = useHuiActions();
+
+  const handleProfile = React.useCallback((item) => {
+    const creatorId = item?.creator_id || item?.user_id || item?.creatorId || item?.id;
+    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item });
+    onProfile?.(item);
+  }, [actions, onProfile]);
+
+  const handleDiscover = React.useCallback(() => {
+    actions[A.GO_DISCOVER]?.();
+    onDiscover?.();
+  }, [actions, onDiscover]);
+
+  const handleShare = React.useCallback(() => {
+    actions[A.OPEN_STORY_COMPOSER]?.();
+    onShare?.();
+  }, [actions, onShare]);
+
+  const handleEvent = React.useCallback((ev) => {
+    actions[A.OPEN_EXPERIENCE]?.({ experience: ev });
+    onEvent?.(ev);
+  }, [actions, onEvent]);
   const feedData  = useFeedData?.() || {};
   const liveItems = feedItems || feedData?.feedItems || MOCK_FEED;
 
@@ -468,14 +491,14 @@ export default function HomeFeed({
 
         {/* Events */}
         {SAFE_MODE.homeFeed && (
-          <EventsSection events={events || MOCK_EVENTS} onEvent={onEvent} />
+          <EventsSection events={events || MOCK_EVENTS} onEvent={handleEvent} />
         )}
 
         {/* Rhythmic Feed */}
         {SAFE_MODE.homeFeed && (
           <RhythmicFeed
             items={liveItems}
-            onProfile={onProfile}
+            onProfile={handleProfile}
             onLike={onLike}
             onComment={onComment}
           />
@@ -483,7 +506,7 @@ export default function HomeFeed({
 
         {/* Menschen */}
         {SAFE_MODE.homeFeed && (
-          <MenschenSection people={people || MOCK_PEOPLE} onPerson={onProfile} />
+          <MenschenSection people={people || MOCK_PEOPLE} onPerson={handleProfile} />
         )}
       </div>
     </div>
@@ -786,7 +809,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment }) {
       viewerContextId: (viewerContext ?? FALLBACK_VIEWER_CONTEXT)?.viewerId ?? "?",
       authUserId: authUser?.id ?? null,
     });
-    return <FeedEmptyState onDiscover={onDiscover} onShare={onShare} />;
+    return <FeedEmptyState onDiscover={handleDiscover} onShare={handleShare} />;
   }
 
   return (
@@ -1407,6 +1430,16 @@ function CreatorHeader({ item, creator, onProfile, compact = false }) {
    SHARED: REACTION BAR — HUI language
    ═══════════════════════════════════════════════════════════════════════════ */
 function ReactionBar({ item, itemReactions, onReaction, onComment, minimal=false, compact=false }) {
+  const actions = useHuiActions();
+
+  function handleResonanz(type) {
+    onReaction?.(type);
+    actions[A.SEND_RESONANCE]?.({
+      itemId:    item?.id,
+      creatorId: item?.creator_id || item?.user_id || item?.creatorId,
+      type,
+    });
+  }
   const resonanzCount  = (item.resonanz  || 0) + (itemReactions.resonanz  ? 1 : 0);
   const berührtCount   = (item.berührt   || 0) + (itemReactions.berührt   ? 1 : 0);
   const begleitetCount = (item.begleitet || 0) + (itemReactions.begleitet ? 1 : 0);
@@ -1421,7 +1454,7 @@ function ReactionBar({ item, itemReactions, onReaction, onComment, minimal=false
     }}>
       {/* Resonanz */}
       <button
-        onClick={() => onReaction("resonanz")}
+        onClick={() => handleResonanz("resonanz")}
         className={`hf-react-btn${itemReactions.resonanz ? " hf-react-btn--active":""}`}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
           <path
@@ -1440,7 +1473,7 @@ function ReactionBar({ item, itemReactions, onReaction, onComment, minimal=false
 
       {!minimal && (
         <button
-          onClick={() => onReaction("inspiriert")}
+          onClick={() => handleResonanz("inspiriert")}
           className={`hf-react-btn${itemReactions.inspiriert ? " hf-react-btn--active":""}`}>
           <span style={{ fontSize:12 }}>{itemReactions.inspiriert ? "✦" : "✧"}</span>
           <span>inspiriert</span>
@@ -1448,7 +1481,7 @@ function ReactionBar({ item, itemReactions, onReaction, onComment, minimal=false
       )}
 
       <button
-        onClick={() => onReaction("berührt")}
+        onClick={() => handleResonanz("berührt")}
         className={`hf-react-btn hf-react-btn--warm${itemReactions.berührt ? " hf-react-btn--active":""}`}>
         <span style={{ fontSize:11 }}>◎</span>
         <span>{"berührt"}</span>
@@ -1604,6 +1637,7 @@ function MenschenSection({ people, onPerson }) {
 
 function PersonCard({ person, onPress }) {
   const [following, setFollowing] = useState(false);
+  const actions = useHuiActions();
 
   return (
     <div className="hf-card-base" style={{
@@ -1658,7 +1692,16 @@ function PersonCard({ person, onPress }) {
           ))}
         </div>
         <button
-          onClick={() => setFollowing(f => !f)}
+          onClick={() => {
+            const next = !following;
+            setFollowing(next);
+            if (next) {
+              actions[A.FOLLOW_CREATOR]?.({
+                creatorId:   person?.id || person?.user_id,
+                creatorName: person?.name,
+              });
+            }
+          }}
           className="hf-tap"
           style={{
             width:"100%",

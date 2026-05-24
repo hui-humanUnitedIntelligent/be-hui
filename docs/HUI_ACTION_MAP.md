@@ -10,11 +10,11 @@
 | Metrik | Wert |
 |---|---|
 | **Interaktive Elemente gesamt** | ~127 |
-| **Bereits auf HUI_ACTIONS migriert** | 16 (~13%) | ✅ Batch 1 done |
-| **Legacy setState / direkte Calls** | 83 (~65%) |
+| **Bereits auf HUI_ACTIONS migriert** | 22 (~17%) | ✅ Batch 1+2 done |
+| **Legacy setState / direkte Calls** | 77 (~61%) |
 | **Dead / Placeholder** | 18 (~14%) |
 | **Missing Backend** | 10 (~8%) |
-| **Migration Score** | **13% — Batch 1 ✅ / Batch 2 next** |
+| **Migration Score** | **17% — Batch 1+2 ✅ / Batch 3 next** |
 
 ---
 
@@ -53,15 +53,15 @@
 |---|---|---|---|---|---|---|---|
 | Feed | Story Ring / Bubble | Card | `onStory?.(s)` → StoryBar.onStoryClick | `A.OPEN_STORY` | `partial` | `A.OPEN_STORY` | Action definieren |
 | Feed | Story "+" (neues teilen) | Button | — | `A.OPEN_STORY_COMPOSER` | `dead` | `A.OPEN_STORY_COMPOSER` | Entrypoint fehlt |
-| Feed | Creator Card (Avatar/Name) | Card | `setShowWirker(item)` | `A.OPEN_PROFILE` | `legacy` | `A.OPEN_PROFILE` | Migration |
-| Feed | Creator Card — "Folgen" | Button | `setFollowing(f => !f)` lokal | `A.FOLLOW_CREATOR` | `partial` | `A.FOLLOW_CREATOR` | Kein Backend-Write |
-| Feed | Creator Card — Resonanz-Button | Button | `onReaction("resonanz")` → lokal | `A.SEND_RESONANCE` | `partial` | `A.SEND_RESONANCE` | Kein Backend-Write |
-| Feed | Creator Card — "Inspiriert" | Button | `onReaction("inspiriert")` lokal | `A.SEND_RESONANCE` | `partial` | `A.SEND_RESONANCE` | Kein Backend-Write |
-| Feed | Creator Card — "Berührt" | Button | `onReaction("berührt")` lokal | `A.SEND_RESONANCE` | `partial` | `A.SEND_RESONANCE` | Kein Backend-Write |
-| Feed | Event Card | Card | `onEvent?.(ev)` → kein Ziel | `A.OPEN_EXPERIENCE` | `dead` | `A.OPEN_EXPERIENCE` | Zielscreen fehlt |
-| Feed | Presence Person Card | Card | `setShowWirker(p)` | `A.OPEN_PROFILE` | `legacy` | `A.OPEN_PROFILE` | Migration |
-| Feed | "Mehr entdecken" CTA (Empty) | Button | `handleTab("discover")` | `A.GO_DISCOVER` | `legacy` | `A.GO_DISCOVER` | Migration |
-| Feed | "Community" CTA (EmptyState) | Button | `onDiscover` prop | `A.GO_DISCOVER` | `legacy` | `A.GO_DISCOVER` | Migration |
+| Feed | Creator Card (Avatar/Name) | Card | `A.OPEN_PROFILE` via handleProfile | `A.OPEN_PROFILE` | `migrated ✅` | — | — |
+| Feed | Creator Card — "Folgen" | Button | `A.FOLLOW_CREATOR` via actions | `A.FOLLOW_CREATOR` | `migrated ✅` | — | Backend-Write noch pending |
+| Feed | Creator Card — Resonanz-Button | Button | `A.SEND_RESONANCE` via handleResonanz | `A.SEND_RESONANCE` | `migrated ✅` | — | Backend-Write noch pending |
+| Feed | Creator Card — "Inspiriert" | Button | `A.SEND_RESONANCE` via handleResonanz | `A.SEND_RESONANCE` | `migrated ✅` | — | Backend-Write noch pending |
+| Feed | Creator Card — "Berührt" | Button | `A.SEND_RESONANCE` via handleResonanz | `A.SEND_RESONANCE` | `migrated ✅` | — | Backend-Write noch pending |
+| Feed | Event Card | Card | `A.OPEN_EXPERIENCE` via handleEvent | `A.OPEN_EXPERIENCE` | `migrated ✅` | — | Experience-Zielscreen noch partial |
+| Feed | Presence Person Card | Card | `A.OPEN_PROFILE` via handleProfile | `A.OPEN_PROFILE` | `migrated ✅` | — | — |
+| Feed | "Mehr entdecken" CTA (Empty) | Button | `A.GO_DISCOVER` via handleDiscover | `A.GO_DISCOVER` | `migrated ✅` | — | — |
+| Feed | EmptyState CTA "Teilen" | Button | `A.OPEN_STORY_COMPOSER` via handleShare | `A.OPEN_STORY_COMPOSER` | `migrated ✅` | — | — |
 | Feed | Chat-Button im Header | Button | `setShowChat(true)` direkt | `A.OPEN_CHAT` | `legacy` | `A.OPEN_CHAT` | Migration |
 
 ---
@@ -335,12 +335,13 @@ Diese Flows sind für die Nutzererfahrung am kritischsten und derzeit broken:
 - ~~Orb-Button → `A.OPEN_ORB`~~ ✅
 - ~~Tab Profil → `A.OPEN_OWN_PROFILE`~~ ✅
 
-### Batch 2 — Feed (6 Elemente)
-- Creator Card → `A.OPEN_PROFILE`
-- Person Card → `A.OPEN_PROFILE`
-- Folgen → `A.FOLLOW_CREATOR` + Backend
-- Resonanz → `A.SEND_RESONANCE` + Backend
-- Event Card → `A.OPEN_EXPERIENCE`
+### Batch 2 — Feed ✅ DONE 2026-05-24
+- ~~Creator Card → `A.OPEN_PROFILE`~~ ✅
+- ~~Person Card → `A.OPEN_PROFILE`~~ ✅
+- ~~Folgen → `A.FOLLOW_CREATOR`~~ ✅
+- ~~Resonanz (3 Typen) → `A.SEND_RESONANCE`~~ ✅
+- ~~Event Card → `A.OPEN_EXPERIENCE`~~ ✅
+- ~~EmptyState CTAs → `A.GO_DISCOVER` / `A.OPEN_STORY_COMPOSER`~~ ✅
 
 ### Batch 3 — Visitor Profile tote Links (8 Elemente)
 - Alle "→" Links mit echten Actions verdrahten
