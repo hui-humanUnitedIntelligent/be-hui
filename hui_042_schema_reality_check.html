@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>HUI 042 — Schema Reality Check</title>
+<style>
+  body { font-family: monospace; background: #0d1117; color: #e6edf3; padding: 24px; max-width: 900px; margin: 0 auto; }
+  h1 { color: #16D7C5; font-size: 20px; }
+  h2 { color: #FF8A6B; font-size: 15px; margin-top: 24px; }
+  pre { background: #161b22; border: 1px solid #30363d; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+  .note { color: #8b949e; font-size: 12px; margin-bottom: 12px; }
+  .label { color: #16D7C5; font-weight: bold; }
+  .warn  { color: #FF8A6B; }
+  .ok    { color: #3fb950; }
+</style>
+</head>
+<body>
+<h1>HUI 042 — Schema Reality Check</h1>
+<p class="note">Führe jeden Block im Supabase SQL Editor aus. Jeder Block ist unabhängig.</p>
+
+<h2>1. experiences — existiert die Tabelle?</h2>
+<pre>SELECT EXISTS (
+  SELECT 1 FROM information_schema.tables
+  WHERE table_schema = 'public' AND table_name = 'experiences'
+) AS table_exists;</pre>
+
+<h2>2. experiences — welche Columns existieren WIRKLICH?</h2>
+<pre>SELECT column_name, data_type, column_default, is_nullable
+FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'experiences'
+ORDER BY ordinal_position;</pre>
+
+<h2>3. Spezifisch: booking_mode vorhanden?</h2>
+<pre>SELECT
+  CASE WHEN EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'experiences'
+    AND column_name = 'booking_mode'
+  ) THEN 'booking_mode: ✓ VORHANDEN'
+  ELSE 'booking_mode: ✗ FEHLT — Migration 038 nicht ausgeführt!'
+  END AS status,
+  CASE WHEN EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'experiences'
+    AND column_name = 'pricing_type'
+  ) THEN 'pricing_type: ✓ VORHANDEN'
+  ELSE 'pricing_type: ✗ FEHLT — Migration 039 nicht ausgeführt!'
+  END AS status2,
+  CASE WHEN EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'experiences'
+    AND column_name = 'mood_tags'
+  ) THEN 'mood_tags: ✓ VORHANDEN'
+  ELSE 'mood_tags: ✗ FEHLT — Migration 039 nicht ausgeführt!'
+  END AS status3;</pre>
+
+<h2>4. RLS Policies auf experiences</h2>
+<pre>SELECT policyname, cmd, qual
+FROM pg_policies
+WHERE tablename = 'experiences'
+ORDER BY policyname;</pre>
+
+<h2>5. Alle experiences in der DB</h2>
+<pre>SELECT id, title, status, visibility, user_id, created_at
+FROM public.experiences
+ORDER BY created_at DESC
+LIMIT 20;</pre>
+
+<h2>6. TEST-INSERT — ohne booking_mode</h2>
+<pre>-- Teste ob Insert grundsätzlich funktioniert
+INSERT INTO public.experiences (user_id, title, status, visibility)
+VALUES (auth.uid(), '__TEST_DIAGNOSE__', 'draft', 'private')
+RETURNING id, title, status;
+
+-- Danach wieder löschen:
+DELETE FROM public.experiences WHERE title = '__TEST_DIAGNOSE__';</pre>
+
+<h2>7. TEST-INSERT — mit booking_mode</h2>
+<pre>-- Teste ob booking_mode akzeptiert wird
+INSERT INTO public.experiences (
+  user_id, title, status, visibility, booking_mode, pricing_type
+) VALUES (
+  auth.uid(), '__TEST_BOOKING_MODE__', 'draft', 'private', 'direct', 'fixed'
+) RETURNING id, title, booking_mode, pricing_type;
+
+-- Danach wieder löschen:
+DELETE FROM public.experiences WHERE title = '__TEST_BOOKING_MODE__';</pre>
+
+</body>
+</html>
