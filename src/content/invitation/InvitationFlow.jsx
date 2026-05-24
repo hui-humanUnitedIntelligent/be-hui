@@ -377,37 +377,31 @@ export default function InvitationFlow({ onClose, visible = true }) {
     setError(null);
     try {
       const row = {
-        user_id:         user.id,
-        content_type:    "invitation",
-        text:            data.text?.trim() || "",
-        vibe:            data.vibe || null,
-        location:        data.location?.trim() || null,
-        time_label:      data.time_label?.trim() || null,
+        user_id:          user.id,
+        text:             data.text?.trim() || "",
+        title:            (data.text?.trim() || "").slice(0, 80),
+        vibe:             data.vibe || null,
+        mood:             data.vibe || null,
+        location:         data.location?.trim() || null,
+        city:             data.location?.trim()?.split(",").pop()?.trim() || null,
+        time_label:       data.time_label?.trim() || null,
         max_participants: data.max_participants || null,
-        status:          "active",
-        expires_at:      new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-        visibility:      "public",
+        status:           "active",
+        expires_at:       new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        visibility:       "public",
+        // content_type ist GENERATED ALWAYS — nicht einfügen
       };
 
-      // In 'invitations' Tabelle schreiben
-      // Falls Tabelle noch nicht existiert: fallback auf 'beitraege'
-      const { error: insertError } = await supabase
+      // Phase 4E: In 'invitations' Tabelle schreiben (kein Fallback mehr)
+      const { data: insertedInv, error: insertError } = await supabase
         .from("invitations")
-        .insert(row);
+        .insert(row)
+        .select("id")
+        .single();
 
-      if (insertError) {
-        console.warn("[InvitationFlow] invitations table missing, using beitraege fallback:", insertError.message);
-        // Fallback auf beitraege
-        const { error: fallbackError } = await supabase
-          .from("beitraege")
-          .insert({
-            user_id:  user.id,
-            type:     "invitation",
-            caption:  data.text?.trim() || "",
-            src:      null,
-          });
-        if (fallbackError) throw fallbackError;
-      }
+      if (insertError) throw insertError;
+
+      console.log("[InvitationFlow] ✓ Invitation erstellt:", insertedInv?.id);
 
       setSuccess(true);
     } catch (err) {

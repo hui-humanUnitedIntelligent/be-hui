@@ -183,7 +183,7 @@ export function useFeedData(_opts) {
     setError(null);
     try {
       // Parallele Queries — schema-korrekt
-      const [worksRes, expsRes, beitraegeRes] = await Promise.allSettled([
+      const [worksRes, expsRes, beitraegeRes, invitationsRes] = await Promise.allSettled([
 
         // works: user_id, JOIN profiles via works_user_id_fkey
         supabase
@@ -224,16 +224,35 @@ export function useFeedData(_opts) {
           .select("id, user_id, src, type, caption, created_at")
           .order("created_at", { ascending: false })
           .limit(10),
+
+        // Phase 4E: invitations — aktive, öffentliche, nicht abgelaufene
+        supabase
+          .from("invitations")
+          .select(`
+            id, user_id, text, title, vibe, mood, energy,
+            location, city, time_label, starts_at, expires_at,
+            visibility, status, max_participants, content_type, created_at,
+            profile:profiles(
+              id, display_name, avatar_url, talent, location_label
+            )
+          `)
+          .eq("status", "active")
+          .eq("visibility", "public")
+          .gt("expires_at", new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(8),
       ]);
 
       const works    = worksRes.status    === "fulfilled" ? (worksRes.value?.data    || []) : [];
       const exps     = expsRes.status     === "fulfilled" ? (expsRes.value?.data     || []) : [];
       const beitr    = beitraegeRes.status === "fulfilled" ? (beitraegeRes.value?.data || []) : [];
+      const invs     = invitationsRes?.status === "fulfilled" ? (invitationsRes.value?.data || []) : [];
 
       // Fehler loggen — aber nicht crashen
       if (worksRes.status    === "rejected") console.warn("[HUI_FEED] works failed:", worksRes.reason?.message);
       if (expsRes.status     === "rejected") console.warn("[HUI_FEED] experiences failed:", expsRes.reason?.message);
       if (beitraegeRes.status === "rejected") console.warn("[HUI_FEED] beitraege failed:", beitraegeRes.reason?.message);
+      if (invitationsRes?.status === "rejected") console.warn("[HUI_FEED] invitations failed:", invitationsRes.reason?.message);
 
       // Query-Fehler loggen (Supabase gibt {data:null, error:{...}} zurück)
       if (worksRes.value?.error)    console.warn("[HUI_FEED] works error:", worksRes.value.error.code, worksRes.value.error.message);
@@ -285,7 +304,45 @@ export function useFeedData(_opts) {
       })));
       // ── Phase 4D: Feed Rhythm Engine — kein naives Mischen mehr
       // Alle normalisierten Items → rhythmizeFeed entscheidet Reihenfolge
-      const allItems = [...workItems, ...expItems, ...beitrItems];
+      // Phase 4E: Invitations normalisieren
+      const invItems = invs
+        .map(inv => ({
+          id:           String(inv.id),
+          type:         "invitation",
+          content_type: "invitation",
+          caption:      inv.text || inv.title || "",
+          text:         inv.text || inv.title || "",
+          title:        inv.title || inv.text || "",
+          vibe:         inv.vibe || inv.mood || null,
+          location:     inv.location || inv.city || null,
+          time:         inv.time_label || "",
+          creator: (() => {
+            const p = inv.profile || {};
+            const name = p.display_name || p.full_name || p.name || "Unbekannt";
+            return {
+              id:          String(p.id || inv.user_id || ""),
+              name,
+              displayName: name,
+              avatar:      p.avatar_url || p.avatar || null,
+              username:    p.username || "",
+              talent:      p.talent || "",
+              location:    p.location_label || "",
+              verified:    Boolean(p.verified),
+            };
+          })(),
+          creator_id:    String(inv.user_id || ""),
+          rhythmState:   "resonance",
+          presenceState: "gathering",
+          resonanz: 0, berührt: 0, begleitet: 0,
+          viewers: [], viewerExtra: 0,
+          images: [], expImg: null, coverUrl: null,
+          _raw: inv,
+        }))
+        .filter(Boolean);
+
+      console.log("[HUI_FEED] invitations count:", invItems.length);
+
+      const allItems = [...workItems, ...expItems, ...beitrItems, ...invItems];
       // Zeitsortierung als Basis (neuestes zuerst)
       allItems.sort((a, b) => {
         const ta = a._raw?.created_at ? new Date(a._raw.created_at).getTime() : 0;

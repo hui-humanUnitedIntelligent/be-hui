@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUI Phase 4E — Invitation Reality Migration</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0D1A;color:#E8E6FF;min-height:100vh;padding:32px 16px}
+  .card{background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.18);border-radius:20px;padding:28px;max-width:760px;margin:0 auto 24px}
+  h1{font-size:26px;font-weight:800;background:linear-gradient(135deg,#8B5CF6,#16D7C5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+  h2{font-size:15px;font-weight:600;color:rgba(232,230,255,0.55);margin-bottom:24px;letter-spacing:0.04em}
+  .label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:rgba(139,92,246,0.7);margin-bottom:10px}
+  .sql-box{background:rgba(0,0,0,0.35);border:1px solid rgba(139,92,246,0.12);border-radius:14px;padding:20px;font-family:'Fira Code','Menlo',monospace;font-size:12.5px;line-height:1.65;color:#C4B5FD;overflow-x:auto;white-space:pre;margin-bottom:16px}
+  .btn{display:inline-block;padding:13px 28px;border-radius:50px;border:none;cursor:pointer;font-size:14px;font-weight:700;letter-spacing:-0.2px;transition:opacity .15s}
+  .btn-primary{background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff}
+  .btn-secondary{background:rgba(139,92,246,0.14);color:#8B5CF6;border:1.5px solid rgba(139,92,246,0.25)}
+  .btn:hover{opacity:.85}
+  .status{padding:12px 16px;border-radius:12px;font-size:13px;margin-top:14px;display:none}
+  .status.ok{display:block;background:rgba(22,215,197,0.12);color:#16D7C5;border:1px solid rgba(22,215,197,0.25)}
+  .status.err{display:block;background:rgba(255,80,80,0.12);color:#FF6B6B;border:1px solid rgba(255,80,80,0.25)}
+  .steps{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+  .step{background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.14);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px}
+  .step-num{width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,0.2);color:#8B5CF6;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .step-text{font-size:13.5px;color:rgba(232,230,255,0.8);line-height:1.4}
+  input{width:100%;padding:12px 16px;border-radius:12px;border:1.5px solid rgba(139,92,246,0.18);background:rgba(0,0,0,0.3);color:#E8E6FF;font-size:14px;outline:none;font-family:inherit;margin-bottom:14px}
+  input:focus{border-color:rgba(139,92,246,0.5)}
+  .result-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(139,92,246,0.08);font-size:13px}
+  .badge{padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700}
+  .badge-ok{background:rgba(22,215,197,0.15);color:#16D7C5}
+  .badge-err{background:rgba(255,80,80,0.15);color:#FF6B6B}
+  .badge-warn{background:rgba(255,200,50,0.15);color:#FFC832}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Phase 4E — Invitation Reality</h1>
+  <h2>SUPABASE MIGRATION · invitations + invitation_responses</h2>
+
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><strong>invitations</strong> Tabelle erstellen mit expires_at, visibility, status, content_type (generated)</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><strong>invitation_responses</strong> Tabelle: coming / interested / maybe · UNIQUE per User+Invitation</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>RLS Policies</strong>: Public sieht aktive öffentliche Invitations · Owner sieht alle eigenen</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Auto-Expire</strong> per Query-Filter (expires_at &gt; NOW()) · kein Cron nötig</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-text"><strong>get_invitation_counts()</strong> Hilfsfunktion für Response-Counts</div></div>
+  </div>
+
+  <div class="label">SUPABASE PROJECT URL</div>
+  <input id="sbUrl" type="text" placeholder="https://xxxx.supabase.co" />
+
+  <div class="label">SERVICE ROLE KEY</div>
+  <input id="sbKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs…" />
+
+  <button class="btn btn-primary" onclick="runMigration()">▶ Migration ausführen</button>
+  <button class="btn btn-secondary" style="margin-left:10px" onclick="checkTables()">⟳ Status prüfen</button>
+
+  <div id="status" class="status"></div>
+  <div id="results" style="margin-top:20px"></div>
+</div>
+
+<div class="card">
+  <div class="label">VOLLSTÄNDIGES SQL (zur manuellen Ausführung)</div>
+  <div class="sql-box" id="sqlBox">Wird geladen…</div>
+  <button class="btn btn-secondary" onclick="copySql()">⎘ SQL kopieren</button>
+</div>
+
+<script>
+const SQL = `-- ═══════════════════════════════════════════════════════════════
+-- HUI Phase 4E — Invitation Reality
+-- invitations + invitation_responses
+-- ═══════════════════════════════════════════════════════════════
+
+-- 1. invitations
+CREATE TABLE IF NOT EXISTS public.invitations (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title            TEXT,
+  body             TEXT,
+  text             TEXT,
+  vibe             TEXT,
+  mood             TEXT,
+  energy           TEXT,
+  city             TEXT,
+  location         TEXT,
+  time_label       TEXT,
+  starts_at        TIMESTAMPTZ,
+  expires_at       TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '48 hours'),
+  visibility       TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public','followers','private')),
+  status           TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','expired','cancelled')),
+  max_participants INTEGER,
+  content_type     TEXT GENERATED ALWAYS AS ('invitation') STORED,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 2. invitation_responses
+CREATE TABLE IF NOT EXISTS public.invitation_responses (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  invitation_id  UUID NOT NULL REFERENCES public.invitations(id) ON DELETE CASCADE,
+  user_id        UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  response       TEXT NOT NULL CHECK (response IN ('interested','coming','maybe')),
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (invitation_id, user_id)
+);
+
+-- 3. Indizes
+CREATE INDEX IF NOT EXISTS idx_invitations_user_id    ON public.invitations(user_id);
+CREATE INDEX IF NOT EXISTS idx_invitations_expires_at ON public.invitations(expires_at);
+CREATE INDEX IF NOT EXISTS idx_invitations_status     ON public.invitations(status);
+CREATE INDEX IF NOT EXISTS idx_invitations_visibility ON public.invitations(visibility);
+CREATE INDEX IF NOT EXISTS idx_inv_resp_invitation_id ON public.invitation_responses(invitation_id);
+CREATE INDEX IF NOT EXISTS idx_inv_resp_user_id       ON public.invitation_responses(user_id);
+
+-- 4. updated_at Trigger
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS \$\$
+BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
+\$\$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_invitations_updated ON public.invitations;
+CREATE TRIGGER trg_invitations_updated
+  BEFORE UPDATE ON public.invitations
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- 5. RLS
+ALTER TABLE public.invitations          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invitation_responses ENABLE ROW LEVEL SECURITY;
+
+-- invitations policies
+DROP POLICY IF EXISTS "invitations_select_public" ON public.invitations;
+CREATE POLICY "invitations_select_public" ON public.invitations
+  FOR SELECT USING (visibility = 'public' AND status = 'active' AND expires_at > NOW());
+
+DROP POLICY IF EXISTS "invitations_select_own" ON public.invitations;
+CREATE POLICY "invitations_select_own" ON public.invitations
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "invitations_insert" ON public.invitations;
+CREATE POLICY "invitations_insert" ON public.invitations
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "invitations_update" ON public.invitations;
+CREATE POLICY "invitations_update" ON public.invitations
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- invitation_responses policies
+DROP POLICY IF EXISTS "inv_resp_select" ON public.invitation_responses;
+CREATE POLICY "inv_resp_select" ON public.invitation_responses
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM public.invitations i
+      WHERE i.id = invitation_id AND (i.visibility = 'public' OR i.user_id = auth.uid()))
+  );
+
+DROP POLICY IF EXISTS "inv_resp_insert" ON public.invitation_responses;
+CREATE POLICY "inv_resp_insert" ON public.invitation_responses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "inv_resp_update" ON public.invitation_responses;
+CREATE POLICY "inv_resp_update" ON public.invitation_responses
+  FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "inv_resp_delete" ON public.invitation_responses;
+CREATE POLICY "inv_resp_delete" ON public.invitation_responses
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- get_invitation_counts
+CREATE OR REPLACE FUNCTION public.get_invitation_counts(inv_id UUID)
+RETURNS TABLE(coming INT, interested INT, maybe INT)
+LANGUAGE SQL STABLE AS \$\$
+  SELECT
+    COUNT(*) FILTER (WHERE response = 'coming')::INT,
+    COUNT(*) FILTER (WHERE response = 'interested')::INT,
+    COUNT(*) FILTER (WHERE response = 'maybe')::INT
+  FROM public.invitation_responses WHERE invitation_id = inv_id;
+\$\$;`;
+
+document.getElementById('sqlBox').textContent = SQL;
+
+function copySql() {
+  navigator.clipboard.writeText(SQL).then(() => {
+    showStatus('SQL in Zwischenablage kopiert ✓', 'ok');
+  });
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = `status ${type}`;
+}
+
+async function execSql(url, key, sql) {
+  const r = await fetch(`${url}/rest/v1/rpc/query`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':key,'Authorization':`Bearer ${key}`},
+    body: JSON.stringify({query: sql})
+  });
+  if (!r.ok) {
+    // Versuche SQL-Endpoint direkt
+    const r2 = await fetch(`${url}/rest/v1/`, {
+      method:'GET',
+      headers:{'apikey':key,'Authorization':`Bearer ${key}`}
+    });
+    if (!r2.ok) throw new Error('Verbindung fehlgeschlagen');
+  }
+  return r;
+}
+
+async function runMigration() {
+  const url = document.getElementById('sbUrl').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('sbKey').value.trim();
+  if (!url || !key) { showStatus('Bitte URL und Service Role Key eingeben', 'err'); return; }
+
+  showStatus('⏳ Migration läuft…', 'ok');
+  document.getElementById('results').innerHTML = '';
+
+  // SQL in einzelne Statements aufteilen
+  const statements = SQL.split(';').map(s => s.trim()).filter(s => s.length > 10 && !s.startsWith('--'));
+
+  const results = [];
+  for (const stmt of statements) {
+    try {
+      const res = await fetch(`${url}/rest/v1/rpc/exec_sql`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':key,'Authorization':`Bearer ${key}`},
+        body:JSON.stringify({sql: stmt + ';'})
+      });
+      results.push({ stmt: stmt.slice(0,60) + '…', ok: res.ok, status: res.status });
+    } catch(e) {
+      results.push({ stmt: stmt.slice(0,60) + '…', ok: false, status: e.message });
+    }
+  }
+
+  const ok = results.every(r => r.ok);
+  showStatus(ok ? '✅ Migration erfolgreich — alle Statements ausgeführt' : '⚠️ Einige Statements fehlgeschlagen — bitte manuell prüfen', ok ? 'ok' : 'warn');
+  
+  // Zeige kurzen Bericht
+  const el = document.getElementById('results');
+  el.innerHTML = '<div style="font-size:12px;color:rgba(232,230,255,0.5);margin-bottom:8px">→ Empfehlung: SQL manuell im Supabase SQL-Editor ausführen für verlässliche Ergebnisse</div>';
+}
+
+async function checkTables() {
+  const url = document.getElementById('sbUrl').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('sbKey').value.trim();
+  if (!url || !key) { showStatus('Bitte URL und Service Role Key eingeben', 'err'); return; }
+
+  showStatus('⟳ Prüfe Tabellen…', 'ok');
+
+  const tables = ['invitations', 'invitation_responses'];
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = '';
+
+  for (const table of tables) {
+    try {
+      const res = await fetch(`${url}/rest/v1/${table}?limit=1`, {
+        headers:{'apikey':key,'Authorization':`Bearer ${key}`,'Prefer':'count=exact'}
+      });
+      const count = res.headers.get('content-range')?.split('/')[1] || '?';
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML = `
+        <span>${table}</span>
+        <span><span class="badge ${res.ok ? 'badge-ok':'badge-err'}">${res.ok ? `✓ existiert · ${count} Zeilen`:'✗ nicht gefunden'}</span></span>`;
+      resultsEl.appendChild(row);
+    } catch(e) {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML = `<span>${table}</span><span class="badge badge-err">Fehler: ${e.message}</span>`;
+      resultsEl.appendChild(row);
+    }
+  }
+  showStatus('✓ Check abgeschlossen', 'ok');
+}
+</script>
+</body>
+</html>
