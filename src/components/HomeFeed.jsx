@@ -515,6 +515,8 @@ export default function HomeFeed({
             onProfile={handleProfile}
             onLike={onLike}
             onComment={onComment}
+            onDiscover={handleDiscover}
+            onShare={handleShare}
           />
         )}
 
@@ -697,10 +699,14 @@ function EventCard({ event, onPress }) {
    RHYTHMIC FEED — Feed Intelligence v1
    Replaces mechanical sequence with humane curation.
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmicFeed({ items, onProfile, onLike, onComment }) {
+function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare }) {
   // Phase 4D: kein Mock wenn items[] und loading — echter Empty State bevorzugt
   const rawItems = (items && items.length > 0) ? items : [];
   const [reactions, setReactions] = useState({});
+
+  // Lokale Handler — onDiscover/onShare kommen als Props oder sind no-ops
+  const handleDiscover = useCallback(() => { onDiscover?.(); }, [onDiscover]);
+  const handleShare    = useCallback(() => { onShare?.(); },    [onShare]);
 
   // Phase 16.7.1: user from AuthContext — was undeclared (ReferenceError → SafeBoundary → null)
   // Always provide EMPTY_PROFILE fallback — never undefined downstream
@@ -954,10 +960,10 @@ function RhythmCard({
   // Phase 16: living memory tokens
   relationshipDepth = null, viewerId = null, microMoment = null,
 }) {
-  // Phase 16.8.2: item guard — never crash on undefined during tab hydration
-  if (!item) return null;
+  // HOOKS FIRST — immer vor jedem bedingten return (React-Regel)
+  const safeItem    = item || null;
   const isResonated = (itemReactions || {}).resonanz;
-  const creatorId   = item?.creator_id || item?.user_id || item?.creatorId;
+  const creatorId   = safeItem?.creator_id || safeItem?.user_id || safeItem?.creatorId || null;
 
   // ── Resolve memory tokens (memoized per relationship state) ────────────
   const mt = useMemo(() => resolveMemoryTokens(relationshipDepth), [relationshipDepth?.state]);
@@ -966,8 +972,10 @@ function RhythmCard({
   const { ref: dwellRef } = useDwellTracker(viewerId, creatorId);
 
   // ── Scroll Entry — sanftes Ankommen, einmalig ──────────────────────────
-  // Kein Stagger (würde hektisch wirken), nur ruhiges opacity + slide
   const { ref: entryRef, entryStyle } = useScrollEntry(0, 0.06);
+
+  // item guard NACH hooks (React-Regel: keine early returns vor hooks)
+  if (!safeItem) return null;
 
   // ── Refs zusammenführen ────────────────────────────────────────────────
   const combinedRef = (el) => {
