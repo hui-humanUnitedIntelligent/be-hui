@@ -1,13 +1,17 @@
-// HuiPlusSheet.jsx — WRAPPER v8 (Phase 15.3 Ghost-State-Fix)
-// Phase 15.3: Blur/Overlay NEVER active without mounted OrbContent.
-// Failsafe close on all failure paths — never leaves world frozen.
+// HuiPlusSheet.jsx — Phase 4G (OrbPortal Integration)
+// Phase 4G: OrbPortal ersetzt das visuelle System.
+//           OrbSystem (radial nodes) bleibt als Fallback für Member+.
+//           Ghost-State-Fix und Failsafe-Logik bleiben vollständig erhalten.
 
 import React, { useEffect, useRef, useState } from "react";
-import OrbSystem from "../system/orb/OrbSystem.jsx";
-import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
+import { OrbPortal }              from "../orb/OrbPortal.jsx";
+import OrbSystem                  from "../system/orb/OrbSystem.jsx";
+import { cleanupOrbEnvironment }  from "../lib/cleanup/cleanupOrbEnvironment.js";
+import { useUserRole }            from "../lib/roles/index.js";
 
 const MOUNT_TIMEOUT = 3000;
 
+// ─── Failsafe: wenn alles crasht ─────────────────────────────────────────────
 function OrbFailsafe({ onClose }) {
   useEffect(() => {
     const t = setTimeout(() => {
@@ -17,64 +21,20 @@ function OrbFailsafe({ onClose }) {
     return () => clearTimeout(t);
   }, [onClose]);
   return (
-    <div aria-hidden="true"
-      style={{ position:"fixed", inset:0, zIndex:9001, background:"transparent", pointerEvents:"none" }}
+    <div
+      aria-hidden="true"
+      style={{
+        position:      "fixed",
+        inset:         0,
+        zIndex:        9001,
+        background:    "transparent",
+        pointerEvents: "none",
+      }}
     />
   );
 }
 
-export default function HuiPlusSheet({ onSelect, onClose, isTalent = false, isTrusted = false, onMounted = null, visible = false }) {
-  const [hasFailed, setHasFailed] = useState(false);
-  const [orbMounted, setOrbMounted] = useState(false);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    timerRef.current = setTimeout(() => {
-      if (!orbMounted) {
-        console.warn("[HUI ORB] mount-timeout — ghost-state-guard triggered");
-        cleanupOrbEnvironment({ reason: "orb-mount-timeout" });
-        onClose?.();
-      }
-    }, MOUNT_TIMEOUT);
-    return () => clearTimeout(timerRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (hasFailed) return <OrbFailsafe onClose={onClose} />;
-
-  // Phase 16.3: NEVER conditionally unmount — visibility via opacity only
-  const orbVisStyle = {
-    opacity:       visible ? 1 : 0,
-    pointerEvents: visible ? "auto" : "none",
-    transition:    "opacity 0.48s cubic-bezier(0.22,1,0.36,1)",
-    willChange:    "opacity",
-  };
-
-  return (
-    <div style={orbVisStyle} aria-hidden={!visible}>
-    <OrbSystemWrapper
-      onSelect={onSelect}
-      onClose={onClose}
-      isTalent={isTalent ?? false}
-      isTrusted={isTrusted ?? false}
-      onMounted={() => {
-        setOrbMounted(true);
-        clearTimeout(timerRef.current);
-        console.log("[HUI ORB] contentMounted=true overlayActive=true");
-        // Phase 16.3: confirmSurface only fires if currently visible
-        if (visible) {
-          onMounted?.();  // → confirmSurface("orb") in Home.jsx
-        }
-      }}
-      onFail={() => {
-        setHasFailed(true);
-        cleanupOrbEnvironment({ reason: "orb-render-failure" });
-      }}
-    />
-  </div>
-  );
-}
-
+// ─── Error Boundary für OrbSystem (radial, Member+) ──────────────────────────
 class OrbSystemWrapper extends React.Component {
   constructor(props) {
     super(props);
@@ -99,4 +59,61 @@ class OrbSystemWrapper extends React.Component {
       />
     );
   }
+}
+
+// ─── Haupt-Export ─────────────────────────────────────────────────────────────
+export default function HuiPlusSheet({
+  onSelect,
+  onClose,
+  isTalent  = false,
+  isTrusted = false,
+  onMounted = null,
+  visible   = false,
+}) {
+  const [hasFailed,   setHasFailed]   = useState(false);
+  const [orbMounted,  setOrbMounted]  = useState(false);
+  const timerRef = useRef(null);
+  const { role } = useUserRole?.() ?? {};
+
+  // Ghost-State-Guard: wenn nach MOUNT_TIMEOUT noch nicht gemountet → close
+  useEffect(() => {
+    timerRef.current = setTimeout(() => {
+      if (!orbMounted) {
+        console.warn("[HUI ORB] mount-timeout — ghost-state-guard triggered");
+        cleanupOrbEnvironment({ reason: "orb-mount-timeout" });
+        onClose?.();
+      }
+    }, MOUNT_TIMEOUT);
+    return () => clearTimeout(timerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Melden dass wir bereit sind (Home.jsx: confirmSurface)
+  useEffect(() => {
+    if (visible && !orbMounted) {
+      setOrbMounted(true);
+      clearTimeout(timerRef.current);
+      console.log("[HUI ORB] Phase 4G — OrbPortal mounted, visible=true");
+      onMounted?.();
+    }
+  }, [visible]); // eslint-disable-line
+
+  if (hasFailed) return <OrbFailsafe onClose={onClose} />;
+
+  // Phase 4G: OrbPortal als primäres visuelles System
+  // OrbSystem (radial nodes) bleibt für den Fall dass OrbPortal deaktiviert wird
+  return (
+    <OrbPortal
+      visible={visible}
+      onSelect={(action) => {
+        // action → vorhandene onSelect-Signatur bleibt kompatibel
+        onSelect?.(action);
+      }}
+      onClose={() => {
+        cleanupOrbEnvironment({ reason: "orb-portal-close" });
+        onClose?.();
+      }}
+      isTalent={isTalent}
+    />
+  );
 }
