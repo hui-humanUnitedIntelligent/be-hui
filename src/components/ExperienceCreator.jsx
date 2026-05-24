@@ -1,6 +1,7 @@
 // ExperienceCreator.jsx — Warm emotional Experience Flow
 // Fühlt sich an wie eine Einladung, nicht wie ein Formular.
 import React, { useState, useRef } from "react";
+import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
@@ -423,33 +424,11 @@ export default function ExperienceCreator({ onClose, onSuccess }) {
         imgUrls.push(publicUrl);
       }
 
-      // ── Schema-valid payload (038) ─────────────────────────────────
-      // images als JSONB (nicht TEXT[]), created_at wird auto-filled
-      const insertPayload = {
-        user_id:          user.id,
-        title:            form.title.trim(),
-        description:      form.desc ? form.desc.trim() : null,
-        mood:             form.mood             || null,
-        category:         form.category         || null,
-        duration:         form.duration ? form.duration.trim() : null,
-        price:            form.price ? parseFloat(form.price) : null,
-        format:           form.format           || null,
-        location_text:    form.location ? form.location.trim() : null,
-        max_participants: form.maxParticipants ? parseInt(form.maxParticipants) : null,
-        booking_mode:     form.bookingMode      || "direct",
-        images:           imgUrls.length > 0
-                            ? JSON.stringify(imgUrls.map((u,i) => ({ url:u, order:i })))
-                            : "[]",
-        media_url:        imgUrls[0]            || null,
-        cover_url:        imgUrls[0]            || null,
-        visibility:       "public",
-        status:           "published",
-        // created_at: auto-filled by DB default
-      };
-      console.log("[HUI_EXPERIENCE_PAYLOAD]", insertPayload);
-      const { error: dbErr } = await supabase
-        .from("experiences")
-        .insert(insertPayload);
+      // Contract Layer: normalize → validate → insert (Phase 4E)
+      const { data: expData, error: contractErr } = await publishExperience(
+        supabase, form, user.id, imgUrls
+      );
+      const dbErr = contractErr ? new Error(contractErr.message) : null;
       if (dbErr) { console.error("[ExperienceCreator] db:", dbErr); throw dbErr; }
       setDone(true);
       setTimeout(()=>{ if(onSuccess) onSuccess(); onClose(); }, 2000);

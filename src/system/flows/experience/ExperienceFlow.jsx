@@ -14,6 +14,7 @@ import { ExperienceDetailsStep } from "./ExperienceDetailsStep.jsx";
 import { ExperiencePublishStep } from "./ExperiencePublishStep.jsx";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { useAuth }               from "../../../lib/AuthContext.jsx";
+import { publishExperience }      from "../../../lib/factories/experienceContract.js";
 
 /* ── Design Tokens (identisch zu WorkFlow / WT) ─────────────── */
 export const ET = {
@@ -134,13 +135,13 @@ export default function ExperienceFlow({ onClose }) {
     else setStep(s => s-1);
   }, [step, onClose]);
 
-  /* ── Publish ───────────────────────────────────────────────── */
+  /* ── Publish — via Schema Contract Layer (Phase 4E) ─────────── */
   const handlePublish = useCallback(async () => {
     if (!user) return;
     setSaving(true); setError(null);
     try {
-      // 1. Medien hochladen
-      const imgUrls = [];
+      // 1. Medien hochladen → kanonisches [{ url, type, alt }] Format
+      const uploadedUrls = [];
       for (let i = 0; i < mediaFiles.length; i++) {
         const { file } = mediaFiles[i];
         const ext  = file.name.split(".").pop();
@@ -149,64 +150,14 @@ export default function ExperienceFlow({ onClose }) {
           .from("media").upload(path, file, { contentType: file.type });
         if (upErr) throw upErr;
         const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
-        imgUrls.push(publicUrl);
+        uploadedUrls.push(publicUrl); // normalizeImages() wandelt zu { url, type, alt } um
       }
-      // 2. DB Insert
-      // ── Schema-korrekter Insert (experiences-Tabelle) ──────────
-      // Bekannte Spalten: user_id, title, description, category, duration,
-      //   price, format, location_text, max_participants, booking_mode,
-      //   date, cover_url, media_url, media_type, mood_tags, status, visibility
-      // NICHT in Schema: sale_mode, avail_days, avail_times, images[]
-      // ── Schema-valid payload (038) ─────────────────────────────────
-      // Columns: user_id, title, description, category, mood, duration,
-      //          price, format, location_text, max_participants,
-      //          booking_mode, cover_url, media_url, images, visibility, status
-      // NICHT im Schema: media_type → entfernt
-      const expPayload = {
-        user_id:          user.id,
-        title:            form.title ? form.title.trim() : "Erlebnis",
-        description:      form.description ? form.description.trim() : null,
-        category:         form.category    || null,
-        duration:         form.duration === "Individuell"
-                            ? (form.durationCustom || null)
-                            : (form.duration || null),
-        price:            form.price ? parseFloat(form.price) : null,
-        format:           form.locationType || form.format || null,
-        location_text:    form.locationText ? form.locationText.trim() : null,
-        max_participants: form.maxParticipants ? parseInt(form.maxParticipants) : null,
-        booking_mode:     form.bookingMode  || "direct",
-        cover_url:        imgUrls[0]        || null,
-        media_url:        imgUrls[0]        || null,
-        images:           imgUrls.length > 0
-                            ? JSON.stringify(imgUrls.map((u,i) => ({ url:u, order:i })))
-                            : "[]",
-        visibility:       "public",
-        status:           "published",
-      };
-      console.log("[HUI_EXPERIENCE_PAYLOAD]", expPayload);
-      console.info("[HUI_PUBLISH] experiences payload:", {
-        user_id:     expPayload.user_id,
-        title:       expPayload.title,
-        status:      expPayload.status,
-        format:      expPayload.format,
-        cover_url:   expPayload.cover_url ? "✅" : "❌ leer",
-      });
-      const { data: expData, error: dbErr } = await supabase
-        .from("experiences")
-        .insert(expPayload)
-        .select("id, status, user_id")
-        .single();
-      if (dbErr) {
-        console.error("[HUI_PUBLISH_ERROR] experiences INSERT fehlgeschlagen:", {
-          code:    dbErr.code,
-          message: dbErr.message,
-          hint:    dbErr.hint,
-          details: dbErr.details,
-          payload: expPayload,
-        });
-        throw new Error(`Erlebnis konnte nicht gespeichert werden: ${dbErr.message} (${dbErr.code})`);
-      }
-      console.info("[HUI_REALITY] experience published ✓", expData?.id);
+      // 2. Contract Layer: normalize → validate → insert (Phase 4E)
+      const { data: expData, error: contractErr } = await publishExperience(
+        supabase, form, user.id, uploadedUrls
+      );
+      if (contractErr) throw new Error(contractErr.message);
+      console.log("[HUI_REALITY] ✓ experience published:", expData?.id);
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {

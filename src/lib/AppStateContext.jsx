@@ -197,20 +197,24 @@ export function useFeedData(_opts) {
           .order("created_at", { ascending: false })
           .limit(20),
 
-        // experiences: user_id, date (nicht date_start), status='published'
+        // experiences: status='published', ORDER BY created_at (date kann NULL sein)
+        // BUG-FIX: order by date ASC schließt NULL-date rows aus → jetzt created_at DESC
         supabase
           .from("experiences")
           .select(`
             id, title, cover_url, media_url, category, description,
-            caption, price, duration, format, location_text, date,
-            max_participants, status, user_id, created_at,
+            price, duration, format, location_text, date,
+            booking_mode, pricing_type, experience_type,
+            participant_limit, max_participants,
+            mood, mood_tags, social_energy,
+            status, visibility, user_id, created_at,
             profile:profiles(
               id, display_name, avatar_url, talent, location_label
             )
           `)
           .eq("status", "published")
-          .order("date", { ascending: true })
-          .limit(10),
+          .order("created_at", { ascending: false })
+          .limit(20),
 
         // beitraege: öffentlich lesbar, kein JOIN nötig (separat profile laden)
         supabase
@@ -234,11 +238,19 @@ export function useFeedData(_opts) {
       if (expsRes.value?.error)     console.warn("[HUI_FEED] experiences error:", expsRes.value.error.code, expsRes.value.error.message);
       if (beitraegeRes.value?.error) console.warn("[HUI_FEED] beitraege error:", beitraegeRes.value.error.code, beitraegeRes.value.error.message);
 
-      console.log("[HUI_FEED]", {
-        works:      works.length,
-        experiences: exps.length,
-        beitraege:  beitr.length,
-      });
+      // Detailliertes Debug für Phase 4F
+      console.log("[HUI_FEED] works count:", works.length);
+      console.log("[HUI_FEED] experiences count:", exps.length);
+      console.log("[HUI_FEED] beitraege count:", beitr.length);
+      if (exps.length > 0) {
+        console.log("[HUI_FEED] experiences sample:", exps[0]);
+      }
+      if (expsRes.value?.error) {
+        console.error("[HUI_FEED] experiences query ERROR:", expsRes.value.error);
+      }
+      if (worksRes.value?.error) {
+        console.error("[HUI_FEED] works query ERROR:", worksRes.value.error);
+      }
 
       // ── Normalisierung → Feed-Shape ──
       const workItems = works
@@ -279,8 +291,14 @@ export function useFeedData(_opts) {
           expMeta:       [
             e.date ? new Date(e.date).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"short"}) : null,
             e.location_text,
-            e.price ? e.price + " €" : null,
+            e.price ? e.price + " €" : (e.pricing_type === "free" ? "Kostenlos" : null),
+            (e.participant_limit || e.max_participants)
+              ? `Max. ${e.participant_limit || e.max_participants} Personen`
+              : null,
           ].filter(Boolean).join(" · "),
+          bookingMode:   e.booking_mode || "direct",
+          pricingType:   e.pricing_type  || "fixed",
+          expType:       e.experience_type || null,
           resonanz: 0, berührt: 0, begleitet: 0,
           viewers: [], viewerExtra: 0,
           time:    _relTime(e.created_at),
@@ -318,11 +336,16 @@ export function useFeedData(_opts) {
       while (ei < expItems.length)    mixed.push(expItems[ei++]);
       while (bi < beitrItems.length)  mixed.push(beitrItems[bi++]);
 
+      console.log("[HUI_FEED] normalized items:", mixed.length);
       console.log("[HUI_REALITY] feed resolved ✓", {
         works: workItems.length,
         experiences: expItems.length,
         beitraege: beitrItems.length,
         total: mixed.length,
+      });
+      console.log("[HUI_FEED_QUERY_RESULT]", {
+        works:       works.slice(0, 2).map(w => ({ id: w.id, status: w.status, title: w.title })),
+        experiences: exps.slice(0, 2).map(e => ({ id: e.id, status: e.status, title: e.title, created_at: e.created_at })),
       });
 
       setItems(mixed);

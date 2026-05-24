@@ -4,6 +4,7 @@
 //             category, max_participants, date, status, cover_url)
 
 import React, { useState, useRef, useCallback } from "react";
+import { publishExperience } from "../../lib/factories/experienceContract.js";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth }  from "../../lib/AuthContext.jsx";
 
@@ -50,30 +51,14 @@ export default function PublishExperienceFlow({ onClose, onPublished }) {
         }
       }
 
-      // ── Schema-valid payload (038) ─────────────────────────────────
-      const payload = {
-        user_id:          user.id,
-        title:            form.title,
-        description:      form.description      || null,
-        price:            form.price ? parseFloat(form.price) : null,
-        duration:         form.duration         || null,
-        format:           form.format           || null,
-        location_text:    form.location_text    || null,
-        category:         form.category         || null,
-        max_participants: form.max_participants ? parseInt(form.max_participants) : null,
-        date:             form.date             || null,
-        visibility:       "public",
-        cover_url,
-        status:           "published",
-      };
-      console.log("[HUI_EXPERIENCE_PAYLOAD]", payload);
-
-      const { data, error: insErr } = await supabase
-        .from("experiences").insert(payload).select("id").single();
-
-      if (insErr) throw new Error(`${insErr.message} (${insErr.code})`);
-      console.log("[HUI_REALITY] experience published \u2713", data?.id);
-      onPublished?.({ id: data?.id, ...payload });
+      // Contract Layer: normalize → validate → insert (Phase 4E)
+      const coverUrls = cover_url ? [cover_url] : [];
+      const { data, error: contractErr } = await publishExperience(
+        supabase, form, user.id, coverUrls
+      );
+      if (contractErr) throw new Error(contractErr.message);
+      console.log("[HUI_REALITY] ✓ experience published:", data?.id);
+      onPublished?.({ id: data?.id, ...form });
       onClose?.();
     } catch(err) {
       setError(err.message);

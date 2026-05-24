@@ -12,6 +12,7 @@
 
 import { useDraftPersist } from "../lib/sessionHooks";
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
@@ -1591,21 +1592,26 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
         if (e) throw e;
       } else if (payload.type === "erlebnis") {
         const er = payload.erlData;
-        const { error:e } = await supabase.from("experiences").insert({
-          ...base,
-          title:            er.title       || "Mein Erlebnis",
-          description:      er.desc,
-          price:            er.price,
-          price_type:       er.priceType,
-          format:           er.format,
-          location_text:    er.location    || null,
-          duration:         er.duration    || null,
-          available_days:   er.days        || null,
-          max_participants: er.maxPax      || null,
-          category:         er.category    || null,
-          language:         er.language    || "Deutsch",
-        });
-        if (e) throw e;
+        // Contract Layer (Phase 4E) — kein direktes insert
+        const erlForm = {
+          title:          er.title       || "Mein Erlebnis",
+          description:    er.desc,
+          price:          er.price,
+          pricing_type:   er.priceType,
+          format:         er.format,
+          location_text:  er.location    || null,
+          duration:       er.duration    || null,
+          available_days: er.days        || null,
+          participant_limit: er.maxPax   || null,
+          category:       er.category    || null,
+          language:       er.language    || "Deutsch",
+          visibility:     base.visibility || "public",
+        };
+        const { error: contractErr } = await publishExperience(
+          supabase, erlForm, user.id, base.cover_url ? [base.cover_url] : []
+        );
+        const e = contractErr;
+        if (e) throw new Error(e.message);
       }
 
       setPostType(payload.type);
