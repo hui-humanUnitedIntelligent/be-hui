@@ -31,6 +31,7 @@ import { normalizeProfileInput, PROFILE_FIELDS } from "../lib/perfUtils";
 import { useDiscoverData } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
+import { useHuiActions, A } from "../core/hui.actions.js";
 
 /* ── Design Tokens — via HUI Design System (Phase 20) ─────── */
 const C = {
@@ -544,6 +545,30 @@ function SectionHeader({ title, onAll }) {
 
 /* ── Main Component ─────────────────────────────────────────── */
 export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
+  const actions = useHuiActions();
+
+  // Batch 5: unified Action Engine handlers
+  const handleView = React.useCallback((item) => {
+    const t = item?.type || "work_upload";
+    if (t === "experience" || t === "erlebnis") {
+      actions[A.OPEN_EXPERIENCE]?.({ experience: item });
+    } else if (t === "profile" || t === "talent") {
+      actions[A.OPEN_PROFILE]?.({ creatorId: item?.creator_id || item?.id, creator: item });
+    } else {
+      actions[A.OPEN_WERK]?.({ werk: item });
+    }
+    onView?.(item);
+  }, [actions, onView]);
+
+  const handleBook = React.useCallback((item) => {
+    actions[A.BOOK_EXPERIENCE]?.({ experience: item });
+    onBook?.(item);
+  }, [actions, onBook]);
+
+  const handleMap = React.useCallback(() => {
+    actions[A.OPEN_MAP]?.();
+    onMap?.();
+  }, [actions, onMap]);
   const [activeCategory, setActiveCategory] = useState("alle");
   const [prevCategory, setPrevCategory]   = useState("alle");
   const [districtTransition, setDistrictTransition] = useState(false);
@@ -666,7 +691,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const toggleInspireHero  = id => setInspiredHero(s  => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleInspireWerk  = id => setInspiredWerke(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  const handleView = item => onView?.(item);
+  // handleView migrated to Action Engine above (Batch 5)
 
   // Kategorie-Filter
   const filteredHero = activeCategory === "alle"
@@ -811,6 +836,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
                 setDistrictTransition(true);
                 setActiveCategory(pill.id);
                 setTimeout(() => setDistrictTransition(false), 380);
+                actions[A.FILTER_CATEGORY]?.({ category: pill.id });
               }}
               style={{
                 background: active
@@ -877,7 +903,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       <div style={{ marginBottom:36 }}>
         <SectionHeader
           title="Werke die resonieren"
-          onAll={() => onView?.({ type:"werke_liste" })}
+          onAll={() => { actions[A.OPEN_WERK]?.({ view:"alle" }); onView?.({ type:"werke_liste" }); }}
         />
         <div
           className="dp-scroll"
@@ -1009,7 +1035,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       {onMap && (
         <div style={{ display:"flex", justifyContent:"center", padding:"8px 0 4px" }}>
           <button
-            onClick={onMap}
+            onClick={handleMap}
             style={{
               display:"flex", alignItems:"center", gap:8,
               background:`linear-gradient(160deg, rgba(22,215,197,0.88) 0%, rgba(17,197,183,0.90) 100%)`,

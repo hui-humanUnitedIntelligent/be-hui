@@ -5,6 +5,7 @@
 
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
+import { useHuiActions, A } from "../core/hui.actions.js";
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -120,6 +121,7 @@ const PILLS = ["Alles","Menschen","Werke","Erlebnisse","Wirkung","Orte"];
 ══════════════════════════════════════════════════════════════ */
 function HeroCard({ item, onDetails }) {
   const [resonated, setResonated] = useState(false);
+  const heroCardActions = useHuiActions();
   return (
     <div style={{
       margin:"0 20px",
@@ -222,15 +224,16 @@ function HeroCard({ item, onDetails }) {
    CREATOR SECTION
 ══════════════════════════════════════════════════════════════ */
 function CreatorSection({ people, onView }) {
+  const secActions = useHuiActions();
   return (
     <div>
-      <SectionHeader title="Menschen" onAll={() => {}} />
+      <SectionHeader title="Menschen" onAll={() => secActions[A.OPEN_COMMUNITY]?.({ filter:"people" })} />
       <div className="fr-scroll" style={{
         display:"flex", gap:12,
         overflowX:"auto", padding:"4px 20px 8px",
       }}>
         {people.map((p, i) => (
-          <CreatorCard key={p.id} person={p} idx={i} onView={onView} />
+          <CreatorCard key={p.id} person={p} idx={i} onView={handleView} />
         ))}
       </div>
     </div>
@@ -305,15 +308,16 @@ function CreatorCard({ person, idx, onView }) {
    WORKS GRID
 ══════════════════════════════════════════════════════════════ */
 function WorksGrid({ works, onView }) {
+  const secActions = useHuiActions();
   return (
     <div>
-      <SectionHeader title="Werke" onAll={() => {}} />
+      <SectionHeader title="Werke" onAll={() => secActions[A.OPEN_WERK]?.({ view:"favoriten" })} />
       <div className="fr-scroll" style={{
         display:"flex", gap:12,
         overflowX:"auto", padding:"4px 20px 8px",
       }}>
         {works.map((w, i) => (
-          <WorkCard key={w.id} work={w} idx={i} onView={onView} />
+          <WorkCard key={w.id} work={w} idx={i} onView={handleView} />
         ))}
       </div>
     </div>
@@ -382,15 +386,16 @@ function WorkCard({ work, idx, onView }) {
    EXPERIENCE CARDS
 ══════════════════════════════════════════════════════════════ */
 function ExperienceCards({ experiences, onView }) {
+  const secActions = useHuiActions();
   return (
     <div>
-      <SectionHeader title="Erlebnisse" onAll={() => {}} />
+      <SectionHeader title="Erlebnisse" onAll={() => secActions[A.OPEN_EXPERIENCE]?.({ view:"favoriten" })} />
       <div className="fr-scroll" style={{
         display:"flex", gap:14,
         overflowX:"auto", padding:"4px 20px 8px",
       }}>
         {experiences.map((e, i) => (
-          <ExperienceCard key={e.id} exp={e} idx={i} onView={onView} />
+          <ExperienceCard key={e.id} exp={e} idx={i} onView={handleView} />
         ))}
       </div>
     </div>
@@ -562,6 +567,11 @@ function SectionHeader({ title, onAll }) {
    EMPTY STATE
 ══════════════════════════════════════════════════════════════ */
 function EmptyState({ onDiscover }) {
+  const emptyActions = useHuiActions();
+  function handleEmptyDiscover() {
+    emptyActions[A.GO_DISCOVER]?.();
+    onDiscover?.();
+  }
   return (
     <div style={{
       flex:1, display:"flex", flexDirection:"column",
@@ -584,7 +594,7 @@ function EmptyState({ onDiscover }) {
         maxWidth:260, marginBottom:28 }}>
         Speichere Menschen, Werke und Erlebnisse, die dich wirklich bewegen.
       </div>
-      <button onClick={onDiscover} className="fr-tap" style={{
+      <button onClick={handleEmptyDiscover} className="fr-tap" style={{
         background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
         color:"#fff", border:"none", borderRadius:16,
         padding:"13px 28px", fontSize:14, fontWeight:700,
@@ -602,6 +612,29 @@ function EmptyState({ onDiscover }) {
    Props: { currentUser, onView, onImpact, onDiscover }
 ══════════════════════════════════════════════════════════════ */
 export default function FavoritesPage({ currentUser, onView, onImpact, onDiscover }) {
+  const actions = useHuiActions();
+
+  const handleView = React.useCallback((item) => {
+    const t = item?.type || "work_upload";
+    if (t === "profile" || t === "talent" || item?.talent) {
+      actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item });
+    } else if (t === "experience" || t === "erlebnis") {
+      actions[A.OPEN_EXPERIENCE]?.({ experience: item });
+    } else {
+      actions[A.OPEN_WERK]?.({ werk: item });
+    }
+    onView?.(item);
+  }, [actions, onView]);
+
+  const handleImpact = React.useCallback(() => {
+    actions[A.GO_IMPACT]?.();
+    onImpact?.();
+  }, [actions, onImpact]);
+
+  const handleDiscover = React.useCallback(() => {
+    actions[A.GO_DISCOVER]?.();
+    onDiscover?.();
+  }, [actions, onDiscover]);
   // ── State (alle top-level, stabile Reihenfolge) ───────────────────
   const [activeCategory, setActiveCategory] = useState("Alles");
   const [search,         setSearch]         = useState("");
@@ -716,7 +749,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
 
       {/* ── HERO CARD ───────────────────────────────────────────── */}
       <div style={{ padding:"16px 0 0", animation:"fadeUp 0.4s ease both" }}>
-        <HeroCard item={heroItem} onDetails={onView} />
+        <HeroCard item={heroItem} onDetails={handleView} />
       </div>
 
       {/* ── KATEGORIE PILLS ─────────────────────────────────────── */}
@@ -756,15 +789,15 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
       </div>
 
       {/* ── SEKTIONEN ───────────────────────────────────────────── */}
-      {showPeople  && <CreatorSection   people={people}           onView={onView} />}
-      {showWorks   && <WorksGrid        works={works}             onView={onView} />}
-      {showExps    && <ExperienceCards  experiences={experiences} onView={onView} />}
+      {showPeople  && <CreatorSection   people={people}           onView={handleView} />}
+      {showWorks   && <WorksGrid        works={works}             onView={handleView} />}
+      {showExps    && <ExperienceCards  experiences={experiences} onView={handleView} />}
 
       {/* ── IMPACT FOOTER ───────────────────────────────────────── */}
       <ImpactFooter
         impactEur={impactEur}
         projectCount={projectCount}
-        onImpact={onImpact}
+        onImpact={handleImpact}
       />
     </div>
   );
