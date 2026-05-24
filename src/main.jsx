@@ -7,6 +7,14 @@ import { initSentry, sentryCapture } from './lib/sentry'
 
 initSentry();
 
+// ── DEV: Contract Inspector ──────────────────────────────────────
+// In DevTools: window.__HUI_CONTRACTS?.()
+if (import.meta.env.DEV) {
+  import("./core/hui.contracts.js").then(({ inspectContracts }) => {
+    window.__HUI_CONTRACTS = inspectContracts;
+  });
+}
+
 window.addEventListener('unhandledrejection', (event) => {
   const err = event.reason instanceof Error
     ? event.reason

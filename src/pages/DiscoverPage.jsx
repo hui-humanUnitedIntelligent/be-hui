@@ -551,9 +551,9 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   const handleView = React.useCallback((item) => {
     const t = item?.type || "work_upload";
     if (t === "experience" || t === "erlebnis") {
-      actions[A.OPEN_EXPERIENCE]?.({ experience: item });
+      actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: "discover" });
     } else if (t === "profile" || t === "talent") {
-      actions[A.OPEN_PROFILE]?.({ creatorId: item?.creator_id || item?.id, creator: item });
+      actions[A.OPEN_PROFILE]?.({ creatorId: item?.creator_id || item?.id, creator: item, source: "discover" });
     } else {
       actions[A.OPEN_WERK]?.({ werk: item });
     }
@@ -561,7 +561,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   }, [actions, onView]);
 
   const handleBook = React.useCallback((item) => {
-    actions[A.BOOK_EXPERIENCE]?.({ experience: item });
+    actions[A.BOOK_EXPERIENCE]?.({ experience: item, source: "discover" });
     onBook?.(item);
   }, [actions, onBook]);
 

@@ -934,8 +934,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
       actions[A.GO_DISCOVER]?.();
       onClose?.();
     } else if (n.type === "follow" && n.sender_id) {
-      actions[A.OPEN_PROFILE]?.({
-        creatorId: n.sender_id,
+      actions[A.OPEN_PROFILE]?.({ source: "notifications", creatorId: n.sender_id,
         creator: { name: n.sender_name || null, avatar_url: n.sender_avatar || null },
       });
       onClose?.();

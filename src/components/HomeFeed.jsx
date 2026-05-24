@@ -446,7 +446,7 @@ export default function HomeFeed({
 
   const handleProfile = React.useCallback((item) => {
     const creatorId = item?.creator_id || item?.user_id || item?.creatorId || item?.id;
-    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item });
+    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: "feed" });
     onProfile?.(item);
   }, [actions, onProfile]);
 

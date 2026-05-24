@@ -791,7 +791,7 @@ function ResonanceRow({ m }) {
   const rowActions = useHuiActions();
   return (
     <button
-      onClick={() => rowActions[A.OPEN_PROFILE]?.({ creatorId: m?.id, creator: m })}
+      onClick={() => rowActions[A.OPEN_PROFILE]?.({ creatorId: m?.id, creator: m, source: "visitor-profile" })}
       style={{
         display:"flex",alignItems:"center",gap:10,
         padding:"10px 0",borderBottom:"1px solid rgba(0,0,0,.045)",
@@ -932,7 +932,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   // Route through Action Engine — falls back to prop callbacks for non-HomeShell contexts
   const handleBook = useCallback((exp) => {
     if (actions[A.BOOK_EXPERIENCE]) {
-      actions[A.BOOK_EXPERIENCE]({ experience: exp, creator: profile });
+      actions[A.BOOK_EXPERIENCE]({ experience: exp, creator: profile, source: "visitor-profile" });
     } else {
       onBook?.(profile, exp);
     }

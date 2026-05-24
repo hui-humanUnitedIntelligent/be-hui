@@ -39,7 +39,7 @@ export function useProfileLauncher() {
   const openProfile = useCallback((data) => {
     if (!data) return;
     // Push source surface so Return weiß woher wir kamen
-    actions[A.OPEN_PROFILE]?.({ creator: data });
+    actions[A.OPEN_PROFILE]?.({ creator: data, source: "system" });
   }, [actions]);
 
   const openOwnProfile = useCallback(() => {
@@ -47,7 +47,7 @@ export function useProfileLauncher() {
   }, [actions]);
 
   const openCreatorProfile = useCallback((id, extra = {}) => {
-    actions[A.OPEN_PROFILE]?.({ creatorId: id, ...extra });
+    actions[A.OPEN_PROFILE]?.({ creatorId: id, source: "system", ...extra });
   }, [actions]);
 
   return { openProfile, openOwnProfile, openCreatorProfile };

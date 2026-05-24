@@ -12,6 +12,7 @@
 // ══════════════════════════════════════════════════════════════════
 
 import { useCallback, useContext, createContext } from "react";
+import { validate, SOURCE } from "./hui.contracts.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -147,7 +148,9 @@ export function buildActions(shell) {
   const actions = {
 
     // ── PROFILE ──────────────────────────────────────────────────
-    [A.OPEN_PROFILE]: (payload = {}) => {
+    [A.OPEN_PROFILE]: (rawPayload) => {
+      const payload = validate("OPEN_PROFILE", rawPayload);
+      if (!payload) return;
       logAction(A.OPEN_PROFILE, payload);
       const { creator, creatorId, source, ...rest } = payload;
       const data = creator
@@ -169,7 +172,9 @@ export function buildActions(shell) {
     },
 
     // ── CHAT ─────────────────────────────────────────────────────
-    [A.OPEN_CHAT]: (payload = {}) => {
+    [A.OPEN_CHAT]: (rawPayload) => {
+      const payload = validate("OPEN_CHAT", rawPayload);
+      if (!payload) return;
       logAction(A.OPEN_CHAT, payload);
       const { recipient, recipientId, name, avatar, ...rest } = payload;
       const rec = recipient ?? (recipientId ? {
@@ -190,14 +195,18 @@ export function buildActions(shell) {
       setShowChat?.(false);
     },
 
-    [A.SEND_MESSAGE]: (payload = {}) => {
+    [A.SEND_MESSAGE]: (rawPayload) => {
+      const payload = validate("SEND_MESSAGE", rawPayload);
+      if (!payload) return;
       logAction(A.SEND_MESSAGE, payload);
       // Opens chat — actual send handled inside ChatCenter
       actions[A.OPEN_CHAT](payload);
     },
 
     // ── EXPERIENCES ───────────────────────────────────────────────
-    [A.OPEN_EXPERIENCE]: (payload = {}) => {
+    [A.OPEN_EXPERIENCE]: (rawPayload) => {
+      const payload = validate("OPEN_EXPERIENCE", rawPayload);
+      if (!payload) return;
       logAction(A.OPEN_EXPERIENCE, payload);
       const { experience, creatorId } = payload;
       // Open the creator profile and highlight the experience
@@ -212,7 +221,9 @@ export function buildActions(shell) {
       }
     },
 
-    [A.BOOK_EXPERIENCE]: (payload = {}) => {
+    [A.BOOK_EXPERIENCE]: (rawPayload) => {
+      const payload = validate("BOOK_EXPERIENCE", rawPayload);
+      if (!payload) return;
       logAction(A.BOOK_EXPERIENCE, payload);
       const { experience, creator } = payload;
       // Set recipient for booking chat
@@ -246,7 +257,9 @@ export function buildActions(shell) {
       if (isDev) console.log("[HUI] Follow toggled:", payload);
     },
 
-    [A.SHARE_MOMENT]: (payload = {}) => {
+    [A.SHARE_MOMENT]: (rawPayload) => {
+      const payload = validate("SHARE_MOMENT", rawPayload);
+      if (!payload) return;
       logAction(A.SHARE_MOMENT, payload);
       const { url, title, text } = payload;
       if (typeof navigator !== "undefined" && navigator.share) {

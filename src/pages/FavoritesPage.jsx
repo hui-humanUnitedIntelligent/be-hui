@@ -617,9 +617,9 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
   const handleView = React.useCallback((item) => {
     const t = item?.type || "work_upload";
     if (t === "profile" || t === "talent" || item?.talent) {
-      actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item });
+      actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item, source: "favorites" });
     } else if (t === "experience" || t === "erlebnis") {
-      actions[A.OPEN_EXPERIENCE]?.({ experience: item });
+      actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: "favorites" });
     } else {
       actions[A.OPEN_WERK]?.({ werk: item });
     }
