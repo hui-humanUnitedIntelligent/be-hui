@@ -87,19 +87,33 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
     <div style={{
       position:"absolute", inset:0, zIndex:3,
       display:"flex", flexDirection:"column",
-      overflowX:"hidden", overflowY:"hidden",
+      // CRITICAL: kein overflow:hidden — ChatInput würde sonst abgeschnitten
+      overflow:"visible",
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
     }}>
       <style>{CSS}</style>
       <ChatAtmosphere dark={false}/>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
 
-      {showEmpty
-        ? <EmptyConvState name={conv?.name}/>
-        : <ChatMessages messages={messages} typing={false} event={null}/>
-      }
+      {/* Messages: flex:1 + minHeight:0 — nur den verfügbaren Raum nutzen */}
+      <div style={{ flex:1, minHeight:0, overflow:"hidden", display:"flex", flexDirection:"column" }}>
+        {showEmpty
+          ? <EmptyConvState name={conv?.name}/>
+          : <ChatMessages messages={messages} typing={false} event={null}/>
+        }
+      </div>
 
-      <div style={{ position:"relative", zIndex:10, flexShrink:0, width:"100%" }}>
+      {/* ChatInput: NIEMALS flex:1, niemals overflow:hidden Parent, IMMER am unteren Rand */}
+      <div style={{
+        flexShrink: 0,
+        width: "100%",
+        zIndex: 10,
+        position: "relative",
+        /* DEBUG — sichtbarkeits-Beweis: */
+        background: "rgba(255,0,0,0.08)",
+        minHeight: 60,
+        outline: "3px solid red",
+      }}>
         <ChatInput onSend={handleSend} sending={sending}/>
       </div>
     </div>
