@@ -56,6 +56,8 @@ export default function ChatInput({
       position: "relative",
       zIndex: 10,
       width: "100%",
+      // DEBUG: temporär — zum Beweis dass Composer existiert
+      outline: "3px solid rgba(22,215,197,0.40)",
     }}>
       <style>{CSS}</style>
 

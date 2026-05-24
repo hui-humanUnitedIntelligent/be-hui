@@ -218,7 +218,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9400,
+      position:"fixed", inset:0, zIndex:10001,
       display:"flex", overflow:"hidden",
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
       animation:"cc-in 0.22s ease both",
