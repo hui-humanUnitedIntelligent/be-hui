@@ -2,7 +2,7 @@
 // Goal: flowing atmospheric experience, not infinite-scroll energy.
 // System: 5 visual feed states with organic rhythm.
 
-import { useFeedData }           from '../lib/AppStateContext';
+// Phase 4F: useFeedData ersetzt durch useFeedStream (kein Import mehr nötig)
 import { S } from "../core/hui.sources.js";
 import { filterValidFeedItems }  from '../lib/factories/createFeedItem.js';
 import { createProfileItem }     from '../lib/factories/createProfileItem.js';
@@ -30,7 +30,14 @@ import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
 import InvitationCard from "../content/invitation/InvitationCard.jsx";
-import FeedRouter from "../feed/cards/FeedRouter.jsx";
+import FeedRouter                from "../feed/cards/FeedRouter.jsx";
+import { useFeedStream,
+         saveFeedScrollPos,
+         getFeedScrollPos }         from "../feed/useFeedStream.js";
+import { FeedBottomSentinel,
+         FeedLoadMoreSpinner,
+         useFeedScrollProgress }    from "../feed/FeedScrollSentinel.jsx";
+import { FeedSoftHydrationBadge }   from "../feed/FeedSoftHydrationBadge.jsx";
 import {
   resolveMemoryTokens,
   applyMemoryToCardStyle,
@@ -495,7 +502,47 @@ export default function HomeFeed({
     actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.HOME });
     onEvent?.(ev);
   }, [actions, onEvent]);
-  const feedData  = useFeedData?.() || {};
+  // Phase 4F: useFeedStream — Living Feed Infrastructure
+  const {
+    items:          streamItems,
+    loading:        streamLoading,
+    loadingMore:    streamLoadingMore,
+    hasMore:        streamHasMore,
+    error:          streamError,
+    loadMore:       streamLoadMore,
+    onScrollProgress: streamOnScrollProgress,
+    pendingCount:   streamPendingCount,
+    flushPendingItems: streamFlush,
+    refresh:        streamRefresh,
+  } = useFeedStream();
+
+  // Scroll Progress für Prefetch
+  // (scrollContainerRef kommt als Prop von Home.jsx über mainScrollRef)
+  const feedScrollRef = React.useRef(null);
+  useFeedScrollProgress(feedScrollRef, streamOnScrollProgress);
+
+  // Scroll Restore
+  React.useEffect(() => {
+    const y = getFeedScrollPos();
+    if (y > 0 && feedScrollRef.current) {
+      requestAnimationFrame(() => {
+        if (feedScrollRef.current) feedScrollRef.current.scrollTop = y;
+      });
+    }
+  }, []); // eslint-disable-line
+
+  // Scroll Position speichern
+  const handleFeedScroll = React.useCallback((e) => {
+    saveFeedScrollPos(e.currentTarget.scrollTop);
+  }, []);
+
+  // feedData compatibility shim (für bestehende Code-Referenzen)
+  const feedData = {
+    feedItems: streamItems,
+    items:     streamItems,
+    loading:   streamLoading,
+    error:     streamError,
+  };
   // Phase 4D: echte Daten aus DB — kein Mock-Fallback
   const realItems = feedData?.feedItems || feedData?.items || [];
   const liveItems = feedItems
@@ -943,6 +990,12 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
         </div>
       </div>
 
+      {/* Phase 4F: Soft Hydration Badge — neue Items, ruhig akkumuliert */}
+      <FeedSoftHydrationBadge
+        count={streamPendingCount}
+        onFlush={streamFlush}
+      />
+
       {/* ── Curated feed sequence ─────────────────────────────────── */}
       <div style={{ display:"flex", flexDirection:"column" }}>
         {(sequence || []).map((slot, si) => {
@@ -1013,6 +1066,12 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
         })}
       </div>
 
+      {/* Phase 4F: Infinite Scroll Sentinel + LoadMore Spinner */}
+      <FeedLoadMoreSpinner loading={streamLoadingMore} />
+      <FeedBottomSentinel
+        onVisible={streamLoadMore}
+        enabled={streamHasMore && !streamLoadingMore}
+      />
       <div style={{ height:24 }} />
     </div>
   );
