@@ -460,10 +460,14 @@ export async function findOrCreateChat({
     return parties.includes(userId) && parties.includes(otherUserId);
   });
 
-  if (match) return match;
+  if (match) {
+    console.log("[HUI_CHAT] findOrCreateChat: bestehender Chat gefunden:", match.id);
+    return match;
+  }
 
   // Neuen Chat erstellen
-  const { data: newChat } = await supabase
+  console.log("[HUI_CHAT] findOrCreateChat: neuer Chat wird erstellt…", { userId, otherUserId });
+  const { data: newChat, error: createError } = await supabase
     .from("chats")
     .insert({
       participant_a:    userId,
@@ -477,7 +481,19 @@ export async function findOrCreateChat({
       opened_at:        new Date().toISOString(),
       last_message_at:  new Date().toISOString(),
     })
-    .select("id").single();
+    .select("id")
+    .single();
 
+  if (createError) {
+    console.error("[HUI_CHAT] findOrCreateChat INSERT fehlgeschlagen:", {
+      code:    createError.code,
+      message: createError.message,
+      details: createError.details,
+      hint:    createError.hint,
+    });
+    return null; // explizit null statt undefined
+  }
+
+  console.log("[HUI_CHAT] findOrCreateChat: Chat erstellt:", newChat?.id);
   return newChat;
 }

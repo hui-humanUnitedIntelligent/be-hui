@@ -262,33 +262,33 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           }}
           onOpenChat={(profile) => {
             setShowPeopleSearch(false);
-            console.log("[HUI_DISCOVERY] direct message entry:", profile?.display_name);
-            // direkt Chat öffnen
-            if (profile?.id && user?.id) {
-              findOrCreateChat({
-                userId:      user.id,
-                otherUserId: profile.id,
-                chatType:    "direct",
-              }).then(chatRecord => {
-                setActiveConv({
-                  id:         chatRecord?.id || `direct_${profile.id}`,
-                  name:       profile.display_name || "Creator",
-                  avatar_url: profile.avatar_url || null,
-                  talent:     profile.talent || null,
-                  mood:       "Echte Verbindung",
-                  online:     true,
-                });
-              }).catch(() => {
-                setActiveConv({
-                  id:         `direct_${profile.id}`,
-                  name:       profile.display_name || "Creator",
-                  avatar_url: profile.avatar_url || null,
-                  talent:     profile.talent || null,
-                  mood:       "Echte Verbindung",
-                  online:     true,
-                });
-              });
+            if (!profile?.id || !user?.id) {
+              console.error("[HUI_CHAT] PeopleSearch: fehlende IDs", { profileId: profile?.id, userId: user?.id });
+              return;
             }
+            console.log("[HUI_CHAT] PeopleSearch → findOrCreateChat", profile.display_name);
+            findOrCreateChat({
+              userId:      user.id,
+              otherUserId: profile.id,
+              chatType:    "direct",
+            }).then(chatRecord => {
+              const realId = chatRecord?.id;
+              if (!realId) {
+                console.error("[HUI_CHAT] PeopleSearch: kein chatRecord.id!", chatRecord);
+                return; // kein fake-ID Fallback
+              }
+              console.log("[HUI_CHAT] Chat bereit:", realId);
+              setActiveConv({
+                id:         realId,
+                name:       profile.display_name || "Creator",
+                avatar_url: profile.avatar_url || null,
+                talent:     profile.talent || null,
+                mood:       "Echte Verbindung",
+                online:     true,
+              });
+            }).catch(err => {
+              console.error("[HUI_CHAT] findOrCreateChat Fehler:", err?.message);
+            });
           }}
         />
       )}
