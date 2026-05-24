@@ -50,20 +50,23 @@ export default function PublishExperienceFlow({ onClose, onPublished }) {
         }
       }
 
+      // ── Schema-valid payload (038) ─────────────────────────────────
       const payload = {
         user_id:          user.id,
         title:            form.title,
-        description:      form.description || null,
+        description:      form.description      || null,
         price:            form.price ? parseFloat(form.price) : null,
-        duration:         form.duration || null,
-        format:           form.format || null,
-        location_text:    form.location_text || null,
-        category:         form.category || null,
+        duration:         form.duration         || null,
+        format:           form.format           || null,
+        location_text:    form.location_text    || null,
+        category:         form.category         || null,
         max_participants: form.max_participants ? parseInt(form.max_participants) : null,
-        date:             form.date || null,
+        date:             form.date             || null,
+        visibility:       "public",
         cover_url,
         status:           "published",
       };
+      console.log("[HUI_EXPERIENCE_PAYLOAD]", payload);
 
       const { data, error: insErr } = await supabase
         .from("experiences").insert(payload).select("id").single();

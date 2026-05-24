@@ -157,6 +157,11 @@ export default function ExperienceFlow({ onClose }) {
       //   price, format, location_text, max_participants, booking_mode,
       //   date, cover_url, media_url, media_type, mood_tags, status, visibility
       // NICHT in Schema: sale_mode, avail_days, avail_times, images[]
+      // ── Schema-valid payload (038) ─────────────────────────────────
+      // Columns: user_id, title, description, category, mood, duration,
+      //          price, format, location_text, max_participants,
+      //          booking_mode, cover_url, media_url, images, visibility, status
+      // NICHT im Schema: media_type → entfernt
       const expPayload = {
         user_id:          user.id,
         title:            form.title ? form.title.trim() : "Erlebnis",
@@ -172,9 +177,13 @@ export default function ExperienceFlow({ onClose }) {
         booking_mode:     form.bookingMode  || "direct",
         cover_url:        imgUrls[0]        || null,
         media_url:        imgUrls[0]        || null,
-        media_type:       "image",
+        images:           imgUrls.length > 0
+                            ? JSON.stringify(imgUrls.map((u,i) => ({ url:u, order:i })))
+                            : "[]",
+        visibility:       "public",
         status:           "published",
       };
+      console.log("[HUI_EXPERIENCE_PAYLOAD]", expPayload);
       console.info("[HUI_PUBLISH] experiences payload:", {
         user_id:     expPayload.user_id,
         title:       expPayload.title,

@@ -423,24 +423,33 @@ export default function ExperienceCreator({ onClose, onSuccess }) {
         imgUrls.push(publicUrl);
       }
 
-      const { error: dbErr } = await supabase.from("experiences").insert({
+      // ── Schema-valid payload (038) ─────────────────────────────────
+      // images als JSONB (nicht TEXT[]), created_at wird auto-filled
+      const insertPayload = {
         user_id:          user.id,
         title:            form.title.trim(),
-        description:      form.desc.trim(),
-        mood:             form.mood,
-        category:         form.category,
-        duration:         form.duration.trim(),
+        description:      form.desc ? form.desc.trim() : null,
+        mood:             form.mood             || null,
+        category:         form.category         || null,
+        duration:         form.duration ? form.duration.trim() : null,
         price:            form.price ? parseFloat(form.price) : null,
-        format:           form.format,
-        location_text:    form.location.trim(),   // text statt GEOGRAPHY
+        format:           form.format           || null,
+        location_text:    form.location ? form.location.trim() : null,
         max_participants: form.maxParticipants ? parseInt(form.maxParticipants) : null,
-        booking_mode:     form.bookingMode,
-        images:           imgUrls,
-        media_url:        imgUrls[0] || null,
-        cover_url:        imgUrls[0] || null,
+        booking_mode:     form.bookingMode      || "direct",
+        images:           imgUrls.length > 0
+                            ? JSON.stringify(imgUrls.map((u,i) => ({ url:u, order:i })))
+                            : "[]",
+        media_url:        imgUrls[0]            || null,
+        cover_url:        imgUrls[0]            || null,
+        visibility:       "public",
         status:           "published",
-        created_at:       new Date().toISOString(),
-      });
+        // created_at: auto-filled by DB default
+      };
+      console.log("[HUI_EXPERIENCE_PAYLOAD]", insertPayload);
+      const { error: dbErr } = await supabase
+        .from("experiences")
+        .insert(insertPayload);
       if (dbErr) { console.error("[ExperienceCreator] db:", dbErr); throw dbErr; }
       setDone(true);
       setTimeout(()=>{ if(onSuccess) onSuccess(); onClose(); }, 2000);

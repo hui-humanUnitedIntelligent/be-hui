@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HUI Migration 038 — experiences Schema Fix</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,sans-serif;background:#0f0f0f;color:#e0e0e0;padding:24px}
+  h1{font-size:20px;color:#0ABFB8;margin-bottom:8px}
+  .sub{font-size:13px;color:#888;margin-bottom:24px}
+  .card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:16px}
+  .card h2{font-size:14px;color:#0ABFB8;margin-bottom:12px;letter-spacing:0.3px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;margin-right:6px}
+  .ok{background:rgba(10,191,184,0.15);color:#0ABFB8}
+  .warn{background:rgba(251,146,60,0.15);color:#FB923C}
+  .err{background:rgba(239,68,68,0.15);color:#ef4444}
+  pre{background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:16px;overflow-x:auto;font-size:12px;line-height:1.6;color:#d4d4d4;white-space:pre-wrap;word-break:break-all;max-height:500px;overflow-y:auto}
+  button{background:linear-gradient(135deg,#0ABFB8,#8B5CF6);color:white;border:none;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:16px}
+  button:hover{opacity:0.9}
+  .steps li{margin-bottom:10px;font-size:13px;color:#ccc;line-height:1.6}
+  .steps li strong{color:#0ABFB8}
+</style>
+</head>
+<body>
+<h1>🔧 HUI Migration 038 — experiences Schema Fix</h1>
+<p class="sub">Reality Migration: booking_mode + fehlende Columns ergänzen</p>
+
+<div class="card">
+  <h2>📊 Problem-Analyse</h2>
+  <p style="font-size:13px;color:#aaa;margin-bottom:12px">
+    Frontend sendet <code style="color:#FB923C">booking_mode</code>, <code style="color:#FB923C">mood</code>, <code style="color:#FB923C">images</code>, <code style="color:#FB923C">date</code> — Columns fehlen in Live-DB.
+  </p>
+  <div>
+    <span class="badge ok">✓ booking_mode → TEXT DEFAULT 'direct'</span><br><br>
+    <span class="badge ok">✓ mood → TEXT</span><br><br>
+    <span class="badge ok">✓ images → JSONB DEFAULT '[]'</span><br><br>
+    <span class="badge ok">✓ date → TIMESTAMPTZ</span><br><br>
+    <span class="badge warn">✗ media_type entfernt (nicht im Schema)</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>⚙️ SQL Migration — in Supabase SQL Editor ausführen</h2>
+  <p style="font-size:12px;color:#888;margin-bottom:12px">
+    → Supabase Dashboard → SQL Editor → New Query → unten stehenden SQL einfügen → Run
+  </p>
+  <pre id="sql">-- ═══════════════════════════════════════════════════════════════════════
+-- HUI Migration 038 — experiences: Schema Reality Fix
+-- Datum: 2026-05-24
+-- IDEMPOTENT: kann beliebig oft ausgeführt werden
+-- ═══════════════════════════════════════════════════════════════════════
+
+-- 1. Tabelle erstellen (falls komplett fehlend)
+CREATE TABLE IF NOT EXISTS public.experiences (
+  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title            TEXT        NOT NULL,
+  description      TEXT,
+  category         TEXT,
+  mood             TEXT,
+  price            NUMERIC(10,2),
+  sale_mode        TEXT        DEFAULT 'fixed',
+  price_type       TEXT,
+  format           TEXT,
+  location_text    TEXT,
+  language         TEXT        DEFAULT 'Deutsch',
+  duration         TEXT,
+  date             TIMESTAMPTZ,
+  max_participants INTEGER,
+  avail_days       TEXT[],
+  avail_times      TEXT[],
+  available_days   TEXT[],
+  booking_mode     TEXT        DEFAULT 'direct',
+  cover_url        TEXT,
+  media_url        TEXT,
+  images           JSONB       DEFAULT '[]'::jsonb,
+  visibility       TEXT        NOT NULL DEFAULT 'public',
+  status           TEXT        NOT NULL DEFAULT 'draft',
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 2. Fehlende Columns ergänzen (idempotent — kein Fehler wenn schon vorhanden)
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS mood             TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS sale_mode        TEXT DEFAULT 'fixed';
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS price_type       TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS format           TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS location_text    TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS language         TEXT DEFAULT 'Deutsch';
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS duration         TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS date             TIMESTAMPTZ;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS max_participants INTEGER;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS avail_days       TEXT[];
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS avail_times      TEXT[];
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS available_days   TEXT[];
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS booking_mode     TEXT DEFAULT 'direct';
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS cover_url        TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS media_url        TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS images           JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS visibility       TEXT NOT NULL DEFAULT 'public';
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS updated_at       TIMESTAMPTZ NOT NULL DEFAULT now();
+
+-- 3. Status default
+ALTER TABLE public.experiences ALTER COLUMN status SET DEFAULT 'published';
+UPDATE public.experiences SET status = 'published'
+  WHERE status IS NULL OR status NOT IN ('published','draft','paused','archived');
+
+-- 4. Indexes
+CREATE INDEX IF NOT EXISTS idx_experiences_user_id  ON public.experiences(user_id);
+CREATE INDEX IF NOT EXISTS idx_experiences_status   ON public.experiences(status);
+CREATE INDEX IF NOT EXISTS idx_experiences_category ON public.experiences(category);
+CREATE INDEX IF NOT EXISTS idx_experiences_created  ON public.experiences(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_experiences_booking  ON public.experiences(booking_mode);
+CREATE INDEX IF NOT EXISTS idx_experiences_vis_stat ON public.experiences(visibility, status);
+
+-- 5. RLS
+ALTER TABLE public.experiences ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "experiences_public_read" ON public.experiences;
+CREATE POLICY "experiences_public_read" ON public.experiences
+  FOR SELECT USING (status = 'published' AND visibility = 'public');
+
+DROP POLICY IF EXISTS "experiences_own_read" ON public.experiences;
+CREATE POLICY "experiences_own_read" ON public.experiences
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "experiences_own_write" ON public.experiences;
+CREATE POLICY "experiences_own_write" ON public.experiences
+  FOR ALL USING (auth.uid() = user_id);
+
+-- 6. updated_at Trigger
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+
+DROP TRIGGER IF EXISTS trg_experiences_updated_at ON public.experiences;
+CREATE TRIGGER trg_experiences_updated_at
+  BEFORE UPDATE ON public.experiences
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- 7. Validierung (diese Query nach dem Run ausführen)
+-- SELECT column_name, data_type, column_default
+-- FROM information_schema.columns
+-- WHERE table_schema = 'public' AND table_name = 'experiences'
+-- ORDER BY ordinal_position;
+
+COMMENT ON TABLE public.experiences IS 'HUI Erlebnisse v038 — booking_mode: direct|request';</pre>
+  <button onclick="copySQL()">📋 SQL kopieren</button>
+</div>
+
+<div class="card">
+  <h2>📋 Nach Migration: Checkliste</h2>
+  <ol class="steps">
+    <li><strong>Supabase SQL Editor</strong> → Query oben ausführen → kein Error = ✅</li>
+    <li><strong>Validation Query</strong> ausführen: <code style="color:#0ABFB8">SELECT column_name FROM information_schema.columns WHERE table_name='experiences'</code></li>
+    <li>Prüfen: <code>booking_mode</code>, <code>mood</code>, <code>images</code>, <code>date</code> sind alle in der Liste ✅</li>
+    <li><strong>App</strong>: Erlebnis veröffentlichen → Console zeigt <code>[HUI_EXPERIENCE_PAYLOAD]</code> → kein DB-Error ✅</li>
+    <li>Supabase Table Editor → <code>experiences</code> → neue Row sichtbar ✅</li>
+    <li>Feed lädt → Experience erscheint ✅</li>
+    <li>Reload → bleibt sichtbar ✅</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>🔧 Was wurde im Frontend geändert</h2>
+  <ul class="steps">
+    <li><strong>ExperienceFlow.jsx</strong>: <code>media_type: "image"</code> entfernt (nicht im Schema), <code>images</code> + <code>visibility</code> ergänzt, <code>[HUI_EXPERIENCE_PAYLOAD]</code> Log</li>
+    <li><strong>ExperienceCreator.jsx</strong>: <code>created_at</code> entfernt (auto-filled), <code>images</code> als JSONB, <code>visibility</code> ergänzt, null-safe Strings</li>
+    <li><strong>PublishExperienceFlow.jsx</strong>: <code>visibility</code> ergänzt, <code>[HUI_EXPERIENCE_PAYLOAD]</code> Log</li>
+  </ul>
+</div>
+
+<script>
+function copySQL() {
+  const sql = document.getElementById('sql').textContent;
+  navigator.clipboard.writeText(sql).then(() => {
+    document.querySelector('button').textContent = '✅ Kopiert!';
+    setTimeout(() => document.querySelector('button').textContent = '📋 SQL kopieren', 2000);
+  });
+}
+</script>
+</body>
+</html>
