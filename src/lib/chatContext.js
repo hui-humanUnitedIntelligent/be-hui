@@ -200,7 +200,17 @@ export function useChatThread(chatId) {
   const optimisticIdRef = useRef(0);
 
   const load = useCallback(async () => {
-    if (!chatId) return;
+    if (!chatId) {
+      console.warn("[HUI_CHAT] useChatThread: kein chatId — kein Load");
+      return;
+    }
+    const isFake = typeof chatId === "string" && chatId.startsWith("direct_");
+    if (isFake) {
+      console.warn("[HUI_CHAT] useChatThread: fake chatId:", chatId, "— kein DB-Load");
+      setLoading(false);
+      return;
+    }
+    console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
     try {
       const { data } = await supabase
         .from("messages")
@@ -229,13 +239,20 @@ export function useChatThread(chatId) {
         event: "INSERT", schema: "public", table: "messages",
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
+        console.log("[HUI_REALTIME_RECEIVED] neue Message:", {
+          id:        payload.new?.id,
+          sender_id: payload.new?.sender_id,
+          chat_id:   payload.new?.chat_id,
+          text:      payload.new?.text?.substring(0, 40),
+        });
         setMessages(prev => {
-          // Deduplizieren — optimistic messages ersetzen
           const exists = prev.find(m => m.id === payload.new.id);
           if (exists) return prev;
-          // Optimistic message (mit temp ID) ersetzen
-          const withoutTemp = prev.filter(m => !m._optimistic);
-          return [...withoutTemp, payload.new];
+          // Optimistic message ersetzen wenn ID passt, sonst anhängen
+          const withoutMatchingOptimistic = prev.filter(m =>
+            !(m._optimistic && m.text === payload.new.text && m.sender_id === payload.new.sender_id)
+          );
+          return [...withoutMatchingOptimistic, payload.new];
         });
       })
       .on("postgres_changes", {
@@ -246,7 +263,9 @@ export function useChatThread(chatId) {
           m.id === payload.new.id ? { ...m, ...payload.new } : m
         ));
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log("[HUI_REALTIME]", chatId, "subscription status:", status, err || "");
+      });
     return () => { supabase.removeChannel(realtimeRef.current); };
   }, [chatId]);
 
@@ -254,16 +273,25 @@ export function useChatThread(chatId) {
   const sendMessage = useCallback(async ({
     text, msgType = "text", mediaUrl, mediaType, mediaMeta, contextRef,
   }) => {
-    if (!chatId || !user?.id || (!text?.trim() && !mediaUrl)) return;
-    setSending(true);
+    // ── GUARD ─────────────────────────────────────────────────
+    if (!chatId) {
+      console.error("[HUI_MESSAGE_ERROR] kein chatId — Message abgebrochen", { chatId, userId: user?.id });
+      return { error: "no_chat_id" };
+    }
+    if (!user?.id) {
+      console.error("[HUI_MESSAGE_ERROR] kein user.id — nicht eingeloggt?", { chatId });
+      return { error: "not_authenticated" };
+    }
+    if (!text?.trim() && !mediaUrl) {
+      console.warn("[HUI_MESSAGE_ERROR] leerer Text + kein mediaUrl — abgebrochen");
+      return { error: "empty_message" };
+    }
 
-    // Optimistic message sofort anzeigen
-    const tempId = `temp-${optimisticIdRef.current++}`;
-    const optimisticMsg = {
-      id:         tempId,
+    // ── PAYLOAD LOG ────────────────────────────────────────────
+    const payload = {
       chat_id:    chatId,
       sender_id:  user.id,
-      text:       text || "",
+      text:       text?.trim() || "",
       msg_type:   msgType,
       media_url:  mediaUrl || null,
       media_type: mediaType || null,
@@ -271,31 +299,45 @@ export function useChatThread(chatId) {
       context_ref: contextRef || null,
       created_at: new Date().toISOString(),
       read:       false,
-      _optimistic: true,
     };
+    console.log("[HUI_MESSAGE_SEND] Payload →", JSON.stringify(payload));
+    setSending(true);
+
+    // ── OPTIMISTIC ─────────────────────────────────────────────
+    const tempId = `temp-${optimisticIdRef.current++}`;
+    const optimisticMsg = { id: tempId, ...payload, _optimistic: true };
     setMessages(prev => [...prev, optimisticMsg]);
 
     try {
-      const { error } = await supabase.from("messages").insert({
-        chat_id:    chatId,
-        sender_id:  user.id,
-        text:       text?.trim() || "",
-        msg_type:   msgType,
-        media_url:  mediaUrl || null,
-        media_type: mediaType || null,
-        media_meta: mediaMeta || null,
-        context_ref: contextRef || null,
-        created_at: new Date().toISOString(),
-        read:       false,
-      });
+      console.log("[HUI_MESSAGE_INSERT] Supabase INSERT start…");
+      const { data: insertedData, error } = await supabase
+        .from("messages")
+        .insert(payload)
+        .select("id")
+        .single();
+
       if (error) {
-        // Rollback optimistic
+        // ── INSERT ERROR ───────────────────────────────────────
+        console.error("[HUI_MESSAGE_ERROR] Supabase INSERT fehlgeschlagen:", {
+          code:    error.code,
+          message: error.message,
+          details: error.details,
+          hint:    error.hint,
+          payload,
+        });
         setMessages(prev => prev.filter(m => m.id !== tempId));
-        console.error("[sendMessage]", error.message);
-        return { error: error.message };
+        return { error: error.message, code: error.code };
       }
-      return { success: true };
+
+      console.log("[HUI_MESSAGE_INSERT] ✓ persistiert, id:", insertedData?.id);
+      // Optimistic message mit echter ID ersetzen
+      setMessages(prev => prev.map(m =>
+        m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
+      ));
+      return { success: true, id: insertedData?.id };
+
     } catch(e) {
+      console.error("[HUI_MESSAGE_ERROR] Exception:", e.message, e);
       setMessages(prev => prev.filter(m => m.id !== tempId));
       return { error: e.message };
     } finally {
