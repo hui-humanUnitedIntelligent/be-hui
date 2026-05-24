@@ -15,14 +15,6 @@ const CSS = `
   .hui-scroll::-webkit-scrollbar{display:none;}
 `;
 
-// Mock Event Preview für Demo
-const MOCK_EVENT = {
-  title:"Klangreise \u2013 Live im Atelier",
-  when_full:"24. Mai \u00b7 18:00",
-  location_label:"Berlin",
-  cover_url: null,
-};
-
 // Repräsentative Mock-Nachrichten wenn kein Supabase-Chat vorhanden
 function getMockMsgs(conv) {
   const base = Date.now() - 3600000;
@@ -45,25 +37,36 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       ? useChatThread(chatId)
       : { messages:[], sendMessage:null, loading:false };
 
-  // Fallback: Mock-Nachrichten wenn noch keine echten da
-  const messages = liveMessages?.length > 0
-    ? (liveMessages||[]).filter(m=>m&&m.id).map(m => ({
-        ...m,
-        own: m.sender_id === user?.id,
-        avatar: conv?.avatar_url,
-        sender_name: conv?.name,
-      }))
-    : getMockMsgs(conv);
+  // Echter Chat: live messages oder leerer State (kein Mock)
+  // Fake-ID (direct_xyz): Mock als Platzhalter bis Chat erstellt ist
+  const isFakeId = typeof chatId === "string" && chatId.startsWith("direct_");
+  const normalizedLive = (liveMessages||[]).filter(m=>m&&m.id).map(m => ({
+    ...m,
+    own: m.sender_id === user?.id,
+    avatar: conv?.avatar_url,
+    sender_name: conv?.name,
+  }));
+  const messages = normalizedLive.length > 0
+    ? normalizedLive
+    : (isFakeId && !loading)
+      ? getMockMsgs(conv)   // nur bei fake-ID als UX-Platzhalter
+      : [];                 // echter Chat — echter leerer State
 
   const [typing, setTyping] = useState(false);
 
   const handleSend = useCallback(async (text) => {
+    if (!text?.trim()) return;
+    console.log("[HUI_CHAT] sending message, chatId:", chatId);
     if (sendMessage) {
-      await sendMessage({ text, type:"text" });
+      const result = await sendMessage({ text, msgType: "text" });
+      if (result?.error) {
+        console.warn("[HUI_CHAT] send failed:", result.error);
+      } else {
+        console.log("[HUI_MESSAGE] message persisted ✓");
+      }
     }
-    // Typing simulation für Demo
     setTyping(false);
-  }, [sendMessage]);
+  }, [sendMessage, chatId]);
 
   return (
     <div style={{
@@ -84,7 +87,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       <ChatMessages
         messages={messages}
         typing={typing}
-        event={MOCK_EVENT}
+        event={null}
       />
 
       {/* Input */}

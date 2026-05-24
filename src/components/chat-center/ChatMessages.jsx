@@ -110,12 +110,30 @@ export default function ChatMessages({ messages, typing, event }) {
       {groups.length === 0 && (
         <div style={{
           flex:1, display:"flex", alignItems:"center", justifyContent:"center",
-          flexDirection:"column", gap:12, padding:40,
-          color:"rgba(80,80,80,0.30)",
+          flexDirection:"column", gap:14, padding:"40px 32px",
         }}>
-          <div style={{ fontSize:36 }}>✦</div>
-          <div style={{ fontSize:13, textAlign:"center", lineHeight:1.6 }}>
-            Noch keine Nachrichten.<br/>Beginne die Begegnung.
+          {/* Atmosphärischer Einstieg — kein leerer weißer Screen */}
+          <div style={{
+            width:56, height:56, borderRadius:"50%",
+            background:"linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:24,
+          }}>✦</div>
+          <div style={{
+            fontSize:14, textAlign:"center", lineHeight:1.7,
+            color:"rgba(80,80,80,0.42)",
+            maxWidth:220,
+          }}>
+            Erste Worte.<br/>
+            <span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>
+              Schreib etwas Echtes.
+            </span>
+          </div>
+          <div style={{
+            fontSize:12, color:"rgba(80,80,80,0.28)",
+            textAlign:"center", marginTop:4,
+          }}>
+            Deine Nachricht wird sofort zugestellt.
           </div>
         </div>
       )}

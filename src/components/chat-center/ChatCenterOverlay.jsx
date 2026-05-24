@@ -12,6 +12,7 @@ import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useChatList, findOrCreateChat }  from "../../lib/chatContext.js";
+import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
@@ -34,15 +35,15 @@ const CSS = `
 `;
 
 /* ── Compose Button ── */
-function ComposeBtn() {
+function ComposeBtn({ onClick }) {
   return (
-    <button style={{
+    <button onClick={onClick} style={{
       width:40, height:40, borderRadius:"50%",
       background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
       border:"none", cursor:"pointer",
       display:"flex", alignItems:"center", justifyContent:"center",
       boxShadow:`0 4px 14px rgba(22,215,197,0.32)`,
-      WebkitTapHighlightColor:"transparent",
+      WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
     }}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
@@ -52,7 +53,7 @@ function ComposeBtn() {
 }
 
 /* ── LIST PANEL ── */
-function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose }) {
+function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose, onCompose }) {
   const [search, setSearch] = useState("");
 
   return (
@@ -99,7 +100,7 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose 
             </div>
           </div>
 
-          <ComposeBtn/>
+          <ComposeBtn onClick={onCompose}/>
         </div>
 
         {/* Search */}
@@ -148,6 +149,7 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose 
 ══════════════════════════════════════════════════════════════ */
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
+  const [showPeopleSearch, setShowPeopleSearch] = useState(false);
   const { openCreatorProfile } = useProfileLauncher();
   const { user } = useAuth();
 
@@ -236,12 +238,60 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <ListPanel
           onClose={onClose}
           onOpen={openConv}
+          onCompose={() => setShowPeopleSearch(true)}
           chats={chats}
           loading={loading}
           activeId={activeConv?.id}
           onDiscoverClose={onDiscoverClose}
         />
       </div>
+
+      {/* ── PEOPLE SEARCH — direkte Suche nach Menschen ── */}
+      {showPeopleSearch && (
+        <PeopleSearch
+          onClose={() => setShowPeopleSearch(false)}
+          onOpenProfile={(profile) => {
+            setShowPeopleSearch(false);
+            // Profil über ProfileLauncher öffnen
+            const userId = profile?.id || profile?.user_id;
+            if (userId) openCreatorProfile(userId, {
+              display_name: profile?.display_name,
+              avatar_url:   profile?.avatar_url,
+              talent:       profile?.talent,
+            });
+          }}
+          onOpenChat={(profile) => {
+            setShowPeopleSearch(false);
+            console.log("[HUI_DISCOVERY] direct message entry:", profile?.display_name);
+            // direkt Chat öffnen
+            if (profile?.id && user?.id) {
+              findOrCreateChat({
+                userId:      user.id,
+                otherUserId: profile.id,
+                chatType:    "direct",
+              }).then(chatRecord => {
+                setActiveConv({
+                  id:         chatRecord?.id || `direct_${profile.id}`,
+                  name:       profile.display_name || "Creator",
+                  avatar_url: profile.avatar_url || null,
+                  talent:     profile.talent || null,
+                  mood:       "Echte Verbindung",
+                  online:     true,
+                });
+              }).catch(() => {
+                setActiveConv({
+                  id:         `direct_${profile.id}`,
+                  name:       profile.display_name || "Creator",
+                  avatar_url: profile.avatar_url || null,
+                  talent:     profile.talent || null,
+                  mood:       "Echte Verbindung",
+                  online:     true,
+                });
+              });
+            }
+          }}
+        />
+      )}
 
       {/* ── ROOM PANEL — slides in über Liste auf Mobile ── */}
       {activeConv && (
