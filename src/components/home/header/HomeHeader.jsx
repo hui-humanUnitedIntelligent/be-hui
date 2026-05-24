@@ -8,6 +8,7 @@ import MoodOrbButton      from "./MoodOrbButton.jsx";
 import NotificationButton from "./NotificationButton.jsx";
 import MessageButton      from "./MessageButton.jsx";
 import MoodSheet          from "../mood/MoodSheet.jsx";
+import { useHuiActions, A } from "../../../core/hui.actions.js";
 
 export default function HomeHeader({
   activeMood,
@@ -19,12 +20,18 @@ export default function HomeHeader({
 }) {
   const [showMood,  setShowMood]  = React.useState(false);
   const [matchVal,  setMatchVal]  = React.useState("");
+  const actions = useHuiActions();
 
   const mc  = activeMood?.color || "#16D7C5";
   const has = !!activeMood;
 
+  // Route through Action Engine — prop fallbacks for non-HomeShell contexts
   function handleChat() {
-    onChat?.();
+    actions[A.OPEN_CHAT]?.() || onChat?.();
+  }
+
+  function handleNotif() {
+    actions[A.OPEN_NOTIFICATIONS]?.() || onNotif?.();
   }
 
   return (
@@ -60,7 +67,7 @@ export default function HomeHeader({
             onToggle={() => setShowMood(p => !p)}
           />
 
-          <NotificationButton count={notifCount} onPress={onNotif}/>
+          <NotificationButton count={notifCount} onPress={handleNotif}/>
 
           <MessageButton count={msgCount} onPress={handleChat}/>
         </div>

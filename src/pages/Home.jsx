@@ -175,12 +175,14 @@ function HomeInner() {
     return () => mgr.cleanup();
   }, []);
 
-  /* onTab: profile → openOwnProfile direkt, sonst handleTab */
+  /* onTab: routed through Action Engine — handleTab still syncs HomeShell state */
   function onTabPress(key) {
+    // Action Engine handles logging + future side-effects
+    // handleTab remains the source of truth for tab state in HomeShell
     if (key === "profile") {
-      openOwnProfile();
+      openOwnProfile();   // handled by Action Engine in BottomNav, kept here as fallback
     } else {
-      handleTab(key);
+      handleTab(key);     // HomeShell state sync (non-negotiable)
     }
   }
 
@@ -215,9 +217,7 @@ function HomeInner() {
           notifCount={liveNotifCount}
           msgCount={0}
           onNotif={() => setShowNotifs(true)}
-          onChat={() => {
-            setShowChat(true);
-          }}
+          onChat={() => setShowChat(true)}
         />
 
         {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,

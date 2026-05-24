@@ -10,11 +10,11 @@
 | Metrik | Wert |
 |---|---|
 | **Interaktive Elemente gesamt** | ~127 |
-| **Bereits auf HUI_ACTIONS migriert** | 11 (~9%) |
-| **Legacy setState / direkte Calls** | 88 (~69%) |
+| **Bereits auf HUI_ACTIONS migriert** | 16 (~13%) | ✅ Batch 1 done |
+| **Legacy setState / direkte Calls** | 83 (~65%) |
 | **Dead / Placeholder** | 18 (~14%) |
 | **Missing Backend** | 10 (~8%) |
-| **Migration Score** | **9% — kritisch niedrig** |
+| **Migration Score** | **13% — Batch 1 ✅ / Batch 2 next** |
 
 ---
 
@@ -38,12 +38,12 @@
 
 | Screen | Element | Type | Current Behavior | Action | Status | Target | Missing |
 |---|---|---|---|---|---|---|---|
-| Global | Tab: Feed | Tab | `handleTab("feed")` | `A.GO_HOME` | `legacy` | `A.GO_HOME` | Migration |
-| Global | Tab: Entdecken | Tab | `handleTab("discover")` | `A.GO_DISCOVER` | `legacy` | `A.GO_DISCOVER` | Migration |
-| Global | Tab: Impact | Tab | `handleTab("impact")` | `A.GO_IMPACT` | `legacy` | `A.GO_IMPACT` | Migration |
-| Global | Tab: Favoriten | Tab | `handleTab("favorites")` | `A.GO_FAVORITES` | `legacy` | `A.GO_FAVORITES` | Migration |
-| Global | Tab: Profil | Tab | `openOwnProfile()` direkt | `A.OPEN_OWN_PROFILE` | `partial` | `A.OPEN_OWN_PROFILE` | Nur onTabPress migrieren |
-| Global | Orb-Button (Mitte) | FloatingAction | `setShowPlusSheet(true)` via onOrbAction | `A.OPEN_ORB` | `legacy` | `A.OPEN_ORB` | Migration |
+| Global | Tab: Feed | Tab | `A.GO_TO_TAB` via actions | `A.GO_HOME` | `migrated ✅` | — | — |
+| Global | Tab: Entdecken | Tab | `A.GO_TO_TAB` via actions | `A.GO_DISCOVER` | `migrated ✅` | — | — |
+| Global | Tab: Impact | Tab | `A.GO_TO_TAB` via actions | `A.GO_IMPACT` | `migrated ✅` | — | — |
+| Global | Tab: Favoriten | Tab | `A.GO_TO_TAB` via actions | `A.GO_FAVORITES` | `migrated ✅` | — | — |
+| Global | Tab: Profil | Tab | `A.OPEN_OWN_PROFILE` via actions | `A.OPEN_OWN_PROFILE` | `migrated ✅` | — | — |
+| Global | Orb-Button (Mitte) | FloatingAction | `A.OPEN_ORB` via actions | `A.OPEN_ORB` | `migrated ✅` | — | — |
 
 ---
 
@@ -237,8 +237,8 @@
 
 | Screen | Element | Type | Current Behavior | Action | Status | Target | Missing |
 |---|---|---|---|---|---|---|---|
-| Header | 🔔 Notification Bell | Button | `setShowNotifs(true)` | `A.OPEN_NOTIFICATIONS` | `legacy` | `A.OPEN_NOTIFICATIONS` | Migration |
-| Header | 💬 Chat Button | Button | `setShowChat(true)` | `A.OPEN_CHAT` | `legacy` | `A.OPEN_CHAT` | Migration |
+| Header | 🔔 Notification Bell | Button | `A.OPEN_NOTIFICATIONS` via actions | `A.OPEN_NOTIFICATIONS` | `migrated ✅` | — | — |
+| Header | 💬 Chat Button | Button | `A.OPEN_CHAT` via actions | `A.OPEN_CHAT` | `migrated ✅` | — | — |
 | Header | Match Bar (🔍) | Input | `openOrbWorld` / interaktiv | — | `partial` | `A.OPEN_MATCH` | Teilweise ok |
 | Header | Mood Orb | Button | `setActiveMood` | — | `working` | — | Intern ok |
 
@@ -328,11 +328,12 @@ Diese Flows sind für die Nutzererfahrung am kritischsten und derzeit broken:
 
 ## MIGRATION ROADMAP — Phase 1B Prioritäten
 
-### Batch 1 — Header + Navigation (5 Elemente)
-- Bell → `A.OPEN_NOTIFICATIONS`
-- Chat-Button → `A.OPEN_CHAT`
-- BottomNav Tabs → `A.GO_*`
-- Orb-Button → `A.OPEN_ORB`
+### Batch 1 — Header + Navigation ✅ DONE 2026-05-24
+- ~~Bell → `A.OPEN_NOTIFICATIONS`~~ ✅
+- ~~Chat-Button → `A.OPEN_CHAT`~~ ✅
+- ~~BottomNav Tabs → `A.GO_*`~~ ✅
+- ~~Orb-Button → `A.OPEN_ORB`~~ ✅
+- ~~Tab Profil → `A.OPEN_OWN_PROFILE`~~ ✅
 
 ### Batch 2 — Feed (6 Elemente)
 - Creator Card → `A.OPEN_PROFILE`
