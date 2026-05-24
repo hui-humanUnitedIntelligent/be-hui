@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { HUI } from "../../design/hui.design.js";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
+import { useHuiActions, A } from "../../core/hui.actions.js";
 
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
@@ -885,12 +886,35 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
     rawWirker?.id, rawWirker?.user_id,
   ]);
   const profile = safe?._raw || rawWirker || {};
+  const actions = useHuiActions();
 
   const name = safeStr(profile?.display_name || profile?.name, "Creator");
 
   const handleClose = useCallback(() => { onClose?.(); }, [onClose]);
-  const handleBook  = useCallback((exp) => { onBook?.(profile, exp); }, [onBook, profile]);
-  const handleChat  = useCallback(() => { onChat?.(profile); }, [onChat, profile]);
+
+  // Route through Action Engine — falls back to prop callbacks for non-HomeShell contexts
+  const handleBook = useCallback((exp) => {
+    if (actions[A.BOOK_EXPERIENCE]) {
+      actions[A.BOOK_EXPERIENCE]({ experience: exp, creator: profile });
+    } else {
+      onBook?.(profile, exp);
+    }
+  }, [actions, profile, onBook]);
+
+  const handleChat = useCallback(() => {
+    if (actions[A.OPEN_CHAT]) {
+      actions[A.OPEN_CHAT]({
+        recipient: {
+          id:           profile?.id || profile?.user_id,
+          display_name: profile?.display_name || profile?.name || "Creator",
+          avatar_url:   profile?.img || profile?.avatar_url || null,
+          talent:       profile?.talent || null,
+        },
+      });
+    } else {
+      onChat?.(profile);
+    }
+  }, [actions, profile, onChat]);
 
   return (
     <div style={{

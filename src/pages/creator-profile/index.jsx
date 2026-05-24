@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { HUI } from "../../design/hui.design.js";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
+import { useHuiActions, A } from "../../core/hui.actions.js";
 
 const C = HUI.COLOR;
 const Sh = HUI.SHADOW;
@@ -720,8 +721,33 @@ export default function CreatorProfilePage({
   const safe    = useMemo(() => createProfileItem(raw), [raw?.id, raw?.user_id]);
   const profile = safe?._raw || raw;
 
+  const actions      = useHuiActions();
   const handleClose  = useCallback(() => { onClose?.(); }, [onClose]);
-  const handleAction = useCallback((k) => { onAction?.(k); }, [onAction]);
+  const handleAction = useCallback((k) => {
+    // Route known actions through engine, fallback to prop
+    if (k === "chat")    return actions[A.OPEN_CHAT]?.({});
+    if (k === "impact")  return actions[A.OPEN_IMPACT]?.();
+    if (k === "orb")     return actions[A.OPEN_ORB]?.();
+    if (k === "booking") return actions[A.OPEN_BOOKING]?.({});
+    onAction?.(k);
+  }, [actions, onAction]);
+
+  // Owner Quick Action handler — wired to Action Engine
+  const handleQuickAction = useCallback((label) => {
+    const MAP = {
+      "Neues Erlebnis":  () => actions[A.CREATE_EXPERIENCE]?.(),
+      "Raum offnen":     () => actions[A.OPEN_ROOM]?.(),
+      "Moment teilen":   () => actions[A.OPEN_STORY_COMPOSER]?.(),
+      "Community":       () => actions[A.OPEN_COMMUNITY]?.(),
+      "Einnahmen":       () => {},   // future: earnings overlay
+      "Kalender":        () => actions[A.OPEN_CALENDAR]?.(),
+      "Wirkung":         () => actions[A.OPEN_IMPACT]?.(),
+      "Atelier":         () => actions[A.OPEN_OWN_PROFILE]?.(),
+    };
+    const fn = MAP[label];
+    if (fn) fn();
+    else onAction?.(label);
+  }, [actions, onAction]);
 
   return (
     <div style={{
@@ -736,7 +762,7 @@ export default function CreatorProfilePage({
       <style>{`*{box-sizing:border-box;-webkit-font-smoothing:antialiased}::-webkit-scrollbar{display:none}`}</style>
 
       <OwnerHero    profile={profile} onClose={handleClose} />
-      <QuickActions onAction={handleAction} />
+      <QuickActions onAction={handleQuickAction} />
       <OwnerExperiences experiences={null} />
       <LiveActivity activity={null} />
       <OwnerEarnings profile={profile} />

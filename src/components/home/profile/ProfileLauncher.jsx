@@ -6,6 +6,7 @@ import { createProfileItem } from "../../../lib/factories/createProfileItem.js";
 
 import React, { useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
+import { useHuiActions, A } from "../../../core/hui.actions.js";
 
 // ── STATISCH: sofort verfügbar, kein lazy-Blackout ──────────────
 // CreatorProfilePage wird immer mitgeladen (Teil des Home-Chunks)
@@ -31,33 +32,21 @@ function ProfileLoadingFallback() {
 
 /* ── Hook: imperativer Zugriff ── */
 export function useProfileLauncher() {
-  const { setShowWirker, authProfile, user } = useHome();
+  const { setShowWirker, openOwnProfile: shellOpenOwn } = useHome();
+  const actions = useHuiActions();
 
   const openProfile = useCallback((data) => {
     if (!data) return;
-    setShowWirker(data);
-  }, [setShowWirker]);
+    actions[A.OPEN_PROFILE]?.({ creator: data });
+  }, [actions]);
 
   const openOwnProfile = useCallback(() => {
-    const id = authProfile?.id || user?.id || null;
-    setShowWirker({
-      id,
-      user_id:        id,
-      display_name:   safeProfile?.displayName   || authProfile?.display_name || "Mein Profil",
-      avatar_url:     safeProfile?.avatar        || authProfile?.avatar_url   || null,
-      header_img:     authProfile?.header_img   || null,
-      talent:         authProfile?.talent       || null,
-      bio:            authProfile?.bio          || null,
-      impact_eur:     authProfile?.impact_eur   || null,
-      location_label: authProfile?.location_label || authProfile?.location || null,
-      is_wirker:      authProfile?.is_wirker || authProfile?.has_talent_profile || false,
-      _isOwnerView:   true,
-    });
-  }, [authProfile, user, setShowWirker]);
+    actions[A.OPEN_OWN_PROFILE]?.();
+  }, [actions]);
 
   const openCreatorProfile = useCallback((id, extra = {}) => {
-    setShowWirker({ id, user_id: id, ...extra });
-  }, [setShowWirker]);
+    actions[A.OPEN_PROFILE]?.({ creatorId: id, ...extra });
+  }, [actions]);
 
   return { openProfile, openOwnProfile, openCreatorProfile };
 }

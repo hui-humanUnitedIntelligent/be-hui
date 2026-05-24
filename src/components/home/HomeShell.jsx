@@ -13,6 +13,7 @@ import {
   useOwnPresence,
 } from "../../lib/sessionHooks";
 import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
+import HuiActionProvider from "../../core/HuiActionProvider.jsx";
 import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
 import { SAFE_MODE } from "../../config/safeMode.js";
 import {
@@ -260,8 +261,10 @@ export default function HomeShell({ children }) {
     <>
       <style>{WORLD_CSS}</style>
       <HomeCtx.Provider value={ctx}>
-      {children}
-    </HomeCtx.Provider>
+        <HuiActionProvider>
+          {children}
+        </HuiActionProvider>
+      </HomeCtx.Provider>
     </>
   );
 }
