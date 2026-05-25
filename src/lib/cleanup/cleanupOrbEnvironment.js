@@ -22,6 +22,12 @@ const HTML_STYLE_RESETS = { overflow:"", overflowY:"", position:"" };
 export function cleanupOrbEnvironment({ reason = "cleanup", afterMs = 0 } = {}) {
   const apply = () => {
     try {
+      // PUBLISH_GUARD: kein Cleanup während activem Publish-Insert
+      if (window.__PUBLISHING__) {
+        console.warn("[HUI CLEANUP] SKIPPED — window.__PUBLISHING__ aktiv, Flow läuft noch");
+        return;
+      }
+
       const body = document.body;
       const html = document.documentElement;
       if (!body) return;

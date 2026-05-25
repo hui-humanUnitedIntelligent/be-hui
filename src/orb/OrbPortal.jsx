@@ -534,8 +534,17 @@ export function OrbPortal({
   }, [visible, handleClose]);
 
   const handleSelect = useCallback((node) => {
-    setTimeout(() => { onSelect?.(node.action); handleClose(); }, 150);
-  }, [onSelect, handleClose]);
+    // WICHTIG: onSelect ZUERST, dann close OHNE onClose-Callback aufzurufen.
+    // onClose würde closeOrbWorld/cleanupOrbEnvironment triggern —
+    // das resetzt body pointer-events und killt den gerade geöffneten Flow.
+    // Der Parent (Home.jsx) schliesst das Sheet über setShowPlusSheet(false)
+    // — das ist genug. onClose() hier weglassen.
+    setTimeout(() => {
+      onSelect?.(node.action);
+      // Nur visuell schliessen (setClosing → Animation), NICHT onClose() callen
+      setClosing(true);
+    }, 150);
+  }, [onSelect]);
 
   if (!visible && !closing) return null;
 
