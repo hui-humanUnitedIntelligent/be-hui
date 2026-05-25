@@ -7,6 +7,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth }  from "../../lib/AuthContext.jsx";
+import { dispatchSocialInteraction } from "../../social/eventPipeline.js";
+import { SocialRealtimeLayer } from "../../social/realtime.js";
 
 /**
  * useInvitationResponse(invitationId)
@@ -58,6 +60,20 @@ export function useInvitationResponse(invitationId) {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    if (!invitationId) return;
+    let unsubscribe = null;
+    try {
+      unsubscribe = SocialRealtimeLayer.subscribeInvitation({
+        invitationId,
+        handlers: { onInvitationResponse: () => load() },
+      });
+    } catch(err) {
+      console.warn("[HUI_REALTIME] invitation subscribe failed:", err?.message);
+    }
+    return () => unsubscribe?.();
+  }, [invitationId, load]);
+
   // ── Reagieren ──────────────────────────────────────────────
   const respond = useCallback(async (type) => {
     if (!user?.id || !invitationId) return;
@@ -82,6 +98,27 @@ export function useInvitationResponse(invitationId) {
           { onConflict: "invitation_id,user_id" }
         );
       if (error) throw error;
+
+      const { data: invitation, error: invitationError } = await supabase
+        .from("invitations")
+        .select("user_id, title, text")
+        .eq("id", invitationId)
+        .single();
+      if (invitationError) throw invitationError;
+
+      const socialResult = await dispatchSocialInteraction({
+        interactionType: "invite_response",
+        actorId: user.id,
+        targetEntityType: "invitation",
+        targetEntityId: invitationId,
+        targetUserId: invitation?.user_id || null,
+        visibility: "private",
+        metadata: {
+          response: type,
+          invitationTitle: invitation?.title || invitation?.text || null,
+        },
+      });
+      if (socialResult.error) throw new Error(socialResult.error.message);
     } catch (err) {
       // Rollback
       console.error("[useInvitationResponse] respond error:", err?.message);

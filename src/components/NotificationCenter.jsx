@@ -909,10 +909,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   const handleAction = useCallback(async (n) => {
     // 1. Mark read in DB
     if (!n.read) {
-      try {
-        await supabase.from("notifications").update({ read:true }).eq("id", n.id);
-        loadNotifications();
-      } catch { /* silent */ }
+      await markNotifsRead([n.id]);
     }
     // 2. Route via Action Engine — type-safe, logged
     if (n.type === "begegnung" || n.type === "buchung") {
@@ -943,13 +940,10 @@ export default function NotificationCenter({ onClose, onNavigate }) {
     } else if (n.action_url) {
       onNavigate?.(n.action_url); // generic fallback for unknown types
     }
-  }, [actions, loadNotifications, onNavigate, onClose]);
+  }, [actions, markNotifsRead, onNavigate, onClose]);
 
   const handleMarkAllRead = useCallback(async () => {
-    try {
-      await supabase.from("notifications").update({ read:true }).eq("read", false);
-      markNotifsRead();
-    } catch { /* silent */ }
+    await markNotifsRead();
   }, [markNotifsRead]);
 
   // ── Daten: DB oder Mock ───────────────────────────────────────────

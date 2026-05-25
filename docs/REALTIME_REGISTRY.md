@@ -36,6 +36,21 @@ Beispiele:
 
 ---
 
+## Phase 5 Canonical Social Realtime Layer
+
+Neue Owner-Datei: `src/social/realtime.js`
+
+| Layer | Channel Pattern | Events | Consumers |
+|-------|-----------------|--------|-----------|
+| `SocialRealtimeLayer.subscribeUser` | `social:{userId}` | notifications, interactions, relationships, presence | AppState notifications, social refresh |
+| `SocialRealtimeLayer.subscribeChat` | `social:chat:{chatId}` | messages | `lib/chatContext.js` |
+| `SocialRealtimeLayer.subscribeInvitation` | `social:invitation:{invitationId}` | invitation responses | `content/invitation/useInvitationResponse.js` |
+| `EntityRealtimeLayer.subscribeEntity` | `entity:{entityType}:{entityId}` | interactions + notification events per entity | future entity detail screens |
+
+Transitional: legacy table-specific channels remain until their owner modules consume the canonical social/entity layers.
+
+---
+
 ## Regeln (ZWINGEND)
 
 1. **.on() IMMER vor .subscribe()** — niemals danach

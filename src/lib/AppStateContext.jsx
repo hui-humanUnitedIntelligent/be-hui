@@ -17,6 +17,9 @@ import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
 import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow } from "../system/feed/feedNormalizer.js";
 import { rhythmizeFeed } from "../feed/feedRhythmEngine.js";
+import { dispatchSocialInteraction } from "../social/eventPipeline.js";
+import { SocialRealtimeLayer } from "../social/realtime.js";
+import { createResonance, removeResonance } from "./resonance/index.js";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -49,6 +52,7 @@ export function AppStateProvider({ children }) {
 
   // ── Notification Count — direkter Supabase-Query (kein Service) ─
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
   const notifTimerRef = useRef(null);
 
   const fetchNotifCount = useCallback(async () => {
@@ -60,20 +64,77 @@ export function AppStateProvider({ children }) {
         .eq("user_id", user.id)
         .eq("read", false);
       setUnreadNotifCount(count || 0);
-    } catch {
-      // silent — kein crash
+    } catch(err) {
+      console.warn("[HUI_NOTIF] count failed:", err?.message);
     }
   }, [user?.id]);
 
+  const loadNotifications = useCallback(async () => {
+    if (!user?.id) return [];
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select(`
+          id, type, title, body, read, created_at,
+          actor_id, sender_id, entity_id, entity_type, action_url, metadata, data
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      setNotifications(data || []);
+      setUnreadNotifCount((data || []).filter(n => !n.read).length);
+      return data || [];
+    } catch(err) {
+      console.warn("[HUI_NOTIF] load failed:", err?.message);
+      return [];
+    }
+  }, [user?.id]);
+
+  const markNotifsRead = useCallback(async (ids = null) => {
+    if (!user?.id) return { error: "not_authenticated" };
+    try {
+      let q = supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("user_id", user.id);
+      if (Array.isArray(ids) && ids.length > 0) q = q.in("id", ids);
+      const { error } = await q;
+      if (error) throw error;
+      await loadNotifications();
+      return { success: true };
+    } catch(err) {
+      console.warn("[HUI_NOTIF] mark read failed:", err?.message);
+      return { error: err?.message };
+    }
+  }, [user?.id, loadNotifications]);
+
   useEffect(() => {
     if (!user?.id) return;
-    fetchNotifCount();
-    // Polling alle 60s — kein Realtime (Phase 3)
+    loadNotifications();
+    // Realtime ist primaer; Polling bleibt als Health-Refresh.
     notifTimerRef.current = setInterval(fetchNotifCount, 60_000);
     return () => {
       if (notifTimerRef.current) clearInterval(notifTimerRef.current);
     };
-  }, [user?.id, fetchNotifCount]);
+  }, [user?.id, fetchNotifCount, loadNotifications]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let unsubscribe = null;
+    try {
+      unsubscribe = SocialRealtimeLayer.subscribeUser({
+        userId: user.id,
+        handlers: {
+          onNotification: () => loadNotifications(),
+          onInteraction:  () => loadNotifications(),
+        },
+      });
+    } catch(err) {
+      console.warn("[HUI_REALTIME] social layer subscribe failed:", err?.message);
+    }
+    return () => unsubscribe?.();
+  }, [user?.id, loadNotifications]);
 
   // ── Follow Status — direkter Supabase-Query (kein security layer) ─
   const [followedIds, setFollowedIds] = useState([]);
@@ -108,22 +169,60 @@ export function AppStateProvider({ children }) {
         await supabase.from("follows")
           .insert({ follower_id: user.id, followed_id: targetId });
         console.log("[HUI_REALITY] relationship synced ✓ (follow)", targetId.slice(0,8));
-        // Notification an gefolgten User
         const { data: me } = await supabase
           .from("profiles").select("display_name").eq("id", user.id).single();
-        notifyFollow({
-          followerId:   user.id,
-          followedId:   targetId,
-          followerName: me?.display_name || "Jemand",
-        }).catch(() => {}); // nie blocking
+        const socialResult = await dispatchSocialInteraction({
+          interactionType: "follow",
+          actorId: user.id,
+          targetEntityType: "profile",
+          targetEntityId: targetId,
+          targetUserId: targetId,
+          visibility: "public",
+          metadata: {
+            actorName: me?.display_name || "Jemand",
+            notificationTitle: `${me?.display_name || "Jemand"} folgt dir jetzt`,
+          },
+        });
+        if (socialResult.error) throw new Error(socialResult.error.message);
       }
-    } catch {
+    } catch(err) {
+      console.warn("[HUI_SOCIAL] follow pipeline failed:", err?.message);
+      if (!isFollowing) {
+        await supabase.from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("followed_id", targetId);
+      }
       // Rollback bei Fehler
       setFollowedIds(prev =>
         isFollowing ? [...prev, targetId] : prev.filter(id => id !== targetId)
       );
     }
   }, [user?.id, followedIds]);
+
+  const toggleWorkResonance = useCallback(async (workId, resonanceType = "inspired") => {
+    if (!user?.id || !workId) return { error: "missing_user_or_work" };
+    try {
+      const { data: existing, error: readError } = await supabase
+        .from("resonances")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("target_type", "work")
+        .eq("target_id", workId)
+        .eq("resonance_type", resonanceType)
+        .maybeSingle();
+      if (readError) throw readError;
+
+      const result = existing
+        ? await removeResonance({ user, targetType: "work", targetId: workId, resonanceType })
+        : await createResonance({ user, targetType: "work", targetId: workId, resonanceType });
+      if (result?.error) throw new Error(result.error);
+      return { success: true, active: !existing };
+    } catch(err) {
+      console.warn("[HUI_SOCIAL] work resonance toggle failed:", err?.message);
+      return { error: err?.message };
+    }
+  }, [user]);
 
   // ── Context Value ──────────────────────────────────────────────
   const value = {
@@ -132,6 +231,9 @@ export function AppStateProvider({ children }) {
     isMobile,
     // Notifications
     unreadNotifCount,
+    notifications,
+    loadNotifications,
+    markNotifsRead,
     refreshNotifCount: fetchNotifCount,
     // Follow
     followedIds,
@@ -145,8 +247,12 @@ export function AppStateProvider({ children }) {
     discoverLoading: false,
     refreshDiscover: () => {},
     resonanceMap:    {},
-    giveResonance:   async () => {},
-    removeResonance: async () => {},
+    giveResonance:   async ({ targetType, targetId, resonanceType = "inspired", targetUserId = null } = {}) =>
+      createResonance({ user, targetType, targetId, resonanceType, targetUserId }),
+    removeResonance: async ({ targetType, targetId, resonanceType = "inspired" } = {}) =>
+      removeResonance({ user, targetType, targetId, resonanceType }),
+    toggleLikeWork:  (workId) => toggleWorkResonance(workId, "inspired"),
+    toggleSaveWork:  (workId) => toggleWorkResonance(workId, "saved"),
   };
 
   return (

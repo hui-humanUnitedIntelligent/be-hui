@@ -84,9 +84,15 @@ export const supabase = _supabase || {
     }),
     listBuckets: async () => ({ data: [], error: _noopError }),
   },
-  channel: () => ({
-    on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-  }),
+  channel: () => {
+    const channel = {
+      on: () => channel,
+      subscribe: (cb) => { cb?.("SUBSCRIBED"); return channel; },
+      send: async () => ({ error: _noopError }),
+      unsubscribe: () => {},
+    };
+    return channel;
+  },
   removeChannel: () => {},
 };
 

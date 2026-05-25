@@ -24,6 +24,7 @@
 import { supabase } from '../supabaseClient';
 import { assertAuthenticated } from '../security/index.js';
 import { sentryCapture } from '../sentry.js';
+import { dispatchSocialInteraction } from '../../social/eventPipeline.js';
 
 // ── Resonanz-Typen mit Gewichtung ────────────────────────────
 export const RESONANCE_TYPES = {
@@ -54,7 +55,8 @@ export async function createResonance({
   user,
   targetType,   // RESONANCE_TARGETS.*
   targetId,     // UUID
-  resonanceType // RESONANCE_TYPES key
+  resonanceType, // RESONANCE_TYPES key
+  targetUserId = null,
 }) {
   try {
     assertAuthenticated(user);
@@ -94,8 +96,21 @@ export async function createResonance({
 
     if (error) throw error;
 
-    // Async: Event erzeugen (fire-and-forget — kein await)
-    emitResonanceEvent(user.id, targetType, targetId, resonanceType, weight);
+    const ownerId = targetUserId || await resolveTargetUserId(targetType, targetId);
+    const interactionType = interactionTypeForResonance(resonanceType);
+    const socialResult = await dispatchSocialInteraction({
+      interactionType,
+      actorId: user.id,
+      targetEntityType: targetType,
+      targetEntityId: targetId,
+      targetUserId: ownerId,
+      visibility: targetType === RESONANCE_TARGETS.profile ? 'public' : 'private',
+      metadata: {
+        resonanceType,
+        weight,
+      },
+    });
+    if (socialResult.error) throw new Error(socialResult.error.message);
 
     return { data };
   } catch (err) {
@@ -187,18 +202,34 @@ export async function hasResonance({ userId, targetType, targetId, resonanceType
 }
 
 // ── emitResonanceEvent (intern, fire-and-forget) ──────────────
-async function emitResonanceEvent(userId, targetType, targetId, resonanceType, weight) {
-  try {
-    await supabase.from('platform_events').insert({
-      event_type:  'resonance_created',
-      actor_id:    userId,
-      target_type: targetType,
-      target_id:   targetId,
-      metadata:    { resonance_type: resonanceType, weight },
-    });
-  } catch {
-    // Silently fail — Event ist nicht kritisch
-  }
+function interactionTypeForResonance(resonanceType) {
+  if (resonanceType === 'saved') return 'save';
+  if (resonanceType === 'participated') return 'participate';
+  if (resonanceType === 'supported') return 'support';
+  return 'react';
+}
+
+async function resolveTargetUserId(targetType, targetId) {
+  if (!targetType || !targetId) return null;
+  if (targetType === RESONANCE_TARGETS.profile) return targetId;
+
+  const tableByTarget = {
+    [RESONANCE_TARGETS.work]: { table: 'works', select: 'user_id, creator_id' },
+    [RESONANCE_TARGETS.experience]: { table: 'experiences', select: 'user_id' },
+    [RESONANCE_TARGETS.connection]: { table: 'connections', select: 'user_id' },
+    [RESONANCE_TARGETS.story]: { table: 'stories', select: 'user_id' },
+    [RESONANCE_TARGETS.impact]: { table: 'impact_projects', select: 'user_id' },
+  };
+  const config = tableByTarget[targetType];
+  if (!config) return null;
+
+  const { data, error } = await supabase
+    .from(config.table)
+    .select(config.select)
+    .eq('id', targetId)
+    .single();
+  if (error) throw error;
+  return data?.creator_id || data?.user_id || null;
 }
 
 // ── useResonance (React Hook) ─────────────────────────────────

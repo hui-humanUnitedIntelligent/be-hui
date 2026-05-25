@@ -4,7 +4,6 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
-import { FeedService } from "../../../services/db.js";
 import { useBookingActions } from "../../../lib/bookingContext";
 import { useFollowStatus } from "../../../lib/AppStateContext";
 import { isBookable } from "../utils/profileGuards";
@@ -64,8 +63,7 @@ export function useBookingState({ profile, user }) {
   }, [user?.id, profile?.id, _followStatus]);
 
   /**
-   * Follow/Unfollow toggle mit optimistischer UI-Aktualisierung.
-   * MutationGuard: Supabase-Write über direkten RPC (kein Context-Bypass).
+   * Follow/Unfollow toggle ueber AppStateContext als canonical owner.
    */
   async function toggleFollow() {
     if (!user?.id || !profile?.id || followLoading) return;
@@ -76,25 +74,9 @@ export function useBookingState({ profile, user }) {
     setFollowed(!wasFollowed);
 
     try {
-      if (wasFollowed) {
-        await supabase
-          .from("follows")
-          .delete()
-          .eq("follower_id", user.id)
-          .eq("followed_id", profile.id);
-      } else {
-        await supabase
-          .from("follows")
-          .insert({ follower_id: user.id, followed_id: profile.id });
-        // Phase 23: Follow → Feed Activity (silent, non-blocking)
-        FeedService.createActivity(
-          user.id,
-          'follow',
-          `folgt jetzt ${profile?.display_name || profile?.name || 'einem Creator'}`,
-          {}
-        ).catch(() => {});
-      }
-    } catch {
+      await _followStatus.toggle();
+    } catch(err) {
+      console.warn("[HUI_SOCIAL] profile follow toggle failed:", err?.message);
       // Rollback bei Fehler
       setFollowed(wasFollowed);
     } finally {

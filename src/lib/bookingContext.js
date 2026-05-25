@@ -19,6 +19,9 @@ import { feedback, FEEDBACK_MESSAGES } from './feedback/index.js';
 import { validateBookingRequest, assertValid } from './validation/index.js';
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
+import { sentryCapture } from "./sentry.js";
+import { normalizeError } from "./errors/index.js";
+import { dispatchSocialInteraction } from "../social/eventPipeline.js";
 
 // ────────────────────────────────────────────────────────────────
 // Status System
@@ -134,9 +137,13 @@ export function useBookingActions() {
       const { data: chat, error: chatErr } = await supabase
         .from("chats")
         .insert({
+          participant_a:   user.id,
+          participant_b:   creatorId,
           participant_ids: [user.id, creatorId],
+          chat_type:       "booking",
           state:           "open",
           booking_title:   chatTitle,
+          context_type:    "booking",
           last_message:    message || `Neue ${chatTitle}`,
           last_message_at: new Date().toISOString(),
           opened_at:       new Date().toISOString(),
@@ -179,15 +186,24 @@ export function useBookingActions() {
         }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
       }
 
-      // 4. Notification für Creator
-      await supabase.from("notifications").insert({
-        user_id:   creatorId,
-        type:      "booking_request",
-        text:      `Neue Anfrage von ${user.email?.split("@")[0] || "jemand"}`,
-        read:      false,
-        actor_id:  user.id,
-        created_at: new Date().toISOString(),
-      }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
+      // 4. Canonical social pipeline: interaction -> relationship -> notification -> realtime.
+      const socialResult = await dispatchSocialInteraction({
+        interactionType: "booking",
+        actorId: user.id,
+        targetEntityType: "booking",
+        targetEntityId: booking.id,
+        targetUserId: creatorId,
+        visibility: "private",
+        metadata: {
+          actorName: user.email?.split("@")[0] || "Jemand",
+          creatorName,
+          reqType,
+          chatId: chat?.id || null,
+          notificationTitle: `Buchungsanfrage von ${user.email?.split("@")[0] || "jemand"}`,
+          notificationBody: message || "Eine neue Buchungsanfrage wartet auf dich.",
+        },
+      });
+      if (socialResult.error) throw new Error(socialResult.error.message);
 
       return { data: booking, chatId: chat?.id };
     } catch(e) {

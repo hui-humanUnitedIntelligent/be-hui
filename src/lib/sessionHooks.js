@@ -10,6 +10,11 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { supabase } from "./supabaseClient";
+import {
+  getPresence as getCanonicalPresence,
+  updatePresence as persistPresence,
+  statusFromLastActive,
+} from "../presence/index.js";
 
 // ────────────────────────────────────────────────────────────────
 // useScrollMemory
@@ -146,18 +151,19 @@ export function usePresence(userId) {
 
     async function checkPresence() {
       try {
+        const presence = await getCanonicalPresence(userId);
+        if (!mounted) return;
+        setPresenceStatus(presence.status || statusFromLastActive(presence.lastActiveAt));
+      } catch(err) {
+        console.warn("[HUI_PRESENCE] canonical read failed:", err?.message);
         const { data } = await supabase
           .from("profiles")
           .select("last_seen")
           .eq("id", userId)
           .single();
         if (!mounted || !data?.last_seen) return;
-        const diffMin = (Date.now() - new Date(data.last_seen).getTime()) / 60000;
-        if      (diffMin < 5)   setPresenceStatus("online");
-        else if (diffMin < 60)  setPresenceStatus("recently");
-        else if (diffMin < 720) setPresenceStatus("away");
-        else                     setPresenceStatus("offline");
-      } catch { /* silent */ }
+        setPresenceStatus(statusFromLastActive(data.last_seen));
+      }
     }
 
     checkPresence();
@@ -185,10 +191,16 @@ export function useOwnPresence(userId) {
     async function touch() {
       if (!mountedRef.current) return;
       try {
-        await supabase.from("profiles")
-          .update({ last_seen: new Date().toISOString() })
-          .eq("id", userId);
-      } catch { /* silent — kein Crash bei Netzwerkproblemen */ }
+        await persistPresence({
+          userId,
+          status: document.hidden ? "idle" : "active",
+          currentRoute: typeof window !== "undefined" ? window.location?.pathname : null,
+          currentWorld: typeof window !== "undefined" ? window.__HUI_WORLD_STATE__?.currentWorld || null : null,
+          lastActiveAt: new Date().toISOString(),
+        });
+      } catch(err) {
+        console.warn("[HUI_PRESENCE] write failed:", err?.message);
+      }
     }
 
     // Sofort beim Mount
@@ -225,7 +237,9 @@ export function useOwnPresence(userId) {
 // Presence Label + Color — für UI-Nutzung
 export function getPresenceLabel(status) {
   switch (status) {
+    case "active":    return { text: "Aktiv",              color: "#10B981", dot: true };
     case "online":    return { text: "Aktiv",              color: "#10B981", dot: true };
+    case "idle":      return { text: "Kürzlich aktiv",     color: "#F59E0B", dot: true };
     case "recently":  return { text: "Kürzlich aktiv",     color: "#F59E0B", dot: true };
     case "away":      return { text: "",                   color: "transparent", dot: false };
     case "offline":   return { text: "",                   color: "transparent", dot: false };

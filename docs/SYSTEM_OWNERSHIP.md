@@ -19,6 +19,8 @@ Consumer = Dateien die nur lesen (via Props, Context, Hook-Return).
 | **Profile (eigenes)** | `lib/AppStateContext.jsx` → `services/db.js` | ✅ AppState + EditProfile.jsx (erlaubt) | alle via `useAppState()` |
 | **Profile (fremd)** | `components/WirkerProfilePage.jsx` | ✅ lokaler Fetch ok | props/inline |
 | **Notifications** | `lib/AppStateContext.jsx` | ✅ AppState only | `useNotifCount()`, `useAppState().notifications` |
+| **Social Interactions** | `src/social/eventPipeline.js` | ✅ canonical pipeline only | feature flows via `dispatchSocialInteraction()` |
+| **Relationship Graph** | `src/social/relationships.js` | ✅ canonical pipeline only | social/profile systems |
 | **Chats (Liste)** | `lib/chatContext.js` → `useChatList()` | ✅ chatContext only | via `useChatList()` |
 | **Messages (Thread)** | `lib/chatContext.js` → `useChatThread()` | ✅ chatContext only | via `useChatThread()` |
 | **Bookings (Client)** | `lib/AppStateContext.jsx` | ✅ AppState only | via `useAppState()` |
@@ -29,8 +31,8 @@ Consumer = Dateien die nur lesen (via Props, Context, Hook-Return).
 | **Trust / Reputation** | `lib/trustContext.js` | ✅ trustContext only | via `useReputation()` |
 | **Follows** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useFollowStatus()` |
 | **Work Interactions** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useWorkInteraction()` |
-| **Presence** | `lib/sessionHooks.js` → `usePresence()` | ✅ sessionHooks only | via `usePresence()` |
-| **Realtime Channels** | Verteilt (siehe REALTIME_REGISTRY.md) | ✅ je Single-Owner | via Context |
+| **Presence** | `src/presence/index.js` + `lib/sessionHooks.js` | ✅ presence layer only | via `usePresence()` |
+| **Realtime Channels** | `src/social/realtime.js` + legacy owners (siehe REALTIME_REGISTRY.md) | ✅ je Single-Owner | via Context |
 | **UI Overlays** | `lib/AppStateContext.jsx` → `useUIState()` | ✅ AppState | via `useUIState()` |
 | **Discovery Feed** | `components/DiscoveryFeed.jsx` | ❗ lokal (akzeptiert — paginated) | inline |
 | **Impact / Votes** | `pages/ImpactPage.jsx` | ❗ direkt (akzeptiert — standalone) | inline |
