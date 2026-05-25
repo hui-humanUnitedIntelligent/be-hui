@@ -4,12 +4,11 @@
 
 // Phase 4F: useFeedData ersetzt durch useFeedStream (kein Import mehr nötig)
 import { S } from "../core/hui.sources.js";
-import { filterValidFeedItems }  from '../lib/factories/createFeedItem.js';
 import { createProfileItem }     from '../lib/factories/createProfileItem.js';
 import { useHuiActions, A }      from '../core/hui.actions.js';
 import { useScrollEntry } from "../design/hui.hooks.js";
 import React, {
-  useState, useRef, useEffect, useCallback, useMemo,
+  useState, useCallback, useMemo,
 } from "react";
 import { SAFE_MODE } from "../config/safeMode.js";
 import {
@@ -17,11 +16,7 @@ import {
   PresencePersonCard,
   PresenceAvatar,
   PresenceLabel,
-  derivePresenceState,
 } from "./CreatorPresence.jsx";
-import {
-  buildRelationshipMemory,
-} from "../lib/intelligence/relationshipMemory.js";
 import {
   useLivingMemory,
   useDwellTracker,
@@ -29,7 +24,6 @@ import {
 import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
-import InvitationCard from "../content/invitation/InvitationCard.jsx";
 import FeedRouter                from "../feed/cards/FeedRouter.jsx";
 import { useFeedStream,
          saveFeedScrollPos,
@@ -40,21 +34,11 @@ import { FeedBottomSentinel,
 import { FeedSoftHydrationBadge }   from "../feed/FeedSoftHydrationBadge.jsx";
 import {
   resolveMemoryTokens,
-  applyMemoryToCardStyle,
-  memoryAdjustedDelay,
 } from "../lib/intelligence/persistence/memoryTokens.js";
 import {
   curateHumaneFeed,
-  getTimeAtmosphere,
   QUIET_QUOTE_POOL,
-  intelligentMicroMoment,
 } from "../lib/feedIntelligence.js";
-import {
-  selectWarmthBoost,
-  selectGlowBoost,
-  selectCardDelay,
-  isFallbackMemory,
-} from "../lib/intelligence/index.js";
 
 /* ─── Phase 16.7.1: Null-safe fallbacks (never undefined downstream) ──────── */
 const EMPTY_PROFILE = Object.freeze({
@@ -479,6 +463,7 @@ export default function HomeFeed({
   onLike    = null, onComment = null,
   onDiscover = null,
   onShare    = null,
+  scrollContainerRef = null,
 }) {
   const actions = useHuiActions();
 
@@ -518,7 +503,8 @@ export default function HomeFeed({
 
   // Scroll Progress für Prefetch
   // (scrollContainerRef kommt als Prop von Home.jsx über mainScrollRef)
-  const feedScrollRef = React.useRef(null);
+  const localFeedScrollRef = React.useRef(null);
+  const feedScrollRef = scrollContainerRef || localFeedScrollRef;
   useFeedScrollProgress(feedScrollRef, streamOnScrollProgress);
 
   // Scroll Restore
@@ -535,6 +521,14 @@ export default function HomeFeed({
   const handleFeedScroll = React.useCallback((e) => {
     saveFeedScrollPos(e.currentTarget.scrollTop);
   }, []);
+
+  React.useEffect(() => {
+    const el = feedScrollRef?.current;
+    if (!el || !scrollContainerRef) return;
+    const onScroll = () => saveFeedScrollPos(el.scrollTop);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [feedScrollRef, scrollContainerRef]);
 
   // feedData compatibility shim (für bestehende Code-Referenzen)
   const feedData = {
@@ -577,7 +571,12 @@ export default function HomeFeed({
   });
 
   return (
-    <div className="hf-root" style={{ paddingBottom:80, width:"100%" }}>
+    <div
+      ref={scrollContainerRef ? null : feedScrollRef}
+      onScroll={scrollContainerRef ? undefined : handleFeedScroll}
+      className="hf-root"
+      style={{ paddingBottom:80, width:"100%" }}
+    >
       <style>{CSS}</style>
 
       {/* ── Living Background System ──────────────────────────────────── */}
@@ -599,6 +598,12 @@ export default function HomeFeed({
         {SAFE_MODE.homeFeed && (
           <RhythmicFeed
             items={liveItems}
+            streamPendingCount={streamPendingCount}
+            streamFlush={streamFlush}
+            streamLoadingMore={streamLoadingMore}
+            streamLoadMore={streamLoadMore}
+            streamHasMore={streamHasMore}
+            streamError={streamError}
             onProfile={handleProfile}
             onLike={onLike}
             onComment={onComment}
@@ -786,7 +791,20 @@ function EventCard({ event, onPress }) {
    RHYTHMIC FEED — Feed Intelligence v1
    Replaces mechanical sequence with humane curation.
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare }) {
+function RhythmicFeed({
+  items,
+  streamPendingCount = 0,
+  streamFlush = null,
+  streamLoadingMore = false,
+  streamLoadMore = null,
+  streamHasMore = false,
+  streamError = null,
+  onProfile,
+  onLike,
+  onComment,
+  onDiscover,
+  onShare,
+}) {
   // Phase 4D: kein Mock wenn items[] und loading — echter Empty State bevorzugt
   const rawItems = (items && items.length > 0) ? items : [];
   const [reactions, setReactions] = useState({});
@@ -840,7 +858,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
     console.log("[HUI_FEED_CURATE_INPUT]", rawItems.map(i => ({
       id: i.id, type: i.type, rhythmState: i.rhythmState, name: i.name
     })));
-    const safe = filterValidFeedItems(rawItems);
+    const safe = rawItems.filter(item => item && typeof item === "object" && item.id);
     console.log("[HUI_FEED_AFTER_FILTER]", safe.map(i => ({
       id: i.id, type: i.type, rhythmState: i.rhythmState,
       title: i.title, creator: i.creator?.name
@@ -880,7 +898,7 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       diversity:   true,
       pacing:      true,
       rebalance:   true,
-      maxItems:    40,
+      maxItems:    Math.max(rawItems.length, 50),
       // Phase 16.7.1: viewerContext always has fallback — never blocks render
       viewerContext: viewerContext ?? FALLBACK_VIEWER_CONTEXT,
       relationshipMap,
@@ -944,7 +962,25 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       viewerContextId: (viewerContext ?? FALLBACK_VIEWER_CONTEXT)?.viewerId ?? "?",
       authUserId: authUser?.id ?? null,
     });
-    return <FeedEmptyState onDiscover={handleDiscover} onShare={handleShare} />;
+    return (
+      <>
+        {streamError && (
+          <div style={{
+            margin:"12px 16px",
+            padding:"10px 12px",
+            borderRadius:12,
+            background:"rgba(220,38,38,0.08)",
+            border:"1px solid rgba(220,38,38,0.18)",
+            color:"#B91C1C",
+            fontSize:12.5,
+            lineHeight:1.4,
+          }}>
+            {streamError}
+          </div>
+        )}
+        <FeedEmptyState onDiscover={handleDiscover} onShare={handleShare} />
+      </>
+    );
   }
 
   return (
@@ -995,6 +1031,21 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
         count={streamPendingCount}
         onFlush={streamFlush}
       />
+
+      {streamError && (
+        <div style={{
+          margin:"0 16px 12px",
+          padding:"10px 12px",
+          borderRadius:12,
+          background:"rgba(220,38,38,0.08)",
+          border:"1px solid rgba(220,38,38,0.18)",
+          color:"#B91C1C",
+          fontSize:12.5,
+          lineHeight:1.4,
+        }}>
+          {streamError}
+        </div>
+      )}
 
       {/* ── Curated feed sequence ─────────────────────────────────── */}
       <div style={{ display:"flex", flexDirection:"column" }}>

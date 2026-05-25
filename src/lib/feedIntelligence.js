@@ -175,8 +175,10 @@ const CREATOR_WINDOW = 3;  // min positions between same creator
 function getCreatorId(item) {
   return (
     item.creatorId      ||
+    item.creator_id     ||
     item.creator?.id    ||
     item.userId         ||
+    item.user_id        ||
     item.name           ||   // fallback: display name
     item.id
   );
@@ -466,7 +468,7 @@ export function curateHumaneFeed(rawItems = [], options = {}) {
   // Only active when viewerContext is provided
   const withRelationship = viewerContext
     ? softSorted.map(s => {
-        const creatorId = s.item.creatorId || s.item.userId || s.item.name || s.item.id;
+        const creatorId = s.item.creatorId || s.item.creator_id || s.item.userId || s.item.user_id || s.item.name || s.item.id;
         const memory    = (relationshipMap && relationshipMap.get(creatorId))
           || buildRelationshipMemory(
               viewerContext,

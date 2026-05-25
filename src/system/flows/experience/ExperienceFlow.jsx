@@ -15,6 +15,7 @@ import { ExperiencePublishStep } from "./ExperiencePublishStep.jsx";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { useAuth }               from "../../../lib/AuthContext.jsx";
 import { publishExperience }      from "../../../lib/factories/experienceContract.js";
+import { createPublishResult, completePublishSuccess } from "../../../lib/publishContract.js";
 
 /* ── Design Tokens (identisch zu WorkFlow / WT) ─────────────── */
 export const ET = {
@@ -97,7 +98,7 @@ export function ExpHeader({ step, onBack, onClose }) {
 }
 
 /* ── Haupt-Flow ─────────────────────────────────────────────── */
-export default function ExperienceFlow({ onClose }) {
+export default function ExperienceFlow({ onClose, onPublished }) {
   const { user, profile } = useAuth();
   const [step,   setStep]   = useState(0);
   const [saving, setSaving] = useState(false);
@@ -158,12 +159,18 @@ export default function ExperienceFlow({ onClose }) {
       );
       if (contractErr) throw new Error(contractErr.message);
       console.log("[HUI_REALITY] ✓ experience published:", expData?.id);
+      completePublishSuccess(onPublished, createPublishResult({
+        entityType: "experience",
+        entityId: expData?.id,
+        visibility: expData?.visibility || form.visibility,
+        createdAt: expData?.created_at,
+      }));
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
       setError(e.message || "Fehler beim Veröffentlichen");
     } finally { setSaving(false); }
-  }, [user, form, mediaFiles, onClose]);
+  }, [user, form, mediaFiles, onClose, onPublished]);
 
   /* ── Success Screen ────────────────────────────────────────── */
   if (done) return (

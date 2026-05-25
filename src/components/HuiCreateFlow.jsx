@@ -11,11 +11,12 @@
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
 import { useDraftPersist } from "../lib/sessionHooks";
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { createPublishResult, completePublishSuccess } from "../lib/publishContract.js";
 import {
   MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS
 } from "../lib/moodUtils";
@@ -321,7 +322,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
       const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
       setProgress(80);
 
-      const { error: dbErr } = await supabase.from("stories").insert({
+      const { data: insertedStory, error: dbErr } = await supabase.from("stories").insert({
         user_id:    user.id,
         media_url:  publicUrl,
         media_type: isVid ? "video" : "image",
@@ -331,11 +332,17 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
         status:     "published",
         expires_at: null,
         created_at: new Date().toISOString(),
-      });
+      }).select("id, created_at").single();
       if (dbErr) throw dbErr;
+      completePublishSuccess(onPublishDirect, createPublishResult({
+        entityType: "story",
+        entityId: insertedStory?.id,
+        visibility,
+        createdAt: insertedStory?.created_at,
+      }));
       setProgress(100);
       setDone(true);
-      setTimeout(() => { onPublishDirect?.(); onClose?.(); }, 2000);
+      setTimeout(() => { onClose?.(); }, 2000);
     } catch (err) {
       console.error("[HUI Moment]", err);
       setError(err.message || "Upload fehlgeschlagen. Bitte nochmal versuchen.");
@@ -1525,7 +1532,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
    ROOT — CONTROLLER
    handlePublish: EXAKT gleich wie vorher — kein Datenmodell-Break
 ══════════════════════════════════════════════════════════════════ */
-export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }) {
+export default function HuiCreateFlow({ onClose, onSuccess, onPublished, initialType = null }) {
   const { user } = useAuth();
 
   // Screen: "select" | "moment" | "suggestion" | "werk" | "erlebnis" | "story" | "done"
@@ -1565,17 +1572,24 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
         energy_level:   payload.details?.energyLevel       || null,
         social_energy:  payload.details?.socialEnergy      || null,
       };
+      let publishResult = null;
 
       if (payload.type === "moment") {
-        const { error:e } = await supabase.from("stories").insert({
+        const { data, error:e } = await supabase.from("stories").insert({
           ...base,
           location:   _loc,
           expires_at: null,
-        });
+        }).select("id, created_at").single();
         if (e) throw e;
+        publishResult = createPublishResult({
+          entityType: "story",
+          entityId: data?.id,
+          visibility: payload.details?.visibility || mediaData.visibility || "public",
+          createdAt: data?.created_at,
+        });
       } else if (payload.type === "werk") {
         const w = payload.werkData;
-        const { error:e } = await supabase.from("works").insert({
+        const { data, error:e } = await supabase.from("works").insert({
           ...base,
           cover_url:          publicUrl,
           title:              w.title || "Mein Werk",
@@ -1588,8 +1602,14 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
           category:           w.category     || null,
           for_sale:           !w.onlyShow,
           location_text:      _loc,
-        });
+        }).select("id, visibility, created_at").single();
         if (e) throw e;
+        publishResult = createPublishResult({
+          entityType: "work",
+          entityId: data?.id,
+          visibility: data?.visibility || payload.details?.visibility || mediaData.visibility || "public",
+          createdAt: data?.created_at,
+        });
       } else if (payload.type === "erlebnis") {
         const er = payload.erlData;
         // Contract Layer (Phase 4E) — kein direktes insert
@@ -1612,8 +1632,15 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
         );
         const e = contractErr;
         if (e) throw new Error(e.message);
+        publishResult = createPublishResult({
+          entityType: "experience",
+          entityId: data?.id,
+          visibility: data?.visibility || erlForm.visibility || "public",
+          createdAt: data?.created_at,
+        });
       }
 
+      completePublishSuccess(onPublished, publishResult);
       setPostType(payload.type);
       setScreen("done");
       setTimeout(() => { onSuccess?.(); onClose?.(); }, 2200);
@@ -1638,7 +1665,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
 
       const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
 
-      const { error:e } = await supabase.from("stories").insert({
+      const { data, error:e } = await supabase.from("stories").insert({
         user_id:    user.id,
         media_url:  publicUrl,
         media_type: isVid ? "video" : "image",
@@ -1647,8 +1674,14 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
         created_at: new Date().toISOString(),
         status:     "published",
         expires_at: null,
-      });
+      }).select("id, created_at").single();
       if (e) throw e;
+      completePublishSuccess(onPublished, createPublishResult({
+        entityType: "story",
+        entityId: data?.id,
+        visibility: visibility || "public",
+        createdAt: data?.created_at,
+      }));
 
       setPostType("moment");
       setScreen("done");
@@ -1685,8 +1718,9 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       {screen === "moment" && (
         <ScreenMoment
           onClose={() => setScreen("select")}
-          onPublishDirect={() => {
-            onSuccess?.();
+          onPublishDirect={(result) => {
+            onPublished?.(result);
+            onSuccess?.(result);
           }}
           onDeepen={(mediaObj, type) => {
             setMediaData(mediaObj);
@@ -1699,8 +1733,9 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       {screen === "story" && (
         <ScreenMoment
           onClose={() => setScreen("select")}
-          onPublishDirect={() => {
-            onSuccess?.();
+          onPublishDirect={(result) => {
+            onPublished?.(result);
+            onSuccess?.(result);
           }}
           onDeepen={(mediaObj, type) => {
             setMediaData(mediaObj);
@@ -1713,7 +1748,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       {screen === "werk" && !mediaData && (
         <ScreenMoment
           onClose={() => setScreen("select")}
-          onPublishDirect={() => { onSuccess?.(); }}
+          onPublishDirect={(result) => { onPublished?.(result); onSuccess?.(result); }}
           onDeepen={(mediaObj) => {
             setMediaData(mediaObj);
             setScreen("werk_form");
@@ -1726,7 +1761,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       {screen === "erlebnis" && !mediaData && (
         <ScreenMoment
           onClose={() => setScreen("select")}
-          onPublishDirect={() => { onSuccess?.(); }}
+          onPublishDirect={(result) => { onPublished?.(result); onSuccess?.(result); }}
           onDeepen={(mediaObj) => {
             setMediaData(mediaObj);
             setScreen("erlebnis_form");

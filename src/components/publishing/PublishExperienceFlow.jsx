@@ -7,6 +7,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { publishExperience } from "../../lib/factories/experienceContract.js";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth }  from "../../lib/AuthContext.jsx";
+import { createPublishResult, completePublishSuccess } from "../../lib/publishContract.js";
 
 const C = {
   teal:"#16D7C5", coral:"#FF8A6B", cream:"#F9F7F4",
@@ -45,10 +46,9 @@ export default function PublishExperienceFlow({ onClose, onPublished }) {
         const path = `experiences/${user.id}/${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("media").upload(path, cover.file, { upsert: true });
-        if (!upErr) {
-          const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
-          cover_url = publicUrl;
-        }
+        if (upErr) throw upErr;
+        const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+        cover_url = publicUrl;
       }
 
       // Contract Layer: normalize → validate → insert (Phase 4E)
@@ -58,7 +58,12 @@ export default function PublishExperienceFlow({ onClose, onPublished }) {
       );
       if (contractErr) throw new Error(contractErr.message);
       console.log("[HUI_REALITY] ✓ experience published:", data?.id);
-      onPublished?.({ id: data?.id, ...form });
+      completePublishSuccess(onPublished, createPublishResult({
+        entityType: "experience",
+        entityId: data?.id,
+        visibility: data?.visibility || form.visibility || "public",
+        createdAt: data?.created_at,
+      }));
       onClose?.();
     } catch(err) {
       setError(err.message);

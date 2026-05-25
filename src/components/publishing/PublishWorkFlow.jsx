@@ -6,6 +6,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth }  from "../../lib/AuthContext.jsx";
+import { createPublishResult, completePublishSuccess } from "../../lib/publishContract.js";
 
 const C = {
   teal:   "#16D7C5",
@@ -84,12 +85,17 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
       };
 
       const { data, error: insErr } = await supabase
-        .from("works").insert(payload).select("id").single();
+        .from("works").insert(payload).select("id, visibility, created_at").single();
 
       if (insErr) throw new Error(`Speichern fehlgeschlagen: ${insErr.message} (code: ${insErr.code})`);
 
       console.log("[HUI_REALITY] work published \u2713", data?.id);
-      onPublished?.({ id: data?.id, ...payload });
+      completePublishSuccess(onPublished, createPublishResult({
+        entityType: "work",
+        entityId: data?.id,
+        visibility: data?.visibility || "public",
+        createdAt: data?.created_at,
+      }));
       onClose?.();
     } catch(err) {
       console.error("[HUI_PUBLISH] Fehler:", err.message);

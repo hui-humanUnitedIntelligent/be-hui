@@ -15,8 +15,11 @@ import React, {
 } from "react";
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
-import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow } from "../system/feed/feedNormalizer.js";
-import { rhythmizeFeed } from "../feed/feedRhythmEngine.js";
+import { notifyFollow } from "./notificationService.js";
+import { requestFeedRefresh } from "./publishContract.js";
+import { useFeedStream } from "../feed/useFeedStream.js";
+import { createWorkItem, filterValidFeedItems } from "./factories/createFeedItem.js";
+import { filterValidProfiles } from "./factories/createProfileItem.js";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -30,6 +33,7 @@ export function AppStateProvider({ children }) {
   const [isMobile,     setIsMobile]     = useState(
     typeof window !== "undefined" ? window.innerWidth < 1200 : true
   );
+  const [feedRefreshVersion, setFeedRefreshVersion] = useState(0);
 
   // Resize listener — useRef um Leak zu verhindern (Stabilisierungsregel)
   const resizeTimerRef = useRef(null);
@@ -125,6 +129,11 @@ export function AppStateProvider({ children }) {
     }
   }, [user?.id, followedIds]);
 
+  const refreshFeed = useCallback(async () => {
+    setFeedRefreshVersion(v => v + 1);
+    requestFeedRefresh({ source: "AppStateContext.refreshFeed" });
+  }, []);
+
   // ── Context Value ──────────────────────────────────────────────
   const value = {
     // UI State
@@ -136,11 +145,12 @@ export function AppStateProvider({ children }) {
     // Follow
     followedIds,
     toggleFollow,
-    // Phase 2 placeholders — NOOP bis aktiviert
+    // Feed invalidation is owned centrally by the feed refresh bus.
     feedItems:       [],
     feedLoading:     false,
     feedError:       null,
-    refreshFeed:     () => {},
+    feedRefreshVersion,
+    refreshFeed,
     discoverItems:   [],
     discoverLoading: false,
     refreshDiscover: () => {},
@@ -169,6 +179,22 @@ export function useAppState() {
 //   experiences: user_id (kein creator_id), status='published', date (kein date_start)
 //   profiles:    SELECT PUBLIC (RLS: true)
 export function useFeedData(_opts) {
+  const stream = useFeedStream();
+  return {
+    items:       stream.items,
+    feedItems:   stream.items,
+    loading:     stream.loading,
+    error:       stream.error,
+    refresh:     stream.refresh,
+    loadingMore: stream.loadingMore,
+    hasMore:     stream.hasMore,
+    loadMore:    stream.loadMore,
+  };
+
+  /*
+   * Legacy AppState feed loader disabled in Phase 2 consolidation.
+   * useFeedStream is now the single query + normalization + realtime owner.
+   *
   const { user } = useAuth();
   const [items,   setItems]   = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -380,6 +406,7 @@ export function useFeedData(_opts) {
   React.useEffect(() => { load(); }, [load]);
 
   return { items, feedItems: items, loading, error, refresh: load };
+  */
 }
 
 // Hilfsfunktion: relative Zeit

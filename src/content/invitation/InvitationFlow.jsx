@@ -13,6 +13,7 @@ import React, { useState, useCallback, useRef } from "react";
 import { supabase }  from "../../lib/supabaseClient.js";
 import { useAuth }   from "../../lib/AuthContext.jsx";
 import { HUI }       from "../../design/hui.design.js";
+import { createPublishResult, completePublishSuccess } from "../../lib/publishContract.js";
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 const V = {
@@ -359,7 +360,7 @@ function SuccessScreen({ onClose }) {
 }
 
 /* ── Main Flow ──────────────────────────────────────────────── */
-export default function InvitationFlow({ onClose, visible = true }) {
+export default function InvitationFlow({ onClose, onPublished, visible = true }) {
   const { user, profile } = useAuth();
   const [step,       setStep]       = useState(0);
   const [data,       setData]       = useState({});
@@ -396,12 +397,18 @@ export default function InvitationFlow({ onClose, visible = true }) {
       const { data: insertedInv, error: insertError } = await supabase
         .from("invitations")
         .insert(row)
-        .select("id")
+        .select("id, visibility, created_at")
         .single();
 
       if (insertError) throw insertError;
 
       console.log("[InvitationFlow] ✓ Invitation erstellt:", insertedInv?.id);
+      completePublishSuccess(onPublished, createPublishResult({
+        entityType: "invitation",
+        entityId: insertedInv?.id,
+        visibility: insertedInv?.visibility || row.visibility,
+        createdAt: insertedInv?.created_at,
+      }));
 
       setSuccess(true);
     } catch (err) {
@@ -410,7 +417,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
     } finally {
       setPublishing(false);
     }
-  }, [user, data]);
+  }, [user, data, onPublished]);
 
   if (!visible) return null;
 
