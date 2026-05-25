@@ -656,49 +656,104 @@ export default function TeilenFlow({ onClose, onPublished }) {
     scrollRef.current?.scrollTo({ top:0, behavior:"smooth" });
   }
 
-  const handlePublish = useCallback(async () => {
-    setPublishing(true);
-    try {
-      let media_url = null;
-
-      if (form.mediaFile) {
-        const ext  = form.mediaFile.name.split(".").pop();
-        const path = `${form.mode}/${user?.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("stories")
-          .upload(path, form.mediaFile, { upsert:true });
-        if (!upErr) {
-          const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
-          media_url = pub?.publicUrl || null;
-        }
-      }
-
-      if (form.mode === "story") {
-        await supabase.from("stories").insert({
-          user_id:    user?.id,
-          media_url,
-          media_type: form.mediaType || "text",
-          caption:    form.text || null,
-          expires_at: new Date(Date.now() + 24*60*60*1000).toISOString(),
-        });
-      } else {
-        await supabase.from("feed_posts").insert({
-          user_id:  user?.id,
-          media_url,
-          media_type: form.mediaType || "text",
-          caption:  form.text  || null,
-          location: form.location || null,
-          mood:     form.mood    || null,
-        });
-      }
-
-      await new Promise(r => setTimeout(r, 400));
-      onPublished?.({ mode: form.mode });
-      onClose?.();
-    } catch {
-      setPublishing(false);
+  // ─── TEST INSERT (minimal, kein Upload, direkt in beitraege) ──────────────
+  const handleTestInsert = useCallback(async () => {
+    console.log("[HUI MOMENT] TEST INSERT start — user:", user?.id);
+    if (!user?.id) {
+      console.error("[HUI MOMENT] TEST INSERT ABORT — kein user.id");
+      alert("Kein User eingeloggt. Bitte einloggen.");
+      return;
     }
-  }, [form, user, onClose, onPublished]);
+    const { data, error } = await supabase
+      .from("beitraege")
+      .insert({ user_id: user.id, type: "moment", caption: "debug" })
+      .select("id")
+      .single();
+    if (error) {
+      console.error("[HUI MOMENT] TEST INSERT error", { code: error.code, message: error.message });
+      alert("DB ERROR: " + error.code + " — " + error.message);
+    } else {
+      console.log("[HUI MOMENT] TEST INSERT success", data?.id);
+      alert("✅ Test Insert erfolgreich! id=" + data?.id);
+    }
+  }, [user?.id]);
+
+  // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
+  const handlePublish = useCallback(async () => {
+    if (publishing) return;
+    if (!user?.id) {
+      console.error("[HUI MOMENT] PUBLISH ABORT — kein user.id");
+      return;
+    }
+
+    console.log("[HUI MOMENT] step 1 click", {
+      mode: form.mode, hasMedia: !!form.mediaFile, text: form.text?.slice(0,40),
+    });
+    setPublishing(true);
+    let published = false;
+
+    try {
+      // ── STEP 2: Upload (optional) ────────────────────────────────
+      let src = null;
+      if (form.mediaFile) {
+        console.log("[HUI MOMENT] step 2 upload start", form.mediaFile.name);
+        const ext  = form.mediaFile.name.split(".").pop();
+        const path = `moments/${user.id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("moments")
+          .upload(path, form.mediaFile, { upsert: true });
+        if (upErr) {
+          console.error("[HUI MOMENT] step 2 upload error", upErr.message);
+          // Upload-Fehler = kein Bild, aber trotzdem weitermachen
+        } else {
+          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
+          src = pub?.publicUrl || null;
+          console.log("[HUI MOMENT] step 2 upload success", src);
+        }
+      } else {
+        console.log("[HUI MOMENT] step 2 kein Upload — Text-only Moment");
+      }
+
+      // ── STEP 3: Insert in beitraege (das ist was der Feed liest) ─
+      const payload = {
+        user_id: user.id,
+        type:    form.mode === "story" ? "note" : "moment",
+        caption: form.text?.trim() || null,
+        src:     src,
+      };
+      console.log("[HUI MOMENT] step 3 insert start →", "beitraege", payload);
+
+      const { data: row, error: dbErr } = await supabase
+        .from("beitraege")
+        .insert(payload)
+        .select("id")
+        .single();
+
+      if (dbErr) {
+        console.error("[HUI MOMENT] step 4 insert error", {
+          code: dbErr.code, message: dbErr.message, hint: dbErr.hint,
+        });
+        // Nicht crashen — aber auch nicht als "published" markieren
+      } else {
+        console.log("[HUI MOMENT] step 4 insert success", row?.id);
+        published = true;
+      }
+
+    } catch (err) {
+      console.error("[HUI MOMENT] step 4 EXCEPTION", err?.message);
+    } finally {
+      setPublishing(false);
+      console.log("[HUI MOMENT] step 5 finally — published:", published);
+      if (published) {
+        // Callback mit refresh-Signal an HomeFeed
+        onPublished?.({ mode: form.mode, refresh: true });
+        setTimeout(() => {
+          console.log("[HUI MOMENT] step 6 onClose()");
+          onClose?.();
+        }, 100);
+      }
+    }
+  }, [form, publishing, user?.id, onClose, onPublished]);
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
@@ -799,13 +854,34 @@ export default function TeilenFlow({ onClose, onPublished }) {
           />
         )}
         {step === 3 && (
-          <StepPreview
-            mode={form.mode}
-            data={form}
-            profile={profile}
-            onPublish={handlePublish}
-            publishing={publishing}
-          />
+          <>
+            {/* ── DEBUG: TEST INSERT Button ── */}
+            <div style={{
+              padding:"12px 20px 0",
+              display:"flex", justifyContent:"center",
+            }}>
+              <button
+                onClick={handleTestInsert}
+                style={{
+                  height:36, paddingInline:18, borderRadius:99,
+                  background:"rgba(239,68,68,0.12)",
+                  border:"1.5px solid rgba(239,68,68,0.35)",
+                  color:"rgba(239,68,68,0.9)",
+                  fontSize:12, fontWeight:700, letterSpacing:0.3,
+                  cursor:"pointer", fontFamily:"monospace",
+                }}
+              >
+                🧪 TEST INSERT (Debug)
+              </button>
+            </div>
+            <StepPreview
+              mode={form.mode}
+              data={form}
+              profile={profile}
+              onPublish={handlePublish}
+              publishing={publishing}
+            />
+          </>
         )}
       </div>
 

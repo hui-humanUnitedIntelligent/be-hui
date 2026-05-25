@@ -516,6 +516,14 @@ export default function HomeFeed({
     refresh:        streamRefresh,
   } = useFeedStream();
 
+  // ── onRefreshReady: expose streamRefresh nach oben (für Home.jsx) ────────────
+  React.useEffect(() => {
+    if (typeof onRefreshReady === "function") {
+      onRefreshReady(streamRefresh);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onRefreshReady]);  // streamRefresh ist stabil (useCallback in useFeedStream)
+
   // Scroll Progress für Prefetch
   // (scrollContainerRef kommt als Prop von Home.jsx über mainScrollRef)
   const feedScrollRef = React.useRef(null);

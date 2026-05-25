@@ -79,6 +79,7 @@ function HomeInner() {
     favorites: React.useRef(null),
   };
   const scrollContainerRef = React.useRef(null);
+  const feedRefreshRef     = React.useRef(null);  // streamRefresh von HomeFeed
   // PaintRecoveryManager — tracks rAF handles, cleaned up on unmount
   const paintManager = React.useRef(new PaintRecoveryManager());
 
@@ -261,6 +262,7 @@ function HomeInner() {
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="HomeFeed">
                 <HomeFeed
+                  onRefreshReady={(fn) => { feedRefreshRef.current = fn; }}
                   user={currentUser}
                   notifCount={liveNotifCount}
                   chatCount={0}
@@ -445,7 +447,16 @@ function HomeInner() {
         <SafeRender flag="teilenFlow" label="TeilenFlow">
           <TeilenFlow
             onClose={() => setShowTeilen(false)}
-            onPublished={() => setShowTeilen(false)}
+            onPublished={(result) => {
+              console.log("[HUI MOMENT] Home.jsx onPublished empfangen", result);
+              setShowTeilen(false);
+              // Feed Refresh wenn Moment erfolgreich published
+              if (result?.refresh) {
+                console.log("[HUI MOMENT] Feed Refresh wird getriggert...");
+                // feedRefreshRef wird vom HomeFeed bereitgestellt
+                feedRefreshRef.current?.();
+              }
+            }}
           />
         </SafeRender>
       )}
