@@ -12,7 +12,7 @@
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
 import { useDraftPersist } from "../lib/sessionHooks";
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
