@@ -591,7 +591,7 @@ function HomeInner() {
           <SafeRender flag="storyComposer" label="StoryComposer">
             <StoryComposer
               onClose={() => setShowStoryComposer(false)}
-              onPublished={() => setShowStoryComposer(false)}
+              onSuccess={() => setShowStoryComposer(false)}
             />
           </SafeRender>
         )}

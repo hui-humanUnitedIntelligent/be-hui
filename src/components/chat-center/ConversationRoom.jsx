@@ -41,6 +41,7 @@ function EmptyConvState({ name }) {
 
 export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   const { user } = useAuth();
+  const [sendError, setSendError] = React.useState(null);
 
   // IMMER aufrufen — useChatThread handled null intern
   const rawId     = conv?.id ?? null;
@@ -63,22 +64,30 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   }));
 
   const handleSend = useCallback(async (text) => {
-    if (!text?.trim()) return;
+    setSendError(null);
+    if (!text?.trim()) return { error: "empty_message" };
     if (!realChatId) {
       console.warn("[HUI_ROOM] send: kein realChatId:", rawId);
-      return;
+      const message = "Kein echter Chat verbunden. Nachricht wurde nicht gesendet.";
+      setSendError(message);
+      return { error: message };
     }
     if (!sendMessage) {
       console.error("[HUI_ROOM] sendMessage undefined");
-      return;
+      const message = "Send-Handler fehlt. Nachricht wurde nicht gesendet.";
+      setSendError(message);
+      return { error: message };
     }
     console.log("[HUI_ROOM] send →", { realChatId, len: text.length });
     const result = await sendMessage({ text: text.trim(), msgType: "text" });
     if (result?.error) {
       console.error("[HUI_ROOM] send error:", result.error?.code, result.error?.message);
+      setSendError(typeof result.error === "string" ? result.error : result.error?.message || "Senden fehlgeschlagen.");
+      return result;
     } else {
       console.log("[HUI_REALITY] chat persisted ✓", result?.id);
     }
+    return result;
   }, [sendMessage, realChatId, rawId]);
 
   const showEmpty = !loading && messages.length === 0 && realChatId;
@@ -114,6 +123,21 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
         minHeight: 60,
         outline: "3px solid red",
       }}>
+        {sendError && (
+          <div style={{
+            margin:"0 14px 8px",
+            padding:"10px 12px",
+            borderRadius:12,
+            background:"rgba(255,122,92,0.12)",
+            border:"1px solid rgba(255,122,92,0.25)",
+            color:"#A43E29",
+            fontSize:12.5,
+            fontWeight:700,
+            lineHeight:1.45,
+          }}>
+            Nachricht nicht gesendet: {sendError}. Text bleibt im Feld, du kannst erneut senden.
+          </div>
+        )}
         <ChatInput onSend={handleSend} sending={sending}/>
       </div>
     </div>

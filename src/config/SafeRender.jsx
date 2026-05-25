@@ -6,10 +6,23 @@
 
 import React from 'react';
 import { SAFE_MODE } from './safeMode.js';
+import { reportRuntimeError } from '../lib/runtimeDebug.js';
 
 /* ── Structured error log ─────────────────────────────────────── */
 function logCrash(label, error, info) {
   const ws = window.__HUI_WORLD_STATE__ || {};
+  reportRuntimeError({
+    flow: 'safe-render',
+    step: 'component-crash',
+    entity: label,
+    error,
+    details: {
+      componentStack: info?.componentStack || '',
+      activeTab: ws.activeTab ?? null,
+      activeSurface: ws.activeSurface ?? null,
+      repaintPhase: ws.repaintPhase ?? null,
+    },
+  });
   console.error('[HUI FEED CRASH]', {
     component:      label,
     error:          error?.message || String(error),

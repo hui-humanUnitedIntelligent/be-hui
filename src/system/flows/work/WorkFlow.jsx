@@ -16,6 +16,7 @@ import { WorkDetailsStep } from "./WorkDetailsStep.jsx";
 import { WorkPublishStep } from "./WorkPublishStep.jsx";
 import { supabase }        from "../../../lib/supabaseClient.js";
 import { useAuth }         from "../../../lib/AuthContext.jsx";
+import { reportInsertFailure } from "../../../lib/runtimeDebug.js";
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 export const WT = {
@@ -136,7 +137,13 @@ export default function WorkFlow({ onClose }) {
 
   // ── Publish ─────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      const message = "Nicht eingeloggt. Werk kann nicht gespeichert werden.";
+      setError(message);
+      reportInsertFailure({ flow:"work-publish", step:"auth", entity:"works", message });
+      return;
+    }
+    let failedStep = "publish";
     setSaving(true);
     setError(null);
     try {
@@ -144,6 +151,7 @@ export default function WorkFlow({ onClose }) {
       const imageUrls = [];
       let coverUrl = null;
       for (let i = 0; i < mediaFiles.length; i++) {
+        failedStep = "storage-upload";
         const { file } = mediaFiles[i];
         const ext  = file.name.split(".").pop();
         const path = `works/${user.id}/${Date.now()}_${i}.${ext}`;
@@ -154,6 +162,7 @@ export default function WorkFlow({ onClose }) {
         imageUrls.push(publicUrl);
         if (i === 0) coverUrl = publicUrl;
       }
+      failedStep = "insert";
       // 2. DB Insert
       // FIX: works-Tabelle nutzt 'creator_id' nicht 'user_id'
       // FIX: visibility muss explizit 'public' sein wenn nicht gesetzt
@@ -205,7 +214,16 @@ export default function WorkFlow({ onClose }) {
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
-      setError(e.message || "Fehler beim Veröffentlichen");
+      const message = e.message || "Fehler beim Veröffentlichen";
+      setError(message);
+      reportInsertFailure({
+        category: "publish",
+        flow: "work-publish",
+        step: failedStep,
+        entity: "works",
+        error: e,
+        message,
+      });
     } finally {
       setSaving(false);
     }

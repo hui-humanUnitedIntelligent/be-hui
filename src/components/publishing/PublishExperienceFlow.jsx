@@ -7,6 +7,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { publishExperience } from "../../lib/factories/experienceContract.js";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth }  from "../../lib/AuthContext.jsx";
+import { reportInsertFailure } from "../../lib/runtimeDebug.js";
 
 const C = {
   teal:"#16D7C5", coral:"#FF8A6B", cream:"#F9F7F4",
@@ -27,6 +28,7 @@ export default function PublishExperienceFlow({ onClose, onPublished }) {
   const [cover,    setCover]    = useState(null);
   const [saving,   setSaving]   = useState(false);
   const [error,    setError]    = useState(null);
+  const [success,  setSuccess]  = useState(null);
   const fileRef = useRef();
 
   const handleCover = useCallback(e => {
@@ -35,33 +37,56 @@ export default function PublishExperienceFlow({ onClose, onPublished }) {
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!user?.id) return setError("Nicht eingeloggt.");
-    if (!form.title) return setError("Bitte Titel angeben.");
-    setSaving(true); setError(null);
+    if (!user?.id) {
+      const message = "Nicht eingeloggt.";
+      setError(message);
+      reportInsertFailure({ flow:"legacy-experience-publish", step:"auth", entity:"experiences", message });
+      return;
+    }
+    if (!form.title) {
+      const message = "Bitte Titel angeben.";
+      setError(message);
+      reportInsertFailure({ category:"validation", flow:"legacy-experience-publish", step:"validation", entity:"experiences", message });
+      return;
+    }
+    setSaving(true); setError(null); setSuccess(null);
+    let failedStep = "publish";
     try {
       let cover_url = null;
       if (cover?.file) {
+        failedStep = "storage-upload";
         const ext  = cover.file.name.split(".").pop();
         const path = `experiences/${user.id}/${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("media").upload(path, cover.file, { upsert: true });
-        if (!upErr) {
-          const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
-          cover_url = publicUrl;
+        if (upErr) {
+          throw new Error(`Upload fehlgeschlagen: ${upErr.message}`);
         }
+        const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+        cover_url = publicUrl;
       }
 
       // Contract Layer: normalize → validate → insert (Phase 4E)
+      failedStep = "contract-insert";
       const coverUrls = cover_url ? [cover_url] : [];
       const { data, error: contractErr } = await publishExperience(
         supabase, form, user.id, coverUrls
       );
       if (contractErr) throw new Error(contractErr.message);
       console.log("[HUI_REALITY] ✓ experience published:", data?.id);
+      setSuccess("Erlebnis erfolgreich gespeichert.");
       onPublished?.({ id: data?.id, ...form });
-      onClose?.();
+      window.setTimeout(() => onClose?.(), 1200);
     } catch(err) {
       setError(err.message);
+      reportInsertFailure({
+        category: "publish",
+        flow: "legacy-experience-publish",
+        step: failedStep,
+        entity: "experiences",
+        error: err,
+        message: err.message,
+      });
     } finally {
       setSaving(false);
     }
@@ -188,6 +213,10 @@ export default function PublishExperienceFlow({ onClose, onPublished }) {
           {error && (
             <div style={{ padding:"10px 14px", borderRadius:10,
               background:"rgba(255,80,80,0.08)", color:"#E53E3E", fontSize:13 }}>{error}</div>
+          )}
+          {success && (
+            <div style={{ padding:"10px 14px", borderRadius:10,
+              background:"rgba(22,215,197,0.10)", color:"#087B73", fontSize:13, fontWeight:700 }}>{success}</div>
           )}
 
           <button onClick={handleSave} disabled={saving} style={{

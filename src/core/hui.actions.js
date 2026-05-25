@@ -22,6 +22,7 @@ import {
   checkSemantics,
   INTENT,
 } from "./hui.semantics.js";
+import { reportActionFailure } from "../lib/runtimeDebug.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -55,6 +56,33 @@ function logReturn(from, to) {
   var t = LABELS[to]   || to   || "?";
   console.log("%c[HUI_RETURN]%c ← " + f + " → " + t,
     "color:#F59E0B;font-weight:700", "color:#4B5563");
+}
+
+function validateAction(name, rawPayload) {
+  const payload = validate(name, rawPayload);
+  if (!payload) {
+    reportActionFailure({
+      category: "validation",
+      flow: "hui-action",
+      step: "validate",
+      entity: name,
+      message: `Action validation blockiert: ${name}`,
+      details: { payload: rawPayload },
+    });
+  }
+  return payload;
+}
+
+function requireHandler(handler, action, handlerName) {
+  if (typeof handler === "function") return true;
+  reportActionFailure({
+    flow: "hui-action",
+    step: "missing-handler",
+    entity: action,
+    message: `Kein Handler für ${action}: ${handlerName}`,
+    details: { handlerName },
+  });
+  return false;
 }
 
 // ─── Action Names (constants — use these, not raw strings) ─────────
@@ -120,6 +148,13 @@ export function useHuiActions() {
   if (!ctx) {
     // Graceful fallback — never crash the UI
     const noop = (name) => (payload) => {
+      reportActionFailure({
+        flow: "hui-action",
+        step: "provider-missing",
+        entity: name,
+        message: `Action ohne Provider: ${name}`,
+        details: { payload },
+      });
       console.warn(`[HUI_ACTIONS] Provider not found for action: ${name}`, payload);
     };
     return Object.fromEntries(Object.values(A).map(k => [k, noop(k)]));
@@ -178,9 +213,10 @@ export function buildActions(shell) {
 
     // ── PROFILE ──────────────────────────────────────────────────
     [A.OPEN_PROFILE]: (rawPayload) => {
-      const payload = validate("OPEN_PROFILE", rawPayload);
+      const payload = validateAction("OPEN_PROFILE", rawPayload);
       if (!payload) return;
       logAction(A.OPEN_PROFILE, payload);
+      if (!requireHandler(setShowWirker, A.OPEN_PROFILE, "setShowWirker")) return;
       // Defensive destructure — source immer mit Fallback (Phase 4G+)
       const safePayload = (payload && typeof payload === 'object') ? payload : {};
       const { creator, creatorId, source: rawSource, ...rest } = safePayload;
@@ -191,7 +227,7 @@ export function buildActions(shell) {
       // Phase 2: Flow Stack — merke Navigations-Ursprung
       logFlow(source, S.VISITOR_PROFILE);
       flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source });
-      setShowWirker?.(data);
+      setShowWirker(data);
     },
 
     [A.OPEN_OWN_PROFILE]: (payload = {}) => {
@@ -206,9 +242,10 @@ export function buildActions(shell) {
 
     // ── CHAT ─────────────────────────────────────────────────────
     [A.OPEN_CHAT]: (rawPayload) => {
-      const payload = validate("OPEN_CHAT", rawPayload);
+      const payload = validateAction("OPEN_CHAT", rawPayload);
       if (!payload) return;
       logAction(A.OPEN_CHAT, payload);
+      if (!requireHandler(setShowChat, A.OPEN_CHAT, "setShowChat")) return;
       const { recipient, recipientId, name, avatar, ...rest } = payload;
       // Semantic: normalizeRecipient schützt vor rohen Supabase-Objekten
       var rawRec = recipient ?? (recipientId ? {
@@ -235,7 +272,7 @@ export function buildActions(shell) {
     },
 
     [A.SEND_MESSAGE]: (rawPayload) => {
-      const payload = validate("SEND_MESSAGE", rawPayload);
+      const payload = validateAction("SEND_MESSAGE", rawPayload);
       if (!payload) return;
       logAction(A.SEND_MESSAGE, payload);
       // Opens chat — actual send handled inside ChatCenter
@@ -244,7 +281,7 @@ export function buildActions(shell) {
 
     // ── EXPERIENCES ───────────────────────────────────────────────
     [A.OPEN_EXPERIENCE]: (rawPayload) => {
-      const payload = validate("OPEN_EXPERIENCE", rawPayload);
+      const payload = validateAction("OPEN_EXPERIENCE", rawPayload);
       if (!payload) return;
       logAction(A.OPEN_EXPERIENCE, payload);
       const { experience, creatorId } = payload;
@@ -263,9 +300,10 @@ export function buildActions(shell) {
     },
 
     [A.BOOK_EXPERIENCE]: (rawPayload) => {
-      const payload = validate("BOOK_EXPERIENCE", rawPayload);
+      const payload = validateAction("BOOK_EXPERIENCE", rawPayload);
       if (!payload) return;
       logAction(A.BOOK_EXPERIENCE, payload);
+      if (!requireHandler(setShowConnect, A.BOOK_EXPERIENCE, "setShowConnect")) return;
       const { experience, creator } = payload;
       // Semantic: normalizeCreator → sicheres Recipient-Objekt für Booking-Chat
       const safeExp  = normalizeExperience(experience);
@@ -277,7 +315,7 @@ export function buildActions(shell) {
       // Flow-Log
       const bookSource = payload?.source || S.SYSTEM;
       logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
-      setShowConnect?.(true);
+      setShowConnect(true);
     },
 
     [A.CREATE_EXPERIENCE]: (payload = {}) => {
@@ -292,7 +330,7 @@ export function buildActions(shell) {
     },
 
     [A.SEND_RESONANCE]: (rawPayload) => {
-      const payload = validate("SEND_RESONANCE", rawPayload);
+      const payload = validateAction("SEND_RESONANCE", rawPayload);
       if (!payload) return;
       logAction(A.SEND_RESONANCE, payload);
       // Semantic guard (DEV)
@@ -304,7 +342,7 @@ export function buildActions(shell) {
 
     // ── SOCIAL ────────────────────────────────────────────────────
     [A.FOLLOW_CREATOR]: (rawPayload) => {
-      const payload = validate("FOLLOW_CREATOR", rawPayload);
+      const payload = validateAction("FOLLOW_CREATOR", rawPayload);
       if (!payload) return;
       logAction(A.FOLLOW_CREATOR, payload);
       // Semantic guard (DEV)
@@ -314,7 +352,7 @@ export function buildActions(shell) {
     },
 
     [A.SHARE_MOMENT]: (rawPayload) => {
-      const payload = validate("SHARE_MOMENT", rawPayload);
+      const payload = validateAction("SHARE_MOMENT", rawPayload);
       if (!payload) return;
       logAction(A.SHARE_MOMENT, payload);
       const { url, title, text } = payload;
@@ -402,12 +440,19 @@ export function buildActions(shell) {
 
     [A.OPEN_CREATE_FLOW]: (payload = {}) => {
       logAction(A.OPEN_CREATE_FLOW, payload);
-      setShowCreateFlow?.(true);
+      if (!requireHandler(setShowCreateFlow, A.OPEN_CREATE_FLOW, "setShowCreateFlow")) return;
+      setShowCreateFlow(true);
     },
 
     [A.OPEN_CALENDAR]: () => {
       logAction(A.OPEN_CALENDAR);
       // Future: calendar overlay
+      reportActionFailure({
+        flow: "hui-action",
+        step: "missing-handler",
+        entity: A.OPEN_CALENDAR,
+        message: "Kalender-Action hat noch keinen Handler.",
+      });
       if (isDev) console.log("[HUI] Calendar — coming soon");
     },
 
@@ -415,13 +460,14 @@ export function buildActions(shell) {
     [A.GO_TO_TAB]: (payload = {}) => {
       const tab = typeof payload === "string" ? payload : payload?.tab ?? "feed";
       logAction(A.GO_TO_TAB, { tab });
-      switchTab?.(tab);
+      if (!requireHandler(switchTab, A.GO_TO_TAB, "switchTab")) return;
+      switchTab(tab);
     },
 
-    [A.GO_HOME]:      () => { logAction(A.GO_HOME);      switchTab?.("feed");      },
-    [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  switchTab?.("discover");  },
-    [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    switchTab?.("impact");    },
-    [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); switchTab?.("favorites"); },
+    [A.GO_HOME]:      () => { logAction(A.GO_HOME);      if (requireHandler(switchTab, A.GO_HOME, "switchTab")) switchTab("feed");      },
+    [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  if (requireHandler(switchTab, A.GO_DISCOVER, "switchTab")) switchTab("discover");  },
+    [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    if (requireHandler(switchTab, A.GO_IMPACT, "switchTab")) switchTab("impact");    },
+    [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); if (requireHandler(switchTab, A.GO_FAVORITES, "switchTab")) switchTab("favorites"); },
   };
 
   return actions;

@@ -2,9 +2,10 @@
 // Screenshot-exact: "So wird deine Verbindung wirken"
 // Hero (violet gradient) → Type Badge → Meta-Rows → Avatar Bubbles → CTA
 
-import React, { useState } from "react";
+import React from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 import { HUI } from "../../design/hui.design.js";
+import { reportActionFailure } from "../../lib/runtimeDebug.js";
 
 // ── Farben ──────────────────────────────────────────────────────────
 const C = {
@@ -322,7 +323,7 @@ function PublishActions({ onPublish, onEdit, onDraft, publishing }) {
 // ══════════════════════════════════════════════════════════════════
 // HAUPT-EXPORT
 // ══════════════════════════════════════════════════════════════════
-export default function StepThreePreview({ data, onPublish, onBack, publishing }) {
+export default function StepThreePreview({ data, onPublish, onBack, publishing, publishError, publishDone }) {
   if (!data) return null;
   const {
     type, title, description, date, time,
@@ -460,10 +461,45 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
         position:"relative", zIndex:1,
         animation:"s3-in 0.32s 0.14s ease both",
       }}>
+        {publishError && (
+          <div style={{
+            marginBottom:12,
+            padding:"11px 13px",
+            borderRadius:14,
+            background:"rgba(255,122,92,0.11)",
+            border:"1px solid rgba(255,122,92,0.24)",
+            color:"#A43E29",
+            fontSize:13,
+            fontWeight:700,
+            lineHeight:1.45,
+          }}>
+            Veröffentlichung fehlgeschlagen: {publishError}
+          </div>
+        )}
+        {publishDone && (
+          <div style={{
+            marginBottom:12,
+            padding:"11px 13px",
+            borderRadius:14,
+            background:"rgba(22,215,197,0.10)",
+            border:"1px solid rgba(22,215,197,0.24)",
+            color:"#087B73",
+            fontSize:13,
+            fontWeight:800,
+            lineHeight:1.45,
+          }}>
+            Verbindung gespeichert.
+          </div>
+        )}
         <PublishActions
           onPublish={onPublish}
           onEdit={onBack}
-          onDraft={() => {}}
+          onDraft={() => reportActionFailure({
+            flow: "connection-create",
+            step: "draft",
+            entity: "connections",
+            message: "Entwurf speichern hat keinen Handler.",
+          })}
           publishing={publishing}
         />
       </div>

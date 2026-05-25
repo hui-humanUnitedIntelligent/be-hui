@@ -13,6 +13,8 @@ import StepTwoConnectionDetails from "./StepTwoConnectionDetails.jsx";
 import StepThreePreview       from "./StepThreePreview.jsx";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { HUI } from "../../design/hui.design.js";
+import { supabase } from "../../lib/supabaseClient.js";
+import { reportActionFailure, reportInsertFailure } from "../../lib/runtimeDebug.js";
 
 const C = {
   violet:HUI.COLOR.violet, violet2:"#7C3AED",
@@ -194,6 +196,8 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
   const [step,       setStep]       = useState(1);
   const [animDir,    setAnimDir]    = useState("in");
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
+  const [publishDone, setPublishDone] = useState(false);
   const scrollRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -236,14 +240,14 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       return;
     }
     setPublishing(true);
+    setPublishError(null);
+    setPublishDone(false);
     let published = false;
 
     try {
       // Guard: user muss eingeloggt sein
       if (!user?.id) {
-        console.error("[HUI CONNECTION] step 2 ABORT — kein user.id, kein Insert möglich");
-        setPublishing(false);
-        return;
+        throw new Error("Nicht eingeloggt. Verbindung kann nicht gespeichert werden.");
       }
 
       const payload = {
@@ -283,7 +287,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           details: dbErr.details,
           hint:    dbErr.hint,
         });
-        // Kein return — Flow schließt trotzdem sauber
+        throw new Error(`Verbindung konnte nicht gespeichert werden: ${dbErr.message}`);
       } else {
         // ── STEP 4: Insert Success ───────────────────────────────
         console.log("[HUI CONNECTION] step 4 insert success", {
@@ -293,6 +297,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       }
 
       published = true;
+      setPublishDone(true);
       onPublish?.({ ...formData, id: connData?.id ?? null, creator_id: user.id });
 
     } catch (err) {
@@ -300,6 +305,26 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         message: err?.message,
         stack:   err?.stack?.split("\n").slice(0,3).join(" | "),
       });
+      const message = err?.message || "Verbindung konnte nicht veröffentlicht werden.";
+      setPublishError(message);
+      if (!user?.id) {
+        reportActionFailure({
+          flow: "connection-create",
+          step: "auth",
+          entity: "connections",
+          message,
+          error: err,
+        });
+      } else {
+        reportInsertFailure({
+          category: "publish",
+          flow: "connection-create",
+          step: "insert",
+          entity: "connections",
+          error: err,
+          message,
+        });
+      }
     } finally {
       // ── STEP 6: Flow schließen ─────────────────────────────────
       console.log("[HUI CONNECTION] step 6 closing flow", {
@@ -312,7 +337,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           // ── STEP 7: navigate / onClose ────────────────────────
           console.log("[HUI CONNECTION] step 7 navigate home — onClose() wird aufgerufen");
           onClose?.();
-        }, 100);
+        }, 1200);
       }
     }
   }, [step, publishing, formData, user?.id, onPublish, onClose]);
@@ -418,6 +443,8 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
             data={{ ...formData }}
             onPublish={handleNext}
             publishing={publishing}
+            publishError={publishError}
+            publishDone={publishDone}
           />
         )}
       </div>
