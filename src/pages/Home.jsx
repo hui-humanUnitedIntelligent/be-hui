@@ -421,8 +421,21 @@ function HomeInner() {
       {showConnect && SAFE_MODE.connectFlow && (
         <SafeRender flag="connectFlow" label="ConnectionCreatePage">
           <ConnectionCreatePage
-            onClose={() => setShowConnect(false)}
-            onPublish={() => setShowConnect(false)}
+            onClose={() => {
+              console.log("[HUI CONNECTION] step 6 closing flow — Home.jsx onClose empfangen");
+              setShowConnect(false);
+            }}
+            onPublish={(result) => {
+              console.log("[HUI CONNECTION] step 8 refresh feed — onPublish empfangen", {
+                id:         result?.id   ?? "kein id",
+                type:       result?.type ?? "kein type",
+                title:      result?.title ?? "kein title",
+              });
+              // Feed Refresh: falls FeedRefresh-Mechanismus existiert, hier auslösen
+              // Aktuell: kein automatischer Refresh → nur schließen
+              console.log("[HUI CONNECTION] step 8 feed refresh: KEIN automatischer Refresh konfiguriert");
+              setShowConnect(false);
+            }}
           />
         </SafeRender>
       )}

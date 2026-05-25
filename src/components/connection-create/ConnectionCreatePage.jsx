@@ -221,14 +221,27 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
 
   const handleNext = useCallback(async () => {
     if (step < 3) { goTo(step + 1); return; }
-    // Step 3: Real Publish → supabase.connections
-    if (publishing) return;                         // Guard: kein Doppel-Submit
+
+    // ── STEP 1: Button wurde geklickt ─────────────────────────────
+    console.log("[HUI CONNECTION] step 1 click", {
+      step,
+      publishing,
+      user_id: user?.id ?? "MISSING",
+      formData_type:  formData.type  || "(leer)",
+      formData_title: formData.title || "(leer)",
+    });
+
+    if (publishing) {
+      console.warn("[HUI CONNECTION] step 1 BLOCKED — publishing bereits true (Doppel-Klick)");
+      return;
+    }
     setPublishing(true);
     let published = false;
+
     try {
       // Guard: user muss eingeloggt sein
       if (!user?.id) {
-        console.error("[HUI_REALITY] connection publish: kein user.id — abbruch");
+        console.error("[HUI CONNECTION] step 2 ABORT — kein user.id, kein Insert möglich");
         setPublishing(false);
         return;
       }
@@ -250,6 +263,12 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         status:           "active",
       };
 
+      // ── STEP 2: Payload gebaut ───────────────────────────────────
+      console.log("[HUI CONNECTION] step 2 payload", payload);
+
+      // ── STEP 3: Insert startet ───────────────────────────────────
+      console.log("[HUI CONNECTION] step 3 insert start →", "supabase.from('connections').insert(...)");
+
       const { data: connData, error: dbErr } = await supabase
         .from("connections")
         .insert(payload)
@@ -257,23 +276,43 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         .single();
 
       if (dbErr) {
-        // Tabelle existiert noch nicht (42P01) oder anderer DB-Fehler
-        // → trotzdem sauber schließen, kein UI-Block
-        console.error("[HUI_REALITY] connection DB error:", dbErr.code, dbErr.message);
+        // ── STEP 5: Insert Error ─────────────────────────────────
+        console.error("[HUI CONNECTION] step 5 insert error", {
+          code:    dbErr.code,
+          message: dbErr.message,
+          details: dbErr.details,
+          hint:    dbErr.hint,
+        });
+        // Kein return — Flow schließt trotzdem sauber
       } else {
-        console.info("[HUI_REALITY] ✓ connection published:", connData?.id);
+        // ── STEP 4: Insert Success ───────────────────────────────
+        console.log("[HUI CONNECTION] step 4 insert success", {
+          id:         connData?.id,
+          returned:   connData,
+        });
       }
 
       published = true;
       onPublish?.({ ...formData, id: connData?.id ?? null, creator_id: user.id });
+
     } catch (err) {
-      console.error("[HUI_REALITY] connection publish exception:", err?.message);
+      console.error("[HUI CONNECTION] step 5 insert EXCEPTION", {
+        message: err?.message,
+        stack:   err?.stack?.split("\n").slice(0,3).join(" | "),
+      });
     } finally {
-      // IMMER ausführen — verhindert hängenden Button-State
+      // ── STEP 6: Flow schließen ─────────────────────────────────
+      console.log("[HUI CONNECTION] step 6 closing flow", {
+        published,
+        will_close: published,
+      });
       setPublishing(false);
       if (published) {
-        // Kleines Delay damit der User den Erfolg spürt (100ms Minimum)
-        setTimeout(() => { onClose?.(); }, 100);
+        setTimeout(() => {
+          // ── STEP 7: navigate / onClose ────────────────────────
+          console.log("[HUI CONNECTION] step 7 navigate home — onClose() wird aufgerufen");
+          onClose?.();
+        }, 100);
       }
     }
   }, [step, publishing, formData, user?.id, onPublish, onClose]);
