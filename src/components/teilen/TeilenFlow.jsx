@@ -704,7 +704,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
 /* ══════════════════════════════════════════════════════════════
    MAIN ORCHESTRATOR
 ══════════════════════════════════════════════════════════════ */
-export default function TeilenFlow({ onClose, onPublished }) {
+export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   const { user, profile } = useAuth();
 
   const [step,       setStep]       = useState(1);
@@ -722,6 +722,20 @@ export default function TeilenFlow({ onClose, onPublished }) {
       { time: new Date().toISOString(), label, value }
     ]);
   }, []);
+
+  // ── VISIBLE PROP: Reset Form+Step wenn Flow neu geöffnet wird ──────────
+  React.useEffect(() => {
+    if (visible) {
+      console.log("TEILENFLOW_VISIBLE_TRUE — reset form+step");
+      setStep(1);
+      setForm({
+        mode: null, mediaFile: null, mediaPreview: null,
+        mediaType: null, text: "", location: "", mood: null,
+      });
+      setPublishDebug([]);
+      setShowDebugPanel(false);
+    }
+  }, [visible]);
 
   // ── MOUNT / UNMOUNT DEBUG ────────────────────────────────────────────
   React.useEffect(() => {
@@ -886,6 +900,17 @@ export default function TeilenFlow({ onClose, onPublished }) {
     3: { emoji:"👁",  hint:"Alles bereit?" },
   };
   const meta = STEP_META[step];
+
+  // ALWAYS MOUNTED — visible prop steuert Sichtbarkeit, kein Unmount
+  if (!visible) {
+    return (
+      <div
+        data-teilenflow="hidden"
+        style={{ display:"none" }}
+        aria-hidden="true"
+      />
+    );
+  }
 
   return (
     <div style={{

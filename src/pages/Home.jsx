@@ -442,10 +442,12 @@ function HomeInner() {
         </SafeRender>
       )}
 
-      {/* ── Teilen Flow ─────────────────────────────────────────── */}
-      {showTeilen && SAFE_MODE.teilenFlow && (
+      {/* ── Teilen Flow — ALWAYS MOUNTED, visible prop steuert Sichtbarkeit ── */}
+      {/* WICHTIG: Kein bedingtes Rendering! Unmount während Publish killt den Insert. */}
+      {SAFE_MODE.teilenFlow && (
         <SafeRender flag="teilenFlow" label="TeilenFlow">
           <TeilenFlow
+            visible={showTeilen}
             onClose={() => {
               console.log("FLOW_CLOSE_TRIGGER", "Home.jsx onClose");
               if (window.__PUBLISHING__) {
