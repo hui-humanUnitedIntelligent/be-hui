@@ -16,6 +16,7 @@ import { WorkDetailsStep } from "./WorkDetailsStep.jsx";
 import { WorkPublishStep } from "./WorkPublishStep.jsx";
 import { supabase }        from "../../../lib/supabaseClient.js";
 import { useAuth }         from "../../../lib/AuthContext.jsx";
+import { createPublishResult, completePublishSuccess } from "../../../lib/publishContract.js";
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 export const WT = {
@@ -93,7 +94,7 @@ export function WorkHeader({ step, onBack, onClose }) {
 }
 
 /* ── Haupt-Flow ─────────────────────────────────────────────── */
-export default function WorkFlow({ onClose }) {
+export default function WorkFlow({ onClose, onPublished }) {
   const { user, profile } = useAuth();
   const [step,    setStep]    = useState(0);
   const [saving,  setSaving]  = useState(false);
@@ -189,7 +190,7 @@ export default function WorkFlow({ onClose }) {
       });
       const { data: workData, error: dbErr } = await supabase.from("works")
         .insert(workPayload)
-        .select("id, status, visibility, user_id")
+        .select("id, status, visibility, user_id, created_at")
         .single();
       if (dbErr) {
         console.error("[HUI_PUBLISH_ERROR] works INSERT fehlgeschlagen:", {
@@ -202,6 +203,12 @@ export default function WorkFlow({ onClose }) {
         throw new Error(`Werk konnte nicht gespeichert werden: ${dbErr.message} (${dbErr.code})`);
       }
       console.info("[HUI_REALITY] work published ✓", workData?.id, workData);
+      completePublishSuccess(onPublished, createPublishResult({
+        entityType: "work",
+        entityId: workData?.id,
+        visibility: workData?.visibility || workPayload.visibility,
+        createdAt: workData?.created_at,
+      }));
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
@@ -209,7 +216,7 @@ export default function WorkFlow({ onClose }) {
     } finally {
       setSaving(false);
     }
-  }, [user, form, mediaFiles, onClose]);
+  }, [user, form, mediaFiles, onClose, onPublished]);
 
   // ── Success Screen ───────────────────────────────────────────
   if (done) {

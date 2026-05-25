@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { createPublishResult, completePublishSuccess } from "../lib/publishContract.js";
 
 const T = {
   teal:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
@@ -50,7 +51,7 @@ const CSS = `
   .sc-scroll{-ms-overflow-style:none;scrollbar-width:none}
 `;
 
-export default function StoryComposer({ onClose, onSuccess }) {
+export default function StoryComposer({ onClose, onSuccess, onPublished }) {
   const { user, profile } = useAuth();
   const fileRef  = useRef(null);
 
@@ -166,10 +167,16 @@ export default function StoryComposer({ onClose, onSuccess }) {
         throw dbErr;
       }
       console.info('[StoryComposer] Story gespeichert:', { id: data?.id });
+      completePublishSuccess(onPublished || onSuccess, createPublishResult({
+        entityType: "story",
+        entityId: data?.id,
+        visibility,
+        createdAt: data?.created_at,
+      }));
 
       setUploadPct(100);
       setDone(true);
-      setTimeout(() => { if (onSuccess) onSuccess(); onClose(); }, 1800);
+      setTimeout(() => { onClose(); }, 1800);
 
     } catch(e) {
       console.error("[StoryComposer] publish error:", e);

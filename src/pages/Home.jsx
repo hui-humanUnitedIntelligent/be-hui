@@ -17,6 +17,7 @@ import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import { useHuiFlow } from "../core/hui.flow.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
+import { useAppState } from "../lib/AppStateContext.jsx";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
@@ -117,6 +118,7 @@ function HomeInner() {
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
+  const { refreshFeed } = useAppState();
 
   // ── Orb World Layer — above navigation ─────────────────────
   const {
@@ -177,6 +179,15 @@ function HomeInner() {
       paintManager.current.cleanup();
     };
   }, [activeSurface]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePublishResult = useCallback((result, closeFlow = null) => {
+    if (!result?.success) {
+      console.error("[HUI_PUBLISH] ignored unsuccessful publish result", result);
+      return;
+    }
+    refreshFeed?.();
+    closeFlow?.();
+  }, [refreshFeed]);
 
   // Phase 16.6: Cleanup on unmount — cancel all pending repaint rAFs
   React.useEffect(() => {
@@ -261,6 +272,7 @@ function HomeInner() {
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="HomeFeed">
                 <HomeFeed
+                  scrollContainerRef={mainScrollRef}
                   user={currentUser}
                   notifCount={liveNotifCount}
                   chatCount={0}
@@ -427,14 +439,11 @@ function HomeInner() {
             }}
             onPublish={(result) => {
               console.log("[HUI CONNECTION] step 8 refresh feed — onPublish empfangen", {
-                id:         result?.id   ?? "kein id",
-                type:       result?.type ?? "kein type",
-                title:      result?.title ?? "kein title",
+                id:         result?.entityId ?? "kein id",
+                type:       result?.entityType ?? "kein type",
+                visibility: result?.visibility ?? "keine visibility",
               });
-              // Feed Refresh: falls FeedRefresh-Mechanismus existiert, hier auslösen
-              // Aktuell: kein automatischer Refresh → nur schließen
-              console.log("[HUI CONNECTION] step 8 feed refresh: KEIN automatischer Refresh konfiguriert");
-              setShowConnect(false);
+              handlePublishResult(result, () => setShowConnect(false));
             }}
           />
         </SafeRender>
@@ -445,7 +454,7 @@ function HomeInner() {
         <SafeRender flag="teilenFlow" label="TeilenFlow">
           <TeilenFlow
             onClose={() => setShowTeilen(false)}
-            onPublished={() => setShowTeilen(false)}
+            onPublished={(result) => handlePublishResult(result, () => setShowTeilen(false))}
           />
         </SafeRender>
       )}
@@ -591,7 +600,7 @@ function HomeInner() {
           <SafeRender flag="storyComposer" label="StoryComposer">
             <StoryComposer
               onClose={() => setShowStoryComposer(false)}
-              onPublished={() => setShowStoryComposer(false)}
+              onPublished={(result) => handlePublishResult(result)}
             />
           </SafeRender>
         )}
@@ -599,7 +608,7 @@ function HomeInner() {
           <SafeRender flag="werkFlow" label="WorkFlow">
             <WorkFlow
               onClose={() => setShowWerkPublisher(false)}
-              onPublished={() => setShowWerkPublisher(false)}
+              onPublished={(result) => handlePublishResult(result)}
             />
           </SafeRender>
         )}
@@ -607,6 +616,7 @@ function HomeInner() {
           <SafeRender flag="experienceFlow" label="ExperienceFlow">
             <ExperienceFlow
               onClose={() => setShowExperienceCreator(false)}
+              onPublished={(result) => handlePublishResult(result)}
             />
           </SafeRender>
         )}
@@ -669,7 +679,10 @@ function HomeInner() {
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">
-            <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
+            <HuiCreateFlow
+              onClose={() => setShowCreateFlow(false)}
+              onPublished={(result) => handlePublishResult(result)}
+            />
           </SafeRender>
         )}
         {showImpactFlow && SAFE_MODE.impactFlow && (
@@ -707,6 +720,7 @@ function HomeInner() {
         <InvitationFlow
           visible={showInvitationFlow}
           onClose={() => setShowInvitationFlow(false)}
+          onPublished={(result) => handlePublishResult(result)}
         />
       )}
 

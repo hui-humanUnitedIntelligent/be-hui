@@ -81,6 +81,7 @@ const TYPE_MAP = {
   story: "story", moment: "story",
   note: "note", thought: "note",
   invitation: "invitation", einladung: "invitation",
+  connection: "invitation", connections: "invitation",
   post: "post", beitrag: "post",
 };
 
@@ -177,6 +178,8 @@ export function normalizeFeedItem(raw) {
       tags:          safeArr(raw.tags),
       status:        safeStr(raw.status),
       isLive:        Boolean(raw.isLive || raw.is_live),
+      sourceTable:    safeStr(raw.sourceTable || raw._source_table),
+      createdAt:      raw.createdAt || raw.created_at || null,
       _raw:          raw,
     };
 
@@ -219,6 +222,8 @@ export function normalizeFeedItem(raw) {
       tags: [],
       status: "",
       isLive: false,
+      sourceTable: safeStr(raw.sourceTable || raw._source_table),
+      createdAt: raw.createdAt || raw.created_at || null,
       _raw: raw,
     };
   }
@@ -236,4 +241,26 @@ export const normalizeBeitragRow    = (raw) => normalizeFeedItem({
   ...raw,
   type:   raw.type === "note" ? "note" : "work_upload",
   images: raw.src ? [raw.src] : (raw.images || []),
+});
+export const normalizeFeedPostRow = (raw) => normalizeFeedItem({
+  ...raw,
+  type: raw.type || "note",
+  caption: raw.caption || raw.text || raw.description,
+  images: raw.media_url ? [raw.media_url] : (raw.images || []),
+  sourceTable: "feed_posts",
+});
+export const normalizeStoryRow = (raw) => normalizeFeedItem({
+  ...raw,
+  type: "story",
+  caption: raw.caption || raw.text_overlay || raw.text,
+  images: raw.media_url ? [raw.media_url] : (raw.images || []),
+  sourceTable: "stories",
+});
+export const normalizeConnectionRow = (raw) => normalizeFeedItem({
+  ...raw,
+  type: "invitation",
+  content_type: "invitation",
+  text: raw.description || raw.title,
+  caption: raw.description || raw.title,
+  sourceTable: "connections",
 });

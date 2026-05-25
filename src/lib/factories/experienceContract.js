@@ -383,7 +383,7 @@ export async function publishExperience(supabase, rawForm, userId, uploadedUrls 
   const { data, error: dbErr } = await supabase
     .from("experiences")
     .insert(payload)
-    .select("id, status, user_id, title")
+    .select("id, status, visibility, user_id, title, created_at")
     .single();
 
   if (dbErr) {

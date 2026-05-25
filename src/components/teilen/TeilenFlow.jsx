@@ -8,6 +8,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { HUI } from "../../design/hui.design.js";
+import { createPublishResult, completePublishSuccess } from "../../lib/publishContract.js";
 
 /* ── Tokens ── */
 const C = {
@@ -433,7 +434,7 @@ function StepCreate({ mode, data, onChange }) {
 }
 
 /* ══ STEP 3 — Preview ══ */
-function StepPreview({ mode, data, profile, onPublish, publishing }) {
+function StepPreview({ mode, data, profile, onPublish, publishing, error }) {
   const isStory = mode === "story";
   const name    = profile?.display_name || profile?.email?.split("@")[0] || "Du";
   const avatar  = profile?.avatar_url || null;
@@ -595,6 +596,17 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
       )}
 
       {/* Publish Button */}
+      {error && (
+        <div style={{
+          width:"100%", maxWidth:480, marginTop:18,
+          padding:"10px 12px", borderRadius:12,
+          background:"rgba(239,68,68,0.10)",
+          border:"1px solid rgba(239,68,68,0.20)",
+          color:"#DC2626", fontSize:13, lineHeight:1.4,
+        }}>
+          {error}
+        </div>
+      )}
       <div style={{ width:"100%", maxWidth:480, marginTop:24 }}>
         <button
           type="button"
@@ -639,6 +651,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   const [step,       setStep]       = useState(1);
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
   const scrollRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -658,7 +671,9 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   const handlePublish = useCallback(async () => {
     setPublishing(true);
+    setPublishError(null);
     try {
+      if (!user?.id) throw new Error("Nicht eingeloggt");
       let media_url = null;
 
       if (form.mediaFile) {
@@ -667,35 +682,46 @@ export default function TeilenFlow({ onClose, onPublished }) {
         const { error: upErr } = await supabase.storage
           .from("stories")
           .upload(path, form.mediaFile, { upsert:true });
-        if (!upErr) {
-          const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
-          media_url = pub?.publicUrl || null;
-        }
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
+        media_url = pub?.publicUrl || null;
       }
 
+      let inserted = null;
       if (form.mode === "story") {
-        await supabase.from("stories").insert({
+        const { data, error: dbErr } = await supabase.from("stories").insert({
           user_id:    user?.id,
           media_url,
           media_type: form.mediaType || "text",
           caption:    form.text || null,
           expires_at: new Date(Date.now() + 24*60*60*1000).toISOString(),
-        });
+        }).select("id, created_at").single();
+        if (dbErr) throw dbErr;
+        inserted = data;
       } else {
-        await supabase.from("feed_posts").insert({
+        const { data, error: dbErr } = await supabase.from("feed_posts").insert({
           user_id:  user?.id,
           media_url,
           media_type: form.mediaType || "text",
           caption:  form.text  || null,
           location: form.location || null,
           mood:     form.mood    || null,
-        });
+        }).select("id, created_at").single();
+        if (dbErr) throw dbErr;
+        inserted = data;
       }
 
       await new Promise(r => setTimeout(r, 400));
-      onPublished?.({ mode: form.mode });
+      completePublishSuccess(onPublished, createPublishResult({
+        entityType: form.mode === "story" ? "story" : "feed_post",
+        entityId: inserted?.id,
+        visibility: "public",
+        createdAt: inserted?.created_at,
+      }));
       onClose?.();
-    } catch {
+    } catch (err) {
+      console.error("[TeilenFlow] publish error:", err);
+      setPublishError(err?.message || "Teilen fehlgeschlagen");
       setPublishing(false);
     }
   }, [form, user, onClose, onPublished]);
@@ -805,6 +831,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
             profile={profile}
             onPublish={handlePublish}
             publishing={publishing}
+            error={publishError}
           />
         )}
       </div>
