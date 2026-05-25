@@ -12,7 +12,9 @@ import StepOneTypeSelection   from "./StepOneTypeSelection.jsx";
 import StepTwoConnectionDetails from "./StepTwoConnectionDetails.jsx";
 import StepThreePreview       from "./StepThreePreview.jsx";
 import { useAuth }            from "../../lib/AuthContext.jsx";
+import { supabase }           from "../../lib/supabaseClient.js";
 import { HUI } from "../../design/hui.design.js";
+import { validatePublishEntity } from "../../contracts/entityContract.js";
 
 const C = {
   violet:HUI.COLOR.violet, violet2:"#7C3AED",
@@ -265,6 +267,14 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
 
       // ── STEP 2: Payload gebaut ───────────────────────────────────
       console.log("[HUI CONNECTION] step 2 payload", payload);
+
+      const validation = validatePublishEntity(payload, {
+        entityType: "connection",
+        sourceTable: "connections",
+      });
+      if (!validation.valid) {
+        throw new Error(`Connection-Vertrag ungueltig: ${validation.errors[0]}`);
+      }
 
       // ── STEP 3: Insert startet ───────────────────────────────────
       console.log("[HUI CONNECTION] step 3 insert start →", "supabase.from('connections').insert(...)");

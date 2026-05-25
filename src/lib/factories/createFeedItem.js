@@ -76,6 +76,22 @@ export const createFeedItem = (raw = {}) => {
     ? String(raw.id)
     : (typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 
+  // Canonical entities already passed through src/normalizers/entityNormalizer.js.
+  // Preserve them so FeedRouter can route by entityType instead of legacy type aliases.
+  if (raw.entityType && raw.authorId) {
+    return Object.freeze({
+      ...raw,
+      id,
+      stats: normalizeStats(raw.stats || raw),
+      media: safeArr(raw.media),
+      coverUrl: raw.coverUrl || raw.images?.[0] || raw.mediaUrls?.[0] || raw.media?.[0]?.url || raw.media?.[0] || null,
+      createdAt: raw.createdAt || raw.created_at || null,
+      updatedAt: raw.updatedAt || raw.updated_at || null,
+      status: safeStr(raw.status),
+      _raw: raw._raw || raw,
+    });
+  }
+
   // type — normalisieren auf bekannte Werte
   const rawType  = raw.type || raw.item_type || raw.post_type || 'post';
   const typeMap  = {

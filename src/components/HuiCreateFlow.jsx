@@ -11,11 +11,12 @@
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
 import { useDraftPersist } from "../lib/sessionHooks";
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { validatePublishEntity } from "../contracts/entityContract.js";
 import {
   MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS
 } from "../lib/moodUtils";
@@ -321,7 +322,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
       const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
       setProgress(80);
 
-      const { error: dbErr } = await supabase.from("stories").insert({
+      const storyPayload = {
         user_id:    user.id,
         media_url:  publicUrl,
         media_type: isVid ? "video" : "image",
@@ -331,7 +332,15 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
         status:     "published",
         expires_at: null,
         created_at: new Date().toISOString(),
+      };
+      const validation = validatePublishEntity(storyPayload, {
+        entityType: "story",
+        sourceTable: "stories",
+        mediaInput: publicUrl,
       });
+      if (!validation.valid) throw new Error(validation.errors[0]);
+
+      const { error: dbErr } = await supabase.from("stories").insert(storyPayload);
       if (dbErr) throw dbErr;
       setProgress(100);
       setDone(true);
@@ -1567,16 +1576,25 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       };
 
       if (payload.type === "moment") {
-        const { error:e } = await supabase.from("stories").insert({
+        const storyPayload = {
           ...base,
           location:   _loc,
           expires_at: null,
+        };
+        const validation = validatePublishEntity(storyPayload, {
+          entityType: "story",
+          sourceTable: "stories",
+          mediaInput: publicUrl,
         });
+        if (!validation.valid) throw new Error(validation.errors[0]);
+
+        const { error:e } = await supabase.from("stories").insert(storyPayload);
         if (e) throw e;
       } else if (payload.type === "werk") {
         const w = payload.werkData;
-        const { error:e } = await supabase.from("works").insert({
+        const workPayload = {
           ...base,
+          creator_id:         user.id,
           cover_url:          publicUrl,
           title:              w.title || "Mein Werk",
           description:        w.desc,
@@ -1588,7 +1606,16 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
           category:           w.category     || null,
           for_sale:           !w.onlyShow,
           location_text:      _loc,
+          visibility:         "public",
+        };
+        const validation = validatePublishEntity(workPayload, {
+          entityType: "work",
+          sourceTable: "works",
+          mediaInput: publicUrl,
         });
+        if (!validation.valid) throw new Error(validation.errors[0]);
+
+        const { error:e } = await supabase.from("works").insert(workPayload);
         if (e) throw e;
       } else if (payload.type === "erlebnis") {
         const er = payload.erlData;
@@ -1608,7 +1635,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
           visibility:     base.visibility || "public",
         };
         const { error: contractErr } = await publishExperience(
-          supabase, erlForm, user.id, base.cover_url ? [base.cover_url] : []
+          supabase, erlForm, user.id, publicUrl ? [publicUrl] : []
         );
         const e = contractErr;
         if (e) throw new Error(e.message);
@@ -1638,7 +1665,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
 
       const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
 
-      const { error:e } = await supabase.from("stories").insert({
+      const storyPayload = {
         user_id:    user.id,
         media_url:  publicUrl,
         media_type: isVid ? "video" : "image",
@@ -1647,7 +1674,15 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
         created_at: new Date().toISOString(),
         status:     "published",
         expires_at: null,
+      };
+      const validation = validatePublishEntity(storyPayload, {
+        entityType: "story",
+        sourceTable: "stories",
+        mediaInput: publicUrl,
       });
+      if (!validation.valid) throw new Error(validation.errors[0]);
+
+      const { error:e } = await supabase.from("stories").insert(storyPayload);
       if (e) throw e;
 
       setPostType("moment");

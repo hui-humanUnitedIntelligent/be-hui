@@ -12,6 +12,7 @@
 
 import { supabase } from '../lib/supabaseClient';
 import { safeQuery, cachedQuery, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
+import { validatePublishEntity } from '../contracts/entityContract.js';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 const F = {
@@ -174,9 +175,17 @@ export const WorkService = {
   },
 
   async create(userId, data) {
+    const payload = { user_id: userId, creator_id: userId, status: 'draft', ...data };
+    const validation = validatePublishEntity(payload, {
+      entityType: 'work',
+      sourceTable: 'works',
+      mediaInput: payload.images || payload.media_url || payload.cover_url,
+    });
+    if (!validation.valid) return { data: null, error: { message: validation.errors[0] } };
+
     return safeQuery(
       supabase.from('works')
-        .insert({ user_id: userId, status: 'draft', ...data })
+        .insert(payload)
         .select(F.work).single()
     );
   },
@@ -217,9 +226,17 @@ export const ExperienceService = {
   },
 
   async create(userId, data) {
+    const payload = { user_id: userId, status: 'draft', ...data };
+    const validation = validatePublishEntity(payload, {
+      entityType: 'experience',
+      sourceTable: 'experiences',
+      mediaInput: payload.images || payload.media_url || payload.cover_url,
+    });
+    if (!validation.valid) return { data: null, error: { message: validation.errors[0] } };
+
     return safeQuery(
       supabase.from('experiences')
-        .insert({ user_id: userId, status: 'draft', ...data })
+        .insert(payload)
         .select(F.experience).single()
     );
   },
@@ -254,14 +271,22 @@ export const StoryService = {
 
   async create(userId, mediaUrl, mediaType, options = {}) {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const payload = {
+      user_id: userId,
+      media_url: mediaUrl,
+      media_type: mediaType,
+      expires_at: expiresAt,
+      ...options,
+    };
+    const validation = validatePublishEntity(payload, {
+      entityType: 'story',
+      sourceTable: 'stories',
+      mediaInput: mediaUrl,
+    });
+    if (!validation.valid) return { data: null, error: { message: validation.errors[0] } };
+
     return safeQuery(
-      supabase.from('stories').insert({
-        user_id: userId,
-        media_url: mediaUrl,
-        media_type: mediaType,
-        expires_at: expiresAt,
-        ...options,
-      }).select(F.story).single()
+      supabase.from('stories').insert(payload).select(F.story).single()
     );
   },
 

@@ -18,6 +18,7 @@ import { ImpactStep3Kontakt }     from "./ImpactStep3Kontakt.jsx";
 import { ImpactStep4Review }      from "./ImpactStep4Review.jsx";
 import { supabase }               from "../../../lib/supabaseClient.js";
 import { useAuth }                from "../../../lib/AuthContext.jsx";
+import { validatePublishEntity }  from "../../../contracts/entityContract.js";
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 export const IT = {
@@ -185,7 +186,7 @@ export default function ImpactFlow({ onClose }) {
         mediaUrls.push(publicUrl);
       }
       // DB Insert
-      const { error: dbErr } = await supabase.from("impact_applications").insert({
+      const payload = {
         user_id:       user.id,
         project_name:  form.projectName.trim(),
         short_desc:    form.shortDesc.trim(),
@@ -207,7 +208,15 @@ export default function ImpactFlow({ onClose }) {
         cover_url:     mediaUrls[0] || null,
         status:        "pending",
         submitted_at:  new Date().toISOString(),
+      };
+      const validation = validatePublishEntity(payload, {
+        entityType: "impact_application",
+        sourceTable: "impact_applications",
+        mediaInput: mediaUrls,
       });
+      if (!validation.valid) throw new Error(`Impact-Vertrag ungueltig: ${validation.errors[0]}`);
+
+      const { error: dbErr } = await supabase.from("impact_applications").insert(payload);
       if (dbErr) throw dbErr;
       setDone(true);
       setTimeout(() => onClose?.(), 2800);

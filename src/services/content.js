@@ -28,6 +28,8 @@ import { cachedQuery, safeQuery, CACHE_TTL } from '../lib/perfUtils.js';
 import { createResonance, removeResonance, getResonanceScore }
   from '../lib/resonance/index.js';
 import { canCreateContent, canPublish, CONTENT_TYPES } from '../lib/roles/index.js';
+import { validatePublishEntity } from '../contracts/entityContract.js';
+import { normalizeFeedPostRow, normalizeWorkRow } from '../normalizers/entityNormalizer.js';
 
 // ─────────────────────────────────────────────────────────────
 // FEED SERVICE — kuratierter HomeFeed
@@ -74,27 +76,8 @@ export const feedService = {
       ]);
 
       // Zusammenführen + normalisieren
-      const posts = (postsRes.data || []).map(p => ({
-        ...p,
-        _type:       'post',
-        creator:     p.profile?.display_name || 'Anonym',
-        creatorImg:  p.profile?.avatar_url   || null,
-        creatorId:   p.profile?.id           || p.user_id,
-        talent:      p.profile?.talent       || null,
-        text:        p.caption,
-        resonanz:    0,  // wird lazy geladen
-      }));
-
-      const works = (worksRes.data || []).map(w => ({
-        ...w,
-        _type:       'work',
-        creator:     w.profile?.display_name || 'Anonym',
-        creatorImg:  w.profile?.avatar_url   || null,
-        creatorId:   w.profile?.id           || w.creator_id,
-        talent:      w.profile?.talent       || null,
-        img:         w.cover_url,
-        resonanz:    0,
-      }));
+      const posts = (postsRes.data || []).map(normalizeFeedPostRow).filter(Boolean);
+      const works = (worksRes.data || []).map(normalizeWorkRow).filter(Boolean);
 
       // Zeitlich mischen (neueste zuerst)
       const merged = [...posts, ...works]
@@ -126,7 +109,7 @@ export const feedService = {
     if (!caption?.trim() && !mediaUrl) return { error: 'Inhalt fehlt' };
 
     try {
-      const { data, error } = await supabase.from('feed_posts').insert({
+      const payload = {
         user_id:    userId,
         caption:    caption?.trim() || null,
         media_url:  mediaUrl,
@@ -134,7 +117,17 @@ export const feedService = {
         mood,
         location,
         is_archived: false,
-      }).select('id, created_at').single();
+      };
+
+      const validation = validatePublishEntity(payload, {
+        entityType: 'feed_post',
+        sourceTable: 'feed_posts',
+        mediaInput: mediaUrl,
+      });
+      if (!validation.valid) return { error: validation.errors[0] };
+
+      const { data, error } = await supabase.from('feed_posts').insert(payload)
+        .select('id, created_at').single();
 
       if (error) throw error;
       return { data };
@@ -174,7 +167,8 @@ export const worksService = {
     if (!allowed) return { error: reason };
 
     try {
-      const { data, error } = await supabase.from('works').insert({
+      const payload = {
+        user_id:     user.id,
         creator_id:  user.id,
         title:       workData.title?.trim(),
         description: workData.description?.trim() || null,
@@ -187,7 +181,17 @@ export const worksService = {
         visibility:  workData.visibility || 'public',
         status:      workData.isDraft    ? 'draft' : 'published',
         location_text: workData.location || null,
-      }).select('id, status, created_at').single();
+      };
+
+      const validation = validatePublishEntity(payload, {
+        entityType: 'work',
+        sourceTable: 'works',
+        mediaInput: payload.images?.length ? payload.images : payload.cover_url,
+      });
+      if (!validation.valid) return { error: validation.errors[0] };
+
+      const { data, error } = await supabase.from('works').insert(payload)
+        .select('id, status, created_at').single();
 
       if (error) throw error;
       return { data };

@@ -84,7 +84,7 @@ export default function ExperienceCard({ item, onProfile, onReaction, onBook, it
 
   // Bild-Extraktion
   const image = (!imgErr && (
-    item.expImg || item.images?.[0] || item.media?.[0] || item.cover_url
+    item.expImg || item.images?.[0] || item.mediaUrls?.[0] || item.media?.[0]?.url || item.media?.[0] || item.cover_url
   )) || null;
 
   // Meta

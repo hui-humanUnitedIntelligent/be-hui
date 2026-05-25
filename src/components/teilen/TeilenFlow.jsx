@@ -8,6 +8,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { HUI } from "../../design/hui.design.js";
+import { validatePublishEntity } from "../../contracts/entityContract.js";
 
 /* ── Tokens ── */
 const C = {
@@ -674,22 +675,36 @@ export default function TeilenFlow({ onClose, onPublished }) {
       }
 
       if (form.mode === "story") {
-        await supabase.from("stories").insert({
+        const payload = {
           user_id:    user?.id,
           media_url,
           media_type: form.mediaType || "text",
           caption:    form.text || null,
           expires_at: new Date(Date.now() + 24*60*60*1000).toISOString(),
+        };
+        const validation = validatePublishEntity(payload, {
+          entityType: "story",
+          sourceTable: "stories",
+          mediaInput: media_url,
         });
+        if (!validation.valid) throw new Error(validation.errors[0]);
+        await supabase.from("stories").insert(payload);
       } else {
-        await supabase.from("feed_posts").insert({
+        const payload = {
           user_id:  user?.id,
           media_url,
           media_type: form.mediaType || "text",
           caption:  form.text  || null,
           location: form.location || null,
           mood:     form.mood    || null,
+        };
+        const validation = validatePublishEntity(payload, {
+          entityType: "feed_post",
+          sourceTable: "feed_posts",
+          mediaInput: media_url,
         });
+        if (!validation.valid) throw new Error(validation.errors[0]);
+        await supabase.from("feed_posts").insert(payload);
       }
 
       await new Promise(r => setTimeout(r, 400));

@@ -1,10 +1,10 @@
 // src/feed/cards/FeedRouter.jsx
 // ═══════════════════════════════════════════════════════════════
 // HUI — Feed Router
-// Phase 4C: content_type ist der einzige Entscheider.
+// Phase 4 canonical: entityType ist der primaere Entscheider.
 //
 // Routing-Logik:
-//   moment / note / story → MomentCard
+//   story / feed_post / beitrag → MomentCard
 //   experience / erlebnis  → ExperienceCard
 //   work / werk            → WorkCard
 //   invitation / einladung → InvitationCard
@@ -19,6 +19,7 @@
 
 import React, { Suspense, lazy } from "react";
 import { getRhythmMargin, getEnergyLabel } from "../feedRhythmEngine.js";
+import { getFeedRouteType } from "../../entities/entityTypes.js";
 
 const MomentCard     = lazy(() => import("./MomentCard.jsx"));
 const ExperienceCard = lazy(() => import("./ExperienceCard.jsx"));
@@ -27,7 +28,9 @@ const InvitationCard = lazy(() => import("../../content/invitation/InvitationCar
 
 /* ── Type Resolver ────────────────────────────────────────────── */
 function resolveType(item) {
-  // Explizit gesetztes content_type hat Vorrang
+  if (item?.entityType) return getFeedRouteType(item.entityType);
+
+  // Legacy-Fallback: content_type/type bleiben nur fuer transitional Items.
   const ct = (
     item?.content_type ||
     item?.type         ||

@@ -13,6 +13,7 @@ import React, { useState, useCallback, useRef } from "react";
 import { supabase }  from "../../lib/supabaseClient.js";
 import { useAuth }   from "../../lib/AuthContext.jsx";
 import { HUI }       from "../../design/hui.design.js";
+import { validatePublishEntity } from "../../contracts/entityContract.js";
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 const V = {
@@ -391,6 +392,12 @@ export default function InvitationFlow({ onClose, visible = true }) {
         visibility:       "public",
         // content_type ist GENERATED ALWAYS — nicht einfügen
       };
+
+      const validation = validatePublishEntity(row, {
+        entityType: "invitation",
+        sourceTable: "invitations",
+      });
+      if (!validation.valid) throw new Error(validation.errors[0]);
 
       // Phase 4E: In 'invitations' Tabelle schreiben (kein Fallback mehr)
       const { data: insertedInv, error: insertError } = await supabase

@@ -1,9 +1,10 @@
 // StoryComposer v2 — Production-ready with proper Supabase upload
 // Fixes: RLS, storage persistence, error handling, mobile Safari
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { validatePublishEntity } from "../contracts/entityContract.js";
 
 const T = {
   teal:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
@@ -148,6 +149,12 @@ export default function StoryComposer({ onClose, onSuccess }) {
         is_highlight: storyRow.is_highlight,
         expires_at: storyRow.expires_at,
       });
+      const validation = validatePublishEntity(storyRow, {
+        entityType: "story",
+        sourceTable: "stories",
+        mediaInput: mediaUrl,
+      });
+      if (!validation.valid) throw new Error(validation.errors[0]);
 
       const { data, error: dbErr } = await supabase
         .from("stories")

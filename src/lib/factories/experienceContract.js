@@ -1,4 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════════
+
+import { normalizeMediaItem, normalizeMediaInput } from "../../contracts/mediaContract.js";
+import { VISIBILITY_VALUES, normalizeVisibility } from "../../contracts/visibilityContract.js";
+import { validatePublishEntity } from "../../contracts/entityContract.js";
 // src/lib/factories/experienceContract.js
 // HUI — Experience Schema Contract Layer v1.0
 // Phase 4E: Schema-driven publishing
@@ -22,7 +26,7 @@
 
 export const EXPERIENCE_ENUMS = {
   booking_mode:    ["direct", "request"],
-  visibility:      ["public", "members", "private"],
+  visibility:      VISIBILITY_VALUES,
   status:          ["published", "draft", "paused", "archived"],
   pricing_type:    ["free", "fixed", "hourly", "inquiry", "donation"],
   experience_type: ["workshop", "coaching", "performance", "tour",
@@ -40,46 +44,7 @@ export const EXPERIENCE_ENUMS = {
  * Akzeptiert: string-URL, { url }, { publicUrl }, { src }
  */
 export function normalizeImage(raw, index = 0) {
-  if (!raw) return null;
-
-  // Bereits im korrekten Format
-  if (raw && typeof raw === "object" && typeof raw.url === "string" && raw.url) {
-    return {
-      url:  raw.url,
-      type: raw.type || (index === 0 ? "cover" : "gallery"),
-      alt:  raw.alt  || "",
-    };
-  }
-
-  // Plain string URL
-  if (typeof raw === "string" && raw.startsWith("http")) {
-    return {
-      url:  raw,
-      type: index === 0 ? "cover" : "gallery",
-      alt:  "",
-    };
-  }
-
-  // { publicUrl } (Supabase storage format)
-  if (raw?.publicUrl) {
-    return {
-      url:  raw.publicUrl,
-      type: index === 0 ? "cover" : "gallery",
-      alt:  "",
-    };
-  }
-
-  // { src } (legacy)
-  if (raw?.src) {
-    return {
-      url:  raw.src,
-      type: index === 0 ? "cover" : "gallery",
-      alt:  raw.alt || "",
-    };
-  }
-
-  console.warn("[HUI_CONTRACT] normalizeImage: unbekanntes Format ignoriert:", raw);
-  return null;
+  return normalizeMediaItem(raw, index, "image");
 }
 
 /**
@@ -87,11 +52,7 @@ export function normalizeImage(raw, index = 0) {
  * Output: [{ url, type, alt }]  (nur valide Einträge)
  */
 export function normalizeImages(rawImages) {
-  if (!rawImages) return [];
-  const arr = Array.isArray(rawImages) ? rawImages : [rawImages];
-  return arr
-    .map((img, i) => normalizeImage(img, i))
-    .filter(Boolean);
+  return normalizeMediaInput(rawImages, "image");
 }
 
 // ── Normalizer ────────────────────────────────────────────────────────
@@ -197,8 +158,7 @@ export function normalizeExperiencePayload(raw, userId, uploadedUrls = []) {
 
   // ── visibility ────────────────────────────────────────────────────
   const rawVis = f.visibility || "public";
-  const visibility = EXPERIENCE_ENUMS.visibility.includes(rawVis)
-    ? rawVis : "public";
+  const visibility = normalizeVisibility(rawVis, "public");
 
   // ── FINALER PAYLOAD ───────────────────────────────────────────────
   // Nur Felder die wirklich im DB-Schema existieren (038).
@@ -320,6 +280,13 @@ export function validateExperiencePayload(payload) {
     if (payload[field] === "")
       errors.push(`${field} ist leerer String — muss null sein`);
   });
+
+  const entityValidation = validatePublishEntity(payload, {
+    entityType: "experience",
+    sourceTable: "experiences",
+    mediaInput: payload.images,
+  });
+  if (!entityValidation.valid) errors.push(...entityValidation.errors);
 
   if (errors.length > 0) {
     console.error("[HUI_CONTRACT] ❌ validateExperiencePayload:", errors);
