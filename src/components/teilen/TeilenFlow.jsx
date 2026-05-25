@@ -780,10 +780,22 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
-    // ══ UNMOUNT DEBUG ══
-    alert("HANDLE_PUBLISH_START");
-    console.log("HANDLE_PUBLISH_START");
-
+    // ══ BLOCKING DEBUG OVERLAY — alles danach ist auskommentiert ══════
+    const { data: { session: _dbgSess } } = await supabase.auth.getSession();
+    setPublishDebug([
+      "HANDLE_PUBLISH_START",
+      JSON.stringify({
+        hasSession: !!_dbgSess,
+        hasUser:    !!_dbgSess?.user,
+        uid:        _dbgSess?.user?.id || null,
+        formMode:   form.mode,
+        hasMedia:   !!form.mediaFile,
+        caption:    form.text?.slice(0, 60) || null,
+        userId_from_hook: user?.id || null,
+      }, null, 2)
+    ]);
+    return; // ← HARD STOP — kein Insert, kein close, kein navigate
+    // eslint-disable-next-line no-unreachable
     if (publishing) return;
 
     // ── STEP 1: Start ────────────────────────────────────────────────
@@ -1042,23 +1054,44 @@ export default function TeilenFlow({ onClose, onPublished }) {
         </div>
       )}
 
-         {/* ── PUBLISH DEBUG PANEL — immer sichtbar nach erstem pushDebug ── */}
+         {/* ── BLOCKING DEBUG OVERLAY — fixiert, zIndex über allem ────────── */}
       {publishDebug.length > 0 && (
         <div
           style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 999999999,
             background: "#000",
             color: "#00ff88",
-            padding: 12,
-            marginTop: 20,
-            fontSize: 11,
+            padding: 24,
+            fontSize: 13,
+            fontFamily: "monospace",
             whiteSpace: "pre-wrap",
-            overflowX: "auto",
-            border: "2px solid #00ff88",
-            maxHeight: 300,
             overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
           }}
         >
-          <pre>{JSON.stringify(publishDebug, null, 2)}</pre>
+          <div style={{ color: "#ff4444", fontSize: 18, fontWeight: "bold", marginBottom: 8 }}>
+            🔴 BLOCKING DEBUG — handlePublish gestartet
+          </div>
+          {publishDebug.map((line, i) => (
+            <pre key={i} style={{ margin: 0, background: "rgba(255,255,255,0.05)", padding: 10, borderRadius: 8 }}>
+              {line}
+            </pre>
+          ))}
+          <button
+            onClick={() => setPublishDebug([])}
+            style={{
+              marginTop: 20, padding: "12px 24px",
+              background: "#ff4444", color: "white",
+              border: "none", borderRadius: 12,
+              fontSize: 16, fontWeight: "bold", cursor: "pointer",
+            }}
+          >
+            ✕ Schließen
+          </button>
         </div>
       )}
 
