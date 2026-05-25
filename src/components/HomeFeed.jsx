@@ -481,26 +481,80 @@ export default function HomeFeed({
   onDiscover = null,
   onShare    = null,
 }) {
-  // ══ PHASE 1 DEBUG — IMMER AKTIV ══════════════════════════════════════
+  // ══ RAW DEBUG STATE — kein Conditional, immer aktiv ══════════════════
   console.log("HOMEFEED_MOUNTED");
 
+  const [rawBeitraege, setRawBeitraege] = React.useState([]);
+  const [rawError,     setRawError]     = React.useState(null);
+  const [rawLoading,   setRawLoading]   = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    async function loadRaw() {
+      setRawLoading(true);
+
+      const { data, error } = await supabase
+        .from("beitraege")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      console.log("RAW_BEITRAEGE", data);
+      console.log("RAW_BEITRAEGE_ERROR", error);
+
+      if (!mounted) return;
+
+      setRawBeitraege(data || []);
+      setRawError(error || null);
+      setRawLoading(false);
+    }
+
+    loadRaw();
+
+    return () => { mounted = false; };
+  }, []);
+
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 120,
-        left: 20,
-        right: 20,
-        zIndex: 999999,
-        background: "red",
-        color: "white",
-        padding: 20,
-        fontSize: 24,
-        fontWeight: "bold",
-      }}
-    >
-      RAW DEBUG PANEL AKTIV
-    </div>
+    <>
+      {/* ── roter Banner — beweist HomeFeed ist aktiv ─────────────────── */}
+      <div
+        style={{
+          position: "fixed",
+          top: 120,
+          left: 20,
+          right: 20,
+          zIndex: 999999,
+          background: "red",
+          color: "white",
+          padding: 20,
+          fontSize: 24,
+          fontWeight: "bold",
+        }}
+      >
+        RAW DEBUG PANEL AKTIV
+      </div>
+
+      {/* ── RAW beitraege — keine Transforms, kein normalizer ──────────── */}
+      <div
+        style={{
+          background: "#000",
+          color: "#00ff88",
+          padding: 12,
+          fontSize: 12,
+          whiteSpace: "pre-wrap",
+          overflowX: "auto",
+          border: "2px solid #00ff88",
+          marginTop: 220,
+          marginBottom: 20,
+        }}
+      >
+        <div>RAW LOADING: {String(rawLoading)}</div>
+        <div>RAW ERROR: {rawError ? JSON.stringify(rawError, null, 2) : "none"}</div>
+        <div>RAW COUNT: {rawBeitraege?.length || 0}</div>
+        <pre>{JSON.stringify(rawBeitraege, null, 2)}</pre>
+      </div>
+    </>
   );
 
   // eslint-disable-next-line no-unreachable
