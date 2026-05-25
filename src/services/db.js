@@ -12,6 +12,15 @@
 
 import { supabase } from '../lib/supabaseClient';
 import { safeQuery, cachedQuery, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
+import {
+  assertValid,
+  validateAuthor,
+  validateEntity,
+  validateMedia,
+  validateVisibility,
+} from '../lib/validation';
+import { emit, PLATFORM_EVENTS } from '../lib/events';
+import { notifyEntityChange } from '../realtime/EntityRealtimeLayer.js';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 const F = {
@@ -21,7 +30,7 @@ const F = {
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',
-  story:        'id,user_id,media_url,media_type,text_overlay,mood,location,expires_at,views_count,created_at',
+  story:        'id,user_id,media_url,media_type,caption,text_overlay,mood,location,is_highlight,expires_at,views_count,created_at,profile:user_id(display_name,avatar_url,talent,location_label)',
   booking:      'id,user_id,wirker_id,work_id,experience_id,amount,platform_fee,impact_fee,status,payment_status,escrow_status,created_at',
   message:      'id,conversation_id,sender_id,text,created_at,read,type',
   conversation: 'id,participant_a,participant_b,booking_id,last_message_at,last_message_text,unread_count_a,unread_count_b',
@@ -238,7 +247,8 @@ export const StoryService = {
   async getActive(userIds = []) {
     const now = new Date().toISOString();
     let q = supabase.from('stories').select(F.story)
-      .gt('expires_at', now).order('created_at', { ascending: false }).limit(50);
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order('created_at', { ascending: false }).limit(50);
     if (userIds.length > 0) q = q.in('user_id', userIds);
     return safeQuery(q);
   },
@@ -247,29 +257,114 @@ export const StoryService = {
     const now = new Date().toISOString();
     return safeQuery(
       supabase.from('stories').select(F.story)
-        .eq('user_id', userId).gt('expires_at', now)
+        .eq('user_id', userId)
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order('created_at', { ascending: false }).limit(20)
     );
   },
 
-  async create(userId, mediaUrl, mediaType, options = {}) {
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  async getHighlights(userId) {
+    if (!userId) return { data: [], error: null };
     return safeQuery(
-      supabase.from('stories').insert({
-        user_id: userId,
-        media_url: mediaUrl,
-        media_type: mediaType,
-        expires_at: expiresAt,
-        ...options,
-      }).select(F.story).single()
+      supabase.from('stories').select(F.story)
+        .eq('user_id', userId)
+        .eq('is_highlight', true)
+        .order('created_at', { ascending: false })
     );
   },
 
+  async getViewedIds(userId) {
+    if (!userId) return { data: new Set(), error: null };
+    const { data, error } = await safeQuery(
+      supabase.from('story_views').select('story_id').eq('viewer_id', userId)
+    );
+    if (error) return { data: new Set(), error };
+    return {
+      data: new Set((data || []).filter(v => v?.story_id).map(v => v.story_id)),
+      error: null,
+    };
+  },
+
+  async getViewCount(storyId) {
+    const { count, error } = await safeQuery(
+      supabase.from('story_views').select('id', { count: 'exact' }).eq('story_id', storyId)
+    );
+    return { data: count || 0, error };
+  },
+
+  buildRow(payload = {}) {
+    const userId = payload.userId || payload.user_id;
+    const mediaType = payload.mediaType || payload.media_type || (payload.mediaUrl || payload.media_url ? 'image' : 'text');
+    const mediaUrl = payload.mediaUrl ?? payload.media_url ?? null;
+    const caption = payload.caption ?? payload.textOverlay ?? payload.text_overlay ?? null;
+    const visibility = payload.visibility || 'public';
+
+    assertValid(validateEntity({ entityType: payload.entityType || 'story' }));
+    assertValid(validateAuthor({ userId }));
+    const media = assertValid(validateMedia({ mediaUrl, mediaType, caption, allowText: true }));
+    assertValid(validateVisibility({ visibility }));
+
+    const isHighlight = Boolean(payload.isHighlight ?? payload.is_highlight ?? false);
+    const expiresAt = isHighlight
+      ? null
+      : (payload.expiresAt ?? payload.expires_at ?? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+
+    return {
+      user_id: userId,
+      media_url: media.media_url,
+      media_type: media.media_type,
+      caption: media.caption,
+      text_overlay: payload.textOverlay ?? payload.text_overlay ?? media.caption,
+      mood: payload.mood || null,
+      location: payload.location || null,
+      is_highlight: isHighlight,
+      expires_at: expiresAt,
+    };
+  },
+
+  async publish(payload = {}) {
+    try {
+      const row = StoryService.buildRow(payload);
+      const { data, error } = await safeQuery(
+        supabase.from('stories').insert(row).select(F.story).single()
+      );
+      if (error) return { data: null, error };
+
+      const realtime = notifyEntityChange('story', 'published', {
+        entity: data,
+        source: 'publish',
+      });
+      if (!realtime?.prepared) {
+        return { data: null, error: { message: 'Story realtime emit konnte nicht vorbereitet werden.' } };
+      }
+
+      await emit(PLATFORM_EVENTS.STORY_PUBLISHED, {
+        actorId: row.user_id,
+        targetId: data.id,
+        targetType: 'story',
+        metadata: { media_type: row.media_type },
+      });
+
+      return { data, error: null, realtime, feedInvalidated: true };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async create(userIdOrPayload, mediaUrl, mediaType, options = {}) {
+    const payload = typeof userIdOrPayload === 'object'
+      ? userIdOrPayload
+      : { userId: userIdOrPayload, mediaUrl, mediaType, ...options };
+    return StoryService.publish(payload);
+  },
+
   async markViewed(storyId, userId) {
-    // Fire & forget — no await needed for view tracking
-    supabase.from('story_views').upsert({
-      story_id: storyId, viewer_id: userId, viewed_at: new Date().toISOString()
-    }).then(() => {});
+    if (!storyId || !userId) return { data: null, error: null };
+    return safeQuery(
+      supabase.from('story_views').upsert({
+        story_id: storyId, viewer_id: userId, viewed_at: new Date().toISOString()
+      }, { onConflict: 'story_id,viewer_id', ignoreDuplicates: true })
+    );
   },
 };
 

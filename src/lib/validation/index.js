@@ -232,6 +232,51 @@ export function validateStoryUpload({ userId, mediaUrl, caption, type }) {
   });
 }
 
+// Canonical entity validation — Story infrastructure
+export function validateEntity({ entityType }) {
+  const errors = collect(
+    v.required(entityType, 'entityType'),
+    entityType !== 'story' ? 'entityType muss "story" sein.' : null,
+  );
+  if (errors) return fail(errors);
+  return ok({ entityType: 'story' });
+}
+
+export function validateAuthor({ userId }) {
+  const errors = collect(v.uuid(userId, 'userId'));
+  if (errors) return fail(errors);
+  return ok({ user_id: userId });
+}
+
+export function validateMedia({ mediaUrl, mediaType, caption, allowText = true }) {
+  const STORY_MEDIA_TYPES = ['image', 'video', 'text'];
+  const type = mediaType || (mediaUrl ? 'image' : 'text');
+  const errors = collect(
+    v.enum(type, STORY_MEDIA_TYPES, 'mediaType'),
+    caption ? v.maxLen(caption, 300, 'Caption') : null,
+    caption ? v.noScript(caption) : null,
+    !allowText && !mediaUrl ? 'Media-URL ist erforderlich.' : null,
+    !mediaUrl && type !== 'text' ? 'Media-URL ist erforderlich.' : null,
+    !mediaUrl && type === 'text' && !caption ? 'Text ist für eine Text-Story erforderlich.' : null,
+  );
+  if (errors) return fail(errors);
+
+  return ok({
+    media_url: mediaUrl || null,
+    media_type: type,
+    caption: caption
+      ? sanitizeInput(caption, { maxLength: 300, allowEmpty: true, fieldName: 'Caption' })
+      : null,
+  });
+}
+
+export function validateVisibility({ visibility = 'public' }) {
+  const VISIBILITY = ['public', 'followers', 'friends', 'private'];
+  const errors = collect(v.enum(visibility, VISIBILITY, 'visibility'));
+  if (errors) return fail(errors);
+  return ok({ visibility });
+}
+
 // validateExperience — Experience/Erlebnis
 export function validateExperience({ title, description, userId, price }) {
   const errors = collect(

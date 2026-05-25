@@ -38,6 +38,10 @@ export const PLATFORM_EVENTS = {
   WORK_PUBLISHED:         'work_published',
   WORK_RESONATED:         'work_resonated',
 
+  // Story
+  STORY_PUBLISHED:        'story_published',
+  STORY_VIEWED:           'story_viewed',
+
   // Community
   COMMUNITY_JOINED:       'community_joined',
   COMMUNITY_CONTRIBUTED:  'community_contributed',

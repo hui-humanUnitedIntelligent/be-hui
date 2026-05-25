@@ -1,5 +1,6 @@
 // src/components/teilen/TeilenFlow.jsx
 // HUI "Teilen" Flow v1 — Feed + Story sharing
+// Deprecated for story/moment publishing: Home routes story entrypoints to StoryComposer.
 // 3 Steps: Wo teilen → Inhalt erstellen → Preview + Publish
 // Design: soft white, glass, teal+violet, premium Apple-feel
 // iOS-safe: touch-action:manipulation, zIndex:10100, no overflow:hidden
@@ -8,6 +9,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { HUI } from "../../design/hui.design.js";
+import { StoryService } from "../../services/db.js";
 
 /* ── Tokens ── */
 const C = {
@@ -667,22 +669,25 @@ export default function TeilenFlow({ onClose, onPublished }) {
         const { error: upErr } = await supabase.storage
           .from("stories")
           .upload(path, form.mediaFile, { upsert:true });
-        if (!upErr) {
-          const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
-          media_url = pub?.publicUrl || null;
-        }
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
+        media_url = pub?.publicUrl || null;
       }
 
       if (form.mode === "story") {
-        await supabase.from("stories").insert({
-          user_id:    user?.id,
-          media_url,
-          media_type: form.mediaType || "text",
-          caption:    form.text || null,
-          expires_at: new Date(Date.now() + 24*60*60*1000).toISOString(),
+        const { data, error } = await StoryService.publish({
+          entityType: "story",
+          userId:    user?.id,
+          mediaUrl:  media_url,
+          mediaType: form.mediaType || "text",
+          caption:   form.text || null,
+          mood:      form.mood || null,
+          location:  form.location || null,
         });
+        if (error) throw error;
+        onPublished?.({ mode: form.mode, story: data });
       } else {
-        await supabase.from("feed_posts").insert({
+        const { error } = await supabase.from("feed_posts").insert({
           user_id:  user?.id,
           media_url,
           media_type: form.mediaType || "text",
@@ -690,12 +695,14 @@ export default function TeilenFlow({ onClose, onPublished }) {
           location: form.location || null,
           mood:     form.mood    || null,
         });
+        if (error) throw error;
+        onPublished?.({ mode: form.mode });
       }
 
       await new Promise(r => setTimeout(r, 400));
-      onPublished?.({ mode: form.mode });
       onClose?.();
-    } catch {
+    } catch (err) {
+      console.error("[TeilenFlow] publish error:", err);
       setPublishing(false);
     }
   }, [form, user, onClose, onPublished]);

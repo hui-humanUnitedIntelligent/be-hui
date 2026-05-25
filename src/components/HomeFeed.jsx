@@ -9,7 +9,7 @@ import { createProfileItem }     from '../lib/factories/createProfileItem.js';
 import { useHuiActions, A }      from '../core/hui.actions.js';
 import { useScrollEntry } from "../design/hui.hooks.js";
 import React, {
-  useState, useRef, useEffect, useCallback, useMemo,
+  useState, useCallback, useMemo,
 } from "react";
 import { SAFE_MODE } from "../config/safeMode.js";
 import {
@@ -17,11 +17,7 @@ import {
   PresencePersonCard,
   PresenceAvatar,
   PresenceLabel,
-  derivePresenceState,
 } from "./CreatorPresence.jsx";
-import {
-  buildRelationshipMemory,
-} from "../lib/intelligence/relationshipMemory.js";
 import {
   useLivingMemory,
   useDwellTracker,
@@ -29,7 +25,6 @@ import {
 import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
-import InvitationCard from "../content/invitation/InvitationCard.jsx";
 import FeedRouter                from "../feed/cards/FeedRouter.jsx";
 import { useFeedStream,
          saveFeedScrollPos,
@@ -38,23 +33,14 @@ import { FeedBottomSentinel,
          FeedLoadMoreSpinner,
          useFeedScrollProgress }    from "../feed/FeedScrollSentinel.jsx";
 import { FeedSoftHydrationBadge }   from "../feed/FeedSoftHydrationBadge.jsx";
+import { StoryBar } from "./StoryBar.jsx";
 import {
   resolveMemoryTokens,
-  applyMemoryToCardStyle,
-  memoryAdjustedDelay,
 } from "../lib/intelligence/persistence/memoryTokens.js";
 import {
   curateHumaneFeed,
-  getTimeAtmosphere,
   QUIET_QUOTE_POOL,
-  intelligentMicroMoment,
 } from "../lib/feedIntelligence.js";
-import {
-  selectWarmthBoost,
-  selectGlowBoost,
-  selectCardDelay,
-  isFallbackMemory,
-} from "../lib/intelligence/index.js";
 
 /* ─── Phase 16.7.1: Null-safe fallbacks (never undefined downstream) ──────── */
 const EMPTY_PROFILE = Object.freeze({
@@ -397,14 +383,6 @@ const CSS = IX.CSS + `
 `;
 
 /* ─── Mock Data ─────────────────────────────────────────────────────────── */
-const MOCK_STORIES = [
-  { id:"you",  label:"Dein Moment", avatar:null, isYou:true,  isLive:false },
-  { id:"mia",  label:"Mia",   avatar:"https://i.pravatar.cc/80?img=47", isLive:false },
-  { id:"leon", label:"Leon",  avatar:"https://i.pravatar.cc/80?img=51", isLive:true  },
-  { id:"sara", label:"Sara",  avatar:"https://i.pravatar.cc/80?img=45", isLive:false },
-  { id:"kai",  label:"Kai",   avatar:"https://i.pravatar.cc/80?img=33", isLive:false },
-];
-
 const MOCK_EVENTS = [
   { id:"e1", title:"Keramik Workshop",
     time:"Heute 18:30", location:"München",
@@ -474,7 +452,7 @@ const MOCK_PEOPLE = [
    ROOT
    ═══════════════════════════════════════════════════════════════════════════ */
 export default function HomeFeed({
-  stories   = null, feedItems = null, events = null, people = null,
+  feedItems = null, events = null, people = null,
   onProfile = null, onStory   = null, onEvent = null,
   onLike    = null, onComment = null,
   onDiscover = null,
@@ -585,9 +563,9 @@ export default function HomeFeed({
 
       <div style={{ position:"relative", zIndex:1 }}>
 
-        {/* Story Leiste */}
+        {/* Canonical StoryBar: stories table + EntityRealtimeLayer. */}
         {SAFE_MODE.homeFeed && (
-          <StoryLeiste stories={stories || MOCK_STORIES} onStory={onStory} />
+          <StoryBar onStoryClick={onStory} onCreateStory={handleShare} />
         )}
 
         {/* Events */}
@@ -660,63 +638,6 @@ function AmbientBackground() {
         pointerEvents:"none",
       }}/>
     </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   STORY LEISTE
-   ═══════════════════════════════════════════════════════════════════════════ */
-function StoryLeiste({ stories, onStory }) {
-  return (
-    <div style={{ paddingTop:20, paddingBottom:12 }}>
-      <div className="hf-scroll-x" style={{ gap:13, paddingLeft:16, paddingRight:16 }}>
-        {stories.map(s => (
-          <StoryBubble key={s.id} story={s} onPress={() => onStory?.(s)} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function StoryBubble({ story, onPress }) {
-  const ringCls = story.isLive
-    ? "hf-story-ring hf-story-ring--live"
-    : (story.isYou || story.isMore)
-      ? "hf-story-ring hf-story-ring--empty"
-      : "hf-story-ring hf-story-ring--colored";
-
-  return (
-    <button onClick={onPress} className="hf-tap" style={{
-      background:"none", border:"none", cursor:"pointer", padding:0,
-      display:"flex", flexDirection:"column", alignItems:"center", gap:5,
-    }}>
-      <div className={ringCls}>
-        <div style={{
-          width:50, height:50, borderRadius:"50%", overflow:"hidden",
-          background: story.isYou
-            ? "rgba(22,215,197,0.08)"
-            : `linear-gradient(135deg, ${T.teal}, ${T.coral})`,
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          {story.isYou
-            ? <span style={{ fontSize:21, color:T.teal, fontWeight:300 }}>+</span>
-            : story.avatar
-              ? <img src={story.avatar} alt={story.label}
-                  style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
-              : <span style={{ fontSize:18, color:"rgba(26,26,26,0.25)" }}>✦</span>
-          }
-        </div>
-      </div>
-      <span style={{
-        fontSize:10, fontWeight:500,
-        color: story.isLive ? T.coral : T.muted,
-        letterSpacing:-0.05, maxWidth:54,
-        textAlign:"center", lineHeight:1.2,
-        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-      }}>
-        {story.isLive ? "● LIVE" : story.label}
-      </span>
-    </button>
   );
 }
 

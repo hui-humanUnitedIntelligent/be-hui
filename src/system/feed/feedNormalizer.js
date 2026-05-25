@@ -232,6 +232,13 @@ export function normalizeFeedItems(items = []) {
 export const normalizeExperienceRow = (raw) => normalizeFeedItem({ ...raw, type: "experience" });
 export const normalizeWorkRow       = (raw) => normalizeFeedItem({ ...raw, type: "work_upload" });
 export const normalizeInvitationRow = (raw) => normalizeFeedItem({ ...raw, type: "invitation", content_type: "invitation" });
+export const normalizeStoryRow      = (raw) => normalizeFeedItem({
+  ...raw,
+  type: "story",
+  title: raw?.caption || raw?.text_overlay || "Story",
+  description: raw?.caption || raw?.text_overlay || "",
+  images: raw?.media_url ? [raw.media_url] : [],
+});
 export const normalizeBeitragRow    = (raw) => normalizeFeedItem({
   ...raw,
   type:   raw.type === "note" ? "note" : "work_upload",

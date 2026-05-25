@@ -1,4 +1,5 @@
 // HuiCreateFlow.jsx — Progressive Creation v2
+// Deprecated for story/moment publishing: canonical entrypoint is StoryComposer.
 // Philosophie: „Teile deinen Moment." Nicht: „Konfiguriere dein Angebot."
 //
 // FLOW:
@@ -11,11 +12,12 @@
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
 import { useDraftPersist } from "../lib/sessionHooks";
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { StoryService } from "../services/db.js";
 import {
   MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS
 } from "../lib/moodUtils";
@@ -321,16 +323,16 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
       const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
       setProgress(80);
 
-      const { error: dbErr } = await supabase.from("stories").insert({
-        user_id:    user.id,
-        media_url:  publicUrl,
-        media_type: isVid ? "video" : "image",
-        caption:    caption.trim() || null,
-        location:   location.trim() || null,
-        mood_tags:  moodTags.length ? moodTags : null,
-        status:     "published",
-        expires_at: null,
-        created_at: new Date().toISOString(),
+      const { error: dbErr } = await StoryService.publish({
+        entityType:   "story",
+        userId:       user.id,
+        mediaUrl:     publicUrl,
+        mediaType:    isVid ? "video" : "image",
+        caption:      caption.trim() || null,
+        location:     location.trim() || null,
+        mood:         moodTags[0] || null,
+        visibility,
+        isHighlight:  true,
       });
       if (dbErr) throw dbErr;
       setProgress(100);
@@ -1567,10 +1569,16 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       };
 
       if (payload.type === "moment") {
-        const { error:e } = await supabase.from("stories").insert({
-          ...base,
-          location:   _loc,
-          expires_at: null,
+        const { error:e } = await StoryService.publish({
+          entityType:  "story",
+          userId:      user.id,
+          mediaUrl:    publicUrl,
+          mediaType:   isVid ? "video" : "image",
+          caption:     payload.details?.caption || mediaData.caption || null,
+          location:    _loc,
+          mood:        payload.details?.moodTags?.[0] || null,
+          visibility:  payload.details?.visibility || mediaData.visibility || "public",
+          isHighlight: true,
         });
         if (e) throw e;
       } else if (payload.type === "werk") {
@@ -1638,15 +1646,15 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
 
       const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
 
-      const { error:e } = await supabase.from("stories").insert({
-        user_id:    user.id,
-        media_url:  publicUrl,
-        media_type: isVid ? "video" : "image",
-        caption:    caption || null,
-        location:   location || null,
-        created_at: new Date().toISOString(),
-        status:     "published",
-        expires_at: null,
+      const { error:e } = await StoryService.publish({
+        entityType:  "story",
+        userId:      user.id,
+        mediaUrl:    publicUrl,
+        mediaType:   isVid ? "video" : "image",
+        caption:     caption || null,
+        location:    location || null,
+        visibility:  visibility || "public",
+        isHighlight: true,
       });
       if (e) throw e;
 

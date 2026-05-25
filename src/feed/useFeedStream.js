@@ -23,7 +23,9 @@ import {
   normalizeExperienceRow,
   normalizeBeitragRow,
   normalizeInvitationRow,
+  normalizeStoryRow,
 } from "../system/feed/feedNormalizer.js";
+import { subscribeEntityRealtime } from "../realtime/EntityRealtimeLayer.js";
 
 // ─── Konstanten ──────────────────────────────────────────────────────────────
 const PAGE_SIZE          = 20;   // Items pro Seite
@@ -75,7 +77,7 @@ async function fetchFeedPage(userId, cursor = null) {
     ? q.lt("created_at", cursor)
     : q;
 
-  const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
+  const [worksRes, expsRes, beitrRes, invRes, storiesRes] = await Promise.allSettled([
     rangeFilter(
       supabase.from("works")
         .select(`id,title,cover_url,media_url,category,description,
@@ -118,12 +120,23 @@ async function fetchFeedPage(userId, cursor = null) {
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .limit(2),  // Max 2 Invitations pro Seite
+
+    rangeFilter(
+      supabase.from("stories")
+        .select(`id,user_id,media_url,media_type,caption,text_overlay,
+                 mood,location,is_highlight,expires_at,created_at,
+                 profile:user_id(id,display_name,avatar_url,talent,location_label)`)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .order("created_at", { ascending: false })
+        .limit(limit)
+    ),
   ]);
 
   const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
   const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
   const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
+  const stories = storiesRes.status === "fulfilled" ? (storiesRes.value?.data || []) : [];
 
   // Normalisieren
   const normalized = [
@@ -131,6 +144,7 @@ async function fetchFeedPage(userId, cursor = null) {
     ...exps.map(normalizeExperienceRow).filter(Boolean),
     ...beitr.map(normalizeBeitragRow).filter(Boolean),
     ...invs.map(normalizeInvitationRow).filter(Boolean),
+    ...stories.map(normalizeStoryRow).filter(Boolean),
   ];
 
   // Zeitsortiert
@@ -169,6 +183,7 @@ export function useFeedStream() {
   const prefetchedRef     = useRef(null);     // Vorgeladene nächste Seite
   const prefetchingRef    = useRef(false);    // Prefetch läuft gerade
   const realtimeRef       = useRef(null);     // Supabase Realtime Channel
+  const storyRealtimeRef  = useRef(null);     // EntityRealtimeLayer unsubscribe
   const softHydrateTimer  = useRef(null);     // Debounce für Badge
   const idleCallbackRef   = useRef(null);     // requestIdleCallback ID
   const mountedRef        = useRef(true);
@@ -382,17 +397,41 @@ export function useFeedStream() {
         }
       });
 
+    storyRealtimeRef.current = subscribeEntityRealtime("story", (message) => {
+      if (!mountedRef.current) return;
+      clearCache();
+      if (message?.eventType === "delete") {
+        initialLoad();
+        return;
+      }
+      if (!message?.entity?.id) return;
+
+      if (message.source === "publish") {
+        const normalized = normalizeStoryRow(message.entity);
+        if (!normalized) return;
+        setItems(prev => {
+          if (prev.find(i => i.id === normalized.id)) return prev;
+          return [normalized, ...prev];
+        });
+        return;
+      }
+
+      _receiveLiveItem(message.entity, normalizeStoryRow);
+    });
+
     return () => {
       if (realtimeRef.current) {
         supabase.removeChannel(realtimeRef.current);
         realtimeRef.current = null;
       }
+      storyRealtimeRef.current?.();
+      storyRealtimeRef.current = null;
       clearTimeout(softHydrateTimer.current);
       if (typeof cancelIdleCallback !== "undefined" && idleCallbackRef.current) {
         cancelIdleCallback(idleCallbackRef.current);
       }
     };
-  }, [user?.id, _receiveLiveItem]);
+  }, [user?.id, _receiveLiveItem, initialLoad]);
 
   // ── Prefetch bei 70% Scroll (wird von ScrollSentinel aufgerufen) ──────────
   const onScrollProgress = useCallback((progress) => {

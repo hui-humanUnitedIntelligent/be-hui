@@ -1,9 +1,10 @@
 // StoryComposer v2 — Production-ready with proper Supabase upload
 // Fixes: RLS, storage persistence, error handling, mobile Safari
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { StoryService } from "../services/db.js";
 
 const T = {
   teal:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
@@ -51,7 +52,7 @@ const CSS = `
 `;
 
 export default function StoryComposer({ onClose, onSuccess }) {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const fileRef  = useRef(null);
 
   const [mediaFile,     setMediaFile]     = useState(null);
@@ -121,39 +122,30 @@ export default function StoryComposer({ onClose, onSuccess }) {
         setUploadPct(70);
       }
 
-      // Step 2: Insert story
+      // Step 2: Canonical stories-table publish
       const expiresAt = saveHighlight ? null : new Date(Date.now() + 86400000).toISOString();
 
-      // Map Composer fields → DB column names
-      // Nur Spalten die im originalen CREATE TABLE existieren (009_story_system_fix.sql)
-      // FIX: stories-Tabelle Schema:
-      //   user_id, media_url, media_type, caption, text_overlay,
-      //   mood, location, is_highlight, expires_at, created_at
-      // Felder status/visibility/username/avatar_url/allow_comments
-      // existieren NICHT → silent 400-Fehler verhindert Insert.
-      const storyRow = {
-        user_id:      user.id,
-        media_url:    mediaUrl            || null,
-        media_type:   mediaUrl ? mediaType : "text",
-        caption:      text.trim()         || null,
-        text_overlay: text.trim()         || null,
-        is_highlight: saveHighlight       || false,
-        expires_at:   expiresAt,
-        // status/visibility/username: NICHT in stories — entfernt
+      const storyPayload = {
+        entityType:   "story",
+        userId:       user.id,
+        mediaUrl:     mediaUrl || null,
+        mediaType:    mediaUrl ? mediaType : "text",
+        caption:      text.trim() || null,
+        textOverlay:  text.trim() || null,
+        visibility,
+        mood,
+        isHighlight:  saveHighlight || false,
+        expiresAt,
       };
       console.info('[StoryComposer] Publishing story:', {
-        user_id: storyRow.user_id,
-        media_type: storyRow.media_type,
-        has_media: !!storyRow.media_url,
-        is_highlight: storyRow.is_highlight,
-        expires_at: storyRow.expires_at,
+        user_id: storyPayload.userId,
+        media_type: storyPayload.mediaType,
+        has_media: !!storyPayload.mediaUrl,
+        is_highlight: storyPayload.isHighlight,
+        expires_at: storyPayload.expiresAt,
       });
 
-      const { data, error: dbErr } = await supabase
-        .from("stories")
-        .insert(storyRow)
-        .select()
-        .single();
+      const { data, error: dbErr } = await StoryService.publish(storyPayload);
 
       if (dbErr) {
         console.error('[StoryComposer] DB INSERT FEHLER:', {
@@ -161,7 +153,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
           message: dbErr.message,
           details: dbErr.details,
           hint: dbErr.hint,
-          storyRow,
+          storyPayload,
         });
         throw dbErr;
       }
@@ -169,7 +161,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
       setUploadPct(100);
       setDone(true);
-      setTimeout(() => { if (onSuccess) onSuccess(); onClose(); }, 1800);
+      setTimeout(() => { onSuccess?.(data); onClose?.(); }, 1800);
 
     } catch(e) {
       console.error("[StoryComposer] publish error:", e);
@@ -298,7 +290,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
           padding:"12px 16px 14px",
           display:"flex",gap:8,overflowX:"auto",
           background:"linear-gradient(transparent,rgba(0,0,0,.5))"}}>
-          {(MOODS||[]).filter(m=>m&&m.key).map(m=>(
+          {(MOODS||[]).filter(m=>m&&m.k).map(m=>(
             <button key={m.k} className="sc-tap"
               onClick={e=>{e.stopPropagation();setMood(p=>p===m.k?null:m.k);}}
               style={{flexShrink:0,padding:"6px 12px",borderRadius:999,
