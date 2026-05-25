@@ -9,10 +9,7 @@ import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
-import { SAFE_MODE } from "../../../config/safeMode.js";
 import { HUI } from "../../../design/hui.design.js";
-import { IX } from "../../../design/hui.interaction.js";
-import { useHuiActions, A } from "../../../core/hui.actions.js";
 
 const CSS = `
   @keyframes bn-orb-pulse {
@@ -53,16 +50,9 @@ export default function BottomNav({
   // orbActive: legacy — still controls hard hide for non-world-layer use cases
   // navDrift: world-layer drift — soft opacity + translateY (nav stays mounted)
   const isHidden = (orbActive && !navDrift) ?? false;
-  const actions  = useHuiActions();
 
   function handleTabPress(key) {
-    // Route profile tab → OPEN_OWN_PROFILE, others → GO_TO_TAB
-    if (key === "profile") {
-      actions[A.OPEN_OWN_PROFILE]?.();
-    } else {
-      actions[A.GO_TO_TAB]?.(key);
-    }
-    // Always call prop for backward compat (Home.jsx still syncs tab state)
+    // HomeShell owns tab/profile state; keep BottomNav as a single dispatch surface.
     if (typeof onTab === "function") onTab(key);
   }
 
@@ -129,8 +119,7 @@ export default function BottomNav({
                   key="orb"
                   className="bn-orb-btn"
                   onClick={() => {
-                    actions[A.OPEN_ORB]?.();
-                    onOrbAction?.("create"); // backward compat
+                    onOrbAction?.("create");
                   }}
                   style={{
                     width: 52, height: 52,

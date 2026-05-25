@@ -21,6 +21,8 @@
 //   ret.execute();
 // ══════════════════════════════════════════════════════════════════
 
+import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
+import { isValidTab, normalizePersistedTab } from "../lib/world/orbLayer.js";
 import { S, RETURN_TO, SURFACE_LABEL } from "./hui.sources.js";
 
 const isDev = typeof import.meta !== "undefined"
@@ -35,6 +37,12 @@ function logReturn(from, to, method) {
   console.log("[HUI_RETURN] " + fromLabel + " → " + toLabel + " (" + method + ")");
 }
 
+function sourceToTab(source, fallback = S.FEED) {
+  if (isValidTab(source)) return source;
+  const mapped = RETURN_TO[source];
+  return isValidTab(mapped) ? mapped : fallback;
+}
+
 // ─── Return-Strategien ────────────────────────────────────────────
 
 // STRATEGIE 1: Chat-Close → Profil (LOOP 1)
@@ -47,6 +55,7 @@ function ChatToProfile(flow, shell) {
     execute() {
       var profile = flow.getReturnProfile();
       flow.clearReturnProfile();
+      flow.pop?.();
       logReturn(S.CHAT, S.VISITOR_PROFILE, "ChatToProfile");
       // Sanfter Delay — Chat-Exit-Animation hat 80ms Overlap
       if (shell.setShowWirker) {
@@ -62,12 +71,12 @@ function ProfileToTab(flow, shell) {
   return {
     canExecute() {
       var current = flow.current();
-      return current && current.source && current.source !== S.SYSTEM;
+      return current && (current.source || current.sourceTab) && current.source !== S.SYSTEM;
     },
     execute() {
       var current   = flow.current();
-      var fromSource = current ? current.source : null;
-      var returnTab  = RETURN_TO[fromSource] || S.HOME;
+      var fromSource = current?.sourceTab || current?.source || null;
+      var returnTab  = sourceToTab(fromSource, S.FEED);
       flow.pop();
       logReturn(S.VISITOR_PROFILE, returnTab, "ProfileToTab");
       if (shell.switchTab) {
@@ -102,7 +111,8 @@ function OverlayToPrevTab(fromSurface, flow, shell) {
       return !!(shell.prevTab);
     },
     execute() {
-      var target = RETURN_TO[fromSurface] || shell.prevTab || S.HOME;
+      var target = RETURN_TO[fromSurface] || shell.prevTab || S.FEED;
+      target = sourceToTab(target || shell.prevTab, normalizePersistedTab(shell.prevTab || S.FEED));
       logReturn(fromSurface, target, "OverlayToPrevTab");
       // Kein flow.pop() hier — Overlays liegen nicht auf dem Stack
       if (shell.switchTab) {
@@ -112,14 +122,14 @@ function OverlayToPrevTab(fromSurface, flow, shell) {
   };
 }
 
-// STRATEGIE 5: Fallback — immer ausführbar, geht zu Home
+// STRATEGIE 5: Fallback — immer ausführbar, geht zum Feed
 function FallbackToHome(flow, shell) {
   return {
     canExecute() { return true; },
     execute() {
-      logReturn("?", S.HOME, "FallbackToHome");
+      logReturn("?", S.FEED, "FallbackToHome");
       if (shell.switchTab) {
-        shell.switchTab(S.HOME);
+        shell.switchTab(S.FEED);
       }
     },
   };
@@ -173,4 +183,61 @@ export function resolveReturn(flow, shell, hint) {
 export function executeReturn(flow, shell, hint) {
   var strategy = resolveReturn(flow, shell, hint);
   strategy.execute();
+}
+
+// ─── Central Close Flow ─────────────────────────────────────────────
+// Alle Flow-/Overlay-Closes laufen hier zusammen. Keine history.back()
+// und keine lokalen Back-Hacks: State-Cleanup zuerst, Return danach.
+export function centralCloseFlow({
+  source = S.UNKNOWN,
+  returnTo = null,
+  preserveWorld = false,
+  preserveTab = false,
+  reason = "central-close",
+  flow = null,
+  shell = {},
+  navigate = null,
+  fallbackPath = "/Home",
+} = {}) {
+  const closeReason = `${reason}:${source}`;
+
+  shell.setShowChat?.(false);
+  shell.setChatRecipient?.(null);
+
+  if (typeof shell.closeTransientState === "function") {
+    shell.closeTransientState({
+      reason: closeReason,
+      preserveWorld,
+      preserveTab,
+      preserveProfile: source === S.CHAT && !!flow?.getReturnProfile?.(),
+    });
+  } else {
+    shell.setShowWirker?.(null);
+    if (!preserveWorld) {
+      shell.closeSurface?.(null, closeReason);
+      shell.closeOrbWorld?.(closeReason);
+      cleanupOrbEnvironment({ reason: closeReason });
+    }
+  }
+
+  if (returnTo && !preserveTab) {
+    const targetTab = normalizePersistedTab(returnTo);
+    if (shell.switchTab && isValidTab(targetTab)) {
+      logReturn(source, targetTab, "centralCloseFlow:returnTo");
+      shell.switchTab(targetTab);
+      return targetTab;
+    }
+  }
+
+  if (flow && shell.switchTab && !preserveTab) {
+    executeReturn(flow, shell, source);
+    return source;
+  }
+
+  if (typeof navigate === "function") {
+    navigate(fallbackPath, { replace: true });
+    return fallbackPath;
+  }
+
+  return null;
 }

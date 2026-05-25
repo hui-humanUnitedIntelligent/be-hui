@@ -23,7 +23,7 @@
 
 export const S = Object.freeze({
   // ── Navigation / Tabs ──────────────────────────────────────────
-  HOME:             "home",          // Home-Feed (aktiver Tab)
+  FEED:             "feed",          // Kanonischer Feed-Tab
   DISCOVER:         "discover",      // Entdecken-Seite
   FAVORITES:        "favorites",     // Dein Raum / Favoriten
   IMPACT:           "impact",        // Impact-Seite
@@ -54,7 +54,7 @@ export const S = Object.freeze({
 // Schicht 3: Deep-Level (tiefste Ebene)
 
 export const SURFACE_DEPTH = Object.freeze({
-  [S.HOME]:            0,
+  [S.FEED]:            0,
   [S.DISCOVER]:        0,
   [S.FAVORITES]:       0,
   [S.IMPACT]:          0,
@@ -79,20 +79,20 @@ export const RETURN_TO = Object.freeze({
   [S.CHAT]:            S.VISITOR_PROFILE,  // Chat → zurück zum Profil (LOOP 1)
   [S.EXPERIENCE]:      S.DISCOVER,         // Erlebnis → zurück zu Discover
   [S.BOOKING]:         S.VISITOR_PROFILE,  // Booking → zurück zum Profil
-  [S.VISITOR_PROFILE]: S.HOME,             // Profil → zurück zu Home/Feed
-  [S.NOTIFICATIONS]:   S.HOME,             // Notifs → zurück zu Home
+  [S.VISITOR_PROFILE]: S.FEED,             // Profil → zurück zum Feed
+  [S.NOTIFICATIONS]:   S.FEED,             // Notifs → zurück zum Feed
   [S.MAP]:             S.DISCOVER,         // Map → zurück zu Discover
-  [S.MATCH]:           S.HOME,             // Match → zurück zu Home
-  [S.ORB]:             S.HOME,             // Orb → zurück zu Home
-  // Tab-Level kehrt immer zu Home zurück
-  [S.DISCOVER]:        S.HOME,
-  [S.FAVORITES]:       S.HOME,
-  [S.IMPACT]:          S.HOME,
+  [S.MATCH]:           S.FEED,             // Match → zurück zum Feed
+  [S.ORB]:             S.FEED,             // Orb → zurück zum Feed
+  // Tab-Level kehrt immer zum Feed zurück
+  [S.DISCOVER]:        S.FEED,
+  [S.FAVORITES]:       S.FEED,
+  [S.IMPACT]:          S.FEED,
 });
 
 // ─── Label-Map (für DEV-Logging) ──────────────────────────────────
 export const SURFACE_LABEL = Object.freeze({
-  [S.HOME]:            "Home-Feed",
+  [S.FEED]:            "Feed",
   [S.DISCOVER]:        "Entdecken",
   [S.FAVORITES]:       "Dein Raum",
   [S.IMPACT]:          "Impact",

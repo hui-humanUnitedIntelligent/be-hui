@@ -62,15 +62,19 @@ export function OrbWorldProvider({ children }) {
   const closeTimerRef = useRef(null);
 
   // ── Open Orb World ─────────────────────────────────────────
-  const openOrbWorld = useCallback(({
-    source           = "orb-button",
-    originTab        = "feed",
-    worldTemperature = "calm_flowing",
-    atmosphereId     = null,
-    continuityCarry  = {},
-  } = {}) => {
-    // Safety: never route to "orb" tab
-    assertValidTab(originTab);
+  const openOrbWorld = useCallback((options = {}) => {
+    const opts = options && typeof options === "object"
+      ? options
+      : { continuityCarry: options ? { world: options } : {} };
+    const {
+      source           = "orb-button",
+      originTab        = "feed",
+      worldTemperature = "calm_flowing",
+      atmosphereId     = null,
+      continuityCarry  = {},
+    } = opts;
+    // Safety: never route to invalid tab keys
+    const safeOriginTab = assertValidTab(originTab) ? originTab : "feed";
 
     // Clear any pending close timer
     if (closeTimerRef.current) {
@@ -79,12 +83,12 @@ export function OrbWorldProvider({ children }) {
     }
 
     const next = buildOpenOrbState({
-      originTab, worldTemperature, atmosphereId, continuityCarry, source,
+      originTab: safeOriginTab, worldTemperature, atmosphereId, continuityCarry, source,
     });
 
     console.log("[HUI ORB] open", {
       source,
-      originTab,
+      originTab: safeOriginTab,
       worldTemperature,
       atmosphereId,
       openedAt: new Date(next.openedAt).toISOString(),

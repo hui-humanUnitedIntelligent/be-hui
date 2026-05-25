@@ -21,15 +21,21 @@
 
 import { useContext, createContext } from "react";
 import { S, SURFACE_LABEL } from "./hui.sources.js";
+import { isValidTab } from "../lib/world/orbLayer.js";
 
 // ─── Flow Entry Schema ─────────────────────────────────────────────
 // {
-//   surface:    "discover"|"profile"|"chat"|"experience"|"impact"|"feed"
-//   creatorId?: string
-//   creator?:   object   — vollständiges Profil-Objekt
-//   tab?:       string   — welcher Tab war aktiv
-//   scrollKey?: string   — sessionStorage key für Scroll-Position
-//   timestamp:  number
+//   surface:          "discover"|"visitor-profile"|"chat"|"experience"|"impact"|"feed"
+//   sourceTab?:       string   — welcher Tab war aktiv
+//   sourceRoute?:     string   — Browser-Route beim Flow-Start
+//   sourceWorld?:     object|string|null
+//   sourceAtmosphere?:object|string|null
+//   returnBehavior?:  string   — z.B. "previous-tab"|"feed"|"preserve"
+//   previousFlow?:    object|null
+//   creatorId?:       string
+//   creator?:         object   — vollständiges Profil-Objekt
+//   scrollKey?:       string   — sessionStorage key für Scroll-Position
+//   timestamp:        number
 // }
 
 const isDev = import.meta.env?.DEV ?? false;
@@ -50,9 +56,45 @@ export function useHuiFlow() {
       setReturnProfile:   () => {},
       getReturnProfile:   () => null,
       clearReturnProfile: () => {},
+      clear:              () => {},
+      entries:            () => [],
     };
   }
   return ctx;
+}
+
+function currentRoute() {
+  if (typeof window === "undefined") return null;
+  return window.location.pathname + window.location.search + window.location.hash;
+}
+
+function inferSourceTab(entry) {
+  if (isValidTab(entry?.sourceTab)) return entry.sourceTab;
+  if (isValidTab(entry?.tab)) return entry.tab;
+  if (isValidTab(entry?.source)) return entry.source;
+  return S.FEED;
+}
+
+function publicFlowSnapshot(entry) {
+  if (!entry) return null;
+  const {
+    surface,
+    sourceTab,
+    sourceRoute,
+    sourceWorld,
+    sourceAtmosphere,
+    returnBehavior,
+    timestamp,
+  } = entry;
+  return {
+    surface,
+    sourceTab,
+    sourceRoute,
+    sourceWorld,
+    sourceAtmosphere,
+    returnBehavior,
+    timestamp,
+  };
 }
 
 // ─── createFlowStore — factory für HomeShell ──────────────────────
@@ -70,7 +112,17 @@ export function createFlowStore() {
     // ── Stack Operations ─────────────────────────────────────────
     push(entry) {
       if (!entry?.surface) return; // kein leerer Eintrag
-      var e = Object.assign({ timestamp: Date.now() }, entry);
+      const previousFlow = publicFlowSnapshot(stack[stack.length - 1]);
+      var e = Object.assign({
+        timestamp: Date.now(),
+        sourceTab: inferSourceTab(entry),
+        sourceRoute: currentRoute(),
+        sourceWorld: null,
+        sourceAtmosphere: null,
+        returnBehavior: "previous-context",
+        previousFlow,
+      }, entry);
+      e.sourceTab = inferSourceTab(e);
       stack.push(e);
       if (stack.length > 10) stack.shift(); // Rolling window
       if (isDev) {
@@ -117,6 +169,18 @@ export function createFlowStore() {
         console.log("[HUI_FLOW] ReturnProfile geleert");
       }
       _returnProfile = null;
+    },
+
+    clear(reason = "flow-clear") {
+      if (isDev && stack.length) {
+        console.log("[HUI_FLOW] Stack geleert:", reason, stack.length);
+      }
+      stack.length = 0;
+      _returnProfile = null;
+    },
+
+    entries() {
+      return stack.map(publicFlowSnapshot);
     },
   };
 }

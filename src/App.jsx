@@ -1,12 +1,15 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
-import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
-import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
+import { WorldSurfaceProvider, useWorldSurface } from './context/WorldSurfaceContext.jsx'
+import { OrbWorldProvider, useOrbWorld } from './context/OrbWorldContext.jsx'
 import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
+import { centralCloseFlow } from './core/hui.flow.return.js'
+import { S } from './core/hui.sources.js'
+import { cleanupOrbEnvironment } from './lib/cleanup/cleanupOrbEnvironment.js'
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -32,7 +35,7 @@ import { createTabPage, filterValidPages } from './lib/factories/createTabPage.j
 // Normalisierte, validierte Route-Definitionen
 // Alle Routen gehen durch createTabPage() — kein undefined-component möglich
 export const APP_ROUTES = filterValidPages([
-  createTabPage({ key:'home',      route:'/Home',           component:Home,              title:'HUI',         protectedRoute:true,  preload:true  }),
+  createTabPage({ key:'feed',      route:'/Home',           component:Home,              title:'HUI',         protectedRoute:true,  preload:true  }),
   createTabPage({ key:'impact',    route:'/impact',         component:ImpactPage,        title:'Impact',      protectedRoute:true,  preload:false }),
   createTabPage({ key:'work',      route:'/work/:id',       component:WorkDetailPage,    title:'Werk',        protectedRoute:true,  preload:false }),
   createTabPage({ key:'profile',   route:'/profile/:username', component:WirkerProfilePage, title:'Profil',  protectedRoute:true,  preload:false }),
@@ -350,12 +353,25 @@ function WirkerProfileRouteWrapper() {
   const { username } = useParams();
   const navigate     = useNavigate();
 
+  const routeToHomeAction = React.useCallback((huiAction) => {
+    navigate('/Home', { replace: true, state: { huiAction } });
+  }, [navigate]);
+
   return (
     <WirkerProfilePage
       wirker={{ username }}
-      onClose={() => navigate(-1)}
-      onBook={() => { /* RequestSheet öffnet sich intern in WirkerProfilePage */ }}
-      onChat={() => { /* Chat intern als Sheet in WirkerProfilePage */ }}
+      onClose={() => centralCloseFlow({ source: S.VISITOR_PROFILE, navigate, fallbackPath: '/Home', reason: 'deep-profile-close' })}
+      onBook={(profile, experience) => routeToHomeAction({
+        type: 'BOOK_EXPERIENCE',
+        payload: { creator: profile, experience, source: S.VISITOR_PROFILE },
+      })}
+      onChat={(profile) => routeToHomeAction({
+        type: 'OPEN_CHAT',
+        payload: {
+          recipient: profile,
+          source: S.VISITOR_PROFILE,
+        },
+      })}
     />
   );
 }
@@ -480,6 +496,23 @@ function AppRoutes() {
   );
 }
 
+function RouteCleanupBridge() {
+  const location = useLocation();
+  const { closeSurface } = useWorldSurface();
+  const { closeOrbWorld } = useOrbWorld();
+  const prevPathRef = React.useRef(location.pathname);
+
+  React.useEffect(() => {
+    if (prevPathRef.current === location.pathname) return;
+    closeSurface(null, "route-change");
+    closeOrbWorld("route-change");
+    cleanupOrbEnvironment({ reason: "route-change" });
+    prevPathRef.current = location.pathname;
+  }, [closeOrbWorld, closeSurface, location.pathname]);
+
+  return null;
+}
+
 /* ── Root ──────────────────────────────────────────────────────────── */
 export default function App() {
   return (
@@ -490,6 +523,7 @@ export default function App() {
       <WorldSurfaceProvider>
             <OrbWorldProvider>
       <GuidanceProvider>
+          <RouteCleanupBridge />
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>

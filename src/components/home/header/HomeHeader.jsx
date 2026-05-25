@@ -28,11 +28,13 @@ export default function HomeHeader({
 
   // Route through Action Engine — prop fallbacks for non-HomeShell contexts
   function handleChat() {
-    actions[A.OPEN_CHAT]?.({ source: S.HOME }) || onChat?.();
+    if (actions[A.OPEN_CHAT]) actions[A.OPEN_CHAT]({ source: S.FEED });
+    else onChat?.();
   }
 
   function handleNotif() {
-    actions[A.OPEN_NOTIFICATIONS]?.() || onNotif?.();
+    if (actions[A.OPEN_NOTIFICATIONS]) actions[A.OPEN_NOTIFICATIONS]();
+    else onNotif?.();
   }
 
   return (
