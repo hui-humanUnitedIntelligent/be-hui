@@ -157,16 +157,31 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // initialRecipient: von Profil/Action aus Chat öffnen
   // KEIN fake-ID Fallback. Nur echte UUID oder kein Conv.
   const [loadingConv, setLoadingConv] = React.useState(false);
+  const { chats, loading, markChatRead } = useChatList();
 
   React.useEffect(() => {
-    if (!initialRecipient?.id) return;
-    if (activeConv) return;
+    const suppliedChatId = initialRecipient?.chatId || initialRecipient?._chatId || initialRecipient?._raw?.chatId;
+    const recipientId = initialRecipient?.id || initialRecipient?._raw?.id || initialRecipient?._raw?.user_id;
+    if (!recipientId && !suppliedChatId) return;
+    if (activeConv && (suppliedChatId ? activeConv.id === suppliedChatId : activeConv._recipientId === recipientId)) return;
     if (!user?.id) {
       // user noch nicht geladen — Effekt läuft erneut sobald user?.id sich setzt
       console.log("[HUI_CHAT] initialRecipient: warte auf user.id…");
       return;
     }
-    const recipientId = initialRecipient.id;
+    if (suppliedChatId) {
+      setActiveConv({
+        id:           suppliedChatId,
+        name:         initialRecipient?.display_name || "Gespräch",
+        avatar_url:   initialRecipient?.avatar_url   || null,
+        talent:       initialRecipient?.talent        || null,
+        mood:         "Echte Verbindung",
+        online:       true,
+        _recipientId: recipientId || null,
+      });
+      markChatRead?.(suppliedChatId);
+      return;
+    }
     console.log("[HUI_CHAT] initialRecipient → findOrCreateChat", {
       userId: user.id, recipientId, name: initialRecipient.display_name,
     });
@@ -193,14 +208,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           online:       true,
           _recipientId: recipientId,
         });
+        markChatRead?.(realId);
       })
       .catch(err => {
         console.error("[HUI_CHAT] initialRecipient: Exception:", err?.message, err);
       })
       .finally(() => setLoadingConv(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, initialRecipient?.id]);
-  const { chats, loading, unreadTotal } = useChatList();
+  }, [user?.id, initialRecipient?.id, initialRecipient?.chatId, initialRecipient?._chatId, initialRecipient?._raw?.chatId, activeConv, markChatRead]);
 
   // Wenn Conv geöffnet: normalize conv shape
   function openConv(rawConv) {
@@ -211,6 +225,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     }
     const other = rawConv.other_profile || {};
     console.log("[HUI_CHAT] openConv:", realId, rawConv.name || other.display_name);
+    markChatRead?.(realId);
     setActiveConv({
       id:           realId,
       name:         rawConv.name || other.display_name || "Gespräch",
@@ -220,6 +235,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       online:       rawConv.online ?? true,
       last_message: rawConv.last_message,
       other_profile: rawConv.other_profile || null,
+      _recipientId:  rawConv._recipientId || rawConv.other_profile?.id || null,
     });
   }
 
@@ -334,7 +350,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             onOpenProfile={(conv) => {
               // Phase 23: Chat → Profil öffnen
               // Chat schließt sich, Profil öffnet sich
-              const userId = conv?.user_id || conv?.id;
+              const userId = conv?.other_profile?.id || conv?._recipientId || conv?.user_id;
               if (userId) openCreatorProfile(userId, {
                 display_name: conv?.name,
                 avatar_url:   conv?.avatar_url,

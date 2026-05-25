@@ -7,6 +7,7 @@ import React, {
 import { useAuth }        from "../../lib/AuthContext";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useNotifCount }  from "../../lib/AppStateContext";
+import { useBookingActions } from "../../lib/bookingContext";
 import {
   useSessionRestore,
   useScrollMemory,
@@ -56,6 +57,7 @@ export default function HomeShell({ children }) {
   );
 
   const liveNotifCount = useNotifCount();
+  const bookingActions = useBookingActions();
 
   /* Tab */
   const [tab, _setTab]          = useSessionRestore("feed");
@@ -264,6 +266,7 @@ export default function HomeShell({ children }) {
     createType,            setCreateType,
     activeStory,           setActiveStory,
     cart,                  setCart,
+    bookingActions,
     openOwnProfile,
     flowStore,          // Phase 2: Flow Memory
   };

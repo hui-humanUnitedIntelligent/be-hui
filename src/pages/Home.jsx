@@ -627,11 +627,12 @@ function HomeInner() {
 
                 // Objekt: { type, id, ... }
                 if (typeof target === "object") {
-                  if (target.type === "chat" && target.recipientId) {
+                  if (target.type === "chat" && (target.recipientId || target.chatId)) {
                     setChatRecipient({
                       id:           target.recipientId,
                       display_name: target.recipientName || "Creator",
                       avatar_url:   target.recipientAvatar || null,
+                      chatId:       target.chatId || null,
                     });
                     setShowChat(true);
                     return;

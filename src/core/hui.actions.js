@@ -140,6 +140,7 @@ export function buildActions(shell) {
     setShowChat,
     setChatRecipient,
     chatRecipient,
+    bookingActions,
     // Overlays
     setShowPlusSheet,
     setShowCreateFlow,
@@ -218,7 +219,12 @@ export function buildActions(shell) {
         ...rest,
       } : chatRecipient);
       const rec = rawRec ? normalizeRecipient(rawRec) : null;
-      if (rec) setChatRecipient?.(rec);
+      if (rec) {
+        setChatRecipient?.({
+          ...rec,
+          chatId: payload?.chatId || payload?._chatId || rec?._raw?.chatId || null,
+        });
+      }
       // Semantic guard (DEV): prüft ob der Chat-Payload vollständig ist
       checkSemantics("OPEN_CHAT", { recipient: rec, source: payload?.source || S.SYSTEM });
       // Phase 2: wenn Profil offen war → Return merken
@@ -262,7 +268,7 @@ export function buildActions(shell) {
       }
     },
 
-    [A.BOOK_EXPERIENCE]: (rawPayload) => {
+    [A.BOOK_EXPERIENCE]: async (rawPayload) => {
       const payload = validate("BOOK_EXPERIENCE", rawPayload);
       if (!payload) return;
       logAction(A.BOOK_EXPERIENCE, payload);
@@ -272,12 +278,38 @@ export function buildActions(shell) {
       const safeCr   = creator ? normalizeCreator(creator) : null;
       // Semantic guard (DEV)
       checkSemantics("BOOK_EXPERIENCE", { experience: safeExp, creator: safeCr, source: payload?.source || S.SYSTEM });
-      // Set recipient so Connect-Sheet weiß wer gebucht wird
-      if (safeCr) setChatRecipient?.(safeCr);
+      const creatorId = safeCr?.id || safeExp?.creator_id;
+      if (!creatorId || !bookingActions?.sendBookingRequest) {
+        console.error("[HUI_BOOKING] Anfrage abgebrochen: fehlender Creator oder Booking Runtime", { creatorId, safeExp, safeCr });
+        return { error: "booking_runtime_unavailable" };
+      }
       // Flow-Log
       const bookSource = payload?.source || S.SYSTEM;
       logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
-      setShowConnect?.(true);
+      const result = await bookingActions.sendBookingRequest({
+        creatorId,
+        creatorName: safeCr?.display_name || safeCr?.name || "Creator",
+        reqType: safeExp?.category || "other",
+        message: safeExp?.name ? `Anfrage für ${safeExp.name}` : "Buchungsanfrage",
+        amountEur: Number.isFinite(Number(safeExp?.price)) ? Number(safeExp.price) : null,
+      });
+      if (result?.error) {
+        console.error("[HUI_BOOKING] Anfrage fehlgeschlagen:", result.error);
+        return result;
+      }
+      if (safeCr || creatorId) {
+        setChatRecipient?.({
+          ...(safeCr || {}),
+          id: creatorId,
+          display_name: safeCr?.display_name || "Creator",
+          avatar_url: safeCr?.avatar_url || null,
+          chatId: result.chatId || null,
+        });
+      }
+      logFlow(S.BOOKING, S.CHAT, result?.chatId ? { chatId: result.chatId } : null);
+      flowStore?.push({ surface: S.CHAT, recipient: safeCr, source: S.BOOKING });
+      setShowChat?.(true);
+      return result;
     },
 
     [A.CREATE_EXPERIENCE]: (payload = {}) => {

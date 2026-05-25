@@ -79,6 +79,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
     } else {
       console.log("[HUI_REALITY] chat persisted ✓", result?.id);
     }
+    return result;
   }, [sendMessage, realChatId, rawId]);
 
   const showEmpty = !loading && messages.length === 0 && realChatId;
@@ -109,10 +110,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
         width: "100%",
         zIndex: 10,
         position: "relative",
-        /* DEBUG — sichtbarkeits-Beweis: */
-        background: "rgba(255,0,0,0.08)",
         minHeight: 60,
-        outline: "3px solid red",
       }}>
         <ChatInput onSend={handleSend} sending={sending}/>
       </div>

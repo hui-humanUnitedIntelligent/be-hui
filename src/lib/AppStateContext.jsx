@@ -15,6 +15,7 @@ import React, {
 } from "react";
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
+import { notifyFollow } from "./notificationService";
 import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow } from "../system/feed/feedNormalizer.js";
 import { rhythmizeFeed } from "../feed/feedRhythmEngine.js";
 
@@ -49,31 +50,76 @@ export function AppStateProvider({ children }) {
 
   // ── Notification Count — direkter Supabase-Query (kein Service) ─
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
   const notifTimerRef = useRef(null);
+  const notifRealtimeRef = useRef(null);
 
-  const fetchNotifCount = useCallback(async () => {
-    if (!user?.id) return;
+  const loadNotifications = useCallback(async () => {
+    if (!user?.id) {
+      setNotifications([]);
+      setUnreadNotifCount(0);
+      return [];
+    }
     try {
-      const { count } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
-        .select("id", { count: "exact", head: true })
+        .select(`
+          id, user_id, sender_id, type, title, body,
+          entity_id, entity_type, action_url, read, created_at
+        `)
         .eq("user_id", user.id)
-        .eq("read", false);
-      setUnreadNotifCount(count || 0);
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      const rows = data || [];
+      setNotifications(rows);
+      setUnreadNotifCount(rows.filter(n => !n.read).length);
+      return rows;
     } catch {
       // silent — kein crash
+      return [];
     }
   }, [user?.id]);
 
   useEffect(() => {
-    if (!user?.id) return;
-    fetchNotifCount();
-    // Polling alle 60s — kein Realtime (Phase 3)
-    notifTimerRef.current = setInterval(fetchNotifCount, 60_000);
+    if (!user?.id) {
+      setNotifications([]);
+      setUnreadNotifCount(0);
+      return;
+    }
+    loadNotifications();
+    notifTimerRef.current = setInterval(loadNotifications, 60_000);
+    notifRealtimeRef.current = supabase
+      .channel(`notifications:${user.id}`)
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: "notifications",
+        filter: `user_id=eq.${user.id}`,
+      }, () => loadNotifications())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") loadNotifications();
+      });
     return () => {
       if (notifTimerRef.current) clearInterval(notifTimerRef.current);
+      if (notifRealtimeRef.current) supabase.removeChannel(notifRealtimeRef.current);
+      notifTimerRef.current = null;
+      notifRealtimeRef.current = null;
     };
-  }, [user?.id, fetchNotifCount]);
+  }, [user?.id, loadNotifications]);
+
+  const markNotifsRead = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("user_id", user.id)
+        .eq("read", false);
+      setNotifications(prev => (prev || []).map(n => ({ ...n, read: true })));
+      setUnreadNotifCount(0);
+    } catch {
+      await loadNotifications();
+    }
+  }, [user?.id, loadNotifications]);
 
   // ── Follow Status — direkter Supabase-Query (kein security layer) ─
   const [followedIds, setFollowedIds] = useState([]);
@@ -131,8 +177,11 @@ export function AppStateProvider({ children }) {
     activeTab, setActiveTab,
     isMobile,
     // Notifications
+    notifications,
     unreadNotifCount,
-    refreshNotifCount: fetchNotifCount,
+    loadNotifications,
+    markNotifsRead,
+    refreshNotifCount: loadNotifications,
     // Follow
     followedIds,
     toggleFollow,

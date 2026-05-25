@@ -14,11 +14,11 @@
 // - getTrustSignals: Trust-Badges für Creator-Profile
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { assertAuthenticated, assertCreator, globalMutationGuard } from './security/index.js';
-import { feedback, FEEDBACK_MESSAGES } from './feedback/index.js';
-import { validateBookingRequest, assertValid } from './validation/index.js';
+import { assertAuthenticated, globalMutationGuard } from './security/index.js';
+import { validateBookingRequest } from './validation/index.js';
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
+import { createNotification, notifyBooking } from "./notificationService";
 
 // ────────────────────────────────────────────────────────────────
 // Status System
@@ -48,6 +48,34 @@ export const MOODS = [
   "entspannt","kreativ","professionell","abenteuerlich","intim","energetisch",
   "inspirierend","experimentell",
 ];
+
+async function insertBookingSystemMessage(chatId, actorId, text, contextRef) {
+  if (!chatId || !actorId || !text) return;
+  const { error } = await supabase.from("messages").insert({
+    chat_id:     chatId,
+    sender_id:   actorId,
+    text,
+    msg_type:    "booking_update",
+    context_ref: contextRef || null,
+    read:        false,
+  });
+  if (error) console.warn("[Booking] booking_update message failed", error.message);
+}
+
+async function notifyBookingStatus(booking, actorId, title, body) {
+  if (!booking || !actorId) return;
+  const recipientId = booking.requester_id === actorId ? booking.creator_id : booking.requester_id;
+  if (!recipientId || recipientId === actorId) return;
+  await createNotification({
+    recipientId,
+    senderId:    actorId,
+    type:        "booking",
+    title,
+    body,
+    entityId:    booking.id,
+    entityType:  "booking",
+  });
+}
 
 // ────────────────────────────────────────────────────────────────
 // Trust Signals — für Creator-Profile
@@ -128,21 +156,29 @@ export function useBookingActions() {
     }
 
     setLoading(true); setError(null);
+    let createdChatId = null;
+    let createdBookingId = null;
     try {
       // 1. Chat für diese Anfrage erstellen
       const chatTitle = `${reqType ? REQ_TYPES.find(r=>r.key===reqType)?.label || reqType : "Anfrage"} mit ${creatorName || "Creator"}`;
       const { data: chat, error: chatErr } = await supabase
         .from("chats")
         .insert({
-          participant_ids: [user.id, creatorId],
-          state:           "open",
-          booking_title:   chatTitle,
-          last_message:    message || `Neue ${chatTitle}`,
-          last_message_at: new Date().toISOString(),
-          opened_at:       new Date().toISOString(),
+          participant_a:    user.id,
+          participant_b:    creatorId,
+          participant_ids:  [user.id, creatorId],
+          chat_type:        "booking",
+          state:            "open",
+          booking_title:    chatTitle,
+          context_title:    chatTitle,
+          context_type:     "booking",
+          last_message:     message || `Neue ${chatTitle}`,
+          last_message_at:  new Date().toISOString(),
+          opened_at:        new Date().toISOString(),
         })
         .select("id").single();
-      if (chatErr) console.warn("[Booking] Chat-Erstellung:", chatErr);
+      if (chatErr) throw chatErr;
+      createdChatId = chat?.id || null;
 
       // 2. Booking erstellen (mit Chat-Referenz)
       const { data: booking, error: bookErr } = await supabase
@@ -163,54 +199,79 @@ export function useBookingActions() {
           message:       message || null,
           amount_eur:    amountEur || null,
           impact_eur:    impactEur || null,
-          chat_id:       chat?.id || null,
+          chat_id:       chat.id,
           updated_at:    new Date().toISOString(),
         })
-        .select("id").single();
+        .select("id,status,chat_id").single();
       if (bookErr) throw bookErr;
+      createdBookingId = booking?.id || null;
+
+      const { error: linkErr } = await supabase
+        .from("chats")
+        .update({ booking_id: booking.id, context_id: booking.id })
+        .eq("id", chat.id);
+      if (linkErr) throw linkErr;
 
       // 3. Erste Chat-Nachricht = Anfrage-Summary
-      if (chat?.id && message) {
-        await supabase.from("messages").insert({
+      if (message) {
+        const { error: msgErr } = await supabase.from("messages").insert({
           chat_id:    chat.id,
           sender_id:  user.id,
           text:       message,
-          created_at: new Date().toISOString(),
-        }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
+          msg_type:   "text",
+          read:       false,
+        });
+        if (msgErr) throw msgErr;
       }
 
       // 4. Notification für Creator
-      await supabase.from("notifications").insert({
-        user_id:   creatorId,
-        type:      "booking_request",
-        text:      `Neue Anfrage von ${user.email?.split("@")[0] || "jemand"}`,
-        read:      false,
-        actor_id:  user.id,
-        created_at: new Date().toISOString(),
-      }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
+      await notifyBooking({
+        senderId:        user.id,
+        recipientId:     creatorId,
+        senderName:      user.email?.split("@")[0] || "Jemand",
+        bookingId:       booking.id,
+        experienceTitle: chatTitle,
+      });
 
-      return { data: booking, chatId: chat?.id };
+      return { data: booking, chatId: chat.id };
     } catch(e) {
+      if (createdBookingId) {
+        await supabase.from("bookings").delete().eq("id", createdBookingId).catch(() => {});
+      }
+      if (createdChatId) {
+        await supabase.from("chats").delete().eq("id", createdChatId).catch(() => {});
+      }
       setError(e.message);
       return { error: e.message };
     } finally {
+      globalMutationGuard.unlock(guardKey);
       setLoading(false);
     }
   }, [user?.id]);
 
   // Creator: Buchung annehmen
   const acceptBooking = useCallback(async (bookingId, note = "") => {
-    if (!user?.id) return;
+    if (!user?.id) return { error: "not_authenticated" };
     setLoading(true);
     try {
-      const { error } = await supabase.from("bookings")
+      const { data: bookingBefore } = await supabase
+        .from("bookings")
+        .select("id,status,chat_id,requester_id,creator_id")
+        .eq("id", bookingId)
+        .eq("creator_id", user.id)
+        .single();
+
+      const { data: updated, error } = await supabase.from("bookings")
         .update({
           status:       "accepted",
           creator_note: note || null,
           confirmed_at: new Date().toISOString(),
+          updated_at:   new Date().toISOString(),
         })
         .eq("id", bookingId)
-        .eq("creator_id", user.id);
+        .eq("creator_id", user.id)
+        .select("id,status,chat_id,requester_id,creator_id")
+        .single();
       if (error) throw error;
 
       // Booking Event loggen
@@ -218,10 +279,17 @@ export function useBookingActions() {
         booking_id:  bookingId,
         actor_id:    user.id,
         event_type:  "status_change",
-        from_status: "requested",
+        from_status: bookingBefore?.status || "requested",
         to_status:   "accepted",
         note:        note || null,
-      }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
+      }).catch(err => console.warn("[Booking] booking_events insert failed", err?.message));
+
+      await insertBookingSystemMessage(updated?.chat_id, user.id, "Buchungsanfrage angenommen.", {
+        type: "booking",
+        booking_id: bookingId,
+        status: "accepted",
+      });
+      await notifyBookingStatus(updated, user.id, "Buchung angenommen", "Deine Anfrage wurde angenommen.");
 
       return { success: true };
     } catch(e) {
@@ -234,24 +302,43 @@ export function useBookingActions() {
 
   // Creator: Buchung ablehnen
   const declineBooking = useCallback(async (bookingId, reason = "") => {
-    if (!user?.id) return;
+    if (!user?.id) return { error: "not_authenticated" };
     setLoading(true);
     try {
-      await supabase.from("bookings")
+      const { data: bookingBefore } = await supabase
+        .from("bookings")
+        .select("id,status,chat_id,requester_id,creator_id")
+        .eq("id", bookingId)
+        .eq("creator_id", user.id)
+        .single();
+
+      const { data: updated, error } = await supabase.from("bookings")
         .update({
           status:           "declined",
           declined_reason:  reason || null,
+          updated_at:       new Date().toISOString(),
         })
         .eq("id", bookingId)
-        .eq("creator_id", user.id);
+        .eq("creator_id", user.id)
+        .select("id,status,chat_id,requester_id,creator_id")
+        .single();
+      if (error) throw error;
 
       await supabase.from("booking_events").insert({
         booking_id:  bookingId,
         actor_id:    user.id,
         event_type:  "status_change",
+        from_status: bookingBefore?.status || "requested",
         to_status:   "declined",
         note:        reason || null,
-      }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
+      }).catch(err => console.warn("[Booking] booking_events insert failed", err?.message));
+
+      await insertBookingSystemMessage(updated?.chat_id, user.id, "Buchungsanfrage abgelehnt.", {
+        type: "booking",
+        booking_id: bookingId,
+        status: "declined",
+      });
+      await notifyBookingStatus(updated, user.id, "Buchung abgelehnt", "Deine Anfrage wurde abgelehnt.");
 
       return { success: true };
     } catch(e) {
@@ -264,25 +351,43 @@ export function useBookingActions() {
 
   // Buchung abschließen
   const completeBooking = useCallback(async (bookingId) => {
-    if (!user?.id) return;
+    if (!user?.id) return { error: "not_authenticated" };
     // Update booking — Trigger after_booking_completed feuert automatisch in DB:
     // → erstellt collaboration entry
     // → erstellt trust_event: collaboration_completed
     // → updated profile.collab_count
-    await supabase.from("bookings")
+    const { data, error } = await supabase.from("bookings")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", bookingId)
-      .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`);
+      .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`)
+      .select("id,status,chat_id,requester_id,creator_id")
+      .single();
+    if (error) return { error: error.message };
+    await insertBookingSystemMessage(data?.chat_id, user.id, "Buchung abgeschlossen.", {
+      type: "booking",
+      booking_id: bookingId,
+      status: "completed",
+    });
+    await notifyBookingStatus(data, user.id, "Buchung abgeschlossen", "Die Buchung wurde abgeschlossen.");
     return { success: true };
   }, [user?.id]);
 
   // Stornieren
   const cancelBooking = useCallback(async (bookingId) => {
-    if (!user?.id) return;
-    await supabase.from("bookings")
+    if (!user?.id) return { error: "not_authenticated" };
+    const { data, error } = await supabase.from("bookings")
       .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
       .eq("id", bookingId)
-      .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`);
+      .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`)
+      .select("id,status,chat_id,requester_id,creator_id")
+      .single();
+    if (error) return { error: error.message };
+    await insertBookingSystemMessage(data?.chat_id, user.id, "Buchung storniert.", {
+      type: "booking",
+      booking_id: bookingId,
+      status: "cancelled",
+    });
+    await notifyBookingStatus(data, user.id, "Buchung storniert", "Die Buchung wurde storniert.");
     return { success: true };
   }, [user?.id]);
 
@@ -337,8 +442,13 @@ export function useCreatorBookings() {
         event: "*", schema: "public", table: "bookings",
         filter: `creator_id=eq.${user.id}`,
       }, () => load())
-      .subscribe();
-    return () => { supabase.removeChannel(realtimeRef.current); };
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") load();
+      });
+    return () => {
+      if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
+      realtimeRef.current = null;
+    };
   }, [user?.id, load]);
 
   // Grouped by status
@@ -360,6 +470,7 @@ export function useMyBookings() {
   const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading,  setLoading]  = useState(true);
+  const realtimeRef = useRef(null);
 
   const load = useCallback(async () => {
     if (!user?.id) return;
@@ -383,6 +494,23 @@ export function useMyBookings() {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    realtimeRef.current = supabase
+      .channel(`client-bookings:${user.id}`)
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: "bookings",
+        filter: `requester_id=eq.${user.id}`,
+      }, () => load())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") load();
+      });
+    return () => {
+      if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
+      realtimeRef.current = null;
+    };
+  }, [user?.id, load]);
+
   return { bookings, loading, reload: load };
 }
 
@@ -395,6 +523,7 @@ export function useAvailableSlots(creatorId) {
 
   useEffect(() => {
     if (!creatorId) return;
+    let cancelled = false;
     setLoading(true);
     const from = new Date();
     const to   = new Date(Date.now() + 30 * 24 * 3600000); // 30 Tage
@@ -406,9 +535,14 @@ export function useAvailableSlots(creatorId) {
       .lte("slot_date", to.toISOString().split("T")[0])
       .order("slot_date")
       .then(({ data }) => {
+        if (cancelled) return;
         setSlots(data || []);
         setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
       });
+    return () => { cancelled = true; };
   }, [creatorId]);
 
   return { slots, loading };

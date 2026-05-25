@@ -27,9 +27,11 @@ export default function ChatInput({
   const [focused, setFocused] = React.useState(false);
   const textRef = useRef(null);
 
-  function send() {
+  async function send() {
     if (!text.trim() || sending) return;
-    onSend?.(text.trim());
+    const outgoing = text.trim();
+    const result = await onSend?.(outgoing);
+    if (result?.error) return;
     setText("");
     // Kurz warten, dann Fokus zurück — Safari-safe
     requestAnimationFrame(() => textRef.current?.focus());
@@ -56,8 +58,6 @@ export default function ChatInput({
       position: "relative",
       zIndex: 10,
       width: "100%",
-      // DEBUG: temporär — zum Beweis dass Composer existiert
-      outline: "3px solid rgba(22,215,197,0.40)",
     }}>
       <style>{CSS}</style>
 

@@ -63,7 +63,7 @@ const CONTRACTS = {
   OPEN_CHAT: {
     required:    [],
     requiredOr:  [],
-    optional:    ["recipient", "recipientId", "source"],
+    optional:    ["recipient", "recipientId", "chatId", "source"],
     description: "Oeffnet den Chat",
   },
   CLOSE_CHAT: {
