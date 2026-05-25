@@ -12,6 +12,7 @@ import StepOneTypeSelection   from "./StepOneTypeSelection.jsx";
 import StepTwoConnectionDetails from "./StepTwoConnectionDetails.jsx";
 import StepThreePreview       from "./StepThreePreview.jsx";
 import { useAuth }            from "../../lib/AuthContext.jsx";
+import { supabase }           from "../../lib/supabaseClient.js";
 import { HUI } from "../../design/hui.design.js";
 
 const C = {
@@ -102,6 +103,13 @@ const STEP_META = {
   1: { emoji:"✨", hint:"W\u00e4hle einen Moment" },
   2: { emoji:"\uD83D\uDCDD", hint:"Gib deiner Verbindung Form" },
   3: { emoji:"\uD83C\uDF1F", hint:"Bereit zum Teilen" },
+};
+
+const DB_VISIBILITY = {
+  public:  "public",
+  local:   "public",
+  friends: "followers",
+  private: "private",
 };
 
 /* ── Floating Navigation (sticky unten) ── */
@@ -258,7 +266,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         cost:             formData.cost             || "free",
         cost_amount:      formData.costAmount ? Number(formData.costAmount) : null,
         mood:             formData.mood             || null,
-        visibility:       formData.visibility       || "public",
+        visibility:       DB_VISIBILITY[formData.visibility] || "public",
         openness:         formData.openness         || "open",
         status:           "active",
       };
@@ -283,7 +291,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           details: dbErr.details,
           hint:    dbErr.hint,
         });
-        // Kein return — Flow schließt trotzdem sauber
+        throw dbErr;
       } else {
         // ── STEP 4: Insert Success ───────────────────────────────
         console.log("[HUI CONNECTION] step 4 insert success", {
@@ -417,6 +425,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           <StepThreePreview
             data={{ ...formData }}
             onPublish={handleNext}
+            onBack={() => goTo(2)}
             publishing={publishing}
           />
         )}
