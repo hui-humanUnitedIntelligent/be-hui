@@ -429,7 +429,9 @@ function StepCreate({ mode, data, onChange }) {
         </div>
       )}
 
-      {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
+
+
+   {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
       {showDebugPanel && (
         <div style={{
           position:"fixed", top:0, left:0, right:0, bottom:0,
@@ -705,6 +707,17 @@ export default function TeilenFlow({ onClose, onPublished }) {
   const [publishing,     setPublishing]     = useState(false);
   const [debugRows,      setDebugRows]      = useState([]);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
+
+  // ── PUBLISH DEBUG ────────────────────────────────────────────────────
+  const [publishDebug, setPublishDebug] = useState([]);
+
+  const pushDebug = useCallback((label, value) => {
+    console.log("PUBLISH_DEBUG", label, value);
+    setPublishDebug(prev => [
+      ...prev,
+      { time: new Date().toISOString(), label, value }
+    ]);
+  }, []);
   const scrollRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -747,96 +760,95 @@ export default function TeilenFlow({ onClose, onPublished }) {
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
     if (publishing) return;
+
+    // ── STEP 1: Start ────────────────────────────────────────────────
+    pushDebug("START_PUBLISH", { mode: form.mode, hasMedia: !!form.mediaFile, text: form.text?.slice(0,40) });
+
     if (!user?.id) {
-      console.error("[HUI MOMENT] PUBLISH ABORT — kein user.id");
+      pushDebug("NO_USER_ID", { user });
       return;
     }
 
-    console.log("[HUI MOMENT] step 1 click", {
-      mode: form.mode, hasMedia: !!form.mediaFile, text: form.text?.slice(0,40),
-    });
     setPublishing(true);
     let published = false;
 
     try {
-      // ── STEP 2: Upload (optional) ────────────────────────────────
-      let src = null;
-      if (form.mediaFile) {
-        console.log("[HUI MOMENT] step 2 upload start", form.mediaFile.name);
-        const ext  = form.mediaFile.name.split(".").pop();
-        const path = `moments/${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("moments")
-          .upload(path, form.mediaFile, { upsert: true });
-        if (upErr) {
-          console.error("[HUI MOMENT] step 2 upload error", upErr.message);
-          // Upload-Fehler = kein Bild, aber trotzdem weitermachen
-        } else {
-          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
-          src = pub?.publicUrl || null;
-          console.log("[HUI MOMENT] step 2 upload success", src);
-        }
-      } else {
-        console.log("[HUI MOMENT] step 2 kein Upload — Text-only Moment");
+      // ── STEP 2: Session Check ────────────────────────────────────
+      const { data: { session } } = await supabase.auth.getSession();
+      pushDebug("SESSION", { userId: session?.user?.id, expires: session?.expires_at });
+
+      if (!session) {
+        pushDebug("NO_SESSION", true);
+        setPublishing(false);
+        return;
       }
 
-      // ── STEP 3: Insert in beitraege (das ist was der Feed liest) ─
+      // ── STEP 3: Upload (optional) ────────────────────────────────
+      let src = null;
+      if (form.mediaFile) {
+        pushDebug("UPLOAD_START", { hasFile: true, type: form.mediaFile?.type, size: form.mediaFile?.size });
+        const ext  = form.mediaFile.name.split(".").pop();
+        const path = `moments/${user.id}/${Date.now()}.${ext}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("moments")
+          .upload(path, form.mediaFile, { upsert: true });
+        pushDebug("UPLOAD_RESULT", { data: uploadData, error: uploadError });
+        if (!uploadError) {
+          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
+          src = pub?.publicUrl || null;
+          pushDebug("PUBLIC_URL", src);
+        }
+      } else {
+        pushDebug("UPLOAD_START", { hasFile: false, reason: "Text-only Moment" });
+      }
+
+      // ── STEP 4: Insert ───────────────────────────────────────────
       const payload = {
-        user_id: user.id,
+        user_id: session.user.id,
         type:    form.mode === "story" ? "note" : "moment",
         caption: form.text?.trim() || null,
         src:     src,
       };
-      console.log("[HUI MOMENT] step 3 insert start →", "beitraege", payload);
+      pushDebug("INSERT_PAYLOAD", payload);
 
-      const { data: row, error: dbErr } = await supabase
+      const { data, error: dbErr } = await supabase
         .from("beitraege")
         .insert(payload)
-        .select("id")
-        .single();
+        .select();
+
+      pushDebug("INSERT_RESPONSE", { data, error: dbErr });
 
       if (dbErr) {
-        console.error("[HUI MOMENT] step 4 insert error", {
-          code: dbErr.code, message: dbErr.message, hint: dbErr.hint,
+        pushDebug("INSERT_ERROR_DETAIL", {
+          code: dbErr.code,
+          message: dbErr.message,
+          hint: dbErr.hint,
+          details: dbErr.details,
         });
-        // Nicht crashen — aber auch nicht als "published" markieren
+        // KEIN silent fail — bleibt offen, Panel zeigt Fehler
       } else {
-        console.log("[HUI MOMENT] step 4 insert success", row?.id);
+        pushDebug("INSERT_SUCCESS", { id: data?.[0]?.id });
         published = true;
 
-        // ── POST-INSERT VERIFY: sofort nochmal beitraege abfragen ──
-        console.log("[HUI MOMENT] step 4b — sofort re-query beitraege (newest 5)");
-        try {
-          const { data: recentRows, error: recentErr } = await supabase
-            .from("beitraege")
-            .select("id,user_id,type,caption,src,created_at")
-            .order("created_at", { ascending: false })
-            .limit(5);
-          if (recentErr) {
-            console.error("[HUI MOMENT] step 4b re-query error", recentErr.code, recentErr.message);
-          } else {
-            console.log("[HUI MOMENT] step 4b re-query SUCCESS — rows:", recentRows?.length ?? 0, recentRows);
-            // UI-sichtbar machen
-            setDebugRows(recentRows || []);
-            setShowDebugPanel(true);
-          }
-        } catch (qErr) {
-          console.error("[HUI MOMENT] step 4b re-query EXCEPTION", qErr?.message);
-        }
+        // ── POST-INSERT VERIFY ───────────────────────────────────────
+        const { data: recentRows, error: recentErr } = await supabase
+          .from("beitraege")
+          .select("id,user_id,type,caption,src,created_at")
+          .order("created_at", { ascending: false })
+          .limit(5);
+        pushDebug("POST_INSERT_QUERY", { rows: recentRows?.length ?? 0, error: recentErr, data: recentRows });
+        setDebugRows(recentRows || []);
+        setShowDebugPanel(true);
       }
 
     } catch (err) {
-      console.error("[HUI MOMENT] step 4 EXCEPTION", err?.message);
+      pushDebug("EXCEPTION", { message: err?.message, stack: err?.stack?.split("\n").slice(0,4) });
     } finally {
       setPublishing(false);
-      console.log("[HUI MOMENT] step 5 finally — published:", published);
+      pushDebug("FINALLY", { published });
       if (published) {
-        // Callback mit refresh-Signal an HomeFeed
         onPublished?.({ mode: form.mode, refresh: true });
-        setTimeout(() => {
-          console.log("[HUI MOMENT] step 6 onClose()");
-          onClose?.();
-        }, 100);
+        setTimeout(() => { onClose?.(); }, 100);
       }
     }
   }, [form, publishing, user?.id, onClose, onPublished]);
@@ -999,7 +1011,27 @@ export default function TeilenFlow({ onClose, onPublished }) {
         </div>
       )}
 
-      {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
+         {/* ── PUBLISH DEBUG PANEL — immer sichtbar nach erstem pushDebug ── */}
+      {publishDebug.length > 0 && (
+        <div
+          style={{
+            background: "#000",
+            color: "#00ff88",
+            padding: 12,
+            marginTop: 20,
+            fontSize: 11,
+            whiteSpace: "pre-wrap",
+            overflowX: "auto",
+            border: "2px solid #00ff88",
+            maxHeight: 300,
+            overflowY: "auto",
+          }}
+        >
+          <pre>{JSON.stringify(publishDebug, null, 2)}</pre>
+        </div>
+      )}
+
+   {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
       {showDebugPanel && (
         <div style={{
           position:"fixed", top:0, left:0, right:0, bottom:0,
