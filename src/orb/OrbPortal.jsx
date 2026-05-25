@@ -1,333 +1,535 @@
 /**
- * OrbPortal.jsx — Phase 4G v2 (Screenshot-exact)
+ * OrbPortal.jsx — Phase 4H "Die Bühne"
  *
- * DESIGN REFERENZ: Screenshot HUI App
+ * PHILOSOPHIE:
+ *   Kein Menü. Kein FAB-Popup. Keine herumfliegenden Buttons.
  *
- * Was der Screenshot zeigt:
- *  - HELLER Hintergrund (App bleibt sichtbar, nur soft blur)
- *  - Zentraler großer Logo-Orb mit warmem Lichtschein
- *  - 4 organische schwebende Action-Nodes (unterschiedliche Farben + Icons)
- *  - Nodes radial um den Orb positioniert
- *  - X-Button unten
- *  - Keine Karten, keine Textkisten — nur schwebende Kreise
+ *   Der Orb öffnet eine Bühne.
+ *   Der Nutzer öffnet seinen Ausdruck zur Welt.
  *
- * FARBWELT:
- *  - Moment:       Teal/Cyan Glow (oben)
- *  - Werk:         Coral/Orange (rechts oben)
- *  - Erlebnis:     Blau (rechts unten)
- *  - Veranstaltung: Coral/Red (links unten)
- *  - Zentrum:      HUI Logo — Türkis + Coral Gradient
+ * STRUKTUR:
+ *   - Heller, sanft geblurrter Backdrop (App bleibt sichtbar)
+ *   - Bottom Sheet steigt auf — warm, glasartig, luftig
+ *   - Orb-Signet oben im Sheet (klein, atmet)
+ *   - 5 Bereiche in organischer Komposition:
+ *       Moment, Werk, Erlebnis, Veranstaltung, Projekt
+ *   - Projekt = besonders, visuell hervorgehoben
+ *
+ * KEIN:
+ *   radiales Menü, floating bubbles, neon, dark UI, gaming
  */
 
 import React, {
-  useState, useEffect, useRef, useCallback, useMemo,
+  useState, useEffect, useRef, useCallback,
 } from "react";
 
-// ─── CSS ─────────────────────────────────────────────────────────────────────
-const CSS = `
-  /* Backdrop: hell, soft blur — App bleibt sichtbar */
-  @keyframes huiOrbBackdropIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes huiOrbBackdropOut {
-    from { opacity: 1; }
-    to   { opacity: 0; }
-  }
+// ─── Farb-Tokens ─────────────────────────────────────────────────────────────
+const C = {
+  teal:       "#0DC4B5",
+  tealLight:  "#22DDD0",
+  tealPale:   "#E8FAF8",
+  tealGlow:   "rgba(13,196,181,0.14)",
+  coral:      "#F47355",
+  coralPale:  "#FFF0EB",
+  coralGlow:  "rgba(244,115,85,0.14)",
+  gold:       "#D4952A",
+  goldPale:   "#FDF6E3",
+  violet:     "#7264D6",
+  violetPale: "#F0EEFF",
+  violetGlow: "rgba(114,100,214,0.14)",
+  sage:       "#6BAE8F",
+  sagePale:   "#EEF7F2",
+  sageGlow:   "rgba(107,174,143,0.13)",
+  ink:        "#141422",
+  ink2:       "rgba(20,20,34,0.62)",
+  ink3:       "rgba(20,20,34,0.38)",
+  cream:      "#FAF7F2",
+  white:      "#FFFFFF",
+};
 
-  /* Zentraler Orb: expandiert organisch */
-  @keyframes huiOrbExpand {
-    0%   { transform: scale(0.45); opacity: 0; }
-    55%  { transform: scale(1.06); opacity: 1; }
-    100% { transform: scale(1);    opacity: 1; }
-  }
-
-  /* Logo-Orb atmet */
-  @keyframes huiOrbBreath {
-    0%,100% {
-      box-shadow:
-        0 0 0 0   rgba(13,196,181,0.00),
-        0 0 60px  rgba(13,196,181,0.28),
-        0 0 120px rgba(13,196,181,0.14),
-        0 8px 40px rgba(244,115,85,0.12);
-    }
-    50% {
-      box-shadow:
-        0 0 0 14px rgba(13,196,181,0.06),
-        0 0 80px  rgba(13,196,181,0.40),
-        0 0 160px rgba(13,196,181,0.18),
-        0 8px 60px rgba(244,115,85,0.18);
-    }
-  }
-
-  /* Node Entry: von Orb-Mitte nach außen */
-  @keyframes huiNodeReveal {
-    0%   { opacity: 0; transform: translate(var(--nx), var(--ny)) scale(0.3); }
-    60%  { transform: translate(var(--tx), var(--ty)) scale(1.05); opacity: 1; }
-    100% { opacity: 1; transform: translate(var(--tx), var(--ty)) scale(1); }
-  }
-
-  /* Node Float: sanftes Schweben */
-  @keyframes huiNodeFloatA { 0%,100%{margin-top:0}     50%{margin-top:-6px} }
-  @keyframes huiNodeFloatB { 0%,100%{margin-top:3px}   50%{margin-top:-4px} }
-  @keyframes huiNodeFloatC { 0%,100%{margin-top:-3px}  50%{margin-top:4px}  }
-  @keyframes huiNodeFloatD { 0%,100%{margin-top:2px}   50%{margin-top:-5px} }
-
-  /* Glow Pulse für Nodes */
-  @keyframes huiNodeGlowPulse {
-    0%,100% { opacity: 0.55; transform: scale(1);    }
-    50%     { opacity: 0.85; transform: scale(1.08); }
-  }
-
-  /* Zentraler Lichtschein unter dem Orb */
-  @keyframes huiOrbGroundGlow {
-    0%,100% { opacity: 0.45; transform: translate(-50%,-50%) scale(1);    }
-    50%     { opacity: 0.65; transform: translate(-50%,-50%) scale(1.08); }
-  }
-
-  /* X-Button Entry */
-  @keyframes huiCloseIn {
-    0%   { opacity:0; transform:scale(0.6); }
-    100% { opacity:1; transform:scale(1);   }
-  }
-
-  /* Label fade */
-  @keyframes huiLabelIn {
-    0%   { opacity:0; transform:translateY(5px); }
-    100% { opacity:1; transform:translateY(0);   }
-  }
-
-  .hui-orb-node:active {
-    transform: scale(0.93) !important;
-    transition: transform 120ms cubic-bezier(0.22,1,0.36,1) !important;
-  }
-  .hui-orb-close:active {
-    transform: scale(0.88) !important;
-    transition: transform 100ms ease !important;
-  }
-`;
-
-// ─── Action Nodes Definition ──────────────────────────────────────────────────
-// Screenshot-exakt: 4 Nodes, radial um den Zentral-Orb
-// Positionen: oben (Moment), rechts-oben (Werk), rechts-unten (Erlebnis), links-unten (Veranstaltung)
-const NODES = [
+// ─── 5 Bereiche Definition ────────────────────────────────────────────────────
+const AREAS = [
   {
     key:       "moment",
-    label:     "Spontaner\nMoment",
-    icon:      "⚡",
     action:    "story",
-    // Position relativ zum Zentrum: oben-mittig, leicht links
-    angle:     -90,   // oben
-    dist:      0.42,  // Abstand als % des kleineren Viewports
-    size:      70,
-    // Teal/Cyan wie im Screenshot
-    bg:        "linear-gradient(145deg, #16D7C5 0%, #0DC4B5 100%)",
-    glow:      "rgba(13,196,181,0.45)",
-    glowBig:   "rgba(13,196,181,0.18)",
-    float:     "huiNodeFloatA",
-    floatDur:  "3.8s",
-    delay:     0.12,
-    priority:  true,  // größer im Screenshot
+    icon:      "✦",
+    label:     "Moment",
+    sub:       "Teile was dich gerade bewegt",
+    color:     C.teal,
+    pale:      C.tealPale,
+    glow:      C.tealGlow,
+    // Emotionale Energie
+    energy:    "spontan · menschlich · direkt",
+    weight:    "normal",  // visuelle Gewichtung
   },
   {
     key:       "werk",
-    label:     "Werk\nveröffentlichen",
-    icon:      "✏️",
     action:    "werk",
-    // Rechts oben
-    angle:     -22,
-    dist:      0.38,
-    size:      62,
-    // Coral/Orange
-    bg:        "linear-gradient(145deg, #F47355 0%, #E05C3C 100%)",
-    glow:      "rgba(244,115,85,0.45)",
-    glowBig:   "rgba(244,115,85,0.18)",
-    float:     "huiNodeFloatB",
-    floatDur:  "4.2s",
-    delay:     0.20,
-    priority:  false,
+    icon:      "◈",
+    label:     "Werk",
+    sub:       "Zeige deine kreative Arbeit",
+    color:     C.coral,
+    pale:      C.coralPale,
+    glow:      C.coralGlow,
+    energy:    "Kunst · Musik · Design · Projekte",
+    weight:    "normal",
   },
   {
     key:       "erlebnis",
-    label:     "Erlebnis\nveröffentlichen",
-    icon:      "👥",
     action:    "experience",
-    // Rechts unten
-    angle:     42,
-    dist:      0.38,
-    size:      62,
-    // Blau wie im Screenshot
-    bg:        "linear-gradient(145deg, #4FB8F0 0%, #2A9FE0 100%)",
-    glow:      "rgba(42,159,224,0.45)",
-    glowBig:   "rgba(42,159,224,0.18)",
-    float:     "huiNodeFloatC",
-    floatDur:  "4.6s",
-    delay:     0.28,
-    priority:  false,
+    icon:      "◎",
+    label:     "Erlebnis",
+    sub:       "Öffne einen echten menschlichen Raum",
+    color:     C.sage,
+    pale:      C.sagePale,
+    glow:      C.sageGlow,
+    energy:    "Treffen · Workshops · gemeinsam",
+    weight:    "normal",
   },
   {
     key:       "veranstaltung",
-    label:     "Veranstaltung\nerstellen",
-    icon:      "📅",
-    action:    "event",
-    // Links unten
-    angle:     210,
-    dist:      0.38,
-    size:      62,
-    // Coral/Red wie im Screenshot
-    bg:        "linear-gradient(145deg, #F47355 0%, #C94A2A 100%)",
-    glow:      "rgba(244,115,85,0.45)",
-    glowBig:   "rgba(244,115,85,0.18)",
-    float:     "huiNodeFloatD",
-    floatDur:  "5.0s",
-    delay:     0.36,
-    priority:  false,
+    action:    "veranstaltung",
+    icon:      "⬡",
+    label:     "Veranstaltung",
+    sub:       "Bring Menschen zusammen",
+    color:     C.gold,
+    pale:      C.goldPale,
+    glow:      "rgba(212,149,42,0.13)",
+    energy:    "Community · Events · öffentlich",
+    weight:    "normal",
+  },
+  {
+    key:       "projekt",
+    action:    "impact",
+    icon:      "◐",
+    label:     "Projekt",
+    sub:       "Reiche deine Vision beim HUI-Team ein",
+    color:     C.violet,
+    pale:      C.violetPale,
+    glow:      C.violetGlow,
+    energy:    "ImpactPool · Förderung · Zukunft",
+    weight:    "featured",  // visuell besonders
   },
 ];
 
-// ─── Polar → Pixel ────────────────────────────────────────────────────────────
-function polarPx(angleDeg, dist, vw, vh) {
-  const minDim = Math.min(vw, vh);
-  const r      = minDim * dist;
-  const rad    = (angleDeg - 90) * (Math.PI / 180);
-  return {
-    x: Math.cos(rad) * r,
-    y: Math.sin(rad) * r,
-  };
-}
+// ─── CSS ──────────────────────────────────────────────────────────────────────
+const CSS = `
+  @keyframes huiStageBackdropIn {
+    from { opacity:0; }
+    to   { opacity:1; }
+  }
+  @keyframes huiStageBackdropOut {
+    from { opacity:1; }
+    to   { opacity:0; }
+  }
+  @keyframes huiStageSheetUp {
+    from { opacity:0; transform:translateY(28px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes huiStageSheetDown {
+    from { opacity:1; transform:translateY(0); }
+    to   { opacity:0; transform:translateY(20px); }
+  }
+  @keyframes huiStageOrbPulse {
+    0%,100% {
+      box-shadow:
+        0 0 0 0 rgba(13,196,181,0),
+        0 4px 18px rgba(13,196,181,0.32),
+        0 0 0 0 rgba(244,115,85,0);
+    }
+    50% {
+      box-shadow:
+        0 0 0 7px rgba(13,196,181,0.07),
+        0 4px 28px rgba(13,196,181,0.45),
+        0 0 30px rgba(244,115,85,0.10);
+    }
+  }
+  @keyframes huiStageAreaIn {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes huiStageFeaturedGlow {
+    0%,100% { box-shadow: 0 2px 16px rgba(114,100,214,0.14), 0 0 0 1px rgba(114,100,214,0.12); }
+    50%     { box-shadow: 0 4px 28px rgba(114,100,214,0.22), 0 0 0 1px rgba(114,100,214,0.20); }
+  }
+  .hui-stage-area {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .hui-stage-area:active {
+    transform: scale(0.975) !important;
+    transition: transform 100ms cubic-bezier(0.22,1,0.36,1) !important;
+  }
+  .hui-stage-close {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+`;
 
-// ─── Einzelner Node ───────────────────────────────────────────────────────────
-function OrbNode({ node, idx, orbCx, orbCy, vw, vh, hoveredKey, onHover, onLeave, onSelect }) {
-  const pos      = polarPx(node.angle, node.dist, vw, vh);
-  const SIZE     = node.size;
-  const isHov    = hoveredKey === node.key;
+// ─── Normaler Bereich (4 von 5) ───────────────────────────────────────────────
+function AreaNormal({ area, idx, hoveredKey, onHover, onLeave, onSelect }) {
+  const isHov    = hoveredKey === area.key;
   const isDimmed = hoveredKey !== null && !isHov;
-  const delay    = `${node.delay}s`;
-
-  // Finale Position: Orb-Zentrum + polar offset
-  const tx = orbCx + pos.x - SIZE / 2;
-  const ty = orbCy + pos.y - SIZE / 2;
+  const delay    = `${0.08 + idx * 0.05}s`;
 
   return (
-    <div
+    <button
+      className="hui-stage-area"
+      onMouseEnter={() => onHover(area.key)}
+      onMouseLeave={onLeave}
+      onTouchStart={() => onHover(area.key)}
+      onTouchEnd={onLeave}
+      onClick={() => onSelect(area)}
       style={{
-        position:   "absolute",
-        left:       0,
-        top:        0,
-        // Entry animation von Orb-Mitte nach außen
-        "--nx": `${orbCx - SIZE / 2}px`,
-        "--ny": `${orbCy - SIZE / 2}px`,
-        "--tx": `${tx}px`,
-        "--ty": `${ty}px`,
-        animation:  `huiNodeReveal 0.55s cubic-bezier(0.16,1,0.3,1) ${delay} both`,
-        // Float nach Entry
-        willChange: "transform",
-        zIndex:     20,
+        display:        "flex",
+        alignItems:     "center",
+        gap:            14,
+        width:          "100%",
+        padding:        "13px 16px",
+        borderRadius:   16,
+        border:         `1px solid ${isHov ? area.color + "30" : "rgba(20,20,34,0.07)"}`,
+        background:     isHov ? area.pale : C.white,
+        cursor:         "pointer",
+        outline:        "none",
+        textAlign:      "left",
+        animation:      `huiStageAreaIn 0.44s cubic-bezier(0.16,1,0.3,1) ${delay} both`,
+        opacity:        isDimmed ? 0.46 : 1,
+        transform:      isDimmed ? "scale(0.99)" : "scale(1)",
+        transition:     [
+          "opacity 0.32s ease",
+          "transform 0.32s ease",
+          "background 0.28s ease",
+          "border-color 0.28s ease",
+          "box-shadow 0.28s ease",
+        ].join(", "),
+        boxShadow:      isHov
+          ? `0 4px 20px ${area.glow}, 0 1px 4px rgba(0,0,0,0.04)`
+          : "0 1px 3px rgba(0,0,0,0.04)",
       }}
     >
-      {/* Float-Wrapper */}
+      {/* Icon Pill */}
       <div style={{
-        animation:  `${node.float} ${node.floatDur} ${parseFloat(node.delay) + 0.6}s ease-in-out infinite`,
+        flexShrink:    0,
+        width:         42, height: 42,
+        borderRadius:  12,
+        background:    isHov
+          ? `linear-gradient(145deg, ${area.color}22 0%, ${area.color}0a 100%)`
+          : `${area.pale}`,
+        border:        `1px solid ${area.color}28`,
+        display:       "flex",
+        alignItems:    "center",
+        justifyContent:"center",
+        fontSize:      17,
+        color:         area.color,
+        transition:    "all 0.28s ease",
+        fontWeight:    300,
       }}>
-        {/* Glow-Halo hinter dem Node */}
-        <div
-          aria-hidden="true"
-          style={{
-            position:     "absolute",
-            left:         "50%",
-            top:          "50%",
-            width:        SIZE + 40,
-            height:       SIZE + 40,
-            transform:    "translate(-50%,-50%)",
-            borderRadius: "50%",
-            background:   `radial-gradient(circle, ${node.glowBig} 0%, transparent 70%)`,
-            animation:    `huiNodeGlowPulse ${node.floatDur} ease-in-out infinite`,
-            opacity:      isHov ? 1 : isDimmed ? 0.2 : 0.6,
-            transition:   "opacity 0.35s ease",
-            pointerEvents:"none",
-          }}
-        />
+        {area.icon}
+      </div>
 
-        {/* Node-Kreis */}
-        <button
-          className="hui-orb-node"
-          onMouseEnter={() => onHover(node.key)}
-          onMouseLeave={onLeave}
-          onTouchStart={() => onHover(node.key)}
-          onTouchEnd={onLeave}
-          onClick={() => onSelect(node)}
-          aria-label={node.label.replace("\n", " ")}
-          style={{
-            position:      "relative",
-            width:         SIZE,
-            height:        SIZE,
-            borderRadius:  "50%",
-            background:    node.bg,
-            border:        isHov
-              ? `2.5px solid rgba(255,255,255,0.85)`
-              : `2px solid rgba(255,255,255,0.50)`,
-            boxShadow: isHov
-              ? `0 0 0 6px ${node.glow.replace("0.45", "0.12")}, 0 8px 32px ${node.glow}, 0 2px 8px rgba(0,0,0,0.14)`
-              : `0 4px 20px ${node.glow}, 0 2px 8px rgba(0,0,0,0.12)`,
-            display:       "flex",
-            alignItems:    "center",
-            justifyContent:"center",
-            fontSize:      node.priority ? 26 : 22,
-            cursor:        "pointer",
-            opacity:       isDimmed ? 0.38 : 1,
-            transform:     isHov ? "scale(1.10)" : "scale(1)",
-            transition:    [
-              "opacity 0.32s ease",
-              "transform 0.32s cubic-bezier(0.34,1.56,0.64,1)",
-              "box-shadow 0.32s ease",
-              "border-color 0.28s ease",
-            ].join(", "),
-            padding:       0,
-            outline:       "none",
-            WebkitTapHighlightColor: "transparent",
-            touchAction:   "manipulation",
-            // Highlight shimmer on top
-            overflow:      "hidden",
-          }}
-        >
-          {/* Inner highlight (glass-shimmer) */}
-          <div style={{
-            position:     "absolute",
-            top:          0, left: "8%",
-            width:        "84%",
-            height:       "46%",
-            borderRadius: "50% 50% 0 0 / 55% 55% 0 0",
-            background:   "linear-gradient(180deg, rgba(255,255,255,0.36) 0%, transparent 100%)",
-            pointerEvents:"none",
-          }} />
-          <span style={{ position: "relative", zIndex: 1 }}>{node.icon}</span>
-        </button>
-
-        {/* Label unter dem Node */}
-        <div
-          aria-hidden="true"
-          style={{
-            position:      "absolute",
-            top:           SIZE + 8,
-            left:          "50%",
-            transform:     "translateX(-50%)",
-            whiteSpace:    "nowrap",
-            textAlign:     "center",
-            fontSize:      11,
-            fontWeight:    600,
-            lineHeight:    1.35,
-            color:         isDimmed ? "rgba(20,20,34,0.28)" : "rgba(20,20,34,0.72)",
-            letterSpacing: "-0.01em",
-            animation:     `huiLabelIn 0.38s ease ${parseFloat(node.delay) + 0.25}s both`,
-            transition:    "color 0.32s ease",
-            pointerEvents: "none",
-            // Label-Zeilenumbruch via \n
-            whiteSpace:    "pre",
-          }}
-        >
-          {node.label}
+      {/* Text */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize:      14,
+          fontWeight:    600,
+          color:         isHov ? area.color : C.ink,
+          letterSpacing: "-0.022em",
+          lineHeight:    1.2,
+          marginBottom:  2,
+          transition:    "color 0.24s ease",
+        }}>
+          {area.label}
+        </div>
+        <div style={{
+          fontSize:      11.5,
+          color:         isDimmed ? C.ink3 : isHov ? area.color + "aa" : C.ink3,
+          letterSpacing: "-0.005em",
+          lineHeight:    1.3,
+          transition:    "color 0.24s ease",
+        }}>
+          {area.sub}
         </div>
       </div>
+
+      {/* Chevron */}
+      <div style={{
+        flexShrink: 0,
+        width:      20, height: 20,
+        borderRadius: "50%",
+        background:  isHov ? area.color : "rgba(20,20,34,0.06)",
+        display:     "flex",
+        alignItems:  "center",
+        justifyContent:"center",
+        transition:  "all 0.24s ease",
+      }}>
+        <span style={{
+          fontSize:   9,
+          color:      isHov ? C.white : C.ink3,
+          lineHeight: 1,
+          marginLeft: 1,
+          fontWeight: 600,
+        }}>›</span>
+      </div>
+    </button>
+  );
+}
+
+// ─── Featured Bereich: Projekt ────────────────────────────────────────────────
+function AreaFeatured({ area, idx, hoveredKey, onHover, onLeave, onSelect }) {
+  const isHov    = hoveredKey === area.key;
+  const isDimmed = hoveredKey !== null && !isHov;
+  const delay    = `${0.08 + idx * 0.05}s`;
+
+  return (
+    <button
+      className="hui-stage-area"
+      onMouseEnter={() => onHover(area.key)}
+      onMouseLeave={onLeave}
+      onTouchStart={() => onHover(area.key)}
+      onTouchEnd={onLeave}
+      onClick={() => onSelect(area)}
+      style={{
+        display:      "flex",
+        alignItems:   "center",
+        gap:          14,
+        width:        "100%",
+        padding:      "16px 16px",
+        borderRadius: 18,
+        border:       `1px solid ${isHov ? area.color + "45" : area.color + "20"}`,
+        background:   isHov
+          ? `linear-gradient(135deg, ${area.pale} 0%, rgba(255,255,255,0.95) 100%)`
+          : `linear-gradient(135deg, ${area.pale} 0%, rgba(255,255,255,0.8) 100%)`,
+        cursor:       "pointer",
+        outline:      "none",
+        textAlign:    "left",
+        animation:    `huiStageAreaIn 0.44s cubic-bezier(0.16,1,0.3,1) ${delay} both,
+                       huiStageFeaturedGlow 5s 1s ease-in-out infinite`,
+        opacity:      isDimmed ? 0.46 : 1,
+        transform:    isDimmed ? "scale(0.99)" : "scale(1)",
+        transition:   [
+          "opacity 0.32s ease",
+          "transform 0.32s ease",
+          "background 0.28s ease",
+          "border-color 0.28s ease",
+        ].join(", "),
+        position:     "relative",
+        overflow:     "hidden",
+      }}
+    >
+      {/* Subtiler Hintergrundschimmer */}
+      <div style={{
+        position:     "absolute",
+        top:          0, right: 0,
+        width:        120, height: "100%",
+        background:   `linear-gradient(90deg, transparent, ${area.color}08)`,
+        pointerEvents:"none",
+        borderRadius: "0 18px 18px 0",
+      }} />
+
+      {/* Icon Pill — größer als normal */}
+      <div style={{
+        flexShrink:    0,
+        width:         46, height: 46,
+        borderRadius:  14,
+        background:    `linear-gradient(145deg, ${area.color}22 0%, ${area.color}12 100%)`,
+        border:        `1.5px solid ${area.color}35`,
+        display:       "flex",
+        alignItems:    "center",
+        justifyContent:"center",
+        fontSize:      19,
+        color:         area.color,
+        boxShadow:     `0 3px 12px ${area.glow}`,
+        position:      "relative",
+        zIndex:        1,
+      }}>
+        {area.icon}
+      </div>
+
+      {/* Text */}
+      <div style={{ flex: 1, minWidth: 0, position: "relative", zIndex: 1 }}>
+        <div style={{
+          display:      "flex",
+          alignItems:   "center",
+          gap:          7,
+          marginBottom: 3,
+        }}>
+          <span style={{
+            fontSize:      14,
+            fontWeight:    700,
+            color:         area.color,
+            letterSpacing: "-0.024em",
+            lineHeight:    1.2,
+          }}>
+            {area.label}
+          </span>
+          {/* Badge */}
+          <span style={{
+            fontSize:      9,
+            fontWeight:    600,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color:         area.color,
+            background:    area.color + "18",
+            border:        `1px solid ${area.color}30`,
+            borderRadius:  5,
+            padding:       "2px 6px",
+          }}>
+            ImpactPool
+          </span>
+        </div>
+        <div style={{
+          fontSize:      11.5,
+          color:         area.color + "99",
+          letterSpacing: "-0.005em",
+          lineHeight:    1.3,
+        }}>
+          {area.sub}
+        </div>
+        {/* Energie-Text */}
+        <div style={{
+          fontSize:      10,
+          color:         area.color + "70",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          fontWeight:    500,
+          marginTop:     5,
+        }}>
+          {area.energy}
+        </div>
+      </div>
+
+      {/* Chevron — größer */}
+      <div style={{
+        flexShrink:    0,
+        width:         24, height: 24,
+        borderRadius:  "50%",
+        background:    `linear-gradient(135deg, ${area.color}25, ${area.color}15)`,
+        border:        `1px solid ${area.color}30`,
+        display:       "flex",
+        alignItems:    "center",
+        justifyContent:"center",
+        position:      "relative",
+        zIndex:        1,
+      }}>
+        <span style={{
+          fontSize: 10, color: area.color,
+          lineHeight: 1, marginLeft: 1, fontWeight: 700,
+        }}>›</span>
+      </div>
+    </button>
+  );
+}
+
+// ─── Orb Signet (oben im Sheet) ───────────────────────────────────────────────
+function OrbSignet({ onClose }) {
+  return (
+    <div style={{
+      display:       "flex",
+      alignItems:    "center",
+      justifyContent:"space-between",
+      marginBottom:  20,
+    }}>
+      {/* Links: Orb + Titel */}
+      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        {/* Mini-Orb */}
+        <div style={{
+          width:         42, height: 42,
+          borderRadius:  "50%",
+          background:    `linear-gradient(145deg, #FFFFFF 0%, #F5FFFE 50%, #FFF5F2 100%)`,
+          border:        "2px solid rgba(255,255,255,0.90)",
+          boxShadow:     "0 2px 12px rgba(13,196,181,0.22), 0 0 0 0 rgba(13,196,181,0)",
+          animation:     "huiStageOrbPulse 4s ease-in-out infinite",
+          display:       "flex",
+          alignItems:    "center",
+          justifyContent:"center",
+          overflow:      "hidden",
+          flexShrink:    0,
+        }}>
+          <img
+            src="/hui-logo-real.jpg"
+            alt="HUI"
+            style={{ width:"88%", height:"88%", objectFit:"cover", borderRadius:"50%" }}
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.parentNode.querySelector(".orb-fallback").style.display = "block";
+            }}
+          />
+          <span
+            className="orb-fallback"
+            style={{
+              display:    "none",
+              fontSize:   13, fontWeight:800,
+              background: "linear-gradient(135deg, #0DC4B5, #F47355)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >HUI</span>
+        </div>
+
+        {/* Titel */}
+        <div>
+          <div style={{
+            fontSize:      15, fontWeight:700,
+            color:         C.ink,
+            letterSpacing: "-0.03em",
+            lineHeight:    1.2,
+          }}>
+            Hier beginnt dein Einfluss.
+          </div>
+          <div style={{
+            fontSize:      11.5,
+            color:         C.ink3,
+            letterSpacing: "-0.01em",
+            marginTop:     1,
+          }}>
+            Was möchtest du in die Welt bringen?
+          </div>
+        </div>
+      </div>
+
+      {/* Schließen */}
+      <button
+        className="hui-stage-close"
+        onClick={onClose}
+        aria-label="Schließen"
+        style={{
+          width:         36, height:36,
+          borderRadius:  "50%",
+          background:    "rgba(20,20,34,0.05)",
+          border:        "1px solid rgba(20,20,34,0.08)",
+          display:       "flex",
+          alignItems:    "center",
+          justifyContent:"center",
+          cursor:        "pointer",
+          outline:       "none",
+          flexShrink:    0,
+          transition:    "background 0.2s ease",
+        }}
+      >
+        <span style={{ fontSize:15, color:C.ink2, lineHeight:1, fontWeight:300 }}>×</span>
+      </button>
+    </div>
+  );
+}
+
+// ─── Trennlinie zwischen normalen und featured ────────────────────────────────
+function Divider() {
+  return (
+    <div style={{
+      display:     "flex",
+      alignItems:  "center",
+      gap:         10,
+      margin:      "4px 0",
+    }}>
+      <div style={{ flex:1, height:1, background:"rgba(20,20,34,0.06)" }} />
+      <span style={{
+        fontSize:      9.5,
+        color:         "rgba(20,20,34,0.28)",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        fontWeight:    500,
+      }}>Vision</span>
+      <div style={{ flex:1, height:1, background:"rgba(20,20,34,0.06)" }} />
     </div>
   );
 }
@@ -341,28 +543,8 @@ export function OrbPortal({
 }) {
   const [hoveredKey, setHoveredKey] = useState(null);
   const [closing,    setClosing]    = useState(false);
-  const [vw,         setVw]         = useState(
-    () => window.visualViewport?.width  ?? window.innerWidth
-  );
-  const [vh,         setVh]         = useState(
-    () => window.visualViewport?.height ?? window.innerHeight
-  );
   const closeTimerRef = useRef(null);
-  const containerRef  = useRef(null);
 
-  // Viewport tracking
-  useEffect(() => {
-    const update = () => {
-      setVw(window.visualViewport?.width  ?? window.innerWidth);
-      setVh(window.visualViewport?.height ?? window.innerHeight);
-    };
-    const vvp = window.visualViewport;
-    if (vvp) { vvp.addEventListener("resize", update); return () => vvp.removeEventListener("resize", update); }
-    window.addEventListener("resize", update, { passive: true });
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  // Reset
   useEffect(() => {
     if (!visible) { setHoveredKey(null); setClosing(false); }
   }, [visible]);
@@ -370,220 +552,124 @@ export function OrbPortal({
   const handleClose = useCallback(() => {
     setClosing(true);
     clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = setTimeout(() => onClose?.(), 320);
+    closeTimerRef.current = setTimeout(() => onClose?.(), 300);
   }, [onClose]);
 
-  // Escape
   useEffect(() => {
     const fn = (e) => { if (e.key === "Escape" && visible) handleClose(); };
     window.addEventListener("keydown", fn);
-    return () => { window.removeEventListener("keydown", fn); clearTimeout(closeTimerRef.current); };
+    return () => {
+      window.removeEventListener("keydown", fn);
+      clearTimeout(closeTimerRef.current);
+    };
   }, [visible, handleClose]);
 
-  const handleSelect = useCallback((node) => {
-    // Kurzer visueller Moment bevor Action
+  const handleSelect = useCallback((area) => {
     setTimeout(() => {
-      onSelect?.(node.action);
+      onSelect?.(area.action);
       handleClose();
-    }, 160);
+    }, 140);
   }, [onSelect, handleClose]);
 
   if (!visible && !closing) return null;
 
-  // Orb-Zentrum: Mitte des Viewports, leicht nach oben (wie im Screenshot)
-  // Der Orb sitzt in der Mitte des verfügbaren Bereichs über der BottomNav
-  const NAV_H   = 80;    // BottomNav Höhe
-  const SAFE    = 20;    // safe area
-  const ORB_SIZE= 120;   // Zentral-Orb Durchmesser
-  // Zentrum des verfügbaren Bereichs
-  const orbCx   = vw / 2;
-  const orbCy   = (vh - NAV_H - SAFE) * 0.52;  // 52% von oben = leicht Mitte-unten
+  const normal   = AREAS.filter(a => a.weight !== "featured");
+  const featured = AREAS.find(a => a.weight === "featured");
 
-  const anim = closing
-    ? "huiOrbBackdropOut 0.30s ease both"
-    : "huiOrbBackdropIn 0.40s ease both";
+  const animBD  = closing
+    ? "huiStageBackdropOut 0.28s ease both"
+    : "huiStageBackdropIn 0.36s ease both";
+  const animSH  = closing
+    ? "huiStageSheetDown 0.26s ease both"
+    : "huiStageSheetUp 0.44s cubic-bezier(0.16,1,0.3,1) both";
 
   return (
     <>
       <style>{CSS}</style>
 
-      {/* Backdrop: HELL, soft blur, App bleibt sichtbar */}
+      {/* Backdrop — hell, soft blur, App bleibt sichtbar */}
       <div
         onClick={handleClose}
         style={{
           position:             "fixed",
           inset:                0,
           zIndex:               9000,
-          // Hell, nicht dunkel — wie im Screenshot
-          background:           "rgba(249,247,242,0.72)",
-          backdropFilter:       "blur(12px) saturate(1.05)",
-          WebkitBackdropFilter: "blur(12px) saturate(1.05)",
-          animation:            anim,
+          background:           "rgba(245,242,236,0.68)",
+          backdropFilter:       "blur(16px) saturate(1.08)",
+          WebkitBackdropFilter: "blur(16px) saturate(1.08)",
+          animation:            animBD,
         }}
       />
 
-      {/* Portal Container: absolut positioniert über Backdrop */}
+      {/* Sheet */}
       <div
-        ref={containerRef}
         onClick={(e) => e.stopPropagation()}
         style={{
           position:     "fixed",
-          inset:        0,
+          bottom:       0,
+          left:         0,
+          right:        0,
           zIndex:       9001,
-          pointerEvents:"none",
-          overflow:     "hidden",
-          animation:    anim,
+          paddingLeft:  12,
+          paddingRight: 12,
+          paddingBottom:"max(16px, env(safe-area-inset-bottom))",
+          animation:    animSH,
         }}
       >
-        {/* ── Zentral-Orb Bodenglow ──────────────────────────── */}
-        <div
-          aria-hidden="true"
-          style={{
-            position:     "absolute",
-            left:         orbCx,
-            top:          orbCy,
-            width:        280,
-            height:       180,
-            transform:    "translate(-50%,-30%)",
-            borderRadius: "50%",
-            background:   "radial-gradient(ellipse, rgba(13,196,181,0.22) 0%, rgba(244,115,85,0.08) 50%, transparent 72%)",
-            filter:       "blur(32px)",
-            animation:    "huiOrbGroundGlow 4s ease-in-out infinite",
-            pointerEvents:"none",
-          }}
-        />
+        <div style={{
+          maxWidth:             500,
+          margin:               "0 auto",
+          background:           "rgba(252,250,247,0.97)",
+          backdropFilter:       "blur(40px) saturate(1.5)",
+          WebkitBackdropFilter: "blur(40px) saturate(1.5)",
+          borderRadius:         "24px 24px 20px 20px",
+          border:               "1px solid rgba(255,255,255,0.85)",
+          boxShadow:            [
+            "0 -2px 40px rgba(0,0,0,0.08)",
+            "0 -1px 0 rgba(255,255,255,0.95)",
+            "0 0 0 0.5px rgba(20,20,34,0.06)",
+          ].join(", "),
+          overflow:             "hidden",
+        }}>
+          <div style={{ padding:"20px 16px 16px" }}>
 
-        {/* ── Logo-Orb (Zentrum) ─────────────────────────────── */}
-        <button
-          onClick={handleClose}
-          aria-label="Portal schließen"
-          style={{
-            position:      "absolute",
-            left:          orbCx,
-            top:           orbCy,
-            width:         ORB_SIZE,
-            height:        ORB_SIZE,
-            marginLeft:    -(ORB_SIZE / 2),
-            marginTop:     -(ORB_SIZE / 2),
-            borderRadius:  "50%",
-            border:        "3px solid rgba(255,255,255,0.75)",
-            background:    "linear-gradient(145deg, #FFFFFF 0%, #F5FFFE 40%, #FFF5F2 100%)",
-            boxShadow:     [
-              "0 0 0 0 rgba(13,196,181,0)",
-              "0 8px 40px rgba(13,196,181,0.30)",
-              "0 2px 12px rgba(0,0,0,0.10)",
-              "0 0 80px rgba(13,196,181,0.18)",
-            ].join(", "),
-            animation:     closing
-              ? "huiOrbBackdropOut 0.28s ease both"
-              : `huiOrbExpand 0.65s cubic-bezier(0.16,1,0.3,1) both, huiOrbBreath 5s 0.8s ease-in-out infinite`,
-            display:       "flex",
-            alignItems:    "center",
-            justifyContent:"center",
-            cursor:        "pointer",
-            outline:       "none",
-            WebkitTapHighlightColor: "transparent",
-            touchAction:   "manipulation",
-            pointerEvents: "auto",
-            overflow:      "hidden",
-            zIndex:        30,
-          }}
-        >
-          {/* Inner glass shimmer */}
-          <div style={{
-            position:     "absolute",
-            top: 0, left: "6%",
-            width: "88%", height: "48%",
-            borderRadius: "50% 50% 0 0 / 55% 55% 0 0",
-            background:   "linear-gradient(180deg, rgba(255,255,255,0.80) 0%, transparent 100%)",
-            pointerEvents:"none",
-          }} />
-          {/* Logo */}
-          <img
-            src="/hui-logo-real.jpg"
-            alt="HUI"
-            style={{
-              width:        "78%",
-              height:       "78%",
-              objectFit:    "cover",
-              borderRadius: "50%",
-              position:     "relative",
-              zIndex:       1,
-            }}
-            onError={(e) => {
-              e.target.style.display = "none";
-              e.target.nextSibling.style.display = "flex";
-            }}
-          />
-          {/* Fallback Wordmark */}
-          <span style={{
-            display:       "none",
-            fontFamily:    "'SF Pro Display', system-ui, sans-serif",
-            fontSize:      20,
-            fontWeight:    800,
-            letterSpacing: "-0.04em",
-            background:    "linear-gradient(135deg, #0DC4B5, #F47355)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor:  "transparent",
-            position:      "relative",
-            zIndex:        1,
-          }}>
-            HUI
-          </span>
-        </button>
+            {/* Header: Orb Signet */}
+            <OrbSignet onClose={handleClose} />
 
-        {/* ── Action Nodes ───────────────────────────────────── */}
-        {NODES.map((node, idx) => (
-          <OrbNode
-            key={node.key}
-            node={node}
-            idx={idx}
-            orbCx={orbCx}
-            orbCy={orbCy}
-            vw={vw}
-            vh={vh}
-            hoveredKey={hoveredKey}
-            onHover={setHoveredKey}
-            onLeave={() => setHoveredKey(null)}
-            onSelect={handleSelect}
-          />
-        ))}
+            {/* 4 normale Bereiche */}
+            <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:10 }}>
+              {normal.map((area, idx) => (
+                <AreaNormal
+                  key={area.key}
+                  area={area}
+                  idx={idx}
+                  hoveredKey={hoveredKey}
+                  onHover={setHoveredKey}
+                  onLeave={() => setHoveredKey(null)}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </div>
 
-        {/* ── X-Close Button ────────────────────────────────── */}
-        <button
-          className="hui-orb-close"
-          onClick={handleClose}
-          aria-label="Schließen"
-          style={{
-            position:      "absolute",
-            left:          orbCx,
-            top:           orbCy + ORB_SIZE / 2 + 36,
-            marginLeft:    -22,
-            width:         44,
-            height:        44,
-            borderRadius:  "50%",
-            background:    "rgba(255,255,255,0.92)",
-            border:        "1.5px solid rgba(0,0,0,0.08)",
-            boxShadow:     "0 2px 16px rgba(0,0,0,0.10)",
-            display:       "flex",
-            alignItems:    "center",
-            justifyContent:"center",
-            cursor:        "pointer",
-            outline:       "none",
-            WebkitTapHighlightColor: "transparent",
-            touchAction:   "manipulation",
-            pointerEvents: "auto",
-            animation:     `huiCloseIn 0.38s ease 0.42s both`,
-            zIndex:        30,
-          }}
-        >
-          <span style={{
-            fontSize:   18,
-            color:      "rgba(20,20,34,0.45)",
-            lineHeight: 1,
-            fontWeight: 300,
-          }}>×</span>
-        </button>
+            {/* Vision-Trennlinie */}
+            <Divider />
+
+            {/* Featured: Projekt */}
+            {featured && (
+              <div style={{ marginTop:10 }}>
+                <AreaFeatured
+                  area={featured}
+                  idx={4}
+                  hoveredKey={hoveredKey}
+                  onHover={setHoveredKey}
+                  onLeave={() => setHoveredKey(null)}
+                  onSelect={handleSelect}
+                />
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
     </>
   );

@@ -548,6 +548,7 @@ function HomeInner() {
                 setShowTalentFlow(true);
               // ── Impact / Wirkung starten ────────────────────────
               } else if (type === "impact" || type === "idee" ||
+                         type === "projekt" ||
                          type === "wirkraum" || type === "einreich" ||
                          type === "wirkung") {
                 setShowImpactFlow(true);
