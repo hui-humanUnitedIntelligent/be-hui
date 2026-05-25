@@ -158,7 +158,7 @@ export async function getPublicTrustSignals(userId) {
 
 // ── isTrustedEnough ───────────────────────────────────────────
 // Prüft ob User genug Trust für eine Aktion hat.
-// Wird vom OrbSystem / Feature-Gating verwendet.
+// Wird vom Orb Router / Feature-Gating verwendet.
 export async function isTrustedEnough(userId, requiredLevel = 'growing') {
   try {
     const { data } = await supabase

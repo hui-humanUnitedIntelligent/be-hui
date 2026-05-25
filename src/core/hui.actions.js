@@ -141,7 +141,6 @@ export function buildActions(shell) {
     setChatRecipient,
     chatRecipient,
     // Overlays
-    setShowPlusSheet,
     setShowCreateFlow,
     setShowConnect,
     setShowNotifs,
@@ -153,25 +152,9 @@ export function buildActions(shell) {
     // Tabs
     switchTab,
     handleTab,
-    // Orb
-    openOrbWorld,
-    closeOrbWorld,
+    openOrbRouter,
+    closeAllOrbStates,
   } = shell;
-
-  // ── helper: close all overlays before opening another ────────────
-  function closeAll() {
-    setShowWirker?.(null);
-    setShowChat?.(false);
-    setShowPlusSheet?.(false);
-    setShowConnect?.(false);
-    setShowNotifs?.(false);
-    setShowMap?.(false);
-    setShowMatch?.(false);
-    setShowStoryComposer?.(false);
-    setShowImpactFlow?.(false);
-    setShowExperienceCreator?.(false);
-    closeOrbWorld?.();
-  }
 
   // ── action map ────────────────────────────────────────────────────
   const actions = {
@@ -329,14 +312,12 @@ export function buildActions(shell) {
     // ── ORB / OVERLAYS ────────────────────────────────────────────
     [A.OPEN_ORB]: (payload = {}) => {
       logAction(A.OPEN_ORB, payload);
-      setShowPlusSheet?.(true);
-      openOrbWorld?.(payload?.world ?? null);
+      openOrbRouter?.({ ...payload, source: payload?.source || SOURCE.ORB });
     },
 
     [A.CLOSE_ORB]: () => {
       logAction(A.CLOSE_ORB);
-      setShowPlusSheet?.(false);
-      closeOrbWorld?.();
+      closeAllOrbStates?.("action-close");
     },
 
     [A.OPEN_BOOKING]: (payload = {}) => {
@@ -368,8 +349,7 @@ export function buildActions(shell) {
     // ── WORLDS / ROOMS ────────────────────────────────────────────
     [A.OPEN_WORLD]: (payload = {}) => {
       logAction(A.OPEN_WORLD, payload);
-      openOrbWorld?.(payload?.world ?? null);
-      setShowPlusSheet?.(true);
+      openOrbRouter?.({ ...payload, source: payload?.source || SOURCE.ORB });
     },
 
     [A.OPEN_ROOM]: (payload = {}) => {
@@ -379,8 +359,7 @@ export function buildActions(shell) {
       if (payload?.creatorId) {
         actions[A.OPEN_PROFILE]({ creatorId: payload.creatorId, _tab: "raum" });
       } else {
-        openOrbWorld?.("raum");
-        setShowPlusSheet?.(true);
+        openOrbRouter?.({ ...payload, atmosphereId: "raum", source: payload?.source || SOURCE.ORB });
       }
     },
 
