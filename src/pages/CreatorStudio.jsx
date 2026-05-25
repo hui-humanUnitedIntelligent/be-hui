@@ -9,6 +9,8 @@ import { useCreatorBookings, BOOKING_STATUS } from "../lib/bookingContext";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import { HUI } from "../design/hui.design.js";
+import { centralCloseFlow } from "../core/hui.flow.return.js";
+import { S } from "../core/hui.sources.js";
 import {
   getAmbientGreeting, useCreatorJourney, getSoftStatus,
   AMBIENT_CSS, TRANSITIONS,
@@ -80,6 +82,14 @@ const ALL_TOOLS = TOOL_GROUPS.flatMap(g => g.tools);
 
 export default function CreatorStudio() {
   const navigate        = useNavigate();
+  const closeStudioRoute = React.useCallback(() => {
+    centralCloseFlow({
+      source: S.OWNER_PROFILE,
+      navigate,
+      fallbackPath: "/Home",
+      reason: "creator-studio-close",
+    });
+  }, [navigate]);
   const { section }     = useParams();
   const { user }        = useAuth();
   const { ownWorks }    = useAppState();
@@ -174,7 +184,7 @@ export default function CreatorStudio() {
         {/* Nav */}
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24,
           position:"relative" }}>
-          <button className="hui-tap" onClick={() => navigate(-1)}
+          <button className="hui-tap" onClick={closeStudioRoute}
             style={{ width:36, height:36, borderRadius:10,
               background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.14)",
               display:"flex", alignItems:"center", justifyContent:"center",

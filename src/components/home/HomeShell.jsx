@@ -12,6 +12,7 @@ import {
   useScrollMemory,
   useOwnPresence,
 } from "../../lib/sessionHooks";
+import { cleanupOrbEnvironment } from "../../lib/cleanup/cleanupOrbEnvironment.js";
 import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
 import HuiActionProvider from "../../core/HuiActionProvider.jsx";
 import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
@@ -145,7 +146,7 @@ export default function HomeShell({ children }) {
   /* Keep-Alive */
   // Phase 16.4: Tab visibility via tabVisibilityController (single authority)
   // activeSurface from WorldSurface — no local opacity state
-  const { activeSurface } = useWorldSurface();
+  const { activeSurface, closeSurface } = useWorldSurface();
   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
     useTabStyles(tab, activeSurface);
   // Legacy aliases for backward compat during transition
@@ -154,14 +155,13 @@ export default function HomeShell({ children }) {
   const keepImpact    = tabImpact;
   const keepFavorites = tabFavorites;
 
-  /* switchTab — schließt alle Overlays + wechselt Tab */
-  const switchTab = useCallback((newTab) => {
-    // GUARD: Orb is a world-layer, never a tab destination
-    if (!assertValidTab(newTab)) return;
-    // World continuity: track tab transition for atmospheric carry-over
-    setPrevTab(tab);
-    setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
-    setShowWirker(null);
+  /* central cleanup — eine Stelle für Overlays, Orb, World und Blur */
+  const closeTransientState = useCallback(({
+    reason = "home-shell-close",
+    preserveWorld = false,
+    preserveProfile = false,
+  } = {}) => {
+    if (!preserveProfile) setShowWirker(null);
     setShowWerkDetail(null);
     setShowWerkCheckout(null);
     setShowWerkeKorb(false);
@@ -174,18 +174,38 @@ export default function HomeShell({ children }) {
     setShowMatch(false);
     setShowMap(false);
     setShowChat(false);
+    setChatRecipient(null);
     setShowNotifs(false);
     setShowMembership(false);
     setShowCreateFlow(false);
+    setShowConnect(false);
     setShowTeilen(false);
+    setShowTalentFlow(false);
     setShowPlusSheet(false);
+    setActiveStory(null);
     setCreateType(null);
+
+    if (!preserveWorld) {
+      closeSurface?.(null, reason);
+      closeOrbWorld?.(reason);
+      cleanupOrbEnvironment({ reason });
+    }
+  }, [closeOrbWorld, closeSurface]);
+
+  /* switchTab — schließt alle Overlays + wechselt Tab */
+  const switchTab = useCallback((newTab) => {
+    // GUARD: Orb is a world-layer, never a tab destination
+    if (!assertValidTab(newTab)) return;
+    // World continuity: track tab transition for atmospheric carry-over
+    setPrevTab(tab);
+    setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
+    closeTransientState({ reason: `tab-switch-${tab}-to-${newTab}` });
     _setTab(newTab);
     // Phase 16.6: sync activeTab to window for ErrorBoundary diagnostics
     if (typeof window !== "undefined" && window.__HUI_WORLD_STATE__) {
       window.__HUI_WORLD_STATE__.activeTab = newTab;
     }
-  }, [_setTab]);
+  }, [_setTab, closeTransientState, tab]);
 
   /* openOwnProfile — öffnet Creator Profile Overlay (Owner View) */
   const openOwnProfile = useCallback(() => {
@@ -266,6 +286,8 @@ export default function HomeShell({ children }) {
     cart,                  setCart,
     openOwnProfile,
     flowStore,          // Phase 2: Flow Memory
+    closeTransientState,
+    closeSurface,
   };
 
   return (

@@ -10,6 +10,7 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { supabase } from "./supabaseClient";
+import { normalizePersistedTab } from "./world/orbLayer.js";
 
 // ────────────────────────────────────────────────────────────────
 // useScrollMemory
@@ -284,12 +285,18 @@ export function useTabKeepAlive(isActive) {
 // ────────────────────────────────────────────────────────────────
 export function useSessionRestore(defaultTab = "feed") {
   const [tab, setTabState] = useState(() => {
-    return sessionStorage.getItem("hui_active_tab") || defaultTab;
+    const fallback = normalizePersistedTab(defaultTab);
+    const restored = normalizePersistedTab(sessionStorage.getItem("hui_active_tab"), fallback);
+    if (restored !== sessionStorage.getItem("hui_active_tab")) {
+      sessionStorage.setItem("hui_active_tab", restored);
+    }
+    return restored;
   });
 
   const setTab = useCallback((newTab) => {
-    sessionStorage.setItem("hui_active_tab", newTab);
-    setTabState(newTab);
+    const safeTab = normalizePersistedTab(newTab);
+    sessionStorage.setItem("hui_active_tab", safeTab);
+    setTabState(safeTab);
   }, []);
 
   return [tab, setTab];

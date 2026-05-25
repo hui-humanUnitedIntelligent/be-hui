@@ -12,9 +12,11 @@
 // ══════════════════════════════════════════════════════════════════
 
 import { useCallback, useContext, createContext } from "react";
-import { validate, SOURCE } from "./hui.contracts.js";
+import { validate } from "./hui.contracts.js";
 import { S, SURFACE_LABEL } from "./hui.sources.js";
 import { ECHO, flowSignal } from "./hui.flow.states.js";
+import { centralCloseFlow } from "./hui.flow.return.js";
+import { isValidTab, normalizePersistedTab } from "../lib/world/orbLayer.js";
 import {
   normalizeRecipient,
   normalizeCreator,
@@ -113,18 +115,30 @@ export const A = {
 // ─── Action Context ────────────────────────────────────────────────
 export const ActionCtx = createContext(null);
 
+const missingProviderActions = new Set();
+
 // ─── useHuiActions — main hook ─────────────────────────────────────
 // Must be used inside HuiActionProvider (which wraps HomeShell)
 export function useHuiActions() {
   const ctx = useContext(ActionCtx);
   if (!ctx) {
-    // Graceful fallback — never crash the UI
-    const noop = (name) => (payload) => {
-      console.warn(`[HUI_ACTIONS] Provider not found for action: ${name}`, payload);
-    };
-    return Object.fromEntries(Object.values(A).map(k => [k, noop(k)]));
+    // Graceful fallback — never crash the UI, but do not expose truthy noops.
+    return new Proxy({}, {
+      get(_target, prop) {
+        if (typeof prop !== "string") return undefined;
+        if (Object.values(A).includes(prop) && !missingProviderActions.has(prop)) {
+          missingProviderActions.add(prop);
+          console.warn(`[HUI_ACTIONS] Provider not found for action: ${prop}. Use prop fallback or mount HuiActionProvider higher.`);
+        }
+        return undefined;
+      },
+    });
   }
   return ctx;
+}
+
+export function useHasHuiActions() {
+  return useContext(ActionCtx) !== null;
 }
 
 // ─── Factory: build action map from HomeShell context ─────────────
@@ -132,6 +146,7 @@ export function useHuiActions() {
 export function buildActions(shell) {
   const {
     // Profile
+    showWirker,
     setShowWirker,
     openOwnProfile,
     // Flow Memory (Phase 2)
@@ -151,26 +166,26 @@ export function buildActions(shell) {
     setShowImpactFlow,
     setShowExperienceCreator,
     // Tabs
+    tab,
     switchTab,
-    handleTab,
     // Orb
     openOrbWorld,
-    closeOrbWorld,
+    activeSurface,
+    orbState,
   } = shell;
 
-  // ── helper: close all overlays before opening another ────────────
-  function closeAll() {
-    setShowWirker?.(null);
-    setShowChat?.(false);
-    setShowPlusSheet?.(false);
-    setShowConnect?.(false);
-    setShowNotifs?.(false);
-    setShowMap?.(false);
-    setShowMatch?.(false);
-    setShowStoryComposer?.(false);
-    setShowImpactFlow?.(false);
-    setShowExperienceCreator?.(false);
-    closeOrbWorld?.();
+  function canonicalSource(source) {
+    return source === "home" ? S.FEED : (source || S.SYSTEM);
+  }
+
+  function flowContext(extra = {}) {
+    return {
+      sourceTab: tab || S.FEED,
+      sourceRoute: typeof window !== "undefined" ? window.location.pathname + window.location.search + window.location.hash : null,
+      sourceWorld: activeSurface ?? null,
+      sourceAtmosphere: orbState?.atmosphereId ?? null,
+      ...extra,
+    };
   }
 
   // ── action map ────────────────────────────────────────────────────
@@ -184,13 +199,19 @@ export function buildActions(shell) {
       // Defensive destructure — source immer mit Fallback (Phase 4G+)
       const safePayload = (payload && typeof payload === 'object') ? payload : {};
       const { creator, creatorId, source: rawSource, ...rest } = safePayload;
-      const source = (typeof rawSource === 'string' && rawSource.length > 0) ? rawSource : S.SYSTEM;
+      const source = canonicalSource((typeof rawSource === 'string' && rawSource.length > 0) ? rawSource : S.SYSTEM);
       const data = creator
         ? creator
         : { id: creatorId, user_id: creatorId, ...rest };
       // Phase 2: Flow Stack — merke Navigations-Ursprung
       logFlow(source, S.VISITOR_PROFILE);
-      flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source });
+      flowStore?.push(flowContext({
+        surface: S.VISITOR_PROFILE,
+        creatorId: creatorId ?? data?.id,
+        creator: data,
+        source,
+        returnBehavior: "previous-tab",
+      }));
       setShowWirker?.(data);
     },
 
@@ -201,7 +222,12 @@ export function buildActions(shell) {
 
     [A.CLOSE_PROFILE]: () => {
       logAction(A.CLOSE_PROFILE);
-      setShowWirker?.(null);
+      centralCloseFlow({
+        source: S.VISITOR_PROFILE,
+        flow: flowStore,
+        shell,
+        reason: "action-close-profile",
+      });
     },
 
     // ── CHAT ─────────────────────────────────────────────────────
@@ -223,15 +249,28 @@ export function buildActions(shell) {
       checkSemantics("OPEN_CHAT", { recipient: rec, source: payload?.source || S.SYSTEM });
       // Phase 2: wenn Profil offen war → Return merken
       // NICHT setShowWirker(null) — Profil bleibt gemounted (LOOP 1)
-      const chatSource = payload?.source || S.SYSTEM;
+      const chatSource = canonicalSource(payload?.source || S.SYSTEM);
       logFlow(chatSource, S.CHAT);
-      flowStore?.push({ surface: S.CHAT, recipient: rec, source: chatSource });
+      flowStore?.push(flowContext({
+        surface: S.CHAT,
+        recipient: rec,
+        source: chatSource,
+        returnBehavior: chatSource === S.VISITOR_PROFILE ? "return-profile" : "previous-tab",
+      }));
+      if (chatSource === S.VISITOR_PROFILE && showWirker) {
+        flowStore?.setReturnProfile(showWirker);
+      }
       setShowChat?.(true);
     },
 
     [A.CLOSE_CHAT]: () => {
       logAction(A.CLOSE_CHAT);
-      setShowChat?.(false);
+      centralCloseFlow({
+        source: S.CHAT,
+        flow: flowStore,
+        shell,
+        reason: "action-close-chat",
+      });
     },
 
     [A.SEND_MESSAGE]: (rawPayload) => {
@@ -275,8 +314,15 @@ export function buildActions(shell) {
       // Set recipient so Connect-Sheet weiß wer gebucht wird
       if (safeCr) setChatRecipient?.(safeCr);
       // Flow-Log
-      const bookSource = payload?.source || S.SYSTEM;
+      const bookSource = canonicalSource(payload?.source || S.SYSTEM);
       logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
+      flowStore?.push(flowContext({
+        surface: S.BOOKING,
+        recipient: safeCr,
+        experience: safeExp,
+        source: bookSource,
+        returnBehavior: "previous-context",
+      }));
       setShowConnect?.(true);
     },
 
@@ -330,13 +376,24 @@ export function buildActions(shell) {
     [A.OPEN_ORB]: (payload = {}) => {
       logAction(A.OPEN_ORB, payload);
       setShowPlusSheet?.(true);
-      openOrbWorld?.(payload?.world ?? null);
+      openOrbWorld?.({
+        source: payload?.source || "action-open-orb",
+        originTab: isValidTab(tab) ? tab : S.FEED,
+        atmosphereId: payload?.atmosphereId ?? null,
+        worldTemperature: payload?.worldTemperature ?? "calm_flowing",
+        continuityCarry: payload?.world ? { world: payload.world } : {},
+      });
     },
 
     [A.CLOSE_ORB]: () => {
       logAction(A.CLOSE_ORB);
-      setShowPlusSheet?.(false);
-      closeOrbWorld?.();
+      centralCloseFlow({
+        source: S.ORB,
+        preserveTab: true,
+        flow: flowStore,
+        shell,
+        reason: "action-close-orb",
+      });
     },
 
     [A.OPEN_BOOKING]: (payload = {}) => {
@@ -368,7 +425,11 @@ export function buildActions(shell) {
     // ── WORLDS / ROOMS ────────────────────────────────────────────
     [A.OPEN_WORLD]: (payload = {}) => {
       logAction(A.OPEN_WORLD, payload);
-      openOrbWorld?.(payload?.world ?? null);
+      openOrbWorld?.({
+        source: payload?.source || "action-open-world",
+        originTab: isValidTab(tab) ? tab : S.FEED,
+        continuityCarry: payload?.world ? { world: payload.world } : {},
+      });
       setShowPlusSheet?.(true);
     },
 
@@ -379,14 +440,18 @@ export function buildActions(shell) {
       if (payload?.creatorId) {
         actions[A.OPEN_PROFILE]({ creatorId: payload.creatorId, _tab: "raum" });
       } else {
-        openOrbWorld?.("raum");
+        openOrbWorld?.({
+          source: payload?.source || "action-open-room",
+          originTab: isValidTab(tab) ? tab : S.FEED,
+          continuityCarry: { world: "raum" },
+        });
         setShowPlusSheet?.(true);
       }
     },
 
     [A.OPEN_COMMUNITY]: (payload = {}) => {
       logAction(A.OPEN_COMMUNITY, payload);
-      switchTab?.("community");
+      switchTab?.(S.FAVORITES);
     },
 
     // ── CREATOR TOOLS ─────────────────────────────────────────────
@@ -413,15 +478,15 @@ export function buildActions(shell) {
 
     // ── TAB NAVIGATION ────────────────────────────────────────────
     [A.GO_TO_TAB]: (payload = {}) => {
-      const tab = typeof payload === "string" ? payload : payload?.tab ?? "feed";
-      logAction(A.GO_TO_TAB, { tab });
-      switchTab?.(tab);
+      const targetTab = normalizePersistedTab(typeof payload === "string" ? payload : payload?.tab ?? S.FEED);
+      logAction(A.GO_TO_TAB, { tab: targetTab });
+      switchTab?.(targetTab);
     },
 
-    [A.GO_HOME]:      () => { logAction(A.GO_HOME);      switchTab?.("feed");      },
-    [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  switchTab?.("discover");  },
-    [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    switchTab?.("impact");    },
-    [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); switchTab?.("favorites"); },
+    [A.GO_HOME]:      () => { logAction(A.GO_HOME);      switchTab?.(S.FEED);      },
+    [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  switchTab?.(S.DISCOVER);  },
+    [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    switchTab?.(S.IMPACT);    },
+    [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); switchTab?.(S.FAVORITES); },
   };
 
   return actions;

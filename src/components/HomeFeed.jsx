@@ -484,7 +484,7 @@ export default function HomeFeed({
 
   const handleProfile = React.useCallback((item) => {
     const creatorId = item?.creator_id || item?.user_id || item?.creatorId || item?.id;
-    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: S.HOME });
+    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: S.FEED });
     onProfile?.(item);
   }, [actions, onProfile]);
 
@@ -499,7 +499,7 @@ export default function HomeFeed({
   }, [actions, onShare]);
 
   const handleEvent = React.useCallback((ev) => {
-    actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.HOME });
+    actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.FEED });
     onEvent?.(ev);
   }, [actions, onEvent]);
   // Phase 4F: useFeedStream — Living Feed Infrastructure

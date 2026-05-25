@@ -2,20 +2,19 @@
 // SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
-import React, { Suspense, useEffect, useRef, useCallback } from "react";
+import React, { Suspense, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
-import {
-  orbBackdropTokens,
-  orbNavDriftTokens,
-  assertValidTab,
-} from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import { useHuiFlow } from "../core/hui.flow.js";
+import { useHuiActions, A } from "../core/hui.actions.js";
+import { centralCloseFlow } from "../core/hui.flow.return.js";
+import { S } from "../core/hui.sources.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
@@ -82,6 +81,7 @@ function HomeInner() {
   // PaintRecoveryManager — tracks rAF handles, cleaned up on unmount
   const paintManager = React.useRef(new PaintRecoveryManager());
 
+  const home = useHome();
   const {
     tab,
     handleTab,
@@ -113,10 +113,13 @@ function HomeInner() {
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
-  } = useHome();
+  } = home;
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
+  const actions = useHuiActions();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // ── Orb World Layer — above navigation ─────────────────────
   const {
@@ -134,6 +137,43 @@ function HomeInner() {
     forceRecoverWorld,
     activeSurface,
   } = useWorldSurface();
+
+  const closeFlow = useCallback((source, opts = {}) => centralCloseFlow({
+    source,
+    flow,
+    shell: home,
+    closeSurface,
+    closeOrbWorld,
+    reason: opts.reason || "home-flow-close",
+    returnTo: opts.returnTo,
+    preserveTab: opts.preserveTab ?? true,
+    preserveWorld: opts.preserveWorld ?? false,
+  }), [flow, home, closeSurface, closeOrbWorld]);
+
+  React.useEffect(() => {
+    const huiAction = location.state?.huiAction;
+    if (!huiAction?.type) return;
+
+    if (huiAction.type === "OPEN_CHAT") {
+      actions[A.OPEN_CHAT]?.(huiAction.payload || {});
+    } else if (huiAction.type === "BOOK_EXPERIENCE") {
+      actions[A.BOOK_EXPERIENCE]?.(huiAction.payload || {});
+    } else if (huiAction.type === "OPEN_PROFILE") {
+      actions[A.OPEN_PROFILE]?.(huiAction.payload || {});
+    }
+
+    navigate(location.pathname, { replace: true, state: null });
+  }, [actions, location.pathname, location.state, navigate]);
+
+  React.useEffect(() => {
+    const onEscape = (event) => {
+      if (event.key === "Escape") {
+        closeFlow(S.UNKNOWN, { reason: "escape-close" });
+      }
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, [closeFlow]);
 
   // Debug guard: tab should never be "orb"
   React.useEffect(() => {
@@ -423,7 +463,7 @@ function HomeInner() {
           <ConnectionCreatePage
             onClose={() => {
               console.log("[HUI CONNECTION] step 6 closing flow — Home.jsx onClose empfangen");
-              setShowConnect(false);
+              closeFlow(S.BOOKING, { reason: "connection-close" });
             }}
             onPublish={(result) => {
               console.log("[HUI CONNECTION] step 8 refresh feed — onPublish empfangen", {
@@ -434,7 +474,7 @@ function HomeInner() {
               // Feed Refresh: falls FeedRefresh-Mechanismus existiert, hier auslösen
               // Aktuell: kein automatischer Refresh → nur schließen
               console.log("[HUI CONNECTION] step 8 feed refresh: KEIN automatischer Refresh konfiguriert");
-              setShowConnect(false);
+              closeFlow(S.BOOKING, { reason: "connection-publish" });
             }}
           />
         </SafeRender>
@@ -444,8 +484,8 @@ function HomeInner() {
       {showTeilen && SAFE_MODE.teilenFlow && (
         <SafeRender flag="teilenFlow" label="TeilenFlow">
           <TeilenFlow
-            onClose={() => setShowTeilen(false)}
-            onPublished={() => setShowTeilen(false)}
+            onClose={() => closeFlow(S.ORB, { reason: "teilen-close" })}
+            onPublished={() => closeFlow(S.ORB, { reason: "teilen-published" })}
           />
         </SafeRender>
       )}
@@ -455,19 +495,11 @@ function HomeInner() {
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
-              setShowChat(false);
-              setChatRecipient(null);
-              // Phase 2 LOOP 1: Return zum Profil wenn Chat vom Profil aus kam
-              const returnProfile = flow.getReturnProfile();
-              if (returnProfile) {
-                flow.clearReturnProfile();
-                setTimeout(() => setShowWirker(returnProfile), 80);
-              }
+              closeFlow(S.CHAT, { reason: "chat-close", preserveTab: false });
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
-              setShowChat(false);
-              setChatRecipient(null);
+              closeFlow(S.CHAT, { reason: "chat-discover-close", preserveTab: true });
               flow.clearReturnProfile(); // kein Return bei Discover-Navigate
               handleTab("discover");   // Phase 23: Chat leer → Discover
             }}
@@ -494,15 +526,15 @@ function HomeInner() {
             <LiveMapPage
               onView={w => { setShowWirker(w); setShowMap(false); }}
               onMatch={() => { setShowMatch(true); setShowMap(false); }}
-              onClose={() => setShowMap(false)}
+              onClose={() => closeFlow(S.MAP, { reason: "map-close" })}
             />
           </SafeRender>
         )}
         {showMatch && SAFE_MODE.matchOverlay && (
           <SafeRender flag="matchOverlay" label="HuiMatchOverlay">
             <HuiMatchOverlay
-              onClose={() => setShowMatch(false)}
-              onMoodSelect={(m) => { setActiveMood(m); setShowMatch(false); }}
+              onClose={() => closeFlow(S.MATCH, { reason: "match-close" })}
+              onMoodSelect={(m) => { setActiveMood(m); closeFlow(S.MATCH, { reason: "match-mood-select" }); }}
               onView={w => { setShowWirker(w); setShowMatch(false); }}
             />
           </SafeRender>
@@ -527,9 +559,7 @@ function HomeInner() {
             }}
             onClose={() => {
               console.log("[ORB] close — resurfacing world");
-              setShowPlusSheet(false);
-              closeSurface("orb", "user-close");
-              closeOrbWorld("user-close");
+              closeFlow(S.ORB, { reason: "orb-user-close" });
             }}
             onSelect={(rawType) => {
               // TIMING FIX: kein setShowPlusSheet(false) hier —
@@ -582,47 +612,47 @@ function HomeInner() {
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
             <TalentOnboarding
-              onClose={() => setShowTalentFlow(false)}
-              onSuccess={() => setShowTalentFlow(false)}
+              onClose={() => closeFlow(S.ORB, { reason: "talent-close" })}
+              onSuccess={() => closeFlow(S.ORB, { reason: "talent-success" })}
             />
           </SafeRender>
         )}
         {showStoryComposer && SAFE_MODE.storyComposer && (
           <SafeRender flag="storyComposer" label="StoryComposer">
             <StoryComposer
-              onClose={() => setShowStoryComposer(false)}
-              onPublished={() => setShowStoryComposer(false)}
+              onClose={() => closeFlow(S.ORB, { reason: "story-close" })}
+              onPublished={() => closeFlow(S.ORB, { reason: "story-published" })}
             />
           </SafeRender>
         )}
         {showWerkPublisher && SAFE_MODE.werkFlow && (
           <SafeRender flag="werkFlow" label="WorkFlow">
             <WorkFlow
-              onClose={() => setShowWerkPublisher(false)}
-              onPublished={() => setShowWerkPublisher(false)}
+              onClose={() => closeFlow(S.ORB, { reason: "work-close" })}
+              onPublished={() => closeFlow(S.ORB, { reason: "work-published" })}
             />
           </SafeRender>
         )}
         {showExperienceCreator && SAFE_MODE.experienceFlow && (
           <SafeRender flag="experienceFlow" label="ExperienceFlow">
             <ExperienceFlow
-              onClose={() => setShowExperienceCreator(false)}
+              onClose={() => closeFlow(S.EXPERIENCE, { reason: "experience-close" })}
             />
           </SafeRender>
         )}
         {showNotifs && SAFE_MODE.notifications && (
           <SafeRender flag="notifications" label="NotificationCenter">
             <NotificationCenter
-              onClose={() => setShowNotifs(false)}
+              onClose={() => closeFlow(S.NOTIFICATIONS, { reason: "notifications-close" })}
               onNavigate={(target) => {
                 // Phase 23: echte Navigation aus Notifications heraus
-                setShowNotifs(false);
+                closeFlow(S.NOTIFICATIONS, { reason: "notifications-navigate" });
                 if (!target) return;
 
                 // String-Shortcuts
                 if (target === "chat")    { setShowChat(true); return; }
                 if (target === "impact")  { handleTab("impact"); return; }
-                if (target === "feed")    { handleTab("home"); return; }
+                if (target === "feed")    { handleTab("feed"); return; }
                 if (target === "discover"){ handleTab("discover"); return; }
 
                 // Objekt: { type, id, ... }
@@ -669,13 +699,13 @@ function HomeInner() {
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">
-            <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
+            <HuiCreateFlow onClose={() => closeFlow(S.ORB, { reason: "create-flow-close" })}/>
           </SafeRender>
         )}
         {showImpactFlow && SAFE_MODE.impactFlow && (
           <SafeRender flag="impactFlow" label="ImpactFlow">
             <ImpactFlow
-              onClose={() => setShowImpactFlow(false)}
+              onClose={() => closeFlow(S.IMPACT, { reason: "impact-flow-close" })}
             />
           </SafeRender>
         )}
@@ -685,7 +715,7 @@ function HomeInner() {
       {showContentSelector && (
         <ContentTypeSelector
           visible={showContentSelector}
-          onClose={() => setShowContentSelector(false)}
+          onClose={() => closeFlow(S.ORB, { reason: "content-selector-close" })}
           onSelect={(type) => {
             setShowContentSelector(false);
             // Routing: type → richtiger Flow
@@ -706,7 +736,7 @@ function HomeInner() {
       {showInvitationFlow && (
         <InvitationFlow
           visible={showInvitationFlow}
-          onClose={() => setShowInvitationFlow(false)}
+          onClose={() => closeFlow(S.ORB, { reason: "invitation-close" })}
         />
       )}
 

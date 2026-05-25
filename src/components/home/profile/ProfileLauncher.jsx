@@ -9,6 +9,7 @@ import React, { useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { useHuiFlow } from "../../../core/hui.flow.js";
+import { centralCloseFlow } from "../../../core/hui.flow.return.js";
 
 // ── STATISCH: sofort verfügbar, kein lazy-Blackout ──────────────
 // CreatorProfilePage wird immer mitgeladen (Teil des Home-Chunks)
@@ -34,22 +35,22 @@ function ProfileLoadingFallback() {
 
 /* ── Hook: imperativer Zugriff ── */
 export function useProfileLauncher() {
-  const { setShowWirker, openOwnProfile: shellOpenOwn } = useHome();
+  const { tab } = useHome();
   const actions = useHuiActions();
 
   const openProfile = useCallback((data) => {
     if (!data) return;
     // Push source surface so Return weiß woher wir kamen
-    actions[A.OPEN_PROFILE]?.({ creator: data, source: S.SYSTEM });
-  }, [actions]);
+    actions[A.OPEN_PROFILE]?.({ creator: data, source: tab || S.FEED });
+  }, [actions, tab]);
 
   const openOwnProfile = useCallback(() => {
     actions[A.OPEN_OWN_PROFILE]?.();
   }, [actions]);
 
   const openCreatorProfile = useCallback((id, extra = {}) => {
-    actions[A.OPEN_PROFILE]?.({ creatorId: id, source: S.SYSTEM, ...extra });
-  }, [actions]);
+    actions[A.OPEN_PROFILE]?.({ creatorId: id, source: tab || S.FEED, ...extra });
+  }, [actions, tab]);
 
   return { openProfile, openOwnProfile, openCreatorProfile };
 }
@@ -58,12 +59,12 @@ export function useProfileLauncher() {
    ProfileLauncher — einziger Render-Punkt für alle Profile
    ════════════════════════════════════════════════════════════ */
 export default function ProfileLauncher() {
+  const home = useHome();
   const {
-    showWirker, setShowWirker,
+    showWirker,
     showChat,
     setShowChat, setChatRecipient,
-    setShowConnect,             // für "Buchen" → ConnectionCreate als Alternative
-  } = useHome();
+  } = home;
 
   // Phase 2: Flow Memory — merkt sich den Weg zurück
   const flow = useHuiFlow();
@@ -76,7 +77,12 @@ export default function ProfileLauncher() {
 
   const isOwnerView = showWirker._isOwnerView === true;
 
-  const handleClose = () => setShowWirker(null);
+  const handleClose = () => centralCloseFlow({
+    source: isOwnerView ? S.OWNER_PROFILE : S.VISITOR_PROFILE,
+    flow,
+    shell: home,
+    reason: "profile-launcher-close",
+  });
 
   // Phase 2 LOOP 1: Chat vom Profil aus — Flow Memory
   const handleChat = (profile) => {
@@ -89,7 +95,16 @@ export default function ProfileLauncher() {
     // Flow Memory: merkt sich dieses Profil für den Return
     // Nach Chat-Close wird das Profil wieder geöffnet (LOOP 1)
     flow.setReturnProfile(showWirker);
-    flow.push({ surface: "profile", creatorId: profile?.id, creator: showWirker });
+    flow.push({
+      surface: S.VISITOR_PROFILE,
+      creatorId: profile?.id,
+      creator: showWirker,
+      source: S.VISITOR_PROFILE,
+      sourceTab: home.tab || S.FEED,
+      sourceWorld: home.activeSurface ?? null,
+      sourceAtmosphere: home.orbState?.atmosphereId ?? null,
+      returnBehavior: "return-profile",
+    });
 
     setChatRecipient(recipient);
     setShowChat(true);

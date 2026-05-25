@@ -8,6 +8,8 @@ import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
 import { useAppState } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
+import { centralCloseFlow } from "../core/hui.flow.return.js";
+import { S } from "../core/hui.sources.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -274,6 +276,14 @@ function IconBtn({ icon, label, active, color, onPress }) {
 ══════════════════════════════════════════════════════════════════════ */
 export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }) {
   const navigate = useNavigate();
+  const closeWorkRoute = useCallback(() => {
+    centralCloseFlow({
+      source: S.EXPERIENCE,
+      navigate,
+      fallbackPath: "/Home",
+      reason: "work-detail-close",
+    });
+  }, [navigate]);
   const { id } = useParams();
   const { user } = useAuth();
   const { toggleLikeWork, toggleSaveWork, toggleFollow } = useAppState();
@@ -516,7 +526,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         lineHeight:1.6, marginBottom:24, maxWidth:260 }}>
         {error || "Dieses Werk existiert nicht mehr oder wurde entfernt."}
       </div>
-      <button onClick={() => navigate(-1)} className="wd-tap"
+      <button onClick={closeWorkRoute} className="wd-tap"
         style={{ padding:"13px 28px", borderRadius:16,
           background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
           color:"white", border:"none", fontWeight:800,
@@ -544,7 +554,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       {/* ── Back Button (floating) ── */}
       <div style={{ position:"fixed", top:"max(16px,env(safe-area-inset-top,16px))",
         left:16, zIndex:200 }}>
-        <button onClick={() => navigate(-1)} className="wd-tap"
+        <button onClick={closeWorkRoute} className="wd-tap"
           style={{ width:40, height:40, borderRadius:"50%",
             background:"rgba(0,0,0,0.38)", backdropFilter:"blur(10px)",
             border:"1px solid rgba(255,255,255,0.2)", color:"white",

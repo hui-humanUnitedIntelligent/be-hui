@@ -3,6 +3,7 @@
 
 import { createNavItem } from "../../../lib/factories/createNavItem.js";
 import { filterValidPages } from "../../../lib/factories/createTabPage.js";
+import { HUI_PAGE_TABS } from "../../../lib/world/orbLayer.js";
 
 export const NAV_ITEMS = filterValidPages([
   createNavItem({ key: "feed",     label: "Home"       }),
@@ -13,10 +14,10 @@ export const NAV_ITEMS = filterValidPages([
 ]);
 
 // Tabs die im Keep-Alive Modus bleiben (nie unmounten)
-export const KEEP_ALIVE_TABS = ["feed", "discover", "impact", "favorites"];
+export const KEEP_ALIVE_TABS = HUI_PAGE_TABS;
 
 // Tabs die "echte" Seiten sind (nicht Overlays)
-export const PAGE_TABS = ["feed", "discover", "impact", "favorites"];
+export const PAGE_TABS = HUI_PAGE_TABS;
 
 // "profile" ist kein echter Tab — öffnet Overlay
 export const OVERLAY_TABS = ["profile"];

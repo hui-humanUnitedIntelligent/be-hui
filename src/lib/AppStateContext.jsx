@@ -26,7 +26,7 @@ export function AppStateProvider({ children }) {
   const { user } = useAuth();
 
   // ── Navigation / UI State ──────────────────────────────────────
-  const [activeTab,    setActiveTab]    = useState("home");
+  const [activeTab,    setActiveTab]    = useState("feed");
   const [isMobile,     setIsMobile]     = useState(
     typeof window !== "undefined" ? window.innerWidth < 1200 : true
   );

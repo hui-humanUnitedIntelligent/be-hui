@@ -22,6 +22,18 @@ export const ORB_STATE_CLOSED = Object.freeze({
   _source:          null,
 });
 
+export const HUI_CANONICAL_FEED_TAB = "feed";
+export const HUI_PAGE_TABS = Object.freeze(["feed", "discover", "impact", "favorites"]);
+
+export function isValidTab(tab) {
+  return HUI_PAGE_TABS.includes(tab);
+}
+
+export function normalizePersistedTab(tab, fallback = HUI_CANONICAL_FEED_TAB) {
+  if (tab === "home") return HUI_CANONICAL_FEED_TAB;
+  return isValidTab(tab) ? tab : fallback;
+}
+
 export function buildOpenOrbState({
   originTab        = "feed",
   worldTemperature = "calm_flowing",
@@ -141,13 +153,22 @@ export const ORB_CLOSE_DURATION_MS = 800;
 // ── Guards ────────────────────────────────────────────────────
 
 export function assertValidTab(tab) {
-  if (tab === "orb") {
-    if (typeof console !== "undefined") {
-      console.warn("[HUI INVALID ORB ROUTE] activeTab was set to 'orb'. The Orb is a world-layer, not a tab. Use openOrbWorld() instead.");
-    }
+  if (isValidTab(tab)) return true;
+  if (typeof console !== "undefined") {
+    const reason = tab === "orb"
+      ? "The Orb is a world-layer, not a tab. Use openOrbWorld() instead."
+      : "Only canonical page tabs are allowed.";
+    console.warn("[HUI INVALID TAB]", { tab, validTabs: HUI_PAGE_TABS, reason });
+  }
+  return false;
+}
+
+export function assertNoLegacyHomeTab(tab) {
+  if (tab === "home") {
+    console.warn("[HUI LEGACY TAB] 'home' is no longer valid. Use canonical tab 'feed'.");
     return false;
   }
-  return true;
+  return assertValidTab(tab);
 }
 
 export function validateOrbState(state) {
