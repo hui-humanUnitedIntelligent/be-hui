@@ -8,7 +8,7 @@
  *  - Cursor-based Pagination (20 items initial, +15 bei Scroll)
  *  - Prefetch: lädt nächste Seite wenn User bei 70% angelangt
  *  - Soft Hydration: neue Items akkumuliert, Tap → sanfter Insert
- *  - Realtime: beitraege / invitations / experiences live updates
+ *  - Realtime: EntityRealtimeLayer normalisiert alle Feed-Entities zentral
  *  - Feed Cache: Tab-Wechsel zerstört nichts (sessionStorage + in-memory)
  *  - Scroll Restore: kehrt zur letzten Position zurück
  *  - Idle Loading: requestIdleCallback für prefetch
@@ -18,15 +18,10 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
-import {
-  normalizeWorkRow,
-  normalizeExperienceRow,
-  normalizeBeitragRow,
-  normalizeInvitationRow,
-} from "../system/feed/feedNormalizer.js";
+import { fetchCanonicalFeedPage, PAGE_SIZE } from "../entities/feedEntitySources.js";
+import { createEntityRealtimeLayer } from "../entities/EntityRealtimeLayer.js";
 
 // ─── Konstanten ──────────────────────────────────────────────────────────────
-const PAGE_SIZE          = 20;   // Items pro Seite
 const PREFETCH_THRESHOLD = 0.70; // 70% gescrollt → prefetch
 const SOFT_HYDRATE_DELAY = 800;  // ms Debounce bevor "N neue" Badge erscheint
 const CACHE_KEY          = "hui_feed_cache_v4f";
@@ -64,90 +59,8 @@ export function getFeedScrollPos()   { return _scrollPos.y; }
 
 // ─── Batch-Query: eine Seite laden ───────────────────────────────────────────
 async function fetchFeedPage(userId, cursor = null) {
-  /**
-   * cursor = ISO timestamp (created_at des ältesten Items auf letzter Seite)
-   * Lädt PAGE_SIZE Items über alle 4 Quellen.
-   * Jede Quelle bekommt PAGE_SIZE/2 Slots und wird zeitbasiert gemischt.
-   */
-  const limit = Math.ceil(PAGE_SIZE / 2); // 10 pro Quelle
-
-  const rangeFilter = (q) => cursor
-    ? q.lt("created_at", cursor)
-    : q;
-
-  const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
-    rangeFilter(
-      supabase.from("works")
-        .select(`id,title,cover_url,media_url,category,description,
-                 caption,tags,price,status,user_id,creator_id,created_at,
-                 profile:profiles(id,display_name,avatar_url,talent,location_label)`)
-        .eq("status", "published")
-        .order("created_at", { ascending: false })
-        .limit(limit)
-    ),
-
-    rangeFilter(
-      supabase.from("experiences")
-        .select(`id,title,cover_url,media_url,category,description,
-                 price,duration,format,location_text,date,
-                 booking_mode,pricing_type,experience_type,
-                 participant_limit,max_participants,
-                 mood,mood_tags,social_energy,
-                 status,visibility,user_id,created_at,
-                 profile:profiles(id,display_name,avatar_url,talent,location_label)`)
-        .eq("status", "published")
-        .order("created_at", { ascending: false })
-        .limit(limit)
-    ),
-
-    rangeFilter(
-      supabase.from("beitraege")
-        .select("id,user_id,src,type,caption,created_at")
-        .order("created_at", { ascending: false })
-        .limit(limit)
-    ),
-
-    // Invitations: nicht cursor-basiert (expires_at filter ist wichtiger)
-    supabase.from("invitations")
-      .select(`id,user_id,text,title,vibe,mood,energy,
-               location,city,time_label,starts_at,expires_at,
-               visibility,status,max_participants,content_type,created_at,
-               profile:profiles(id,display_name,avatar_url,talent,location_label)`)
-      .eq("status", "active")
-      .eq("visibility", "public")
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
-      .limit(2),  // Max 2 Invitations pro Seite
-  ]);
-
-  const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
-  const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
-  const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
-  const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
-
-  // Normalisieren
-  const normalized = [
-    ...works.map(normalizeWorkRow).filter(Boolean),
-    ...exps.map(normalizeExperienceRow).filter(Boolean),
-    ...beitr.map(normalizeBeitragRow).filter(Boolean),
-    ...invs.map(normalizeInvitationRow).filter(Boolean),
-  ];
-
-  // Zeitsortiert
-  normalized.sort((a, b) => {
-    const ta = a._raw?.created_at ? new Date(a._raw.created_at).getTime() : 0;
-    const tb = b._raw?.created_at ? new Date(b._raw.created_at).getTime() : 0;
-    return tb - ta;
-  });
-
-  // Neuer Cursor = created_at des ältesten Items dieser Seite
-  const nextCursor = normalized.length > 0
-    ? normalized[normalized.length - 1]._raw?.created_at || null
-    : null;
-
-  const hasMore = normalized.length >= PAGE_SIZE;
-
-  return { items: normalized, nextCursor, hasMore };
+  if (!userId) return { items: [], nextCursor: null, hasMore: false };
+  return fetchCanonicalFeedPage(supabase, cursor, PAGE_SIZE);
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -297,8 +210,7 @@ export function useFeedStream() {
   }, [hasMore]);
 
   // ── Soft Hydration: neue Items aus Realtime akkumulieren ──────────────────
-  const _receiveLiveItem = useCallback((rawItem, normalizer) => {
-    const normalized = normalizer(rawItem);
+  const _receiveLiveItem = useCallback((normalized) => {
     if (!normalized) return;
 
     // Existiert bereits? → update statt duplizieren
@@ -344,43 +256,17 @@ export function useFeedStream() {
       realtimeRef.current = null;
     }
 
-    realtimeRef.current = supabase
-      .channel("hui_feed_realtime_v4f")
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "beitraege",
-      }, (payload) => {
+    realtimeRef.current = createEntityRealtimeLayer({
+      supabase,
+      channelName: "hui_feed_entity_realtime_v4",
+      onEntity: (item) => {
         if (!mountedRef.current) return;
-        _receiveLiveItem(payload.new, normalizeBeitragRow);
-      })
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "invitations",
-        filter: "visibility=eq.public",
-      }, (payload) => {
-        if (!mountedRef.current) return;
-        const inv = payload.new;
-        // Nur aktive, nicht abgelaufene
-        if (inv.status !== "active") return;
-        if (inv.expires_at && new Date(inv.expires_at) < new Date()) return;
-        _receiveLiveItem(inv, normalizeInvitationRow);
-      })
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "experiences",
-        filter: "status=eq.published",
-      }, (payload) => {
-        if (!mountedRef.current) return;
-        _receiveLiveItem(payload.new, normalizeExperienceRow);
-      })
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          console.warn("[HUI_STREAM] Realtime Channel Error — Feed läuft ohne Live-Updates weiter");
-        }
-      });
+        _receiveLiveItem(item);
+      },
+      onError: () => {
+        console.warn("[HUI_STREAM] EntityRealtimeLayer läuft ohne Live-Update für dieses Event weiter");
+      },
+    });
 
     return () => {
       if (realtimeRef.current) {

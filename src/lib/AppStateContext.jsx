@@ -15,7 +15,7 @@ import React, {
 } from "react";
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
-import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow } from "../system/feed/feedNormalizer.js";
+import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow, normalizeInvitationRow } from "../system/feed/feedNormalizer.js";
 import { rhythmizeFeed } from "../feed/feedRhythmEngine.js";
 
 // ── Context ───────────────────────────────────────────────────────
@@ -306,38 +306,7 @@ export function useFeedData(_opts) {
       // Alle normalisierten Items → rhythmizeFeed entscheidet Reihenfolge
       // Phase 4E: Invitations normalisieren
       const invItems = invs
-        .map(inv => ({
-          id:           String(inv.id),
-          type:         "invitation",
-          content_type: "invitation",
-          caption:      inv.text || inv.title || "",
-          text:         inv.text || inv.title || "",
-          title:        inv.title || inv.text || "",
-          vibe:         inv.vibe || inv.mood || null,
-          location:     inv.location || inv.city || null,
-          time:         inv.time_label || "",
-          creator: (() => {
-            const p = inv.profile || {};
-            const name = p.display_name || p.full_name || p.name || "Unbekannt";
-            return {
-              id:          String(p.id || inv.user_id || ""),
-              name,
-              displayName: name,
-              avatar:      p.avatar_url || p.avatar || null,
-              username:    p.username || "",
-              talent:      p.talent || "",
-              location:    p.location_label || "",
-              verified:    Boolean(p.verified),
-            };
-          })(),
-          creator_id:    String(inv.user_id || ""),
-          rhythmState:   "resonance",
-          presenceState: "gathering",
-          resonanz: 0, berührt: 0, begleitet: 0,
-          viewers: [], viewerExtra: 0,
-          images: [], expImg: null, coverUrl: null,
-          _raw: inv,
-        }))
+        .map(inv => normalizeInvitationRow(inv))
         .filter(Boolean);
 
       // Phase 4E: Max 2 Invitations pro Feed-Load (Rhythm Engine braucht Luft)

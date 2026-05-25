@@ -16,6 +16,7 @@ import { WorkDetailsStep } from "./WorkDetailsStep.jsx";
 import { WorkPublishStep } from "./WorkPublishStep.jsx";
 import { supabase }        from "../../../lib/supabaseClient.js";
 import { useAuth }         from "../../../lib/AuthContext.jsx";
+import { validatePublishEntity } from "../../../contracts/entityContract.js";
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 export const WT = {
@@ -178,6 +179,14 @@ export default function WorkFlow({ onClose }) {
         visibility:  form.visibility   || "public",
         status:      "published",
       };
+      const validation = validatePublishEntity(workPayload, {
+        entityType: "work",
+        sourceTable: "works",
+        mediaInput: imageUrls,
+      });
+      if (!validation.valid) {
+        throw new Error(`Werk-Vertrag ungueltig: ${validation.errors[0]}`);
+      }
       console.info("[HUI_PUBLISH] works payload:", {
         user_id:    workPayload.user_id,
         creator_id: workPayload.creator_id,

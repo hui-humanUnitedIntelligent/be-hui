@@ -1297,7 +1297,7 @@ function NoteCard({ item, itemReactions, onProfile, onReaction, onComment, memor
 function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
   if (!item) return null;
-  const src = item.expImg || item.media?.[0];
+  const src = item.expImg || item.mediaUrls?.[0] || item.media?.[0]?.url || item.media?.[0];
   const microMoment = item.microMoment || null;
 
   return (
@@ -1373,7 +1373,7 @@ function ExperienceCard({ item, itemReactions, onProfile, onReaction, onComment,
 function ResonanceCard({ item, itemReactions, onProfile, onReaction, onComment, memoryTokens = null }) {
   const creator = useCreator(item);
   if (!item) return null;
-  const img = item.images?.[0] || item.media?.[0] || item.expImg;
+  const img = item.images?.[0] || item.mediaUrls?.[0] || item.media?.[0]?.url || item.media?.[0] || item.expImg;
 
   return (
     <div className="hf-card-base hf-resonance">

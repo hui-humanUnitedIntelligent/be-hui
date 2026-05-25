@@ -76,7 +76,7 @@ export default function MomentCard({ item, onProfile, onReaction, itemReactions 
   if (!item) return null;
   const creator = useMomentCreator(item);
   const text    = item.caption || item.text || item.title || "";
-  const image   = item.images?.[0] || item.media?.[0] || item.cover_url || null;
+  const image   = item.images?.[0] || item.mediaUrls?.[0] || item.media?.[0]?.url || item.media?.[0] || item.cover_url || null;
   const mood    = item._raw?.mood ? (MOODS[item._raw.mood] || MOODS.default) : null;
   const timeStr = item.time || "";
 

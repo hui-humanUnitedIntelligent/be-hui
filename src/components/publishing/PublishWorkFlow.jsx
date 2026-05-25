@@ -6,6 +6,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth }  from "../../lib/AuthContext.jsx";
+import { validatePublishEntity } from "../../contracts/entityContract.js";
 
 const C = {
   teal:   "#16D7C5",
@@ -73,6 +74,7 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
 
       const payload = {
         user_id:    user.id,
+        creator_id: user.id,
         title:      form.title   || form.caption?.slice(0,60) || "Werk",
         caption:    form.caption || null,
         category:   form.category || null,
@@ -80,8 +82,16 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
         media_url, cover_url, media_type,
         price:      form.forSale && form.price ? parseFloat(form.price) : null,
         for_sale:   form.forSale,
+        visibility: "public",
         status:     "published",
       };
+
+      const validation = validatePublishEntity(payload, {
+        entityType: "work",
+        sourceTable: "works",
+        mediaInput: media_url,
+      });
+      if (!validation.valid) throw new Error(validation.errors[0]);
 
       const { data, error: insErr } = await supabase
         .from("works").insert(payload).select("id").single();

@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { validatePublishEntity } from "../contracts/entityContract.js";
 
 const T = {
   coral:HUI.COLOR.coral, coralGlow:"rgba(255,138,107,.3)", coralBg:"rgba(255,138,107,.09)",
@@ -430,8 +431,9 @@ export default function WerkPublisher({ onClose, onSuccess }) {
         if (i===coverIdx) coverUrl = publicUrl;
       }
 
-      const { error: dbErr } = await supabase.from("works").insert({
+      const payload = {
         user_id:        user.id,
+        creator_id:     user.id,
         title:          form.title.trim(),
         description:    form.desc.trim(),
         category:       form.category,
@@ -442,9 +444,18 @@ export default function WerkPublisher({ onClose, onSuccess }) {
         sale_mode:      form.mode,   // behalten für ältere DB-Schemas
         price:          form.price ? parseFloat(form.price) : null,
         // allow_comments/likes/share gehören zur stories-Tabelle, nicht zu works
+        visibility:     "public",
         status:         form.publish==="publish"?"published":"draft",
         created_at:     new Date().toISOString(),
+      };
+      const validation = validatePublishEntity(payload, {
+        entityType: "work",
+        sourceTable: "works",
+        mediaInput: imageUrls,
       });
+      if (!validation.valid) throw new Error(validation.errors[0]);
+
+      const { error: dbErr } = await supabase.from("works").insert(payload);
       if (dbErr) { console.error("[WerkPublisher] db error:", dbErr); throw dbErr; }
       setDone(true);
       setTimeout(()=>{ if(onSuccess) onSuccess(); onClose(); }, 2000);

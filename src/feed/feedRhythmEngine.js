@@ -22,6 +22,8 @@
 
 "use strict";
 
+import { getFeedRouteType } from "../entities/entityTypes.js";
+
 /* ── Energy Score ────────────────────────────────────────────────────── */
 const ENERGY = {
   moment:     0,   // low   — ruhig, intim
@@ -38,6 +40,8 @@ function energyOf(item) {
 
 /* ── Content Type Resolution ──────────────────────────────────────────── */
 export function resolveContentType(item) {
+  if (item?.entityType) return getFeedRouteType(item.entityType);
+
   const raw = (
     item?.content_type ||
     item?.type         ||

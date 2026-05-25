@@ -85,7 +85,7 @@ export default function WorkCard({ item, onProfile, onReaction, onDetail, itemRe
   const [imgErr, setImgErr] = useState(false);
 
   const image    = (!imgErr && (
-    item.images?.[0] || item.media?.[0] || item.cover_url || item.expImg
+    item.images?.[0] || item.mediaUrls?.[0] || item.media?.[0]?.url || item.media?.[0] || item.cover_url || item.expImg
   )) || null;
   const title    = item.title || item.expTitle || "";
   const caption  = item.caption || item.description || "";
