@@ -589,6 +589,9 @@ export default function HomeFeed({
     <div className="hf-root" style={{ paddingBottom:80, width:"100%" }}>
       <style>{CSS}</style>
 
+      {/* ══ RAW DEBUG PANEL — immer sichtbar, tap to load/refresh ═══════ */}
+      <RawBeitraegeDebugPanel />
+
       {/* ── Living Background System ──────────────────────────────────── */}
       <AmbientBackground />
 
@@ -1704,75 +1707,220 @@ function ViewerStack({ viewers, extra }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    EMPTY STATE — human emotional guidance
    ═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   RAW DEBUG PANEL — liest beitraege DIREKT, OHNE jede Transformation
+   select("*"), kein Filter, kein normalizer, kein typeMap, kein curator.
+   Zeigt: ist der Row in der DB? Welche Felder hat er? Warum fehlt er im Feed?
+   ══════════════════════════════════════════════════════════════════════════ */
 function RawBeitraegeDebugPanel() {
-  const [rows,    setRows]    = React.useState(null);  // null=loading, []=[],  [{...}]=data
+  const [rows,    setRows]    = React.useState(null);
   const [error,   setError]   = React.useState(null);
-  const [visible, setVisible] = React.useState(false);
+  const [open,    setOpen]    = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  const load = React.useCallback(async () => {
-    setVisible(true);
+  // Feed-Query simulieren: exakt wie useFeedStream es macht
+  const [feedRows,  setFeedRows]  = React.useState(null);
+  const [feedError, setFeedError] = React.useState(null);
+
+  const fetchAll = React.useCallback(async () => {
+    setLoading(true);
     setRows(null);
     setError(null);
-    console.log("[HUI DEBUG PANEL] fetching raw beitraege...");
+    setFeedRows(null);
+    setFeedError(null);
+
+    // ── QUERY 1: select("*") — alles, kein Filter ───────────────────────
+    console.log("[RAW_DEBUG] Q1: beitraege SELECT * limit 20");
     try {
-      const { data, error: err } = await supabase
+      const { data: d1, error: e1 } = await supabase
         .from("beitraege")
-        .select("id,user_id,type,caption,src,created_at")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (e1) {
+        console.error("[RAW_DEBUG] Q1 error", e1.code, e1.message, e1.hint);
+        setError("Q1 " + e1.code + ": " + e1.message + (e1.hint ? " (" + e1.hint + ")" : ""));
+      } else {
+        console.log("[RAW_DEBUG] Q1 rows:", d1?.length, d1);
+        setRows(d1 || []);
+      }
+    } catch(ex) {
+      console.error("[RAW_DEBUG] Q1 exception", ex.message);
+      setError("Q1 EXCEPTION: " + ex.message);
+    }
+
+    // ── QUERY 2: exakt wie useFeedStream (id,user_id,src,type,caption,created_at) ─
+    console.log("[RAW_DEBUG] Q2: beitraege wie useFeedStream");
+    try {
+      const { data: d2, error: e2 } = await supabase
+        .from("beitraege")
+        .select("id,user_id,src,type,caption,created_at")
         .order("created_at", { ascending: false })
         .limit(10);
-      if (err) {
-        console.error("[HUI DEBUG PANEL] error", err.code, err.message);
-        setError(err.code + ": " + err.message);
-        setRows([]);
+      if (e2) {
+        console.error("[RAW_DEBUG] Q2 error", e2.code, e2.message);
+        setFeedError("Q2 " + e2.code + ": " + e2.message);
       } else {
-        console.log("[HUI DEBUG PANEL] rows:", data?.length, data);
-        setRows(data || []);
+        console.log("[RAW_DEBUG] Q2 rows:", d2?.length, d2);
+        setFeedRows(d2 || []);
       }
-    } catch(e) {
-      console.error("[HUI DEBUG PANEL] exception", e.message);
-      setError("EXCEPTION: " + e.message);
-      setRows([]);
+    } catch(ex2) {
+      console.error("[RAW_DEBUG] Q2 exception", ex2.message);
+      setFeedError("Q2 EXCEPTION: " + ex2.message);
     }
+
+    setLoading(false);
   }, []);
 
+  // Auto-fetch beim ersten Öffnen
+  const handleOpen = React.useCallback(() => {
+    setOpen(true);
+    fetchAll();
+  }, [fetchAll]);
+
+  /* ── Render ─────────────────────────────────────────────────────────── */
   return (
-    <div style={{ margin:"16px 14px", borderRadius:14, overflow:"hidden",
-      border:"1.5px solid rgba(99,102,241,0.25)", background:"rgba(15,23,42,0.92)" }}>
-      <div style={{ padding:"10px 14px", display:"flex", justifyContent:"space-between",
-        alignItems:"center", background:"rgba(99,102,241,0.12)" }}>
-        <div style={{ color:"#a78bfa", fontSize:12, fontWeight:700, fontFamily:"monospace" }}>
-          🔍 RAW beitraege debug
+    <div style={{
+      margin:"0 0 4px",
+      background:"rgba(15,23,42,0.96)",
+      borderBottom:"2px solid rgba(99,102,241,0.4)",
+      fontFamily:"monospace",
+    }}>
+      {/* Header */}
+      <div
+        onClick={open ? fetchAll : handleOpen}
+        style={{
+          padding:"8px 14px",
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          cursor:"pointer",
+          background:"rgba(99,102,241,0.15)",
+          userSelect:"none",
+        }}
+      >
+        <div style={{ color:"#a78bfa", fontSize:11.5, fontWeight:700 }}>
+          🔍 RAW DEBUG — beitraege direkt {loading ? "⟳" : open ? "↑ tap=refresh" : "↓ tap=öffnen"}
         </div>
-        <button onClick={load} style={{
-          fontSize:11, padding:"3px 10px", borderRadius:8, cursor:"pointer",
-          background:"rgba(99,102,241,0.2)", border:"1px solid rgba(99,102,241,0.4)",
-          color:"#c4b5fd", fontFamily:"monospace",
-        }}>fetch rows</button>
+        {rows !== null && !loading && (
+          <div style={{
+            fontSize:10.5,
+            color: rows.length === 0 ? "#f87171" : "#34d399",
+            fontWeight:700,
+          }}>
+            {rows.length === 0 ? "❌ 0 ROWS" : `✅ ${rows.length} rows`}
+          </div>
+        )}
       </div>
-      {visible && (
-        <div style={{ padding:"10px 14px", fontFamily:"monospace", fontSize:11 }}>
-          {rows === null && <div style={{color:"#94a3b8"}}>loading...</div>}
-          {error  && <div style={{color:"#f87171"}}>❌ {error}</div>}
-          {rows !== null && !error && rows.length === 0 && (
-            <div style={{color:"#fbbf24"}}>
-              ⚠️ 0 rows — Tabelle leer oder RLS blockiert SELECT
+
+      {open && (
+        <div style={{ padding:"8px 14px 12px" }}>
+
+          {/* ── QUERY 1 RESULT ── */}
+          <div style={{ fontSize:10.5, color:"#60a5fa", marginBottom:5, fontWeight:700 }}>
+            Q1: SELECT * — {rows === null ? "loading..." : rows.length + " rows"}
+          </div>
+
+          {error && (
+            <div style={{
+              padding:"6px 10px", borderRadius:8, background:"rgba(239,68,68,0.15)",
+              color:"#f87171", fontSize:11, marginBottom:8,
+            }}>❌ {error}</div>
+          )}
+
+          {rows !== null && rows.length === 0 && !error && (
+            <div style={{
+              padding:"6px 10px", borderRadius:8, background:"rgba(251,191,36,0.12)",
+              color:"#fbbf24", fontSize:11, marginBottom:8,
+            }}>
+              ⚠️ 0 Rows — Tabelle leer ODER RLS blockiert SELECT für diesen User
             </div>
           )}
-          {(rows || []).map((r,i) => (
+
+          {(rows || []).map((r, i) => {
+            // Alle Felder des raw Row anzeigen
+            const keys = Object.keys(r || {});
+            return (
+              <div key={r.id || i} style={{
+                marginBottom:8, padding:"8px 10px", borderRadius:8,
+                background:"rgba(255,255,255,0.05)",
+                border:"1px solid rgba(255,255,255,0.08)",
+              }}>
+                {/* Row Header */}
+                <div style={{ display:"flex", gap:8, marginBottom:4, flexWrap:"wrap" }}>
+                  <span style={{ color:"#34d399", fontWeight:700 }}>#{i+1}</span>
+                  <span style={{ color:"#a78bfa" }}>
+                    type=<strong style={{color:"#f0abfc"}}>{String(r.type ?? "(null)")}</strong>
+                  </span>
+                  <span style={{ color:"#fbbf24" }}>
+                    id={String(r.id ?? "?").slice(0,12)}...
+                  </span>
+                </div>
+
+                {/* Alle relevanten Felder */}
+                <div style={{ fontSize:10.5, color:"#94a3b8", lineHeight:1.7 }}>
+                  <div>caption: <span style={{color:"#e2e8f0"}}>{String(r.caption ?? "(null)")}</span></div>
+                  <div>src: <span style={{color: r.src ? "#34d399" : "#f87171"}}>{r.src ? "✅ " + String(r.src).slice(0,40) : "null"}</span></div>
+                  <div>user_id: <span style={{color:"#e2e8f0"}}>{String(r.user_id ?? "(null)").slice(0,20)}...</span></div>
+                  <div>created_at: <span style={{color:"#e2e8f0"}}>{String(r.created_at ?? "?")}</span></div>
+                  {/* Alle weiteren Felder die in der Row sind */}
+                  {keys.filter(k => !["id","type","caption","src","user_id","created_at"].includes(k)).map(k => (
+                    <div key={k}>
+                      {k}: <span style={{color:"#cbd5e1"}}>{String(r[k] ?? "(null)").slice(0,60)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* ── Separator ── */}
+          <div style={{ height:1, background:"rgba(99,102,241,0.2)", margin:"10px 0" }}/>
+
+          {/* ── QUERY 2 RESULT — wie useFeedStream ── */}
+          <div style={{ fontSize:10.5, color:"#60a5fa", marginBottom:5, fontWeight:700 }}>
+            Q2: SELECT id,user_id,src,type,caption,created_at (wie useFeedStream) — {feedRows === null ? "loading..." : feedRows.length + " rows"}
+          </div>
+
+          {feedError && (
+            <div style={{
+              padding:"6px 10px", borderRadius:8, background:"rgba(239,68,68,0.15)",
+              color:"#f87171", fontSize:11, marginBottom:8,
+            }}>❌ {feedError}</div>
+          )}
+
+          {feedRows !== null && feedRows.length === 0 && !feedError && (
+            <div style={{
+              padding:"6px 10px", borderRadius:8, background:"rgba(251,191,36,0.12)",
+              color:"#fbbf24", fontSize:11,
+            }}>⚠️ Feed Query liefert 0 Rows — Q1/Q2 Unterschied = RLS auf Spalten</div>
+          )}
+
+          {(feedRows || []).map((r, i) => (
             <div key={r.id||i} style={{
-              marginBottom:6, padding:"6px 8px", borderRadius:8,
-              background:"rgba(255,255,255,0.04)",
+              marginBottom:6, padding:"6px 8px", borderRadius:7,
+              background:"rgba(255,255,255,0.03)", fontSize:10.5,
             }}>
               <span style={{color:"#34d399"}}>#{i+1}</span>{" "}
-              <span style={{color:"#fbbf24"}}>{r.type}</span>{" — "}
-              <span style={{color:"#e2e8f0"}}>{r.caption || "(no caption)"}</span>
-              <div style={{color:"#64748b", fontSize:10, marginTop:2}}>
-                id:{r.id?.slice(0,8)}... user:{r.user_id?.slice(0,8)}...{" "}
-                src:{r.src?"✅":"null"}{" "}
-                at:{r.created_at?.slice(0,16)}
+              <span style={{color:"#f0abfc"}}>type={r.type ?? "null"}</span>{" | "}
+              <span style={{color:"#fbbf24"}}>{r.caption?.slice(0,40) || "(no caption)"}</span>
+              <div style={{color:"#475569", marginTop:1}}>
+                id:{String(r.id||"").slice(0,8)} src:{r.src?"✅":"null"} at:{String(r.created_at||"").slice(0,16)}
               </div>
             </div>
           ))}
+
+          {/* ── Diagnose Footer ── */}
+          <div style={{
+            marginTop:10, padding:"8px 10px", borderRadius:8,
+            background:"rgba(99,102,241,0.08)", fontSize:10,
+            color:"#64748b", lineHeight:1.8,
+          }}>
+            <div style={{color:"#818cf8", fontWeight:700, marginBottom:2}}>DIAGNOSE-LOGIK:</div>
+            <div>Q1=0 rows + kein error → RLS blockiert (kein SELECT Policy für user)</div>
+            <div>Q1=error 42P01 → Tabelle &apos;beitraege&apos; existiert nicht</div>
+            <div>Q1=error 42501 → Permission denied</div>
+            <div>Q1≥1 row, Q2=0 rows → Spalten-RLS oder Column-Permission</div>
+            <div>Q1≥1 row, Q2≥1 row, Feed leer → Problem in normalizeFeedItem/curateHumaneFeed</div>
+          </div>
         </div>
       )}
     </div>
