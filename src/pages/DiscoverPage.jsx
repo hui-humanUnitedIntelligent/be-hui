@@ -15,23 +15,19 @@ import {
   selectWorldWhisper,
   selectDistrictAccent,
   pillToDistrict,
-  assignItemsToDistricts,
-  isEmptyWorld,
 } from "../lib/intelligence/discoverWorld.js";
 import {
-  districtTransitionTokens,
   emptyStateFromWorld,
   harmonizedMotion,
 } from "../lib/intelligence/worldPolish.js";
 import { supabase }             from "../lib/supabaseClient";
-import { createWorkItem, createFeedItem, filterValidFeedItems }
+import { createWorkItem, filterValidFeedItems }
                                from "../lib/factories/createFeedItem.js";
-import { createProfileItem, filterValidProfiles }
+import { filterValidProfiles }
                                from "../lib/factories/createProfileItem.js";
-import { normalizeProfileInput, PROFILE_FIELDS } from "../lib/perfUtils";
+import { PROFILE_FIELDS } from "../lib/perfUtils";
 import { useDiscoverData } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
-import { IX } from "../design/hui.interaction.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
 
 /* ── Design Tokens — via HUI Design System (Phase 20) ─────── */

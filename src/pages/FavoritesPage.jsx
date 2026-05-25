@@ -5,9 +5,8 @@
 
 import { HUI } from "../design/hui.design.js";
 import { S } from "../core/hui.sources.js";
-import { IX } from "../design/hui.interaction.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 /* ══════════════════════════════════════════════════════════════

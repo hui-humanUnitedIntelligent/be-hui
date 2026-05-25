@@ -9,9 +9,7 @@ import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
-import { SAFE_MODE } from "../../../config/safeMode.js";
 import { HUI } from "../../../design/hui.design.js";
-import { IX } from "../../../design/hui.interaction.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 
 const CSS = `

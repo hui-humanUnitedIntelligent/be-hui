@@ -1,7 +1,7 @@
 // connection-create/Widgets.jsx
 // ParticipantStepper, LocationPicker, MediaAttachmentBar
 
-import React, { useState } from "react";
+import React from "react";
 import { HUI } from "../../design/hui.design.js";
 
 const C = {

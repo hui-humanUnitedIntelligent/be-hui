@@ -2,7 +2,7 @@
 // Screenshot-exact: "So wird deine Verbindung wirken"
 // Hero (violet gradient) → Type Badge → Meta-Rows → Avatar Bubbles → CTA
 
-import React, { useState } from "react";
+import React from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 import { HUI } from "../../design/hui.design.js";
 
