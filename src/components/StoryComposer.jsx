@@ -1,6 +1,6 @@
 // StoryComposer v2 — Production-ready with proper Supabase upload
 // Fixes: RLS, storage persistence, error handling, mobile Safari
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";

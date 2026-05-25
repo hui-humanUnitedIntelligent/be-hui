@@ -8,7 +8,7 @@ import { createProfileItem }     from '../lib/factories/createProfileItem.js';
 import { useHuiActions, A }      from '../core/hui.actions.js';
 import { useScrollEntry } from "../design/hui.hooks.js";
 import React, {
-  useState, useRef, useEffect, useCallback, useMemo,
+  useState, useCallback, useMemo,
 } from "react";
 import { SAFE_MODE } from "../config/safeMode.js";
 import {
@@ -16,11 +16,7 @@ import {
   PresencePersonCard,
   PresenceAvatar,
   PresenceLabel,
-  derivePresenceState,
 } from "./CreatorPresence.jsx";
-import {
-  buildRelationshipMemory,
-} from "../lib/intelligence/relationshipMemory.js";
 import {
   useLivingMemory,
   useDwellTracker,
@@ -28,7 +24,6 @@ import {
 import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
-import InvitationCard from "../content/invitation/InvitationCard.jsx";
 import FeedRouter                from "../feed/cards/FeedRouter.jsx";
 import { useFeedStream,
          saveFeedScrollPos,
@@ -39,21 +34,11 @@ import { FeedBottomSentinel,
 import { FeedSoftHydrationBadge }   from "../feed/FeedSoftHydrationBadge.jsx";
 import {
   resolveMemoryTokens,
-  applyMemoryToCardStyle,
-  memoryAdjustedDelay,
 } from "../lib/intelligence/persistence/memoryTokens.js";
 import {
   curateHumaneFeed,
-  getTimeAtmosphere,
   QUIET_QUOTE_POOL,
-  intelligentMicroMoment,
 } from "../lib/feedIntelligence.js";
-import {
-  selectWarmthBoost,
-  selectGlowBoost,
-  selectCardDelay,
-  isFallbackMemory,
-} from "../lib/intelligence/index.js";
 
 /* ─── Phase 16.7.1: Null-safe fallbacks (never undefined downstream) ──────── */
 const EMPTY_PROFILE = Object.freeze({
