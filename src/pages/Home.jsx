@@ -16,6 +16,7 @@ import { SafeRender } from "../config/SafeRender.jsx";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import { useHuiFlow } from "../core/hui.flow.js";
+import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
@@ -517,11 +518,16 @@ function HomeInner() {
               closeSurface("orb", "user-close");
               closeOrbWorld("user-close");
             }}
-            onSelect={(type) => {
+            onSelect={(rawType) => {
               // TIMING FIX: kein setShowPlusSheet(false) hier —
               // HuiPlusSheet ruft onClose() selbst auf (synchron, vor RAF).
               // onSelect kommt per requestAnimationFrame NACH dem Unmount.
-              // Wir setzen hier nur den Ziel-Flow-State.
+              // safeOrbAction: gibt null zurück wenn type ungültig/leer
+              const type = safeOrbAction(rawType);
+              if (!type) {
+                console.warn("[HUI_ORB] onSelect: ungültiger type ignoriert:", rawType);
+                return; // kein crash, kein Flow, stille Rückkehr
+              }
               // ── Teilen ──────────────────────────────────────────
               if (type === "teilen" || type === "story" || type === "moment" ||
                   type === "thought") {

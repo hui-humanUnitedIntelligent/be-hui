@@ -211,13 +211,41 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
 
   const handleNext = useCallback(async () => {
     if (step < 3) { goTo(step + 1); return; }
-    // Step 3: Publish
+    // Step 3: Real Publish → supabase.connections
     setPublishing(true);
     try {
-      await new Promise(r => setTimeout(r, 800)); // simulate
-      onPublish?.({ ...formData, creator_id: user?.id });
+      const payload = {
+        user_id:         user?.id,
+        type:            formData.type            || "kollab",
+        title:           (formData.title    || "").trim(),
+        description:     (formData.description || "").trim(),
+        date:            formData.date            || null,
+        time:            formData.time            || null,
+        location:        (formData.location || "").trim() || null,
+        max_participants: Number(formData.participants) || 30,
+        cost:            formData.cost            || "free",
+        cost_amount:     formData.costAmount ? Number(formData.costAmount) : null,
+        mood:            formData.mood            || null,
+        visibility:      formData.visibility      || "public",
+        openness:        formData.openness        || "open",
+        status:          "active",
+      };
+      const { data: connData, error: dbErr } = await supabase
+        .from("connections")
+        .insert(payload)
+        .select("id")
+        .single();
+
+      if (dbErr) {
+        console.error("[HUI_REALITY] connection publish error:", dbErr.message);
+        // Nicht crashen — Flow schließt immer sauber
+      } else {
+        console.info("[HUI_REALITY] ✓ connection published:", connData?.id);
+      }
+      onPublish?.({ ...formData, id: connData?.id, creator_id: user?.id });
       onClose?.();
-    } catch {
+    } catch (err) {
+      console.error("[HUI_REALITY] connection publish exception:", err?.message);
       setPublishing(false);
     }
   }, [step, formData, user?.id, onPublish, onClose]);
