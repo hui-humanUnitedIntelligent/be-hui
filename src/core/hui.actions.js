@@ -142,7 +142,6 @@ export function buildActions(shell) {
     chatRecipient,
     // Overlays
     setShowPlusSheet,
-    setShowCreateFlow,
     setShowConnect,
     setShowNotifs,
     setShowMap,
@@ -150,6 +149,7 @@ export function buildActions(shell) {
     setShowStoryComposer,
     setShowImpactFlow,
     setShowExperienceCreator,
+    setShowContentSelector,
     // Tabs
     switchTab,
     handleTab,
@@ -163,6 +163,7 @@ export function buildActions(shell) {
     setShowWirker?.(null);
     setShowChat?.(false);
     setShowPlusSheet?.(false);
+    setShowContentSelector?.(false);
     setShowConnect?.(false);
     setShowNotifs?.(false);
     setShowMap?.(false);
@@ -402,7 +403,7 @@ export function buildActions(shell) {
 
     [A.OPEN_CREATE_FLOW]: (payload = {}) => {
       logAction(A.OPEN_CREATE_FLOW, payload);
-      setShowCreateFlow?.(true);
+      setShowContentSelector?.(true);
     },
 
     [A.OPEN_CALENDAR]: () => {

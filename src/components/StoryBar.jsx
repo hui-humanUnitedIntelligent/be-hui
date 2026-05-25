@@ -7,6 +7,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
+import { StoryService } from "../services/db.js";
+import { subscribeEntityRealtime } from "../realtime/EntityRealtimeLayer.js";
 
 const C = {
   teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, gold:HUI.COLOR.gold,
@@ -37,45 +39,23 @@ const CSS = `
 const REACTIONS = ['❤️','🔥','👏','😮'];
 
 // ── STORY BAR ────────────────────────────────────────────────────────
-export function StoryBar({ onStoryClick }) {
+export function StoryBar({ onStoryClick, onCreateStory }) {
   const { user } = useAuth();
   const [groups, setGroups] = useState([]);
   const [viewedIds, setViewedIds] = useState(new Set());
 
-  useEffect(() => { loadStories(); }, [user?.id]);
-
-  async function loadStories() {
-    const now = new Date().toISOString();
-    // FIX: stories-Tabelle hat kein 'status'-Feld → war silent fail (0 Ergebnisse)
-    // FIX: username/avatar_url nicht in stories → via profile join laden
-    const { data, error } = await supabase
-      .from('stories')
-      .select(`
-        id, user_id, media_url, media_type, caption, text_overlay,
-        is_highlight, created_at, expires_at,
-        profile:user_id(display_name, avatar_url)
-      `)
-      .or(`expires_at.is.null,expires_at.gt.${now}`)
-      .order('created_at', { ascending: false })
-      .limit(50);
+  const loadStories = useCallback(async () => {
+    const { data, error } = await StoryService.getActive();
     console.info('[StoryBar] Query result:', { count: data?.length, error: error?.message });
 
     if (error) { console.warn('[StoryBar] load error:', error.message); return; }
-    if (!data?.length) return;
 
-    // Load viewed story IDs for current user
-    if (user?.id) {
-      const { data: views } = await supabase
-        .from('story_views')
-        .select('story_id')
-        .eq('viewer_id', user.id);
-      if (views && Array.isArray(views)) setViewedIds(new Set(views.filter(v=>v&&v.story_id).map(v => v.story_id)));
-    }
+    const { data: viewed } = await StoryService.getViewedIds(user?.id);
+    setViewedIds(viewed || new Set());
 
     // Group by user_id
-    // FIX: username/avatar_url kommen jetzt aus profile-join
     const map = {};
-    for (const s of data) {
+    for (const s of data || []) {
       const uid = s.user_id;
       const displayName = s.profile?.display_name || 'Anonym';
       const avatarUrl   = s.profile?.avatar_url   || null;
@@ -84,9 +64,13 @@ export function StoryBar({ onStoryClick }) {
     }
     console.info('[StoryBar] Groups built:', Object.keys(map||{}).length);
     setGroups(Object.values(map||{}));
-  }
+  }, [user?.id]);
 
-  if (!groups.length) return null;
+  useEffect(() => { loadStories(); }, [loadStories]);
+
+  useEffect(() => subscribeEntityRealtime('story', (message) => {
+    if (message?.eventType) loadStories();
+  }), [loadStories]);
 
   return (
     <>
@@ -97,6 +81,28 @@ export function StoryBar({ onStoryClick }) {
           padding:'0 20px', scrollSnapType:'x mandatory',
           WebkitOverflowScrolling:'touch',
         }}>
+          {onCreateStory && (
+            <div
+              className="hui-sv-tap"
+              onClick={() => onCreateStory?.()}
+              style={{ scrollSnapAlign:'start', display:'flex', flexDirection:'column',
+                alignItems:'center', gap:6, flexShrink:0 }}>
+              <div style={{
+                width:68, height:68, borderRadius:'50%', padding:3,
+                background:'rgba(0,0,0,0.08)',
+              }}>
+                <div style={{ width:'100%', height:'100%', borderRadius:'50%',
+                  overflow:'hidden', border:'2.5px solid white', background: C.cream,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  color:C.teal, fontSize:28, fontWeight:300 }}>+</div>
+              </div>
+              <span style={{ fontSize:11, fontWeight:600, color:C.muted,
+                maxWidth:68, textAlign:'center', overflow:'hidden',
+                textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                Dein Moment
+              </span>
+            </div>
+          )}
           {groups.map((g, i) => {
             const hasUnread = g.stories.some(s => !viewedIds.has(s.id));
             const cover = g.stories[0];
@@ -183,11 +189,8 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
     setReplyOpen(false);
     setSentReply(false);
     if (user?.id) {
-      supabase.from('story_views').upsert({ story_id: current.id, viewer_id: user.id },
-        { onConflict: 'story_id,viewer_id', ignoreDuplicates: true });
-      supabase.from('story_views').select('id', { count:'exact' })
-        .eq('story_id', current.id)
-        .then(({ count }) => setViewerCount(count));
+      StoryService.markViewed(current.id, user.id);
+      StoryService.getViewCount(current.id).then(({ data }) => setViewerCount(data));
     }
   }, [current?.id, user?.id]);
 
@@ -544,7 +547,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
 
           {/* Quick Reactions */}
           <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
-            {(REACTIONS||[]).filter(r=>r&&r.key).map(r => (
+            {(REACTIONS||[]).filter(Boolean).map(r => (
               <button key={r} className="hui-sv-tap"
                 onClick={() => handleReaction(r)}
                 style={{
@@ -673,18 +676,8 @@ export function HighlightsRow({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    // FIX: stories hat kein status-Feld + kein username/avatar_url
-    supabase.from('stories')
-      .select(`
-        id, user_id, media_url, media_type, caption, text_overlay,
-        is_highlight, created_at, expires_at,
-        profile:user_id(display_name, avatar_url)
-      `)
-      .eq('user_id', userId)
-      .eq('is_highlight', true)
-      // .eq('status','published') -- ENTFERNT: Spalte existiert nicht
-      .order('created_at', { ascending: false })
-      .then(({ data }) => { if (data?.length) setHighlights(data); });
+    StoryService.getHighlights(userId)
+      .then(({ data }) => setHighlights(data || []));
   }, [userId]);
 
   if (!highlights.length) return null;

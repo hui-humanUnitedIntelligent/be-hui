@@ -31,7 +31,6 @@ import ImpactPage    from "./ImpactPage.jsx";
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
-const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
 const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
 const ExperienceFlow = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
 const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlow.jsx"));
@@ -45,7 +44,6 @@ import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
-const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
 // ExperienceCreator: removed (ExperienceFlow used instead — dead import)
@@ -102,7 +100,6 @@ function HomeInner() {
     showMatch,         setShowMatch,
     showMembership,    setShowMembership,
     showPlusSheet,     setShowPlusSheet,
-    showCreateFlow,    setShowCreateFlow,
     showConnect,       setShowConnect,
     showTeilen,        setShowTeilen,
     showTalentFlow,    setShowTalentFlow,
@@ -117,6 +114,16 @@ function HomeInner() {
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
+
+  const openCanonicalStoryComposer = useCallback(() => {
+    setShowTeilen(false);
+    setShowStoryComposer(true);
+  }, [setShowStoryComposer, setShowTeilen]);
+
+  // Transitional alias: old Teilen/Moment routes collapse into StoryComposer.
+  useEffect(() => {
+    if (showTeilen) openCanonicalStoryComposer();
+  }, [showTeilen, openCanonicalStoryComposer]);
 
   // ── Orb World Layer — above navigation ─────────────────────
   const {
@@ -267,9 +274,8 @@ function HomeInner() {
                   onSearch={() => {}}
                   onNotif={() => setShowNotifs(true)}
                   onChat={() => setShowChat(true)}
-                  onStory={(s) => {
-                    if (s?.isYou) setShowStoryComposer(true);
-                    else if (s) setActiveStory(s);
+                  onStory={(storyData) => {
+                    if (storyData) setActiveStory(storyData);
                   }}
                   onEvent={() => {}}
                   onMoreEvents={() => handleTab("discover")}
@@ -287,7 +293,7 @@ function HomeInner() {
                   }}
                   onPerson={(p) => setShowWirker(p)}
                   onDiscover={() => handleTab("discover")}
-                  onShare={() => setShowTeilen(true)}
+                  onShare={openCanonicalStoryComposer}
                 />
               </SafeRender>
             ) : (
@@ -440,15 +446,7 @@ function HomeInner() {
         </SafeRender>
       )}
 
-      {/* ── Teilen Flow ─────────────────────────────────────────── */}
-      {showTeilen && SAFE_MODE.teilenFlow && (
-        <SafeRender flag="teilenFlow" label="TeilenFlow">
-          <TeilenFlow
-            onClose={() => setShowTeilen(false)}
-            onPublished={() => setShowTeilen(false)}
-          />
-        </SafeRender>
-      )}
+      {/* Legacy TeilenFlow is deprecated for stories; showTeilen redirects above. */}
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
@@ -544,7 +542,7 @@ function HomeInner() {
               // ── Teilen ──────────────────────────────────────────
               if (type === "teilen" || type === "story" || type === "moment" ||
                   type === "thought") {
-                setShowTeilen(true);
+                openCanonicalStoryComposer();
               // ── Werk erschaffen ──────────────────────────────────
               } else if (type === "werk" ||
                          type === "kunstwerk" || type === "handwerk" ||
@@ -573,7 +571,7 @@ function HomeInner() {
                 setShowImpactFlow(true);
               // ── Create ──────────────────────────────────────────
               } else if (type === "create") {
-                setShowCreateFlow(true);
+                setShowContentSelector(true);
               }
             }}
             />
@@ -591,7 +589,7 @@ function HomeInner() {
           <SafeRender flag="storyComposer" label="StoryComposer">
             <StoryComposer
               onClose={() => setShowStoryComposer(false)}
-              onPublished={() => setShowStoryComposer(false)}
+              onSuccess={() => setShowStoryComposer(false)}
             />
           </SafeRender>
         )}
@@ -667,11 +665,6 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {showCreateFlow && SAFE_MODE.createFlow && (
-          <SafeRender flag="createFlow" label="HuiCreateFlow">
-            <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
-          </SafeRender>
-        )}
         {showImpactFlow && SAFE_MODE.impactFlow && (
           <SafeRender flag="impactFlow" label="ImpactFlow">
             <ImpactFlow
@@ -690,7 +683,7 @@ function HomeInner() {
             setShowContentSelector(false);
             // Routing: type → richtiger Flow
             if (type === "moment") {
-              setShowTeilen(true);
+              openCanonicalStoryComposer();
             } else if (type === "experience") {
               setShowExperienceCreator(true);
             } else if (type === "work") {
@@ -712,7 +705,11 @@ function HomeInner() {
 
       {activeStory && SAFE_MODE.storyViewer && (
         <SafeRender flag="storyViewer" label="StoryViewer">
-          <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
+          <StoryViewer
+            data={activeStory}
+            onClose={() => setActiveStory(null)}
+            onViewProfile={(story) => setShowWirker({ id: story.user_id, user_id: story.user_id })}
+          />
         </SafeRender>
       )}
 
