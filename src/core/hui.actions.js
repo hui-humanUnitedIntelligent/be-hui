@@ -181,10 +181,10 @@ export function buildActions(shell) {
       const payload = validate("OPEN_PROFILE", rawPayload);
       if (!payload) return;
       logAction(A.OPEN_PROFILE, payload);
-      // Defensive destructure — source immer mit Fallback (Phase 4G)
-      const safePayload = payload ?? {};
+      // Defensive destructure — source immer mit Fallback (Phase 4G+)
+      const safePayload = (payload && typeof payload === 'object') ? payload : {};
       const { creator, creatorId, source: rawSource, ...rest } = safePayload;
-      const source = rawSource || S.SYSTEM;
+      const source = (typeof rawSource === 'string' && rawSource.length > 0) ? rawSource : S.SYSTEM;
       const data = creator
         ? creator
         : { id: creatorId, user_id: creatorId, ...rest };

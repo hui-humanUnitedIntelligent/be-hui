@@ -41,6 +41,7 @@ function MetaRow({ icon, text }) {
 }
 
 export default function ConnectionPreviewCard({ data }) {
+  if (!data) return null;
   const { type, title, description, date, time, location,
           participants, cost, mood, visibility, coverImage } = data;
 

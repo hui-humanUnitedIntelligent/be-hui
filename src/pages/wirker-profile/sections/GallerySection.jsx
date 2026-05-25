@@ -39,7 +39,7 @@ export function GallerySection({
   onWorkPress, onExpPress,
 }) {
   const safeWorks       = React.useMemo(() => filterValidFeedItems((works      ||[]).map(createWorkItem)),       [works]);
-  const safeExperiences = React.useMemo(() => filterValidFeedItems(safeExperiences.map(createExperienceItem)), [experiences]);
+  const safeExperiences = React.useMemo(() => filterValidFeedItems((experiences || []).map(createExperienceItem)), [experiences]);
   const safeRecs        = React.useMemo(() => filterValidFeedItems(recommendations||[]),                         [recommendations]);
 
   return (

@@ -323,6 +323,7 @@ function PublishActions({ onPublish, onEdit, onDraft, publishing }) {
 // HAUPT-EXPORT
 // ══════════════════════════════════════════════════════════════════
 export default function StepThreePreview({ data, onPublish, onBack, publishing }) {
+  if (!data) return null;
   const {
     type, title, description, date, time,
     location, participants, cost, mood,
