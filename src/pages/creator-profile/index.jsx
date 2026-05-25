@@ -230,8 +230,6 @@ const ACTIONS = [
   { icon:"🚪",label:"Raum offnen",      color:C.coral  },
   { icon:"📸",label:"Moment teilen",    color:"#8B5CF6"},
   { icon:"👥",label:"Community",        color:"#0EA5E9"},
-  { icon:"💰",label:"Einnahmen",        color:C.gold   },
-  { icon:"📅",label:"Kalender",         color:"#22C55E"},
   { icon:"🌱",label:"Wirkung",          color:C.coral  },
   { icon:"🏛",label:"Atelier",          color:C.teal   },
 ];
@@ -395,15 +393,6 @@ function OwnerExperiences({ experiences }) {
             Deine aktiven kreativen Raume.
           </div>
         </div>
-        <button
-          onClick={() => ownerExpActions[A.OPEN_EXPERIENCE_MANAGER]?.()}
-          style={{
-            background:"none",border:"none",padding:0,
-            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
-            whiteSpace:"nowrap",touchAction:"manipulation",fontFamily:"inherit",
-          }}>
-          Alle verwalten →
-        </button>
       </div>
 
       <div style={{
@@ -761,8 +750,6 @@ export default function CreatorProfilePage({
       "Raum offnen":     () => actions[A.OPEN_ROOM]?.(),
       "Moment teilen":   () => actions[A.OPEN_STORY_COMPOSER]?.(),
       "Community":       () => actions[A.OPEN_COMMUNITY]?.(),
-      "Einnahmen":       () => actions[A.OPEN_EARNINGS]?.(),
-      "Kalender":        () => actions[A.OPEN_CALENDAR]?.(),
       "Wirkung":         () => actions[A.OPEN_IMPACT]?.(),
       "Atelier":         () => actions[A.OPEN_OWN_PROFILE]?.(),
     };

@@ -228,11 +228,7 @@ export default function ConnectionForm({ data, onChange }) {
 
       {/* ── Medien ── */}
       <div className="cf-section">
-        <MediaAttachmentBar
-          onImage={() => {}}
-          onMusic={() => {}}
-          onLink={() => {}}
-        />
+        <MediaAttachmentBar />
       </div>
     </div>
   );

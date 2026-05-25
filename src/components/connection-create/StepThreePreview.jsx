@@ -2,7 +2,7 @@
 // Screenshot-exact: "So wird deine Verbindung wirken"
 // Hero (violet gradient) → Type Badge → Meta-Rows → Avatar Bubbles → CTA
 
-import React, { useState } from "react";
+import React from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 import { HUI } from "../../design/hui.design.js";
 
@@ -292,8 +292,8 @@ function PublishActions({ onPublish, onEdit, onDraft, publishing }) {
       }}>
         {[
           { label:"✏️  Bearbeiten",       onClick:onEdit  },
-          { label:"📋  Entwurf speichern", onClick:onDraft },
-        ].map(a => (
+          typeof onDraft === "function" ? { label:"📋  Entwurf speichern", onClick:onDraft } : null,
+        ].filter(Boolean).map(a => (
           <button key={a.label} onClick={a.onClick} style={{
             padding:"8px 16px", borderRadius:99,
             background:"rgba(255,255,255,0.75)",
@@ -463,7 +463,6 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
         <PublishActions
           onPublish={onPublish}
           onEdit={onBack}
-          onDraft={() => {}}
           publishing={publishing}
         />
       </div>

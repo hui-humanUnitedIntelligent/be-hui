@@ -4,13 +4,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { navigateCanonical } from "../core/hui.navigation.js";
 import { useAppState } from "../lib/AppStateContext";
-import { useCreatorBookings, BOOKING_STATUS } from "../lib/bookingContext";
+import { useCreatorBookings } from "../lib/bookingContext";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import { HUI } from "../design/hui.design.js";
 import {
-  getAmbientGreeting, useCreatorJourney, getSoftStatus,
+  getAmbientGreeting, useCreatorJourney,
   AMBIENT_CSS, TRANSITIONS,
 } from "../lib/journeyContext";
 import {
@@ -174,7 +175,7 @@ export default function CreatorStudio() {
         {/* Nav */}
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24,
           position:"relative" }}>
-          <button className="hui-tap" onClick={() => navigate(-1)}
+          <button className="hui-tap" onClick={() => navigateCanonical(navigate, "home", { replace: true })}
             style={{ width:36, height:36, borderRadius:10,
               background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.14)",
               display:"flex", alignItems:"center", justifyContent:"center",

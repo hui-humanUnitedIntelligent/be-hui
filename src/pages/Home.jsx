@@ -2,20 +2,17 @@
 // SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
-import React, { Suspense, useEffect, useRef, useCallback } from "react";
+import React, { Suspense } from "react";
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
-import {
-  orbBackdropTokens,
-  orbNavDriftTokens,
-  assertValidTab,
-} from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import { useHuiFlow } from "../core/hui.flow.js";
+import { useHuiActions, A } from "../core/hui.actions.js";
+import { S } from "../core/hui.sources.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
@@ -91,7 +88,6 @@ function HomeInner() {
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent,
-    isMember,
     currentUser,
     authProfile,
     setShowWirker,
@@ -117,18 +113,17 @@ function HomeInner() {
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
+  const actions = useHuiActions();
 
   // ── Orb World Layer — above navigation ─────────────────────
   const {
-    openOrbWorld, closeOrbWorld, isOrbOpen, orbState,
-    backdrop: orbBackdrop, navDrift: orbNavDrift,
+    closeOrbWorld,
   } = useOrbWorld();
 
   // ── World Surface Controller — single authority blur/feed/nav ──
   const {
     worldState,
     worldTokens,
-    openSurface,
     closeSurface,
     confirmSurface,
     forceRecoverWorld,
@@ -225,8 +220,6 @@ function HomeInner() {
           onMoodSelect={setActiveMood}
           notifCount={liveNotifCount}
           msgCount={0}
-          onNotif={() => setShowNotifs(true)}
-          onChat={() => setShowChat(true)}
         />
 
         {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,
@@ -264,30 +257,22 @@ function HomeInner() {
                   user={currentUser}
                   notifCount={liveNotifCount}
                   chatCount={0}
-                  onSearch={() => {}}
-                  onNotif={() => setShowNotifs(true)}
-                  onChat={() => setShowChat(true)}
                   onStory={(s) => {
-                    if (s?.isYou) setShowStoryComposer(true);
+                    if (s?.isYou) actions[A.OPEN_STORY_COMPOSER]?.({ source: S.HOME });
                     else if (s) setActiveStory(s);
                   }}
-                  onEvent={() => {}}
-                  onMoreEvents={() => handleTab("discover")}
-                  onProfile={(item) => setShowWirker(item)}
-                  onLike={() => {}}
                   onComment={(item) => {
                     // Phase 23: Kommentar = Gespräch mit Creator
                     const userId = item?.user_id || item?.author_id || item?.id;
                     const name   = item?.display_name || item?.author || item?.name || "Creator";
                     const avatar = item?.avatar_url   || item?.avatar || null;
                     if (userId) {
-                      setChatRecipient({ id: userId, display_name: name, avatar_url: avatar });
-                      setShowChat(true);
+                      actions[A.OPEN_CHAT]?.({
+                        source: S.HOME,
+                        recipient: { id: userId, display_name: name, avatar_url: avatar },
+                      });
                     }
                   }}
-                  onPerson={(p) => setShowWirker(p)}
-                  onDiscover={() => handleTab("discover")}
-                  onShare={() => setShowTeilen(true)}
                 />
               </SafeRender>
             ) : (
@@ -312,7 +297,7 @@ function HomeInner() {
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
-                <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
+                <DiscoverPage />
               </SafeRender>
             </Suspense>
           </div>
@@ -341,12 +326,7 @@ function HomeInner() {
           }}/>
           <style>{'@keyframes hui-spin{to{transform:rotate(360deg)}}'}</style>
         </div>}>
-              <FavoritesPage
-                currentUser={currentUser}
-                onView={w => setShowWirker(w)}
-                onImpact={() => handleTab("impact")}
-                onDiscover={() => handleTab("discover")}
-              />
+              <FavoritesPage currentUser={currentUser} />
             </Suspense>
           </div>
         </div>
@@ -376,41 +356,9 @@ function HomeInner() {
         notifCount={liveNotifCount}
         msgCount={0}
         onOrbAction={(key) => {
-          if (key !== "create") return;
-
-          // Phase 15.3: Safe Opening Pipeline
-          // RULE: overlay activation ONLY after content validation
-          // RULE: never openOrbWorld() before canRenderOrbContent check
-
-          const canRenderOrbContent = SAFE_MODE.orb;
-
-          console.log("[HUI ORB] tap", {
-            membershipType: isMember ? "member+" : "basis",
-            canRenderOrbContent,
-            isMember,
-            isTalent,
-          });
-
-          // Basis-User: Membership-Journey (no blur needed)
-          if (!isMember) {
-            console.log("[HUI ORB] → membership flow");
-            openSurface("membership");  // Phase 16.2
-            setShowMembership(true);
-            return;
+          if (key === "create") {
+            console.error("[HUI ORB] fallback path reached: OPEN_ORB was not handled");
           }
-
-          // Member+: validate content renderable BEFORE activating any overlay
-          if (!canRenderOrbContent) {
-            // Ghost-State-Guard: SAFE_MODE.orb disabled
-            // Do NOT open overlay — do NOT activate blur
-            console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE, skip open");
-            return;
-          }
-
-          // Phase 4B: ContentTypeSelector statt direktem Orb-Overlay
-          // Mitglieder wählen zuerst den Content-Typ
-          console.log("[HUI ORB] → ContentTypeSelector öffnen (Phase 4B)");
-          setShowContentSelector(true);
         }}
       />
 
@@ -622,7 +570,7 @@ function HomeInner() {
                 // String-Shortcuts
                 if (target === "chat")    { setShowChat(true); return; }
                 if (target === "impact")  { handleTab("impact"); return; }
-                if (target === "feed")    { handleTab("home"); return; }
+                if (target === "feed")    { handleTab("feed"); return; }
                 if (target === "discover"){ handleTab("discover"); return; }
 
                 // Objekt: { type, id, ... }
@@ -685,9 +633,12 @@ function HomeInner() {
       {showContentSelector && (
         <ContentTypeSelector
           visible={showContentSelector}
-          onClose={() => setShowContentSelector(false)}
+          onMounted={() => confirmSurface("orb")}
+          onClose={() => {
+            actions[A.CLOSE_ORB]?.({ source: S.ORB });
+          }}
           onSelect={(type) => {
-            setShowContentSelector(false);
+            actions[A.CLOSE_ORB]?.({ source: S.ORB });
             // Routing: type → richtiger Flow
             if (type === "moment") {
               setShowTeilen(true);
@@ -697,6 +648,8 @@ function HomeInner() {
               setShowWerkPublisher(true);
             } else if (type === "invitation") {
               setShowInvitationFlow(true);
+            } else {
+              console.error("[HUI ACTION] Unknown content type selected", type);
             }
           }}
         />

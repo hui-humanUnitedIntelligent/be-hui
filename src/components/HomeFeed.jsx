@@ -9,7 +9,7 @@ import { createProfileItem }     from '../lib/factories/createProfileItem.js';
 import { useHuiActions, A }      from '../core/hui.actions.js';
 import { useScrollEntry } from "../design/hui.hooks.js";
 import React, {
-  useState, useRef, useEffect, useCallback, useMemo,
+  useState, useCallback, useMemo,
 } from "react";
 import { SAFE_MODE } from "../config/safeMode.js";
 import {
@@ -17,11 +17,9 @@ import {
   PresencePersonCard,
   PresenceAvatar,
   PresenceLabel,
-  derivePresenceState,
 } from "./CreatorPresence.jsx";
-import {
-  buildRelationshipMemory,
-} from "../lib/intelligence/relationshipMemory.js";
+
+
 import {
   useLivingMemory,
   useDwellTracker,
@@ -29,7 +27,6 @@ import {
 import { useAuth } from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { IX } from "../design/hui.interaction.js";
-import InvitationCard from "../content/invitation/InvitationCard.jsx";
 import FeedRouter                from "../feed/cards/FeedRouter.jsx";
 import { useFeedStream,
          saveFeedScrollPos,
@@ -40,21 +37,13 @@ import { FeedBottomSentinel,
 import { FeedSoftHydrationBadge }   from "../feed/FeedSoftHydrationBadge.jsx";
 import {
   resolveMemoryTokens,
-  applyMemoryToCardStyle,
-  memoryAdjustedDelay,
 } from "../lib/intelligence/persistence/memoryTokens.js";
 import {
   curateHumaneFeed,
-  getTimeAtmosphere,
   QUIET_QUOTE_POOL,
-  intelligentMicroMoment,
 } from "../lib/feedIntelligence.js";
-import {
-  selectWarmthBoost,
-  selectGlowBoost,
-  selectCardDelay,
-  isFallbackMemory,
-} from "../lib/intelligence/index.js";
+
+
 
 /* ─── Phase 16.7.1: Null-safe fallbacks (never undefined downstream) ──────── */
 const EMPTY_PROFILE = Object.freeze({
@@ -484,23 +473,23 @@ export default function HomeFeed({
 
   const handleProfile = React.useCallback((item) => {
     const creatorId = item?.creator_id || item?.user_id || item?.creatorId || item?.id;
-    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: S.HOME });
-    onProfile?.(item);
+    const handled = actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: S.HOME });
+    if (handled === false) onProfile?.(item);
   }, [actions, onProfile]);
 
   const handleDiscover = React.useCallback(() => {
-    actions[A.GO_DISCOVER]?.();
-    onDiscover?.();
+    const handled = actions[A.GO_DISCOVER]?.({ source: S.HOME });
+    if (handled === false) onDiscover?.();
   }, [actions, onDiscover]);
 
   const handleShare = React.useCallback(() => {
-    actions[A.OPEN_STORY_COMPOSER]?.();
-    onShare?.();
+    const handled = actions[A.OPEN_STORY_COMPOSER]?.({ source: S.HOME });
+    if (handled === false) onShare?.();
   }, [actions, onShare]);
 
   const handleEvent = React.useCallback((ev) => {
-    actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.HOME });
-    onEvent?.(ev);
+    const handled = actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.HOME });
+    if (handled === false) onEvent?.(ev);
   }, [actions, onEvent]);
   // Phase 4F: useFeedStream — Living Feed Infrastructure
   const {
@@ -1606,6 +1595,7 @@ function ReactionBar({ item, itemReactions, onReaction, onComment, minimal=false
   function handleResonanz(type) {
     onReaction?.(type);
     actions[A.SEND_RESONANCE]?.({
+      targetId:  item?.id,
       itemId:    item?.id,
       creatorId: item?.creator_id || item?.user_id || item?.creatorId,
       type,

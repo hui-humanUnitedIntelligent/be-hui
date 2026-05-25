@@ -23,6 +23,20 @@
 import { S, isValidSource, SURFACE_LABEL } from "./hui.sources.js";
 
 const isDev = import.meta.env?.DEV ?? false;
+const VALID_TABS = new Set(["feed", "discover", "impact", "favorites"]);
+const KNOWN_ROUTES = new Set([
+  "/Home",
+  "/impact",
+  "/work/:id",
+  "/profile/:username",
+  "/studio",
+  "/studio/:section",
+  "/Admin",
+  "/dashboard",
+  "/diagnose",
+  "/login",
+  "/auth/callback",
+]);
 
 // ─── Source-Konstanten ─────────────────────────────────────────────
 export const SOURCE = Object.freeze({
@@ -113,6 +127,17 @@ const CONTRACTS = {
     optional:    ["url", "title", "text", "source"],
     description: "Teilt einen Moment",
   },
+  OPEN_WERK: {
+    required:    [],
+    requiredOr:  [["werk", "werkId", "view"]],
+    optional:    ["source"],
+    description: "Oeffnet einen Werk-Kontext",
+  },
+  OPEN_MOMENT: {
+    required:    [],
+    optional:    ["moment", "momentId", "view", "source"],
+    description: "Oeffnet einen Moment-Kontext",
+  },
   OPEN_ORB: {
     required:    [],
     optional:    ["world", "source"],
@@ -183,12 +208,141 @@ const CONTRACTS = {
     optional:    ["source"],
     description: "Oeffnet den Kalender",
   },
+  OPEN_EARNINGS: {
+    required:    [],
+    optional:    ["source"],
+    description: "Oeffnet den Einnahmen-Kontext",
+  },
+  OPEN_EXPERIENCE_MANAGER: {
+    required:    [],
+    optional:    ["source"],
+    description: "Oeffnet die Erlebnis-Verwaltung",
+  },
+  OPEN_NOTIFICATIONS_SETTINGS: {
+    required:    [],
+    optional:    ["source"],
+    description: "Oeffnet Benachrichtigungs-Einstellungen",
+  },
+  FILTER_CATEGORY: {
+    required:    ["category"],
+    optional:    ["source"],
+    description: "Filtert eine Kategorie im aktuellen Kontext",
+  },
   GO_TO_TAB: {
     required:    [],
     optional:    ["tab", "source"],
     description: "Wechselt zu einem Tab",
   },
+  GO_HOME: {
+    required:    [],
+    optional:    ["source"],
+    description: "Wechselt zum Feed-Tab",
+  },
+  GO_DISCOVER: {
+    required:    [],
+    optional:    ["source"],
+    description: "Wechselt zum Discover-Tab",
+  },
+  GO_IMPACT: {
+    required:    [],
+    optional:    ["source"],
+    description: "Wechselt zum Impact-Tab",
+  },
+  GO_FAVORITES: {
+    required:    [],
+    optional:    ["source"],
+    description: "Wechselt zum Favoriten-Tab",
+  },
 };
+
+const ACTION_RUNTIME = {
+  OPEN_PROFILE:         { target: S.VISITOR_PROFILE, entityType: "profile", runtimeEffect: "overlay:profile", requiresAuth: true },
+  OPEN_OWN_PROFILE:     { target: S.OWNER_PROFILE,   entityType: "profile", runtimeEffect: "overlay:own-profile", requiresAuth: true },
+  CLOSE_PROFILE:        { target: S.VISITOR_PROFILE, entityType: "profile", runtimeEffect: "overlay:close-profile", requiresAuth: true },
+  OPEN_CHAT:            { target: S.CHAT,            entityType: "recipient", runtimeEffect: "overlay:chat", requiresAuth: true },
+  CLOSE_CHAT:           { target: S.CHAT,            entityType: "recipient", runtimeEffect: "overlay:close-chat", requiresAuth: true },
+  SEND_MESSAGE:         { target: S.CHAT,            entityType: "recipient", runtimeEffect: "overlay:chat", requiresAuth: true },
+  OPEN_EXPERIENCE:      { target: S.EXPERIENCE,      entityType: "experience", runtimeEffect: "overlay:experience", requiresAuth: true },
+  BOOK_EXPERIENCE:      { target: S.BOOKING,         entityType: "experience", runtimeEffect: "overlay:booking", requiresAuth: true },
+  CREATE_EXPERIENCE:    { target: S.EXPERIENCE,      entityType: "experience", runtimeEffect: "flow:create-experience", requiresAuth: true },
+  OPEN_IMPACT:          { target: S.IMPACT,          entityType: "impact", runtimeEffect: "tab:impact", requiresAuth: true, route: "/impact" },
+  SEND_RESONANCE:       { target: S.HOME,            entityType: "resonance", runtimeEffect: "signal:resonance", requiresAuth: true },
+  FOLLOW_CREATOR:       { target: S.VISITOR_PROFILE, entityType: "profile", runtimeEffect: "signal:follow", requiresAuth: true },
+  SHARE_MOMENT:         { target: S.HOME,            entityType: "moment", runtimeEffect: "share:moment", requiresAuth: true },
+  OPEN_WERK:            { target: S.EXPERIENCE,      entityType: "werk", runtimeEffect: "overlay:werk", requiresAuth: true },
+  OPEN_MOMENT:          { target: S.HOME,            entityType: "moment", runtimeEffect: "flow:moment", requiresAuth: true },
+  OPEN_ORB:             { target: S.ORB,             entityType: "orb", runtimeEffect: "overlay:orb", requiresAuth: true },
+  CLOSE_ORB:            { target: S.ORB,             entityType: "orb", runtimeEffect: "overlay:close-orb", requiresAuth: true },
+  OPEN_BOOKING:         { target: S.BOOKING,         entityType: "recipient", runtimeEffect: "overlay:booking", requiresAuth: true },
+  OPEN_CONNECT:         { target: S.BOOKING,         entityType: "connection", runtimeEffect: "overlay:connect", requiresAuth: true },
+  OPEN_NOTIFICATIONS:   { target: S.NOTIFICATIONS,   entityType: "notification", runtimeEffect: "overlay:notifications", requiresAuth: true },
+  OPEN_MAP:             { target: S.MAP,             entityType: "map", runtimeEffect: "overlay:map", requiresAuth: true },
+  OPEN_MATCH:           { target: S.MATCH,           entityType: "match", runtimeEffect: "overlay:match", requiresAuth: true },
+  OPEN_WORLD:           { target: S.ORB,             entityType: "world", runtimeEffect: "overlay:orb-world", requiresAuth: true },
+  OPEN_ROOM:            { target: S.VISITOR_PROFILE, entityType: "room", runtimeEffect: "overlay:room", requiresAuth: true },
+  OPEN_COMMUNITY:       { target: S.DISCOVER,        entityType: "community", runtimeEffect: "tab:discover", requiresAuth: true, route: "/Home" },
+  OPEN_STORY_COMPOSER:  { target: S.HOME,            entityType: "story", runtimeEffect: "overlay:story-composer", requiresAuth: true },
+  OPEN_IMPACT_FLOW:     { target: S.IMPACT,          entityType: "impact", runtimeEffect: "flow:impact", requiresAuth: true },
+  OPEN_CREATE_FLOW:     { target: S.ORB,             entityType: "create", runtimeEffect: "flow:create", requiresAuth: true },
+  OPEN_CALENDAR:        { target: S.OWNER_PROFILE,   entityType: "calendar", runtimeEffect: "deprecated:calendar", requiresAuth: true },
+  OPEN_EARNINGS:        { target: S.OWNER_PROFILE,   entityType: "earnings", runtimeEffect: "deprecated:earnings", requiresAuth: true },
+  OPEN_EXPERIENCE_MANAGER: { target: S.OWNER_PROFILE, entityType: "experience", runtimeEffect: "deprecated:experience-manager", requiresAuth: true },
+  OPEN_NOTIFICATIONS_SETTINGS: { target: S.NOTIFICATIONS, entityType: "notification-settings", runtimeEffect: "deprecated:notification-settings", requiresAuth: true },
+  FILTER_CATEGORY:      { target: S.DISCOVER,        entityType: "category", runtimeEffect: "state:filter-category", requiresAuth: true },
+  GO_TO_TAB:            { target: S.HOME,            entityType: "tab", runtimeEffect: "tab:switch", requiresAuth: true, route: "/Home" },
+  GO_HOME:              { target: S.HOME,            entityType: "tab", runtimeEffect: "tab:feed", requiresAuth: true, route: "/Home" },
+  GO_DISCOVER:          { target: S.DISCOVER,        entityType: "tab", runtimeEffect: "tab:discover", requiresAuth: true, route: "/Home" },
+  GO_IMPACT:            { target: S.IMPACT,          entityType: "tab", runtimeEffect: "tab:impact", requiresAuth: true, route: "/Home" },
+  GO_FAVORITES:         { target: S.FAVORITES,       entityType: "tab", runtimeEffect: "tab:favorites", requiresAuth: true, route: "/Home" },
+};
+
+function normalizeRawPayload(actionName, rawPayload) {
+  if (actionName === "GO_TO_TAB" && typeof rawPayload === "string") {
+    return { tab: rawPayload };
+  }
+  return rawPayload;
+}
+
+function resolveEntityId(payload) {
+  return (
+    payload.entityId ??
+    payload.creatorId ??
+    payload.recipientId ??
+    payload.targetId ??
+    payload.itemId ??
+    payload.werkId ??
+    payload.momentId ??
+    payload.roomId ??
+    payload.experience?.id ??
+    payload.creator?.id ??
+    payload.creator?.user_id ??
+    payload.recipient?.id ??
+    payload.werk?.id ??
+    null
+  );
+}
+
+function normalizeTarget(actionName, payload, runtimeMeta) {
+  if (actionName === "GO_TO_TAB") {
+    return VALID_TABS.has(payload.tab) ? payload.tab : S.HOME;
+  }
+  return runtimeMeta?.target ?? ACTION_RUNTIME[actionName]?.target ?? S.SYSTEM;
+}
+
+function buildCanonicalAction(actionName, payload, overrides = {}) {
+  const runtimeMeta = ACTION_RUNTIME[actionName] || {};
+  const route = overrides.route ?? runtimeMeta.route ?? payload.route ?? null;
+  return Object.freeze({
+    actionId:      actionName,
+    source:        payload.source || S.SYSTEM,
+    target:        normalizeTarget(actionName, payload, runtimeMeta),
+    entityType:    overrides.entityType ?? runtimeMeta.entityType ?? payload.entityType ?? null,
+    entityId:      overrides.entityId ?? resolveEntityId(payload),
+    route,
+    runtimeEffect: overrides.runtimeEffect ?? runtimeMeta.runtimeEffect ?? null,
+    requiresAuth:  overrides.requiresAuth ?? runtimeMeta.requiresAuth ?? false,
+  });
+}
 
 // ─── Kern-Validator ────────────────────────────────────────────────
 // Gibt einen sicheren, normalisierten Payload-Klon zurueck — oder null.
@@ -197,7 +351,8 @@ const CONTRACTS = {
 // Default-Param (payload = {}) greift NICHT bei explizit null — daher hier.
 export function validate(actionName, rawPayload) {
   // Null-Safety: normalisiere null/undefined zu leerem Objekt
-  const payload = (rawPayload == null) ? {} : rawPayload;
+  const normalizedRaw = normalizeRawPayload(actionName, rawPayload);
+  const payload = (normalizedRaw == null) ? {} : normalizedRaw;
 
   // Typ-Check
   if (typeof payload !== "object") {
@@ -212,10 +367,8 @@ export function validate(actionName, rawPayload) {
 
   const contract = CONTRACTS[actionName];
   if (!contract) {
-    if (isDev) {
-      console.warn("[HUI_CONTRACT] A." + actionName + ": kein Contract definiert. Unverifiziert ausgefuehrt.");
-    }
-    return { source: "system", ...payload };
+    console.error("[HUI_CONTRACT] A." + actionName + ": kein Contract definiert. Action abgebrochen.", payload);
+    return null;
   }
 
   // Required-Felder
@@ -265,6 +418,39 @@ export function validate(actionName, rawPayload) {
     ? payload.source
     : "system";
   return Object.assign({}, payload, { source: safeSrc });
+}
+
+export function validateAction(actionName, rawPayload, runtime = {}) {
+  if (runtime.handlerExists === false) {
+    console.error("[HUI_ACTION_RUNTIME] A." + actionName + ": kein Handler registriert. Action abgebrochen.");
+    return null;
+  }
+  if (runtime.isMounted === false) {
+    console.error("[HUI_ACTION_RUNTIME] A." + actionName + ": UI ist nicht gemounted. Action abgebrochen.");
+    return null;
+  }
+
+  const payload = validate(actionName, rawPayload);
+  if (!payload) return null;
+
+  const canonical = buildCanonicalAction(actionName, payload, runtime);
+
+  if (canonical.requiresAuth && runtime.hasAuth === false) {
+    console.error("[HUI_ACTION_RUNTIME] A." + actionName + ": Auth erforderlich. Action abgebrochen.", canonical);
+    return null;
+  }
+
+  if (canonical.route && !KNOWN_ROUTES.has(canonical.route)) {
+    console.error("[HUI_ACTION_RUNTIME] A." + actionName + ": unbekannte Route. Action abgebrochen.", canonical);
+    return null;
+  }
+
+  if (actionName === "GO_TO_TAB" && payload.tab && !VALID_TABS.has(payload.tab)) {
+    console.error("[HUI_ACTION_RUNTIME] A.GO_TO_TAB: unbekannter Tab. Action abgebrochen.", payload.tab);
+    return null;
+  }
+
+  return { payload, action: canonical };
 }
 
 // ─── DEV: Contract-Inspektor ───────────────────────────────────────

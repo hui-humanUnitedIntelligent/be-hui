@@ -168,8 +168,12 @@ function TypeCard({ type, idx, onSelect }) {
 }
 
 /* ── Main Component ─────────────────────────────────────────── */
-export default function ContentTypeSelector({ onSelect, onClose, visible = true }) {
+export default function ContentTypeSelector({ onSelect, onClose, onMounted, visible = true }) {
   const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (visible) onMounted?.();
+  }, [visible, onMounted]);
 
   // Close on backdrop tap
   const handleBackdropTap = (e) => {

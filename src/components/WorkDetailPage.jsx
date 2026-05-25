@@ -2,7 +2,7 @@
 // Route: /work/:id
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { safeQuery } from "../lib/perfUtils";
+import { navigateCanonical } from "../core/hui.navigation.js";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
@@ -516,7 +516,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         lineHeight:1.6, marginBottom:24, maxWidth:260 }}>
         {error || "Dieses Werk existiert nicht mehr oder wurde entfernt."}
       </div>
-      <button onClick={() => navigate(-1)} className="wd-tap"
+      <button onClick={() => navigateCanonical(navigate, "discover", { replace: true })} className="wd-tap"
         style={{ padding:"13px 28px", borderRadius:16,
           background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
           color:"white", border:"none", fontWeight:800,
@@ -544,7 +544,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       {/* ── Back Button (floating) ── */}
       <div style={{ position:"fixed", top:"max(16px,env(safe-area-inset-top,16px))",
         left:16, zIndex:200 }}>
-        <button onClick={() => navigate(-1)} className="wd-tap"
+        <button onClick={() => navigateCanonical(navigate, "discover", { replace: true })} className="wd-tap"
           style={{ width:40, height:40, borderRadius:"50%",
             background:"rgba(0,0,0,0.38)", backdropFilter:"blur(10px)",
             border:"1px solid rgba(255,255,255,0.2)", color:"white",

@@ -745,7 +745,6 @@ function MomentCard({ m }) {
 }
 
 function MomentsSection({ moments }) {
-  const momentActions = useHuiActions();
   const { ref, style } = useEntry(60);
   const items = safeArr(moments).length ? safeArr(moments) : SEED_MOMENTS;
   return (
@@ -757,15 +756,6 @@ function MomentsSection({ moments }) {
         <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
           Momente aus meinem Raum
         </div>
-        <button
-          onClick={() => momentActions[A.OPEN_MOMENT]?.({ view: "alle" })}
-          style={{
-            background:"none",border:"none",padding:0,
-            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
-            touchAction:"manipulation",fontFamily:"inherit",
-          }}>
-          Alle Momente ansehen →
-        </button>
       </div>
       <div style={{
         display:"flex",gap:9,overflowX:"auto",scrollbarWidth:"none",

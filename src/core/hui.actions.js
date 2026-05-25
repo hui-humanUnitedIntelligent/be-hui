@@ -12,7 +12,7 @@
 // ══════════════════════════════════════════════════════════════════
 
 import { useCallback, useContext, createContext } from "react";
-import { validate, SOURCE } from "./hui.contracts.js";
+import { validateAction } from "./hui.contracts.js";
 import { S, SURFACE_LABEL } from "./hui.sources.js";
 import { ECHO, flowSignal } from "./hui.flow.states.js";
 import {
@@ -22,6 +22,7 @@ import {
   checkSemantics,
   INTENT,
 } from "./hui.semantics.js";
+import { SAFE_MODE } from "../config/safeMode.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -81,6 +82,8 @@ export const A = {
   // Social
   FOLLOW_CREATOR:       "FOLLOW_CREATOR",
   SHARE_MOMENT:         "SHARE_MOMENT",
+  OPEN_WERK:            "OPEN_WERK",
+  OPEN_MOMENT:          "OPEN_MOMENT",
 
   // Overlays / Sheets
   OPEN_ORB:             "OPEN_ORB",
@@ -101,6 +104,10 @@ export const A = {
   OPEN_IMPACT_FLOW:     "OPEN_IMPACT_FLOW",
   OPEN_CREATE_FLOW:     "OPEN_CREATE_FLOW",
   OPEN_CALENDAR:        "OPEN_CALENDAR",
+  OPEN_EARNINGS:        "OPEN_EARNINGS",
+  OPEN_EXPERIENCE_MANAGER: "OPEN_EXPERIENCE_MANAGER",
+  OPEN_NOTIFICATIONS_SETTINGS: "OPEN_NOTIFICATIONS_SETTINGS",
+  FILTER_CATEGORY:      "FILTER_CATEGORY",
 
   // Tab navigation
   GO_TO_TAB:            "GO_TO_TAB",
@@ -121,6 +128,7 @@ export function useHuiActions() {
     // Graceful fallback — never crash the UI
     const noop = (name) => (payload) => {
       console.warn(`[HUI_ACTIONS] Provider not found for action: ${name}`, payload);
+      return false;
     };
     return Object.fromEntries(Object.values(A).map(k => [k, noop(k)]));
   }
@@ -131,6 +139,9 @@ export function useHuiActions() {
 // Called once in HuiActionProvider. Returns stable action object.
 export function buildActions(shell) {
   const {
+    user,
+    tab,
+    isMember,
     // Profile
     setShowWirker,
     openOwnProfile,
@@ -144,43 +155,89 @@ export function buildActions(shell) {
     setShowPlusSheet,
     setShowCreateFlow,
     setShowConnect,
+    setShowMembership,
     setShowNotifs,
     setShowMap,
     setShowMatch,
+    setShowTeilen,
+    setShowTalentFlow,
+    setShowWerkPublisher,
     setShowStoryComposer,
     setShowImpactFlow,
     setShowExperienceCreator,
+    setShowContentSelector,
+    setShowInvitationFlow,
     // Tabs
     switchTab,
-    handleTab,
     // Orb
     openOrbWorld,
     closeOrbWorld,
+    // World / cleanup
+    openSurface,
+    closeSurface,
+    centralCloseFlow,
   } = shell;
 
-  // ── helper: close all overlays before opening another ────────────
-  function closeAll() {
+  function closeAll(reason = "action-close", opts = {}) {
+    if (typeof centralCloseFlow === "function") {
+      centralCloseFlow(reason, opts);
+      return;
+    }
     setShowWirker?.(null);
     setShowChat?.(false);
+    setChatRecipient?.(null);
     setShowPlusSheet?.(false);
     setShowConnect?.(false);
+    setShowMembership?.(false);
     setShowNotifs?.(false);
     setShowMap?.(false);
     setShowMatch?.(false);
+    setShowTeilen?.(false);
+    setShowTalentFlow?.(false);
+    setShowWerkPublisher?.(false);
     setShowStoryComposer?.(false);
     setShowImpactFlow?.(false);
     setShowExperienceCreator?.(false);
-    closeOrbWorld?.();
+    setShowContentSelector?.(false);
+    setShowInvitationFlow?.(false);
+    closeSurface?.(null, reason);
+    closeOrbWorld?.(reason);
+    flowStore?.clear?.(reason);
+  }
+
+  function makeAction(actionId, handler, runtime = {}) {
+    return (rawPayload) => {
+      const checked = validateAction(actionId, rawPayload, {
+        hasAuth: Boolean(user?.id || user),
+        isMounted: true,
+        handlerExists: typeof handler === "function",
+        ...runtime,
+      });
+      if (!checked) return false;
+      logAction(actionId, checked.action);
+      try {
+        const result = handler(checked.payload, checked.action);
+        if (result === false) {
+          console.error("[HUI_ACTION_RUNTIME] " + actionId + ": Handler ohne Runtime-Effekt beendet.", checked.action);
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error("[HUI_ACTION_RUNTIME] " + actionId + ": Handler failed", {
+          message: error?.message,
+          stack: error?.stack,
+          action: checked.action,
+        });
+        return false;
+      }
+    };
   }
 
   // ── action map ────────────────────────────────────────────────────
   const actions = {
 
     // ── PROFILE ──────────────────────────────────────────────────
-    [A.OPEN_PROFILE]: (rawPayload) => {
-      const payload = validate("OPEN_PROFILE", rawPayload);
-      if (!payload) return;
-      logAction(A.OPEN_PROFILE, payload);
+    [A.OPEN_PROFILE]: makeAction(A.OPEN_PROFILE, (payload) => {
       // Defensive destructure — source immer mit Fallback (Phase 4G+)
       const safePayload = (payload && typeof payload === 'object') ? payload : {};
       const { creator, creatorId, source: rawSource, ...rest } = safePayload;
@@ -188,27 +245,25 @@ export function buildActions(shell) {
       const data = creator
         ? creator
         : { id: creatorId, user_id: creatorId, ...rest };
+      closeAll("open-profile", { preserveReturnProfile: true });
       // Phase 2: Flow Stack — merke Navigations-Ursprung
       logFlow(source, S.VISITOR_PROFILE);
       flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source });
       setShowWirker?.(data);
-    },
+    }),
 
-    [A.OPEN_OWN_PROFILE]: (payload = {}) => {
-      logAction(A.OPEN_OWN_PROFILE, payload);
+    [A.OPEN_OWN_PROFILE]: makeAction(A.OPEN_OWN_PROFILE, () => {
+      closeAll("open-own-profile", { preserveReturnProfile: false });
       openOwnProfile?.();
-    },
+    }),
 
-    [A.CLOSE_PROFILE]: () => {
-      logAction(A.CLOSE_PROFILE);
+    [A.CLOSE_PROFILE]: makeAction(A.CLOSE_PROFILE, () => {
       setShowWirker?.(null);
-    },
+      flowStore?.pop?.();
+    }),
 
     // ── CHAT ─────────────────────────────────────────────────────
-    [A.OPEN_CHAT]: (rawPayload) => {
-      const payload = validate("OPEN_CHAT", rawPayload);
-      if (!payload) return;
-      logAction(A.OPEN_CHAT, payload);
+    [A.OPEN_CHAT]: makeAction(A.OPEN_CHAT, (payload) => {
       const { recipient, recipientId, name, avatar, ...rest } = payload;
       // Semantic: normalizeRecipient schützt vor rohen Supabase-Objekten
       var rawRec = recipient ?? (recipientId ? {
@@ -218,35 +273,36 @@ export function buildActions(shell) {
         ...rest,
       } : chatRecipient);
       const rec = rawRec ? normalizeRecipient(rawRec) : null;
+      closeAll("open-chat", {
+        preserveProfile: payload?.source === S.VISITOR_PROFILE || Boolean(payload?.returnProfile),
+        preserveReturnProfile: true,
+      });
       if (rec) setChatRecipient?.(rec);
       // Semantic guard (DEV): prüft ob der Chat-Payload vollständig ist
       checkSemantics("OPEN_CHAT", { recipient: rec, source: payload?.source || S.SYSTEM });
       // Phase 2: wenn Profil offen war → Return merken
       // NICHT setShowWirker(null) — Profil bleibt gemounted (LOOP 1)
       const chatSource = payload?.source || S.SYSTEM;
+      if (chatSource === S.VISITOR_PROFILE && payload?.returnProfile) {
+        flowStore?.setReturnProfile?.(payload.returnProfile);
+      }
       logFlow(chatSource, S.CHAT);
       flowStore?.push({ surface: S.CHAT, recipient: rec, source: chatSource });
       setShowChat?.(true);
-    },
+    }),
 
-    [A.CLOSE_CHAT]: () => {
-      logAction(A.CLOSE_CHAT);
+    [A.CLOSE_CHAT]: makeAction(A.CLOSE_CHAT, () => {
       setShowChat?.(false);
-    },
+      setChatRecipient?.(null);
+    }),
 
-    [A.SEND_MESSAGE]: (rawPayload) => {
-      const payload = validate("SEND_MESSAGE", rawPayload);
-      if (!payload) return;
-      logAction(A.SEND_MESSAGE, payload);
+    [A.SEND_MESSAGE]: makeAction(A.SEND_MESSAGE, (payload) => {
       // Opens chat — actual send handled inside ChatCenter
-      actions[A.OPEN_CHAT](payload);
-    },
+      return actions[A.OPEN_CHAT](payload);
+    }),
 
     // ── EXPERIENCES ───────────────────────────────────────────────
-    [A.OPEN_EXPERIENCE]: (rawPayload) => {
-      const payload = validate("OPEN_EXPERIENCE", rawPayload);
-      if (!payload) return;
-      logAction(A.OPEN_EXPERIENCE, payload);
+    [A.OPEN_EXPERIENCE]: makeAction(A.OPEN_EXPERIENCE, (payload) => {
       const { experience, creatorId } = payload;
       // Open the creator profile and highlight the experience
       if (creatorId || experience?.creator_id) {
@@ -258,170 +314,213 @@ export function buildActions(shell) {
         });
       } else {
         // No creator context — open connect sheet
-        actions[A.OPEN_CONNECT]({ intent: "experience", experience });
+        return actions[A.OPEN_CONNECT]({ intent: "experience", experience, source: payload.source || S.SYSTEM });
       }
-    },
+    }),
 
-    [A.BOOK_EXPERIENCE]: (rawPayload) => {
-      const payload = validate("BOOK_EXPERIENCE", rawPayload);
-      if (!payload) return;
-      logAction(A.BOOK_EXPERIENCE, payload);
+    [A.BOOK_EXPERIENCE]: makeAction(A.BOOK_EXPERIENCE, (payload) => {
       const { experience, creator } = payload;
       // Semantic: normalizeCreator → sicheres Recipient-Objekt für Booking-Chat
       const safeExp  = normalizeExperience(experience);
       const safeCr   = creator ? normalizeCreator(creator) : null;
       // Semantic guard (DEV)
       checkSemantics("BOOK_EXPERIENCE", { experience: safeExp, creator: safeCr, source: payload?.source || S.SYSTEM });
+      closeAll("open-booking", { preserveProfile: true, preserveReturnProfile: true });
       // Set recipient so Connect-Sheet weiß wer gebucht wird
       if (safeCr) setChatRecipient?.(safeCr);
       // Flow-Log
       const bookSource = payload?.source || S.SYSTEM;
       logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
       setShowConnect?.(true);
-    },
+    }),
 
-    [A.CREATE_EXPERIENCE]: (payload = {}) => {
-      logAction(A.CREATE_EXPERIENCE, payload);
+    [A.CREATE_EXPERIENCE]: makeAction(A.CREATE_EXPERIENCE, () => {
+      closeAll("create-experience");
       setShowExperienceCreator?.(true);
-    },
+    }),
 
     // ── IMPACT ────────────────────────────────────────────────────
-    [A.OPEN_IMPACT]: (payload = {}) => {
-      logAction(A.OPEN_IMPACT, payload);
+    [A.OPEN_IMPACT]: makeAction(A.OPEN_IMPACT, () => {
       switchTab?.("impact");
-    },
+    }),
 
-    [A.SEND_RESONANCE]: (rawPayload) => {
-      const payload = validate("SEND_RESONANCE", rawPayload);
-      if (!payload) return;
-      logAction(A.SEND_RESONANCE, payload);
+    [A.SEND_RESONANCE]: makeAction(A.SEND_RESONANCE, (payload) => {
       // Semantic guard (DEV)
       checkSemantics("SEND_RESONANCE", payload);
       // Fire-and-forget resonance — actual write handled by caller
       // Payload: { targetId, type: "profile"|"moment"|"experience" }
       flowSignal.emit("echo", { type: ECHO.SOFT_GLOW, action: A.SEND_RESONANCE, data: payload });
-    },
+    }),
 
     // ── SOCIAL ────────────────────────────────────────────────────
-    [A.FOLLOW_CREATOR]: (rawPayload) => {
-      const payload = validate("FOLLOW_CREATOR", rawPayload);
-      if (!payload) return;
-      logAction(A.FOLLOW_CREATOR, payload);
+    [A.FOLLOW_CREATOR]: makeAction(A.FOLLOW_CREATOR, (payload) => {
       // Semantic guard (DEV)
       checkSemantics("FOLLOW_CREATOR", payload);
       // Actual Supabase write handled by caller — Signal für UI-Echo
       flowSignal.emit("echo", { type: ECHO.WARMTH, action: A.FOLLOW_CREATOR, data: payload });
-    },
+    }),
 
-    [A.SHARE_MOMENT]: (rawPayload) => {
-      const payload = validate("SHARE_MOMENT", rawPayload);
-      if (!payload) return;
-      logAction(A.SHARE_MOMENT, payload);
+    [A.SHARE_MOMENT]: makeAction(A.SHARE_MOMENT, (payload) => {
       const { url, title, text } = payload;
       if (typeof navigator !== "undefined" && navigator.share) {
-        navigator.share({ url, title, text }).catch(() => {});
+        navigator.share({ url, title, text }).catch((error) => {
+          console.error("[HUI_ACTION_RUNTIME] SHARE_MOMENT failed", error);
+        });
       } else {
         // Fallback: open share overlay
+        closeAll("share-moment");
         setShowStoryComposer?.(true);
       }
-    },
+    }),
+
+    [A.OPEN_WERK]: makeAction(A.OPEN_WERK, (payload) => {
+      const werk = payload?.werk || null;
+      const creator = werk?.profile || werk?.creator || null;
+      const creatorId = werk?.creator_id || werk?.user_id || creator?.id || creator?.user_id || werk?.id;
+      if (werk || creatorId || creator) {
+        const creatorPayload = (creator && typeof creator === "object")
+          ? creator
+          : {
+              id: creatorId,
+              user_id: creatorId,
+              display_name: werk?.creator || werk?.name || werk?.title || "Werk",
+              avatar_url: werk?.creatorImg || werk?.creator_img || werk?.avatar_url || null,
+              _highlightWerk: werk?.id || payload?.werkId || null,
+            };
+        return actions[A.OPEN_PROFILE]({
+          creatorId,
+          creator: creatorPayload,
+          source: payload.source || S.DISCOVER,
+          _highlightWerk: werk?.id || payload?.werkId || null,
+        });
+      }
+      if (payload?.view) {
+        switchTab?.("discover");
+        return true;
+      }
+      console.error("[HUI_ACTION_RUNTIME] OPEN_WERK ohne werk/view kann keinen Runtime-Effekt ausfuehren.", payload);
+      return false;
+    }),
+
+    [A.OPEN_MOMENT]: makeAction(A.OPEN_MOMENT, (payload) => {
+      if (payload?.moment || payload?.momentId) {
+        closeAll("open-moment");
+        setShowStoryComposer?.(true);
+        return true;
+      }
+      console.error("[HUI_ACTION_RUNTIME] OPEN_MOMENT ist deprecated ohne Moment-Entity.", payload);
+      return false;
+    }),
 
     // ── ORB / OVERLAYS ────────────────────────────────────────────
-    [A.OPEN_ORB]: (payload = {}) => {
-      logAction(A.OPEN_ORB, payload);
-      setShowPlusSheet?.(true);
-      openOrbWorld?.(payload?.world ?? null);
-    },
+    [A.OPEN_ORB]: makeAction(A.OPEN_ORB, (payload) => {
+      closeAll("open-orb");
 
-    [A.CLOSE_ORB]: () => {
-      logAction(A.CLOSE_ORB);
+      if (!isMember) {
+        openSurface?.("membership");
+        setShowMembership?.(true);
+        return true;
+      }
+
+      if (!SAFE_MODE.orb) {
+        console.error("[HUI_ACTION_RUNTIME] OPEN_ORB abgebrochen: SAFE_MODE.orb=false");
+        return false;
+      }
+
+      openSurface?.("orb");
+      openOrbWorld?.({
+        source: payload?.source || "orb-button",
+        originTab: payload?.originTab || tab || "feed",
+        worldTemperature: payload?.worldTemperature || "calm_flowing",
+      });
+      setShowContentSelector?.(true);
+      return true;
+    }),
+
+    [A.CLOSE_ORB]: makeAction(A.CLOSE_ORB, () => {
       setShowPlusSheet?.(false);
-      closeOrbWorld?.();
-    },
+      setShowContentSelector?.(false);
+      closeSurface?.("orb", "action-close");
+      closeOrbWorld?.("action-close");
+    }),
 
-    [A.OPEN_BOOKING]: (payload = {}) => {
-      logAction(A.OPEN_BOOKING, payload);
+    [A.OPEN_BOOKING]: makeAction(A.OPEN_BOOKING, (payload) => {
+      closeAll("open-booking", { preserveProfile: true, preserveReturnProfile: true });
       if (payload?.recipient) setChatRecipient?.(payload.recipient);
       setShowConnect?.(true);
-    },
+    }),
 
-    [A.OPEN_CONNECT]: (payload = {}) => {
-      logAction(A.OPEN_CONNECT, payload);
+    [A.OPEN_CONNECT]: makeAction(A.OPEN_CONNECT, () => {
+      closeAll("open-connect", { preserveProfile: true, preserveReturnProfile: true });
       setShowConnect?.(true);
-    },
+    }),
 
-    [A.OPEN_NOTIFICATIONS]: () => {
-      logAction(A.OPEN_NOTIFICATIONS);
+    [A.OPEN_NOTIFICATIONS]: makeAction(A.OPEN_NOTIFICATIONS, () => {
+      closeAll("open-notifications");
       setShowNotifs?.(true);
-    },
+    }),
 
-    [A.OPEN_MAP]: () => {
-      logAction(A.OPEN_MAP);
+    [A.OPEN_MAP]: makeAction(A.OPEN_MAP, () => {
+      closeAll("open-map");
       setShowMap?.(true);
-    },
+    }),
 
-    [A.OPEN_MATCH]: () => {
-      logAction(A.OPEN_MATCH);
+    [A.OPEN_MATCH]: makeAction(A.OPEN_MATCH, () => {
+      closeAll("open-match");
       setShowMatch?.(true);
-    },
+    }),
 
     // ── WORLDS / ROOMS ────────────────────────────────────────────
-    [A.OPEN_WORLD]: (payload = {}) => {
-      logAction(A.OPEN_WORLD, payload);
-      openOrbWorld?.(payload?.world ?? null);
-      setShowPlusSheet?.(true);
-    },
+    [A.OPEN_WORLD]: makeAction(A.OPEN_WORLD, (payload) => {
+      return actions[A.OPEN_ORB]({ ...payload, source: payload.source || S.ORB });
+    }),
 
-    [A.OPEN_ROOM]: (payload = {}) => {
-      logAction(A.OPEN_ROOM, payload);
+    [A.OPEN_ROOM]: makeAction(A.OPEN_ROOM, (payload) => {
       // Future: dedicated room overlay
       // For now: open creator profile at "raum" tab
       if (payload?.creatorId) {
-        actions[A.OPEN_PROFILE]({ creatorId: payload.creatorId, _tab: "raum" });
+        return actions[A.OPEN_PROFILE]({ creatorId: payload.creatorId, _tab: "raum", source: payload.source || S.SYSTEM });
       } else {
-        openOrbWorld?.("raum");
-        setShowPlusSheet?.(true);
+        return actions[A.OPEN_ORB]({ ...payload, source: payload.source || S.ORB, worldTemperature: "calm_flowing" });
       }
-    },
+    }),
 
-    [A.OPEN_COMMUNITY]: (payload = {}) => {
-      logAction(A.OPEN_COMMUNITY, payload);
-      switchTab?.("community");
-    },
+    [A.OPEN_COMMUNITY]: makeAction(A.OPEN_COMMUNITY, () => {
+      switchTab?.("discover");
+    }),
 
     // ── CREATOR TOOLS ─────────────────────────────────────────────
-    [A.OPEN_STORY_COMPOSER]: () => {
-      logAction(A.OPEN_STORY_COMPOSER);
+    [A.OPEN_STORY_COMPOSER]: makeAction(A.OPEN_STORY_COMPOSER, () => {
+      closeAll("open-story-composer");
       setShowStoryComposer?.(true);
-    },
+    }),
 
-    [A.OPEN_IMPACT_FLOW]: () => {
-      logAction(A.OPEN_IMPACT_FLOW);
+    [A.OPEN_IMPACT_FLOW]: makeAction(A.OPEN_IMPACT_FLOW, () => {
+      closeAll("open-impact-flow");
       setShowImpactFlow?.(true);
-    },
+    }),
 
-    [A.OPEN_CREATE_FLOW]: (payload = {}) => {
-      logAction(A.OPEN_CREATE_FLOW, payload);
+    [A.OPEN_CREATE_FLOW]: makeAction(A.OPEN_CREATE_FLOW, () => {
+      closeAll("open-create-flow");
       setShowCreateFlow?.(true);
-    },
+    }),
 
-    [A.OPEN_CALENDAR]: () => {
-      logAction(A.OPEN_CALENDAR);
-      // Future: calendar overlay
-      if (isDev) console.log("[HUI] Calendar — coming soon");
-    },
+    [A.OPEN_CALENDAR]: makeAction(A.OPEN_CALENDAR, () => false),
+    [A.OPEN_EARNINGS]: makeAction(A.OPEN_EARNINGS, () => false),
+    [A.OPEN_EXPERIENCE_MANAGER]: makeAction(A.OPEN_EXPERIENCE_MANAGER, () => false),
+    [A.OPEN_NOTIFICATIONS_SETTINGS]: makeAction(A.OPEN_NOTIFICATIONS_SETTINGS, () => false),
+    [A.FILTER_CATEGORY]: makeAction(A.FILTER_CATEGORY, () => true),
 
     // ── TAB NAVIGATION ────────────────────────────────────────────
-    [A.GO_TO_TAB]: (payload = {}) => {
+    [A.GO_TO_TAB]: makeAction(A.GO_TO_TAB, (payload = {}) => {
       const tab = typeof payload === "string" ? payload : payload?.tab ?? "feed";
-      logAction(A.GO_TO_TAB, { tab });
       switchTab?.(tab);
-    },
+    }),
 
-    [A.GO_HOME]:      () => { logAction(A.GO_HOME);      switchTab?.("feed");      },
-    [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  switchTab?.("discover");  },
-    [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    switchTab?.("impact");    },
-    [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); switchTab?.("favorites"); },
+    [A.GO_HOME]:      makeAction(A.GO_HOME,      () => { switchTab?.("feed");      }),
+    [A.GO_DISCOVER]:  makeAction(A.GO_DISCOVER,  () => { switchTab?.("discover");  }),
+    [A.GO_IMPACT]:    makeAction(A.GO_IMPACT,    () => { switchTab?.("impact");    }),
+    [A.GO_FAVORITES]: makeAction(A.GO_FAVORITES, () => { switchTab?.("favorites"); }),
   };
 
   return actions;

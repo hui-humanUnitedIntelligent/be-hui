@@ -1,7 +1,7 @@
 // connection-create/Widgets.jsx
 // ParticipantStepper, LocationPicker, MediaAttachmentBar
 
-import React, { useState } from "react";
+import React from "react";
 import { HUI } from "../../design/hui.design.js";
 
 const C = {
@@ -93,6 +93,13 @@ export function LocationPicker({ value, onChange }) {
 
 /* ── Media Attachment Bar ── */
 export function MediaAttachmentBar({ onImage, onMusic, onLink }) {
+  const actions = [
+    typeof onImage === "function" ? { label:"Bild hinzuf\u00fcgen", icon:"🖼", onClick:onImage } : null,
+    typeof onMusic === "function" ? { label:"Musik hinzuf\u00fcgen", icon:"🎵", onClick:onMusic } : null,
+    typeof onLink === "function" ? { label:"Link hinzuf\u00fcgen", icon:"🔗", onClick:onLink } : null,
+  ].filter(Boolean);
+  if (actions.length === 0) return null;
+
   const BtnS = {
     flex:1, display:"flex", alignItems:"center", justifyContent:"center",
     gap:7, padding:"11px 10px",
@@ -106,21 +113,13 @@ export function MediaAttachmentBar({ onImage, onMusic, onLink }) {
   };
   return (
     <div style={{ display:"flex", gap:10 }}>
-      <button onClick={onImage} style={BtnS}
-        onMouseEnter={e => e.currentTarget.style.borderColor="rgba(139,92,246,0.30)"}
-        onMouseLeave={e => e.currentTarget.style.borderColor=C.border}>
-        <span style={{ fontSize:16 }}>🖼</span> Bild hinzuf\u00fcgen
-      </button>
-      <button onClick={onMusic} style={BtnS}
-        onMouseEnter={e => e.currentTarget.style.borderColor="rgba(139,92,246,0.30)"}
-        onMouseLeave={e => e.currentTarget.style.borderColor=C.border}>
-        <span style={{ fontSize:16 }}>🎵</span> Musik hinzuf\u00fcgen
-      </button>
-      <button onClick={onLink} style={BtnS}
-        onMouseEnter={e => e.currentTarget.style.borderColor="rgba(139,92,246,0.30)"}
-        onMouseLeave={e => e.currentTarget.style.borderColor=C.border}>
-        <span style={{ fontSize:16 }}>🔗</span> Link hinzuf\u00fcgen
-      </button>
+      {actions.map(action => (
+        <button key={action.label} onClick={action.onClick} style={BtnS}
+          onMouseEnter={e => e.currentTarget.style.borderColor="rgba(139,92,246,0.30)"}
+          onMouseLeave={e => e.currentTarget.style.borderColor=C.border}>
+          <span style={{ fontSize:16 }}>{action.icon}</span> {action.label}
+        </button>
+      ))}
     </div>
   );
 }
