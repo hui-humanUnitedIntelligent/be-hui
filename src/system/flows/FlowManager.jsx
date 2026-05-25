@@ -43,9 +43,9 @@ export function FlowManager({
   authProfile = null,
 }) {
   const close = useCallback(() => {
-    console.log("FLOWMANAGER_CLOSE_TRIGGER", { activeFlow, stack: new Error().stack?.split("\n").slice(0,5) });
-    if (window.__PUBLISH_LOCK__) {
-      console.warn("FLOWMANAGER: PREVENTED UNMOUNT — __PUBLISH_LOCK__ aktiv");
+    console.log("FLOW_CLOSE_TRIGGER", "FlowManager.close", { activeFlow });
+    if (window.__PUBLISHING__) {
+      console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "FlowManager.close");
       return;
     }
     onFlowEnd?.();

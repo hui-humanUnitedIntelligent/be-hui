@@ -780,15 +780,16 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
-    if (publishing) return;
+    if (publishing || window.__PUBLISHING__) return;
 
     // ══ PUBLISH LOCK — verhindert externen Close/Unmount während Insert ══
-    window.__PUBLISH_LOCK__ = true;
-    console.log("HANDLE_PUBLISH_START — __PUBLISH_LOCK__ = true");
+    window.__PUBLISHING__ = true;
+    console.log("PUBLISH_START");
     pushDebug("START_PUBLISH", { mode: form.mode, hasMedia: !!form.mediaFile, text: form.text?.slice(0,40) });
 
     if (!user?.id) {
-      window.__PUBLISH_LOCK__ = false;
+      window.__PUBLISHING__ = false;
+      console.log("PUBLISH_UNLOCK", "no_user");
       pushDebug("NO_USER_ID", { user });
       return;
     }
@@ -869,9 +870,8 @@ export default function TeilenFlow({ onClose, onPublished }) {
       pushDebug("EXCEPTION", { message: err?.message, stack: err?.stack?.split("\n").slice(0,4) });
     } finally {
       setPublishing(false);
-      // ── LOCK freigeben — erst NACH Insert ─────────────────────────
-      window.__PUBLISH_LOCK__ = false;
-      console.log("HANDLE_PUBLISH_END — __PUBLISH_LOCK__ = false, published:", published);
+      window.__PUBLISHING__ = false;
+      console.log("PUBLISH_UNLOCK", { published });
       pushDebug("FINALLY", { published });
       if (published) {
         onPublished?.({ mode: form.mode, refresh: true });

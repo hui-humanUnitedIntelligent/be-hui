@@ -182,8 +182,9 @@ export default function HomeShell({ children }) {
     setShowNotifs(false);
     setShowMembership(false);
     setShowCreateFlow(false);
-    if (window.__PUBLISH_LOCK__) {
-      console.warn("HOMESHELL_TAB_SWITCH: PREVENTED — __PUBLISH_LOCK__ aktiv (TeilenFlow published)");
+    console.log("FLOW_CLOSE_TRIGGER", "HomeShell.handleTabSwitch");
+    if (window.__PUBLISHING__) {
+      console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "HomeShell.handleTabSwitch");
     } else {
       setShowTeilen(false);
     }

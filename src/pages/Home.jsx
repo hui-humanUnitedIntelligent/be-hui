@@ -447,17 +447,17 @@ function HomeInner() {
         <SafeRender flag="teilenFlow" label="TeilenFlow">
           <TeilenFlow
             onClose={() => {
-              console.log("HOME_JSX_ONCLOSE_TRIGGER");
-              if (window.__PUBLISH_LOCK__) {
-                console.warn("HOME.JSX: PREVENTED onClose — __PUBLISH_LOCK__ aktiv");
+              console.log("FLOW_CLOSE_TRIGGER", "Home.jsx onClose");
+              if (window.__PUBLISHING__) {
+                console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onClose");
                 return;
               }
               setShowTeilen(false);
             }}
             onPublished={(result) => {
               console.log("[HUI MOMENT] Home.jsx onPublished empfangen", result);
-              if (window.__PUBLISH_LOCK__) {
-                console.warn("HOME.JSX: PREVENTED setShowTeilen(false) — __PUBLISH_LOCK__ aktiv");
+              if (window.__PUBLISHING__) {
+                console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onPublished");
                 return;
               }
               setShowTeilen(false);
