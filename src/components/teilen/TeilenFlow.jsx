@@ -780,28 +780,15 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
-    // ══ BLOCKING DEBUG OVERLAY — alles danach ist auskommentiert ══════
-    const { data: { session: _dbgSess } } = await supabase.auth.getSession();
-    setPublishDebug([
-      "HANDLE_PUBLISH_START",
-      JSON.stringify({
-        hasSession: !!_dbgSess,
-        hasUser:    !!_dbgSess?.user,
-        uid:        _dbgSess?.user?.id || null,
-        formMode:   form.mode,
-        hasMedia:   !!form.mediaFile,
-        caption:    form.text?.slice(0, 60) || null,
-        userId_from_hook: user?.id || null,
-      }, null, 2)
-    ]);
-    return; // ← HARD STOP — kein Insert, kein close, kein navigate
-    // eslint-disable-next-line no-unreachable
     if (publishing) return;
 
-    // ── STEP 1: Start ────────────────────────────────────────────────
+    // ══ PUBLISH LOCK — verhindert externen Close/Unmount während Insert ══
+    window.__PUBLISH_LOCK__ = true;
+    console.log("HANDLE_PUBLISH_START — __PUBLISH_LOCK__ = true");
     pushDebug("START_PUBLISH", { mode: form.mode, hasMedia: !!form.mediaFile, text: form.text?.slice(0,40) });
 
     if (!user?.id) {
+      window.__PUBLISH_LOCK__ = false;
       pushDebug("NO_USER_ID", { user });
       return;
     }
@@ -882,12 +869,13 @@ export default function TeilenFlow({ onClose, onPublished }) {
       pushDebug("EXCEPTION", { message: err?.message, stack: err?.stack?.split("\n").slice(0,4) });
     } finally {
       setPublishing(false);
+      // ── LOCK freigeben — erst NACH Insert ─────────────────────────
+      window.__PUBLISH_LOCK__ = false;
+      console.log("HANDLE_PUBLISH_END — __PUBLISH_LOCK__ = false, published:", published);
       pushDebug("FINALLY", { published });
       if (published) {
         onPublished?.({ mode: form.mode, refresh: true });
-        console.log("FLOW_CLOSE_TRIGGER", "setTimeout_onClose_after_publish");
-        alert("FLOW_CLOSE_TRIGGER: setTimeout_onClose_after_publish");
-        setTimeout(() => { onClose?.(); }, 100);
+        setTimeout(() => { onClose?.(); }, 300);
       }
     }
   }, [form, publishing, user?.id, onClose, onPublished]);

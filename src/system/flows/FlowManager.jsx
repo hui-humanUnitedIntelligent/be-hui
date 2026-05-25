@@ -42,7 +42,14 @@ export function FlowManager({
   isTalent    = false,
   authProfile = null,
 }) {
-  const close = useCallback(() => onFlowEnd?.(), [onFlowEnd]);
+  const close = useCallback(() => {
+    console.log("FLOWMANAGER_CLOSE_TRIGGER", { activeFlow, stack: new Error().stack?.split("\n").slice(0,5) });
+    if (window.__PUBLISH_LOCK__) {
+      console.warn("FLOWMANAGER: PREVENTED UNMOUNT — __PUBLISH_LOCK__ aktiv");
+      return;
+    }
+    onFlowEnd?.();
+  }, [onFlowEnd, activeFlow]);
 
   if (!activeFlow) return null;
 
@@ -76,7 +83,10 @@ export function FlowManager({
         <TeilenFlow
           key="flow-teilen"
           onClose={close}
-          onPublished={close}
+          onPublished={(result) => {
+            console.log("FLOWMANAGER_ONPUBLISHED", result);
+            // KEIN close() hier — TeilenFlow regelt das selbst nach Insert
+          }}
         />
       );
 

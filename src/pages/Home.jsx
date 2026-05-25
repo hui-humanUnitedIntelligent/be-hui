@@ -446,14 +446,23 @@ function HomeInner() {
       {showTeilen && SAFE_MODE.teilenFlow && (
         <SafeRender flag="teilenFlow" label="TeilenFlow">
           <TeilenFlow
-            onClose={() => setShowTeilen(false)}
+            onClose={() => {
+              console.log("HOME_JSX_ONCLOSE_TRIGGER");
+              if (window.__PUBLISH_LOCK__) {
+                console.warn("HOME.JSX: PREVENTED onClose — __PUBLISH_LOCK__ aktiv");
+                return;
+              }
+              setShowTeilen(false);
+            }}
             onPublished={(result) => {
               console.log("[HUI MOMENT] Home.jsx onPublished empfangen", result);
+              if (window.__PUBLISH_LOCK__) {
+                console.warn("HOME.JSX: PREVENTED setShowTeilen(false) — __PUBLISH_LOCK__ aktiv");
+                return;
+              }
               setShowTeilen(false);
-              // Feed Refresh wenn Moment erfolgreich published
               if (result?.refresh) {
                 console.log("[HUI MOMENT] Feed Refresh wird getriggert...");
-                // feedRefreshRef wird vom HomeFeed bereitgestellt
                 feedRefreshRef.current?.();
               }
             }}

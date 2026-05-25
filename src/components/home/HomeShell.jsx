@@ -182,7 +182,11 @@ export default function HomeShell({ children }) {
     setShowNotifs(false);
     setShowMembership(false);
     setShowCreateFlow(false);
-    setShowTeilen(false);
+    if (window.__PUBLISH_LOCK__) {
+      console.warn("HOMESHELL_TAB_SWITCH: PREVENTED — __PUBLISH_LOCK__ aktiv (TeilenFlow published)");
+    } else {
+      setShowTeilen(false);
+    }
     setShowPlusSheet(false);
     setCreateType(null);
     _setTab(newTab);
