@@ -16,14 +16,12 @@ import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
 import HuiActionProvider from "../../core/HuiActionProvider.jsx";
 import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
 import { SAFE_MODE } from "../../config/safeMode.js";
-import {
-  computeTransitionCarryOver,
-  mockWorldFromAtmosphere,
-} from "../../lib/intelligence/worldContinuity.js";
 import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
 import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
 import { assertValidTab } from "../../lib/world/orbLayer.js";
 import { FlowCtx, createFlowStore } from "../../core/hui.flow.js";
+import { useFlowManager, normalizeOrbFlowKey } from "../../system/flows/FlowManager.jsx";
+import { cleanupOrbEnvironment } from "../../lib/cleanup/cleanupOrbEnvironment.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
 const HomeCtx = createContext(null);
@@ -120,11 +118,8 @@ export default function HomeShell({ children }) {
 
   /* Flow Memory (Phase 2) — LIFO-Stack, kein Re-render */
   const flowStore = useRef(createFlowStore()).current;
-  // ── Orb World Layer — replaces showPlusSheet as single source of truth
+  // ── Orb World Layer — owned by the central Orb Router below
   const { openOrbWorld, closeOrbWorld, isOrbOpen, orbState } = useOrbWorld();
-  // Legacy alias — HuiPlusSheet consumers use setShowPlusSheet(false) to close
-  // We keep the state for SafeRender gating ONLY
-  const [showPlusSheet,          setShowPlusSheet]         = useState(false);
   const [showCreateFlow,         setShowCreateFlow]        = useState(false);
   const [showConnect,            setShowConnect]           = useState(false);
   const [showTeilen,             setShowTeilen]            = useState(false);
@@ -134,18 +129,23 @@ export default function HomeShell({ children }) {
   const [showExperienceCreator,  setShowExperienceCreator] = useState(false);
   const [showImpactFlow,         setShowImpactFlow]         = useState(false);
   const [showContentSelector,    setShowContentSelector]    = useState(false);
-  const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
   const [createType,             setCreateType]            = useState(null);
   const [activeStory,            setActiveStory]           = useState(null);
   const [cart,                   setCart]                  = useState([]);
+  const {
+    activeFlow: activeOrbFlow,
+    startFlow:  startActiveOrbFlow,
+    endFlow:    endActiveOrbFlow,
+  } = useFlowManager();
+  const orbFlowLockRef = useRef(false);
 
   /* Keep-Alive */
   // Phase 16.4: Tab visibility via tabVisibilityController (single authority)
   // activeSurface from WorldSurface — no local opacity state
-  const { activeSurface } = useWorldSurface();
+  const { activeSurface, openSurface, closeSurface, confirmSurface } = useWorldSurface();
   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
     useTabStyles(tab, activeSurface);
   // Legacy aliases for backward compat during transition
@@ -153,6 +153,110 @@ export default function HomeShell({ children }) {
   const keepDiscover  = tabDiscover;
   const keepImpact    = tabImpact;
   const keepFavorites = tabFavorites;
+
+  /* Orb Router — single source of truth for every Orb surface + Orb flow */
+  const closeAllOrbStates = useCallback((reason = "orb-close", options = {}) => {
+    const keepActiveFlow = options?.keepActiveFlow === true;
+
+    setShowContentSelector(false);
+    setShowCreateFlow(false);
+    setShowConnect(false);
+    setShowTeilen(false);
+    setShowWerkPublisher(false);
+    setShowExperienceCreator(false);
+    setShowImpactFlow(false);
+    setShowTalentFlow(false);
+    setShowMembership(false);
+    setCreateType(null);
+
+    if (!keepActiveFlow) {
+      orbFlowLockRef.current = false;
+      endActiveOrbFlow();
+    }
+
+    closeSurface(null, reason);
+    closeOrbWorld(reason);
+    cleanupOrbEnvironment({ reason: `orb-router-${reason}` });
+  }, [closeOrbWorld, closeSurface, endActiveOrbFlow]);
+
+  const openOrbRouter = useCallback((payload = {}) => {
+    const safePayload = payload && typeof payload === "object" ? payload : {};
+
+    closeAllOrbStates("open-reset");
+    setShowWirker(null);
+    setShowChat(false);
+    setChatRecipient(null);
+    setShowNotifs(false);
+    setShowMap(false);
+    setShowMatch(false);
+    setShowStoryComposer(false);
+
+    if (!SAFE_MODE.orb) {
+      console.warn("[HUI ORB] SAFE_MODE.orb=false — router aborted");
+      cleanupOrbEnvironment({ reason: "orb-router-safe-mode-disabled" });
+      return;
+    }
+
+    if (!isMember) {
+      openSurface("membership");
+      setShowMembership(true);
+      return;
+    }
+
+    const world = safePayload.world && typeof safePayload.world === "object"
+      ? safePayload.world
+      : {};
+
+    openOrbWorld({
+      source:           safePayload.source || "orb-button",
+      originTab:        tab,
+      worldTemperature: safePayload.worldTemperature ?? world.worldTemperature ?? "calm_flowing",
+      atmosphereId:     safePayload.atmosphereId ?? safePayload.worldId ?? world.atmosphereId ?? null,
+      continuityCarry:  safePayload.continuityCarry ?? world.continuityCarry ?? {},
+    });
+    openSurface("orb");
+    setShowContentSelector(true);
+
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
+      window.requestAnimationFrame(() => confirmSurface("orb"));
+    } else {
+      confirmSurface("orb");
+    }
+  }, [
+    closeAllOrbStates,
+    confirmSurface,
+    isMember,
+    openOrbWorld,
+    openSurface,
+    setChatRecipient,
+    tab,
+  ]);
+
+  const startOrbFlow = useCallback((rawType) => {
+    const flowKey = normalizeOrbFlowKey(rawType);
+    if (!flowKey) {
+      console.warn("[HUI ORB] unknown flow ignored:", rawType);
+      closeAllOrbStates("unknown-flow");
+      return;
+    }
+    if (orbFlowLockRef.current || activeOrbFlow) return;
+
+    orbFlowLockRef.current = true;
+    closeAllOrbStates(`flow-start-${flowKey}`, { keepActiveFlow: true });
+    startActiveOrbFlow(flowKey);
+
+    window.setTimeout(() => {
+      orbFlowLockRef.current = false;
+    }, 400);
+  }, [activeOrbFlow, closeAllOrbStates, startActiveOrbFlow]);
+
+  const endOrbFlow = useCallback((reason = "flow-close") => {
+    orbFlowLockRef.current = false;
+    endActiveOrbFlow();
+    closeSurface(null, reason);
+    closeOrbWorld(reason);
+    cleanupOrbEnvironment({ reason: `orb-router-${reason}` });
+  }, [closeOrbWorld, closeSurface, endActiveOrbFlow]);
 
   /* switchTab — schließt alle Overlays + wechselt Tab */
   const switchTab = useCallback((newTab) => {
@@ -170,7 +274,6 @@ export default function HomeShell({ children }) {
     setShowExperienceCreator(false);
     setShowImpactFlow(false);
     setShowContentSelector(false);
-    setShowInvitationFlow(false);
     setShowMatch(false);
     setShowMap(false);
     setShowChat(false);
@@ -178,14 +281,17 @@ export default function HomeShell({ children }) {
     setShowMembership(false);
     setShowCreateFlow(false);
     setShowTeilen(false);
-    setShowPlusSheet(false);
+    endActiveOrbFlow();
+    orbFlowLockRef.current = false;
+    closeSurface(null, "tab-switch");
+    closeOrbWorld("tab-switch");
     setCreateType(null);
     _setTab(newTab);
     // Phase 16.6: sync activeTab to window for ErrorBoundary diagnostics
     if (typeof window !== "undefined" && window.__HUI_WORLD_STATE__) {
       window.__HUI_WORLD_STATE__.activeTab = newTab;
     }
-  }, [_setTab]);
+  }, [_setTab, closeOrbWorld, closeSurface, endActiveOrbFlow, tab]);
 
   /* openOwnProfile — öffnet Creator Profile Overlay (Owner View) */
   const openOwnProfile = useCallback(() => {
@@ -238,6 +344,7 @@ export default function HomeShell({ children }) {
     activeSurface,
     prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
+    activeOrbFlow, openOrbRouter, closeAllOrbStates, startOrbFlow, endOrbFlow,
     activeMood, setActiveMood,
     liveNotifCount,
     showWirker,            setShowWirker,
@@ -247,7 +354,6 @@ export default function HomeShell({ children }) {
     showMap,               setShowMap,
     showMatch,             setShowMatch,
     showMembership,        setShowMembership,
-    showPlusSheet,         setShowPlusSheet,
     showCreateFlow,        setShowCreateFlow,
     showConnect,           setShowConnect,
     showTeilen,            setShowTeilen,
@@ -256,8 +362,7 @@ export default function HomeShell({ children }) {
     showWerkPublisher,     setShowWerkPublisher,
     showExperienceCreator, setShowExperienceCreator,
     showImpactFlow,         setShowImpactFlow,
-    showContentSelector,    setShowContentSelector,
-    showInvitationFlow,     setShowInvitationFlow,
+    showContentSelector,
     showWerkDetail,        setShowWerkDetail,
     showWerkCheckout,      setShowWerkCheckout,
     showWerkeKorb,         setShowWerkeKorb,

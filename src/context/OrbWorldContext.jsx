@@ -10,7 +10,7 @@
 // Consumed by:
 //   • BottomNav      — for drift tokens (opacity/transform while orb open)
 //   • Home.jsx       — for world-content blur tokens
-//   • OrbSystem      — for atmosphere carry-in
+//   • Orb Router     — for atmosphere carry-in
 //   • HomeShell      — for continuity carry state
 // ─────────────────────────────────────────────────────────────────
 
@@ -35,6 +35,15 @@ import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 // ─────────────────────────────────────────────────────────────────
 
 const OrbWorldCtx = createContext(null);
+
+function normalizeOpenOrbArgs(args) {
+  if (!args) return {};
+  if (typeof args === "string") {
+    return { atmosphereId: args, source: "legacy-orb-world" };
+  }
+  if (typeof args !== "object") return {};
+  return args;
+}
 
 export function useOrbWorld() {
   const ctx = useContext(OrbWorldCtx);
@@ -62,13 +71,15 @@ export function OrbWorldProvider({ children }) {
   const closeTimerRef = useRef(null);
 
   // ── Open Orb World ─────────────────────────────────────────
-  const openOrbWorld = useCallback(({
-    source           = "orb-button",
-    originTab        = "feed",
-    worldTemperature = "calm_flowing",
-    atmosphereId     = null,
-    continuityCarry  = {},
-  } = {}) => {
+  const openOrbWorld = useCallback((rawArgs = {}) => {
+    const {
+      source           = "orb-button",
+      originTab        = "feed",
+      worldTemperature = "calm_flowing",
+      atmosphereId     = null,
+      continuityCarry  = {},
+    } = normalizeOpenOrbArgs(rawArgs);
+
     // Safety: never route to "orb" tab
     assertValidTab(originTab);
 

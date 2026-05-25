@@ -2,21 +2,14 @@
 // SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
-import React, { Suspense, useEffect, useRef, useCallback } from "react";
-import { useOrbWorld } from "../context/OrbWorldContext.jsx";
+import React, { Suspense } from "react";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
-import {
-  orbBackdropTokens,
-  orbNavDriftTokens,
-  assertValidTab,
-} from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import { useHuiFlow } from "../core/hui.flow.js";
-import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
@@ -24,13 +17,14 @@ import HomeFeed                  from "../components/HomeFeed.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay         from "../components/chat-center/ChatCenterOverlay.jsx";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
+import { FlowManager }           from "../system/flows/FlowManager.jsx";
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 import DiscoverPage  from "./DiscoverPage.jsx";
 import ImpactPage    from "./ImpactPage.jsx";
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
-// ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
+// ── Legacy non-Orb flows: lazy → nur außerhalb des Orb-Routers ───
 const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
 const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
 const ExperienceFlow = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
@@ -39,11 +33,9 @@ const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlo
 const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
-// PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
-import HuiPlusSheet from "../components/HuiPlusSheet.jsx";
 import { IX } from "../design/hui.interaction.js";
+import { HUI } from "../design/hui.design.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
-import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
@@ -101,7 +93,6 @@ function HomeInner() {
     showMap,           setShowMap,
     showMatch,         setShowMatch,
     showMembership,    setShowMembership,
-    showPlusSheet,     setShowPlusSheet,
     showCreateFlow,    setShowCreateFlow,
     showConnect,       setShowConnect,
     showTeilen,        setShowTeilen,
@@ -110,28 +101,23 @@ function HomeInner() {
     showWerkPublisher, setShowWerkPublisher,
     showExperienceCreator, setShowExperienceCreator,
     showImpactFlow,         setShowImpactFlow,
-    showContentSelector,    setShowContentSelector,
-    showInvitationFlow,     setShowInvitationFlow,
+    showContentSelector,
+    closeOrbWorld,
+    activeOrbFlow,
+    closeAllOrbStates,
+    startOrbFlow,
+    endOrbFlow,
     activeStory,       setActiveStory,
   } = useHome();
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
 
-  // ── Orb World Layer — above navigation ─────────────────────
-  const {
-    openOrbWorld, closeOrbWorld, isOrbOpen, orbState,
-    backdrop: orbBackdrop, navDrift: orbNavDrift,
-  } = useOrbWorld();
-
   // ── World Surface Controller — single authority blur/feed/nav ──
   const {
     worldState,
     worldTokens,
-    openSurface,
     closeSurface,
-    confirmSurface,
-    forceRecoverWorld,
     activeSurface,
   } = useWorldSurface();
 
@@ -364,9 +350,9 @@ function HomeInner() {
         tab={tab}
         onTab={onTabPress}
         hasTalent={isTalent}
-        orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
+        orbActive={activeSurface === 'orb' || showMembership || showTalentFlow || !!activeOrbFlow}
         navDrift={
-          (showMembership || showTalentFlow)
+          (showMembership || showTalentFlow || !!activeOrbFlow)
             ? { opacity: 0, transform: "translateY(120%)",
                 transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
                 pointerEvents: "none" }
@@ -375,43 +361,6 @@ function HomeInner() {
         authProfile={authProfile}
         notifCount={liveNotifCount}
         msgCount={0}
-        onOrbAction={(key) => {
-          if (key !== "create") return;
-
-          // Phase 15.3: Safe Opening Pipeline
-          // RULE: overlay activation ONLY after content validation
-          // RULE: never openOrbWorld() before canRenderOrbContent check
-
-          const canRenderOrbContent = SAFE_MODE.orb;
-
-          console.log("[HUI ORB] tap", {
-            membershipType: isMember ? "member+" : "basis",
-            canRenderOrbContent,
-            isMember,
-            isTalent,
-          });
-
-          // Basis-User: Membership-Journey (no blur needed)
-          if (!isMember) {
-            console.log("[HUI ORB] → membership flow");
-            openSurface("membership");  // Phase 16.2
-            setShowMembership(true);
-            return;
-          }
-
-          // Member+: validate content renderable BEFORE activating any overlay
-          if (!canRenderOrbContent) {
-            // Ghost-State-Guard: SAFE_MODE.orb disabled
-            // Do NOT open overlay — do NOT activate blur
-            console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE, skip open");
-            return;
-          }
-
-          // Phase 4B: ContentTypeSelector statt direktem Orb-Overlay
-          // Mitglieder wählen zuerst den Content-Typ
-          console.log("[HUI ORB] → ContentTypeSelector öffnen (Phase 4B)");
-          setShowContentSelector(true);
-        }}
       />
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
@@ -504,78 +453,6 @@ function HomeInner() {
               onClose={() => setShowMatch(false)}
               onMoodSelect={(m) => { setActiveMood(m); setShowMatch(false); }}
               onView={w => { setShowWirker(w); setShowMatch(false); }}
-            />
-          </SafeRender>
-        )}
-        {/* Phase 16.3: HuiPlusSheet ALWAYS mounted — visible prop controls render */}
-        {SAFE_MODE.orb && (
-          <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem"
-            onError={() => {
-              console.warn("[WORLD SURFACE] SafeRender.onError → forceRecoverWorld");
-              forceRecoverWorld("safe-render-error");
-              setShowPlusSheet(false);
-              closeOrbWorld("error");
-            }}
-          >
-            <HuiPlusSheet
-            isTalent={isTalent}
-            visible={showPlusSheet}
-            onMounted={() => {
-              console.log("[ORB] mounted");
-              confirmSurface("orb");
-              console.log("[ORB] confirmSurface fired");
-            }}
-            onClose={() => {
-              console.log("[ORB] close — resurfacing world");
-              setShowPlusSheet(false);
-              closeSurface("orb", "user-close");
-              closeOrbWorld("user-close");
-            }}
-            onSelect={(rawType) => {
-              // TIMING FIX: kein setShowPlusSheet(false) hier —
-              // HuiPlusSheet ruft onClose() selbst auf (synchron, vor RAF).
-              // onSelect kommt per requestAnimationFrame NACH dem Unmount.
-              // safeOrbAction: gibt null zurück wenn type ungültig/leer
-              const type = safeOrbAction(rawType);
-              if (!type) {
-                console.warn("[HUI_ORB] onSelect: ungültiger type ignoriert:", rawType);
-                return; // kein crash, kein Flow, stille Rückkehr
-              }
-              // ── Teilen ──────────────────────────────────────────
-              if (type === "teilen" || type === "story" || type === "moment" ||
-                  type === "thought") {
-                setShowTeilen(true);
-              // ── Werk erschaffen ──────────────────────────────────
-              } else if (type === "werk" ||
-                         type === "kunstwerk" || type === "handwerk" ||
-                         type === "design"    || type === "digital"  ||
-                         type === "sammler") {
-                setShowWerkPublisher(true);
-              // ── Erlebnis öffnen ──────────────────────────────────
-              } else if (type === "experience" || type === "erlebnis" ||
-                         type === "workshop"   || type === "retreat"  ||
-                         type === "event"      || type === "session"  ||
-                         type === "erlebnis_s" || type === "veranstaltung") {
-                setShowExperienceCreator(true);
-              // ── Verbindung ───────────────────────────────────────
-              } else if (type === "connect" || type === "connection" ||
-                         type === "kollab"  || type === "mentor"  ||
-                         type === "partner" || type === "community") {
-                setShowConnect(true);
-              // ── Wirker werden ────────────────────────────────────
-              } else if (type === "wirker" || type === "membership") {
-                setShowTalentFlow(true);
-              // ── Impact / Wirkung starten ────────────────────────
-              } else if (type === "impact" || type === "idee" ||
-                         type === "projekt" ||
-                         type === "wirkraum" || type === "einreich" ||
-                         type === "wirkung") {
-                setShowImpactFlow(true);
-              // ── Create ──────────────────────────────────────────
-              } else if (type === "create") {
-                setShowCreateFlow(true);
-              }
-            }}
             />
           </SafeRender>
         )}
@@ -681,33 +558,28 @@ function HomeInner() {
         )}
       </Suspense>
 
-      {/* Phase 4B: Content Type Selector — öffnet sich statt Orb für Mitglieder */}
+      {/* Orb Router: one active Orb surface, then exactly one FlowManager flow */}
       {showContentSelector && (
         <ContentTypeSelector
           visible={showContentSelector}
-          onClose={() => setShowContentSelector(false)}
-          onSelect={(type) => {
-            setShowContentSelector(false);
-            // Routing: type → richtiger Flow
-            if (type === "moment") {
-              setShowTeilen(true);
-            } else if (type === "experience") {
-              setShowExperienceCreator(true);
-            } else if (type === "work") {
-              setShowWerkPublisher(true);
-            } else if (type === "invitation") {
-              setShowInvitationFlow(true);
-            }
-          }}
+          onClose={() => closeAllOrbStates("selector-close")}
+          onSelect={startOrbFlow}
         />
       )}
 
-      {/* Phase 4B: Einladung erstellen Flow */}
-      {showInvitationFlow && (
-        <InvitationFlow
-          visible={showInvitationFlow}
-          onClose={() => setShowInvitationFlow(false)}
-        />
+      {activeOrbFlow && (
+        <SafeRender
+          flag="orb"
+          label={`OrbFlow:${activeOrbFlow}`}
+          onError={() => endOrbFlow("flow-error")}
+        >
+          <FlowManager
+            activeFlow={activeOrbFlow}
+            onFlowEnd={() => endOrbFlow("flow-close")}
+            isTalent={isTalent}
+            authProfile={authProfile}
+          />
+        </SafeRender>
       )}
 
       {activeStory && SAFE_MODE.storyViewer && (
@@ -739,8 +611,11 @@ function HomeInner() {
           <div>navLocked: <b style={{color: worldState?.navLocked ? HUI.COLOR.coral:"#aaa"}}>
             {String(worldState?.navLocked ?? false)}
           </b></div>
-          <div>sheet: <b style={{color: showPlusSheet ? HUI.COLOR.coral:"#aaa"}}>
-            {String(showPlusSheet)}
+          <div>orbSurface: <b style={{color: showContentSelector ? HUI.COLOR.coral:"#aaa"}}>
+            {String(showContentSelector)}
+          </b></div>
+          <div>orbFlow: <b style={{color: activeOrbFlow ? HUI.COLOR.coral:"#aaa"}}>
+            {activeOrbFlow ?? "null"}
           </b></div>
 
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.12)", margin:"5px 0 3px" }} />

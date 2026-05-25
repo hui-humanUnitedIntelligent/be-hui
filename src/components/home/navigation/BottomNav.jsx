@@ -9,9 +9,7 @@ import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
-import { SAFE_MODE } from "../../../config/safeMode.js";
 import { HUI } from "../../../design/hui.design.js";
-import { IX } from "../../../design/hui.interaction.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 
 const CSS = `
@@ -42,7 +40,6 @@ const CSS = `
 export default function BottomNav({
   tab         = "feed",
   onTab,
-  onOrbAction,
   notifCount  = 0,
   orbActive   = false,
   navDrift    = null,    // OrbWorldContext drift tokens (opacity/transform)
@@ -129,8 +126,7 @@ export default function BottomNav({
                   key="orb"
                   className="bn-orb-btn"
                   onClick={() => {
-                    actions[A.OPEN_ORB]?.();
-                    onOrbAction?.("create"); // backward compat
+                    actions[A.OPEN_ORB]?.({ source: "bottom-nav" });
                   }}
                   style={{
                     width: 52, height: 52,

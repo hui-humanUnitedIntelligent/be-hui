@@ -61,7 +61,7 @@ export const PERMISSIONS = {
 };
 
 // ── Orb-Node → Berechtigung Mapping ──────────────────────────
-// OrbSystem prüft canUseOrbNode(node.key, userRole)
+// Orb Router / FlowManager prüfen canUseOrbNode(node.key, userRole)
 export const ORB_NODE_PERMISSIONS = {
   teilen:    'share_thought',    // Gedanke/Moment teilen
   werk:      'publish_work',     // Werk erschaffen
