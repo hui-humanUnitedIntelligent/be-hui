@@ -481,6 +481,29 @@ export default function HomeFeed({
   onDiscover = null,
   onShare    = null,
 }) {
+  // ══ PHASE 1 DEBUG — IMMER AKTIV ══════════════════════════════════════
+  console.log("HOMEFEED_MOUNTED");
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 120,
+        left: 20,
+        right: 20,
+        zIndex: 999999,
+        background: "red",
+        color: "white",
+        padding: 20,
+        fontSize: 24,
+        fontWeight: "bold",
+      }}
+    >
+      RAW DEBUG PANEL AKTIV
+    </div>
+  );
+
+  // eslint-disable-next-line no-unreachable
   const actions = useHuiActions();
 
   const handleProfile = React.useCallback((item) => {
