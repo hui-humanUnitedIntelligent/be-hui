@@ -8,7 +8,7 @@
  *  - Cursor-based Pagination (20 items initial, +15 bei Scroll)
  *  - Prefetch: lädt nächste Seite wenn User bei 70% angelangt
  *  - Soft Hydration: neue Items akkumuliert, Tap → sanfter Insert
- *  - Realtime: beitraege / invitations / experiences live updates
+ *  - Realtime: works / beitraege / invitations / experiences live updates
  *  - Feed Cache: Tab-Wechsel zerstört nichts (sessionStorage + in-memory)
  *  - Scroll Restore: kehrt zur letzten Position zurück
  *  - Idle Loading: requestIdleCallback für prefetch
@@ -17,6 +17,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
+import { FEED_REFRESH_EVENT } from "../lib/supabaseDiagnostics.js";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
 import {
   normalizeWorkRow,
@@ -349,6 +350,15 @@ export function useFeedStream() {
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
+        table: "works",
+        filter: "status=eq.published",
+      }, (payload) => {
+        if (!mountedRef.current) return;
+        _receiveLiveItem(payload.new, normalizeWorkRow);
+      })
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
         table: "beitraege",
       }, (payload) => {
         if (!mountedRef.current) return;
@@ -410,6 +420,16 @@ export function useFeedStream() {
     setPendingCount(0);
     await initialLoad();
   }, [initialLoad]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const onForcedRefresh = async (event) => {
+      console.info("[HUI_STREAM] forced refresh after publish", event.detail || {});
+      await refresh();
+    };
+    window.addEventListener(FEED_REFRESH_EVENT, onForcedRefresh);
+    return () => window.removeEventListener(FEED_REFRESH_EVENT, onForcedRefresh);
+  }, [user?.id, refresh]);
 
   return {
     // Items

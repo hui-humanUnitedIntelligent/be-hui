@@ -8,12 +8,13 @@
 // - alle genutzten Felder sind null-safe
 // ═══════════════════════════════════════════════════════════════════════
 
+import { normalizeDisplayText } from "../../lib/textDecoding.js";
+
 const FALLBACK_NAME  = "Creative Human";
 const FALLBACK_TITLE = "Unbenanntes Erlebnis";
 
 // ── Hilfsfunktionen ───────────────────────────────────────────────────
-const safeStr = (v, fb = "") =>
-  v != null && v !== "" ? String(v).trim() : fb;
+const safeStr = (v, fb = "") => normalizeDisplayText(v, fb);
 const safeNum = (v, fb = 0) => { const n = Number(v); return isNaN(n) ? fb : n; };
 const safeUrl = (v) =>
   typeof v === "string" && v.startsWith("http") ? v : null;

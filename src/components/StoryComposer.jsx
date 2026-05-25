@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { assertSupabaseResult, emitFeedRefresh, reportSupabaseFailure } from "../lib/supabaseDiagnostics.js";
 
 const T = {
   teal:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
@@ -88,7 +89,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
     const path   = `${user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const bucket = "stories";
 
-    const { data: uploadData, error: upErr } = await supabase.storage
+    const uploadResult = await supabase.storage
       .from(bucket)
       .upload(path, file, {
         contentType:  file.type,
@@ -96,13 +97,31 @@ export default function StoryComposer({ onClose, onSuccess }) {
         upsert:       false,
       });
 
-    if (upErr) {
-      console.error("[StoryComposer] storage error:", upErr.message, upErr);
-      throw new Error(`Storage: ${upErr.message}`);
-    }
+    await assertSupabaseResult(uploadResult, {
+      title: "SUPABASE UPLOAD FAILED",
+      source: "StoryComposer.uploadMedia",
+      operation: "storage.upload",
+      bucket,
+      path,
+      payload: { file },
+      authUid: user?.id,
+    });
 
     const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
     const publicUrl = urlData?.publicUrl;
+    await assertSupabaseResult(
+      { data: publicUrl ? { publicUrl } : null, error: publicUrl ? null : { message: "Storage upload returned no publicUrl", code: "STORAGE_PUBLIC_URL_MISSING" } },
+      {
+        title: "SUPABASE UPLOAD FAILED",
+        source: "StoryComposer.getPublicUrl",
+        operation: "storage.getPublicUrl",
+        bucket,
+        path,
+        payload: { uploadPath: path },
+        authUid: user?.id,
+      },
+      { requireData: true }
+    );
     return publicUrl;
   }
 
@@ -112,6 +131,21 @@ export default function StoryComposer({ onClose, onSuccess }) {
     setUploading(true); setError(null); setUploadPct(0);
 
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const authUid = sessionData?.session?.user?.id || user.id;
+      if (sessionError || !sessionData?.session || !authUid) {
+        await reportSupabaseFailure({
+          title: "SUPABASE INSERT FAILED",
+          source: "StoryComposer.publish",
+          operation: "auth.session",
+          table: "stories",
+          payload: { text, mediaType, saveHighlight },
+          error: sessionError || { message: "Keine Supabase Auth Session oder uid vorhanden", code: "AUTH_SESSION_MISSING" },
+          authUid,
+          extra: { hasUserProp: Boolean(user?.id), hasSession: Boolean(sessionData?.session) },
+        });
+        throw new Error("Nicht angemeldet. Bitte neu anmelden.");
+      }
       let mediaUrl  = null;
 
       // Step 1: Upload media
@@ -132,7 +166,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
       // Felder status/visibility/username/avatar_url/allow_comments
       // existieren NICHT → silent 400-Fehler verhindert Insert.
       const storyRow = {
-        user_id:      user.id,
+        user_id:      authUid,
         media_url:    mediaUrl            || null,
         media_type:   mediaUrl ? mediaType : "text",
         caption:      text.trim()         || null,
@@ -155,17 +189,16 @@ export default function StoryComposer({ onClose, onSuccess }) {
         .select()
         .single();
 
-      if (dbErr) {
-        console.error('[StoryComposer] DB INSERT FEHLER:', {
-          code: dbErr.code,
-          message: dbErr.message,
-          details: dbErr.details,
-          hint: dbErr.hint,
-          storyRow,
-        });
-        throw dbErr;
-      }
+      await assertSupabaseResult({ data, error: dbErr }, {
+        title: "SUPABASE INSERT FAILED",
+        source: "StoryComposer.storiesInsert",
+        operation: "insert",
+        table: "stories",
+        payload: storyRow,
+        authUid,
+      }, { requireData: true });
       console.info('[StoryComposer] Story gespeichert:', { id: data?.id });
+      emitFeedRefresh({ source: "StoryComposer", table: "stories", id: data?.id });
 
       setUploadPct(100);
       setDone(true);

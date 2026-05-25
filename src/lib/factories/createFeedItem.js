@@ -12,7 +12,9 @@
 
 // ── Hilfsfunktionen ───────────────────────────────────────────────────────
 
-const safeStr   = (v, fallback = '')  => (v != null && v !== '') ? String(v) : fallback;
+import { normalizeDisplayText } from "../textDecoding.js";
+
+const safeStr   = (v, fallback = '')  => normalizeDisplayText(v, fallback);
 const safeNum   = (v, fallback = 0)  => {
   const n = Number(v);
   return isNaN(n) ? fallback : n;

@@ -15,6 +15,7 @@ import { ExperiencePublishStep } from "./ExperiencePublishStep.jsx";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { useAuth }               from "../../../lib/AuthContext.jsx";
 import { publishExperience }      from "../../../lib/factories/experienceContract.js";
+import { assertSupabaseResult, emitFeedRefresh, reportSupabaseFailure } from "../../../lib/supabaseDiagnostics.js";
 
 /* ── Design Tokens (identisch zu WorkFlow / WT) ─────────────── */
 export const ET = {
@@ -140,24 +141,61 @@ export default function ExperienceFlow({ onClose }) {
     if (!user) return;
     setSaving(true); setError(null);
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const authUid = sessionData?.session?.user?.id || user.id;
+      if (sessionError || !sessionData?.session || !authUid) {
+        await reportSupabaseFailure({
+          title: "SUPABASE INSERT FAILED",
+          source: "ExperienceFlow.handlePublish",
+          operation: "auth.session",
+          table: "experiences",
+          payload: form,
+          error: sessionError || { message: "Keine Supabase Auth Session oder uid vorhanden", code: "AUTH_SESSION_MISSING" },
+          authUid,
+          extra: { hasUserProp: Boolean(user?.id), hasSession: Boolean(sessionData?.session) },
+        });
+        throw new Error("Nicht eingeloggt.");
+      }
       // 1. Medien hochladen → kanonisches [{ url, type, alt }] Format
       const uploadedUrls = [];
       for (let i = 0; i < mediaFiles.length; i++) {
         const { file } = mediaFiles[i];
         const ext  = file.name.split(".").pop();
-        const path = `experiences/${user.id}/${Date.now()}_${i}.${ext}`;
-        const { error: upErr } = await supabase.storage
+        const path = `experiences/${authUid}/${Date.now()}_${i}.${ext}`;
+        const uploadResult = await supabase.storage
           .from("media").upload(path, file, { contentType: file.type });
-        if (upErr) throw upErr;
+        await assertSupabaseResult(uploadResult, {
+          title: "SUPABASE UPLOAD FAILED",
+          source: "ExperienceFlow.mediaUpload",
+          operation: "storage.upload",
+          bucket: "media",
+          path,
+          payload: { file, index: i },
+          authUid,
+        });
         const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+        await assertSupabaseResult(
+          { data: publicUrl ? { publicUrl } : null, error: publicUrl ? null : { message: "Storage upload returned no publicUrl", code: "STORAGE_PUBLIC_URL_MISSING" } },
+          {
+            title: "SUPABASE UPLOAD FAILED",
+            source: "ExperienceFlow.storagePublicUrl",
+            operation: "storage.getPublicUrl",
+            bucket: "media",
+            path,
+            payload: { uploadPath: path },
+            authUid,
+          },
+          { requireData: true }
+        );
         uploadedUrls.push(publicUrl); // normalizeImages() wandelt zu { url, type, alt } um
       }
       // 2. Contract Layer: normalize → validate → insert (Phase 4E)
       const { data: expData, error: contractErr } = await publishExperience(
-        supabase, form, user.id, uploadedUrls
+        supabase, form, authUid, uploadedUrls
       );
       if (contractErr) throw new Error(contractErr.message);
       console.log("[HUI_REALITY] ✓ experience published:", expData?.id);
+      emitFeedRefresh({ source: "ExperienceFlow", table: "experiences", id: expData?.id });
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {

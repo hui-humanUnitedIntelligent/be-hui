@@ -12,6 +12,7 @@
 
 import { supabase } from '../lib/supabaseClient';
 import { safeQuery, cachedQuery, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
+import { assertSupabaseResult } from '../lib/supabaseDiagnostics.js';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 const F = {
@@ -263,6 +264,36 @@ export const StoryService = {
         ...options,
       }).select(F.story).single()
     );
+  },
+
+  async publish({ userId, mediaUrl = null, mediaType = 'text', caption = null, textOverlay = null, mood = null, location = null, expiresAt = null }) {
+    const payload = {
+      user_id: userId,
+      media_url: mediaUrl,
+      media_type: mediaType,
+      caption: caption || null,
+      text_overlay: textOverlay || caption || null,
+      mood: mood || null,
+      location: location || null,
+      expires_at: expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
+
+    const result = await supabase
+      .from('stories')
+      .insert(payload)
+      .select(F.story)
+      .single();
+
+    await assertSupabaseResult(result, {
+      title: 'SUPABASE INSERT FAILED',
+      source: 'StoryService.publish',
+      operation: 'insert',
+      table: 'stories',
+      payload,
+      authUid: userId,
+    }, { requireData: true });
+
+    return result;
   },
 
   async markViewed(storyId, userId) {

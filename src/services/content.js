@@ -25,6 +25,7 @@
 import { supabase }      from '../lib/supabaseClient';
 import { sentryCapture } from '../lib/sentry.js';
 import { cachedQuery, safeQuery, CACHE_TTL } from '../lib/perfUtils.js';
+import { assertSupabaseResult } from '../lib/supabaseDiagnostics.js';
 import { createResonance, removeResonance, getResonanceScore }
   from '../lib/resonance/index.js';
 import { canCreateContent, canPublish, CONTENT_TYPES } from '../lib/roles/index.js';
@@ -126,7 +127,7 @@ export const feedService = {
     if (!caption?.trim() && !mediaUrl) return { error: 'Inhalt fehlt' };
 
     try {
-      const { data, error } = await supabase.from('feed_posts').insert({
+      const payload = {
         user_id:    userId,
         caption:    caption?.trim() || null,
         media_url:  mediaUrl,
@@ -134,9 +135,17 @@ export const feedService = {
         mood,
         location,
         is_archived: false,
-      }).select('id, created_at').single();
+      };
+      const { data, error } = await supabase.from('feed_posts').insert(payload).select('id, created_at').single();
 
-      if (error) throw error;
+      await assertSupabaseResult({ data, error }, {
+        title: 'SUPABASE INSERT FAILED',
+        source: 'feedService.createPost',
+        operation: 'insert',
+        table: 'feed_posts',
+        payload,
+        authUid: userId,
+      }, { requireData: true });
       return { data };
     } catch (err) {
       sentryCapture(err, { context: 'feedService.createPost' });
@@ -174,8 +183,9 @@ export const worksService = {
     if (!allowed) return { error: reason };
 
     try {
-      const { data, error } = await supabase.from('works').insert({
+      const payload = {
         creator_id:  user.id,
+        user_id:     user.id,
         title:       workData.title?.trim(),
         description: workData.description?.trim() || null,
         category:    workData.category   || 'kreativ',
@@ -187,9 +197,17 @@ export const worksService = {
         visibility:  workData.visibility || 'public',
         status:      workData.isDraft    ? 'draft' : 'published',
         location_text: workData.location || null,
-      }).select('id, status, created_at').single();
+      };
+      const { data, error } = await supabase.from('works').insert(payload).select('id, status, created_at').single();
 
-      if (error) throw error;
+      await assertSupabaseResult({ data, error }, {
+        title: 'SUPABASE INSERT FAILED',
+        source: 'worksService.createWork',
+        operation: 'insert',
+        table: 'works',
+        payload,
+        authUid: user.id,
+      }, { requireData: true });
       return { data };
     } catch (err) {
       sentryCapture(err, { context: 'worksService.createWork' });
@@ -378,16 +396,37 @@ export const storageService = {
       const ext  = file.name.split('.').pop().toLowerCase();
       const path = `${folder || 'uploads'}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
 
-      const { error: upErr } = await supabase.storage
+      const uploadResult = await supabase.storage
         .from(bucket)
         .upload(path, file, {
           contentType: file.type,
           upsert: false,  // kein stilles Überschreiben
         });
 
-      if (upErr) throw upErr;
+      await assertSupabaseResult(uploadResult, {
+        title: 'SUPABASE UPLOAD FAILED',
+        source: 'storageService.upload',
+        operation: 'storage.upload',
+        bucket,
+        path,
+        payload: { file, folder, userId },
+        authUid: userId,
+      });
 
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+      await assertSupabaseResult(
+        { data: publicUrl ? { publicUrl } : null, error: publicUrl ? null : { message: 'Storage upload returned no publicUrl', code: 'STORAGE_PUBLIC_URL_MISSING' } },
+        {
+          title: 'SUPABASE UPLOAD FAILED',
+          source: 'storageService.getPublicUrl',
+          operation: 'storage.getPublicUrl',
+          bucket,
+          path,
+          payload: { uploadPath: path },
+          authUid: userId,
+        },
+        { requireData: true }
+      );
 
       return { url: publicUrl, path };
     } catch (err) {

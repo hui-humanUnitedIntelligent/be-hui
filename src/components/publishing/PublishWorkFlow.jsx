@@ -6,6 +6,11 @@
 import React, { useState, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth }  from "../../lib/AuthContext.jsx";
+import {
+  assertSupabaseResult,
+  emitFeedRefresh,
+  reportSupabaseFailure,
+} from "../../lib/supabaseDiagnostics.js";
 
 const C = {
   teal:   "#16D7C5",
@@ -57,22 +62,63 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
     setUploading(true);
     setError(null);
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const authUid = sessionData?.session?.user?.id || user.id;
+      if (sessionError || !sessionData?.session || !authUid) {
+        await reportSupabaseFailure({
+          title: "SUPABASE INSERT FAILED",
+          source: "PublishWorkFlow.handlePublish",
+          operation: "auth.session",
+          table: "works",
+          payload: form,
+          error: sessionError || { message: "Keine Supabase Auth Session oder uid vorhanden", code: "AUTH_SESSION_MISSING" },
+          authUid,
+          extra: { hasUserProp: Boolean(user?.id), hasSession: Boolean(sessionData?.session) },
+        });
+        throw new Error("Nicht eingeloggt.");
+      }
+
       let media_url = null, cover_url = null, media_type = "image";
 
       if (media?.file) {
         const ext  = media.file.name.split(".").pop();
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("works").upload(path, media.file, { upsert: true });
-        if (upErr) throw new Error("Upload fehlgeschlagen: " + upErr.message);
+        const path = `${authUid}/${Date.now()}.${ext}`;
+        const uploadResult = await supabase.storage
+          .from("works").upload(path, media.file, {
+            contentType: media.file.type || undefined,
+            upsert: false,
+          });
+        await assertSupabaseResult(uploadResult, {
+          title: "SUPABASE UPLOAD FAILED",
+          source: "PublishWorkFlow.mediaUpload",
+          operation: "storage.upload",
+          bucket: "works",
+          path,
+          payload: { file: media.file, mediaType: media.type },
+          authUid,
+        });
         const { data: { publicUrl } } = supabase.storage.from("works").getPublicUrl(path);
+        if (!publicUrl) {
+          await reportSupabaseFailure({
+            title: "SUPABASE UPLOAD FAILED",
+            source: "PublishWorkFlow.storagePublicUrl",
+            operation: "storage.getPublicUrl",
+            bucket: "works",
+            path,
+            payload: { uploadPath: path },
+            error: { message: "Storage upload returned no publicUrl", code: "STORAGE_PUBLIC_URL_MISSING" },
+            authUid,
+          });
+          throw new Error("Upload lieferte keine Public URL.");
+        }
         media_url = publicUrl;
         cover_url = publicUrl;
         media_type = media.type;
       }
 
       const payload = {
-        user_id:    user.id,
+        user_id:    authUid,
+        creator_id: authUid,
         title:      form.title   || form.caption?.slice(0,60) || "Werk",
         caption:    form.caption || null,
         category:   form.category || null,
@@ -86,9 +132,17 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
       const { data, error: insErr } = await supabase
         .from("works").insert(payload).select("id").single();
 
-      if (insErr) throw new Error(`Speichern fehlgeschlagen: ${insErr.message} (code: ${insErr.code})`);
+      await assertSupabaseResult({ data, error: insErr }, {
+        title: "SUPABASE INSERT FAILED",
+        source: "PublishWorkFlow.worksInsert",
+        operation: "insert",
+        table: "works",
+        payload,
+        authUid,
+      }, { requireData: true });
 
       console.log("[HUI_REALITY] work published \u2713", data?.id);
+      emitFeedRefresh({ source: "PublishWorkFlow", table: "works", id: data?.id });
       onPublished?.({ id: data?.id, ...payload });
       onClose?.();
     } catch(err) {

@@ -7,6 +7,7 @@ import { AppStateProvider } from './lib/AppStateContext'
 import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
 import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
 import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
+import SupabaseRuntimeErrorOverlay from './components/SupabaseRuntimeErrorOverlay.jsx'
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -493,6 +494,7 @@ export default function App() {
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
+          <SupabaseRuntimeErrorOverlay />
           </GuidanceProvider>
       </OrbWorldProvider>
           </WorldSurfaceProvider>

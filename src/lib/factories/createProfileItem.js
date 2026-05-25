@@ -6,7 +6,9 @@
 
 // ── Interne Hilfsfunktionen ───────────────────────────────────────────────
 
-const safeStr  = (v, fb = '') => (v != null && v !== '') ? String(v).trim() : fb;
+import { normalizeDisplayText } from "../textDecoding.js";
+
+const safeStr  = (v, fb = '') => normalizeDisplayText(v, fb);
 const safeNum  = (v, fb = 0)  => { const n = Number(v); return isNaN(n) ? fb : n; };
 const safeBool = (v)           => Boolean(v);
 const safeArr  = (v)           => Array.isArray(v) ? v.filter(Boolean) : [];
