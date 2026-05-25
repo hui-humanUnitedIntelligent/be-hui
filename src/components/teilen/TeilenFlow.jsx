@@ -428,6 +428,70 @@ function StepCreate({ mode, data, onChange }) {
           </div>
         </div>
       )}
+
+      {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
+      {showDebugPanel && (
+        <div style={{
+          position:"fixed", top:0, left:0, right:0, bottom:0,
+          background:"rgba(0,0,0,0.88)", zIndex:99999,
+          display:"flex", flexDirection:"column",
+          padding:"env(safe-area-inset-top,20px) 16px 20px",
+          overflowY:"auto", fontFamily:"monospace",
+        }}>
+          <div style={{
+            display:"flex", justifyContent:"space-between", alignItems:"center",
+            marginBottom:16,
+          }}>
+            <div style={{ color:"#4ade80", fontWeight:700, fontSize:14 }}>
+              🔍 DEBUG: beitraege (newest {debugRows.length} rows)
+            </div>
+            <button
+              onClick={() => setShowDebugPanel(false)}
+              style={{
+                background:"rgba(239,68,68,0.2)", border:"1px solid rgba(239,68,68,0.4)",
+                color:"#f87171", borderRadius:8, padding:"4px 12px", cursor:"pointer",
+                fontSize:12,
+              }}
+            >✕ Schließen</button>
+          </div>
+          {debugRows.length === 0 ? (
+            <div style={{ color:"#f87171", fontSize:13 }}>
+              ❌ Keine Rows gefunden — Insert vermutlich nicht in DB angekommen
+            </div>
+          ) : (
+            debugRows.map((r, i) => (
+              <div key={r.id || i} style={{
+                background:"rgba(255,255,255,0.06)", borderRadius:10,
+                padding:"10px 12px", marginBottom:8, fontSize:11.5,
+              }}>
+                <div style={{ color:"#a78bfa", fontWeight:700, marginBottom:4 }}>
+                  #{i+1} — id: {r.id}
+                </div>
+                <div style={{ color:"#e2e8f0" }}>
+                  type: <span style={{color:"#34d399"}}>{r.type || "(null)"}</span>
+                  {"  "}caption: <span style={{color:"#fbbf24"}}>{r.caption || "(null)"}</span>
+                </div>
+                <div style={{ color:"#94a3b8", fontSize:10.5, marginTop:3 }}>
+                  user_id: {r.user_id}{"  "}
+                  src: {r.src ? "✅" : "null"}{"  "}
+                  created_at: {r.created_at}
+                </div>
+              </div>
+            ))
+          )}
+          <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(255,255,255,0.04)",
+            borderRadius:10, fontSize:11, color:"#94a3b8" }}>
+            <div style={{color:"#60a5fa", fontWeight:700, marginBottom:4}}>Feed Query prüft:</div>
+            <div>table: beitraege</div>
+            <div>select: id, user_id, src, type, caption, created_at</div>
+            <div>filter: (kein where — alle rows sichtbar für SELECT)</div>
+            <div>order: created_at DESC, limit: 10</div>
+            <div style={{marginTop:8, color:"#f87171"}}>
+              Wenn Rows oben sichtbar aber Feed leer → Problem in Normalisierung/Kuratierung
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -638,7 +702,9 @@ export default function TeilenFlow({ onClose, onPublished }) {
   const { user, profile } = useAuth();
 
   const [step,       setStep]       = useState(1);
-  const [publishing, setPublishing] = useState(false);
+  const [publishing,     setPublishing]     = useState(false);
+  const [debugRows,      setDebugRows]      = useState([]);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
   const scrollRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -737,6 +803,26 @@ export default function TeilenFlow({ onClose, onPublished }) {
       } else {
         console.log("[HUI MOMENT] step 4 insert success", row?.id);
         published = true;
+
+        // ── POST-INSERT VERIFY: sofort nochmal beitraege abfragen ──
+        console.log("[HUI MOMENT] step 4b — sofort re-query beitraege (newest 5)");
+        try {
+          const { data: recentRows, error: recentErr } = await supabase
+            .from("beitraege")
+            .select("id,user_id,type,caption,src,created_at")
+            .order("created_at", { ascending: false })
+            .limit(5);
+          if (recentErr) {
+            console.error("[HUI MOMENT] step 4b re-query error", recentErr.code, recentErr.message);
+          } else {
+            console.log("[HUI MOMENT] step 4b re-query SUCCESS — rows:", recentRows?.length ?? 0, recentRows);
+            // UI-sichtbar machen
+            setDebugRows(recentRows || []);
+            setShowDebugPanel(true);
+          }
+        } catch (qErr) {
+          console.error("[HUI MOMENT] step 4b re-query EXCEPTION", qErr?.message);
+        }
       }
 
     } catch (err) {
@@ -910,6 +996,70 @@ export default function TeilenFlow({ onClose, onPublished }) {
           >
             Vorschau ansehen\u00a0\u00a0<span style={{fontSize:18}}>→</span>
           </button>
+        </div>
+      )}
+
+      {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
+      {showDebugPanel && (
+        <div style={{
+          position:"fixed", top:0, left:0, right:0, bottom:0,
+          background:"rgba(0,0,0,0.88)", zIndex:99999,
+          display:"flex", flexDirection:"column",
+          padding:"env(safe-area-inset-top,20px) 16px 20px",
+          overflowY:"auto", fontFamily:"monospace",
+        }}>
+          <div style={{
+            display:"flex", justifyContent:"space-between", alignItems:"center",
+            marginBottom:16,
+          }}>
+            <div style={{ color:"#4ade80", fontWeight:700, fontSize:14 }}>
+              🔍 DEBUG: beitraege (newest {debugRows.length} rows)
+            </div>
+            <button
+              onClick={() => setShowDebugPanel(false)}
+              style={{
+                background:"rgba(239,68,68,0.2)", border:"1px solid rgba(239,68,68,0.4)",
+                color:"#f87171", borderRadius:8, padding:"4px 12px", cursor:"pointer",
+                fontSize:12,
+              }}
+            >✕ Schließen</button>
+          </div>
+          {debugRows.length === 0 ? (
+            <div style={{ color:"#f87171", fontSize:13 }}>
+              ❌ Keine Rows gefunden — Insert vermutlich nicht in DB angekommen
+            </div>
+          ) : (
+            debugRows.map((r, i) => (
+              <div key={r.id || i} style={{
+                background:"rgba(255,255,255,0.06)", borderRadius:10,
+                padding:"10px 12px", marginBottom:8, fontSize:11.5,
+              }}>
+                <div style={{ color:"#a78bfa", fontWeight:700, marginBottom:4 }}>
+                  #{i+1} — id: {r.id}
+                </div>
+                <div style={{ color:"#e2e8f0" }}>
+                  type: <span style={{color:"#34d399"}}>{r.type || "(null)"}</span>
+                  {"  "}caption: <span style={{color:"#fbbf24"}}>{r.caption || "(null)"}</span>
+                </div>
+                <div style={{ color:"#94a3b8", fontSize:10.5, marginTop:3 }}>
+                  user_id: {r.user_id}{"  "}
+                  src: {r.src ? "✅" : "null"}{"  "}
+                  created_at: {r.created_at}
+                </div>
+              </div>
+            ))
+          )}
+          <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(255,255,255,0.04)",
+            borderRadius:10, fontSize:11, color:"#94a3b8" }}>
+            <div style={{color:"#60a5fa", fontWeight:700, marginBottom:4}}>Feed Query prüft:</div>
+            <div>table: beitraege</div>
+            <div>select: id, user_id, src, type, caption, created_at</div>
+            <div>filter: (kein where — alle rows sichtbar für SELECT)</div>
+            <div>order: created_at DESC, limit: 10</div>
+            <div style={{marginTop:8, color:"#f87171"}}>
+              Wenn Rows oben sichtbar aber Feed leer → Problem in Normalisierung/Kuratierung
+            </div>
+          </div>
         </div>
       )}
     </div>

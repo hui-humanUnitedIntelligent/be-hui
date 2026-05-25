@@ -34,6 +34,7 @@ import FeedRouter                from "../feed/cards/FeedRouter.jsx";
 import { useFeedStream,
          saveFeedScrollPos,
          getFeedScrollPos }         from "../feed/useFeedStream.js";
+import { supabase }                 from "../lib/supabaseClient.js";  // DEBUG PANEL
 import { FeedBottomSentinel,
          FeedLoadMoreSpinner,
          useFeedScrollProgress }    from "../feed/FeedScrollSentinel.jsx";
@@ -1703,6 +1704,81 @@ function ViewerStack({ viewers, extra }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    EMPTY STATE — human emotional guidance
    ═══════════════════════════════════════════════════════════════════════════ */
+function RawBeitraegeDebugPanel() {
+  const [rows,    setRows]    = React.useState(null);  // null=loading, []=[],  [{...}]=data
+  const [error,   setError]   = React.useState(null);
+  const [visible, setVisible] = React.useState(false);
+
+  const load = React.useCallback(async () => {
+    setVisible(true);
+    setRows(null);
+    setError(null);
+    console.log("[HUI DEBUG PANEL] fetching raw beitraege...");
+    try {
+      const { data, error: err } = await supabase
+        .from("beitraege")
+        .select("id,user_id,type,caption,src,created_at")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (err) {
+        console.error("[HUI DEBUG PANEL] error", err.code, err.message);
+        setError(err.code + ": " + err.message);
+        setRows([]);
+      } else {
+        console.log("[HUI DEBUG PANEL] rows:", data?.length, data);
+        setRows(data || []);
+      }
+    } catch(e) {
+      console.error("[HUI DEBUG PANEL] exception", e.message);
+      setError("EXCEPTION: " + e.message);
+      setRows([]);
+    }
+  }, []);
+
+  return (
+    <div style={{ margin:"16px 14px", borderRadius:14, overflow:"hidden",
+      border:"1.5px solid rgba(99,102,241,0.25)", background:"rgba(15,23,42,0.92)" }}>
+      <div style={{ padding:"10px 14px", display:"flex", justifyContent:"space-between",
+        alignItems:"center", background:"rgba(99,102,241,0.12)" }}>
+        <div style={{ color:"#a78bfa", fontSize:12, fontWeight:700, fontFamily:"monospace" }}>
+          🔍 RAW beitraege debug
+        </div>
+        <button onClick={load} style={{
+          fontSize:11, padding:"3px 10px", borderRadius:8, cursor:"pointer",
+          background:"rgba(99,102,241,0.2)", border:"1px solid rgba(99,102,241,0.4)",
+          color:"#c4b5fd", fontFamily:"monospace",
+        }}>fetch rows</button>
+      </div>
+      {visible && (
+        <div style={{ padding:"10px 14px", fontFamily:"monospace", fontSize:11 }}>
+          {rows === null && <div style={{color:"#94a3b8"}}>loading...</div>}
+          {error  && <div style={{color:"#f87171"}}>❌ {error}</div>}
+          {rows !== null && !error && rows.length === 0 && (
+            <div style={{color:"#fbbf24"}}>
+              ⚠️ 0 rows — Tabelle leer oder RLS blockiert SELECT
+            </div>
+          )}
+          {(rows || []).map((r,i) => (
+            <div key={r.id||i} style={{
+              marginBottom:6, padding:"6px 8px", borderRadius:8,
+              background:"rgba(255,255,255,0.04)",
+            }}>
+              <span style={{color:"#34d399"}}>#{i+1}</span>{" "}
+              <span style={{color:"#fbbf24"}}>{r.type}</span>{" — "}
+              <span style={{color:"#e2e8f0"}}>{r.caption || "(no caption)"}</span>
+              <div style={{color:"#64748b", fontSize:10, marginTop:2}}>
+                id:{r.id?.slice(0,8)}... user:{r.user_id?.slice(0,8)}...{" "}
+                src:{r.src?"✅":"null"}{" "}
+                at:{r.created_at?.slice(0,16)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FeedEmptyState({ onDiscover, onShare }) {
   return (
     <div style={{
@@ -1785,6 +1861,9 @@ function FeedEmptyState({ onDiscover, onShare }) {
           </button>
         )}
       </div>
+
+      {/* ── RAW DEBUG PANEL — zeigt echte beitraege rows ── */}
+      <RawBeitraegeDebugPanel />
     </div>
   );
 }
