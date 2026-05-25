@@ -143,7 +143,7 @@ export default function WorkFlow({ onClose }) {
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       const authUid = sessionData?.session?.user?.id || user.id;
-      if (sessionError || !authUid) {
+      if (sessionError || !sessionData?.session || !authUid) {
         await reportSupabaseFailure({
           title: "SUPABASE INSERT FAILED",
           source: "WorkFlow.handlePublish",
@@ -152,6 +152,7 @@ export default function WorkFlow({ onClose }) {
           payload: form,
           error: sessionError || { message: "Keine Supabase Auth Session oder uid vorhanden", code: "AUTH_SESSION_MISSING" },
           authUid,
+          extra: { hasUserProp: Boolean(user?.id), hasSession: Boolean(sessionData?.session) },
         });
         throw new Error("Nicht eingeloggt.");
       }

@@ -684,7 +684,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       const authUid = sessionData?.session?.user?.id || user?.id || null;
-      if (sessionError || !authUid) {
+      if (sessionError || !sessionData?.session || !authUid) {
         await reportSupabaseFailure({
           title: "SUPABASE INSERT FAILED",
           source: "TeilenFlow.handlePublish",
@@ -693,7 +693,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
           payload: form,
           error: sessionError || { message: "Keine Supabase Auth Session oder uid vorhanden", code: "AUTH_SESSION_MISSING" },
           authUid,
-          extra: { hasUserProp: Boolean(user?.id), mode: form.mode },
+          extra: { hasUserProp: Boolean(user?.id), hasSession: Boolean(sessionData?.session), mode: form.mode },
         });
         throw new Error("Keine Supabase Auth Session oder uid vorhanden");
       }
