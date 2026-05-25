@@ -38,6 +38,7 @@ import { FeedBottomSentinel,
          FeedLoadMoreSpinner,
          useFeedScrollProgress }    from "../feed/FeedScrollSentinel.jsx";
 import { FeedSoftHydrationBadge }   from "../feed/FeedSoftHydrationBadge.jsx";
+import { StoryBar } from "./StoryBar.jsx";
 import {
   resolveMemoryTokens,
   applyMemoryToCardStyle,
@@ -587,16 +588,22 @@ export default function HomeFeed({
 
         {/* Story Leiste */}
         {SAFE_MODE.homeFeed && (
-          <StoryLeiste stories={stories || MOCK_STORIES} onStory={onStory} />
+          <StorySection onCreate={() => onStory?.({ isYou:true })} onStory={onStory} />
         )}
 
         {/* Events */}
         {SAFE_MODE.homeFeed && (
-          <EventsSection events={events || MOCK_EVENTS} onEvent={handleEvent} />
+          <EventsSection events={events || MOCK_EVENTS} onEvent={handleEvent} onAll={handleDiscover} />
         )}
 
         {/* Rhythmic Feed */}
-        {SAFE_MODE.homeFeed && (
+        {SAFE_MODE.homeFeed && streamError && !streamLoading && (
+          <FeedInlineError message={streamError} onRetry={streamRefresh} />
+        )}
+
+        {SAFE_MODE.homeFeed && streamLoading && liveItems.length === 0 ? (
+          <FeedLoadingState />
+        ) : SAFE_MODE.homeFeed && (
           <RhythmicFeed
             items={liveItems}
             onProfile={handleProfile}
@@ -604,12 +611,17 @@ export default function HomeFeed({
             onComment={onComment}
             onDiscover={handleDiscover}
             onShare={handleShare}
+            streamPendingCount={streamPendingCount}
+            streamFlush={streamFlush}
+            streamLoadingMore={streamLoadingMore}
+            streamLoadMore={streamLoadMore}
+            streamHasMore={streamHasMore}
           />
         )}
 
         {/* Menschen */}
         {SAFE_MODE.homeFeed && (
-          <MenschenSection people={people || MOCK_PEOPLE} onPerson={handleProfile} />
+          <MenschenSection people={people || MOCK_PEOPLE} onPerson={handleProfile} onAll={handleDiscover} />
         )}
       </div>
     </div>
@@ -666,6 +678,34 @@ function AmbientBackground() {
 /* ═══════════════════════════════════════════════════════════════════════════
    STORY LEISTE
    ═══════════════════════════════════════════════════════════════════════════ */
+function StorySection({ onCreate, onStory }) {
+  return (
+    <div style={{ paddingTop:16, paddingBottom:8 }}>
+      <div style={{ display:"flex", gap:12, alignItems:"center", overflowX:"auto", padding:"0 16px" }}>
+        <button onClick={onCreate} className="hf-tap" style={{
+          background:"none", border:"none", cursor:"pointer", padding:0,
+          display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+          flexShrink:0,
+        }}>
+          <div className="hf-story-ring hf-story-ring--empty">
+            <div style={{
+              width:50, height:50, borderRadius:"50%",
+              background:"rgba(22,215,197,0.08)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              <span style={{ fontSize:21, color:T.teal, fontWeight:300 }}>+</span>
+            </div>
+          </div>
+          <span style={{ fontSize:10, fontWeight:500, color:T.muted }}>Dein Moment</span>
+        </button>
+        <div style={{ minWidth:0, flex:1 }}>
+          <StoryBar onStoryClick={onStory} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StoryLeiste({ stories, onStory }) {
   return (
     <div style={{ paddingTop:20, paddingBottom:12 }}>
@@ -723,7 +763,41 @@ function StoryBubble({ story, onPress }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    EVENTS SECTION
    ═══════════════════════════════════════════════════════════════════════════ */
-function EventsSection({ events, onEvent }) {
+function FeedLoadingState() {
+  return (
+    <div style={{ padding:"18px 16px 8px", display:"flex", flexDirection:"column", gap:14 }}>
+      {[0,1,2].map(i => (
+        <div key={i} className="hf-card-base" style={{
+          height:i === 0 ? 190 : 132, borderRadius:T.r20,
+          background:"linear-gradient(90deg,#f0ede8 0%,#e8e4df 50%,#f0ede8 100%)",
+          backgroundSize:"200% 100%", animation:"huiFeedSkeleton 1.4s infinite",
+        }} />
+      ))}
+      <style>{`@keyframes huiFeedSkeleton{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    </div>
+  );
+}
+
+function FeedInlineError({ message, onRetry }) {
+  return (
+    <div style={{ margin:"14px 16px", padding:"14px 16px",
+      borderRadius:18, border:`1px solid ${T.coral}44`,
+      background:"rgba(255,138,107,0.10)", color:T.ink }}>
+      <div style={{ fontWeight:800, fontSize:13, marginBottom:4 }}>Feed konnte nicht geladen werden.</div>
+      <div style={{ fontSize:12, color:T.muted, lineHeight:1.5, marginBottom:10 }}>
+        {String(message || "Bitte versuche es erneut.")}
+      </div>
+      <button onClick={onRetry} className="hf-tap" style={{
+        border:"none", borderRadius:12, padding:"8px 14px",
+        background:T.teal, color:"white", fontWeight:800, cursor:"pointer",
+      }}>
+        Erneut versuchen
+      </button>
+    </div>
+  );
+}
+
+function EventsSection({ events, onEvent, onAll }) {
   return (
     <div style={{ paddingTop:12, paddingBottom:8 }}>
       <div style={{
@@ -731,7 +805,7 @@ function EventsSection({ events, onEvent }) {
         paddingLeft:16, paddingRight:16, marginBottom:11,
       }}>
         <span className="hf-section-label">{"Heute in deiner Nähe"}</span>
-        <button className="hf-tap" style={{
+        <button className="hf-tap" onClick={onAll} style={{
           background:"none", border:"none", cursor:"pointer",
           fontSize:12, fontWeight:600, color:T.teal, padding:"2px 0",
         }}>{"Alle ›"}</button>
@@ -786,7 +860,14 @@ function EventCard({ event, onPress }) {
    RHYTHMIC FEED — Feed Intelligence v1
    Replaces mechanical sequence with humane curation.
    ═══════════════════════════════════════════════════════════════════════════ */
-function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare }) {
+function RhythmicFeed({
+  items, onProfile, onLike, onComment, onDiscover, onShare,
+  streamPendingCount = 0,
+  streamFlush = null,
+  streamLoadingMore = false,
+  streamLoadMore = null,
+  streamHasMore = false,
+}) {
   // Phase 4D: kein Mock wenn items[] und loading — echter Empty State bevorzugt
   const rawItems = (items && items.length > 0) ? items : [];
   const [reactions, setReactions] = useState({});
@@ -1784,7 +1865,7 @@ function FeedEmptyState({ onDiscover, onShare }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    MENSCHEN SECTION
    ═══════════════════════════════════════════════════════════════════════════ */
-function MenschenSection({ people, onPerson }) {
+function MenschenSection({ people, onPerson, onAll }) {
   return (
     <div style={{ padding:"28px 0 32px" }}>
       <div style={{
@@ -1792,7 +1873,7 @@ function MenschenSection({ people, onPerson }) {
         paddingLeft:16, paddingRight:16, marginBottom:13,
       }}>
         <span className="hf-section-label">{"Menschen für dich"}</span>
-        <button className="hf-tap" style={{
+        <button className="hf-tap" onClick={onAll} style={{
           background:"none", border:"none", cursor:"pointer",
           fontSize:12, fontWeight:600, color:T.teal, padding:"2px 0",
         }}>{"Alle ›"}</button>

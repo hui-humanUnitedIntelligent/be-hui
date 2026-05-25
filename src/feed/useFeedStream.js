@@ -24,6 +24,7 @@ import {
   normalizeBeitragRow,
   normalizeInvitationRow,
 } from "../system/feed/feedNormalizer.js";
+import { logRuntime } from "../lib/runtimeLog.js";
 
 // ─── Konstanten ──────────────────────────────────────────────────────────────
 const PAGE_SIZE          = 20;   // Items pro Seite
@@ -125,6 +126,22 @@ async function fetchFeedPage(userId, cursor = null) {
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
   const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
 
+  const queryErrors = [
+    worksRes.value?.error || (worksRes.status === "rejected" ? worksRes.reason : null),
+    expsRes.value?.error  || (expsRes.status === "rejected"  ? expsRes.reason  : null),
+    beitrRes.value?.error || (beitrRes.status === "rejected" ? beitrRes.reason : null),
+    invRes.value?.error   || (invRes.status === "rejected"   ? invRes.reason   : null),
+  ].filter(Boolean);
+  if (queryErrors.length > 0) {
+    logRuntime("feed", "page_partial_error", {
+      count: queryErrors.length,
+      messages: queryErrors.map(e => e?.message || String(e)),
+    }, queryErrors.length === 4 ? "error" : "warn");
+  }
+  if (queryErrors.length === 4) {
+    throw new Error(queryErrors[0]?.message || "Feed konnte nicht geladen werden");
+  }
+
   // Normalisieren
   const normalized = [
     ...works.map(normalizeWorkRow).filter(Boolean),
@@ -210,10 +227,12 @@ export function useFeedStream() {
       cursorRef.current = nextCursor;
       setHasMore(more);
       setItems(newItems);
+      logRuntime("feed", "initial_load_success", { count: newItems.length, hasMore: more });
     } catch (err) {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] initial load error:", err.message);
       setError(err.message);
+      logRuntime("feed", "initial_load_failed", { error: err.message }, "error");
     } finally {
       if (mountedRef.current) setLoading(false);
     }
@@ -233,7 +252,9 @@ export function useFeedStream() {
         cursorRef.current = nextCursor;
         setItems(fresh);
       }
-    } catch (_) { /* silent */ }
+    } catch (err) {
+      logRuntime("feed", "silent_refresh_failed", { error: err?.message }, "warn");
+    }
   }
 
   // ── Load More (Pagination) ─────────────────────────────────────────────────
@@ -271,6 +292,8 @@ export function useFeedStream() {
       setHasMore(more);
     } catch (err) {
       console.error("[HUI_STREAM] loadMore error:", err.message);
+      setError(err.message || "Weitere Feed-Inhalte konnten nicht geladen werden");
+      logRuntime("feed", "load_more_failed", { error: err.message }, "error");
     } finally {
       if (mountedRef.current) setLoadingMore(false);
     }
@@ -285,7 +308,9 @@ export function useFeedStream() {
       try {
         const result = await fetchFeedPage(userId, cursorRef.current);
         if (mountedRef.current) prefetchedRef.current = result;
-      } catch (_) { /* silent prefetch failure */ }
+      } catch (err) {
+        logRuntime("feed", "prefetch_failed", { error: err?.message }, "warn");
+      }
       finally { prefetchingRef.current = false; }
     };
 
@@ -376,9 +401,20 @@ export function useFeedStream() {
         if (!mountedRef.current) return;
         _receiveLiveItem(payload.new, normalizeExperienceRow);
       })
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "works",
+        filter: "status=eq.published",
+      }, (payload) => {
+        if (!mountedRef.current) return;
+        logRuntime("feed", "realtime_work_insert", { id: payload.new?.id });
+        _receiveLiveItem(payload.new, normalizeWorkRow);
+      })
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {
           console.warn("[HUI_STREAM] Realtime Channel Error — Feed läuft ohne Live-Updates weiter");
+          logRuntime("feed", "realtime_failed", { status }, "warn");
         }
       });
 
@@ -409,6 +445,7 @@ export function useFeedStream() {
     setPendingItems([]);
     setPendingCount(0);
     await initialLoad();
+    logRuntime("feed", "manual_refresh");
   }, [initialLoad]);
 
   return {

@@ -744,8 +744,10 @@ export default function CreatorProfilePage({
   const profile = safe?._raw || raw;
 
   const actions      = useHuiActions();
+  const [actionError, setActionError] = useState(null);
   const handleClose  = useCallback(() => { onClose?.(); }, [onClose]);
   const handleAction = useCallback((k) => {
+    setActionError(null);
     // Route known actions through engine, fallback to prop
     if (k === "chat")    return actions[A.OPEN_CHAT]?.({ source: S.OWNER_PROFILE });
     if (k === "impact")  return actions[A.OPEN_IMPACT]?.();
@@ -756,13 +758,14 @@ export default function CreatorProfilePage({
 
   // Owner Quick Action handler — wired to Action Engine
   const handleQuickAction = useCallback((label) => {
+    setActionError(null);
     const MAP = {
       "Neues Erlebnis":  () => actions[A.CREATE_EXPERIENCE]?.(),
       "Raum offnen":     () => actions[A.OPEN_ROOM]?.(),
       "Moment teilen":   () => actions[A.OPEN_STORY_COMPOSER]?.(),
-      "Community":       () => actions[A.OPEN_COMMUNITY]?.(),
-      "Einnahmen":       () => actions[A.OPEN_EARNINGS]?.(),
-      "Kalender":        () => actions[A.OPEN_CALENDAR]?.(),
+      "Community":       () => setActionError("Community-Ansicht ist noch nicht produktionsreif. Bitte nutze den sichtbaren Community-Bereich auf dieser Seite."),
+      "Einnahmen":       () => setActionError("Einnahmen sind aktuell nur als Übersicht auf dieser Profilseite verfügbar."),
+      "Kalender":        () => setActionError("Kalender-Verfügbarkeit ist noch nicht produktionsreif."),
       "Wirkung":         () => actions[A.OPEN_IMPACT]?.(),
       "Atelier":         () => actions[A.OPEN_OWN_PROFILE]?.(),
     };
@@ -785,6 +788,15 @@ export default function CreatorProfilePage({
 
       <OwnerHero    profile={profile} onClose={handleClose} />
       <QuickActions onAction={handleQuickAction} />
+      {actionError && (
+        <div style={{ margin:"12px 18px 0", padding:"12px 14px",
+          borderRadius:R.md, background:"rgba(255,138,107,0.12)",
+          border:"1px solid rgba(255,138,107,0.28)",
+          color:C.ink2, fontSize:13, lineHeight:1.5 }}>
+          <strong style={{ color:C.coral }}>Aktion nicht verfügbar.</strong>{" "}
+          {actionError}
+        </div>
+      )}
       <OwnerExperiences experiences={null} />
       <LiveActivity activity={null} />
       <OwnerEarnings profile={profile} />

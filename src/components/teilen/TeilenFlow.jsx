@@ -8,6 +8,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { HUI } from "../../design/hui.design.js";
+import { logRuntime } from "../../lib/runtimeLog.js";
 
 /* ── Tokens ── */
 const C = {
@@ -639,6 +640,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   const [step,       setStep]       = useState(1);
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
   const scrollRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -658,7 +660,9 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   const handlePublish = useCallback(async () => {
     setPublishing(true);
+    setPublishError(null);
     try {
+      if (!user?.id) throw new Error("Du musst eingeloggt sein, um zu veröffentlichen.");
       let media_url = null;
 
       if (form.mediaFile) {
@@ -667,22 +671,22 @@ export default function TeilenFlow({ onClose, onPublished }) {
         const { error: upErr } = await supabase.storage
           .from("stories")
           .upload(path, form.mediaFile, { upsert:true });
-        if (!upErr) {
-          const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
-          media_url = pub?.publicUrl || null;
-        }
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
+        media_url = pub?.publicUrl || null;
       }
 
       if (form.mode === "story") {
-        await supabase.from("stories").insert({
+        const { error } = await supabase.from("stories").insert({
           user_id:    user?.id,
           media_url,
           media_type: form.mediaType || "text",
           caption:    form.text || null,
           expires_at: new Date(Date.now() + 24*60*60*1000).toISOString(),
         });
+        if (error) throw error;
       } else {
-        await supabase.from("feed_posts").insert({
+        const { error } = await supabase.from("feed_posts").insert({
           user_id:  user?.id,
           media_url,
           media_type: form.mediaType || "text",
@@ -690,12 +694,16 @@ export default function TeilenFlow({ onClose, onPublished }) {
           location: form.location || null,
           mood:     form.mood    || null,
         });
+        if (error) throw error;
       }
 
       await new Promise(r => setTimeout(r, 400));
+      logRuntime("publish", "teilen_success", { mode: form.mode });
       onPublished?.({ mode: form.mode });
       onClose?.();
-    } catch {
+    } catch (err) {
+      setPublishError(err?.message || "Dein Moment konnte nicht veröffentlicht werden.");
+      logRuntime("publish", "teilen_failed", { mode: form.mode, error: err?.message }, "error");
       setPublishing(false);
     }
   }, [form, user, onClose, onPublished]);
@@ -799,13 +807,24 @@ export default function TeilenFlow({ onClose, onPublished }) {
           />
         )}
         {step === 3 && (
-          <StepPreview
-            mode={form.mode}
-            data={form}
-            profile={profile}
-            onPublish={handlePublish}
-            publishing={publishing}
-          />
+          <>
+            <StepPreview
+              mode={form.mode}
+              data={form}
+              profile={profile}
+              onPublish={handlePublish}
+              publishing={publishing}
+            />
+            {publishError && (
+              <div style={{ margin:"12px 20px 0", padding:"12px 14px",
+                borderRadius:14, background:"rgba(255,138,107,0.12)",
+                border:"1px solid rgba(255,138,107,0.35)",
+                color:C.ink, fontSize:13, lineHeight:1.5 }}>
+                <strong>Veröffentlichung fehlgeschlagen.</strong>{" "}
+                {publishError}
+              </div>
+            )}
+          </>
         )}
       </div>
 

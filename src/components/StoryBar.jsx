@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
+import { logRuntime } from "../lib/runtimeLog.js";
 
 const C = {
   teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, gold:HUI.COLOR.gold,
@@ -41,10 +42,14 @@ export function StoryBar({ onStoryClick }) {
   const { user } = useAuth();
   const [groups, setGroups] = useState([]);
   const [viewedIds, setViewedIds] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => { loadStories(); }, [user?.id]);
 
   async function loadStories() {
+    setLoading(true);
+    setError(null);
     const now = new Date().toISOString();
     // FIX: stories-Tabelle hat kein 'status'-Feld → war silent fail (0 Ergebnisse)
     // FIX: username/avatar_url nicht in stories → via profile join laden
@@ -60,8 +65,18 @@ export function StoryBar({ onStoryClick }) {
       .limit(50);
     console.info('[StoryBar] Query result:', { count: data?.length, error: error?.message });
 
-    if (error) { console.warn('[StoryBar] load error:', error.message); return; }
-    if (!data?.length) return;
+    if (error) {
+      console.warn('[StoryBar] load error:', error.message);
+      setError(error.message || "Storys konnten nicht geladen werden.");
+      setLoading(false);
+      logRuntime("story", "load_failed", { error: error.message }, "error");
+      return;
+    }
+    if (!data?.length) {
+      setGroups([]);
+      setLoading(false);
+      return;
+    }
 
     // Load viewed story IDs for current user
     if (user?.id) {
@@ -84,8 +99,21 @@ export function StoryBar({ onStoryClick }) {
     }
     console.info('[StoryBar] Groups built:', Object.keys(map||{}).length);
     setGroups(Object.values(map||{}));
+    setLoading(false);
+    logRuntime("story", "load_success", { groups: Object.keys(map||{}).length });
   }
 
+  if (loading) return (
+    <div style={{ padding:'16px 0 8px', fontSize:11, color:C.muted }}>Storys laden...</div>
+  );
+  if (error) return (
+    <div style={{ padding:'10px 0 8px', fontSize:11, color:C.muted }}>
+      Storys konnten nicht geladen werden.{" "}
+      <button onClick={loadStories} style={{ border:"none", background:"none", color:C.teal, fontWeight:800, cursor:"pointer" }}>
+        Erneut versuchen
+      </button>
+    </div>
+  );
   if (!groups.length) return null;
 
   return (

@@ -10,6 +10,7 @@ import { supabase }    from "../lib/supabaseClient";
 import { useAppState } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
+import { logRuntime } from "../lib/runtimeLog.js";
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -417,6 +418,30 @@ function EmptyState({ onDiscover }) {
   );
 }
 
+function ErrorState({ message, onRetry }) {
+  return (
+    <div style={{
+      flex:1, display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
+      padding:"48px 28px", textAlign:"center",
+    }}>
+      <div style={{ fontSize:38, marginBottom:14 }}>{"⚠"}</div>
+      <div style={{ fontSize:16, fontWeight:800, color:C.ink, marginBottom:8 }}>
+        Bewegungen konnten nicht geladen werden.
+      </div>
+      <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:20, maxWidth:280 }}>
+        {message || "Bitte versuche es erneut."}
+      </div>
+      <button onClick={onRetry} className="nc-tap" style={{
+        border:"none", borderRadius:14, padding:"11px 20px",
+        background:C.teal, color:"#fff", fontWeight:800, cursor:"pointer",
+      }}>
+        Erneut versuchen
+      </button>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════════
    MINI CHAT DETAIL (rechte Spalte im Split-Layout)
 ══════════════════════════════════════════════════════════════ */
@@ -663,6 +688,7 @@ function MiniChatDetail({ chat, messages, onBack, onSend, isWide }) {
    INSPIRE BANNER (unten in der Sidebar)
 ══════════════════════════════════════════════════════════════ */
 function InspireBanner({ onSettings }) {
+  const available = typeof onSettings === "function";
   return (
     <div style={{
       margin:"12px 16px 20px",
@@ -680,14 +706,16 @@ function InspireBanner({ onSettings }) {
         <div style={{ fontSize:12, color:C.muted, lineHeight:1.55, marginBottom:12 }}>
           Aktiviere wichtige Mitteilungen, damit du keine wertvollen Momente verpasst.
         </div>
-        <button className="nc-tap" onClick={onSettings} style={{
-          background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
-          color:"#fff", border:"none", borderRadius:12,
+        <button className={available ? "nc-tap" : ""} onClick={onSettings} disabled={!available} style={{
+          background: available
+            ? `linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`
+            : "rgba(0,0,0,0.08)",
+          color: available ? "#fff" : C.muted, border:"none", borderRadius:12,
           padding:"9px 16px", fontSize:12, fontWeight:700,
-          cursor:"pointer",
-          boxShadow:`0 4px 10px ${C.tealGlow}`,
+          cursor: available ? "pointer" : "not-allowed",
+          boxShadow: available ? `0 4px 10px ${C.tealGlow}` : "none",
         }}>
-          Einstellungen {"\u00F6ffnen"}
+          Einstellungen folgen
         </button>
       </div>
       <div style={{ fontSize:38, opacity:0.75, flexShrink:0 }}>{"🪴"}</div>
@@ -700,7 +728,7 @@ function InspireBanner({ onSettings }) {
 ══════════════════════════════════════════════════════════════ */
 function NotifFeed({
   notifs, weeklyEur, onAction, onFilterChange,
-  activeFilter, activeId, onClose, isWide,
+  activeFilter, activeId, onClose, isWide, loading, error, onRetry, onMarkAllRead,
 }) {
   const [onlyImportant, setOnlyImportant] = useState(false);
 
@@ -762,7 +790,7 @@ function NotifFeed({
               <span style={{ fontSize:12 }}>{"⚙"}</span>
               Nur Wichtiges
             </button>
-            <button className="nc-tap" style={{
+            <button className="nc-tap" onClick={onMarkAllRead} style={{
               display:"flex", alignItems:"center", gap:5,
               background:C.card, border:`1px solid ${C.border}`,
               borderRadius:999, padding:"5px 12px",
@@ -826,7 +854,21 @@ function NotifFeed({
 
       {/* ── Notif-Liste ─────────────────────────────────────────── */}
       <div className="nc-scroll" style={{ flex:1, overflowY:"auto", padding:"4px 0" }}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div style={{ padding:"18px 16px", display:"flex", flexDirection:"column", gap:10 }}>
+            {[0,1,2,3].map(i => (
+              <div key={i} style={{ display:"flex", gap:12, alignItems:"center" }}>
+                <div className="nc-skel" style={{ width:50, height:50, borderRadius:16 }} />
+                <div style={{ flex:1 }}>
+                  <div className="nc-skel" style={{ width:"80%", height:12, marginBottom:8 }} />
+                  <div className="nc-skel" style={{ width:"45%", height:10 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <ErrorState message={error} onRetry={onRetry} />
+        ) : filtered.length === 0 ? (
           <EmptyState onDiscover={onClose} />
         ) : (
           Object.entries(groups||{}).map(([key, items]) => {
@@ -849,7 +891,7 @@ function NotifFeed({
             );
           })
         )}
-        <InspireBanner onSettings={() => actions[A.OPEN_NOTIFICATIONS_SETTINGS]?.()} />
+        <InspireBanner />
       </div>
     </div>
   );
@@ -872,14 +914,16 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   // ── Hooks (stabile Reihenfolge) ───────────────────────────────────
   const {
     notifications,
-    unreadNotifCount,
     markNotifsRead,
     loadNotifications,
+    notificationsLoading,
+    notificationsError,
   } = useAppState();
 
   const [activeFilter,  setActiveFilter]  = useState("Alle");
   const [activeNotif,   setActiveNotif]   = useState(null);
   const [weeklyEur,     setWeeklyEur]     = useState(8950);
+  const [actionError,    setActionError]   = useState(null);
   // Desktop >= 1200px: 2-Spalten Layout.
   // Mobile + Tablet (< 1200px): Mobile-UI.
   const [isWide, setIsWide] = React.useState(window.innerWidth >= 1200);
@@ -891,7 +935,9 @@ export default function NotificationCenter({ onClose, onNavigate }) {
 
   // ── Daten laden ───────────────────────────────────────────────────
   useEffect(() => {
-    loadNotifications();
+    loadNotifications?.().catch((err) => {
+      logRuntime("notifications", "initial_load_failed", { error: err?.message }, "error");
+    });
     // Weekly impact EUR aus payments
     (async () => {
       try {
@@ -900,20 +946,62 @@ export default function NotificationCenter({ onClose, onNavigate }) {
           .from("payments").select("impact_eur").gte("created_at", weekAgo);
         const total = (data||[]).reduce((s,r) => s+(r.impact_eur||0), 0);
         if (total > 0) setWeeklyEur(total);
-      } catch { /* silent */ }
+      } catch (err) {
+        logRuntime("notifications", "weekly_impact_failed", { error: err?.message }, "warn");
+      }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Notif-Action — Batch 4: Action Engine ───────────────────────
   const handleAction = useCallback(async (n) => {
+    setActionError(null);
     // 1. Mark read in DB
     if (!n.read) {
       try {
-        await supabase.from("notifications").update({ read:true }).eq("id", n.id);
-        loadNotifications();
-      } catch { /* silent */ }
+        await markNotifsRead?.([n.id]);
+      } catch (err) {
+        setActionError(err?.message || "Benachrichtigung konnte nicht markiert werden.");
+        return;
+      }
     }
+
+    const actionUrl = String(n.action_url || "").replace(/^\//, "");
+    if (actionUrl) {
+      if (actionUrl.startsWith("chat")) {
+        if (!n.sender_id) {
+          onNavigate?.("chat");
+          onClose?.();
+          return;
+        }
+        actions[A.OPEN_CHAT]?.({
+          source: S.NOTIFICATIONS,
+          recipient: {
+            id: n.sender_id,
+            display_name: n.sender_name || n.from_name || null,
+            avatar_url: n.sender_avatar || n.from_avatar || null,
+          },
+        });
+        onClose?.();
+        return;
+      }
+      if (actionUrl.startsWith("discover")) {
+        actions[A.GO_DISCOVER]?.();
+        onClose?.();
+        return;
+      }
+      if (actionUrl.startsWith("impact")) {
+        actions[A.GO_IMPACT]?.();
+        onClose?.();
+        return;
+      }
+      if (actionUrl.startsWith("bookings")) {
+        onNavigate?.("chat");
+        onClose?.();
+        return;
+      }
+    }
+
     // 2. Route via Action Engine — type-safe, logged
     if (n.type === "begegnung" || n.type === "buchung") {
       if (n.sender_id) {
@@ -941,15 +1029,17 @@ export default function NotificationCenter({ onClose, onNavigate }) {
       });
       onClose?.();
     } else if (n.action_url) {
-      onNavigate?.(n.action_url); // generic fallback for unknown types
+      onNavigate?.(actionUrl || n.action_url); // generic fallback for unknown types
     }
-  }, [actions, loadNotifications, onNavigate, onClose]);
+  }, [actions, markNotifsRead, onNavigate, onClose]);
 
   const handleMarkAllRead = useCallback(async () => {
     try {
-      await supabase.from("notifications").update({ read:true }).eq("read", false);
-      markNotifsRead();
-    } catch { /* silent */ }
+      await markNotifsRead?.();
+      setActionError(null);
+    } catch (err) {
+      setActionError(err?.message || "Benachrichtigungen konnten nicht markiert werden.");
+    }
   }, [markNotifsRead]);
 
   // ── Daten: DB oder Mock ───────────────────────────────────────────
@@ -978,6 +1068,15 @@ export default function NotificationCenter({ onClose, onNavigate }) {
           activeId={activeNotif?.id}
           onClose={onClose}
           isWide={isWide}
+          loading={notificationsLoading}
+          error={actionError || notificationsError}
+          onRetry={() => {
+            setActionError(null);
+            loadNotifications?.().catch((err) => {
+              setActionError(err?.message || "Benachrichtigungen konnten nicht geladen werden.");
+            });
+          }}
+          onMarkAllRead={handleMarkAllRead}
         />
       )}
 

@@ -133,7 +133,7 @@ export class RouteBoundary extends React.Component {
 
 // ── OverlayBoundary ──────────────────────────────────────────────
 // Fängt Fehler in Bottom Sheets, Modals, Overlays.
-// Schließt das Overlay sanft statt zu crashen.
+// Haelt das Overlay offen, damit Fehler sichtbar bleiben.
 export class OverlayBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -146,10 +146,6 @@ export class OverlayBoundary extends React.Component {
 
   componentDidCatch(error) {
     sentryCapture(normalizeError(error), { boundary: 'OverlayBoundary' });
-    // Auto-close nach 1.5s wenn onClose vorhanden
-    if (this.props.onClose) {
-      setTimeout(() => this.props.onClose(), 1500);
-    }
   }
 
   render() {
@@ -164,6 +160,13 @@ export class OverlayBoundary extends React.Component {
         <div style={{ fontSize: 14, color: C.muted, textAlign: 'center' }}>
           Inhalt konnte nicht geladen werden
         </div>
+        <button
+          onClick={() => this.setState({ error: null })}
+          style={{ padding: '8px 18px', background: `${C.teal}15`,
+            border: `1px solid ${C.teal}40`, borderRadius: 10,
+            color: C.teal, fontSize: 13, cursor: 'pointer' }}>
+          Erneut versuchen
+        </button>
         {this.props.onClose && (
           <button
             onClick={this.props.onClose}
