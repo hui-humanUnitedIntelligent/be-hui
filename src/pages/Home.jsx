@@ -536,7 +536,7 @@ function HomeInner() {
               } else if (type === "experience" || type === "erlebnis" ||
                          type === "workshop"   || type === "retreat"  ||
                          type === "event"      || type === "session"  ||
-                         type === "erlebnis_s") {
+                         type === "erlebnis_s" || type === "veranstaltung") {
                 setShowExperienceCreator(true);
               // ── Verbindung ───────────────────────────────────────
               } else if (type === "connect" || type === "connection" ||
