@@ -16,6 +16,7 @@ import { WorkDetailsStep } from "./WorkDetailsStep.jsx";
 import { WorkPublishStep } from "./WorkPublishStep.jsx";
 import { supabase }        from "../../../lib/supabaseClient.js";
 import { useAuth }         from "../../../lib/AuthContext.jsx";
+import { assertSupabaseResult, emitFeedRefresh, reportSupabaseFailure } from "../../../lib/supabaseDiagnostics.js";
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 export const WT = {
@@ -140,17 +141,52 @@ export default function WorkFlow({ onClose }) {
     setSaving(true);
     setError(null);
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const authUid = sessionData?.session?.user?.id || user.id;
+      if (sessionError || !authUid) {
+        await reportSupabaseFailure({
+          title: "SUPABASE INSERT FAILED",
+          source: "WorkFlow.handlePublish",
+          operation: "auth.session",
+          table: "works",
+          payload: form,
+          error: sessionError || { message: "Keine Supabase Auth Session oder uid vorhanden", code: "AUTH_SESSION_MISSING" },
+          authUid,
+        });
+        throw new Error("Nicht eingeloggt.");
+      }
       // 1. Medien hochladen
       const imageUrls = [];
       let coverUrl = null;
       for (let i = 0; i < mediaFiles.length; i++) {
         const { file } = mediaFiles[i];
         const ext  = file.name.split(".").pop();
-        const path = `works/${user.id}/${Date.now()}_${i}.${ext}`;
-        const { error: upErr } = await supabase.storage
+        const path = `works/${authUid}/${Date.now()}_${i}.${ext}`;
+        const uploadResult = await supabase.storage
           .from("media").upload(path, file, { contentType: file.type });
-        if (upErr) throw upErr;
+        await assertSupabaseResult(uploadResult, {
+          title: "SUPABASE UPLOAD FAILED",
+          source: "WorkFlow.mediaUpload",
+          operation: "storage.upload",
+          bucket: "media",
+          path,
+          payload: { file, index: i },
+          authUid,
+        });
         const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+        await assertSupabaseResult(
+          { data: publicUrl ? { publicUrl } : null, error: publicUrl ? null : { message: "Storage upload returned no publicUrl", code: "STORAGE_PUBLIC_URL_MISSING" } },
+          {
+            title: "SUPABASE UPLOAD FAILED",
+            source: "WorkFlow.storagePublicUrl",
+            operation: "storage.getPublicUrl",
+            bucket: "media",
+            path,
+            payload: { uploadPath: path },
+            authUid,
+          },
+          { requireData: true }
+        );
         imageUrls.push(publicUrl);
         if (i === 0) coverUrl = publicUrl;
       }
@@ -164,8 +200,8 @@ export default function WorkFlow({ onClose }) {
       // NICHT in Schema: sale_mode, shipping_*, file_format, size, materials,
       //   condition, images (JSONB-Spalte existiert aber images[] nicht)
       const workPayload = {
-        user_id:     user.id,          // RLS INSERT: auth.uid() = user_id
-        creator_id:  user.id,          // Doppelt gesetzt — beide Spalten vorhanden
+        user_id:     authUid,          // RLS INSERT: auth.uid() = user_id
+        creator_id:  authUid,          // Doppelt gesetzt — beide Spalten vorhanden
         title:       form.title.trim() || "Werk",
         description: form.description ? form.description.trim() : null,
         category:    form.category     || null,
@@ -191,17 +227,16 @@ export default function WorkFlow({ onClose }) {
         .insert(workPayload)
         .select("id, status, visibility, user_id")
         .single();
-      if (dbErr) {
-        console.error("[HUI_PUBLISH_ERROR] works INSERT fehlgeschlagen:", {
-          code:    dbErr.code,
-          message: dbErr.message,
-          hint:    dbErr.hint,
-          details: dbErr.details,
-          payload: workPayload,
-        });
-        throw new Error(`Werk konnte nicht gespeichert werden: ${dbErr.message} (${dbErr.code})`);
-      }
+      await assertSupabaseResult({ data: workData, error: dbErr }, {
+        title: "SUPABASE INSERT FAILED",
+        source: "WorkFlow.worksInsert",
+        operation: "insert",
+        table: "works",
+        payload: workPayload,
+        authUid,
+      }, { requireData: true });
       console.info("[HUI_REALITY] work published ✓", workData?.id, workData);
+      emitFeedRefresh({ source: "WorkFlow", table: "works", id: workData?.id });
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {

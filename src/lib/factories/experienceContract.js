@@ -18,6 +18,8 @@
 //   created_at, updated_at
 // ═══════════════════════════════════════════════════════════════════════
 
+import { reportSupabaseFailure } from "../supabaseDiagnostics.js";
+
 // ── Erlaubte Enum-Werte ───────────────────────────────────────────────
 
 export const EXPERIENCE_ENUMS = {
@@ -361,12 +363,31 @@ export async function publishExperience(supabase, rawForm, userId, uploadedUrls 
     payload = normalizeExperiencePayload(rawForm, userId, uploadedUrls);
   } catch(e) {
     console.error("[HUI_CONTRACT] normalize failed:", e.message);
+    await reportSupabaseFailure({
+      title: "SUPABASE INSERT FAILED",
+      source: "publishExperience.normalize",
+      operation: "normalize",
+      table: "experiences",
+      payload: { rawForm, uploadedUrls },
+      error: e,
+      authUid: userId,
+    });
     return { data: null, error: { message: e.message } };
   }
 
   // 2. Validieren
   const { valid, errors } = validateExperiencePayload(payload);
   if (!valid) {
+    await reportSupabaseFailure({
+      title: "SUPABASE INSERT FAILED",
+      source: "publishExperience.validate",
+      operation: "validate",
+      table: "experiences",
+      payload,
+      error: { message: `Schema-Validierung fehlgeschlagen: ${errors[0]}`, code: "EXPERIENCE_SCHEMA_INVALID" },
+      authUid: userId,
+      extra: { errors },
+    });
     return {
       data: null,
       error: {
@@ -392,6 +413,15 @@ export async function publishExperience(supabase, rawForm, userId, uploadedUrls 
       message: dbErr.message,
       hint:    dbErr.hint,
       details: dbErr.details,
+    });
+    await reportSupabaseFailure({
+      title: "SUPABASE INSERT FAILED",
+      source: "publishExperience.insert",
+      operation: "insert",
+      table: "experiences",
+      payload,
+      error: dbErr,
+      authUid: userId,
     });
     return {
       data: null,

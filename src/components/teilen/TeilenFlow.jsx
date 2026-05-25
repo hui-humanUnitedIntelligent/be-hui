@@ -8,6 +8,12 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { HUI } from "../../design/hui.design.js";
+import { StoryService } from "../../services/db.js";
+import {
+  assertSupabaseResult,
+  emitFeedRefresh,
+  reportSupabaseFailure,
+} from "../../lib/supabaseDiagnostics.js";
 
 /* ── Tokens ── */
 const C = {
@@ -433,7 +439,7 @@ function StepCreate({ mode, data, onChange }) {
 }
 
 /* ══ STEP 3 — Preview ══ */
-function StepPreview({ mode, data, profile, onPublish, publishing }) {
+function StepPreview({ mode, data, profile, onPublish, publishing, publishError }) {
   const isStory = mode === "story";
   const name    = profile?.display_name || profile?.email?.split("@")[0] || "Du";
   const avatar  = profile?.avatar_url || null;
@@ -596,6 +602,21 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
 
       {/* Publish Button */}
       <div style={{ width:"100%", maxWidth:480, marginTop:24 }}>
+        {publishError && (
+          <div style={{
+            marginBottom:12,
+            padding:"12px 14px",
+            borderRadius:14,
+            background:"rgba(239,68,68,0.08)",
+            border:"1px solid rgba(239,68,68,0.20)",
+            color:"#B91C1C",
+            fontSize:12.5,
+            lineHeight:1.45,
+            fontWeight:700,
+          }}>
+            SUPABASE INSERT FAILED: {publishError}
+          </div>
+        )}
         <button
           type="button"
           className="tf-tap"
@@ -639,6 +660,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   const [step,       setStep]       = useState(1);
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
   const scrollRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -658,44 +680,110 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   const handlePublish = useCallback(async () => {
     setPublishing(true);
+    setPublishError(null);
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const authUid = sessionData?.session?.user?.id || user?.id || null;
+      if (sessionError || !authUid) {
+        await reportSupabaseFailure({
+          title: "SUPABASE INSERT FAILED",
+          source: "TeilenFlow.handlePublish",
+          operation: "auth.session",
+          table: form.mode === "story" ? "stories" : "beitraege",
+          payload: form,
+          error: sessionError || { message: "Keine Supabase Auth Session oder uid vorhanden", code: "AUTH_SESSION_MISSING" },
+          authUid,
+          extra: { hasUserProp: Boolean(user?.id), mode: form.mode },
+        });
+        throw new Error("Keine Supabase Auth Session oder uid vorhanden");
+      }
+
       let media_url = null;
+      const media_type = form.mediaType || (form.mediaFile?.type?.startsWith("video") ? "video" : form.mediaFile ? "image" : "text");
 
       if (form.mediaFile) {
         const ext  = form.mediaFile.name.split(".").pop();
-        const path = `${form.mode}/${user?.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
+        const path = `${authUid}/${form.mode || "feed"}/${Date.now()}.${ext}`;
+        const uploadResult = await supabase.storage
           .from("stories")
-          .upload(path, form.mediaFile, { upsert:true });
-        if (!upErr) {
-          const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
-          media_url = pub?.publicUrl || null;
+          .upload(path, form.mediaFile, {
+            contentType: form.mediaFile.type || undefined,
+            upsert: false,
+          });
+        await assertSupabaseResult(uploadResult, {
+          title: "SUPABASE UPLOAD FAILED",
+          source: "TeilenFlow.mediaUpload",
+          operation: "storage.upload",
+          bucket: "stories",
+          path,
+          payload: { file: form.mediaFile, mode: form.mode, mediaType: media_type },
+          authUid,
+          extra: { rlsPathMustStartWithUid: true },
+        });
+
+        const { data: pub } = supabase.storage.from("stories").getPublicUrl(path);
+        media_url = pub?.publicUrl || null;
+        if (!media_url) {
+          await reportSupabaseFailure({
+            title: "SUPABASE UPLOAD FAILED",
+            source: "TeilenFlow.storagePublicUrl",
+            operation: "storage.getPublicUrl",
+            bucket: "stories",
+            path,
+            payload: { uploadPath: path },
+            error: { message: "Storage upload returned no publicUrl", code: "STORAGE_PUBLIC_URL_MISSING" },
+            authUid,
+            result: { data: pub },
+          });
+          throw new Error("Storage upload returned no publicUrl");
         }
       }
 
       if (form.mode === "story") {
-        await supabase.from("stories").insert({
-          user_id:    user?.id,
-          media_url,
-          media_type: form.mediaType || "text",
-          caption:    form.text || null,
-          expires_at: new Date(Date.now() + 24*60*60*1000).toISOString(),
-        });
-      } else {
-        await supabase.from("feed_posts").insert({
-          user_id:  user?.id,
-          media_url,
-          media_type: form.mediaType || "text",
-          caption:  form.text  || null,
+        const storyResult = await StoryService.publish({
+          userId: authUid,
+          mediaUrl: media_url,
+          mediaType: media_type,
+          caption: form.text || null,
+          textOverlay: form.text || null,
+          mood: form.mood || null,
           location: form.location || null,
-          mood:     form.mood    || null,
+          expiresAt: new Date(Date.now() + 24*60*60*1000).toISOString(),
         });
+        emitFeedRefresh({ source: "TeilenFlow.story", table: "stories", id: storyResult.data?.id });
+      } else {
+        const feedPayload = {
+          user_id: authUid,
+          src: media_url,
+          type: "note",
+          caption: form.text || null,
+        };
+        const feedResult = await supabase
+          .from("beitraege")
+          .insert(feedPayload)
+          .select("id,user_id,src,type,caption,created_at")
+          .single();
+        await assertSupabaseResult(feedResult, {
+          title: "SUPABASE INSERT FAILED",
+          source: "TeilenFlow.feedInsert",
+          operation: "insert",
+          table: "beitraege",
+          payload: feedPayload,
+          authUid,
+          extra: {
+            previousTable: "feed_posts",
+            activeFeedStreamTable: "beitraege",
+            formMeta: { mood: form.mood || null, location: form.location || null, mediaType: media_type },
+          },
+        }, { requireData: true });
+        emitFeedRefresh({ source: "TeilenFlow.feed", table: "beitraege", id: feedResult.data?.id });
       }
 
-      await new Promise(r => setTimeout(r, 400));
       onPublished?.({ mode: form.mode });
       onClose?.();
-    } catch {
+    } catch (err) {
+      console.error("[TeilenFlow] publish failed:", err);
+      setPublishError(err?.message || "Unbekannter Supabase Fehler");
       setPublishing(false);
     }
   }, [form, user, onClose, onPublished]);
@@ -805,6 +893,7 @@ export default function TeilenFlow({ onClose, onPublished }) {
             profile={profile}
             onPublish={handlePublish}
             publishing={publishing}
+            publishError={publishError}
           />
         )}
       </div>
