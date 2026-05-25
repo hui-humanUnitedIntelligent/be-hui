@@ -2,12 +2,12 @@
 // Route: /work/:id
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
 import { useAppState } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
+import { logRuntime } from "../lib/runtimeLog.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -293,6 +293,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [socialError, setSocialError] = useState(null);
 
 
   /* ── Load Social State ──────────────────────────────────────────── */
@@ -303,7 +304,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       const { data: likeRow } = await supabase
         .from("work_likes").select("id")
         .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
-      setLiked(!!likeRow);
+      setResonated(!!likeRow);
 
       // Like count
       const { count: lc } = await supabase
@@ -349,8 +350,16 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     // Optimistic local UI
     setResonated(newResonated);
     setResonanceCount(c => newResonated ? c + 1 : Math.max(0, c - 1));
-    // DB-Sync via AppStateContext — kein direktes supabase.from() hier
-    await toggleLikeWork(id);
+    setSocialError(null);
+    try {
+      // DB-Sync via AppStateContext — kein direktes supabase.from() hier
+      await toggleLikeWork(id);
+    } catch (err) {
+      setResonated(!newResonated);
+      setResonanceCount(c => newResonated ? Math.max(0, c - 1) : c + 1);
+      setSocialError(err?.message || "Resonanz konnte nicht gespeichert werden.");
+      logRuntime("works", "like_failed", { workId: id, error: err?.message }, "error");
+    }
   }, [user?.id, id, resonated, toggleLikeWork]);
 
   /* ── Toggle Save — via AppStateContext (Single Owner) ───────────── */
@@ -359,8 +368,15 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     const newSaved = !saved;
     // Optimistic local UI
     setSaved(newSaved);
-    // DB-Sync via AppStateContext — kein direktes supabase.from() hier
-    await toggleSaveWork(id);
+    setSocialError(null);
+    try {
+      // DB-Sync via AppStateContext — kein direktes supabase.from() hier
+      await toggleSaveWork(id);
+    } catch (err) {
+      setSaved(!newSaved);
+      setSocialError(err?.message || "Werk konnte nicht gespeichert werden.");
+      logRuntime("works", "save_failed", { workId: id, error: err?.message }, "error");
+    }
   }, [user?.id, id, saved, toggleSaveWork]);
 
   /* ── Toggle Follow — via AppStateContext (Single Owner) ─────────── */
@@ -369,8 +385,15 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     const newFollowing = !following;
     // Optimistic local UI
     setFollowing(newFollowing);
-    // DB-Sync via AppStateContext.toggleFollow — kein direktes supabase.from() hier
-    await toggleFollow(creator.id);
+    setSocialError(null);
+    try {
+      // DB-Sync via AppStateContext.toggleFollow — kein direktes supabase.from() hier
+      await toggleFollow(creator.id);
+    } catch (err) {
+      setFollowing(!newFollowing);
+      setSocialError(err?.message || "Folgen konnte nicht gespeichert werden.");
+      logRuntime("profile", "follow_failed_from_work", { creatorId: creator.id, error: err?.message }, "error");
+    }
   }, [user?.id, creator?.id, following, toggleFollow]);
 
   /* ── Submit Comment ──────────────────────────────────────────────── */
@@ -393,6 +416,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       console.error("[Comment] insert:", error.message);
       setComments(c => c.filter(x => x.id !== optimistic.id));
       setCommentCount(c => c - 1);
+      setSocialError(error.message || "Kommentar konnte nicht veröffentlicht werden.");
+      logRuntime("works", "comment_failed", { workId: id, error: error.message }, "error");
     }
     setSubmittingComment(false);
   }, [commentInput, user?.id, id]);
@@ -669,6 +694,16 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           />
         </div>
 
+        {socialError && (
+          <div style={{ margin:"10px 20px 0", padding:"12px 14px",
+            borderRadius:14, background:"rgba(255,138,107,0.12)",
+            border:`1px solid ${C.coral}55`, color:C.ink2,
+            fontSize:12.5, lineHeight:1.5 }}>
+            <strong style={{ color:C.coral }}>Aktion fehlgeschlagen.</strong>{" "}
+            {socialError}
+          </div>
+        )}
+
         {/* ── Comments Section ── */}
         {showComments && (
           <div style={{ margin:"12px 20px 0", background:C.card,
@@ -807,7 +842,14 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         borderTop:`1px solid ${C.border}`,
         display:"flex", gap:10, zIndex:150 }}>
         <button
-          onClick={() => onAddToKorb ? onAddToKorb({...werk, img: images[0], price: priceStr}) : null}
+          onClick={() => {
+            if (!onAddToKorb) {
+              setSocialError("Der Warenkorb ist in diesem Einstieg noch nicht verfügbar.");
+              logRuntime("works", "cart_unavailable", { workId: id }, "warn");
+              return;
+            }
+            onAddToKorb({...werk, img: images[0], price: priceStr});
+          }}
           className="wd-tap"
           style={{ flex:1, padding:"14px",
             background:"none", border:`1.5px solid ${C.coral}55`,
@@ -816,7 +858,14 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           In den Korb
         </button>
         <button
-          onClick={() => onBuyWerk ? onBuyWerk({...werk, img: images[0], price: priceStr}) : onBuyWerk?.({...werk, img: images[0], price: priceStr})}
+          onClick={() => {
+            if (!onBuyWerk) {
+              setSocialError("Der Kaufabschluss ist in diesem Einstieg noch nicht verfügbar.");
+              logRuntime("works", "buy_unavailable", { workId: id }, "warn");
+              return;
+            }
+            onBuyWerk({...werk, img: images[0], price: priceStr});
+          }}
           className="wd-tap"
           style={{ flex:2, padding:"14px",
             background:`linear-gradient(135deg,${C.coral},${C.coral2})`,

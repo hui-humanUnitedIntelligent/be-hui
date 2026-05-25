@@ -2,15 +2,10 @@
 // SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
-import React, { Suspense, useEffect, useRef, useCallback } from "react";
+import React, { Suspense } from "react";
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
-import {
-  orbBackdropTokens,
-  orbNavDriftTokens,
-  assertValidTab,
-} from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
@@ -44,6 +39,7 @@ import HuiPlusSheet from "../components/HuiPlusSheet.jsx";
 import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
+import { logRuntime } from "../lib/runtimeLog.js";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
@@ -591,7 +587,10 @@ function HomeInner() {
           <SafeRender flag="storyComposer" label="StoryComposer">
             <StoryComposer
               onClose={() => setShowStoryComposer(false)}
-              onPublished={() => setShowStoryComposer(false)}
+              onSuccess={() => {
+                logRuntime("story", "composer_success");
+                setShowStoryComposer(false);
+              }}
             />
           </SafeRender>
         )}
@@ -620,10 +619,12 @@ function HomeInner() {
                 if (!target) return;
 
                 // String-Shortcuts
+                if (typeof target === "string") target = target.replace(/^\//, "");
                 if (target === "chat")    { setShowChat(true); return; }
                 if (target === "impact")  { handleTab("impact"); return; }
-                if (target === "feed")    { handleTab("home"); return; }
+                if (target === "feed" || target === "home") { handleTab("feed"); return; }
                 if (target === "discover"){ handleTab("discover"); return; }
+                if (target === "bookings"){ setShowChat(true); return; }
 
                 // Objekt: { type, id, ... }
                 if (typeof target === "object") {
@@ -712,7 +713,7 @@ function HomeInner() {
 
       {activeStory && SAFE_MODE.storyViewer && (
         <SafeRender flag="storyViewer" label="StoryViewer">
-          <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
+          <StoryViewer data={activeStory} onClose={() => setActiveStory(null)}/>
         </SafeRender>
       )}
 

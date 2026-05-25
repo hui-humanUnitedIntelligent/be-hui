@@ -386,7 +386,7 @@ export function buildActions(shell) {
 
     [A.OPEN_COMMUNITY]: (payload = {}) => {
       logAction(A.OPEN_COMMUNITY, payload);
-      switchTab?.("community");
+      switchTab?.("discover");
     },
 
     // ── CREATOR TOOLS ─────────────────────────────────────────────

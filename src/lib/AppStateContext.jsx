@@ -17,6 +17,8 @@ import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
 import { normalizeWorkRow, normalizeExperienceRow, normalizeBeitragRow } from "../system/feed/feedNormalizer.js";
 import { rhythmizeFeed } from "../feed/feedRhythmEngine.js";
+import { notifyFollow } from "./notificationService";
+import { logRuntime } from "./runtimeLog.js";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -26,7 +28,7 @@ export function AppStateProvider({ children }) {
   const { user } = useAuth();
 
   // ── Navigation / UI State ──────────────────────────────────────
-  const [activeTab,    setActiveTab]    = useState("home");
+  const [activeTab,    setActiveTab]    = useState("feed");
   const [isMobile,     setIsMobile]     = useState(
     typeof window !== "undefined" ? window.innerWidth < 1200 : true
   );
@@ -49,7 +51,11 @@ export function AppStateProvider({ children }) {
 
   // ── Notification Count — direkter Supabase-Query (kein Service) ─
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState(null);
   const notifTimerRef = useRef(null);
+  const notifChannelRef = useRef(null);
 
   const fetchNotifCount = useCallback(async () => {
     if (!user?.id) return;
@@ -60,8 +66,67 @@ export function AppStateProvider({ children }) {
         .eq("user_id", user.id)
         .eq("read", false);
       setUnreadNotifCount(count || 0);
-    } catch {
-      // silent — kein crash
+    } catch (err) {
+      logRuntime("notifications", "count_failed", { error: err?.message }, "warn");
+    }
+  }, [user?.id]);
+
+  const loadNotifications = useCallback(async () => {
+    if (!user?.id) {
+      setNotifications([]);
+      setNotificationsLoading(false);
+      return [];
+    }
+    setNotificationsLoading(true);
+    setNotificationsError(null);
+    logRuntime("notifications", "load_start", { userId: user.id });
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(80);
+      if (error) throw error;
+      setNotifications(Array.isArray(data) ? data : []);
+      setUnreadNotifCount((data || []).filter(n => !n.read).length);
+      logRuntime("notifications", "load_success", { count: data?.length || 0 });
+      return data || [];
+    } catch (err) {
+      const message = err?.message || "Benachrichtigungen konnten nicht geladen werden";
+      setNotificationsError(message);
+      logRuntime("notifications", "load_failed", { error: message }, "error");
+      throw err;
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, [user?.id]);
+
+  const markNotifsRead = useCallback(async (ids = null) => {
+    if (!user?.id) return;
+    setNotificationsError(null);
+    try {
+      let query = supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("user_id", user.id);
+      if (Array.isArray(ids) && ids.length > 0) {
+        query = query.in("id", ids);
+      }
+      const { error } = await query;
+      if (error) throw error;
+      setNotifications(prev =>
+        prev.map(n => (!ids || ids.includes(n.id)) ? { ...n, read: true } : n)
+      );
+      setUnreadNotifCount(prev =>
+        ids ? Math.max(0, prev - ids.length) : 0
+      );
+      logRuntime("notifications", "mark_read_success", { ids: ids || "all" });
+    } catch (err) {
+      const message = err?.message || "Benachrichtigungen konnten nicht markiert werden";
+      setNotificationsError(message);
+      logRuntime("notifications", "mark_read_failed", { error: message }, "error");
+      throw err;
     }
   }, [user?.id]);
 
@@ -75,6 +140,46 @@ export function AppStateProvider({ children }) {
     };
   }, [user?.id, fetchNotifCount]);
 
+  useEffect(() => {
+    if (!user?.id) {
+      setNotifications([]);
+      setUnreadNotifCount(0);
+      return;
+    }
+
+    if (notifChannelRef.current) {
+      supabase.removeChannel(notifChannelRef.current);
+      notifChannelRef.current = null;
+    }
+
+    notifChannelRef.current = supabase
+      .channel(`hui_notifications:${user.id}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        logRuntime("notifications", "realtime_event", {
+          event: payload.eventType,
+          id: payload.new?.id || payload.old?.id,
+        });
+        loadNotifications().catch(() => {});
+      })
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          logRuntime("notifications", "realtime_failed", { status }, "warn");
+        }
+      });
+
+    return () => {
+      if (notifChannelRef.current) {
+        supabase.removeChannel(notifChannelRef.current);
+        notifChannelRef.current = null;
+      }
+    };
+  }, [user?.id, loadNotifications]);
+
   // ── Follow Status — direkter Supabase-Query (kein security layer) ─
   const [followedIds, setFollowedIds] = useState([]);
 
@@ -87,7 +192,9 @@ export function AppStateProvider({ children }) {
       .then(({ data }) => {
         if (data && Array.isArray(data)) setFollowedIds((data).filter(r=>r&&r.followed_id).map(r => r.followed_id));
       })
-      .catch(() => {}); // silent
+      .catch((err) => {
+        logRuntime("profile", "follow_status_failed", { error: err?.message }, "warn");
+      });
   }, [user?.id]);
 
   const toggleFollow = useCallback(async (targetId) => {
@@ -99,15 +206,19 @@ export function AppStateProvider({ children }) {
     );
     try {
       if (isFollowing) {
-        await supabase.from("follows")
+        const { error } = await supabase.from("follows")
           .delete()
           .eq("follower_id", user.id)
           .eq("followed_id", targetId);
+        if (error) throw error;
         console.log("[HUI_REALITY] relationship synced ✓ (unfollow)", targetId.slice(0,8));
+        logRuntime("profile", "follow_removed", { targetId });
       } else {
-        await supabase.from("follows")
+        const { error } = await supabase.from("follows")
           .insert({ follower_id: user.id, followed_id: targetId });
+        if (error) throw error;
         console.log("[HUI_REALITY] relationship synced ✓ (follow)", targetId.slice(0,8));
+        logRuntime("profile", "follow_created", { targetId });
         // Notification an gefolgten User
         const { data: me } = await supabase
           .from("profiles").select("display_name").eq("id", user.id).single();
@@ -117,13 +228,71 @@ export function AppStateProvider({ children }) {
           followerName: me?.display_name || "Jemand",
         }).catch(() => {}); // nie blocking
       }
-    } catch {
+    } catch (err) {
       // Rollback bei Fehler
       setFollowedIds(prev =>
         isFollowing ? [...prev, targetId] : prev.filter(id => id !== targetId)
       );
+      logRuntime("profile", "follow_failed", { targetId, error: err?.message }, "error");
+      throw err;
     }
   }, [user?.id, followedIds]);
+
+  const toggleLikeWork = useCallback(async (workId) => {
+    if (!user?.id || !workId) throw new Error("Du musst eingeloggt sein, um zu resonieren.");
+    const { data: existing, error: readError } = await supabase
+      .from("work_likes")
+      .select("id")
+      .eq("work_id", workId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (readError) throw readError;
+
+    if (existing?.id) {
+      const { error } = await supabase
+        .from("work_likes")
+        .delete()
+        .eq("id", existing.id);
+      if (error) throw error;
+      logRuntime("works", "like_removed", { workId });
+      return { liked: false };
+    }
+
+    const { error } = await supabase
+      .from("work_likes")
+      .insert({ work_id: workId, user_id: user.id });
+    if (error) throw error;
+    logRuntime("works", "like_created", { workId });
+    return { liked: true };
+  }, [user?.id]);
+
+  const toggleSaveWork = useCallback(async (workId) => {
+    if (!user?.id || !workId) throw new Error("Du musst eingeloggt sein, um Werke zu speichern.");
+    const { data: existing, error: readError } = await supabase
+      .from("work_saves")
+      .select("id")
+      .eq("work_id", workId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (readError) throw readError;
+
+    if (existing?.id) {
+      const { error } = await supabase
+        .from("work_saves")
+        .delete()
+        .eq("id", existing.id);
+      if (error) throw error;
+      logRuntime("works", "save_removed", { workId });
+      return { saved: false };
+    }
+
+    const { error } = await supabase
+      .from("work_saves")
+      .insert({ work_id: workId, user_id: user.id });
+    if (error) throw error;
+    logRuntime("works", "save_created", { workId });
+    return { saved: true };
+  }, [user?.id]);
 
   // ── Context Value ──────────────────────────────────────────────
   const value = {
@@ -133,9 +302,16 @@ export function AppStateProvider({ children }) {
     // Notifications
     unreadNotifCount,
     refreshNotifCount: fetchNotifCount,
+    notifications,
+    notificationsLoading,
+    notificationsError,
+    loadNotifications,
+    markNotifsRead,
     // Follow
     followedIds,
     toggleFollow,
+    toggleLikeWork,
+    toggleSaveWork,
     // Phase 2 placeholders — NOOP bis aktiviert
     feedItems:       [],
     feedLoading:     false,
@@ -399,11 +575,13 @@ export function useDiscoverData({ enabled = true, limit = 16 } = {}) {
   const [works,   setWorks]   = useState([]);
   const [talents, setTalents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!enabled) return;
+  const load = useCallback(() => {
+    if (!enabled) return Promise.resolve();
     let cancelled = false;
     setLoading(true);
+    setError(null);
     Promise.all([
       supabase.from("profiles")
         .select("id, display_name, avatar_url, talent, location_label, bio")
@@ -416,15 +594,26 @@ export function useDiscoverData({ enabled = true, limit = 16 } = {}) {
     ])
     .then(([profilesRes, worksRes]) => {
       if (cancelled) return;
+      if (profilesRes.error) throw profilesRes.error;
+      if (worksRes.error) throw worksRes.error;
       setTalents(filterValidProfiles(profilesRes.data || []));
       setWorks(filterValidFeedItems((worksRes.data || []).map(createWorkItem)));
     })
-    .catch(() => {})
+    .catch((err) => {
+      if (cancelled) return;
+      setError(err?.message || "Entdecken konnte nicht geladen werden");
+      logRuntime("navigation", "discover_load_failed", { error: err?.message }, "error");
+    })
     .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [enabled, limit, user?.id]);
 
-  return { works, talents, loading, refresh: () => {} };
+  useEffect(() => {
+    const cleanup = load();
+    return typeof cleanup === "function" ? cleanup : undefined;
+  }, [load]);
+
+  return { works, talents, loading, error, refresh: load };
 }
 
 // ResonanceState: NOOP bis Phase 2

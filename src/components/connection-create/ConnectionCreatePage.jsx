@@ -13,6 +13,7 @@ import StepTwoConnectionDetails from "./StepTwoConnectionDetails.jsx";
 import StepThreePreview       from "./StepThreePreview.jsx";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { HUI } from "../../design/hui.design.js";
+import { logRuntime } from "../../lib/runtimeLog.js";
 
 const C = {
   violet:HUI.COLOR.violet, violet2:"#7C3AED",
@@ -194,6 +195,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
   const [step,       setStep]       = useState(1);
   const [animDir,    setAnimDir]    = useState("in");
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
   const scrollRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -236,14 +238,14 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       return;
     }
     setPublishing(true);
+    setPublishError(null);
     let published = false;
 
     try {
       // Guard: user muss eingeloggt sein
       if (!user?.id) {
         console.error("[HUI CONNECTION] step 2 ABORT — kein user.id, kein Insert möglich");
-        setPublishing(false);
-        return;
+        throw new Error("Du musst eingeloggt sein, um eine Verbindung zu veröffentlichen.");
       }
 
       const payload = {
@@ -283,7 +285,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           details: dbErr.details,
           hint:    dbErr.hint,
         });
-        // Kein return — Flow schließt trotzdem sauber
+        throw dbErr;
       } else {
         // ── STEP 4: Insert Success ───────────────────────────────
         console.log("[HUI CONNECTION] step 4 insert success", {
@@ -294,12 +296,15 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
 
       published = true;
       onPublish?.({ ...formData, id: connData?.id ?? null, creator_id: user.id });
+      logRuntime("publish", "connection_success", { id: connData?.id, type: payload.type });
 
     } catch (err) {
       console.error("[HUI CONNECTION] step 5 insert EXCEPTION", {
         message: err?.message,
         stack:   err?.stack?.split("\n").slice(0,3).join(" | "),
       });
+      setPublishError(err?.message || "Verbindung konnte nicht veröffentlicht werden.");
+      logRuntime("publish", "connection_failed", { error: err?.message }, "error");
     } finally {
       // ── STEP 6: Flow schließen ─────────────────────────────────
       console.log("[HUI CONNECTION] step 6 closing flow", {
@@ -414,11 +419,22 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           />
         )}
         {step === 3 && (
-          <StepThreePreview
-            data={{ ...formData }}
-            onPublish={handleNext}
-            publishing={publishing}
-          />
+          <>
+            <StepThreePreview
+              data={{ ...formData }}
+              onPublish={handleNext}
+              publishing={publishing}
+            />
+            {publishError && (
+              <div style={{ margin:"12px 24px 0", padding:"12px 14px",
+                borderRadius:14, background:"rgba(255,138,107,0.12)",
+                border:"1px solid rgba(255,138,107,0.35)",
+                color:C.ink, fontSize:13, lineHeight:1.5 }}>
+                <strong>Veröffentlichung fehlgeschlagen.</strong>{" "}
+                {publishError}
+              </div>
+            )}
+          </>
         )}
       </div>
 

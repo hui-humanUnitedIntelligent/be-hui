@@ -4,6 +4,7 @@
 import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { HUI } from "../design/hui.design.js";
+import { logRuntime } from "../lib/runtimeLog.js";
 
 const C = {
   teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealGlow:"rgba(22,215,197,0.22)",
@@ -68,12 +69,14 @@ export default function SupportSheet({ project, currentUser, onClose, onSuccess 
       if (err) throw err;
 
       // Update project raised amount
-      await supabase
+      const { error: updateErr } = await supabase
         .from("impact_projects")
         .update({ awarded_eur: (project.raised || 0) + finalAmount })
         .eq("id", project.id);
+      if (updateErr) throw updateErr;
 
       setStep("done");
+      logRuntime("actions", "support_success", { projectId: project.id, amount: finalAmount });
       setTimeout(() => {
         onSuccess?.(finalAmount);
         onClose();
@@ -81,12 +84,8 @@ export default function SupportSheet({ project, currentUser, onClose, onSuccess 
 
     } catch(e) {
       console.error("[SupportSheet]", e.message);
-      // Still show success for demo — DB table might not exist yet
-      setStep("done");
-      setTimeout(() => {
-        onSuccess?.(finalAmount);
-        onClose();
-      }, 2800);
+      setError(e.message || "Unterstützung konnte nicht gespeichert werden.");
+      logRuntime("actions", "support_failed", { projectId: project?.id, error: e?.message }, "error");
     } finally {
       setLoading(false);
     }
@@ -165,6 +164,16 @@ export default function SupportSheet({ project, currentUser, onClose, onSuccess 
               </div>
             </div>
 
+            {error && (
+              <div style={{ padding:"12px 14px", borderRadius:14,
+                background:"rgba(255,138,107,0.12)",
+                border:`1px solid ${C.coral}55`,
+                fontSize:13, color:C.ink2, lineHeight:1.5, marginBottom:14 }}>
+                <strong style={{ color:C.coral }}>Speichern fehlgeschlagen.</strong>{" "}
+                {error}
+              </div>
+            )}
+
             <button className="ss-tap" onClick={handleSupport}
               disabled={loading}
               style={{ width:"100%", padding:"15px",
@@ -241,7 +250,7 @@ export default function SupportSheet({ project, currentUser, onClose, onSuccess 
             {/* Preset buttons */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
               gap:10, marginBottom:14 }}>
-              {(PRESETS||[]).filter(p=>p&&p.key).map(p => {
+              {(PRESETS||[]).filter(p=>p&&p.amount).map(p => {
                 const isActive = !useCustom && selected === p.amount;
                 return (
                   <button key={p.amount} className="ss-tap"
