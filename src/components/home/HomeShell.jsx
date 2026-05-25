@@ -37,6 +37,11 @@ export function useHome() {
 /* ── HomeShell ────────────────────────────────────────────────── */
 export default function HomeShell({ children }) {
 
+  // ── HOME MOUNT DEBUG ─────────────────────────────────────────────────
+  React.useEffect(() => {
+    console.log("HOME_MOUNTED", new Date().toISOString());
+  }, []);
+
   /* Auth */
   const {
     user,

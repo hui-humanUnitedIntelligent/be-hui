@@ -665,7 +665,11 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
         <button
           type="button"
           className="tf-tap"
-          onClick={onPublish}
+          onClick={() => {
+            console.log("FINAL_SHARE_CLICK");
+            alert("FINAL_SHARE_CLICK");
+            onPublish?.();
+          }}
           disabled={publishing}
           style={{
             width:"100%", height:56, borderRadius:99,
@@ -718,6 +722,23 @@ export default function TeilenFlow({ onClose, onPublished }) {
       { time: new Date().toISOString(), label, value }
     ]);
   }, []);
+
+  // ── MOUNT / UNMOUNT DEBUG ────────────────────────────────────────────
+  React.useEffect(() => {
+    console.log("TEILENFLOW_MOUNT");
+    return () => {
+      console.log("TEILENFLOW_UNMOUNT");
+      // alert deaktiviert weil Safari blockt alerts im unmount
+      // stattdessen: beacon
+      try { navigator.sendBeacon && navigator.sendBeacon("/favicon.ico"); } catch(_){}
+      // Visual trace
+      const el = document.createElement("div");
+      el.style.cssText = "position:fixed;top:0;left:0;right:0;padding:20px;background:orange;color:black;font-size:20px;font-weight:bold;z-index:9999999";
+      el.textContent = "⚠️ TEILENFLOW_UNMOUNT @ " + new Date().toISOString();
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    };
+  }, []);
   const scrollRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -759,6 +780,10 @@ export default function TeilenFlow({ onClose, onPublished }) {
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
+    // ══ UNMOUNT DEBUG ══
+    alert("HANDLE_PUBLISH_START");
+    console.log("HANDLE_PUBLISH_START");
+
     if (publishing) return;
 
     // ── STEP 1: Start ────────────────────────────────────────────────
@@ -848,6 +873,8 @@ export default function TeilenFlow({ onClose, onPublished }) {
       pushDebug("FINALLY", { published });
       if (published) {
         onPublished?.({ mode: form.mode, refresh: true });
+        console.log("FLOW_CLOSE_TRIGGER", "setTimeout_onClose_after_publish");
+        alert("FLOW_CLOSE_TRIGGER: setTimeout_onClose_after_publish");
         setTimeout(() => { onClose?.(); }, 100);
       }
     }
@@ -887,7 +914,11 @@ export default function TeilenFlow({ onClose, onPublished }) {
           <button
             type="button"
             className="tf-tap"
-            onClick={onClose}
+            onClick={() => {
+              console.log("FLOW_CLOSE_TRIGGER", "X_BUTTON");
+              alert("FLOW_CLOSE_TRIGGER: X_BUTTON");
+              onClose?.();
+            }}
             style={{
               width:36, height:36, borderRadius:"50%",
               background:"rgba(255,255,255,.80)",
