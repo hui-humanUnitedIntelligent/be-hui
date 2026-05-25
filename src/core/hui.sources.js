@@ -23,7 +23,7 @@
 
 export const S = Object.freeze({
   // ── Navigation / Tabs ──────────────────────────────────────────
-  HOME:             "home",          // Home-Feed (aktiver Tab)
+  HOME:             "feed",          // Home-Feed (aktiver Tab)
   DISCOVER:         "discover",      // Entdecken-Seite
   FAVORITES:        "favorites",     // Dein Raum / Favoriten
   IMPACT:           "impact",        // Impact-Seite

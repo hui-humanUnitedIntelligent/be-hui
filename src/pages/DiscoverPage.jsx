@@ -551,24 +551,25 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
   // Batch 5: unified Action Engine handlers
   const handleView = React.useCallback((item) => {
     const t = item?.type || "work_upload";
+    let handled = false;
     if (t === "experience" || t === "erlebnis") {
-      actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: S.DISCOVER });
+      handled = actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: S.DISCOVER });
     } else if (t === "profile" || t === "talent") {
-      actions[A.OPEN_PROFILE]?.({ creatorId: item?.creator_id || item?.id, creator: item, source: S.DISCOVER });
+      handled = actions[A.OPEN_PROFILE]?.({ creatorId: item?.creator_id || item?.id, creator: item, source: S.DISCOVER });
     } else {
-      actions[A.OPEN_WERK]?.({ werk: item });
+      handled = actions[A.OPEN_WERK]?.({ werk: item, source: S.DISCOVER });
     }
-    onView?.(item);
+    if (handled === false) onView?.(item);
   }, [actions, onView]);
 
   const handleBook = React.useCallback((item) => {
-    actions[A.BOOK_EXPERIENCE]?.({ experience: item, source: S.DISCOVER });
-    onBook?.(item);
+    const handled = actions[A.BOOK_EXPERIENCE]?.({ experience: item, source: S.DISCOVER });
+    if (handled === false) onBook?.(item);
   }, [actions, onBook]);
 
   const handleMap = React.useCallback(() => {
-    actions[A.OPEN_MAP]?.();
-    onMap?.();
+    const handled = actions[A.OPEN_MAP]?.({ source: S.DISCOVER });
+    if (handled === false) onMap?.();
   }, [actions, onMap]);
   const [activeCategory, setActiveCategory] = useState("alle");
   const [prevCategory, setPrevCategory]   = useState("alle");
@@ -837,7 +838,7 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
                 setDistrictTransition(true);
                 setActiveCategory(pill.id);
                 setTimeout(() => setDistrictTransition(false), 380);
-                actions[A.FILTER_CATEGORY]?.({ category: pill.id });
+                actions[A.FILTER_CATEGORY]?.({ category: pill.id, source: S.DISCOVER });
               }}
               style={{
                 background: active
@@ -904,7 +905,10 @@ export default function DiscoverPage({ onMap, onView, onBook, refreshSignal }) {
       <div style={{ marginBottom:36 }}>
         <SectionHeader
           title="Werke die resonieren"
-          onAll={() => { actions[A.OPEN_WERK]?.({ view:"alle" }); onView?.({ type:"werke_liste" }); }}
+          onAll={() => {
+            const handled = actions[A.OPEN_WERK]?.({ view:"alle", source: S.DISCOVER });
+            if (handled === false) onView?.({ type:"werke_liste" });
+          }}
         />
         <div
           className="dp-scroll"

@@ -484,23 +484,23 @@ export default function HomeFeed({
 
   const handleProfile = React.useCallback((item) => {
     const creatorId = item?.creator_id || item?.user_id || item?.creatorId || item?.id;
-    actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: S.HOME });
-    onProfile?.(item);
+    const handled = actions[A.OPEN_PROFILE]?.({ creatorId, creator: item, source: S.HOME });
+    if (handled === false) onProfile?.(item);
   }, [actions, onProfile]);
 
   const handleDiscover = React.useCallback(() => {
-    actions[A.GO_DISCOVER]?.();
-    onDiscover?.();
+    const handled = actions[A.GO_DISCOVER]?.({ source: S.HOME });
+    if (handled === false) onDiscover?.();
   }, [actions, onDiscover]);
 
   const handleShare = React.useCallback(() => {
-    actions[A.OPEN_STORY_COMPOSER]?.();
-    onShare?.();
+    const handled = actions[A.OPEN_STORY_COMPOSER]?.({ source: S.HOME });
+    if (handled === false) onShare?.();
   }, [actions, onShare]);
 
   const handleEvent = React.useCallback((ev) => {
-    actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.HOME });
-    onEvent?.(ev);
+    const handled = actions[A.OPEN_EXPERIENCE]?.({ experience: ev, source: S.HOME });
+    if (handled === false) onEvent?.(ev);
   }, [actions, onEvent]);
   // Phase 4F: useFeedStream — Living Feed Infrastructure
   const {
@@ -1606,6 +1606,7 @@ function ReactionBar({ item, itemReactions, onReaction, onComment, minimal=false
   function handleResonanz(type) {
     onReaction?.(type);
     actions[A.SEND_RESONANCE]?.({
+      targetId:  item?.id,
       itemId:    item?.id,
       creatorId: item?.creator_id || item?.user_id || item?.creatorId,
       type,

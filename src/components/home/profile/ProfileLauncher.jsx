@@ -8,7 +8,6 @@ import { S } from "../../../core/hui.sources.js";
 import React, { useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
-import { useHuiFlow } from "../../../core/hui.flow.js";
 
 // ── STATISCH: sofort verfügbar, kein lazy-Blackout ──────────────
 // CreatorProfilePage wird immer mitgeladen (Teil des Home-Chunks)
@@ -34,7 +33,7 @@ function ProfileLoadingFallback() {
 
 /* ── Hook: imperativer Zugriff ── */
 export function useProfileLauncher() {
-  const { setShowWirker, openOwnProfile: shellOpenOwn } = useHome();
+  useHome();
   const actions = useHuiActions();
 
   const openProfile = useCallback((data) => {
@@ -59,14 +58,10 @@ export function useProfileLauncher() {
    ════════════════════════════════════════════════════════════ */
 export default function ProfileLauncher() {
   const {
-    showWirker, setShowWirker,
+    showWirker,
     showChat,
-    setShowChat, setChatRecipient,
-    setShowConnect,             // für "Buchen" → ConnectionCreate als Alternative
   } = useHome();
-
-  // Phase 2: Flow Memory — merkt sich den Weg zurück
-  const flow = useHuiFlow();
+  const actions = useHuiActions();
 
   // Nichts anzeigen wenn kein Profil offen
   if (!showWirker) return null;
@@ -76,7 +71,7 @@ export default function ProfileLauncher() {
 
   const isOwnerView = showWirker._isOwnerView === true;
 
-  const handleClose = () => setShowWirker(null);
+  const handleClose = () => actions[A.CLOSE_PROFILE]?.({ source: S.VISITOR_PROFILE });
 
   // Phase 2 LOOP 1: Chat vom Profil aus — Flow Memory
   const handleChat = (profile) => {
@@ -86,13 +81,11 @@ export default function ProfileLauncher() {
       avatar_url:   profile?.avatar_url   || profile?.img       || null,
       talent:       profile?.talent       || null,
     };
-    // Flow Memory: merkt sich dieses Profil für den Return
-    // Nach Chat-Close wird das Profil wieder geöffnet (LOOP 1)
-    flow.setReturnProfile(showWirker);
-    flow.push({ surface: "profile", creatorId: profile?.id, creator: showWirker });
-
-    setChatRecipient(recipient);
-    setShowChat(true);
+    actions[A.OPEN_CHAT]?.({
+      source: S.VISITOR_PROFILE,
+      recipient,
+      returnProfile: showWirker,
+    });
     // Phase 2 LOOP 1: Profil NICHT schließen.
     // _zIndex wird auf 9200 gesetzt wenn showChat=true (Chat liegt drüber bei 9400).
     // setShowWirker(null) hier entfernt — Chat-Close restored das Profil.
@@ -101,10 +94,15 @@ export default function ProfileLauncher() {
   // Phase 23: Buchen → ConnectionCreate (Booking-Request) oder direkter Chat
   const handleBook = (profile) => {
     // Buchen = Verbindungs-Request mit Booking-Intent
-    handleChat(profile);  // Vorerst: Chat öffnen (Booking ist Conversation-basiert)
+    actions[A.OPEN_BOOKING]?.({
+      source: S.VISITOR_PROFILE,
+      recipient: {
+        id:           profile?.id || profile?.user_id,
+        display_name: profile?.display_name || profile?.full_name || profile?.name || "Creator",
+        avatar_url:   profile?.avatar_url   || profile?.img       || null,
+      },
+    });
   };
-
-  const handleAction = (key) => { /* Studio, Edit, etc. — erweiterbar */ };
 
   // ── OWNER VIEW → CreatorProfilePage (statisch, sofort) ──────
   if (isOwnerView) {
@@ -112,7 +110,6 @@ export default function ProfileLauncher() {
       <CreatorProfilePage
         wirker={showWirker}
         onClose={handleClose}
-        onAction={handleAction}
       />
     );
   }

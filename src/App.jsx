@@ -28,6 +28,7 @@ const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
+import { navigateCanonical } from './core/hui.navigation.js'
 
 // Normalisierte, validierte Route-Definitionen
 // Alle Routen gehen durch createTabPage() — kein undefined-component möglich
@@ -353,7 +354,7 @@ function WirkerProfileRouteWrapper() {
   return (
     <WirkerProfilePage
       wirker={{ username }}
-      onClose={() => navigate(-1)}
+      onClose={() => navigateCanonical(navigate, "home", { replace: true })}
       onBook={() => { /* RequestSheet öffnet sich intern in WirkerProfilePage */ }}
       onChat={() => { /* Chat intern als Sheet in WirkerProfilePage */ }}
     />

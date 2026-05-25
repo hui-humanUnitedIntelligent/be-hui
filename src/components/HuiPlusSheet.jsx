@@ -77,6 +77,7 @@ export default function HuiPlusSheet({
 
   // Ghost-State-Guard: wenn nach MOUNT_TIMEOUT noch nicht gemountet → close
   useEffect(() => {
+    if (!visible) return undefined;
     timerRef.current = setTimeout(() => {
       if (!orbMounted) {
         console.warn("[HUI ORB] mount-timeout — ghost-state-guard triggered");
@@ -86,7 +87,11 @@ export default function HuiPlusSheet({
     }, MOUNT_TIMEOUT);
     return () => clearTimeout(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible && orbMounted) setOrbMounted(false);
+  }, [visible, orbMounted]);
 
   // Melden dass wir bereit sind (Home.jsx: confirmSurface)
   useEffect(() => {

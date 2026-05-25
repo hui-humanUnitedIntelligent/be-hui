@@ -57,13 +57,10 @@ export default function BottomNav({
 
   function handleTabPress(key) {
     // Route profile tab → OPEN_OWN_PROFILE, others → GO_TO_TAB
-    if (key === "profile") {
-      actions[A.OPEN_OWN_PROFILE]?.();
-    } else {
-      actions[A.GO_TO_TAB]?.(key);
-    }
-    // Always call prop for backward compat (Home.jsx still syncs tab state)
-    if (typeof onTab === "function") onTab(key);
+    const handled = key === "profile"
+      ? actions[A.OPEN_OWN_PROFILE]?.()
+      : actions[A.GO_TO_TAB]?.({ tab: key, source: "feed" });
+    if (handled === false && typeof onTab === "function") onTab(key);
   }
 
   return (
@@ -129,8 +126,8 @@ export default function BottomNav({
                   key="orb"
                   className="bn-orb-btn"
                   onClick={() => {
-                    actions[A.OPEN_ORB]?.();
-                    onOrbAction?.("create"); // backward compat
+                    const handled = actions[A.OPEN_ORB]?.({ source: "orb", originTab: tab });
+                    if (handled === false) onOrbAction?.("create");
                   }}
                   style={{
                     width: 52, height: 52,
@@ -181,7 +178,7 @@ export default function BottomNav({
               <NavItem
                 key={item.key}
                 item={item}
-                active={isActive}
+                isActive={isActive}
                 badge={item.key === "notifs" ? notifCount : item.key === "chat" ? msgCount : 0}
                 onPress={() => handleTabPress(item.key)}
                 authProfile={authProfile}

@@ -195,7 +195,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover })
       {/* Buchungsanfragen */}
       {bookingConvs.length > 0 && (
         <>
-          <SectionHead title="Buchungsanfragen" onMore={() => {}}/>
+          <SectionHead title="Buchungsanfragen"/>
           {(bookingConvs || []).filter(c => c && c.id).map(c => (
             <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
           ))}

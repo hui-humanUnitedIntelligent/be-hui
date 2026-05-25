@@ -680,15 +680,17 @@ function InspireBanner({ onSettings }) {
         <div style={{ fontSize:12, color:C.muted, lineHeight:1.55, marginBottom:12 }}>
           Aktiviere wichtige Mitteilungen, damit du keine wertvollen Momente verpasst.
         </div>
-        <button className="nc-tap" onClick={onSettings} style={{
-          background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
-          color:"#fff", border:"none", borderRadius:12,
-          padding:"9px 16px", fontSize:12, fontWeight:700,
-          cursor:"pointer",
-          boxShadow:`0 4px 10px ${C.tealGlow}`,
-        }}>
-          Einstellungen {"\u00F6ffnen"}
-        </button>
+        {typeof onSettings === "function" && (
+          <button className="nc-tap" onClick={onSettings} style={{
+            background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
+            color:"#fff", border:"none", borderRadius:12,
+            padding:"9px 16px", fontSize:12, fontWeight:700,
+            cursor:"pointer",
+            boxShadow:`0 4px 10px ${C.tealGlow}`,
+          }}>
+            Einstellungen {"\u00F6ffnen"}
+          </button>
+        )}
       </div>
       <div style={{ fontSize:38, opacity:0.75, flexShrink:0 }}>{"🪴"}</div>
     </div>
@@ -849,7 +851,7 @@ function NotifFeed({
             );
           })
         )}
-        <InspireBanner onSettings={() => actions[A.OPEN_NOTIFICATIONS_SETTINGS]?.()} />
+        <InspireBanner />
       </div>
     </div>
   );

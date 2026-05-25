@@ -297,19 +297,22 @@ function SafetyRow({ icon, text, delay = 0 }) {
 // ══════════════════════════════════════════════════════════════════
 function LegalRow({ label, onPress }) {
   const [pressed, setPressed] = useState(false);
+  const interactive = typeof onPress === "function";
   return (
-    <button
-      onClick={onPress}
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
+    <div
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      onClick={interactive ? onPress : undefined}
+      onPointerDown={() => interactive && setPressed(true)}
+      onPointerUp={() => interactive && setPressed(false)}
+      onPointerLeave={() => interactive && setPressed(false)}
       style={{
         width: '100%', padding: '15px 18px',
         borderRadius: 14,
         background: pressed ? 'rgba(255,255,255,0.08)' : T.glass,
         border: `1px solid ${T.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        cursor: 'pointer',
+        cursor: interactive ? 'pointer' : 'default',
         transform: pressed ? 'scale(0.982) translateY(1px)' : 'scale(1)',
         transition: 'all 0.15s ease',
         WebkitTapHighlightColor: 'transparent',
@@ -320,7 +323,7 @@ function LegalRow({ label, onPress }) {
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M6 4L10 8L6 12" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
-    </button>
+    </div>
   );
 }
 
@@ -877,9 +880,9 @@ function Screen7({ onNext, data, setData }) {
 
         {/* Dokumente */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-          <LegalRow label="AGBs (Allgemeine Geschäftsbedingungen)" onPress={() => {}} />
-          <LegalRow label="Datenschutzerklärung" onPress={() => {}} />
-          <LegalRow label="Community-Richtlinien" onPress={() => {}} />
+          <LegalRow label="AGBs (Allgemeine Geschäftsbedingungen)" />
+          <LegalRow label="Datenschutzerklärung" />
+          <LegalRow label="Community-Richtlinien" />
         </div>
 
         {/* Emotionale Checkbox */}

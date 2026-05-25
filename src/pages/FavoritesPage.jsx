@@ -228,7 +228,7 @@ function CreatorSection({ people, onView }) {
   const secActions = useHuiActions();
   return (
     <div>
-      <SectionHeader title="Menschen" onAll={() => secActions[A.OPEN_COMMUNITY]?.({ filter:"people" })} />
+      <SectionHeader title="Menschen" onAll={() => secActions[A.OPEN_COMMUNITY]?.({ filter:"people", source: S.FAVORITES })} />
       <div className="fr-scroll" style={{
         display:"flex", gap:12,
         overflowX:"auto", padding:"4px 20px 8px",
@@ -312,7 +312,7 @@ function WorksGrid({ works, onView }) {
   const secActions = useHuiActions();
   return (
     <div>
-      <SectionHeader title="Werke" onAll={() => secActions[A.OPEN_WERK]?.({ view:"favoriten" })} />
+      <SectionHeader title="Werke" onAll={() => secActions[A.OPEN_WERK]?.({ view:"favoriten", source: S.FAVORITES })} />
       <div className="fr-scroll" style={{
         display:"flex", gap:12,
         overflowX:"auto", padding:"4px 20px 8px",
@@ -617,24 +617,25 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
 
   const handleView = React.useCallback((item) => {
     const t = item?.type || "work_upload";
+    let handled = false;
     if (t === "profile" || t === "talent" || item?.talent) {
-      actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item, source: S.FAVORITES });
+      handled = actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item, source: S.FAVORITES });
     } else if (t === "experience" || t === "erlebnis") {
-      actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: S.FAVORITES });
+      handled = actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: S.FAVORITES });
     } else {
-      actions[A.OPEN_WERK]?.({ werk: item });
+      handled = actions[A.OPEN_WERK]?.({ werk: item, source: S.FAVORITES });
     }
-    onView?.(item);
+    if (handled === false) onView?.(item);
   }, [actions, onView]);
 
   const handleImpact = React.useCallback(() => {
-    actions[A.GO_IMPACT]?.();
-    onImpact?.();
+    const handled = actions[A.GO_IMPACT]?.({ source: S.FAVORITES });
+    if (handled === false) onImpact?.();
   }, [actions, onImpact]);
 
   const handleDiscover = React.useCallback(() => {
-    actions[A.GO_DISCOVER]?.();
-    onDiscover?.();
+    const handled = actions[A.GO_DISCOVER]?.({ source: S.FAVORITES });
+    if (handled === false) onDiscover?.();
   }, [actions, onDiscover]);
   // ── State (alle top-level, stabile Reihenfolge) ───────────────────
   const [activeCategory, setActiveCategory] = useState("Alles");

@@ -50,6 +50,7 @@ export function useHuiFlow() {
       setReturnProfile:   () => {},
       getReturnProfile:   () => null,
       clearReturnProfile: () => {},
+      clear:              () => {},
     };
   }
   return ctx;
@@ -93,6 +94,14 @@ export function createFlowStore() {
 
     hasReturn() {
       return stack.length > 0;
+    },
+
+    clear(reason = "flow-clear") {
+      if (isDev && (stack.length > 0 || _returnProfile)) {
+        console.log("[HUI_FLOW] Stack geleert:", reason, { entries: stack.length });
+      }
+      stack.length = 0;
+      _returnProfile = null;
     },
 
     // ── Return Profile — Kern von LOOP 1 ─────────────────────────
