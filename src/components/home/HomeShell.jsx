@@ -16,11 +16,6 @@ import {
 import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
 import HuiActionProvider from "../../core/HuiActionProvider.jsx";
 import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
-import { SAFE_MODE } from "../../config/safeMode.js";
-import {
-  computeTransitionCarryOver,
-  mockWorldFromAtmosphere,
-} from "../../lib/intelligence/worldContinuity.js";
 import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
 import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
 import { assertValidTab } from "../../lib/world/orbLayer.js";
