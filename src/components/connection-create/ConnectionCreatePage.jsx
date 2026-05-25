@@ -105,7 +105,7 @@ const STEP_META = {
 };
 
 /* ── Floating Navigation (sticky unten) ── */
-function FloatingNav({ step, canNext, onBack, onNext, isLast }) {
+function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false }) {
   return (
     <div style={{
       position:"sticky", bottom:0, zIndex:10, flexShrink:0,
@@ -138,19 +138,19 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast }) {
       {/* Weiter / Veröffentlichen */}
       <button
         onClick={onNext}
-        disabled={!canNext}
+        disabled={!canNext || publishing}
         style={{
           flex:1, height:50, borderRadius:99,
-          background: canNext
-            ? `linear-gradient(135deg,${C.violet} 0%,${C.violet2} 100%)`
-            : "rgba(139,92,246,0.18)",
+          background: (!canNext || publishing)
+            ? "rgba(139,92,246,0.28)"
+            : `linear-gradient(135deg,${C.violet} 0%,${C.violet2} 100%)`,
           border:"none",
           color: canNext ? "white" : "rgba(139,92,246,0.50)",
           fontSize:16, fontWeight:800,
-          cursor: canNext ? "pointer" : "default",
+          cursor: (!canNext || publishing) ? "default" : "pointer",
           transition:"all 0.2s",
-          boxShadow: canNext ? "0 6px 20px rgba(139,92,246,0.30)" : "none",
-          animation: canNext ? "nav-btn-pulse 2.5s ease-in-out infinite" : "none",
+          boxShadow: (!canNext || publishing) ? "none" : "0 6px 20px rgba(139,92,246,0.30)",
+          animation: (!canNext || publishing) ? "none" : "nav-btn-pulse 2.5s ease-in-out infinite",
           letterSpacing:-0.2,
           WebkitTapHighlightColor:"transparent",
           display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -161,12 +161,22 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast }) {
         onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
       >
         {isLast ? (
-          <>Verbindung ver\u00f6ffentlichen
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-                stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-            </svg>
-          </>
+          publishing ? (
+            <><span style={{
+              display:"inline-block",
+              width:16, height:16, borderRadius:"50%",
+              border:"2.5px solid rgba(255,255,255,0.35)",
+              borderTopColor:"white",
+              animation:"floatnav-spin 0.7s linear infinite",
+            }}/> Wird veröffentlicht…</>
+          ) : (
+            <>Verbindung veröffentlichen
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
+                  stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
+              </svg>
+            </>
+          )
         ) : (
           <>Weiter <span style={{fontSize:17}}>→</span></>
         )}
@@ -212,24 +222,34 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
   const handleNext = useCallback(async () => {
     if (step < 3) { goTo(step + 1); return; }
     // Step 3: Real Publish → supabase.connections
+    if (publishing) return;                         // Guard: kein Doppel-Submit
     setPublishing(true);
+    let published = false;
     try {
+      // Guard: user muss eingeloggt sein
+      if (!user?.id) {
+        console.error("[HUI_REALITY] connection publish: kein user.id — abbruch");
+        setPublishing(false);
+        return;
+      }
+
       const payload = {
-        user_id:         user?.id,
-        type:            formData.type            || "kollab",
-        title:           (formData.title    || "").trim(),
-        description:     (formData.description || "").trim(),
-        date:            formData.date            || null,
-        time:            formData.time            || null,
-        location:        (formData.location || "").trim() || null,
+        user_id:          user.id,
+        type:             formData.type             || "kollab",
+        title:            (formData.title     || "").trim() || "Neue Verbindung",
+        description:      (formData.description|| "").trim() || null,
+        date:             formData.date             || null,
+        time:             formData.time             || null,
+        location:         (formData.location  || "").trim() || null,
         max_participants: Number(formData.participants) || 30,
-        cost:            formData.cost            || "free",
-        cost_amount:     formData.costAmount ? Number(formData.costAmount) : null,
-        mood:            formData.mood            || null,
-        visibility:      formData.visibility      || "public",
-        openness:        formData.openness        || "open",
-        status:          "active",
+        cost:             formData.cost             || "free",
+        cost_amount:      formData.costAmount ? Number(formData.costAmount) : null,
+        mood:             formData.mood             || null,
+        visibility:       formData.visibility       || "public",
+        openness:         formData.openness         || "open",
+        status:           "active",
       };
+
       const { data: connData, error: dbErr } = await supabase
         .from("connections")
         .insert(payload)
@@ -237,18 +257,26 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         .single();
 
       if (dbErr) {
-        console.error("[HUI_REALITY] connection publish error:", dbErr.message);
-        // Nicht crashen — Flow schließt immer sauber
+        // Tabelle existiert noch nicht (42P01) oder anderer DB-Fehler
+        // → trotzdem sauber schließen, kein UI-Block
+        console.error("[HUI_REALITY] connection DB error:", dbErr.code, dbErr.message);
       } else {
         console.info("[HUI_REALITY] ✓ connection published:", connData?.id);
       }
-      onPublish?.({ ...formData, id: connData?.id, creator_id: user?.id });
-      onClose?.();
+
+      published = true;
+      onPublish?.({ ...formData, id: connData?.id ?? null, creator_id: user.id });
     } catch (err) {
       console.error("[HUI_REALITY] connection publish exception:", err?.message);
+    } finally {
+      // IMMER ausführen — verhindert hängenden Button-State
       setPublishing(false);
+      if (published) {
+        // Kleines Delay damit der User den Erfolg spürt (100ms Minimum)
+        setTimeout(() => { onClose?.(); }, 100);
+      }
     }
-  }, [step, formData, user?.id, onPublish, onClose]);
+  }, [step, publishing, formData, user?.id, onPublish, onClose]);
 
   /* Can proceed? */
   const canNext =
@@ -364,6 +392,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           onBack={() => goTo(step - 1)}
           onNext={handleNext}
           isLast={step === 3}
+          publishing={step === 3 ? publishing : false}
         />
       )}
     </div>
