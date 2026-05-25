@@ -1,12 +1,14 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
 import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
 import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
 import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
+import RuntimeDebugOverlay from './components/RuntimeDebugOverlay.jsx'
+import { reportActionFailure, reportRuntimeError } from './lib/runtimeDebug.js'
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -75,6 +77,21 @@ if (typeof window !== "undefined" && !window.__HUI_ERROR_TRACER__) {
 
   window.addEventListener("error", (e) => {
     const ws = window.__HUI_WORLD_STATE__ || {};
+    reportRuntimeError({
+      flow: "global-runtime",
+      step: "window.error",
+      entity: "runtime-exception",
+      error: e.error,
+      message: e.message,
+      details: {
+        filename: e.filename,
+        line: e.lineno,
+        col: e.colno,
+        activeSurface: ws.activeSurface,
+        activeTab: ws.activeTab,
+        repaintPhase: ws.repaintPhase,
+      },
+    });
     console.error("[HUI GLOBAL ERROR]", {
       message:       e.message,
       filename:      e.filename,
@@ -89,6 +106,18 @@ if (typeof window !== "undefined" && !window.__HUI_ERROR_TRACER__) {
 
   window.addEventListener("unhandledrejection", (e) => {
     const ws = window.__HUI_WORLD_STATE__ || {};
+    reportRuntimeError({
+      flow: "global-runtime",
+      step: "unhandledrejection",
+      entity: "promise",
+      error: e.reason,
+      message: e.reason?.message || String(e.reason),
+      details: {
+        activeSurface: ws.activeSurface,
+        activeTab: ws.activeTab,
+        repaintPhase: ws.repaintPhase,
+      },
+    });
     console.error("[HUI UNHANDLED REJECTION]", {
       reason:        String(e.reason),
       stack:         e.reason?.stack?.slice(0, 400),
@@ -114,6 +143,18 @@ class ErrorBoundary extends React.Component {
     // ── Sentry: Crash mit vollem Kontext senden ──────────────
     // console.error entfernt — Sentry loggt vollständig (Phase 4B)
     const ws = window.__HUI_WORLD_STATE__ || {};
+    reportRuntimeError({
+      flow: "app",
+      step: "ErrorBoundary.componentDidCatch",
+      entity: "react-tree",
+      error,
+      details: {
+        componentStack: errorInfo?.componentStack || "",
+        activeSurface: ws.activeSurface,
+        activeTab: ws.activeTab,
+        repaintPhase: ws.repaintPhase,
+      },
+    });
     const eventId = sentryCapture(error, {
       source:              'ErrorBoundary',
       component_stack:     errorInfo?.componentStack || '',
@@ -375,12 +416,30 @@ function OwnProfileRedirect() {
       .single()
       .then(({ data, error }) => {
         if (error || !data?.username) {
+          reportActionFailure({
+            category: "navigation",
+            flow: "profile-navigation",
+            step: "load-own-profile",
+            entity: "profiles",
+            message: error?.message || "Kein username für eigenes Profil gefunden",
+            error,
+            details: { userId: user.id },
+          });
           navigate(`/profile/${user.id}`, { replace: true });
           return;
         }
         navigate(`/profile/${data.username}`, { replace: true });
       })
-      .catch(() => {
+      .catch((error) => {
+        reportActionFailure({
+          category: "navigation",
+          flow: "profile-navigation",
+          step: "load-own-profile-exception",
+          entity: "profiles",
+          message: error?.message || "Profilnavigation fehlgeschlagen",
+          error,
+          details: { userId: user.id },
+        });
         navigate(`/profile/${user.id}`, { replace: true });
       });
   }, [user?.id]);
@@ -401,6 +460,23 @@ function OwnProfileRedirect() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
+}
+
+function InvalidRouteRedirect() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    reportActionFailure({
+      category: "navigation",
+      flow: "router",
+      step: "invalid-route",
+      entity: location.pathname || "unknown-route",
+      message: "Ungültige Route, Weiterleitung nach Home",
+      details: { pathname: location.pathname, search: location.search },
+    });
+  }, [location.pathname, location.search]);
+
+  return <Navigate to="/Home" replace />;
 }
 
 /* ── App Routes ────────────────────────────────────────────────────── */
@@ -474,7 +550,7 @@ function AppRoutes() {
         }/>
 
         {/* 404 → Home */}
-        <Route path="*" element={<Navigate to="/Home" replace />} />
+        <Route path="*" element={<InvalidRouteRedirect />} />
       </Routes>
     </HuiSuspense>
   );
@@ -493,6 +569,7 @@ export default function App() {
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
+          <RuntimeDebugOverlay />
           </GuidanceProvider>
       </OrbWorldProvider>
           </WorldSurfaceProvider>

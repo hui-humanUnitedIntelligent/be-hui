@@ -19,6 +19,7 @@ import { feedback, FEEDBACK_MESSAGES } from './feedback/index.js';
 import { validateBookingRequest, assertValid } from './validation/index.js';
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
+import { reportActionFailure, reportInsertFailure, reportRealtimeFailure } from "./runtimeDebug.js";
 
 // ────────────────────────────────────────────────────────────────
 // Status System
@@ -104,13 +105,42 @@ export function useBookingActions() {
     location, budget, guests, direction, message, amountEur, impactEur,
   }) => {
     // ── Security Guards ──────────────────────────────────────────
-    assertAuthenticated(user);
-    if (!creatorId) return { error: "Creator-ID fehlt" };
+    try {
+      assertAuthenticated(user);
+    } catch (authError) {
+      const msg = authError?.message || "Authentifizierung fehlt.";
+      reportActionFailure({
+        flow: "booking",
+        step: "auth",
+        entity: "bookings",
+        message: msg,
+        error: authError,
+      });
+      return { error: msg };
+    }
+    if (!creatorId) {
+      const msg = "Creator-ID fehlt";
+      reportActionFailure({
+        category: "validation",
+        flow: "booking",
+        step: "validation",
+        entity: "creatorId",
+        message: msg,
+      });
+      return { error: msg };
+    }
 
     // ── Double-Submit Guard ──────────────────────────────────────
     const guardKey = `booking-${user.id}-${creatorId}`;
     if (!globalMutationGuard.lockWithTimeout(guardKey, 8000)) {
-      return { error: "Anfrage bereits in Bearbeitung." };
+      const msg = "Anfrage bereits in Bearbeitung.";
+      reportActionFailure({
+        flow: "booking",
+        step: "double-submit-guard",
+        entity: "bookings",
+        message: msg,
+      });
+      return { error: msg };
     }
 
     // ── Input Validation ─────────────────────────────────────────
@@ -124,7 +154,16 @@ export function useBookingActions() {
     });
     if (!validResult.valid) {
       globalMutationGuard.unlock(guardKey);
-      return { error: validResult.errors[0] };
+      const msg = validResult.errors[0];
+      reportActionFailure({
+        category: "validation",
+        flow: "booking",
+        step: "validation",
+        entity: "bookings",
+        message: msg,
+        details: { errors: validResult.errors },
+      });
+      return { error: msg };
     }
 
     setLoading(true); setError(null);
@@ -142,7 +181,16 @@ export function useBookingActions() {
           opened_at:       new Date().toISOString(),
         })
         .select("id").single();
-      if (chatErr) console.warn("[Booking] Chat-Erstellung:", chatErr);
+      if (chatErr) {
+        reportInsertFailure({
+          category: "booking",
+          flow: "booking",
+          step: "chat-insert",
+          entity: "chats",
+          error: chatErr,
+        });
+        throw new Error(`Booking-Chat konnte nicht erstellt werden: ${chatErr.message}`);
+      }
 
       // 2. Booking erstellen (mit Chat-Referenz)
       const { data: booking, error: bookErr } = await supabase
@@ -171,12 +219,22 @@ export function useBookingActions() {
 
       // 3. Erste Chat-Nachricht = Anfrage-Summary
       if (chat?.id && message) {
-        await supabase.from("messages").insert({
+        const { error: msgErr } = await supabase.from("messages").insert({
           chat_id:    chat.id,
           sender_id:  user.id,
           text:       message,
           created_at: new Date().toISOString(),
-        }).catch(err => sentryCapture(normalizeError(err), { source: 'bookingContext' }));
+        });
+        if (msgErr) {
+          reportInsertFailure({
+            category: "booking",
+            flow: "booking",
+            step: "initial-message-insert",
+            entity: "messages",
+            error: msgErr,
+          });
+          throw new Error(`Erste Booking-Nachricht konnte nicht gespeichert werden: ${msgErr.message}`);
+        }
       }
 
       // 4. Notification für Creator
@@ -192,6 +250,14 @@ export function useBookingActions() {
       return { data: booking, chatId: chat?.id };
     } catch(e) {
       setError(e.message);
+      reportInsertFailure({
+        category: "booking",
+        flow: "booking",
+        step: "request",
+        entity: "bookings",
+        error: e,
+        message: e.message,
+      });
       return { error: e.message };
     } finally {
       setLoading(false);
@@ -226,6 +292,14 @@ export function useBookingActions() {
       return { success: true };
     } catch(e) {
       setError(e.message);
+      reportInsertFailure({
+        category: "booking",
+        flow: "booking",
+        step: "accept",
+        entity: "bookings",
+        error: e,
+        message: e.message,
+      });
       return { error: e.message };
     } finally {
       setLoading(false);
@@ -237,13 +311,14 @@ export function useBookingActions() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      await supabase.from("bookings")
+      const { error } = await supabase.from("bookings")
         .update({
           status:           "declined",
           declined_reason:  reason || null,
         })
         .eq("id", bookingId)
         .eq("creator_id", user.id);
+      if (error) throw error;
 
       await supabase.from("booking_events").insert({
         booking_id:  bookingId,
@@ -256,6 +331,14 @@ export function useBookingActions() {
       return { success: true };
     } catch(e) {
       setError(e.message);
+      reportInsertFailure({
+        category: "booking",
+        flow: "booking",
+        step: "decline",
+        entity: "bookings",
+        error: e,
+        message: e.message,
+      });
       return { error: e.message };
     } finally {
       setLoading(false);
@@ -269,20 +352,40 @@ export function useBookingActions() {
     // → erstellt collaboration entry
     // → erstellt trust_event: collaboration_completed
     // → updated profile.collab_count
-    await supabase.from("bookings")
+    const { error } = await supabase.from("bookings")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", bookingId)
       .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`);
+    if (error) {
+      reportInsertFailure({
+        category: "booking",
+        flow: "booking",
+        step: "complete",
+        entity: "bookings",
+        error,
+      });
+      return { error: error.message };
+    }
     return { success: true };
   }, [user?.id]);
 
   // Stornieren
   const cancelBooking = useCallback(async (bookingId) => {
     if (!user?.id) return;
-    await supabase.from("bookings")
+    const { error } = await supabase.from("bookings")
       .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
       .eq("id", bookingId)
       .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`);
+    if (error) {
+      reportInsertFailure({
+        category: "booking",
+        flow: "booking",
+        step: "cancel",
+        entity: "bookings",
+        error,
+      });
+      return { error: error.message };
+    }
     return { success: true };
   }, [user?.id]);
 
@@ -337,7 +440,18 @@ export function useCreatorBookings() {
         event: "*", schema: "public", table: "bookings",
         filter: `creator_id=eq.${user.id}`,
       }, () => load())
-      .subscribe();
+      .subscribe((status, error) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          reportRealtimeFailure({
+            flow: "booking",
+            step: "creator-bookings-subscribe",
+            entity: "bookings",
+            channel: `creator-bookings:${user.id}`,
+            error,
+            message: `Booking Realtime Status: ${status}`,
+          });
+        }
+      });
     return () => { supabase.removeChannel(realtimeRef.current); };
   }, [user?.id, load]);
 

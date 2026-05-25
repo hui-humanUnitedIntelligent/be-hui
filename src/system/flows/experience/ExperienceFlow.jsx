@@ -15,6 +15,7 @@ import { ExperiencePublishStep } from "./ExperiencePublishStep.jsx";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { useAuth }               from "../../../lib/AuthContext.jsx";
 import { publishExperience }      from "../../../lib/factories/experienceContract.js";
+import { reportInsertFailure }    from "../../../lib/runtimeDebug.js";
 
 /* ── Design Tokens (identisch zu WorkFlow / WT) ─────────────── */
 export const ET = {
@@ -137,12 +138,19 @@ export default function ExperienceFlow({ onClose }) {
 
   /* ── Publish — via Schema Contract Layer (Phase 4E) ─────────── */
   const handlePublish = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      const message = "Nicht eingeloggt. Erlebnis kann nicht gespeichert werden.";
+      setError(message);
+      reportInsertFailure({ flow:"experience-publish", step:"auth", entity:"experiences", message });
+      return;
+    }
+    let failedStep = "publish";
     setSaving(true); setError(null);
     try {
       // 1. Medien hochladen → kanonisches [{ url, type, alt }] Format
       const uploadedUrls = [];
       for (let i = 0; i < mediaFiles.length; i++) {
+        failedStep = "storage-upload";
         const { file } = mediaFiles[i];
         const ext  = file.name.split(".").pop();
         const path = `experiences/${user.id}/${Date.now()}_${i}.${ext}`;
@@ -153,6 +161,7 @@ export default function ExperienceFlow({ onClose }) {
         uploadedUrls.push(publicUrl); // normalizeImages() wandelt zu { url, type, alt } um
       }
       // 2. Contract Layer: normalize → validate → insert (Phase 4E)
+      failedStep = "contract-insert";
       const { data: expData, error: contractErr } = await publishExperience(
         supabase, form, user.id, uploadedUrls
       );
@@ -161,7 +170,16 @@ export default function ExperienceFlow({ onClose }) {
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
-      setError(e.message || "Fehler beim Veröffentlichen");
+      const message = e.message || "Fehler beim Veröffentlichen";
+      setError(message);
+      reportInsertFailure({
+        category: "publish",
+        flow: "experience-publish",
+        step: failedStep,
+        entity: "experiences",
+        error: e,
+        message,
+      });
     } finally { setSaving(false); }
   }, [user, form, mediaFiles, onClose]);
 

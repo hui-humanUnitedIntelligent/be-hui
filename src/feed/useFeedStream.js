@@ -18,6 +18,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
+import { reportRealtimeFailure, reportRuntimeError } from "../lib/runtimeDebug.js";
 import {
   normalizeWorkRow,
   normalizeExperienceRow,
@@ -214,6 +215,13 @@ export function useFeedStream() {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] initial load error:", err.message);
       setError(err.message);
+      reportRuntimeError({
+        flow: "feed",
+        step: "initial-load",
+        entity: "feed",
+        error: err,
+        message: err.message,
+      });
     } finally {
       if (mountedRef.current) setLoading(false);
     }
@@ -233,7 +241,15 @@ export function useFeedStream() {
         cursorRef.current = nextCursor;
         setItems(fresh);
       }
-    } catch (_) { /* silent */ }
+    } catch (err) {
+      reportRuntimeError({
+        flow: "feed",
+        step: "silent-refresh",
+        entity: "feed",
+        error: err,
+        message: err?.message || "Feed Refresh fehlgeschlagen",
+      });
+    }
   }
 
   // ── Load More (Pagination) ─────────────────────────────────────────────────
@@ -271,6 +287,13 @@ export function useFeedStream() {
       setHasMore(more);
     } catch (err) {
       console.error("[HUI_STREAM] loadMore error:", err.message);
+      reportRuntimeError({
+        flow: "feed",
+        step: "load-more",
+        entity: "feed",
+        error: err,
+        message: err.message,
+      });
     } finally {
       if (mountedRef.current) setLoadingMore(false);
     }
@@ -285,7 +308,15 @@ export function useFeedStream() {
       try {
         const result = await fetchFeedPage(userId, cursorRef.current);
         if (mountedRef.current) prefetchedRef.current = result;
-      } catch (_) { /* silent prefetch failure */ }
+      } catch (err) {
+        reportRuntimeError({
+          flow: "feed",
+          step: "prefetch",
+          entity: "feed",
+          error: err,
+          message: err?.message || "Feed Prefetch fehlgeschlagen",
+        });
+      }
       finally { prefetchingRef.current = false; }
     };
 
@@ -376,9 +407,17 @@ export function useFeedStream() {
         if (!mountedRef.current) return;
         _receiveLiveItem(payload.new, normalizeExperienceRow);
       })
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
+      .subscribe((status, error) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
           console.warn("[HUI_STREAM] Realtime Channel Error — Feed läuft ohne Live-Updates weiter");
+          reportRealtimeFailure({
+            flow: "feed",
+            step: "feed-subscribe",
+            entity: "feed",
+            channel: "hui_feed_realtime_v4f",
+            error,
+            message: `Feed Realtime Status: ${status}`,
+          });
         }
       });
 

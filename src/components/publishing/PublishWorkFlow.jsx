@@ -6,6 +6,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth }  from "../../lib/AuthContext.jsx";
+import { reportInsertFailure } from "../../lib/runtimeDebug.js";
 
 const C = {
   teal:   "#16D7C5",
@@ -29,6 +30,7 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
   const [tagInput, setTagInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error,     setError]    = useState(null);
+  const [success,   setSuccess]  = useState(null);
   const fileRef = useRef();
 
   const handleFile = useCallback(e => {
@@ -52,14 +54,27 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
   }, []);
 
   const handlePublish = useCallback(async () => {
-    if (!user?.id) return setError("Nicht eingeloggt.");
-    if (!form.title && !form.caption) return setError("Bitte Titel oder Caption angeben.");
+    if (!user?.id) {
+      const message = "Nicht eingeloggt.";
+      setError(message);
+      reportInsertFailure({ flow:"legacy-work-publish", step:"auth", entity:"works", message });
+      return;
+    }
+    if (!form.title && !form.caption) {
+      const message = "Bitte Titel oder Caption angeben.";
+      setError(message);
+      reportInsertFailure({ category:"validation", flow:"legacy-work-publish", step:"validation", entity:"works", message });
+      return;
+    }
     setUploading(true);
     setError(null);
+    setSuccess(null);
+    let failedStep = "publish";
     try {
       let media_url = null, cover_url = null, media_type = "image";
 
       if (media?.file) {
+        failedStep = "storage-upload";
         const ext  = media.file.name.split(".").pop();
         const path = `${user.id}/${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage
@@ -83,17 +98,27 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
         status:     "published",
       };
 
+      failedStep = "insert";
       const { data, error: insErr } = await supabase
         .from("works").insert(payload).select("id").single();
 
       if (insErr) throw new Error(`Speichern fehlgeschlagen: ${insErr.message} (code: ${insErr.code})`);
 
       console.log("[HUI_REALITY] work published \u2713", data?.id);
+      setSuccess("Werk erfolgreich gespeichert.");
       onPublished?.({ id: data?.id, ...payload });
-      onClose?.();
+      window.setTimeout(() => onClose?.(), 1200);
     } catch(err) {
       console.error("[HUI_PUBLISH] Fehler:", err.message);
       setError(err.message);
+      reportInsertFailure({
+        category: "publish",
+        flow: "legacy-work-publish",
+        step: failedStep,
+        entity: "works",
+        error: err,
+        message: err.message,
+      });
     } finally {
       setUploading(false);
     }
@@ -212,6 +237,11 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
             {error && (
               <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,80,80,0.08)", color:"#E53E3E", fontSize:13 }}>
                 {error}
+              </div>
+            )}
+            {success && (
+              <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(22,215,197,0.10)", color:"#087B73", fontSize:13, fontWeight:700 }}>
+                {success}
               </div>
             )}
             <button onClick={handlePublish} disabled={uploading} style={{

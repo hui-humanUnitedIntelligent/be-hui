@@ -27,12 +27,17 @@ export default function ChatInput({
   const [focused, setFocused] = React.useState(false);
   const textRef = useRef(null);
 
-  function send() {
+  async function send() {
     if (!text.trim() || sending) return;
-    onSend?.(text.trim());
-    setText("");
-    // Kurz warten, dann Fokus zurück — Safari-safe
-    requestAnimationFrame(() => textRef.current?.focus());
+    try {
+      const result = await onSend?.(text.trim());
+      if (result?.error) return;
+      setText("");
+      // Kurz warten, dann Fokus zurück — Safari-safe
+      requestAnimationFrame(() => textRef.current?.focus());
+    } catch {
+      // Text bleibt stehen, damit auf iPad/iPhone direkt Retry möglich ist.
+    }
   }
 
   function onKey(e) {

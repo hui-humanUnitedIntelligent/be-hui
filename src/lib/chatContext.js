@@ -22,6 +22,7 @@ import { validateMessage } from './validation/index.js';
 import { supabase } from "./supabaseClient";
 import { notifyMessage } from "./notificationService";
 import { useAuth } from "./AuthContext";
+import { reportActionFailure, reportInsertFailure, reportRealtimeFailure, reportRuntimeError } from "./runtimeDebug.js";
 
 // ────────────────────────────────────────────────────────────────
 // Konstanten
@@ -90,7 +91,7 @@ export function useChatList() {
     if (!user?.id) return;
     try {
       // Chats laden (participant_a/b Schema)
-      const { data: rawChats } = await supabase
+      const { data: rawChats, error: loadError } = await supabase
         .from("chats")
         .select(`
           id, chat_type, state, booking_title, context_type, context_id,
@@ -109,6 +110,8 @@ export function useChatList() {
         .eq("state", "open")
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
+
+      if (loadError) throw loadError;
 
       if (!rawChats) { setLoading(false); return; }
 
@@ -142,6 +145,13 @@ export function useChatList() {
       setChats(enriched);
     } catch(e) {
       console.warn("[useChatList]", e.message);
+      reportRuntimeError({
+        flow: "chat",
+        step: "load-list",
+        entity: "chats",
+        error: e,
+        message: e.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -160,7 +170,18 @@ export function useChatList() {
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "chats",
       }, () => load())
-      .subscribe();
+      .subscribe((status, error) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          reportRealtimeFailure({
+            flow: "chat",
+            step: "list-subscribe",
+            entity: "chats",
+            channel: `chat-list:${user.id}`,
+            error,
+            message: `Chatliste Realtime Status: ${status}`,
+          });
+        }
+      });
     return () => { supabase.removeChannel(realtimeRef.current); };
   }, [user?.id, load]);
 
@@ -198,7 +219,6 @@ export function useChatThread(chatId) {
   const [loading,  setLoading]  = useState(true);
   const [sending,  setSending]  = useState(false);
   const realtimeRef = useRef(null);
-  const optimisticIdRef = useRef(0);
 
   const load = useCallback(async () => {
     if (!chatId) {
@@ -225,7 +245,16 @@ export function useChatThread(chatId) {
         .order("created_at", { ascending: true })
         .limit(100);
       if (data) setMessages(data);
-    } catch(e) { console.warn("[useChatThread]", e.message); }
+    } catch(e) {
+      console.warn("[useChatThread]", e.message);
+      reportRuntimeError({
+        flow: "chat",
+        step: "load-thread",
+        entity: "messages",
+        error: e,
+        message: e.message,
+      });
+    }
     finally { setLoading(false); }
   }, [chatId]);
 
@@ -266,6 +295,16 @@ export function useChatThread(chatId) {
       })
       .subscribe((status, err) => {
         console.log("[HUI_REALTIME]", chatId, "subscription status:", status, err || "");
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          reportRealtimeFailure({
+            flow: "chat",
+            step: "thread-subscribe",
+            entity: "messages",
+            channel: `thread:${chatId}`,
+            error: err,
+            message: `Chat Realtime Status: ${status}`,
+          });
+        }
       });
     return () => { supabase.removeChannel(realtimeRef.current); };
   }, [chatId]);
@@ -277,22 +316,57 @@ export function useChatThread(chatId) {
     // ── GUARD ─────────────────────────────────────────────────
     if (!chatId) {
       console.error("[HUI_MESSAGE_ERROR] kein chatId — Message abgebrochen", { chatId, userId: user?.id });
+      reportActionFailure({
+        flow: "chat",
+        step: "send-validation",
+        entity: "chatId",
+        message: "Keine Chat-ID. Nachricht wurde nicht gesendet.",
+        details: { chatId, userId: user?.id },
+      });
       return { error: "no_chat_id" };
     }
     if (!user?.id) {
       console.error("[HUI_MESSAGE_ERROR] kein user.id — nicht eingeloggt?", { chatId });
+      reportActionFailure({
+        flow: "chat",
+        step: "auth",
+        entity: "messages",
+        message: "Nicht eingeloggt. Nachricht wurde nicht gesendet.",
+        details: { chatId },
+      });
       return { error: "not_authenticated" };
     }
     if (!text?.trim() && !mediaUrl) {
       console.warn("[HUI_MESSAGE_ERROR] leerer Text + kein mediaUrl — abgebrochen");
+      reportActionFailure({
+        category: "validation",
+        flow: "chat",
+        step: "message-validation",
+        entity: "messages",
+        message: "Leere Nachricht blockiert.",
+      });
       return { error: "empty_message" };
+    }
+
+    const validation = validateMessage({ text: text?.trim() || "", chatId, senderId: user.id });
+    if (!validation.valid) {
+      const message = validation.errors[0] || "Nachricht ist ungültig.";
+      reportActionFailure({
+        category: "validation",
+        flow: "chat",
+        step: "message-validation",
+        entity: "messages",
+        message,
+        details: { errors: validation.errors },
+      });
+      return { error: message };
     }
 
     // ── PAYLOAD LOG ────────────────────────────────────────────
     const payload = {
       chat_id:    chatId,
       sender_id:  user.id,
-      text:       text?.trim() || "",
+      text:       validation.data.text,
       msg_type:   msgType,
       media_url:  mediaUrl || null,
       media_type: mediaType || null,
@@ -303,11 +377,6 @@ export function useChatThread(chatId) {
     };
     console.log("[HUI_MESSAGE_SEND] Payload →", JSON.stringify(payload));
     setSending(true);
-
-    // ── OPTIMISTIC ─────────────────────────────────────────────
-    const tempId = `temp-${optimisticIdRef.current++}`;
-    const optimisticMsg = { id: tempId, ...payload, _optimistic: true };
-    setMessages(prev => [...prev, optimisticMsg]);
 
     try {
       console.log("[HUI_MESSAGE_INSERT] Supabase INSERT start…");
@@ -326,15 +395,23 @@ export function useChatThread(chatId) {
           hint:    error.hint,
           payload,
         });
-        setMessages(prev => prev.filter(m => m.id !== tempId));
+        reportInsertFailure({
+          category: "chat",
+          flow: "chat",
+          step: "message-insert",
+          entity: "messages",
+          error,
+          details: { chatId },
+        });
         return { error: error.message, code: error.code };
       }
 
       console.log("[HUI_REALITY] chat persisted ✓", insertedData?.id);
-      // Optimistic message mit echter ID ersetzen
-      setMessages(prev => prev.map(m =>
-        m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
-      ));
+      // Kein Fake-Send: erst nach bestätigtem Insert lokal anzeigen.
+      setMessages(prev => {
+        if (prev.find(m => m.id === insertedData?.id)) return prev;
+        return [...prev, { ...payload, id: insertedData?.id, _optimistic: false }];
+      });
 
       // Phase 4E: Notification an Gesprächspartner (non-blocking)
       if (insertedData?.id && chatId) {
@@ -366,7 +443,14 @@ export function useChatThread(chatId) {
 
     } catch(e) {
       console.error("[HUI_MESSAGE_ERROR] Exception:", e.message, e);
-      setMessages(prev => prev.filter(m => m.id !== tempId));
+      reportInsertFailure({
+        category: "chat",
+        flow: "chat",
+        step: "message-insert-exception",
+        entity: "messages",
+        error: e,
+        details: { chatId },
+      });
       return { error: e.message };
     } finally {
       setSending(false);
@@ -470,7 +554,17 @@ export async function findOrCreateChat({
   userId, otherUserId, chatType = "direct",
   bookingId = null, contextTitle = null, contextType = null,
 }) {
-  if (!userId || !otherUserId) return null;
+  if (!userId || !otherUserId) {
+    reportActionFailure({
+      category: "validation",
+      flow: "chat",
+      step: "find-or-create-validation",
+      entity: "chats",
+      message: "Chat kann ohne beide User-IDs nicht geöffnet werden.",
+      details: { userId, otherUserId },
+    });
+    return null;
+  }
 
   // Existing chat suchen — direkte Suche nach beiden Kombinationen
   // (participant_a=userId AND participant_b=otherUserId)
@@ -488,7 +582,13 @@ export async function findOrCreateChat({
 
   if (findError) {
     console.error("[HUI_CHAT] findOrCreateChat SELECT fehlgeschlagen:", findError.message, findError.code);
-    // Trotzdem weiterversuchen — neuen Chat erstellen
+    reportActionFailure({
+      flow: "chat",
+      step: "chat-select",
+      entity: "chats",
+      message: `Chat-Suche fehlgeschlagen: ${findError.message}`,
+      error: findError,
+    });
   }
 
   console.log("[HUI_CHAT] findOrCreateChat: gefundene Chats:", existing?.length ?? 0, existing?.map(c=>c.id));
@@ -528,6 +628,13 @@ export async function findOrCreateChat({
       message: createError.message,
       details: createError.details,
       hint:    createError.hint,
+    });
+    reportInsertFailure({
+      category: "chat",
+      flow: "chat",
+      step: "chat-insert",
+      entity: "chats",
+      error: createError,
     });
     return null; // explizit null statt undefined
   }

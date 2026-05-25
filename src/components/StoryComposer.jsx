@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { reportInsertFailure } from "../lib/runtimeDebug.js";
 
 const T = {
   teal:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
@@ -107,21 +108,34 @@ export default function StoryComposer({ onClose, onSuccess }) {
   }
 
   async function publish() {
-    if (!user) { setError("Nicht angemeldet. Bitte neu anmelden."); return; }
-    if (!supabase) { setError("Supabase nicht verbunden. VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY prüfen."); return; }
+    if (!user) {
+      const message = "Nicht angemeldet. Bitte neu anmelden.";
+      setError(message);
+      reportInsertFailure({ flow:"story-composer", step:"auth", entity:"stories", message });
+      return;
+    }
+    if (!supabase) {
+      const message = "Supabase nicht verbunden. VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY prüfen.";
+      setError(message);
+      reportInsertFailure({ flow:"story-composer", step:"supabase-client", entity:"stories", message });
+      return;
+    }
     setUploading(true); setError(null); setUploadPct(0);
+    let failedStep = "publish";
 
     try {
       let mediaUrl  = null;
 
       // Step 1: Upload media
       if (mediaFile) {
+        failedStep = "storage-upload";
         setUploadPct(20);
         mediaUrl = await uploadMedia(mediaFile);
         setUploadPct(70);
       }
 
       // Step 2: Insert story
+      failedStep = "insert";
       const expiresAt = saveHighlight ? null : new Date(Date.now() + 86400000).toISOString();
 
       // Map Composer fields → DB column names
@@ -173,7 +187,16 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
     } catch(e) {
       console.error("[StoryComposer] publish error:", e);
-      setError(friendlyError(e));
+      const message = friendlyError(e);
+      setError(message);
+      reportInsertFailure({
+        category: "publish",
+        flow: "story-composer",
+        step: failedStep,
+        entity: "stories",
+        error: e,
+        message,
+      });
     } finally {
       setUploading(false);
     }
