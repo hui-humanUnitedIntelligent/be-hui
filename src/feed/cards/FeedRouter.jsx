@@ -40,8 +40,36 @@ class CardErrorGuard extends React.Component {
   }
   render() {
     if (this.state.crashed) {
-      // Skip this card silently — log already emitted above
-      return null;
+      // Minimal fallback — nie null, Feed muss weiterlaufen
+      const item = this.props.item || {};
+      return (
+        <div style={{
+          margin:"4px 14px",
+          padding:"12px 14px",
+          borderRadius:16,
+          background:"rgba(249,247,244,0.85)",
+          border:"1px solid rgba(0,0,0,0.06)",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ fontSize:18 }}>🌿</div>
+            <div style={{ fontSize:13, color:"#666" }}>
+              {item.creator?.name || item.name || "Human"}
+              {item.time ? <span style={{ color:"#aaa", marginLeft:6, fontSize:11 }}>{item.time}</span> : null}
+            </div>
+          </div>
+          {item.caption && (
+            <div style={{ marginTop:8, fontSize:14, color:"#444", lineHeight:1.5 }}>
+              {item.caption}
+            </div>
+          )}
+          {(item.expImg || item.coverUrl) && (
+            <img src={item.expImg || item.coverUrl} alt=""
+              style={{ width:"100%", borderRadius:10, marginTop:8, display:"block" }}
+              onError={e => { e.target.style.display="none"; }}
+            />
+          )}
+        </div>
+      );
     }
     return this.props.children;
   }
@@ -157,7 +185,7 @@ export default function FeedRouter({ item, onProfile, onReaction, onBook, onDeta
         </div>
       )}
       <Suspense fallback={<CardSkeleton type={type} />}>
-        <CardErrorGuard id={item?.id} type={type}>
+        <CardErrorGuard id={item?.id} type={type} item={item}>
           {type === "experience" ? (
             <ExperienceCard {...sharedProps} onBook={onBook} />
           ) : type === "work" ? (

@@ -82,9 +82,7 @@ function useMomentCreator(item) {
 
 export default function MomentCard({ item, onProfile, onReaction, itemReactions = {} }) {
   if (!item || !item.id) return null;
-  try {
-    console.log("FEED_ITEM_RENDER", { id: item.id, type: item.type, creator: item?.creator?.name, hasImage: !!(item.images?.[0] || item.expImg || item._raw?.src), renderPath: "MomentCard" });
-  } catch(_) {}
+  console.log("FEED_ITEM_RENDER", { id: item.id, type: item.type, renderPath: "MomentCard" });
   const creator = useMomentCreator(item);
   const text    = item.caption || item.text || item.title || "";
   const image   = item.images?.[0] || item.expImg || item.coverUrl || item.media?.[0] || item.cover_url || item._raw?.src || null;

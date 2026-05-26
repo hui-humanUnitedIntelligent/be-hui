@@ -925,8 +925,47 @@ function EventCard({ event, onPress }) {
    Replaces mechanical sequence with humane curation.
    ═══════════════════════════════════════════════════════════════════════════ */
 function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare }) {
-  // Phase 4D: kein Mock wenn items[] und loading — echter Empty State bevorzugt
-  const rawItems = (items && items.length > 0) ? items : [];
+  // Phase 4H: Defensive input — deduplizieren, validieren, safe defaults
+  const rawItems = React.useMemo(() => {
+    const arr = Array.isArray(items) ? items : [];
+    // 1. Filter: nur Objekte mit id
+    const valid = arr.filter(i => i && typeof i === "object" && i.id);
+    // 2. Deduplizieren by id
+    const unique = Array.from(new Map(valid.map(i => [String(i.id), i])).values());
+    // 3. Safe defaults auf jedem item
+    return unique.map(item => ({
+      id:           String(item.id),
+      type:         item.type         || item.content_type || "moment",
+      content_type: item.content_type || item.type         || "moment",
+      title:        item.title        || item.caption?.slice(0,60) || "",
+      caption:      item.caption      || "",
+      description:  item.description  || item.caption || "",
+      images:       Array.isArray(item.images) ? item.images.filter(Boolean) : [],
+      expImg:       item.expImg       || item.coverUrl || null,
+      coverUrl:     item.coverUrl     || item.expImg   || null,
+      creator:      item.creator      || { id: item.user_id || "", name: "Human", displayName: "Human", avatar: null },
+      creator_id:   item.creator_id   || item.user_id  || "",
+      user_id:      item.user_id      || item.creator_id|| "",
+      name:         item.name         || item.creator?.name || "Human",
+      avatar:       item.avatar       || item.creator?.avatar || null,
+      rhythmState:  item.rhythmState  || "resonance",
+      presenceState:item.presenceState|| "reflecting",
+      resonanz:     item.resonanz     || 0,
+      time:         item.time         || "",
+      tags:         Array.isArray(item.tags) ? item.tags : [],
+      status:       item.status       || "",
+      isLive:       Boolean(item.isLive),
+      _raw:         item._raw         || item,
+      // keep all original fields too
+      ...item,
+    }));
+  }, [items]);
+  
+  console.log("[HUI_RHYTHMIC_FEED_INPUT]", {
+    propsItems: Array.isArray(items) ? items.length : 0,
+    rawItems: rawItems.length,
+    types: rawItems.slice(0,5).map(i => i.type).join(","),
+  });
   // Debug: Feed-Input für RhythmicFeed
   React.useEffect(() => {
     console.log("[HUI_FEED_RENDER]", {
@@ -1174,73 +1213,134 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       {/* ── Curated feed sequence ─────────────────────────────────── */}
       <div style={{ display:"flex", flexDirection:"column" }}>
         {(sequence || []).map((slot, si) => {
+          // ── SLOT GUARD ──────────────────────────────────────────────────
           if (!slot || typeof slot !== "object") return null;
 
+          // ── QUIET SPACE ─────────────────────────────────────────────────
           if (slot.kind === "quiet") {
+            try {
+              return (
+                <div key={`quiet-${si}`}
+                  className="hf-reveal"
+                  style={{ animationDelay:`${Math.min(si * 0.05 + 0.08, 1.2)}s` }}>
+                  <QuietSpace
+                    quoteIdx={slot.quoteIdx || 0}
+                    atmosphere={atmosphere}
+                    sharedAtmosphere={sharedAtmosphere}
+                    resonanceSpaces={resonanceSpaces}
+                  />
+                </div>
+              );
+            } catch (qErr) {
+              console.warn("[HUI_FEED] QuietSpace crash", qErr?.message);
+              return null;
+            }
+          }
+
+          if (slot.kind !== "card") return null;
+
+          // ── SAFE ITEM ───────────────────────────────────────────────────
+          const rawItem = slot.item;
+          if (!rawItem || !rawItem.id) return null;
+
+          // Defensive safe item — never crash on missing fields
+          const item = {
+            id:          String(rawItem.id),
+            type:        rawItem.type        || rawItem.content_type || "moment",
+            content_type:rawItem.content_type|| rawItem.type         || "moment",
+            title:       rawItem.title       || rawItem.caption?.slice(0,60) || "",
+            caption:     rawItem.caption     || rawItem.description  || "",
+            description: rawItem.description || rawItem.caption      || "",
+            images:      Array.isArray(rawItem.images) ? rawItem.images.filter(Boolean) : [],
+            expImg:      rawItem.expImg      || rawItem.coverUrl      || null,
+            coverUrl:    rawItem.coverUrl    || rawItem.expImg        || null,
+            creator:     rawItem.creator     || { id: rawItem.user_id || "", name: "Human", avatar: null, displayName: "Human" },
+            creator_id:  rawItem.creator_id  || rawItem.user_id       || "",
+            user_id:     rawItem.user_id     || rawItem.creator_id    || "",
+            name:        rawItem.name        || rawItem.creator?.name || "Human",
+            avatar:      rawItem.avatar      || rawItem.creator?.avatar || null,
+            rhythmState: rawItem.rhythmState || "resonance",
+            presenceState:rawItem.presenceState|| "reflecting",
+            resonanz:    rawItem.resonanz    || 0,
+            time:        rawItem.time        || "",
+            tags:        Array.isArray(rawItem.tags) ? rawItem.tags : [],
+            status:      rawItem.status      || "",
+            isLive:      Boolean(rawItem.isLive),
+            microMoment: rawItem.microMoment ?? null,
+            _cardDelay:  rawItem._cardDelay  ?? 1.0,
+            _raw:        rawItem._raw        || rawItem,
+            ...rawItem,  // merge original last (but safe fields above act as fallback)
+          };
+
+          // ── CARD RENDER — try/catch per item ────────────────────────────
+          try {
+            const state    = getRhythmState(item, slot.idx || 0);
+            const gapBefore = state === "hero" ? 18 : 12;
+            const padH      = state === "hero" ? 0  : state === "resonance" ? 16 : 14;
+
             return (
-              <div key={`quiet-${si}`}
+              <div key={item.id}
                 className="hf-reveal"
                 style={{
-                  animationDelay:`${Math.min(si * 0.05 + 0.08, 1.2)}s`,
+                  paddingTop:   gapBefore,
+                  paddingLeft:  padH,
+                  paddingRight: padH,
+                  animationDelay:`${slot._scaledDelay != null
+                    ? Math.min(slot._scaledDelay, 1.6)
+                    : Math.min(si * 0.055 * (item._cardDelay ?? 1.0), 1.4)}s`,
                 }}>
-                <QuietSpace
-                  quoteIdx={slot.quoteIdx || 0}
+                <RhythmCard
+                  item={item}
+                  state={state}
                   atmosphere={atmosphere}
                   sharedAtmosphere={sharedAtmosphere}
                   resonanceSpaces={resonanceSpaces}
+                  worldState={worldState}
+                  itemReactions={reactions[item.id] || {}}
+                  relationshipDepth={getRelationshipDepth(
+                    item.creator_id || item.user_id
+                  )}
+                  viewerId={authUser?.id || null}
+                  microMoment={item.microMoment ?? null}
+                  onProfile={() => {
+                    const cid = item.creator_id || item.user_id;
+                    if (cid) recordProfileVisit(cid);
+                    onProfile?.(item);
+                  }}
+                  onReaction={(type) => handleReaction(item.id, type)}
+                  onComment={() => onComment?.(item)}
                 />
               </div>
             );
-          }
-
-          if (slot.kind !== "card" || !slot.item || !slot.item.id) return null;
-
-          const { item } = slot;
-          try {
-            console.log("FEED_ITEM_RENDER", { id: item.id, type: item.type, slot: si });
-          } catch(_) {}
-          const state = getRhythmState(item, slot.idx || 0);
-
-          // Variable gap + padding by rhythm state
-          const gapBefore = state === "hero" ? 18 : 12;
-          const padH      = state === "hero" ? 0  : state === "resonance" ? 16 : 14;
-
-          return (
-            <div key={item.id || si}
-              className="hf-reveal"
-              style={{
-                paddingTop:    gapBefore,
-                paddingLeft:   padH,
-                paddingRight:  padH,
-                // _cardDelay: familiar creators appear slightly sooner (0.72–1.0 multiplier)
-                // _scaledDelay: already multiplied by stagger + relationship _cardDelay
-                animationDelay:`${slot._scaledDelay != null
-                  ? Math.min(slot._scaledDelay, 1.6)
-                  : Math.min(si * 0.055 * (item._cardDelay ?? 1.0), 1.4)}s`,
-              }}>
-              <RhythmCard
-                item={item}
-                state={state}
-                atmosphere={atmosphere}
-                sharedAtmosphere={sharedAtmosphere}
-                resonanceSpaces={resonanceSpaces}
-                worldState={worldState}
-                itemReactions={reactions[item.id] || {}}
-                relationshipDepth={getRelationshipDepth(
-                  item?.creator_id || item?.user_id || item?.creatorId
+          } catch (cardErr) {
+            console.error("[HOMEFEED_CRASH] card render failed", {
+              itemId:  rawItem.id,
+              type:    rawItem.type,
+              slot:    si,
+              error:   cardErr?.message,
+              stack:   cardErr?.stack?.split("\n").slice(0,4).join("\n"),
+            });
+            // Fallback: minimal card statt crash
+            return (
+              <div key={rawItem.id || `fallback-${si}`}
+                style={{
+                  margin:"8px 16px",
+                  padding:"12px 16px",
+                  borderRadius:16,
+                  background:"rgba(249,247,244,0.8)",
+                  border:"1px solid rgba(0,0,0,0.06)",
+                }}>
+                <div style={{ fontSize:12, color:"#999", fontFamily:"monospace" }}>
+                  ⚠ Render error — {rawItem.type || "item"} #{String(rawItem.id).slice(0,8)}
+                </div>
+                {rawItem.caption && (
+                  <div style={{ marginTop:6, fontSize:14, color:"#555" }}>
+                    {rawItem.caption}
+                  </div>
                 )}
-                viewerId={authUser?.id || null}
-                microMoment={item.microMoment ?? null}
-                onProfile={() => {
-                  const cid = item?.creator_id || item?.user_id || item?.creatorId;
-                  if (cid) recordProfileVisit(cid);
-                  onProfile?.(item);
-                }}
-                onReaction={(type) => handleReaction(item.id, type)}
-                onComment={() => onComment?.(item)}
-              />
-            </div>
-          );
+              </div>
+            );
+          }
         })}
       </div>
 
@@ -1295,17 +1395,16 @@ function RhythmCard({
 
   return (
     <div ref={combinedRef} style={{ position:"relative", ...entryStyle }}>
-      {/* Resonance glow (user-triggered) */}
+      {/* Resonance glow */}
       {isResonated && (
         <div style={{
           position:"absolute", inset:-16, zIndex:0,
           background:"radial-gradient(ellipse at 50% 60%, rgba(22,215,197,0.08) 0%, transparent 70%)",
           borderRadius:36, pointerEvents:"none",
           transition:"opacity 0.7s ease",
-          /* Phase 22: Glow-Breathe entfernt — kein Motion-Noise auf Cards */
         }}/>
       )}
-      {/* Phase 16: relationship warmth — atmospheric familiarity glow */}
+      {/* Familiarity glow */}
       {mt.isFamiliar && (
         <div style={{
           position:"absolute", inset:-8, zIndex:0,
@@ -1317,7 +1416,7 @@ function RhythmCard({
       <div style={{ position:"relative", zIndex:1 }}>
         {/* Phase 4C: FeedRouter — content_type bestimmt Card-DNA */}
         {safeItem && safeItem.id && (
-          <FeedRouter
+          <RhythmCardInner
             item={safeItem}
             onProfile={onProfile}
             onReaction={onReaction}
@@ -1327,6 +1426,63 @@ function RhythmCard({
       </div>
     </div>
   );
+}
+
+// ── RhythmCardInner — FeedRouter mit try/catch isoliert ─────────────────────
+function RhythmCardInner({ item, onProfile, onReaction, itemReactions }) {
+  try {
+    return (
+      <FeedRouter
+        item={item}
+        onProfile={onProfile}
+        onReaction={onReaction}
+        itemReactions={itemReactions || {}}
+      />
+    );
+  } catch (err) {
+    console.error("[HOMEFEED_CRASH] FeedRouter crash", {
+      itemId: item?.id,
+      type:   item?.type,
+      error:  err?.message,
+      stack:  err?.stack?.split("\n").slice(0,4).join("\n"),
+    });
+    // Minimal fallback card
+    return (
+      <div style={{
+        margin:"4px 0",
+        padding:"14px 16px",
+        borderRadius:18,
+        background:"rgba(249,247,244,0.9)",
+        border:"1px solid rgba(0,0,0,0.07)",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+          <div style={{
+            width:36, height:36, borderRadius:"50%",
+            background:"linear-gradient(135deg,#16D7C525,#FF8A6B25)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:16,
+          }}>🌿</div>
+          <div>
+            <div style={{ fontSize:13, fontWeight:600, color:"#333" }}>
+              {item?.creator?.name || item?.name || "Human"}
+            </div>
+            <div style={{ fontSize:11, color:"#999" }}>{item?.time || ""}</div>
+          </div>
+        </div>
+        {item?.caption && (
+          <div style={{ fontSize:14, color:"#555", lineHeight:1.5 }}>
+            {item.caption}
+          </div>
+        )}
+        {item?.expImg && (
+          <img src={item.expImg} alt=""
+            style={{ width:"100%", borderRadius:12, marginTop:10, display:"block" }}
+            onError={e => { e.target.style.display="none"; }}
+          />
+        )}
+      </div>
+    );
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
