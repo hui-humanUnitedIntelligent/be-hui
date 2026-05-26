@@ -1035,8 +1035,8 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
         paddingLeft:16, paddingRight:16, marginBottom:16,
       }}>
         <div>
-          <span className="hf-section-label">{atmosphere.feedLabel}</span>
-          {atmosphere.feedTagline && (
+          <span className="hf-section-label">{atmosphere?.feedLabel ?? "Feed"}</span>
+          {atmosphere?.feedTagline && (
             <div style={{
               fontSize:11, color:T.muted, marginTop:2,
               fontStyle:"italic", letterSpacing:-0.05,
@@ -1057,9 +1057,9 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
             background: worldState?.temperature?.id === "night_still"
               ? "#6B8AC4"
               : worldState?.temperature?.id === "warm_creative"
-              ? HUI.COLOR.gold
+              ? (HUI?.COLOR?.gold ?? "#F5A623")
               : worldState?.temperature?.id === "human_warm"
-              ? HUI.COLOR.coral
+              ? (HUI?.COLOR?.coral ?? "#FF8A6B")
               : "#4ADE80",
             display:"inline-block",
             // World breath: dot pulses in sync with world rhythm
@@ -1097,9 +1097,12 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
             );
           }
 
-          if (slot.kind !== "card" || !slot.item) return null;
+          if (slot.kind !== "card" || !slot.item || !slot.item.id) return null;
 
           const { item } = slot;
+          try {
+            console.log("FEED_ITEM_RENDER", { id: item.id, type: item.type, slot: si });
+          } catch(_) {}
           const state = getRhythmState(item, slot.idx || 0);
 
           // Variable gap + padding by rhythm state
@@ -1217,12 +1220,14 @@ function RhythmCard({
       )}
       <div style={{ position:"relative", zIndex:1 }}>
         {/* Phase 4C: FeedRouter — content_type bestimmt Card-DNA */}
-        <FeedRouter
-          item={item}
-          onProfile={onProfile}
-          onReaction={onReaction}
-          itemReactions={itemReactions}
-        />
+        {safeItem && safeItem.id && (
+          <FeedRouter
+            item={safeItem}
+            onProfile={onProfile}
+            onReaction={onReaction}
+            itemReactions={itemReactions}
+          />
+        )}
       </div>
     </div>
   );

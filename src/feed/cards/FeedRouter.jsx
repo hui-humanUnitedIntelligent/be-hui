@@ -25,6 +25,30 @@ const ExperienceCard = lazy(() => import("./ExperienceCard.jsx"));
 const WorkCard       = lazy(() => import("./WorkCard.jsx"));
 const InvitationCard = lazy(() => import("../../content/invitation/InvitationCard.jsx"));
 
+/* ── Per-Card Error Guard ──────────────────────────────────────────── */
+class CardErrorGuard extends React.Component {
+  constructor(props) { super(props); this.state = { crashed: false }; }
+  static getDerivedStateFromError() { return { crashed: true }; }
+  componentDidCatch(error, info) {
+    console.error("FEED_CARD_CRASH", {
+      id:   this.props.id,
+      type: this.props.type,
+      msg:  error?.message,
+      stack:     error?.stack?.split("\n").slice(0,6).join("\n"),
+      component: info?.componentStack?.split("\n").slice(0,8).join("\n"),
+    });
+  }
+  render() {
+    if (this.state.crashed) {
+      // Skip this card silently — log already emitted above
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
+
+
 /* ── Type Resolver ────────────────────────────────────────────── */
 function resolveType(item) {
   // Explizit gesetztes content_type hat Vorrang
@@ -84,7 +108,16 @@ function CardSkeleton({ type }) {
 
 /* ── Main Router ─────────────────────────────────────────────── */
 export default function FeedRouter({ item, onProfile, onReaction, onBook, onDetail, itemReactions = {} }) {
-  if (!item) return null;
+  if (!item || !item.id) return null;
+
+  try {
+    console.log("FEED_ITEM_RENDER", {
+      id: item.id, type: item.type ?? item.content_type,
+      creator: item?.creator?.name ?? item?.creator?.displayName ?? item?.name,
+      hasImage: !!(item.images?.[0] ?? item.expImg ?? item.coverUrl ?? item._raw?.src),
+      rhythmState: item.rhythmState,
+    });
+  } catch(_) {}
 
   // Phase 4D: Ghost-Items sind unsichtbare Atemräume — nur Spacing, kein Inhalt
   if (item._isGhost) {
@@ -124,15 +157,17 @@ export default function FeedRouter({ item, onProfile, onReaction, onBook, onDeta
         </div>
       )}
       <Suspense fallback={<CardSkeleton type={type} />}>
-        {type === "experience" ? (
-          <ExperienceCard {...sharedProps} onBook={onBook} />
-        ) : type === "work" ? (
-          <WorkCard {...sharedProps} onDetail={onDetail} />
-        ) : type === "invitation" ? (
-          <InvitationCard {...sharedProps} />
-        ) : (
-          <MomentCard {...sharedProps} />
-        )}
+        <CardErrorGuard id={item?.id} type={type}>
+          {type === "experience" ? (
+            <ExperienceCard {...sharedProps} onBook={onBook} />
+          ) : type === "work" ? (
+            <WorkCard {...sharedProps} onDetail={onDetail} />
+          ) : type === "invitation" ? (
+            <InvitationCard {...sharedProps} />
+          ) : (
+            <MomentCard {...sharedProps} />
+          )}
+        </CardErrorGuard>
       </Suspense>
     </div>
   );

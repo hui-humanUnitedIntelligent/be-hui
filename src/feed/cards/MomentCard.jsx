@@ -63,18 +63,28 @@ const CSS = `
   }
 `;
 
+const EMPTY_CREATOR = Object.freeze({
+  id: "", displayName: "Creative Human", avatar: null, talent: "", username: "",
+  location: "", verified: false, stats: {}, memberType: "basis",
+});
+
 function useMomentCreator(item) {
-  return useMemo(() => createProfileItem({
-    id:           item?.creatorId || item?.userId || item?.id,
-    display_name: item?.name || item?.creator?.name || item?.profile?.name,
-    avatar_url:   item?.avatar || item?.creator?.avatar || item?.profile?.avatar_url,
-    talent:       item?.talent || item?.category,
-  }), [item?.id, item?.creatorId, item?.name, item?.avatar]);
+  return useMemo(() => {
+    const profile = createProfileItem({
+      id:           item?.creatorId || item?.userId || item?.creator?.id || item?.id,
+      display_name: item?.name || item?.creator?.name || item?.creator?.displayName || item?.profile?.name,
+      avatar_url:   item?.avatar || item?.creator?.avatar || item?.profile?.avatar_url,
+      talent:       item?.talent || item?.creator?.talent || item?.category,
+    });
+    return profile ?? EMPTY_CREATOR;
+  }, [item?.id, item?.creatorId, item?.name, item?.avatar, item?.creator?.id]);
 }
 
 export default function MomentCard({ item, onProfile, onReaction, itemReactions = {} }) {
-  if (!item) return null;
-  console.log("[HUI_RENDER_ITEM]", { id: item.id, type: item.type, src: item.images?.[0] || item.expImg || item._raw?.src, renderPath: "MomentCard" });
+  if (!item || !item.id) return null;
+  try {
+    console.log("FEED_ITEM_RENDER", { id: item.id, type: item.type, creator: item?.creator?.name, hasImage: !!(item.images?.[0] || item.expImg || item._raw?.src), renderPath: "MomentCard" });
+  } catch(_) {}
   const creator = useMomentCreator(item);
   const text    = item.caption || item.text || item.title || "";
   const image   = item.images?.[0] || item.expImg || item.coverUrl || item.media?.[0] || item.cover_url || item._raw?.src || null;
@@ -106,19 +116,19 @@ export default function MomentCard({ item, onProfile, onReaction, itemReactions 
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:13, fontWeight:700, color:M.teal,
             }}>
-              {creator.avatar
+              {creator?.avatar
                 ? <img src={creator.avatar} alt=""
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                : (creator.displayName || "?")[0]?.toUpperCase()
+                : ((creator?.displayName || "?")[0] ?? "?").toUpperCase()
               }
             </div>
           </button>
 
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:12.5, fontWeight:700, color:M.ink, letterSpacing:-0.2 }}>
-              {creator.displayName}
+              {creator?.displayName ?? "Creative Human"}
             </div>
-            {creator.talent && (
+            {creator?.talent && (
               <div style={{ fontSize:11, color:M.ink3, letterSpacing:-0.05 }}>
                 {creator.talent}
               </div>

@@ -26,8 +26,11 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     this.setState({ errorInfo });
-    // Log to console (replace with Sentry/LogRocket in production)
-    console.error('[HUI ErrorBoundary]', error, errorInfo);
+    console.error('HOMEFEED_CRASH ══════════════════════════════════');
+    console.error('Error:', error?.message || String(error));
+    console.error('Stack:', error?.stack?.split('\n').slice(0,8).join('\n'));
+    console.error('ComponentStack:', errorInfo?.componentStack?.split('\n').slice(0,10).join('\n'));
+    console.error('═══════════════════════════════════════════════');
   }
 
   reset() {
