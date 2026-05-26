@@ -515,49 +515,16 @@ export default function HomeFeed({
     return () => { mounted = false; };
   }, []);
 
-  return (
-    <>
-      {/* ── roter Banner — beweist HomeFeed ist aktiv ─────────────────── */}
-      <div
-        style={{
-          position: "fixed",
-          top: 120,
-          left: 20,
-          right: 20,
-          zIndex: 999999,
-          background: "red",
-          color: "white",
-          padding: 20,
-          fontSize: 24,
-          fontWeight: "bold",
-        }}
-      >
-        RAW DEBUG PANEL AKTIV
-      </div>
+  // DEBUG: Log raw beitraege to console only (no early return)
+  React.useEffect(() => {
+    if (rawBeitraege?.length > 0) {
+      console.log("[HUI_RAW_BEITRAEGE_DEBUG]", rawBeitraege.length, "rows:", rawBeitraege.map(r => ({
+        id: r.id, type: r.type, src: !!r.src, caption: r.caption?.slice?.(0,30),
+      })));
+    }
+  }, [rawBeitraege]);
 
-      {/* ── RAW beitraege — keine Transforms, kein normalizer ──────────── */}
-      <div
-        style={{
-          background: "#000",
-          color: "#00ff88",
-          padding: 12,
-          fontSize: 12,
-          whiteSpace: "pre-wrap",
-          overflowX: "auto",
-          border: "2px solid #00ff88",
-          marginTop: 220,
-          marginBottom: 20,
-        }}
-      >
-        <div>RAW LOADING: {String(rawLoading)}</div>
-        <div>RAW ERROR: {rawError ? JSON.stringify(rawError, null, 2) : "none"}</div>
-        <div>RAW COUNT: {rawBeitraege?.length || 0}</div>
-        <pre>{JSON.stringify(rawBeitraege, null, 2)}</pre>
-      </div>
-    </>
-  );
-
-  // eslint-disable-next-line no-unreachable
+  // (no early return — feed continues below)
   const actions = useHuiActions();
 
   const handleProfile = React.useCallback((item) => {
