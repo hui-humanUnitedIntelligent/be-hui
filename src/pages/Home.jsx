@@ -401,7 +401,8 @@ function HomeInner() {
               role:      authProfile?.role,
               isMember,
             });
-            openSurface("membership");
+            // CLEAN OPEN: no openSurface("membership") — that conflicts with surface manager
+            // Just show the modal directly; it uses fixed zIndex:9800 independently
             setShowMembership(true);
             return;
           }
@@ -664,16 +665,16 @@ function HomeInner() {
           <SafeRender flag="membership" label="HuiMembershipFlow">
             <HuiMembershipFlow
               onClose={() => {
-                closeSurface("membership", "user-close");  // Phase 16.2
-                cleanupOrbEnvironment({ reason: "membership-close" });
+                try { cleanupOrbEnvironment({ reason: "membership-close" }); } catch {}
                 setShowMembership(false);
               }}
               onComplete={() => {
-                // Phase 15.2: cleanup → close Orb world → close modal
-                closeSurface("membership", "complete");  // Phase 16.2
-                cleanupOrbEnvironment({ reason: "membership-complete" });
-                closeOrbWorld("membership-complete");
+                // Membership complete: cleanup + close modal
+                // Note: no closeSurface() — membership was opened without openSurface()
+                try { cleanupOrbEnvironment({ reason: "membership-complete" }); } catch {}
                 setShowMembership(false);
+                // isTalent will flip live via useMemo (authProfile.is_member→true)
+                // → BottomNav orb will automatically show CreatorOrb on next tap
               }}
             />
           </SafeRender>

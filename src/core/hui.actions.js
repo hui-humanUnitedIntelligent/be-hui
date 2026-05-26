@@ -140,8 +140,11 @@ export function buildActions(shell) {
     setShowChat,
     setChatRecipient,
     chatRecipient,
+    // Role
+    isTalent,
     // Overlays
     setShowPlusSheet,
+    setShowMembership,
     setShowCreateFlow,
     setShowConnect,
     setShowNotifs,
@@ -329,6 +332,12 @@ export function buildActions(shell) {
     // ── ORB / OVERLAYS ────────────────────────────────────────────
     [A.OPEN_ORB]: (payload = {}) => {
       logAction(A.OPEN_ORB, payload);
+      // ROLE GATE: BasisUser → membership flow, never PlusSheet
+      if (!isTalent) {
+        console.log("[HUI ACTION OPEN_ORB] BasisUser → membership flow");
+        setShowMembership?.(true);
+        return;
+      }
       setShowPlusSheet?.(true);
       openOrbWorld?.(payload?.world ?? null);
     },

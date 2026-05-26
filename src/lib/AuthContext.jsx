@@ -325,7 +325,7 @@ export function AuthProvider({ children }) {
           .update({
             is_member:       true,
             membership_type: "member",   // ← SINGLE SOURCE OF TRUTH
-            role:            "member",
+            role:            "talent",   // talent role = full creator access
             member_since:    new Date().toISOString(),
             updated_at:      new Date().toISOString(),
           })

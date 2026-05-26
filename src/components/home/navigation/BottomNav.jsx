@@ -129,8 +129,17 @@ export default function BottomNav({
                   key="orb"
                   className="bn-orb-btn"
                   onClick={() => {
+                    // ROLE GATE: BasisUser → membership flow only
+                    // hasTalent = isTalent from Home.jsx (is_member || role==="talent")
+                    if (!hasTalent) {
+                      // Skip OPEN_ORB action (would set showPlusSheet → dead state)
+                      // Go directly to membership flow handler
+                      onOrbAction?.("create");
+                      return;
+                    }
+                    // Talent/Member: full creator orb flow
                     actions[A.OPEN_ORB]?.();
-                    onOrbAction?.("create"); // backward compat
+                    onOrbAction?.("create");
                   }}
                   style={{
                     width: 52, height: 52,
