@@ -669,6 +669,35 @@ export default function HomeFeed({
     <div className="hf-root" style={{ paddingBottom:80, width:"100%" }}>
       <style>{CSS}</style>
 
+      {/* ═══ FEED STATUS BANNER — immer sichtbar ══ */}
+      <div style={{
+        margin: "0 12px 8px",
+        padding: "8px 12px",
+        borderRadius: 10,
+        background: liveItems.length > 0
+          ? "rgba(13,196,181,0.10)"
+          : streamLoading
+          ? "rgba(99,102,241,0.10)"
+          : "rgba(255,138,107,0.12)",
+        border: liveItems.length > 0
+          ? "1px solid rgba(13,196,181,0.25)"
+          : streamLoading
+          ? "1px solid rgba(99,102,241,0.25)"
+          : "1px solid rgba(255,138,107,0.30)",
+        fontSize: 11,
+        fontFamily: "monospace",
+        color: "#555",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}>
+        <div style={{ fontWeight: 700, color: liveItems.length > 0 ? "#16D7C5" : streamLoading ? "#818cf8" : "#FF8A6B" }}>
+          {liveItems.length > 0 ? "✅ FEED OK" : streamLoading ? "⏳ LOADING…" : "❌ FEED LEER"}
+        </div>
+        <div>liveItems: {liveItems.length} | streamItems: {streamItems.length} | loading: {String(streamLoading)} | error: {streamError || "–"}</div>
+        <div>user: {typeof window !== "undefined" && window.__HUI_WORLD_STATE__?.userId ? window.__HUI_WORLD_STATE__.userId.slice(0,8)+"…" : "anon"}</div>
+      </div>
+
       {/* ═══ SECTION CRASH ISOLATION ══ */}
       <SectionGuard id="RawDebug">
         <RawBeitraegeDebugPanel />
@@ -1906,6 +1935,10 @@ function RawBeitraegeDebugPanel() {
     setOpen(true);
     fetchAll();
   }, [fetchAll]);
+
+  /* ── Render ─────────────────────────────────────────────────────────── */
+  // AUTO-FETCH beim Mount — kein Tap nötig
+  React.useEffect(() => { fetchAll(); }, [fetchAll]);
 
   /* ── Render ─────────────────────────────────────────────────────────── */
   return (
