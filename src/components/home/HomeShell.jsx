@@ -225,6 +225,10 @@ export default function HomeShell({ children }) {
       followers_count:   authProfile?.followers_count   || null,
       connections_count: authProfile?.connections_count || null,
       _isOwnerView:   true,
+      // Phase 4B — ensure all profile completion fields are passed
+      interests:      authProfile?.interests       || [],
+      profile_complete: authProfile?.profile_complete || authProfile?.profileComplete || false,
+      dna_tags:       authProfile?.dna_tags        || authProfile?.interests || [],
     };
     setShowWirker(profileData);
   }, [authProfile, user?.id, setShowWirker]);

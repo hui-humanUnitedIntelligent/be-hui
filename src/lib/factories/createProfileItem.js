@@ -85,7 +85,8 @@ export const createProfileItem = (raw = {}) => {
     // Membership
     memberType:  normalizeMemberType(raw),
     isVerified:  safeBool(raw.isVerified || raw.is_verified || raw.is_wirker || raw.has_talent_profile),
-    isAvailable: safeBool(raw.isAvailable ?? raw.is_available ?? true),
+    isAvailable:     safeBool(raw.isAvailable ?? raw.is_available ?? true),
+    profileComplete: safeBool(raw.profileComplete || raw.profile_complete),
     isLive:      safeBool(raw.isLive || raw.is_live),
 
     // Arrays

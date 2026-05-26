@@ -138,14 +138,14 @@ function VisitorHero({ profile, onClose, onBook, onChat }) {
 
   const heroImg  = safeStr(profile?.header_img, HERO_IMG_FB);
   const avatar   = safeStr(profile?.img || profile?.avatar_url, AVATAR_FB);
-  const name     = safeStr(profile?.display_name || profile?.name, "lars.platin.");
-  const phil     = safeStr(profile?.bio, "Ich forme Raeume und Momente, die uns zurueck zu uns selbst bringen.");
+  const name     = safeStr(profile?.display_name || profile?.name || profile?.username);
+  const phil     = safeStr(profile?.bio);
   const tags     = safeArr(profile?.dna_tags || profile?.interests).length
-    ? safeArr(profile?.dna_tags || profile?.interests).slice(0,5).map(t => ({ icon:"✦", label: t }))
+    ? safeArr(profile?.interests || profile?.dna_tags).slice(0,5).map(t => ({ icon:"✦", label: typeof t === "string" ? t : t?.label || t }))
     : DEFAULT_TAGS;
   const verified = !!profile?.verified;
   const liveCount = 31;
-  const currentWork = safeStr(profile?.current_work, "Fragments of Light");
+  const currentWork = safeStr(profile?.current_work);
 
   return (
     <div style={{
@@ -292,15 +292,28 @@ function VisitorHero({ profile, onClose, onBook, onChat }) {
               </div>
             </div>
 
-            <p style={{
-              fontSize:12.5,color:"rgba(255,255,255,.62)",
-              margin:"0 0 12px",lineHeight:1.5,
-              fontStyle:"italic",maxWidth:280,
-            }}>{phil}</p>
+            {phil ? (
+              <p style={{
+                fontSize:12.5,color:"rgba(255,255,255,.62)",
+                margin:"0 0 12px",lineHeight:1.5,
+                fontStyle:"italic",maxWidth:280,
+              }}>{phil}</p>
+            ) : (
+              <p style={{
+                fontSize:12,color:"rgba(255,255,255,.30)",
+                margin:"0 0 12px",lineHeight:1.5,
+                fontStyle:"italic",maxWidth:280,
+              }}>Bio noch nicht hinzugefügt…</p>
+            )}
 
             {/* Tags */}
             <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
-              {tags.map((t,i)=>(
+              {tags.length === 0 ? (
+                <span style={{
+                  fontSize:10,color:"rgba(255,255,255,.28)",
+                  fontStyle:"italic",
+                }}>Noch keine Interessen</span>
+              ) : tags.map((t,i)=>(
                 <span key={i} style={{
                   background:"rgba(255,255,255,.09)",border:"1px solid rgba(255,255,255,.17)",
                   backdropFilter:"blur(6px)",borderRadius:99,
@@ -602,14 +615,14 @@ function Sparkline({ vals = [], color = C.teal }) {
 function AboutSection({ profile }) {
   const aboutActions = useHuiActions();
   const { ref, style } = useEntry(40);
-  const name      = safeStr(profile?.display_name || profile?.name, "lars.platin");
-  const bio       = safeStr(profile?.bio, "Ich glaube an die Kraft echter Räume. Räume, in denen wir kreativ sein dürfen. Uns zeigen dürfen. Wachsen dürfen. Gemeinsam.");
+  const name      = safeStr(profile?.display_name || profile?.name || profile?.username);
+  const bio       = safeStr(profile?.bio);
   const impact    = safeNum(profile?.impact_eur, 8950);
   const projects  = safeNum(profile?.bookings, 24);
   const humans    = safeNum(profile?.followers, 189);
   const rating    = safeNum(profile?.resonance_rating, 4.8);
   const spark     = [300,520,440,810,700,980,760,1200,940,1350,1100,impact];
-  const vidImg    = safeStr(profile?.header_img, "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80");
+  const vidImg    = safeStr(profile?.header_img);
 
   return (
     <div ref={ref} style={{
@@ -928,13 +941,34 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
 
   // Phase 3: echte Profil-Daten + Experiences aus Supabase
   const { profile: liveProfile, exps: liveExps, works: liveWorks } = useWirkerProfile(rawWirker);
+  const { profile: authProfile } = useAuth();
 
-  // Merge: liveProfile wenn geladen, sonst rawWirker als Fallback
-  const profile = liveProfile?._raw || liveProfile || safe?._raw || rawWirker || {};
+  // Phase 4B: SINGLE SOURCE OF TRUTH
+  // For owner view: always use freshest authProfile data (updated after ProfileCompletionFlow)
+  // For visitor view: use liveProfile from DB
+  const isOwnerView = rawWirker?._isOwnerView === true;
+  const profile = isOwnerView
+    ? {
+        // Start with liveProfile (full DB data), overlay with freshest authProfile
+        ...(liveProfile?._raw || liveProfile || {}),
+        ...(authProfile || {}),
+        // Ensure critical fields from liveProfile aren't lost
+        id:           authProfile?.id           || liveProfile?.id,
+        display_name: authProfile?.display_name || liveProfile?.displayName,
+        username:     authProfile?.username      || liveProfile?.username,
+        bio:          authProfile?.bio           || liveProfile?.bio,
+        avatar_url:   authProfile?.avatar_url   || liveProfile?.avatar,
+        header_img:   authProfile?.header_img   || liveProfile?.banner,
+        interests:    authProfile?.interests    || liveProfile?.interests || [],
+        dna_tags:     authProfile?.dna_tags     || authProfile?.interests || liveProfile?.interests || [],
+        location:     authProfile?.location     || liveProfile?.location,
+        profile_complete: authProfile?.profile_complete ?? liveProfile?.profileComplete ?? false,
+      }
+    : (liveProfile?._raw || liveProfile || safe?._raw || rawWirker || {});
   // Experiences: echte Supabase-Daten bevorzugt, SEED als Fallback (im Component)
   const experiences = liveExps?.length > 0 ? liveExps : null;
 
-  const name = safeStr(profile?.display_name || profile?.name, "Creator");
+  const name = safeStr(profile?.display_name || profile?.name || profile?.username);
 
   const handleClose = useCallback(() => { onClose?.(); }, [onClose]);
 

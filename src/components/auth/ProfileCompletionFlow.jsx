@@ -148,12 +148,14 @@ export default function ProfileCompletionFlow({ onComplete }) {
       const { error: e } = await supabase.from("profiles")
         .update({ ...data, updated_at:new Date().toISOString() }).eq("id", user.id);
       if (e) throw e;
+      // Refresh AuthContext immediately — profile data visible everywhere
+      try { await refreshProfile(); } catch {}
       setSaving(false); return true;
     } catch {
       setError("Speichern fehlgeschlagen — bitte erneut versuchen");
       setSaving(false); return false;
     }
-  }, [user?.id]);
+  }, [user?.id, refreshProfile]);
 
   async function nextStep() {
     if (saving) return;

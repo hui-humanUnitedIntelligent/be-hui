@@ -252,6 +252,8 @@ export const PROFILE_FIELDS =
   'is_wirker,has_talent_profile,focus_type,' +
   'location,is_available,created_at,' +
   'dna_tags,role,membership_type,' +
+  // Phase 4B additions — profile completion & interests
+  'interests,profile_complete,' +
   // Optionale Felder — kein Fehler wenn nicht in DB (Supabase ignoriert unknown gracefully)
   'talent,location_label,website,hourly_rate,is_member,member_since,trust_score,is_moderator,is_impact_team,is_guardian,' +
   'categories,mood_tags,languages,instagram,tiktok,linkedin';
