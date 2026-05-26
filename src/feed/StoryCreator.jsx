@@ -1,690 +1,357 @@
-// src/feed/StoryCreator.jsx
+// src/feed/StoryCreator.jsx — Phase 3B Polish
 // ═══════════════════════════════════════════════════════════════
-// HUI — STORY CREATOR (Phase 3 — Stable UI)
-//
-// FIXES:
-//   - No capture="environment" (Safari/iPad compat)
-//   - No opacity:0 animation that can freeze → content always visible
-//   - Explicit height on root (100dvh fallback) so flex:1 works
-//   - No overflow:hidden on root
-//   - Step 1 always renders — never a black screen
-//   - Separate "Galerie" and "Kamera" buttons (iOS best practice)
-//
-// Saves ONLY to: stories table
-// NEVER touches: beitraege, feed, FeedRouter
+// Bulletproof fullscreen story composer.
+// NEVER shows black screen — Step "pick" always visible.
+// Uses window.innerHeight (px) not height:"100%" (iPad Safari fix).
 // ═══════════════════════════════════════════════════════════════
-
 import React, { useState, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 
-/* ── Tokens ──────────────────────────────────────────────────── */
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
-const C = {
-  bg:     "#0D0D1A",
-  panel:  "rgba(255,255,255,0.07)",
-  border: "rgba(255,255,255,0.13)",
-  white:  "#FFFFFF",
-  dim:    "rgba(255,255,255,0.45)",
-  dimmer: "rgba(255,255,255,0.25)",
-};
+const BG    = "#0D0D1A";
+const PANEL = "rgba(255,255,255,0.07)";
+const BORD  = "rgba(255,255,255,0.13)";
+const DIM   = "rgba(255,255,255,0.45)";
 
-/* ══════════════════════════════════════════════════════════════
-   MAIN COMPONENT
-══════════════════════════════════════════════════════════════ */
+const MOODS = ["✨","🌿","🔥","💙","🌙","☀️","🎵","💡","🤝","🌍"];
+
 export default function StoryCreator({ onClose, onPublished }) {
   const { user } = useAuth();
 
-  // step: "pick" | "text" | "preview"
-  const [step,         setStep]       = useState("pick");
-  const [mediaFile,    setMediaFile]  = useState(null);
-  const [mediaPreview, setMediaPrev]  = useState(null);
-  const [mediaType,    setMediaType]  = useState("image");
-  const [caption,      setCaption]    = useState("");
-  const [publishing,   setPublishing] = useState(false);
-  const [error,        setError]      = useState(null);
+  const [step,      setStep]    = useState("pick"); // "pick" | "compose" | "preview"
+  const [file,      setFile]    = useState(null);
+  const [preview,   setPreview] = useState(null);
+  const [mtype,     setMtype]   = useState("image");
+  const [caption,   setCaption] = useState("");
+  const [mood,      setMood]    = useState("");
+  const [busy,      setBusy]    = useState(false);
+  const [err,       setErr]     = useState(null);
 
-  // Two separate file inputs — gallery and camera
-  const galleryRef = useRef(null);
-  const cameraRef  = useRef(null);
+  const gallRef = useRef(null);
+  const camRef  = useRef(null);
 
-  /* ── File pick ────────────────────────────────────────────── */
-  function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    // Reset the input so the same file can be re-selected
+  function pickFile(e) {
+    const f = e.target.files?.[0];
     e.target.value = "";
-    const isVid = file.type.startsWith("video/");
-    setMediaType(isVid ? "video" : "image");
-    setMediaFile(file);
-    const url = URL.createObjectURL(file);
-    setMediaPrev(url);
-    setStep("text");
+    if (!f) return;
+    setFile(f);
+    setMtype(f.type.startsWith("video/") ? "video" : "image");
+    setPreview(URL.createObjectURL(f));
+    setStep("compose");
   }
 
-  /* ── Publish ──────────────────────────────────────────────── */
-  const handlePublish = useCallback(async () => {
-    if (!user?.id) { setError("Nicht eingeloggt."); return; }
-    setPublishing(true);
-    setError(null);
-
+  const publish = useCallback(async () => {
+    if (!user?.id) { setErr("Nicht eingeloggt."); return; }
+    setBusy(true); setErr(null);
     try {
       let media_url = null;
-
-      if (mediaFile) {
-        const ext  = mediaFile.name.split(".").pop() || "jpg";
+      if (file) {
+        const ext  = (file.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${user.id}/${Date.now()}.${ext}`;
-
-        // Try stories-media first, fall back to media/stories/
-        const { error: err1 } = await supabase.storage
-          .from("stories-media")
-          .upload(path, mediaFile, { upsert: true });
-
-        if (!err1) {
-          const { data: pub } = supabase.storage
-            .from("stories-media").getPublicUrl(path);
-          media_url = pub?.publicUrl || null;
+        const { error: e1 } = await supabase.storage.from("stories-media").upload(path, file, { upsert: true });
+        if (!e1) {
+          const { data: p } = supabase.storage.from("stories-media").getPublicUrl(path);
+          media_url = p?.publicUrl || null;
         } else {
-          console.warn("[HUI_STORY] stories-media failed:", err1.message);
-          const { error: err2 } = await supabase.storage
-            .from("media")
-            .upload(`stories/${path}`, mediaFile, { upsert: true });
-          if (!err2) {
-            const { data: pub } = supabase.storage
-              .from("media").getPublicUrl(`stories/${path}`);
-            media_url = pub?.publicUrl || null;
-          } else {
-            console.warn("[HUI_STORY] media fallback also failed:", err2.message);
+          const { error: e2 } = await supabase.storage.from("media").upload(`stories/${path}`, file, { upsert: true });
+          if (!e2) {
+            const { data: p } = supabase.storage.from("media").getPublicUrl(`stories/${path}`);
+            media_url = p?.publicUrl || null;
           }
         }
       }
-
-      const { data, error: insertError } = await supabase
-        .from("stories")
-        .insert({
-          user_id:         user.id,
-          username:        user.user_metadata?.username
-                           || user.user_metadata?.display_name
-                           || user.email?.split("@")[0]
-                           || "Human",
-          avatar_url:      user.user_metadata?.avatar_url || null,
-          media_url,
-          media_type:      mediaType,
-          caption:         caption.trim() || null,
-          text_overlay:    caption.trim() || null,
-          visibility:      "public",
-          status:          "active",
-          allow_comments:  true,
-          allow_reactions: true,
-          allow_sharing:   true,
-          expires_at:      new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        })
-        .select("id")
-        .single();
-
-      if (insertError) {
-        setError("Fehler beim Speichern: " + insertError.message);
-        console.error("[HUI_STORY] insert error:", insertError);
-        return;
-      }
-
-      console.log("[HUI_STORY] published:", data?.id);
+      const { error: ie } = await supabase.from("stories").insert({
+        user_id:         user.id,
+        username:        user.user_metadata?.username || user.user_metadata?.display_name || user.email?.split("@")[0] || "Human",
+        avatar_url:      user.user_metadata?.avatar_url || null,
+        media_url,
+        media_type:      mtype,
+        caption:         caption.trim() || null,
+        text_overlay:    caption.trim() || null,
+        mood:            mood || null,
+        visibility:      "public",
+        status:          "active",
+        allow_comments:  true,
+        allow_reactions: true,
+        allow_sharing:   true,
+        expires_at:      new Date(Date.now() + 86400000).toISOString(),
+      });
+      if (ie) { setErr("Fehler: " + ie.message); return; }
       window.dispatchEvent(new Event("stories-refresh"));
-      onPublished?.({ id: data?.id });
+      onPublished?.({});
       onClose?.();
-
     } catch (e) {
-      setError("Fehler: " + (e?.message || "Unbekannt"));
-      console.error("[HUI_STORY] crash:", e);
+      setErr("Fehler: " + (e?.message || "Unbekannt"));
     } finally {
-      setPublishing(false);
+      setBusy(false);
     }
-  }, [user?.id, mediaFile, mediaType, caption, onClose, onPublished]);
+  }, [user, file, mtype, caption, mood, onClose, onPublished]);
 
-  /* ── Root style — NO animation opacity, NO overflow:hidden ── */
-  // iPad Safari fix: height:"100%" on position:fixed is unreliable.
-  // Use window.innerHeight in px as explicit height.
-  const vh = (typeof window !== "undefined" && window.innerHeight > 0)
-    ? window.innerHeight
-    : 812;
-  const rootStyle = {
-    position:       "fixed",
-    top:            0,
-    left:           0,
-    width:          "100%",
-    height:         vh + "px",
-    minHeight:      vh + "px",
-    zIndex:         11500,
-    background:     C.bg,
-    display:        "flex",
-    flexDirection:  "column",
-    fontFamily:     "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-    overflowX:      "hidden",
-    overflowY:      "auto",
+  const vh = (typeof window !== "undefined" && window.innerHeight > 0) ? window.innerHeight : 812;
+
+  // ── Root — NEVER has opacity in animation, ALWAYS has explicit px height
+  const root = {
+    position: "fixed", top: 0, left: 0, width: "100%",
+    height: vh + "px", minHeight: vh + "px",
+    zIndex: 11500, background: BG,
+    display: "flex", flexDirection: "column",
+    fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+    overflowX: "hidden", overflowY: "auto",
     WebkitOverflowScrolling: "touch",
+    boxSizing: "border-box",
   };
 
-  /* ── Header ─────────────────────────────────────────────── */
-  const title = step === "pick" ? "Story erstellen"
-    : step === "text"    ? "Beschreibung"
-    : "Vorschau";
-
-  const backLabel = step === "pick" ? "×"
-    : step === "text"    ? "←"
-    : "←";
-
-  function goBack() {
-    if (step === "pick")    { onClose?.(); return; }
-    if (step === "text")    { setStep("pick"); return; }
-    if (step === "preview") { setStep("text"); return; }
+  function Header({ title, right }) {
+    return (
+      <div style={{
+        display: "flex", alignItems: "center", flexShrink: 0,
+        padding: `calc(env(safe-area-inset-top,14px) + 10px) 16px 14px`,
+        borderBottom: `1px solid ${BORD}`, background: BG, minHeight: 58,
+      }}>
+        <button onClick={step === "pick" ? onClose : () => setStep(step === "preview" ? "compose" : "pick")}
+          style={{ background:"none", border:"none", color: DIM, fontSize:24, cursor:"pointer",
+            padding:"4px 12px 4px 0", touchAction:"manipulation", lineHeight:1, minWidth:40 }}>
+          {step === "pick" ? "×" : "←"}
+        </button>
+        <div style={{ flex:1, textAlign:"center", color:"#fff", fontWeight:700, fontSize:16 }}>{title}</div>
+        {right || <div style={{ minWidth:60 }} />}
+      </div>
+    );
   }
 
-  /* ════════════════════════════════════════════════════════════
-     RENDER
-  ════════════════════════════════════════════════════════════ */
   return (
-    <div style={rootStyle}>
+    <div style={root}>
+      {/* Hidden file inputs */}
+      <input ref={gallRef} type="file" accept="image/*,video/*" onChange={pickFile}
+        style={{ position:"absolute", opacity:0, pointerEvents:"none", width:1, height:1, top:-9999 }} />
+      <input ref={camRef}  type="file" accept="image/*" capture="environment" onChange={pickFile}
+        style={{ position:"absolute", opacity:0, pointerEvents:"none", width:1, height:1, top:-9999 }} />
 
-      {/* ── Hidden file inputs (NO capture attr — gallery only) ── */}
-      <input
-        ref={galleryRef}
-        type="file"
-        accept="image/*,video/*"
-        onChange={handleFileChange}
-        style={{ position: "absolute", opacity: 0, pointerEvents: "none",
-                 width: 1, height: 1, top: -9999, left: -9999 }}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
-      {/* Separate camera input — capture:environment, images only */}
-      <input
-        ref={cameraRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleFileChange}
-        style={{ position: "absolute", opacity: 0, pointerEvents: "none",
-                 width: 1, height: 1, top: -9999, left: -9999 }}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
-
-      {/* ── Top bar ──────────────────────────────────────────── */}
-      <div style={{
-        display:      "flex",
-        alignItems:   "center",
-        padding:      "calc(env(safe-area-inset-top, 14px) + 10px) 16px 14px",
-        borderBottom: `1px solid ${C.border}`,
-        flexShrink:   0,
-        background:   C.bg,
-        // Explicit — so it never disappears
-        minHeight:    56,
-      }}>
-        <button
-          onClick={goBack}
-          style={{
-            background: "none", border: "none",
-            color: C.dim, fontSize: 24,
-            cursor: "pointer", padding: "4px 12px 4px 0",
-            touchAction: "manipulation",
-            lineHeight: 1,
-            minWidth: 36,
-            minHeight: 36,
-            display: "flex", alignItems: "center",
-          }}
-        >
-          {backLabel}
-        </button>
-
-        <div style={{
-          flex: 1, textAlign: "center",
-          color: C.white, fontWeight: 700, fontSize: 16,
-          letterSpacing: 0.1,
-        }}>
-          {title}
-        </div>
-
-        {/* Publish button only on preview step */}
-        {step === "preview" && (
-          <button
-            onClick={handlePublish}
-            disabled={publishing}
-            style={{
-              background:   publishing
-                ? "rgba(22,215,197,0.35)"
-                : `linear-gradient(135deg, ${TEAL}, ${CORAL})`,
-              border:       "none",
-              borderRadius: 20,
-              padding:      "8px 20px",
-              color:        "#fff",
-              fontWeight:   700,
-              fontSize:     14,
-              cursor:       publishing ? "default" : "pointer",
-              touchAction:  "manipulation",
-              opacity:      publishing ? 0.7 : 1,
-            }}
-          >
-            {publishing ? "…" : "Teilen ✦"}
-          </button>
-        )}
-        {step !== "preview" && <div style={{ minWidth: 60 }} />}
-      </div>
-
-      {/* ── Error banner ─────────────────────────────────────── */}
-      {error && (
-        <div style={{
-          padding:    "10px 16px",
-          background: "rgba(255,80,80,0.18)",
-          color:      "#FF6B6B",
-          fontSize:   13,
-          textAlign:  "center",
-          flexShrink: 0,
-        }}>
-          {error}
-          <button
-            onClick={() => setError(null)}
-            style={{ background: "none", border: "none", color: "#FF6B6B",
-              fontSize: 16, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
-          >×</button>
+      {err && (
+        <div style={{ padding:"10px 16px", background:"rgba(255,80,80,0.18)", color:"#FF6B6B",
+          fontSize:13, textAlign:"center", flexShrink:0, display:"flex", justifyContent:"space-between" }}>
+          <span>{err}</span>
+          <button onClick={() => setErr(null)} style={{ background:"none",border:"none",color:"#FF6B6B",fontSize:16,cursor:"pointer" }}>×</button>
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════
-          STEP 1 — PICK MEDIA
-          Always visible. No conditions that can hide it.
-      ══════════════════════════════════════════════════════ */}
+      {/* ── STEP 1: PICK ─────────────────────────────────────── */}
       {step === "pick" && (
-        <div style={{
-          flex:           "1 1 auto",
-          display:        "flex",
-          flexDirection:  "column",
-          alignItems:     "center",
-          justifyContent: "center",
-          gap:            28,
-          padding:        "32px 24px",
-          minHeight:      "calc(100% - 80px)",
-          boxSizing:      "border-box",
-        }}>
-
-          {/* Headline */}
-          <div style={{ textAlign: "center" }}>
-            <div style={{
-              fontSize:   28,
-              marginBottom: 8,
-              lineHeight: 1,
-            }}>✦</div>
-            <div style={{
-              color:      C.white,
-              fontSize:   20,
-              fontWeight: 700,
-              marginBottom: 6,
-            }}>
-              Dein Moment
-            </div>
-            <div style={{
-              color:    C.dim,
-              fontSize: 14,
-              maxWidth: 260,
-              margin:   "0 auto",
-              lineHeight: 1.5,
-            }}>
-              Teile einen Schnappschuss — 24h sichtbar, dann weg.
-            </div>
-          </div>
-
-          {/* Main CTA — Gallery */}
-          <button
-            onClick={() => galleryRef.current?.click()}
-            style={{
-              width:          "min(200px, 60vw)",
-              height:         "min(200px, 60vw)",
-              borderRadius:   "50%",
-              border:         `2.5px dashed rgba(22,215,197,0.5)`,
-              background:     "rgba(22,215,197,0.07)",
-              display:        "flex",
-              flexDirection:  "column",
-              alignItems:     "center",
-              justifyContent: "center",
-              gap:            12,
-              cursor:         "pointer",
-              touchAction:    "manipulation",
-              transition:     "transform 0.14s ease, background 0.14s ease",
-              color:          TEAL,
-            }}
-            onTouchStart={e => e.currentTarget.style.transform = "scale(0.95)"}
-            onTouchEnd={e => e.currentTarget.style.transform = "scale(1)"}
-            onMouseDown={e => e.currentTarget.style.background = "rgba(22,215,197,0.14)"}
-            onMouseUp={e => e.currentTarget.style.background = "rgba(22,215,197,0.07)"}
-          >
-            <span style={{ fontSize: 52, lineHeight: 1 }}>🖼</span>
-            <span style={{
-              fontSize:   14,
-              fontWeight: 700,
-              letterSpacing: 0.3,
-            }}>
-              Galerie öffnen
-            </span>
-          </button>
-
-          {/* Secondary options row */}
+        <>
+          <Header title="Dein Moment" />
           <div style={{
-            display:    "flex",
-            gap:        12,
-            flexWrap:   "wrap",
-            justifyContent: "center",
+            flex: "1 1 auto", display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center",
+            gap: 28, padding: "32px 28px",
+            minHeight: Math.max(320, vh - 100) + "px",
+            boxSizing: "border-box",
           }}>
-            {/* Camera button */}
+            {/* Headline */}
+            <div style={{ textAlign:"center" }}>
+              <div style={{ fontSize:32, marginBottom:10 }}>✦</div>
+              <div style={{ color:"#fff", fontSize:22, fontWeight:800, marginBottom:8 }}>Teile deinen Moment</div>
+              <div style={{ color:DIM, fontSize:14, maxWidth:260, margin:"0 auto", lineHeight:1.6 }}>
+                24 Stunden sichtbar — dann weg.
+              </div>
+            </div>
+
+            {/* Big gallery CTA */}
             <button
-              onClick={() => cameraRef.current?.click()}
+              onClick={() => gallRef.current?.click()}
               style={{
-                display:      "flex",
-                alignItems:   "center",
-                gap:          8,
-                padding:      "12px 20px",
-                background:   C.panel,
-                border:       `1.5px solid ${C.border}`,
-                borderRadius: 24,
-                color:        C.white,
-                fontSize:     14,
-                fontWeight:   600,
-                cursor:       "pointer",
-                touchAction:  "manipulation",
+                width: Math.min(200, (vh * 0.24)) + "px",
+                height: Math.min(200, (vh * 0.24)) + "px",
+                borderRadius: "50%",
+                border: `2.5px dashed rgba(22,215,197,0.5)`,
+                background: "rgba(22,215,197,0.07)",
+                display: "flex", flexDirection:"column",
+                alignItems:"center", justifyContent:"center", gap:12,
+                cursor:"pointer", touchAction:"manipulation",
+                color: TEAL,
               }}
             >
-              <span>📷</span> Kamera
+              <span style={{ fontSize:52, lineHeight:1 }}>🖼</span>
+              <span style={{ fontSize:14, fontWeight:700 }}>Galerie öffnen</span>
             </button>
 
-            {/* Text-only */}
-            <button
-              onClick={() => setStep("text")}
-              style={{
-                display:      "flex",
-                alignItems:   "center",
-                gap:          8,
-                padding:      "12px 20px",
-                background:   C.panel,
-                border:       `1.5px solid ${C.border}`,
-                borderRadius: 24,
-                color:        C.dim,
-                fontSize:     14,
-                fontWeight:   600,
-                cursor:       "pointer",
-                touchAction:  "manipulation",
-              }}
-            >
-              <span>✏️</span> Nur Text
-            </button>
+            {/* Secondary row */}
+            <div style={{ display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center" }}>
+              {[
+                { icon:"📷", label:"Kamera",   action: () => camRef.current?.click() },
+                { icon:"✏️", label:"Nur Text",  action: () => setStep("compose") },
+              ].map(({ icon, label, action }) => (
+                <button key={label} onClick={action} style={{
+                  display:"flex", alignItems:"center", gap:8,
+                  padding:"12px 22px", background:PANEL,
+                  border:`1.5px solid ${BORD}`, borderRadius:24,
+                  color:"#fff", fontSize:14, fontWeight:600,
+                  cursor:"pointer", touchAction:"manipulation",
+                }}>
+                  <span>{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+
+            <p style={{ color:"rgba(255,255,255,0.22)", fontSize:12, textAlign:"center", maxWidth:220 }}>
+              Bilder & Videos bis 50 MB
+            </p>
           </div>
-
-          {/* Fine print */}
-          <p style={{
-            color:     C.dimmer,
-            fontSize:  12,
-            textAlign: "center",
-            maxWidth:  240,
-            lineHeight: 1.4,
-          }}>
-            Bilder und Videos · max. 50 MB
-          </p>
-        </div>
+        </>
       )}
 
-      {/* ══════════════════════════════════════════════════════
-          STEP 2 — ADD TEXT / CAPTION
-      ══════════════════════════════════════════════════════ */}
-      {step === "text" && (
-        <div style={{
-          flex:          1,
-          display:       "flex",
-          flexDirection: "column",
-          minHeight:     320,
-        }}>
-          {/* Media preview — only if media was picked */}
-          {mediaPreview && (
-            <div style={{
-              flex:       "0 0 auto",
-              height:     "min(45vh, 320px)",
-              position:   "relative",
-              overflow:   "hidden",
-              background: "#000",
-            }}>
-              {mediaType === "video" ? (
-                <video
-                  src={mediaPreview}
-                  autoPlay muted playsInline loop
-                  style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                />
-              ) : (
-                <img
-                  src={mediaPreview}
-                  alt="Vorschau"
-                  style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                />
+      {/* ── STEP 2: COMPOSE ─────────────────────────────────── */}
+      {step === "compose" && (
+        <>
+          <Header title="Beschreibung" />
+          <div style={{ flex:"1 1 auto", display:"flex", flexDirection:"column", minHeight:320 }}>
+
+            {/* Preview or placeholder */}
+            <div style={{ flexShrink:0, height: Math.min(vh * 0.42, 300) + "px", position:"relative",
+              background:"#000", overflow:"hidden", cursor: preview ? "default" : "pointer" }}
+              onClick={!preview ? () => gallRef.current?.click() : undefined}
+            >
+              {preview && mtype === "video" && (
+                <video src={preview} autoPlay muted playsInline loop style={{ width:"100%",height:"100%",objectFit:"cover" }} />
               )}
-              {/* Change media button */}
-              <button
-                onClick={() => galleryRef.current?.click()}
-                style={{
-                  position:     "absolute",
-                  top:          12,
-                  right:        12,
-                  background:   "rgba(10,10,18,0.7)",
-                  border:       `1px solid ${C.border}`,
-                  borderRadius: 20,
-                  padding:      "6px 14px",
-                  color:        C.white,
-                  fontSize:     13,
-                  fontWeight:   600,
-                  cursor:       "pointer",
-                  touchAction:  "manipulation",
-                  backdropFilter: "blur(8px)",
-                  WebkitBackdropFilter: "blur(8px)",
-                }}
-              >
-                Ändern
-              </button>
+              {preview && mtype !== "video" && (
+                <img src={preview} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
+              )}
+              {!preview && (
+                <div style={{ width:"100%",height:"100%",
+                  background:`linear-gradient(135deg, rgba(22,215,197,0.15), rgba(255,138,107,0.15))`,
+                  display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10 }}>
+                  <span style={{ fontSize:38 }}>➕</span>
+                  <span style={{ color:DIM, fontSize:14 }}>Bild hinzufügen</span>
+                </div>
+              )}
+              {preview && (
+                <button onClick={() => gallRef.current?.click()} style={{
+                  position:"absolute", top:12, right:12,
+                  background:"rgba(8,8,16,0.7)", border:`1px solid ${BORD}`,
+                  borderRadius:20, padding:"6px 14px", color:"#fff",
+                  fontSize:13, fontWeight:600, cursor:"pointer",
+                  backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
+                  touchAction:"manipulation",
+                }}>Ändern</button>
+              )}
             </div>
-          )}
 
-          {/* No media selected — gradient placeholder */}
-          {!mediaPreview && (
-            <div style={{
-              flex:       "0 0 auto",
-              height:     "min(30vh, 220px)",
-              background: `linear-gradient(135deg, rgba(22,215,197,0.15) 0%, rgba(255,138,107,0.15) 100%)`,
-              display:    "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection:  "column",
-              gap:        12,
-              cursor:     "pointer",
-            }}
-            onClick={() => galleryRef.current?.click()}
-            >
-              <span style={{ fontSize: 40 }}>➕</span>
-              <span style={{ color: C.dim, fontSize: 14 }}>Bild hinzufügen (optional)</span>
-            </div>
-          )}
-
-          {/* Caption input */}
-          <div style={{
-            flex:       1,
-            padding:    "16px 16px 0",
-            display:    "flex",
-            flexDirection: "column",
-            gap:        12,
-          }}>
-            <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Was möchtest du teilen? (optional)"
-              maxLength={200}
-              rows={4}
-              autoFocus={false}
-              style={{
-                width:       "100%",
-                background:  C.panel,
-                border:      `1.5px solid ${C.border}`,
-                borderRadius: 16,
-                padding:     "14px 16px",
-                color:       C.white,
-                fontSize:    16,
-                lineHeight:  1.55,
-                resize:      "none",
-                outline:     "none",
-                fontFamily:  "inherit",
-                boxSizing:   "border-box",
-                touchAction: "auto",
-              }}
-            />
-            <div style={{
-              display:       "flex",
-              justifyContent:"space-between",
-              alignItems:    "center",
-            }}>
-              <span style={{ color: C.dimmer, fontSize: 12 }}>
-                {caption.length}/200
-              </span>
-              <button
-                onClick={() => setStep("preview")}
+            {/* Caption */}
+            <div style={{ padding:"16px 16px 8px", flexShrink:0 }}>
+              <textarea
+                value={caption}
+                onChange={e => setCaption(e.target.value)}
+                placeholder="Was ist dein Moment? (optional)"
+                maxLength={200} rows={3}
                 style={{
-                  background:   `linear-gradient(135deg, ${TEAL}, ${CORAL})`,
-                  border:       "none",
-                  borderRadius: 20,
-                  padding:      "12px 32px",
-                  color:        "#fff",
-                  fontWeight:   700,
-                  fontSize:     15,
-                  cursor:       "pointer",
-                  touchAction:  "manipulation",
+                  width:"100%", background:PANEL, border:`1.5px solid ${BORD}`,
+                  borderRadius:16, padding:"14px 16px", color:"#fff",
+                  fontSize:16, lineHeight:1.55, resize:"none", outline:"none",
+                  fontFamily:"inherit", boxSizing:"border-box",
                 }}
-              >
-                Weiter →
+              />
+              <div style={{ display:"flex", justifyContent:"flex-end", marginTop:4 }}>
+                <span style={{ color:"rgba(255,255,255,0.22)", fontSize:11 }}>{caption.length}/200</span>
+              </div>
+            </div>
+
+            {/* Mood */}
+            <div style={{ padding:"0 16px 16px", flexShrink:0 }}>
+              <div style={{ color:DIM, fontSize:12, marginBottom:8, fontWeight:600 }}>Stimmung (optional)</div>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                {MOODS.map(m => (
+                  <button key={m} onClick={() => setMood(mood === m ? "" : m)} style={{
+                    fontSize:22, background: mood === m ? "rgba(22,215,197,0.15)" : PANEL,
+                    border: `1.5px solid ${mood === m ? TEAL : BORD}`,
+                    borderRadius:12, padding:"6px 8px", cursor:"pointer", touchAction:"manipulation",
+                    transform: mood === m ? "scale(1.15)" : "scale(1)",
+                    transition:"all 0.14s ease",
+                  }}>{m}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Spacer + CTA */}
+            <div style={{ flex:1 }} />
+            <div style={{ padding:"0 16px calc(env(safe-area-inset-bottom,16px) + 16px)", flexShrink:0 }}>
+              <button onClick={() => setStep("preview")} style={{
+                width:"100%", padding:"15px",
+                background:`linear-gradient(135deg, ${TEAL}, ${CORAL})`,
+                border:"none", borderRadius:22,
+                color:"#fff", fontWeight:800, fontSize:16,
+                cursor:"pointer", touchAction:"manipulation",
+              }}>
+                Vorschau →
               </button>
             </div>
           </div>
-
-          {/* Safe area spacer */}
-          <div style={{ height: "calc(env(safe-area-inset-bottom, 16px) + 16px)", flexShrink: 0 }} />
-        </div>
+        </>
       )}
 
-      {/* ══════════════════════════════════════════════════════
-          STEP 3 — PREVIEW + PUBLISH
-      ══════════════════════════════════════════════════════ */}
+      {/* ── STEP 3: PREVIEW ─────────────────────────────────── */}
       {step === "preview" && (
-        <div style={{
-          flex:          1,
-          display:       "flex",
-          flexDirection: "column",
-          minHeight:     320,
-        }}>
-          {/* Full preview */}
-          <div style={{
-            flex:       1,
-            position:   "relative",
-            overflow:   "hidden",
-            background: "#000",
-            minHeight:  200,
-          }}>
-            {mediaPreview && mediaType !== "video" && (
-              <img
-                src={mediaPreview}
-                alt="Story"
-                style={{ width:"100%", height:"100%", objectFit:"cover" }}
-              />
-            )}
-            {mediaPreview && mediaType === "video" && (
-              <video
-                src={mediaPreview}
-                autoPlay muted playsInline loop
-                style={{ width:"100%", height:"100%", objectFit:"cover" }}
-              />
-            )}
-            {!mediaPreview && (
-              <div style={{
-                width:"100%", height:"100%", minHeight: 200,
-                background: `linear-gradient(135deg, ${TEAL}44 0%, ${CORAL}44 100%)`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <span style={{ fontSize: 48 }}>✦</span>
-              </div>
-            )}
-
-            {/* Text overlay preview */}
-            {caption.trim() && (
-              <div style={{
-                position:   "absolute",
-                bottom:     20,
-                left:       16,
-                right:      16,
-                padding:    "12px 16px",
-                background: "rgba(10,10,18,0.68)",
-                backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)",
-                borderRadius: 16,
-                color:      C.white,
-                fontSize:   16,
-                lineHeight: 1.5,
-                textAlign:  "center",
-              }}>
-                {caption}
-              </div>
-            )}
+        <>
+          <Header title="Vorschau"
+            right={
+              <button onClick={publish} disabled={busy} style={{
+                background: busy ? "rgba(22,215,197,0.35)" : `linear-gradient(135deg,${TEAL},${CORAL})`,
+                border:"none", borderRadius:20, padding:"8px 20px",
+                color:"#fff", fontWeight:700, fontSize:14,
+                cursor: busy ? "default" : "pointer", touchAction:"manipulation",
+                opacity: busy ? 0.7 : 1,
+              }}>{busy ? "…" : "Teilen ✦"}</button>
+            }
+          />
+          <div style={{ flex:"1 1 auto", display:"flex", flexDirection:"column", minHeight:320 }}>
+            <div style={{ flex:1, position:"relative", overflow:"hidden", background:"#000", minHeight:200 }}>
+              {preview && mtype !== "video" && <img src={preview} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />}
+              {preview && mtype === "video" && <video src={preview} autoPlay muted playsInline loop style={{ width:"100%",height:"100%",objectFit:"cover" }} />}
+              {!preview && (
+                <div style={{ width:"100%",height:"100%", minHeight:200,
+                  background:`linear-gradient(135deg, ${TEAL}44, ${CORAL}44)`,
+                  display:"flex",alignItems:"center",justifyContent:"center" }}>
+                  <span style={{ fontSize:52 }}>{mood || "✦"}</span>
+                </div>
+              )}
+              {caption.trim() && (
+                <div style={{
+                  position:"absolute", bottom:20, left:16, right:16,
+                  padding:"12px 18px",
+                  background:"rgba(8,8,16,0.65)",
+                  backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
+                  borderRadius:18, color:"#fff", fontSize:16,
+                  lineHeight:1.5, textAlign:"center",
+                  textShadow:"0 1px 8px rgba(0,0,0,0.5)",
+                }}>{caption}</div>
+              )}
+              {mood && (
+                <div style={{ position:"absolute", top:16, right:16, fontSize:28,
+                  background:"rgba(8,8,16,0.5)", borderRadius:12, padding:"4px 8px" }}>
+                  {mood}
+                </div>
+              )}
+            </div>
+            <div style={{ padding:"14px 16px calc(env(safe-area-inset-bottom,16px) + 14px)",
+              background:BG, borderTop:`1px solid ${BORD}`, display:"flex", gap:12, flexShrink:0 }}>
+              <button onClick={() => setStep("compose")} style={{
+                flex:1, padding:"14px", background:PANEL,
+                border:`1.5px solid ${BORD}`, borderRadius:20,
+                color:DIM, fontSize:15, fontWeight:600,
+                cursor:"pointer", touchAction:"manipulation",
+              }}>Bearbeiten</button>
+              <button onClick={publish} disabled={busy} style={{
+                flex:2, padding:"14px",
+                background: busy ? "rgba(22,215,197,0.35)" : `linear-gradient(135deg,${TEAL},${CORAL})`,
+                border:"none", borderRadius:20, color:"#fff",
+                fontSize:15, fontWeight:800, cursor: busy ? "default" : "pointer",
+                touchAction:"manipulation", opacity: busy ? 0.7 : 1,
+              }}>{busy ? "Wird geteilt…" : "✦ Story teilen"}</button>
+            </div>
           </div>
-
-          {/* Action bar */}
-          <div style={{
-            padding:    "16px 16px calc(env(safe-area-inset-bottom, 16px) + 16px)",
-            background: C.bg,
-            borderTop:  `1px solid ${C.border}`,
-            display:    "flex",
-            gap:        12,
-            flexShrink: 0,
-          }}>
-            <button
-              onClick={() => setStep("text")}
-              style={{
-                flex:         1,
-                padding:      "14px",
-                background:   C.panel,
-                border:       `1.5px solid ${C.border}`,
-                borderRadius: 20,
-                color:        C.dim,
-                fontSize:     15,
-                fontWeight:   600,
-                cursor:       "pointer",
-                touchAction:  "manipulation",
-              }}
-            >
-              Bearbeiten
-            </button>
-            <button
-              onClick={handlePublish}
-              disabled={publishing}
-              style={{
-                flex:         2,
-                padding:      "14px",
-                background:   publishing
-                  ? "rgba(22,215,197,0.38)"
-                  : `linear-gradient(135deg, ${TEAL}, ${CORAL})`,
-                border:       "none",
-                borderRadius: 20,
-                color:        "#fff",
-                fontSize:     15,
-                fontWeight:   700,
-                cursor:       publishing ? "default" : "pointer",
-                touchAction:  "manipulation",
-                opacity:      publishing ? 0.7 : 1,
-              }}
-            >
-              {publishing ? "Wird geteilt…" : "✦ Story teilen"}
-            </button>
-          </div>
-        </div>
+        </>
       )}
-
     </div>
   );
 }
