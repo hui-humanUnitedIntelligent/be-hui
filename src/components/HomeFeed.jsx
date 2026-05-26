@@ -696,6 +696,16 @@ export default function HomeFeed({
         </div>
         <div>liveItems: {liveItems.length} | streamItems: {streamItems.length} | loading: {String(streamLoading)} | error: {streamError || "–"}</div>
         <div>user: {typeof window !== "undefined" && window.__HUI_WORLD_STATE__?.userId ? window.__HUI_WORLD_STATE__.userId.slice(0,8)+"…" : "anon"}</div>
+        {/* Stream raw counts */}
+        {typeof window !== "undefined" && window.__HUI_STREAM_DEBUG__ && (
+          <div style={{ color: "#FF8A6B", marginTop: 2 }}>
+            DB raw → works: {window.__HUI_STREAM_DEBUG__.works} | 
+            exps: {window.__HUI_STREAM_DEBUG__.exps} | 
+            beitraege: {window.__HUI_STREAM_DEBUG__.beitraege}
+            {window.__HUI_STREAM_DEBUG__.beitrErr ? ` | beitrErr: ${window.__HUI_STREAM_DEBUG__.beitrErr}` : ""}
+            {window.__HUI_STREAM_DEBUG__.worksErr ? ` | worksErr: ${window.__HUI_STREAM_DEBUG__.worksErr}` : ""}
+          </div>
+        )}
       </div>
 
       {/* ═══ SECTION CRASH ISOLATION ══ */}

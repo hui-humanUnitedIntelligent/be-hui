@@ -121,15 +121,29 @@ async function fetchFeedPage(userId = null, cursor = null) {
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
   const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
 
-  // Debug: RAW DB rows
+  // Debug: RAW DB rows — extended
+  const beitrErr = beitrRes.status === "rejected" 
+    ? beitrRes.reason?.message 
+    : (beitrRes.value?.error?.message || null);
+  const worksErr = worksRes.status === "rejected"
+    ? worksRes.reason?.message
+    : (worksRes.value?.error?.message || null);
+  const expsErr = expsRes.status === "rejected"
+    ? expsRes.reason?.message
+    : (expsRes.value?.error?.message || null);
+  
   console.log("[HUI_STREAM_RAW]", {
-    works: works.length,
-    exps: exps.length,
-    beitraege: beitr.length,
+    works: works.length, worksErr,
+    exps: exps.length, expsErr,
+    beitraege: beitr.length, beitrErr,
     invitations: invs.length,
-    beitrErr: beitrRes.status === "rejected" ? beitrRes.reason?.message : (beitrRes.value?.error?.message || null),
-    firstBeitrag: beitr[0] ? { id: beitr[0].id, type: beitr[0].type, caption: beitr[0].caption?.slice(0,30), src: !!beitr[0].src } : null,
+    firstBeitrag: beitr[0] ? { id: beitr[0].id, type: beitr[0].type, caption: beitr[0].caption?.slice(0,30), src: !!beitr[0].src, hasProfile: !!beitr[0].profile } : null,
+    firstWork: works[0] ? { id: works[0].id, title: works[0].title?.slice(0,30), status: works[0].status, hasProfile: !!works[0].profile } : null,
   });
+  // Sende auch als UI-sichtbare Warnung
+  if (typeof window !== "undefined") {
+    window.__HUI_STREAM_DEBUG__ = { works: works.length, exps: exps.length, beitraege: beitr.length, beitrErr, worksErr, expsErr };
+  }
 
   // Normalisieren
   const normalizedBeitr = beitr.map(normalizeBeitragRow).filter(Boolean);
