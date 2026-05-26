@@ -76,6 +76,33 @@ const FALLBACK_VIEWER_CONTEXT = Object.freeze({
 });
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
+/* ── SectionGuard — isoliert jeden Render-Bereich ────────────────── */
+class SectionGuard extends React.Component {
+  constructor(props) { super(props); this.state = { crashed: false }; }
+  static getDerivedStateFromError() { return { crashed: true }; }
+  componentDidCatch(error, info) {
+    console.error("HOMEFEED_CRASH [section:" + (this.props.id||"?") + "]");
+    console.error("Error:", error && error.message ? error.message : String(error));
+    console.error("Stack:", error && error.stack ? error.stack.split("\n").slice(0,8).join("\n") : "");
+    console.error("Component:", info && info.componentStack ? info.componentStack.split("\n").slice(0,10).join("\n") : "");
+  }
+  render() {
+    if (this.state.crashed) {
+      return (
+        React.createElement("div", {
+          style: { padding:"8px 16px", background:"rgba(255,100,100,0.08)",
+            borderLeft:"3px solid rgba(255,100,100,0.4)", margin:"4px 0" }
+        },
+          React.createElement("span", {
+            style: { fontSize:11, color:"rgba(180,60,60,0.7)", fontFamily:"monospace" }
+          }, String.fromCharCode(9888) + " " + (this.props.id||"?") + " — Check Console HOMEFEED_CRASH")
+        )
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const T = {
   // ── Phase 21: HUI Design System ──────────────────────────────
   teal:        HUI.COLOR.teal,
@@ -633,40 +660,47 @@ export default function HomeFeed({
     <div className="hf-root" style={{ paddingBottom:80, width:"100%" }}>
       <style>{CSS}</style>
 
-      {/* ══ RAW DEBUG PANEL — immer sichtbar, tap to load/refresh ═══════ */}
-      <RawBeitraegeDebugPanel />
+      {/* ═══ SECTION CRASH ISOLATION ══ */}
+      <SectionGuard id="RawDebug">
+        <RawBeitraegeDebugPanel />
+      </SectionGuard>
 
-      {/* ── Living Background System ──────────────────────────────────── */}
-      <AmbientBackground />
+      <SectionGuard id="AmbientBG">
+        <AmbientBackground />
+      </SectionGuard>
 
       <div style={{ position:"relative", zIndex:1 }}>
 
-        {/* Story Leiste */}
-        {SAFE_MODE.homeFeed && (
-          <StoryLeiste stories={stories || MOCK_STORIES} onStory={onStory} />
-        )}
+        <SectionGuard id="StoryLeiste">
+          {SAFE_MODE.homeFeed && (
+            <StoryLeiste stories={stories || MOCK_STORIES} onStory={onStory} />
+          )}
+        </SectionGuard>
 
-        {/* Events */}
-        {SAFE_MODE.homeFeed && (
-          <EventsSection events={events || MOCK_EVENTS} onEvent={handleEvent} />
-        )}
+        <SectionGuard id="EventsSection">
+          {SAFE_MODE.homeFeed && (
+            <EventsSection events={events || MOCK_EVENTS} onEvent={handleEvent} />
+          )}
+        </SectionGuard>
 
-        {/* Rhythmic Feed */}
-        {SAFE_MODE.homeFeed && (
-          <RhythmicFeed
-            items={liveItems}
-            onProfile={handleProfile}
-            onLike={onLike}
-            onComment={onComment}
-            onDiscover={handleDiscover}
-            onShare={handleShare}
-          />
-        )}
+        <SectionGuard id="RhythmicFeed">
+          {SAFE_MODE.homeFeed && (
+            <RhythmicFeed
+              items={liveItems}
+              onProfile={handleProfile}
+              onLike={onLike}
+              onComment={onComment}
+              onDiscover={handleDiscover}
+              onShare={handleShare}
+            />
+          )}
+        </SectionGuard>
 
-        {/* Menschen */}
-        {SAFE_MODE.homeFeed && (
-          <MenschenSection people={people || MOCK_PEOPLE} onPerson={handleProfile} />
-        )}
+        <SectionGuard id="MenschenSection">
+          {SAFE_MODE.homeFeed && (
+            <MenschenSection people={people || MOCK_PEOPLE} onPerson={handleProfile} />
+          )}
+        </SectionGuard>
       </div>
     </div>
   );
@@ -942,16 +976,30 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       }
     }
 
-    const _curated = curateHumaneFeed(enrichable, {
-      now,
-      diversity:   true,
-      pacing:      true,
-      rebalance:   true,
-      maxItems:    40,
-      // Phase 16.7.1: viewerContext always has fallback — never blocks render
-      viewerContext: viewerContext ?? FALLBACK_VIEWER_CONTEXT,
-      relationshipMap,
-    });
+    let _curated;
+    try {
+      _curated = curateHumaneFeed(enrichable, {
+        now,
+        diversity:   true,
+        pacing:      true,
+        rebalance:   true,
+        maxItems:    40,
+        viewerContext: viewerContext ?? FALLBACK_VIEWER_CONTEXT,
+        relationshipMap,
+      });
+    } catch(curateErr) {
+      console.error("HOMEFEED_CRASH [curateHumaneFeed]", curateErr?.message, curateErr?.stack?.split("\n").slice(0,5).join("\n"));
+      // Bypass: render items directly
+      _curated = {
+        atmosphere: { feedLabel: "Feed", feedTagline: null },
+        sharedAtmosphere: null,
+        resonanceSpaces: { spaces:[], dominant:null, _empty:true },
+        worldState: { id:"calm_empty", breath:{ period:"16s" }, temperature:{ id:"warm_creative" }, motion:{ scale:1 }, _empty:true },
+        sequence: enrichable.map((item, idx) => ({ kind:"card", item, slot:idx, idx })),
+        quotePool: [],
+        stats: { totalCards: enrichable.length, _bypass:true, _error: curateErr?.message },
+      };
+    }
     // ── PHASE 4I: CURATED TRACE ──────────────────────────────────────
     const _seq = _curated?.sequence || [];
     const _cards = _seq.filter(s => s.kind === "card");
