@@ -143,25 +143,26 @@ export default function StoryCreator({ onClose, onPublished }) {
   }, [user?.id, mediaFile, mediaType, caption, onClose, onPublished]);
 
   /* ── Root style — NO animation opacity, NO overflow:hidden ── */
+  // iPad Safari fix: height:"100%" on position:fixed is unreliable.
+  // Use window.innerHeight in px as explicit height.
+  const vh = (typeof window !== "undefined" && window.innerHeight > 0)
+    ? window.innerHeight
+    : 812;
   const rootStyle = {
     position:       "fixed",
     top:            0,
     left:           0,
-    right:          0,
-    bottom:         0,
-    // Explicit height — dvh with px fallback
-    height:         "100%",
-    minHeight:      "100%",
-    zIndex:         11000,
+    width:          "100%",
+    height:         vh + "px",
+    minHeight:      vh + "px",
+    zIndex:         11500,
     background:     C.bg,
     display:        "flex",
     flexDirection:  "column",
     fontFamily:     "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-    // NO overflow:hidden — let content breathe
     overflowX:      "hidden",
     overflowY:      "auto",
     WebkitOverflowScrolling: "touch",
-    // NO animation that starts at opacity:0
   };
 
   /* ── Header ─────────────────────────────────────────────── */
@@ -295,15 +296,15 @@ export default function StoryCreator({ onClose, onPublished }) {
       ══════════════════════════════════════════════════════ */}
       {step === "pick" && (
         <div style={{
-          flex:           1,
+          flex:           "1 1 auto",
           display:        "flex",
           flexDirection:  "column",
           alignItems:     "center",
           justifyContent: "center",
           gap:            28,
           padding:        "32px 24px",
-          // Belt + suspenders height
-          minHeight:      320,
+          minHeight:      "calc(100% - 80px)",
+          boxSizing:      "border-box",
         }}>
 
           {/* Headline */}
