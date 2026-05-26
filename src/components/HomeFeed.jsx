@@ -930,6 +930,19 @@ function RawFeedDebug({ items }) {
     );
   }
 
+  // Log first 3 items to console for analysis
+  React.useEffect(() => {
+    console.log("[RAW_FEED_DEBUG] items:", arr.length);
+    arr.slice(0,3).forEach((item, i) => {
+      try {
+        const safe = JSON.parse(JSON.stringify(item));
+        console.log(`[RAW_FEED_DEBUG] item[${i}]:`, safe);
+      } catch(e) {
+        console.log(`[RAW_FEED_DEBUG] item[${i}] not serializable — React element?`, typeof item, Object.keys(item||{}));
+      }
+    });
+  }, [arr.length]);
+
   return (
     <div style={{ padding:"0 12px 80px" }}>
       <div style={{
@@ -942,6 +955,20 @@ function RawFeedDebug({ items }) {
       }}>
         ✅ RAW FEED DEBUG — {arr.length} items
       </div>
+      {/* Item 0 raw JSON dump */}
+      {arr[0] && (
+        <details style={{ marginBottom:12, fontFamily:"monospace", fontSize:10 }}>
+          <summary style={{ cursor:"pointer", color:"#FF8A6B", fontWeight:700 }}>
+            🔍 item[0] raw dump (type: {String(arr[0]?.type)}, id: {String(arr[0]?.id)?.slice(0,12)})
+          </summary>
+          <pre style={{
+            background:"#1a1a2e", color:"#16D7C5", padding:10, borderRadius:8,
+            overflow:"auto", maxHeight:300, fontSize:9, whiteSpace:"pre-wrap",
+          }}>
+            {(() => { try { return JSON.stringify(arr[0], null, 2).slice(0,2000); } catch(e) { return "NOT SERIALIZABLE — likely React element"; } })()}
+          </pre>
+        </details>
+      )}
 
       {arr.map((item, idx) => {
         if (!item) return null;
