@@ -2,7 +2,6 @@
 // Route: /work/:id
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { safeQuery } from "../lib/perfUtils";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
@@ -299,22 +298,31 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const loadSocial = useCallback(async (werkId, creatorId) => {
     if (!user?.id || !werkId) return;
     try {
-      // Liked?
-      const { data: likeRow } = await supabase
-        .from("work_likes").select("id")
-        .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
-      setLiked(!!likeRow);
+      // Canonical resonance state
+      const { data: resonanceRow } = await supabase
+        .from("resonances").select("id")
+        .eq("target_type", "work")
+        .eq("target_id", werkId)
+        .eq("user_id", user.id)
+        .eq("resonance_type", "inspired")
+        .maybeSingle();
+      setResonated(!!resonanceRow);
 
-      // Like count
+      // Internal resonance count, not a public gamification score
       const { count: lc } = await supabase
-        .from("work_likes").select("id", { count:"exact" })
-        .eq("work_id", werkId);
+        .from("resonances").select("id", { count:"exact" })
+        .eq("target_type", "work")
+        .eq("target_id", werkId);
       setResonanceCount(lc || 0);
 
       // Saved?
       const { data: saveRow } = await supabase
-        .from("work_saves").select("id")
-        .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
+        .from("resonances").select("id")
+        .eq("target_type", "work")
+        .eq("target_id", werkId)
+        .eq("user_id", user.id)
+        .eq("resonance_type", "saved")
+        .maybeSingle();
       setSaved(!!saveRow);
 
       // Following creator?

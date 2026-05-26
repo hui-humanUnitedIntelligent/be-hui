@@ -9,7 +9,7 @@
 //   resonanz     — jemand resoniert mit deinem Werk/Erlebnis
 //   system       — Systemereignis
 
-import { supabase } from "./supabaseClient";
+import { createCanonicalNotification } from "../notifications/engine.js";
 
 /**
  * Erstellt eine Notification in der notifications-Tabelle.
@@ -33,27 +33,16 @@ export async function createNotification({
   if (recipientId === senderId) return null;
 
   try {
-    const { data, error } = await supabase
-      .from("notifications")
-      .insert({
-        user_id:     recipientId,
-        sender_id:   senderId   || null,
-        type,
-        title:       title      || notifDefaults[type]?.title    || "Neue Aktivität",
-        body:        body       || notifDefaults[type]?.body     || "",
-        entity_id:   entityId   || null,
-        entity_type: entityType || null,
-        action_url:  actionUrl  || null,
-        read:        false,
-        created_at:  new Date().toISOString(),
-      })
-      .select("id")
-      .single();
-
-    if (error) {
-      console.warn("[HUI_NOTIF] INSERT failed:", error.code, error.message);
-      return null;
-    }
+    const data = await createCanonicalNotification({
+      recipientId,
+      senderId,
+      type,
+      title:      title || notifDefaults[type]?.title || "Neue Aktivitaet",
+      body:       body  || notifDefaults[type]?.body  || "",
+      entityId,
+      entityType,
+      actionUrl,
+    });
     console.log("[HUI_REALITY] notification created ✓", { type, recipientId: recipientId.slice(0,8)+"…", id: data?.id });
     return data;
   } catch(err) {

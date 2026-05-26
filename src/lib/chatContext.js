@@ -20,8 +20,9 @@ import { feedback } from './feedback/index.js';
 import { assertAuthenticated, globalMutationGuard } from './security/index.js';
 import { validateMessage } from './validation/index.js';
 import { supabase } from "./supabaseClient";
-import { notifyMessage } from "./notificationService";
 import { useAuth } from "./AuthContext";
+import { dispatchSocialInteraction } from "../social/eventPipeline.js";
+import { SocialRealtimeLayer } from "../social/realtime.js";
 
 // ────────────────────────────────────────────────────────────────
 // Konstanten
@@ -234,12 +235,16 @@ export function useChatThread(chatId) {
   // Realtime für neue Nachrichten
   useEffect(() => {
     if (!chatId) return;
-    realtimeRef.current = supabase
-      .channel(`thread:${chatId}`)
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "messages",
-        filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
+    realtimeRef.current = SocialRealtimeLayer.subscribeChat({
+      chatId,
+      handlers: {
+        onMessage: (payload) => {
+          if (payload.eventType === "UPDATE") {
+            setMessages(prev => (prev||[]).map(m =>
+              m.id === payload.new.id ? { ...m, ...payload.new } : m
+            ));
+            return;
+          }
         console.log("[HUI_REALTIME_RECEIVED] neue Message:", {
           id:        payload.new?.id,
           sender_id: payload.new?.sender_id,
@@ -255,19 +260,10 @@ export function useChatThread(chatId) {
           );
           return [...withoutMatchingOptimistic, payload.new];
         });
-      })
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "messages",
-        filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
-        setMessages(prev => (prev||[]).map(m =>
-          m.id === payload.new.id ? { ...m, ...payload.new } : m
-        ));
-      })
-      .subscribe((status, err) => {
-        console.log("[HUI_REALTIME]", chatId, "subscription status:", status, err || "");
-      });
-    return () => { supabase.removeChannel(realtimeRef.current); };
+        },
+      },
+    });
+    return () => { realtimeRef.current?.(); };
   }, [chatId]);
 
   // sendMessage — Optimistic Update + Supabase
@@ -336,30 +332,34 @@ export function useChatThread(chatId) {
         m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
       ));
 
-      // Phase 4E: Notification an Gesprächspartner (non-blocking)
+      // Phase 5: Message becomes a canonical social interaction.
       if (insertedData?.id && chatId) {
-        Promise.resolve().then(async () => {
-          try {
-            const { data: chatRow } = await supabase
-              .from("chats")
-              .select("participant_a, participant_b")
-              .eq("id", chatId)
-              .single();
-            if (!chatRow) return;
-            const recipientId = chatRow.participant_a === user?.id
-              ? chatRow.participant_b
-              : chatRow.participant_a;
-            const { data: me } = await supabase
-              .from("profiles").select("display_name").eq("id", user?.id).single();
-            await notifyMessage({
-              senderId:    user?.id,
-              recipientId,
-              senderName:  me?.display_name || "Jemand",
-              chatId,
-              preview:     payload?.text || "",
-            });
-          } catch { /* notification failure is non-critical */ }
+        const { data: chatRow } = await supabase
+          .from("chats")
+          .select("participant_a, participant_b")
+          .eq("id", chatId)
+          .single();
+        if (!chatRow) throw new Error("chat_not_found_for_social_interaction");
+        const recipientId = chatRow.participant_a === user?.id
+          ? chatRow.participant_b
+          : chatRow.participant_a;
+        const { data: me } = await supabase
+          .from("profiles").select("display_name").eq("id", user?.id).single();
+        const socialResult = await dispatchSocialInteraction({
+          interactionType: "message",
+          actorId: user.id,
+          targetEntityType: "chat",
+          targetEntityId: chatId,
+          targetUserId: recipientId,
+          visibility: "private",
+          metadata: {
+            messageId: insertedData.id,
+            senderName: me?.display_name || "Jemand",
+            preview: payload?.text || "",
+            msgType,
+          },
         });
+        if (socialResult.error) throw new Error(socialResult.error.message);
       }
 
       return { success: true, id: insertedData?.id };
