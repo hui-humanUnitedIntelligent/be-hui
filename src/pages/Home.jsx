@@ -442,35 +442,28 @@ function HomeInner() {
         </SafeRender>
       )}
 
-      {/* ── Teilen Flow — ALWAYS MOUNTED, visible prop steuert Sichtbarkeit ── */}
-      {/* WICHTIG: Kein bedingtes Rendering! Unmount während Publish killt den Insert. */}
-      {SAFE_MODE.teilenFlow && (
-        <SafeRender flag="teilenFlow" label="TeilenFlow">
-          <TeilenFlow
-            visible={showTeilen}
-            onClose={() => {
-              console.log("FLOW_CLOSE_TRIGGER", "Home.jsx onClose");
-              if (window.__PUBLISHING__) {
-                console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onClose");
-                return;
-              }
-              setShowTeilen(false);
-            }}
-            onPublished={(result) => {
-              console.log("[HUI MOMENT] Home.jsx onPublished empfangen", result);
-              if (window.__PUBLISHING__) {
-                console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onPublished");
-                return;
-              }
-              setShowTeilen(false);
-              if (result?.refresh) {
-                console.log("[HUI MOMENT] Feed Refresh wird getriggert...");
-                feedRefreshRef.current?.();
-              }
-            }}
-          />
-        </SafeRender>
-      )}
+      {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
+      {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
+      <TeilenFlow
+        visible={showTeilen}
+        onClose={() => {
+          if (window.__PUBLISHING__) {
+            console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onClose");
+            return;
+          }
+          setShowTeilen(false);
+        }}
+        onPublished={(result) => {
+          if (window.__PUBLISHING__) {
+            console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onPublished");
+            return;
+          }
+          setShowTeilen(false);
+          if (result?.refresh) {
+            feedRefreshRef.current?.();
+          }
+        }}
+      />
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (

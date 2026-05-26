@@ -432,68 +432,6 @@ function StepCreate({ mode, data, onChange }) {
 
 
    {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
-      {showDebugPanel && (
-        <div style={{
-          position:"fixed", top:0, left:0, right:0, bottom:0,
-          background:"rgba(0,0,0,0.88)", zIndex:99999,
-          display:"flex", flexDirection:"column",
-          padding:"env(safe-area-inset-top,20px) 16px 20px",
-          overflowY:"auto", fontFamily:"monospace",
-        }}>
-          <div style={{
-            display:"flex", justifyContent:"space-between", alignItems:"center",
-            marginBottom:16,
-          }}>
-            <div style={{ color:"#4ade80", fontWeight:700, fontSize:14 }}>
-              🔍 DEBUG: beitraege (newest {debugRows.length} rows)
-            </div>
-            <button
-              onClick={() => setShowDebugPanel(false)}
-              style={{
-                background:"rgba(239,68,68,0.2)", border:"1px solid rgba(239,68,68,0.4)",
-                color:"#f87171", borderRadius:8, padding:"4px 12px", cursor:"pointer",
-                fontSize:12,
-              }}
-            >✕ Schließen</button>
-          </div>
-          {debugRows.length === 0 ? (
-            <div style={{ color:"#f87171", fontSize:13 }}>
-              ❌ Keine Rows gefunden — Insert vermutlich nicht in DB angekommen
-            </div>
-          ) : (
-            debugRows.map((r, i) => (
-              <div key={r.id || i} style={{
-                background:"rgba(255,255,255,0.06)", borderRadius:10,
-                padding:"10px 12px", marginBottom:8, fontSize:11.5,
-              }}>
-                <div style={{ color:"#a78bfa", fontWeight:700, marginBottom:4 }}>
-                  #{i+1} — id: {r.id}
-                </div>
-                <div style={{ color:"#e2e8f0" }}>
-                  type: <span style={{color:"#34d399"}}>{r.type || "(null)"}</span>
-                  {"  "}caption: <span style={{color:"#fbbf24"}}>{r.caption || "(null)"}</span>
-                </div>
-                <div style={{ color:"#94a3b8", fontSize:10.5, marginTop:3 }}>
-                  user_id: {r.user_id}{"  "}
-                  src: {r.src ? "✅" : "null"}{"  "}
-                  created_at: {r.created_at}
-                </div>
-              </div>
-            ))
-          )}
-          <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(255,255,255,0.04)",
-            borderRadius:10, fontSize:11, color:"#94a3b8" }}>
-            <div style={{color:"#60a5fa", fontWeight:700, marginBottom:4}}>Feed Query prüft:</div>
-            <div>table: beitraege</div>
-            <div>select: id, user_id, src, type, caption, created_at</div>
-            <div>filter: (kein where — alle rows sichtbar für SELECT)</div>
-            <div>order: created_at DESC, limit: 10</div>
-            <div style={{marginTop:8, color:"#f87171"}}>
-              Wenn Rows oben sichtbar aber Feed leer → Problem in Normalisierung/Kuratierung
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -709,50 +647,20 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
 
   const [step,       setStep]       = useState(1);
   const [publishing,     setPublishing]     = useState(false);
-  const [debugRows,      setDebugRows]      = useState([]);
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
-  // ── PUBLISH DEBUG ────────────────────────────────────────────────────
-  const [publishDebug, setPublishDebug] = useState([]);
 
-  const pushDebug = useCallback((label, value) => {
-    console.log("PUBLISH_DEBUG", label, value);
-    setPublishDebug(prev => [
-      ...prev,
-      { time: new Date().toISOString(), label, value }
-    ]);
-  }, []);
-
-  // ── VISIBLE PROP: Reset Form+Step wenn Flow neu geöffnet wird ──────────
+  // ── Visible: Form reset beim Öffnen ─────────────────────────────────
   React.useEffect(() => {
     if (visible) {
-      console.log("TEILENFLOW_VISIBLE_TRUE — reset form+step");
       setStep(1);
       setForm({
         mode: null, mediaFile: null, mediaPreview: null,
         mediaType: null, text: "", location: "", mood: null,
       });
-      setPublishDebug([]);
-      setShowDebugPanel(false);
     }
   }, [visible]);
 
-  // ── MOUNT / UNMOUNT DEBUG ────────────────────────────────────────────
-  React.useEffect(() => {
-    console.log("TEILENFLOW_MOUNT");
-    return () => {
-      console.log("TEILENFLOW_UNMOUNT");
-      // alert deaktiviert weil Safari blockt alerts im unmount
-      // stattdessen: beacon
-      try { navigator.sendBeacon && navigator.sendBeacon("/favicon.ico"); } catch(_){}
-      // Visual trace
-      const el = document.createElement("div");
-      el.style.cssText = "position:fixed;top:0;left:0;right:0;padding:20px;background:orange;color:black;font-size:20px;font-weight:bold;z-index:9999999";
-      el.textContent = "⚠️ TEILENFLOW_UNMOUNT @ " + new Date().toISOString();
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 5000);
-    };
-  }, []);
+
   const scrollRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -794,105 +702,67 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
-    if (publishing || window.__PUBLISHING__) return;
-
-    // ══ PUBLISH LOCK — verhindert externen Close/Unmount während Insert ══
+    if (window.__PUBLISHING__) return;
     window.__PUBLISHING__ = true;
-    console.log("PUBLISH_START");
-    pushDebug("START_PUBLISH", { mode: form.mode, hasMedia: !!form.mediaFile, text: form.text?.slice(0,40) });
-
-    if (!user?.id) {
-      window.__PUBLISHING__ = false;
-      console.log("PUBLISH_UNLOCK", "no_user");
-      pushDebug("NO_USER_ID", { user });
-      return;
-    }
-
     setPublishing(true);
-    let published = false;
+    console.log("PUBLISH_START", { mode: form.mode, text: form.text?.slice(0,40) });
 
     try {
-      // ── STEP 2: Session Check ────────────────────────────────────
+      // ── Session ────────────────────────────────────────────────
       const { data: { session } } = await supabase.auth.getSession();
-      pushDebug("SESSION", { userId: session?.user?.id, expires: session?.expires_at });
-
-      if (!session) {
-        pushDebug("NO_SESSION", true);
-        setPublishing(false);
+      if (!session?.user?.id) {
+        console.error("PUBLISH_NO_SESSION");
         return;
       }
 
-      // ── STEP 3: Upload (optional) ────────────────────────────────
+      // ── Upload (optional) ──────────────────────────────────────
       let src = null;
       if (form.mediaFile) {
-        pushDebug("UPLOAD_START", { hasFile: true, type: form.mediaFile?.type, size: form.mediaFile?.size });
         const ext  = form.mediaFile.name.split(".").pop();
-        const path = `moments/${user.id}/${Date.now()}.${ext}`;
+        const path = `moments/${session.user.id}/${Date.now()}.${ext}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("moments")
           .upload(path, form.mediaFile, { upsert: true });
-        pushDebug("UPLOAD_RESULT", { data: uploadData, error: uploadError });
         if (!uploadError) {
           const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
           src = pub?.publicUrl || null;
-          pushDebug("PUBLIC_URL", src);
+        } else {
+          console.error("PUBLISH_UPLOAD_ERROR", uploadError);
         }
-      } else {
-        pushDebug("UPLOAD_START", { hasFile: false, reason: "Text-only Moment" });
       }
 
-      // ── STEP 4: Insert ───────────────────────────────────────────
+      // ── Insert ─────────────────────────────────────────────────
       const payload = {
         user_id: session.user.id,
         type:    form.mode === "story" ? "note" : "moment",
         caption: form.text?.trim() || null,
-        src:     src,
+        src,
       };
-      pushDebug("INSERT_PAYLOAD", payload);
+      console.log("PUBLISH_INSERT_PAYLOAD", payload);
 
       const { data, error: dbErr } = await supabase
         .from("beitraege")
         .insert(payload)
         .select();
 
-      pushDebug("INSERT_RESPONSE", { data, error: dbErr });
-
       if (dbErr) {
-        pushDebug("INSERT_ERROR_DETAIL", {
-          code: dbErr.code,
-          message: dbErr.message,
-          hint: dbErr.hint,
-          details: dbErr.details,
-        });
-        // KEIN silent fail — bleibt offen, Panel zeigt Fehler
+        console.error("PUBLISH_INSERT_ERROR", dbErr.code, dbErr.message, dbErr.hint);
       } else {
-        pushDebug("INSERT_SUCCESS", { id: data?.[0]?.id });
-        published = true;
-
-        // ── POST-INSERT VERIFY ───────────────────────────────────────
-        const { data: recentRows, error: recentErr } = await supabase
-          .from("beitraege")
-          .select("id,user_id,type,caption,src,created_at")
-          .order("created_at", { ascending: false })
-          .limit(5);
-        pushDebug("POST_INSERT_QUERY", { rows: recentRows?.length ?? 0, error: recentErr, data: recentRows });
-        setDebugRows(recentRows || []);
-        setShowDebugPanel(true);
+        console.log("PUBLISH_SUCCESS", data?.[0]?.id);
       }
 
     } catch (err) {
-      pushDebug("EXCEPTION", { message: err?.message, stack: err?.stack?.split("\n").slice(0,4) });
+      console.error("PUBLISH_EXCEPTION", err?.message);
     } finally {
       setPublishing(false);
       window.__PUBLISHING__ = false;
-      console.log("PUBLISH_UNLOCK", { published });
-      pushDebug("FINALLY", { published });
-      if (published) {
-        onPublished?.({ mode: form.mode, refresh: true });
-        setTimeout(() => { onClose?.(); }, 300);
-      }
+      console.log("PUBLISH_FINALLY_DONE");
     }
-  }, [form, publishing, user?.id, onClose, onPublished]);
+
+    // onPublished / onClose NACH finally — Flow bleibt bis hier offen
+    onPublished?.({ mode: form.mode, refresh: true });
+    onClose?.();
+  }, [form, publishing, onClose, onPublished]);
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
@@ -902,15 +772,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   const meta = STEP_META[step];
 
   // ALWAYS MOUNTED — visible prop steuert Sichtbarkeit, kein Unmount
-  if (!visible) {
-    return (
-      <div
-        data-teilenflow="hidden"
-        style={{ display:"none" }}
-        aria-hidden="true"
-      />
-    );
-  }
+  if (!visible) return null;
 
   return (
     <div style={{
@@ -1068,109 +930,8 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       )}
 
          {/* ── BLOCKING DEBUG OVERLAY — fixiert, zIndex über allem ────────── */}
-      {publishDebug.length > 0 && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            zIndex: 999999999,
-            background: "#000",
-            color: "#00ff88",
-            padding: 24,
-            fontSize: 13,
-            fontFamily: "monospace",
-            whiteSpace: "pre-wrap",
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
-          <div style={{ color: "#ff4444", fontSize: 18, fontWeight: "bold", marginBottom: 8 }}>
-            🔴 BLOCKING DEBUG — handlePublish gestartet
-          </div>
-          {publishDebug.map((line, i) => (
-            <pre key={i} style={{ margin: 0, background: "rgba(255,255,255,0.05)", padding: 10, borderRadius: 8 }}>
-              {line}
-            </pre>
-          ))}
-          <button
-            onClick={() => setPublishDebug([])}
-            style={{
-              marginTop: 20, padding: "12px 24px",
-              background: "#ff4444", color: "white",
-              border: "none", borderRadius: 12,
-              fontSize: 16, fontWeight: "bold", cursor: "pointer",
-            }}
-          >
-            ✕ Schließen
-          </button>
-        </div>
-      )}
 
    {/* ── DEBUG PANEL: Post-Insert beitraege Rows ──────────────── */}
-      {showDebugPanel && (
-        <div style={{
-          position:"fixed", top:0, left:0, right:0, bottom:0,
-          background:"rgba(0,0,0,0.88)", zIndex:99999,
-          display:"flex", flexDirection:"column",
-          padding:"env(safe-area-inset-top,20px) 16px 20px",
-          overflowY:"auto", fontFamily:"monospace",
-        }}>
-          <div style={{
-            display:"flex", justifyContent:"space-between", alignItems:"center",
-            marginBottom:16,
-          }}>
-            <div style={{ color:"#4ade80", fontWeight:700, fontSize:14 }}>
-              🔍 DEBUG: beitraege (newest {debugRows.length} rows)
-            </div>
-            <button
-              onClick={() => setShowDebugPanel(false)}
-              style={{
-                background:"rgba(239,68,68,0.2)", border:"1px solid rgba(239,68,68,0.4)",
-                color:"#f87171", borderRadius:8, padding:"4px 12px", cursor:"pointer",
-                fontSize:12,
-              }}
-            >✕ Schließen</button>
-          </div>
-          {debugRows.length === 0 ? (
-            <div style={{ color:"#f87171", fontSize:13 }}>
-              ❌ Keine Rows gefunden — Insert vermutlich nicht in DB angekommen
-            </div>
-          ) : (
-            debugRows.map((r, i) => (
-              <div key={r.id || i} style={{
-                background:"rgba(255,255,255,0.06)", borderRadius:10,
-                padding:"10px 12px", marginBottom:8, fontSize:11.5,
-              }}>
-                <div style={{ color:"#a78bfa", fontWeight:700, marginBottom:4 }}>
-                  #{i+1} — id: {r.id}
-                </div>
-                <div style={{ color:"#e2e8f0" }}>
-                  type: <span style={{color:"#34d399"}}>{r.type || "(null)"}</span>
-                  {"  "}caption: <span style={{color:"#fbbf24"}}>{r.caption || "(null)"}</span>
-                </div>
-                <div style={{ color:"#94a3b8", fontSize:10.5, marginTop:3 }}>
-                  user_id: {r.user_id}{"  "}
-                  src: {r.src ? "✅" : "null"}{"  "}
-                  created_at: {r.created_at}
-                </div>
-              </div>
-            ))
-          )}
-          <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(255,255,255,0.04)",
-            borderRadius:10, fontSize:11, color:"#94a3b8" }}>
-            <div style={{color:"#60a5fa", fontWeight:700, marginBottom:4}}>Feed Query prüft:</div>
-            <div>table: beitraege</div>
-            <div>select: id, user_id, src, type, caption, created_at</div>
-            <div>filter: (kein where — alle rows sichtbar für SELECT)</div>
-            <div>order: created_at DESC, limit: 10</div>
-            <div style={{marginTop:8, color:"#f87171"}}>
-              Wenn Rows oben sichtbar aber Feed leer → Problem in Normalisierung/Kuratierung
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
