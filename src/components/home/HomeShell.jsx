@@ -7,6 +7,7 @@ import React, {
 import { useAuth }        from "../../lib/AuthContext";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useNotifCount }  from "../../lib/AppStateContext";
+import { useBookingActions } from "../../lib/bookingContext";
 import {
   useSessionRestore,
   useScrollMemory,
@@ -15,11 +16,6 @@ import {
 import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
 import HuiActionProvider from "../../core/HuiActionProvider.jsx";
 import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
-import { SAFE_MODE } from "../../config/safeMode.js";
-import {
-  computeTransitionCarryOver,
-  mockWorldFromAtmosphere,
-} from "../../lib/intelligence/worldContinuity.js";
 import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
 import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
 import { assertValidTab } from "../../lib/world/orbLayer.js";
@@ -61,6 +57,7 @@ export default function HomeShell({ children }) {
   );
 
   const liveNotifCount = useNotifCount();
+  const bookingActions = useBookingActions();
 
   /* Tab */
   const [tab, _setTab]          = useSessionRestore("feed");
@@ -274,6 +271,7 @@ export default function HomeShell({ children }) {
     createType,            setCreateType,
     activeStory,           setActiveStory,
     cart,                  setCart,
+    bookingActions,
     openOwnProfile,
     flowStore,          // Phase 2: Flow Memory
   };

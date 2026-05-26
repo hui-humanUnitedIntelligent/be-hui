@@ -98,10 +98,17 @@ export default function ProfileLauncher() {
     // setShowWirker(null) hier entfernt — Chat-Close restored das Profil.
   };
 
-  // Phase 23: Buchen → ConnectionCreate (Booking-Request) oder direkter Chat
-  const handleBook = (profile) => {
-    // Buchen = Verbindungs-Request mit Booking-Intent
-    handleChat(profile);  // Vorerst: Chat öffnen (Booking ist Conversation-basiert)
+  // Phase 23: Buchen → canonical Booking Runtime
+  const handleBook = (profile, exp = null) => {
+    actions[A.BOOK_EXPERIENCE]?.({
+      source: S.VISITOR_PROFILE,
+      creator: profile,
+      experience: exp || {
+        title: `Anfrage an ${profile?.display_name || profile?.name || "Creator"}`,
+        creator_id: profile?.id || profile?.user_id,
+        category: "other",
+      },
+    });
   };
 
   const handleAction = (key) => { /* Studio, Edit, etc. — erweiterbar */ };

@@ -2,15 +2,10 @@
 // SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
-import React, { Suspense, useEffect, useRef, useCallback } from "react";
+import React, { Suspense } from "react";
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
-import {
-  orbBackdropTokens,
-  orbNavDriftTokens,
-  assertValidTab,
-} from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
@@ -650,11 +645,12 @@ function HomeInner() {
 
                 // Objekt: { type, id, ... }
                 if (typeof target === "object") {
-                  if (target.type === "chat" && target.recipientId) {
+                  if (target.type === "chat" && (target.recipientId || target.chatId)) {
                     setChatRecipient({
                       id:           target.recipientId,
                       display_name: target.recipientName || "Creator",
                       avatar_url:   target.recipientAvatar || null,
+                      chatId:       target.chatId || null,
                     });
                     setShowChat(true);
                     return;

@@ -915,7 +915,46 @@ export default function NotificationCenter({ onClose, onNavigate }) {
       } catch { /* silent */ }
     }
     // 2. Route via Action Engine — type-safe, logged
-    if (n.type === "begegnung" || n.type === "buchung") {
+    if (n.type === "message") {
+      if (n.entity_type === "chat" && n.entity_id) {
+        onNavigate?.({
+          type: "chat",
+          chatId: n.entity_id,
+          recipientId: n.sender_id || null,
+          recipientName: n.sender_name || n.from_name || null,
+          recipientAvatar: n.sender_avatar || n.from_avatar || null,
+        });
+        onClose?.();
+      } else if (n.sender_id) {
+        actions[A.OPEN_CHAT]?.({
+          source: S.NOTIFICATIONS,
+          recipient: {
+            id:           n.sender_id,
+            display_name: n.sender_name   || n.from_name   || null,
+            avatar_url:   n.sender_avatar || n.from_avatar || null,
+          },
+        });
+        onClose?.();
+      }
+    } else if (n.type === "booking" || n.type === "begegnung" || n.type === "buchung") {
+      if (n.entity_type === "booking" && n.entity_id) {
+        const { data: booking } = await supabase
+          .from("bookings")
+          .select("chat_id")
+          .eq("id", n.entity_id)
+          .maybeSingle();
+        if (booking?.chat_id) {
+          onNavigate?.({
+            type: "chat",
+            chatId: booking.chat_id,
+            recipientId: n.sender_id || null,
+            recipientName: n.sender_name || n.from_name || null,
+            recipientAvatar: n.sender_avatar || n.from_avatar || null,
+          });
+          onClose?.();
+          return;
+        }
+      }
       if (n.sender_id) {
         actions[A.OPEN_CHAT]?.({
           source: S.NOTIFICATIONS,
@@ -946,10 +985,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   }, [actions, loadNotifications, onNavigate, onClose]);
 
   const handleMarkAllRead = useCallback(async () => {
-    try {
-      await supabase.from("notifications").update({ read:true }).eq("read", false);
-      markNotifsRead();
-    } catch { /* silent */ }
+    markNotifsRead();
   }, [markNotifsRead]);
 
   // ── Daten: DB oder Mock ───────────────────────────────────────────

@@ -100,7 +100,7 @@ export function validateMessage({ text, chatId, senderId }) {
 export function validateBookingRequest({
   creatorId, requesterId, title, description, date, budget, reqType
 }) {
-  const BOOKING_TYPES = ['project', 'event', 'consultation', 'workshop', 'collab', 'other'];
+  const BOOKING_TYPES = ['project', 'event', 'consultation', 'workshop', 'shooting', 'collab', 'coaching', 'other'];
 
   const errors = collect(
     v.uuid(creatorId, 'creatorId'),

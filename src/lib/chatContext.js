@@ -77,6 +77,12 @@ export function formatMsgDate(iso) {
   return d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
 }
 
+function sortMessagesByTime(items) {
+  return [...(items || [])].sort((a, b) =>
+    new Date(a.created_at || 0) - new Date(b.created_at || 0)
+  );
+}
+
 // ────────────────────────────────────────────────────────────────
 // useChatList — alle Chats des Users, sortiert + mit Kontext
 // ────────────────────────────────────────────────────────────────
@@ -87,7 +93,11 @@ export function useChatList() {
   const realtimeRef = useRef(null);
 
   const load = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setChats([]);
+      setLoading(false);
+      return;
+    }
     try {
       // Chats laden (participant_a/b Schema)
       const { data: rawChats } = await supabase
@@ -156,12 +166,27 @@ export function useChatList() {
       .channel(`chat-list:${user.id}`)
       .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "chats",
+        filter: `participant_a=eq.${user.id}`,
       }, () => load())
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "chats",
+        filter: `participant_a=eq.${user.id}`,
       }, () => load())
-      .subscribe();
-    return () => { supabase.removeChannel(realtimeRef.current); };
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "chats",
+        filter: `participant_b=eq.${user.id}`,
+      }, () => load())
+      .on("postgres_changes", {
+        event: "INSERT", schema: "public", table: "chats",
+        filter: `participant_b=eq.${user.id}`,
+      }, () => load())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") load();
+      });
+    return () => {
+      if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
+      realtimeRef.current = null;
+    };
   }, [user?.id, load]);
 
   // unreadTotal für Badge im Tab
@@ -171,7 +196,15 @@ export function useChatList() {
   // markChatRead — setzt unread für diesen User auf 0
   const markChatRead = useCallback(async (chatId) => {
     if (!user?.id) return;
-    const c = chats.find(ch => ch.id === chatId);
+    let c = chats.find(ch => ch.id === chatId);
+    if (!c) {
+      const { data } = await supabase
+        .from("chats")
+        .select("id,participant_a,participant_b")
+        .eq("id", chatId)
+        .maybeSingle();
+      c = data;
+    }
     if (!c) return;
     const isA = c.participant_a === user.id;
     const updateField = isA ? { unread_a: 0 } : { unread_b: 0 };
@@ -199,19 +232,26 @@ export function useChatThread(chatId) {
   const [sending,  setSending]  = useState(false);
   const realtimeRef = useRef(null);
   const optimisticIdRef = useRef(0);
+  const loadSeqRef = useRef(0);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ reset = false } = {}) => {
+    const seq = ++loadSeqRef.current;
     if (!chatId) {
       console.warn("[HUI_CHAT] useChatThread: kein chatId — kein Load");
+      setMessages([]);
+      setLoading(false);
       return;
     }
     const isFake = typeof chatId === "string" && chatId.startsWith("direct_");
     if (isFake) {
       console.warn("[HUI_CHAT] useChatThread: fake chatId:", chatId, "— kein DB-Load");
+      setMessages([]);
       setLoading(false);
       return;
     }
     console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
+    if (reset) setMessages([]);
+    setLoading(true);
     try {
       const { data } = await supabase
         .from("messages")
@@ -224,12 +264,16 @@ export function useChatThread(chatId) {
         .eq("is_deleted", false)
         .order("created_at", { ascending: true })
         .limit(100);
-      if (data) setMessages(data);
-    } catch(e) { console.warn("[useChatThread]", e.message); }
-    finally { setLoading(false); }
+      if (seq === loadSeqRef.current) setMessages(sortMessagesByTime(data || []));
+    } catch(e) {
+      if (seq === loadSeqRef.current) console.warn("[useChatThread]", e.message);
+    }
+    finally {
+      if (seq === loadSeqRef.current) setLoading(false);
+    }
   }, [chatId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load({ reset: true }); }, [load]);
 
   // Realtime für neue Nachrichten
   useEffect(() => {
@@ -249,11 +293,15 @@ export function useChatThread(chatId) {
         setMessages(prev => {
           const exists = prev.find(m => m.id === payload.new.id);
           if (exists) return prev;
-          // Optimistic message ersetzen wenn ID passt, sonst anhängen
-          const withoutMatchingOptimistic = prev.filter(m =>
-            !(m._optimistic && m.text === payload.new.text && m.sender_id === payload.new.sender_id)
+          const optimisticIndex = prev.findIndex(m =>
+            m._optimistic && m.text === payload.new.text && m.sender_id === payload.new.sender_id
           );
-          return [...withoutMatchingOptimistic, payload.new];
+          if (optimisticIndex >= 0) {
+            const next = [...prev];
+            next.splice(optimisticIndex, 1, payload.new);
+            return sortMessagesByTime(next);
+          }
+          return sortMessagesByTime([...prev, payload.new]);
         });
       })
       .on("postgres_changes", {
@@ -266,9 +314,13 @@ export function useChatThread(chatId) {
       })
       .subscribe((status, err) => {
         console.log("[HUI_REALTIME]", chatId, "subscription status:", status, err || "");
+        if (status === "SUBSCRIBED") load();
       });
-    return () => { supabase.removeChannel(realtimeRef.current); };
-  }, [chatId]);
+    return () => {
+      if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
+      realtimeRef.current = null;
+    };
+  }, [chatId, load]);
 
   // sendMessage — Optimistic Update + Supabase
   const sendMessage = useCallback(async ({
@@ -279,7 +331,9 @@ export function useChatThread(chatId) {
       console.error("[HUI_MESSAGE_ERROR] kein chatId — Message abgebrochen", { chatId, userId: user?.id });
       return { error: "no_chat_id" };
     }
-    if (!user?.id) {
+    try {
+      assertAuthenticated(user);
+    } catch {
       console.error("[HUI_MESSAGE_ERROR] kein user.id — nicht eingeloggt?", { chatId });
       return { error: "not_authenticated" };
     }
@@ -287,18 +341,29 @@ export function useChatThread(chatId) {
       console.warn("[HUI_MESSAGE_ERROR] leerer Text + kein mediaUrl — abgebrochen");
       return { error: "empty_message" };
     }
+    const guardKey = `message-${chatId}-${user.id}`;
+    if (!globalMutationGuard.lockWithTimeout(guardKey, 3000)) {
+      return { error: "message_in_flight" };
+    }
+
+    const validResult = text?.trim()
+      ? validateMessage({ text: text.trim(), chatId, senderId: user.id })
+      : { valid: true, data: { text: "" }, errors: [] };
+    if (!validResult.valid) {
+      globalMutationGuard.unlock(guardKey);
+      return { error: validResult.errors[0] };
+    }
 
     // ── PAYLOAD LOG ────────────────────────────────────────────
     const payload = {
       chat_id:    chatId,
       sender_id:  user.id,
-      text:       text?.trim() || "",
+      text:       mediaUrl && !text?.trim() ? "" : validResult.data.text,
       msg_type:   msgType,
       media_url:  mediaUrl || null,
       media_type: mediaType || null,
       media_meta: mediaMeta || null,
       context_ref: contextRef || null,
-      created_at: new Date().toISOString(),
       read:       false,
     };
     console.log("[HUI_MESSAGE_SEND] Payload →", JSON.stringify(payload));
@@ -306,7 +371,7 @@ export function useChatThread(chatId) {
 
     // ── OPTIMISTIC ─────────────────────────────────────────────
     const tempId = `temp-${optimisticIdRef.current++}`;
-    const optimisticMsg = { id: tempId, ...payload, _optimistic: true };
+    const optimisticMsg = { id: tempId, ...payload, created_at: new Date().toISOString(), _optimistic: true };
     setMessages(prev => [...prev, optimisticMsg]);
 
     try {
@@ -314,7 +379,11 @@ export function useChatThread(chatId) {
       const { data: insertedData, error } = await supabase
         .from("messages")
         .insert(payload)
-        .select("id")
+        .select(`
+          id, text, sender_id, created_at, read, updated_at,
+          msg_type, media_url, media_type, media_meta,
+          context_ref, is_deleted, reply_to
+        `)
         .single();
 
       if (error) {
@@ -332,9 +401,9 @@ export function useChatThread(chatId) {
 
       console.log("[HUI_REALITY] chat persisted ✓", insertedData?.id);
       // Optimistic message mit echter ID ersetzen
-      setMessages(prev => prev.map(m =>
-        m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
-      ));
+      setMessages(prev => sortMessagesByTime(prev.map(m =>
+        m.id === tempId ? { ...insertedData, _optimistic: false } : m
+      )));
 
       // Phase 4E: Notification an Gesprächspartner (non-blocking)
       if (insertedData?.id && chatId) {
@@ -369,6 +438,7 @@ export function useChatThread(chatId) {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       return { error: e.message };
     } finally {
+      globalMutationGuard.unlock(guardKey);
       setSending(false);
     }
   }, [chatId, user?.id]);
@@ -471,67 +541,79 @@ export async function findOrCreateChat({
   bookingId = null, contextTitle = null, contextType = null,
 }) {
   if (!userId || !otherUserId) return null;
+  const sortedParticipants = [userId, otherUserId].sort().join(":");
+  const guardKey = `chat-${chatType}-${bookingId || sortedParticipants}`;
+  if (!globalMutationGuard.lockWithTimeout(guardKey, 5000)) return null;
 
-  // Existing chat suchen — direkte Suche nach beiden Kombinationen
-  // (participant_a=userId AND participant_b=otherUserId)
-  // OR (participant_a=otherUserId AND participant_b=userId)
-  const { data: existing, error: findError } = await supabase
-    .from("chats")
-    .select("id, participant_a, participant_b, chat_type, state, last_message, booking_id")
-    .or(
-      `and(participant_a.eq.${userId},participant_b.eq.${otherUserId}),` +
-      `and(participant_a.eq.${otherUserId},participant_b.eq.${userId})`
-    )
-    .eq("state", "open")
-    .order("last_message_at", { ascending: false })
-    .limit(5);
+  try {
+    // Existing chat suchen — direkte Suche nach beiden Kombinationen
+    // (participant_a=userId AND participant_b=otherUserId)
+    // OR (participant_a=otherUserId AND participant_b=userId)
+    let query = supabase
+      .from("chats")
+      .select("id, participant_a, participant_b, chat_type, state, last_message, booking_id")
+      .or(
+        `and(participant_a.eq.${userId},participant_b.eq.${otherUserId}),` +
+        `and(participant_a.eq.${otherUserId},participant_b.eq.${userId})`
+      )
+      .eq("state", "open")
+      .eq("chat_type", chatType)
+      .order("last_message_at", { ascending: false })
+      .limit(5);
 
-  if (findError) {
-    console.error("[HUI_CHAT] findOrCreateChat SELECT fehlgeschlagen:", findError.message, findError.code);
-    // Trotzdem weiterversuchen — neuen Chat erstellen
+    if (bookingId) query = query.eq("booking_id", bookingId);
+
+    const { data: existing, error: findError } = await query;
+
+    if (findError) {
+      console.error("[HUI_CHAT] findOrCreateChat SELECT fehlgeschlagen:", findError.message, findError.code);
+      return null;
+    }
+
+    console.log("[HUI_CHAT] findOrCreateChat: gefundene Chats:", existing?.length ?? 0, existing?.map(c=>c.id));
+
+    const match = (existing || []).find(c =>
+      (c.participant_a === userId && c.participant_b === otherUserId) ||
+      (c.participant_a === otherUserId && c.participant_b === userId)
+    );
+
+    if (match) {
+      console.log("[HUI_CHAT] findOrCreateChat: bestehender Chat gefunden:", match.id);
+      return match;
+    }
+
+    // Neuen Chat erstellen
+    console.log("[HUI_CHAT] findOrCreateChat: neuer Chat wird erstellt…", { userId, otherUserId });
+    const { data: newChat, error: createError } = await supabase
+      .from("chats")
+      .insert({
+        participant_a:    userId,
+        participant_b:    otherUserId,
+        participant_ids:  [userId, otherUserId],
+        chat_type:        chatType,
+        state:            "open",
+        booking_id:       bookingId,
+        context_title:    contextTitle,
+        context_type:     contextType,
+        opened_at:        new Date().toISOString(),
+        last_message_at:  new Date().toISOString(),
+      })
+      .select("id, participant_a, participant_b, chat_type, state, last_message, booking_id")
+      .single();
+
+    if (createError) {
+      console.error("[HUI_CHAT] findOrCreateChat INSERT fehlgeschlagen:", {
+        code:    createError.code,
+        message: createError.message,
+        details: createError.details,
+        hint:    createError.hint,
+      });
+      return null; // explizit null statt undefined
+    }
+
+    console.log("[HUI_CHAT] findOrCreateChat: Chat erstellt:", newChat?.id);
+    return newChat;
+  } finally {
+    globalMutationGuard.unlock(guardKey);
   }
-
-  console.log("[HUI_CHAT] findOrCreateChat: gefundene Chats:", existing?.length ?? 0, existing?.map(c=>c.id));
-
-  const match = (existing || []).find(c =>
-    (c.participant_a === userId && c.participant_b === otherUserId) ||
-    (c.participant_a === otherUserId && c.participant_b === userId)
-  );
-
-  if (match) {
-    console.log("[HUI_CHAT] findOrCreateChat: bestehender Chat gefunden:", match.id);
-    return match;
-  }
-
-  // Neuen Chat erstellen
-  console.log("[HUI_CHAT] findOrCreateChat: neuer Chat wird erstellt…", { userId, otherUserId });
-  const { data: newChat, error: createError } = await supabase
-    .from("chats")
-    .insert({
-      participant_a:    userId,
-      participant_b:    otherUserId,
-      participant_ids:  [userId, otherUserId],
-      chat_type:        chatType,
-      state:            "open",
-      booking_id:       bookingId,
-      context_title:    contextTitle,
-      context_type:     contextType,
-      opened_at:        new Date().toISOString(),
-      last_message_at:  new Date().toISOString(),
-    })
-    .select("id")
-    .single();
-
-  if (createError) {
-    console.error("[HUI_CHAT] findOrCreateChat INSERT fehlgeschlagen:", {
-      code:    createError.code,
-      message: createError.message,
-      details: createError.details,
-      hint:    createError.hint,
-    });
-    return null; // explizit null statt undefined
-  }
-
-  console.log("[HUI_CHAT] findOrCreateChat: Chat erstellt:", newChat?.id);
-  return newChat;
 }
