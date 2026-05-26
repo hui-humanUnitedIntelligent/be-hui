@@ -459,20 +459,16 @@ function HomeInner() {
       <TeilenFlow
         visible={showTeilen}
         onClose={() => {
-          if (window.__PUBLISHING__) {
-            console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onClose");
-            return;
-          }
+          console.log("[HUI_HOME] FLOW_CLOSE empfangen → setShowTeilen(false)");
           setShowTeilen(false);
         }}
         onPublished={(result) => {
-          if (window.__PUBLISHING__) {
-            console.warn("BLOCKED_CLOSE_DURING_PUBLISH", "Home.jsx onPublished");
-            return;
-          }
+          console.log("[HUI_HOME] FLOW_RETURN_HOME empfangen, refresh=", result?.refresh);
           setShowTeilen(false);
-          if (result?.refresh) {
-            feedRefreshRef.current?.();
+          // feed-refresh via feedRefreshRef — direkt aufrufen (zusätzlich zu Event)
+          if (feedRefreshRef.current) {
+            feedRefreshRef.current();
+            console.log("[HUI_HOME] STREAM_REFRESH_TRIGGERED via onPublished");
           }
         }}
       />

@@ -605,7 +605,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
           className="tf-tap"
           onClick={() => {
             console.log("FINAL_SHARE_CLICK");
-            alert("FINAL_SHARE_CLICK");
+            console.log("[HUI_DEBUG] " + "FINAL_SHARE_CLICK");
             onPublish?.();
           }}
           disabled={publishing}
@@ -683,7 +683,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
     console.log("[HUI MOMENT] TEST INSERT start — user:", user?.id);
     if (!user?.id) {
       console.error("[HUI MOMENT] TEST INSERT ABORT — kein user.id");
-      alert("Kein User eingeloggt. Bitte einloggen.");
+      console.log("[HUI_DEBUG] " + "Kein User eingeloggt. Bitte einloggen.");
       return;
     }
     const { data, error } = await supabase
@@ -693,10 +693,10 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       .single();
     if (error) {
       console.error("[HUI MOMENT] TEST INSERT error", { code: error.code, message: error.message });
-      alert("DB ERROR: " + error.code + " — " + error.message);
+      console.log("[HUI_DEBUG] " + "DB ERROR: " + error.code + " — " + error.message);
     } else {
       console.log("[HUI MOMENT] TEST INSERT success", data?.id);
-      alert("✅ Test Insert erfolgreich! id=" + data?.id);
+      console.log("[HUI_DEBUG] " + "✅ Test Insert erfolgreich! id=" + data?.id);
     }
   }, [user?.id]);
 
@@ -800,20 +800,34 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       }
 
       huiLog("STEP_6 INSERT_SUCCESS id=" + data?.[0]?.id);
-      window.dispatchEvent(new Event("feed-refresh"));
-      setTimeout(() => panel?.remove(), 3000);
 
-      onPublished?.();
-      onClose?.();
-
-    } catch (e) {
-      huiLog("CRASH: " + e?.message + " | " + e?.stack?.slice(0,200));
-    } finally {
+      // ── RESET STATE ZUERST — dann Close/Callbacks ────────────────────────
+      // WICHTIG: __PUBLISHING__ und setPublishing MÜSSEN VOR onClose reset werden,
+      // sonst blockt Home.jsx den Close-Callback (prüft window.__PUBLISHING__)
       setPublishing(false);
       window.__PUBLISHING__ = false;
       huiLog("FINALLY done");
+
+      // ── Dispatch feed-refresh ─────────────────────────────────────────────
+      window.dispatchEvent(new Event("feed-refresh"));
+      huiLog("STREAM_REFRESH_TRIGGERED");
+
+      // ── Panel wegräumen (non-blocking) ───────────────────────────────────
+      setTimeout(() => { try { panel?.remove(); } catch(_) {} }, 2500);
+
+      // ── Flow schließen ────────────────────────────────────────────────────
+      huiLog("FLOW_CLOSE");
+      onPublished?.({ refresh: true, id: data?.[0]?.id });
+      onClose?.();
+      huiLog("FLOW_RETURN_HOME");
+
+    } catch (e) {
+      huiLog("CRASH: " + e?.message + " | " + e?.stack?.slice(0,200));
+      setPublishing(false);
+      window.__PUBLISHING__ = false;
     }
-  };;
+    // finally entfernt — reset läuft jetzt im success-Zweig und catch
+  };
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
@@ -854,7 +868,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
             className="tf-tap"
             onClick={() => {
               console.log("FLOW_CLOSE_TRIGGER", "X_BUTTON");
-              alert("FLOW_CLOSE_TRIGGER: X_BUTTON");
+              console.log("[HUI_DEBUG] " + "FLOW_CLOSE_TRIGGER: X_BUTTON");
               onClose?.();
             }}
             style={{

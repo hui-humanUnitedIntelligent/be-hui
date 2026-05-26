@@ -885,6 +885,9 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       types: rawItems.map(i => i.type || i.content_type).join(",").slice(0,80),
       first: rawItems[0] ? { id: rawItems[0].id, type: rawItems[0].type, caption: rawItems[0].caption?.slice(0,30) } : null,
     });
+    if (rawItems.length > 0) {
+      console.log("[HUI_HOMEFEED_RENDER_COMPLETE]", rawItems.length, "items sichtbar");
+    }
   }, [rawItems.length]);
   const [reactions, setReactions] = useState({});
 
