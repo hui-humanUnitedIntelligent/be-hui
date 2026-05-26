@@ -701,89 +701,115 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   }, [user?.id]);
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
-  const handlePublish = useCallback(async () => {
-    // ── GUARD ──────────────────────────────────────────────────
-    if (window.__PUBLISHING__) return;
-    window.__PUBLISHING__ = true;
-    setPublishing(true);
-
-    alert("FINAL_SHARE_CLICK");
-    console.log("PUBLISH_START");
-
+  const handlePublish = async () => {
     try {
-      // ── Session ────────────────────────────────────────────────
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("SESSION_CHECK", session ? session.user.id : "NO_SESSION");
-      if (!session?.user?.id) {
-        alert("PUBLISH_NO_SESSION");
-        console.error("PUBLISH_NO_SESSION");
-        return;
+      alert("STEP_0_HANDLE_PUBLISH_START")
+
+      window.__PUBLISHING__ = true
+      setPublishing(true)
+
+      alert("STEP_1_BEFORE_GET_SESSION")
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+
+      alert(
+        "STEP_2_AFTER_GET_SESSION: " +
+          JSON.stringify({
+            hasSession: !!session,
+            sessionError: sessionError?.message || null,
+          })
+      )
+
+      if (sessionError) {
+        alert("SESSION_ERROR: " + sessionError.message)
+        return
       }
 
-      // ── Upload (optional) ──────────────────────────────────────
-      let src = null;
-      if (form.mediaFile) {
-        console.log("START_UPLOAD", { name: form.mediaFile.name, size: form.mediaFile.size });
-        const ext  = form.mediaFile.name.split(".").pop();
-        const path = `moments/${session.user.id}/${Date.now()}.${ext}`;
+      if (!session?.user?.id) {
+        alert("NO_USER_ID")
+        return
+      }
+
+      let mediaUrl = null
+
+      if (form?.mediaFile) {
+        alert("STEP_3_BEFORE_UPLOAD")
+
+        const ext  = form.mediaFile.name.split(".").pop()
+        const path = `moments/${session.user.id}/${Date.now()}.${ext}`
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("moments")
-          .upload(path, form.mediaFile, { upsert: true });
+          .upload(path, form.mediaFile, { upsert: true })
+
         if (uploadError) {
-          console.error("UPLOAD_ERROR", uploadError);
-          alert("UPLOAD_ERROR: " + JSON.stringify(uploadError));
+          alert("UPLOAD_ERROR: " + JSON.stringify({ message: uploadError.message, code: uploadError.statusCode }))
         } else {
-          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
-          src = pub?.publicUrl || null;
-          console.log("UPLOAD_SUCCESS", src);
+          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path)
+          mediaUrl = pub?.publicUrl || null
         }
-      } else {
-        console.log("NO_MEDIA_FILE — kein Upload nötig");
+
+        alert(
+          "STEP_4_AFTER_UPLOAD: " +
+            JSON.stringify({ mediaUrl })
+        )
       }
 
-      // ── Insert ─────────────────────────────────────────────────
       const payload = {
         user_id: session.user.id,
-        type:    form.mode === "story" ? "note" : "moment",
-        caption: form.text?.trim() || null,
-        src,
-      };
-      console.log("START_INSERT", payload);
+        content: form?.text || "",
+        image_url: mediaUrl,
+        type: "moment",
+        visibility: "public",
+        created_at: new Date().toISOString(),
+      }
+
+      alert(
+        "STEP_5_BEFORE_INSERT: " +
+          JSON.stringify(payload)
+      )
 
       const { data, error } = await supabase
         .from("beitraege")
-        .insert([payload])
-        .select();
-
-      console.log("INSERT_RESPONSE", { data, error });
+        .insert(payload)
+        .select()
 
       if (error) {
-        console.error("INSERT_ERROR", error);
-        alert("INSERT_ERROR: " + JSON.stringify(error));
-        return;
+        alert(
+          "INSERT_ERROR: " +
+            JSON.stringify({
+              message: error.message,
+              code: error.code,
+              details: error.details,
+              hint: error.hint,
+            })
+        )
+        return
       }
 
-      alert("INSERT_SUCCESS");
-      console.log("INSERT_SUCCESS", data);
+      alert(
+        "STEP_6_INSERT_SUCCESS: " +
+          JSON.stringify(data)
+      )
 
-      // ── Feed Refresh ────────────────────────────────────────────
-      console.log("TRIGGER_REFRESH");
-      window.dispatchEvent(new Event("feed-refresh"));
+      onPublished?.()
+      onClose?.()
 
-    } catch (err) {
-      console.error("PUBLISH_EXCEPTION", err?.message, err);
-      alert("PUBLISH_EXCEPTION: " + err?.message);
+    } catch (e) {
+      alert(
+        "HANDLE_PUBLISH_CRASH: " +
+          JSON.stringify({
+            message: e?.message,
+            stack: e?.stack?.slice(0, 300),
+          })
+      )
     } finally {
-      setPublishing(false);
-      window.__PUBLISHING__ = false;
-      console.log("PUBLISH_FINALLY_DONE");
+      setPublishing(false)
+      window.__PUBLISHING__ = false
     }
-
-    // onPublished / onClose erst GANZ AM ENDE
-    console.log("FLOW_CLOSE");
-    onPublished?.({ mode: form.mode, refresh: true });
-    onClose?.();
-  }, [form, publishing, onClose, onPublished]);
+  }
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
