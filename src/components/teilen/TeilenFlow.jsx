@@ -702,15 +702,20 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
+    // ── GUARD ──────────────────────────────────────────────────
     if (window.__PUBLISHING__) return;
     window.__PUBLISHING__ = true;
     setPublishing(true);
-    console.log("PUBLISH_START", { mode: form.mode, text: form.text?.slice(0,40) });
+
+    alert("FINAL_SHARE_CLICK");
+    console.log("PUBLISH_START");
 
     try {
       // ── Session ────────────────────────────────────────────────
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("SESSION_CHECK", session ? session.user.id : "NO_SESSION");
       if (!session?.user?.id) {
+        alert("PUBLISH_NO_SESSION");
         console.error("PUBLISH_NO_SESSION");
         return;
       }
@@ -718,17 +723,22 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       // ── Upload (optional) ──────────────────────────────────────
       let src = null;
       if (form.mediaFile) {
+        console.log("START_UPLOAD", { name: form.mediaFile.name, size: form.mediaFile.size });
         const ext  = form.mediaFile.name.split(".").pop();
         const path = `moments/${session.user.id}/${Date.now()}.${ext}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("moments")
           .upload(path, form.mediaFile, { upsert: true });
-        if (!uploadError) {
+        if (uploadError) {
+          console.error("UPLOAD_ERROR", uploadError);
+          alert("UPLOAD_ERROR: " + JSON.stringify(uploadError));
+        } else {
           const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
           src = pub?.publicUrl || null;
-        } else {
-          console.error("PUBLISH_UPLOAD_ERROR", uploadError);
+          console.log("UPLOAD_SUCCESS", src);
         }
+      } else {
+        console.log("NO_MEDIA_FILE — kein Upload nötig");
       }
 
       // ── Insert ─────────────────────────────────────────────────
@@ -738,28 +748,39 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
         caption: form.text?.trim() || null,
         src,
       };
-      console.log("PUBLISH_INSERT_PAYLOAD", payload);
+      console.log("START_INSERT", payload);
 
-      const { data, error: dbErr } = await supabase
+      const { data, error } = await supabase
         .from("beitraege")
-        .insert(payload)
+        .insert([payload])
         .select();
 
-      if (dbErr) {
-        console.error("PUBLISH_INSERT_ERROR", dbErr.code, dbErr.message, dbErr.hint);
-      } else {
-        console.log("PUBLISH_SUCCESS", data?.[0]?.id);
+      console.log("INSERT_RESPONSE", { data, error });
+
+      if (error) {
+        console.error("INSERT_ERROR", error);
+        alert("INSERT_ERROR: " + JSON.stringify(error));
+        return;
       }
 
+      alert("INSERT_SUCCESS");
+      console.log("INSERT_SUCCESS", data);
+
+      // ── Feed Refresh ────────────────────────────────────────────
+      console.log("TRIGGER_REFRESH");
+      window.dispatchEvent(new Event("feed-refresh"));
+
     } catch (err) {
-      console.error("PUBLISH_EXCEPTION", err?.message);
+      console.error("PUBLISH_EXCEPTION", err?.message, err);
+      alert("PUBLISH_EXCEPTION: " + err?.message);
     } finally {
       setPublishing(false);
       window.__PUBLISHING__ = false;
       console.log("PUBLISH_FINALLY_DONE");
     }
 
-    // onPublished / onClose NACH finally — Flow bleibt bis hier offen
+    // onPublished / onClose erst GANZ AM ENDE
+    console.log("FLOW_CLOSE");
     onPublished?.({ mode: form.mode, refresh: true });
     onClose?.();
   }, [form, publishing, onClose, onPublished]);
