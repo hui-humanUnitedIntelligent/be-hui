@@ -32,10 +32,11 @@ const T = {
 
 // ─── Bilder (Supabase-gehostete Assets) ───────────────────────
 const IMG = {
-  s1: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/4404032bd_generated_image.png",
-  s3: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/6ba64a1aa_generated_image.png",
-  s5: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/dab418e97_generated_image.png",
-  s7: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c5d8bdc7f_generated_image.png",
+  s1:  "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/4404032bd_generated_image.png",
+  s2b: "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/227457cca_generated_image.png",
+  s3:  "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/6ba64a1aa_generated_image.png",
+  s5:  "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/dab418e97_generated_image.png",
+  s7:  "https://media.base44.com/images/public/69e91ff9d24a19ce6f9abd25/c5d8bdc7f_generated_image.png",
 };
 
 // ─── Global CSS ───────────────────────────────────────────────
@@ -81,6 +82,60 @@ const CSS = `
   .hmf5-slide-r { animation: hmf5-slide-in-right 0.42s cubic-bezier(0.22,1,0.36,1) both; }
   .hmf5-slide-l { animation: hmf5-slide-in-left  0.42s cubic-bezier(0.22,1,0.36,1) both; }
   @keyframes hmf5-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  /* Card2 — Spatial energy system */
+  @keyframes hmf5-float-a {
+    0%,100% { transform:translateY(0px) translateX(0px); }
+    33%     { transform:translateY(-8px) translateX(3px); }
+    66%     { transform:translateY(4px)  translateX(-4px); }
+  }
+  @keyframes hmf5-float-b {
+    0%,100% { transform:translateY(0px) translateX(0px); }
+    33%     { transform:translateY(6px)  translateX(-5px); }
+    66%     { transform:translateY(-10px) translateX(3px); }
+  }
+  @keyframes hmf5-float-c {
+    0%,100% { transform:translateY(0px) translateX(0px); }
+    33%     { transform:translateY(-5px) translateX(-3px); }
+    66%     { transform:translateY(8px)  translateX(5px); }
+  }
+  @keyframes hmf5-float-d {
+    0%,100% { transform:translateY(0px) translateX(0px); }
+    33%     { transform:translateY(9px)  translateX(4px); }
+    66%     { transform:translateY(-6px) translateX(-2px); }
+  }
+  @keyframes hmf5-float-e {
+    0%,100% { transform:translateY(0px) translateX(0px); }
+    33%     { transform:translateY(-7px) translateX(-4px); }
+    66%     { transform:translateY(5px)  translateX(6px); }
+  }
+  @keyframes hmf5-orb-center-pulse {
+    0%,100% {
+      box-shadow: 0 0 0 0 rgba(22,215,197,0),
+                  0 0 48px rgba(22,215,197,0.38),
+                  0 0 96px rgba(22,215,197,0.15),
+                  0 0 160px rgba(22,215,197,0.06);
+    }
+    50% {
+      box-shadow: 0 0 0 18px rgba(22,215,197,0),
+                  0 0 72px rgba(22,215,197,0.58),
+                  0 0 140px rgba(22,215,197,0.22),
+                  0 0 220px rgba(22,215,197,0.08);
+    }
+  }
+  @keyframes hmf5-line-appear {
+    from { opacity:0; }
+    to   { opacity:1; }
+  }
+  @keyframes hmf5-pill-in {
+    from { opacity:0; transform:scale(0.72) translateY(12px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+  @keyframes hmf5-particle-drift {
+    0%   { transform:translateY(0) translateX(0) scale(1); opacity:0.7; }
+    50%  { transform:translateY(-18px) translateX(6px) scale(1.3); opacity:0.4; }
+    100% { transform:translateY(-36px) translateX(-4px) scale(0.7); opacity:0; }
+  }
 `;
 
 let _cssInjected = false;
@@ -394,81 +449,325 @@ function Card1({ onNext, dir }) {
 // ═══════════════════════════════════════════════════════════════
 // KARTE 2 — Dein kreativer Raum
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// KARTE 2 — Dein kreativer Raum öffnet sich
+// Spatial / Cinematic / Minimal — KEINE Feature-Grid-Boxen
+// ═══════════════════════════════════════════════════════════════
+
+// Floating energy pill — schwebt, leuchtet, fühlt sich an wie Möglichkeit
+function EnergyPill({ icon, label, style = {}, floatAnim = "hmf5-float-a", delay = 0, glowColor = T.teal }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+  return (
+    <div style={{
+      display:"flex", alignItems:"center", gap:8,
+      padding:"9px 16px 9px 11px",
+      borderRadius:100,
+      background:"rgba(255,255,255,0.06)",
+      backdropFilter:"blur(18px)",
+      WebkitBackdropFilter:"blur(18px)",
+      border:`1px solid rgba(255,255,255,0.11)`,
+      boxShadow:`0 4px 20px rgba(0,0,0,0.28), 0 0 14px ${glowColor}22`,
+      opacity: visible ? 1 : 0,
+      animation: visible ? `hmf5-pill-in 0.6s cubic-bezier(0.22,1,0.36,1) both, ${floatAnim} ${5 + Math.random()*2.5|0}s ${delay*0.001}s ease-in-out infinite` : "none",
+      willChange:"transform, opacity",
+      position:"absolute",
+      ...style,
+    }}>
+      <span style={{ fontSize:16, lineHeight:1, flexShrink:0 }}>{icon}</span>
+      <span style={{
+        fontSize:12.5, fontWeight:600,
+        color:"rgba(255,255,255,0.82)",
+        letterSpacing:"-0.01em", whiteSpace:"nowrap",
+      }}>{label}</span>
+    </div>
+  );
+}
+
+// Central orb — pulsiert, atmet, strahlt Energie aus
+function CenterOrb({ visible }) {
+  return (
+    <div style={{
+      position:"absolute",
+      top:"50%", left:"50%",
+      transform:"translate(-50%,-50%)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+    }}>
+      {/* Outer atmospheric rings */}
+      <div style={{
+        position:"absolute",
+        width:220, height:220, borderRadius:"50%",
+        border:"1px solid rgba(22,215,197,0.08)",
+        animation: visible ? "hmf5-ring 3.8s ease-out infinite" : "none",
+      }}/>
+      <div style={{
+        position:"absolute",
+        width:170, height:170, borderRadius:"50%",
+        border:"1px solid rgba(22,215,197,0.12)",
+        animation: visible ? "hmf5-ring 3.8s 1.2s ease-out infinite" : "none",
+      }}/>
+      <div style={{
+        position:"absolute",
+        width:130, height:130, borderRadius:"50%",
+        border:"1px solid rgba(22,215,197,0.16)",
+        animation: visible ? "hmf5-ring 3.8s 0.6s ease-out infinite" : "none",
+      }}/>
+
+      {/* Connection lines — subtle SVG spokes to pill positions */}
+      <svg style={{
+        position:"absolute",
+        width:300, height:300,
+        top:"50%", left:"50%",
+        transform:"translate(-50%,-50%)",
+        overflow:"visible",
+        opacity: visible ? 0.18 : 0,
+        transition:"opacity 1.2s ease",
+        pointerEvents:"none",
+      }} viewBox="0 0 300 300">
+        {/* Spokes from center (150,150) to pill anchor points */}
+        {[
+          [150, 30],   // top
+          [270, 90],   // top-right
+          [260, 220],  // bottom-right
+          [40,  220],  // bottom-left
+          [42,  90],   // top-left
+        ].map(([x, y], i) => (
+          <line key={i}
+            x1="150" y1="150" x2={x} y2={y}
+            stroke={i % 2 === 0 ? T.teal : T.coral}
+            strokeWidth="0.8"
+            strokeDasharray="3 6"
+            style={{
+              animation:`hmf5-line-appear 0.4s ${0.4 + i * 0.12}s ease both`,
+            }}
+          />
+        ))}
+      </svg>
+
+      {/* Glow aura */}
+      <div style={{
+        position:"absolute",
+        width:96, height:96, borderRadius:"50%",
+        background:`radial-gradient(circle, rgba(22,215,197,0.28) 0%, transparent 70%)`,
+        filter:"blur(16px)",
+        animation: visible ? "hmf5-orb-center-pulse 4s ease-in-out infinite" : "none",
+      }}/>
+
+      {/* HUI Orb core */}
+      <div style={{
+        width:80, height:80,
+        borderRadius:80*0.28,
+        overflow:"hidden",
+        position:"relative", zIndex:2,
+        boxShadow:`
+          0 0 0 2px rgba(22,215,197,0.30),
+          0 0 32px rgba(22,215,197,0.50),
+          0 0 64px rgba(22,215,197,0.20),
+          0 12px 40px rgba(0,0,0,0.55)
+        `,
+        animation: visible ? "hmf5-orb-breathe 4s ease-in-out infinite" : "none",
+        flexShrink:0,
+      }}>
+        <img
+          src="/hui-logo-real.jpg"
+          alt="HUI"
+          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+          onError={e => { e.target.style.display="none"; }}
+        />
+        {/* Teal shimmer overlay */}
+        <div style={{
+          position:"absolute", inset:0,
+          background:"linear-gradient(135deg, rgba(22,215,197,0.18) 0%, transparent 55%)",
+          pointerEvents:"none",
+        }}/>
+      </div>
+    </div>
+  );
+}
+
+// Floating particles — sehr subtil
+function Particles({ count = 8 }) {
+  const particles = useRef(
+    Array.from({ length: count }, (_, i) => ({
+      id: i,
+      x: 15 + Math.random() * 70,
+      y: 20 + Math.random() * 60,
+      size: 2 + Math.random() * 2.5,
+      delay: Math.random() * 3,
+      dur:   3.5 + Math.random() * 2.5,
+      color: i % 3 === 0 ? T.teal : i % 3 === 1 ? T.coral : "rgba(255,255,255,0.6)",
+    }))
+  ).current;
+
+  return (
+    <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden" }}>
+      {particles.map(p => (
+        <div key={p.id} style={{
+          position:"absolute",
+          left:`${p.x}%`, top:`${p.y}%`,
+          width:p.size, height:p.size,
+          borderRadius:"50%",
+          background:p.color,
+          boxShadow:`0 0 ${p.size*3}px ${p.color}`,
+          opacity:0,
+          animation:`hmf5-particle-drift ${p.dur}s ${p.delay}s ease-out infinite`,
+        }}/>
+      ))}
+    </div>
+  );
+}
+
 function Card2({ onNext, onBack, dir }) {
-  const features = [
-    { icon:"✍️", label:"Momente\nteilen" },
-    { icon:"📸", label:"Stories\nveröffentlichen" },
-    { icon:"🎨", label:"Werke\nanbieten" },
-    { icon:"✨", label:"Erlebnisse\nerstellen" },
-    { icon:"🏛️", label:"Gemeinschafts-\nräume öffnen" },
-    { icon:"💫", label:"Menschen\ninspirien" },
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 120);
+    return () => clearTimeout(t);
+  }, []);
+
+  // 5 energy pills — schwebend um den Orb
+  const pills = [
+    { icon:"✍️", label:"Momente teilen",     floatAnim:"hmf5-float-a", delay:350,  glowColor:T.teal,
+      style:{ top:"7%",  left:"50%", transform:"translateX(-50%)" } },
+    { icon:"🎨", label:"Werke zeigen",         floatAnim:"hmf5-float-b", delay:500,  glowColor:T.coral,
+      style:{ top:"28%", right:"2%" } },
+    { icon:"🌱", label:"Wirkung entfalten",    floatAnim:"hmf5-float-c", delay:650,  glowColor:"#6BCB77",
+      style:{ bottom:"26%", right:"4%" } },
+    { icon:"🤝", label:"Menschen verbinden",   floatAnim:"hmf5-float-d", delay:800,  glowColor:T.gold,
+      style:{ bottom:"26%", left:"2%" } },
+    { icon:"✨", label:"Räume öffnen",          floatAnim:"hmf5-float-e", delay:950,  glowColor:"#C084FC",
+      style:{ top:"28%", left:"2%" } },
   ];
+
   return (
     <div className={dir === 1 ? "hmf5-slide-r" : "hmf5-slide-l"} style={{
-      position:"absolute", inset:0, overflowY:"auto",
-      WebkitOverflowScrolling:"touch",
+      position:"absolute", inset:0,
+      display:"flex", flexDirection:"column",
+      overflow:"hidden",
     }}>
-      {/* Dark atmospheric BG */}
-      <div style={{ position:"fixed", inset:0, zIndex:0,
-        backgroundImage:`url(${IMG.s3})`,
-        backgroundSize:"cover", backgroundPosition:"center",
-        opacity:0.22,
-        animation:"hmf5-ken 28s ease-in-out both",
-      }}/>
-      <div style={{ position:"fixed", inset:0, zIndex:1,
-        background:`linear-gradient(180deg, rgba(6,10,20,0.80) 0%, rgba(6,10,20,0.97) 100%)`,
-      }}/>
+      {/* ── Cinematic Background ── */}
+      <div style={{ position:"absolute", inset:0, zIndex:0 }}>
+        {/* Photo layer — blurred humans */}
+        <div style={{
+          position:"absolute", inset:0,
+          backgroundImage:`url(${IMG.s2b})`,
+          backgroundSize:"cover", backgroundPosition:"center 30%",
+          opacity:0.40,
+          filter:"blur(3px)",
+          transform:"scale(1.06)",
+          animation:"hmf5-ken 30s ease-in-out both",
+        }}/>
+        {/* Gradient veil — depth layers */}
+        <div style={{
+          position:"absolute", inset:0,
+          background:`
+            radial-gradient(ellipse 70% 55% at 50% 42%, rgba(22,215,197,0.09) 0%, transparent 65%),
+            linear-gradient(180deg,
+              rgba(6,10,20,0.62) 0%,
+              rgba(6,10,20,0.30) 22%,
+              rgba(6,10,20,0.30) 60%,
+              rgba(6,10,20,0.90) 82%,
+              rgba(6,10,20,0.98) 100%
+            )
+          `,
+        }}/>
+        {/* Subtle radial teal aura behind the orb center */}
+        <div style={{
+          position:"absolute",
+          top:"40%", left:"50%",
+          transform:"translate(-50%,-50%)",
+          width:280, height:280, borderRadius:"50%",
+          background:"radial-gradient(circle, rgba(22,215,197,0.12) 0%, transparent 70%)",
+          filter:"blur(30px)",
+          animation: ready ? "hmf5-orb-center-pulse 5s ease-in-out infinite" : "none",
+        }}/>
+      </div>
 
-      {/* Content */}
+      {/* ── Floating Particles ── */}
+      <div style={{ position:"absolute", inset:0, zIndex:1, pointerEvents:"none" }}>
+        <Particles count={10} />
+      </div>
+
+      {/* ── Top: Progress + tiny step label ── */}
+      <div style={{
+        position:"relative", zIndex:3,
+        padding:`max(52px, env(safe-area-inset-top, 52px)) 24px 0`,
+        animation:"hmf5-fade 0.5s 0.1s ease both",
+      }}>
+        <ProgressDots total={4} current={1} />
+      </div>
+
+      {/* ── Center: Spatial Orb + Pills ── */}
       <div style={{
         position:"relative", zIndex:2,
-        padding:`max(56px, env(safe-area-inset-top, 56px)) 24px
-                 calc(env(safe-area-inset-bottom, 0px) + 32px)`,
-        minHeight:"100%", display:"flex", flexDirection:"column",
+        flex:1,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        minHeight:0,
       }}>
-
-        {/* Header */}
-        <div style={{ marginBottom:28, animation:"hmf5-fade 0.4s ease both" }}>
-          <ProgressDots total={4} current={1} />
-          {sp(16)}
-          <div style={{
-            fontSize:11, fontWeight:700, color:T.teal,
-            letterSpacing:"0.12em", textTransform:"uppercase", marginBottom:10,
-          }}>2 / 4</div>
-          <h1 style={{
-            fontWeight:800, fontSize:"clamp(26px,7vw,34px)",
-            color:T.text, margin:"0 0 10px",
-            letterSpacing:-1, lineHeight:1.15,
-          }}>Dein kreativer Raum</h1>
-          <p style={{ fontSize:15, color:T.soft, lineHeight:1.65, margin:0 }}>
-            Als Mitglied stehen dir neue Möglichkeiten offen.
-          </p>
-        </div>
-
-        {/* 3x2 Feature Grid */}
-        <div style={{
-          display:"grid",
-          gridTemplateColumns:"repeat(3, 1fr)",
-          gap:10, marginBottom:28,
-          flex:1,
-        }}>
-          {features.map((f, i) => (
-            <FeatureGridItem key={i} icon={f.icon}
-              label={f.label.replace("\\n","\n")}
-              delay={60 + i * 55}
-            />
+        {/* Pill orbit area — positioned relative to center */}
+        <div style={{ position:"relative", width:"100%", height:"100%", minHeight:200 }}>
+          <CenterOrb visible={ready} />
+          {pills.map((p, i) => (
+            <EnergyPill key={i} {...p} />
           ))}
         </div>
+      </div>
 
-        {/* CTAs */}
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          <CtaBtn label="Das klingt nach mir" icon="→" onClick={onNext} />
-          <button className="hmf5-tap" onClick={onBack} style={{
-            background:"none", border:"none", fontFamily:"inherit",
-            fontSize:14, color:T.muted, padding:"12px",
-            letterSpacing:-0.2,
-          }}>← Zurück</button>
-        </div>
+      {/* ── Bottom: Text + CTA ── */}
+      <div style={{
+        position:"relative", zIndex:3,
+        padding:`0 28px calc(env(safe-area-inset-bottom, 0px) + 28px)`,
+        animation:"hmf5-rise 0.55s 0.2s ease both",
+      }}>
+        {/* Headline */}
+        <h1 style={{
+          fontWeight:800,
+          fontSize:"clamp(24px,6.5vw,32px)",
+          color:T.text, margin:"0 0 10px",
+          letterSpacing:-0.8, lineHeight:1.18,
+        }}>Dein kreativer Raum<br/>öffnet sich</h1>
+
+        {/* Subline */}
+        <p style={{
+          fontSize:15, color:T.soft, lineHeight:1.68,
+          margin:"0 0 24px", maxWidth:360,
+        }}>
+          Als Talent kannst du Menschen inspirieren,
+          Werke teilen und besondere Räume erschaffen.
+        </p>
+
+        {/* Single CTA */}
+        <button className="hmf5-tap" onClick={onNext} style={{
+          width:"100%",
+          padding:"16px 24px",
+          borderRadius:16,
+          border:"1px solid rgba(22,215,197,0.28)",
+          background:"rgba(22,215,197,0.10)",
+          backdropFilter:"blur(20px)",
+          WebkitBackdropFilter:"blur(20px)",
+          fontFamily:"inherit",
+          fontSize:16, fontWeight:700,
+          color:T.teal,
+          letterSpacing:-0.2,
+          cursor:"pointer",
+          boxShadow:`
+            0 0 0 1px rgba(22,215,197,0.14),
+            0 0 32px rgba(22,215,197,0.18),
+            0 8px 24px rgba(0,0,0,0.28)
+          `,
+          transition:"all 0.22s ease",
+          marginBottom:12,
+        }}>Das klingt nach mir →</button>
+
+        <button className="hmf5-tap" onClick={onBack} style={{
+          display:"block", width:"100%",
+          background:"none", border:"none", fontFamily:"inherit",
+          fontSize:14, color:T.muted, padding:"10px",
+          letterSpacing:-0.2, cursor:"pointer",
+          textAlign:"center",
+        }}>← Zurück</button>
       </div>
     </div>
   );
