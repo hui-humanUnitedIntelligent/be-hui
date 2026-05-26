@@ -78,7 +78,7 @@ const TYPE_MAP = {
   werk: "work", work: "work", work_upload: "work",
   erlebnis: "experience", experience: "experience", event: "experience",
   impact: "impact", impact_project: "impact",
-  story: "story", moment: "story",
+  story: "moment", moment: "moment",
   note: "note", thought: "note",
   invitation: "invitation", einladung: "invitation",
   post: "post", beitrag: "post",
@@ -237,11 +237,12 @@ export const normalizeBeitragRow = (raw) => {
   // type aus DB: "moment" | "note" → beide sind low-energy posts
   const dbType = raw.type || "moment";
   const mappedType = dbType === "note" ? "note" : "moment";
+  const srcUrl = raw.src || raw.image_url || null;
   const normalized = normalizeFeedItem({
     ...raw,
     type:   mappedType,
-    images: raw.src ? [raw.src] : [],
-    // Sicherstellen dass caption korrekt weitergegeben wird
+    images: srcUrl ? [srcUrl] : [],
+    src:    srcUrl,           // zusätzlich als src damit alle Fallbacks greifen
     caption: raw.caption || null,
   });
   if (normalized) {

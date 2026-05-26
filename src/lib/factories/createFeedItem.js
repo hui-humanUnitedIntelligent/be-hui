@@ -87,7 +87,10 @@ export const createFeedItem = (raw = {}) => {
     event:       'experience',
     impact:      'impact',
     impact_project: 'impact',
-    story:       'story',
+    story:       'moment',
+    moment:      'moment',
+    note:        'moment',
+    beitrag:     'moment',
     post:        'post',
     activity:    'activity',
   };
@@ -100,7 +103,7 @@ export const createFeedItem = (raw = {}) => {
   // media — alle möglichen Bildfelder zusammenführen
   const mediaRaw  = raw.media       || raw.images     || raw.photos
                  || raw.cover_url   || raw.img        || raw.image_url
-                 || raw.expImg      || null;
+                 || raw.expImg      || raw.src        || null;
 
   // stats — aus verschiedenen Quellen zusammenführen
   const statsRaw  = raw.stats       || {
@@ -177,7 +180,14 @@ export const createFeedItem = (raw = {}) => {
  */
 export const filterValidFeedItems = (items = []) =>
   (items || [])
-    .map(createFeedItem)
+    .map(item => {
+      // Bereits normalisierte Items (haben type + id + creator-Objekt)
+      // nicht nochmals durch createFeedItem jagen — das überschreibt korrekte Felder
+      if (item && item.id && item.type && typeof item.creator === 'object' && item.creator !== null) {
+        return item;
+      }
+      return createFeedItem(item);
+    })
     .filter(Boolean);
 
 // ── Spezialisierte Normalizer ─────────────────────────────────────────────

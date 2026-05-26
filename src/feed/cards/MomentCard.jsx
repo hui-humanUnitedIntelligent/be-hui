@@ -74,9 +74,10 @@ function useMomentCreator(item) {
 
 export default function MomentCard({ item, onProfile, onReaction, itemReactions = {} }) {
   if (!item) return null;
+  console.log("[HUI_RENDER_ITEM]", { id: item.id, type: item.type, src: item.images?.[0] || item.expImg || item._raw?.src, renderPath: "MomentCard" });
   const creator = useMomentCreator(item);
   const text    = item.caption || item.text || item.title || "";
-  const image   = item.images?.[0] || item.media?.[0] || item.cover_url || null;
+  const image   = item.images?.[0] || item.expImg || item.coverUrl || item.media?.[0] || item.cover_url || item._raw?.src || null;
   const mood    = item._raw?.mood ? (MOODS[item._raw.mood] || MOODS.default) : null;
   const timeStr = item.time || "";
 
