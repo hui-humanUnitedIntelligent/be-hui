@@ -8,8 +8,10 @@
 // CSS KEYFRAMES werden nur einmal injiziert.
 // ═══════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import FeedRouter from "./cards/FeedRouter.jsx";
+import { useFeedStream } from "./useFeedStream.js";
+import { toFeedItem }    from "../system/feed/unifiedNormalizer.js";
 
 /* ── CSS: fade-in + scroll-feel ───────────────────────────────── */
 const FEED_CSS = `
@@ -137,34 +139,102 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
 
 /* ── Main UnifiedFeed ─────────────────────────────────────────── */
 export default function UnifiedFeed({
-  // Items
-  items = null,
+  // Items prop (optional — wenn nicht übergeben, eigener useFeedStream)
+  items: itemsProp = null,
   // Section visibility
-  showStories = true,
-  showEvents  = true,
+  showStories  = true,
+  showEvents   = true,
   // Handlers
-  onProfile   = null,
-  onBook      = null,
-  onShare     = null,
-  onStory     = null,
-  onAddStory  = null,
+  onProfile    = null,
+  onBook       = null,
+  onShare      = null,
+  onStory      = null,
+  onAddStory   = null,
   onEventPress = null,
   onMoreEvents = null,
   // User context
-  currentUser = null,
+  currentUser  = null,
 }) {
   useEffect(() => { injectFeedCSS(); }, []);
 
-  // Lazy-load isolated sections to avoid blocking feed render
+  // ── OWN FEED STREAM — läuft immer, liefert Items aus DB ──────────
+  const {
+    items: streamItems,
+    loading: streamLoading,
+  } = useFeedStream();
+
+  // ── ITEM RESOLUTION ───────────────────────────────────────────────
+  // Bevorzuge prop (für Tests / externe Steuerung),
+  // fallback auf eigenen Stream
+  const resolvedItems = useMemo(() => {
+    const src = (itemsProp && itemsProp.length > 0) ? itemsProp : (streamItems || []);
+
+    // Hardened normalization: item mit id → NIEMALS null
+    const normalized = src.map(raw => {
+      if (!raw?.id) return null;
+      // Schon normalisiert? (hat author-Objekt + createdAt)
+      if (raw.author && typeof raw.author === "object" && raw.createdAt !== undefined) {
+        return raw;
+      }
+      try {
+        const n = toFeedItem(raw);
+        // Absolute fallback — id vorhanden → immer etwas zurückgeben
+        if (!n) {
+          return {
+            id:        String(raw.id),
+            type:      raw.type || "moment",
+            author:    { id: "", name: raw.display_name || raw.name || "Human",
+                         displayName: raw.display_name || raw.name || "Human",
+                         avatar: raw.avatar_url || raw.avatar || null },
+            title:     raw.title || raw.caption?.slice(0, 60) || null,
+            text:      raw.caption || raw.description || raw.text || null,
+            media:     [],
+            createdAt: "",
+            _reactions: {},
+            _raw: raw,
+          };
+        }
+        return n;
+      } catch (err) {
+        console.warn("[UNIFIED_NORM_ERR]", raw?.id, err?.message);
+        return {
+          id:         String(raw.id),
+          type:       "moment",
+          author:     { id: "", name: "Human", displayName: "Human", avatar: null },
+          title:      null, text: null, media: [], createdAt: "",
+          _reactions: {}, _raw: raw,
+        };
+      }
+    });
+
+    // Nur null-Items und Items ohne id rausfiltern — nie mehr
+    const safe = normalized.filter(i => i?.id);
+
+    console.log("[UNIFIED_FEED_TRACE]", {
+      propItems:   itemsProp?.length ?? 0,
+      streamItems: (streamItems||[]).length,
+      normalized:  normalized.length,
+      safe:        safe.length,
+      loading:     streamLoading,
+    });
+
+    return safe;
+  }, [itemsProp, streamItems, streamLoading]);
+
+  // ── LAZY-LOAD isolated sections ───────────────────────────────────
   const [StoriesBar,    setStoriesBar]    = useState(null);
   const [EventsSection, setEventsSection] = useState(null);
 
   useEffect(() => {
     if (showStories) {
-      import("./FeedStoriesBar.jsx").then(m => setStoriesBar(() => m.default)).catch(() => {});
+      import("./FeedStoriesBar.jsx")
+        .then(m => setStoriesBar(() => m.default))
+        .catch(() => {});
     }
     if (showEvents) {
-      import("./FeedEventsSection.jsx").then(m => setEventsSection(() => m.default)).catch(() => {});
+      import("./FeedEventsSection.jsx")
+        .then(m => setEventsSection(() => m.default))
+        .catch(() => {});
     }
   }, [showStories, showEvents]);
 
@@ -199,13 +269,42 @@ export default function UnifiedFeed({
 
       {/* ── MAIN FEED — vertical timeline, stable, always renders ── */}
       <SectionBoundary name="feedList">
-        <FeedList
-          items={items}
-          onProfile={onProfile}
-          onReaction={null}
-          onBook={onBook}
-          onShare={onShare}
-        />
+        {/* Loading state — minimal, non-intrusive */}
+        {streamLoading && resolvedItems.length === 0 && (
+          <div style={{ padding: "32px 16px 0" }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} style={{
+                marginBottom: 14, marginLeft: 12, marginRight: 12,
+                borderRadius: 28, overflow: "hidden",
+                background: "#fff",
+                border: "1px solid rgba(26,26,46,0.06)",
+                boxShadow: "0 2px 16px rgba(26,26,46,0.07)",
+              }}>
+                <div style={{ padding: "16px 16px 0", display: "flex", gap: 12 }}>
+                  <div style={{ width:38, height:38, borderRadius:13, background:"rgba(22,215,197,0.10)" }}/>
+                  <div>
+                    <div style={{ width:100, height:12, borderRadius:6, background:"rgba(26,26,46,0.07)", marginBottom:6 }}/>
+                    <div style={{ width:60,  height:9,  borderRadius:5, background:"rgba(26,26,46,0.05)" }}/>
+                  </div>
+                </div>
+                <div style={{ padding:"12px 16px 20px" }}>
+                  <div style={{ height:10, borderRadius:5, background:"rgba(26,26,46,0.06)", marginBottom:6 }}/>
+                  <div style={{ height:10, borderRadius:5, background:"rgba(26,26,46,0.06)", width:"70%" }}/>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Feed list — only when not first-load */}
+        {(!streamLoading || resolvedItems.length > 0) && (
+          <FeedList
+            items={resolvedItems}
+            onProfile={onProfile}
+            onBook={onBook}
+            onShare={onShare}
+          />
+        )}
       </SectionBoundary>
 
     </div>
