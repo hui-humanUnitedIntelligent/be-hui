@@ -9,9 +9,11 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useEffect } from "react";
-import FeedRouter from "./cards/FeedRouter.jsx";
-import { useFeedStream } from "./useFeedStream.js";
-import { toFeedItem }    from "../system/feed/unifiedNormalizer.js";
+import FeedRouter          from "./cards/FeedRouter.jsx";
+import { useFeedStream }   from "./useFeedStream.js";
+import { toFeedItem }      from "../system/feed/unifiedNormalizer.js";
+import FeedStoriesBar      from "./FeedStoriesBar.jsx";
+import FeedEventsSection   from "./FeedEventsSection.jsx";
 
 /* ── CSS: fade-in + scroll-feel ───────────────────────────────── */
 const FEED_CSS = `
@@ -221,22 +223,7 @@ export default function UnifiedFeed({
     return safe;
   }, [itemsProp, streamItems, streamLoading]);
 
-  // ── LAZY-LOAD isolated sections ───────────────────────────────────
-  const [StoriesBar,    setStoriesBar]    = useState(null);
-  const [EventsSection, setEventsSection] = useState(null);
-
-  useEffect(() => {
-    if (showStories) {
-      import("./FeedStoriesBar.jsx")
-        .then(m => setStoriesBar(() => m.default))
-        .catch(() => {});
-    }
-    if (showEvents) {
-      import("./FeedEventsSection.jsx")
-        .then(m => setEventsSection(() => m.default))
-        .catch(() => {});
-    }
-  }, [showStories, showEvents]);
+  // Sections are directly imported — no lazy load needed
 
   return (
     <div style={{
@@ -246,10 +233,10 @@ export default function UnifiedFeed({
       minHeight: "100vh",
     }}>
 
-      {/* ── STORIES — isolated, lazy-loaded ── */}
-      {showStories && StoriesBar && (
+      {/* ── STORIES — top section, always first ── */}
+      {showStories && (
         <SectionBoundary name="stories">
-          <StoriesBar
+          <FeedStoriesBar
             onStoryClick={onStory}
             onAddStory={onAddStory}
             currentUser={currentUser}
@@ -257,10 +244,10 @@ export default function UnifiedFeed({
         </SectionBoundary>
       )}
 
-      {/* ── EVENTS — isolated, lazy-loaded ── */}
-      {showEvents && EventsSection && (
+      {/* ── EVENTS — below stories ── */}
+      {showEvents && (
         <SectionBoundary name="events">
-          <EventsSection
+          <FeedEventsSection
             onEventPress={onEventPress}
             onMoreEvents={onMoreEvents}
           />
