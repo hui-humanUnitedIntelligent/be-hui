@@ -318,6 +318,15 @@ export function rhythmizeFeed(rawItems) {
     }
   }
 
+  const momentCount_out = result.filter(i => resolveContentType(i) === "moment").length;
+  const ghostCount_out  = result.filter(i => i._isGhost).length;
+  console.log("[HUI_RHYTHM_OUTPUT]", {
+    input: rawItems.length,
+    output: result.length,
+    moments: momentCount_out,
+    ghosts: ghostCount_out,
+    types: result.map(i => resolveContentType(i)).join(",").slice(0, 80),
+  });
   return result;
 }
 

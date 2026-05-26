@@ -125,13 +125,29 @@ async function fetchFeedPage(userId, cursor = null) {
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
   const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
 
+  // Debug: RAW DB rows
+  console.log("[HUI_STREAM_RAW]", {
+    works: works.length,
+    exps: exps.length,
+    beitraege: beitr.length,
+    invitations: invs.length,
+    beitrErr: beitrRes.status === "rejected" ? beitrRes.reason?.message : (beitrRes.value?.error?.message || null),
+    firstBeitrag: beitr[0] ? { id: beitr[0].id, type: beitr[0].type, caption: beitr[0].caption?.slice(0,30), src: !!beitr[0].src } : null,
+  });
+
   // Normalisieren
+  const normalizedBeitr = beitr.map(normalizeBeitragRow).filter(Boolean);
   const normalized = [
     ...works.map(normalizeWorkRow).filter(Boolean),
     ...exps.map(normalizeExperienceRow).filter(Boolean),
-    ...beitr.map(normalizeBeitragRow).filter(Boolean),
+    ...normalizedBeitr,
     ...invs.map(normalizeInvitationRow).filter(Boolean),
   ];
+
+  console.log("[HUI_STREAM_NORMALIZED]", {
+    total: normalized.length,
+    beitraege_normalized: normalizedBeitr.length,
+  });
 
   // Zeitsortiert
   normalized.sort((a, b) => {
@@ -403,11 +419,13 @@ export function useFeedStream() {
 
   // ── Hard Refresh (pull-to-refresh, manuell) ────────────────────────────────
   const refresh = useCallback(async () => {
+    console.log("[HUI_STREAM] refresh() aufgerufen — Cache clearing + reload");
     clearCache();
     cursorRef.current = null;
     prefetchedRef.current = null;
     setPendingItems([]);
     setPendingCount(0);
+    setItems([]);  // UI sofort clearen damit neue Items direkt sichtbar
     await initialLoad();
   }, [initialLoad]);
 

@@ -80,6 +80,18 @@ function HomeInner() {
   };
   const scrollContainerRef = React.useRef(null);
   const feedRefreshRef     = React.useRef(null);  // streamRefresh von HomeFeed
+
+  // ── feed-refresh Event: TeilenFlow dispatched dieses Event nach INSERT_SUCCESS
+  React.useEffect(() => {
+    const handler = () => {
+      console.log("[HUI_HOME] feed-refresh Event empfangen → streamRefresh()");
+      if (feedRefreshRef.current) {
+        feedRefreshRef.current();
+      }
+    };
+    window.addEventListener("feed-refresh", handler);
+    return () => window.removeEventListener("feed-refresh", handler);
+  }, []);
   // PaintRecoveryManager — tracks rAF handles, cleaned up on unmount
   const paintManager = React.useRef(new PaintRecoveryManager());
 

@@ -878,6 +878,14 @@ function EventCard({ event, onPress }) {
 function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare }) {
   // Phase 4D: kein Mock wenn items[] und loading — echter Empty State bevorzugt
   const rawItems = (items && items.length > 0) ? items : [];
+  // Debug: Feed-Input für RhythmicFeed
+  React.useEffect(() => {
+    console.log("[HUI_FEED_RENDER]", {
+      inputItems: rawItems.length,
+      types: rawItems.map(i => i.type || i.content_type).join(",").slice(0,80),
+      first: rawItems[0] ? { id: rawItems[0].id, type: rawItems[0].type, caption: rawItems[0].caption?.slice(0,30) } : null,
+    });
+  }, [rawItems.length]);
   const [reactions, setReactions] = useState({});
 
   // Lokale Handler — onDiscover/onShare kommen als Props oder sind no-ops

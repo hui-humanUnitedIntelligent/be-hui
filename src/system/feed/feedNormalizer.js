@@ -232,8 +232,24 @@ export function normalizeFeedItems(items = []) {
 export const normalizeExperienceRow = (raw) => normalizeFeedItem({ ...raw, type: "experience" });
 export const normalizeWorkRow       = (raw) => normalizeFeedItem({ ...raw, type: "work_upload" });
 export const normalizeInvitationRow = (raw) => normalizeFeedItem({ ...raw, type: "invitation", content_type: "invitation" });
-export const normalizeBeitragRow    = (raw) => normalizeFeedItem({
-  ...raw,
-  type:   raw.type === "note" ? "note" : "work_upload",
-  images: raw.src ? [raw.src] : (raw.images || []),
-});
+export const normalizeBeitragRow = (raw) => {
+  // beitraege echte Spalten: id, user_id, src, type, caption, created_at
+  // type aus DB: "moment" | "note" → beide sind low-energy posts
+  const dbType = raw.type || "moment";
+  const mappedType = dbType === "note" ? "note" : "moment";
+  const normalized = normalizeFeedItem({
+    ...raw,
+    type:   mappedType,
+    images: raw.src ? [raw.src] : [],
+    // Sicherstellen dass caption korrekt weitergegeben wird
+    caption: raw.caption || null,
+  });
+  if (normalized) {
+    console.log("[HUI_BEITRAG_NORMALIZED]", {
+      id: normalized.id, type: normalized.type,
+      caption: normalized.caption?.slice(0,40),
+      hasImage: !!normalized.expImg,
+    });
+  }
+  return normalized;
+};
