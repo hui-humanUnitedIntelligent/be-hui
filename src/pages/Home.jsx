@@ -21,6 +21,7 @@ import HomeHeader                from "../components/home/header/HomeHeader.jsx"
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
+import { usePresence } from "../lib/usePresence.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay         from "../components/chat-center/ChatCenterOverlay.jsx";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
@@ -123,6 +124,10 @@ function HomeInner() {
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
   } = useHome();
+
+  // ── Presence — Phase 3D — isolated, never blocks feed ────────
+  usePresence(currentUser?.id, "home");
+  // ─────────────────────────────────────────────────────────────
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();

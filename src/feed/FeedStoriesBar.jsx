@@ -9,6 +9,8 @@ import { supabase }  from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import StoryViewer   from "./StoryViewer.jsx";
 import StoryCreator  from "./StoryCreator.jsx";
+import { usePresenceMap, PresenceDot } from "../lib/usePresence.jsx";
+import ProfileQuickPreview from "../components/ProfileQuickPreview.jsx";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -38,6 +40,7 @@ export default function FeedStoriesBar(props) {
   const { user } = useAuth();
 
   const [groups,      setGroups]      = useState([]);
+  const [pqpTarget,   setPqpTarget]   = useState(null);   // { userId, rect }
   const [loading,     setLoading]     = useState(true);
   const [seen,        setSeen]        = useState(() => {
     try { return new Set(JSON.parse(sessionStorage.getItem("hui_seen_v4") || "[]")); } catch { return new Set(); }
@@ -118,6 +121,9 @@ export default function FeedStoriesBar(props) {
   }
 
   const viewable = groups.filter(g => g.stories.length > 0);
+  // Presence map for all group users
+  const groupUserIds = groups.map(g => g.userId).filter(Boolean);
+  const presenceMap  = usePresenceMap(groupUserIds);
 
   return (
     <>
@@ -139,6 +145,8 @@ export default function FeedStoriesBar(props) {
               isSeen={seen.has(g.userId) && !g.isYou}
               delay={idx * 0.055}
               onTap={() => tapGroup(idx)}
+              onLongPress={(rect) => !g.isYou && setPqpTarget({ userId: g.userId, rect })}
+              presenceStatus={presenceMap[g.userId]?.status}
             />
           ))}
         </div>
@@ -160,13 +168,24 @@ export default function FeedStoriesBar(props) {
           onPublished={() => { setCreatorOpen(false); loadStories(); }}
         />
       )}
+
+      {pqpTarget && (
+        <ProfileQuickPreview
+          userId={pqpTarget.userId}
+          anchorRect={pqpTarget.rect}
+          onClose={() => setPqpTarget(null)}
+          onMessage={(uid) => { setPqpTarget(null); onProfilePress?.(uid); }}
+          onFullProfile={(uid) => { setPqpTarget(null); onProfilePress?.(uid); }}
+        />
+      )}
     </>
   );
 }
 
 // ── Bubble ───────────────────────────────────────────────────────
-function Bubble({ group, isSeen, delay, onTap }) {
+function Bubble({ group, isSeen, delay, onTap, onLongPress, presenceStatus }) {
   const [pressed, setPressed] = useState(false);
+  const longRef = useRef(null);
   const { name, avatar, isLive, isYou, stories } = group;
   const isEmpty  = stories.length === 0;
   const hasNew   = !isSeen && !isEmpty;
@@ -181,15 +200,27 @@ function Bubble({ group, isSeen, delay, onTap }) {
 
   const pulse = isLive ? "huiLivePulse 2s ease-in-out infinite"
     : (isYou && isEmpty) ? "huiRingPulse 2.5s ease-in-out infinite"
+    : (presenceStatus === "online" && !isSeen) ? "huiRingPulse 3s ease-in-out infinite"
     : "none";
 
   return (
     <button
       onClick={onTap}
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => setPressed(false)}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
+      onTouchStart={(e) => {
+        setPressed(true);
+        const rect = e.currentTarget.getBoundingClientRect();
+        longRef.current = setTimeout(() => onLongPress?.(rect), 380);
+      }}
+      onTouchEnd={(e) => {
+        setPressed(false);
+        clearTimeout(longRef.current);
+      }}
+      onMouseDown={(e) => {
+        setPressed(true);
+        const rect = e.currentTarget.getBoundingClientRect();
+        longRef.current = setTimeout(() => onLongPress?.(rect), 380);
+      }}
+      onMouseUp={() => { setPressed(false); clearTimeout(longRef.current); }}
       style={{
         background:"none", border:"none", padding:0,
         cursor:"pointer", touchAction:"manipulation",
@@ -223,6 +254,11 @@ function Bubble({ group, isSeen, delay, onTap }) {
                 display:"flex", alignItems:"center", justifyContent:"center",
                 fontSize:14, color:"#fff", fontWeight:900, lineHeight:1,
               }}>+</div>
+            )}
+            {!isYou && !isEmpty && presenceStatus && presenceStatus !== "offline" && (
+              <div style={{ position:"absolute", bottom:-1, right:-1 }}>
+                <PresenceDot status={presenceStatus} size={11} />
+              </div>
             )}
           </div>
         </div>

@@ -1,10 +1,13 @@
-// src/feed/cards/BaseFeedCard.jsx — Phase 3C Premium Polish
+// src/feed/cards/BaseFeedCard.jsx — Phase 3C+3D Premium Polish
+// ProfileQuickPreview on avatar tap · PresenceDot · Human activity signals
 // ══════════════════════════════════════════════════════════════
 // Double-tap like · Heart burst · Optimistic reactions
 // Shimmer skeleton · Lazy image loading · Scale press states
 // GPU-accelerated animations via transform
 // ══════════════════════════════════════════════════════════════
 import React, { useState, useRef, useCallback, memo } from "react";
+import ProfileQuickPreview from "../../components/ProfileQuickPreview.jsx";
+import { PresenceDot, fmtPresence } from "../../lib/usePresence.jsx";
 
 const T = {
   bgCard: "#FFFFFF",
@@ -106,23 +109,30 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38 }) {
 });
 
 // ── Header ────────────────────────────────────────────────────
-export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile }) {
+export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile, presenceStatus }) {
   const name   = (author && (author.name || author.displayName)) || "Human";
   const uname  = (author && author.username) || null;
   const avatar = (author && author.avatar)   || null;
   const ver    = (author && author.verified) || false;
+  const uid    = (author && author.id)       || null;
   const [pressed, setPressed] = useState(false);
+  const [pqpRect, setPqpRect] = useState(null);
 
   return (
     <div style={{ display:"flex",alignItems:"center",gap:T.gap,padding:T.p+"px "+T.p+"px 0" }}>
       <button
-        onClick={onProfile}
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          if (uid) setPqpRect(rect);
+          else onProfile?.();
+        }}
         onTouchStart={() => setPressed(true)}
         onTouchEnd={() => setPressed(false)}
         onMouseDown={() => setPressed(true)}
         onMouseUp={() => setPressed(false)}
         style={{
           background:"none",border:"none",padding:0,cursor:"pointer",flexShrink:0,
+          position:"relative",
           transform: pressed ? "scale(0.92)" : "scale(1)",
           transition: "transform 0.12s ease",
           willChange: "transform",
@@ -130,7 +140,21 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
         }}
       >
         <CardAvatar src={avatar} name={name} size={38}/>
+        {presenceStatus && presenceStatus !== "offline" && (
+          <div style={{ position:"absolute", bottom:-1, right:-1 }}>
+            <PresenceDot status={presenceStatus} size={9} />
+          </div>
+        )}
       </button>
+      {pqpRect && uid && (
+        <ProfileQuickPreview
+          userId={uid}
+          anchorRect={pqpRect}
+          onClose={() => setPqpRect(null)}
+          onMessage={() => setPqpRect(null)}
+          onFullProfile={() => { setPqpRect(null); onProfile?.(); }}
+        />
+      )}
       <div style={{ flex:1,minWidth:0 }}>
         <div style={{ display:"flex",alignItems:"center",gap:5 }}>
           <span style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,
@@ -143,6 +167,9 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
           {uname && <span style={{ fontSize:11,color:T.ink3 }}>{"@"+uname}</span>}
           {uname && time && <span style={{ fontSize:11,color:T.ink3 }}>·</span>}
           {time  && <span style={{ fontSize:11,color:T.ink3 }}>{time}</span>}
+          {presenceStatus === "online" && (
+            <span style={{ fontSize:10.5, color:"#22C55E", fontWeight:500 }}>● gerade online</span>
+          )}
         </div>
       </div>
       {badge && (
@@ -394,6 +421,7 @@ export default function BaseFeedCard({
         time={item.createdAt}
         badge={badge}
         onProfile={onProfile}
+        presenceStatus={item._presenceStatus || null}
       />
       <div style={{ padding: "12px " + T.p + "px 0" }}>{children}</div>
       <FeedMedia

@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
+import StoryReactionTray from "./StoryReactionTray.jsx";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -421,6 +422,15 @@ export default function StoryViewer({
           animation: "none",
         }}>⏸</div>
       )}
+
+      {/* Story Reaction Tray */}
+      <StoryReactionTray
+        storyId={story?.id}
+        userId={user?.id}
+        onReact={(emoji) => {
+          // Could dispatch to owner via realtime — no-op for now
+        }}
+      />
 
       {/* Group dots */}
       {groups.length > 1 && (
