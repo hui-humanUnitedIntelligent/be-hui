@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUI Phase 3 — Stories Migration</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, monospace; background: #0A0A12; color: #e0e0e0; padding: 24px; min-height: 100vh; }
+  h1 { color: #16D7C5; font-size: 22px; margin-bottom: 8px; }
+  .subtitle { color: rgba(255,255,255,0.45); font-size: 13px; margin-bottom: 24px; }
+  .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+  h2 { color: #16D7C5; font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  pre { background: rgba(0,0,0,0.4); border-radius: 10px; padding: 14px; overflow-x: auto; font-size: 12px; line-height: 1.6; color: #a8f0e8; white-space: pre-wrap; word-break: break-all; }
+  .btn { display: inline-block; padding: 10px 22px; border-radius: 20px; background: linear-gradient(135deg, #16D7C5, #FF8A6B); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; border: none; margin-top: 10px; }
+  .status { padding: 8px 14px; border-radius: 10px; font-size: 13px; margin-top: 10px; display: none; }
+  .status.ok  { background: rgba(22,215,197,0.15); color: #16D7C5; display: block; }
+  .status.err { background: rgba(255,107,107,0.15); color: #FF6B6B; display: block; }
+  textarea { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px; color: #a8f0e8; font-family: monospace; font-size: 12px; margin-bottom: 8px; }
+  input { width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; color: #fff; font-size: 14px; outline: none; margin-bottom: 10px; }
+  label { color: rgba(255,255,255,0.55); font-size: 12px; display: block; margin-bottom: 4px; }
+  .step-num { display: inline-block; width: 24px; height: 24px; background: #16D7C5; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: 800; color: #0A0A12; margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<h1>HUI Phase 3 — Real Story System</h1>
+<p class="subtitle">Run this SQL in Supabase SQL Editor to create the stories infrastructure</p>
+
+<div class="card">
+  <h2><span class="step-num">1</span>Connect to Supabase</h2>
+  <label>Supabase Project URL</label>
+  <input type="text" id="supabaseUrl" placeholder="https://xxx.supabase.co" />
+  <label>Service Role Key (for schema operations)</label>
+  <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+</div>
+
+<div class="card">
+  <h2><span class="step-num">2</span>Stories Table SQL</h2>
+  <p style="color:rgba(255,255,255,0.45);font-size:12px;margin-bottom:10px;">Copy this SQL and run it in your Supabase SQL Editor at supabase.com/dashboard</p>
+  <pre id="sql1">-- ═══════════════════════════════════════════════════════════════
+-- HUI Phase 3: Real Story System
+-- Run in: Supabase Dashboard → SQL Editor → New Query
+-- ═══════════════════════════════════════════════════════════════
+
+-- 1. Drop & recreate (safe — only if table doesn't exist)
+CREATE TABLE IF NOT EXISTS public.stories (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  media_url      text,
+  media_type     text DEFAULT 'image'  CHECK (media_type IN ('image','video')),
+  text           text,
+  visibility     text DEFAULT 'public' CHECK (visibility IN ('public','followers','private')),
+  viewers_count  integer DEFAULT 0,
+  is_active      boolean DEFAULT true,
+  created_at     timestamptz DEFAULT now(),
+  expires_at     timestamptz DEFAULT now() + interval '24 hours'
+);
+
+-- 2. Indexes
+CREATE INDEX IF NOT EXISTS stories_active_idx
+  ON public.stories (user_id, expires_at)
+  WHERE is_active = true;
+
+CREATE INDEX IF NOT EXISTS stories_feed_idx
+  ON public.stories (expires_at DESC, created_at DESC)
+  WHERE is_active = true;
+
+-- 3. Enable RLS
+ALTER TABLE public.stories ENABLE ROW LEVEL SECURITY;
+
+-- 4. RLS Policies
+DROP POLICY IF EXISTS "stories_read_public" ON public.stories;
+CREATE POLICY "stories_read_public" ON public.stories
+  FOR SELECT USING (
+    is_active = true
+    AND expires_at > now()
+    AND visibility = 'public'
+  );
+
+DROP POLICY IF EXISTS "stories_read_own" ON public.stories;
+CREATE POLICY "stories_read_own" ON public.stories
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "stories_insert_own" ON public.stories;
+CREATE POLICY "stories_insert_own" ON public.stories
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "stories_update_own" ON public.stories;
+CREATE POLICY "stories_update_own" ON public.stories
+  FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "stories_delete_own" ON public.stories;
+CREATE POLICY "stories_delete_own" ON public.stories
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- 5. Story views (who watched)
+CREATE TABLE IF NOT EXISTS public.story_views (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  story_id   uuid NOT NULL REFERENCES public.stories(id) ON DELETE CASCADE,
+  viewer_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  viewed_at  timestamptz DEFAULT now(),
+  UNIQUE (story_id, viewer_id)
+);
+
+ALTER TABLE public.story_views ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "story_views_insert" ON public.story_views;
+CREATE POLICY "story_views_insert" ON public.story_views
+  FOR INSERT WITH CHECK (auth.uid() = viewer_id);
+
+DROP POLICY IF EXISTS "story_views_read" ON public.story_views;
+CREATE POLICY "story_views_read" ON public.story_views
+  FOR SELECT USING (
+    auth.uid() = viewer_id
+    OR auth.uid() = (SELECT user_id FROM public.stories WHERE id = story_id)
+  );
+
+SELECT 'stories table ready ✅' AS status;</pre>
+
+  <button class="btn" onclick="copySql('sql1')">📋 Copy SQL</button>
+  <div id="status-sql1" class="status"></div>
+</div>
+
+<div class="card">
+  <h2><span class="step-num">3</span>Storage Bucket</h2>
+  <p style="color:rgba(255,255,255,0.45);font-size:12px;margin-bottom:10px;">Run this separately to create the stories-media bucket:</p>
+  <pre id="sql2">-- Create stories-media storage bucket
+-- Go to: Supabase Dashboard → Storage → New Bucket
+-- Name: stories-media
+-- Public: YES
+-- Max file size: 50MB
+
+-- OR run this SQL:
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'stories-media',
+  'stories-media',
+  true,
+  52428800,  -- 50MB
+  ARRAY['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/quicktime','video/webm']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage RLS
+CREATE POLICY "stories_media_upload" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'stories-media'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+CREATE POLICY "stories_media_read" ON storage.objects
+  FOR SELECT USING (bucket_id = 'stories-media');
+
+SELECT 'stories-media bucket ready ✅' AS status;</pre>
+
+  <button class="btn" onclick="copySql('sql2')">📋 Copy SQL</button>
+  <div id="status-sql2" class="status"></div>
+</div>
+
+<div class="card">
+  <h2><span class="step-num">4</span>Test Story Insert</h2>
+  <p style="color:rgba(255,255,255,0.45);font-size:12px;margin-bottom:10px;">Verify the table works (run as authenticated user or use service role):</p>
+  <pre>-- Check table exists and has correct structure
+SELECT column_name, data_type, column_default
+FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'stories'
+ORDER BY ordinal_position;
+
+-- Check active stories (should be empty initially)
+SELECT COUNT(*) as story_count FROM public.stories WHERE is_active = true;
+
+-- Check RLS policies
+SELECT policyname, cmd, qual
+FROM pg_policies
+WHERE tablename = 'stories';</pre>
+</div>
+
+<div class="card" style="border-color:rgba(22,215,197,0.25)">
+  <h2>✅ Architecture Summary</h2>
+  <pre style="color:rgba(255,255,255,0.7)">After migration:
+
+UnifiedFeed
+  ├── FeedStoriesBar    ← loads from: stories table ONLY
+  │     ├── StoryBubble (per user group)
+  │     ├── StoryViewer (fullscreen, tap nav)
+  │     └── StoryCreator (upload → stories table)
+  ├── FeedEventsSection ← unchanged
+  └── FeedTimeline      ← beitraege, works, experiences, invitations
+
+TeilenFlow routing:
+  mode="story"  → handlePublishStory() → stories table
+  mode="feed"   → handlePublishMoment() → beitraege table
+
+Storage:
+  stories-media bucket  ← Story uploads (new)
+  media bucket          ← Feed uploads (existing, fallback)
+
+Stories expire: 24h (expires_at, enforced by RLS + query filter)</pre>
+</div>
+
+<script>
+function copySql(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const s = document.getElementById('status-' + id);
+    if (s) { s.textContent = '✅ SQL kopiert! Füge es in den Supabase SQL Editor ein.'; s.className = 'status ok'; }
+  }).catch(e => {
+    const s = document.getElementById('status-' + id);
+    if (s) { s.textContent = '❌ Copy fehlgeschlagen: ' + e.message; s.className = 'status err'; }
+  });
+}
+</script>
+</body>
+</html>

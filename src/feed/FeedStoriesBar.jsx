@@ -1,231 +1,117 @@
 // src/feed/FeedStoriesBar.jsx
 // ═══════════════════════════════════════════════════════════════
-// HUI — STORIES BAR (Phase 2A: Safe Reintegration)
+// HUI — STORIES BAR (Phase 3: Real Story System)
 //
-// ISOLIERT — kein Coupling an FeedRouter oder liveItems.
-// Eigene Supabase-Query, eigener Loading-State.
-// Crash → leerer Container, kein Feed-Crash.
+// ✅ Loads ONLY from: stories table (real Supabase data)
+// ✅ Groups by user
+// ✅ Own story slot always visible
+// ✅ Opens StoryCreator (not TeilenFlow)
+// ✅ Opens StoryViewer (fullscreen)
+// ✅ Listens to "stories-refresh" event
+// ✅ ISOLATED — never touches FeedRouter or feed state
 // ═══════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef } from "react";
-import { supabase }  from "../lib/supabaseClient.js";
-import { useAuth }   from "../lib/AuthContext.jsx";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { supabase }     from "../lib/supabaseClient.js";
+import { useAuth }      from "../lib/AuthContext.jsx";
+import StoryViewer      from "./StoryViewer.jsx";
+import StoryCreator     from "./StoryCreator.jsx";
 
-/* ── Tokens ───────────────────────────────────────────────────── */
+/* ── Design tokens ───────────────────────────────────────────── */
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
 const GOLD  = "#F59E0B";
+const CREAM = "#FAFAF8";
+const INK   = "#1A1A2E";
 const INK3  = "rgba(26,26,46,0.38)";
+const RING_UNSEEN = `linear-gradient(135deg, ${TEAL} 0%, ${CORAL} 50%, ${GOLD} 100%)`;
+const RING_SEEN   = "conic-gradient(rgba(26,26,46,0.14) 0%, rgba(26,26,46,0.10) 100%)";
+const RING_LIVE   = `conic-gradient(${CORAL} 0%, #FF6B6B 100%)`;
+const RING_SELF   = `linear-gradient(135deg, ${TEAL} 0%, ${TEAL} 100%)`;
 
-/* ── CSS keyframes (injected once) ───────────────────────────── */
-const KEYFRAMES = `
+/* ── CSS ─────────────────────────────────────────────────────── */
+const CSS = `
 @keyframes huiStoryPulse {
-  0%,100% { box-shadow: 0 0 0 2px rgba(22,215,197,0.6); }
-  50%      { box-shadow: 0 0 0 5px rgba(22,215,197,0.2); }
+  0%,100% { box-shadow: 0 0 0 2.5px rgba(22,215,197,0.65); }
+  50%      { box-shadow: 0 0 0 5px rgba(22,215,197,0.18); }
 }
 @keyframes huiStoryFadeIn {
-  from { opacity:0; transform:scale(0.88) translateY(6px); }
+  from { opacity:0; transform:scale(0.86) translateY(8px); }
   to   { opacity:1; transform:scale(1)   translateY(0);    }
 }
+@keyframes huiStoryLivePulse {
+  0%,100% { box-shadow: 0 0 0 2.5px rgba(255,138,107,0.75); }
+  50%      { box-shadow: 0 0 0 5.5px rgba(255,138,107,0.2); }
+}
 `;
-
-let _keyframesInjected = false;
-function injectKeyframes() {
-  if (_keyframesInjected) return;
-  _keyframesInjected = true;
+let _cssInjected = false;
+function injectCSS() {
+  if (_cssInjected || typeof document === "undefined") return;
+  _cssInjected = true;
   const s = document.createElement("style");
-  s.textContent = KEYFRAMES;
+  s.textContent = CSS;
   document.head.appendChild(s);
 }
 
-/* ── Avatar ring gradient ─────────────────────────────────────── */
-function ringGradient(seen, isLive) {
-  if (isLive) return `conic-gradient(${CORAL} 0%, #FF6B6B 100%)`;
-  if (seen)   return `conic-gradient(rgba(26,26,46,0.14) 0%, rgba(26,26,46,0.10) 100%)`;
-  return `conic-gradient(${TEAL} 0%, ${CORAL} 50%, ${GOLD} 100%)`;
-}
+/* ══════════════════════════════════════════════════════════════
+   STORY BAR
+══════════════════════════════════════════════════════════════ */
+export default function FeedStoriesBar({ onProfilePress }) {
+  injectCSS();
 
-/* ── Single Story Card ────────────────────────────────────────── */
-function StoryCard({ group, isSeen, onPress, delay }) {
-  const [pressed, setPressed] = useState(false);
-  const name   = group.name   || "Human";
-  const avatar = group.avatar || null;
-  const isLive = group.isLive || false;
-  const hasNew = !isSeen && (group.stories || []).length > 0;
-
-  return (
-    <button
-      onClick={() => onPress(group)}
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => setPressed(false)}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      style={{
-        background: "none", border: "none", padding: 0,
-        cursor: "pointer", flexShrink: 0, width: 72,
-        display: "flex", flexDirection: "column", alignItems: "center",
-        gap: 6, touchAction: "manipulation",
-        animation: `huiStoryFadeIn 0.35s ease both`,
-        animationDelay: delay + "ms",
-        transform: pressed ? "scale(0.92)" : "scale(1)",
-        transition: "transform 0.15s ease",
-      }}
-    >
-      {/* Avatar + ring */}
-      <div style={{
-        position: "relative",
-        width: 58, height: 58,
-        padding: 2.5,
-        borderRadius: "50%",
-        background: ringGradient(isSeen, isLive),
-        animation: isLive ? "huiStoryPulse 2s ease infinite" : "none",
-      }}>
-        {/* Inner white gap */}
-        <div style={{
-          width: "100%", height: "100%",
-          borderRadius: "50%", padding: 2,
-          background: "#fff",
-          overflow: "hidden",
-        }}>
-          <div style={{
-            width: "100%", height: "100%",
-            borderRadius: "50%", overflow: "hidden",
-            background: "rgba(22,215,197,0.10)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 20, color: TEAL, fontWeight: 700,
-          }}>
-            {avatar
-              ? <img src={avatar} alt={name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                  onError={(e) => { e.target.style.display = "none"; }} />
-              : name[0].toUpperCase()
-            }
-            {/* + indicator for own empty Story slot */}
-            {isYou && isEmpty && (
-              <div style={{
-                position: "absolute", bottom: 0, right: 0,
-                width: 18, height: 18, borderRadius: "50%",
-                background: TEAL, border: "2px solid #FAFAF8",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 13, color: "#fff", fontWeight: 900, lineHeight: 1,
-              }}>+</div>
-            )}
-          </div>
-        </div>
-
-        {/* LIVE badge */}
-        {isLive && (
-          <div style={{
-            position: "absolute", bottom: -2, left: "50%",
-            transform: "translateX(-50%)",
-            background: CORAL, color: "#fff",
-            fontSize: 8, fontWeight: 800, letterSpacing: 0.5,
-            padding: "1px 5px", borderRadius: 4,
-            border: "1.5px solid #fff",
-          }}>LIVE</div>
-        )}
-
-        {/* Unseen dot */}
-        {hasNew && !isLive && (
-          <div style={{
-            position: "absolute", top: 1, right: 1,
-            width: 10, height: 10, borderRadius: "50%",
-            background: TEAL, border: "1.5px solid #fff",
-          }} />
-        )}
-      </div>
-
-      {/* Name */}
-      <span style={{
-        fontSize: 10.5, fontWeight: hasNew ? 700 : 500,
-        color: hasNew ? "rgba(26,26,46,0.82)" : INK3,
-        maxWidth: 68, overflow: "hidden",
-        textOverflow: "ellipsis", whiteSpace: "nowrap",
-        textAlign: "center",
-      }}>
-        {name.split(" ")[0]}
-      </span>
-    </button>
-  );
-}
-
-/* ── Add Story Button ─────────────────────────────────────────── */
-function AddStoryButton({ onPress, currentUser }) {
-  const [pressed, setPressed] = useState(false);
-  return (
-    <button
-      onClick={onPress}
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => setPressed(false)}
-      style={{
-        background: "none", border: "none", padding: 0,
-        cursor: "pointer", flexShrink: 0, width: 72,
-        display: "flex", flexDirection: "column", alignItems: "center",
-        gap: 6, touchAction: "manipulation",
-        transform: pressed ? "scale(0.92)" : "scale(1)",
-        transition: "transform 0.15s ease",
-      }}
-    >
-      <div style={{
-        width: 58, height: 58, borderRadius: "50%",
-        background: "rgba(22,215,197,0.08)",
-        border: "2px dashed rgba(22,215,197,0.35)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        position: "relative", overflow: "hidden",
-      }}>
-        {/* User avatar in background */}
-        {currentUser?.avatar && (
-          <img src={currentUser.avatar} alt=""
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover", opacity: 0.35 }} />
-        )}
-        <span style={{ fontSize: 22, color: TEAL, fontWeight: 300, lineHeight: 1, position: "relative" }}>+</span>
-      </div>
-      <span style={{ fontSize: 10.5, fontWeight: 500, color: INK3 }}>Teilen</span>
-    </button>
-  );
-}
-
-/* ── Main Stories Bar ─────────────────────────────────────────── */
-export default function FeedStoriesBar({ onStoryClick, onAddStory, currentUser }) {
-  React.useEffect(() => { console.log("[ACTIVE_FEED_SYSTEM] FeedStoriesBar mounted"); }, []);
   const { user } = useAuth();
-  const [groups,    setGroups]    = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [viewedIds, setViewedIds] = useState(() => {
-    try {
-      const s = sessionStorage.getItem("hui_seen_stories");
-      return new Set(s ? JSON.parse(s) : []);
-    } catch { return new Set(); }
-  });
-  const scrollRef = useRef(null);
 
+  const [groups,      setGroups]     = useState([]);
+  const [loading,     setLoading]    = useState(true);
+  const [seenIds,     setSeenIds]    = useState(new Set());
+  const [viewerOpen,  setViewerOpen] = useState(false);
+  const [viewerStart, setViewerStart]= useState(0);
+  const [creatorOpen, setCreatorOpen]= useState(false);
+
+  /* ── Active trace ─────────────────────────────────────────── */
   useEffect(() => {
-    injectKeyframes();
-    loadStories();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+    console.log("[ACTIVE_FEED_SYSTEM] FeedStoriesBar mounted");
+  }, []);
 
-  async function loadStories() {
+  /* ── Restore seen state from sessionStorage ──────────────── */
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("hui_seen_stories_v3");
+      if (raw) setSeenIds(new Set(JSON.parse(raw)));
+    } catch (_) {}
+  }, []);
+
+  /* ── Load stories ─────────────────────────────────────────── */
+  const loadStories = useCallback(async () => {
     setLoading(true);
     try {
       const now = new Date().toISOString();
+
       const { data, error } = await supabase
         .from("stories")
         .select(`
-          id, user_id, media_url, media_type, caption,
-          is_highlight, created_at, expires_at,
+          id, user_id, media_url, media_type, text,
+          created_at, expires_at, is_active, viewers_count,
           profile:user_id(display_name, avatar_url, username)
         `)
-        .or(`expires_at.is.null,expires_at.gt.${now}`)
+        .eq("is_active", true)
+        .gt("expires_at", now)
         .order("created_at", { ascending: false })
-        .limit(60);
+        .limit(80);
 
-      if (error) throw error;
+      if (error) {
+        console.warn("[HUI_STORIES] load error:", error.message);
+        // Fail gracefully — still show own story slot
+        setGroups(buildOwnSlot(user, []));
+        return;
+      }
+
       const rows = data || [];
+      console.log("[HUI_STORIES] loaded:", rows.length, "stories");
 
-      // Group by user_id
+      // ── Group by user_id ───────────────────────────────────
       const byUser = new Map();
+
       for (const row of rows) {
         const uid  = row.user_id;
         const prof = row.profile || {};
@@ -235,141 +121,345 @@ export default function FeedStoriesBar({ onStoryClick, onAddStory, currentUser }
             name:    prof.display_name || prof.username || "Human",
             avatar:  prof.avatar_url   || null,
             isLive:  false,
+            isYou:   uid === user?.id,
             stories: [],
           });
         }
         byUser.get(uid).stories.push(row);
       }
 
-      // Sort: current user first, then unseen, then seen
       let arr = Array.from(byUser.values());
+
+      // ── Sort: own first, then unseen, then seen ────────────
       arr.sort((a, b) => {
-        if (a.userId === user?.id) return -1;
-        if (b.userId === user?.id) return 1;
-        const aSeen = viewedIds.has(a.userId);
-        const bSeen = viewedIds.has(b.userId);
+        if (a.isYou) return -1;
+        if (b.isYou) return 1;
+        const aSeen = seenIds.has(a.userId);
+        const bSeen = seenIds.has(b.userId);
         if (aSeen !== bSeen) return aSeen ? 1 : -1;
         return 0;
       });
 
-      // Always prepend the current user's "Dein Moment" slot
-      // so the bar is never empty for logged-in users
-      if (user?.id) {
-        const alreadyHasOwnGroup = arr.some(g => g.userId === user.id);
-        if (!alreadyHasOwnGroup) {
-          arr.unshift({
-            userId:   user.id,
-            name:     user.user_metadata?.display_name || "Dein Moment",
-            avatar:   user.user_metadata?.avatar_url   || null,
-            isLive:   false,
-            isYou:    true,
-            stories:  [],   // no stories yet — shows + Add button
-          });
-        } else {
-          // Mark own group as "isYou"
-          arr = arr.map(g => g.userId === user.id ? { ...g, isYou: true } : g);
-        }
+      // ── Ensure own slot always present ────────────────────
+      if (user?.id && !arr.some(g => g.isYou)) {
+        arr.unshift({
+          userId:  user.id,
+          name:    "Deine Story",
+          avatar:  user.user_metadata?.avatar_url || null,
+          isLive:  false,
+          isYou:   true,
+          stories: [],
+        });
       }
 
       setGroups(arr);
-    } catch (err) {
-      console.warn("[HUI_STORIES_LOAD_ERR]", err?.message);
-      // Fail with own-user fallback
-      const fallback = user?.id ? [{
-        userId:   user.id,
-        name:     "Dein Moment",
-        avatar:   null,
-        isLive:   false,
-        isYou:    true,
-        stories:  [],
-      }] : [];
-      setGroups(fallback);
     } finally {
       setLoading(false);
     }
+  }, [user?.id, seenIds]); // eslint-disable-line
+
+  useEffect(() => { loadStories(); }, [user?.id]); // eslint-disable-line
+
+  /* ── Listen to refresh event ──────────────────────────────── */
+  useEffect(() => {
+    const handler = () => loadStories();
+    window.addEventListener("stories-refresh", handler);
+    return () => window.removeEventListener("stories-refresh", handler);
+  }, [loadStories]);
+
+  /* ── Handle story circle tap ──────────────────────────────── */
+  function handleGroupTap(groupIndex) {
+    const group = groups[groupIndex];
+    if (!group) return;
+
+    // Own story + no stories yet → open creator
+    if (group.isYou && group.stories.length === 0) {
+      setCreatorOpen(true);
+      return;
+    }
+
+    // Open viewer
+    setViewerStart(groupIndex);
+    setViewerOpen(true);
   }
 
-  function handleStoryPress(group) {
-    // Mark as seen
-    setViewedIds(prev => {
-      const next = new Set(prev);
-      next.add(group.userId);
-      try { sessionStorage.setItem("hui_seen_stories", JSON.stringify([...next])); } catch {}
+  /* ── Mark user as seen ────────────────────────────────────── */
+  function handleMarkSeen(userId) {
+    setSeenIds(prev => {
+      const next = new Set(prev).add(userId);
+      try { sessionStorage.setItem("hui_seen_stories_v3", JSON.stringify([...next])); } catch (_) {}
       return next;
     });
-    onStoryClick?.(group);
   }
 
-  // Don't render empty bar (no placeholder height)
+  /* ── Render ─────────────────────────────────────────────────── */
+  return (
+    <>
+      <div style={{
+        width:      "100%",
+        overflowX:  "auto",
+        overflowY:  "hidden",
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        padding:    "16px 0 12px",
+        borderBottom: "1px solid rgba(26,26,46,0.07)",
+      }}>
+        <style>{`::-webkit-scrollbar { display:none; }`}</style>
+
+        {/* Inner scroll row */}
+        <div style={{
+          display:    "flex",
+          gap:        14,
+          padding:    "0 16px",
+          minWidth:   "max-content",
+        }}>
+
+          {/* Loading skeletons */}
+          {loading && Array.from({ length: 5 }).map((_, i) => (
+            <SkeletonBubble key={i} delay={i * 0.07} />
+          ))}
+
+          {/* Story groups */}
+          {!loading && groups.map((group, idx) => (
+            <StoryBubble
+              key={group.userId}
+              group={group}
+              isSeen={seenIds.has(group.userId) && !group.isYou}
+              onTap={() => handleGroupTap(idx)}
+              delay={idx * 0.06}
+            />
+          ))}
+
+          {/* Empty state — not logged in */}
+          {!loading && !user?.id && groups.length === 0 && (
+            <div style={{
+              color: INK3, fontSize: 13, padding: "0 8px",
+              display: "flex", alignItems: "center",
+            }}>
+              Melde dich an um Stories zu sehen
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Story Viewer ─────────────────────────────────────── */}
+      {viewerOpen && groups.some(g => g.stories.length > 0) && (
+        <StoryViewer
+          groups={groups.filter(g => g.stories.length > 0)}
+          startGroupIdx={Math.max(0,
+            groups.filter(g => g.stories.length > 0)
+              .findIndex(g => g.userId === groups[viewerStart]?.userId)
+          )}
+          onClose={() => setViewerOpen(false)}
+          onProfilePress={(uid) => {
+            setViewerOpen(false);
+            onProfilePress?.(uid);
+          }}
+          onMarkSeen={handleMarkSeen}
+        />
+      )}
+
+      {/* ── Story Creator ─────────────────────────────────────── */}
+      {creatorOpen && (
+        <StoryCreator
+          onClose={() => setCreatorOpen(false)}
+          onPublished={() => {
+            setCreatorOpen(false);
+            loadStories();
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STORY BUBBLE
+══════════════════════════════════════════════════════════════ */
+function StoryBubble({ group, isSeen, onTap, delay }) {
+  const [pressed, setPressed] = useState(false);
+  const name     = group.name     || "Human";
+  const avatar   = group.avatar   || null;
+  const isLive   = group.isLive   || false;
+  const isYou    = group.isYou    || false;
+  const isEmpty  = group.stories.length === 0;
+  const hasNew   = !isSeen && !isEmpty;
+
+  const ring = isLive ? RING_LIVE
+    : isYou    ? RING_SELF
+    : hasNew   ? RING_UNSEEN
+    : RING_SEEN;
+
+  const pulse = isLive
+    ? "huiStoryLivePulse 2s ease-in-out infinite"
+    : isYou && isEmpty
+      ? "huiStoryPulse 2.5s ease-in-out infinite"
+      : "none";
 
   return (
-    <div style={{
-      paddingTop: 12,
-      paddingBottom: 4,
-      marginBottom: 4,
-    }}>
-      {/* Section label */}
+    <button
+      onClick={onTap}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      style={{
+        background:    "none",
+        border:        "none",
+        padding:       0,
+        cursor:        "pointer",
+        touchAction:   "manipulation",
+        WebkitTapHighlightColor: "transparent",
+        display:       "flex",
+        flexDirection: "column",
+        alignItems:    "center",
+        gap:           6,
+        flexShrink:    0,
+        animation:     `huiStoryFadeIn 0.35s ${delay}s cubic-bezier(.22,1,.36,1) both`,
+        transform:     pressed ? "scale(0.93)" : "scale(1)",
+        transition:    "transform 0.14s ease",
+      }}
+    >
+      {/* Ring + Avatar */}
       <div style={{
-        paddingLeft: 16, marginBottom: 10,
-        fontSize: 11, fontWeight: 700,
-        color: INK3, letterSpacing: 0.5,
-        textTransform: "uppercase",
+        width:         58,
+        height:        58,
+        borderRadius:  "50%",
+        padding:       2.5,
+        background:    ring,
+        animation:     pulse,
+        position:      "relative",
       }}>
-        Momente
-      </div>
-
-      {/* Horizontal scroll */}
-      <div
-        ref={scrollRef}
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          overflowX: "auto",
-          overflowY: "hidden",
-          gap: 10,
-          paddingLeft: 16,
-          paddingRight: 16,
-          paddingBottom: 6,
-          WebkitOverflowScrolling: "touch",
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-      >
-        {/* Add story button */}
-        <AddStoryButton onPress={onAddStory} currentUser={currentUser} />
-
-        {/* Loading skeletons */}
-        {loading && Array.from({ length: 5 }).map((_, i) => (
-          <div key={"sk" + i} style={{
-            flexShrink: 0, width: 72,
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+        {/* Inner white gap */}
+        <div style={{
+          width:         "100%",
+          height:        "100%",
+          borderRadius:  "50%",
+          background:    CREAM,
+          padding:       2,
+          display:       "flex",
+          alignItems:    "center",
+          justifyContent:"center",
+          overflow:      "hidden",
+        }}>
+          {/* Avatar */}
+          <div style={{
+            width:         "100%",
+            height:        "100%",
+            borderRadius:  "50%",
+            background:    isSeen
+              ? "rgba(26,26,46,0.06)"
+              : `linear-gradient(135deg, rgba(22,215,197,0.12), rgba(255,138,107,0.12))`,
+            display:       "flex",
+            alignItems:    "center",
+            justifyContent:"center",
+            overflow:      "hidden",
+            fontSize:      20,
+            color:         TEAL,
+            fontWeight:    700,
+            position:      "relative",
           }}>
-            <div style={{
-              width: 58, height: 58, borderRadius: "50%",
-              background: "rgba(26,26,46,0.06)",
-            }} />
-            <div style={{ width: 40, height: 8, borderRadius: 4, background: "rgba(26,26,46,0.05)" }} />
-          </div>
-        ))}
+            {avatar
+              ? <img
+                  src={avatar}
+                  alt={name}
+                  style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+                  onError={(e) => { e.target.style.display = "none"; }}
+                />
+              : name[0]?.toUpperCase()
+            }
 
-        {/* Story groups */}
-        {!loading && groups.map((g, i) => (
-          <StoryCard
-            key={g.userId}
-            group={g}
-            isSeen={viewedIds.has(g.userId)}
-            onPress={handleStoryPress}
-            delay={i * 40}
-          />
-        ))}
+            {/* + badge for own empty slot */}
+            {isYou && isEmpty && (
+              <div style={{
+                position:      "absolute",
+                bottom:        -1,
+                right:         -1,
+                width:         20,
+                height:        20,
+                borderRadius:  "50%",
+                background:    TEAL,
+                border:        `2px solid ${CREAM}`,
+                display:       "flex",
+                alignItems:    "center",
+                justifyContent:"center",
+                fontSize:      14,
+                color:         "#fff",
+                fontWeight:    900,
+                lineHeight:    1,
+              }}>+</div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Subtle divider */}
+      {/* Name label */}
       <div style={{
-        height: 1, marginLeft: 16, marginRight: 16,
-        marginTop: 10,
-        background: "rgba(26,26,46,0.05)",
+        fontSize:   11,
+        fontWeight: isSeen && !isYou ? 400 : 600,
+        color:      isSeen && !isYou ? INK3 : INK,
+        maxWidth:   62,
+        overflow:   "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        textAlign:  "center",
+        lineHeight: 1.2,
+      }}>
+        {isYou && isEmpty ? "Dein Moment" : name}
+      </div>
+
+      {/* LIVE badge */}
+      {isLive && (
+        <div style={{
+          fontSize:   9,
+          fontWeight: 800,
+          color:      "#fff",
+          background: CORAL,
+          borderRadius: 4,
+          padding:    "1px 5px",
+          letterSpacing: 0.5,
+          marginTop:  -4,
+        }}>LIVE</div>
+      )}
+    </button>
+  );
+}
+
+/* ── Skeleton bubble ─────────────────────────────────────────── */
+function SkeletonBubble({ delay }) {
+  return (
+    <div style={{
+      display:       "flex",
+      flexDirection: "column",
+      alignItems:    "center",
+      gap:           6,
+      animation:     `huiStoryFadeIn 0.35s ${delay}s both`,
+      opacity:       0.5,
+    }}>
+      <div style={{
+        width:        58, height:     58,
+        borderRadius: "50%",
+        background:   "rgba(26,26,46,0.07)",
+      }} />
+      <div style={{
+        width:        42, height:     8,
+        borderRadius: 4,
+        background:   "rgba(26,26,46,0.07)",
       }} />
     </div>
   );
+}
+
+/* ── Own slot builder helper ─────────────────────────────────── */
+function buildOwnSlot(user, extra) {
+  const own = {
+    userId:  user?.id || "anon",
+    name:    "Deine Story",
+    avatar:  user?.user_metadata?.avatar_url || null,
+    isLive:  false,
+    isYou:   true,
+    stories: [],
+  };
+  return user?.id ? [own, ...extra] : extra;
 }

@@ -714,7 +714,83 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
     }
   }, []);
 
+  // ─── PUBLISH ROUTING ─────────────────────────────────────────────────────
+  // Mode "story" → stories table via createStory()
+  // Mode "feed"  → beitraege table (existing flow)
   const handlePublish = async () => {
+    if (form?.mode === "story") {
+      await handlePublishStory();
+    } else {
+      await handlePublishMoment();
+    }
+  };
+
+  // ─── STORY PUBLISH → stories table ────────────────────────────────────────
+  const handlePublishStory = async () => {
+    const huiLog = (msg) => console.log("[HUI_STORY_PUBLISH]", msg);
+    try {
+      setPublishing(true);
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.user?.id) {
+        huiLog("NO_SESSION"); setPublishing(false); return;
+      }
+
+      let media_url = null;
+      if (form?.mediaFile) {
+        const ext  = form.mediaFile.name.split(".").pop() || "jpg";
+        const path = `${session.user.id}/${Date.now()}.${ext}`;
+        // Try stories-media bucket, fall back to media
+        let { error: upErr } = await supabase.storage
+          .from("stories-media")
+          .upload(path, form.mediaFile, { upsert: true });
+        if (upErr) {
+          huiLog("stories-media bucket failed, trying media/stories/");
+          const { error: upErr2 } = await supabase.storage
+            .from("media")
+            .upload("stories/" + path, form.mediaFile, { upsert: true });
+          if (!upErr2) {
+            const { data: pub } = supabase.storage.from("media").getPublicUrl("stories/" + path);
+            media_url = pub?.publicUrl || null;
+          }
+        } else {
+          const { data: pub } = supabase.storage.from("stories-media").getPublicUrl(path);
+          media_url = pub?.publicUrl || null;
+        }
+      }
+
+      const { data, error } = await supabase
+        .from("stories")
+        .insert({
+          user_id:    session.user.id,
+          media_url,
+          media_type: form?.mediaType || "image",
+          text:       form?.text?.trim() || null,
+          visibility: "public",
+          is_active:  true,
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .select("id").single();
+
+      if (error) {
+        huiLog("INSERT_ERROR: " + error.message);
+        setPublishing(false); return;
+      }
+      huiLog("Story published: " + data?.id);
+      setPublishing(false);
+      window.__PUBLISHING__ = false;
+      window.dispatchEvent(new Event("stories-refresh"));
+      onPublished?.({ refresh: true, id: data?.id, type: "story" });
+      onClose?.();
+    } catch (e) {
+      huiLog("CRASH: " + e?.message);
+      setPublishing(false);
+      window.__PUBLISHING__ = false;
+    }
+  };
+
+  // ─── MOMENT PUBLISH → beitraege table ──────────────────────────────────────
+  const handlePublishMoment = async () => {
+
     let panel = document.getElementById("__hui_publish_panel__");
     if (!panel) {
       panel = document.createElement("div");
@@ -827,7 +903,9 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       window.__PUBLISHING__ = false;
     }
     // finally entfernt — reset läuft jetzt im success-Zweig und catch
+  
   };
+
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
