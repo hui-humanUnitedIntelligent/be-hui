@@ -9,12 +9,14 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useEffect } from "react";
-import FeedRouter          from "./cards/FeedRouter.jsx";
-import { CardSkeleton }    from "./cards/BaseFeedCard.jsx";
-import { useFeedStream }   from "./useFeedStream.js";
-import { toFeedItem }      from "../system/feed/unifiedNormalizer.js";
-import FeedStoriesBar      from "./FeedStoriesBar.jsx";
-import FeedEventsSection   from "./FeedEventsSection.jsx";
+import FeedRouter              from "./cards/FeedRouter.jsx";
+import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
+import { useFeedStream }       from "./useFeedStream.js";
+import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
+import FeedStoriesBar          from "./FeedStoriesBar.jsx";
+import FeedEventsSection       from "./FeedEventsSection.jsx";
+import { useSingleReaction }   from "../lib/useReactions.jsx";
+import { toast }               from "../lib/useToast.jsx";
 
 /* ── CSS: fade-in + scroll-feel ───────────────────────────────── */
 const FEED_CSS = `
@@ -87,29 +89,57 @@ function EmptyFeed() {
 
 /* ── Feed List ────────────────────────────────────────────────── */
 
-// ── Per-item reaction wrapper — wires BaseFeedCard to DB ─────
-function ReactionCard({ item, onProfile, onBook, onShare }) {
-  const { toggle, myTypes } = useSingleReaction(
-    item.id, item.type || "post", item.author?.id || null
-  );
+// ── Per-item reaction wrapper — wires FeedRouter to reaction DB ─
+// HARDENED: never returns null for a valid item
+// Any crash inside is caught by ReactionErrorBoundary
+class ReactionErrorBoundary extends React.Component {
+  constructor(p) { super(p); this.state = { crashed: false }; }
+  static getDerivedStateFromError() { return { crashed: true }; }
+  componentDidCatch(err, info) {
+    console.error("[REACTION_CARD_CRASH]", this.props.itemId, err?.message, info?.componentStack?.slice(0,200));
+  }
+  render() {
+    if (this.state.crashed) {
+      // Fallback: render the FeedRouter directly without reaction logic
+      const { item, onProfile, onBook, onShare } = this.props;
+      return (
+        <FeedRouter
+          item={item}
+          onProfile={onProfile}
+          onBook={onBook}
+          onShare={onShare}
+        />
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function ReactionCardInner({ item, onProfile, onBook, onShare }) {
+  // Guard: item must be valid before calling any hook
+  const postId   = item?.id    || "";
+  const postType = item?.type  || "post";
+  const authorId = item?.author?.id || null;
+
+  const { toggle, myTypes } = useSingleReaction(postId, postType, authorId);
 
   function handleReaction(type) {
+    if (!toggle) return;
     toggle(type);
-    // Toast feedback
-    const labels = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
-    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Gespeichert entfernt" };
-    const wasActive = myTypes.has(type);
-    toast.info(wasActive ? removeLabels[type] || type : labels[type] || type, { duration:1800 });
+    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
+    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Entfernt" };
+    const wasActive    = myTypes?.has?.(type);
+    toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
   }
 
-  // Merge live myTypes into _reactions
+  // Merge live reaction state into item
   const enriched = {
     ...item,
     _reactions: {
       ...(item._reactions || {}),
-      touched:  myTypes.has("like"),
-      inspired: myTypes.has("inspire"),
-      saved:    myTypes.has("save"),
+      touched:  myTypes?.has?.("like")    ?? false,
+      inspired: myTypes?.has?.("inspire") ?? false,
+      saved:    myTypes?.has?.("save")    ?? false,
     },
   };
 
@@ -121,6 +151,24 @@ function ReactionCard({ item, onProfile, onBook, onShare }) {
       onBook={onBook}
       onShare={onShare}
     />
+  );
+}
+
+function ReactionCard({ item, onProfile, onBook, onShare }) {
+  // Absolute guard — no item = no render, log it
+  if (!item?.id) {
+    console.warn("[REACTION_CARD] invalid item — skipping", item);
+    return null;
+  }
+  return (
+    <ReactionErrorBoundary item={item} itemId={item.id} onProfile={onProfile} onBook={onBook} onShare={onShare}>
+      <ReactionCardInner
+        item={item}
+        onProfile={onProfile}
+        onBook={onBook}
+        onShare={onShare}
+      />
+    </ReactionErrorBoundary>
   );
 }
 
@@ -137,11 +185,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
   const [reactions, setReactions] = useState({});
 
   if (arr.length === 0) return <EmptyFeed />;
-
-
-  if (!items || items.length === 0) {
-    return <EmptyState preset="feed" style={{ minHeight:280 }} />;
-  }
   return (
     <div style={{ paddingTop: 8, paddingBottom: 100 }}>
       {arr.map((item, idx) => {
@@ -275,12 +318,14 @@ export default function UnifiedFeed({
     // Nur null-Items und Items ohne id rausfiltern — nie mehr
     const safe = normalized.filter(i => i?.id);
 
-    console.log("[UNIFIED_FEED_TRACE]", {
-      propItems:   itemsProp?.length ?? 0,
-      streamItems: (streamItems||[]).length,
-      normalized:  normalized.length,
-      safe:        safe.length,
-      loading:     streamLoading,
+    console.log("[FEED_DEBUG]", {
+      raw:        (src||[]).length,
+      normalized: normalized.length,
+      safe:       safe.length,
+      first:      safe[0]
+        ? { id: safe[0].id, type: safe[0].type, author: safe[0].author?.name }
+        : null,
+      loading:    streamLoading,
     });
 
     return safe;

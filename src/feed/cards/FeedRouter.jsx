@@ -64,7 +64,10 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
     return { ...n, _reactions: itemReactions || {} };
   }, [rawItem, itemReactions]);
 
-  if (!item) return null;
+  if (!item) {
+    console.warn("[FEED_ITEM_INVALID] FeedRouter got null item from", rawItem);
+    return null;
+  }
 
   const type       = item.type || "moment";
   const authorName = item.author?.name || "Human";
