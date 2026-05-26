@@ -10,6 +10,8 @@ import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
+import { AuthGateProvider } from './components/auth/AuthGate.jsx'
+import ProfileCompletionFlow from './components/auth/ProfileCompletionFlow.jsx'
 import AuthCallback from './pages/AuthCallback'
 
 import { supabase } from './lib/supabaseClient'
@@ -481,11 +483,38 @@ function AppRoutes() {
 }
 
 /* ── Root ──────────────────────────────────────────────────────────── */
+// ── ProfileCompletionTrigger — Phase 4A ────────────────────────
+// Watches auth state and shows completion flow for incomplete profiles.
+// Isolated — never blocks render.
+function ProfileCompletionTrigger() {
+  const { user, profile, loadingAuth } = useAuth();
+  const [show, setShow] = React.useState(false);
+
+  React.useEffect(() => {
+    if (loadingAuth || !user || !profile) return;
+    // Show if: has user, profile loaded, but not complete
+    if (!profile.profile_complete && !profile.username) {
+      const timer = setTimeout(() => setShow(true), 1200); // slight delay
+      return () => clearTimeout(timer);
+    }
+  }, [user?.id, profile?.profile_complete, profile?.username, loadingAuth]);
+
+  if (!show) return null;
+  return (
+    <ProfileCompletionFlow
+      onComplete={() => setShow(false)}
+    />
+  );
+}
+
+
 export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
+      <AuthGateProvider>
+        <ProfileCompletionTrigger/>
         <AppStateProvider>
       <WorldSurfaceProvider>
             <OrbWorldProvider>
@@ -497,6 +526,7 @@ export default function App() {
       </OrbWorldProvider>
           </WorldSurfaceProvider>
       </AppStateProvider>
+      </AuthGateProvider>
       </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
