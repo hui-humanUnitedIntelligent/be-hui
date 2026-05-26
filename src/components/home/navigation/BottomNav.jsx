@@ -138,13 +138,17 @@ export default function BottomNav({
                     border: "none",
                     padding: 0, cursor: "pointer",
                     flexShrink: 0,
-                    overflow: "hidden",
+                    overflow: "visible",  // allow pulse ring to show
                     /* Teal → Coral gradient */
                     background: `linear-gradient(135deg, ${HUI.COLOR.teal} 0%, ${HUI.COLOR.coral} 100%)`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     WebkitTapHighlightColor: "transparent",
                     touchAction: "manipulation",
                     transition: "transform 0.14s ease",
+                    // BasisUser: pulse ring signals "tap to unlock"
+                    boxShadow: !hasTalent
+                      ? `0 0 0 3px rgba(22,215,197,0.22), 0 0 16px rgba(22,215,197,0.30)`
+                      : `0 0 0 2px rgba(22,215,197,0.15), 0 4px 16px rgba(22,215,197,0.22)`,
                   }}
                   onPointerDown={e => {
                     e.currentTarget.style.transform = "scale(0.94) translateY(1px)";
@@ -162,16 +166,31 @@ export default function BottomNav({
                     e.currentTarget.style.transition= "transform 200ms cubic-bezier(0.16,1,0.30,1)";
                   }}
                 >
-                  <img
-                    src="/hui-logo-real.jpg"
-                    alt="HUI"
-                    style={{
-                      width: "100%", height: "100%",
-                      objectFit: "cover", display: "block",
-                      borderRadius: "50%",
-                    }}
-                    onError={e => { e.target.src = "/hui-logo.jpg"; }}
-                  />
+                  {/* Inner clip — keeps image circular even with overflow:visible */}
+                  <div style={{
+                    width: 52, height: 52, borderRadius: "50%",
+                    overflow: "hidden", flexShrink: 0,
+                    position: "relative",
+                  }}>
+                    <img
+                      src="/hui-logo-real.jpg"
+                      alt="HUI"
+                      style={{
+                        width: "100%", height: "100%",
+                        objectFit: "cover", display: "block",
+                      }}
+                      onError={e => { e.target.src = "/hui-logo.jpg"; }}
+                    />
+                    {/* BasisUser overlay indicator: subtle teal shimmer */}
+                    {!hasTalent && (
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, rgba(22,215,197,0.22) 0%, transparent 60%)",
+                        pointerEvents: "none",
+                      }}/>
+                    )}
+                  </div>
                 </button>
               );
             }

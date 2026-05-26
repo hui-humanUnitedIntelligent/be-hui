@@ -391,10 +391,17 @@ function HomeInner() {
             isTalent,
           });
 
-          // Basis-User: Membership-Journey (no blur needed)
-          if (!isMember) {
-            console.log("[HUI ORB] → membership flow");
-            openSurface("membership");  // Phase 16.2
+          // BasisUser Gate — isTalent is the single source of truth:
+          // isTalent = profile.is_member===true OR profile.role==="talent"
+          //            OR profile.has_talent_profile===true
+          // If NOT a talent/member → open membership flow, show nothing else
+          if (!isTalent) {
+            console.log("[HUI ORB] BasisUser → membership flow", {
+              is_member: authProfile?.is_member,
+              role:      authProfile?.role,
+              isMember,
+            });
+            openSurface("membership");
             setShowMembership(true);
             return;
           }
@@ -512,7 +519,7 @@ function HomeInner() {
           </SafeRender>
         )}
         {/* Phase 16.3: HuiPlusSheet ALWAYS mounted — visible prop controls render */}
-        {SAFE_MODE.orb && (
+        {SAFE_MODE.orb && isTalent && (
           <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem"
             onError={() => {
               console.warn("[WORLD SURFACE] SafeRender.onError → forceRecoverWorld");
@@ -686,7 +693,7 @@ function HomeInner() {
       </Suspense>
 
       {/* Phase 4B: Content Type Selector — öffnet sich statt Orb für Mitglieder */}
-      {showContentSelector && (
+      {showContentSelector && isTalent && (
         <ContentTypeSelector
           visible={showContentSelector}
           onClose={() => setShowContentSelector(false)}

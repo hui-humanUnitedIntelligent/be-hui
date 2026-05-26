@@ -69,19 +69,38 @@ export default function HomeShell({ children }) {
   const { ref: mainScrollRef }  = useScrollMemory(tab);
   useOwnPresence(user?.id);
 
-  /* Talent */
-  const [isTalent, setIsTalent] = useState(
-    () => localStorage.getItem("hui_talent") === "1"
-  );
+  /* Talent / Membership — single source of truth from AuthContext
+   * RULE: isTalent === true ONLY when profile.is_member===true OR profile.role==="talent"
+   * OR profile.has_talent_profile===true.
+   * localStorage is ONLY a performance cache — always overridden by live profile.
+   */
+  const isTalent = React.useMemo(() => {
+    // AuthContext: live profile data (always wins over localStorage)
+    if (authProfile?.is_member === true) return true;
+    if (authProfile?.role === "talent") return true;
+    if (authProfile?.has_talent_profile === true) return true;
+    if (isMember) return true;  // isMember from AuthContext
+    // localStorage as fallback only (e.g. profile not yet loaded)
+    return localStorage.getItem("hui_talent") === "1";
+  }, [
+    authProfile?.is_member,
+    authProfile?.role,
+    authProfile?.has_talent_profile,
+    isMember,
+  ]);
+
+  // Keep localStorage in sync when profile upgrades
   useEffect(() => {
-    if (hasTalentProfile) {
+    if (isTalent) {
       localStorage.setItem("hui_talent", "1");
-      setIsTalent(true);
+    } else {
+      // Clear cache when profile explicitly shows non-member
+      // (only clear when profile is loaded and confirms non-member)
+      if (authProfile && authProfile.is_member === false && !authProfile.has_talent_profile) {
+        localStorage.removeItem("hui_talent");
+      }
     }
-  }, [hasTalentProfile]);
-  useEffect(() => {
-    if (localStorage.getItem("hui_talent") === "1") setIsTalent(true);
-  }, []);
+  }, [isTalent, authProfile]);
 
   /* User data */
   const [currentUser, setCurrentUser] = useState(null);
