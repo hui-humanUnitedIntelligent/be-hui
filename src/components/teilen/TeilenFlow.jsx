@@ -715,7 +715,6 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   }, []);
 
   const handlePublish = async () => {
-    // Zeige Log-Panel
     let panel = document.getElementById("__hui_publish_panel__");
     if (!panel) {
       panel = document.createElement("div");
@@ -734,11 +733,24 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
     }
     document.getElementById("__hui_publish_log__").innerHTML = "";
 
+    const huiLog = (msg) => {
+      console.log("[HUI_PUBLISH]", msg);
+      const el = document.getElementById("__hui_publish_log__");
+      if (el) {
+        const row = document.createElement("div");
+        row.style.cssText = "padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.15);font-size:11px;word-break:break-all";
+        row.textContent = new Date().toISOString().slice(11,23) + " " + msg;
+        el.appendChild(row);
+        el.scrollTop = el.scrollHeight;
+      }
+    };
+
     try {
       huiLog("STEP_0 START");
       window.__PUBLISHING__ = true;
       setPublishing(true);
 
+      // ── Session ─────────────────────────────────────────────────
       huiLog("STEP_1 getSession...");
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       huiLog("STEP_2 session=" + (session?.user?.id || "NONE") + (sessionError ? " ERR="+sessionError.message : ""));
@@ -746,33 +758,36 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       if (sessionError) { huiLog("SESSION_ERROR: " + sessionError.message); return; }
       if (!session?.user?.id) { huiLog("NO_USER_ID"); return; }
 
-      let mediaUrl = null;
+      // ── Upload (Bucket: "media") ─────────────────────────────────
+      let src = null;
       if (form?.mediaFile) {
-        huiLog("STEP_3 uploading " + form.mediaFile.name + " " + form.mediaFile.size + "b");
+        huiLog("STEP_3 uploading " + form.mediaFile.name + " " + form.mediaFile.size + "b → bucket:media");
         const ext  = form.mediaFile.name.split(".").pop();
         const path = `moments/${session.user.id}/${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage
-          .from("moments").upload(path, form.mediaFile, { upsert: true });
+          .from("media")
+          .upload(path, form.mediaFile, { upsert: true });
         if (uploadError) {
           huiLog("UPLOAD_ERROR: " + uploadError.message + " code=" + uploadError.statusCode);
+          // Upload-Fehler ist nicht fatal — trotzdem ohne Bild posten
         } else {
-          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
-          mediaUrl = pub?.publicUrl || null;
-          huiLog("STEP_4 uploaded: " + mediaUrl);
+          const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
+          src = pub?.publicUrl || null;
+          huiLog("STEP_4 uploaded: " + src);
         }
       } else {
         huiLog("STEP_3 no media file");
       }
 
+      // ── Insert (echte Spalten: user_id, src, type, caption, created_at) ──
       const payload = {
         user_id:    session.user.id,
-        content:    form?.text || "",
-        image_url:  mediaUrl,
+        caption:    form?.text?.trim() || null,
+        src:        src,
         type:       "moment",
-        visibility: "public",
         created_at: new Date().toISOString(),
       };
-      huiLog("STEP_5 INSERT payload=" + JSON.stringify(payload).slice(0,120));
+      huiLog("STEP_5 INSERT " + JSON.stringify(payload).slice(0,120));
 
       const { data, error } = await supabase
         .from("beitraege")
@@ -780,15 +795,13 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
         .select();
 
       if (error) {
-        huiLog("INSERT_ERROR code=" + error.code + " msg=" + error.message + " hint=" + error.hint);
+        huiLog("INSERT_ERROR code=" + error.code + " msg=" + error.message + " hint=" + (error.hint||""));
         return;
       }
 
       huiLog("STEP_6 INSERT_SUCCESS id=" + data?.[0]?.id);
       window.dispatchEvent(new Event("feed-refresh"));
-
-      // Panel nach 4s auto-remove
-      setTimeout(() => panel?.remove(), 4000);
+      setTimeout(() => panel?.remove(), 3000);
 
       onPublished?.();
       onClose?.();
@@ -800,7 +813,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       window.__PUBLISHING__ = false;
       huiLog("FINALLY done");
     }
-  };
+  };;
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
