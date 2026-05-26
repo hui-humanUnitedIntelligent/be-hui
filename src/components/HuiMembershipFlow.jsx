@@ -455,224 +455,235 @@ function Card1({ onNext, dir }) {
 // ═══════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════
 // KARTE 2 — Dein kreativer Raum öffnet sich
-// HARD RESET — emotional atmosphere, no diagrams, no SVG geometry
-// Konzept: großer pulsierender Orb-Glow + schwebende Wörter + zentrierter Text
+// 1:1 PIXEL-REFERENZ nach Screenshot
+// Layout: Landscape-like scene, Orb zentral oben, Text unten
 // ═══════════════════════════════════════════════════════════════
 
-// ── Emotional floating word — eher Gedanke als Label ─────────────
-function FloatingWord({ text, delay, style = {} }) {
+// ── Orbital pill — icon circle + bold label + subtext ────────────
+// Exact match to reference: 40px icon circle, label, 2-line subtext
+function RefPill({ icon, label, sub, glowColor, style = {}, delay = 0, floatAnim = "hmf5-float-a" }) {
   const [vis, setVis] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setVis(true), delay);
-    return () => clearTimeout(t);
-  }, [delay]);
-
+  useEffect(() => { const t = setTimeout(() => setVis(true), delay); return () => clearTimeout(t); }, [delay]);
   return (
     <div style={{
       position:"absolute",
-      fontWeight:500,
-      fontSize:13,
-      letterSpacing:"0.02em",
-      color: vis ? "rgba(255,255,255,0.48)" : "rgba(255,255,255,0)",
-      textShadow:"0 0 18px rgba(22,215,197,0.35)",
-      whiteSpace:"nowrap",
-      userSelect:"none",
-      pointerEvents:"none",
-      transition:`opacity 1.4s ${delay * 0.001}s ease`,
+      display:"flex", flexDirection:"column", alignItems:"center",
+      gap:5, textAlign:"center", width:110,
       opacity: vis ? 1 : 0,
+      animation: vis
+        ? `hmf5-pill-in 0.8s cubic-bezier(0.22,1,0.36,1) both, ${floatAnim} 8s ${delay*0.0006}s ease-in-out infinite`
+        : "none",
+      willChange:"transform,opacity",
       ...style,
-    }}>{text}</div>
+    }}>
+      {/* Icon circle */}
+      <div style={{
+        width:42, height:42, borderRadius:"50%",
+        background:`radial-gradient(circle at 40% 35%, ${glowColor}30 0%, ${glowColor}12 60%, rgba(20,20,40,0.85) 100%)`,
+        border:`1.5px solid ${glowColor}50`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:18,
+        boxShadow:`0 0 18px ${glowColor}40, 0 0 6px ${glowColor}25, inset 0 1px 0 rgba(255,255,255,0.15)`,
+        backdropFilter:"blur(8px)",
+        WebkitBackdropFilter:"blur(8px)",
+        flexShrink:0,
+      }}>{icon}</div>
+      {/* Bold label */}
+      <span style={{
+        fontSize:12.5, fontWeight:700,
+        color:"rgba(255,255,255,0.92)",
+        letterSpacing:"-0.01em", lineHeight:1.2,
+        textShadow:"0 1px 8px rgba(0,0,0,0.7)",
+      }}>{label}</span>
+      {/* Subtext — 2 lines, dimmed */}
+      {sub && <span style={{
+        fontSize:10.5, fontWeight:400,
+        color:"rgba(255,255,255,0.52)",
+        lineHeight:1.40,
+        textShadow:"0 1px 6px rgba(0,0,0,0.6)",
+      }}>{sub}</span>}
+    </div>
   );
 }
 
-// ── The Orb — dominantes emotionales Herzstück ───────────────────
-// Kein Logo. Kein HUI-Text. Kein Icon.
-// Nur Licht, Tiefe, Atem.
-function EmotionalOrb({ visible }) {
+// ── The central HUI sphere — as in screenshot ────────────────────
+// Teal glowing sphere, "HUI" text, golden outer ring, concentric rings
+function RefOrb({ visible }) {
+  const ORB = 160; // sphere diameter matching screenshot
+
   return (
     <div style={{
       position:"relative",
-      width:220, height:220,
+      width: ORB + 120, height: ORB + 120,
       display:"flex", alignItems:"center", justifyContent:"center",
       flexShrink:0,
     }}>
 
-      {/* Far atmospheric haze — very large, very soft */}
+      {/* === Outermost atmospheric haze === */}
       <div style={{
         position:"absolute",
-        width:420, height:420, borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(22,215,197,0.06) 0%, rgba(245,140,40,0.04) 35%, transparent 68%)",
-        filter:"blur(40px)",
+        width: ORB + 200, height: ORB + 200, borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(22,215,197,0.06) 0%, rgba(245,140,40,0.04) 38%, transparent 65%)",
+        filter:"blur(36px)",
         animation: visible ? "hmf5-orb-center-pulse 7s ease-in-out infinite" : "none",
-        pointerEvents:"none",
       }}/>
 
-      {/* Mid warm glow — teal+amber */}
+      {/* === SVG: concentric rings + golden orbit === */}
+      {/* These match the reference exactly: 2-3 soft rings + 1 warm gold orbit ring */}
+      <svg style={{
+        position:"absolute",
+        width: ORB + 130, height: ORB + 130,
+        overflow:"visible", pointerEvents:"none",
+        opacity: visible ? 1 : 0,
+        transition:"opacity 1.2s 0.5s ease",
+      }} viewBox={`0 0 ${ORB+130} ${ORB+130}`}>
+        <defs>
+          {/* Teal ring gradient */}
+          <linearGradient id="ringTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stopColor="#16D7C5" stopOpacity="0.0"/>
+            <stop offset="25%"  stopColor="#16D7C5" stopOpacity="0.35"/>
+            <stop offset="50%"  stopColor="#16D7C5" stopOpacity="0.55"/>
+            <stop offset="75%"  stopColor="#16D7C5" stopOpacity="0.25"/>
+            <stop offset="100%" stopColor="#16D7C5" stopOpacity="0.0"/>
+          </linearGradient>
+          {/* Gold-amber orbit ring — the bright one in the reference */}
+          <linearGradient id="ringGold" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%"   stopColor="#F5A020" stopOpacity="0.0"/>
+            <stop offset="20%"  stopColor="#F5A020" stopOpacity="0.5"/>
+            <stop offset="45%"  stopColor="#FFD080" stopOpacity="0.85"/>
+            <stop offset="70%"  stopColor="#F5A020" stopOpacity="0.5"/>
+            <stop offset="100%" stopColor="#F5A020" stopOpacity="0.0"/>
+          </linearGradient>
+          {/* Outer teal sweep */}
+          <linearGradient id="ringTeal2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stopColor="#16D7C5" stopOpacity="0.0"/>
+            <stop offset="35%"  stopColor="#16D7C5" stopOpacity="0.22"/>
+            <stop offset="65%"  stopColor="#16D7C5" stopOpacity="0.30"/>
+            <stop offset="100%" stopColor="#16D7C5" stopOpacity="0.0"/>
+          </linearGradient>
+        </defs>
+        {/* Outermost soft teal ring */}
+        <circle
+          cx={(ORB+130)/2} cy={(ORB+130)/2} r={(ORB+110)/2}
+          fill="none" stroke="url(#ringTeal2)" strokeWidth="1"
+          strokeDasharray="6 14"
+          style={{ animation:"hmf5-dash-flow 12s linear infinite reverse" }}
+        />
+        {/* Gold orbit ring — bright warm sweep, like reference */}
+        <circle
+          cx={(ORB+130)/2} cy={(ORB+130)/2} r={(ORB+72)/2}
+          fill="none" stroke="url(#ringGold)" strokeWidth="2.5"
+          strokeDasharray="90 180"
+          style={{ animation:"hmf5-dash-flow 10s 1s linear infinite" }}
+        />
+        {/* Inner teal ring */}
+        <circle
+          cx={(ORB+130)/2} cy={(ORB+130)/2} r={(ORB+40)/2}
+          fill="none" stroke="url(#ringTeal)" strokeWidth="1.2"
+          strokeDasharray="5 10"
+          style={{ animation:"hmf5-dash-flow 8s linear infinite" }}
+        />
+      </svg>
+
+      {/* Glow aura layers — teal core + amber warmth */}
       <div style={{
         position:"absolute",
-        width:300, height:300, borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(22,215,197,0.10) 0%, rgba(245,140,40,0.06) 42%, transparent 70%)",
-        filter:"blur(28px)",
-        animation: visible ? "hmf5-orb-center-pulse 5s 1.2s ease-in-out infinite" : "none",
-        pointerEvents:"none",
+        width: ORB + 60, height: ORB + 60, borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(22,215,197,0.32) 0%, rgba(245,160,32,0.18) 45%, transparent 68%)",
+        filter:"blur(20px)",
+        animation: visible ? "hmf5-orb-center-pulse 5s ease-in-out infinite" : "none",
       }}/>
 
-      {/* Near glow ring — breathes */}
+      {/* Sphere core — teal glowing sphere with "HUI" */}
       <div style={{
-        position:"absolute",
-        width:186, height:186, borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(22,215,197,0.16) 0%, rgba(22,215,197,0.04) 55%, transparent 72%)",
-        filter:"blur(14px)",
-        animation: visible ? "hmf5-orb-breathe 4.5s ease-in-out infinite" : "none",
-        pointerEvents:"none",
-      }}/>
-
-      {/* Single soft ring — barely visible */}
-      <div style={{
-        position:"absolute",
-        width:160, height:160, borderRadius:"50%",
-        border:"1px solid rgba(22,215,197,0.14)",
-        boxShadow:"0 0 24px rgba(22,215,197,0.08), inset 0 0 24px rgba(22,215,197,0.04)",
-        animation: visible ? "hmf5-orb-breathe 4.5s 0.8s ease-in-out infinite" : "none",
-      }}/>
-
-      {/* The orb core — pure light, no image, no text */}
-      <div style={{
-        width:130, height:130,
-        borderRadius:"50%",
-        position:"relative", zIndex:2,
-        // Layered sphere: white core, teal body, warm amber edges, deep dark rim
-        background:`radial-gradient(circle at 40% 34%,
-          rgba(255,255,255,0.92) 0%,
-          rgba(180,240,235,0.82) 8%,
-          rgba(22,215,197,0.90) 22%,
-          rgba(16,160,175,0.88) 42%,
-          rgba(8,80,120,0.90) 62%,
-          rgba(245,140,40,0.45) 80%,
-          rgba(40,10,5,0.70) 100%
+        width:ORB, height:ORB, borderRadius:"50%",
+        position:"relative", zIndex:5, overflow:"hidden",
+        flexShrink:0,
+        background:`radial-gradient(circle at 38% 32%,
+          rgba(255,255,255,0.90) 0%,
+          rgba(160,240,238,0.88) 7%,
+          rgba(22,215,197,0.92) 20%,
+          rgba(14,170,185,0.90) 38%,
+          rgba(8,90,130,0.92) 58%,
+          rgba(4,30,55,0.95) 76%,
+          rgba(2,10,20,0.97) 100%
         )`,
         boxShadow:`
-          0 0 0 1px rgba(22,215,197,0.28),
-          0 0 0 4px rgba(22,215,197,0.08),
-          0 0 40px rgba(22,215,197,0.60),
-          0 0 80px rgba(22,215,197,0.28),
-          0 0 130px rgba(22,215,197,0.12),
-          0 0 180px rgba(245,140,40,0.10),
-          0 20px 60px rgba(0,0,0,0.50)
+          0 0 0 1.5px rgba(22,215,197,0.40),
+          0 0 0 5px rgba(22,215,197,0.10),
+          0 0 50px rgba(22,215,197,0.65),
+          0 0 100px rgba(22,215,197,0.30),
+          0 0 160px rgba(22,215,197,0.12),
+          0 0 200px rgba(245,140,40,0.08),
+          0 20px 60px rgba(0,0,0,0.55)
         `,
-        animation: visible ? "hmf5-orb-breathe 4.5s ease-in-out infinite" : "none",
-        overflow:"hidden",
+        animation: visible ? "hmf5-orb-breathe 5s ease-in-out infinite" : "none",
       }}>
-        {/* Internal light shimmer */}
+        {/* Internal rim light effects */}
         <div style={{
           position:"absolute", inset:0, borderRadius:"50%",
           background:`
-            radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55) 0%, transparent 30%),
-            radial-gradient(circle at 70% 72%, rgba(245,140,40,0.35) 0%, transparent 35%)
+            radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55) 0%, transparent 28%),
+            radial-gradient(circle at 72% 72%, rgba(245,160,40,0.40) 0%, transparent 32%)
           `,
           pointerEvents:"none",
         }}/>
+        {/* "HUI" text — white, centered, like reference */}
+        <div style={{
+          position:"absolute", inset:0,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <span style={{
+            fontWeight:800, fontSize:ORB * 0.28,
+            color:"rgba(255,255,255,0.95)",
+            letterSpacing:"0.10em",
+            textShadow:`
+              0 0 16px rgba(255,255,255,0.70),
+              0 0 40px rgba(22,215,197,0.65),
+              0 2px 6px rgba(0,0,0,0.40)
+            `,
+            userSelect:"none",
+          }}>HUI</span>
+        </div>
       </div>
 
-      {/* Logo als sehr subtile screen-Ebene über dem Orb */}
+      {/* Logo subtle screen blend */}
       <div style={{
         position:"absolute",
-        width:130, height:130, borderRadius:"50%",
-        overflow:"hidden", zIndex:3,
-        opacity:0.18, mixBlendMode:"screen",
+        width:ORB, height:ORB, borderRadius:"50%",
+        overflow:"hidden", zIndex:6,
+        opacity:0.15, mixBlendMode:"screen",
         pointerEvents:"none",
       }}>
-        <img
-          src="/hui-logo-real.jpg"
-          style={{ width:"100%", height:"100%", objectFit:"cover" }}
-          onError={e => { e.target.style.display="none"; }}
-          alt=""
-        />
+        <img src="/hui-logo-real.jpg" alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}
+          onError={e => { e.target.style.display="none"; }} />
       </div>
     </div>
   );
 }
 
-// ── Ambient particles — very soft, warm ──────────────────────────
-function SoftParticles() {
+// ── Ambient particles ────────────────────────────────────────────
+function RefParticles() {
   const pts = React.useRef(
-    Array.from({ length: 28 }, (_, i) => ({
-      id: i,
-      x: 3 + ((Math.sin(i * 113.5 * Math.PI/180) * 0.5 + 0.5) * 94),
-      y: 5 + ((Math.cos(i * 83.7  * Math.PI/180) * 0.5 + 0.5) * 90),
-      size: 1.0 + (i % 4) * 0.55,
-      delay: (i * 0.38) % 5.2,
-      dur:   4.5 + (i % 7) * 0.8,
-      color: [
-        "rgba(22,215,197,0.85)",
-        "rgba(245,166,35,0.80)",
-        "rgba(255,138,107,0.70)",
-        "rgba(255,255,255,0.60)",
-        "rgba(180,220,255,0.55)",
-      ][i % 5],
+    Array.from({ length: 24 }, (_, i) => ({
+      id:i,
+      x: 4 + ((Math.sin(i*137.5*Math.PI/180)*0.5+0.5)*92),
+      y: 4 + ((Math.cos(i*97.3 *Math.PI/180)*0.5+0.5)*92),
+      size: 1.2 + (i%4)*0.6,
+      delay: (i*0.41)%4.8, dur: 4.2+(i%6)*0.9,
+      color:["rgba(22,215,197,0.80)","rgba(245,150,35,0.75)","rgba(255,120,80,0.65)","rgba(255,255,255,0.55)"][i%4],
     }))
   ).current;
   return (
     <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden" }}>
-      {pts.map(p => (
+      {pts.map(p=>(
         <div key={p.id} style={{
-          position:"absolute",
-          left:`${p.x}%`, top:`${p.y}%`,
+          position:"absolute", left:`${p.x}%`, top:`${p.y}%`,
           width:p.size, height:p.size, borderRadius:"50%",
-          background:p.color,
-          boxShadow:`0 0 ${p.size * 5}px ${p.color}`,
-          opacity:0,
-          animation:`hmf5-particle-drift ${p.dur}s ${p.delay}s ease-out infinite`,
+          background:p.color, boxShadow:`0 0 ${p.size*5}px ${p.color}`,
+          opacity:0, animation:`hmf5-particle-drift ${p.dur}s ${p.delay}s ease-out infinite`,
         }}/>
       ))}
-    </div>
-  );
-}
-
-// ── Warm light blobs — depth & atmosphere ────────────────────────
-function AtmosphereLights() {
-  return (
-    <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden" }}>
-      {/* Warm amber — right, like campfire glow */}
-      <div style={{
-        position:"absolute", top:"5%", right:"-15%",
-        width:"55%", height:"55%", borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(220,120,40,0.16) 0%, transparent 65%)",
-        filter:"blur(48px)",
-        animation:"hmf5-float-b 10s ease-in-out infinite",
-      }}/>
-      {/* Teal — upper left */}
-      <div style={{
-        position:"absolute", top:"-10%", left:"-10%",
-        width:"50%", height:"50%", borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(22,200,197,0.13) 0%, transparent 65%)",
-        filter:"blur(44px)",
-        animation:"hmf5-float-d 12s ease-in-out infinite",
-      }}/>
-      {/* Soft coral — lower right */}
-      <div style={{
-        position:"absolute", bottom:"8%", right:"-8%",
-        width:"44%", height:"40%", borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(240,100,80,0.10) 0%, transparent 65%)",
-        filter:"blur(36px)",
-        animation:"hmf5-float-a 14s 2s ease-in-out infinite",
-      }}/>
-      {/* Deep teal — lower left */}
-      <div style={{
-        position:"absolute", bottom:"5%", left:"-12%",
-        width:"46%", height:"38%", borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(22,180,197,0.11) 0%, transparent 68%)",
-        filter:"blur(38px)",
-        animation:"hmf5-float-e 11s 1s ease-in-out infinite",
-      }}/>
-      {/* Gold center warmth — directly behind orb */}
-      <div style={{
-        position:"absolute", top:"22%", left:"15%",
-        width:"70%", height:"45%", borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(22,215,197,0.07) 0%, rgba(200,130,40,0.05) 50%, transparent 72%)",
-        filter:"blur(32px)",
-        animation:"hmf5-float-c 9s ease-in-out infinite",
-      }}/>
     </div>
   );
 }
@@ -680,20 +691,52 @@ function AtmosphereLights() {
 function Card2({ onNext, onBack, dir }) {
   const [ready, setReady] = useState(false);
   const [btnHover, setBtnHover] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setReady(true), 120); return () => clearTimeout(t); }, []);
 
-  useEffect(() => {
-    const t = setTimeout(() => setReady(true), 120);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Floating words — organic, not symmetric, some slightly offset
-  // These are "thoughts in the air", not feature labels
-  const words = [
-    { text:"Momente teilen",     delay:500,  style:{ top:"8%",   left:"50%", transform:"translateX(-50%)" } },
-    { text:"Werke zeigen",       delay:680,  style:{ top:"25%",  right:"5%"  } },
-    { text:"Wirkung entfalten",  delay:860,  style:{ bottom:"33%", right:"4%" } },
-    { text:"Menschen verbinden", delay:1040, style:{ bottom:"33%", left:"3%"  } },
-    { text:"Räume öffnen",       delay:1220, style:{ top:"25%",  left:"4%"   } },
+  // ── 5 pills: exact positions from screenshot
+  // Screenshot is ~1024×768 iPad. Orb center ~52% from top, ~50% from left.
+  // Pills measured relative to orb center:
+  // Top (Momente teilen):     above orb, center
+  // Top-right (Werke zeigen): right side upper
+  // Bot-right (Wirkung):      right side lower
+  // Bot-left (Räume öffnen):  left side lower
+  // Left (Menschen):          left side upper
+  const pills = [
+    {
+      icon:"🫀", label:"Momente teilen",
+      sub:"Teile, was dich bewegt\nund inspiriert.",
+      glowColor:"#16D7C5", floatAnim:"hmf5-float-a", delay:420,
+      // top-center: above orb, horizontally centered
+      style:{ top:"5%", left:"50%", transform:"translateX(-50%)" },
+    },
+    {
+      icon:"🎨", label:"Werke zeigen",
+      sub:"Präsentiere deine Kunst,\ndein Handwerk und\ndeine Ideen.",
+      glowColor:"#C084FC", floatAnim:"hmf5-float-b", delay:580,
+      // top-right: reference shows about 78% from left, 28% from top
+      style:{ top:"23%", right:"3%" },
+    },
+    {
+      icon:"🌱", label:"Wirkung entfalten",
+      sub:"Nutze deine Talente,\num Positives in die Welt\nzu bringen.",
+      glowColor:"#6BCB77", floatAnim:"hmf5-float-c", delay:740,
+      // bottom-right: ~77% from left, ~55% from top
+      style:{ top:"52%", right:"3%" },
+    },
+    {
+      icon:"✦",  label:"Räume öffnen",
+      sub:"Erschaffe Räume für\nAustausch, Lernen\nund Begegnung.",
+      glowColor:"#F5A623", floatAnim:"hmf5-float-d", delay:900,
+      // bottom-left: ~4% from left, ~55% from top
+      style:{ top:"52%", left:"3%" },
+    },
+    {
+      icon:"🤝", label:"Menschen verbinden",
+      sub:"Baue echte Verbindungen\nund wachse gemeinsam.",
+      glowColor:"#F5A623", floatAnim:"hmf5-float-e", delay:1060,
+      // left-mid: ~4% from left, ~27% from top
+      style:{ top:"23%", left:"3%" },
+    },
   ];
 
   return (
@@ -702,178 +745,199 @@ function Card2({ onNext, onBack, dir }) {
       display:"flex", flexDirection:"column",
       alignItems:"center",
       overflow:"hidden",
-      background:"#04070F",
+      background:"#060A14",
     }}>
 
-      {/* ── BG Layer 1: cinematic photo — almost transparent ── */}
+      {/* ── BACKGROUND: photo with bokeh + warm amber + teal ── */}
+      {/* The reference shows real visible people, warm amber right, dark teal left */}
       <div style={{
         position:"absolute", inset:0, zIndex:0,
         backgroundImage:`url(${IMG.s2b})`,
         backgroundSize:"cover", backgroundPosition:"center 25%",
-        opacity:0.15,
-        filter:"blur(12px) saturate(0.40)",
-        transform:"scale(1.12)",
-        mixBlendMode:"luminosity",
-        animation:"hmf5-ken 45s ease-in-out both",
+        opacity:0.38,
+        filter:"blur(5px) saturate(0.65) brightness(0.85)",
+        transform:"scale(1.08)",
+        animation:"hmf5-ken 40s ease-in-out both",
       }}/>
 
-      {/* ── BG Layer 2: warm atmosphere lights ── */}
-      <div style={{ position:"absolute", inset:0, zIndex:1 }}>
-        <AtmosphereLights />
-      </div>
-
-      {/* ── BG Layer 3: depth vignette ── */}
+      {/* Depth vignette — dark edges, lighter center */}
       <div style={{
-        position:"absolute", inset:0, zIndex:2,
-        background:`linear-gradient(180deg,
-          rgba(4,7,15,0.70) 0%,
-          rgba(4,7,15,0.10) 18%,
-          rgba(4,7,15,0.05) 42%,
-          rgba(4,7,15,0.55) 68%,
-          rgba(4,7,15,0.96) 84%,
-          rgba(4,7,15,1.00) 100%
-        )`,
+        position:"absolute", inset:0, zIndex:1,
+        background:`
+          radial-gradient(ellipse 85% 70% at 50% 42%,
+            rgba(6,10,20,0.10) 0%, rgba(6,10,20,0.55) 70%, rgba(6,10,20,0.90) 100%),
+          linear-gradient(180deg,
+            rgba(6,10,20,0.55) 0%,
+            rgba(6,10,20,0.05) 20%,
+            rgba(6,10,20,0.05) 52%,
+            rgba(6,10,20,0.70) 72%,
+            rgba(6,10,20,0.97) 86%,
+            rgba(6,10,20,1.00) 100%
+          )
+        `,
       }}/>
 
-      {/* ── BG Layer 4: particles ── */}
+      {/* Warm amber glow — right side, like reference */}
+      <div style={{
+        position:"absolute", top:"5%", right:"-5%",
+        width:"40%", height:"50%", borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(220,120,30,0.18) 0%, transparent 65%)",
+        filter:"blur(40px)", zIndex:2,
+        animation:"hmf5-float-b 10s ease-in-out infinite",
+      }}/>
+      {/* Teal atmosphere — upper left */}
+      <div style={{
+        position:"absolute", top:"-5%", left:"-5%",
+        width:"40%", height:"45%", borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(22,180,200,0.14) 0%, transparent 65%)",
+        filter:"blur(36px)", zIndex:2,
+        animation:"hmf5-float-d 12s ease-in-out infinite",
+      }}/>
+      {/* Gold behind orb center — warm glow behind sphere */}
+      <div style={{
+        position:"absolute", top:"10%", left:"20%",
+        width:"60%", height:"50%", borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(22,215,197,0.08) 0%, rgba(200,120,30,0.06) 55%, transparent 72%)",
+        filter:"blur(30px)", zIndex:2,
+        animation:"hmf5-float-c 9s ease-in-out infinite",
+      }}/>
+      {/* Bottom teal-blue — lower left like reference */}
+      <div style={{
+        position:"absolute", bottom:"10%", left:"-8%",
+        width:"38%", height:"35%", borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(22,160,200,0.12) 0%, transparent 68%)",
+        filter:"blur(32px)", zIndex:2,
+        animation:"hmf5-float-e 11s 1.5s ease-in-out infinite",
+      }}/>
+
+      {/* Particles */}
       <div style={{ position:"absolute", inset:0, zIndex:3, pointerEvents:"none" }}>
-        <SoftParticles />
+        <RefParticles />
       </div>
 
       {/* ── CONTENT ── */}
 
-      {/* Progress dots — top left */}
+      {/* Progress + step counter */}
       <div style={{
-        position:"relative", zIndex:10, width:"100%",
-        padding:`max(50px, env(safe-area-inset-top, 50px)) 22px 0`,
-        flexShrink:0,
-        opacity: ready ? 1 : 0, transition:"opacity 0.6s ease",
+        position:"relative", zIndex:10, width:"100%", flexShrink:0,
+        padding:`max(48px, env(safe-area-inset-top, 48px)) 22px 0`,
+        opacity: ready ? 1 : 0, transition:"opacity 0.5s ease",
       }}>
         <ProgressDots total={4} current={1} />
-        <div style={{
-          marginTop:5, fontSize:11, fontWeight:700,
-          color:"rgba(22,215,197,0.50)",
-          letterSpacing:"0.10em",
-        }}>2 / 4</div>
+        <div style={{ marginTop:5, fontSize:11, fontWeight:700, color:"rgba(22,215,197,0.55)", letterSpacing:"0.10em" }}>2 / 4</div>
       </div>
 
-      {/* Floating words zone — fills the space around the orb */}
-      <div style={{
-        position:"absolute", inset:0, zIndex:8, pointerEvents:"none",
-      }}>
-        {words.map((w, i) => (
-          <FloatingWord key={i} {...w} />
-        ))}
-      </div>
-
-      {/* ── CENTER STAGE: Orb + Text + CTA as one emotional unit ── */}
+      {/* ── ORB ZONE: orb + 5 pills positioned absolutely ── */}
       <div style={{
         position:"relative", zIndex:10,
-        flex:1, width:"100%", minHeight:0,
-        display:"flex", flexDirection:"column",
-        alignItems:"center", justifyContent:"center",
-        gap:0, paddingBottom:16,
+        width:"100%", flex:1, minHeight:0,
+        display:"flex", alignItems:"center", justifyContent:"center",
       }}>
+        {/* Pills positioned absolutely within this zone */}
+        {pills.map((p,i) => <RefPill key={i} {...p} />)}
 
-        {/* The Orb */}
+        {/* Orb in the center */}
         <div style={{
           opacity: ready ? 1 : 0,
-          transform: ready ? "scale(1) translateY(0)" : "scale(0.88) translateY(20px)",
+          transform: ready ? "scale(1)" : "scale(0.85)",
           transition:"opacity 0.9s 0.1s ease, transform 0.9s 0.1s cubic-bezier(0.22,1,0.36,1)",
         }}>
-          <EmotionalOrb visible={ready} />
+          <RefOrb visible={ready} />
         </div>
+      </div>
 
-        {/* Text block — immediately under orb, NO gap */}
-        <div style={{
-          textAlign:"center",
-          padding:"0 28px",
-          opacity: ready ? 1 : 0,
-          transform: ready ? "translateY(0)" : "translateY(16px)",
-          transition:"opacity 0.8s 0.4s ease, transform 0.8s 0.4s cubic-bezier(0.22,1,0.36,1)",
-          marginTop: -4,
+      {/* ── TEXT BLOCK + CTA — exactly as in screenshot ── */}
+      {/* Position: below orb zone, centered, with enough space */}
+      <div style={{
+        position:"relative", zIndex:10, width:"100%", flexShrink:0,
+        display:"flex", flexDirection:"column", alignItems:"center",
+        textAlign:"center",
+        padding:`4px 32px calc(env(safe-area-inset-bottom, 0px) + 28px)`,
+        opacity: ready ? 1 : 0,
+        transform: ready ? "translateY(0)" : "translateY(18px)",
+        transition:"opacity 0.8s 0.35s ease, transform 0.8s 0.35s cubic-bezier(0.22,1,0.36,1)",
+      }}>
+        {/* Headline — "Dein kreativer Raum öffnet sich" single line */}
+        <h1 style={{
+          fontWeight:800,
+          // Reference: very large, single line on wide screen
+          fontSize:"clamp(22px, 5.5vw, 36px)",
+          color:"rgba(255,255,255,0.97)",
+          margin:"0 0 8px",
+          letterSpacing:-0.8, lineHeight:1.18,
+          textShadow:"0 2px 20px rgba(0,0,0,0.55)",
+          whiteSpace:"nowrap",
         }}>
-          <h1 style={{
-            fontWeight:800,
-            fontSize:"clamp(24px,6.2vw,36px)",
-            color:"rgba(255,255,255,0.96)",
-            margin:"0 0 10px",
-            letterSpacing:-1.1, lineHeight:1.16,
-            textShadow:"0 2px 24px rgba(0,0,0,0.55)",
-          }}>
-            Dein{" "}
-            <span style={{
-              color:"#16D7C5",
-              textShadow:"0 0 28px rgba(22,215,197,0.55), 0 2px 8px rgba(0,0,0,0.3)",
-            }}>kreativer</span>
-            {" "}Raum<br/>öffnet sich
-          </h1>
+          Dein{" "}
+          <span style={{
+            color:"#16D7C5",
+            textShadow:"0 0 24px rgba(22,215,197,0.60), 0 2px 8px rgba(0,0,0,0.4)",
+          }}>kreativer</span>
+          {" "}Raum öffnet sich
+        </h1>
 
-          <p style={{
-            fontSize:15, color:"rgba(255,255,255,0.52)",
-            lineHeight:1.72, margin:"0 0 28px",
-            maxWidth:300, marginLeft:"auto", marginRight:"auto",
-            fontWeight:400,
-            textShadow:"0 1px 8px rgba(0,0,0,0.4)",
-          }}>
-            Als Talent kannst du Menschen inspirieren,
-            Werke teilen und besondere Räume erschaffen.
-          </p>
+        {/* Subline — 2 lines, centered */}
+        <p style={{
+          fontSize:15, color:"rgba(255,255,255,0.58)",
+          lineHeight:1.68, margin:"0 0 22px",
+          maxWidth:380, fontWeight:400,
+          textShadow:"0 1px 8px rgba(0,0,0,0.4)",
+        }}>
+          Als Talent kannst du Menschen inspirieren,<br/>
+          Werke teilen und besondere Räume erschaffen.
+        </p>
 
-          {/* CTA — pill, centered, max 340px, warm glass */}
-          <button
-            className="hmf5-tap"
-            onClick={onNext}
-            onMouseEnter={() => setBtnHover(true)}
-            onMouseLeave={() => setBtnHover(false)}
-            style={{
-              display:"inline-flex",
-              alignItems:"center", justifyContent:"center", gap:10,
-              padding:"14px 36px",
-              borderRadius:100,
-              border:`1px solid rgba(22,215,197,${btnHover ? "0.40" : "0.22"})`,
-              background: btnHover
-                ? "linear-gradient(135deg, rgba(22,215,197,0.18) 0%, rgba(8,55,80,0.50) 100%)"
-                : "linear-gradient(135deg, rgba(22,215,197,0.10) 0%, rgba(6,40,60,0.40) 100%)",
-              backdropFilter:"blur(28px) saturate(1.4)",
-              WebkitBackdropFilter:"blur(28px) saturate(1.4)",
-              fontFamily:"inherit",
-              fontSize:15.5, fontWeight:700,
-              color:"rgba(255,255,255,0.94)",
-              letterSpacing:-0.2, cursor:"pointer",
-              maxWidth:340, width:"100%",
-              boxShadow: btnHover
-                ? `inset 0 1px 0 rgba(255,255,255,0.18),
-                   0 0 0 1px rgba(22,215,197,0.24),
-                   0 0 40px rgba(22,215,197,0.25),
-                   0 0 80px rgba(22,215,197,0.10),
-                   0 10px 30px rgba(0,0,0,0.42)`
-                : `inset 0 1px 0 rgba(255,255,255,0.10),
-                   0 0 0 1px rgba(22,215,197,0.14),
-                   0 0 20px rgba(22,215,197,0.14),
-                   0 8px 24px rgba(0,0,0,0.38)`,
-              transition:"all 0.22s ease",
-              position:"relative", overflow:"hidden",
-            }}
-          >
-            <div style={{
-              position:"absolute", inset:0, borderRadius:100,
-              background:"radial-gradient(ellipse 60% 45% at 50% 0%, rgba(22,215,197,0.12) 0%, transparent 70%)",
-              pointerEvents:"none",
-            }}/>
-            <span style={{ position:"relative", zIndex:1 }}>Das klingt nach mir</span>
-            <span style={{ position:"relative", zIndex:1, fontSize:14, opacity:0.8 }}>→</span>
-          </button>
+        {/* CTA — dark teal-bordered pill, like reference: wide, not inline */}
+        <button
+          className="hmf5-tap"
+          onClick={onNext}
+          onMouseEnter={() => setBtnHover(true)}
+          onMouseLeave={() => setBtnHover(false)}
+          style={{
+            display:"flex", alignItems:"center", justifyContent:"center", gap:14,
+            padding:"15px 40px",
+            borderRadius:100,
+            border:`1.5px solid rgba(22,215,197,${btnHover ? "0.50" : "0.35"})`,
+            // Reference: dark teal-tinted glass button
+            background: btnHover
+              ? "linear-gradient(135deg, rgba(22,215,197,0.16) 0%, rgba(8,50,70,0.70) 100%)"
+              : "linear-gradient(135deg, rgba(22,215,197,0.08) 0%, rgba(6,35,55,0.65) 100%)",
+            backdropFilter:"blur(30px) saturate(1.5)",
+            WebkitBackdropFilter:"blur(30px) saturate(1.5)",
+            fontFamily:"inherit",
+            fontSize:16, fontWeight:700,
+            // Reference: white text (NOT teal) with arrow
+            color:"rgba(255,255,255,0.95)",
+            letterSpacing:0, cursor:"pointer",
+            width:"100%", maxWidth:360,
+            boxShadow: btnHover
+              ? `inset 0 1px 0 rgba(255,255,255,0.16),
+                 0 0 0 1px rgba(22,215,197,0.28),
+                 0 0 40px rgba(22,215,197,0.22),
+                 0 12px 32px rgba(0,0,0,0.45)`
+              : `inset 0 1px 0 rgba(255,255,255,0.09),
+                 0 0 0 1px rgba(22,215,197,0.18),
+                 0 0 20px rgba(22,215,197,0.14),
+                 0 8px 24px rgba(0,0,0,0.42)`,
+            transition:"all 0.22s ease",
+            position:"relative", overflow:"hidden",
+          }}
+        >
+          <div style={{
+            position:"absolute", inset:0, borderRadius:100,
+            background:"radial-gradient(ellipse 55% 40% at 50% 0%, rgba(22,215,197,0.10) 0%, transparent 70%)",
+            pointerEvents:"none",
+          }}/>
+          <span style={{ position:"relative", zIndex:1 }}>Das klingt nach mir</span>
+          <span style={{ position:"relative", zIndex:1, fontSize:18, lineHeight:1 }}>→</span>
+        </button>
 
-          <div style={{ marginTop:14 }}>
-            <button className="hmf5-tap" onClick={onBack} style={{
-              background:"none", border:"none", fontFamily:"inherit",
-              fontSize:13, color:"rgba(255,255,255,0.24)",
-              padding:"8px 16px", cursor:"pointer",
-              letterSpacing:-0.1,
-            }}>← Zurück</button>
-          </div>
-        </div>
+        <button className="hmf5-tap" onClick={onBack} style={{
+          background:"none", border:"none", fontFamily:"inherit",
+          fontSize:13, color:"rgba(255,255,255,0.28)",
+          padding:"10px 16px", cursor:"pointer",
+          marginTop:4,
+        }}>← Zurück</button>
       </div>
     </div>
   );
