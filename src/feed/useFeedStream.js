@@ -59,7 +59,7 @@ export function saveFeedScrollPos(y) { _scrollPos.y = y; }
 export function getFeedScrollPos()   { return _scrollPos.y; }
 
 // ─── Batch-Query: eine Seite laden ───────────────────────────────────────────
-async function fetchFeedPage(userId, cursor = null) {
+async function fetchFeedPage(userId = null, cursor = null) {
   /**
    * cursor = ISO timestamp (created_at des ältesten Items auf letzter Seite)
    * Lädt PAGE_SIZE Items über alle 4 Quellen.
@@ -201,7 +201,9 @@ export function useFeedStream() {
 
   // ── Initial Load (mit Cache) ───────────────────────────────────────────────
   const initialLoad = useCallback(async () => {
-    if (!user?.id) { setLoading(false); return; }
+    // Phase 4G: public feed — kein user.id nötig für beitraege / works
+    // user.id wird nur für personalisierte Features genutzt (RLS-geschützte Inhalte)
+    const userId = user?.id || null;
     setError(null);
 
     // Cache prüfen — sofort rendern wenn fresh
@@ -217,7 +219,7 @@ export function useFeedStream() {
 
     setLoading(true);
     try {
-      const { items: newItems, nextCursor, hasMore: more } = await fetchFeedPage(user.id);
+      const { items: newItems, nextCursor, hasMore: more } = await fetchFeedPage(userId);
       if (!mountedRef.current) return;
       cursorRef.current = nextCursor;
       setHasMore(more);
@@ -250,7 +252,7 @@ export function useFeedStream() {
 
   // ── Load More (Pagination) ─────────────────────────────────────────────────
   const loadMore = useCallback(async () => {
-    if (!user?.id || loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore) return;
 
     // Prefetch bereits vorhanden? → sofort einfügen
     if (prefetchedRef.current) {
