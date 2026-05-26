@@ -732,16 +732,8 @@ export default function HomeFeed({
         </SectionGuard>
 
         <SectionGuard id="RhythmicFeed">
-          {SAFE_MODE.homeFeed && (
-            <RhythmicFeed
-              items={liveItems}
-              onProfile={handleProfile}
-              onLike={onLike}
-              onComment={onComment}
-              onDiscover={handleDiscover}
-              onShare={handleShare}
-            />
-          )}
+          {/* ── RAW DEBUG MODE — bypasses all rhythm/router/animation layers ── */}
+          <RawFeedDebug items={liveItems} />
         </SectionGuard>
 
         <SectionGuard id="MenschenSection">
@@ -924,6 +916,117 @@ function EventCard({ event, onPress }) {
    RHYTHMIC FEED — Feed Intelligence v1
    Replaces mechanical sequence with humane curation.
    ═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════════
+   RAW FEED DEBUG — STEP 1: plain items, no FeedRouter, no animation
+   ═══════════════════════════════════════════════════════════════════════════ */
+function RawFeedDebug({ items }) {
+  const arr = Array.isArray(items) ? items : [];
+
+  if (arr.length === 0) {
+    return (
+      <div style={{ padding:24, textAlign:"center", color:"#FF8A6B", fontFamily:"monospace", fontSize:13 }}>
+        ❌ RawFeedDebug: items array empty (length=0)
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding:"0 12px 80px" }}>
+      <div style={{
+        margin:"8px 0 16px",
+        padding:"8px 12px",
+        borderRadius:10,
+        background:"rgba(22,215,197,0.10)",
+        border:"1px solid rgba(22,215,197,0.25)",
+        fontSize:11, fontFamily:"monospace", color:"#16D7C5", fontWeight:700,
+      }}>
+        ✅ RAW FEED DEBUG — {arr.length} items
+      </div>
+
+      {arr.map((item, idx) => {
+        if (!item) return null;
+        const safeItem = item;
+        const image =
+          safeItem.expImg      ||
+          safeItem.coverUrl    ||
+          safeItem.images?.[0] ||
+          safeItem._raw?.src   ||
+          safeItem.src         ||
+          safeItem.cover_url   ||
+          safeItem.media_url   ||
+          null;
+        const text =
+          safeItem.caption     ||
+          safeItem.text        ||
+          safeItem.description ||
+          safeItem.title       ||
+          "";
+        const author =
+          safeItem.creator?.displayName ||
+          safeItem.creator?.name        ||
+          safeItem.name                 ||
+          safeItem.author               ||
+          "Human";
+        const avatar =
+          safeItem.creator?.avatar ||
+          safeItem.avatar          ||
+          null;
+        const type  = safeItem.type || safeItem.content_type || "moment";
+        const time  = safeItem.time || safeItem.createdAt || safeItem._raw?.created_at || "";
+
+        return (
+          <div key={safeItem.id || idx} style={{
+            background:"#fff",
+            borderRadius:18,
+            padding:16,
+            marginBottom:14,
+            boxShadow:"0 1px 8px rgba(0,0,0,0.06)",
+            border:"1px solid rgba(0,0,0,0.05)",
+            overflow:"hidden",
+          }}>
+            {/* Header */}
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+              <div style={{
+                width:38, height:38, borderRadius:12, flexShrink:0, overflow:"hidden",
+                background:"linear-gradient(135deg,rgba(22,215,197,0.15),rgba(255,138,107,0.15))",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:14, fontWeight:700, color:"#16D7C5",
+              }}>
+                {avatar
+                  ? <img src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                      onError={e => { e.target.style.display="none"; }} />
+                  : author[0]?.toUpperCase() || "H"
+                }
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:"#1a1a2e" }}>{author}</div>
+                <div style={{ fontSize:11, color:"#aaa", marginTop:1 }}>
+                  {type} · {String(time).slice(0,10)}
+                </div>
+              </div>
+            </div>
+
+            {/* Text */}
+            {text ? (
+              <div style={{ fontSize:14, color:"#333", lineHeight:1.55, marginBottom:image ? 10 : 0 }}>
+                {text}
+              </div>
+            ) : null}
+
+            {/* Image */}
+            {image ? (
+              <img src={image} alt=""
+                style={{ width:"100%", borderRadius:12, display:"block", objectFit:"cover", maxHeight:320 }}
+                onError={e => { e.target.style.display="none"; }}
+              />
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare }) {
   // Phase 4H: Defensive input — deduplizieren, validieren, safe defaults
   const rawItems = React.useMemo(() => {
