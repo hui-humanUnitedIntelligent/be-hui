@@ -51,7 +51,18 @@ const CSS = `
 `;
 
 export default function StoryComposer({ onClose, onSuccess }) {
-  const { user, profile } = useAuth();
+  const { user, profile, canCreate, isBaseUser } = useAuth();
+
+  // Phase 4C: Permission Guard — BasisUser kann keine Stories erstellen
+  React.useEffect(() => {
+    if (!canCreate && !isBaseUser === false) return; // profile noch laden
+    if (isBaseUser && typeof window.__HUI_OPEN_TALENT_FLOW === "function") {
+      console.log("[STORY_COMPOSER] BasisUser blocked → opening TalentFlow");
+      window.__HUI_OPEN_TALENT_FLOW();
+      onClose?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canCreate, isBaseUser]);
   const fileRef  = useRef(null);
 
   const [mediaFile,     setMediaFile]     = useState(null);

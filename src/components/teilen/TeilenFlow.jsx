@@ -643,7 +643,18 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
    MAIN ORCHESTRATOR
 ══════════════════════════════════════════════════════════════ */
 export default function TeilenFlow({ onClose, onPublished, visible = true }) {
-  const { user, profile } = useAuth();
+  const { user, profile, canCreate, isBaseUser } = useAuth();
+
+  // Phase 4C: Permission Guard
+  // BasisUser → sofort schließen + TalentFlow öffnen
+  React.useEffect(() => {
+    if (visible && isBaseUser && typeof window.__HUI_OPEN_TALENT_FLOW === "function") {
+      console.log("[TEILEN_FLOW] BasisUser blocked → TalentFlow");
+      onClose?.();
+      window.__HUI_OPEN_TALENT_FLOW();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, isBaseUser]);
 
   const [step,       setStep]       = useState(1);
   const [publishing,     setPublishing]     = useState(false);

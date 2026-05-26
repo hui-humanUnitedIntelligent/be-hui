@@ -414,6 +414,34 @@ export function AuthProvider({ children }) {
                            membershipType === "creator" || membershipType === "guide" || false;
   const profileModules   = profile?.profile_modules || {};
 
+  // ── Phase 4C: Membership derived states (pre-memo, vor ctxValue berechnet) ────
+  // Single source of truth — diese States werden VOR useMemo berechnet
+  // damit sie im Memo-Value als echte Werte (nicht Getter) referenziert werden
+  const _isTalentCalc = (() => {
+    if (!profile) return localStorage.getItem("hui_talent") === "1";
+    // Primär: neue Phase-4C-Felder
+    if (profile.membership_type === "talent" && profile.membership_active === true) return true;
+    if (profile.membership_type === "guardian" || profile.membership_type === "team") return true;
+    // Legacy Kompatibilität
+    if (profile.is_member === true) return true;
+    if (profile.role === "talent" || profile.role === "wirker" || profile.role === "creator") return true;
+    if (profile.has_talent_profile === true) return true;
+    if (isMember) return true;
+    return localStorage.getItem("hui_talent") === "1";
+  })();
+  const _isBaseUserCalc = !_isTalentCalc;
+  const _canCreateCalc  = _isTalentCalc;
+
+  // ── Debug Log (development only) ─────────────────────────────────────
+  if (process.env.NODE_ENV !== "production" && profile) {
+    console.log("[MEMBERSHIP]", {
+      membership_type:   profile?.membership_type,
+      membership_active: profile?.membership_active,
+      isTalent:          _isTalentCalc,
+      canCreate:         _canCreateCalc,
+    });
+  }
+
   // useMemo: verhindert unnötige Re-renders aller Consumer
   // wenn sich unrelevante Parent-States ändern
   const ctxValue = useMemo(() => ({
@@ -427,28 +455,22 @@ export function AuthProvider({ children }) {
     authChecked,
     authError: null,
     checkUserAuth,
-    // Phase 4C — Membership derived states (single source of truth)
-    get isTalent() {
-      const p = providerValue.profile;
-      if (!p) return localStorage.getItem("hui_talent") === "1";
-      return (
-        p.membership_type === "talent" && p.membership_active === true
-        || p.is_member === true
-        || p.role === "talent"
-        || p.has_talent_profile === true
-        || p.membership_type === "guardian"
-        || p.membership_type === "team"
-      );
-    },
-    get isBaseUser() { return !providerValue.isTalent; },
-    get canCreate()  { return providerValue.isTalent; },
+    // Phase 4C — Membership derived states (echte Werte, kein Getter-Bug)
+    isTalent:   _isTalentCalc,
+    isBaseUser: _isBaseUserCalc,
+    canCreate:  _canCreateCalc,
+    // Membership Felder direkt aus profile für einfachen Zugriff
+    membershipType:        profile?.membership_type   ?? "base",
+    membershipActive:      profile?.membership_active ?? false,
+    talentActivatedAt:     profile?.talent_activated_at ?? null,
     signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
     loadProfile, saveProfile, refreshProfile, becomeWirker,
     activateMembership,
     saveWirkerProfile, activateTalentProfile,
     setProfile, setWirkerProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked]); // membershipType is derived from profile
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
 
   return (
     <AuthContext.Provider value={ctxValue}>

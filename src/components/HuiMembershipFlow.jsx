@@ -1156,12 +1156,25 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     setError(null);
     setLoading(true);
     try {
+      console.log("[MEMBERSHIP] activate_talent RPC wird aufgerufen...");
       const result = await activateMembership?.();
       if (result?.error) {
+        console.warn("[MEMBERSHIP] Fehler:", result.error);
         setError("Speichern fehlgeschlagen. Bitte nochmal versuchen.");
         setLoading(false);
         return;
       }
+      // Phase 4C: sofort localStorage syncen — Orb flippt ohne Reload
+      localStorage.setItem("hui_talent", "1");
+      localStorage.setItem("hui_membership_type", "talent");
+      localStorage.setItem("hui_is_member", "1");
+      console.log("[MEMBERSHIP]", {
+        membership_type:   "talent",
+        membership_active: true,
+        isTalent:          true,
+        canCreate:         true,
+      });
+      // Profile refreshen damit isTalent sofort flippt
       await refreshProfile?.().catch(() => {});
       setDir(1);
       setCard(4); // Success screen

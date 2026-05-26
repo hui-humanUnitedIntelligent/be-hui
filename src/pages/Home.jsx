@@ -391,11 +391,14 @@ function HomeInner() {
 
           const canRenderOrbContent = SAFE_MODE.orb;
 
-          console.log("[HUI ORB] tap", {
-            membershipType: isMember ? "member+" : "basis",
+          // Phase 4C: ORB_MODE log — zeigt klaren Modus
+          const _mType = authProfile?.membership_type ?? "base";
+          const _mActive = authProfile?.membership_active ?? false;
+          console.log("[ORB_MODE]", isTalent ? "creator" : "membership", {
+            membership_type:   _mType,
+            membership_active: _mActive,
+            isTalent, isBaseUser, canCreate,
             canRenderOrbContent,
-            isMember,
-            isTalent,
           });
 
           // BasisUser Gate — isTalent is the single source of truth:

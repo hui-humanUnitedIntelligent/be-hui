@@ -8,6 +8,7 @@
 import React, { useState, useRef, useCallback, memo } from "react";
 import ProfileQuickPreview from "../../components/ProfileQuickPreview.jsx";
 import { PresenceDot, fmtPresence } from "../../lib/usePresence.jsx";
+import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 
 const T = {
   bgCard: "#FFFFFF",
@@ -89,13 +90,15 @@ export function CardSkeleton() {
 }
 
 // ── Avatar ────────────────────────────────────────────────────
-const CardAvatar = memo(function CardAvatar({ src, name, size = 38 }) {
+const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false }) {
   const [err, setErr] = useState(false);
   const letter = ((name || "H")[0] || "H").toUpperCase();
   return (
     <div style={{
       width:size,height:size,borderRadius:T.rAvatar,flexShrink:0,
-      overflow:"hidden",background:T.tealSoft,border:"1.5px solid "+T.tealLine,
+      overflow:"hidden",background:T.tealSoft,
+      border: isTalent ? "2px solid #16D7C5" : "1.5px solid "+T.tealLine,
+      boxShadow: isTalent ? "0 0 8px rgba(22,215,197,0.30)" : "none",
       display:"flex",alignItems:"center",justifyContent:"center",
       fontSize:size*0.38,fontWeight:700,color:T.teal,
     }}>
@@ -110,6 +113,8 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38 }) {
 
 // ── Header ────────────────────────────────────────────────────
 export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile, presenceStatus }) {
+  const _isTalent = author?.isTalent || false;
+  const _mType    = author?.membershipType || "base";
   const name   = (author && (author.name || author.displayName)) || "Human";
   const uname  = (author && author.username) || null;
   const avatar = (author && author.avatar)   || null;
@@ -139,7 +144,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
           touchAction: "manipulation",
         }}
       >
-        <CardAvatar src={avatar} name={name} size={38}/>
+        <CardAvatar src={avatar} name={name} size={38} isTalent={_isTalent}/>
         {presenceStatus && presenceStatus !== "offline" && (
           <div style={{ position:"absolute", bottom:-1, right:-1 }}>
             <PresenceDot status={presenceStatus} size={9} />
@@ -162,6 +167,9 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
             {name}
           </span>
           {ver && <span style={{ fontSize:11,color:T.teal }}>✦</span>}
+        </div>
+        <div style={{ display:"flex",alignItems:"center",gap:5,marginTop:2,flexWrap:"wrap" }}>
+          <MembershipLabel membershipType={_mType} size="xs" />
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:6,marginTop:1 }}>
           {uname && <span style={{ fontSize:11,color:T.ink3 }}>{"@"+uname}</span>}

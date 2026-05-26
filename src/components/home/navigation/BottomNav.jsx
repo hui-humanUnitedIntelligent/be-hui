@@ -129,8 +129,8 @@ export default function BottomNav({
                   key="orb"
                   className="bn-orb-btn"
                   onClick={() => {
-                    // ROLE GATE: BasisUser → membership flow only
-                    // hasTalent = isTalent from Home.jsx (is_member || role==="talent")
+                    // Phase 4C ROLE GATE
+                    console.log("[ORB_MODE]", hasTalent ? "creator" : "membership");
                     if (!hasTalent) {
                       // Skip OPEN_ORB action (would set showPlusSheet → dead state)
                       // Go directly to membership flow handler

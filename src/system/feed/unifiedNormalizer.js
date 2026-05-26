@@ -29,6 +29,12 @@ function extractAuthor(raw){
     username:safeStr(p.username||p.handle)||null,
     talent:safeStr(p.talent)||null,
     verified:safeBool(p.verified||p.is_verified),
+    // Phase 4C: Membership fields für Feed-Badges
+    membershipType:   safeStr(p.membership_type||p.role)||"base",
+    membershipActive: safeBool(p.membership_active),
+    isTalent: (p.membership_type==="talent"&&p.membership_active===true)
+              ||p.is_member===true||p.role==="talent"||p.role==="wirker"
+              ||p.has_talent_profile===true||false,
   };
 }
 

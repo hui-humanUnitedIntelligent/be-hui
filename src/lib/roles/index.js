@@ -106,17 +106,20 @@ export function isAtLeast(userRole, requiredRole) {
 export function getUserRole(profile) {
   if (!profile) return ROLES.BASIS_USER;
 
-  // Explizite Rolle hat Vorrang
-  if (profile.role && ROLES[profile.role?.toUpperCase()]) {
-    return profile.role;
-  }
+  // Phase 4C: neue Felder haben höchste Priorität
+  if (profile.membership_type === "talent" && profile.membership_active === true) return ROLES.TALENT;
+  if (profile.membership_type === "guardian") return ROLES.GUARDIAN;
+  if (profile.membership_type === "team")     return ROLES.MODERATOR;
 
-  // Rückwärtskompatibilität mit bestehenden Feldern
-  if (profile.is_moderator)                return ROLES.MODERATOR;
-  if (profile.is_impact_team)              return ROLES.IMPACT_TEAM;
-  if (profile.is_guardian)                 return ROLES.GUARDIAN;
+  // Explizite Rolle (Legacy)
+  if (profile.role && ROLES[profile.role?.toUpperCase()]) return profile.role;
+
+  // Legacy Felder
+  if (profile.is_moderator)                           return ROLES.MODERATOR;
+  if (profile.is_impact_team)                         return ROLES.IMPACT_TEAM;
+  if (profile.is_guardian)                            return ROLES.GUARDIAN;
   if (profile.has_talent_profile || profile.is_wirker) return ROLES.TALENT;
-  if (profile.is_member)                   return ROLES.MEMBER;
+  if (profile.is_member)                              return ROLES.MEMBER;
 
   return ROLES.BASIS_USER;
 }
