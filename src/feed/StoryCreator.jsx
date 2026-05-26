@@ -100,17 +100,30 @@ export default function StoryCreator({ onClose, onPublished }) {
       }
 
       // ── Insert into stories table ─────────────────────────
+      // Build payload matching real stories schema
+      const storyPayload = {
+        user_id:    user.id,
+        // Include username/avatar from auth metadata so bar renders immediately
+        username:   user.user_metadata?.username
+                    || user.user_metadata?.display_name
+                    || user.email?.split("@")[0]
+                    || "Human",
+        avatar_url: user.user_metadata?.avatar_url || null,
+        media_url,
+        media_type:  mediaType,
+        caption:     text.trim() || null,        // 'text' maps to 'caption'
+        text_overlay: text.trim() || null,        // also write to text_overlay
+        visibility:  "public",
+        status:      "active",                    // NOT is_active — use status
+        allow_comments:  true,
+        allow_reactions: true,
+        allow_sharing:   true,
+        expires_at:  new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      };
+
       const { data, error: insertError } = await supabase
         .from("stories")
-        .insert({
-          user_id:    user.id,
-          media_url,
-          media_type: mediaType,
-          text:       text.trim() || null,
-          visibility: "public",
-          is_active:  true,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        })
+        .insert(storyPayload)
         .select("id")
         .single();
 
@@ -322,7 +335,7 @@ export default function StoryCreator({ onClose, onPublished }) {
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Text zur Story hinzufügen (optional)…"
+              placeholder="Beschreibung / Text-Overlay (optional)…"
               maxLength={200}
               rows={3}
               style={{

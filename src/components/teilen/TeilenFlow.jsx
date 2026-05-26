@@ -761,13 +761,22 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       const { data, error } = await supabase
         .from("stories")
         .insert({
-          user_id:    session.user.id,
+          user_id:         session.user.id,
+          username:        session.user.user_metadata?.username
+                           || session.user.user_metadata?.display_name
+                           || session.user.email?.split("@")[0]
+                           || "Human",
+          avatar_url:      session.user.user_metadata?.avatar_url || null,
           media_url,
-          media_type: form?.mediaType || "image",
-          text:       form?.text?.trim() || null,
-          visibility: "public",
-          is_active:  true,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          media_type:      form?.mediaType || "image",
+          caption:         form?.text?.trim() || null,
+          text_overlay:    form?.text?.trim() || null,
+          visibility:      "public",
+          status:          "active",
+          allow_comments:  true,
+          allow_reactions: true,
+          allow_sharing:   true,
+          expires_at:      new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         })
         .select("id").single();
 

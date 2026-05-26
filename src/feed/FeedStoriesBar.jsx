@@ -90,11 +90,14 @@ export default function FeedStoriesBar({ onProfilePress }) {
       const { data, error } = await supabase
         .from("stories")
         .select(`
-          id, user_id, media_url, media_type, text,
-          created_at, expires_at, is_active, viewers_count,
-          profile:user_id(display_name, avatar_url, username)
+          id, user_id, username, avatar_url,
+          media_url, media_type,
+          caption, text_overlay, mood, location,
+          visibility, status, is_highlight, highlight_title,
+          allow_comments, allow_reactions, allow_sharing,
+          tagged_users, created_at, expires_at, updated_at
         `)
-        .eq("is_active", true)
+        .eq("status", "active")
         .gt("expires_at", now)
         .order("created_at", { ascending: false })
         .limit(80);
@@ -103,6 +106,7 @@ export default function FeedStoriesBar({ onProfilePress }) {
         console.warn("[HUI_STORIES] load error:", error.message);
         // Fail gracefully — still show own story slot
         setGroups(buildOwnSlot(user, []));
+      // Note: stories table uses status='active', not is_active
         return;
       }
 
@@ -113,13 +117,12 @@ export default function FeedStoriesBar({ onProfilePress }) {
       const byUser = new Map();
 
       for (const row of rows) {
-        const uid  = row.user_id;
-        const prof = row.profile || {};
+        const uid = row.user_id;
         if (!byUser.has(uid)) {
           byUser.set(uid, {
             userId:  uid,
-            name:    prof.display_name || prof.username || "Human",
-            avatar:  prof.avatar_url   || null,
+            name:    row.username || "Human",
+            avatar:  row.avatar_url || null,
             isLive:  false,
             isYou:   uid === user?.id,
             stories: [],
@@ -144,7 +147,7 @@ export default function FeedStoriesBar({ onProfilePress }) {
       if (user?.id && !arr.some(g => g.isYou)) {
         arr.unshift({
           userId:  user.id,
-          name:    "Deine Story",
+          name:    user?.user_metadata?.username || user?.user_metadata?.display_name || "Deine Story",
           avatar:  user.user_metadata?.avatar_url || null,
           isLive:  false,
           isYou:   true,
@@ -455,7 +458,7 @@ function SkeletonBubble({ delay }) {
 function buildOwnSlot(user, extra) {
   const own = {
     userId:  user?.id || "anon",
-    name:    "Deine Story",
+    name:    user?.user_metadata?.username || user?.user_metadata?.display_name || "Deine Story",
     avatar:  user?.user_metadata?.avatar_url || null,
     isLive:  false,
     isYou:   true,

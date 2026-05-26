@@ -311,7 +311,7 @@ export default function StoryViewer({
             color:    "rgba(255,255,255,0.55)",
             fontSize: 11,
             marginTop: 1,
-          }}>{formatTimeAgo(story.created_at)}</div>
+          }}>{story.mood ? story.mood + " · " : ""}{formatTimeAgo(story.created_at)}{story.location ? " · " + story.location : ""}</div>
         </div>
 
         {/* Close */}
@@ -380,7 +380,7 @@ export default function StoryViewer({
       </div>
 
       {/* ── Text overlay ────────────────────────────────────── */}
-      {story.text && (
+      {(story.caption || story.text_overlay) && (
         <div style={{
           position:   "absolute",
           bottom:     "calc(env(safe-area-inset-bottom, 32px) + 60px)",
@@ -398,7 +398,7 @@ export default function StoryViewer({
           lineHeight: 1.5,
           textAlign:  "center",
         }}>
-          {story.text}
+          {story.text_overlay || story.caption}
         </div>
       )}
 
