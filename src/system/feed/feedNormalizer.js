@@ -238,12 +238,23 @@ export const normalizeBeitragRow = (raw) => {
   const dbType = raw.type || "moment";
   const mappedType = dbType === "note" ? "note" : "moment";
   const srcUrl = raw.src || raw.image_url || null;
+  // Profile aus Supabase-Join oder Fallback
+  const profile = raw.profile || raw.creator || raw.author || {};
   const normalized = normalizeFeedItem({
     ...raw,
-    type:   mappedType,
-    images: srcUrl ? [srcUrl] : [],
-    src:    srcUrl,           // zusätzlich als src damit alle Fallbacks greifen
+    type:    mappedType,
+    images:  srcUrl ? [srcUrl] : [],
+    src:     srcUrl,
     caption: raw.caption || null,
+    // Creator explizit mappen damit creator-Objekt korrekt gebaut wird
+    creator: {
+      id:       profile.id       || raw.user_id,
+      name:     profile.display_name || profile.full_name || "Unbekannt",
+      avatar:   profile.avatar_url   || null,
+      username: profile.username     || null,
+      talent:   profile.talent       || null,
+      verified: profile.verified     || false,
+    },
   });
   if (normalized) {
     console.log("[HUI_BEITRAG_NORMALIZED]", {

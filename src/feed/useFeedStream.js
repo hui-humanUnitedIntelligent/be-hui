@@ -102,7 +102,7 @@ async function fetchFeedPage(userId, cursor = null) {
 
     rangeFilter(
       supabase.from("beitraege")
-        .select("id,user_id,src,type,caption,created_at")
+        .select("id,user_id,src,type,caption,created_at,profile:profiles(id,display_name,avatar_url,talent,location_label)")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
