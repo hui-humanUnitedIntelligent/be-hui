@@ -10,6 +10,7 @@ import { HUI } from "../../design/hui.design.js";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { useWirkerProfile } from "./hooks/useWirkerProfile.js";
+import SupportFlow from "../../components/economy/SupportFlow.jsx";
 
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
@@ -130,7 +131,25 @@ function FollowBtn({ followed, onFollow }) {
   );
 }
 
-function VisitorHero({ profile, onClose, onBook, onChat }) {
+function SupportBtn({ onSupport }) {
+  const { pressed, bind } = usePress();
+  return (
+    <button {...bind} onClick={onSupport} style={{
+      display:"flex",alignItems:"center",gap:7,
+      background: pressed ? "rgba(22,215,197,0.30)" : "rgba(22,215,197,0.18)",
+      border:"1.5px solid rgba(22,215,197,0.50)",
+      backdropFilter:"blur(10px)",
+      borderRadius:99,padding:"10px 18px",
+      color:"white",fontSize:13,fontWeight:700,
+      cursor:"pointer",touchAction:"manipulation",
+      transition:"background .15s ease",
+    }}>
+      <span style={{fontSize:14}}>✦</span> Unterstützen
+    </button>
+  );
+}
+
+function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
   const heroActions = useHuiActions();
   const [mounted, setMounted] = useState(false);
   const [followed, setFollowed] = useState(false);
@@ -327,6 +346,7 @@ function VisitorHero({ profile, onClose, onBook, onChat }) {
             <div style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
               <BookBtn onBook={onBook}/>
               <MsgBtn onChat={onChat}/>
+              <SupportBtn onSupport={onSupport}/>
               <FollowBtn followed={followed} onFollow={()=>setFollowed(f=>!f)}/>
             </div>
           </div>
@@ -934,6 +954,8 @@ function FloatingBookCTA({ onBook, profileName }) {
 // ROOT — WirkerProfilePage (VISITOR)
 // ═══════════════════════════════════════════════════════════════
 export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onChat, _zIndex = 9500 }) {
+  // Phase 4D: Support Flow State
+  const [showSupport, setShowSupport] = React.useState(false);
   const safe    = useMemo(() => createProfileItem(rawWirker), [
     rawWirker?.id, rawWirker?.user_id,
   ]);
@@ -999,6 +1021,11 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
     }
   }, [actions, profile, onChat]);
 
+  // Phase 4D: Support Handler
+  const handleSupport = React.useCallback(() => {
+    setShowSupport(true);
+  }, []);
+
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:_zIndex,
@@ -1021,7 +1048,7 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
         ::-webkit-scrollbar{display:none}
       `}</style>
 
-      <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat}/>
+      <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport}/>
       <StatsStrip    profile={profile}/>
       <VisitorExperiences experiences={experiences} onBook={handleBook}/>
       <AboutSection  profile={profile}/>
@@ -1029,6 +1056,14 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
       <ResonanceCommunity community={null}/>
       <FooterValues/>
       <FloatingBookCTA onBook={handleBook} profileName={name}/>
+      {/* Phase 4D: Support Flow */}
+      <SupportFlow
+        creator={profile}
+        visible={showSupport}
+        onClose={() => setShowSupport(false)}
+        sourceType="profile"
+        sourceId={profile?.id||null}
+      />
     </div>
   );
 }

@@ -79,9 +79,12 @@ export function MembershipLabel({ membershipType, size = "xs", style = {} }) {
   if (!membershipType || membershipType === "base") return null;
   const s = SIZES[size] || SIZES.xs;
   const config = {
-    talent:   { label:"Talent",   color:"#16D7C5", bg:"rgba(22,215,197,0.12)",  border:"rgba(22,215,197,0.30)", icon:"✦" },
-    guardian: { label:"Guardian", color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
-    team:     { label:"Team",     color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"⬡" },
+    talent:            { label:"Talent",          color:"#16D7C5", bg:"rgba(22,215,197,0.12)",  border:"rgba(22,215,197,0.30)", icon:"✦" },
+    verified_talent:   { label:"Verifiziert",     color:"#16D7C5", bg:"rgba(22,215,197,0.18)",  border:"rgba(22,215,197,0.40)", icon:"✦✦" },
+    community_creator: { label:"Creator",         color:"#FF8A6B", bg:"rgba(255,138,107,0.12)", border:"rgba(255,138,107,0.30)", icon:"◎" },
+    raumhalter:        { label:"Raumhalter",      color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
+    guardian:          { label:"Guardian",        color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
+    team:              { label:"Team",            color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"⬡" },
   }[membershipType] || { label:"Mitglied", color:"#16D7C5", bg:"rgba(22,215,197,0.10)", border:"rgba(22,215,197,0.25)", icon:"·" };
 
   return (

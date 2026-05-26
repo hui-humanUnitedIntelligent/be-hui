@@ -169,6 +169,7 @@ export default function HomeShell({ children }) {
   const [showImpactFlow,         setShowImpactFlow]         = useState(false);
   const [showContentSelector,    setShowContentSelector]    = useState(false);
   const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
+  const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
@@ -301,6 +302,7 @@ export default function HomeShell({ children }) {
     showImpactFlow,         setShowImpactFlow,
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
+    showCreatorDash,        setShowCreatorDash,
     showWerkDetail,        setShowWerkDetail,
     showWerkCheckout,      setShowWerkCheckout,
     showWerkeKorb,         setShowWerkeKorb,

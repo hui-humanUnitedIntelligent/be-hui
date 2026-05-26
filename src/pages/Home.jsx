@@ -46,6 +46,7 @@ import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
+const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
@@ -123,14 +124,19 @@ function HomeInner() {
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
+    showCreatorDash,   setShowCreatorDash,
   } = useHome();
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
   React.useEffect(() => {
-    window.__HUI_OPEN_TALENT_FLOW = () => setShowMembership(true);
-    return () => { delete window.__HUI_OPEN_TALENT_FLOW; };
-  }, [setShowMembership]);
+    window.__HUI_OPEN_TALENT_FLOW    = () => setShowMembership(true);
+    window.__HUI_OPEN_CREATOR_DASH   = () => setShowCreatorDash(true);
+    return () => {
+      delete window.__HUI_OPEN_TALENT_FLOW;
+      delete window.__HUI_OPEN_CREATOR_DASH;
+    };
+  }, [setShowMembership, setShowCreatorDash]);
 
   // ── Presence — Phase 3D — isolated, never blocks feed ────────
   usePresence(currentUser?.id, "home");
@@ -688,6 +694,15 @@ function HomeInner() {
               }}
             />
           </SafeRender>
+        )}
+        {/* Phase 4D: Creator Dashboard */}
+        {showCreatorDash && (
+          <React.Suspense fallback={null}>
+            <CreatorDashboard
+              visible={showCreatorDash}
+              onClose={() => setShowCreatorDash(false)}
+            />
+          </React.Suspense>
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">

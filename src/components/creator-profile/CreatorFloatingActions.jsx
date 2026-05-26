@@ -8,10 +8,10 @@ import { IX } from "../../design/hui.interaction.js";
 const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, cream:HUI.COLOR.cream };
 
 const ACTIONS = [
-  { key:"studio",    label:"Creator Studio", emoji:"🎛️" },
-  { key:"werk",      label:"Neues Werk",      emoji:"✦"  },
-  { key:"erlebnis",  label:"Erlebnis",        emoji:"🌟" },
-  { key:"community", label:"Community",       emoji:"🫂" },
+  { key:"studio",    label:"Einnahmen",    emoji:"💰" },
+  { key:"werk",      label:"Neues Werk",   emoji:"✦"  },
+  { key:"erlebnis",  label:"Erlebnis",     emoji:"🌟" },
+  { key:"community", label:"Community",    emoji:"🫂" },
 ];
 
 export default function CreatorFloatingActions({ onAction }) {
