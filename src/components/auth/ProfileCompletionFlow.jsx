@@ -169,10 +169,21 @@ export default function ProfileCompletionFlow({ onComplete }) {
       if (!await saveField({ bio: bio.trim() })) return;
     }
     if (step === 3) {
-      await supabase.from("profiles").update({
-        interests, profile_complete:true, updated_at:new Date().toISOString(),
+      // Write profile_complete = true — critical, do this first
+      const { error: completeErr } = await supabase.from("profiles").update({
+        interests,
+        profile_complete: true,
+        updated_at: new Date().toISOString(),
       }).eq("id", user.id);
+      if (completeErr) {
+        console.warn("[PROFILE_FLOW] profile_complete write failed:", completeErr.message);
+      } else {
+        console.log("[PROFILE_FLOW] profile_complete = true written ✓");
+      }
+      // Also set via RPC for double-confirmation
       try { await supabase.rpc("mark_profile_complete", { p_user_id: user.id }); } catch {}
+      // localStorage guard — prevents re-trigger after reload
+      try { localStorage.setItem("hui_profile_completed", "true"); } catch {}
       setStep(4);
       setTimeout(async () => {
         try { await refreshProfile(); } catch {}
