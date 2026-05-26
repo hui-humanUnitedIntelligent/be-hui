@@ -732,8 +732,8 @@ export default function HomeFeed({
         </SectionGuard>
 
         <SectionGuard id="RhythmicFeed">
-          {/* ── RAW DEBUG MODE — bypasses all rhythm/router/animation layers ── */}
-          <RawFeedDebug items={liveItems} />
+          {/* ── STEP 2: FeedRouter per item, no rhythm/sequence/animation ── */}
+          <StepTwoFeed items={liveItems} onProfile={handleProfile} onLike={onLike} onComment={onComment} />
         </SectionGuard>
 
         <SectionGuard id="MenschenSection">
@@ -919,6 +919,74 @@ function EventCard({ event, onPress }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    RAW FEED DEBUG — STEP 1: plain items, no FeedRouter, no animation
    ═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════════
+   STEP 2 FEED — FeedRouter per item, no sequence/rhythm/animation
+   ═══════════════════════════════════════════════════════════════════════════ */
+function StepTwoFeed({ items, onProfile, onLike, onComment }) {
+  const arr = React.useMemo(() => {
+    const raw = Array.isArray(items) ? items : [];
+    // deduplizieren, nur echte Objekte mit id
+    const valid = raw.filter(i => i && typeof i === "object" && i.id);
+    return Array.from(new Map(valid.map(i => [String(i.id), i])).values());
+  }, [items]);
+
+  const [reactions, setReactions] = React.useState({});
+
+  if (arr.length === 0) {
+    return (
+      <div style={{ padding:24, textAlign:"center", color:"#FF8A6B", fontFamily:"monospace", fontSize:13 }}>
+        ❌ StepTwoFeed: 0 items
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding:"0 0 80px" }}>
+      <div style={{
+        margin:"8px 12px 16px",
+        padding:"8px 12px",
+        borderRadius:10,
+        background:"rgba(22,215,197,0.10)",
+        border:"1px solid rgba(22,215,197,0.25)",
+        fontSize:11, fontFamily:"monospace", color:"#16D7C5", fontWeight:700,
+      }}>
+        ✅ STEP 2 — FeedRouter — {arr.length} items
+      </div>
+
+      {arr.map((item, idx) => {
+        if (!item?.id) return null;
+        try {
+          return (
+            <div key={String(item.id)} style={{ marginBottom: 12 }}>
+              <FeedRouter
+                item={item}
+                onProfile={() => onProfile?.(item)}
+                onReaction={(type) => {
+                  setReactions(prev => ({ ...prev, [item.id]: { ...(prev[item.id]||{}), [type]: true } }));
+                  onLike?.(item.id);
+                }}
+                itemReactions={reactions[item.id] || {}}
+              />
+            </div>
+          );
+        } catch(err) {
+          console.error("[STEP2_CRASH]", item.id, err?.message);
+          return (
+            <div key={String(item.id)} style={{
+              margin:"4px 12px", padding:"10px 14px",
+              borderRadius:14, background:"rgba(255,138,107,0.08)",
+              border:"1px solid rgba(255,138,107,0.2)",
+              fontSize:11, fontFamily:"monospace", color:"#FF8A6B",
+            }}>
+              ⚠ crash: {item.type} #{String(item.id).slice(0,8)} — {err?.message}
+            </div>
+          );
+        }
+      })}
+    </div>
+  );
+}
+
 function RawFeedDebug({ items }) {
   const arr = Array.isArray(items) ? items : [];
 
