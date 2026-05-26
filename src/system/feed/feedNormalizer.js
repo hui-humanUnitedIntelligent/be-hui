@@ -233,35 +233,79 @@ export const normalizeExperienceRow = (raw) => normalizeFeedItem({ ...raw, type:
 export const normalizeWorkRow       = (raw) => normalizeFeedItem({ ...raw, type: "work_upload" });
 export const normalizeInvitationRow = (raw) => normalizeFeedItem({ ...raw, type: "invitation", content_type: "invitation" });
 export const normalizeBeitragRow = (raw) => {
-  // beitraege echte Spalten: id, user_id, src, type, caption, created_at
-  // type aus DB: "moment" | "note" → beide sind low-energy posts
-  const dbType = raw.type || "moment";
+  // DEFENSIVE: kein Join nötig — profile wird von injectProfile() injiziert
+  // Einziger Hard-Filter: keine id → skip
+  if (!raw?.id) return null;
+
+  const dbType    = raw.type || "moment";
   const mappedType = dbType === "note" ? "note" : "moment";
-  const srcUrl = raw.src || raw.image_url || null;
-  // Profile aus Supabase-Join oder Fallback
+  const srcUrl    = raw.src || raw.image_url || null;
+
+  // Profile — immer sicher, niemals null-crash
   const profile = raw.profile || raw.creator || raw.author || {};
-  const normalized = normalizeFeedItem({
+  const creator = {
+    id:       String(profile.id || raw.user_id || ""),
+    name:     profile.display_name || profile.full_name || profile.username || "Human",
+    displayName: profile.display_name || profile.full_name || "Human",
+    avatar:   profile.avatar_url || profile.avatar || null,
+    username: profile.username || null,
+    talent:   profile.talent || null,
+    verified: Boolean(profile.verified),
+  };
+
+  const result = normalizeFeedItem({
     ...raw,
     type:    mappedType,
     images:  srcUrl ? [srcUrl] : [],
     src:     srcUrl,
     caption: raw.caption || null,
-    // Creator explizit mappen damit creator-Objekt korrekt gebaut wird
-    creator: {
-      id:       profile.id       || raw.user_id,
-      name:     profile.display_name || profile.full_name || "Unbekannt",
-      avatar:   profile.avatar_url   || null,
-      username: profile.username     || null,
-      talent:   profile.talent       || null,
-      verified: profile.verified     || false,
-    },
+    creator,
   });
-  if (normalized) {
-    console.log("[HUI_BEITRAG_NORMALIZED]", {
-      id: normalized.id, type: normalized.type,
-      caption: normalized.caption?.slice(0,40),
-      hasImage: !!normalized.expImg,
-    });
+
+  // Fallback: normalizeFeedItem hat durch den catch immer was — aber sicher ist sicher
+  if (!result) {
+    return {
+      id:          String(raw.id),
+      type:        "moment",
+      content_type:"moment",
+      title:       raw.caption?.slice(0,60) || "Moment",
+      caption:     raw.caption || "",
+      description: raw.caption || "",
+      name:        creator.name,
+      creator,
+      creator_id:  String(raw.user_id || ""),
+      avatar:      creator.avatar,
+      talent:      "",
+      location:    "",
+      images:      srcUrl ? [srcUrl] : [],
+      expImg:      srcUrl,
+      coverUrl:    srcUrl,
+      expTitle:    "",
+      expMeta:     "",
+      bookingMode: "direct",
+      pricingType: "fixed",
+      expType:     "",
+      price:       null,
+      duration:    "",
+      format:      "",
+      rhythmState: "resonance",
+      presenceState:"reflecting",
+      resonanz: 0, berührt: 0, begleitet: 0,
+      viewers: [], viewerExtra: 0,
+      time:     "",
+      category: "",
+      tags:     [],
+      status:   "",
+      isLive:   false,
+      _raw:     raw,
+    };
   }
-  return normalized;
+
+  console.log("[HUI_BEITRAG_NORMALIZED]", {
+    id: result.id, type: result.type,
+    caption: result.caption?.slice(0,40),
+    hasImage: !!result.expImg,
+    creator: creator.name,
+  });
+  return result;
 };

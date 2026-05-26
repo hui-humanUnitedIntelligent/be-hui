@@ -61,59 +61,43 @@ export function getFeedScrollPos()   { return _scrollPos.y; }
 // ─── Batch-Query: eine Seite laden ───────────────────────────────────────────
 async function fetchFeedPage(userId = null, cursor = null) {
   /**
-   * cursor = ISO timestamp (created_at des ältesten Items auf letzter Seite)
-   * Lädt PAGE_SIZE Items über alle 4 Quellen.
-   * Jede Quelle bekommt PAGE_SIZE/2 Slots und wird zeitbasiert gemischt.
+   * Phase 4H — NO PROFILE JOINS
+   * Alle Queries ohne relational join zu profiles.
+   * Profile werden separat angereichert (optional, nie blockierend).
    */
   const limit = Math.ceil(PAGE_SIZE / 2); // 10 pro Quelle
 
-  const rangeFilter = (q) => cursor
-    ? q.lt("created_at", cursor)
-    : q;
+  const rangeFilter = (q) => cursor ? q.lt("created_at", cursor) : q;
 
+  // ── Step 1: Plain queries — kein JOIN ──────────────────────────────────
   const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
     rangeFilter(
       supabase.from("works")
-        .select(`id,title,cover_url,media_url,category,description,
-                 caption,tags,price,status,user_id,creator_id,created_at,
-                 profile:profiles(id,display_name,avatar_url,talent,location_label)`)
+        .select("id,title,cover_url,media_url,category,description,caption,tags,price,status,user_id,creator_id,created_at")
         .eq("status", "published")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
-
     rangeFilter(
       supabase.from("experiences")
-        .select(`id,title,cover_url,media_url,category,description,
-                 price,duration,format,location_text,date,
-                 booking_mode,pricing_type,experience_type,
-                 participant_limit,max_participants,
-                 mood,mood_tags,social_energy,
-                 status,visibility,user_id,created_at,
-                 profile:profiles(id,display_name,avatar_url,talent,location_label)`)
+        .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,visibility,user_id,created_at")
         .eq("status", "published")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
-
     rangeFilter(
       supabase.from("beitraege")
-        .select("id,user_id,src,type,caption,created_at,profile:profiles(id,display_name,avatar_url,talent,location_label)")
+        .select("id,user_id,src,type,caption,created_at")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
-
-    // Invitations: nicht cursor-basiert (expires_at filter ist wichtiger)
     supabase.from("invitations")
-      .select(`id,user_id,text,title,vibe,mood,energy,
-               location,city,time_label,starts_at,expires_at,
-               visibility,status,max_participants,content_type,created_at,
-               profile:profiles(id,display_name,avatar_url,talent,location_label)`)
+      .select("id,user_id,text,title,vibe,mood,energy,location,city,time_label,starts_at,expires_at,visibility,status,max_participants,content_type,created_at")
       .eq("status", "active")
       .eq("visibility", "public")
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
-      .limit(2),  // Max 2 Invitations pro Seite
+      .limit(2),
   ]);
 
   const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
@@ -121,9 +105,8 @@ async function fetchFeedPage(userId = null, cursor = null) {
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
   const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
 
-  // Debug: RAW DB rows — extended
-  const beitrErr = beitrRes.status === "rejected" 
-    ? beitrRes.reason?.message 
+  const beitrErr = beitrRes.status === "rejected"
+    ? beitrRes.reason?.message
     : (beitrRes.value?.error?.message || null);
   const worksErr = worksRes.status === "rejected"
     ? worksRes.reason?.message
@@ -131,27 +114,55 @@ async function fetchFeedPage(userId = null, cursor = null) {
   const expsErr = expsRes.status === "rejected"
     ? expsRes.reason?.message
     : (expsRes.value?.error?.message || null);
-  
+
   console.log("[HUI_STREAM_RAW]", {
     works: works.length, worksErr,
     exps: exps.length, expsErr,
     beitraege: beitr.length, beitrErr,
     invitations: invs.length,
-    firstBeitrag: beitr[0] ? { id: beitr[0].id, type: beitr[0].type, caption: beitr[0].caption?.slice(0,30), src: !!beitr[0].src, hasProfile: !!beitr[0].profile } : null,
-    firstWork: works[0] ? { id: works[0].id, title: works[0].title?.slice(0,30), status: works[0].status, hasProfile: !!works[0].profile } : null,
   });
-  // Sende auch als UI-sichtbare Warnung
+
   if (typeof window !== "undefined") {
-    window.__HUI_STREAM_DEBUG__ = { works: works.length, exps: exps.length, beitraege: beitr.length, beitrErr, worksErr, expsErr };
+    window.__HUI_STREAM_DEBUG__ = {
+      works: works.length, exps: exps.length,
+      beitraege: beitr.length, beitrErr, worksErr, expsErr,
+    };
   }
 
-  // Normalisieren
-  const normalizedBeitr = beitr.map(normalizeBeitragRow).filter(Boolean);
+  // ── Step 2: Profile-Enrichment — optional, nie blockierend ─────────────
+  const allRows = [...works, ...exps, ...beitr, ...invs];
+  const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
+  let profileMap = {};
+
+  if (userIds.length > 0) {
+    try {
+      const { data: profileRows } = await supabase
+        .from("profiles")
+        .select("id,display_name,username,avatar_url,talent,location_label")
+        .in("id", userIds);
+      console.log("[HUI_STREAM_PROFILES]", profileRows?.length ?? 0);
+      if (profileRows) {
+        profileRows.forEach(p => { profileMap[p.id] = p; });
+      }
+    } catch (_) {
+      // Profile-Enrichment ist optional — Fehler ignorieren
+      console.warn("[HUI_STREAM] Profile enrichment failed — continuing without");
+    }
+  }
+
+  // ── Step 3: Normalisieren (mit injiziertem profile aus profileMap) ──────
+  function injectProfile(row) {
+    const uid = row.user_id || row.creator_id || null;
+    const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
+    return { ...row, profile: p || { id: uid, display_name: "Human", avatar_url: null } };
+  }
+
+  const normalizedBeitr = beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean);
   const normalized = [
-    ...works.map(normalizeWorkRow).filter(Boolean),
-    ...exps.map(normalizeExperienceRow).filter(Boolean),
+    ...works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean),
+    ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
     ...normalizedBeitr,
-    ...invs.map(normalizeInvitationRow).filter(Boolean),
+    ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
   ];
 
   console.log("[HUI_STREAM_NORMALIZED]", {
@@ -166,7 +177,6 @@ async function fetchFeedPage(userId = null, cursor = null) {
     return tb - ta;
   });
 
-  // Neuer Cursor = created_at des ältesten Items dieser Seite
   const nextCursor = normalized.length > 0
     ? normalized[normalized.length - 1]._raw?.created_at || null
     : null;
