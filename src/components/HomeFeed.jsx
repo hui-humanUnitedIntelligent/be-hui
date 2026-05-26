@@ -942,16 +942,7 @@ function StepTwoFeed({ items, onProfile, onLike, onComment }) {
 
   return (
     <div style={{ padding:"0 0 80px" }}>
-      <div style={{
-        margin:"8px 12px 16px",
-        padding:"8px 12px",
-        borderRadius:10,
-        background:"rgba(22,215,197,0.10)",
-        border:"1px solid rgba(22,215,197,0.25)",
-        fontSize:11, fontFamily:"monospace", color:"#16D7C5", fontWeight:700,
-      }}>
-        ✅ STEP 2 — FeedRouter — {arr.length} items
-      </div>
+      {/* Phase 1: Clean feed — no debug banner */}
 
       {arr.map((item, idx) => {
         if (!item?.id) return null;
@@ -1013,16 +1004,7 @@ function RawFeedDebug({ items }) {
 
   return (
     <div style={{ padding:"0 12px 80px" }}>
-      <div style={{
-        margin:"8px 0 16px",
-        padding:"8px 12px",
-        borderRadius:10,
-        background:"rgba(22,215,197,0.10)",
-        border:"1px solid rgba(22,215,197,0.25)",
-        fontSize:11, fontFamily:"monospace", color:"#16D7C5", fontWeight:700,
-      }}>
-        ✅ RAW FEED DEBUG — {arr.length} items
-      </div>
+
       {/* Item 0 raw JSON dump */}
       {arr[0] && (
         <details style={{ marginBottom:12, fontFamily:"monospace", fontSize:10 }}>

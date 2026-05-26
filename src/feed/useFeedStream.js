@@ -19,11 +19,11 @@ import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
 import {
-  normalizeWorkRow,
+  normalizeMomentRow     as normalizeBeitragRow,
   normalizeExperienceRow,
-  normalizeBeitragRow,
-  normalizeInvitationRow,
-} from "../system/feed/feedNormalizer.js";
+  normalizeWorkRow,
+  normalizeEventRow      as normalizeInvitationRow,
+} from "../system/feed/unifiedNormalizer.js";
 
 // ─── Konstanten ──────────────────────────────────────────────────────────────
 const PAGE_SIZE          = 20;   // Items pro Seite
