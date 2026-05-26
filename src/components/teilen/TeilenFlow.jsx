@@ -701,115 +701,106 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   }, [user?.id]);
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
+  // ── On-screen debug log (kein alert — Safari alert schliesst Flow) ──
+  const huiLog = React.useCallback((msg) => {
+    console.log("[HUI_PUBLISH]", msg);
+    const el = document.getElementById("__hui_publish_log__");
+    if (el) {
+      const row = document.createElement("div");
+      row.style.cssText = "padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.15);font-size:11px;word-break:break-all";
+      row.textContent = new Date().toISOString().slice(11,23) + " " + msg;
+      el.appendChild(row);
+      el.scrollTop = el.scrollHeight;
+    }
+  }, []);
+
   const handlePublish = async () => {
+    // Zeige Log-Panel
+    let panel = document.getElementById("__hui_publish_panel__");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "__hui_publish_panel__";
+      panel.style.cssText = [
+        "position:fixed","top:60px","left:50%","transform:translateX(-50%)",
+        "width:min(420px,90vw)","max-height:60vh","overflow-y:auto",
+        "background:rgba(20,20,40,0.97)","color:#7FFFD4",
+        "font-family:monospace","font-size:12px","padding:12px 14px",
+        "border-radius:14px","z-index:99999999",
+        "box-shadow:0 8px 32px rgba(0,0,0,0.6)",
+        "pointer-events:none"
+      ].join(";");
+      panel.innerHTML = '<div style="font-weight:bold;margin-bottom:6px;color:#fff">📋 HUI PUBLISH LOG</div><div id="__hui_publish_log__"></div>';
+      document.body.appendChild(panel);
+    }
+    document.getElementById("__hui_publish_log__").innerHTML = "";
+
     try {
-      alert("STEP_0_HANDLE_PUBLISH_START")
+      huiLog("STEP_0 START");
+      window.__PUBLISHING__ = true;
+      setPublishing(true);
 
-      window.__PUBLISHING__ = true
-      setPublishing(true)
+      huiLog("STEP_1 getSession...");
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      huiLog("STEP_2 session=" + (session?.user?.id || "NONE") + (sessionError ? " ERR="+sessionError.message : ""));
 
-      alert("STEP_1_BEFORE_GET_SESSION")
+      if (sessionError) { huiLog("SESSION_ERROR: " + sessionError.message); return; }
+      if (!session?.user?.id) { huiLog("NO_USER_ID"); return; }
 
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession()
-
-      alert(
-        "STEP_2_AFTER_GET_SESSION: " +
-          JSON.stringify({
-            hasSession: !!session,
-            sessionError: sessionError?.message || null,
-          })
-      )
-
-      if (sessionError) {
-        alert("SESSION_ERROR: " + sessionError.message)
-        return
-      }
-
-      if (!session?.user?.id) {
-        alert("NO_USER_ID")
-        return
-      }
-
-      let mediaUrl = null
-
+      let mediaUrl = null;
       if (form?.mediaFile) {
-        alert("STEP_3_BEFORE_UPLOAD")
-
-        const ext  = form.mediaFile.name.split(".").pop()
-        const path = `moments/${session.user.id}/${Date.now()}.${ext}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("moments")
-          .upload(path, form.mediaFile, { upsert: true })
-
+        huiLog("STEP_3 uploading " + form.mediaFile.name + " " + form.mediaFile.size + "b");
+        const ext  = form.mediaFile.name.split(".").pop();
+        const path = `moments/${session.user.id}/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("moments").upload(path, form.mediaFile, { upsert: true });
         if (uploadError) {
-          alert("UPLOAD_ERROR: " + JSON.stringify({ message: uploadError.message, code: uploadError.statusCode }))
+          huiLog("UPLOAD_ERROR: " + uploadError.message + " code=" + uploadError.statusCode);
         } else {
-          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path)
-          mediaUrl = pub?.publicUrl || null
+          const { data: pub } = supabase.storage.from("moments").getPublicUrl(path);
+          mediaUrl = pub?.publicUrl || null;
+          huiLog("STEP_4 uploaded: " + mediaUrl);
         }
-
-        alert(
-          "STEP_4_AFTER_UPLOAD: " +
-            JSON.stringify({ mediaUrl })
-        )
+      } else {
+        huiLog("STEP_3 no media file");
       }
 
       const payload = {
-        user_id: session.user.id,
-        content: form?.text || "",
-        image_url: mediaUrl,
-        type: "moment",
+        user_id:    session.user.id,
+        content:    form?.text || "",
+        image_url:  mediaUrl,
+        type:       "moment",
         visibility: "public",
         created_at: new Date().toISOString(),
-      }
-
-      alert(
-        "STEP_5_BEFORE_INSERT: " +
-          JSON.stringify(payload)
-      )
+      };
+      huiLog("STEP_5 INSERT payload=" + JSON.stringify(payload).slice(0,120));
 
       const { data, error } = await supabase
         .from("beitraege")
         .insert(payload)
-        .select()
+        .select();
 
       if (error) {
-        alert(
-          "INSERT_ERROR: " +
-            JSON.stringify({
-              message: error.message,
-              code: error.code,
-              details: error.details,
-              hint: error.hint,
-            })
-        )
-        return
+        huiLog("INSERT_ERROR code=" + error.code + " msg=" + error.message + " hint=" + error.hint);
+        return;
       }
 
-      alert(
-        "STEP_6_INSERT_SUCCESS: " +
-          JSON.stringify(data)
-      )
+      huiLog("STEP_6 INSERT_SUCCESS id=" + data?.[0]?.id);
+      window.dispatchEvent(new Event("feed-refresh"));
 
-      onPublished?.()
-      onClose?.()
+      // Panel nach 4s auto-remove
+      setTimeout(() => panel?.remove(), 4000);
+
+      onPublished?.();
+      onClose?.();
 
     } catch (e) {
-      alert(
-        "HANDLE_PUBLISH_CRASH: " +
-          JSON.stringify({
-            message: e?.message,
-            stack: e?.stack?.slice(0, 300),
-          })
-      )
+      huiLog("CRASH: " + e?.message + " | " + e?.stack?.slice(0,200));
     } finally {
-      setPublishing(false)
-      window.__PUBLISHING__ = false
+      setPublishing(false);
+      window.__PUBLISHING__ = false;
+      huiLog("FINALLY done");
     }
-  }
+  };
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
