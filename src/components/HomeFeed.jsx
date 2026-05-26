@@ -998,10 +998,22 @@ function RhythmicFeed({ items, onProfile, onLike, onComment, onDiscover, onShare
       stats: _curated?.stats,
     });
     if (_cards.length === 0 && enrichable.length > 0) {
-      console.error("[HUI_FEED_CURATED_EMPTY] enrichable had items but curated produced 0 cards!", {
+      console.error("[HUI_FEED_CURATED_EMPTY] enrichable had items but curated produced 0 cards — BYPASS ACTIVE", {
         enrichableTypes: enrichable.map(i => i.type),
         enrichableIds:   enrichable.map(i => i.id),
       });
+      // BYPASS: curateHumaneFeed returned 0 cards despite valid items
+      // Render items directly as sequence without intelligence layer
+      const bypassSequence = enrichable.map((item, idx) => ({
+        kind: "card",
+        item,
+        slot: idx,
+      }));
+      return {
+        ..._curated,
+        sequence: bypassSequence,
+        stats: { ..._curated?.stats, totalCards: bypassSequence.length, _bypass: true },
+      };
     }
     return _curated;
   // viewerContext is derived from viewerContext object identity

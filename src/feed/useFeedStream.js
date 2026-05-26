@@ -29,7 +29,7 @@ import {
 const PAGE_SIZE          = 20;   // Items pro Seite
 const PREFETCH_THRESHOLD = 0.70; // 70% gescrollt → prefetch
 const SOFT_HYDRATE_DELAY = 800;  // ms Debounce bevor "N neue" Badge erscheint
-const CACHE_KEY          = "hui_feed_cache_v4f";
+const CACHE_KEY          = "hui_feed_cache_v5";
 const CACHE_TTL_MS       = 5 * 60 * 1000; // 5 Minuten
 
 // ─── Cache Helpers ────────────────────────────────────────────────────────────
@@ -44,13 +44,9 @@ function saveCache(items, cursor) {
 }
 
 function loadCache() {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed?.ts || Date.now() - parsed.ts > CACHE_TTL_MS) return null;
-    return parsed;
-  } catch (_) { return null; }
+  // CACHE DISABLED — always fresh load
+  try { sessionStorage.removeItem(CACHE_KEY); } catch (_) {}
+  return null;
 }
 
 function clearCache() {
