@@ -1,5 +1,5 @@
 /**
- * useFeedStream — Phase 4F: Living Feed Infrastructure
+ * useFeedStream — Phase 4F: Living Feed Infrastructure v2
  *
  * Kein Reload. Kein Poppen. Kein Sterben beim Tab-Wechsel.
  * Ein lebender Strom.
