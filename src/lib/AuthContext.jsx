@@ -218,13 +218,50 @@ export function AuthProvider({ children }) {
     return { data, error };
   }, [user, wirkerProfile]);
 
+  // Phase 4C: activateTalent — atomarer DB-Aufruf via Supabase RPC
+  // Setzt membership_type='talent', membership_active=true, talent_activated_at=NOW()
+  // Alles in einer Transaktion via activate_talent() SQL-Funktion
   const activateTalentProfile = useCallback(async (focusType = "hybrid") => {
     if (!user) return { error: "Nicht eingeloggt" };
-    const { data, error } = await supabase.from("profiles")
-      .update({ has_talent_profile:true, focus_type:focusType,
-        updated_at:new Date().toISOString() })
-      .eq("id", user.id).select().single();
-    if (data) { setProfile(data); localStorage.setItem("hui_talent","1"); }
+
+    // 1. Versuche RPC-Funktion (atomarer Weg)
+    const { data: rpcData, error: rpcErr } = await withTimeout(
+      supabase.rpc("activate_talent", { p_user_id: user.id })
+    );
+
+    if (!rpcErr && rpcData) {
+      // RPC erfolgreich — Profile direkt aus Response setzen
+      const updatedProfile = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+        localStorage.setItem("hui_talent", "1");
+        localStorage.setItem("hui_membership_type", "talent");
+        localStorage.setItem("hui_is_member", "1");
+        return { data: updatedProfile };
+      }
+    }
+
+    // 2. Fallback: direktes UPDATE (falls RPC nicht verfügbar)
+    const { data, error } = await withTimeout(
+      supabase.from("profiles")
+        .update({
+          membership_type:     "talent",
+          membership_active:   true,
+          talent_activated_at: new Date().toISOString(),
+          has_talent_profile:  true,
+          focus_type:          focusType,
+          is_member:           true,
+          role:                "talent",
+          updated_at:          new Date().toISOString(),
+        })
+        .eq("id", user.id).select().single()
+    );
+    if (data) {
+      setProfile(data);
+      localStorage.setItem("hui_talent", "1");
+      localStorage.setItem("hui_membership_type", "talent");
+      localStorage.setItem("hui_is_member", "1");
+    }
     return { data, error };
   }, [user]);
 
@@ -317,17 +354,38 @@ export function AuthProvider({ children }) {
     await loadProfile(user.id);
   }, [user?.id, loadProfile]);
 
+  // Phase 4C: activateMembership — erweitert um membership_active + talent_activated_at
   const activateMembership = useCallback(async () => {
     if (!user?.id) return { error: "Nicht eingeloggt" };
     try {
+      // 1. Versuche RPC activate_talent (atomare SQL-Funktion)
+      const { data: rpcData, error: rpcErr } = await withTimeout(
+        supabase.rpc("activate_talent", { p_user_id: user.id })
+      );
+      if (!rpcErr && rpcData) {
+        const p = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+        if (p) {
+          setProfile(p);
+          localStorage.setItem("hui_membership_type", "talent");
+          localStorage.setItem("hui_is_member", "1");
+          localStorage.setItem("hui_talent", "1");
+          await supabase.auth.refreshSession().catch(() => {});
+          return { data: p };
+        }
+      }
+      // 2. Fallback: direktes UPDATE mit allen Phase-4C-Feldern
+      const now = new Date().toISOString();
       const { data, error } = await withTimeout(
         supabase.from("profiles")
           .update({
-            is_member:       true,
-            membership_type: "member",   // ← SINGLE SOURCE OF TRUTH
-            role:            "talent",   // talent role = full creator access
-            member_since:    new Date().toISOString(),
-            updated_at:      new Date().toISOString(),
+            is_member:           true,
+            membership_type:     "talent",   // Phase 4C: 'talent' statt 'member'
+            membership_active:   true,       // Phase 4C: aktiv-Flag
+            talent_activated_at: now,        // Phase 4C: Zeitstempel
+            role:                "talent",
+            has_talent_profile:  true,
+            member_since:        now,
+            updated_at:          now,
           })
           .eq("id", user.id)
           .select()
@@ -336,11 +394,10 @@ export function AuthProvider({ children }) {
       if (error) throw error;
       if (data) {
         setProfile(data);
-        // Persist membership in localStorage (boot restore)
-        localStorage.setItem("hui_membership_type", data.membership_type || "member");
+        localStorage.setItem("hui_membership_type", "talent");
         localStorage.setItem("hui_is_member", "1");
-        // Session-Refresh: Supabase-Token-Claims aktualisieren
-        await supabase.auth.refreshSession();
+        localStorage.setItem("hui_talent", "1");
+        await supabase.auth.refreshSession().catch(() => {});
       }
       return { data };
     } catch (err) {
@@ -370,6 +427,21 @@ export function AuthProvider({ children }) {
     authChecked,
     authError: null,
     checkUserAuth,
+    // Phase 4C — Membership derived states (single source of truth)
+    get isTalent() {
+      const p = providerValue.profile;
+      if (!p) return localStorage.getItem("hui_talent") === "1";
+      return (
+        p.membership_type === "talent" && p.membership_active === true
+        || p.is_member === true
+        || p.role === "talent"
+        || p.has_talent_profile === true
+        || p.membership_type === "guardian"
+        || p.membership_type === "team"
+      );
+    },
+    get isBaseUser() { return !providerValue.isTalent; },
+    get canCreate()  { return providerValue.isTalent; },
     signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
     loadProfile, saveProfile, refreshProfile, becomeWirker,
     activateMembership,

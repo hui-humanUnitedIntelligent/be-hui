@@ -100,7 +100,7 @@ function HomeInner() {
     keepFeed, keepDiscover,           keepImpact, keepFavorites,
     activeMood,    setActiveMood,
     liveNotifCount,
-    isTalent,
+    isTalent, isBaseUser, canCreate,
     isMember,
     currentUser,
     authProfile,
@@ -124,6 +124,13 @@ function HomeInner() {
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
   } = useHome();
+
+  // ── Phase 4C: Talent Flow global registrieren ────────────────
+  // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
+  React.useEffect(() => {
+    window.__HUI_OPEN_TALENT_FLOW = () => setShowMembership(true);
+    return () => { delete window.__HUI_OPEN_TALENT_FLOW; };
+  }, [setShowMembership]);
 
   // ── Presence — Phase 3D — isolated, never blocks feed ────────
   usePresence(currentUser?.id, "home");
@@ -395,7 +402,7 @@ function HomeInner() {
           // isTalent = profile.is_member===true OR profile.role==="talent"
           //            OR profile.has_talent_profile===true
           // If NOT a talent/member → open membership flow, show nothing else
-          if (!isTalent) {
+          if (isBaseUser || !canCreate) {
             console.log("[HUI ORB] BasisUser → membership flow", {
               is_member: authProfile?.is_member,
               role:      authProfile?.role,
@@ -599,7 +606,7 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {showStoryComposer && SAFE_MODE.storyComposer && (
+        {showStoryComposer && SAFE_MODE.storyComposer && canCreate && (
           <SafeRender flag="storyComposer" label="StoryComposer">
             <StoryComposer
               onClose={() => setShowStoryComposer(false)}
@@ -607,7 +614,7 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {showWerkPublisher && SAFE_MODE.werkFlow && (
+        {showWerkPublisher && SAFE_MODE.werkFlow && canCreate && (
           <SafeRender flag="werkFlow" label="WorkFlow">
             <WorkFlow
               onClose={() => setShowWerkPublisher(false)}
@@ -615,7 +622,7 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {showExperienceCreator && SAFE_MODE.experienceFlow && (
+        {showExperienceCreator && SAFE_MODE.experienceFlow && canCreate && (
           <SafeRender flag="experienceFlow" label="ExperienceFlow">
             <ExperienceFlow
               onClose={() => setShowExperienceCreator(false)}

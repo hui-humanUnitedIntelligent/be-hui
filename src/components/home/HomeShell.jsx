@@ -74,20 +74,30 @@ export default function HomeShell({ children }) {
    * OR profile.has_talent_profile===true.
    * localStorage is ONLY a performance cache — always overridden by live profile.
    */
+  // Phase 4C: isTalent — erweitert um membership_type + membership_active
   const isTalent = React.useMemo(() => {
-    // AuthContext: live profile data (always wins over localStorage)
-    if (authProfile?.is_member === true) return true;
-    if (authProfile?.role === "talent") return true;
-    if (authProfile?.has_talent_profile === true) return true;
-    if (isMember) return true;  // isMember from AuthContext
-    // localStorage as fallback only (e.g. profile not yet loaded)
+    if (!authProfile) return localStorage.getItem("hui_talent") === "1";
+    // Phase 4C: primäre Prüfung via neue Felder
+    if (authProfile.membership_type === "talent" && authProfile.membership_active === true) return true;
+    if (authProfile.membership_type === "guardian" || authProfile.membership_type === "team") return true;
+    // Legacy Kompatibilität (bestehende Nutzer ohne Migration)
+    if (authProfile.is_member === true) return true;
+    if (authProfile.role === "talent" || authProfile.role === "wirker" || authProfile.role === "creator") return true;
+    if (authProfile.has_talent_profile === true) return true;
+    if (isMember) return true;
     return localStorage.getItem("hui_talent") === "1";
   }, [
+    authProfile?.membership_type,
+    authProfile?.membership_active,
     authProfile?.is_member,
     authProfile?.role,
     authProfile?.has_talent_profile,
     isMember,
   ]);
+
+  // Phase 4C: Derived states — direkt aus isTalent abgeleitet
+  const isBaseUser = !isTalent;
+  const canCreate  = isTalent;
 
   // Keep localStorage in sync when profile upgrades
   useEffect(() => {
@@ -263,7 +273,7 @@ export default function HomeShell({ children }) {
 
   /* Context Value */
   const ctx = {
-    user, authProfile, isTalent, isMember,
+    user, authProfile, isTalent, isBaseUser, canCreate, isMember,
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
     keepFeed, keepDiscover, keepImpact, keepFavorites,
