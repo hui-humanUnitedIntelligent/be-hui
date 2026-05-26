@@ -20,7 +20,8 @@ import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
-import HomeFeed                  from "../components/HomeFeed.jsx";
+import HomeFeed from "../components/HomeFeed.jsx"; // legacy wrapper
+import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay         from "../components/chat-center/ChatCenterOverlay.jsx";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
@@ -273,35 +274,20 @@ function HomeInner() {
           <div ref={tabRefs.feed} style={keepFeed}>
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="HomeFeed">
-                <HomeFeed
-                  onRefreshReady={(fn) => { feedRefreshRef.current = fn; }}
-                  user={currentUser}
-                  notifCount={liveNotifCount}
-                  chatCount={0}
-                  onSearch={() => {}}
-                  onNotif={() => setShowNotifs(true)}
-                  onChat={() => setShowChat(true)}
+                <UnifiedFeed
+                  showStories={true}
+                  showEvents={true}
+                  currentUser={currentUser}
                   onStory={(s) => {
-                    if (s?.isYou) setShowStoryComposer(true);
+                    if (s?.isYou || s?.userId === currentUser?.id) setShowStoryComposer(true);
                     else if (s) setActiveStory(s);
                   }}
-                  onEvent={() => {}}
-                  onMoreEvents={() => handleTab("discover")}
+                  onAddStory={() => setShowStoryComposer(true)}
                   onProfile={(item) => setShowWirker(item)}
-                  onLike={() => {}}
-                  onComment={(item) => {
-                    // Phase 23: Kommentar = Gespräch mit Creator
-                    const userId = item?.user_id || item?.author_id || item?.id;
-                    const name   = item?.display_name || item?.author || item?.name || "Creator";
-                    const avatar = item?.avatar_url   || item?.avatar || null;
-                    if (userId) {
-                      setChatRecipient({ id: userId, display_name: name, avatar_url: avatar });
-                      setShowChat(true);
-                    }
-                  }}
-                  onPerson={(p) => setShowWirker(p)}
-                  onDiscover={() => handleTab("discover")}
+                  onBook={(item)   => setShowWirker(item)}
                   onShare={() => setShowTeilen(true)}
+                  onEventPress={(ev) => setShowWirker(ev)}
+                  onMoreEvents={() => handleTab("discover")}
                 />
               </SafeRender>
             ) : (

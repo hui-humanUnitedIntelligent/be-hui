@@ -59,7 +59,7 @@ export function FeedCardHeader({ author, time, badge, onProfile }) {
   );
 }
 
-export function FeedMedia({ media, alt }) {
+export function FeedMedia({ media, alt, relaxed }) {
   const [err, setErr] = useState(false);
   let url = null;
   if (Array.isArray(media) && media.length>0) {
@@ -67,8 +67,10 @@ export function FeedMedia({ media, alt }) {
     url = (f&&f.url) ? f.url : (typeof f==="string" ? f : null);
   } else if (typeof media==="string" && media.length>0) { url=media; }
   if (!url||err) return null;
+  const h = relaxed ? 340 : T.mediaH;
   return (
-    <div style={{margin:"14px "+T.p+"px 0",height:T.mediaH,borderRadius:T.rMedia,overflow:"hidden",background:"#F0EFED",flexShrink:0}}>
+    <div style={{margin:"14px "+T.p+"px 0",height:h,borderRadius:T.rMedia,overflow:"hidden",background:"#F0EFED",flexShrink:0,
+      transition:"height 0.3s ease"}}>
       <img src={url} alt={alt||""} onError={()=>setErr(true)}
         style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
     </div>
@@ -120,7 +122,7 @@ export default function BaseFeedCard({ item, onProfile, onReaction, onShare, bad
     }}>
       <FeedCardHeader author={item.author} time={item.createdAt} badge={badge} onProfile={onProfile}/>
       <div style={{padding:"12px "+T.p+"px 0"}}>{children}</div>
-      <FeedMedia media={item.media} alt={item.title||item.text}/>
+      <FeedMedia media={item.media} alt={item.title||item.text} relaxed={!!(item._reactions&&item._reactions._relaxed)}/>
       <FeedActions reactions={reactions} onReaction={onReaction} onShare={onShare} extraActions={extraActions}/>
     </article>
   );
