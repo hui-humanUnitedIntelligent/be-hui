@@ -86,7 +86,46 @@ function EmptyFeed() {
 }
 
 /* ── Feed List ────────────────────────────────────────────────── */
+
+// ── Per-item reaction wrapper — wires BaseFeedCard to DB ─────
+function ReactionCard({ item, onProfile, onBook, onShare }) {
+  const { toggle, myTypes } = useSingleReaction(
+    item.id, item.type || "post", item.author?.id || null
+  );
+
+  function handleReaction(type) {
+    toggle(type);
+    // Toast feedback
+    const labels = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
+    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Gespeichert entfernt" };
+    const wasActive = myTypes.has(type);
+    toast.info(wasActive ? removeLabels[type] || type : labels[type] || type, { duration:1800 });
+  }
+
+  // Merge live myTypes into _reactions
+  const enriched = {
+    ...item,
+    _reactions: {
+      ...(item._reactions || {}),
+      touched:  myTypes.has("like"),
+      inspired: myTypes.has("inspire"),
+      saved:    myTypes.has("save"),
+    },
+  };
+
+  return (
+    <FeedRouter
+      item={enriched}
+      onProfile={onProfile}
+      onReaction={handleReaction}
+      onBook={onBook}
+      onShare={onShare}
+    />
+  );
+}
+
 function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
+  // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
     const valid = items.filter(i => i && typeof i === "object" && i.id);
@@ -99,6 +138,10 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
 
   if (arr.length === 0) return <EmptyFeed />;
 
+
+  if (!items || items.length === 0) {
+    return <EmptyState preset="feed" style={{ minHeight:280 }} />;
+  }
   return (
     <div style={{ paddingTop: 8, paddingBottom: 100 }}>
       {arr.map((item, idx) => {
@@ -113,26 +156,12 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
               animationDelay: Math.min(idx * 40, 300) + "ms",
             }}
           >
-            <FeedRouter
-              item={item}
-              itemReactions={{ ...itemReactions, _relaxed: isRelaxed }}
-              onProfile={onProfile}
-              onReaction={(type) => {
-                setReactions(prev => ({
-                  ...prev,
-                  [String(item.id)]: {
-                    ...(prev[String(item.id)] || {}),
-                    [type === "inspire" ? "inspired"
-                     : type === "touch"  ? "touched"
-                     : type === "save"   ? "saved" : type]: true,
-                    [`${type}Count`]:
-                      ((prev[String(item.id)] || {})[`${type}Count`] || 0) + 1,
-                  },
-                }));
-              }}
-              onShare={() => onShare?.(item)}
-              onBook={onBook}
-            />
+            <ReactionCard
+                item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
+                onProfile={onProfile}
+                onBook={onBook}
+                onShare={() => onShare?.(item)}
+              />
           </div>
         );
       })}

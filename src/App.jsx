@@ -11,6 +11,7 @@ import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
 import { AuthGateProvider } from './components/auth/AuthGate.jsx'
+import { ToastContainer } from './lib/useToast.jsx'
 import ProfileCompletionFlow from './components/auth/ProfileCompletionFlow.jsx'
 import AuthCallback from './pages/AuthCallback'
 
@@ -527,6 +528,7 @@ export default function App() {
           </WorldSurfaceProvider>
       </AppStateProvider>
       </AuthGateProvider>
+        <ToastContainer/>
       </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

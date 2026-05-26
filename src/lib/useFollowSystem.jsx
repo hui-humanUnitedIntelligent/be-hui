@@ -4,6 +4,7 @@
 // Uses follows table (follower_id, followed_id) from migration 032.
 // NEVER throws — always has silent fallback.
 // ══════════════════════════════════════════════════════════════
+import { toast as huiToast } from "./useToast.jsx";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "./supabaseClient.js";
 
