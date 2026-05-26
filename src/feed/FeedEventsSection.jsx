@@ -119,6 +119,10 @@ function EventCard({ event, onPress, delay }) {
 
 /* ── Main Section ─────────────────────────────────────────────── */
 export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
+  // Active system log
+  React.useEffect(() => {
+    console.log("[ACTIVE_FEED_SYSTEM] FeedEventsSection mounted");
+  }, []);
   const [events,  setEvents]  = useState([]);
   const [loading, setLoading] = useState(true);
 

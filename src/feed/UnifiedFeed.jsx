@@ -157,7 +157,16 @@ export default function UnifiedFeed({
   // User context
   currentUser  = null,
 }) {
-  useEffect(() => { injectFeedCSS(); }, []);
+  useEffect(() => {
+    injectFeedCSS();
+    console.log("[ACTIVE_FEED_SYSTEM]", {
+      unified:       true,
+      stories:       showStories,
+      events:        showEvents,
+      router:        "FeedRouter",
+      legacyBlocked: true,
+    });
+  }, []); // eslint-disable-line
 
   // ── OWN FEED STREAM — läuft immer, liefert Items aus DB ──────────
   const {

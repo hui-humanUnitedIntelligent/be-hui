@@ -100,6 +100,16 @@ function StoryCard({ group, isSeen, onPress, delay }) {
                   onError={(e) => { e.target.style.display = "none"; }} />
               : name[0].toUpperCase()
             }
+            {/* + indicator for own empty Story slot */}
+            {isYou && isEmpty && (
+              <div style={{
+                position: "absolute", bottom: 0, right: 0,
+                width: 18, height: 18, borderRadius: "50%",
+                background: TEAL, border: "2px solid #FAFAF8",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13, color: "#fff", fontWeight: 900, lineHeight: 1,
+              }}>+</div>
+            )}
           </div>
         </div>
 
@@ -178,6 +188,7 @@ function AddStoryButton({ onPress, currentUser }) {
 
 /* ── Main Stories Bar ─────────────────────────────────────────── */
 export default function FeedStoriesBar({ onStoryClick, onAddStory, currentUser }) {
+  React.useEffect(() => { console.log("[ACTIVE_FEED_SYSTEM] FeedStoriesBar mounted"); }, []);
   const { user } = useAuth();
   const [groups,    setGroups]    = useState([]);
   const [loading,   setLoading]   = useState(true);
@@ -241,11 +252,38 @@ export default function FeedStoriesBar({ onStoryClick, onAddStory, currentUser }
         return 0;
       });
 
+      // Always prepend the current user's "Dein Moment" slot
+      // so the bar is never empty for logged-in users
+      if (user?.id) {
+        const alreadyHasOwnGroup = arr.some(g => g.userId === user.id);
+        if (!alreadyHasOwnGroup) {
+          arr.unshift({
+            userId:   user.id,
+            name:     user.user_metadata?.display_name || "Dein Moment",
+            avatar:   user.user_metadata?.avatar_url   || null,
+            isLive:   false,
+            isYou:    true,
+            stories:  [],   // no stories yet — shows + Add button
+          });
+        } else {
+          // Mark own group as "isYou"
+          arr = arr.map(g => g.userId === user.id ? { ...g, isYou: true } : g);
+        }
+      }
+
       setGroups(arr);
     } catch (err) {
       console.warn("[HUI_STORIES_LOAD_ERR]", err?.message);
-      // Fail silently — feed still renders
-      setGroups([]);
+      // Fail with own-user fallback
+      const fallback = user?.id ? [{
+        userId:   user.id,
+        name:     "Dein Moment",
+        avatar:   null,
+        isLive:   false,
+        isYou:    true,
+        stories:  [],
+      }] : [];
+      setGroups(fallback);
     } finally {
       setLoading(false);
     }
@@ -263,7 +301,6 @@ export default function FeedStoriesBar({ onStoryClick, onAddStory, currentUser }
   }
 
   // Don't render empty bar (no placeholder height)
-  if (!loading && groups.length === 0) return null;
 
   return (
     <div style={{

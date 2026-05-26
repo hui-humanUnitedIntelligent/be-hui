@@ -20,7 +20,6 @@ import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
-import HomeFeed from "../components/HomeFeed.jsx"; // legacy wrapper
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay         from "../components/chat-center/ChatCenterOverlay.jsx";
@@ -80,15 +79,11 @@ function HomeInner() {
     favorites: React.useRef(null),
   };
   const scrollContainerRef = React.useRef(null);
-  const feedRefreshRef     = React.useRef(null);  // streamRefresh von HomeFeed
 
   // ── feed-refresh Event: TeilenFlow dispatched dieses Event nach INSERT_SUCCESS
   React.useEffect(() => {
     const handler = () => {
-      console.log("[HUI_HOME] feed-refresh Event empfangen → streamRefresh()");
-      if (feedRefreshRef.current) {
-        feedRefreshRef.current();
-      }
+      console.log("[HUI_HOME] feed-refresh Event empfangen");
     };
     window.addEventListener("feed-refresh", handler);
     return () => window.removeEventListener("feed-refresh", handler);
@@ -273,7 +268,7 @@ function HomeInner() {
         >
           <div ref={tabRefs.feed} style={keepFeed}>
             {SAFE_MODE.homeFeed ? (
-              <SafeRender flag="homeFeed" label="HomeFeed">
+              <SafeRender flag="homeFeed" label="Feed">
                 <UnifiedFeed
                   showStories={true}
                   showEvents={true}
@@ -451,11 +446,6 @@ function HomeInner() {
         onPublished={(result) => {
           console.log("[HUI_HOME] FLOW_RETURN_HOME empfangen, refresh=", result?.refresh);
           setShowTeilen(false);
-          // feed-refresh via feedRefreshRef — direkt aufrufen (zusätzlich zu Event)
-          if (feedRefreshRef.current) {
-            feedRefreshRef.current();
-            console.log("[HUI_HOME] STREAM_REFRESH_TRIGGERED via onPublished");
-          }
         }}
       />
 
