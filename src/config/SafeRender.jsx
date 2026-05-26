@@ -126,15 +126,17 @@ class SafeBoundary extends React.Component {
             Erneut versuchen
           </button>
         </div>
-        {/* Dev error info */}
-        {(typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') && (
-          <details style={{ fontSize: 10, color: '#aaa', padding: '0 4px' }}>
-            <summary style={{ cursor: 'pointer' }}>Crash: {label}</summary>
-            <pre style={{ overflow: 'auto', marginTop: 4 }}>
-              {err?.message}{'\n'}{err?.stack?.split('\n').slice(0,8).join('\n')}
-            </pre>
-          </details>
-        )}
+        {/* Crash details — always visible for debugging */}
+        <details style={{ fontSize: 10, color: '#aaa', padding: '0 4px' }} open>
+          <summary style={{ cursor: 'pointer', color: '#FF8A6B', fontWeight: 700 }}>
+            ⚠ Crash: {label}
+          </summary>
+          <pre style={{ overflow: 'auto', marginTop: 4, fontSize: 10, color: '#ff9999',
+            background: 'rgba(0,0,0,0.3)', padding: 8, borderRadius: 6,
+            whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            {err?.message}{'\n\n'}{err?.stack?.split('\n').slice(0,12).join('\n')}
+          </pre>
+        </details>
       </div>
     );
   }

@@ -505,8 +505,17 @@ export default function HomeFeed({
   stories   = null, feedItems = null, events = null, people = null,
   onProfile = null, onStory   = null, onEvent = null,
   onLike    = null, onComment = null,
-  onDiscover = null,
-  onShare    = null,
+  onDiscover = null, onShare    = null,
+  // Props from Home.jsx (passed but previously undeclared → silent undefined)
+  onRefreshReady = null,
+  user           = null,
+  notifCount     = 0,
+  chatCount      = 0,
+  onSearch       = null,
+  onNotif        = null,
+  onChat         = null,
+  onMoreEvents   = null,
+  onPerson       = null,
 }) {
   // ══ RAW DEBUG STATE — kein Conditional, immer aktiv ══════════════════
   console.log("HOMEFEED_MOUNTED");
