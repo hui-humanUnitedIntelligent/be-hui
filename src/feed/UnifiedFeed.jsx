@@ -10,6 +10,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import FeedRouter          from "./cards/FeedRouter.jsx";
+import { CardSkeleton }    from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }   from "./useFeedStream.js";
 import { toFeedItem }      from "../system/feed/unifiedNormalizer.js";
 import FeedStoriesBar      from "./FeedStoriesBar.jsx";
@@ -139,6 +140,30 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
   );
 }
 
+/* ── LazyCard — only renders when near viewport ──────────────── */
+const LazyCard = React.memo(function LazyCard({ raw, ...handlers }) {
+  const [visible, setVisible] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!ref.current || typeof IntersectionObserver === "undefined") {
+      setVisible(true); return;
+    }
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { rootMargin: "200px" }
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} style={{ minHeight: visible ? undefined : 280 }}>
+      {visible
+        ? <FeedRouter item={raw} {...handlers} />
+        : <CardSkeleton />}
+    </div>
+  );
+});
+
 /* ── Main UnifiedFeed ─────────────────────────────────────────── */
 export default function UnifiedFeed({
   // Items prop (optional — wenn nicht übergeben, eigener useFeedStream)
@@ -265,9 +290,15 @@ export default function UnifiedFeed({
 
       {/* ── MAIN FEED — vertical timeline, stable, always renders ── */}
       <SectionBoundary name="feedList">
-        {/* Loading state — minimal, non-intrusive */}
+        {/* Loading state — shimmer skeletons */}
         {streamLoading && resolvedItems.length === 0 && (
-          <div style={{ padding: "32px 16px 0" }}>
+          <div>
+            {Array.from({length:4}).map((_,i) => <CardSkeleton key={i} />)}
+          </div>
+        )}
+        {/* DEAD CODE BELOW — kept for reference */}
+        {false && streamLoading && resolvedItems.length === 0 && (
+          <div style={{ padding: "32px 16px 0", display:"none" }}>
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} style={{
                 marginBottom: 14, marginLeft: 12, marginRight: 12,
