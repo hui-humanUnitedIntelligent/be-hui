@@ -76,8 +76,30 @@ export default function ProfileLauncher() {
   // ── NEU: ID-basierter Modus (Feed-Avatar-Klick) ────────────────
   // Einfachster, stabilster Pfad: nur ID → WirkerProfilePage lädt alles selbst
   if (selectedProfileId) {
+    console.log("🟣 STEP 5b — ProfileLauncher: selectedProfileId vorhanden, WirkerProfilePage wird gerendert", selectedProfileId);
     return (
-      <React.Suspense fallback={<ProfileLoadingFallback />}>
+      <React.Suspense fallback={
+        <div style={{
+          position:"fixed", inset:0, zIndex:9500,
+          background:"#0A1A1A",
+          display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center", gap:16
+        }}>
+          <div style={{
+            width:48, height:48, borderRadius:"50%",
+            border:"3px solid rgba(13,196,181,0.3)",
+            borderTop:"3px solid #0DC4B5",
+            animation:"spin 0.8s linear infinite"
+          }}/>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          <p style={{color:"rgba(255,255,255,0.6)", fontSize:14, fontFamily:"sans-serif"}}>
+            Profil wird geladen…
+          </p>
+          <p style={{color:"rgba(13,196,181,0.5)", fontSize:11, fontFamily:"monospace"}}>
+            ID: {selectedProfileId?.slice(0,8)}…
+          </p>
+        </div>
+      }>
         <WirkerProfilePage
           profileId={selectedProfileId}
           onClose={closeProfileById}

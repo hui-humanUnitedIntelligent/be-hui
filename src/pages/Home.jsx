@@ -303,6 +303,10 @@ function HomeInner() {
                       console.warn("🔴 STEP 3 — Home.jsx onProfile: userId fehlt!");
                       return;
                     }
+                    // Visuelles Debug-Toast damit wir auf iPad sehen ob der Klick ankommt
+                    if (window.__HUI_DEBUG_PROFILE__) {
+                      window.__HUI_DEBUG_PROFILE__(userId);
+                    }
                     openProfileById(userId);
                   }}
                   onBook={(item) => {
