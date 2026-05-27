@@ -460,7 +460,7 @@ export function AuthProvider({ children }) {
     isBaseUser: _isBaseUserCalc,
     canCreate:  _canCreateCalc,
     // Membership Felder direkt aus profile für einfachen Zugriff
-    membershipType:        profile?.membership_type   ?? "base",
+    // membershipType ist bereits oben als Variable deklariert und eingebunden
     membershipActive:      profile?.membership_active ?? false,
     talentActivatedAt:     profile?.talent_activated_at ?? null,
     signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,

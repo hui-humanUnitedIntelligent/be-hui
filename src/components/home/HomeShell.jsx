@@ -244,7 +244,6 @@ export default function HomeShell({ children }) {
       talent:         authProfile?.talent          || null,
       focus_type:     authProfile?.focus_type      || "hybrid",
       bio:            authProfile?.bio             || null,
-      dna_tags:       authProfile?.dna_tags        || [],
       location_label: authProfile?.location_label
                       || authProfile?.location     || null,
       impact_eur:     authProfile?.impact_eur      || null,
