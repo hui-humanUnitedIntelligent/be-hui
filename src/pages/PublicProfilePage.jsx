@@ -224,128 +224,409 @@ function Sheet({ onClose, children, zIndex=9700 }) {
 
 // ══════════════════════════════════════════════════════════════
 // 1. HERO — Emotional identity header
+// MICRO-COMPLETE v1: Avatar · Identity · Values · 5 Actions
 // ══════════════════════════════════════════════════════════════
-function ProfileHero({ profile, loading, onClose, onFollow, followed, onChat, onSupport }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [avLoaded,  setAvLoaded]  = useState(false);
-  const [mounted,   setMounted]   = useState(false);
-  const [shareToast, setShareToast] = useState(false);
-  useEffect(() => { const t=setTimeout(()=>setMounted(true),60); return ()=>clearTimeout(t); }, []);
 
-  const heroImg = s(profile?.header_img, FB_IMG);
-  const avatar  = s(profile?.avatar_url, FB_AVT);
-  const name    = s(profile?.display_name||profile?.name||profile?.username, "Unbekannt");
-  const uname   = s(profile?.username, "");
-  const bio     = s(profile?.bio, "");
-  const loc     = s(profile?.location, "");
-  const isTalent= !!(profile?.has_talent_profile||profile?.is_member||profile?.role==="talent"||profile?.role==="wirker"||profile?.membership_type==="talent");
-
-  const handleShare = () => {
-    const url = `${window.location.origin}/profile/${s(profile?.username||profile?.id,"hui")}`;
-    if (navigator.share) {
-      navigator.share({ title:`${name} auf HUI`, url }).catch(()=>{});
-    } else {
-      try { navigator.clipboard.writeText(url); } catch(e){}
-    }
-    setShareToast(true);
-    setTimeout(()=>setShareToast(false), 2200);
-  };
-
+// ── Avatar fullscreen modal ───────────────────────────────────
+function AvatarModal({ src, name, onClose }) {
   return (
-    <div style={{ width:"100%",position:"relative" }}>
-
-      {/* Cover */}
-      <div style={{ width:"100%",height:220,position:"relative",overflow:"hidden",background:"linear-gradient(135deg,#0A1A1A,#1A1A2E)" }}>
-        <img src={heroImg} alt="" onLoad={()=>setImgLoaded(true)} onError={()=>setImgLoaded(true)}
-          style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:imgLoaded?.45:0,transition:"opacity .8s ease" }} />
-        <div style={{ position:"absolute",inset:0,background:"linear-gradient(180deg,rgba(247,246,243,0) 0%,rgba(247,246,243,0) 50%,rgba(247,246,243,0.85) 85%,rgba(247,246,243,1) 100%)" }}/>
-        <div className="ppp-blob"  style={{ position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(14,196,184,0.18),transparent 70%)",pointerEvents:"none" }}/>
-        <div className="ppp-blob2" style={{ position:"absolute",bottom:20,left:-30,width:160,height:160,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,107,82,0.12),transparent 70%)",pointerEvents:"none" }}/>
-
-        {/* Back */}
-        <button className="ppp-press" onClick={onClose} style={{
-          position:"absolute",top:16,left:16,zIndex:10,
-          width:36,height:36,borderRadius:"50%",
-          background:"rgba(255,255,255,0.90)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",
-          border:"1px solid rgba(255,255,255,0.65)",boxShadow:"0 2px 10px rgba(0,0,0,0.12)",
-          cursor:"pointer",touchAction:"manipulation",
-          display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,color:T.ink,
-        }}>←</button>
-
-        {/* Share */}
-        <button className="ppp-press" onClick={handleShare} style={{
-          position:"absolute",top:16,right:16,zIndex:10,
-          width:36,height:36,borderRadius:"50%",
-          background:shareToast?"rgba(14,196,184,0.92)":"rgba(255,255,255,0.90)",
-          backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",
-          border:"1px solid rgba(255,255,255,0.65)",boxShadow:"0 2px 10px rgba(0,0,0,0.12)",
-          cursor:"pointer",touchAction:"manipulation",
-          display:"flex",alignItems:"center",justifyContent:"center",
-          fontSize:14,color:shareToast?"white":T.inkSoft,
-          transition:"all .22s ease",
-        }}>{shareToast?"✓":"⬆"}</button>
-      </div>
-
-      {/* Avatar + Identity */}
-      <div style={{ width:"100%",padding:`0 ${T.px}px 24px`,marginTop:-52,position:"relative",zIndex:2,opacity:mounted?1:0,transform:mounted?"none":"translateY(10px)",transition:"opacity .6s ease,transform .6s ease" }}>
-
-        <div style={{ display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:16 }}>
-          {/* Avatar */}
-          <div className="ppp-avatar-ring" style={{ position:"relative",flexShrink:0 }}>
-            <div style={{ position:"absolute",inset:-4,borderRadius:"50%",background:isTalent?`conic-gradient(from 0deg,${T.teal},${T.coral},${T.teal})`:`conic-gradient(from 0deg,rgba(14,196,184,0.6),rgba(14,196,184,0.2),rgba(14,196,184,0.6))`,opacity:0.85 }}/>
-            {isTalent && <div style={{ position:"absolute",inset:-8,borderRadius:"50%",border:`2px solid rgba(14,196,184,0.28)`,animation:"ppp-pulse-ring 2.8s ease-out infinite" }}/>}
-            <div style={{ position:"relative",width:88,height:88,borderRadius:"50%",border:"3px solid white",boxShadow:"0 4px 20px rgba(0,0,0,0.18)",overflow:"hidden",background:T.bg }}>
-              <img src={avatar} alt={name} onLoad={()=>setAvLoaded(true)} onError={()=>setAvLoaded(true)} style={{ width:"100%",height:"100%",objectFit:"cover",opacity:avLoaded?1:0,transition:"opacity .4s ease" }}/>
-            </div>
-            {profile?.verified && (
-              <div style={{ position:"absolute",bottom:3,right:3,width:22,height:22,borderRadius:"50%",background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,border:"2.5px solid white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"white",fontWeight:800,boxShadow:T.glowTeal }}>✓</div>
-            )}
-          </div>
-
-          {/* Follow */}
-          <button className="ppp-press" onClick={onFollow} style={{
-            display:"inline-flex",alignItems:"center",gap:6,
-            padding:"9px 20px",borderRadius:T.r99,fontSize:13,fontWeight:700,
-            cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",border:"none",
-            background:followed?"rgba(15,17,23,0.07)":`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-            color:followed?T.inkSoft:"white",
-            boxShadow:followed?"none":T.glowTeal,
-            transition:"all .25s cubic-bezier(.22,1,.36,1)",
-            alignSelf:"flex-start",marginTop:58,
-          }}>{followed?"✓ Gefolgt":"+ Folgen"}</button>
+    <div
+      onClick={onClose}
+      style={{
+        position:"fixed",inset:0,zIndex:9900,
+        background:"rgba(10,12,18,0.92)",
+        backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        animation:"ppp-fade-up .22s ease both",
+      }}
+    >
+      <div onClick={e=>e.stopPropagation()} style={{ position:"relative",maxWidth:320,width:"90vw" }}>
+        <div style={{
+          width:"100%",aspectRatio:"1",borderRadius:"50%",overflow:"hidden",
+          boxShadow:"0 24px 80px rgba(0,0,0,0.55), 0 0 0 3px rgba(14,196,184,0.35)",
+        }}>
+          <img src={src} alt={name} style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }}/>
         </div>
-
-        {/* Skeletons */}
-        {loading && (
-          <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-            <Sk w="55%" h={26}/><Sk w="35%" h={14}/><Sk w="85%" h={14} r={6}/><Sk w="70%" h={14} r={6}/>
-          </div>
-        )}
-
-        {/* Identity */}
-        {!loading && profile && (
-          <>
-            <div style={{ display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:4 }}>
-              <h1 style={{ fontSize:"clamp(22px,6vw,30px)",fontWeight:800,color:T.ink,letterSpacing:"-0.03em",lineHeight:1.1,margin:0 }}>{name}</h1>
-              {isTalent && <span style={{ fontSize:9.5,fontWeight:800,letterSpacing:".06em",color:T.teal,background:T.tealSoft,border:`1px solid ${T.tealMid}`,padding:"3px 9px",borderRadius:T.r99,textTransform:"uppercase" }}>Creator</span>}
-            </div>
-            <div style={{ display:"flex",alignItems:"center",gap:12,fontSize:12.5,color:T.inkFaint,fontWeight:500,marginBottom:bio?12:18 }}>
-              {uname && <span>@{uname}</span>}
-              {loc && (<><span style={{width:3,height:3,borderRadius:"50%",background:T.inkFaint,flexShrink:0}}/><span>📍 {loc}</span></>)}
-            </div>
-            {bio && <p style={{ fontSize:14,lineHeight:1.65,color:T.inkSoft,margin:"0 0 18px",fontFamily:"-apple-system,'Georgia',serif",maxWidth:340 }}>{bio}</p>}
-
-            {/* Action Buttons */}
-            <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
-              <PillBtn icon="💬" label="Nachricht" variant="soft"  onClick={onChat} />
-              <PillBtn icon="🌱" label="Unterstützen" variant="coral" onClick={onSupport} />
-            </div>
-          </>
-        )}
+        <div style={{ textAlign:"center",marginTop:20,fontSize:17,fontWeight:700,color:"rgba(255,255,255,0.9)" }}>{name}</div>
+        <button onClick={onClose} style={{
+          position:"absolute",top:-12,right:-12,
+          width:34,height:34,borderRadius:"50%",
+          background:"rgba(255,255,255,0.12)",backdropFilter:"blur(8px)",
+          border:"1px solid rgba(255,255,255,0.18)",color:"white",
+          fontSize:16,cursor:"pointer",touchAction:"manipulation",
+          display:"flex",alignItems:"center",justifyContent:"center",
+        }}>×</button>
       </div>
     </div>
   );
 }
+
+// ── Value pill (tappable, floating) ───────────────────────────
+function ValuePill({ icon, label, bg }) {
+  const [tapped, setTapped] = useState(false);
+  return (
+    <button
+      onClick={()=>{ setTapped(true); setTimeout(()=>setTapped(false),900); }}
+      style={{
+        display:"inline-flex",alignItems:"center",gap:5,
+        padding:"6px 13px",borderRadius:T.r99,
+        background: tapped ? T.tealSoft : bg,
+        border:`1px solid ${tapped ? T.teal : "transparent"}`,
+        fontSize:12.5,fontWeight:600,color: tapped ? T.teal : T.ink,
+        cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+        transition:"all .2s cubic-bezier(.22,1,.36,1)",
+        boxShadow: tapped ? T.glowTeal : "0 1px 4px rgba(15,17,23,0.06)",
+        flexShrink:0,
+      }}
+    ><span style={{fontSize:14}}>{icon}</span>{label}</button>
+  );
+}
+
+// ── Action icon button ────────────────────────────────────────
+function ActionBtn({ icon, label, onClick, active=false, variant="ghost" }) {
+  const styles = {
+    ghost:   { bg:"rgba(15,17,23,0.05)", color:T.inkSoft, border:`1px solid ${T.border}` },
+    teal:    { bg:T.tealSoft, color:T.teal, border:`1px solid ${T.tealMid}` },
+    coral:   { bg:T.coralSoft, color:T.coral, border:`1px solid ${T.coralMid}` },
+    active:  { bg:T.tealSoft, color:T.teal, border:`1.5px solid ${T.teal}`, boxShadow:T.glowTeal },
+  };
+  const st = active ? styles.active : styles[variant]||styles.ghost;
+  return (
+    <button className="ppp-press" onClick={onClick} style={{
+      display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+      padding:"10px 14px",borderRadius:T.r16,
+      background:st.bg,border:st.border,
+      boxShadow:st.boxShadow||"none",
+      color:st.color,fontSize:11,fontWeight:600,
+      cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+      transition:"all .22s cubic-bezier(.22,1,.36,1)",
+      minWidth:58,
+    }}>
+      <span style={{fontSize:18,lineHeight:1}}>{icon}</span>
+      <span style={{lineHeight:1.2}}>{label}</span>
+    </button>
+  );
+}
+
+// ── Main ProfileHero ──────────────────────────────────────────
+function ProfileHero({ profile, loading, onClose, onFollow, followed, onChat, onSupport }) {
+  const [imgLoaded,   setImgLoaded]   = useState(false);
+  const [avLoaded,    setAvLoaded]    = useState(false);
+  const [mounted,     setMounted]     = useState(false);
+  const [shareToast,  setShareToast]  = useState(false);
+  const [avatarOpen,  setAvatarOpen]  = useState(false);
+  const [connecting,  setConnecting]  = useState(false);
+
+  const engine = useConnectionEngine();
+
+  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),60); return()=>clearTimeout(t); },[]);
+
+  // ── Derived values ──────────────────────────────────────────
+  const heroImg  = s(profile?.header_img,  FB_IMG);
+  const avatar   = s(profile?.avatar_url,  FB_AVT);
+  const name     = s(profile?.display_name||profile?.name||profile?.username, "Unbekannt");
+  const uname    = s(profile?.username, "");
+  const bio      = s(profile?.bio, "");
+  const loc      = s(profile?.location, "");
+  const isTalent = !!(profile?.has_talent_profile||profile?.is_member||
+                      profile?.role==="talent"||profile?.role==="wirker"||
+                      profile?.membership_type==="talent");
+  const profileId = s(profile?.id, "");
+  const isConn   = engine.isConnected(profileId);
+
+  // ── Values preview (max 4) ──────────────────────────────────
+  const rawInterests = a(profile?.interests);
+  const valueTags = rawInterests.length
+    ? rawInterests.slice(0,4).map((it,i)=>({
+        icon: DEFAULT_VALUES[i % DEFAULT_VALUES.length].icon,
+        label: typeof it==="string" ? it : s(it?.name,""),
+        bg:   DEFAULT_VALUES[i % DEFAULT_VALUES.length].bg,
+      }))
+    : DEFAULT_VALUES.slice(0,4);
+
+  // ── Handlers ────────────────────────────────────────────────
+  const handleShare = () => {
+    const url = `${window.location.origin}/p/${s(profile?.username||profile?.id,"hui")}`;
+    if (navigator.share) {
+      navigator.share({ title:`${name} auf HUI`, url }).catch(()=>{});
+    } else {
+      try { navigator.clipboard.writeText(url); } catch(e) {}
+    }
+    setShareToast(true);
+    setTimeout(()=>setShareToast(false), 2000);
+  };
+
+  const handleConnect = () => {
+    if (isConn) return;
+    setConnecting(true);
+    setTimeout(()=>{
+      engine.connect(profileId, profile);
+      engine.updateAmbient?.(`✦ Neue Verbindung mit ${name}`);
+      setConnecting(false);
+    }, 260);
+  };
+
+  return (
+    <>
+      {/* ── COVER ─────────────────────────────────────────────── */}
+      <div style={{ width:"100%",position:"relative" }}>
+        <div style={{
+          width:"100%",height:200,position:"relative",
+          overflow:"hidden",
+          background:"linear-gradient(135deg,#0D1B2A 0%,#162535 100%)",
+        }}>
+          {/* Hero image */}
+          <img
+            src={heroImg} alt=""
+            onLoad={()=>setImgLoaded(true)}
+            onError={()=>setImgLoaded(true)}
+            style={{
+              position:"absolute",inset:0,width:"100%",height:"100%",
+              objectFit:"cover",
+              opacity:imgLoaded ? 0.42 : 0,
+              transition:"opacity 1s ease",
+            }}
+          />
+          {/* Bottom fade to cream */}
+          <div style={{
+            position:"absolute",inset:0,
+            background:"linear-gradient(180deg,rgba(247,246,243,0) 30%,rgba(247,246,243,0.92) 88%,rgba(247,246,243,1) 100%)",
+          }}/>
+          {/* Ambient blobs */}
+          <div className="ppp-blob" style={{
+            position:"absolute",top:-50,right:-50,width:220,height:220,
+            borderRadius:"50%",pointerEvents:"none",
+            background:"radial-gradient(circle,rgba(14,196,184,0.16),transparent 70%)",
+          }}/>
+          <div className="ppp-blob2" style={{
+            position:"absolute",bottom:10,left:-40,width:180,height:180,
+            borderRadius:"50%",pointerEvents:"none",
+            background:"radial-gradient(circle,rgba(255,107,82,0.11),transparent 70%)",
+          }}/>
+
+          {/* ← Back */}
+          <button className="ppp-press" onClick={onClose} style={{
+            position:"absolute",top:16,left:16,zIndex:10,
+            width:38,height:38,borderRadius:"50%",
+            background:"rgba(255,255,255,0.88)",
+            backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",
+            border:"1px solid rgba(255,255,255,0.62)",
+            boxShadow:"0 2px 12px rgba(0,0,0,0.12)",
+            cursor:"pointer",touchAction:"manipulation",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            fontSize:17,color:T.ink,
+          }}>←</button>
+
+          {/* ⬆ Share */}
+          <button className="ppp-press" onClick={handleShare} style={{
+            position:"absolute",top:16,right:16,zIndex:10,
+            width:38,height:38,borderRadius:"50%",
+            background: shareToast?"rgba(14,196,184,0.90)":"rgba(255,255,255,0.88)",
+            backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",
+            border:"1px solid rgba(255,255,255,0.62)",
+            boxShadow:"0 2px 12px rgba(0,0,0,0.12)",
+            cursor:"pointer",touchAction:"manipulation",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            fontSize:15,
+            color: shareToast?"white":T.inkSoft,
+            transition:"all .25s ease",
+          }}>{shareToast ? "✓" : "⬆"}</button>
+        </div>
+
+        {/* ── IDENTITY CARD ───────────────────────────────────── */}
+        <div style={{
+          width:"100%",
+          marginTop:-56,
+          padding:`0 ${T.px}px 28px`,
+          position:"relative",zIndex:2,
+          opacity: mounted?1:0,
+          transform: mounted?"none":"translateY(10px)",
+          transition:"opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1)",
+        }}>
+
+          {/* Row: Avatar + Follow */}
+          <div style={{ display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:18 }}>
+
+            {/* Avatar */}
+            <div className="ppp-avatar-ring" style={{ position:"relative",flexShrink:0 }}>
+              {/* Gradient ring */}
+              <div style={{
+                position:"absolute",inset:-4,borderRadius:"50%",
+                background: isTalent
+                  ? `conic-gradient(from 0deg,${T.teal},${T.coral},${T.teal})`
+                  : `conic-gradient(from 0deg,rgba(14,196,184,0.55),rgba(14,196,184,0.18),rgba(14,196,184,0.55))`,
+                opacity:0.88,
+              }}/>
+              {/* Pulse ring — talent only */}
+              {isTalent && (
+                <div style={{
+                  position:"absolute",inset:-9,borderRadius:"50%",
+                  border:"2px solid rgba(14,196,184,0.26)",
+                  animation:"ppp-pulse-ring 3s ease-out infinite",
+                }}/>
+              )}
+              {/* Image container */}
+              <div
+                className="ppp-press"
+                onClick={()=>setAvatarOpen(true)}
+                style={{
+                  position:"relative",width:92,height:92,borderRadius:"50%",
+                  border:"3.5px solid white",
+                  boxShadow:"0 6px 24px rgba(0,0,0,0.18),0 0 0 1px rgba(255,255,255,0.6)",
+                  overflow:"hidden",background:T.bg,cursor:"pointer",
+                  touchAction:"manipulation",
+                }}
+              >
+                {!avLoaded && <div className="ppp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>}
+                <img
+                  src={avatar} alt={name}
+                  onLoad={()=>setAvLoaded(true)}
+                  onError={()=>setAvLoaded(true)}
+                  style={{
+                    width:"100%",height:"100%",objectFit:"cover",
+                    opacity:avLoaded?1:0,
+                    transition:"opacity .5s ease",
+                  }}
+                />
+              </div>
+              {/* Verified */}
+              {profile?.verified && (
+                <div style={{
+                  position:"absolute",bottom:3,right:3,
+                  width:22,height:22,borderRadius:"50%",
+                  background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
+                  border:"2.5px solid white",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:10,color:"white",fontWeight:800,
+                  boxShadow:T.glowTeal,
+                }}>✓</div>
+              )}
+            </div>
+
+            {/* Follow button */}
+            <button className="ppp-press" onClick={onFollow} style={{
+              display:"inline-flex",alignItems:"center",gap:6,
+              padding:"10px 22px",borderRadius:T.r99,
+              fontSize:13.5,fontWeight:700,
+              cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+              border:"none",alignSelf:"flex-start",marginTop:60,
+              background: followed
+                ? "rgba(15,17,23,0.08)"
+                : `linear-gradient(135deg,${T.teal},#0DBBAF)`,
+              color: followed ? T.inkSoft : "white",
+              boxShadow: followed ? "none" : `${T.glowTeal},0 2px 12px rgba(14,196,184,0.22)`,
+              transition:"all .28s cubic-bezier(.22,1,.36,1)",
+            }}>
+              {followed ? "✓ Gefolgt" : "+ Folgen"}
+            </button>
+          </div>
+
+          {/* Loading skeletons */}
+          {loading && (
+            <div style={{display:"flex",flexDirection:"column",gap:9}}>
+              <Sk w="52%" h={28}/><Sk w="32%" h={13}/><Sk w="80%" h={13} r={6}/><Sk w="66%" h={13} r={6}/>
+            </div>
+          )}
+
+          {/* Identity */}
+          {!loading && profile && (
+            <>
+              {/* Name + badge */}
+              <div style={{ display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:5 }}>
+                <h1 style={{
+                  fontSize:"clamp(23px,6vw,30px)",fontWeight:800,
+                  color:T.ink,letterSpacing:"-0.032em",lineHeight:1.1,margin:0,
+                }}>{name}</h1>
+                {isTalent && (
+                  <span style={{
+                    fontSize:9.5,fontWeight:800,letterSpacing:".07em",
+                    color:T.teal,background:T.tealSoft,
+                    border:`1px solid ${T.tealMid}`,
+                    padding:"3px 9px",borderRadius:T.r99,
+                    textTransform:"uppercase",
+                  }}>Creator</span>
+                )}
+              </div>
+
+              {/* @username + location */}
+              <div style={{
+                display:"flex",alignItems:"center",gap:10,
+                fontSize:12.5,color:T.inkFaint,fontWeight:500,marginBottom:14,
+              }}>
+                {uname && <span>@{uname}</span>}
+                {uname && loc && <span style={{width:3,height:3,borderRadius:"50%",background:T.inkFaint,display:"inline-block"}}/>}
+                {loc && <span>📍 {loc}</span>}
+              </div>
+
+              {/* Bio */}
+              {bio && (
+                <p style={{
+                  fontSize:14.5,lineHeight:1.7,color:T.inkSoft,
+                  margin:"0 0 18px",
+                  fontFamily:"-apple-system,'Georgia',serif",
+                  maxWidth:340,
+                }}>{bio}</p>
+              )}
+
+              {/* Values preview */}
+              <div style={{
+                display:"flex",flexWrap:"wrap",gap:7,marginBottom:22,
+              }}>
+                {valueTags.map((v,i)=>v.label && (
+                  <ValuePill key={i} icon={v.icon} label={v.label} bg={v.bg}/>
+                ))}
+              </div>
+
+              {/* ── Action row ── */}
+              <div style={{
+                display:"grid",
+                gridTemplateColumns:"repeat(4,1fr)",
+                gap:8,
+              }}>
+                {/* Connect */}
+                <ActionBtn
+                  icon={connecting ? "…" : isConn ? "✓" : "✦"}
+                  label={isConn ? "Verbunden" : "Verbinden"}
+                  variant={isConn ? "active" : "ghost"}
+                  active={isConn}
+                  onClick={handleConnect}
+                />
+                {/* Message */}
+                <ActionBtn
+                  icon="💬"
+                  label="Nachricht"
+                  variant="teal"
+                  onClick={onChat}
+                />
+                {/* Support */}
+                <ActionBtn
+                  icon="🌱"
+                  label="Schenken"
+                  variant="coral"
+                  onClick={onSupport}
+                />
+                {/* Share (already in header but duplicate as action) */}
+                <ActionBtn
+                  icon={shareToast ? "✓" : "⬆"}
+                  label={shareToast ? "Kopiert" : "Teilen"}
+                  variant={shareToast ? "active" : "ghost"}
+                  active={shareToast}
+                  onClick={handleShare}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Avatar modal */}
+      {avatarOpen && (
+        <AvatarModal src={avatar} name={name} onClose={()=>setAvatarOpen(false)}/>
+      )}
+    </>
+  );
+}
+
 
 // ══════════════════════════════════════════════════════════════
 // 2. IMPACT ENERGY — Live stats bar
