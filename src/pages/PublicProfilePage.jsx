@@ -1442,14 +1442,7 @@ export default function PublicProfilePage({ profileId, onClose }) {
         <Divider/>
         <Gap h={24}/>
 
-        {/* 5. Projects */}
-        <ProjectsSection projects={profile?.projects} engine={engine}/>
-
-        <Gap h={28}/>
-        <Divider/>
-        <Gap h={24}/>
-
-        {/* 6. Encounters */}
+        {/* 5. Encounters */}
         <EncountersSection
           encounters={profile?.encounters}
           engine={engine}
