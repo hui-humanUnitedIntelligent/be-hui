@@ -85,6 +85,10 @@ const PublicProfilePage = React.lazy(
 const BasisProfilePage = React.lazy(
   () => import("../../../pages/BasisProfilePage.jsx")
 );
+// ── LAZY: MyBasisProfile — Own profile editor for Basis users ───
+const MyBasisProfile = React.lazy(
+  () => import("../../../pages/MyBasisProfile.jsx")
+);
 // Legacy WirkerProfilePage still available as fallback
 const WirkerProfilePage = React.lazy(
   () => import("../../../pages/wirker-profile/index.jsx")
@@ -181,10 +185,34 @@ export default function ProfileLauncher() {
 
   // ── CREATOR DASHBOARD: eigenes Profil / Tabbar ───────────────
   if (showCreatorDashboard) {
+    // Detect talent/creator role from context
+    // authProfile comes from HomeShell via useHome()
+    const { authProfile } = useHome?.() || {};
+    const isTalentUser = !!(
+      authProfile?.has_talent_profile ||
+      authProfile?.role === "talent" ||
+      authProfile?.role === "wirker" ||
+      authProfile?.membership_type === "talent"
+    );
+
+    if (isTalentUser) {
+      return (
+        <MyCreatorDashboard
+          onClose={() => setShowCreatorDashboard(false)}
+        />
+      );
+    }
+
+    // BasisUser → MyBasisProfile
     return (
-      <MyCreatorDashboard
-        onClose={() => setShowCreatorDashboard(false)}
-      />
+      <React.Suspense fallback={
+        <div style={{ position:"fixed", inset:0, zIndex:9500, background:"#F7F5F0",
+          display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ opacity:0.3, fontSize:13, color:"#888" }}>Lädt…</div>
+        </div>
+      }>
+        <MyBasisProfile onClose={() => setShowCreatorDashboard(false)}/>
+      </React.Suspense>
     );
   }
 
