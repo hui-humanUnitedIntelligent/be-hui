@@ -229,40 +229,16 @@ export default function HomeShell({ children }) {
     }
   }, [_setTab]);
 
-  /* openOwnProfile — öffnet Creator Profile Overlay (Owner View) */
+  /* openOwnProfile — öffnet eigenes Profil via ID-Flow (unified mit Feed) */
   const openOwnProfile = useCallback(() => {
-    const id = authProfile?.id || user?.id || "me";
-    // Übergebe alle relevanten Profil-Felder für CreatorProfilePage
-    const profileData = {
-      id,
-      user_id:        id,
-      username:       authProfile?.username        || null,
-      display_name:   authProfile?.display_name
-                      || authProfile?.email?.split("@")[0]
-                      || user?.email?.split("@")[0]
-                      || "Mein Profil",
-      avatar_url:     authProfile?.avatar_url      || null,
-      header_img:     authProfile?.header_img      || null,
-      talent:         authProfile?.talent          || null,
-      focus_type:     authProfile?.focus_type      || "hybrid",
-      bio:            authProfile?.bio             || null,
-      location_label: authProfile?.location_label
-                      || authProfile?.location     || null,
-      impact_eur:     authProfile?.impact_eur      || null,
-      is_wirker:      authProfile?.is_wirker
-                      || authProfile?.has_talent_profile || false,
-      current_mood:   authProfile?.current_mood    || null,
-      experiences_count: authProfile?.experiences_count || null,
-      followers_count:   authProfile?.followers_count   || null,
-      connections_count: authProfile?.connections_count || null,
-      _isOwnerView:   true,
-      // Phase 4B — ensure all profile completion fields are passed
-      interests:      authProfile?.interests       || [],
-      profile_complete: authProfile?.profile_complete || authProfile?.profileComplete || false,
-      dna_tags:       authProfile?.dna_tags        || authProfile?.interests || [],
-    };
-    setShowWirker(profileData);
-  }, [authProfile, user?.id, setShowWirker]);
+    const id = authProfile?.id || user?.id;
+    console.log("🟠 openOwnProfile → openProfileById", { id });
+    if (!id) {
+      console.warn("🔴 openOwnProfile: keine User-ID gefunden");
+      return;
+    }
+    setSelectedProfileId(id);
+  }, [authProfile?.id, user?.id, setSelectedProfileId]);
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {

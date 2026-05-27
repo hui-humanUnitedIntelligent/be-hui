@@ -955,9 +955,11 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
   const { profile: authProfile } = useAuth();
 
   // Phase 4B: SINGLE SOURCE OF TRUTH
-  // For owner view: always use freshest authProfile data (updated after ProfileCompletionFlow)
-  // For visitor view: use liveProfile from DB
-  const isOwnerView = rawWirker?._isOwnerView === true;
+  // isOwnerView: entweder explizit gesetzt (legacy) ODER via ID-Vergleich
+  // Jetzt auch: wenn profileId === authProfile.id → Owner View
+  const _authId = authProfile?.id || null;
+  const _profileId = profileId || rawWirker?.id || rawWirker?.user_id || null;
+  const isOwnerView = rawWirker?._isOwnerView === true || (!!_authId && !!_profileId && _authId === _profileId);
   const profile = isOwnerView
     ? {
         // Start with liveProfile (full DB data), overlay with freshest authProfile
@@ -1018,7 +1020,8 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
   // Guard: WirkerProfilePage braucht eine gültige ID
   // Ohne ID: Supabase-Query liefert nichts → Crash in VisitorHero
   const wirkerHasId = !!(rawWirker?.id?.trim?.() || rawWirker?.user_id?.trim?.());
-  if (!wirkerHasId && !rawWirker?._isOwnerView) {
+  // isOwnerView ist jetzt korrekt gesetzt (inkl. ID-Vergleich) — bei Owner immer erlauben
+  if (!wirkerHasId && !isOwnerView) {
     console.warn("[WirkerProfilePage] kein id — render abgebrochen", rawWirker);
     return (
       <div style={{
