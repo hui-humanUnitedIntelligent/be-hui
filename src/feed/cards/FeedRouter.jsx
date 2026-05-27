@@ -73,11 +73,27 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
   const authorName = item.author?.name || "Human";
   const text       = item.text || item.title || "";
 
-  // ── RADIKAL VEREINFACHT: nur userId extrahieren ──────────────
-  // Keine profileData-Objekte, keine Normalizer-Chains, kein Crash
-  const authorId = item?.author?.id || item?.author?.user_id
-    || rawItem?.user_id || rawItem?.creator_id || null;
-  const hasValidId = !!(authorId && typeof authorId === "string" && authorId.trim().length > 0);
+  // ── AUTHOR ID: aus ALLEN möglichen Quellen extrahieren ──────
+  // Priorität: normalisiertes item.author.id > rawItem DB-Felder
+  const _rawAuthorId = (
+    item?.author?.id
+    || item?.author?.user_id
+    || rawItem?.user_id
+    || rawItem?.creator_id
+    || rawItem?.author_id
+    || null
+  );
+  // UUID ist mind. 32 Zeichen — leere Strings und kurze Fallbacks ablehnen
+  const authorId   = (_rawAuthorId && _rawAuthorId.trim().length > 8) ? _rawAuthorId.trim() : null;
+  const hasValidId = !!authorId;
+
+  console.log("[HUI_ROUTE]", {
+    id: item.id, type,
+    authorId: authorId || "MISSING",
+    hasValidId,
+    authorName,
+    avatar: item?.author?.avatar || null,
+  });
 
   const shared = {
     item,
@@ -85,8 +101,6 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
     onReaction: (t) => onReaction?.(t),
     onShare:    () => onShare?.(rawItem),
   };
-
-  console.log("[HUI_ROUTE]", { id: item.id, type, author: authorName, hasMedia: (item.media||[]).length > 0 });
 
   return (
     <CardErrorBoundary itemId={item.id} itemType={type} authorName={authorName} text={text}>

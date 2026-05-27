@@ -22,10 +22,14 @@ function relTime(ts){
 function extractAuthor(raw){
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
   const name=safeStr(p.display_name||p.full_name||p.name||p.username,"Human");
+  // authorId: profile.id hat Priorität, rawItem.user_id als Fallback
+  const authorId=safeStr(p.id||p.user_id||raw.user_id||raw.creator_id||raw.author_id);
+  // avatar: profile.avatar_url hat Priorität, rawItem-Felder als Fallback
+  const avatarUrl=safeUrl(p.avatar_url||p.avatar||p.img||raw.avatar_url||raw.src_thumb);
   return{
-    id:safeStr(p.id||p.user_id||raw.user_id||raw.creator_id),
+    id:authorId,
     name, displayName:name,
-    avatar:safeUrl(p.avatar_url||p.avatar||p.img),
+    avatar:avatarUrl,
     username:safeStr(p.username||p.handle)||null,
     talent:safeStr(p.talent)||null,
     verified:safeBool(p.verified||p.is_verified),

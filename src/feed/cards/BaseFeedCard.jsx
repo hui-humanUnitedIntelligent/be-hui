@@ -112,7 +112,8 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
   const _mType    = author?.membershipType || "base";
   const name   = (author && (author.name || author.displayName)) || "Human";
   const uname  = (author && author.username) || null;
-  const avatar = (author && author.avatar)   || null;
+  // avatar: author.avatar (normalisiert) — bereits als URL oder null
+  const avatar = author?.avatar || author?.avatar_url || null;
   const ver    = (author && author.verified) || false;
   const uid    = (author && author.id)       || null;
   const [pressed, setPressed] = useState(false);

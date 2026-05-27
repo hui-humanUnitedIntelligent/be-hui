@@ -953,18 +953,17 @@ function FloatingBookCTA({ onBook, profileName }) {
 // ═══════════════════════════════════════════════════════════════
 // ROOT — WirkerProfilePage (VISITOR)
 // ═══════════════════════════════════════════════════════════════
-export default function WirkerProfilePage({ wirker: rawWirker, profileId, onClose, onBook, onChat, _zIndex = 9500 }) {
-  // ── NEU: profileId-Modus — einfachste, stabilste API ──────────
-  // Wenn profileId direkt übergeben: rawWirker = { id: profileId }
-  // WirkerProfilePage lädt dann alles selbst über useWirkerProfile
-  if (profileId && !rawWirker) {
-    rawWirker = { id: profileId, user_id: profileId };
-  } else if (profileId) {
-    // profileId überschreibt bei Widerspruch immer
-    rawWirker = { ...rawWirker, id: profileId, user_id: profileId };
-  }
-  // Phase 4D: Support Flow State
+export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClose, onBook, onChat, _zIndex = 9500 }) {
+  // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
   const [showSupport, setShowSupport] = React.useState(false);
+
+  // ── profileId-Modus: direkter, stabiler Einstieg aus Feed ─────
+  // profileId überschreibt wirkerProp immer — lädt alles selbst via useWirkerProfile
+  const rawWirker = React.useMemo(() => {
+    if (profileId) return { id: profileId, user_id: profileId };
+    return wirkerProp || null;
+  }, [profileId, wirkerProp?.id, wirkerProp?.user_id]); // eslint-disable-line
+
   const safe    = useMemo(() => createProfileItem(rawWirker), [
     rawWirker?.id, rawWirker?.user_id,
   ]);

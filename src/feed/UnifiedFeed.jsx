@@ -287,11 +287,14 @@ export default function UnifiedFeed({
       try {
         const n = toFeedItem(raw);
         // Absolute fallback — id vorhanden → immer etwas zurückgeben
+        // KRITISCH: authorId muss aus dem raw-Row extrahiert werden (nie leerer String!)
         if (!n) {
+          const _rawAuthorId = raw.user_id || raw.creator_id || raw.author_id || null;
           return {
             id:        String(raw.id),
             type:      raw.type || "moment",
-            author:    { id: "", name: raw.display_name || raw.name || "Human",
+            author:    { id: _rawAuthorId || "",
+                         name: raw.display_name || raw.name || "Human",
                          displayName: raw.display_name || raw.name || "Human",
                          avatar: raw.avatar_url || raw.avatar || null },
             title:     raw.title || raw.caption?.slice(0, 60) || null,
@@ -305,10 +308,11 @@ export default function UnifiedFeed({
         return n;
       } catch (err) {
         console.warn("[UNIFIED_NORM_ERR]", raw?.id, err?.message);
+        const _catchAuthorId = raw?.user_id || raw?.creator_id || raw?.author_id || null;
         return {
           id:         String(raw.id),
           type:       "moment",
-          author:     { id: "", name: "Human", displayName: "Human", avatar: null },
+          author:     { id: _catchAuthorId || "", name: "Human", displayName: "Human", avatar: raw?.avatar_url || null },
           title:      null, text: null, media: [], createdAt: "",
           _reactions: {}, _raw: raw,
         };
@@ -346,6 +350,7 @@ export default function UnifiedFeed({
         <SectionBoundary name="stories">
           <FeedStoriesBar
             onStoryClick={onStory}
+            onProfilePress={onProfile}
             onAddStory={onAddStory}
             currentUser={currentUser}
           />

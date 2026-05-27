@@ -32,7 +32,10 @@ function injectCSS() {
 
 export default function FeedStoriesBar(props) {
   // Accept all prop name variants
-  const onProfilePress = props.onProfilePress || props.onStoryClick || null;
+  // onProfilePress: Avatar-Tap → vollständiges Profil öffnen
+  // onStoryClick: Story-Content öffnen (separat)
+  const onProfilePress = props.onProfilePress || null;
+  const onStoryOpen    = props.onStoryClick   || null;
   const onAddStory     = props.onAddStory     || null;
 
   injectCSS();
