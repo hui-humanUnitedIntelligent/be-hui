@@ -266,11 +266,12 @@ export default function HomeShell({ children }) {
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
+    console.log("🟠 STEP 4 — HomeShell openProfileById aufgerufen", { id, typeOf: typeof id });
     if (!id || typeof id !== "string" || id.trim() === "") {
-      console.warn("[HomeShell] openProfileById: leere oder fehlende ID ignoriert");
+      console.warn("🔴 STEP 4 — HomeShell openProfileById: leere oder fehlende ID ignoriert", { id });
       return;
     }
-    console.log("[HomeShell] openProfileById →", id);
+    console.log("🟠 STEP 4 — HomeShell setSelectedProfileId →", id.trim());
     setSelectedProfileId(id.trim());
   }, []);
 

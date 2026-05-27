@@ -97,7 +97,20 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
 
   const shared = {
     item,
-    onProfile: hasValidId ? () => onProfile?.(authorId) : null,
+    onProfile: hasValidId
+      ? () => {
+          console.log("🟢 STEP 2 — FeedRouter onProfile aufgerufen", { authorId, itemId: item.id });
+          onProfile?.(authorId);
+        }
+      : (() => {
+          console.warn("🔴 STEP 2 — FeedRouter: kein authorId", {
+            "item.author": item?.author,
+            "rawItem.user_id": rawItem?.user_id,
+            _rawAuthorId,
+            hasValidId,
+          });
+          return null;
+        })(),
     onReaction: (t) => onReaction?.(t),
     onShare:    () => onShare?.(rawItem),
   };

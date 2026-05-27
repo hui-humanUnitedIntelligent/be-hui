@@ -68,6 +68,11 @@ export default function ProfileLauncher() {
   // Phase 2: Flow Memory — merkt sich den Weg zurück
   const flow = useHuiFlow();
 
+  console.log("🟣 STEP 5 — ProfileLauncher render", {
+    selectedProfileId,
+    showWirker: !!showWirker,
+  });
+
   // ── NEU: ID-basierter Modus (Feed-Avatar-Klick) ────────────────
   // Einfachster, stabilster Pfad: nur ID → WirkerProfilePage lädt alles selbst
   if (selectedProfileId) {

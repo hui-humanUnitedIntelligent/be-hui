@@ -957,6 +957,8 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
   // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
   const [showSupport, setShowSupport] = React.useState(false);
 
+  console.log("🔷 STEP 6 — WirkerProfilePage gemountet/updated", { profileId, wirkerProp_id: wirkerProp?.id });
+
   // ── profileId-Modus: direkter, stabiler Einstieg aus Feed ─────
   // profileId überschreibt wirkerProp immer — lädt alles selbst via useWirkerProfile
   const rawWirker = React.useMemo(() => {

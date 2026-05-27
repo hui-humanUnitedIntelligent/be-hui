@@ -298,7 +298,11 @@ function HomeInner() {
                   }}
                   onAddStory={() => setShowStoryComposer(true)}
                   onProfile={(userId) => {
-                    // userId ist jetzt ein einfacher String (von FeedRouter)
+                    console.log("🟡 STEP 3 — Home.jsx onProfile empfangen", { userId, typeOf: typeof userId });
+                    if (!userId) {
+                      console.warn("🔴 STEP 3 — Home.jsx onProfile: userId fehlt!");
+                      return;
+                    }
                     openProfileById(userId);
                   }}
                   onBook={(item) => {

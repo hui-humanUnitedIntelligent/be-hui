@@ -122,7 +122,10 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
     <div style={{ display:"flex",alignItems:"center",gap:T.gap,padding:T.p+"px "+T.p+"px 0" }}>
       {/* Avatar → direkt vollständiges Profil öffnen */}
       <button
-        onClick={onProfile ? () => onProfile() : undefined}
+        onClick={onProfile ? () => {
+          console.log("🔵 STEP 1 — Avatar click", { uid, hasOnProfile: !!onProfile, authorId: uid });
+          onProfile();
+        } : () => console.warn("🔴 STEP 1 — Avatar click: onProfile ist undefined (uid:", uid, ")")}
         onTouchStart={onProfile ? () => setPressed(true)  : undefined}
         onTouchEnd={onProfile   ? () => setPressed(false) : undefined}
         onMouseDown={onProfile  ? () => setPressed(true)  : undefined}
@@ -148,7 +151,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
       <div style={{ flex:1,minWidth:0 }}>
         <div style={{ display:"flex",alignItems:"center",gap:5 }}>
           <span
-            onClick={onProfile ? () => onProfile() : undefined}
+            onClick={onProfile ? () => { console.log("🔵 STEP 1b — Name click", { uid }); onProfile(); } : undefined}
             style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
               cursor: onProfile ? "pointer" : "default",

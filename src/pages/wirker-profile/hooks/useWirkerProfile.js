@@ -37,6 +37,7 @@ export function useWirkerProfile(rawWirker) {
   useEffect(() => { rawRef.current = rawWirker; }, [rawWirker]);
 
   const loadData = useCallback(async () => {
+    console.log("🔶 STEP 7 — useWirkerProfile loadData", { stableId, stableUsername, stableName });
     const raw = rawRef.current;
     if (!raw) { setLoading(false); return; }
 
@@ -48,10 +49,12 @@ export function useWirkerProfile(rawWirker) {
 
       // 1. Per user_id / id
       if (stableId) {
+        console.log("🔶 STEP 7a — Supabase query mit stableId:", stableId);
         const res = await safeQuery(
           supabase.from("profiles").select(PROFILE_FIELDS).eq("id", stableId).single()
         );
         profileData = res?.data || null;
+        console.log("🔶 STEP 8 — Supabase result", { profileData: !!profileData, id: profileData?.id, error: !profileData ? "KEIN PROFIL" : null });
       }
 
       // 2. Fallback: per username
@@ -112,8 +115,10 @@ export function useWirkerProfile(rawWirker) {
       }
 
       if (profileData) {
+        console.log("✅ STEP 8 — Profil geladen + setProfile()", { id: profileData.id, display_name: profileData.display_name });
         setProfile(createProfileItem(normalizeProfileInput(profileData)));
       } else {
+        console.warn("⚠️ STEP 8 — Kein profileData → Fallback wird gerendert");
         // Fallback: rawWirker als Profil-Basis
         // Normalisieren damit isProfileReady() greift
         const fallback = createProfileItem(normalizeProfileInput({
