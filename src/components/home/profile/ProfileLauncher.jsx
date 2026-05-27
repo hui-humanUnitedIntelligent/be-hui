@@ -77,9 +77,13 @@ class ProfileErrorBoundary extends React.Component {
 }
 
 
-// ── LAZY: PublicProfilePage — Phase 1.5 emotional identity ──────
+// ── LAZY: PublicProfilePage — Creator/Talent profiles ───────────
 const PublicProfilePage = React.lazy(
   () => import("../../../pages/PublicProfilePage.jsx")
+);
+// ── LAZY: BasisProfilePage — Human presence profiles ────────────
+const BasisProfilePage = React.lazy(
+  () => import("../../../pages/BasisProfilePage.jsx")
 );
 // Legacy WirkerProfilePage still available as fallback
 const WirkerProfilePage = React.lazy(
@@ -142,25 +146,31 @@ export default function ProfileLauncher() {
   // Einfachster, stabilster Pfad: nur ID → WirkerProfilePage lädt alles selbst
   if (selectedProfileId) {
     console.log("🟣 STEP 5b — ProfileLauncher: selectedProfileId vorhanden", selectedProfileId);
+    // Detect profile type from flow/actions state if available
+    // Fall back to PublicProfilePage (talent/creator) if type unknown
+    const profileType = flow?.state?.openProfileType || null;
+    const isBasis = profileType === "basis";
+    const ProfileComponent = isBasis ? BasisProfilePage : PublicProfilePage;
+
     return (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
         <React.Suspense fallback={
           <div style={{
             position:"fixed", inset:0, zIndex:9500,
-            background:"#0A1A1A",
+            background:"#F7F5F0",
             display:"flex", flexDirection:"column",
             alignItems:"center", justifyContent:"center", gap:16
           }}>
             <div style={{
-              width:44, height:44, borderRadius:"50%",
-              border:"3px solid rgba(14,196,184,0.18)",
-              borderTop:`3px solid #0EC4B8`,
+              width:40, height:40, borderRadius:"50%",
+              border:"3px solid rgba(14,196,184,0.15)",
+              borderTop:"3px solid #0EC4B8",
               animation:"spin 0.8s linear infinite"
             }}/>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         }>
-          <PublicProfilePage
+          <ProfileComponent
             profileId={selectedProfileId}
             onClose={closeProfileById}
           />
