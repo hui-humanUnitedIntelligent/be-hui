@@ -196,7 +196,7 @@ function Skeleton({ w = "100%", h = 16, r = 8, style: sx }) {
 // ══════════════════════════════════════════════════════════════
 // 1. HERO — Emotional identity header
 // ══════════════════════════════════════════════════════════════
-function ProfileHero({ profile, loading, onClose, onFollow, followed }) {
+function ProfileHero({ profile, loading, onClose, onFollow, followed, onConnect, onChat, onSupport }) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -283,6 +283,13 @@ function ProfileHero({ profile, loading, onClose, onFollow, followed }) {
         {/* Share button */}
         <button
           className="ppp-btn-press"
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({ title: "HUI Profil", url: window.location.href }).catch(()=>{});
+            } else {
+              try { navigator.clipboard.writeText(window.location.href); } catch(e){}
+            }
+          }}
           style={{
             position: "absolute", top: 16, right: 16, zIndex: 10,
             width: 36, height: 36, borderRadius: "50%",
@@ -447,9 +454,9 @@ function ProfileHero({ profile, loading, onClose, onFollow, followed }) {
             <div style={{
               display: "flex", gap: 8, flexWrap: "wrap",
             }}>
-              <PillButton icon="✦" label="Verbinden"  variant="primary" />
-              <PillButton icon="💬" label="Nachricht"  variant="soft" />
-              <PillButton icon="🌱" label="Unterstützen" variant="coral" />
+              <PillButton icon="✦" label="Verbinden"  variant="primary"  onClick={onConnect} />
+              <PillButton icon="💬" label="Nachricht"  variant="soft"    onClick={onChat} />
+              <PillButton icon="🌱" label="Unterstützen" variant="coral" onClick={onSupport} />
             </div>
           </div>
         )}
@@ -571,6 +578,7 @@ function MomentCard({ m, delay }) {
 
 function MomentsSection({ moments }) {
   const { ref, style: entryStyle } = useEntry(60);
+  const [expanded, setExpanded] = useState(false);
   const items = safeArr(moments).length ? safeArr(moments) : SEED_MOMENTS;
 
   return (
@@ -585,15 +593,17 @@ function MomentsSection({ moments }) {
           </div>
           <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>Echte Augenblicke</div>
         </div>
-        <button style={{
+        <button onClick={() => setExpanded(e => !e)} style={{
           background: "none", border: "none", padding: 0,
           fontSize: 12, color: T.teal, fontWeight: 700,
           cursor: "pointer", touchAction: "manipulation", fontFamily: "inherit",
-        }}>Alle ansehen</button>
+        }}>{expanded ? "Weniger" : "Alle ansehen"}</button>
       </div>
 
       <div style={{
-        display: "flex", gap: 10, overflowX: "auto", scrollbarWidth: "none",
+        display: "flex", gap: 10, overflowX: expanded ? "visible" : "auto",
+        flexWrap: expanded ? "wrap" : "nowrap",
+        scrollbarWidth: "none",
         padding: `3px ${T.px}px 6px`,
         WebkitOverflowScrolling: "touch",
       }}>
@@ -669,10 +679,10 @@ function ProjectsSection({ projects }) {
 // ══════════════════════════════════════════════════════════════
 // 5. ENCOUNTERS — HUI-native concept
 // ══════════════════════════════════════════════════════════════
-function EncounterCard({ e, delay }) {
+function EncounterCard({ e, delay, onPress }) {
   const [loaded, setLoaded] = useState(false);
   return (
-    <div className="ppp-btn-press ppp-section-in" style={{
+    <div className="ppp-btn-press ppp-section-in" onClick={() => onPress?.(e)} style={{
       flexShrink: 0, width: 200,
       borderRadius: T.r16, overflow: "hidden",
       background: T.bgCard, cursor: "pointer",
@@ -714,7 +724,7 @@ function EncounterCard({ e, delay }) {
   );
 }
 
-function EncountersSection({ encounters }) {
+function EncountersSection({ encounters, onEncounterPress }) {
   const { ref, style: entryStyle } = useEntry(100);
   const items = safeArr(encounters).length ? safeArr(encounters) : SEED_ENCOUNTERS;
 
@@ -736,7 +746,7 @@ function EncountersSection({ encounters }) {
         padding: `3px ${T.px}px 6px`,
         WebkitOverflowScrolling: "touch",
       }}>
-        {items.map((e, i) => <EncounterCard key={e.id} e={e} delay={i * 80} />)}
+        {items.map((e, i) => <EncounterCard key={e.id} e={e} delay={i * 80} onPress={onEncounterPress} />)}
         <div style={{ flexShrink: 0, width: 8 }} />
       </div>
     </div>
@@ -879,12 +889,166 @@ function SectionGap({ size = 28 }) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// CHAT SHEET — lightweight message composer
+// ══════════════════════════════════════════════════════════════
+function ChatSheet({ name, onClose }) {
+  const [msg, setMsg] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const handleSend = () => {
+    if (!msg.trim()) return;
+    setSent(true);
+    setTimeout(onClose, 1800);
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9700,
+      background: "rgba(15,17,23,0.45)",
+      display: "flex", alignItems: "flex-end",
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: "100%", background: T.bgCard,
+        borderRadius: `${T.r20}px ${T.r20}px 0 0`,
+        padding: "20px 20px 32px",
+        boxShadow: "0 -8px 40px rgba(15,17,23,0.14)",
+      }}>
+        {/* Handle */}
+        <div style={{ width: 36, height: 4, borderRadius: 99, background: T.border, margin: "0 auto 18px" }} />
+
+        {sent ? (
+          <div style={{ textAlign: "center", padding: "24px 0" }}>
+            <div style={{ fontSize: 32, marginBottom: 10 }}>✦</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.teal }}>Nachricht gesendet</div>
+            <div style={{ fontSize: 13, color: T.inkFaint, marginTop: 6 }}>
+              {name} wird benachrichtigt
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.ink, marginBottom: 12 }}>
+              Nachricht an {name}
+            </div>
+            <textarea
+              autoFocus
+              value={msg}
+              onChange={e => setMsg(e.target.value)}
+              placeholder={`Schreibe eine Nachricht an ${name}…`}
+              style={{
+                width: "100%", minHeight: 100, resize: "none",
+                border: `1.5px solid ${msg ? T.teal : T.border}`,
+                borderRadius: T.r12, padding: "12px 14px",
+                fontSize: 14, color: T.ink, fontFamily: "inherit",
+                outline: "none", background: T.bg,
+                transition: "border-color .2s ease",
+                boxSizing: "border-box",
+              }}
+            />
+            <button onClick={handleSend} style={{
+              width: "100%", marginTop: 10,
+              background: msg.trim()
+                ? `linear-gradient(135deg, ${T.teal} 0%, #0DBBAF 100%)`
+                : "rgba(15,17,23,0.06)",
+              border: "none", borderRadius: T.r99,
+              padding: "14px", color: msg.trim() ? "white" : T.inkFaint,
+              fontSize: 14, fontWeight: 700,
+              cursor: msg.trim() ? "pointer" : "default",
+              touchAction: "manipulation", fontFamily: "inherit",
+              transition: "all .2s ease",
+              boxShadow: msg.trim() ? T.glowTeal : "none",
+            }}>
+              {msg.trim() ? "Senden ✦" : "Nachricht eingeben…"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Support Toast ─────────────────────────────────────────────────
+function SupportToast({ name, onClose }) {
+  const [amount, setAmount] = useState(5);
+  const [sent, setSent] = useState(false);
+  const amounts = [2, 5, 10, 20, 50];
+
+  const handleSupport = () => {
+    setSent(true);
+    setTimeout(onClose, 2200);
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9700,
+      background: "rgba(15,17,23,0.45)",
+      display: "flex", alignItems: "flex-end",
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: "100%", background: T.bgCard,
+        borderRadius: `${T.r20}px ${T.r20}px 0 0`,
+        padding: "20px 20px 36px",
+        boxShadow: "0 -8px 40px rgba(15,17,23,0.14)",
+      }}>
+        <div style={{ width: 36, height: 4, borderRadius: 99, background: T.border, margin: "0 auto 18px" }} />
+
+        {sent ? (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ fontSize: 32, marginBottom: 10 }}>🌱</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#16A34A" }}>
+              €{amount} Wirkung gesendet
+            </div>
+            <div style={{ fontSize: 13, color: T.inkFaint, marginTop: 6 }}>
+              Danke — du hilfst {name} zu wirken
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.ink, marginBottom: 4 }}>
+              🌱 {name} unterstützen
+            </div>
+            <div style={{ fontSize: 12, color: T.inkFaint, marginBottom: 18 }}>
+              15% fließen in HUI Impact Projekte
+            </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+              {amounts.map(a => (
+                <button key={a} onClick={() => setAmount(a)} style={{
+                  flex: 1, padding: "10px 0", borderRadius: T.r12,
+                  border: `1.5px solid ${amount === a ? T.teal : T.border}`,
+                  background: amount === a ? T.tealSoft : "transparent",
+                  color: amount === a ? T.teal : T.inkSoft,
+                  fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  touchAction: "manipulation", fontFamily: "inherit",
+                  transition: "all .18s ease",
+                }}>€{a}</button>
+              ))}
+            </div>
+            <button onClick={handleSupport} style={{
+              width: "100%",
+              background: `linear-gradient(135deg, ${T.coral} 0%, #FF8A70 100%)`,
+              border: "none", borderRadius: T.r99, padding: "14px",
+              color: "white", fontSize: 14, fontWeight: 700,
+              cursor: "pointer", touchAction: "manipulation", fontFamily: "inherit",
+              boxShadow: T.glowCoral,
+            }}>
+              €{amount} senden 🌱
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
 // ROOT — PublicProfilePage
 // ══════════════════════════════════════════════════════════════
 export default function PublicProfilePage({ profileId, onClose }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
+  const [selectedEncounter, setSelectedEncounter] = useState(null);
 
   // Phase 2.5: Connection Engine — global shared state
   const engine = useConnectionEngine();
@@ -949,6 +1113,9 @@ export default function PublicProfilePage({ profileId, onClose }) {
           onClose={handleClose}
           onFollow={handleFollow}
           followed={followed}
+          onConnect={handleConnect}
+          onChat={() => setShowChat(true)}
+          onSupport={() => setShowSupport(true)}
         />
 
         <SectionGap size={4} />
@@ -980,7 +1147,7 @@ export default function PublicProfilePage({ profileId, onClose }) {
         <SectionGap size={24} />
 
         {/* 6. Encounters */}
-        <EncountersSection encounters={profile?.encounters} />
+        <EncountersSection encounters={profile?.encounters} onEncounterPress={setSelectedEncounter} />
 
         <SectionGap size={28} />
 
@@ -993,8 +1160,63 @@ export default function PublicProfilePage({ profileId, onClose }) {
         <SectionGap size={40} />
       </div>
 
-      {/* 8. Floating connect CTA */}
-      <ConnectCTA name={name} onConnect={handleConnect} connected={isConnected} />
+      {/* Encounter mini-detail */}
+      {selectedEncounter && (
+        <div style={{
+          position:"fixed",inset:0,zIndex:9700,
+          background:"rgba(15,17,23,0.5)",
+          display:"flex",alignItems:"flex-end",
+        }} onClick={() => setSelectedEncounter(null)}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            width:"100%",background:T.bgCard,
+            borderRadius:`${T.r20}px ${T.r20}px 0 0`,
+            padding:"20px 20px 40px",
+            boxShadow:"0 -8px 40px rgba(15,17,23,0.14)",
+          }}>
+            <div style={{width:36,height:4,borderRadius:99,background:T.border,margin:"0 auto 16px"}}/>
+            <div style={{fontSize:20,marginBottom:8}}>{selectedEncounter.emoji||"🌿"}</div>
+            <div style={{fontSize:16,fontWeight:800,color:T.ink,letterSpacing:"-0.025em",marginBottom:6}}>
+              {selectedEncounter.title}
+            </div>
+            <div style={{fontSize:13,color:T.inkSoft,marginBottom:16,lineHeight:1.5}}>
+              {selectedEncounter.date && `📅 ${selectedEncounter.date}`}
+              {selectedEncounter.time && ` · ⏰ ${selectedEncounter.time}`}
+              {selectedEncounter.location && ` · 📍 ${selectedEncounter.location}`}
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={() => setSelectedEncounter(null)} style={{
+                flex:1,padding:"13px",borderRadius:T.r99,
+                border:`1px solid ${T.border}`,background:"transparent",
+                color:T.inkSoft,fontSize:13,fontWeight:600,
+                cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+              }}>Schließen</button>
+              <button style={{
+                flex:2,padding:"13px",borderRadius:T.r99,
+                border:"none",
+                background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
+                color:"white",fontSize:13,fontWeight:700,
+                cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+                boxShadow:T.glowTeal,
+              }}>✦ Ich bin dabei</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chat mini-sheet */}
+      {showChat && (
+        <ChatSheet name={name} onClose={() => setShowChat(false)} />
+      )}
+
+      {/* Support toast */}
+      {showSupport && (
+        <SupportToast name={name} onClose={() => setShowSupport(false)} />
+      )}
+
+      {/* 8. Floating connect CTA — hidden when chat is open */}
+      {!showChat && !showSupport && (
+        <ConnectCTA name={name} onConnect={handleConnect} connected={isConnected} />
+      )}
     </div>
   );
 }

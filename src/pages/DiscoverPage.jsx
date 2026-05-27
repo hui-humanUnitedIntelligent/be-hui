@@ -410,7 +410,7 @@ function PersonCard({ person, onPress, delay }) {
   );
 }
 
-function PeopleSection({ people, onPersonPress, loading, delay }) {
+function PeopleSection({ people, onPersonPress, onAllPeople, loading, delay }) {
   const { ref, style } = useEntry(delay);
   const items = people.length > 0 ? people : SEED_PEOPLE;
 
@@ -420,6 +420,7 @@ function PeopleSection({ people, onPersonPress, loading, delay }) {
         title="Menschen entdecken"
         subtitle="Bedeutungsvolle Begegnungen beginnen hier"
         cta="Alle Menschen"
+        onCta={onAllPeople}
         delay={delay}
       />
       <div className="dp-hscroll" style={{
@@ -511,19 +512,35 @@ function EncounterCard({ enc, onPress, layout = "card" }) {
     );
   }
 
+  const engine2 = useConnectionEngine();
+  const bookmarked = engine2.isBookmarked(enc.id);
+
   // Card layout (horizontal scroll)
   return (
     <div
-      className="dp-press dp-section"
-      onClick={() => onPress(enc)}
+      className="dp-section"
       style={{
         flexShrink: 0, width: 240,
         borderRadius: T.r20, overflow: "hidden",
-        background: T.bgCard, cursor: "pointer",
-        touchAction: "manipulation",
+        background: T.bgCard,
         boxShadow: T.floatShadow,
+        position: "relative",
       }}
     >
+      {/* Bookmark button */}
+      <button
+        onClick={e => { e.stopPropagation(); engine2.bookmark(enc.id, "encounter", enc); }}
+        style={{
+          position:"absolute",top:8,left:8,zIndex:10,
+          width:30,height:30,borderRadius:"50%",
+          background: bookmarked ? T.teal : "rgba(255,255,255,0.85)",
+          backdropFilter:"blur(8px)",
+          border:"none",cursor:"pointer",touchAction:"manipulation",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          fontSize:14,transition:"all .2s ease",
+        }}
+      >{bookmarked ? "🔖" : "♡"}</button>
+      <div className="dp-press" onClick={() => onPress(enc)} style={{cursor:"pointer",touchAction:"manipulation"}}>
       {/* Image */}
       <div style={{ height: 150, position: "relative", background: "rgba(14,196,184,0.08)", overflow: "hidden" }}>
         <img src={enc.img} alt={enc.title}
@@ -600,6 +617,7 @@ function EncounterCard({ enc, onPress, layout = "card" }) {
           </div>
         </div>
       </div>
+      </div>{/* close dp-press inner */}
     </div>
   );
 }
@@ -735,6 +753,7 @@ function ProjectsSection({ projects, delay }) {
         title="Initiativen & Projekte"
         subtitle="Menschen bauen gute Dinge zusammen"
         cta="Alle Projekte"
+        onCta={() => {}}
         delay={delay}
       />
       <div className="dp-hscroll" style={{
@@ -833,7 +852,7 @@ function PlacesTeaser({ onMap }) {
 // ════════════════════════════════════════════════════════════
 // 7. ENCOUNTER DETAIL OVERLAY
 // ════════════════════════════════════════════════════════════
-function EncounterDetail({ enc, onClose, engine }) {
+function EncounterDetail({ enc, onClose, engine, onPersonPress }) {
   const [mounted, setMounted] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 40); return () => clearTimeout(t); }, []);
@@ -925,21 +944,26 @@ function EncounterDetail({ enc, onClose, engine }) {
           ))}
         </div>
 
-        {/* Host */}
-        <div style={{
-          display:"flex",alignItems:"center",gap:14,
-          background:T.bgCard,borderRadius:T.r20,
-          border:`1px solid ${T.border}`,padding:"16px",
-          boxShadow:T.cardShadow,marginBottom:24,
-        }}>
+        {/* Host — tappable → opens profile */}
+        <div
+          className="dp-press"
+          onClick={() => onPersonPress?.({ id: enc.hostId, name: enc.host })}
+          style={{
+            display:"flex",alignItems:"center",gap:14,
+            background:T.bgCard,borderRadius:T.r20,
+            border:`1px solid ${T.tealMid}`,padding:"16px",
+            boxShadow:T.cardShadow,marginBottom:24,
+            cursor:"pointer",touchAction:"manipulation",
+          }}>
           <img src={enc.hostAvatar} alt={enc.host}
             style={{width:52,height:52,borderRadius:"50%",objectFit:"cover"}}
             onError={e=>{e.target.style.display="none";}}
           />
-          <div>
+          <div style={{flex:1}}>
             <div style={{fontSize:11,color:T.inkFaint,marginBottom:3}}>Organisiert von</div>
             <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>{enc.host}</div>
           </div>
+          <div style={{fontSize:14,color:T.teal}}>Profil →</div>
         </div>
 
         {/* About */}
@@ -1156,6 +1180,10 @@ export default function DiscoverPage({ onView, onMap }) {
           enc={selectedEncounter}
           onClose={() => setSelectedEncounter(null)}
           engine={engine}
+          onPersonPress={(person) => {
+            setSelectedEncounter(null);
+            if (person?.id) handlePersonPress(person);
+          }}
         />
       )}
     </div>
