@@ -145,6 +145,8 @@ export default function HomeShell({ children }) {
 
   /* Overlays */
   const [showWirker,             setShowWirker]            = useState(null);
+  // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
+  const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   const [showChat,               setShowChat]              = useState(false);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
   const [showNotifs,             setShowNotifs]            = useState(false);
@@ -262,6 +264,20 @@ export default function HomeShell({ children }) {
     setShowWirker(profileData);
   }, [authProfile, user?.id, setShowWirker]);
 
+  // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
+  const openProfileById = React.useCallback((id) => {
+    if (!id || typeof id !== "string" || id.trim() === "") {
+      console.warn("[HomeShell] openProfileById: leere oder fehlende ID ignoriert");
+      return;
+    }
+    console.log("[HomeShell] openProfileById →", id);
+    setSelectedProfileId(id.trim());
+  }, []);
+
+  const closeProfileById = React.useCallback(() => {
+    setSelectedProfileId(null);
+  }, []);
+
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
     if (key === "profile") {
@@ -284,6 +300,8 @@ export default function HomeShell({ children }) {
     activeMood, setActiveMood,
     liveNotifCount,
     showWirker,            setShowWirker,
+    selectedProfileId,     setSelectedProfileId,
+    openProfileById,       closeProfileById,
     showChat,              setShowChat,
     chatRecipient,         setChatRecipient,
     showNotifs,            setShowNotifs,

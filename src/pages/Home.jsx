@@ -106,6 +106,7 @@ function HomeInner() {
     currentUser,
     authProfile,
     setShowWirker,
+    openProfileById,
     showChat,          setShowChat,
     chatRecipient,     setChatRecipient,   // Phase 23: direkter Chat-Einstieg
     showNotifs,        setShowNotifs,
@@ -296,16 +297,9 @@ function HomeInner() {
                     else if (s) setActiveStory(s);
                   }}
                   onAddStory={() => setShowStoryComposer(true)}
-                  onProfile={(item) => {
-                    // item kann ein Feed-Item ODER ein Profile-Objekt sein
-                    // Wenn Feed-Item: author extrahieren, sonst direkt verwenden
-                    const profileData = (item?.author && item?.type)
-                      ? { id: item.author.id, user_id: item.author.id,
-                          display_name: item.author.name, avatar_url: item.author.avatar,
-                          username: item.author.username, talent: item.author.talent,
-                          is_verified: item.author.verified, _raw: item.author }
-                      : item;
-                    setShowWirker(profileData);
+                  onProfile={(userId) => {
+                    // userId ist jetzt ein einfacher String (von FeedRouter)
+                    openProfileById(userId);
                   }}
                   onBook={(item) => {
                     // Book = Profil öffnen: author extrahieren wenn Feed-Item

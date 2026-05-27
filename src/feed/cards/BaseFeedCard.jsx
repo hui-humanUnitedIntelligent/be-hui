@@ -121,17 +121,20 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
     <div style={{ display:"flex",alignItems:"center",gap:T.gap,padding:T.p+"px "+T.p+"px 0" }}>
       {/* Avatar → direkt vollständiges Profil öffnen */}
       <button
-        onClick={() => onProfile?.()}
-        onTouchStart={() => setPressed(true)}
-        onTouchEnd={() => setPressed(false)}
-        onMouseDown={() => setPressed(true)}
-        onMouseUp={() => setPressed(false)}
+        onClick={onProfile ? () => onProfile() : undefined}
+        onTouchStart={onProfile ? () => setPressed(true)  : undefined}
+        onTouchEnd={onProfile   ? () => setPressed(false) : undefined}
+        onMouseDown={onProfile  ? () => setPressed(true)  : undefined}
+        onMouseUp={onProfile    ? () => setPressed(false) : undefined}
         style={{
-          background:"none",border:"none",padding:0,cursor:"pointer",flexShrink:0,
+          background:"none",border:"none",padding:0,
+          cursor: onProfile ? "pointer" : "default",
+          flexShrink:0,
           position:"relative",
           opacity: pressed ? 0.72 : 1,
           transition: "opacity 0.15s ease",
           touchAction: "manipulation",
+          WebkitTapHighlightColor:"transparent",
         }}
       >
         <CardAvatar src={avatar} name={name} size={38} isTalent={_isTalent}/>
@@ -143,8 +146,13 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
       </button>
       <div style={{ flex:1,minWidth:0 }}>
         <div style={{ display:"flex",alignItems:"center",gap:5 }}>
-          <span style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,
-            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>
+          <span
+            onClick={onProfile ? () => onProfile() : undefined}
+            style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,
+              overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+              cursor: onProfile ? "pointer" : "default",
+              WebkitTapHighlightColor:"transparent",
+            }}>
             {name}
           </span>
           {ver && <span style={{ fontSize:11,color:T.teal }}>✦</span>}

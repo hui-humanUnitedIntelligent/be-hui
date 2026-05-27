@@ -953,7 +953,16 @@ function FloatingBookCTA({ onBook, profileName }) {
 // ═══════════════════════════════════════════════════════════════
 // ROOT — WirkerProfilePage (VISITOR)
 // ═══════════════════════════════════════════════════════════════
-export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, onChat, _zIndex = 9500 }) {
+export default function WirkerProfilePage({ wirker: rawWirker, profileId, onClose, onBook, onChat, _zIndex = 9500 }) {
+  // ── NEU: profileId-Modus — einfachste, stabilste API ──────────
+  // Wenn profileId direkt übergeben: rawWirker = { id: profileId }
+  // WirkerProfilePage lädt dann alles selbst über useWirkerProfile
+  if (profileId && !rawWirker) {
+    rawWirker = { id: profileId, user_id: profileId };
+  } else if (profileId) {
+    // profileId überschreibt bei Widerspruch immer
+    rawWirker = { ...rawWirker, id: profileId, user_id: profileId };
+  }
   // Phase 4D: Support Flow State
   const [showSupport, setShowSupport] = React.useState(false);
   const safe    = useMemo(() => createProfileItem(rawWirker), [

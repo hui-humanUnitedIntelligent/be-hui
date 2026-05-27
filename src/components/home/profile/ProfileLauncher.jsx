@@ -1,6 +1,4 @@
-import { createProfileItem } from "../../../lib/factories/createProfileItem.js";
-import { S } from "../../../core/hui.sources.js";
-// src/components/home/profile/ProfileLauncher.jsx v5
+// src/components/home/profile/ProfileLauncher.jsx v6 — ID-basierter Modus
 // ROUTING: showWirker._isOwnerView === true → CreatorProfilePage
 //          sonst                           → WirkerProfilePage
 // WICHTIG: CreatorProfilePage ist STATISCH importiert (kein lazy) → kein Suspense-Blackout
@@ -8,6 +6,7 @@ import { S } from "../../../core/hui.sources.js";
 import React, { useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
+import { S } from "../../../core/hui.sources.js";
 import { useHuiFlow } from "../../../core/hui.flow.js";
 
 // ── STATISCH: sofort verfügbar, kein lazy-Blackout ──────────────
@@ -60,15 +59,40 @@ export function useProfileLauncher() {
 export default function ProfileLauncher() {
   const {
     showWirker, setShowWirker,
+    selectedProfileId, closeProfileById,
     showChat,
     setShowChat, setChatRecipient,
-    setShowConnect,             // für "Buchen" → ConnectionCreate als Alternative
+    setShowConnect,
   } = useHome();
 
   // Phase 2: Flow Memory — merkt sich den Weg zurück
   const flow = useHuiFlow();
 
-  // Nichts anzeigen wenn kein Profil offen
+  // ── NEU: ID-basierter Modus (Feed-Avatar-Klick) ────────────────
+  // Einfachster, stabilster Pfad: nur ID → WirkerProfilePage lädt alles selbst
+  if (selectedProfileId) {
+    return (
+      <React.Suspense fallback={<ProfileLoadingFallback />}>
+        <WirkerProfilePage
+          profileId={selectedProfileId}
+          onClose={closeProfileById}
+          onChat={(profile) => {
+            const recipient = {
+              id:           profile?.id || profile?.user_id,
+              display_name: profile?.display_name || profile?.name || "Creator",
+              avatar_url:   profile?.img || profile?.avatar_url || null,
+              talent:       profile?.talent || null,
+            };
+            setChatRecipient(recipient);
+            setShowChat(true);
+          }}
+          _zIndex={showChat ? 9200 : 9500}
+        />
+      </React.Suspense>
+    );
+  }
+
+  // ── LEGACY: showWirker-Objekt Modus (eigenes Profil, Discover, etc.) ──
   if (!showWirker) return null;
 
   // showWirker normalisieren — kann rohe nav-Daten oder Feed-Items enthalten

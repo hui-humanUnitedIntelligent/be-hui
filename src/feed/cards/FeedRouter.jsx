@@ -73,26 +73,15 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
   const authorName = item.author?.name || "Human";
   const text       = item.text || item.title || "";
 
-  // Profile öffnen: author aus dem Item extrahieren, nicht rawItem (Feed-Shape)
-  // rawItem hat type/author/media — kein direkter Profile-Object
-  const authorObj = item.author || rawItem.author || null;
-  const profileData = authorObj
-    ? { id: authorObj.id, user_id: authorObj.id, display_name: authorObj.name,
-        avatar_url: authorObj.avatar, username: authorObj.username,
-        is_verified: authorObj.verified, memberType: authorObj.membershipType,
-        talent: authorObj.talent, _raw: authorObj }
-    : rawItem;
-
-  // Guard: profileData nur übergeben wenn eine echte id vorhanden ist
-  // Leere id ("") → kein Profil-Klick möglich (kein Crash)
-  const hasValidProfile = !!(authorObj?.id && typeof authorObj.id === "string" && authorObj.id.trim().length > 0);
-  const safeProfileCall = hasValidProfile
-    ? () => onProfile?.(profileData)
-    : null; // null = Button disabled, kein Crash
+  // ── RADIKAL VEREINFACHT: nur userId extrahieren ──────────────
+  // Keine profileData-Objekte, keine Normalizer-Chains, kein Crash
+  const authorId = item?.author?.id || item?.author?.user_id
+    || rawItem?.user_id || rawItem?.creator_id || null;
+  const hasValidId = !!(authorId && typeof authorId === "string" && authorId.trim().length > 0);
 
   const shared = {
     item,
-    onProfile: safeProfileCall,
+    onProfile: hasValidId ? () => onProfile?.(authorId) : null,
     onReaction: (t) => onReaction?.(t),
     onShare:    () => onShare?.(rawItem),
   };
