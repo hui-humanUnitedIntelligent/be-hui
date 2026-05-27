@@ -558,19 +558,48 @@ function ProfileHero({ profile, loading, onClose, onFollow, followed, onChat, on
                 {loc && <span>📍 {loc}</span>}
               </div>
 
-              {/* Bio */}
-              {bio && (
-                <p style={{
-                  fontSize:14.5,lineHeight:1.7,color:T.inkSoft,
-                  margin:"0 0 18px",
-                  fontFamily:"-apple-system,'Georgia',serif",
-                  maxWidth:340,
-                }}>{bio}</p>
-              )}
+              {/* Emotional tagline — derived when no bio, always calm */}
+              {(() => {
+                // If there's a real bio, show it as-is
+                if (bio) return (
+                  <p style={{
+                    fontSize:15,lineHeight:1.72,color:T.inkSoft,
+                    margin:"0 0 16px",
+                    fontFamily:"-apple-system,'Georgia',serif",
+                    fontStyle:"italic",
+                    maxWidth:360,
+                    letterSpacing:"0.005em",
+                  }}>{bio}</p>
+                );
+                // Otherwise derive a warm emotional tagline from values
+                const taglines = {
+                  "Natur":        "Findet Ruhe in Natur und Gemeinschaft.",
+                  "Tiere":        "Lebt mit offenem Herz für alle Lebewesen.",
+                  "Musik":        "Verbindet Menschen durch Klang und Rhythmus.",
+                  "Kreativität":  "Schafft kreative Begegnungen in echten Räumen.",
+                  "Achtsamkeit":  "Sucht Stille — und teilt sie mit anderen.",
+                  "Gemeinschaft": "Glaubt an die Kraft des gemeinsamen Augenblicks.",
+                  "Heilung":      "Hält Raum für das, was geheilt werden möchte.",
+                  "Kunst":        "Macht die Welt durch Schönheit ein wenig weicher.",
+                };
+                const firstInterest = a(profile?.interests)[0];
+                const key = typeof firstInterest === "string" ? firstInterest : firstInterest?.name || "";
+                const line = taglines[key] || "Ein Mensch mit einer ruhigen, bedeutsamen Präsenz.";
+                return (
+                  <p style={{
+                    fontSize:15,lineHeight:1.72,color:T.inkFaint,
+                    margin:"0 0 16px",
+                    fontFamily:"-apple-system,'Georgia',serif",
+                    fontStyle:"italic",
+                    maxWidth:360,
+                    letterSpacing:"0.005em",
+                  }}>{line}</p>
+                );
+              })()}
 
               {/* Values preview */}
               <div style={{
-                display:"flex",flexWrap:"wrap",gap:7,marginBottom:22,
+                display:"flex",flexWrap:"wrap",gap:7,marginBottom:18,
               }}>
                 {valueTags.map((v,i)=>v.label && (
                   <ValuePill key={i} icon={v.icon} label={v.label} bg={v.bg}/>
@@ -802,12 +831,28 @@ function MomentDetail({ m, onClose, onBookmark, bookmarked }) {
 function MomentCard({ m, onClick }) {
   const [loaded, setLoaded] = useState(false);
   return (
-    <div className="ppp-press ppp-in" onClick={()=>onClick(m)} style={{ flexShrink:0,width:155,height:205,borderRadius:T.r16,overflow:"hidden",position:"relative",cursor:"pointer",touchAction:"manipulation",boxShadow:T.cardShadow,background:"rgba(15,17,23,0.08)" }}>
-      <img src={m.img} alt={m.caption} onLoad={()=>setLoaded(true)} onError={()=>setLoaded(true)} style={{ width:"100%",height:"100%",objectFit:"cover",opacity:loaded?1:0,transition:"opacity .5s ease",display:"block" }}/>
-      <div style={{ position:"absolute",inset:0,background:"linear-gradient(to top,rgba(15,17,23,0.75),rgba(15,17,23,0.02) 55%)" }}/>
-      <div style={{ position:"absolute",bottom:14,left:12,right:12 }}>
-        <div style={{ fontSize:11.5,fontWeight:700,color:"white",lineHeight:1.4,marginBottom:3 }}>{m.caption}</div>
-        <div style={{ fontSize:9,color:"rgba(255,255,255,0.52)",fontWeight:500 }}>{m.time}</div>
+    <div
+      className="ppp-press-light ppp-in"
+      onClick={()=>onClick(m)}
+      style={{
+        flexShrink:0, width:148, height:198,
+        borderRadius:T.r20, overflow:"hidden",
+        position:"relative", cursor:"pointer", touchAction:"manipulation",
+        boxShadow:"0 2px 16px rgba(15,17,23,0.09), 0 1px 4px rgba(15,17,23,0.05)",
+        background:"rgba(15,17,23,0.06)",
+      }}
+    >
+      {!loaded && <div className="ppp-skeleton" style={{position:"absolute",inset:0}}/>}
+      <img
+        src={m.img} alt={m.caption}
+        onLoad={()=>setLoaded(true)} onError={()=>setLoaded(true)}
+        style={{ width:"100%",height:"100%",objectFit:"cover",opacity:loaded?1:0,transition:"opacity .6s ease",display:"block" }}
+      />
+      {/* Gentle vignette — not harsh */}
+      <div style={{ position:"absolute",inset:0,background:"linear-gradient(to top,rgba(10,14,20,0.62) 0%,rgba(10,14,20,0.08) 52%,transparent 100%)" }}/>
+      <div style={{ position:"absolute",bottom:13,left:12,right:12 }}>
+        <div style={{ fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.92)",lineHeight:1.4,marginBottom:2,letterSpacing:"-0.005em" }}>{m.caption}</div>
+        <div style={{ fontSize:9.5,color:"rgba(255,255,255,0.42)",fontWeight:400,letterSpacing:"0.01em" }}>{m.time}</div>
       </div>
     </div>
   );
@@ -1054,21 +1099,38 @@ function EncounterDetailSheet({ e, onClose, engine, onOpenHost }) {
 function EncounterCard({ e, onPress }) {
   const [loaded, setLoaded] = useState(false);
   return (
-    <div className="ppp-press ppp-in" onClick={()=>onPress(e)} style={{
-      flexShrink:0,width:200,borderRadius:T.r16,overflow:"hidden",background:T.bgCard,
-      cursor:"pointer",touchAction:"manipulation",boxShadow:T.floatShadow,
-    }}>
-      <div style={{ height:128,position:"relative",background:"rgba(15,17,23,0.06)" }}>
+    <div
+      className="ppp-press-light ppp-in"
+      onClick={()=>onPress(e)}
+      style={{
+        flexShrink:0, width:192, borderRadius:T.r20, overflow:"hidden",
+        background:"rgba(255,255,255,0.78)",
+        backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
+        cursor:"pointer", touchAction:"manipulation",
+        boxShadow:"0 2px 18px rgba(15,17,23,0.08), 0 1px 4px rgba(15,17,23,0.04)",
+        border:"1px solid rgba(255,255,255,0.9)",
+      }}
+    >
+      <div style={{ height:122,position:"relative",background:"rgba(15,17,23,0.05)",borderRadius:`${T.r20}px ${T.r20}px 0 0`,overflow:"hidden" }}>
+        {!loaded && <div className="ppp-skeleton" style={{position:"absolute",inset:0}}/>}
         <img src={e.img} alt={e.title} onLoad={()=>setLoaded(true)} onError={()=>setLoaded(true)}
-          style={{ width:"100%",height:"100%",objectFit:"cover",opacity:loaded?1:0,transition:"opacity .5s ease" }}/>
-        <div style={{ position:"absolute",inset:0,background:"linear-gradient(to top,rgba(15,17,23,0.42),transparent 60%)" }}/>
-        <div style={{ position:"absolute",top:10,left:10,background:"rgba(255,255,255,0.90)",backdropFilter:"blur(8px)",padding:"3px 9px",borderRadius:T.r99,fontSize:9.5,fontWeight:700,color:T.ink }}>{e.type}</div>
-        <div style={{ position:"absolute",top:10,right:10,fontSize:16 }}>{e.emoji}</div>
+          style={{ width:"100%",height:"100%",objectFit:"cover",opacity:loaded?1:0,transition:"opacity .6s ease" }}/>
+        <div style={{ position:"absolute",inset:0,background:"linear-gradient(to top,rgba(10,14,20,0.35),transparent 55%)" }}/>
+        {/* Type badge */}
+        <div style={{
+          position:"absolute",top:10,left:10,
+          background:"rgba(255,255,255,0.86)",backdropFilter:"blur(10px)",
+          padding:"3px 9px",borderRadius:T.r99,
+          fontSize:9.5,fontWeight:700,color:T.ink,letterSpacing:"0.02em",
+        }}>{e.type}</div>
+        <div style={{ position:"absolute",top:9,right:10,fontSize:17,lineHeight:1 }}>{e.emoji}</div>
       </div>
-      <div style={{ padding:"12px 14px" }}>
-        <div style={{ fontSize:13,fontWeight:700,color:T.ink,marginBottom:5,letterSpacing:"-0.01em" }}>{e.title}</div>
-        <div style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:T.inkSoft }}>
-          {e.date ? <><span>📅</span><span>{e.date}</span></> : <><span>👥</span><span>{e.participants||"?"} Plätze</span></>}
+      <div style={{ padding:"13px 14px 14px" }}>
+        <div style={{ fontSize:13,fontWeight:700,color:T.ink,marginBottom:6,letterSpacing:"-0.015em",lineHeight:1.35 }}>{e.title}</div>
+        <div style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:T.inkFaint,fontWeight:400 }}>
+          {e.date
+            ? <><span style={{fontSize:10}}>📅</span><span>{e.date}</span></>
+            : <><span style={{fontSize:10}}>👥</span><span>{e.participants||"?"} Plätze</span></>}
         </div>
       </div>
     </div>
@@ -1205,20 +1267,26 @@ function ConnectionBridges({ profileId, engine }) {
   return (
     <div ref={ref} style={{ ...style,padding:`0 ${T.px}px` }}>
       <SectionHead icon="✦" title="Verbindungen" sub="Was euch verbindet"/>
-      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+      <div style={{ display:"flex",flexDirection:"column",gap:1 }}>
         {bridges.map((b,i)=>(
           <div key={i} className="ppp-press-light" style={{
-            display:"flex",alignItems:"center",gap:12,
-            padding:"14px 16px",borderRadius:T.r16,
-            background:T.bgCard,border:`1px solid ${T.border}`,
-            boxShadow:T.cardShadow,cursor:"pointer",touchAction:"manipulation",
+            display:"flex",alignItems:"center",gap:14,
+            padding:"15px 0",
+            borderBottom: i < bridges.length-1 ? `1px solid ${T.border}` : "none",
+            cursor:"pointer",touchAction:"manipulation",
           }}>
-            <div style={{ width:40,height:40,borderRadius:T.r12,background:T.tealSoft,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0 }}>{b.icon}</div>
+            {/* Soft icon */}
+            <div style={{
+              width:38, height:38, borderRadius:T.r12,
+              background: i===0 ? T.tealSoft : i===1 ? "rgba(99,102,241,0.08)" : "rgba(245,158,11,0.08)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:18,flexShrink:0,
+            }}>{b.icon}</div>
             <div style={{ flex:1,minWidth:0 }}>
-              <div style={{ fontSize:13,fontWeight:700,color:T.ink,marginBottom:3 }}>{b.title}</div>
-              <div style={{ fontSize:11,color:T.inkSoft,lineHeight:1.4 }}>{b.sub}</div>
+              <div style={{ fontSize:13.5,fontWeight:600,color:T.ink,marginBottom:2,letterSpacing:"-0.01em" }}>{b.title}</div>
+              <div style={{ fontSize:11.5,color:T.inkFaint,lineHeight:1.45,fontWeight:400 }}>{b.sub}</div>
             </div>
-            <div style={{ fontSize:12,color:T.teal,fontWeight:600,flexShrink:0 }}>{b.action} →</div>
+            <div style={{ fontSize:11,color:T.teal,fontWeight:600,flexShrink:0,opacity:0.8 }}>→</div>
           </div>
         ))}
       </div>
@@ -1326,28 +1394,58 @@ function SupportSheet({ name, onClose, engine, profileId }) {
 // ══════════════════════════════════════════════════════════════
 function FloatingConnect({ name, onConnect, connected }) {
   const [vis, setVis] = useState(false);
-  useEffect(()=>{ const t=setTimeout(()=>setVis(true),700); return()=>clearTimeout(t); },[]);
+  useEffect(()=>{ const t=setTimeout(()=>setVis(true),900); return()=>clearTimeout(t); },[]);
+
+  // Already connected — show a tiny soft confirmation, no CTA needed
+  if (connected) return (
+    <div style={{
+      position:"fixed",
+      bottom:"max(96px, calc(88px + env(safe-area-inset-bottom,0px)))",
+      right:T.px, zIndex:9200,
+      opacity:vis?1:0,
+      transform:vis?"translateY(0)":"translateY(8px)",
+      transition:"opacity .45s ease .9s, transform .45s ease .9s",
+      pointerEvents:"none",
+    }}>
+      <div style={{
+        display:"inline-flex",alignItems:"center",gap:6,
+        padding:"8px 14px",borderRadius:T.r99,
+        background:"rgba(255,255,255,0.82)",
+        backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
+        border:`1px solid ${T.tealMid}`,
+        boxShadow:"0 2px 14px rgba(14,196,184,0.14)",
+        fontSize:12,fontWeight:600,color:T.teal,
+      }}>
+        <span>✓</span><span>Verbunden</span>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{
       position:"fixed",
-      bottom:"max(88px, calc(80px + env(safe-area-inset-bottom,0px)))",
-      left:T.px,right:T.px,zIndex:9200,
-      opacity:vis?1:0,transform:vis?"none":"translateY(14px)",
-      transition:"opacity .5s ease .7s, transform .5s ease .7s",
+      bottom:"max(96px, calc(88px + env(safe-area-inset-bottom,0px)))",
+      right:T.px, zIndex:9200,
+      opacity:vis?1:0,
+      transform:vis?"translateY(0)":"translateY(12px)",
+      transition:"opacity .5s ease .9s, transform .5s cubic-bezier(.22,1,.36,1) .9s",
       pointerEvents:vis?"auto":"none",
     }}>
       <button className="ppp-press" onClick={onConnect} style={{
-        width:"100%",borderRadius:T.r99,
-        padding:"15px 28px",border:"none",
-        background:connected?"rgba(15,17,23,0.07)":`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-        color:connected?"rgba(15,17,23,0.5)":"white",
-        fontSize:15,fontWeight:700,cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
-        boxShadow:connected?"none":`${T.glowTeal}, 0 4px 24px rgba(0,0,0,0.14)`,
+        display:"inline-flex",alignItems:"center",gap:8,
+        padding:"11px 20px",borderRadius:T.r99,
+        border:"none",
+        background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
+        color:"white",
+        fontSize:13.5,fontWeight:700,
+        cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+        boxShadow:`${T.glowTeal}, 0 6px 28px rgba(14,196,184,0.25), 0 2px 8px rgba(0,0,0,0.08)`,
+        backdropFilter:"blur(12px)",
         transition:"all .28s cubic-bezier(.22,1,.36,1)",
-        display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+        letterSpacing:"-0.01em",
       }}>
-        <span>{connected?"✓":"✦"}</span>
-        {connected?"Verbindung gesendet":`Mit ${name||"diesem Menschen"} verbinden`}
+        <span style={{fontSize:15}}>✦</span>
+        <span>Verbinden</span>
       </button>
     </div>
   );
@@ -1423,19 +1521,14 @@ export default function PublicProfilePage({ profileId, onClose }) {
           onSupport={()=>setShowSupport(true)}
         />
 
-        <Gap h={12}/>
+        <Gap h={4}/>
 
         {/* 2. Presence strip — no metrics, only character */}
         {!loading && <PresenceStrip profile={profile}/>}
 
-        <Gap h={8}/>
+        <Gap h={16}/>
 
-        {/* 3. Quote */}
-        {!loading && <HumanQuote profile={profile}/>}
-
-        <Gap h={28}/>
-
-        {/* 4. Moments */}
+        {/* 3. Moments */}
         <MomentsSection moments={profile?.moments} engine={engine}/>
 
         <Gap h={28}/>
