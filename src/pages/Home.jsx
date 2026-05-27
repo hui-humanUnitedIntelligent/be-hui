@@ -343,7 +343,7 @@ function HomeInner() {
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
-                <DiscoverPage onView={w => { const id = w?.id || w?.user_id; if (id) openProfileById(id); }} onMap={() => setShowMap(true)}/>
+                <DiscoverPage onView={(id) => { if(id) openProfileById(id); }} onMap={() => setShowMap(true)}/>
               </SafeRender>
             </Suspense>
           </div>
