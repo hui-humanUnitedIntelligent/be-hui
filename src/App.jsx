@@ -28,6 +28,7 @@ const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
+const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'

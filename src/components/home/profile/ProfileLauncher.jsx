@@ -77,7 +77,11 @@ class ProfileErrorBoundary extends React.Component {
 }
 
 
-// ── LAZY: WirkerProfilePage nur bei Bedarf (~140KB) ─────────────
+// ── LAZY: PublicProfilePage — Phase 1.5 emotional identity ──────
+const PublicProfilePage = React.lazy(
+  () => import("../../../pages/PublicProfilePage.jsx")
+);
+// Legacy WirkerProfilePage still available as fallback
 const WirkerProfilePage = React.lazy(
   () => import("../../../pages/wirker-profile/index.jsx")
 );
@@ -148,34 +152,17 @@ export default function ProfileLauncher() {
             alignItems:"center", justifyContent:"center", gap:16
           }}>
             <div style={{
-              width:48, height:48, borderRadius:"50%",
-              border:"3px solid rgba(13,196,181,0.3)",
-              borderTop:"3px solid #0DC4B5",
+              width:44, height:44, borderRadius:"50%",
+              border:"3px solid rgba(14,196,184,0.18)",
+              borderTop:`3px solid #0EC4B8`,
               animation:"spin 0.8s linear infinite"
             }}/>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-            <p style={{color:"rgba(255,255,255,0.6)", fontSize:14, fontFamily:"sans-serif"}}>
-              Profil wird geladen…
-            </p>
-            <p style={{color:"rgba(13,196,181,0.5)", fontSize:11, fontFamily:"monospace"}}>
-              ID: {selectedProfileId?.slice(0,8)}…
-            </p>
           </div>
         }>
-          <WirkerProfilePage
+          <PublicProfilePage
             profileId={selectedProfileId}
             onClose={closeProfileById}
-            onChat={(profile) => {
-              const recipient = {
-                id:           profile?.id || profile?.user_id,
-                display_name: profile?.display_name || profile?.name || "Creator",
-                avatar_url:   profile?.img || profile?.avatar_url || null,
-                talent:       profile?.talent || null,
-              };
-              setChatRecipient(recipient);
-              setShowChat(true);
-            }}
-            _zIndex={showChat ? 9200 : 9500}
           />
         </React.Suspense>
       </ProfileErrorBoundary>
