@@ -147,6 +147,7 @@ export default function HomeShell({ children }) {
   const [showWirker,             setShowWirker]            = useState(null);
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
+  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
   const [showChat,               setShowChat]              = useState(false);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
   const [showNotifs,             setShowNotifs]            = useState(false);
@@ -229,16 +230,16 @@ export default function HomeShell({ children }) {
     }
   }, [_setTab]);
 
-  /* openOwnProfile — öffnet eigenes Profil via ID-Flow (unified mit Feed) */
+  /* openOwnProfile → öffnet MyCreatorDashboard (eigene, separate Seite) */
   const openOwnProfile = useCallback(() => {
-    const id = authProfile?.id || user?.id;
-    console.log("🟠 openOwnProfile → openProfileById", { id });
-    if (!id) {
-      console.warn("🔴 openOwnProfile: keine User-ID gefunden");
-      return;
-    }
-    setSelectedProfileId(id);
-  }, [authProfile?.id, user?.id, setSelectedProfileId]);
+    console.log("🟠 openOwnProfile → setShowCreatorDashboard(true)");
+    setShowCreatorDashboard(true);
+  }, [setShowCreatorDashboard]);
+
+  /* openCreatorDashboard — direkter Alias */
+  const openCreatorDashboard = useCallback(() => {
+    setShowCreatorDashboard(true);
+  }, [setShowCreatorDashboard]);
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
@@ -292,6 +293,8 @@ export default function HomeShell({ children }) {
     liveNotifCount,
     showWirker,            setShowWirker,
     selectedProfileId,     setSelectedProfileId,
+    showCreatorDashboard,  setShowCreatorDashboard,
+    openCreatorDashboard,
     openProfileById,       closeProfileById,
     showChat,              setShowChat,
     chatRecipient,         setChatRecipient,

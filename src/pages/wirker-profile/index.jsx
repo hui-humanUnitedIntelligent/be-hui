@@ -11,7 +11,6 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { useWirkerProfile } from "./hooks/useWirkerProfile.js";
 import SupportFlow from "../../components/economy/SupportFlow.jsx";
-import { useAuth } from "../../lib/AuthContext.jsx";
 
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
@@ -952,32 +951,11 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
 
   // Phase 3: echte Profil-Daten + Experiences aus Supabase
   const { profile: liveProfile, exps: liveExps, works: liveWorks } = useWirkerProfile(rawWirker);
-  const { profile: authProfile } = useAuth();
 
-  // Phase 4B: SINGLE SOURCE OF TRUTH
-  // isOwnerView: entweder explizit gesetzt (legacy) ODER via ID-Vergleich
-  // Jetzt auch: wenn profileId === authProfile.id → Owner View
-  const _authId = authProfile?.id || null;
-  const _profileId = profileId || rawWirker?.id || rawWirker?.user_id || null;
-  const isOwnerView = rawWirker?._isOwnerView === true || (!!_authId && !!_profileId && _authId === _profileId);
-  const profile = isOwnerView
-    ? {
-        // Start with liveProfile (full DB data), overlay with freshest authProfile
-        ...(liveProfile?._raw || liveProfile || {}),
-        ...(authProfile || {}),
-        // Ensure critical fields from liveProfile aren't lost
-        id:           authProfile?.id           || liveProfile?.id,
-        display_name: authProfile?.display_name || liveProfile?.displayName,
-        username:     authProfile?.username      || liveProfile?.username,
-        bio:          authProfile?.bio           || liveProfile?.bio,
-        avatar_url:   authProfile?.avatar_url   || liveProfile?.avatar,
-        header_img:   authProfile?.header_img   || liveProfile?.banner,
-        interests:    authProfile?.interests    || liveProfile?.interests || [],
-        dna_tags:     authProfile?.dna_tags     || authProfile?.interests || liveProfile?.interests || [],
-        location:     authProfile?.location     || liveProfile?.location,
-        profile_complete: authProfile?.profile_complete ?? liveProfile?.profileComplete ?? false,
-      }
-    : (liveProfile?._raw || liveProfile || safe?._raw || rawWirker || {});
+  // PUBLIC VIEW ONLY — kein _isOwnerView mehr.
+  // WirkerProfilePage zeigt immer fremde Profile.
+  // Eigenes Profil → MyCreatorDashboard (eigene Seite, eigener Tab)
+  const profile = liveProfile?._raw || liveProfile || safe?._raw || rawWirker || {};
   // Experiences: echte Supabase-Daten bevorzugt, SEED als Fallback (im Component)
   const experiences = liveExps?.length > 0 ? liveExps : null;
 
@@ -1020,8 +998,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
   // Guard: WirkerProfilePage braucht eine gültige ID
   // Ohne ID: Supabase-Query liefert nichts → Crash in VisitorHero
   const wirkerHasId = !!(rawWirker?.id?.trim?.() || rawWirker?.user_id?.trim?.());
-  // isOwnerView ist jetzt korrekt gesetzt (inkl. ID-Vergleich) — bei Owner immer erlauben
-  if (!wirkerHasId && !isOwnerView) {
+  if (!wirkerHasId) {
     console.warn("[WirkerProfilePage] kein id — render abgebrochen", rawWirker);
     return (
       <div style={{
