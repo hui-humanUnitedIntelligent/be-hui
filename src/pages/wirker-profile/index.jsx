@@ -101,7 +101,7 @@ function MsgBtn({ onChat }) {
       display:"flex",alignItems:"center",gap:7,
       background: pressed ? "rgba(255,255,255,.18)" : "rgba(255,255,255,.10)",
       border:"1.5px solid rgba(255,255,255,.32)",
-      backdropFilter:"blur(10px)",
+      background:"rgba(6,14,14,0.85)",
       borderRadius:99,padding:"10px 18px",
       color:"white",fontSize:13,fontWeight:600,
       cursor:"pointer",touchAction:"manipulation",
@@ -120,7 +120,7 @@ function FollowBtn({ followed, onFollow }) {
         ? "rgba(255,255,255,.18)"
         : pressed ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.08)",
       border:"1.5px solid rgba(255,255,255,.28)",
-      backdropFilter:"blur(10px)",
+      background:"rgba(6,14,14,0.85)",
       borderRadius:99,padding:"10px 18px",
       color:"white",fontSize:13,fontWeight:600,
       cursor:"pointer",touchAction:"manipulation",
@@ -138,7 +138,7 @@ function SupportBtn({ onSupport }) {
       display:"flex",alignItems:"center",gap:7,
       background: pressed ? "rgba(22,215,197,0.30)" : "rgba(22,215,197,0.18)",
       border:"1.5px solid rgba(22,215,197,0.50)",
-      backdropFilter:"blur(10px)",
+      background:"rgba(6,14,14,0.85)",
       borderRadius:99,padding:"10px 18px",
       color:"white",fontSize:13,fontWeight:700,
       cursor:"pointer",touchAction:"manipulation",
@@ -174,18 +174,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
       background:C.ink,
     }}>
       <style>{`
-        @keyframes vParticle {
-          0%,100%{transform:translateY(0) translateX(0);opacity:.4}
-          50%{transform:translateY(-14px) translateX(5px);opacity:.75}
-        }
-        @keyframes vGlow {
-          0%,100%{opacity:.14;transform:scale(1)}
-          50%{opacity:.24;transform:scale(1.06)}
-        }
-        @keyframes vPulse {
-          0%,100%{opacity:1;transform:scale(1)}
-          50%{opacity:.55;transform:scale(.75)}
-        }
+        /* keyframe animations removed for Safari GPU stability */
       `}</style>
 
       {/* BG cinematic */}
@@ -208,29 +197,18 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
 
       {/* ambient blobs */}
       {[
-        {top:"-15%",left:"60%",size:200,color:"rgba(13,196,181,.09)",dur:9},
-        {top:"50%", left:"2%", size:140,color:"rgba(244,115,85,.07)",dur:12},
+        {top:"-15%",left:"60%",size:200,color:"rgba(13,196,181,.07)"},
+        {top:"50%", left:"2%", size:140,color:"rgba(244,115,85,.05)"},
       ].map((b,i)=>(
         <div key={i} style={{
           position:"absolute",top:b.top,left:b.left,
           width:b.size,height:b.size,borderRadius:"50%",
           background:b.color,
-          animation:`vGlow ${b.dur}s ease-in-out ${i*2}s infinite`,
           pointerEvents:"none",
         }}/>
       ))}
 
-      {/* floating particles */}
-      {[0,1,2,3,4].map(i=>(
-        <div key={i} style={{
-          position:"absolute",
-          width:3+i*.5,height:3+i*.5,borderRadius:"50%",
-          background:`rgba(13,196,181,${.15+i*.06})`,
-          top:`${10+i*14}%`,left:`${6+i*6}%`,
-          animation:`vParticle ${5+i}s ease-in-out ${i*.7}s infinite`,
-          pointerEvents:"none",
-        }}/>
-      ))}
+      {/* particles removed for Safari GPU stability */}
 
       {/* Top nav */}
       <div style={{
@@ -240,7 +218,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
       }}>
         <button onClick={onClose} style={{
           background:"rgba(255,255,255,.10)",border:"1px solid rgba(255,255,255,.18)",
-          backdropFilter:"blur(12px)",borderRadius:99,
+          background:"rgba(6,14,14,0.85)",borderRadius:99,
           width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",
           cursor:"pointer",color:"white",fontSize:17,touchAction:"manipulation",
         }}>←</button>
@@ -248,7 +226,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
           {["⬆️","···"].map((ic,i)=>(
             <button key={i} style={{
               background:"rgba(255,255,255,.10)",border:"1px solid rgba(255,255,255,.18)",
-              backdropFilter:"blur(12px)",borderRadius:99,
+              background:"rgba(6,14,14,0.85)",borderRadius:99,
               width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",
               cursor:"pointer",color:"white",fontSize:13,touchAction:"manipulation",
             }}>{ic}</button>
@@ -274,11 +252,11 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
               <div style={{
                 background:"rgba(244,115,85,.22)",border:"1px solid rgba(244,115,85,.45)",
-                backdropFilter:"blur(8px)",borderRadius:99,
+                background:"rgba(6,14,14,0.80)",borderRadius:99,
                 padding:"3px 10px",color:C.coralLight,fontSize:9,fontWeight:800,letterSpacing:".05em",
               }}>✦ CREATOR</div>
               <div style={{display:"flex",alignItems:"center",gap:5,color:"rgba(255,255,255,.75)",fontSize:10,fontWeight:600}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:"#22C55E",animation:"vPulse 2s infinite"}}/>
+                <div style={{width:7,height:7,borderRadius:"50%",background:"#22C55E",/* no animation */}}/>
                 Gerade im Atelier
               </div>
             </div>
@@ -335,7 +313,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
               ) : tags.map((t,i)=>(
                 <span key={i} style={{
                   background:"rgba(255,255,255,.09)",border:"1px solid rgba(255,255,255,.17)",
-                  backdropFilter:"blur(6px)",borderRadius:99,
+                  background:"rgba(6,14,14,0.70)",borderRadius:99,
                   padding:"4px 11px",color:"rgba(255,255,255,.75)",
                   fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:5,
                 }}><span style={{fontSize:11}}>{t.icon}</span>{t.label}</span>
@@ -355,7 +333,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
           <div style={{
             flexShrink:0,width:170,
             background:"rgba(10,22,22,.85)",
-            backdropFilter:"blur(24px)",
+            background:"rgba(6,14,14,0.85)",
             border:"1px solid rgba(255,255,255,.12)",
             borderRadius:R.lg,padding:"14px",
             boxShadow:"0 8px 32px rgba(0,0,0,.45)",
@@ -1071,18 +1049,13 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
       position:"fixed", inset:0, zIndex:_zIndex,
       overflowY:"auto", overflowX:"hidden",
       background:C.cream,
-      animation:"hui-profile-enter 220ms cubic-bezier(0.22,1,0.36,1) both",
+      /* animation removed for Safari stability */
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
       WebkitOverflowScrolling:"touch",
       paddingBottom:"max(120px, calc(100px + env(safe-area-inset-bottom,0px)))",
     }}>
       <style>{HUI.KEYFRAMES}</style>
-      <style>{`
-        @keyframes hui-profile-enter {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* @keyframes removed for Safari GPU stability */}
       <style>{`
         *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
         ::-webkit-scrollbar{display:none}
