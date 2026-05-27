@@ -11,6 +11,7 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { useWirkerProfile } from "./hooks/useWirkerProfile.js";
 import SupportFlow from "../../components/economy/SupportFlow.jsx";
+import { useAuth } from "../../lib/AuthContext.jsx";
 
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
