@@ -9,6 +9,7 @@ import React, {
   useState, useEffect, useRef, useCallback, useMemo,
 } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { useConnectionEngine, useFollow } from "../core/HuiConnectionEngine.jsx";
 
 // ── Design tokens ───────────────────────────────────────────────
 const T = {
@@ -822,7 +823,7 @@ function HumanQuote({ profile }) {
 // ══════════════════════════════════════════════════════════════
 // 8. CONNECT CTA — Floating bottom bar
 // ══════════════════════════════════════════════════════════════
-function ConnectCTA({ name, onConnect }) {
+function ConnectCTA({ name, onConnect, connected }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 600);
@@ -844,18 +845,23 @@ function ConnectCTA({ name, onConnect }) {
         onClick={onConnect}
         style={{
           width: "100%",
-          background: `linear-gradient(135deg, ${T.teal} 0%, #0DBBAF 100%)`,
-          border: "none", borderRadius: T.r99,
+          background: connected
+            ? "rgba(15,17,23,0.07)"
+            : `linear-gradient(135deg, ${T.teal} 0%, #0DBBAF 100%)`,
+          border: connected ? `1px solid rgba(15,17,23,0.12)` : "none",
+          borderRadius: T.r99,
           padding: "15px 28px",
-          color: "white", fontSize: 15, fontWeight: 700,
+          color: connected ? "rgba(15,17,23,0.55)" : "white",
+          fontSize: 15, fontWeight: 700,
           cursor: "pointer", touchAction: "manipulation",
-          boxShadow: `${T.glowTeal}, 0 4px 24px rgba(0,0,0,0.15)`,
+          boxShadow: connected ? "none" : `${T.glowTeal}, 0 4px 24px rgba(0,0,0,0.15)`,
           fontFamily: "inherit",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          transition: "all .25s ease",
         }}
       >
-        <span>✦</span>
-        Mit {name || "diesem Menschen"} verbinden
+        <span>{connected ? "✓" : "✦"}</span>
+        {connected ? "Verbindung gesendet" : `Mit ${name || "diesem Menschen"} verbinden`}
       </button>
     </div>
   );
@@ -878,8 +884,12 @@ function SectionGap({ size = 28 }) {
 export default function PublicProfilePage({ profileId, onClose }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [followed, setFollowed] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Phase 2.5: Connection Engine — global shared state
+  const engine = useConnectionEngine();
+  const followed    = engine.isFollowed(profileId);
+  const isConnected = engine.isConnected(profileId);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 30); return () => clearTimeout(t); }, []);
 
@@ -899,9 +909,16 @@ export default function PublicProfilePage({ profileId, onClose }) {
   }, [onClose]);
 
   const handleFollow = useCallback(() => {
-    setFollowed(f => !f);
-    // TODO: Supabase follow insert
-  }, []);
+    if (followed) {
+      engine.unfollow(profileId);
+    } else {
+      engine.follow(profileId);
+    }
+  }, [followed, profileId, engine]);
+
+  const handleConnect = useCallback(() => {
+    engine.connect(profileId, profile);
+  }, [profileId, profile, engine]);
 
   return (
     <div
@@ -977,7 +994,7 @@ export default function PublicProfilePage({ profileId, onClose }) {
       </div>
 
       {/* 8. Floating connect CTA */}
-      <ConnectCTA name={name} onConnect={() => {}} />
+      <ConnectCTA name={name} onConnect={handleConnect} connected={isConnected} />
     </div>
   );
 }

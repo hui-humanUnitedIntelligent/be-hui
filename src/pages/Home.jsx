@@ -28,6 +28,7 @@ import ConnectionCreatePage      from "../components/connection-create/Connectio
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 import DiscoverPage  from "./DiscoverPage.jsx";
+import AmbientWorldBar from "../components/home/AmbientWorldBar.jsx";
 import ImpactPage    from "./ImpactPage.jsx";
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
@@ -284,6 +285,7 @@ function HomeInner() {
           }}
         >
           <div ref={tabRefs.feed} style={keepFeed}>
+            <AmbientWorldBar />
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="Feed">
                 <UnifiedFeed

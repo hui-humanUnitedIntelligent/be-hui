@@ -9,6 +9,7 @@ import React, {
   useState, useEffect, useRef, useCallback, useMemo,
 } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { useConnectionEngine, useEncounterJoin } from "../core/HuiConnectionEngine.jsx";
 
 // ── Design tokens ────────────────────────────────────────────────
 const T = {
@@ -832,7 +833,7 @@ function PlacesTeaser({ onMap }) {
 // ════════════════════════════════════════════════════════════
 // 7. ENCOUNTER DETAIL OVERLAY
 // ════════════════════════════════════════════════════════════
-function EncounterDetail({ enc, onClose }) {
+function EncounterDetail({ enc, onClose, engine }) {
   const [mounted, setMounted] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 40); return () => clearTimeout(t); }, []);
@@ -967,15 +968,27 @@ function EncounterDetail({ enc, onClose }) {
           className="dp-press"
           style={{
             width:"100%",
-            background:`linear-gradient(135deg,${T.teal} 0%,#0DBBAF 100%)`,
-            border:"none",borderRadius:T.r99,padding:"15px 28px",
-            color:"white",fontSize:15,fontWeight:700,
+            background: engine?.hasJoined(enc.id)
+              ? "rgba(15,17,23,0.07)"
+              : `linear-gradient(135deg,${T.teal} 0%,#0DBBAF 100%)`,
+            border: engine?.hasJoined(enc.id) ? `1px solid rgba(15,17,23,0.12)` : "none",
+            borderRadius:T.r99,padding:"15px 28px",
+            color: engine?.hasJoined(enc.id) ? "rgba(15,17,23,0.55)" : "white",
+            fontSize:15,fontWeight:700,
             cursor:"pointer",touchAction:"manipulation",
-            boxShadow:`${T.tealGlow},0 4px 24px rgba(0,0,0,0.12)`,
+            boxShadow: engine?.hasJoined(enc.id) ? "none" : `${T.tealGlow},0 4px 24px rgba(0,0,0,0.12)`,
             fontFamily:"inherit",
+            transition:"all .25s ease",
+          }}
+          onClick={() => {
+            if (engine?.hasJoined(enc.id)) {
+              engine?.leaveEncounter(enc.id);
+            } else {
+              engine?.joinEncounter(enc.id, enc);
+            }
           }}
         >
-          ✦ Ich bin dabei — {enc.date}
+          {engine?.hasJoined(enc.id) ? "✓ Du bist dabei" : `✦ Ich bin dabei — ${enc.date}`}
         </button>
       </div>
     </div>
@@ -990,6 +1003,7 @@ export default function DiscoverPage({ onView, onMap }) {
   const [searchQ, setSearchQ] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedEncounter, setSelectedEncounter] = useState(null);
+  const engine = useConnectionEngine();
 
   // Data state
   const [people, setPeople]       = useState([]);
@@ -1141,6 +1155,7 @@ export default function DiscoverPage({ onView, onMap }) {
         <EncounterDetail
           enc={selectedEncounter}
           onClose={() => setSelectedEncounter(null)}
+          engine={engine}
         />
       )}
     </div>
