@@ -1,12 +1,11 @@
-// src/feed/cards/BaseFeedCard.jsx — Phase 3C+3D Premium Polish
-// ProfileQuickPreview on avatar tap · PresenceDot · Human activity signals
+// src/feed/cards/BaseFeedCard.jsx — Phase 4D
+// Avatar tap → direkt vollständiges Profil öffnen (kein QuickPreview mehr)
 // ══════════════════════════════════════════════════════════════
 // Double-tap like · Heart burst · Optimistic reactions
 // Shimmer skeleton · Lazy image loading · Scale press states
 // GPU-accelerated animations via transform
 // ══════════════════════════════════════════════════════════════
 import React, { useState, useRef, useCallback, memo } from "react";
-import ProfileQuickPreview from "../../components/ProfileQuickPreview.jsx";
 import { PresenceDot, fmtPresence } from "../../lib/usePresence.jsx";
 import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 
@@ -121,16 +120,12 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
   const ver    = (author && author.verified) || false;
   const uid    = (author && author.id)       || null;
   const [pressed, setPressed] = useState(false);
-  const [pqpRect, setPqpRect] = useState(null);
 
   return (
     <div style={{ display:"flex",alignItems:"center",gap:T.gap,padding:T.p+"px "+T.p+"px 0" }}>
+      {/* Avatar → direkt vollständiges Profil öffnen */}
       <button
-        onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          if (uid) setPqpRect(rect);
-          else onProfile?.();
-        }}
+        onClick={() => onProfile?.()}
         onTouchStart={() => setPressed(true)}
         onTouchEnd={() => setPressed(false)}
         onMouseDown={() => setPressed(true)}
@@ -139,7 +134,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
           background:"none",border:"none",padding:0,cursor:"pointer",flexShrink:0,
           position:"relative",
           transform: pressed ? "scale(0.92)" : "scale(1)",
-          transition: "transform 0.12s ease",
+          transition: "transform 0.15s ease",
           willChange: "transform",
           touchAction: "manipulation",
         }}
@@ -151,15 +146,6 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
           </div>
         )}
       </button>
-      {pqpRect && uid && (
-        <ProfileQuickPreview
-          userId={uid}
-          anchorRect={pqpRect}
-          onClose={() => setPqpRect(null)}
-          onMessage={() => setPqpRect(null)}
-          onFullProfile={() => { setPqpRect(null); onProfile?.(); }}
-        />
-      )}
       <div style={{ flex:1,minWidth:0 }}>
         <div style={{ display:"flex",alignItems:"center",gap:5 }}>
           <span style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,

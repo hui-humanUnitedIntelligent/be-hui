@@ -4,13 +4,12 @@
 // onProfilePress / onStoryClick / onAddStory all handled.
 // Crash → SectionBoundary catches it → feed still renders.
 // ═══════════════════════════════════════════════════════════════
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase }  from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import StoryViewer   from "./StoryViewer.jsx";
 import StoryCreator  from "./StoryCreator.jsx";
 import { usePresenceMap, PresenceDot } from "../lib/usePresence.jsx";
-import ProfileQuickPreview from "../components/ProfileQuickPreview.jsx";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -40,7 +39,6 @@ export default function FeedStoriesBar(props) {
   const { user } = useAuth();
 
   const [groups,      setGroups]      = useState([]);
-  const [pqpTarget,   setPqpTarget]   = useState(null);   // { userId, rect }
   const [loading,     setLoading]     = useState(true);
   const [seen,        setSeen]        = useState(() => {
     try { return new Set(JSON.parse(sessionStorage.getItem("hui_seen_v4") || "[]")); } catch { return new Set(); }
@@ -145,7 +143,6 @@ export default function FeedStoriesBar(props) {
               isSeen={seen.has(g.userId) && !g.isYou}
               delay={idx * 0.055}
               onTap={() => tapGroup(idx)}
-              onLongPress={(rect) => !g.isYou && setPqpTarget({ userId: g.userId, rect })}
               presenceStatus={presenceMap[g.userId]?.status}
             />
           ))}
@@ -169,23 +166,14 @@ export default function FeedStoriesBar(props) {
         />
       )}
 
-      {pqpTarget && (
-        <ProfileQuickPreview
-          userId={pqpTarget.userId}
-          anchorRect={pqpTarget.rect}
-          onClose={() => setPqpTarget(null)}
-          onMessage={(uid) => { setPqpTarget(null); onProfilePress?.(uid); }}
-          onFullProfile={(uid) => { setPqpTarget(null); onProfilePress?.(uid); }}
-        />
-      )}
+
     </>
   );
 }
 
 // ── Bubble ───────────────────────────────────────────────────────
-function Bubble({ group, isSeen, delay, onTap, onLongPress, presenceStatus }) {
+function Bubble({ group, isSeen, delay, onTap, presenceStatus }) {
   const [pressed, setPressed] = useState(false);
-  const longRef = useRef(null);
   const { name, avatar, isLive, isYou, stories } = group;
   const isEmpty  = stories.length === 0;
   const hasNew   = !isSeen && !isEmpty;
@@ -206,21 +194,10 @@ function Bubble({ group, isSeen, delay, onTap, onLongPress, presenceStatus }) {
   return (
     <button
       onClick={onTap}
-      onTouchStart={(e) => {
-        setPressed(true);
-        const rect = e.currentTarget.getBoundingClientRect();
-        longRef.current = setTimeout(() => onLongPress?.(rect), 380);
-      }}
-      onTouchEnd={(e) => {
-        setPressed(false);
-        clearTimeout(longRef.current);
-      }}
-      onMouseDown={(e) => {
-        setPressed(true);
-        const rect = e.currentTarget.getBoundingClientRect();
-        longRef.current = setTimeout(() => onLongPress?.(rect), 380);
-      }}
-      onMouseUp={() => { setPressed(false); clearTimeout(longRef.current); }}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
       style={{
         background:"none", border:"none", padding:0,
         cursor:"pointer", touchAction:"manipulation",
