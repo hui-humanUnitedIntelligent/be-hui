@@ -83,9 +83,16 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
         talent: authorObj.talent, _raw: authorObj }
     : rawItem;
 
+  // Guard: profileData nur übergeben wenn eine echte id vorhanden ist
+  // Leere id ("") → kein Profil-Klick möglich (kein Crash)
+  const hasValidProfile = !!(authorObj?.id && typeof authorObj.id === "string" && authorObj.id.trim().length > 0);
+  const safeProfileCall = hasValidProfile
+    ? () => onProfile?.(profileData)
+    : null; // null = Button disabled, kein Crash
+
   const shared = {
     item,
-    onProfile:  () => onProfile?.(profileData),
+    onProfile: safeProfileCall,
     onReaction: (t) => onReaction?.(t),
     onShare:    () => onShare?.(rawItem),
   };

@@ -26,9 +26,11 @@ export function useWirkerProfile(rawWirker) {
   const [error,    setError]    = useState(null);
 
   // ── KRITISCH: Stabile primitive IDs als deps — kein Objekt-Loop ──
-  const stableId       = rawWirker?.user_id || rawWirker?.id       || null;
-  const stableUsername = rawWirker?.username                        || null;
-  const stableName     = rawWirker?.name                            || null;
+  // Stabilisierte primitive IDs — leere Strings als null behandeln
+  const _rawId = rawWirker?.user_id || rawWirker?.id || null;
+  const stableId       = (_rawId && typeof _rawId === "string" && _rawId.trim().length > 0) ? _rawId : null;
+  const stableUsername = rawWirker?.username || null;
+  const stableName     = rawWirker?.name     || null;
 
   // rawWirker Ref für den loadData-Callback (ohne Neu-Trigger)
   const rawRef = useRef(rawWirker);

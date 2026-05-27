@@ -32,9 +32,9 @@ function extractAuthor(raw){
     // Phase 4C: Membership fields für Feed-Badges
     membershipType:   safeStr(p.membership_type||p.role)||"base",
     membershipActive: safeBool(p.membership_active),
-    isTalent: (p.membership_type==="talent"&&p.membership_active===true)
-              ||p.is_member===true||p.role==="talent"||p.role==="wirker"
-              ||p.has_talent_profile===true||false,
+    membershipActive: !!(p.membership_active),
+    isTalent: (p.membership_type==="talent" && p.membership_active===true)
+              || p.is_wirker===true || p.has_talent_profile===true || false,
   };
 }
 

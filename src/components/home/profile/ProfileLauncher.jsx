@@ -89,6 +89,13 @@ export default function ProfileLauncher() {
     return null;
   }
 
+  // Zusätzlich: wenn die normalisierte id leer ist → kein Profil ladbar
+  const resolvedId = safeProfile.id;
+  if (!resolvedId || (typeof resolvedId === "string" && resolvedId.trim() === "")) {
+    console.warn("[ProfileLauncher] Profil-ID leer — kein Render möglich", safeProfile);
+    return null;
+  }
+
   const isOwnerView = rawForProfile._isOwnerView === true;
 
   const handleClose = () => setShowWirker(null);

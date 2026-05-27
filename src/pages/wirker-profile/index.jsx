@@ -530,7 +530,7 @@ function ExpCard({ exp, onBook }) {
       boxShadow: pressed ? Sh.xs : Sh.sm,
       border:"1px solid rgba(0,0,0,.05)",
       cursor:"pointer",touchAction:"manipulation",
-      transform:pressed?"scale(.97)":"scale(1)",
+      opacity:pressed?0.78:1,
       transition:"transform .15s ease,box-shadow .15s ease",
     }}>
       <div style={{height:120,overflow:"hidden",position:"relative",background:C.creamWarm}}>
@@ -755,7 +755,7 @@ function MomentCard({ m }) {
       flexShrink:0,width:145,height:190,
       borderRadius:R.md,overflow:"hidden",position:"relative",
       cursor:"pointer",touchAction:"manipulation",background:C.creamDeep,
-      transform:pressed?"scale(.97)":"scale(1)",
+      opacity:pressed?0.78:1,
       transition:"transform .15s ease",
     }}>
       <img src={m.img} alt=""
@@ -942,7 +942,7 @@ function FloatingBookCTA({ onBook, profileName }) {
         cursor:"pointer",touchAction:"manipulation",
         boxShadow:`0 6px 22px ${C.tealGlow}`,
         transition:"background .15s ease,transform .15s ease",
-        transform:pressed?"scale(.98)":"scale(1)",
+        opacity:pressed?0.82:1,
       }}>
         Erlebnis mit {profileName || "Creator"} buchen
       </button>
@@ -1025,6 +1025,36 @@ export default function WirkerProfilePage({ wirker: rawWirker, onClose, onBook, 
   const handleSupport = React.useCallback(() => {
     setShowSupport(true);
   }, []);
+
+  // Guard: WirkerProfilePage braucht eine gültige ID
+  // Ohne ID: Supabase-Query liefert nichts → Crash in VisitorHero
+  const wirkerHasId = !!(rawWirker?.id?.trim?.() || rawWirker?.user_id?.trim?.());
+  if (!wirkerHasId && !rawWirker?._isOwnerView) {
+    console.warn("[WirkerProfilePage] kein id — render abgebrochen", rawWirker);
+    return (
+      <div style={{
+        position:"fixed",inset:0,zIndex:_zIndex,
+        background:C.cream,display:"flex",
+        alignItems:"center",justifyContent:"center",
+        fontFamily:"-apple-system,sans-serif",
+      }}>
+        <div style={{textAlign:"center",padding:32}}>
+          <div style={{fontSize:32,marginBottom:12}}>✦</div>
+          <div style={{fontSize:15,fontWeight:600,color:"#1A1A2E",marginBottom:6}}>
+            Profil nicht gefunden
+          </div>
+          <div style={{fontSize:13,color:"rgba(26,26,46,0.5)",marginBottom:20}}>
+            Dieser Creator ist gerade nicht erreichbar.
+          </div>
+          <button onClick={handleClose} style={{
+            padding:"10px 22px",borderRadius:14,
+            background:"#16D7C5",color:"white",
+            border:"none",fontWeight:700,fontSize:13,cursor:"pointer",
+          }}>Zurück</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{

@@ -138,7 +138,7 @@ async function fetchFeedPage(userId = null, cursor = null) {
     try {
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id,display_name,username,avatar_url,talent,location_label")
+        .select("id,display_name,username,avatar_url,talent,location_label,membership_type,membership_active,is_verified")
         .in("id", userIds);
       console.log("[HUI_STREAM_PROFILES]", profileRows?.length ?? 0);
       if (profileRows) {
