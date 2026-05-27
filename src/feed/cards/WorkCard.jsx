@@ -43,11 +43,9 @@ const CATEGORY_COLORS = {
 
 const CSS = `
   @keyframes work-in {
-    from { opacity:0; transform:scale(.985); }
-    to   { opacity:1; transform:scale(1); }
+    from { opacity:0; }
+    to   { opacity:1; }
   }
-  @keyframes work-hover-in  { to   { transform:scale(1.012); } }
-  @keyframes work-hover-out { from { transform:scale(1.012); } }
   .work-card {
     background: #FFFFFF;
     border-radius: 20px;
@@ -57,11 +55,11 @@ const CSS = `
     animation: work-in 0.44s cubic-bezier(0.22,1,0.36,1) both;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.04),
                 inset 0 1px 0 rgba(255,255,255,1);
-    transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), box-shadow 0.38s ease;
+    transition: box-shadow 220ms ease, border-color 220ms ease;
   }
   .work-card:active {
-    transform: scale(0.980) translateY(2px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05), 0 2px 10px rgba(0,0,0,0.04);
+    opacity: 0.92;
   }
   .work-tap {
     cursor:pointer; -webkit-tap-highlight-color:transparent;

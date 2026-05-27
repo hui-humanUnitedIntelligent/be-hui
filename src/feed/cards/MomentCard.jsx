@@ -48,10 +48,9 @@ const CSS = `
     position: relative;
     overflow: hidden;
     animation: moment-in 0.48s cubic-bezier(0.22,1,0.36,1) both;
-    transition: transform 0.32s ease, box-shadow 0.32s ease, opacity 0.18s ease;
+    transition: box-shadow 220ms ease, border-color 220ms ease, opacity 160ms ease;
   }
   .moment-card:active {
-    transform: scale(0.976) translateY(1px);
     opacity: 0.88;
   }
   .moment-tap {

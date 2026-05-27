@@ -44,8 +44,8 @@ function EventCard({ event, onPress, delay }) {
       style={{
         background: "none", border: "none", padding: 0, cursor: "pointer",
         flexShrink: 0, width: 148,
-        transform: pressed ? "scale(0.95)" : "scale(1)",
-        transition: "transform 0.15s ease",
+        opacity: pressed ? 0.85 : 1,
+        transition: "opacity 0.15s ease",
         touchAction: "manipulation",
       }}
     >

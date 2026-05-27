@@ -33,7 +33,7 @@ const E = {
 
 const CSS = `
   @keyframes exp-reveal {
-    from { opacity:0; transform:translateY(16px) scale(.98); }
+    from { opacity:0; transform:translateY(10px); }
     to   { opacity:1; transform:none; }
   }
   @keyframes exp-glow {
@@ -49,22 +49,22 @@ const CSS = `
     animation: exp-reveal 0.52s cubic-bezier(0.22,1,0.36,1) both;
     box-shadow: 0 6px 28px rgba(255,138,107,0.10), 0 2px 8px rgba(0,0,0,0.05),
                 inset 0 1px 0 rgba(255,255,255,0.90);
-    transition: transform 0.42s cubic-bezier(0.22,1,0.36,1), box-shadow 0.42s ease;
+    transition: box-shadow 220ms ease, border-color 220ms ease;
   }
   .exp-card:active {
-    transform: scale(0.984) translateY(1.5px);
-    box-shadow: 0 10px 40px rgba(255,138,107,0.14), 0 3px 10px rgba(0,0,0,0.07);
+    box-shadow: 0 4px 18px rgba(255,138,107,0.08), 0 1px 5px rgba(0,0,0,0.04);
+    opacity: 0.92;
   }
   .exp-tap {
     cursor:pointer; -webkit-tap-highlight-color:transparent;
     background:none; border:none; padding:0;
-    transition: transform .14s, opacity .14s;
+    transition: opacity .16s ease;
   }
-  .exp-tap:active { transform:scale(.93); opacity:.72; }
+  .exp-tap:active { opacity:.70; }
   .exp-cta-btn {
-    transition: transform .15s ease, box-shadow .15s ease;
+    transition: box-shadow .18s ease, opacity .16s ease;
   }
-  .exp-cta-btn:active { transform:scale(.95); }
+  .exp-cta-btn:active { opacity:.88; }
 `;
 
 function useExpCreator(item) {

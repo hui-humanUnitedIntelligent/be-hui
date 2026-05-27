@@ -43,12 +43,8 @@ const CARD_CSS = `
   from { opacity:0; transform:translateY(8px); }
   to   { opacity:1; transform:translateY(0); }
 }
-@keyframes huiMediaZoom {
-  from { transform:scale(1); }
-  to   { transform:scale(1.03); }
-}
 .hui-card-img { animation: huiFadeUp 0.28s ease both; }
-.hui-card-img:hover { animation: huiMediaZoom 0.4s ease forwards; }
+/* HUI: Kein Media-Zoom — ruhiger, hochwertiger Feed */
 `;
 let _cardCSS = false;
 function injectCardCSS() {
@@ -133,9 +129,8 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
         style={{
           background:"none",border:"none",padding:0,cursor:"pointer",flexShrink:0,
           position:"relative",
-          transform: pressed ? "scale(0.92)" : "scale(1)",
-          transition: "transform 0.15s ease",
-          willChange: "transform",
+          opacity: pressed ? 0.72 : 1,
+          transition: "opacity 0.15s ease",
           touchAction: "manipulation",
         }}
       >
