@@ -1,22 +1,23 @@
-// navigation/navConfig.js — HUI Bottom Navigation Config
-// Alle Items über createNavItem Factory — typsicher, normalisiert, crash-proof
+// navigation/navConfig.js — HUI Navigation v2
+// NEW TAB STRUCTURE: Home / Discover / CREATE / Community / Creator
+// "Creator" replaces "Profil" — this is YOUR center, not just your profile
 
 import { createNavItem } from "../../../lib/factories/createNavItem.js";
 import { filterValidPages } from "../../../lib/factories/createTabPage.js";
 
 export const NAV_ITEMS = filterValidPages([
-  createNavItem({ key: "feed",     label: "Home"       }),
-  createNavItem({ key: "impact",   label: "Impact"     }),
-  createNavItem({ key: "orb",      label: "",   isOrb: true }),   // Orb-Slot
-  createNavItem({ key: "discover", label: "Entdecken"  }),
-  createNavItem({ key: "profile",  label: "Profil"     }),
+  createNavItem({ key: "feed",      label: "Home"      }),
+  createNavItem({ key: "discover",  label: "Entdecken" }),
+  createNavItem({ key: "orb",       label: "",  isOrb: true }),  // Create orb
+  createNavItem({ key: "community", label: "Community" }),
+  createNavItem({ key: "creator",   label: "Creator"   }),       // Creator Dashboard (not "Profil")
 ]);
 
-// Tabs die im Keep-Alive Modus bleiben (nie unmounten)
-export const KEEP_ALIVE_TABS = ["feed", "discover", "impact", "favorites"];
+// Tabs die im Keep-Alive Modus bleiben
+export const KEEP_ALIVE_TABS = ["feed", "discover", "impact", "community"];
 
-// Tabs die "echte" Seiten sind (nicht Overlays)
-export const PAGE_TABS = ["feed", "discover", "impact", "favorites"];
+// Tabs die echte Seiten sind
+export const PAGE_TABS = ["feed", "discover", "community"];
 
-// "profile" ist kein echter Tab — öffnet Overlay
-export const OVERLAY_TABS = ["profile"];
+// Overlay-Tabs (öffnen eigene Systeme, kein Tab-Switch)
+export const OVERLAY_TABS = ["creator"];

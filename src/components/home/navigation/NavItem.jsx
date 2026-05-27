@@ -37,6 +37,27 @@ function NavIcon({ k, active }) {
       <circle cx="12" cy="12" r="1.5" fill={active?"white":"rgba(80,80,80,0.3)"} stroke={col} strokeWidth="0.8"/>
     </svg>
   );
+  if (k === "community") return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="8.5" cy="9" r="3" stroke={col} strokeWidth={sw} fill={active?`${C.teal}15`:"none"}/>
+      <circle cx="15.5" cy="9" r="3" stroke={active?C.teal:col} strokeWidth={sw-0.2} fill={active?`${C.teal}10`:"none"}/>
+      <path d="M2 21 Q2.5 16 8.5 16 Q11.5 16 13 17.5" stroke={col} strokeWidth={sw} strokeLinecap="round" fill={active?`${C.teal}10`:"none"}/>
+      <path d="M13 21 Q13.5 16 15.5 16 Q19.5 16 22 21" stroke={active?C.coral:col} strokeWidth={sw-0.2} strokeLinecap="round" fill="none"/>
+      {active && <circle cx="12" cy="20" r="1.2" fill={C.coral} opacity="0.7"/>}
+    </svg>
+  );
+  if (k === "creator") return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8.5" r="4"
+        fill={active?`${C.teal}20`:"rgba(80,80,80,0.07)"} stroke={col} strokeWidth={sw}/>
+      {active && <circle cx="12" cy="8.5" r="5.5" stroke={C.teal} strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5"/>}
+      <path d="M5 21 Q5.5 15.5 12 15.5 Q18.5 15.5 19 21"
+        stroke={col} strokeWidth={sw} strokeLinecap="round"
+        fill={active?`${C.teal}12`:"none"}/>
+      <path d="M15 5 L16.5 8 L20 8.5 L17.5 11 L18 14.5 L15 13 L12 14.5 L12.5 11 L10 8.5 L13.5 8 Z"
+        stroke={active?C.coral:col} strokeWidth="0.8" fill={active?`${C.coral}20`:"none"}/>
+    </svg>
+  );
   if (k === "profile") return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="9" r="4"

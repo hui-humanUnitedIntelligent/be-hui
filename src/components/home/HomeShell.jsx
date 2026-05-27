@@ -5,6 +5,7 @@ import React, {
   useState, useCallback, useEffect, useMemo, useRef, createContext, useContext,
 } from "react";
 import { useAuth }        from "../../lib/AuthContext";
+import { NavigatorProvider, SCREENS, useNavigateTo } from "../../core/hui.navigator.jsx";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useNotifCount }  from "../../lib/AppStateContext";
 import {
@@ -272,6 +273,16 @@ export default function HomeShell({ children }) {
 
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
+    // Creator tab → handled by OPEN_OWN_PROFILE action (overlay, no tab switch)
+    if (key === "creator") {
+      openCreatorDashboard();
+      return;
+    }
+    // Community → impact tab (reuse impact screen for now)
+    if (key === "community") {
+      _setTab("community");
+      return;
+    }
     if (key === "profile") {
       openOwnProfile();
       return;
@@ -327,6 +338,7 @@ export default function HomeShell({ children }) {
   return (
     <>
       <style>{WORLD_CSS}</style>
+      <NavigatorProvider onTabChange={_setTab}>
       <FlowCtx.Provider value={flowStore}>
       <HomeCtx.Provider value={ctx}>
         <HuiActionProvider>
@@ -334,6 +346,7 @@ export default function HomeShell({ children }) {
         </HuiActionProvider>
       </HomeCtx.Provider>
     </FlowCtx.Provider>
+      </NavigatorProvider>
     </>
   );
 }

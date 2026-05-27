@@ -101,7 +101,6 @@ function MsgBtn({ onChat }) {
       display:"flex",alignItems:"center",gap:7,
       background: pressed ? "rgba(255,255,255,.18)" : "rgba(255,255,255,.10)",
       border:"1.5px solid rgba(255,255,255,.32)",
-      background:"rgba(6,14,14,0.85)",
       borderRadius:99,padding:"10px 18px",
       color:"white",fontSize:13,fontWeight:600,
       cursor:"pointer",touchAction:"manipulation",
@@ -120,7 +119,6 @@ function FollowBtn({ followed, onFollow }) {
         ? "rgba(255,255,255,.18)"
         : pressed ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.08)",
       border:"1.5px solid rgba(255,255,255,.28)",
-      background:"rgba(6,14,14,0.85)",
       borderRadius:99,padding:"10px 18px",
       color:"white",fontSize:13,fontWeight:600,
       cursor:"pointer",touchAction:"manipulation",
@@ -138,7 +136,6 @@ function SupportBtn({ onSupport }) {
       display:"flex",alignItems:"center",gap:7,
       background: pressed ? "rgba(22,215,197,0.30)" : "rgba(22,215,197,0.18)",
       border:"1.5px solid rgba(22,215,197,0.50)",
-      background:"rgba(6,14,14,0.85)",
       borderRadius:99,padding:"10px 18px",
       color:"white",fontSize:13,fontWeight:700,
       cursor:"pointer",touchAction:"manipulation",
@@ -218,7 +215,6 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
       }}>
         <button onClick={onClose} style={{
           background:"rgba(255,255,255,.10)",border:"1px solid rgba(255,255,255,.18)",
-          background:"rgba(6,14,14,0.85)",borderRadius:99,
           width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",
           cursor:"pointer",color:"white",fontSize:17,touchAction:"manipulation",
         }}>←</button>
@@ -226,7 +222,6 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
           {["⬆️","···"].map((ic,i)=>(
             <button key={i} style={{
               background:"rgba(255,255,255,.10)",border:"1px solid rgba(255,255,255,.18)",
-              background:"rgba(6,14,14,0.85)",borderRadius:99,
               width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",
               cursor:"pointer",color:"white",fontSize:13,touchAction:"manipulation",
             }}>{ic}</button>
@@ -252,7 +247,6 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
               <div style={{
                 background:"rgba(244,115,85,.22)",border:"1px solid rgba(244,115,85,.45)",
-                background:"rgba(6,14,14,0.80)",borderRadius:99,
                 padding:"3px 10px",color:C.coralLight,fontSize:9,fontWeight:800,letterSpacing:".05em",
               }}>✦ CREATOR</div>
               <div style={{display:"flex",alignItems:"center",gap:5,color:"rgba(255,255,255,.75)",fontSize:10,fontWeight:600}}>
@@ -313,7 +307,6 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
               ) : tags.map((t,i)=>(
                 <span key={i} style={{
                   background:"rgba(255,255,255,.09)",border:"1px solid rgba(255,255,255,.17)",
-                  background:"rgba(6,14,14,0.70)",borderRadius:99,
                   padding:"4px 11px",color:"rgba(255,255,255,.75)",
                   fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:5,
                 }}><span style={{fontSize:11}}>{t.icon}</span>{t.label}</span>
@@ -333,7 +326,6 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
           <div style={{
             flexShrink:0,width:170,
             background:"rgba(10,22,22,.85)",
-            background:"rgba(6,14,14,0.85)",
             border:"1px solid rgba(255,255,255,.12)",
             borderRadius:R.lg,padding:"14px",
             boxShadow:"0 8px 32px rgba(0,0,0,.45)",

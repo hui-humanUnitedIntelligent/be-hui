@@ -56,13 +56,12 @@ export default function BottomNav({
   const actions  = useHuiActions();
 
   function handleTabPress(key) {
-    // Route profile tab → OPEN_OWN_PROFILE, others → GO_TO_TAB
-    if (key === "profile") {
+    // Creator tab → opens Creator Dashboard (separate system, not tab switch)
+    if (key === "creator") {
       actions[A.OPEN_OWN_PROFILE]?.();
-    } else {
-      actions[A.GO_TO_TAB]?.(key);
+      return; // no tab switch — creator dashboard is an overlay
     }
-    // Always call prop for backward compat (Home.jsx still syncs tab state)
+    actions[A.GO_TO_TAB]?.(key);
     if (typeof onTab === "function") onTab(key);
   }
 

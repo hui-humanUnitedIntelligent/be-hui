@@ -105,7 +105,6 @@ function HomeInner() {
     isMember,
     currentUser,
     authProfile,
-    setShowWirker,
     openProfileById,
     showChat,          setShowChat,
     chatRecipient,     setChatRecipient,   // Phase 23: direkter Chat-Einstieg
@@ -214,13 +213,12 @@ function HomeInner() {
 
   /* onTab: routed through Action Engine — handleTab still syncs HomeShell state */
   function onTabPress(key) {
-    // Action Engine handles logging + future side-effects
-    // handleTab remains the source of truth for tab state in HomeShell
-    if (key === "profile") {
-      openOwnProfile();   // handled by Action Engine in BottomNav, kept here as fallback
-    } else {
-      handleTab(key);     // HomeShell state sync (non-negotiable)
+    // Creator tab → opens Creator Dashboard overlay
+    if (key === "creator" || key === "profile") {
+      openOwnProfile();
+      return;
     }
+    handleTab(key);
   }
 
   return (
@@ -310,19 +308,15 @@ function HomeInner() {
                     openProfileById(userId);
                   }}
                   onBook={(item) => {
-                    // Book = Profil öffnen: author extrahieren wenn Feed-Item
+                    // Book → public profile via ID
                     const p = (item?.type && item?.author) ? item.author : item;
-                    setShowWirker({ id: p?.id || p?.user_id, user_id: p?.id || p?.user_id,
-                      display_name: p?.name || p?.display_name, avatar_url: p?.avatar || p?.avatar_url,
-                      talent: p?.talent, username: p?.username, _raw: p });
+                    const id = p?.id || p?.user_id;
+                    if (id) openProfileById(id);
                   }}
                   onShare={() => setShowTeilen(true)}
                   onEventPress={(ev) => {
-                    // Event-Objekt: creator_id oder author extrahieren
                     const creatorId = ev?.creator_id || ev?.author?.id || ev?.user_id;
-                    if (creatorId) setShowWirker({ id: creatorId, user_id: creatorId,
-                      display_name: ev?.author?.name || ev?.creator_name,
-                      avatar_url: ev?.author?.avatar || ev?.creator_avatar, _raw: ev });
+                    if (creatorId) openProfileById(creatorId);
                   }}
                   onMoreEvents={() => handleTab("discover")}
                 />
@@ -349,7 +343,7 @@ function HomeInner() {
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
-                <DiscoverPage onView={w => setShowWirker(w)} onMap={() => setShowMap(true)}/>
+                <DiscoverPage onView={w => { const id = w?.id || w?.user_id; if (id) openProfileById(id); }} onMap={() => setShowMap(true)}/>
               </SafeRender>
             </Suspense>
           </div>
@@ -380,7 +374,7 @@ function HomeInner() {
         </div>}>
               <FavoritesPage
                 currentUser={currentUser}
-                onView={w => setShowWirker(w)}
+                onView={w => { const id=w?.id||w?.user_id; if(id) openProfileById(id); }}
                 onImpact={() => handleTab("impact")}
                 onDiscover={() => handleTab("discover")}
               />
@@ -513,7 +507,8 @@ function HomeInner() {
               const returnProfile = flow.getReturnProfile();
               if (returnProfile) {
                 flow.clearReturnProfile();
-                setTimeout(() => setShowWirker(returnProfile), 80);
+                // Flow-Return: nach Chat → Profil wieder öffnen via ID
+              const retId = returnProfile?.id || returnProfile?.user_id; if(retId) { setTimeout(() => openProfileById(retId), 80); }
               }
             }}
             initialRecipient={chatRecipient}
@@ -544,7 +539,7 @@ function HomeInner() {
         {showMap && SAFE_MODE.liveMap && (
           <SafeRender flag="liveMap" label="LiveMapPage">
             <LiveMapPage
-              onView={w => { setShowWirker(w); setShowMap(false); }}
+              onView={w => { const id=w?.id||w?.user_id; if(id) openProfileById(id); setShowMap(false); }}
               onMatch={() => { setShowMatch(true); setShowMap(false); }}
               onClose={() => setShowMap(false)}
             />
@@ -555,7 +550,7 @@ function HomeInner() {
             <HuiMatchOverlay
               onClose={() => setShowMatch(false)}
               onMoodSelect={(m) => { setActiveMood(m); setShowMatch(false); }}
-              onView={w => { setShowWirker(w); setShowMatch(false); }}
+              onView={w => { const id=w?.id||w?.user_id; if(id) openProfileById(id); setShowMatch(false); }}
             />
           </SafeRender>
         )}
@@ -689,7 +684,7 @@ function HomeInner() {
                     return;
                   }
                   if (target.type === "profile" && target.userId) {
-                    if (target?.userId) setShowWirker({ id: target.userId, user_id: target.userId });
+                    if (target?.userId) openProfileById(target.userId);
                     return;
                   }
                   if (target.type === "impact") {
