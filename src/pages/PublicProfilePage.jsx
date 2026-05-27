@@ -629,29 +629,124 @@ function ProfileHero({ profile, loading, onClose, onFollow, followed, onChat, on
 
 
 // ══════════════════════════════════════════════════════════════
-// 2. IMPACT ENERGY — Live stats bar
+// 2. PRESENCE STRIP — Soft human atmosphere, no metrics
 // ══════════════════════════════════════════════════════════════
-function ImpactEnergy({ profile, loading }) {
-  const stats = useMemo(() => [
-    { emoji:"💚", value:fmt(n(profile?.impact_eur,247)), label:"€ Wirkung", sub:"generiert" },
-    { emoji:"👥", value:fmt(n(profile?.followers,83)),   label:"Verbunden", sub:"Menschen" },
-    { emoji:"✦",  value:fmt(n(profile?.bookings,12)),    label:"Begegnungen",sub:"erlebt" },
-  ], [profile]);
+
+// Derive presence signals from profile data — no numbers, only character
+function derivePresence(profile) {
+  const items = [];
+  const interests = Array.isArray(profile?.interests) ? profile.interests : [];
+  const role      = profile?.role || "";
+  const loc       = profile?.location || "";
+
+  // From interests / values
+  const interestMap = {
+    "Natur":        { icon:"🌿", text:"organisiert Naturbegegnungen" },
+    "Tiere":        { icon:"🐾", text:"unterstützt Tierprojekte" },
+    "Musik":        { icon:"🎵", text:"lebt in Klang und Rhythmus" },
+    "Kreativität":  { icon:"🎨", text:"liebt kreative Räume" },
+    "Achtsamkeit":  { icon:"🧘", text:"teilt ruhige Momente" },
+    "Gemeinschaft": { icon:"👥", text:"verbindet Menschen" },
+    "Heilung":      { icon:"🌸", text:"schafft heilsame Räume" },
+    "Kunst":        { icon:"🖼️", text:"erschafft sichtbare Schönheit" },
+    "Sport":        { icon:"⚡", text:"bewegt sich mit Freude" },
+    "Reisen":       { icon:"🌍", text:"erkundet neue Horizonte" },
+  };
+
+  interests.slice(0, 3).forEach(it => {
+    const key = typeof it === "string" ? it : (it?.name || "");
+    const mapped = interestMap[key];
+    if (mapped) items.push(mapped);
+  });
+
+  // Role-based signal
+  if (role === "talent" || role === "wirker" || profile?.has_talent_profile) {
+    items.push({ icon:"✨", text:"aktiv in der Community" });
+  }
+
+  // Location signal
+  if (loc) {
+    items.push({ icon:"🌎", text:`engagiert sich in ${loc.split(",")[0]}` });
+  }
+
+  // Openness — always present as a warm closing signal
+  items.push({ icon:"☕", text:"offen für Begegnungen" });
+
+  // Unique, max 5
+  const seen = new Set();
+  return items.filter(it => {
+    if (seen.has(it.text)) return false;
+    seen.add(it.text);
+    return true;
+  }).slice(0, 5);
+}
+
+function PresencePill({ icon, text }) {
+  const [tapped, setTapped] = useState(false);
+  const handleTap = () => {
+    setTapped(true);
+    setTimeout(() => setTapped(false), 800);
+  };
+  return (
+    <button
+      className="ppp-press-light"
+      onClick={handleTap}
+      style={{
+        flexShrink: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 7,
+        padding: "9px 15px",
+        borderRadius: T.r99,
+        border: `1px solid ${tapped ? T.tealMid : T.border}`,
+        background: tapped
+          ? T.tealSoft
+          : "rgba(255,255,255,0.72)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        boxShadow: tapped
+          ? T.glowTeal
+          : "0 1px 6px rgba(15,17,23,0.06)",
+        cursor: "pointer",
+        touchAction: "manipulation",
+        fontFamily: "inherit",
+        transition: "all .25s cubic-bezier(.22,1,.36,1)",
+      }}
+    >
+      <span style={{ fontSize: 15, lineHeight: 1 }}>{icon}</span>
+      <span style={{
+        fontSize: 12.5,
+        fontWeight: 500,
+        color: tapped ? T.teal : T.inkSoft,
+        letterSpacing: "-0.005em",
+        whiteSpace: "nowrap",
+        transition: "color .25s ease",
+      }}>{text}</span>
+    </button>
+  );
+}
+
+function PresenceStrip({ profile }) {
+  const { ref, style } = useEntry(0);
+  const items = useMemo(() => derivePresence(profile), [profile]);
 
   return (
-    <div style={{ margin:`0 ${T.px}px`,borderRadius:T.r20,background:T.bgCard,border:`1px solid ${T.border}`,boxShadow:T.cardShadow,padding:"16px 0",display:"flex" }}>
-      {stats.map((st, i) => (
-        <div key={i} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",padding:"0 8px",borderRight:i<2?`1px solid ${T.border}`:"none" }}>
-          {loading ? (<><Sk w={40} h={40} r={99} sx={{marginBottom:8}}/><Sk w={48} h={20}/></>) : (
-            <>
-              <div style={{ fontSize:18,marginBottom:6 }}>{st.emoji}</div>
-              <div style={{ fontSize:20,fontWeight:800,color:T.ink,letterSpacing:"-0.04em",lineHeight:1,marginBottom:3 }}>{st.value}</div>
-              <div style={{ fontSize:10.5,fontWeight:700,color:T.inkSoft }}>{st.label}</div>
-              <div style={{ fontSize:9.5,color:T.inkFaint }}>{st.sub}</div>
-            </>
-          )}
-        </div>
-      ))}
+    <div ref={ref} style={{ ...style, width: "100%" }}>
+      <div style={{
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none",
+        display: "flex",
+        gap: 8,
+        padding: `6px ${T.px}px 10px`,
+      }}>
+        {items.map((it, i) => (
+          <PresencePill key={i} icon={it.icon} text={it.text} />
+        ))}
+        {/* Trailing spacer so last pill doesn't clip on iOS */}
+        <div style={{ flexShrink: 0, width: 8 }} />
+      </div>
+      <style>{`.ppp-scroll::-webkit-scrollbar{display:none}`}</style>
     </div>
   );
 }
@@ -1328,12 +1423,12 @@ export default function PublicProfilePage({ profileId, onClose }) {
           onSupport={()=>setShowSupport(true)}
         />
 
-        <Gap h={4}/>
+        <Gap h={12}/>
 
-        {/* 2. Impact stats */}
-        <ImpactEnergy profile={profile} loading={loading}/>
+        {/* 2. Presence strip — no metrics, only character */}
+        {!loading && <PresenceStrip profile={profile}/>}
 
-        <Gap h={4}/>
+        <Gap h={8}/>
 
         {/* 3. Quote */}
         {!loading && <HumanQuote profile={profile}/>}
