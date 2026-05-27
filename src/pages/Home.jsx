@@ -296,10 +296,32 @@ function HomeInner() {
                     else if (s) setActiveStory(s);
                   }}
                   onAddStory={() => setShowStoryComposer(true)}
-                  onProfile={(item) => setShowWirker(item)}
-                  onBook={(item)   => setShowWirker(item)}
+                  onProfile={(item) => {
+                    // item kann ein Feed-Item ODER ein Profile-Objekt sein
+                    // Wenn Feed-Item: author extrahieren, sonst direkt verwenden
+                    const profileData = (item?.author && item?.type)
+                      ? { id: item.author.id, user_id: item.author.id,
+                          display_name: item.author.name, avatar_url: item.author.avatar,
+                          username: item.author.username, talent: item.author.talent,
+                          is_verified: item.author.verified, _raw: item.author }
+                      : item;
+                    setShowWirker(profileData);
+                  }}
+                  onBook={(item) => {
+                    // Book = Profil öffnen: author extrahieren wenn Feed-Item
+                    const p = (item?.type && item?.author) ? item.author : item;
+                    setShowWirker({ id: p?.id || p?.user_id, user_id: p?.id || p?.user_id,
+                      display_name: p?.name || p?.display_name, avatar_url: p?.avatar || p?.avatar_url,
+                      talent: p?.talent, username: p?.username, _raw: p });
+                  }}
                   onShare={() => setShowTeilen(true)}
-                  onEventPress={(ev) => setShowWirker(ev)}
+                  onEventPress={(ev) => {
+                    // Event-Objekt: creator_id oder author extrahieren
+                    const creatorId = ev?.creator_id || ev?.author?.id || ev?.user_id;
+                    if (creatorId) setShowWirker({ id: creatorId, user_id: creatorId,
+                      display_name: ev?.author?.name || ev?.creator_name,
+                      avatar_url: ev?.author?.avatar || ev?.creator_avatar, _raw: ev });
+                  }}
                   onMoreEvents={() => handleTab("discover")}
                 />
               </SafeRender>
@@ -665,7 +687,7 @@ function HomeInner() {
                     return;
                   }
                   if (target.type === "profile" && target.userId) {
-                    setShowWirker({ id: target.userId, user_id: target.userId });
+                    if (target?.userId) setShowWirker({ id: target.userId, user_id: target.userId });
                     return;
                   }
                   if (target.type === "impact") {

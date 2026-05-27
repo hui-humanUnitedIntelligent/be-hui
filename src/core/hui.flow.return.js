@@ -50,7 +50,7 @@ function ChatToProfile(flow, shell) {
       logReturn(S.CHAT, S.VISITOR_PROFILE, "ChatToProfile");
       // Sanfter Delay — Chat-Exit-Animation hat 80ms Overlap
       if (shell.setShowWirker) {
-        setTimeout(function() { shell.setShowWirker(profile); }, 80);
+        setTimeout(function() { shell.setShowWirker(profile && typeof profile === 'object' && !profile.type ? profile : null); }, 80);
       }
     },
   };

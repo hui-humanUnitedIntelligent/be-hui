@@ -188,9 +188,15 @@ export function buildActions(shell) {
       const safePayload = (payload && typeof payload === 'object') ? payload : {};
       const { creator, creatorId, source: rawSource, ...rest } = safePayload;
       const source = (typeof rawSource === 'string' && rawSource.length > 0) ? rawSource : S.SYSTEM;
-      const data = creator
-        ? creator
-        : { id: creatorId, user_id: creatorId, ...rest };
+      // Guard: Feed-Items haben type+author — nie direkt als Profil verwenden
+      const rawCreator = creator || { id: creatorId, user_id: creatorId, ...rest };
+      const isFeedItem = rawCreator?.type && rawCreator?.author && typeof rawCreator.author === 'object';
+      const data = isFeedItem
+        ? { id: rawCreator.author.id, user_id: rawCreator.author.id,
+            display_name: rawCreator.author.name, avatar_url: rawCreator.author.avatar,
+            username: rawCreator.author.username, talent: rawCreator.author.talent,
+            is_verified: rawCreator.author.verified, _raw: rawCreator.author }
+        : rawCreator;
       // Phase 2: Flow Stack — merke Navigations-Ursprung
       logFlow(source, S.VISITOR_PROFILE);
       flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source });

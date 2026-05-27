@@ -71,10 +71,25 @@ export default function ProfileLauncher() {
   // Nichts anzeigen wenn kein Profil offen
   if (!showWirker) return null;
 
-  // showWirker normalisieren — kann rohe nav-Daten enthalten
-  const safeProfile = createProfileItem(showWirker);
+  // showWirker normalisieren — kann rohe nav-Daten oder Feed-Items enthalten
+  // Feed-Item Guard: type+author → author extrahieren
+  const rawForProfile = (showWirker?.type && showWirker?.author && typeof showWirker.author === 'object')
+    ? { id: showWirker.author.id, user_id: showWirker.author.id,
+        display_name: showWirker.author.name, avatar_url: showWirker.author.avatar,
+        username: showWirker.author.username, talent: showWirker.author.talent,
+        is_verified: showWirker.author.verified, _raw: showWirker.author,
+        _isOwnerView: showWirker._isOwnerView }
+    : showWirker;
 
-  const isOwnerView = showWirker._isOwnerView === true;
+  const safeProfile = createProfileItem(rawForProfile);
+
+  // Wenn createProfileItem null zurückgibt → nicht rendern, kein Crash
+  if (!safeProfile) {
+    console.warn("[ProfileLauncher] createProfileItem returned null for:", showWirker);
+    return null;
+  }
+
+  const isOwnerView = rawForProfile._isOwnerView === true;
 
   const handleClose = () => setShowWirker(null);
 
@@ -110,7 +125,7 @@ export default function ProfileLauncher() {
   if (isOwnerView) {
     return (
       <CreatorProfilePage
-        wirker={showWirker}
+        wirker={rawForProfile}
         onClose={handleClose}
         onAction={handleAction}
       />
@@ -121,7 +136,7 @@ export default function ProfileLauncher() {
   return (
     <React.Suspense fallback={<ProfileLoadingFallback />}>
       <WirkerProfilePage
-        wirker={showWirker}
+        wirker={rawForProfile}
         onClose={handleClose}
         onBook={handleBook}
         onChat={handleChat}

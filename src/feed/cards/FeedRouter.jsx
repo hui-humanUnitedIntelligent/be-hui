@@ -73,9 +73,19 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
   const authorName = item.author?.name || "Human";
   const text       = item.text || item.title || "";
 
+  // Profile öffnen: author aus dem Item extrahieren, nicht rawItem (Feed-Shape)
+  // rawItem hat type/author/media — kein direkter Profile-Object
+  const authorObj = item.author || rawItem.author || null;
+  const profileData = authorObj
+    ? { id: authorObj.id, user_id: authorObj.id, display_name: authorObj.name,
+        avatar_url: authorObj.avatar, username: authorObj.username,
+        is_verified: authorObj.verified, memberType: authorObj.membershipType,
+        talent: authorObj.talent, _raw: authorObj }
+    : rawItem;
+
   const shared = {
     item,
-    onProfile:  () => onProfile?.(rawItem),
+    onProfile:  () => onProfile?.(profileData),
     onReaction: (t) => onReaction?.(t),
     onShare:    () => onShare?.(rawItem),
   };
