@@ -85,10 +85,15 @@ const PublicProfilePage = React.lazy(
 const BasisProfilePage = React.lazy(
   () => import("../../../pages/BasisProfilePage.jsx")
 );
-// ── LAZY: MyBasisProfile — Own profile editor for Basis users ───
+// ── LAZY: MyBasisProfile — Own profile editor (Basis) ───────────
 const MyBasisProfile = React.lazy(
   () => import("../../../pages/MyBasisProfile.jsx")
 );
+// ── LAZY: MyTalentProfile — Own profile editor (Talent) ─────────
+const MyTalentProfile = React.lazy(
+  () => import("../../../pages/MyTalentProfile.jsx")
+);
+
 // Legacy WirkerProfilePage still available as fallback
 const WirkerProfilePage = React.lazy(
   () => import("../../../pages/wirker-profile/index.jsx")
@@ -185,33 +190,28 @@ export default function ProfileLauncher() {
 
   // ── CREATOR DASHBOARD: eigenes Profil / Tabbar ───────────────
   if (showCreatorDashboard) {
-    // Detect talent/creator role from context
-    // authProfile comes from HomeShell via useHome()
-    const { authProfile } = useHome?.() || {};
-    const isTalentUser = !!(
+    // Detect profile type from authProfile in HomeShell context
+    const homeCtx = useHome();
+    const authProfile = homeCtx?.authProfile;
+    const isTalent = !!(
       authProfile?.has_talent_profile ||
       authProfile?.role === "talent" ||
       authProfile?.role === "wirker" ||
       authProfile?.membership_type === "talent"
     );
 
-    if (isTalentUser) {
-      return (
-        <MyCreatorDashboard
-          onClose={() => setShowCreatorDashboard(false)}
-        />
-      );
-    }
+    const ProfileEditor = isTalent ? MyTalentProfile : MyBasisProfile;
 
-    // BasisUser → MyBasisProfile
     return (
       <React.Suspense fallback={
-        <div style={{ position:"fixed", inset:0, zIndex:9500, background:"#F7F5F0",
-          display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <div style={{ opacity:0.3, fontSize:13, color:"#888" }}>Lädt…</div>
+        <div style={{
+          position:"fixed", inset:0, zIndex:9500, background:"#F7F5F0",
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <div style={{ opacity:0.25, fontSize:13, color:"#888" }}>Lädt…</div>
         </div>
       }>
-        <MyBasisProfile onClose={() => setShowCreatorDashboard(false)}/>
+        <ProfileEditor onClose={() => setShowCreatorDashboard(false)}/>
       </React.Suspense>
     );
   }
