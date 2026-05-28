@@ -85,6 +85,10 @@ const PublicProfilePage = React.lazy(
 const BasisProfilePage = React.lazy(
   () => import("../../../pages/BasisProfilePage.jsx")
 );
+// ── LAZY: TalentProfilePage — Public talent presence ────────────
+const TalentProfilePage = React.lazy(
+  () => import("../../../pages/TalentProfilePage.jsx")
+);
 // ── LAZY: MyBasisProfile — Own profile editor (Basis) ───────────
 const MyBasisProfile = React.lazy(
   () => import("../../../pages/MyBasisProfile.jsx")
@@ -159,7 +163,17 @@ export default function ProfileLauncher() {
     // Fall back to PublicProfilePage (talent/creator) if type unknown
     const profileType = flow?.state?.openProfileType || null;
     const isBasis = profileType === "basis";
-    const ProfileComponent = isBasis ? BasisProfilePage : PublicProfilePage;
+    // talent check: has_talent_profile or role
+    const targetProfile = flow?.state?.targetProfile || null;
+    const isTalentProfile = !!(
+      targetProfile?.has_talent_profile ||
+      targetProfile?.role === "talent" ||
+      targetProfile?.role === "wirker" ||
+      targetProfile?.membership_type === "talent"
+    );
+    const ProfileComponent = isBasis
+      ? BasisProfilePage
+      : (isTalentProfile ? TalentProfilePage : BasisProfilePage);
 
     return (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
