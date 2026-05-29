@@ -1,80 +1,69 @@
-// src/components/OrbCompass.jsx — HUI Begegnungs-Kompass V2 ATMOSPHERE
-// Referenz: Screenshot 29.05.2026 — Glasssphären, schwebender Kompass, Feed sichtbar
-// Funktion: 100% identisch zu V1. Ausschließlich visuelle Veredelung.
+// src/components/OrbCompass.jsx — HUI Begegnungs-Kompass V2.1 FINAL POLISH
+// Layout: 100% identisch zu V2. Ausschließlich atmosphärische Verfeinerung.
+// Änderungen: sphere gradients tiefer, glass highlights präziser,
+//             kompass-track subtiler, partikel-glow, center-logo premium depth.
 // ════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-// ── HUI Logo (original asset) ─────────────────────────────────────
 const HUI_LOGO = "https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png";
 
-// ── Design ───────────────────────────────────────────────────────
 const D = {
-  ink:       "#1A3530",
-  inkTeal:   "#0D6B5E",
-  inkSoft:   "rgba(26,53,48,0.58)",
-  inkFaint:  "rgba(26,53,48,0.34)",
-  teal:      "#0EC4B8",
-  tealDeep:  "#0D9E94",
-  coral:     "#E8573A",
-  track:     "rgba(255,255,255,0.70)",
-  trackSoft: "rgba(255,255,255,0.45)",
-  dot:       "rgba(255,255,255,0.95)",
+  ink:      "#1A3530",
+  inkTeal:  "#0C5E54",
+  inkSoft:  "rgba(26,53,48,0.56)",
+  teal:     "#0EC4B8",
+  tealDeep: "#0D9E94",
+  coral:    "#E8573A",
 };
 
-// ── Five Worlds — glass sphere definitions ────────────────────────
-// Each world: glassmorphism sphere with unique gradient + emoji + label
+// ── Worlds — richer sphere gradients, more depth per identity ────
 const WORLDS = [
   {
-    id:    "natur",
-    label: "Natur",
-    emoji: "🌿",
-    deg:   270,  // top
-    // Glass sphere: green tones
-    sphereGrad: "radial-gradient(circle at 38% 32%, rgba(180,230,160,0.95) 0%, rgba(100,180,100,0.85) 45%, rgba(60,140,70,0.80) 100%)",
-    sphereGlow: "rgba(80,180,90,0.55)",
-    rimLight:   "rgba(200,240,180,0.90)",
-    accent:     "#3A8A42",
+    id: "natur", label: "Natur", emoji: "🌿", deg: 270,
+    // More organic depth: bright center, verdant mid, deep forest edge
+    sphereGrad: "radial-gradient(circle at 36% 30%, rgba(210,245,185,0.98) 0%, rgba(120,195,105,0.92) 38%, rgba(55,138,62,0.88) 68%, rgba(35,100,42,0.82) 100%)",
+    sphereGlow: "rgba(72,172,80,0.60)",
+    rimLight:   "rgba(220,252,195,0.95)",
+    // Second inner highlight — more natural light feel
+    innerHighlight: "rgba(185,240,155,0.55)",
+    floatDur: 4.6, floatDelay: 0.0,
   },
   {
-    id:    "kreativitaet",
-    label: "Kreativität",
-    emoji: "🎨",
-    deg:   342,  // upper-right
-    sphereGrad: "radial-gradient(circle at 38% 32%, rgba(255,210,190,0.95) 0%, rgba(240,140,110,0.88) 45%, rgba(210,80,60,0.82) 100%)",
-    sphereGlow: "rgba(230,100,70,0.55)",
-    rimLight:   "rgba(255,220,200,0.90)",
-    accent:     "#C84030",
+    id: "kreativitaet", label: "Kreativität", emoji: "🎨", deg: 342,
+    // Warm coral energy: bright warm highlight, rich coral mid, deep crimson edge
+    sphereGrad: "radial-gradient(circle at 36% 30%, rgba(255,225,205,0.98) 0%, rgba(248,152,118,0.92) 38%, rgba(218,82,55,0.88) 68%, rgba(185,52,35,0.82) 100%)",
+    sphereGlow: "rgba(228,90,58,0.60)",
+    rimLight:   "rgba(255,230,210,0.95)",
+    innerHighlight: "rgba(255,195,165,0.50)",
+    floatDur: 4.9, floatDelay: 0.5,
   },
   {
-    id:    "tiere",
-    label: "Tiere",
-    emoji: "🐾",
-    deg:   54,   // lower-right
-    sphereGrad: "radial-gradient(circle at 38% 32%, rgba(180,235,230,0.95) 0%, rgba(80,195,185,0.88) 45%, rgba(30,140,130,0.82) 100%)",
-    sphereGlow: "rgba(40,180,168,0.52)",
-    rimLight:   "rgba(190,240,235,0.90)",
-    accent:     "#18807A",
+    id: "tiere", label: "Tiere", emoji: "🐾", deg: 54,
+    // Soft organic teal: nature calm
+    sphereGrad: "radial-gradient(circle at 36% 30%, rgba(195,245,240,0.98) 0%, rgba(85,205,195,0.92) 38%, rgba(28,148,138,0.88) 68%, rgba(15,108,100,0.82) 100%)",
+    sphereGlow: "rgba(38,172,162,0.56)",
+    rimLight:   "rgba(200,248,243,0.95)",
+    innerHighlight: "rgba(158,240,232,0.48)",
+    floatDur: 5.2, floatDelay: 1.0,
   },
   {
-    id:    "wirkung",
-    label: "Wirkung",
-    emoji: "🌍",
-    deg:   126,  // lower-left
-    sphereGrad: "radial-gradient(circle at 38% 32%, rgba(180,215,240,0.95) 0%, rgba(90,155,215,0.88) 45%, rgba(40,90,180,0.82) 100%)",
-    sphereGlow: "rgba(60,120,210,0.50)",
-    rimLight:   "rgba(190,220,250,0.90)",
-    accent:     "#2850A8",
+    id: "wirkung", label: "Wirkung", emoji: "🌍", deg: 126,
+    // Deep hopeful blue: teal-blue, depth, future
+    sphereGrad: "radial-gradient(circle at 36% 30%, rgba(195,225,252,0.98) 0%, rgba(95,162,228,0.92) 38%, rgba(42,98,195,0.88) 68%, rgba(22,65,158,0.82) 100%)",
+    sphereGlow: "rgba(52,112,205,0.56)",
+    rimLight:   "rgba(200,228,255,0.95)",
+    innerHighlight: "rgba(155,200,250,0.45)",
+    floatDur: 4.8, floatDelay: 1.5,
   },
   {
-    id:    "gemeinschaft",
-    label: "Gemeinschaft",
-    emoji: "🤝",
-    deg:   198,  // left
-    sphereGrad: "radial-gradient(circle at 38% 32%, rgba(255,230,185,0.95) 0%, rgba(240,175,80,0.88) 45%, rgba(210,130,30,0.82) 100%)",
-    sphereGlow: "rgba(225,155,40,0.52)",
-    rimLight:   "rgba(255,235,190,0.90)",
-    accent:     "#C88018",
+    id: "gemeinschaft", label: "Gemeinschaft", emoji: "🤝", deg: 198,
+    // Warm amber gold: human warmth, inviting
+    sphereGrad: "radial-gradient(circle at 36% 30%, rgba(255,238,198,0.98) 0%, rgba(248,185,82,0.92) 38%, rgba(218,138,28,0.88) 68%, rgba(185,105,15,0.82) 100%)",
+    sphereGlow: "rgba(228,152,35,0.58)",
+    rimLight:   "rgba(255,242,200,0.95)",
+    innerHighlight: "rgba(255,220,138,0.48)",
+    floatDur: 5.0, floatDelay: 0.8,
   },
 ];
 
@@ -83,98 +72,99 @@ function polar(deg, r) {
   return { x: Math.cos(rad) * r, y: Math.sin(rad) * r };
 }
 
-// ── CSS keyframes ─────────────────────────────────────────────────
-const CSS = `
-  /* ── Overlay ── */
-  @keyframes oatm-in  { from{opacity:0} to{opacity:1} }
-  @keyframes oatm-out { from{opacity:1} to{opacity:0} }
+// ── Floating particles (5 gentle light motes) ────────────────────
+// Fixed positions relative to compass center, subtle teal/coral
+const PARTICLES = [
+  { dx: -0.28, dy: -0.35, size: 3.5, col: "rgba(14,196,184,0.55)", dur: 6.2, delay: 0.0 },
+  { dx:  0.32, dy: -0.18, size: 2.8, col: "rgba(232,87,58,0.42)",  dur: 7.0, delay: 1.2 },
+  { dx:  0.22, dy:  0.38, size: 3.2, col: "rgba(14,196,184,0.48)", dur: 5.8, delay: 2.1 },
+  { dx: -0.30, dy:  0.25, size: 2.5, col: "rgba(232,87,58,0.38)",  dur: 6.6, delay: 0.7 },
+  { dx:  0.05, dy: -0.42, size: 2.0, col: "rgba(14,196,184,0.35)", dur: 7.4, delay: 3.0 },
+];
 
-  /* ── Title ── */
+const CSS = `
+  @keyframes oatm-in    { from{opacity:0}            to{opacity:1} }
+  @keyframes oatm-out   { from{opacity:1}            to{opacity:0} }
   @keyframes oatm-title {
-    from { opacity:0; transform:translateY(-18px) }
+    from { opacity:0; transform:translateY(-16px) }
     to   { opacity:1; transform:translateY(0) }
   }
-
-  /* ── Center orb rises from bottom ── */
   @keyframes oatm-center-rise {
-    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.3) translateY(60px) }
-    60%  { opacity:1; transform:translate(-50%,-50%) scale(1.06) translateY(-4px) }
-    100% { opacity:1; transform:translate(-50%,-50%) scale(1) translateY(0) }
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.28) translateY(55px) }
+    62%  { opacity:1; transform:translate(-50%,-50%) scale(1.05)  translateY(-3px) }
+    100% { opacity:1; transform:translate(-50%,-50%) scale(1)     translateY(0) }
   }
-
-  /* ── Light pulse radiates from center ── */
   @keyframes oatm-radiate {
-    0%   { opacity:0.7; transform:translate(-50%,-50%) scale(0.4) }
-    100% { opacity:0;   transform:translate(-50%,-50%) scale(2.2) }
+    0%   { opacity:0.65; transform:translate(-50%,-50%) scale(0.35) }
+    100% { opacity:0;    transform:translate(-50%,-50%) scale(2.4) }
   }
-
-  /* ── Track circle draws in ── */
   @keyframes oatm-track-in {
-    from { opacity:0; transform:translate(-50%,-50%) scale(0.5) }
+    from { opacity:0; transform:translate(-50%,-50%) scale(0.45) }
     to   { opacity:1; transform:translate(-50%,-50%) scale(1) }
   }
-
-  /* ── Nodes bloom from center ── */
   @keyframes oatm-node-bloom {
-    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.15) }
-    70%  { opacity:1; transform:translate(-50%,-50%) scale(1.07) }
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.12) }
+    68%  { opacity:1; transform:translate(-50%,-50%) scale(1.06) }
     100% { opacity:1; transform:translate(-50%,-50%) scale(1) }
   }
-
-  /* ── Hint floats up ── */
   @keyframes oatm-hint {
-    from { opacity:0; transform:translateY(16px) }
+    from { opacity:0; transform:translateY(14px) }
     to   { opacity:1; transform:translateY(0) }
   }
 
-  /* ── Living: center breathe ── */
+  /* Living — slower, more elegant */
   @keyframes oatm-breathe {
     0%,100% { transform:translate(-50%,-50%) scale(1) }
-    50%     { transform:translate(-50%,-50%) scale(1.045) }
+    50%     { transform:translate(-50%,-50%) scale(1.038) }
   }
-
-  /* ── Living: node float ── */
   @keyframes oatm-float {
-    0%,100% { transform:translate(-50%,-50%) translateY(0) }
+    0%,100% { transform:translate(-50%,-50%) translateY(0px) }
     50%     { transform:translate(-50%,-50%) translateY(-5px) }
   }
-
-  /* ── Living: soft glow pulse ── */
   @keyframes oatm-glow {
-    0%,100% { opacity:0.55 }
-    50%     { opacity:0.90 }
+    0%,100% { opacity:0.48 }
+    50%     { opacity:0.82 }
   }
-
-  /* ── Living: dot twinkle ── */
   @keyframes oatm-twinkle {
-    0%,100% { opacity:0.6; transform:translate(-50%,-50%) scale(0.8) }
-    50%     { opacity:1.0; transform:translate(-50%,-50%) scale(1.2) }
+    0%,100% { opacity:0.50; r:3.8 }
+    50%     { opacity:1.00; r:5.2 }
+  }
+  /* Particle drift */
+  @keyframes oatm-particle {
+    0%,100% { opacity:0.0; transform:translate(-50%,-50%) translateY(0px) scale(0.8) }
+    20%     { opacity:1.0 }
+    80%     { opacity:0.8 }
+    100%    { opacity:0.0; transform:translate(-50%,-50%) translateY(-18px) scale(1.1) }
+  }
+  /* Logo inner shimmer */
+  @keyframes oatm-shimmer {
+    0%   { transform:translate(-50%,-50%) rotate(-15deg) translateX(-120%) }
+    100% { transform:translate(-50%,-50%) rotate(-15deg) translateX(220%) }
   }
 
-  /* ── Close ── */
   .oatm-x {
     -webkit-tap-highlight-color:transparent;
-    transition:opacity .14s ease, transform .14s ease;
+    transition:opacity .14s, transform .14s;
     cursor:pointer;
   }
-  .oatm-x:active { opacity:0.4; transform:scale(0.82); }
+  .oatm-x:active { opacity:0.38; transform:scale(0.80); }
 
-  /* ── Node tap feedback ── */
   .oatm-node {
     cursor:pointer;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
   .oatm-sphere {
-    transition: transform .18s cubic-bezier(.22,1,.36,1), filter .18s ease;
+    transition: transform .20s cubic-bezier(.22,1,.36,1), filter .20s ease;
+    will-change: transform;
   }
   .oatm-node:active .oatm-sphere {
-    transform: scale(0.82) !important;
-    filter: brightness(0.88);
+    transform: scale(0.80) !important;
+    filter: brightness(0.86) saturate(1.1);
   }
 `;
 
-// ── Glass Sphere Component ────────────────────────────────────────
+// ── Premium Glass Sphere ──────────────────────────────────────────
 function GlassSphere({ world, size, animDelay }) {
   return (
     <div
@@ -184,42 +174,49 @@ function GlassSphere({ world, size, animDelay }) {
         borderRadius: "50%",
         position: "relative",
         overflow: "hidden",
-        // Glass sphere base
         background: world.sphereGrad,
-        // Multi-layer shadow: color glow + depth + rim
         boxShadow: `
-          0 0 ${size * 0.5}px ${world.sphereGlow},
-          0 8px 32px rgba(0,0,0,0.16),
-          0 2px 8px rgba(0,0,0,0.10),
-          inset 0 1.5px 0 ${world.rimLight},
-          inset 0 -1px 0 rgba(0,0,0,0.08)
+          0 0 ${size * 0.55}px ${world.sphereGlow},
+          0 ${size * 0.12}px ${size * 0.42}px rgba(0,0,0,0.18),
+          0 ${size * 0.04}px ${size * 0.12}px rgba(0,0,0,0.12),
+          inset 0 2px 0 ${world.rimLight},
+          inset 0 -2px 4px rgba(0,0,0,0.10),
+          inset 2px 0 6px rgba(255,255,255,0.12)
         `,
-        // Animate: floating + glow
-        animation: `oatm-float ${4.2 + animDelay * 0.3}s ease-in-out ${animDelay * 0.4}s infinite`,
+        animation: `oatm-float ${world.floatDur}s ease-in-out ${world.floatDelay}s infinite`,
       }}
     >
-      {/* Inner glass highlight — top-left rim light */}
+      {/* Primary highlight — top-left rim */}
       <div style={{
         position: "absolute",
-        top: "8%", left: "10%",
-        width: "42%", height: "38%",
+        top: "7%", left: "9%",
+        width: "44%", height: "40%",
         borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0) 100%)",
+        background: `radial-gradient(circle at 40% 40%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%)`,
         pointerEvents: "none",
       }}/>
-      {/* Bottom inner shadow */}
+      {/* Secondary softer highlight — right edge catch */}
       <div style={{
         position: "absolute",
-        bottom: 0, left: 0, right: 0, height: "35%",
-        background: "linear-gradient(to top, rgba(0,0,0,0.12) 0%, transparent 100%)",
+        top: "14%", right: "8%",
+        width: "18%", height: "28%",
+        borderRadius: "50%",
+        background: `radial-gradient(circle, ${world.innerHighlight} 0%, transparent 100%)`,
         pointerEvents: "none",
       }}/>
-      {/* Emoji centered */}
+      {/* Depth shadow — bottom */}
+      <div style={{
+        position: "absolute",
+        bottom: 0, left: 0, right: 0, height: "38%",
+        background: "linear-gradient(to top, rgba(0,0,0,0.16) 0%, rgba(0,0,0,0.04) 60%, transparent 100%)",
+        pointerEvents: "none",
+      }}/>
+      {/* Emoji */}
       <div style={{
         position: "absolute", inset: 0,
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: size * 0.38,
-        filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.18))",
+        filter: "drop-shadow(0 1px 5px rgba(0,0,0,0.22)) drop-shadow(0 0 8px rgba(255,255,255,0.30))",
       }}>
         {world.emoji}
       </div>
@@ -229,8 +226,8 @@ function GlassSphere({ world, size, animDelay }) {
 
 // ═══════════════════════════════════════════════════════════════════
 export default function OrbCompass({ visible, isTalent = false, onClose, onWorldSelect }) {
-  const [phase,   setPhase]   = useState("hidden");
-  const [logoOk,  setLogoOk]  = useState(false);
+  const [phase,  setPhase]  = useState("hidden");
+  const [logoOk, setLogoOk] = useState(false);
 
   useEffect(() => {
     if (visible  && phase === "hidden") setPhase("open");
@@ -254,39 +251,28 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
   if (phase === "hidden") return null;
   const isClosing = phase === "closing";
 
-  // ── Responsive ─────────────────────────────────────────────────
-  const vw     = Math.min(window.innerWidth,  430);
-  const vh     =         window.innerHeight;
-
-  // Stage — generous, dominates the screen
-  const stage  = Math.min(vw - 8, vh * 0.54, 420);
-  const cx     = stage / 2;
-  const cy     = stage / 2;
-
-  // Orbit radius — nodes sit here
-  const R      = stage * 0.390;
-
-  // Sphere size — the glass orbs
-  const sphD   = Math.min(stage * 0.210, 86);   // ~86px
-
-  // Center logo size
-  const ctrD   = Math.min(stage * 0.230, 96);   // ~96px
-
-  // Track ring radii
-  const r1     = R - sphD * 0.05;  // just inside nodes
-  const r2     = R * 0.52;         // inner decorative ring
+  // ── Sizes — identical to V2 ─────────────────────────────────────
+  const vw    = Math.min(window.innerWidth, 430);
+  const vh    = window.innerHeight;
+  const stage = Math.min(vw - 8, vh * 0.54, 420);
+  const cx    = stage / 2;
+  const cy    = stage / 2;
+  const R     = stage * 0.390;
+  const sphD  = Math.min(stage * 0.210, 86);
+  const ctrD  = Math.min(stage * 0.230, 96);
+  const r1    = R - sphD * 0.05;
+  const r2    = R * 0.52;
 
   return (
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 9200,
-        // Feed stays visible, blur it
-        backdropFilter: "blur(28px) saturate(1.3) brightness(0.86)",
-        WebkitBackdropFilter: "blur(28px) saturate(1.3) brightness(0.86)",
-        // Very light overlay so feed color shows through
-        background: "linear-gradient(170deg, rgba(235,246,242,0.90) 0%, rgba(212,236,228,0.90) 100%)",
+        backdropFilter: "blur(30px) saturate(1.35) brightness(0.84)",
+        WebkitBackdropFilter: "blur(30px) saturate(1.35) brightness(0.84)",
+        // Slightly richer mint overlay — more premium depth
+        background: "linear-gradient(168deg, rgba(232,246,241,0.92) 0%, rgba(205,235,226,0.92) 55%, rgba(220,238,232,0.92) 100%)",
         display: "flex", flexDirection: "column", alignItems: "center",
-        animation: isClosing ? "oatm-out .24s ease both" : "oatm-in .30s ease both",
+        animation: isClosing ? "oatm-out .24s ease both" : "oatm-in .32s ease both",
       }}
       onClick={close}
     >
@@ -304,7 +290,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
         }}
       >
 
-        {/* ── ✕ Close ────────────────────────────────── */}
+        {/* ✕ ─────────────────────────────────────────── */}
         <button
           className="oatm-x"
           onClick={close}
@@ -321,11 +307,11 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
           }}
         >×</button>
 
-        {/* ── Title ──────────────────────────────────── */}
+        {/* ── Title ── unchanged position, refined rendering ──── */}
         <div style={{
           textAlign: "center",
           marginBottom: stage * 0.07,
-          animation: "oatm-title .40s ease .05s both",
+          animation: "oatm-title .42s ease .05s both",
         }}>
           <h1 style={{
             fontSize:      Math.min(34, vw * 0.084),
@@ -335,124 +321,151 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             lineHeight:    1.16,
             margin:        "0 0 10px",
             fontFamily:    "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+            // Subtle text depth
+            textShadow:    "0 1px 0 rgba(255,255,255,0.60)",
           }}>
             Wonach suchst<br/>du heute?
           </h1>
           <p style={{
             fontSize:   Math.min(15, vw * 0.037),
             color:      D.inkSoft,
-            lineHeight: 1.60,
+            lineHeight: 1.62,
             margin:     0,
             fontWeight: 400,
+            letterSpacing: "0.005em",
           }}>
             Entdecke die Welt,<br/>die dich heute bewegt.
           </p>
         </div>
 
-        {/* ════ COMPASS STAGE ════════════════════════ */}
+        {/* ════ COMPASS STAGE — identical layout ═══════════ */}
         <div style={{ position: "relative", width: stage, height: stage, flexShrink: 0 }}>
 
-          {/* ── SVG: tracks, spokes, connection dots ── */}
+          {/* ── SVG: refined track + dots ─────────────── */}
           <svg
             style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}
             width={stage} height={stage}
           >
             <defs>
-              {/* Radial glow behind whole compass */}
               <radialGradient id="compassGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%"   stopColor="rgba(14,196,184,0.22)"/>
-                <stop offset="60%"  stopColor="rgba(14,196,184,0.06)"/>
+                <stop offset="0%"   stopColor="rgba(14,196,184,0.20)"/>
+                <stop offset="55%"  stopColor="rgba(14,196,184,0.05)"/>
                 <stop offset="100%" stopColor="rgba(14,196,184,0)"/>
               </radialGradient>
-
-              {/* Glow filter for dots */}
-              <filter id="dotGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="2.5" result="blur"/>
-                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              {/* Sharper dot glow */}
+              <filter id="dotGlow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
               </filter>
-
-              {/* Spoke gradient: teal center → transparent */}
-              <linearGradient id="spokeGrad" x1="50%" y1="50%" x2="100%" y2="50%" gradientUnits="userSpaceOnUse">
-                <stop offset="0%"   stopColor="rgba(14,196,184,0.35)"/>
-                <stop offset="100%" stopColor="rgba(14,196,184,0.05)"/>
-              </linearGradient>
+              {/* Very soft track glow filter */}
+              <filter id="trackGlow" x="-10%" y="-10%" width="120%" height="120%">
+                <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
             </defs>
 
-            {/* Soft glow halo behind compass */}
-            <circle cx={cx} cy={cy} r={R + sphD * 0.6}
-              fill="url(#compassGlow)" opacity="0.8"
-              style={{ animation: "oatm-glow 5s ease-in-out infinite" }}
+            {/* Ambient compass halo — very subtle */}
+            <circle cx={cx} cy={cy} r={R + sphD * 0.65}
+              fill="url(#compassGlow)"
+              style={{ animation: "oatm-glow 5.5s ease-in-out infinite" }}
             />
 
-            {/* Outer track ring */}
+            {/* Outer track — barely-there, feels more than seen */}
             <circle cx={cx} cy={cy} r={r1}
               fill="none"
-              stroke="rgba(255,255,255,0.65)"
-              strokeWidth="1.2"
-              style={{ animation: "oatm-track-in .55s ease .18s both" }}
+              stroke="rgba(255,255,255,0.58)"
+              strokeWidth="1.0"
+              filter="url(#trackGlow)"
+              style={{ animation: "oatm-track-in .60s ease .20s both" }}
             />
 
-            {/* Inner decorative ring */}
+            {/* Inner ring — even more subtle */}
             <circle cx={cx} cy={cy} r={r2}
               fill="none"
-              stroke="rgba(255,255,255,0.40)"
-              strokeWidth="0.8"
-              strokeDasharray="4 6"
-              style={{ animation: "oatm-track-in .55s ease .22s both" }}
+              stroke="rgba(255,255,255,0.32)"
+              strokeWidth="0.7"
+              strokeDasharray="3.5 7"
+              style={{ animation: "oatm-track-in .60s ease .25s both" }}
             />
 
-            {/* Spokes: center → each node (stop at inner ring) */}
+            {/* Spokes — barely visible, organic feel */}
             {WORLDS.map(w => {
-              const near = polar(w.deg, r2 * 0.85);
-              const far  = polar(w.deg, r1 * 0.88);
+              const near = polar(w.deg, r2 * 0.88);
+              const far  = polar(w.deg, r1 * 0.87);
               return (
                 <line key={w.id + "-sp"}
                   x1={cx + near.x} y1={cy + near.y}
                   x2={cx + far.x}  y2={cy + far.y}
-                  stroke="rgba(255,255,255,0.50)"
-                  strokeWidth="0.9"
-                  strokeDasharray="3 4"
+                  stroke="rgba(255,255,255,0.42)"
+                  strokeWidth="0.8"
+                  strokeDasharray="2.5 5"
                 />
               );
             })}
 
-            {/* Connection dots on outer ring — glowing white */}
+            {/* Outer ring dots — glowing white pearls */}
             {WORLDS.map((w, i) => {
               const p = polar(w.deg, r1);
               return (
-                <circle key={w.id + "-dot"}
-                  cx={cx + p.x} cy={cy + p.y} r="4.5"
-                  fill="white"
-                  filter="url(#dotGlow)"
-                  opacity="0.9"
-                  style={{ animation: `oatm-twinkle ${2.8 + i * 0.4}s ease-in-out ${i * 0.3}s infinite` }}
-                />
+                <g key={w.id + "-dot"}>
+                  {/* Glow bloom behind dot */}
+                  <circle
+                    cx={cx + p.x} cy={cy + p.y} r="7"
+                    fill={w.sphereGlow || "rgba(14,196,184,0.30)"}
+                    opacity="0.35"
+                    style={{ animation: `oatm-glow ${3.2 + i * 0.5}s ease-in-out ${i * 0.4}s infinite` }}
+                  />
+                  {/* White pearl dot */}
+                  <circle
+                    cx={cx + p.x} cy={cy + p.y} r="4"
+                    fill="white"
+                    opacity="0.88"
+                    filter="url(#dotGlow)"
+                    style={{ animation: `oatm-glow ${2.6 + i * 0.4}s ease-in-out ${i * 0.35}s infinite` }}
+                  />
+                </g>
               );
             })}
 
-            {/* Inner ring dots */}
+            {/* Inner ring dots — tiny, very soft */}
             {WORLDS.map(w => {
               const p = polar(w.deg, r2);
               return (
                 <circle key={w.id + "-idot"}
-                  cx={cx + p.x} cy={cy + p.y} r="2.5"
-                  fill="rgba(255,255,255,0.65)"
+                  cx={cx + p.x} cy={cy + p.y} r="2"
+                  fill="rgba(255,255,255,0.55)"
                 />
               );
             })}
           </svg>
 
-          {/* ── Light radiate from center (on open) ── */}
+          {/* ── Floating particles — teal & coral motes ── */}
+          {PARTICLES.map((pt, i) => (
+            <div key={"pt" + i} style={{
+              position: "absolute",
+              left: cx + pt.dx * stage * 0.48,
+              top:  cy + pt.dy * stage * 0.48,
+              width: pt.size, height: pt.size,
+              borderRadius: "50%",
+              background: pt.col,
+              transform: "translate(-50%,-50%)",
+              pointerEvents: "none",
+              filter: `blur(${pt.size * 0.4}px)`,
+              animation: `oatm-particle ${pt.dur}s ease-in-out ${pt.delay + 0.8}s infinite`,
+            }}/>
+          ))}
+
+          {/* ── Light radiate (opening pulse) ── */}
           <div style={{
             position: "absolute", left: cx, top: cy,
-            width: ctrD, height: ctrD,
+            width: ctrD * 1.1, height: ctrD * 1.1,
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(14,196,184,0.50) 0%, transparent 70%)",
-            animation: "oatm-radiate 1.0s cubic-bezier(.22,1,.36,1) .05s both",
+            background: "radial-gradient(circle, rgba(14,196,184,0.45) 0%, rgba(232,87,58,0.15) 55%, transparent 75%)",
+            animation: "oatm-radiate 1.1s cubic-bezier(.22,1,.36,1) .06s both",
             pointerEvents: "none",
           }}/>
 
-          {/* ── World Nodes ─────────────────────────── */}
+          {/* ── World Nodes — identical positions ─────── */}
           {WORLDS.map((w, i) => {
             const pos = polar(w.deg, R);
             return (
@@ -467,32 +480,32 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
                   display: "flex", flexDirection: "column",
                   alignItems: "center", gap: 9,
                   userSelect: "none",
-                  animation: `oatm-node-bloom .50s cubic-bezier(.34,1.56,.64,1) ${i * 65 + 180}ms both`,
+                  animation: `oatm-node-bloom .52s cubic-bezier(.34,1.56,.64,1) ${i * 65 + 185}ms both`,
                 }}
               >
-                {/* Outer aura glow */}
+                {/* Aura — per-world color glow, slightly more defined */}
                 <div style={{
                   position: "absolute",
-                  width: sphD + 28, height: sphD + 28,
+                  width: sphD + 26, height: sphD + 26,
                   borderRadius: "50%",
                   top: "50%", left: "50%",
-                  transform: "translate(-50%, calc(-50% - 5px))",
-                  background: `radial-gradient(circle, ${w.sphereGlow} 0%, transparent 70%)`,
+                  transform: "translate(-50%, calc(-50% - 4px))",
+                  background: `radial-gradient(circle, ${w.sphereGlow} 0%, transparent 68%)`,
+                  filter: "blur(7px)",
                   pointerEvents: "none",
-                  filter: "blur(6px)",
-                  animation: `oatm-glow ${3.5 + i * 0.5}s ease-in-out ${i * 0.6}s infinite`,
+                  animation: `oatm-glow ${3.8 + i * 0.55}s ease-in-out ${i * 0.65}s infinite`,
                 }}/>
 
                 <GlassSphere world={w} size={sphD} animDelay={i}/>
 
-                {/* Label */}
                 <span style={{
                   fontSize: Math.min(13, vw * 0.033),
                   fontWeight: 700,
                   color: D.ink,
                   letterSpacing: "-0.01em",
                   whiteSpace: "nowrap",
-                  textShadow: "0 1px 8px rgba(255,255,255,0.95), 0 1px 3px rgba(255,255,255,0.80)",
+                  // Slightly more legible
+                  textShadow: "0 1px 10px rgba(255,255,255,0.98), 0 1px 4px rgba(255,255,255,0.85)",
                 }}>
                   {w.label}
                 </span>
@@ -500,47 +513,49 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             );
           })}
 
-          {/* ── CENTER HUI LOGO ──────────────────────── */}
-          <div
-            style={{
-              position: "absolute",
-              left: cx, top: cy,
-              zIndex: 10,
-              animation: `
-                oatm-center-rise .58s cubic-bezier(.34,1.56,.64,1) .06s both,
-                oatm-breathe 4.8s ease-in-out 1.2s infinite
-              `,
-            }}
-          >
-            {/* Soft colored aura behind logo */}
+          {/* ── CENTER HUI LOGO — premium depth ─────── */}
+          <div style={{
+            position: "absolute",
+            left: cx, top: cy,
+            zIndex: 10,
+            animation: `
+              oatm-center-rise .60s cubic-bezier(.34,1.56,.64,1) .06s both,
+              oatm-breathe 5.2s ease-in-out 1.4s infinite
+            `,
+          }}>
+            {/* Deep ambient aura — two-color, very soft */}
             <div style={{
               position: "absolute",
-              width: ctrD + 40, height: ctrD + 40,
+              width: ctrD + 52, height: ctrD + 52,
               borderRadius: "50%",
               top: "50%", left: "50%",
               transform: "translate(-50%,-50%)",
               background: `radial-gradient(circle,
-                rgba(14,196,184,0.28) 0%,
-                rgba(232,87,58,0.14) 55%,
-                transparent 75%)`,
-              filter: "blur(10px)",
+                rgba(14,196,184,0.24) 0%,
+                rgba(232,87,58,0.12) 50%,
+                transparent 72%)`,
+              filter: "blur(12px)",
               pointerEvents: "none",
-              animation: "oatm-glow 4s ease-in-out infinite",
+              animation: "oatm-glow 4.5s ease-in-out infinite",
             }}/>
 
-            {/* White clean ring around logo */}
+            {/* Outer white halo ring */}
             <div style={{
               position: "absolute",
-              width: ctrD + 12, height: ctrD + 12,
+              width: ctrD + 14, height: ctrD + 14,
               borderRadius: "50%",
               top: "50%", left: "50%",
               transform: "translate(-50%,-50%)",
-              background: "rgba(255,255,255,0.85)",
-              boxShadow: "0 4px 24px rgba(14,196,184,0.22), 0 2px 8px rgba(0,0,0,0.08)",
+              background: "rgba(255,255,255,0.82)",
+              boxShadow: `
+                0 4px 28px rgba(14,196,184,0.20),
+                0 2px 10px rgba(0,0,0,0.08),
+                inset 0 1px 2px rgba(255,255,255,0.90)
+              `,
               pointerEvents: "none",
             }}/>
 
-            {/* Logo image */}
+            {/* Logo container */}
             <div style={{
               position: "absolute",
               width: ctrD, height: ctrD,
@@ -549,11 +564,13 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
               transform: "translate(-50%,-50%)",
               overflow: "hidden",
               boxShadow: `
-                0 6px 28px rgba(14,196,184,0.30),
-                0 2px 10px rgba(232,87,58,0.16),
-                0 1px 4px rgba(0,0,0,0.10)
+                0 6px 30px rgba(14,196,184,0.28),
+                0 3px 12px rgba(232,87,58,0.14),
+                0 1px 5px rgba(0,0,0,0.10),
+                inset 0 1px 2px rgba(255,255,255,0.80)
               `,
             }}>
+              {/* Fallback gradient while logo loads */}
               {!logoOk && (
                 <div style={{
                   position: "absolute", inset: 0, borderRadius: "50%",
@@ -576,23 +593,32 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
                   objectFit: "cover", display: "block",
                   borderRadius: "50%",
                   opacity: logoOk ? 1 : 0,
-                  transition: "opacity .4s ease",
+                  transition: "opacity .5s ease",
                 }}
               />
+              {/* Glass highlight shimmer on logo — one sweep on open */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.38) 50%, transparent 70%)",
+                borderRadius: "50%",
+                pointerEvents: "none",
+                animation: "oatm-shimmer 1.2s ease .7s 1 both",
+              }}/>
             </div>
           </div>
 
         </div>{/* / stage */}
 
-        {/* ── Bottom hint ────────────────────────────── */}
+        {/* ── Hint ─────────────────────────────────────── */}
         <div style={{
           marginTop: stage * 0.055,
           textAlign: "center",
-          animation: "oatm-hint .40s ease .60s both",
+          animation: "oatm-hint .42s ease .64s both",
         }}>
           <div style={{ fontSize: 18, color: D.teal, lineHeight: 1, marginBottom: 5 }}>↑</div>
           <p style={{
-            fontSize: 13.5, color: D.inkSoft, lineHeight: 1.72, margin: 0, fontWeight: 400,
+            fontSize: 13.5, color: D.inkSoft, lineHeight: 1.72,
+            margin: 0, fontWeight: 400,
           }}>
             In die Mitte tippen,<br/>um einen<br/>
             <strong style={{ color: D.teal, fontWeight: 800 }}>HUI-Moment</strong><br/>
