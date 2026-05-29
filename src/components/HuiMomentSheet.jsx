@@ -204,9 +204,9 @@ function Spinner() {
 export default function HuiMomentSheet({ visible, onClose }) {
   const [phase,    setPhase]    = useState("hidden"); // hidden | open | gedanke | sharing | done | closing
   const [text,     setText]     = useState("");
-  const fileRef                 = useRef(null);
-  const fileAccept              = useRef(null);
-  const fileCapture             = useRef(null);
+  const fotoRef                 = useRef(null);   // camera → image
+  const videoRef                = useRef(null);   // camera → video
+  const galerieRef              = useRef(null);   // gallery → any
   const textareaRef             = useRef(null);
 
   // ── Open / close lifecycle ──────────────────────────────────────
@@ -229,14 +229,10 @@ export default function HuiMomentSheet({ visible, onClose }) {
 
   // ── Action selection ────────────────────────────────────────────
   const handleAction = useCallback((action) => {
-    if (action.id === "gedanke") {
-      setPhase("gedanke");
-      return;
-    }
-    // Trigger native file input for Foto / Video / Galerie
-    fileAccept.current   = action.accept;
-    fileCapture.current  = action.capture;
-    fileRef.current?.click();
+    if (action.id === "gedanke")      { setPhase("gedanke"); return; }
+    if (action.id === "foto")         { fotoRef.current?.click();    return; }
+    if (action.id === "video")        { videoRef.current?.click();   return; }
+    if (action.id === "galerie")      { galerieRef.current?.click(); return; }
   }, []);
 
   // ── File chosen → share ─────────────────────────────────────────
@@ -287,12 +283,30 @@ export default function HuiMomentSheet({ visible, onClose }) {
     <>
       <style>{CSS}</style>
 
-      {/* Hidden file input */}
+      {/* Three dedicated file inputs — each with fixed attributes on the DOM */}
+      {/* Foto: camera opens directly (capture=environment + image/*) */}
       <input
-        ref={fileRef}
+        ref={fotoRef}
         type="file"
-        accept={fileAccept.current || "image/*"}
-        capture={fileCapture.current || undefined}
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+      />
+      {/* Video: video camera opens directly (capture=environment + video/*) */}
+      <input
+        ref={videoRef}
+        type="file"
+        accept="video/*"
+        capture="environment"
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+      />
+      {/* Galerie: no capture attr → opens gallery/files picker directly */}
+      <input
+        ref={galerieRef}
+        type="file"
+        accept="image/*,video/*"
         onChange={handleFileChange}
         style={{ display: "none" }}
       />
