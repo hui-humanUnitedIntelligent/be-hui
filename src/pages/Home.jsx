@@ -42,7 +42,8 @@ const NotificationCenter  = React.lazy(() => import("../components/NotificationC
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
-import HuiPlusSheet from "../components/HuiPlusSheet.jsx";
+// OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
+import OrbCompass from "../components/OrbCompass.jsx";
 import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
@@ -563,78 +564,22 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {/* Phase 16.3: HuiPlusSheet ALWAYS mounted — visible prop controls render */}
-        {SAFE_MODE.orb && isTalent && (
-          <SafeRender flag="orb" label="HuiPlusSheet/OrbSystem"
-            onError={() => {
-              console.warn("[WORLD SURFACE] SafeRender.onError → forceRecoverWorld");
-              forceRecoverWorld("safe-render-error");
-              setShowPlusSheet(false);
-              closeOrbWorld("error");
-            }}
-          >
-            <HuiPlusSheet
-            isTalent={isTalent}
-            visible={showPlusSheet}
-            onMounted={() => {
-              console.log("[ORB] mounted");
-              confirmSurface("orb");
-              console.log("[ORB] confirmSurface fired");
-            }}
-            onClose={() => {
-              console.log("[ORB] close — resurfacing world");
-              setShowPlusSheet(false);
-              closeSurface("orb", "user-close");
-              closeOrbWorld("user-close");
-            }}
-            onSelect={(rawType) => {
-              // TIMING FIX: kein setShowPlusSheet(false) hier —
-              // HuiPlusSheet ruft onClose() selbst auf (synchron, vor RAF).
-              // onSelect kommt per requestAnimationFrame NACH dem Unmount.
-              // safeOrbAction: gibt null zurück wenn type ungültig/leer
-              const type = safeOrbAction(rawType);
-              if (!type) {
-                console.warn("[HUI_ORB] onSelect: ungültiger type ignoriert:", rawType);
-                return; // kein crash, kein Flow, stille Rückkehr
-              }
-              // ── Teilen ──────────────────────────────────────────
-              if (type === "teilen" || type === "story" || type === "moment" ||
-                  type === "thought") {
-                setShowTeilen(true);
-              // ── Werk erschaffen ──────────────────────────────────
-              } else if (type === "werk" ||
-                         type === "kunstwerk" || type === "handwerk" ||
-                         type === "design"    || type === "digital"  ||
-                         type === "sammler") {
-                setShowWerkPublisher(true);
-              // ── Erlebnis öffnen ──────────────────────────────────
-              } else if (type === "experience" || type === "erlebnis" ||
-                         type === "workshop"   || type === "retreat"  ||
-                         type === "event"      || type === "session"  ||
-                         type === "erlebnis_s" || type === "veranstaltung") {
-                setShowExperienceCreator(true);
-              // ── Verbindung ───────────────────────────────────────
-              } else if (type === "connect" || type === "connection" ||
-                         type === "kollab"  || type === "mentor"  ||
-                         type === "partner" || type === "community") {
-                setShowConnect(true);
-              // ── Wirker werden ────────────────────────────────────
-              } else if (type === "wirker" || type === "membership") {
-                setShowTalentFlow(true);
-              // ── Impact / Wirkung starten ────────────────────────
-              } else if (type === "impact" || type === "idee" ||
-                         type === "projekt" ||
-                         type === "wirkraum" || type === "einreich" ||
-                         type === "wirkung") {
-                setShowImpactFlow(true);
-              // ── Create ──────────────────────────────────────────
-              } else if (type === "create") {
-                setShowCreateFlow(true);
-              }
-            }}
-            />
-          </SafeRender>
-        )}
+        {/* OrbCompass — Begegnungs-Kompass (replaces HuiPlusSheet) */}
+        <OrbCompass
+          visible={showPlusSheet}
+          isTalent={isTalent}
+          onClose={() => {
+            setShowPlusSheet(false);
+          }}
+          onWorldSelect={(worldId, worldLabel) => {
+            // Filter feed by selected world
+            setShowPlusSheet(false);
+            if (typeof setActiveMood === "function") {
+              setActiveMood(worldId);
+            }
+            console.log("[ORB] world selected:", worldId, worldLabel);
+          }}
+        />
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
             <TalentOnboarding
