@@ -299,15 +299,9 @@ function HomeInner() {
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="Feed">
                 <UnifiedFeed
-                  showStories={true}
                   onRefreshBind={fn => { feedRefreshRef.current = fn; }}
                   showEvents={true}
                   currentUser={currentUser}
-                  onStory={(s) => {
-                    if (s?.isYou || s?.userId === currentUser?.id) setShowStoryComposer(true);
-                    else if (s) setActiveStory(s);
-                  }}
-                  onAddStory={() => setShowStoryComposer(true)}
                   onProfile={(userId) => {
                     console.log("🟡 STEP 3 — Home.jsx onProfile empfangen", { userId, typeOf: typeof userId });
                     if (!userId) {

@@ -169,14 +169,14 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
   if (events.length === 0) return null;
 
   return (
-    <div style={{ paddingTop: 16, paddingBottom: 4, marginBottom: 6 }}>
+    <div style={{ paddingTop: 10, paddingBottom: 4, marginBottom: 4 }}>
       {/* Header */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         paddingLeft: 16, paddingRight: 16, marginBottom: 12,
       }}>
         <span style={{
-          fontSize: 13, fontWeight: 700, color: "rgba(26,26,46,0.75)",
+          fontSize: 12.5, fontWeight: 700, color: "rgba(26,53,48,0.60)",
           letterSpacing: -0.1,
         }}>
           Heute in deiner Nähe
@@ -207,7 +207,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
       {/* Divider */}
       <div style={{
         height: 1, marginLeft: 16, marginRight: 16,
-        marginTop: 12, background: "rgba(26,26,46,0.05)",
+        marginTop: 10, background: "rgba(26,53,48,0.06)",
       }} />
     </div>
   );

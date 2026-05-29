@@ -1,9 +1,10 @@
-// src/feed/FeedStoriesBar.jsx — Phase 3B Polish
-// ═══════════════════════════════════════════════════════════════
-// Bulletproof Stories Bar. Accepts all prop variants from UnifiedFeed.
-// onProfilePress / onStoryClick / onAddStory all handled.
-// Crash → SectionBoundary catches it → feed still renders.
-// ═══════════════════════════════════════════════════════════════
+// src/feed/FeedStoriesBar.jsx — DEPRECATED (2026-05-29)
+// ══════════════════════════════════════════════════════════════════
+// @deprecated — wird nicht mehr gerendert
+// HUI-Momente ersetzen die Story-Bar vollständig.
+// UnifiedFeed rendert diese Komponente nicht mehr.
+// Datei bleibt für Referenz — kann in nächstem Cleanup-Pass gelöscht werden.
+// ══════════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase }  from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";

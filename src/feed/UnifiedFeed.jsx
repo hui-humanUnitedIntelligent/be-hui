@@ -13,7 +13,6 @@ import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
-import FeedStoriesBar          from "./FeedStoriesBar.jsx";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
 import { toast }               from "../lib/useToast.jsx";
@@ -241,14 +240,11 @@ export default function UnifiedFeed({
   // Items prop (optional — wenn nicht übergeben, eigener useFeedStream)
   items: itemsProp = null,
   // Section visibility
-  showStories  = true,
   showEvents   = true,
   // Handlers
   onProfile    = null,
   onBook       = null,
   onShare      = null,
-  onStory      = null,
-  onAddStory   = null,
   onEventPress = null,
   onMoreEvents = null,
   // Refresh binding — parent can register for feed refresh fn
@@ -260,7 +256,6 @@ export default function UnifiedFeed({
     injectFeedCSS();
     console.log("[ACTIVE_FEED_SYSTEM]", {
       unified:       true,
-      stories:       showStories,
       events:        showEvents,
       router:        "FeedRouter",
       legacyBlocked: true,
@@ -355,17 +350,7 @@ export default function UnifiedFeed({
       minHeight: "100vh",
     }}>
 
-      {/* ── STORIES — top section, always first ── */}
-      {showStories && (
-        <SectionBoundary name="stories">
-          <FeedStoriesBar
-            onStoryClick={onStory}
-            onProfilePress={onProfile}
-            onAddStory={onAddStory}
-            currentUser={currentUser}
-          />
-        </SectionBoundary>
-      )}
+      {/* Stories entfernt — HUI-Momente sind die Stories */}
 
       {/* ── EVENTS — below stories ── */}
       {showEvents && (
