@@ -84,10 +84,12 @@ function HomeInner() {
   };
   const scrollContainerRef = React.useRef(null);
 
-  // ── feed-refresh Event: TeilenFlow dispatched dieses Event nach INSERT_SUCCESS
+  // ── feed-refresh Event → Feed neu laden ──────────────────────────
+  const feedRefreshRef = React.useRef(null);   // wird von UnifiedFeed befüllt
   React.useEffect(() => {
     const handler = () => {
-      console.log("[HUI_HOME] feed-refresh Event empfangen");
+      console.log("[HUI_HOME] feed-refresh → refresh");
+      feedRefreshRef.current?.();
     };
     window.addEventListener("feed-refresh", handler);
     return () => window.removeEventListener("feed-refresh", handler);
@@ -298,6 +300,7 @@ function HomeInner() {
               <SafeRender flag="homeFeed" label="Feed">
                 <UnifiedFeed
                   showStories={true}
+                  onRefreshBind={fn => { feedRefreshRef.current = fn; }}
                   showEvents={true}
                   currentUser={currentUser}
                   onStory={(s) => {

@@ -269,7 +269,15 @@ export default function UnifiedFeed({
   const {
     items: streamItems,
     loading: streamLoading,
+    refresh: streamRefresh,
   } = useFeedStream();
+
+  // ── Bind refresh fn to parent ──────────────────────────────────────
+  React.useEffect(() => {
+    if (onRefreshBind && typeof streamRefresh === "function") {
+      onRefreshBind(streamRefresh);
+    }
+  }, [onRefreshBind, streamRefresh]);
 
   // ── ITEM RESOLUTION ───────────────────────────────────────────────
   // Bevorzuge prop (für Tests / externe Steuerung),

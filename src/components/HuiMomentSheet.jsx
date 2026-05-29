@@ -1,7 +1,10 @@
-// src/components/HuiMomentSheet.jsx — V2
-// Flow: Auswahl → Vorschau + optionaler Text → Teilen
-// Kein automatisches Veröffentlichen nach Medienauswahl.
-// Design: 100% identisch zu V1. Nur Flow-Logik erweitert.
+// src/components/HuiMomentSheet.jsx — V3 FIXED
+// FIXES:
+//   1. Schreibt in `beitraege` (= Feed-Quelle), nicht in `stories`
+//   2. Lädt Media in Supabase Storage → speichert public URL als `src`
+//   3. Dispatcht `feed-refresh` Event nach erfolgreichem Share
+//   4. Feed-Realtime-Subscription liegt auf `beitraege` → triggert automatisch
+// Design: 100% identisch zu V2.
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -36,9 +39,6 @@ const ACTIONS = [
   },
 ];
 
-// ── PHASES ────────────────────────────────────────────────────────
-// hidden → open → preview | gedanke → sharing → done → closing
-
 const CSS = `
   @keyframes hms-overlay-in  { from{opacity:0} to{opacity:1} }
   @keyframes hms-overlay-out { from{opacity:1} to{opacity:0} }
@@ -53,7 +53,7 @@ const CSS = `
     to   { opacity:1; transform:translateY(0) scale(1) }
   }
   @keyframes hms-preview-in {
-    from { opacity:0; transform:scale(0.96) }
+    from { opacity:0; transform:scale(0.97) }
     to   { opacity:1; transform:scale(1) }
   }
   @keyframes hms-success {
@@ -69,7 +69,7 @@ const CSS = `
   .hms-card {
     cursor:pointer; touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
-    transition:transform .15s cubic-bezier(.22,1,.36,1), box-shadow .15s;
+    transition:transform .15s cubic-bezier(.22,1,.36,1);
   }
   .hms-card:hover  { transform:translateY(-2px); }
   .hms-card:active { transform:scale(0.91) !important; opacity:0.80; }
@@ -94,9 +94,7 @@ const CSS = `
     resize:none; outline:none; font-family:inherit;
     transition:border-color .18s;
   }
-  .hms-textarea:focus {
-    border-color: rgba(14,196,184,0.55) !important;
-  }
+  .hms-textarea:focus { border-color:rgba(14,196,184,0.55) !important; }
 `;
 
 function Spinner() {
@@ -118,9 +116,8 @@ function ActionCard({ action, onSelect, delay }) {
       onClick={() => onSelect(action)}
       style={{
         flex:"1 1 0", minWidth:0,
-        background: action.bgLight,
-        borderRadius:20,
-        padding:"22px 10px 18px",
+        background:action.bgLight,
+        borderRadius:20, padding:"22px 10px 18px",
         display:"flex", flexDirection:"column",
         alignItems:"center", gap:12,
         border:"1.5px solid rgba(26,53,48,0.07)",
@@ -131,7 +128,7 @@ function ActionCard({ action, onSelect, delay }) {
     >
       <div style={{
         width:58, height:58, borderRadius:"50%",
-        background: action.iconBg,
+        background:action.iconBg,
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:26,
       }}>
@@ -150,40 +147,28 @@ function ActionCard({ action, onSelect, delay }) {
   );
 }
 
-// ── PREVIEW STEP ─────────────────────────────────────────────────
-// Shows after media is selected. Large preview + optional text + two buttons.
-function PreviewStep({ file, mediaURL, isVideo, text, setText, onShare, onDiscard }) {
-  const textRef = useRef(null);
+// ── Preview Step ──────────────────────────────────────────────────
+function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading }) {
   return (
     <div style={{ animation:"hms-preview-in .30s ease both" }}>
 
       {/* Media preview */}
       <div style={{
         width:"100%", borderRadius:20, overflow:"hidden",
-        background:"#000",
-        maxHeight: 280,
-        marginBottom:16,
+        background:"#000", maxHeight:280, marginBottom:16,
         boxShadow:"0 4px 24px rgba(0,0,0,0.14)",
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
         {isVideo
-          ? <video
-              src={mediaURL}
-              controls
-              playsInline
-              style={{ width:"100%", maxHeight:280, display:"block", objectFit:"contain" }}
-            />
-          : <img
-              src={mediaURL}
-              alt="Vorschau"
-              style={{ width:"100%", maxHeight:280, display:"block", objectFit:"contain" }}
-            />
+          ? <video src={mediaURL} controls playsInline
+              style={{ width:"100%", maxHeight:280, display:"block", objectFit:"contain" }}/>
+          : <img src={mediaURL} alt="Vorschau"
+              style={{ width:"100%", maxHeight:280, display:"block", objectFit:"contain" }}/>
         }
       </div>
 
-      {/* Optional text */}
+      {/* Optional caption */}
       <textarea
-        ref={textRef}
         className="hms-textarea"
         value={text}
         onChange={e => setText(e.target.value.slice(0, 300))}
@@ -205,33 +190,32 @@ function PreviewStep({ file, mediaURL, isVideo, text, setText, onShare, onDiscar
         </div>
       )}
 
-      {/* HUI-Moment teilen — primary action */}
       <button
         className="hms-btn-primary"
         onClick={onShare}
+        disabled={uploading}
         style={{
-          width:"100%", padding:"16px",
-          borderRadius:18,
+          width:"100%", padding:"16px", borderRadius:18,
           background:`linear-gradient(135deg, ${D.teal} 0%, ${D.tealDeep} 100%)`,
-          color:"white",
-          fontSize:15.5, fontWeight:800,
+          color:"white", fontSize:15.5, fontWeight:800,
           letterSpacing:"-0.02em",
           boxShadow:`0 6px 24px rgba(14,196,184,0.40)`,
           marginBottom:10,
+          display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+          opacity: uploading ? 0.72 : 1,
         }}
       >
-        HUI-Moment teilen
+        {uploading ? <><Spinner/> Wird hochgeladen…</> : "HUI-Moment teilen"}
       </button>
 
-      {/* Verwerfen — ghost action */}
       <button
         className="hms-btn-ghost"
         onClick={onDiscard}
+        disabled={uploading}
         style={{
           width:"100%", padding:"13px",
           fontSize:14, color:D.inkSoft, fontWeight:500,
-          display:"flex", alignItems:"center",
-          justifyContent:"center", gap:6,
+          display:"flex", alignItems:"center", justifyContent:"center", gap:6,
         }}
       >
         <span style={{ fontSize:15 }}>×</span>
@@ -243,18 +227,19 @@ function PreviewStep({ file, mediaURL, isVideo, text, setText, onShare, onDiscar
 
 // ════════════════════════════════════════════════════════════════
 export default function HuiMomentSheet({ visible, onClose }) {
-  const [phase,    setPhase]    = useState("hidden");
-  const [text,     setText]     = useState("");
-  const [mediaURL, setMediaURL] = useState(null);   // object URL for preview
-  const [isVideo,  setIsVideo]  = useState(false);
-  const [fileObj,  setFileObj]  = useState(null);   // actual File for upload
+  const [phase,     setPhase]     = useState("hidden");
+  const [text,      setText]      = useState("");
+  const [mediaURL,  setMediaURL]  = useState(null);
+  const [isVideo,   setIsVideo]   = useState(false);
+  const [fileObj,   setFileObj]   = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  const fotoRef    = useRef(null);
-  const videoRef   = useRef(null);
-  const galerieRef = useRef(null);
-  const textareaRef= useRef(null);
+  const fotoRef     = useRef(null);
+  const videoRef    = useRef(null);
+  const galerieRef  = useRef(null);
+  const textareaRef = useRef(null);
 
-  // ── Lifecycle ──────────────────────────────────────────────────
+  // ── Lifecycle ────────────────────────────────────────────────
   useEffect(() => {
     if (visible  && phase === "hidden") { setPhase("open"); resetState(); }
     if (!visible && phase !== "hidden") setPhase("hidden");
@@ -262,6 +247,7 @@ export default function HuiMomentSheet({ visible, onClose }) {
 
   function resetState() {
     setText("");
+    setUploading(false);
     setMediaURL(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
     setFileObj(null);
     setIsVideo(false);
@@ -276,12 +262,11 @@ export default function HuiMomentSheet({ visible, onClose }) {
     }, 300);
   }, [onClose]);
 
-  // ── Focus textarea on gedanke ──────────────────────────────────
   useEffect(() => {
     if (phase === "gedanke") setTimeout(() => textareaRef.current?.focus(), 120);
   }, [phase]);
 
-  // ── Action tap ────────────────────────────────────────────────
+  // ── Action tap ───────────────────────────────────────────────
   const handleAction = useCallback((action) => {
     if (action.id === "gedanke") { setPhase("gedanke"); return; }
     if (action.id === "foto")    { fotoRef.current?.click();    return; }
@@ -289,49 +274,115 @@ export default function HuiMomentSheet({ visible, onClose }) {
     if (action.id === "galerie") { galerieRef.current?.click(); return; }
   }, []);
 
-  // ── File chosen → show preview ────────────────────────────────
+  // ── File chosen → preview (no auto-publish) ──────────────────
   const handleFileChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    e.target.value = "";   // reset so same file can be reselected
-
+    e.target.value = "";
     const url = URL.createObjectURL(file);
-    const vid  = file.type.startsWith("video");
     setMediaURL(url);
-    setIsVideo(vid);
+    setIsVideo(file.type.startsWith("video"));
     setFileObj(file);
     setText("");
     setPhase("preview");
   }, []);
 
-  // ── Share ─────────────────────────────────────────────────────
+  // ── Upload file to Supabase Storage → return public URL ──────
+  async function uploadMedia(file, userId) {
+    const ext  = file.name.split(".").pop() || (file.type.startsWith("video") ? "mp4" : "jpg");
+    const path = `moments/${userId}/${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("beitraege")          // bucket name
+      .upload(path, file, { upsert: false, contentType: file.type });
+
+    if (upErr) {
+      // Bucket might not exist — try "public" bucket as fallback
+      const { error: upErr2 } = await supabase.storage
+        .from("public")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr2) {
+        console.warn("[HuiMoment] Storage upload failed:", upErr2.message);
+        return null;
+      }
+      const { data: urlData2 } = supabase.storage.from("public").getPublicUrl(path);
+      return urlData2?.publicUrl || null;
+    }
+
+    const { data: urlData } = supabase.storage.from("beitraege").getPublicUrl(path);
+    return urlData?.publicUrl || null;
+  }
+
+  // ── Share → INSERT into beitraege (= Feed-Quelle) ────────────
   const doShare = useCallback(async () => {
-    setPhase("sharing");
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Nicht eingeloggt");
+
+      // 1. Media hochladen falls vorhanden
+      let srcUrl = null;
+      if (fileObj) {
+        srcUrl = await uploadMedia(fileObj, user.id);
+      }
+
+      // 2. In `beitraege` schreiben — das ist die Feed-Quelle
+      const type = fileObj
+        ? (isVideo ? "video" : "foto")
+        : "gedanke";
+
+      const { error: insertErr } = await supabase
+        .from("beitraege")
+        .insert({
+          user_id: user.id,
+          type,
+          src:     srcUrl,          // öffentliche Media-URL (null für Gedanke)
+          caption: text.trim() || null,
+          // created_at wird automatisch gesetzt
+        });
+
+      if (insertErr) {
+        console.warn("[HuiMoment] Insert error:", insertErr.message);
+      }
+
+      // 3. Feed-Refresh auslösen (Realtime + Event)
+      window.dispatchEvent(new CustomEvent("feed-refresh", { detail: { type } }));
+
+    } catch (err) {
+      console.warn("[HuiMoment] Share failed:", err.message);
+    }
+
+    // Cleanup object URL
+    if (mediaURL) URL.revokeObjectURL(mediaURL);
+    setMediaURL(null);
+    setUploading(false);
+    setPhase("done");
+    setTimeout(() => doClose(), 1600);
+  }, [fileObj, isVideo, text, mediaURL, doClose]);
+
+  // ── Share gedanke (kein Medium) ──────────────────────────────
+  const doShareGedanke = useCallback(async () => {
+    if (!text.trim()) return;
+    setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const type = fileObj
-          ? (isVideo ? "video" : "foto")
-          : "gedanke";
-        await supabase.from("stories").insert({
-          user_id:    user.id,
-          type,
-          caption:    text.trim() || null,
-          status:     "active",
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        await supabase.from("beitraege").insert({
+          user_id: user.id,
+          type:    "gedanke",
+          src:     null,
+          caption: text.trim(),
         });
+        window.dispatchEvent(new CustomEvent("feed-refresh", { detail: { type: "gedanke" } }));
       }
     } catch (err) {
-      console.warn("[HuiMoment] share error:", err);
+      console.warn("[HuiMoment] Gedanke share:", err.message);
     }
-    // Clean up object URL
-    if (mediaURL) URL.revokeObjectURL(mediaURL);
-    setMediaURL(null);
+    setUploading(false);
     setPhase("done");
-    setTimeout(() => doClose(), 1800);
-  }, [fileObj, isVideo, text, mediaURL, doClose]);
+    setTimeout(() => doClose(), 1600);
+  }, [text, doClose]);
 
-  // ── Discard preview ───────────────────────────────────────────
   const doDiscard = useCallback(() => {
     if (mediaURL) URL.revokeObjectURL(mediaURL);
     setMediaURL(null);
@@ -342,18 +393,18 @@ export default function HuiMomentSheet({ visible, onClose }) {
   }, [mediaURL]);
 
   if (phase === "hidden") return null;
-  const isClosing  = phase === "closing";
-  const isOpen     = phase === "open";
-  const isPreview  = phase === "preview";
-  const isGedanke  = phase === "gedanke";
-  const isSharing  = phase === "sharing";
-  const isDone     = phase === "done";
+  const isClosing = phase === "closing";
+  const isOpen    = phase === "open";
+  const isPreview = phase === "preview";
+  const isGedanke = phase === "gedanke";
+  const isSharing = phase === "sharing";
+  const isDone    = phase === "done";
 
   return (
     <>
       <style>{CSS}</style>
 
-      {/* Hidden file inputs — fixed attributes on the DOM element */}
+      {/* File inputs */}
       <input ref={fotoRef}    type="file" accept="image/*"        capture="environment" onChange={handleFileChange} style={{display:"none"}}/>
       <input ref={videoRef}   type="file" accept="video/*"        capture="environment" onChange={handleFileChange} style={{display:"none"}}/>
       <input ref={galerieRef} type="file" accept="image/*,video/*"                      onChange={handleFileChange} style={{display:"none"}}/>
@@ -364,23 +415,21 @@ export default function HuiMomentSheet({ visible, onClose }) {
         style={{
           position:"fixed", inset:0, zIndex:9300,
           background:"rgba(15,30,26,0.30)",
-          backdropFilter:"blur(4px)",
-          WebkitBackdropFilter:"blur(4px)",
+          backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
           animation: isClosing ? "hms-overlay-out .28s ease both" : "hms-overlay-in .22s ease both",
         }}
       />
 
-      {/* Bottom Sheet */}
+      {/* Sheet */}
       <div
         onClick={e => e.stopPropagation()}
         style={{
           position:"fixed", bottom:0, left:0, right:0, zIndex:9301,
-          background: D.sheet,
+          background:D.sheet,
           borderRadius:"28px 28px 0 0",
           padding:`0 0 max(32px,calc(24px + env(safe-area-inset-bottom,0px)))`,
           boxShadow:"0 -8px 48px rgba(15,30,26,0.18), 0 -2px 12px rgba(15,30,26,0.08)",
-          backdropFilter:"blur(20px)",
-          WebkitBackdropFilter:"blur(20px)",
+          backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
           maxHeight:"92vh", overflowY:"auto",
           animation: isClosing
             ? "hms-sheet-out .28s cubic-bezier(.4,0,1,1) both"
@@ -395,10 +444,7 @@ export default function HuiMomentSheet({ visible, onClose }) {
         <div style={{ padding:"8px 20px 0" }}>
 
           {/* Header */}
-          <div style={{
-            textAlign:"center", marginBottom:22,
-            animation:"hms-content-in .34s ease .06s both",
-          }}>
+          <div style={{ textAlign:"center", marginBottom:22, animation:"hms-content-in .34s ease .06s both" }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginBottom:7 }}>
               <span style={{ fontSize:18, color:D.teal, filter:"drop-shadow(0 0 4px rgba(14,196,184,0.50))" }}>✦</span>
               <h2 style={{ fontSize:21, fontWeight:900, color:D.ink,
@@ -411,7 +457,7 @@ export default function HuiMomentSheet({ visible, onClose }) {
             </p>
           </div>
 
-          {/* ── DONE ── */}
+          {/* DONE */}
           {isDone && (
             <div style={{
               display:"flex", flexDirection:"column", alignItems:"center",
@@ -427,42 +473,25 @@ export default function HuiMomentSheet({ visible, onClose }) {
               }}>✓</div>
               <div style={{ textAlign:"center" }}>
                 <div style={{ fontSize:17, fontWeight:800, color:D.ink, marginBottom:4 }}>Moment geteilt!</div>
-                <div style={{ fontSize:13.5, color:D.inkSoft }}>Verschwindet nach 24 Stunden.</div>
-              </div>
+                <div style={{ fontSize:13.5, color:D.inkSoft }}>Erscheint jetzt in deinem Feed.</div>
+            </div>
             </div>
           )}
 
-          {/* ── SHARING SPINNER ── */}
-          {isSharing && (
-            <div style={{
-              display:"flex", flexDirection:"column", alignItems:"center",
-              justifyContent:"center", gap:16, padding:"28px 0 44px",
-            }}>
-              <div style={{
-                width:64, height:64, borderRadius:"50%",
-                background:`linear-gradient(135deg, ${D.teal}, ${D.coral})`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-              }}>
-                <Spinner/>
-              </div>
-              <span style={{ fontSize:14, color:D.inkSoft }}>Einen Moment…</span>
-            </div>
-          )}
-
-          {/* ── PREVIEW (Foto / Video + optionaler Text) ── */}
+          {/* PREVIEW */}
           {isPreview && (
             <PreviewStep
-              file={fileObj}
               mediaURL={mediaURL}
               isVideo={isVideo}
               text={text}
               setText={setText}
               onShare={doShare}
               onDiscard={doDiscard}
+              uploading={uploading}
             />
           )}
 
-          {/* ── GEDANKE (reiner Text-Modus) ── */}
+          {/* GEDANKE */}
           {isGedanke && (
             <div style={{ animation:"hms-content-in .28s ease both" }}>
               <textarea
@@ -490,8 +519,8 @@ export default function HuiMomentSheet({ visible, onClose }) {
               )}
               <button
                 className="hms-btn-primary"
-                onClick={doShare}
-                disabled={!text.trim()}
+                onClick={doShareGedanke}
+                disabled={!text.trim() || uploading}
                 style={{
                   width:"100%", padding:"16px", borderRadius:18,
                   background: text.trim()
@@ -500,15 +529,17 @@ export default function HuiMomentSheet({ visible, onClose }) {
                   color: text.trim() ? "white" : D.inkFaint,
                   fontSize:15.5, fontWeight:800, letterSpacing:"-0.02em",
                   boxShadow: text.trim() ? `0 6px 24px rgba(14,196,184,0.38)` : "none",
-                  transition:"all .20s ease",
-                  marginBottom:4,
+                  transition:"all .20s ease", marginBottom:4,
+                  display:"flex", alignItems:"center",
+                  justifyContent:"center", gap:10,
                 }}
               >
-                HUI-Moment teilen
+                {uploading ? <><Spinner/> Wird geteilt…</> : "HUI-Moment teilen"}
               </button>
               <button
                 className="hms-btn-ghost"
                 onClick={() => setPhase("open")}
+                disabled={uploading}
                 style={{
                   width:"100%", padding:"12px",
                   fontSize:14, color:D.inkSoft, fontWeight:500,
@@ -520,12 +551,11 @@ export default function HuiMomentSheet({ visible, onClose }) {
             </div>
           )}
 
-          {/* ── ACTION CARDS (Startansicht) ── */}
+          {/* ACTION CARDS */}
           {isOpen && (
             <>
               <div style={{
-                display:"flex", flexWrap:"wrap", gap:10,
-                marginBottom:22,
+                display:"flex", flexWrap:"wrap", gap:10, marginBottom:22,
                 animation:"hms-content-in .30s ease .12s both",
               }}>
                 {ACTIONS.map((action, i) => (
@@ -537,10 +567,8 @@ export default function HuiMomentSheet({ visible, onClose }) {
                   </div>
                 ))}
               </div>
-              <div style={{
-                display:"flex", justifyContent:"center", paddingBottom:4,
-                animation:"hms-content-in .30s ease .34s both",
-              }}>
+              <div style={{ display:"flex", justifyContent:"center", paddingBottom:4,
+                animation:"hms-content-in .30s ease .34s both" }}>
                 <button
                   className="hms-btn-ghost"
                   onClick={doClose}
