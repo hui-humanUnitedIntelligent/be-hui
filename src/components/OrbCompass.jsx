@@ -5,6 +5,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback } from "react";
+import HuiMomentSheet from "./HuiMomentSheet.jsx";
 
 const HUI_LOGO = "https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png";
 
@@ -221,13 +222,15 @@ function GlassSphere({ world, size, animDelay }) {
         {world.emoji}
       </div>
     </div>
+
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
 export default function OrbCompass({ visible, isTalent = false, onClose, onWorldSelect }) {
   const [phase,  setPhase]  = useState("hidden");
-  const [logoOk, setLogoOk] = useState(false);
+  const [logoOk,     setLogoOk]     = useState(false);
+  const [showMoment, setShowMoment] = useState(false);
 
   useEffect(() => {
     if (visible  && phase === "hidden") setPhase("open");
@@ -264,6 +267,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
   const r2    = R * 0.52;
 
   return (
+    <>
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 9200,
@@ -513,16 +517,22 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             );
           })}
 
-          {/* ── CENTER HUI LOGO — premium depth ─────── */}
-          <div style={{
-            position: "absolute",
-            left: cx, top: cy,
-            zIndex: 10,
-            animation: `
-              oatm-center-rise .60s cubic-bezier(.34,1.56,.64,1) .06s both,
-              oatm-breathe 5.2s ease-in-out 1.4s infinite
-            `,
-          }}>
+          {/* ── CENTER HUI LOGO — tappable, opens HUI-Moment ── */}
+          <div
+            onClick={isTalent ? () => setShowMoment(true) : undefined}
+            style={{
+              position: "absolute",
+              left: cx, top: cy,
+              zIndex: 10,
+              cursor: isTalent ? "pointer" : "default",
+              touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
+              animation: `
+                oatm-center-rise .60s cubic-bezier(.34,1.56,.64,1) .06s both,
+                oatm-breathe 5.2s ease-in-out 1.4s infinite
+              `,
+            }}
+          >
             {/* Deep ambient aura — two-color, very soft */}
             <div style={{
               position: "absolute",
@@ -628,5 +638,12 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
 
       </div>
     </div>
+
+      {/* HUI-Moment Sheet — floats above orb, orb stays visible */}
+      <HuiMomentSheet
+        visible={showMoment}
+        onClose={() => setShowMoment(false)}
+      />
+    </>
   );
 }
