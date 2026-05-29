@@ -387,16 +387,10 @@ export function useFeedStream() {
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
-        table: "feed_posts",        // beitraege ist VIEW auf feed_posts
+        table: "beitraege",         // echte Tabelle — Realtime via Migration 040
       }, (payload) => {
         if (!mountedRef.current) return;
-        // feed_posts Felder auf beitraege-Schema mappen
-        const mapped = {
-          ...payload.new,
-          src:  payload.new.media_url  || null,
-          type: payload.new.media_type || "text",
-        };
-        _receiveLiveItem(mapped, normalizeBeitragRow);
+        _receiveLiveItem(payload.new, normalizeBeitragRow);
       })
       .on("postgres_changes", {
         event: "INSERT",

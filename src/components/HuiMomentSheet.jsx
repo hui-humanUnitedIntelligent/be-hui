@@ -1,24 +1,25 @@
-// src/components/HuiMomentSheet.jsx — V4 FINAL
+// src/components/HuiMomentSheet.jsx — V5 FINAL (2026-05-29)
 // ════════════════════════════════════════════════════════════════
-// FIX HISTORY:
-//   V1: Initial (schrieb in 'stories' — falsche Tabelle)
-//   V2: Preview-Step eingeführt
-//   V3: Schrieb in 'beitraege' (existiert nicht → stiller Fehler)
-//   V4: Schreibt korrekt in 'feed_posts' (existierende Tabelle)
-//       Storage: bucket 'hui-moments' (korrekt konfiguriert)
-//       Debug-Logs für Analyse + bessere Fehlerbehandlung
+// ANALYSE (aus Supabase CSV bestätigt):
+//   beitraege: id(uuid PK), user_id(uuid), src(text), type(text), caption(text), created_at
+//   src war NOT NULL → Migration 040 macht es nullable
+//   Storage: bucket 'media' existiert (public) — Pfad: beitraege/{userId}/{ts}.ext
+//   RLS INSERT: auth.uid() = user_id
+//
+// V5 FIXES gegenüber V4:
+//   - INSERT in 'beitraege' (nicht feed_posts)
+//   - Upload → bucket 'media', Pfad beitraege/{userId}/{ts}.ext
+//   - src=null für Gedanken (nach Migration 040 erlaubt)
+//   - Verbose debug logs: Payload, Insert-Result, Fehlercode
+//   - Error Banner mit konkreter Fehlermeldung
 // ════════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 
 const D = {
-  teal:     "#0EC4B8",
-  tealDeep: "#0A9E94",
-  coral:    "#E8573A",
-  ink:      "#1A3530",
-  inkSoft:  "rgba(26,53,48,0.55)",
-  inkFaint: "rgba(26,53,48,0.32)",
-  sheet:    "rgba(252,253,252,0.97)",
+  teal:"#0EC4B8", tealDeep:"#0A9E94", coral:"#E8573A",
+  ink:"#1A3530", inkSoft:"rgba(26,53,48,0.55)", inkFaint:"rgba(26,53,48,0.32)",
+  sheet:"rgba(252,253,252,0.97)",
 };
 
 const ACTIONS = [
@@ -29,31 +30,28 @@ const ACTIONS = [
 ];
 
 const CSS = `
-  @keyframes hms-overlay-in  { from{opacity:0} to{opacity:1} }
-  @keyframes hms-overlay-out { from{opacity:1} to{opacity:0} }
-  @keyframes hms-sheet-in  { from{transform:translateY(100%)} to{transform:translateY(0)} }
-  @keyframes hms-sheet-out { from{transform:translateY(0)} to{transform:translateY(100%)} }
-  @keyframes hms-content-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes hms-card-in    { from{opacity:0;transform:translateY(14px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
-  @keyframes hms-preview-in { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
-  @keyframes hms-success     { 0%{transform:scale(0.7);opacity:0} 60%{transform:scale(1.06)} 100%{transform:scale(1);opacity:1} }
-  @keyframes hms-spin        { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  @keyframes hms-error-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  @keyframes hms-overlay-in  { from{opacity:0}to{opacity:1} }
+  @keyframes hms-overlay-out { from{opacity:1}to{opacity:0} }
+  @keyframes hms-sheet-in  { from{transform:translateY(100%)}to{transform:translateY(0)} }
+  @keyframes hms-sheet-out { from{transform:translateY(0)}to{transform:translateY(100%)} }
+  @keyframes hms-content-in { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes hms-card-in    { from{opacity:0;transform:translateY(14px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes hms-preview-in { from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)} }
+  @keyframes hms-success    { 0%{transform:scale(0.7);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1} }
+  @keyframes hms-spin       { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+  @keyframes hms-shake      { 0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)} }
 
-  .hms-card { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+  .hms-card { cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
     transition:transform .15s cubic-bezier(.22,1,.36,1); }
   .hms-card:hover  { transform:translateY(-2px); }
-  .hms-card:active { transform:scale(0.91)!important; opacity:0.80; }
-
-  .hms-btn-ghost { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
-    transition:opacity .14s,transform .14s; background:none; border:none; font-family:inherit; }
-  .hms-btn-ghost:active { opacity:0.42; transform:scale(0.94); }
-
-  .hms-btn-primary { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
-    transition:transform .14s,opacity .14s,box-shadow .14s; border:none; font-family:inherit; }
-  .hms-btn-primary:active { transform:scale(0.95); opacity:0.88; }
-
-  .hms-textarea { resize:none; outline:none; font-family:inherit; transition:border-color .18s; }
+  .hms-card:active { transform:scale(0.91)!important;opacity:0.80; }
+  .hms-btn-ghost { cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    transition:opacity .14s,transform .14s;background:none;border:none;font-family:inherit; }
+  .hms-btn-ghost:active { opacity:0.42;transform:scale(0.94); }
+  .hms-btn-primary { cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    transition:transform .14s,opacity .14s,box-shadow .14s;border:none;font-family:inherit; }
+  .hms-btn-primary:active { transform:scale(0.95);opacity:0.88; }
+  .hms-textarea { resize:none;outline:none;font-family:inherit;transition:border-color .18s; }
   .hms-textarea:focus { border-color:rgba(14,196,184,0.55)!important; }
 `;
 
@@ -66,9 +64,9 @@ function Spinner() {
 function ActionCard({ action, onSelect, delay }) {
   return (
     <div className="hms-card" onClick={() => onSelect(action)} style={{
-      flex:"1 1 0", minWidth:0, background:action.bgLight, borderRadius:20,
-      padding:"22px 10px 18px", display:"flex", flexDirection:"column",
-      alignItems:"center", gap:12,
+      flex:"1 1 0",minWidth:0,background:action.bgLight,borderRadius:20,
+      padding:"22px 10px 18px",display:"flex",flexDirection:"column",
+      alignItems:"center",gap:12,
       border:"1.5px solid rgba(26,53,48,0.07)",
       boxShadow:"0 2px 12px rgba(0,0,0,0.04)",
       animation:`hms-card-in .40s cubic-bezier(.34,1.56,.64,1) ${delay}ms both`,
@@ -79,8 +77,8 @@ function ActionCard({ action, onSelect, delay }) {
         {action.icon}
       </div>
       <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:13.5,fontWeight:800,color:D.ink,
-          letterSpacing:"-0.02em",lineHeight:1.25,marginBottom:4 }}>{action.label}</div>
+        <div style={{ fontSize:13.5,fontWeight:800,color:D.ink,letterSpacing:"-0.02em",
+          lineHeight:1.25,marginBottom:4 }}>{action.label}</div>
         <div style={{ fontSize:12,color:D.inkSoft,fontWeight:400 }}>{action.sub}</div>
       </div>
     </div>
@@ -101,7 +99,7 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
         }
       </div>
       <textarea className="hms-textarea" value={text}
-        onChange={e => setText(e.target.value.slice(0, 300))}
+        onChange={e => setText(e.target.value.slice(0,300))}
         placeholder="Was möchtest du zu diesem Moment teilen? (optional)"
         rows={3} style={{ width:"100%",boxSizing:"border-box",
           border:"1.5px solid rgba(14,196,184,0.22)",borderRadius:16,
@@ -127,34 +125,32 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
         width:"100%",padding:"13px",fontSize:14,color:D.inkSoft,fontWeight:500,
         display:"flex",alignItems:"center",justifyContent:"center",gap:6,
       }}>
-        <span style={{ fontSize:15 }}>×</span>
-        Verwerfen
+        <span style={{ fontSize:15 }}>×</span>Verwerfen
       </button>
     </div>
   );
 }
 
-// ── Media Upload → Supabase Storage → public URL ─────────────────
-async function uploadToStorage(file, userId) {
-  const ext  = (file.name?.split(".").pop()) || (file.type.startsWith("video") ? "mp4" : "jpg");
-  const path = `${userId}/${Date.now()}.${ext}`;
+// ── Upload zu 'media' bucket → Pfad: beitraege/{userId}/{ts}.ext ─────
+async function uploadToMedia(file, userId) {
+  const ext  = file.name?.split(".").pop() || (file.type.startsWith("video") ? "mp4" : "jpg");
+  const path = `beitraege/${userId}/${Date.now()}.${ext}`;
 
-  console.log("[HuiMoment] Storage upload start:", { bucket:"hui-moments", path, type:file.type, size:file.size });
+  console.log("[HuiMoment] Upload start →", { bucket:"media", path, size:file.size, type:file.type });
 
   const { error } = await supabase.storage
-    .from("hui-moments")
+    .from("media")
     .upload(path, file, { upsert: false, contentType: file.type });
 
   if (error) {
-    console.warn("[HuiMoment] Storage upload error:", error.message, error);
-    // Graceful: return null → Post wird ohne Media gespeichert
-    return null;
+    console.error("[HuiMoment] Upload FEHLER →", { code:error.statusCode, msg:error.message, error });
+    return null; // graceful: weiter ohne Bild
   }
 
-  const { data: urlData } = supabase.storage.from("hui-moments").getPublicUrl(path);
-  const publicUrl = urlData?.publicUrl || null;
-  console.log("[HuiMoment] Storage upload OK:", publicUrl);
-  return publicUrl;
+  const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
+  const url = urlData?.publicUrl || null;
+  console.log("[HuiMoment] Upload OK →", url);
+  return url;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -205,85 +201,91 @@ export default function HuiMomentSheet({ visible, onClose }) {
     e.target.value = "";
     setMediaURL(URL.createObjectURL(file));
     setIsVideo(file.type.startsWith("video"));
-    setFileObj(file);
-    setText(""); setShareErr(null);
+    setFileObj(file); setText(""); setShareErr(null);
     setPhase("preview");
   }, []);
 
-  // ── Core share function ────────────────────────────────────────
-  async function _doInsert({ mediaUrl, mediaType, caption }) {
+  // ── Kern-Logik: in beitraege inserieren ───────────────────────
+  async function _publishMoment({ src, type, caption }) {
     console.log("[HuiMoment] Share gestartet");
 
+    // 1. User authentifizieren
     const { data: authData, error: authErr } = await supabase.auth.getUser();
-    if (authErr || !authData?.user) {
-      throw new Error("Nicht eingeloggt — bitte neu anmelden");
+    if (authErr || !authData?.user?.id) {
+      throw new Error("Nicht eingeloggt — bitte Seite neu laden");
     }
     const userId = authData.user.id;
 
+    // 2. Payload
     const payload = {
-      user_id:    userId,
-      caption:    caption || null,
-      media_url:  mediaUrl  || null,
-      media_type: mediaType || "text",
+      user_id: userId,
+      src:     src    || null,
+      type:    type   || "gedanke",
+      caption: caption || null,
     };
-
     console.log("[HuiMoment] Post Payload:", payload);
 
+    // 3. INSERT in beitraege
     const { data: result, error: insertErr } = await supabase
-      .from("feed_posts")
+      .from("beitraege")
       .insert(payload)
       .select("id, created_at")
       .single();
 
     if (insertErr) {
-      console.error("[HuiMoment] Insert Fehler:", insertErr);
-      throw new Error(insertErr.message || "Speichern fehlgeschlagen");
+      console.error("[HuiMoment] INSERT FEHLER →", {
+        code:    insertErr.code,
+        message: insertErr.message,
+        details: insertErr.details,
+        hint:    insertErr.hint,
+      });
+      throw new Error(`DB-Fehler (${insertErr.code}): ${insertErr.message}`);
     }
 
     console.log("[HuiMoment] Feed Post erstellt:", result);
-
     console.log("[HuiMoment] Feed Refresh gestartet");
-    window.dispatchEvent(new CustomEvent("feed-refresh", { detail: { postId: result?.id } }));
-
+    window.dispatchEvent(new CustomEvent("feed-refresh", { detail: { id: result?.id } }));
     return result;
   }
 
-  // ── Share mit Medium (Foto/Video) ─────────────────────────────
+  // ── Share Foto/Video ───────────────────────────────────────────
   const doShare = useCallback(async () => {
     setUploading(true); setShareErr(null);
     try {
-      let mediaUrl  = null;
-      let mediaType = "text";
+      let src  = null;
+      let type = "gedanke";
 
       if (fileObj) {
-        mediaType = isVideo ? "video" : "image";
-        mediaUrl  = await uploadToStorage(fileObj, (await supabase.auth.getUser()).data?.user?.id || "anon");
-        // Falls Upload fehlschlägt: trotzdem speichern (ohne Bild)
+        type = isVideo ? "video" : "foto";
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData?.user?.id;
+        if (userId) src = await uploadToMedia(fileObj, userId);
+        // Upload-Fehler = graceful (null src)
       }
 
-      await _doInsert({ mediaUrl, mediaType, caption: text.trim() });
+      await _publishMoment({ src, type, caption: text.trim() });
 
       if (mediaURL) URL.revokeObjectURL(mediaURL);
       setMediaURL(null);
       setPhase("done");
       setTimeout(() => doClose(), 1600);
     } catch (err) {
-      console.error("[HuiMoment] Share error:", err);
+      console.error("[HuiMoment] Share ERROR:", err.message);
       setShareErr(err.message);
       setUploading(false);
     }
   }, [fileObj, isVideo, text, mediaURL, doClose]);
 
-  // ── Share Gedanke (reiner Text) ────────────────────────────────
+  // ── Share Gedanke ──────────────────────────────────────────────
   const doShareGedanke = useCallback(async () => {
     if (!text.trim()) return;
     setUploading(true); setShareErr(null);
     try {
-      await _doInsert({ mediaUrl: null, mediaType: "text", caption: text.trim() });
+      await _publishMoment({ src: null, type: "gedanke", caption: text.trim() });
       setPhase("done");
       setTimeout(() => doClose(), 1600);
     } catch (err) {
-      console.error("[HuiMoment] Gedanke error:", err);
+      console.error("[HuiMoment] Gedanke ERROR:", err.message);
       setShareErr(err.message);
       setUploading(false);
     }
@@ -320,8 +322,7 @@ export default function HuiMomentSheet({ visible, onClose }) {
       {/* Sheet */}
       <div onClick={e => e.stopPropagation()} style={{
         position:"fixed",bottom:0,left:0,right:0,zIndex:9301,
-        background:D.sheet,
-        borderRadius:"28px 28px 0 0",
+        background:D.sheet,borderRadius:"28px 28px 0 0",
         padding:`0 0 max(32px,calc(24px + env(safe-area-inset-bottom,0px)))`,
         boxShadow:"0 -8px 48px rgba(15,30,26,0.18),0 -2px 12px rgba(15,30,26,0.08)",
         backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",
@@ -337,7 +338,6 @@ export default function HuiMomentSheet({ visible, onClose }) {
         </div>
 
         <div style={{ padding:"8px 20px 0" }}>
-
           {/* Header */}
           <div style={{ textAlign:"center",marginBottom:22,animation:"hms-content-in .34s ease .06s both" }}>
             <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:7 }}>
@@ -356,16 +356,16 @@ export default function HuiMomentSheet({ visible, onClose }) {
             <div style={{
               background:"rgba(232,87,58,0.10)",border:"1.5px solid rgba(232,87,58,0.30)",
               borderRadius:14,padding:"12px 16px",marginBottom:14,
-              display:"flex",alignItems:"center",gap:10,
-              animation:"hms-error-shake .4s ease",
+              display:"flex",alignItems:"flex-start",gap:10,
+              animation:"hms-shake .4s ease",
             }}>
-              <span style={{ fontSize:18 }}>⚠️</span>
-              <div>
+              <span style={{ fontSize:18,flexShrink:0 }}>⚠️</span>
+              <div style={{ flex:1,minWidth:0 }}>
                 <div style={{ fontSize:13.5,fontWeight:700,color:D.coral }}>Fehler beim Teilen</div>
-                <div style={{ fontSize:12,color:D.inkSoft,marginTop:2 }}>{shareErr}</div>
+                <div style={{ fontSize:12,color:D.inkSoft,marginTop:2,wordBreak:"break-word" }}>{shareErr}</div>
               </div>
               <button className="hms-btn-ghost" onClick={() => setShareErr(null)}
-                style={{ marginLeft:"auto",fontSize:18,color:D.inkSoft,padding:4 }}>×</button>
+                style={{ fontSize:18,color:D.inkSoft,padding:4,flexShrink:0 }}>×</button>
             </div>
           )}
 
@@ -396,7 +396,7 @@ export default function HuiMomentSheet({ visible, onClose }) {
           {isGedanke && (
             <div style={{ animation:"hms-content-in .28s ease both" }}>
               <textarea ref={textareaRef} className="hms-textarea"
-                value={text} onChange={e => setText(e.target.value.slice(0, 300))}
+                value={text} onChange={e => setText(e.target.value.slice(0,300))}
                 placeholder={"Was möchtest du teilen?\n\nSchreibe einen echten Gedanken…"}
                 rows={5} style={{ width:"100%",boxSizing:"border-box",
                   border:"1.5px solid rgba(14,196,184,0.28)",borderRadius:18,
@@ -437,8 +437,7 @@ export default function HuiMomentSheet({ visible, onClose }) {
                 animation:"hms-content-in .30s ease .12s both" }}>
                 {ACTIONS.map((action, i) => (
                   <div key={action.id} style={{
-                    flex:window.innerWidth>=520?"1 1 0":"1 1 calc(50% - 5px)",
-                    minWidth:0,
+                    flex:window.innerWidth>=520?"1 1 0":"1 1 calc(50% - 5px)",minWidth:0,
                   }}>
                     <ActionCard action={action} onSelect={handleAction} delay={i*55+100}/>
                   </div>
@@ -450,13 +449,11 @@ export default function HuiMomentSheet({ visible, onClose }) {
                   fontSize:14.5,color:D.inkSoft,fontWeight:500,
                   padding:"8px 20px",display:"flex",alignItems:"center",gap:7,
                 }}>
-                  <span style={{ fontSize:16 }}>×</span>
-                  Abbrechen
+                  <span style={{ fontSize:16 }}>×</span>Abbrechen
                 </button>
               </div>
             </>
           )}
-
         </div>
       </div>
     </>

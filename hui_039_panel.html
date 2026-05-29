@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>HUI Migration 039 — beitraege VIEW + Moments Storage</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 24px; background: #F9F7F4; color: #1A3530; }
+  h1 { font-size: 22px; font-weight: 900; color: #0EC4B8; margin-bottom: 4px; }
+  .subtitle { color: rgba(26,53,48,0.55); font-size: 14px; margin-bottom: 32px; }
+  .step { background: white; border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .step h3 { margin: 0 0 12px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  pre { background: #0D1F1C; color: #A8F0EB; padding: 16px 20px; border-radius: 12px; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 0; }
+  .btn { background: #0EC4B8; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .btn:hover { background: #0A9E94; }
+  .important { background: rgba(232,87,58,0.08); border: 1.5px solid rgba(232,87,58,0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; }
+  .ok { background: rgba(14,196,184,0.08); border: 1.5px solid rgba(14,196,184,0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; }
+</style>
+</head>
+<body>
+
+<h1>🗄️ HUI Migration 039</h1>
+<div class="subtitle">beitraege VIEW + Moments Storage — HUI-Momente im Feed aktivieren</div>
+
+<div class="important">
+  ⚠️ <strong>Ursache:</strong> Die Tabelle <code>beitraege</code> existiert nicht in Supabase.<br>
+  Der Feed liest aus <code>beitraege</code>, aber HUI-Momente werden in <code>feed_posts</code> gespeichert.<br>
+  <strong>Fix:</strong> <code>beitraege</code> als VIEW auf <code>feed_posts</code> erstellen.
+</div>
+
+<div class="ok">
+  ✅ <strong>Ausführen in:</strong> Supabase Dashboard → SQL Editor → New Query → SQL einfügen → Run
+</div>
+
+<div class="step">
+  <h3>🔧 Migration ausführen — vollständiges SQL</h3>
+  <button class="btn" onclick="copySQL()">SQL kopieren</button>
+  <div style="height:12px"></div>
+  <pre id="sqlCode">-- HUI Migration 039 — beitraege VIEW + Moments Storage
+
+-- 1. beitraege VIEW (Spalten-Mapping für useFeedStream)
+DROP VIEW IF EXISTS public.beitraege;
+CREATE VIEW public.beitraege AS
+  SELECT
+    id,
+    user_id,
+    media_url  AS src,
+    media_type AS type,
+    caption,
+    created_at
+  FROM public.feed_posts
+  WHERE is_archived = false
+  ORDER BY created_at DESC;
+
+GRANT SELECT ON public.beitraege TO anon;
+GRANT SELECT ON public.beitraege TO authenticated;
+
+-- 2. feed_posts RLS
+ALTER TABLE public.feed_posts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "feed_posts_public_read" ON public.feed_posts;
+CREATE POLICY "feed_posts_public_read" ON public.feed_posts
+  FOR SELECT USING (is_archived = false);
+
+DROP POLICY IF EXISTS "feed_posts_own_insert" ON public.feed_posts;
+CREATE POLICY "feed_posts_own_insert" ON public.feed_posts
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "feed_posts_own_update" ON public.feed_posts;
+CREATE POLICY "feed_posts_own_update" ON public.feed_posts
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- 3. Storage bucket hui-moments
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'hui-moments', 'hui-moments', true, 52428800,
+  ARRAY['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/quicktime','video/webm']
+)
+ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 52428800;
+
+DROP POLICY IF EXISTS "moments_upload_own" ON storage.objects;
+CREATE POLICY "moments_upload_own" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'hui-moments'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+DROP POLICY IF EXISTS "moments_public_read" ON storage.objects;
+CREATE POLICY "moments_public_read" ON storage.objects
+  FOR SELECT USING (bucket_id = 'hui-moments');
+
+-- 4. Realtime für feed_posts
+ALTER PUBLICATION supabase_realtime ADD TABLE public.feed_posts;
+
+NOTIFY pgrst, 'reload schema';
+
+-- VERIFY (optional, danach ausführen):
+-- SELECT COUNT(*) FROM feed_posts;
+-- SELECT COUNT(*) FROM beitraege;
+-- SELECT * FROM storage.buckets WHERE id = 'hui-moments';</pre>
+</div>
+
+<div class="step">
+  <h3>✅ Verify — nach Migration ausführen</h3>
+  <pre>-- Teste ob VIEW funktioniert:
+SELECT COUNT(*) FROM beitraege;
+
+-- Teste ob bucket existiert:
+SELECT * FROM storage.buckets WHERE id = 'hui-moments';
+
+-- Teste ob feed_posts lesbar:
+SELECT id, media_type, caption, created_at FROM feed_posts LIMIT 5;</pre>
+</div>
+
+<script>
+function copySQL() {
+  const text = document.getElementById('sqlCode').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.btn');
+    btn.textContent = '✓ Kopiert!';
+    btn.style.background = '#22A844';
+    setTimeout(() => { btn.textContent = 'SQL kopieren'; btn.style.background = '#0EC4B8'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
