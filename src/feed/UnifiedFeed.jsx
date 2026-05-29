@@ -251,6 +251,8 @@ export default function UnifiedFeed({
   onAddStory   = null,
   onEventPress = null,
   onMoreEvents = null,
+  // Refresh binding — parent can register for feed refresh fn
+  onRefreshBind = null,
   // User context
   currentUser  = null,
 }) {
@@ -272,9 +274,9 @@ export default function UnifiedFeed({
     refresh: streamRefresh,
   } = useFeedStream();
 
-  // ── Bind refresh fn to parent ──────────────────────────────────────
+  // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {
-    if (onRefreshBind && typeof streamRefresh === "function") {
+    if (typeof onRefreshBind === "function" && typeof streamRefresh === "function") {
       onRefreshBind(streamRefresh);
     }
   }, [onRefreshBind, streamRefresh]);
