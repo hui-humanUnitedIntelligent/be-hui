@@ -722,7 +722,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,mood_dna")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,mood_dna,focus_type,interests")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code);
         if (data) {
@@ -734,6 +734,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
           if (Array.isArray(data.mood_dna) && data.mood_dna.length) {
             setMoments(data.mood_dna.map((url, i) => ({ id: `db_${i}`, img: url })));
           }
+          // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
+          if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
+            setVisibility(data.focus_type);
+          }
+          // Offen für Begegnungen aus interests laden (TEXT[], existiert in DB)
+          setOpenFor(Array.isArray(data.interests) ? data.interests : []);
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
@@ -788,7 +794,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
     autoSave("mood_dna", urls);
   };
 
-  const handleVisibilityChange = (v) => { setVisibility(v); }; // lokal — kein DB-Write;
+  const handleVisibilityChange = (v) => {
+    setVisibility(v);
+    // Persistenz via focus_type-Spalte (TEXT, existiert in profiles)
+    autoSave("focus_type", v);
+  };
+
+  const handleOpenForChange = (v) => {
+    setOpenFor(v);
+    // Persistenz via interests-Spalte (TEXT[], existiert in profiles)
+    autoSave("interests", v);
+  };
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
@@ -870,7 +886,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
 
         {/* OFFEN FÜR BEGEGNUNGEN */}
-        <OffenFuerSection openFor={openFor} onChange={setOpenFor}/>
+        <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
         <Gap h={24}/>
         <Divider/>
         <Gap h={20}/>
