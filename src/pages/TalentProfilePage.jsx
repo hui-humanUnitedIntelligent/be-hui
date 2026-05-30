@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { useAuth }   from "../lib/AuthContext.jsx";
 
 // ── Tokens (same as BasisProfilePage) ───────────────────────────
 const T = {
@@ -487,6 +488,8 @@ function SocialBar({loading}){
 // ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose }) {
+  const { user, authProfile } = useAuth();
+
   const[profile,setProfile]=useState(null);
   const[loading,setLoading]=useState(true);
   const[mounted,setMounted]=useState(false);
@@ -500,7 +503,21 @@ export default function TalentProfilePage({ profileId, onClose }) {
         const{data}=await supabase.from("profiles")
           .select("id,username,display_name,bio,avatar_url,header_img,location,interests,visibility,has_talent_profile,role,membership_type")
           .eq("id",profileId).single();
-        setProfile(data||null);
+        if (data) {
+          const isOwnProfile = user?.id && data.id === user.id;
+          if (isOwnProfile && authProfile) {
+            setProfile({
+              ...data,
+              avatar_url: authProfile.avatar_url ?? data.avatar_url,
+              header_img: authProfile.header_img  ?? data.header_img,
+              bio:        authProfile.bio          ?? data.bio,
+            });
+          } else {
+            setProfile(data);
+          }
+        } else {
+          setProfile(null);
+        }
       }catch(e){console.warn("TalentProfilePage:",e);}
       setLoading(false);
     })();

@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { useAuth }   from "../lib/AuthContext.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -597,6 +598,9 @@ function SichtbarkeitSection({ visibility, onChange }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════
 export default function MyBasisProfile({ onClose }) {
+  // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
+  const { setProfile: setAuthProfile, refreshProfile } = useAuth();
+
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
@@ -638,11 +642,16 @@ export default function MyBasisProfile({ onClose }) {
     if (!profile?.id) return;
     setSaving(true);
     try {
-      await supabase.from("profiles").update({ [field]: value, updated_at: new Date().toISOString() }).eq("id", profile.id);
+      await supabase.from("profiles")
+        .update({ [field]: value, updated_at: new Date().toISOString() })
+        .eq("id", profile.id);
       setSaveOk(true); setTimeout(()=>setSaveOk(false), 2000);
+      // AuthContext-Cache sofort mitaktualisieren →
+      // alle Komponenten die authProfile.bio nutzen sehen die Änderung sofort
+      setAuthProfile(prev => prev ? { ...prev, [field]: value } : prev);
     } catch(e) { console.warn("AutoSave:", e); }
     setSaving(false);
-  },[profile?.id]);
+  },[profile?.id, setAuthProfile]);
 
   const handleBioChange = (v) => {
     setBio(v);
@@ -661,17 +670,20 @@ export default function MyBasisProfile({ onClose }) {
     autoSave("visibility", v);
   };
 
-  // Sofortige lokale Anzeige nach erfolgreichem Upload
+  // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
     setLocalAvatar(url);
-    // Auch Profile-State aktualisieren für Konsistenz
+    // Lokaler State
     setProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
-  }, []);
+    // Globaler AuthContext → alle Komponenten die authProfile.avatar_url nutzen
+    setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+  }, [setAuthProfile]);
 
   const handleCoverChange = useCallback((url) => {
     setLocalCover(url);
     setProfile(prev => prev ? { ...prev, header_img: url } : prev);
-  }, []);
+    setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+  }, [setAuthProfile]);
 
   return (
     <div className="mbp-root" style={{

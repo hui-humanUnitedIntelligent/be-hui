@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useConnectionEngine } from "../core/HuiConnectionEngine.jsx";
+import { useAuth }   from "../lib/AuthContext.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -914,6 +915,8 @@ function SupportSheet({ name, onClose, profileId }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════
 export default function PublicProfilePage({ profileId, onClose }) {
+  const { user, authProfile } = useAuth();
+
   const [profile,     setProfile]     = useState(null);
   const [loading,     setLoading]     = useState(true);
   const [mounted,     setMounted]     = useState(false);
@@ -928,7 +931,25 @@ export default function PublicProfilePage({ profileId, onClose }) {
   useEffect(()=>{
     if (!profileId) { setLoading(false); return; }
     setLoading(true);
-    loadPublicProfile(profileId).then(data=>{ setProfile(data); setLoading(false); });
+    loadPublicProfile(profileId).then(data => {
+      if (data) {
+        // Wenn es das eigene Profil ist: AuthContext-Änderungen bevorzugen
+        const isOwnProfile = user?.id && data.id === user.id;
+        if (isOwnProfile && authProfile) {
+          setProfile({
+            ...data,
+            avatar_url: authProfile.avatar_url ?? data.avatar_url,
+            header_img: authProfile.header_img  ?? data.header_img,
+            bio:        authProfile.bio          ?? data.bio,
+          });
+        } else {
+          setProfile(data);
+        }
+      } else {
+        setProfile(null);
+      }
+      setLoading(false);
+    });
   },[profileId]);
 
   const name = s(profile?.display_name||profile?.username, "Unbekannt");
