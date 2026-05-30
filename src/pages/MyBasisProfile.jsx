@@ -496,7 +496,7 @@ function MomenteSection({ moments, onChange }) {
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Momente" sub="Teile kleine Augenblicke aus deinem Alltag." onEdit={()=>{}}/>
+      <SectionRow title="Momente" sub="Teile kleine Augenblicke aus deinem Alltag."/>
 
       {items.length > 0 && (
         <div className="mbp-hscroll" style={{
