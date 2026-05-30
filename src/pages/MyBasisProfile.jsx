@@ -726,7 +726,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,interests")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type")
           .eq("id", user.id).single();
         console.log("DB PROFILE", data);
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
@@ -759,10 +759,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
             setVisibility(data.focus_type);
           }
-          // Offen für Begegnungen aus interests laden (TEXT[], existiert in DB)
-          const nextOpenFor = Array.isArray(data.interests) ? data.interests : [];
-          setOpenFor(nextOpenFor);
-          console.log("SET OPEN_FOR", nextOpenFor, "| raw data.interests:", data.interests);
+          // Offen für Begegnungen — interests-Spalte existiert nicht in DB, lokal verwaltet
+          setOpenFor([]);
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
