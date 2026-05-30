@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HUI Migration 043 — Storage Policies</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'SF Mono','Fira Code',monospace; background:#0d0d0d; color:#e0e0e0; padding:20px; }
+h1 { color:#16D7C5; font-size:15px; margin-bottom:4px; }
+.sub { color:#666; font-size:11px; margin-bottom:20px; }
+.setup { background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:16px; margin-bottom:20px; }
+label { display:block; font-size:11px; color:#888; margin-bottom:4px; margin-top:10px; }
+input { width:100%; background:#111; border:1px solid #444; border-radius:4px; padding:8px; color:#e0e0e0; font-size:12px; font-family:inherit; }
+.btn { background:#16D7C5; color:#000; border:none; border-radius:6px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; margin-top:12px; margin-right:8px; }
+.btn:hover { background:#0fb8a8; }
+.btn.sec { background:#2a2a2a; color:#e0e0e0; border:1px solid #444; }
+.btn.sec:hover { background:#333; }
+.section { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:8px; padding:16px; margin-bottom:16px; }
+h2 { font-size:11px; color:#FF8A6B; margin-bottom:12px; letter-spacing:.08em; text-transform:uppercase; }
+pre { font-size:11px; background:#111; padding:12px; border-radius:4px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; color:#ccc; line-height:1.7; border:1px solid #1e1e1e; max-height:300px; overflow-y:auto; }
+.row { display:flex; gap:8px; margin-bottom:5px; font-size:12px; align-items:flex-start; }
+.key { color:#888; min-width:200px; flex-shrink:0; }
+.ok { color:#4ade80; }
+.err { color:#f87171; }
+.warn { color:#fbbf24; }
+.log { font-size:12px; line-height:2; }
+.step { color:#16D7C5; font-weight:700; }
+.badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
+.badge.ok { background:rgba(74,222,128,.15); color:#4ade80; border:1px solid rgba(74,222,128,.3); }
+.badge.err { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.3); }
+.badge.warn { background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.3); }
+</style>
+</head>
+<body>
+
+<h1>🔐 HUI Migration 043 — Storage Policies für media Bucket</h1>
+<p class="sub">Schritt 1: Verbinden → Schritt 2: Verify (Ist-Zustand) → Schritt 3: Migration ausführen → Schritt 4: Verify (Soll-Zustand)</p>
+
+<div class="setup">
+  <label>Supabase URL</label>
+  <input id="sbUrl" type="text" placeholder="https://xxxx.supabase.co"/>
+  <label>Service Role Key (nicht Anon Key — braucht Admin-Rechte für RLS)</label>
+  <input id="sbKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..."/>
+  <br/>
+  <button class="btn" onclick="verifyBefore()">1. Ist-Zustand prüfen</button>
+  <button class="btn sec" onclick="runMigration()">2. Migration ausführen</button>
+  <button class="btn sec" onclick="verifyAfter()">3. Soll-Zustand prüfen</button>
+</div>
+
+<div class="section">
+  <h2>SQL — Migration 043</h2>
+  <pre id="sqlPreview">-- wird geladen...</pre>
+</div>
+
+<div class="section" id="sec-before" style="display:none">
+  <h2>Ist-Zustand (vor Migration)</h2>
+  <div id="out-before"></div>
+</div>
+
+<div class="section" id="sec-run" style="display:none">
+  <h2>Migration Ergebnis</h2>
+  <div id="out-run"></div>
+</div>
+
+<div class="section" id="sec-after" style="display:none">
+  <h2>Soll-Zustand (nach Migration)</h2>
+  <div id="out-after"></div>
+</div>
+
+<script>
+const SQL_043 = `
+-- ── 1. moments/{uid}/...
+DROP POLICY IF EXISTS "media_moments_upload_own" ON storage.objects;
+CREATE POLICY "media_moments_upload_own" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'media'
+    AND (storage.foldername(name))[1] = 'moments'
+    AND (storage.foldername(name))[2] = auth.uid()::text
+  );
+
+-- ── 2. avatars/{uid}/...
+DROP POLICY IF EXISTS "media_avatars_upload_own" ON storage.objects;
+CREATE POLICY "media_avatars_upload_own" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'media'
+    AND (storage.foldername(name))[1] = 'avatars'
+    AND (storage.foldername(name))[2] = auth.uid()::text
+  );
+
+-- ── 3. covers/{uid}/...
+DROP POLICY IF EXISTS "media_covers_upload_own" ON storage.objects;
+CREATE POLICY "media_covers_upload_own" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'media'
+    AND (storage.foldername(name))[1] = 'covers'
+    AND (storage.foldername(name))[2] = auth.uid()::text
+  );
+
+-- ── 4. UPSERT-Support (uploadProfileImage nutzt upsert:true)
+DROP POLICY IF EXISTS "media_profile_update_own" ON storage.objects;
+CREATE POLICY "media_profile_update_own" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (
+    bucket_id = 'media'
+    AND (storage.foldername(name))[1] IN ('moments', 'avatars', 'covers')
+    AND (storage.foldername(name))[2] = auth.uid()::text
+  );
+
+NOTIFY pgrst, 'reload schema';
+`.trim();
+
+document.getElementById('sqlPreview').textContent = SQL_043;
+
+const VERIFY_SQL = `
+SELECT policyname, cmd, qual
+FROM pg_policies
+WHERE tablename = 'objects'
+AND schemaname = 'storage'
+ORDER BY policyname;
+`;
+
+function creds() {
+  return {
+    url: document.getElementById('sbUrl').value.trim(),
+    key: document.getElementById('sbKey').value.trim()
+  };
+}
+
+async function execSQL(sql) {
+  const { url, key } = creds();
+  const r = await fetch(`${url}/rest/v1/rpc/exec_sql`, {
+    method: 'POST',
+    headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sql })
+  });
+  // Fallback: /rest/v1/rpc/query
+  if (!r.ok) {
+    const r2 = await fetch(`${url}/rest/v1/rpc/query`, {
+      method: 'POST',
+      headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: sql })
+    });
+    return r2;
+  }
+  return r;
+}
+
+function renderPolicies(rows, targetEl) {
+  const expected = ['media_avatars_upload_own','media_covers_upload_own','media_moments_upload_own','media_profile_update_own'];
+  const found = rows.map(r => r.policyname);
+  
+  let html = '';
+  // Alle media_ policies
+  const mediaPolicies = rows.filter(r => r.policyname?.startsWith('media_') || r.policyname?.includes('beitraege'));
+  
+  html += '<div class="log">';
+  html += `<div class="row"><span class="key">Gefundene Policies (media+beitraege):</span><span>${mediaPolicies.length}</span></div>`;
+  
+  for (const p of mediaPolicies) {
+    const isNew = expected.includes(p.policyname);
+    html += `<div class="row">
+      <span class="key">${p.policyname}</span>
+      <span class="badge ${isNew ? 'ok' : 'warn'}">${p.cmd}</span>
+    </div>`;
+  }
+  
+  html += '<br/><div class="row"><span class="key">Neue Policies vorhanden?</span></div>';
+  for (const exp of expected) {
+    const ok = found.includes(exp);
+    html += `<div class="row"><span class="key" style="padding-left:16px">${exp}</span><span class="badge ${ok ? 'ok' : 'err'}">${ok ? '✓ vorhanden' : '✗ fehlt'}</span></div>`;
+  }
+  html += '</div>';
+  
+  document.getElementById(targetEl).innerHTML = html;
+}
+
+async function verifyBefore() {
+  const { url, key } = creds();
+  if (!url || !key) { alert('Bitte URL und Key eingeben'); return; }
+  document.getElementById('sec-before').style.display = 'block';
+  document.getElementById('out-before').innerHTML = '<span style="color:#888">Lädt...</span>';
+  
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/exec_sql`, {
+      method: 'POST',
+      headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sql: VERIFY_SQL })
+    });
+    const data = await r.json();
+    if (Array.isArray(data)) {
+      renderPolicies(data, 'out-before');
+    } else {
+      document.getElementById('out-before').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
+  } catch(e) {
+    document.getElementById('out-before').innerHTML = `<span class="err">Fehler: ${e.message}</span>`;
+  }
+}
+
+async function runMigration() {
+  const { url, key } = creds();
+  if (!url || !key) { alert('Bitte URL und Key eingeben'); return; }
+  document.getElementById('sec-run').style.display = 'block';
+  document.getElementById('out-run').innerHTML = '<span style="color:#888">Führe Migration aus...</span>';
+  
+  // Statements einzeln ausführen
+  const stmts = SQL_043.split(';').map(s => s.trim()).filter(s => s.length > 5);
+  let results = [];
+  
+  for (const stmt of stmts) {
+    try {
+      const r = await fetch(`${url}/rest/v1/rpc/exec_sql`, {
+        method: 'POST',
+        headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sql: stmt + ';' })
+      });
+      const data = await r.json();
+      results.push({ stmt: stmt.slice(0,60), ok: r.ok, data });
+    } catch(e) {
+      results.push({ stmt: stmt.slice(0,60), ok: false, data: e.message });
+    }
+  }
+  
+  let html = '<div class="log">';
+  for (const res of results) {
+    html += `<div class="row">
+      <span class="key" style="font-size:10px">${res.stmt.replace(/\n/g,' ')}...</span>
+      <span class="badge ${res.ok ? 'ok' : 'err'}">${res.ok ? '✓' : '✗ ' + JSON.stringify(res.data).slice(0,80)}</span>
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('out-run').innerHTML = html;
+}
+
+async function verifyAfter() {
+  const { url, key } = creds();
+  if (!url || !key) { alert('Bitte URL und Key eingeben'); return; }
+  document.getElementById('sec-after').style.display = 'block';
+  document.getElementById('out-after').innerHTML = '<span style="color:#888">Lädt...</span>';
+  
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/exec_sql`, {
+      method: 'POST',
+      headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sql: VERIFY_SQL })
+    });
+    const data = await r.json();
+    if (Array.isArray(data)) {
+      renderPolicies(data, 'out-after');
+      // Zusatz: dna_tags prüfen
+      const uid = '23301b16-5a1b-4005-82bb-b2f717e2ea71';
+      const r2 = await fetch(`${url}/rest/v1/profiles?id=eq.${uid}&select=id,dna_tags,updated_at`, {
+        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+      });
+      const profile = await r2.json();
+      const p = profile?.[0];
+      if (p) {
+        document.getElementById('out-after').innerHTML += `
+          <br/>
+          <div class="row"><span class="key" style="color:#16D7C5">profiles.dna_tags (aktuell):</span>
+          <span class="${p.dna_tags?.length ? 'ok' : 'warn'}">${JSON.stringify(p.dna_tags)} (${p.dna_tags?.length || 0} Einträge)</span></div>
+          <div class="row"><span class="key">updated_at:</span><span>${p.updated_at}</span></div>
+        `;
+      }
+    } else {
+      document.getElementById('out-after').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
+  } catch(e) {
+    document.getElementById('out-after').innerHTML = `<span class="err">Fehler: ${e.message}</span>`;
+  }
+}
+</script>
+</body>
+</html>

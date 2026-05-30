@@ -725,6 +725,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,interests")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code);
+        console.log("DNA_TAGS FROM DB", data?.dna_tags);
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
@@ -732,7 +733,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           setInterests(Array.isArray(data.skills) ? data.skills : []);
           // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
           if (Array.isArray(data.dna_tags) && data.dna_tags.length) {
-            setMoments(data.dna_tags.map((url, i) => ({ id: `db_${i}`, img: url })));
+            const mapped = data.dna_tags.map((url, i) => ({ id: `db_${i}`, img: url }));
+            setMoments(mapped);
+            console.log("MOMENTS STATE", mapped);
           }
           // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
@@ -880,6 +883,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
 
         {/* MOMENTE */}
+        {(() => { console.log("RENDER MOMENTS", moments); return null; })()}
         <MomenteSection moments={moments} onChange={handleMomentsChange}/>
         <Gap h={24}/>
         <Divider/>
