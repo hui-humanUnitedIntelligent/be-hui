@@ -999,20 +999,7 @@ function Kundenstimmen({ loading, isOwner }) {
                 </div>
               </div>
             </div>
-            {/* Add card */}
-            {isOwner && (
-              <div style={{
-                flexShrink:0, width:72,
-                border:"1.5px dashed rgba(26,26,24,0.14)", borderRadius:12,
-                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                gap:4, cursor:"pointer", padding:"10px 6px",
-              }}>
-                <span style={{ fontSize:20, color:"rgba(26,26,24,0.32)" }}>+</span>
-                <span style={{ fontSize:10.5, color:"rgba(26,26,24,0.32)", fontWeight:600, textAlign:"center", lineHeight:1.3 }}>
-                  Weitere<br/>hinzufügen
-                </span>
-              </div>
-            )}
+
           </div>
         )}
       </div>
