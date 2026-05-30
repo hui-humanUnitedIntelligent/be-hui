@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import WerkWizard from "../components/works/WerkWizard.jsx";
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -728,8 +729,10 @@ function MeineWerke({ loading, isOwner, userId }) {
 // 5. ERLEBNISSE & PROJEKTE
 // ══════════════════════════════════════════════════════════════
 function ErlebnisseProjekte({ isOwner, userId }) {
-  const [exps, setExps]         = useState([]);
+  const [exps, setExps]             = useState([]);
   const [expsLoading, setExpsLoading] = useState(true);
+  const [showExpWizard, setShowExpWizard] = useState(false);
+  const [editingExp,   setEditingExp]   = useState(null);
 
   // ── Echte Daten aus public.experiences laden ──────────────────
   useEffect(() => {
@@ -797,6 +800,20 @@ function ErlebnisseProjekte({ isOwner, userId }) {
     Kurs:        { bg:"rgba(255,138,107,0.10)", text:"#FF8A6B" },
   };
 
+  // ── Wizard-Callback: Liste nach Save neu laden ───────────────
+  function onExpWizardSaved(savedExp) {
+    console.log("[EXPERIENCE CARD] Wizard gespeichert:", savedExp?.id);
+    (async () => {
+      const { data } = await supabase
+        .from("experiences")
+        .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
+        .eq("user_id", userId)
+        .neq("status", "archived")
+        .order("created_at", { ascending: false });
+      if (data) setExps(data);
+    })();
+  }
+
   return (
     <div className="mtp-sec">
       <div className="mtp-sec-pad">
@@ -829,14 +846,17 @@ function ErlebnisseProjekte({ isOwner, userId }) {
               const dateStr = fmtDate(e.date);
 
               return (
-                <div key={e.id} style={{
-                  flexShrink:0, width:170, borderRadius:12,
-                  background:"#fff",
-                  border:"1px solid rgba(26,26,24,0.09)",
-                  boxShadow:"0 1px 8px rgba(26,26,24,0.07)",
-                  overflow:"hidden",
-                  touchAction:"manipulation",
-                }}>
+                <div key={e.id}
+                  onClick={isOwner ? () => { setEditingExp(e); setShowExpWizard(true); } : undefined}
+                  style={{
+                    flexShrink:0, width:170, borderRadius:12,
+                    background:"#fff",
+                    border:"1px solid rgba(26,26,24,0.09)",
+                    boxShadow:"0 1px 8px rgba(26,26,24,0.07)",
+                    overflow:"hidden",
+                    touchAction:"manipulation",
+                    cursor: isOwner ? "pointer" : "default",
+                  }}>
                   {/* Bild */}
                   <div style={{
                     width:"100%", height:125,
@@ -929,12 +949,20 @@ function ErlebnisseProjekte({ isOwner, userId }) {
         {isOwner && (
           <button
             className="mtp-add"
-            onClick={() => {
-              console.log("[EXP ADD-BTN] Erlebnis hinzufügen");
-            }}
+            onClick={() => { setEditingExp(null); setShowExpWizard(true); }}
           >
             <span style={{ fontSize:15 }}>+</span> Erlebnis hinzufügen
           </button>
+        )}
+
+        {/* ExperienceWizard */}
+        {showExpWizard && (
+          <ExperienceWizard
+            userId={userId}
+            existingExp={editingExp}
+            onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
+            onSaved={onExpWizardSaved}
+          />
         )}
       </div>
     </div>
