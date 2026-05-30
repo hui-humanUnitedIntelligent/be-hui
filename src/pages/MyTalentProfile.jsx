@@ -816,13 +816,6 @@ function ErlebnisseProjekte({ isOwner, userId }) {
               }}/>
             ))}
           </div>
-        ) : exps.length === 0 ? (
-          <div style={{
-            textAlign:"center", padding:"28px 16px",
-            color:"rgba(26,26,24,0.35)", fontSize:13,
-          }}>
-            Noch keine Erlebnisse veröffentlicht.
-          </div>
         ) : (
           <div style={{
             display:"flex", gap:10,
@@ -928,6 +921,59 @@ function ErlebnisseProjekte({ isOwner, userId }) {
                 </div>
               );
             })}
+
+            {/* ── Add-Card: Erlebnis hinzufügen ───────────────────── */}
+            {isOwner && (
+              <button
+                onClick={() => {
+                  // TODO: ExperienceWizard öffnen (wird in nächster Phase angedockt)
+                  console.log("[EXP ADD-CARD] Erlebnis hinzufügen getappt");
+                }}
+                style={{
+                  flexShrink:0,
+                  width:170,
+                  // Höhe = Bild 125px + Info-Bereich ~95px = 220px
+                  minHeight:220,
+                  borderRadius:12,
+                  border:"1.5px dashed rgba(26,26,24,0.18)",
+                  background:"rgba(26,26,24,0.015)",
+                  display:"flex",
+                  flexDirection:"column",
+                  alignItems:"center",
+                  justifyContent:"center",
+                  gap:10,
+                  cursor:"pointer",
+                  touchAction:"manipulation",
+                  WebkitTapHighlightColor:"transparent",
+                  fontFamily:"inherit",
+                  transition:"background 0.15s ease",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(14,196,184,0.05)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(26,26,24,0.015)"; }}
+                onTouchStart={e => { e.currentTarget.style.background = "rgba(14,196,184,0.05)"; }}
+                onTouchEnd={e => { e.currentTarget.style.background = "rgba(26,26,24,0.015)"; }}
+              >
+                {/* Plus-Symbol */}
+                <div style={{
+                  width:44, height:44, borderRadius:"50%",
+                  border:"1.5px dashed rgba(26,26,24,0.22)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                }}>
+                  <span style={{ fontSize:24, color:"rgba(26,26,24,0.32)", lineHeight:1 }}>+</span>
+                </div>
+                {/* Text */}
+                <span style={{
+                  fontSize:12.5, fontWeight:600,
+                  color:"rgba(26,26,24,0.38)",
+                  textAlign:"center",
+                  lineHeight:1.4,
+                  padding:"0 12px",
+                }}>
+                  Erlebnis<br/>hinzufügen
+                </span>
+              </button>
+            )}
+
           </div>
         )}
       </div>
