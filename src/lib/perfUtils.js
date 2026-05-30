@@ -245,18 +245,12 @@ export const FIELDS = {
 // ─── 11. Zentrales Profil-Feld-Set für alle public profile queries ────
 // Exakt dieselben Felder die WirkerProfilePage erwartet.
 // Deckt profiles-Tabelle vollständig ab (keine imaginären Felder).
+// Nur reale Felder aus profiles-Tabelle (Stand 2026-05-30)
 export const PROFILE_FIELDS =
-  // Alle Felder die Profile-Anzeige + EditProfile schreiben/lesen
-  // Vorsicht: nur Felder selektieren die in DB existieren (kein select *)
   'id,display_name,username,avatar_url,header_img,bio,' +
-  'is_wirker,has_talent_profile,focus_type,' +
-  'location,is_available,created_at,' +
-  'dna_tags,role,membership_type,membership_active,talent_activated_at,' +
-  // Phase 4B additions — profile completion & interests
-  'interests,profile_complete,' +
-  // Optionale Felder — kein Fehler wenn nicht in DB (Supabase ignoriert unknown gracefully)
-  'talent,location_label,website,hourly_rate,is_member,member_since,trust_score,is_moderator,is_impact_team,is_guardian,' +
-  'categories,mood_tags,languages,instagram,tiktok,linkedin';
+  'is_wirker,has_talent_profile,' +
+  'location,availability,skills,mood_dna,' +
+  'impact_eur,role,membership_type,membership_active,created_at';
 
 // ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
 // Gleicht alle historisch unterschiedlichen Feldnamen an:

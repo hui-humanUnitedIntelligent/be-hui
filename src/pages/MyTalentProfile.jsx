@@ -666,7 +666,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         }
         if (!id) { setLoading(false); return; }
         const { data } = await supabase.from("profiles")
-          .select("id,username,display_name,bio,avatar_url,header_img,location,interests,visibility,has_talent_profile,role,membership_type")
+          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type")
           .eq("id", id).single();
         setProfile(data || null);
       } catch(e) { console.warn("MyTalentProfile:", e); }

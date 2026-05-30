@@ -637,7 +637,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [interests,  setInterests]  = useState([]);
   const [openFor,    setOpenFor]    = useState([]);
   const [moments,    setMoments]    = useState([]);
-  const [visibility, setVisibility] = useState("connections");
+  // visibility — Spalte existiert nicht in DB
   const [saving,     setSaving]     = useState(false);
   const [saveOk,     setSaveOk]     = useState(false);
   // Lokale URL-Overrides für sofortige UI-Aktualisierung nach Upload
@@ -653,14 +653,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
         setDebugUid(user?.id ?? "null");
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,visibility")
+          .select("id,username,display_name,avatar_url,header_img,bio,location")
           .eq("id", user.id).single();
         if (loadErr) setDebugErr(loadErr.message + " [" + loadErr.code + "]");
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
           // interests-Spalte existiert nicht in DB — lokal verwaltet
-          setVisibility(data.visibility || "connections");
+
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
@@ -707,10 +707,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     // interests-Spalte existiert nicht in DB — kein autoSave
   };
 
-  const handleVisibilityChange = (v) => {
-    setVisibility(v);
-    autoSave("visibility", v);
-  };
+  // handleVisibilityChange entfernt — visibility nicht in DB;
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
