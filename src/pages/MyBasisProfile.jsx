@@ -740,13 +740,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
           setInterests(nextInterests);
           console.log("SET INTERESTS", nextInterests);
           // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
-          console.log("DNA_CHECK isArray:", Array.isArray(data.dna_tags), "length:", data.dna_tags?.length, "raw:", JSON.stringify(data.dna_tags));
-          if (Array.isArray(data.dna_tags) && data.dna_tags.length) {
-            const mapped = data.dna_tags.map((url, i) => ({ id: `db_${i}`, img: url }));
+          // dna_tags kann als JS Array ODER als Postgres-String '{url1,url2}' kommen
+          let rawTags = data.dna_tags;
+          if (typeof rawTags === "string" && rawTags.startsWith("{")) {
+            // Postgres array literal parsen: '{a,b,c}' → ['a','b','c']
+            rawTags = rawTags.slice(1, -1).split(",").map(s => s.trim()).filter(Boolean);
+          }
+          const tagArr = Array.isArray(rawTags) ? rawTags : [];
+          console.log("DNA_CHECK type:", typeof data.dna_tags, "isArray:", Array.isArray(data.dna_tags), "tagArr.length:", tagArr.length, "sample:", tagArr[0]);
+          if (tagArr.length) {
+            const mapped = tagArr.map((url, i) => ({ id: `db_${i}`, img: url }));
             setMoments(mapped);
-            console.log("MOMENTS STATE SET", mapped);
+            console.log("MOMENTS STATE SET", mapped.length, "items");
           } else {
-            console.log("MOMENTS SKIPPED — dna_tags leer oder kein Array");
+            console.log("MOMENTS SKIPPED — dna_tags leer");
           }
           // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
