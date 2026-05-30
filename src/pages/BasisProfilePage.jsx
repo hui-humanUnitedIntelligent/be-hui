@@ -289,7 +289,7 @@ function IdentitySection({ profile, loading }) {
 // INTERESTS — 2-row, 3-col soft pill grid (exact to screenshot)
 // ══════════════════════════════════════════════════════════════════
 function InterestsGrid({ profile, loading }) {
-  const rawInterests = a(profile?.interests);
+  const rawInterests = a(profile?.skills); // Persistiert via skills-Spalte
   const tags = rawInterests.length
     ? DEFAULT_INTERESTS.filter(t => rawInterests.includes(t.label))
     : DEFAULT_INTERESTS;
@@ -580,7 +580,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
     (async()=>{
       try {
         const { data } = await supabase.from("profiles")
-          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type")
+          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,mood_dna")
           .eq("id", profileId).single();
         if (data) {
           // Wenn eigenes Profil: AuthContext hat immer die neuesten Änderungen

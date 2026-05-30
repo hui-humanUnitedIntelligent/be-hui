@@ -665,14 +665,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,mood_dna")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code);
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
-          // interests-Spalte existiert nicht in DB — lokal verwaltet
-
+          // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
+          setInterests(Array.isArray(data.skills) ? data.skills : []);
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
@@ -716,7 +716,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   const handleInterestsChange = (v) => {
     setInterests(v);
-    // interests-Spalte existiert nicht in DB — kein autoSave
+    // Persistenz via skills-Spalte (ARRAY, existiert in profiles)
+    autoSave("skills", v);
   };
 
   const handleVisibilityChange = (v) => { setVisibility(v); }; // lokal — kein DB-Write;

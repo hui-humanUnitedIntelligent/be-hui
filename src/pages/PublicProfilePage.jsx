@@ -99,7 +99,7 @@ function useEntry(delay=0) {
 async function loadPublicProfile(profileId) {
   if (!profileId) return null;
   try {
-    const fields = "id,username,display_name,bio,avatar_url,header_img,location,role,impact_eur,has_talent_profile,membership_type";
+    const fields = "id,username,display_name,bio,avatar_url,header_img,location,role,impact_eur,has_talent_profile,membership_type,skills,mood_dna";
     const { data, error } = await supabase.from("profiles").select(fields).eq("id", profileId).single();
     if (error) {
       const { data:d2 } = await supabase.from("profiles").select(fields).eq("username", profileId).single();
@@ -1018,7 +1018,7 @@ export default function PublicProfilePage({ profileId, onClose }) {
         <Gap h={20}/>
 
         {/* 6. Werte & Interessen */}
-        <WerteSection interests={profile?.interests}/>
+        <WerteSection interests={profile?.skills}/>
 
         <Gap h={52}/>
       </div>
