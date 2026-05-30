@@ -248,30 +248,34 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
         style={{ display:"none" }}
         onChange={handleCoverFile}
       />
-      <div style={{ margin:`0 ${T.px}px`, borderRadius:T.r20, overflow:"hidden",
+      {/* Cover-Wrapper: position:relative, KEIN overflow:hidden damit Avatar sichtbar bleibt */}
+      <div style={{ margin:`0 ${T.px}px`, borderRadius:T.r20,
         height:170, position:"relative", background:"linear-gradient(160deg,#2C3E2D,#7B8E5E)" }}>
-        <img src={cover} alt="" onLoad={()=>setImgLoaded(true)} onError={()=>setImgLoaded(true)}
-          style={{ width:"100%", height:"100%", objectFit:"cover",
-            opacity:imgLoaded?0.7:0, transition:"opacity 1.1s ease" }}/>
-        <div style={{ position:"absolute", inset:0,
-          background:"linear-gradient(180deg,rgba(247,245,240,0) 30%,rgba(247,245,240,0.55) 100%)" }}/>
-        {/* Kamera-Icon oben rechts — öffnet Cover-Upload */}
-        <button
-          onClick={() => coverInputRef.current?.click()}
-          style={{
-            position:"absolute", top:10, right:10, zIndex:15,
-            width:32, height:32, borderRadius:"50%",
-            background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)",
-            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:15, cursor:"pointer", touchAction:"manipulation",
-          }}
-        >
-          {coverUploading ? <span className="mbp-uploading" style={{fontSize:13}}>⏳</span> : "📷"}
-        </button>
+        {/* Das Bild selbst hat overflow:hidden via borderRadius auf dem Container-Img-Wrapper */}
+        <div style={{ position:"absolute", inset:0, borderRadius:T.r20, overflow:"hidden" }}>
+          <img src={cover} alt="" onLoad={()=>setImgLoaded(true)} onError={()=>setImgLoaded(true)}
+            style={{ width:"100%", height:"100%", objectFit:"cover",
+              opacity:imgLoaded?0.7:0, transition:"opacity 1.1s ease" }}/>
+          <div style={{ position:"absolute", inset:0,
+            background:"linear-gradient(180deg,rgba(247,245,240,0) 30%,rgba(247,245,240,0.55) 100%)" }}/>
+          {/* Kamera-Icon oben rechts — öffnet Cover-Upload */}
+          <button
+            onClick={() => coverInputRef.current?.click()}
+            style={{
+              position:"absolute", top:10, right:10, zIndex:15,
+              width:32, height:32, borderRadius:"50%",
+              background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)",
+              border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:15, cursor:"pointer", touchAction:"manipulation",
+            }}
+          >
+            {coverUploading ? <span className="mbp-uploading" style={{fontSize:13}}>⏳</span> : "📷"}
+          </button>
+        </div>
 
-        {/* Floating avatar — centered bottom */}
-        <div style={{ position:"absolute", bottom:-38, left:"50%", transform:"translateX(-50%)",
-          display:"flex", flexDirection:"column", alignItems:"center" }}>
+        {/* Floating avatar — außerhalb des overflow:hidden, deshalb sichtbar */}
+        <div style={{ position:"absolute", bottom:-44, left:"50%", transform:"translateX(-50%)",
+          display:"flex", flexDirection:"column", alignItems:"center", zIndex:10 }}>
           <div style={{ position:"relative" }}>
             {/* Teal ring */}
             <div style={{ position:"absolute", inset:-3, borderRadius:"50%",
@@ -286,7 +290,7 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
                 style={{ width:"100%", height:"100%", objectFit:"cover",
                   opacity:avLoaded?1:0, transition:"opacity .5s ease" }}/>
             </div>
-            {/* Camera button — öffnet File Picker für Avatar */}
+            {/* Camera button */}
             <label style={{
               position:"absolute", bottom:0, right:0,
               width:26, height:26, borderRadius:"50%",
@@ -499,14 +503,26 @@ function MomenteSection({ moments, onChange }) {
 }
 
 function MomentThumb({ m, onRemove }) {
-  const [loaded, setLoaded] = useState(false);
+  const [loaded,  setLoaded]  = useState(false);
+  const [broken,  setBroken]  = useState(false);
   return (
     <div style={{ position:"relative", aspectRatio:"1", borderRadius:T.r12,
       overflow:"hidden", background:"rgba(26,26,24,0.07)", flexShrink:0 }}>
-      {!loaded && <div className="mbp-skeleton" style={{position:"absolute",inset:0}}/>}
-      <img src={m.img} alt="" onLoad={()=>setLoaded(true)} onError={()=>setLoaded(true)}
-        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
-          opacity:loaded?1:0, transition:"opacity .5s ease" }}/>
+      {!loaded && !broken && <div className="mbp-skeleton" style={{position:"absolute",inset:0}}/>}
+      {broken ? (
+        /* Broken-State: graue Box, isoliert — andere Momente unberührt */
+        <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center",
+          background:"rgba(26,26,24,0.06)", gap:4 }}>
+          <span style={{fontSize:22}}>🖼️</span>
+          <span style={{fontSize:9, color:"rgba(26,26,24,0.35)", textAlign:"center",
+            padding:"0 6px", lineHeight:1.4}}>Bild nicht verfügbar</span>
+        </div>
+      ) : (
+        <img src={m.img} alt="" onLoad={()=>setLoaded(true)} onError={()=>{ setLoaded(true); setBroken(true); }}
+          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
+            opacity:loaded?1:0, transition:"opacity .5s ease" }}/>
+      )}
       {/* × remove */}
       <button className="mbp-press" onClick={onRemove} style={{
         position:"absolute", top:5, right:5,
@@ -629,11 +645,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
   const [bio,        setBio]        = useState("");
-  const [debugUid,   setDebugUid]   = useState(null);
-  const [debugErr,   setDebugErr]   = useState(null);
-  // Debug-Panel nur wenn ?debug=1 in URL
-  const isDebug = typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("debug") === "1";
+
   const [interests,  setInterests]  = useState([]);
   const [openFor,    setOpenFor]    = useState([]);
   const [moments,    setMoments]    = useState([]);
@@ -650,12 +662,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
     (async () => {
       try {
         const { data:{ user } } = await supabase.auth.getUser();
-        setDebugUid(user?.id ?? "null");
+
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
           .select("id,username,display_name,avatar_url,header_img,bio,location")
           .eq("id", user.id).single();
-        if (loadErr) setDebugErr(loadErr.message + " [" + loadErr.code + "]");
+        if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code);
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
@@ -733,51 +745,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
 
-      {/* ── DEBUG PANEL (nur bei ?debug=1) ─────────────────────── */}
-      {isDebug && (
-        <div style={{
-          position:"fixed", top:60, left:12, right:12, zIndex:99999,
-          background:"rgba(0,0,0,0.88)", borderRadius:12, padding:"14px 16px",
-          fontFamily:"monospace", fontSize:11, color:"#00FF99", lineHeight:1.8,
-          backdropFilter:"blur(8px)", border:"1px solid rgba(0,255,150,0.3)",
-          boxShadow:"0 4px 24px rgba(0,0,0,0.6)",
-          maxHeight:"55vh", overflowY:"auto",
-        }}>
-          <div style={{ color:"#FFD700", fontWeight:700, marginBottom:8, fontSize:12 }}>
-            🔍 HUI DEBUG PANEL
-          </div>
-
-          <div style={{ color:"#AAA", marginBottom:4 }}>AUTH UID:</div>
-          <div style={{ marginBottom:10, wordBreak:"break-all" }}>
-            {debugUid ?? "⏳ lädt..."}
-          </div>
-
-          <div style={{ color:"#AAA", marginBottom:4 }}>PROFILE SELECT RESULT:</div>
-          <div style={{ marginBottom:2 }}>id: {profile?.id ?? "null"}</div>
-          <div style={{ marginBottom:2 }}>avatar_url: {profile?.avatar_url ?? "null"}</div>
-          <div style={{ marginBottom:2 }}>header_img: {profile?.header_img ?? "null"}</div>
-          <div style={{ marginBottom:10 }}>bio: {profile?.bio ?? "null"}</div>
-
-          <div style={{ color:"#AAA", marginBottom:4 }}>PROFILE USED FOR RENDER:</div>
-          <div style={{ marginBottom:2 }}>id: {profile?.id ?? "null"}</div>
-          <div style={{ marginBottom:2 }}>
-            avatar_url: {localAvatar || profile?.avatar_url || "null"}
-          </div>
-          <div style={{ marginBottom:2 }}>
-            header_img: {localCover || profile?.header_img || "null"}
-          </div>
-          <div style={{ marginBottom:10 }}>bio: {bio || "null"}</div>
-
-          <div style={{ color:"#AAA", marginBottom:4 }}>LOADING:</div>
-          <div style={{ marginBottom:10 }}>{String(loading)}</div>
-
-          <div style={{ color:"#AAA", marginBottom:4 }}>ERROR:</div>
-          <div style={{ color: debugErr ? "#FF6B6B" : "#00FF99" }}>
-            {debugErr ?? "–"}
-          </div>
-        </div>
-      )}
-      {/* ── END DEBUG PANEL ─────────────────────────────────────── */}
+      
       <style>{CSS}</style>
 
       {/* Save indicator */}
@@ -812,7 +780,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         onAvatarChange={handleAvatarChange}
         onCoverChange={handleCoverChange}
       />
-        <Gap h={56}/> {/* space for floating avatar */}
+        <Gap h={62}/> {/* space for floating avatar (82px/2 + 44px offset − 170px/2 = ~44px sichtbar) */}
 
         {/* ÜBER DICH */}
         <UeberDich bio={bio} onChange={handleBioChange}/>
