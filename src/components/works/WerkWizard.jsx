@@ -9,15 +9,12 @@ const C = {
   inkFade:"rgba(26,26,24,0.35)", border:"rgba(26,26,24,0.10)",
 };
 
+// Werktypen: ausschließlich echte Werke
+// Dienstleistungen/Workshops/Kurse → separater "Angebote"-Bereich (geplant)
 const WERK_TYPEN = [
   { id:"original",  icon:"🖼️",  label:"Originalwerk",         sub:"Unikat – einmalig vorhanden." },
   { id:"druck",     icon:"🖨️",  label:"Druck / Reproduktion",  sub:"Reproduzierbar in Auflage." },
   { id:"digital",   icon:"💻",  label:"Digitales Werk",        sub:"Datei zum Download." },
-  { id:"service",   icon:"🤝",  label:"Dienstleistung",        sub:"Persönliche Leistung." },
-  { id:"workshop",  icon:"🎓",  label:"Workshop",              sub:"Gemeinsames Lernen vor Ort." },
-  { id:"kurs",      icon:"📚",  label:"Kurs",                  sub:"Strukturierter Online-Kurs." },
-  { id:"projekt",   icon:"📋",  label:"Projekt",               sub:"Längerfristige Zusammenarbeit." },
-  { id:"auftrag",   icon:"✏️",  label:"Auftragsarbeit",        sub:"Individuell nach Wunsch." },
 ];
 const MATERIALIEN = ["Acryl","Öl","Aquarell","Holz","Keramik","Textil","Digital","Metall","Papier","Sonstiges"];
 const KATEGORIEN  = ["Malerei","Fotografie","Skulptur","Illustration","Design","Musik","Literatur","Performance","Handwerk","Sonstiges"];
@@ -85,7 +82,19 @@ function Lbl({ text, req }) {
   return <div style={{ fontSize:12, fontWeight:700, color:C.inkMid, marginBottom:6 }}>{text}{req&&<span style={{ color:C.teal, marginLeft:2 }}>*</span>}</div>;
 }
 
-const INP = { width:"100%", boxSizing:"border-box", padding:"12px 14px", borderRadius:12, border:"1.5px solid rgba(26,26,24,0.10)", outline:"none", fontSize:14, fontFamily:"inherit", color:"#1A1A18", background:"#fff" };
+const INP = {
+  width:"100%", boxSizing:"border-box",
+  padding:"13px 15px",   // größere Touch-Targets
+  borderRadius:12,
+  border:"1.5px solid rgba(26,26,24,0.10)",
+  outline:"none",
+  fontSize:15,           // besser lesbar auf Mobile
+  fontFamily:"inherit",
+  color:"#1A1A18",
+  background:"#fff",
+  WebkitAppearance:"none",
+  appearance:"none",
+};
 
 function FI({ label, req, value, onChange, placeholder, maxLen, type="text" }) {
   return (
@@ -121,8 +130,8 @@ function FSel({ label, req, value, onChange, options }) {
 
 function Toggle({ label, value, onChange }) {
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px", background:"#fff", borderRadius:14, border:`1.5px solid ${C.border}`, marginBottom:10 }}>
-      <span style={{ fontSize:15, fontWeight:600, color:C.ink }}>{label}</span>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"17px 18px", background:"#fff", borderRadius:14, border:`1.5px solid ${C.border}`, marginBottom:10, minHeight:60 }}>
+      <span style={{ fontSize:16, fontWeight:600, color:C.ink }}>{label}</span>
       <div onClick={()=>onChange(!value)} style={{ width:48, height:28, borderRadius:14, background:value?C.teal:"rgba(26,26,24,0.15)", position:"relative", cursor:"pointer", transition:"background .18s", flexShrink:0, touchAction:"manipulation" }}>
         <div style={{ position:"absolute", top:3, left:value?22:3, width:22, height:22, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.18)", transition:"left .18s" }}/>
       </div>
@@ -132,7 +141,7 @@ function Toggle({ label, value, onChange }) {
 
 function RCard({ active, icon, label, sub, onClick }) {
   return (
-    <div onClick={onClick} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px", borderRadius:14, border:active?`2px solid ${C.teal}`:`1.5px solid ${C.border}`, background:active?"rgba(14,196,184,0.07)":"#fff", cursor:"pointer", transition:"all .15s", touchAction:"manipulation" }}>
+    <div onClick={onClick} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 16px", borderRadius:14, border:active?`2px solid ${C.teal}`:`1.5px solid ${C.border}`, background:active?"rgba(14,196,184,0.07)":"#fff", cursor:"pointer", transition:"all .15s", touchAction:"manipulation", minHeight:60 }}>
       <div style={{ width:20, height:20, borderRadius:"50%", border:active?`2px solid ${C.teal}`:`2px solid ${C.border}`, background:active?C.teal:"transparent", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
         {active&&<div style={{ width:7, height:7, borderRadius:"50%", background:"#fff" }}/>}
       </div>
@@ -256,16 +265,38 @@ function S4({ data, onChange, onNext }) {
   return (
     <div>
       <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Preis & Verkauf</div>
+      {/* Preis — Mobile First: volle Breite, gestackt */}
       <div style={{ marginBottom:14 }}>
         <Lbl text="Preis" req/>
-        <div style={{ display:"flex", gap:8 }}>
-          <input type="number" min="0" step="0.01" value={data.price||""} onChange={e=>onChange({price:e.target.value})} placeholder="0,00" style={{ ...INP, flex:1 }}/>
-          <select value={data.currency||"EUR"} onChange={e=>onChange({currency:e.target.value})} style={{ width:100, ...INP, flex:"none", paddingLeft:10, paddingRight:10 }}>
-            <option value="EUR">EUR (€)</option>
-            <option value="CHF">CHF (₣)</option>
-            <option value="USD">USD ($)</option>
-          </select>
-        </div>
+        <input
+          type="number" min="0" step="0.01"
+          value={data.price||""}
+          onChange={e=>onChange({price:e.target.value})}
+          placeholder="0,00"
+          inputMode="decimal"
+          style={{
+            ...INP,
+            fontSize:22,
+            fontWeight:700,
+            letterSpacing:0.5,
+            padding:"14px 16px",
+            marginBottom:8,
+          }}
+        />
+        <Lbl text="Währung"/>
+        <select
+          value={data.currency||"EUR"}
+          onChange={e=>onChange({currency:e.target.value})}
+          style={{
+            ...INP,
+            fontSize:15,
+            padding:"13px 16px",
+          }}
+        >
+          <option value="EUR">EUR – Euro (€)</option>
+          <option value="CHF">CHF – Schweizer Franken (₣)</option>
+          <option value="USD">USD – US-Dollar ($)</option>
+        </select>
       </div>
       <div style={{ marginBottom:16 }}>
         <Lbl text="Verfügbarkeit" req/>
@@ -386,6 +417,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
   const TOTAL=6;
   const [step,setSt]=useState(1);
   const [saving,setSaving]=useState(false);
+  const [saveError,setSaveError]=useState(null);
   const [form,setForm]=useState(()=>{
     if (existingWork) {
       let imgs=[];
@@ -425,30 +457,51 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     if (!userId) return;
     setSaving(true);
     const cover_url=form.images?.[0]?.url||null;
+    // WICHTIG: images als Array (nicht JSON.stringify) — Spalte ist JSONB
+    // JSON.stringify würde TEXT liefern → 22P02 Type-Error bei INSERT
+    const imagesArr = (form.images||[]).map(img =>
+      typeof img === "object" ? img : { url: img }
+    );
+    console.log("[SAVE WERK] payload.images length:", imagesArr.length);
     const payload={
-      user_id:userId, title:form.title, description:form.description,
-      caption:form.shortDesc, cover_url, media_url:cover_url,
-      images:JSON.stringify(form.images||[]),
-      category:form.category, tags:form.tags, medium:form.werktyp,
-      price:parseFloat(form.price)||null,
-      for_sale:form.availability==="available",
-      location_text:form.abholort, visibility:form.sichtbarkeit,
-      status, updated_at:new Date().toISOString(),
+      user_id:    userId,
+      title:      form.title       || "",
+      description:form.description || null,
+      caption:    form.shortDesc   || null,
+      cover_url,
+      media_url:  cover_url,
+      images:     imagesArr,          // JSONB: Array direkt, kein stringify
+      category:   form.category    || null,
+      tags:       form.tags        || [],
+      medium:     form.werktyp     || null,
+      price:      parseFloat(form.price) || null,
+      for_sale:   form.availability === "available",
+      location_text: form.abholort || null,
+      visibility: form.sichtbarkeit || "public",
+      status,
+      updated_at: new Date().toISOString(),
     };
+    console.log("[SAVE WERK] DB-call, existingWork:", existingWork?.id || "NEW");
     const { data:saved, error }=existingWork?.id
       ? await supabase.from("works").update(payload).eq("id",existingWork.id).eq("user_id",userId).select().single()
       : await supabase.from("works").insert(payload).select().single();
     setSaving(false);
-    if (error) { console.error("[SAVE WERK]",error.message); return; }
-    console.log("[SAVE WERK] success:",saved?.id,"status:",status);
+    if (error) {
+      console.error("[SAVE WERK] DB-ERROR:", error.message, "| code:", error.code);
+      // Nutzer-Feedback
+      setSaveError(error.message || "Speichern fehlgeschlagen");
+      setTimeout(() => setSaveError(null), 5000);
+      return;
+    }
+    console.log("[SAVE WERK] success:", saved?.id, "status:", status);
     onSaved?.(saved);
     onClose?.();
   }
 
   // ── body class: blendet BottomNav (zIndex:9999) aus ─────────
-  useEffect(() => {
+  // useLayoutEffect: synchron vor paint → kein Flash der BottomNav
+  React.useLayoutEffect(() => {
     document.body.classList.add("hui-wizard-open");
-    // Scroll des body sperren während Wizard offen
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -517,6 +570,25 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
         <div style={{ height:100 }}/>
       </div>
 
+      {/* ── SAVE ERROR TOAST ────────────────────────────────── */}
+      {saveError && (
+        <div style={{
+          flexShrink:0, padding:"10px 20px",
+          background:"rgba(239,68,68,0.10)",
+          borderTop:"1.5px solid rgba(239,68,68,0.20)",
+          fontSize:12.5, fontWeight:600,
+          color:"rgba(239,68,68,0.9)",
+          display:"flex", alignItems:"center", gap:8,
+        }}>
+          <span>⚠</span>
+          <span style={{ flex:1 }}>{saveError}</span>
+          <button onClick={()=>setSaveError(null)} style={{
+            background:"none", border:"none", cursor:"pointer",
+            color:"rgba(239,68,68,0.7)", fontSize:14, padding:0,
+          }}>×</button>
+        </div>
+      )}
+
       {/* ── STICKY FOOTER ─────────────────────────────────── */}
       <div style={{
         flexShrink:0,
@@ -554,7 +626,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
               ? `linear-gradient(135deg,${C.teal},${C.tealD})`
               : "rgba(14,196,184,0.32)",
             border:"none", borderRadius:14,
-            color:"#fff", fontSize:15, fontWeight:700,
+            color:"#fff", fontSize:16, fontWeight:700,
             cursor:canContinue()?"pointer":"not-allowed",
             fontFamily:"inherit", touchAction:"manipulation",
             transition:"background .18s",

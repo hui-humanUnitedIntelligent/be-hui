@@ -60,7 +60,21 @@ export default function BottomNav({
 }) {
   // orbActive: legacy — still controls hard hide for non-world-layer use cases
   // navDrift: world-layer drift — soft opacity + translateY (nav stays mounted)
-  const isHidden = (orbActive && !navDrift) ?? false;
+  // wizardOpen: CSS-Klasse gesetzt von WerkWizard → body.hui-wizard-open
+  const [wizardOpen, setWizardOpen] = React.useState(
+    () => document.body.classList.contains("hui-wizard-open")
+  );
+
+  React.useEffect(() => {
+    // MutationObserver: reagiert wenn WerkWizard body-class setzt/entfernt
+    const obs = new MutationObserver(() => {
+      setWizardOpen(document.body.classList.contains("hui-wizard-open"));
+    });
+    obs.observe(document.body, { attributes:true, attributeFilter:["class"] });
+    return () => obs.disconnect();
+  }, []);
+
+  const isHidden = wizardOpen || ((orbActive && !navDrift) ?? false);
   const actions  = useHuiActions();
 
   function handleTabPress(key) {
