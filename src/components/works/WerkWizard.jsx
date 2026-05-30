@@ -1,0 +1,470 @@
+// src/components/works/WerkWizard.jsx
+// HUI – Werk-Editor als 6-Schritte-Wizard
+import React, { useState, useRef } from "react";
+import { supabase } from "../../lib/supabaseClient.js";
+
+const C = {
+  teal:"#0EC4B8", tealD:"#0DBBAF", cream:"#F8F7F4",
+  ink:"#1A1A18", inkMid:"rgba(26,26,24,0.55)",
+  inkFade:"rgba(26,26,24,0.35)", border:"rgba(26,26,24,0.10)",
+};
+
+const WERK_TYPEN = [
+  { id:"original",  icon:"🖼️",  label:"Originalwerk",         sub:"Unikat – einmalig vorhanden." },
+  { id:"druck",     icon:"🖨️",  label:"Druck / Reproduktion",  sub:"Reproduzierbar in Auflage." },
+  { id:"digital",   icon:"💻",  label:"Digitales Werk",        sub:"Datei zum Download." },
+  { id:"service",   icon:"🤝",  label:"Dienstleistung",        sub:"Persönliche Leistung." },
+  { id:"workshop",  icon:"🎓",  label:"Workshop",              sub:"Gemeinsames Lernen vor Ort." },
+  { id:"kurs",      icon:"📚",  label:"Kurs",                  sub:"Strukturierter Online-Kurs." },
+  { id:"projekt",   icon:"📋",  label:"Projekt",               sub:"Längerfristige Zusammenarbeit." },
+  { id:"auftrag",   icon:"✏️",  label:"Auftragsarbeit",        sub:"Individuell nach Wunsch." },
+];
+const MATERIALIEN = ["Acryl","Öl","Aquarell","Holz","Keramik","Textil","Digital","Metall","Papier","Sonstiges"];
+const KATEGORIEN  = ["Malerei","Fotografie","Skulptur","Illustration","Design","Musik","Literatur","Performance","Handwerk","Sonstiges"];
+
+// ── Bausteine ─────────────────────────────────────────────────
+function ProgressBar({ step, total }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:0 }}>
+      {Array.from({ length: total }, (_, i) => {
+        const n=i+1; const done=n<step; const cur=n===step;
+        return (
+          <React.Fragment key={n}>
+            <div style={{
+              width:cur?28:22, height:cur?28:22, borderRadius:"50%",
+              background:(done||cur)?C.teal:"rgba(26,26,24,0.09)",
+              border:cur?`2.5px solid ${C.teal}`:"none",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:cur?12:10, fontWeight:700,
+              color:(done||cur)?"#fff":C.inkFade,
+              flexShrink:0, transition:"all .22s",
+              boxShadow:cur?"0 0 0 4px rgba(14,196,184,0.18)":"none",
+            }}>{done?"✓":n}</div>
+            {i<total-1 && <div style={{ flex:1, height:2, minWidth:8, background:done?C.teal:"rgba(26,26,24,0.09)", transition:"background .22s" }}/>}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+function TopBar({ onClose, step, total }) {
+  return (
+    <div style={{ padding:"14px 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}` }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+        <button onClick={onClose} style={{ background:"none", border:"none", padding:0, fontSize:13, fontWeight:600, color:C.inkMid, cursor:"pointer", touchAction:"manipulation" }}>Abbrechen</button>
+        <div style={{ fontSize:14, fontWeight:700, color:C.ink }}>Werk bearbeiten</div>
+        <button onClick={onClose} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
+          <span style={{ fontSize:14, color:C.ink }}>×</span>
+        </button>
+      </div>
+      <ProgressBar step={step} total={total}/>
+    </div>
+  );
+}
+
+function PBtn({ label, onClick, disabled, loading }) {
+  return (
+    <button onClick={onClick} disabled={disabled||loading} style={{
+      width:"100%", padding:"16px",
+      background:(disabled||loading)?"rgba(14,196,184,0.32)":`linear-gradient(135deg,${C.teal},${C.tealD})`,
+      border:"none", borderRadius:14, color:"#fff", fontSize:15, fontWeight:700,
+      cursor:(disabled||loading)?"not-allowed":"pointer",
+      fontFamily:"inherit", touchAction:"manipulation",
+    }}>{loading?"Wird gespeichert…":label}</button>
+  );
+}
+
+function SBtn({ label, onClick }) {
+  return (
+    <button onClick={onClick} style={{ width:"100%", padding:"14px", background:"none", border:"none", color:C.teal, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation" }}>{label}</button>
+  );
+}
+
+function Lbl({ text, req }) {
+  return <div style={{ fontSize:12, fontWeight:700, color:C.inkMid, marginBottom:6 }}>{text}{req&&<span style={{ color:C.teal, marginLeft:2 }}>*</span>}</div>;
+}
+
+const INP = { width:"100%", boxSizing:"border-box", padding:"12px 14px", borderRadius:12, border:"1.5px solid rgba(26,26,24,0.10)", outline:"none", fontSize:14, fontFamily:"inherit", color:"#1A1A18", background:"#fff" };
+
+function FI({ label, req, value, onChange, placeholder, maxLen, type="text" }) {
+  return (
+    <div style={{ marginBottom:14 }}>
+      {label&&<Lbl text={label} req={req}/>}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} maxLength={maxLen} style={INP}/>
+      {maxLen&&<div style={{ textAlign:"right", fontSize:11, color:C.inkFade, marginTop:3 }}>{value.length}/{maxLen}</div>}
+    </div>
+  );
+}
+
+function FTA({ label, req, value, onChange, placeholder, maxLen, rows=3 }) {
+  return (
+    <div style={{ marginBottom:14 }}>
+      {label&&<Lbl text={label} req={req}/>}
+      <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={rows} maxLength={maxLen} style={{ ...INP, resize:"none", lineHeight:1.6 }}/>
+      {maxLen&&<div style={{ textAlign:"right", fontSize:11, color:C.inkFade, marginTop:3 }}>{value.length}/{maxLen}</div>}
+    </div>
+  );
+}
+
+function FSel({ label, req, value, onChange, options }) {
+  return (
+    <div style={{ marginBottom:14 }}>
+      {label&&<Lbl text={label} req={req}/>}
+      <select value={value} onChange={e=>onChange(e.target.value)} style={{ ...INP, backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230EC4B8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat:"no-repeat", backgroundPosition:"right 14px center", paddingRight:38 }}>
+        <option value="">Bitte wählen…</option>
+        {options.map(o=><option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  );
+}
+
+function Toggle({ label, value, onChange }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px", background:"#fff", borderRadius:14, border:`1.5px solid ${C.border}`, marginBottom:10 }}>
+      <span style={{ fontSize:15, fontWeight:600, color:C.ink }}>{label}</span>
+      <div onClick={()=>onChange(!value)} style={{ width:48, height:28, borderRadius:14, background:value?C.teal:"rgba(26,26,24,0.15)", position:"relative", cursor:"pointer", transition:"background .18s", flexShrink:0, touchAction:"manipulation" }}>
+        <div style={{ position:"absolute", top:3, left:value?22:3, width:22, height:22, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.18)", transition:"left .18s" }}/>
+      </div>
+    </div>
+  );
+}
+
+function RCard({ active, icon, label, sub, onClick }) {
+  return (
+    <div onClick={onClick} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px", borderRadius:14, border:active?`2px solid ${C.teal}`:`1.5px solid ${C.border}`, background:active?"rgba(14,196,184,0.07)":"#fff", cursor:"pointer", transition:"all .15s", touchAction:"manipulation" }}>
+      <div style={{ width:20, height:20, borderRadius:"50%", border:active?`2px solid ${C.teal}`:`2px solid ${C.border}`, background:active?C.teal:"transparent", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        {active&&<div style={{ width:7, height:7, borderRadius:"50%", background:"#fff" }}/>}
+      </div>
+      {icon&&<div style={{ fontSize:16, flexShrink:0 }}>{icon}</div>}
+      <div>
+        <div style={{ fontSize:14, fontWeight:700, color:active?C.teal:C.ink }}>{label}</div>
+        {sub&&<div style={{ fontSize:11.5, color:C.inkMid, marginTop:1 }}>{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 1 – Bilder
+// ══════════════════════════════════════════════════════════════
+function S1({ data, onChange, userId, onNext }) {
+  const [upl, setUpl] = useState(false);
+  const ref = useRef(null);
+  const imgs = data.images||[];
+
+  async function upload(e) {
+    const files = Array.from(e.target.files||[]);
+    if (!userId||!files.length) return;
+    setUpl(true);
+    const next=[...imgs];
+    for (const file of files.slice(0,10-next.length)) {
+      const ext=file.name.split(".").pop().toLowerCase();
+      const path=`works/${userId}/${Date.now()}_${Math.random().toString(36).slice(2,6)}.${ext}`;
+      const { error }=await supabase.storage.from("media").upload(path,file,{ upsert:true });
+      if (!error) {
+        const { data:u }=supabase.storage.from("media").getPublicUrl(path);
+        next.push({ url:u.publicUrl, path });
+      }
+    }
+    onChange({ images:next });
+    setUpl(false);
+    if (ref.current) ref.current.value="";
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:4 }}>Bilder</div>
+      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16, lineHeight:1.5 }}>Füge bis zu 10 Bilder hinzu. Das erste Bild wird als Titelbild verwendet.</div>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:12 }}>
+        {imgs.map((img,idx)=>(
+          <div key={idx} style={{ position:"relative", aspectRatio:"1", borderRadius:12, overflow:"hidden", background:"#e8e4df", border:idx===0?`2.5px solid ${C.teal}`:`1.5px solid ${C.border}` }}>
+            <img src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            {idx===0&&<div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight:700, color:"#fff", textAlign:"center" }}>TITELBILD</div>}
+            <button onClick={()=>onChange({ images:imgs.filter((_,i)=>i!==idx) })} style={{ position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>×</button>
+          </div>
+        ))}
+        {imgs.length<10&&(
+          <div onClick={()=>!upl&&ref.current?.click()} style={{ aspectRatio:"1", borderRadius:12, border:"2px dashed rgba(14,196,184,0.38)", background:"rgba(14,196,184,0.04)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", cursor:upl?"not-allowed":"pointer", gap:4, touchAction:"manipulation" }}>
+            {upl?<div style={{ fontSize:12, color:C.teal, fontWeight:600 }}>…</div>:<>
+              <div style={{ fontSize:22, color:C.teal, fontWeight:300, lineHeight:1 }}>+</div>
+              <div style={{ fontSize:9, color:C.teal, fontWeight:600, textAlign:"center", lineHeight:1.4 }}>Bild<br/>hinzufügen</div>
+            </>}
+          </div>
+        )}
+      </div>
+      {imgs.length>0&&<div style={{ fontSize:11, color:C.inkFade, textAlign:"center", marginBottom:14 }}>{imgs.length}/10 Bilder</div>}
+      <input ref={ref} type="file" accept="image/*" multiple style={{ display:"none" }} onChange={upload}/>
+      <PBtn label="Weiter" onClick={onNext} disabled={imgs.length===0}/>
+    </div>
+  );
+}
+
+// Screen 2 – Basisinformationen
+function S2({ data, onChange, onNext }) {
+  const [ti, setTi] = useState("");
+  const tags=data.tags||[];
+  function addTag() { const t=ti.trim(); if (!t||tags.includes(t)){setTi("");return;} onChange({ tags:[...tags,t] }); setTi(""); }
+  return (
+    <div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Basisinformationen</div>
+      <FI label="Titel des Werks" req value={data.title||""} onChange={v=>onChange({title:v})} placeholder="z. B. Wellen der Ruhe" maxLen={80}/>
+      <FTA label="Kurzbeschreibung" req value={data.shortDesc||""} onChange={v=>onChange({shortDesc:v})} placeholder="Ein abstraktes Acrylbild, inspiriert von der Kraft des Ozeans." maxLen={120} rows={2}/>
+      <FTA label="Detaillierte Beschreibung" value={data.description||""} onChange={v=>onChange({description:v})} placeholder="Dieses Werk steht für Bewegung, Freiheit und innere Balance…" maxLen={1000} rows={4}/>
+      <FSel label="Kategorie" req value={data.category||""} onChange={v=>onChange({category:v})} options={KATEGORIEN}/>
+      <div style={{ marginBottom:14 }}>
+        <Lbl text="Tags"/>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:8 }}>
+          {tags.map(tag=>(
+            <div key={tag} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", borderRadius:99, background:"rgba(14,196,184,0.10)", border:"1.5px solid rgba(14,196,184,0.28)", fontSize:12.5, fontWeight:600, color:C.teal }}>
+              {tag}
+              <button onClick={()=>onChange({ tags:tags.filter(t=>t!==tag) })} style={{ background:"none", border:"none", padding:0, cursor:"pointer", color:C.teal, fontSize:14, lineHeight:1 }}>×</button>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"flex", gap:8 }}>
+          <input value={ti} onChange={e=>setTi(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(e.preventDefault(),addTag())} placeholder="+ Tag hinzufügen" style={{ flex:1, padding:"9px 13px", borderRadius:99, border:"1.5px dashed rgba(14,196,184,0.35)", outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"transparent" }}/>
+          {ti&&<button onClick={addTag} style={{ background:C.teal, border:"none", borderRadius:99, padding:"9px 14px", fontSize:12, fontWeight:700, color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>+</button>}
+        </div>
+      </div>
+      <PBtn label="Weiter" onClick={onNext} disabled={!data.title?.trim()||!data.category}/>
+    </div>
+  );
+}
+
+// Screen 3 – Werktyp
+function S3({ data, onChange, onNext }) {
+  return (
+    <div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:4 }}>Werktyp</div>
+      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>Wähle die Art deines Werks.</div>
+      <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
+        {WERK_TYPEN.map(wt=><RCard key={wt.id} active={data.werktyp===wt.id} icon={wt.icon} label={wt.label} sub={wt.sub} onClick={()=>onChange({werktyp:wt.id})}/>)}
+      </div>
+      <PBtn label="Weiter" onClick={onNext} disabled={!data.werktyp}/>
+    </div>
+  );
+}
+
+// Screen 4 – Preis & Verkauf
+function S4({ data, onChange, onNext }) {
+  const VERF=[
+    { id:"available", label:"Verfügbar",  sub:"Das Werk kann gekauft werden." },
+    { id:"reserved",  label:"Reserviert", sub:"Das Werk ist reserviert." },
+    { id:"sold",      label:"Verkauft",   sub:"Das Werk wurde bereits verkauft." },
+  ];
+  return (
+    <div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Preis & Verkauf</div>
+      <div style={{ marginBottom:14 }}>
+        <Lbl text="Preis" req/>
+        <div style={{ display:"flex", gap:8 }}>
+          <input type="number" min="0" step="0.01" value={data.price||""} onChange={e=>onChange({price:e.target.value})} placeholder="0,00" style={{ ...INP, flex:1 }}/>
+          <select value={data.currency||"EUR"} onChange={e=>onChange({currency:e.target.value})} style={{ width:100, ...INP, flex:"none", paddingLeft:10, paddingRight:10 }}>
+            <option value="EUR">EUR (€)</option>
+            <option value="CHF">CHF (₣)</option>
+            <option value="USD">USD ($)</option>
+          </select>
+        </div>
+      </div>
+      <div style={{ marginBottom:16 }}>
+        <Lbl text="Verfügbarkeit" req/>
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {VERF.map(v=><RCard key={v.id} active={data.availability===v.id} label={v.label} sub={v.sub} onClick={()=>onChange({availability:v.id})}/>)}
+        </div>
+      </div>
+      <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 6px", marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:C.teal, marginBottom:12 }}>Maße & Material</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:10 }}>
+          {[["Breite (cm)","breite"],["Höhe (cm)","hoehe"],["Tiefe (cm)","tiefe"]].map(([lbl,key])=>(
+            <div key={key}>
+              <div style={{ fontSize:10, fontWeight:600, color:C.inkFade, marginBottom:4 }}>{lbl}</div>
+              <input type="number" min="0" value={data[key]||""} onChange={e=>onChange({[key]:e.target.value})} placeholder="—" style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:10, border:`1.5px solid ${C.border}`, outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"#fff" }}/>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:10 }}>
+          <div>
+            <div style={{ fontSize:10, fontWeight:600, color:C.inkFade, marginBottom:4 }}>Gewicht (kg)</div>
+            <input type="number" min="0" step="0.1" value={data.gewicht||""} onChange={e=>onChange({gewicht:e.target.value})} placeholder="—" style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:10, border:`1.5px solid ${C.border}`, outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"#fff" }}/>
+          </div>
+          <div>
+            <div style={{ fontSize:10, fontWeight:600, color:C.inkFade, marginBottom:4 }}>Material</div>
+            <select value={data.material||""} onChange={e=>onChange({material:e.target.value})} style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:10, border:`1.5px solid ${C.border}`, outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"#fff" }}>
+              <option value="">—</option>
+              {MATERIALIEN.map(m=><option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+      <PBtn label="Weiter" onClick={onNext} disabled={!data.price||!data.availability}/>
+    </div>
+  );
+}
+
+// Screen 5 – Versand & Abholung
+function S5({ data, onChange, onNext }) {
+  const NAT=["DHL Standard","DHL Express","Hermes","DPD","Selbst verpackt"];
+  const INT=["DHL International","FedEx","UPS","Auf Anfrage"];
+  return (
+    <div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Versand & Abholung</div>
+      <Toggle label="Versand möglich" value={!!data.versand} onChange={v=>onChange({versand:v})}/>
+      {data.versand&&(
+        <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 4px", marginBottom:12 }}>
+          <FSel label="Versand national" value={data.versandNational||""} onChange={v=>onChange({versandNational:v})} options={NAT}/>
+          <FSel label="Versand international" value={data.versandInternational||""} onChange={v=>onChange({versandInternational:v})} options={INT}/>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:10 }}>
+            {[["Versandkosten","versandkosten"],["Kostenfrei ab","versandFrei"]].map(([lbl,key])=>(
+              <div key={key}>
+                <div style={{ fontSize:11, fontWeight:600, color:C.inkMid, marginBottom:5 }}>{lbl}</div>
+                <div style={{ position:"relative" }}>
+                  <input type="number" min="0" step="0.01" value={data[key]||""} onChange={e=>onChange({[key]:e.target.value})} placeholder="0,00" style={{ width:"100%", boxSizing:"border-box", padding:"10px 28px 10px 10px", borderRadius:10, border:`1.5px solid ${C.border}`, outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"#fff" }}/>
+                  <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:13, color:C.inkFade }}>€</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <Toggle label="Abholung möglich" value={!!data.abholung} onChange={v=>onChange({abholung:v})}/>
+      {data.abholung&&(
+        <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 6px", marginBottom:12 }}>
+          <FI label="Standort für Abholung" value={data.abholort||""} onChange={v=>onChange({abholort:v})} placeholder="z. B. Freiburg im Breisgau, Deutschland"/>
+        </div>
+      )}
+      {!data.versand&&!data.abholung&&(
+        <div style={{ padding:"12px 14px", borderRadius:12, background:"rgba(239,68,68,0.06)", border:"1.5px solid rgba(239,68,68,0.15)", fontSize:12.5, color:"rgba(239,68,68,0.8)", marginBottom:12 }}>
+          Mindestens eine Option muss aktiviert sein.
+        </div>
+      )}
+      <PBtn label="Weiter" onClick={onNext} disabled={!data.versand&&!data.abholung}/>
+    </div>
+  );
+}
+
+// Screen 6 – Sichtbarkeit & Speichern
+function S6({ data, onChange, onSave, onDraft, saving }) {
+  const SICHT=[
+    { id:"public",      icon:"🌍", label:"Öffentlich",   sub:"Sichtbar in deinem Talent-Profil und ggf. im HUI-Marktplatz." },
+    { id:"connections", icon:"🔗", label:"Verbindungen", sub:"Nur für Menschen in deinem Netzwerk sichtbar." },
+    { id:"private",     icon:"🔒", label:"Privat",       sub:"Nur für dich sichtbar." },
+  ];
+  const cover=data.images?.[0]?.url;
+  const ps=data.price?`${parseFloat(data.price).toLocaleString("de-DE",{minimumFractionDigits:2})} ${data.currency||"€"}`:"—";
+  return (
+    <div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:4 }}>Sichtbarkeit</div>
+      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>Wer kann dieses Werk sehen?</div>
+      <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
+        {SICHT.map(s=><RCard key={s.id} active={(data.sichtbarkeit||"public")===s.id} icon={s.icon} label={s.label} sub={s.sub} onClick={()=>onChange({sichtbarkeit:s.id})}/>)}
+      </div>
+      <div style={{ background:"#fff", border:`1.5px solid ${C.border}`, borderRadius:16, padding:14, marginBottom:20 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:C.inkMid, marginBottom:12 }}>Zusammenfassung</div>
+        <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
+          {cover&&<img src={cover} alt="" style={{ width:64, height:64, borderRadius:10, objectFit:"cover", flexShrink:0 }}/>}
+          <div>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:2 }}>{data.title||"—"}</div>
+            <div style={{ fontSize:14, fontWeight:700, color:C.teal, marginBottom:6 }}>{ps}</div>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              {data.availability==="available"&&<span style={{ fontSize:11, fontWeight:600, color:"#22c55e", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block" }}/>Verfügbar</span>}
+              {data.versand&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>📦 Versand möglich</span>}
+              {data.abholung&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>🤝 Abholung möglich</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+      <PBtn label="Werk speichern" onClick={onSave} loading={saving}/>
+      <SBtn label="Entwurf speichern" onClick={onDraft}/>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// WIZARD ROOT
+// ══════════════════════════════════════════════════════════════
+export default function WerkWizard({ userId, existingWork=null, onClose, onSaved }) {
+  const TOTAL=6;
+  const [step,setSt]=useState(1);
+  const [saving,setSaving]=useState(false);
+  const [form,setForm]=useState(()=>{
+    if (existingWork) {
+      let imgs=[];
+      try { imgs=existingWork.images?JSON.parse(existingWork.images):[]; } catch {}
+      if (!imgs.length&&existingWork.cover_url) imgs=[{ url:existingWork.cover_url }];
+      return {
+        images:imgs, title:existingWork.title||"", shortDesc:existingWork.caption||"",
+        description:existingWork.description||"", category:existingWork.category||"",
+        tags:existingWork.tags||[], werktyp:existingWork.medium||"",
+        price:existingWork.price||"", currency:"EUR",
+        availability:existingWork.for_sale?"available":"sold",
+        breite:"", hoehe:"", tiefe:"", gewicht:"",
+        material:existingWork.material||"",
+        versand:existingWork.versand||false,
+        versandNational:"", versandInternational:"",
+        versandkosten:"", versandFrei:"",
+        abholung:existingWork.abholung||false,
+        abholort:existingWork.location_text||"",
+        sichtbarkeit:existingWork.visibility||"public",
+      };
+    }
+    return {
+      images:[], title:"", shortDesc:"", description:"", category:"", tags:[],
+      werktyp:"", price:"", currency:"EUR", availability:"available",
+      breite:"", hoehe:"", tiefe:"", gewicht:"", material:"",
+      versand:false, versandNational:"", versandInternational:"",
+      versandkosten:"", versandFrei:"", abholung:false, abholort:"",
+      sichtbarkeit:"public",
+    };
+  });
+
+  const patch=u=>setForm(p=>({...p,...u}));
+  const next=()=>setSt(s=>Math.min(s+1,TOTAL));
+  const back=()=>setSt(s=>Math.max(s-1,1));
+
+  async function save(status) {
+    if (!userId) return;
+    setSaving(true);
+    const cover_url=form.images?.[0]?.url||null;
+    const payload={
+      user_id:userId, title:form.title, description:form.description,
+      caption:form.shortDesc, cover_url, media_url:cover_url,
+      images:JSON.stringify(form.images||[]),
+      category:form.category, tags:form.tags, medium:form.werktyp,
+      price:parseFloat(form.price)||null,
+      for_sale:form.availability==="available",
+      location_text:form.abholort, visibility:form.sichtbarkeit,
+      status, updated_at:new Date().toISOString(),
+    };
+    const { data:saved, error }=existingWork?.id
+      ? await supabase.from("works").update(payload).eq("id",existingWork.id).eq("user_id",userId).select().single()
+      : await supabase.from("works").insert(payload).select().single();
+    setSaving(false);
+    if (error) { console.error("[SAVE WERK]",error.message); return; }
+    console.log("[SAVE WERK] success:",saved?.id,"status:",status);
+    onSaved?.(saved);
+    onClose?.();
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9800, background:"rgba(0,0,0,0.45)", display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
+      <div style={{ background:C.cream, borderRadius:"22px 22px 0 0", maxHeight:"93dvh", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 -8px 40px rgba(0,0,0,0.18)" }}>
+        <TopBar onClose={onClose} step={step} total={TOTAL}/>
+        <div style={{ textAlign:"center", fontSize:11, fontWeight:600, color:C.teal, padding:"7px 0 2px", letterSpacing:0.4 }}>
+          Schritt {step} von {TOTAL}
+        </div>
+        <div style={{ flex:1, overflowY:"auto", padding:"16px 20px", paddingBottom:"max(28px,env(safe-area-inset-bottom,20px))" }}>
+          {step===1&&<S1 data={form} onChange={patch} userId={userId} onNext={next}/>}
+          {step===2&&<S2 data={form} onChange={patch} onNext={next}/>}
+          {step===3&&<S3 data={form} onChange={patch} onNext={next}/>}
+          {step===4&&<S4 data={form} onChange={patch} onNext={next}/>}
+          {step===5&&<S5 data={form} onChange={patch} onNext={next}/>}
+          {step===6&&<S6 data={form} onChange={patch} onSave={()=>save("published")} onDraft={()=>save("draft")} saving={saving}/>}
+          {step>1&&(
+            <button onClick={back} style={{ width:"100%", padding:"12px", background:"none", border:"none", color:C.inkMid, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation", marginTop:4 }}>← Zurück</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

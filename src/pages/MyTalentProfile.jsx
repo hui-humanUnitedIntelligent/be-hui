@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import WerkWizard from "../components/works/WerkWizard.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -488,12 +489,10 @@ function MeineWerke({ loading, isOwner, userId }) {
   // ── State ────────────────────────────────────────────────────
   // Quelle der Wahrheit: public.works  (cover_url, title, description)
   // SEED_WORKS nur als Entwicklungs-Fallback — nie als Datenquelle
-  const [works,     setWorks]     = useState([]);
+  const [works,        setWorks]       = useState([]);
   const [worksLoading, setWorksLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [editWork,  setEditWork]  = useState(null); // {id, title, description} | null
-  const [saveState, setSaveState] = useState(null); // null|"saving"|"ok"|"error"
-  const fileRef = useRef(null);
+  const [showWizard,   setShowWizard]  = useState(false);
+  const [editingWork,  setEditingWork] = useState(null); // existingWork für Wizard
 
   // ── LOAD: public.works → State ───────────────────────────────
   useEffect(() => {
@@ -517,60 +516,19 @@ function MeineWerke({ loading, isOwner, userId }) {
     })();
   }, [userId]);
 
-  // ── UPLOAD: Bild → Storage → works INSERT ────────────────────
-  async function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-    setUploading(true);
-    console.log("[UPLOAD WORK] start:", file.name);
-
-    // 1. Storage Upload: media/works/{userId}/{timestamp}.{ext}
-    const ext  = file.name.split(".").pop().toLowerCase();
-    const path = `works/${userId}/${Date.now()}.${ext}`;
-    const { error: uploadErr } = await supabase.storage
-      .from("media")
-      .upload(path, file, { upsert: true });
-
-    if (uploadErr) {
-      console.error("[UPLOAD WORK] storage error:", uploadErr.message);
-      setSaveState("error");
-      setTimeout(() => setSaveState(null), 2500);
-      setUploading(false);
-      return;
-    }
-
-    // 2. Public URL
-    const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
-    const cover_url = urlData.publicUrl;
-
-    // 3. DB INSERT
-    console.log("[SAVE WORK] inserting cover_url:", cover_url);
-    const { data: newWork, error: insertErr } = await supabase
-      .from("works")
-      .insert({
-        user_id:   userId,
-        cover_url: cover_url,
-        media_url: cover_url,
-        title:     "",
-        status:    "published",
-      })
-      .select("id,user_id,title,description,cover_url,media_url,status,created_at")
-      .single();
-
-    if (insertErr) {
-      console.error("[SAVE WORK] insert error:", insertErr.message);
-      setSaveState("error");
-    } else {
-      console.log("[SAVE WORK] success, id:", newWork.id);
-      setWorks(prev => [newWork, ...prev]);
-      setSaveState("ok");
-      // Titel-Edit sofort öffnen
-      setEditWork({ id: newWork.id, title: "", description: "" });
-    }
-    setTimeout(() => setSaveState(null), 1800);
-    setUploading(false);
-    // Input zurücksetzen
-    if (fileRef.current) fileRef.current.value = "";
+  // ── Wizard-Callbacks ─────────────────────────────────────────
+  function onWizardSaved(savedWork) {
+    console.log("[WORKS] Wizard gespeichert:", savedWork?.id);
+    // Liste neu laden
+    (async () => {
+      const { data } = await supabase
+        .from("works")
+        .select("id,user_id,title,description,cover_url,media_url,status,created_at,for_sale")
+        .eq("user_id", userId)
+        .neq("status", "archived")
+        .order("created_at", { ascending: false });
+      if (data) setWorks(data);
+    })();
   }
 
   // ── DELETE: status="archived" ────────────────────────────────
@@ -595,34 +553,6 @@ function MeineWerke({ loading, isOwner, userId }) {
     }
   }
 
-  // ── EDIT: title + description speichern ──────────────────────
-  async function saveEdit() {
-    if (!editWork) return;
-    setSaveState("saving");
-    const { error } = await supabase
-      .from("works")
-      .update({
-        title:       editWork.title,
-        description: editWork.description,
-        updated_at:  new Date().toISOString(),
-      })
-      .eq("id", editWork.id)
-      .eq("user_id", userId);
-    if (error) {
-      console.error("[SAVE WORK] edit error:", error.message);
-      setSaveState("error");
-    } else {
-      setWorks(prev => prev.map(w =>
-        w.id === editWork.id
-          ? { ...w, title: editWork.title, description: editWork.description }
-          : w
-      ));
-      setSaveState("ok");
-      setEditWork(null);
-    }
-    setTimeout(() => setSaveState(null), 1500);
-  }
-
   const isWorksLoading = loading || worksLoading;
 
   return (
@@ -630,24 +560,7 @@ function MeineWerke({ loading, isOwner, userId }) {
       <div className="mtp-sec-pad">
         <SecHdr title="Meine Werke" isOwner={isOwner} onEdit={null}/>
 
-        {/* Upload-Status Toast */}
-        {(uploading || saveState) && (
-          <div style={{
-            marginBottom:8, padding:"6px 12px", borderRadius:99,
-            background: saveState==="ok"    ? "rgba(14,196,184,0.10)"
-                       : saveState==="error" ? "rgba(239,68,68,0.08)"
-                       : "rgba(26,26,24,0.05)",
-            border: `1px solid ${saveState==="ok" ? "rgba(14,196,184,0.22)" : saveState==="error" ? "rgba(239,68,68,0.18)" : "rgba(26,26,24,0.09)"}`,
-            fontSize:12, fontWeight:600,
-            color: saveState==="ok" ? "#0EC4B8" : saveState==="error" ? "#ef4444" : "rgba(26,26,24,0.45)",
-            display:"inline-flex", alignItems:"center", gap:6,
-          }}>
-            {uploading && !saveState && "Bild wird hochgeladen…"}
-            {saveState==="saving" && "Speichert…"}
-            {saveState==="ok"     && "✓ Gespeichert"}
-            {saveState==="error"  && "⚠ Fehler beim Speichern"}
-          </div>
-        )}
+
 
         {/* Galerie */}
         {isWorksLoading ? (
@@ -691,8 +604,8 @@ function MeineWerke({ loading, isOwner, userId }) {
                       cursor:"pointer", touchAction:"manipulation",
                       display:"flex", alignItems:"center", justifyContent:"center",
                     }}>×</button>
-                    {/* Bearbeiten ✎ */}
-                    <button onClick={() => setEditWork({ id:w.id, title:w.title||"", description:w.description||"" })} style={{
+                    {/* Bearbeiten ✎ → Wizard öffnen */}
+                    <button onClick={() => { setEditingWork(w); setShowWizard(true); }} style={{
                       position:"absolute", bottom:3, right:3, width:20, height:20, borderRadius:"50%",
                       background:"rgba(14,196,184,0.85)", border:"none", color:"white", fontSize:10,
                       cursor:"pointer", touchAction:"manipulation",
@@ -705,88 +618,25 @@ function MeineWerke({ loading, isOwner, userId }) {
           </div>
         )}
 
-        {/* + Werk hinzufügen */}
+        {/* + Werk hinzufügen → Wizard */}
         {isOwner && (
-          <>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              style={{ display:"none" }}
-              onChange={handleFileChange}
-            />
-            <button
-              className="mtp-add"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              style={{ opacity: uploading ? 0.6 : 1 }}
-            >
-              <span style={{ fontSize:15 }}>+</span>
-              {uploading ? "Wird hochgeladen…" : "Werk hinzufügen"}
-            </button>
-          </>
+          <button
+            className="mtp-add"
+            onClick={() => { setEditingWork(null); setShowWizard(true); }}
+          >
+            <span style={{ fontSize:15 }}>+</span> Werk hinzufügen
+          </button>
         )}
       </div>
 
-      {/* Edit-Sheet: Titel + Beschreibung */}
-      {editWork && (
-        <BottomSheet onClose={() => setEditWork(null)}>
-          <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18", marginBottom:14 }}>
-            Werk bearbeiten
-          </div>
-          <div style={{ marginBottom:10 }}>
-            <div style={{ fontSize:12, fontWeight:600, color:"rgba(26,26,24,0.45)", marginBottom:5 }}>
-              Titel
-            </div>
-            <input
-              value={editWork.title}
-              onChange={e => setEditWork(p => ({ ...p, title: e.target.value }))}
-              placeholder="Titel des Werks…"
-              maxLength={80}
-              style={{
-                width:"100%", boxSizing:"border-box",
-                padding:"11px 14px", borderRadius:12,
-                border:"1.5px solid rgba(14,196,184,0.22)", outline:"none",
-                fontSize:13.5, fontFamily:"inherit", color:"#1A1A18", background:"#FFFFFF",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:12, fontWeight:600, color:"rgba(26,26,24,0.45)", marginBottom:5 }}>
-              Beschreibung (optional)
-            </div>
-            <textarea
-              value={editWork.description}
-              onChange={e => setEditWork(p => ({ ...p, description: e.target.value }))}
-              placeholder="Kurze Beschreibung…"
-              rows={3}
-              maxLength={300}
-              style={{
-                width:"100%", boxSizing:"border-box",
-                padding:"11px 14px", borderRadius:12,
-                border:"1.5px solid rgba(26,26,24,0.09)", outline:"none",
-                fontSize:13, fontFamily:"inherit", color:"#1A1A18",
-                background:"#FFFFFF", resize:"none", lineHeight:1.6,
-              }}
-            />
-          </div>
-          {saveState && (
-            <div style={{ textAlign:"center", marginBottom:10, fontSize:12, fontWeight:600,
-              color: saveState==="ok" ? "#0EC4B8" : saveState==="error" ? "#ef4444" : "rgba(26,26,24,0.45)" }}>
-              {saveState==="saving" && "Speichert…"}
-              {saveState==="ok"     && "✓ Gespeichert"}
-              {saveState==="error"  && "⚠ Fehler"}
-            </div>
-          )}
-          <button onClick={saveEdit} style={{
-            width:"100%", padding:"14px", borderRadius:14,
-            background:"linear-gradient(135deg,#0EC4B8,#0DBBAF)", border:"none",
-            color:"white", fontSize:14, fontWeight:700,
-            cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
-          }}>
-            Speichern
-          </button>
-        </BottomSheet>
+      {/* WerkWizard */}
+      {showWizard && (
+        <WerkWizard
+          userId={userId}
+          existingWork={editingWork}
+          onClose={() => { setShowWizard(false); setEditingWork(null); }}
+          onSaved={onWizardSaved}
+        />
       )}
     </div>
   );
