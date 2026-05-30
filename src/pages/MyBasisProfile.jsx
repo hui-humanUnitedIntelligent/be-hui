@@ -724,13 +724,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
         const { data, error: loadErr } = await supabase.from("profiles")
           .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,interests")
           .eq("id", user.id).single();
-        if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code);
+        console.log("DB PROFILE", data);
+        if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
         console.log("DNA_TAGS FROM DB", data?.dna_tags);
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
+          console.log("SET BIO", data.bio);
           // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
-          setInterests(Array.isArray(data.skills) ? data.skills : []);
+          const nextInterests = Array.isArray(data.skills) ? data.skills : [];
+          setInterests(nextInterests);
+          console.log("SET INTERESTS", nextInterests);
           // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
           if (Array.isArray(data.dna_tags) && data.dna_tags.length) {
             const mapped = data.dna_tags.map((url, i) => ({ id: `db_${i}`, img: url }));
@@ -742,7 +746,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
             setVisibility(data.focus_type);
           }
           // Offen für Begegnungen aus interests laden (TEXT[], existiert in DB)
-          setOpenFor(Array.isArray(data.interests) ? data.interests : []);
+          const nextOpenFor = Array.isArray(data.interests) ? data.interests : [];
+          setOpenFor(nextOpenFor);
+          console.log("SET OPEN_FOR", nextOpenFor, "| raw data.interests:", data.interests);
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
