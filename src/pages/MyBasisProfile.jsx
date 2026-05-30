@@ -629,6 +629,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
   const [bio,        setBio]        = useState("");
+  const [debugUid,   setDebugUid]   = useState(null);
+  const [debugErr,   setDebugErr]   = useState(null);
+  // Debug-Panel nur wenn ?debug=1 in URL
+  const isDebug = typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("debug") === "1";
   const [interests,  setInterests]  = useState([]);
   const [openFor,    setOpenFor]    = useState([]);
   const [moments,    setMoments]    = useState([]);
@@ -645,13 +650,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
     (async () => {
       try {
         const { data:{ user } } = await supabase.auth.getUser();
-        console.log("AUTH UID", user?.id);
+        setDebugUid(user?.id ?? "null");
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
           .select("id,username,display_name,avatar_url,header_img,bio,interests,location,visibility")
           .eq("id", user.id).single();
-        console.log("PROFILE SELECT RESULT", data);
-        if (loadErr) console.error("PROFILE SELECT ERROR", loadErr.message, loadErr.code);
+        if (loadErr) setDebugErr(loadErr.message + " [" + loadErr.code + "]");
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
@@ -732,6 +736,52 @@ export default function MyBasisProfile({ onClose, profileId }) {
       transform:mounted?"none":"translateY(14px)",
       transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
+
+      {/* ── DEBUG PANEL (nur bei ?debug=1) ─────────────────────── */}
+      {isDebug && (
+        <div style={{
+          position:"fixed", top:60, left:12, right:12, zIndex:99999,
+          background:"rgba(0,0,0,0.88)", borderRadius:12, padding:"14px 16px",
+          fontFamily:"monospace", fontSize:11, color:"#00FF99", lineHeight:1.8,
+          backdropFilter:"blur(8px)", border:"1px solid rgba(0,255,150,0.3)",
+          boxShadow:"0 4px 24px rgba(0,0,0,0.6)",
+          maxHeight:"55vh", overflowY:"auto",
+        }}>
+          <div style={{ color:"#FFD700", fontWeight:700, marginBottom:8, fontSize:12 }}>
+            🔍 HUI DEBUG PANEL
+          </div>
+
+          <div style={{ color:"#AAA", marginBottom:4 }}>AUTH UID:</div>
+          <div style={{ marginBottom:10, wordBreak:"break-all" }}>
+            {debugUid ?? "⏳ lädt..."}
+          </div>
+
+          <div style={{ color:"#AAA", marginBottom:4 }}>PROFILE SELECT RESULT:</div>
+          <div style={{ marginBottom:2 }}>id: {profile?.id ?? "null"}</div>
+          <div style={{ marginBottom:2 }}>avatar_url: {profile?.avatar_url ?? "null"}</div>
+          <div style={{ marginBottom:2 }}>header_img: {profile?.header_img ?? "null"}</div>
+          <div style={{ marginBottom:10 }}>bio: {profile?.bio ?? "null"}</div>
+
+          <div style={{ color:"#AAA", marginBottom:4 }}>PROFILE USED FOR RENDER:</div>
+          <div style={{ marginBottom:2 }}>id: {profile?.id ?? "null"}</div>
+          <div style={{ marginBottom:2 }}>
+            avatar_url: {localAvatar || profile?.avatar_url || "null"}
+          </div>
+          <div style={{ marginBottom:2 }}>
+            header_img: {localCover || profile?.header_img || "null"}
+          </div>
+          <div style={{ marginBottom:10 }}>bio: {bio || "null"}</div>
+
+          <div style={{ color:"#AAA", marginBottom:4 }}>LOADING:</div>
+          <div style={{ marginBottom:10 }}>{String(loading)}</div>
+
+          <div style={{ color:"#AAA", marginBottom:4 }}>ERROR:</div>
+          <div style={{ color: debugErr ? "#FF6B6B" : "#00FF99" }}>
+            {debugErr ?? "–"}
+          </div>
+        </div>
+      )}
+      {/* ── END DEBUG PANEL ─────────────────────────────────────── */}
       <style>{CSS}</style>
 
       {/* Save indicator */}
@@ -754,7 +804,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* HEADER */}
-        {(() => { console.log("PROFILE USED FOR RENDER", profile); return null; })()}
+
         <MeinProfilHeader
         profile={{
           ...profile,
