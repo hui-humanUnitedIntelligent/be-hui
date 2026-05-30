@@ -224,9 +224,9 @@ function HomeInner() {
       openOwnProfile();
       return;
     }
-    // Community tab → maps to Discover (encounters + people)
-    if (key === "community") {
-      handleTab("discover");
+    // Impact tab → direkter Tab-Switch zur ImpactPage
+    if (key === "impact") {
+      handleTab("impact");
       return;
     }
     handleTab(key);

@@ -280,9 +280,9 @@ export default function HomeShell({ children }) {
       openCreatorDashboard();
       return;
     }
-    // Community → impact tab (reuse impact screen for now)
-    if (key === "community") {
-      _setTab("community");
+    // Impact Tab
+    if (key === "impact") {
+      _setTab("impact");
       return;
     }
     if (key === "profile") {

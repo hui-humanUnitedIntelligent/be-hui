@@ -23,10 +23,35 @@ function NavIcon({ k, active }) {
   );
   if (k === "impact") return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 21 V10" stroke={col} strokeWidth={sw} strokeLinecap="round"/>
-      <path d="M12 14 Q8 12 7 8 Q10 8 12 11" fill={active?`${C.teal}30`:"rgba(80,80,80,0.12)"} stroke={col} strokeWidth={sw-0.3} strokeLinejoin="round"/>
-      <path d="M12 17 Q16 15 17 11 Q14 11 12 14" fill={active?`${C.teal}22`:"rgba(80,80,80,0.08)"} stroke={col} strokeWidth={sw-0.3} strokeLinejoin="round"/>
-      <path d="M8 21 H16" stroke={active?C.coral:"rgba(80,80,80,0.30)"} strokeWidth="1.2" strokeLinecap="round"/>
+      {/* Herz — Basis */}
+      <path
+        d="M12 19.5 C12 19.5 4 14 4 8.5 C4 6.0 6 4 8.5 4 C10 4 11.2 4.8 12 6 C12.8 4.8 14 4 15.5 4 C18 4 20 6.0 20 8.5 C20 14 12 19.5 12 19.5Z"
+        fill={active ? `${C.teal}18` : "rgba(80,80,80,0.07)"}
+        stroke={col}
+        strokeWidth={sw}
+        strokeLinejoin="round"
+      />
+      {/* Wachstums-Trieb innen — organisch */}
+      <path
+        d="M12 16 V11"
+        stroke={active ? C.teal : col}
+        strokeWidth={sw - 0.3}
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 13 Q10 12 9.5 10.5 Q11 10.5 12 12"
+        fill={active ? `${C.teal}30` : "rgba(80,80,80,0.10)"}
+        stroke={active ? C.teal : col}
+        strokeWidth={sw - 0.5}
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 14.5 Q14 13.5 14.5 12 Q13 12 12 13.5"
+        fill={active ? `${C.coral}25` : "rgba(80,80,80,0.07)"}
+        stroke={active ? C.coral : col}
+        strokeWidth={sw - 0.5}
+        strokeLinejoin="round"
+      />
     </svg>
   );
   if (k === "discover") return (
@@ -37,6 +62,7 @@ function NavIcon({ k, active }) {
       <circle cx="12" cy="12" r="1.5" fill={active?"white":"rgba(80,80,80,0.3)"} stroke={col} strokeWidth="0.8"/>
     </svg>
   );
+  // @unused — community Tab durch Impact ersetzt (2026-05-30)
   if (k === "community") return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="8.5" cy="9" r="3" stroke={col} strokeWidth={sw} fill={active?`${C.teal}15`:"none"}/>
