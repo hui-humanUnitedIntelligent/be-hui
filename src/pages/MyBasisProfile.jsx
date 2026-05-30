@@ -50,6 +50,9 @@ const CSS = `
   .mbp-press-light:active { transform:scale(0.96); opacity:0.82; }
   .mbp-in { animation:mbp-fade-up .45s ease both; }
   .mbp-sheet { animation:mbp-slide-up .28s cubic-bezier(.22,1,.36,1) both; }
+  .mbp-file-input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; z-index:10; }
+  @keyframes mbp-upload-spin { to{transform:rotate(360deg)} }
+  .mbp-uploading { animation:mbp-upload-spin .7s linear infinite; display:inline-block; }
 `;
 
 const s = (v, fb="") => (v && typeof v==="string" ? v.trim() : fb);
@@ -141,13 +144,55 @@ function Sheet({ onClose, children, zIndex=9800 }) {
 // ══════════════════════════════════════════════════════════════
 // HEADER — "Mein Profil 🌿" + cinematic cover + floating avatar
 // ══════════════════════════════════════════════════════════════
-function MeinProfilHeader({ profile, onSettings }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [avLoaded,  setAvLoaded]  = useState(false);
+// ── Upload Helper ────────────────────────────────────────────────
+async function uploadProfileImage(file, userId, folder) {
+  const ext  = file.name.split(".").pop() || "jpg";
+  const path = `${folder}/${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("media")
+    .upload(path, file, { contentType: file.type, upsert: true });
+  if (error) throw error;
+  const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+  return publicUrl;
+}
+
+function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }) {
+  const [imgLoaded,       setImgLoaded]       = useState(false);
+  const [avLoaded,        setAvLoaded]         = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [coverUploading,  setCoverUploading]  = useState(false);
+  const avatarInputRef = useRef(null);
+  const coverInputRef  = useRef(null);
 
   const cover  = s(profile?.header_img,  FB_COVER);
   const avatar = s(profile?.avatar_url,  FB_AVT);
   const name   = s(profile?.display_name||profile?.username, "Mein Profil");
+
+  async function handleAvatarFile(e) {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) return;
+    setAvatarUploading(true);
+    try {
+      const url = await uploadProfileImage(file, profile.id, "avatars");
+      await supabase.from("profiles").update({ avatar_url: url, updated_at: new Date().toISOString() }).eq("id", profile.id);
+      onAvatarChange?.(url);
+    } catch(err) { console.warn("Avatar upload:", err?.message); }
+    setAvatarUploading(false);
+    e.target.value = "";
+  }
+
+  async function handleCoverFile(e) {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) return;
+    setCoverUploading(true);
+    try {
+      const url = await uploadProfileImage(file, profile.id, "covers");
+      await supabase.from("profiles").update({ header_img: url, updated_at: new Date().toISOString() }).eq("id", profile.id);
+      onCoverChange?.(url);
+    } catch(err) { console.warn("Cover upload:", err?.message); }
+    setCoverUploading(false);
+    e.target.value = "";
+  }
 
   return (
     <div style={{ width:"100%", paddingTop:8 }}>
@@ -171,14 +216,34 @@ function MeinProfilHeader({ profile, onSettings }) {
         }}>⚙️</button>
       </div>
 
-      {/* Cinematic cover */}
+      {/* Cinematic cover — klickbar für Upload */}
       <div style={{ margin:`0 ${T.px}px`, borderRadius:T.r20, overflow:"hidden",
-        height:170, position:"relative", background:"linear-gradient(160deg,#2C3E2D,#7B8E5E)" }}>
+        height:170, position:"relative", background:"linear-gradient(160deg,#2C3E2D,#7B8E5E)",
+        cursor:"pointer" }}>
+        {/* Unsichtbares File-Input über das gesamte Cover */}
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*"
+          className="mbp-file-input"
+          style={{ borderRadius:T.r20 }}
+          onChange={handleCoverFile}
+        />
         <img src={cover} alt="" onLoad={()=>setImgLoaded(true)} onError={()=>setImgLoaded(true)}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             opacity:imgLoaded?0.7:0, transition:"opacity 1.1s ease" }}/>
         <div style={{ position:"absolute", inset:0,
           background:"linear-gradient(180deg,rgba(247,245,240,0) 30%,rgba(247,245,240,0.55) 100%)" }}/>
+        {/* Kamera-Icon oben rechts im Cover */}
+        <div style={{
+          position:"absolute", top:10, right:10, zIndex:5,
+          width:32, height:32, borderRadius:"50%",
+          background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:15, pointerEvents:"none",
+        }}>
+          {coverUploading ? <span className="mbp-uploading" style={{fontSize:13}}>⏳</span> : "📷"}
+        </div>
 
         {/* Floating avatar — centered bottom */}
         <div style={{ position:"absolute", bottom:-38, left:"50%", transform:"translateX(-50%)",
@@ -197,15 +262,29 @@ function MeinProfilHeader({ profile, onSettings }) {
                 style={{ width:"100%", height:"100%", objectFit:"cover",
                   opacity:avLoaded?1:0, transition:"opacity .5s ease" }}/>
             </div>
-            {/* Camera button */}
-            <button className="mbp-press" style={{
+            {/* Camera button — öffnet File Picker für Avatar */}
+            <label style={{
               position:"absolute", bottom:0, right:0,
               width:26, height:26, borderRadius:"50%",
-              background:T.teal, border:"2px solid white",
+              background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
+              border:"2px solid white",
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:12, cursor:"pointer", touchAction:"manipulation",
               boxShadow:"0 2px 8px rgba(14,196,184,0.3)",
-            }}>📷</button>
+              zIndex:20,
+            }}>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display:"none" }}
+                onChange={handleAvatarFile}
+              />
+              {avatarUploading
+                ? <span className="mbp-uploading" style={{fontSize:11}}>⏳</span>
+                : "📷"
+              }
+            </label>
           </div>
         </div>
       </div>
@@ -528,6 +607,9 @@ export default function MyBasisProfile({ onClose }) {
   const [visibility, setVisibility] = useState("connections");
   const [saving,     setSaving]     = useState(false);
   const [saveOk,     setSaveOk]     = useState(false);
+  // Lokale URL-Overrides für sofortige UI-Aktualisierung nach Upload
+  const [localAvatar, setLocalAvatar] = useState(null);
+  const [localCover,  setLocalCover]  = useState(null);
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
@@ -579,6 +661,18 @@ export default function MyBasisProfile({ onClose }) {
     autoSave("visibility", v);
   };
 
+  // Sofortige lokale Anzeige nach erfolgreichem Upload
+  const handleAvatarChange = useCallback((url) => {
+    setLocalAvatar(url);
+    // Auch Profile-State aktualisieren für Konsistenz
+    setProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+  }, []);
+
+  const handleCoverChange = useCallback((url) => {
+    setLocalCover(url);
+    setProfile(prev => prev ? { ...prev, header_img: url } : prev);
+  }, []);
+
   return (
     <div className="mbp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -609,7 +703,17 @@ export default function MyBasisProfile({ onClose }) {
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* HEADER */}
-        <MeinProfilHeader profile={profile} onSettings={()=>{}}/>
+        <MeinProfilHeader
+        profile={{
+          ...profile,
+          // Lokale Overrides überschreiben DB-Wert sofort nach Upload
+          avatar_url: localAvatar || profile?.avatar_url,
+          header_img: localCover  || profile?.header_img,
+        }}
+        onSettings={() => {}}
+        onAvatarChange={handleAvatarChange}
+        onCoverChange={handleCoverChange}
+      />
         <Gap h={56}/> {/* space for floating avatar */}
 
         {/* ÜBER DICH */}
