@@ -63,13 +63,7 @@ const a = (v) => Array.isArray(v) ? v : [];
 const FB_COVER = "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80";
 const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
 
-const MOMENT_SEEDS = [
-  { id:"s1", img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=70" },
-  { id:"s2", img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&q=70" },
-  { id:"s3", img:"https://images.unsplash.com/photo-1490750967868-88df5691cc38?w=300&q=70" },
-  { id:"s4", img:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=300&q=70" },
-  { id:"s5", img:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=70" },
-];
+// MOMENT_SEEDS entfernt — keine Placeholder-Bilder mehr
 
 const ALL_INTERESTS = [
   { icon:"🌿", label:"Natur"       },
@@ -469,34 +463,97 @@ function InteressenSection({ interests, onChange }) {
 // MOMENTE — Editable cinematic thumbnails
 // ══════════════════════════════════════════════════════════════
 function MomenteSection({ moments, onChange }) {
-  const items = a(moments).length ? a(moments) : MOMENT_SEEDS;
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const removeItem = (id) => onChange(items.filter(m=>m.id!==id));
+  // Nur echte User-Momente anzeigen — KEINE Seeds mehr wenn DB leer
+  const items = a(moments);
+
+  const removeItem = (id) => {
+    onChange(items.filter(m => m.id !== id));
+  };
+
+  const handleAddFile = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { console.warn("Moment upload: kein User"); setUploading(false); return; }
+
+      const newItems = [...items];
+      for (const file of files) {
+        const url = await uploadProfileImage(file, user.id, "moments");
+        newItems.push({ id: `m_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, img: url });
+      }
+      onChange(newItems);
+    } catch (err) {
+      console.error("Moment upload error:", err?.message, JSON.stringify(err));
+    }
+    setUploading(false);
+    e.target.value = "";
+  };
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
       <SectionRow title="Momente" sub="Teile kleine Augenblicke aus deinem Alltag." onEdit={()=>{}}/>
-      {/* Horizontal scroll grid exactly like screenshot */}
-      <div className="mbp-hscroll" style={{
-        display:"grid",
-        gridTemplateColumns:`repeat(${items.length + 1}, minmax(110px, 1fr))`,
-        gap:8, paddingBottom:4,
-      }}>
-        {items.map((m,i)=>(
-          <MomentThumb key={m.id||i} m={m} onRemove={()=>removeItem(m.id)}/>
-        ))}
-      </div>
+
+      {items.length > 0 && (
+        <div className="mbp-hscroll" style={{
+          display:"flex", gap:8, paddingBottom:4,
+        }}>
+          {items.map((m, i) => (
+            <MomentThumb key={m.id || i} m={m} onRemove={() => removeItem(m.id)}/>
+          ))}
+        </div>
+      )}
+
+      {items.length === 0 && (
+        <div style={{
+          borderRadius:T.r16, border:`1.5px dashed ${T.border}`,
+          padding:"28px 16px", textAlign:"center",
+          background:"rgba(26,26,24,0.025)",
+        }}>
+          <div style={{fontSize:28, marginBottom:6}}>📸</div>
+          <div style={{fontSize:13, color:T.inkFaint, lineHeight:1.5}}>
+            Noch keine Momente.<br/>Füge deinen ersten Augenblick hinzu.
+          </div>
+        </div>
+      )}
+
       <Gap h={10}/>
-      {/* + Moment hinzufügen */}
-      <button className="mbp-press-light" style={{
-        display:"inline-flex", alignItems:"center", gap:8,
-        padding:"9px 18px", borderRadius:T.r99,
-        background:T.bgCard, border:`1px solid ${T.border}`,
-        fontSize:13, fontWeight:600, color:T.inkSoft,
-        cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-        boxShadow:T.card,
-      }}>
-        <span style={{fontSize:16}}>+</span> Moment hinzufügen
+
+      {/* verstecktes multi-file Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        style={{ display:"none" }}
+        onChange={handleAddFile}
+      />
+
+      {/* + Moment hinzufügen Button */}
+      <button
+        className="mbp-press-light"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        style={{
+          display:"inline-flex", alignItems:"center", gap:8,
+          padding:"9px 18px", borderRadius:T.r99,
+          background:T.bgCard, border:`1px solid ${T.border}`,
+          fontSize:13, fontWeight:600,
+          color: uploading ? T.inkFaint : T.inkSoft,
+          cursor: uploading ? "default" : "pointer",
+          touchAction:"manipulation", fontFamily:"inherit",
+          boxShadow:T.card, opacity: uploading ? 0.7 : 1,
+          transition:"opacity .2s",
+        }}
+      >
+        {uploading
+          ? <><span className="mbp-uploading" style={{fontSize:14}}>⏳</span> Wird hochgeladen…</>
+          : <><span style={{fontSize:16}}>+</span> Moment hinzufügen</>
+        }
       </button>
     </div>
   );
@@ -506,7 +563,7 @@ function MomentThumb({ m, onRemove }) {
   const [loaded,  setLoaded]  = useState(false);
   const [broken,  setBroken]  = useState(false);
   return (
-    <div style={{ position:"relative", aspectRatio:"1", borderRadius:T.r12,
+    <div style={{ position:"relative", width:116, height:116, borderRadius:T.r12,
       overflow:"hidden", background:"rgba(26,26,24,0.07)", flexShrink:0 }}>
       {!loaded && !broken && <div className="mbp-skeleton" style={{position:"absolute",inset:0}}/>}
       {broken ? (
@@ -673,6 +730,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
           setBio(s(data.bio));
           // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
           setInterests(Array.isArray(data.skills) ? data.skills : []);
+          // Momente aus mood_dna laden (ARRAY von URL-Strings, existiert in DB)
+          if (Array.isArray(data.mood_dna) && data.mood_dna.length) {
+            setMoments(data.mood_dna.map((url, i) => ({ id: `db_${i}`, img: url })));
+          }
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
@@ -718,6 +779,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setInterests(v);
     // Persistenz via skills-Spalte (ARRAY, existiert in profiles)
     autoSave("skills", v);
+  };
+
+  const handleMomentsChange = (newItems) => {
+    setMoments(newItems);
+    // Persistenz via mood_dna-Spalte (ARRAY von URL-Strings, existiert in profiles)
+    const urls = newItems.map(m => m.img).filter(Boolean);
+    autoSave("mood_dna", urls);
   };
 
   const handleVisibilityChange = (v) => { setVisibility(v); }; // lokal — kein DB-Write;
@@ -796,7 +864,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
 
         {/* MOMENTE */}
-        <MomenteSection moments={moments} onChange={setMoments}/>
+        <MomenteSection moments={moments} onChange={handleMomentsChange}/>
         <Gap h={24}/>
         <Divider/>
         <Gap h={20}/>
