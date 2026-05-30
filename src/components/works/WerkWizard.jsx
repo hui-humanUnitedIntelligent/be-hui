@@ -1,6 +1,6 @@
 // src/components/works/WerkWizard.jsx
 // HUI – Werk-Editor als 6-Schritte-Wizard
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 
 const C = {
@@ -195,7 +195,7 @@ function S1({ data, onChange, userId, onNext }) {
       </div>
       {imgs.length>0&&<div style={{ fontSize:11, color:C.inkFade, textAlign:"center", marginBottom:14 }}>{imgs.length}/10 Bilder</div>}
       <input ref={ref} type="file" accept="image/*" multiple style={{ display:"none" }} onChange={upload}/>
-      <PBtn label="Weiter" onClick={onNext} disabled={imgs.length===0}/>
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={imgs.length===0}/>}
     </div>
   );
 }
@@ -227,7 +227,7 @@ function S2({ data, onChange, onNext }) {
           {ti&&<button onClick={addTag} style={{ background:C.teal, border:"none", borderRadius:99, padding:"9px 14px", fontSize:12, fontWeight:700, color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>+</button>}
         </div>
       </div>
-      <PBtn label="Weiter" onClick={onNext} disabled={!data.title?.trim()||!data.category}/>
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.title?.trim()||!data.category}/>}
     </div>
   );
 }
@@ -241,7 +241,7 @@ function S3({ data, onChange, onNext }) {
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
         {WERK_TYPEN.map(wt=><RCard key={wt.id} active={data.werktyp===wt.id} icon={wt.icon} label={wt.label} sub={wt.sub} onClick={()=>onChange({werktyp:wt.id})}/>)}
       </div>
-      <PBtn label="Weiter" onClick={onNext} disabled={!data.werktyp}/>
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.werktyp}/>}
     </div>
   );
 }
@@ -297,7 +297,7 @@ function S4({ data, onChange, onNext }) {
           </div>
         </div>
       </div>
-      <PBtn label="Weiter" onClick={onNext} disabled={!data.price||!data.availability}/>
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.price||!data.availability}/>}
     </div>
   );
 }
@@ -338,13 +338,13 @@ function S5({ data, onChange, onNext }) {
           Mindestens eine Option muss aktiviert sein.
         </div>
       )}
-      <PBtn label="Weiter" onClick={onNext} disabled={!data.versand&&!data.abholung}/>
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.versand&&!data.abholung}/>}
     </div>
   );
 }
 
 // Screen 6 – Sichtbarkeit & Speichern
-function S6({ data, onChange, onSave, onDraft, saving }) {
+function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
   const SICHT=[
     { id:"public",      icon:"🌍", label:"Öffentlich",   sub:"Sichtbar in deinem Talent-Profil und ggf. im HUI-Marktplatz." },
     { id:"connections", icon:"🔗", label:"Verbindungen", sub:"Nur für Menschen in deinem Netzwerk sichtbar." },
@@ -374,8 +374,7 @@ function S6({ data, onChange, onSave, onDraft, saving }) {
           </div>
         </div>
       </div>
-      <PBtn label="Werk speichern" onClick={onSave} loading={saving}/>
-      <SBtn label="Entwurf speichern" onClick={onDraft}/>
+      {!hideButtons && <><PBtn label="Werk speichern" onClick={onSave} loading={saving}/><SBtn label="Entwurf speichern" onClick={onDraft}/></>}
     </div>
   );
 }
@@ -446,25 +445,155 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     onClose?.();
   }
 
+  // ── body class: blendet BottomNav (zIndex:9999) aus ─────────
+  useEffect(() => {
+    document.body.classList.add("hui-wizard-open");
+    // Scroll des body sperren während Wizard offen
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.classList.remove("hui-wizard-open");
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  // ── Weiter-Button Validierung pro Schritt ─────────────────
+  const canContinue = useCallback(() => {
+    switch (step) {
+      case 1: return (form.images||[]).length > 0;
+      case 2: return !!(form.title?.trim()) && !!form.category;
+      case 3: return !!form.werktyp;
+      case 4: return !!(form.price) && !!form.availability;
+      case 5: return !!(form.versand || form.abholung);
+      case 6: return true;
+      default: return true;
+    }
+  }, [step, form]);
+
+  const isLast = step === TOTAL;
+
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:9800, background:"rgba(0,0,0,0.45)", display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
-      <div style={{ background:C.cream, borderRadius:"22px 22px 0 0", maxHeight:"93dvh", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 -8px 40px rgba(0,0,0,0.18)" }}>
-        <TopBar onClose={onClose} step={step} total={TOTAL}/>
-        <div style={{ textAlign:"center", fontSize:11, fontWeight:600, color:C.teal, padding:"7px 0 2px", letterSpacing:0.4 }}>
-          Schritt {step} von {TOTAL}
-        </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"16px 20px", paddingBottom:"max(28px,env(safe-area-inset-bottom,20px))" }}>
-          {step===1&&<S1 data={form} onChange={patch} userId={userId} onNext={next}/>}
-          {step===2&&<S2 data={form} onChange={patch} onNext={next}/>}
-          {step===3&&<S3 data={form} onChange={patch} onNext={next}/>}
-          {step===4&&<S4 data={form} onChange={patch} onNext={next}/>}
-          {step===5&&<S5 data={form} onChange={patch} onNext={next}/>}
-          {step===6&&<S6 data={form} onChange={patch} onSave={()=>save("published")} onDraft={()=>save("draft")} saving={saving}/>}
-          {step>1&&(
-            <button onClick={back} style={{ width:"100%", padding:"12px", background:"none", border:"none", color:C.inkMid, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation", marginTop:4 }}>← Zurück</button>
-          )}
-        </div>
+    /* Fullscreen — zIndex 10500 überschreibt BottomNav (9999) + ProfileLauncher (9500) */
+    <div style={{
+      position:"fixed", inset:0,
+      zIndex:10500,
+      background:C.cream,
+      display:"flex", flexDirection:"column",
+      /* Kein overflow:hidden auf Root — damit iOS keyboard nicht bricht */
+    }}>
+
+      {/* ── HEADER: Abbrechen · Titel · X ─────────────────── */}
+      <TopBar onClose={onClose} step={step} total={TOTAL}/>
+
+      {/* ── SCHRITT-LABEL ─────────────────────────────────── */}
+      <div style={{
+        textAlign:"center", fontSize:11, fontWeight:600,
+        color:C.teal, padding:"6px 0 0", letterSpacing:0.4,
+        background:"#fff", borderBottom:`1px solid ${C.border}`,
+        paddingBottom:8,
+      }}>
+        Schritt {step} von {TOTAL}
       </div>
+
+      {/* ── SCROLLBARER CONTENT ───────────────────────────── */}
+      <div style={{
+        flex:1,
+        overflowY:"auto",
+        WebkitOverflowScrolling:"touch",
+        padding:"20px 20px 0",
+      }}>
+        {step===1&&<S1 data={form} onChange={patch} userId={userId} onNext={null}/>}
+        {step===2&&<S2 data={form} onChange={patch} onNext={null}/>}
+        {step===3&&<S3 data={form} onChange={patch} onNext={null}/>}
+        {step===4&&<S4 data={form} onChange={patch} onNext={null}/>}
+        {step===5&&<S5 data={form} onChange={patch} onNext={null}/>}
+        {step===6&&<S6 data={form} onChange={patch}
+          onSave={()=>save("published")}
+          onDraft={()=>save("draft")}
+          saving={saving}
+          hideButtons
+        />}
+        {/* Spacer damit letzter Inhalt nicht hinter Footer verschwindet */}
+        <div style={{ height:100 }}/>
+      </div>
+
+      {/* ── STICKY FOOTER ─────────────────────────────────── */}
+      <div style={{
+        flexShrink:0,
+        background:"#fff",
+        borderTop:`1px solid ${C.border}`,
+        padding:`12px 20px`,
+        paddingBottom:`max(20px, env(safe-area-inset-bottom, 20px))`,
+        display:"flex", gap:10,
+        boxShadow:"0 -4px 20px rgba(0,0,0,0.06)",
+      }}>
+        {/* Zurück */}
+        {step > 1 ? (
+          <button onClick={back} style={{
+            flex:1, padding:"15px",
+            background:"rgba(26,26,24,0.06)", border:"none",
+            borderRadius:14, fontSize:14, fontWeight:700,
+            color:C.inkMid, cursor:"pointer",
+            fontFamily:"inherit", touchAction:"manipulation",
+          }}>← Zurück</button>
+        ) : (
+          <button onClick={onClose} style={{
+            flex:1, padding:"15px",
+            background:"rgba(26,26,24,0.06)", border:"none",
+            borderRadius:14, fontSize:14, fontWeight:700,
+            color:C.inkMid, cursor:"pointer",
+            fontFamily:"inherit", touchAction:"manipulation",
+          }}>Abbrechen</button>
+        )}
+
+        {/* Weiter / Speichern */}
+        {!isLast && (
+          <button onClick={next} disabled={!canContinue()} style={{
+            flex:2, padding:"15px",
+            background:canContinue()
+              ? `linear-gradient(135deg,${C.teal},${C.tealD})`
+              : "rgba(14,196,184,0.32)",
+            border:"none", borderRadius:14,
+            color:"#fff", fontSize:15, fontWeight:700,
+            cursor:canContinue()?"pointer":"not-allowed",
+            fontFamily:"inherit", touchAction:"manipulation",
+            transition:"background .18s",
+          }}>
+            Weiter →
+          </button>
+        )}
+        {isLast && (
+          <button onClick={()=>save("published")} disabled={saving} style={{
+            flex:2, padding:"15px",
+            background:saving
+              ? "rgba(14,196,184,0.32)"
+              : `linear-gradient(135deg,${C.teal},${C.tealD})`,
+            border:"none", borderRadius:14,
+            color:"#fff", fontSize:15, fontWeight:700,
+            cursor:saving?"not-allowed":"pointer",
+            fontFamily:"inherit", touchAction:"manipulation",
+          }}>
+            {saving?"Wird gespeichert…":"Werk speichern"}
+          </button>
+        )}
+      </div>
+      {/* Entwurf-Button: nur in Schritt 6, unter dem Footer */}
+      {isLast && (
+        <div style={{
+          textAlign:"center",
+          paddingBottom:"max(12px, env(safe-area-inset-bottom, 12px))",
+          background:"#fff",
+        }}>
+          <button onClick={()=>save("draft")} disabled={saving} style={{
+            background:"none", border:"none",
+            color:C.teal, fontSize:13, fontWeight:600,
+            cursor:"pointer", fontFamily:"inherit",
+            touchAction:"manipulation", padding:"8px 24px",
+          }}>
+            Entwurf speichern
+          </button>
+        </div>
+      )}
     </div>
   );
 }

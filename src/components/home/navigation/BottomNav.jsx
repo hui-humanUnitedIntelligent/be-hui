@@ -37,6 +37,14 @@ const CSS = `
     transform: scale(0.930) translateY(0.5px) !important;
     transition: transform 120ms cubic-bezier(0.22,1,0.36,1) !important;
   }
+
+  /* ── WerkWizard fullscreen: BottomNav ausblenden ── */
+  body.hui-wizard-open [data-bnroot] {
+    opacity: 0 !important;
+    transform: translateY(120%) !important;
+    pointer-events: none !important;
+    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1) !important;
+  }
 `;
 
 export default function BottomNav({
@@ -70,7 +78,7 @@ export default function BottomNav({
       <style>{CSS}</style>
 
       {/* Outer — pointerEvents:none damit Inhalte dahinter klickbar bleiben */}
-      <div style={{
+      <div data-bnroot="" style={{
         position: "fixed",
         bottom: 0, left: 0, right: 0,
         zIndex: 9999,
