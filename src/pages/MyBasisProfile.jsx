@@ -620,7 +620,8 @@ function SichtbarkeitSection({ visibility, onChange }) {
 // ══════════════════════════════════════════════════════════════
 // ROOT
 // ══════════════════════════════════════════════════════════════
-export default function MyBasisProfile({ onClose }) {
+export default function MyBasisProfile({ onClose, profileId }) {
+  console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const { setProfile: setAuthProfile, refreshProfile } = useAuth();
 
@@ -644,20 +645,13 @@ export default function MyBasisProfile({ onClose }) {
     (async () => {
       try {
         const { data:{ user } } = await supabase.auth.getUser();
-        // DEBUG LOG 1
-        console.log("🔍 [MBP] auth.uid =", user?.id);
+        console.log("AUTH UID", user?.id);
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
           .select("id,username,display_name,avatar_url,header_img,bio,interests,location,visibility")
           .eq("id", user.id).single();
-        // DEBUG LOG 2
-        console.log("🔍 [MBP] DB profile loaded:", {
-          profile_id: data?.id,
-          avatar_url: data?.avatar_url,
-          header_img: data?.header_img,
-          bio: data?.bio,
-          loadErr: loadErr?.message,
-        });
+        console.log("PROFILE SELECT RESULT", data);
+        if (loadErr) console.error("PROFILE SELECT ERROR", loadErr.message, loadErr.code);
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
@@ -760,14 +754,7 @@ export default function MyBasisProfile({ onClose }) {
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* HEADER */}
-        {/* DEBUG LOG 3 — wird in DevTools Console sichtbar */}
-        {(() => { console.log("🔍 [MBP] RENDER profile:", {
-          id: profile?.id,
-          avatar_url: localAvatar || profile?.avatar_url,
-          header_img: localCover  || profile?.header_img,
-          bio: bio,
-          loading: loading,
-        }); return null; })()}
+        {(() => { console.log("PROFILE USED FOR RENDER", profile); return null; })()}
         <MeinProfilHeader
         profile={{
           ...profile,
