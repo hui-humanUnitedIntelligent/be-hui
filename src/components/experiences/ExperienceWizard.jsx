@@ -784,7 +784,11 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
   // ── Speichern ─────────────────────────────────────────────
   async function save(status) {
-    if (!userId) return;
+    console.log("[EXPERIENCE USER]", userId);
+    if (!userId) {
+      console.error("[EXPERIENCE USER] userId ist null/undefined — save() abgebrochen");
+      return;
+    }
     setSaving(true);
 
     const cover_url = form.images?.[0]?.url || null;
@@ -816,17 +820,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       updated_at:            new Date().toISOString(),
     };
 
-    console.log("[SAVE EXP v2] payload:", JSON.stringify({
-      user_id:    payload.user_id?.slice(0, 8),
-      title:      payload.title,
-      type:       payload.experience_type,
-      date:       payload.date,
-      time_start: payload.time_start,
-      price:      payload.price,
-      price_per:  payload.price_per,
-      status:     payload.status,
-      imgs:       imagesArr.length,
-    }, null, 2));
+    console.log("[EXPERIENCE PUBLISH PAYLOAD]", JSON.stringify(payload, null, 2));
 
     const { data: saved, error } = existingExp?.id
       ? await supabase.from("experiences").update(payload).eq("id", existingExp.id).eq("user_id", userId).select().single()
@@ -835,13 +829,13 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     setSaving(false);
 
     if (error) {
-      console.error("[SAVE EXP v2] DB-ERROR:", error.message, "| code:", error.code);
+      console.error("[EXPERIENCE INSERT ERROR]", error);
       setSaveError(error.message || "Speichern fehlgeschlagen");
       setTimeout(() => setSaveError(null), 6000);
       return;
     }
 
-    console.log("[SAVE EXP v2] success:", saved?.id, "| status:", status);
+    console.log("[EXPERIENCE INSERT DATA]", saved);
     onSaved?.(saved);
     onClose?.();
   }
