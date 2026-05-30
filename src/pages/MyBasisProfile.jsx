@@ -171,26 +171,48 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
 
   async function handleAvatarFile(e) {
     const file = e.target.files?.[0];
-    if (!file || !profile?.id) return;
+    if (!file) return;
     setAvatarUploading(true);
     try {
-      const url = await uploadProfileImage(file, profile.id, "avatars");
-      await supabase.from("profiles").update({ avatar_url: url, updated_at: new Date().toISOString() }).eq("id", profile.id);
+      // Fallback: userId direkt aus Auth holen wenn profile?.id noch null
+      let uid = profile?.id;
+      if (!uid) {
+        const { data: { user: au } } = await supabase.auth.getUser();
+        uid = au?.id;
+      }
+      if (!uid) { console.warn("Avatar upload: kein userId"); setAvatarUploading(false); return; }
+      const url = await uploadProfileImage(file, uid, "avatars");
+      await supabase.from("profiles")
+        .update({ avatar_url: url, updated_at: new Date().toISOString() })
+        .eq("id", uid);
       onAvatarChange?.(url);
-    } catch(err) { console.warn("Avatar upload:", err?.message); }
+    } catch(err) {
+      // Vollständige Fehlerausgabe statt silent suppression
+      console.error("Avatar upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
+    }
     setAvatarUploading(false);
     e.target.value = "";
   }
 
   async function handleCoverFile(e) {
     const file = e.target.files?.[0];
-    if (!file || !profile?.id) return;
+    if (!file) return;
     setCoverUploading(true);
     try {
-      const url = await uploadProfileImage(file, profile.id, "covers");
-      await supabase.from("profiles").update({ header_img: url, updated_at: new Date().toISOString() }).eq("id", profile.id);
+      let uid = profile?.id;
+      if (!uid) {
+        const { data: { user: au } } = await supabase.auth.getUser();
+        uid = au?.id;
+      }
+      if (!uid) { console.warn("Cover upload: kein userId"); setCoverUploading(false); return; }
+      const url = await uploadProfileImage(file, uid, "covers");
+      await supabase.from("profiles")
+        .update({ header_img: url, updated_at: new Date().toISOString() })
+        .eq("id", uid);
       onCoverChange?.(url);
-    } catch(err) { console.warn("Cover upload:", err?.message); }
+    } catch(err) {
+      console.error("Cover upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
+    }
     setCoverUploading(false);
     e.target.value = "";
   }
@@ -217,34 +239,35 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
         }}>⚙️</button>
       </div>
 
-      {/* Cinematic cover — klickbar für Upload */}
+      {/* Cinematic cover — Kamera-Icon triggert Upload */}
+      {/* Verstecktes Input für Cover-Bild */}
+      <input
+        ref={coverInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display:"none" }}
+        onChange={handleCoverFile}
+      />
       <div style={{ margin:`0 ${T.px}px`, borderRadius:T.r20, overflow:"hidden",
-        height:170, position:"relative", background:"linear-gradient(160deg,#2C3E2D,#7B8E5E)",
-        cursor:"pointer" }}>
-        {/* Unsichtbares File-Input über das gesamte Cover */}
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/*"
-          className="mbp-file-input"
-          style={{ borderRadius:T.r20 }}
-          onChange={handleCoverFile}
-        />
+        height:170, position:"relative", background:"linear-gradient(160deg,#2C3E2D,#7B8E5E)" }}>
         <img src={cover} alt="" onLoad={()=>setImgLoaded(true)} onError={()=>setImgLoaded(true)}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             opacity:imgLoaded?0.7:0, transition:"opacity 1.1s ease" }}/>
         <div style={{ position:"absolute", inset:0,
           background:"linear-gradient(180deg,rgba(247,245,240,0) 30%,rgba(247,245,240,0.55) 100%)" }}/>
-        {/* Kamera-Icon oben rechts im Cover */}
-        <div style={{
-          position:"absolute", top:10, right:10, zIndex:5,
-          width:32, height:32, borderRadius:"50%",
-          background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:15, pointerEvents:"none",
-        }}>
+        {/* Kamera-Icon oben rechts — öffnet Cover-Upload */}
+        <button
+          onClick={() => coverInputRef.current?.click()}
+          style={{
+            position:"absolute", top:10, right:10, zIndex:15,
+            width:32, height:32, borderRadius:"50%",
+            background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)",
+            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:15, cursor:"pointer", touchAction:"manipulation",
+          }}
+        >
           {coverUploading ? <span className="mbp-uploading" style={{fontSize:13}}>⏳</span> : "📷"}
-        </div>
+        </button>
 
         {/* Floating avatar — centered bottom */}
         <div style={{ position:"absolute", bottom:-38, left:"50%", transform:"translateX(-50%)",
@@ -639,17 +662,29 @@ export default function MyBasisProfile({ onClose }) {
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
   const autoSave = useCallback(async (field, value) => {
-    if (!profile?.id) return;
+    // FIX BUG 1: userId direkt aus Auth holen wenn profile?.id noch null
+    let uid = profile?.id;
+    if (!uid) {
+      const { data: { user: au } } = await supabase.auth.getUser();
+      uid = au?.id;
+    }
+    if (!uid) { console.warn("autoSave: kein userId für Feld", field); return; }
     setSaving(true);
     try {
-      await supabase.from("profiles")
+      const { error: saveErr } = await supabase.from("profiles")
         .update({ [field]: value, updated_at: new Date().toISOString() })
-        .eq("id", profile.id);
-      setSaveOk(true); setTimeout(()=>setSaveOk(false), 2000);
-      // AuthContext-Cache sofort mitaktualisieren →
-      // alle Komponenten die authProfile.bio nutzen sehen die Änderung sofort
-      setAuthProfile(prev => prev ? { ...prev, [field]: value } : prev);
-    } catch(e) { console.warn("AutoSave:", e); }
+        .eq("id", uid);
+      if (saveErr) {
+        // Sichtbarer Fehler statt silent warning
+        console.error("autoSave DB error:", field, saveErr.message, saveErr.code, JSON.stringify(saveErr));
+      } else {
+        setSaveOk(true); setTimeout(()=>setSaveOk(false), 2000);
+        // AuthContext-Cache sofort mitaktualisieren
+        setAuthProfile(prev => prev ? { ...prev, [field]: value } : prev);
+      }
+    } catch(e) {
+      console.error("autoSave exception:", field, e?.message);
+    }
     setSaving(false);
   },[profile?.id, setAuthProfile]);
 

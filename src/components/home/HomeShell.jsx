@@ -150,7 +150,10 @@ export default function HomeShell({ children }) {
   const [showWirker,             setShowWirker]            = useState(null);
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
-  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
+  // FIX BUG 4: Profil-State aus sessionStorage wiederherstellen nach Reload
+  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(() => {
+    try { return sessionStorage.getItem("hui_active_tab") === "profile"; } catch { return false; }
+  });
   const [showChat,               setShowChat]              = useState(false);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
   const [showNotifs,             setShowNotifs]            = useState(false);
@@ -226,22 +229,27 @@ export default function HomeShell({ children }) {
     }
     setShowPlusSheet(false);
     setCreateType(null);
+    // FIX BUG 3: Profil-Overlay schließen wenn User auf anderen Tab wechselt
+    setShowCreatorDashboard(false);
     _setTab(newTab);
     // Phase 16.6: sync activeTab to window for ErrorBoundary diagnostics
     if (typeof window !== "undefined" && window.__HUI_WORLD_STATE__) {
       window.__HUI_WORLD_STATE__.activeTab = newTab;
     }
-  }, [_setTab]);
+  }, [_setTab, setShowCreatorDashboard]);
 
   /* openOwnProfile → öffnet MyCreatorDashboard (eigene, separate Seite) */
   const openOwnProfile = useCallback(() => {
     console.log("🟠 openOwnProfile → setShowCreatorDashboard(true)");
     setShowCreatorDashboard(true);
+    // FIX BUG 4: Tab-State persistieren damit Reload auf Profil bleibt
+    try { sessionStorage.setItem("hui_active_tab", "profile"); } catch (_) {}
   }, [setShowCreatorDashboard]);
 
   /* openCreatorDashboard — direkter Alias */
   const openCreatorDashboard = useCallback(() => {
     setShowCreatorDashboard(true);
+    try { sessionStorage.setItem("hui_active_tab", "profile"); } catch (_) {}
   }, [setShowCreatorDashboard]);
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
