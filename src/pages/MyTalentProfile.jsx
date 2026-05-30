@@ -332,21 +332,64 @@ function UeberMich({ profile, loading, isOwner }) {
 // ══════════════════════════════════════════════════════════════
 // 3. MEINE TALENTE & ANGEBOTE
 // ══════════════════════════════════════════════════════════════
-function TalenteAngebote({ loading, isOwner }) {
-  const [tags, setTags]       = useState(DEFAULT_TALENTS);
+function TalenteAngebote({ loading, isOwner, wirkerProfile, userId }) {
+  // Quelle der Wahrheit: wirker_profiles.categories
+  // DEFAULT_TALENTS nur als visuelle Vorlage im Edit-Sheet, nie als Datenquelle
+  const [tags, setTags]       = useState([]);
   const [editing, setEditing] = useState(false);
   const [newTag, setNewTag]   = useState("");
+  const [saveState, setSaveState] = useState(null); // null | "saving" | "ok" | "error"
+
+  // ── LOAD: wirkerProfile.categories → State ─────────────────
+  useEffect(() => {
+    if (!wirkerProfile) return;
+    const cats = Array.isArray(wirkerProfile.categories)
+      ? wirkerProfile.categories
+      : [];
+    console.log("[LOAD CATEGORIES]", cats);
+    setTags(cats);
+  }, [wirkerProfile?.id]);
+
+  // ── SAVE: sofort nach jeder Änderung in DB schreiben ───────
+  async function saveToDB(newTags) {
+    if (!userId) return;
+    console.log("[SAVE CATEGORIES]", newTags);
+    setSaveState("saving");
+    const { error } = await supabase
+      .from("wirker_profiles")
+      .update({ categories: newTags, updated_at: new Date().toISOString() })
+      .eq("user_id", userId);
+    if (error) {
+      console.error("[DB UPDATE ERROR]", error);
+      setSaveState("error");
+      setTimeout(() => setSaveState(null), 2500);
+    } else {
+      console.log("[DB UPDATE SUCCESS] categories →", newTags);
+      setSaveState("ok");
+      setTimeout(() => setSaveState(null), 1500);
+    }
+  }
 
   function addTag() {
     const t = newTag.trim();
-    if (t && !tags.includes(t)) setTags(p => [...p, t]);
+    if (!t || tags.includes(t)) { setNewTag(""); return; }
+    const next = [...tags, t];
+    setTags(next);
     setNewTag("");
+    saveToDB(next);
+  }
+
+  function removeTag(tag) {
+    console.log("[REMOVE CATEGORY]", tag);
+    const next = tags.filter(x => x !== tag);
+    setTags(next);
+    saveToDB(next);
   }
 
   return (
     <div className="mtp-sec">
       <div className="mtp-sec-pad">
-        <SecHdr title="Meine Talente & Angebote" isOwner={isOwner} onEdit={() => setEditing(true)}/>
+        <SecHdr title="Meine Talente & Angebote" isOwner={isOwner} onEdit={null}/>
         {loading ? (
           <div style={{ height:56, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
         ) : (
@@ -390,7 +433,7 @@ function TalenteAngebote({ loading, isOwner }) {
               }}>
                 {TALENT_ICONS[tag] && <span>{TALENT_ICONS[tag]}</span>}
                 {tag}
-                <button onClick={() => setTags(p => p.filter(t => t!==tag))} style={{
+                <button onClick={() => removeTag(tag)} style={{
                   background:"none", border:"none", padding:"0 0 0 2px",
                   cursor:"pointer", color:"#0EC4B8", fontSize:14, lineHeight:1, touchAction:"manipulation",
                 }}>×</button>
@@ -414,6 +457,18 @@ function TalenteAngebote({ loading, isOwner }) {
             }}>+</button>
           </div>
           <Gap h={14}/>
+          {/* Save-Status */}
+          {saveState && (
+            <div style={{
+              textAlign:"center", marginBottom:10,
+              fontSize:12, fontWeight:600,
+              color: saveState==="ok" ? "#0EC4B8" : saveState==="error" ? "#ef4444" : "rgba(26,26,24,0.45)",
+            }}>
+              {saveState==="saving" && "Speichert…"}
+              {saveState==="ok"     && "✓ Gespeichert"}
+              {saveState==="error"  && "⚠ Fehler beim Speichern"}
+            </div>
+          )}
           <button onClick={() => setEditing(false)} style={{
             width:"100%", padding:"14px", borderRadius:14,
             background:"linear-gradient(135deg,#0EC4B8,#0DBBAF)", border:"none",
@@ -775,9 +830,11 @@ function Sichtbarkeit({ profile, loading, isOwner }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════
 export default function MyTalentProfile({ onClose, profileId, viewerMode = false }) {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [profile,       setProfile]       = useState(null);
+  const [wirkerProfile, setWirkerProfile] = useState(null);
+  const [userId,        setUserId]        = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [mounted,       setMounted]       = useState(false);
   const isOwner = !viewerMode && !profileId;
 
   useEffect(() => {
@@ -794,10 +851,22 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
           id = user?.id;
         }
         if (!id) { setLoading(false); return; }
-        const { data } = await supabase.from("profiles")
+        setUserId(id);
+
+        // profiles laden
+        const { data: pData } = await supabase.from("profiles")
           .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type")
           .eq("id", id).single();
-        setProfile(data || null);
+        setProfile(pData || null);
+
+        // wirker_profiles laden — Quelle der Wahrheit für Talent-Daten
+        const { data: wpData, error: wpErr } = await supabase
+          .from("wirker_profiles")
+          .select("id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count")
+          .eq("user_id", id)
+          .single();
+        if (wpErr) console.warn("[MyTalentProfile] wirker_profiles:", wpErr.message);
+        setWirkerProfile(wpData || null);
       } catch(e) { console.warn("MyTalentProfile:", e); }
       setLoading(false);
     })();
@@ -829,7 +898,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         <Gap/>
 
         {/* 3. Meine Talente & Angebote */}
-        <TalenteAngebote loading={loading} isOwner={isOwner}/>
+        <TalenteAngebote loading={loading} isOwner={isOwner} wirkerProfile={wirkerProfile} userId={userId}/>
         <Gap/>
 
         {/* 4. Meine Werke */}
