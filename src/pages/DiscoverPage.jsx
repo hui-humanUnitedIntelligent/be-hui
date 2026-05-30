@@ -47,6 +47,15 @@ const CSS = `
   .dp-search-input::placeholder { color:rgba(26,53,48,0.35); }
   @keyframes dp-live-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.75)} }
   .dp-live-dot { animation:dp-live-pulse 2.2s ease-in-out infinite; }
+  /* List view */
+  .dp-list-section { display:flex; flex-direction:column; gap:10px; padding:0 16px; }
+  .dp-list-card { display:flex; align-items:center; gap:12px; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 14px rgba(26,53,48,0.07),0 1px 3px rgba(26,53,48,0.04); border:1px solid rgba(26,53,48,0.07); padding:10px; cursor:pointer; transition:transform .14s,opacity .14s; }
+  .dp-list-card:active { transform:scale(0.97); opacity:0.82; }
+  .dp-list-thumb { width:58px; height:58px; border-radius:12px; object-fit:cover; flex-shrink:0; background:rgba(14,196,184,0.08); }
+  .dp-list-thumb-placeholder { width:58px; height:58px; border-radius:12px; flex-shrink:0; background:rgba(14,196,184,0.08); display:flex; align-items:center; justify-content:center; font-size:22px; }
+  /* Toggle animation */
+  @keyframes dp-toggle-in { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
+  .dp-toggle-in { animation:dp-toggle-in .18s ease both; }
 `;
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -61,6 +70,50 @@ const timeAgo = (dateStr) => {
   if (diff < 24) return "vor " + Math.round(diff) + " Std";
   return "vor " + Math.round(diff/24) + " Tagen";
 };
+
+// ── View Toggle ──────────────────────────────────────────────────
+function ViewToggle({ view, onChange }) {
+  return (
+    <div style={{
+      display:"flex", alignItems:"center", gap:2,
+      background:"rgba(26,53,48,0.06)",
+      borderRadius:12, padding:3,
+      backdropFilter:"blur(8px)",
+    }}>
+      {[
+        { key:"cards", icon:(
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+            <rect x="9" y="1" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+            <rect x="1" y="9" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+            <rect x="9" y="9" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+        )},
+        { key:"list", icon:(
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+        )},
+      ].map(btn => {
+        const active = view === btn.key;
+        return (
+          <button key={btn.key} onClick={() => onChange(btn.key)} style={{
+            width:30, height:28, borderRadius:9, border:"none", cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            background: active ? "white" : "transparent",
+            color: active ? "#0EC4B8" : "rgba(26,53,48,0.45)",
+            boxShadow: active ? "0 1px 6px rgba(26,53,48,0.10), 0 0 0 1px rgba(14,196,184,0.18)" : "none",
+            transition:"background .16s, color .16s, box-shadow .16s",
+            WebkitTapHighlightColor:"transparent",
+            touchAction:"manipulation",
+          }}>
+            {btn.icon}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 // ── Skeleton ─────────────────────────────────────────────────────
 function Skel({ w="100%", h=14, r=10, mb=0 }) {
@@ -98,7 +151,7 @@ function SectionHead({ title, sub, action, onAction, delay=0 }) {
 // ════════════════════════════════════════════════════════════════
 // 1. SUCHLEISTE
 // ════════════════════════════════════════════════════════════════
-function SearchBar({ searchQ, onSearch }) {
+function SearchBar({ searchQ, onSearch, view, onViewChange }) {
   const [focused, setFocused] = useState(false);
   return (
     <div style={{
@@ -107,9 +160,13 @@ function SearchBar({ searchQ, onSearch }) {
     }}>
       {/* Title Row */}
       <div style={{ marginBottom:12 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecken</span>
-          <span style={{ fontSize:18 }}>🌿</span>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecken</span>
+            <span style={{ fontSize:18 }}>🌿</span>
+          </div>
+          {/* View Toggle — oben rechts */}
+          <ViewToggle view={view} onChange={onViewChange} />
         </div>
         <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
           Menschen, Werke, Erlebnisse & Orte, die HUI lebendig machen.
@@ -333,7 +390,7 @@ function PersonCard({ person, onPress, delay=0 }) {
   );
 }
 
-function PeopleSection({ people, onPersonPress, loading, delay=0 }) {
+function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards' }) {
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -342,24 +399,50 @@ function PeopleSection({ people, onPersonPress, loading, delay=0 }) {
         action="Alle anzeigen"
         delay={delay}
       />
-      <div className="dp-hscroll" style={{
-        display:"flex", gap:10,
-        paddingLeft:T.px, paddingRight:T.px, paddingBottom:4,
-      }}>
-        {loading
-          ? Array.from({length:4}).map((_,i) => (
-              <div key={i} style={{ width:130, flexShrink:0, borderRadius:20, overflow:"hidden", background:T.white, boxShadow:T.cardShadow, padding:"14px 10px" }}>
-                <Skel w={72} h={72} r={99} mb={10} />
-                <Skel w="80%" h={12} r={8} mb={6} />
-                <Skel w="60%" h={10} r={6} mb={8} />
-                <Skel w="70%" h={10} r={6} />
-              </div>
-            ))
-          : people.map((p, i) => (
-              <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
-            ))
-        }
-      </div>
+      {view === "cards" ? (
+        <div className="dp-hscroll" style={{
+          display:"flex", gap:10,
+          paddingLeft:T.px, paddingRight:T.px, paddingBottom:4,
+        }}>
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} style={{ width:130, flexShrink:0, borderRadius:20, overflow:"hidden", background:T.white, boxShadow:T.cardShadow, padding:"14px 10px" }}>
+                  <Skel w={72} h={72} r={99} mb={10} />
+                  <Skel w="80%" h={12} r={8} mb={6} />
+                  <Skel w="60%" h={10} r={6} mb={8} />
+                  <Skel w="70%" h={10} r={6} />
+                </div>
+              ))
+            : people.map((p, i) => (
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
+              ))
+          }
+        </div>
+      ) : (
+        <div className="dp-list-section dp-toggle-in">
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12} /><div style={{flex:1}}><Skel w="70%" h={13} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div></div>
+              ))
+            : people.map((p, i) => (
+                <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)}>
+                  {p.avatar
+                    ? <img src={p.avatar} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
+                    : <div className="dp-list-thumb-placeholder">👤</div>
+                  }
+                  <div style={{ flex:1, overflow:"hidden" }}>
+                    <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:3, letterSpacing:"-0.02em" }}>{p.name}</div>
+                    <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:5, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{p.bio}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      {p.location && <span style={{ fontSize:11, color:T.inkFaint }}>📍 {p.location}</span>}
+                      <span style={{ fontSize:11, color:T.teal, fontWeight:600 }}>⚡ {fmtImpact(p.impact)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+          }
+        </div>
+      )}
     </div>
   );
 }
@@ -444,7 +527,7 @@ function MomentCard({ moment, delay=0 }) {
   );
 }
 
-function MomenteSection({ momente, loading, delay=0 }) {
+function MomenteSection({ momente, loading, delay=0, view='cards' }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -453,22 +536,43 @@ function MomenteSection({ momente, loading, delay=0 }) {
         action="Alle anzeigen"
         delay={delay}
       />
-      <div className="dp-hscroll" style={{
-        display:"flex", gap:10,
-        paddingLeft:T.px, paddingRight:T.px, paddingBottom:4,
-      }}>
-        {loading
-          ? Array.from({length:4}).map((_,i) => (
-              <div key={i} style={{ width:175, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                <Skel w="100%" h={130} r={0} mb={0}/>
-                <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
-              </div>
-            ))
-          : momente.map((m, i) => (
-              <MomentCard key={m.id} moment={m} delay={i*35+delay} />
-            ))
-        }
-      </div>
+      {view === "cards" ? (
+        <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} style={{ width:175, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                  <Skel w="100%" h={130} r={0} mb={0}/>
+                  <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
+                </div>
+              ))
+            : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} />)
+          }
+        </div>
+      ) : (
+        <div className="dp-list-section dp-toggle-in">
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="45%" h={10} r={5}/></div></div>
+              ))
+            : momente.map((m) => (
+                <div key={m.id} className="dp-list-card">
+                  {m.src
+                    ? <img src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
+                    : <div className="dp-list-thumb-placeholder">📸</div>
+                  }
+                  <div style={{ flex:1, overflow:"hidden" }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", lineHeight:1.35 }}>{m.caption}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      <span style={{ fontSize:11, fontWeight:600, color:T.inkSoft }}>{m.name}</span>
+                      {m.location && <span style={{ fontSize:11, color:T.inkFaint }}>📍 {m.location}</span>}
+                      <span style={{ fontSize:10.5, color:T.inkFaint }}>{timeAgo(m.created_at)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+          }
+        </div>
+      )}
     </div>
   );
 }
@@ -570,7 +674,7 @@ function WerkCard({ werk, delay=0 }) {
   );
 }
 
-function WerkeSection({ werke, loading, delay=0 }) {
+function WerkeSection({ werke, loading, delay=0, view='cards' }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -579,22 +683,48 @@ function WerkeSection({ werke, loading, delay=0 }) {
         action="Alle Werke"
         delay={delay}
       />
-      <div className="dp-hscroll" style={{
-        display:"flex", gap:10,
-        paddingLeft:T.px, paddingRight:T.px, paddingBottom:4,
-      }}>
-        {loading
-          ? Array.from({length:4}).map((_,i) => (
-              <div key={i} style={{ width:145, flexShrink:0, borderRadius:16, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                <Skel w="100%" h={100} r={0} mb={0}/>
-                <div style={{ padding:"9px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div>
-              </div>
-            ))
-          : werke.map((w, i) => (
-              <WerkCard key={w.id} werk={w} delay={i*35+delay} />
-            ))
-        }
-      </div>
+      {view === "cards" ? (
+        <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} style={{ width:145, flexShrink:0, borderRadius:16, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                  <Skel w="100%" h={100} r={0} mb={0}/>
+                  <div style={{ padding:"9px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div>
+                </div>
+              ))
+            : werke.map((w, i) => <WerkCard key={w.id} werk={w} delay={i*35+delay} />)
+          }
+        </div>
+      ) : (
+        <div className="dp-list-section dp-toggle-in">
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="70%" h={12} r={6} mb={6}/><Skel w="40%" h={10} r={5}/></div></div>
+              ))
+            : werke.map((w) => {
+                const medCol = MEDIUM_COLOR[w.medium] || { bg:T.tealSoft, text:T.teal };
+                return (
+                  <div key={w.id} className="dp-list-card">
+                    <div className="dp-list-thumb-placeholder" style={{ background:medCol.bg }}>
+                      {w.cover
+                        ? <img src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.target.style.display='none'}/>
+                        : <span>🎨</span>
+                      }
+                    </div>
+                    <div style={{ flex:1, overflow:"hidden" }}>
+                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{w.title}</div>
+                      <div style={{ fontSize:11.5, color:T.inkFaint, marginBottom:5 }}>von {w.author}</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:11, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{w.medium}</span>
+                        <span style={{ fontSize:11, color:T.coral }}>♥ {w.likes}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+          }
+        </div>
+      )}
     </div>
   );
 }
@@ -689,7 +819,7 @@ function ErlebnisCard({ erlebnis, delay=0 }) {
   );
 }
 
-function ErlebnisseSection({ erlebnisse, loading, delay=0 }) {
+function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards' }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -698,22 +828,48 @@ function ErlebnisseSection({ erlebnisse, loading, delay=0 }) {
         action="Alle Erlebnisse"
         delay={delay}
       />
-      <div className="dp-hscroll" style={{
-        display:"flex", gap:10,
-        paddingLeft:T.px, paddingRight:T.px, paddingBottom:4,
-      }}>
-        {loading
-          ? Array.from({length:4}).map((_,i) => (
-              <div key={i} style={{ width:155, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                <Skel w="100%" h={105} r={0} mb={0}/>
-                <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="55%" h={10} r={5}/></div>
-              </div>
-            ))
-          : erlebnisse.map((e, i) => (
-              <ErlebnisCard key={e.id} erlebnis={e} delay={i*35+delay} />
-            ))
-        }
-      </div>
+      {view === "cards" ? (
+        <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} style={{ width:155, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                  <Skel w="100%" h={105} r={0} mb={0}/>
+                  <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="55%" h={10} r={5}/></div>
+                </div>
+              ))
+            : erlebnisse.map((e, i) => <ErlebnisCard key={e.id} erlebnis={e} delay={i*35+delay} />)
+          }
+        </div>
+      ) : (
+        <div className="dp-list-section dp-toggle-in">
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div></div>
+              ))
+            : erlebnisse.map((e) => (
+                <div key={e.id} className="dp-list-card">
+                  <div className="dp-list-thumb-placeholder" style={{ background:"rgba(232,87,58,0.07)", position:"relative", overflow:"hidden" }}>
+                    {e.cover
+                      ? <img src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.target.style.display='none'}/>
+                      : <span>📅</span>
+                    }
+                    <div style={{ position:"absolute", bottom:2, left:2, right:2, background:"rgba(255,255,255,0.92)", borderRadius:6, padding:"1px 4px", textAlign:"center" }}>
+                      <span style={{ fontSize:9, fontWeight:800, color:T.ink }}>{e.date} {e.month}</span>
+                    </div>
+                  </div>
+                  <div style={{ flex:1, overflow:"hidden" }}>
+                    <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em", overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{e.title}</div>
+                    <div style={{ fontSize:11.5, color:T.teal, fontWeight:600, marginBottom:4 }}>{e.dayLabel} · {e.time}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ fontSize:11, color:T.inkFaint }}>📍 {e.location}</span>
+                      <span style={{ fontSize:11, color:T.inkSoft }}>👥 {e.spots} frei</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+          }
+        </div>
+      )}
     </div>
   );
 }
@@ -792,7 +948,7 @@ function ProjektCard({ projekt, delay=0 }) {
   );
 }
 
-function ProjekteSection({ projekte, loading, delay=0 }) {
+function ProjekteSection({ projekte, loading, delay=0, view='cards' }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -801,22 +957,48 @@ function ProjekteSection({ projekte, loading, delay=0 }) {
         action="Alle Projekte"
         delay={delay}
       />
-      <div className="dp-hscroll" style={{
-        display:"flex", gap:10,
-        paddingLeft:T.px, paddingRight:T.px, paddingBottom:4,
-      }}>
-        {loading
-          ? Array.from({length:4}).map((_,i) => (
-              <div key={i} style={{ width:160, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                <Skel w="100%" h={90} r={0} mb={0}/>
-                <div style={{ padding:"10px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5}/></div>
-              </div>
-            ))
-          : projekte.map((p, i) => (
-              <ProjektCard key={p.id} projekt={p} delay={i*35+delay} />
-            ))
-        }
-      </div>
+      {view === "cards" ? (
+        <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} style={{ width:160, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                  <Skel w="100%" h={90} r={0} mb={0}/>
+                  <div style={{ padding:"10px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5}/></div>
+                </div>
+              ))
+            : projekte.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} />)
+          }
+        </div>
+      ) : (
+        <div className="dp-list-section dp-toggle-in">
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="70%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div></div>
+              ))
+            : projekte.map((p) => {
+                const cc = p.catColor || { bg:T.tealSoft, text:T.teal };
+                return (
+                  <div key={p.id} className="dp-list-card">
+                    <div className="dp-list-thumb-placeholder" style={{ background:cc.bg, position:"relative", overflow:"hidden" }}>
+                      {p.cover
+                        ? <img src={p.cover} alt={p.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.85 }} onError={ev => ev.target.style.display='none'}/>
+                        : <span>🌍</span>
+                      }
+                    </div>
+                    <div style={{ flex:1, overflow:"hidden" }}>
+                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{p.title}</div>
+                      <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:5, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{p.desc}</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:11, background:cc.bg, color:cc.text, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{p.cat}</span>
+                        <span style={{ fontSize:11, color:T.inkFaint }}>👥 {p.members} Mitgl.</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+          }
+        </div>
+      )}
     </div>
   );
 }
@@ -833,7 +1015,7 @@ const SEED_ORTE = [
   { id:"o6", name:"Kreativwerkstatt",  city:"Wien",     dist:"—",     cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
 ];
 
-function OrteSection({ onMap, delay=0 }) {
+function OrteSection({ onMap, delay=0, view='cards' }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -843,14 +1025,31 @@ function OrteSection({ onMap, delay=0 }) {
         onAction={onMap}
         delay={delay}
       />
-      <div className="dp-hscroll" style={{
-        display:"flex", gap:8,
-        paddingLeft:T.px, paddingRight:T.px, paddingBottom:4,
-      }}>
-        {SEED_ORTE.map((ort, i) => (
-          <OrtCard key={ort.id} ort={ort} delay={i*30+delay} onMap={onMap} />
-        ))}
-      </div>
+      {view === "cards" ? (
+        <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+          {SEED_ORTE.map((ort, i) => <OrtCard key={ort.id} ort={ort} delay={i*30+delay} onMap={onMap} />)}
+        </div>
+      ) : (
+        <div className="dp-list-section dp-toggle-in">
+          {SEED_ORTE.map((ort) => (
+            <div key={ort.id} className="dp-list-card" onClick={onMap}>
+              <div className="dp-list-thumb-placeholder" style={{ position:"relative", overflow:"hidden" }}>
+                {ort.cover
+                  ? <img src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
+                  : <span>📍</span>
+                }
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{ort.name}</div>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ fontSize:11.5, color:T.inkFaint }}>📍 {ort.city}</span>
+                  {ort.dist !== "—" && <span style={{ fontSize:11, background:T.tealSoft, color:T.teal, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{ort.dist}</span>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -902,6 +1101,7 @@ function OrtCard({ ort, delay=0, onMap }) {
 // ════════════════════════════════════════════════════════════════
 export default function DiscoverPage({ onView, onMap }) {
   const [searchQ, setSearchQ] = useState("");
+  const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
   const [momente, setMomente]         = useState([]);
@@ -1063,7 +1263,7 @@ export default function DiscoverPage({ onView, onMap }) {
       <style>{CSS}</style>
 
       {/* ── 1. Suchleiste ── */}
-      <SearchBar searchQ={searchQ} onSearch={setSearchQ} />
+      <SearchBar searchQ={searchQ} onSearch={setSearchQ} view={view} onViewChange={setView} />
 
       {/* ── 2. Heute auf HUI ── */}
       <TodayStats stats={stats} />
@@ -1074,6 +1274,7 @@ export default function DiscoverPage({ onView, onMap }) {
         onPersonPress={handlePersonPress}
         loading={loading && people.length === 0}
         delay={60}
+        view={view}
       />
 
       {/* ── 4. Momente aus deiner Nähe ── */}
@@ -1081,6 +1282,7 @@ export default function DiscoverPage({ onView, onMap }) {
         momente={displayMomente}
         loading={loading && momente.length === 0}
         delay={80}
+        view={view}
       />
 
       {/* ── 5. Werke entdecken ── */}
@@ -1088,6 +1290,7 @@ export default function DiscoverPage({ onView, onMap }) {
         werke={displayWerke}
         loading={loading && werke.length === 0}
         delay={100}
+        view={view}
       />
 
       {/* ── 6. Erlebnisse für dich ── */}
@@ -1095,6 +1298,7 @@ export default function DiscoverPage({ onView, onMap }) {
         erlebnisse={displayErlebnisse}
         loading={loading && erlebnisse.length === 0}
         delay={120}
+        view={view}
       />
 
       {/* ── 7. Projekte & Initiativen ── */}
@@ -1102,10 +1306,11 @@ export default function DiscoverPage({ onView, onMap }) {
         projekte={displayProjekte}
         loading={loading}
         delay={140}
+        view={view}
       />
 
       {/* ── 8. Orte entdecken ── */}
-      <OrteSection onMap={onMap} delay={160} />
+      <OrteSection onMap={onMap} delay={160} view={view} />
 
       {/* Bottom padding für BottomNav */}
       <div style={{ height:100 }}/>
