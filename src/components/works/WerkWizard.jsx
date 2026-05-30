@@ -258,76 +258,65 @@ function S3({ data, onChange, onNext }) {
 // Screen 4 – Preis & Verkauf
 function S4({ data, onChange, onNext }) {
   const VERF=[
-    { id:"available", label:"Verfügbar",  sub:"Das Werk kann gekauft werden." },
-    { id:"reserved",  label:"Reserviert", sub:"Das Werk ist reserviert." },
+    { id:"available", label:"Verfügbar zum Kauf",  sub:"Interessenten können direkt anfragen." },
+    { id:"reserved",  label:"Reserviert", sub:"Bereits für jemanden zurückgelegt." },
     { id:"sold",      label:"Verkauft",   sub:"Das Werk wurde bereits verkauft." },
   ];
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Preis & Verkauf</div>
-      {/* Preis — Mobile First: volle Breite, gestackt */}
-      <div style={{ marginBottom:14 }}>
-        <Lbl text="Preis" req/>
-        <input
-          type="number" min="0" step="0.01"
-          value={data.price||""}
-          onChange={e=>onChange({price:e.target.value})}
-          placeholder="0,00"
-          inputMode="decimal"
-          style={{
-            ...INP,
-            fontSize:22,
-            fontWeight:700,
-            letterSpacing:0.5,
-            padding:"14px 16px",
-            marginBottom:8,
-          }}
-        />
-        <Lbl text="Währung"/>
-        <select
-          value={data.currency||"EUR"}
-          onChange={e=>onChange({currency:e.target.value})}
-          style={{
-            ...INP,
-            fontSize:15,
-            padding:"13px 16px",
-          }}
-        >
-          <option value="EUR">EUR – Euro (€)</option>
-          <option value="CHF">CHF – Schweizer Franken (₣)</option>
-          <option value="USD">USD – US-Dollar ($)</option>
-        </select>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:6 }}>Preis & Verkauf</div>
+      <div style={{ fontSize:13, color:C.inkFade, marginBottom:20 }}>Festpreis in Euro</div>
+
+      {/* ── PREIS: volle Breite, große Schrift ── */}
+      <div style={{ marginBottom:20 }}>
+        <Lbl text="Preis (EUR)" req/>
+        <div style={{ position:"relative" }}>
+          <span style={{
+            position:"absolute", left:16, top:"50%", transform:"translateY(-50%)",
+            fontSize:26, fontWeight:700, color:"rgba(14,196,184,0.6)",
+            pointerEvents:"none", userSelect:"none",
+          }}>€</span>
+          <input
+            type="number" min="0" step="0.01"
+            value={data.price||""}
+            onChange={e=>onChange({price:e.target.value})}
+            placeholder="0,00"
+            inputMode="decimal"
+            style={{
+              width:"100%", boxSizing:"border-box",
+              padding:"18px 16px 18px 46px",
+              borderRadius:14,
+              border:`2px solid ${data.price ? C.teal : C.border}`,
+              outline:"none",
+              fontSize:32,
+              fontWeight:800,
+              fontFamily:"inherit",
+              color:C.ink,
+              background:"#fff",
+              letterSpacing:1,
+              transition:"border-color .15s",
+            }}
+          />
+        </div>
+        {data.price && (
+          <div style={{ marginTop:6, fontSize:12, color:C.inkFade, paddingLeft:4 }}>
+            + ggf. Versandkosten
+          </div>
+        )}
       </div>
-      <div style={{ marginBottom:16 }}>
+
+      {/* ── VERFÜGBARKEIT ── */}
+      <div style={{ marginBottom:8 }}>
         <Lbl text="Verfügbarkeit" req/>
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-          {VERF.map(v=><RCard key={v.id} active={data.availability===v.id} label={v.label} sub={v.sub} onClick={()=>onChange({availability:v.id})}/>)}
-        </div>
-      </div>
-      <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 6px", marginBottom:14 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:C.teal, marginBottom:12 }}>Maße & Material</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:10 }}>
-          {[["Breite (cm)","breite"],["Höhe (cm)","hoehe"],["Tiefe (cm)","tiefe"]].map(([lbl,key])=>(
-            <div key={key}>
-              <div style={{ fontSize:10, fontWeight:600, color:C.inkFade, marginBottom:4 }}>{lbl}</div>
-              <input type="number" min="0" value={data[key]||""} onChange={e=>onChange({[key]:e.target.value})} placeholder="—" style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:10, border:`1.5px solid ${C.border}`, outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"#fff" }}/>
-            </div>
+          {VERF.map(v=>(
+            <RCard key={v.id} active={data.availability===v.id}
+              label={v.label} sub={v.sub}
+              onClick={()=>onChange({availability:v.id})}/>
           ))}
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:10 }}>
-          <div>
-            <div style={{ fontSize:10, fontWeight:600, color:C.inkFade, marginBottom:4 }}>Gewicht (kg)</div>
-            <input type="number" min="0" step="0.1" value={data.gewicht||""} onChange={e=>onChange({gewicht:e.target.value})} placeholder="—" style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:10, border:`1.5px solid ${C.border}`, outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"#fff" }}/>
-          </div>
-          <div>
-            <div style={{ fontSize:10, fontWeight:600, color:C.inkFade, marginBottom:4 }}>Material</div>
-            <select value={data.material||""} onChange={e=>onChange({material:e.target.value})} style={{ width:"100%", boxSizing:"border-box", padding:"10px", borderRadius:10, border:`1.5px solid ${C.border}`, outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"#fff" }}>
-              <option value="">—</option>
-              {MATERIALIEN.map(m=><option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-        </div>
       </div>
+
       {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.price||!data.availability}/>}
     </div>
   );
@@ -463,50 +452,49 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       typeof img === "object" ? img : { url: img }
     );
 
-    // size: Breite × Höhe × Tiefe als TEXT-String zusammenführen
-    const sizeStr = [form.breite, form.hoehe, form.tiefe]
-      .filter(Boolean)
-      .map(v => `${v} cm`)
-      .join(" × ") || null;
-
+    // ── Payload: exakt die Spalten die in public.works existieren ──
+    // Bestätigt vorhanden: category, caption, cover_url, creator_id,
+    //   description, file_format, for_sale, images, location_text, materials,
+    //   price, sale_mode, shipping, shipping_cost, shipping_countries,
+    //   shipping_time, status, tags, visibility
+    // NICHT in DB: medium → gemappt auf file_format
+    // NICHT in DB: media_url, size, condition → entfernt
     const payload = {
-      // ── Basis ────────────────────────────────────────────────
       user_id:      userId,
       title:        form.title        || "",
       description:  form.description  || null,
       caption:      form.shortDesc    || null,
       cover_url,
-      media_url:    cover_url,
-      images:       imagesArr,              // JSONB
-      // ── Klassifikation ───────────────────────────────────────
+      images:       imagesArr,
       category:     form.category     || null,
       tags:         form.tags         || [],
-      medium:       form.werktyp      || null,  // Originalwerk / Druck / Digital
-      // ── Preis & Verkauf ──────────────────────────────────────
+      file_format:  form.werktyp      || null,
       price:        parseFloat(form.price) || null,
       for_sale:     form.availability === "available",
       sale_mode:    "fixed",
-      // ── Physikalisch ─────────────────────────────────────────
-      materials:    form.material     || null,  // materials TEXT
-      size:         sizeStr,                    // size TEXT: "30 cm × 40 cm × 5 cm"
-      condition:    form.werktyp === "original" ? "new" : null,
-      // ── Versand & Abholung ───────────────────────────────────
+      materials:    form.material     || null,
       shipping:     !!form.versand,
       shipping_cost: form.versandkosten ? parseFloat(form.versandkosten) : null,
       shipping_countries: [
         form.versandNational,
         form.versandInternational,
       ].filter(Boolean).join(", ") || null,
-      shipping_time: form.versandTime || null,
-      location_text: form.abholort    || null,
-      // ── Sichtbarkeit & Status ─────────────────────────────────
-      visibility:   form.sichtbarkeit || "public",
+      shipping_time: form.versandTime  || null,
+      location_text: form.abholort     || null,
+      visibility:   form.sichtbarkeit  || "public",
       status,
       updated_at:   new Date().toISOString(),
     };
 
-    console.log("[SAVE WERK] payload keys:", Object.keys(payload).join(", "));
-    console.log("[SAVE WERK] images.length:", imagesArr.length, "| medium:", payload.medium, "| status:", status);
+    console.log("[SAVE WERK] PRE-INSERT payload:", JSON.stringify({
+      user_id: payload.user_id?.slice(0,8),
+      title: payload.title,
+      file_format: payload.file_format,
+      price: payload.price,
+      status: payload.status,
+      images_count: imagesArr.length,
+      all_keys: Object.keys(payload),
+    }, null, 2));
     const { data:saved, error }=existingWork?.id
       ? await supabase.from("works").update(payload).eq("id",existingWork.id).eq("user_id",userId).select().single()
       : await supabase.from("works").insert(payload).select().single();
