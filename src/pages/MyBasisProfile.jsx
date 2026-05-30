@@ -712,6 +712,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [visibility, setVisibility] = useState("connections"); // lokal — kein DB-Write
   const [saving,     setSaving]     = useState(false);
   const [saveOk,     setSaveOk]     = useState(false);
+  const [saveErrMsg, setSaveErrMsg] = useState("");
   // Lokale URL-Overrides für sofortige UI-Aktualisierung nach Upload
   const [localAvatar, setLocalAvatar] = useState(null);
   const [localCover,  setLocalCover]  = useState(null);
@@ -776,6 +777,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
         .eq("id", uid);
       if (saveErr) {
         console.error("AUTO_SAVE ERROR:", field, saveErr.message, saveErr.code, JSON.stringify(saveErr));
+        setSaveErrMsg(field + ": " + saveErr.message + " [" + saveErr.code + "]");
+        setTimeout(() => setSaveErrMsg(""), 8000);
       } else {
         console.log("AUTO_SAVE OK:", field, value);
         setSaveOk(true); setTimeout(()=>setSaveOk(false), 2000);
@@ -845,6 +848,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       
       <style>{CSS}</style>
+
+      {/* Save-Error-Toast */}
+      {saveErrMsg ? (
+        <div style={{
+          position:"fixed", top:16, left:"50%", transform:"translateX(-50%)",
+          zIndex:9999, padding:"10px 18px", borderRadius:99,
+          background:"rgba(200,40,40,0.95)", color:"white",
+          fontSize:12, fontWeight:700, maxWidth:"88vw",
+          boxShadow:"0 4px 20px rgba(0,0,0,0.3)",
+          textAlign:"center", lineHeight:1.5,
+        }}>
+          ⚠️ Speicher-Fehler: {saveErrMsg}
+        </div>
+      ) : null}
 
       {/* Save indicator */}
       {(saving || saveOk) && (
