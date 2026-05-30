@@ -501,7 +501,7 @@ function MeineWerke({ loading, isOwner, userId }) {
       setWorksLoading(true);
       const { data, error } = await supabase
         .from("works")
-        .select("id,user_id,title,description,cover_url,media_url,status,created_at")
+        .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at")
         .eq("user_id", userId)
         .neq("status", "archived")
         .order("created_at", { ascending: false });
@@ -523,7 +523,7 @@ function MeineWerke({ loading, isOwner, userId }) {
     (async () => {
       const { data } = await supabase
         .from("works")
-        .select("id,user_id,title,description,cover_url,media_url,status,created_at,for_sale")
+        .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at")
         .eq("user_id", userId)
         .neq("status", "archived")
         .order("created_at", { ascending: false });
@@ -546,7 +546,7 @@ function MeineWerke({ loading, isOwner, userId }) {
       // Reload bei Fehler
       const { data } = await supabase
         .from("works")
-        .select("id,user_id,title,description,cover_url,media_url,status,created_at")
+        .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at")
         .eq("user_id", userId).neq("status", "archived")
         .order("created_at", { ascending: false });
       if (data) setWorks(data);
@@ -562,59 +562,141 @@ function MeineWerke({ loading, isOwner, userId }) {
 
 
 
-        {/* Galerie */}
+        {/* Galerie — professionelle Werkkarten */}
         {isWorksLoading ? (
-          <div style={{ height:90, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
+          <div style={{ display:"flex", gap:10 }}>
+            {[0,1,2].map(i => (
+              <div key={i} style={{
+                flexShrink:0, width:160, borderRadius:12,
+                background:"rgba(26,26,24,0.05)", height:200,
+              }}/>
+            ))}
+          </div>
+        ) : works.length === 0 ? (
+          <div style={{
+            textAlign:"center", padding:"28px 16px",
+            color:"rgba(26,26,24,0.35)", fontSize:13,
+          }}>
+            Noch keine Werke — füge dein erstes Werk hinzu.
+          </div>
         ) : (
-          <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:2, scrollbarWidth:"none" }}>
-            {works.map(w => (
-              <div key={w.id} style={{
-                flexShrink:0, position:"relative",
-                width:90, height:90, borderRadius:8, overflow:"hidden", background:"#e8e4df",
-              }}>
-                <img
-                  src={w.cover_url || w.media_url}
-                  alt={w.title || ""}
-                  style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-                  onError={e => { e.currentTarget.style.display="none"; }}
-                />
-                {/* Titel-Overlay wenn vorhanden */}
-                {w.title && (
-                  <div style={{
-                    position:"absolute", bottom:0, left:0, right:0,
-                    background:"linear-gradient(transparent,rgba(0,0,0,0.55))",
-                    padding:"14px 5px 4px",
-                  }}>
+          <div style={{
+            display:"flex", gap:10,
+            overflowX:"auto", paddingBottom:4,
+            scrollbarWidth:"none", WebkitOverflowScrolling:"touch",
+          }}>
+            {works.map(w => {
+              // Status-Logik: for_sale=true → Verfügbar, status=draft → Entwurf, else → n/a
+              const statusLabel = w.status === "draft"
+                ? { label:"Entwurf", color:"rgba(26,26,24,0.40)", dot:"#aaa" }
+                : w.for_sale
+                  ? { label:"Verfügbar", color:"#16A34A", dot:"#16A34A" }
+                  : { label:"Nicht zum Verkauf", color:"rgba(26,26,24,0.40)", dot:"#aaa" };
+
+              const priceStr = w.price
+                ? parseFloat(w.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
+                : null;
+
+              return (
+                <div key={w.id} style={{
+                  flexShrink:0, position:"relative",
+                  width:160, borderRadius:12,
+                  background:"#fff",
+                  border:"1px solid rgba(26,26,24,0.09)",
+                  boxShadow:"0 1px 8px rgba(26,26,24,0.07)",
+                  overflow:"hidden",
+                  touchAction:"manipulation",
+                }}>
+                  {/* Bild */}
+                  <div style={{ width:"100%", height:130, background:"#eee9e3", position:"relative", overflow:"hidden" }}>
+                    {w.cover_url ? (
+                      <img
+                        src={w.cover_url}
+                        alt={w.title || ""}
+                        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+                        onError={e => { e.currentTarget.style.display="none"; }}
+                      />
+                    ) : (
+                      <div style={{
+                        width:"100%", height:"100%",
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:32, opacity:0.3,
+                      }}>🎨</div>
+                    )}
+                    {/* Owner Controls — Löschen oben rechts */}
+                    {isOwner && (
+                      <button onClick={() => deleteWork(w.id)} style={{
+                        position:"absolute", top:6, right:6,
+                        width:22, height:22, borderRadius:"50%",
+                        background:"rgba(0,0,0,0.50)", border:"none",
+                        color:"white", fontSize:13,
+                        cursor:"pointer", touchAction:"manipulation",
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                      }}>×</button>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ padding:"10px 11px 11px" }}>
+                    {/* Titel */}
                     <div style={{
-                      fontSize:9, fontWeight:600, color:"white",
-                      overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
-                      paddingLeft:4,
+                      fontSize:13, fontWeight:700,
+                      color:"#1A1A18", lineHeight:1.25,
+                      marginBottom:5,
+                      overflow:"hidden", display:"-webkit-box",
+                      WebkitLineClamp:2, WebkitBoxOrient:"vertical",
                     }}>
-                      {w.title}
+                      {w.title || "Ohne Titel"}
+                    </div>
+
+                    {/* Preis */}
+                    {priceStr && (
+                      <div style={{
+                        fontSize:14, fontWeight:800,
+                        color:"#0EC4B8", marginBottom:5,
+                        letterSpacing:"-0.02em",
+                      }}>
+                        {priceStr}
+                      </div>
+                    )}
+
+                    {/* Status */}
+                    <div style={{
+                      display:"flex", alignItems:"center", gap:5,
+                    }}>
+                      <span style={{
+                        width:6, height:6, borderRadius:"50%",
+                        background:statusLabel.dot, flexShrink:0,
+                        display:"inline-block",
+                      }}/>
+                      <span style={{
+                        fontSize:10.5, fontWeight:600,
+                        color:statusLabel.color,
+                      }}>
+                        {statusLabel.label}
+                      </span>
                     </div>
                   </div>
-                )}
-                {/* Owner Controls */}
-                {isOwner && (
-                  <>
-                    {/* Löschen × */}
-                    <button onClick={() => deleteWork(w.id)} style={{
-                      position:"absolute", top:3, right:3, width:20, height:20, borderRadius:"50%",
-                      background:"rgba(0,0,0,0.55)", border:"none", color:"white", fontSize:12,
-                      cursor:"pointer", touchAction:"manipulation",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                    }}>×</button>
-                    {/* Bearbeiten ✎ → Wizard öffnen */}
-                    <button onClick={() => { setEditingWork(w); setShowWizard(true); }} style={{
-                      position:"absolute", bottom:3, right:3, width:20, height:20, borderRadius:"50%",
-                      background:"rgba(14,196,184,0.85)", border:"none", color:"white", fontSize:10,
-                      cursor:"pointer", touchAction:"manipulation",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                    }}>✎</button>
-                  </>
-                )}
-              </div>
-            ))}
+
+                  {/* Bearbeiten-Button — unten rechts */}
+                  {isOwner && (
+                    <button
+                      onClick={() => { setEditingWork(w); setShowWizard(true); }}
+                      style={{
+                        position:"absolute", bottom:10, right:10,
+                        background:"rgba(14,196,184,0.12)",
+                        border:"1px solid rgba(14,196,184,0.30)",
+                        borderRadius:8, padding:"3px 8px",
+                        fontSize:10, fontWeight:700, color:"#0EC4B8",
+                        cursor:"pointer", touchAction:"manipulation",
+                      }}
+                    >
+                      Bearbeiten
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 

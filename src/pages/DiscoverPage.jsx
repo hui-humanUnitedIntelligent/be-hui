@@ -600,12 +600,17 @@ const MEDIUM_COLOR = {
 
 function WerkCard({ werk, delay=0 }) {
   const [imgErr, setImgErr] = useState(false);
-  const cover = (!imgErr && werk.cover) ? werk.cover : null;
+  const cover  = (!imgErr && werk.cover) ? werk.cover : null;
   const medCol = MEDIUM_COLOR[werk.medium] || { bg:T.tealSoft, text:T.teal };
+  const priceStr = werk.price != null
+    ? parseFloat(werk.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
+    : null;
+
+  console.log("[DISCOVER WORK CARD]", { id:werk.id, title:werk.title, price:werk.price, cover:!!werk.cover });
 
   return (
     <div className="dp-press dp-in dp-card-hover" style={{
-      width:145, flexShrink:0,
+      width:165, flexShrink:0,
       borderRadius:16, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
@@ -614,61 +619,74 @@ function WerkCard({ werk, delay=0 }) {
       WebkitTapHighlightColor:"transparent",
     }}>
       {/* Cover */}
-      <div style={{ width:"100%", height:100, position:"relative", overflow:"hidden", background:cover ? "#000" : medCol.bg }}>
+      <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
           <img src={cover} alt={werk.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <span style={{ fontSize:28, opacity:0.5 }}>✍️</span>
-            <span style={{ fontSize:10, color:medCol.text, fontWeight:600 }}>Textwerk</span>
+            <span style={{ fontSize:32, opacity:0.4 }}>🎨</span>
           </div>
         )}
-        {/* Medium badge */}
-        <div style={{
-          position:"absolute", top:7, left:7,
-          background:cover ? "rgba(0,0,0,0.52)" : medCol.bg,
-          backdropFilter:cover?"blur(6px)":"none",
-          borderRadius:99, padding:"2px 8px",
-          fontSize:9, fontWeight:700,
-          color: cover ? "rgba(255,255,255,0.92)" : medCol.text,
-          letterSpacing:".02em",
-        }}>
-          ◎ {werk.medium}
-        </div>
-        {/* Play button for music */}
-        {werk.medium === "Musik" && (
+        {/* Kategorie-Badge oben links */}
+        {werk.medium && (
           <div style={{
-            position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
+            position:"absolute", top:8, left:8,
+            background: cover ? "rgba(0,0,0,0.54)" : medCol.bg,
+            backdropFilter: cover ? "blur(6px)" : "none",
+            borderRadius:99, padding:"2px 9px",
+            fontSize:9, fontWeight:700,
+            color: cover ? "rgba(255,255,255,0.92)" : medCol.text,
+            letterSpacing:".03em",
           }}>
-            <div style={{
-              width:34, height:34, borderRadius:"50%",
-              background:"rgba(14,196,184,0.88)", backdropFilter:"blur(4px)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-            }}>
-              <span style={{ fontSize:14, color:"white", marginLeft:2 }}>▶</span>
-            </div>
+            {werk.medium}
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div style={{ padding:"9px 10px 10px" }}>
+      <div style={{ padding:"10px 11px 12px" }}>
+        {/* Titel */}
         <div style={{
-          fontSize:12, fontWeight:700, color:T.ink, marginBottom:3,
-          letterSpacing:"-0.02em", lineHeight:1.25,
+          fontSize:13, fontWeight:700, color:T.ink,
+          marginBottom:3, letterSpacing:"-0.02em", lineHeight:1.25,
           overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:1, WebkitBoxOrient:"vertical",
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
         }}>
           {werk.title}
         </div>
-        <div style={{ fontSize:10.5, color:T.inkFaint, marginBottom:8, fontWeight:400 }}>
+
+        {/* Autor */}
+        <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
           von {werk.author}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-          <span style={{ fontSize:11, color:T.coral }}>♥</span>
-          <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{werk.likes}</span>
-        </div>
+
+        {/* Standort falls vorhanden */}
+        {werk.location && (
+          <div style={{
+            fontSize:10, color:T.inkFaint, marginBottom:6,
+            display:"flex", alignItems:"center", gap:3,
+          }}>
+            <span style={{ fontSize:9 }}>📍</span>
+            <span style={{
+              overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
+            }}>{werk.location}</span>
+          </div>
+        )}
+
+        {/* Preis — prominente Teal-Farbe */}
+        {priceStr ? (
+          <div style={{
+            fontSize:14, fontWeight:800,
+            color:T.teal, letterSpacing:"-0.02em",
+          }}>
+            {priceStr}
+          </div>
+        ) : (
+          <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>
+            Nicht zum Verkauf
+          </div>
+        )}
       </div>
     </div>
   );
@@ -703,20 +721,34 @@ function WerkeSection({ werke, loading, delay=0, view='cards' }) {
               ))
             : werke.map((w) => {
                 const medCol = MEDIUM_COLOR[w.medium] || { bg:T.tealSoft, text:T.teal };
+                const priceStr = w.price != null
+                  ? parseFloat(w.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
+                  : null;
                 return (
                   <div key={w.id} className="dp-list-card">
-                    <div className="dp-list-thumb-placeholder" style={{ background:medCol.bg }}>
+                    <div className="dp-list-thumb-placeholder" style={{ background: w.cover ? "#1A1A18" : medCol.bg }}>
                       {w.cover
-                        ? <img src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.target.style.display='none'}/>
-                        : <span>🎨</span>
+                        ? <img src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
+                        : <span style={{ fontSize:20 }}>🎨</span>
                       }
                     </div>
                     <div style={{ flex:1, overflow:"hidden" }}>
-                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{w.title}</div>
-                      <div style={{ fontSize:11.5, color:T.inkFaint, marginBottom:5 }}>von {w.author}</div>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontSize:11, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{w.medium}</span>
-                        <span style={{ fontSize:11, color:T.coral }}>♥ {w.likes}</span>
+                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em",
+                        overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{w.title}</div>
+                      <div style={{ fontSize:11.5, color:T.inkFaint, marginBottom:4 }}>von {w.author}</div>
+                      {w.location && (
+                        <div style={{ fontSize:10.5, color:T.inkFaint, marginBottom:4, display:"flex", alignItems:"center", gap:3 }}>
+                          <span style={{ fontSize:9 }}>📍</span>
+                          <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{w.location}</span>
+                        </div>
+                      )}
+                      <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                        {w.medium && (
+                          <span style={{ fontSize:10.5, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"2px 8px", fontWeight:600 }}>{w.medium}</span>
+                        )}
+                        {priceStr && (
+                          <span style={{ fontSize:12, fontWeight:800, color:T.teal }}>{priceStr}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1157,7 +1189,7 @@ export default function DiscoverPage({ onView, onMap }) {
         console.log("[DISCOVER QUERY] public.works wird geladen...");
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,visibility,user_id,created_at")
+          .select("id,title,cover_url,category,file_format,tags,status,visibility,price,location_text,user_id,created_at")
           .eq("status", "published")
           .eq("visibility", "public")
           .order("created_at", { ascending:false })
@@ -1178,12 +1210,13 @@ export default function DiscoverPage({ onView, onMap }) {
             digital:  "Digital Art",
           };
           setWerke(ws.map(w => ({
-            id:     w.id,
-            title:  safeStr(w.title, "Werk"),
-            cover:  safeStr(w.cover_url),
-            medium: FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
-            likes:  0,   // likes_count existiert nicht in DB
-            author: "HUI Talent",
+            id:       w.id,
+            title:    safeStr(w.title, "Werk"),
+            cover:    safeStr(w.cover_url),
+            medium:   FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
+            price:    w.price != null ? safeNum(w.price, 0) : null,
+            location: safeStr(w.location_text),
+            author:   "HUI Talent",
           })));
         } else if (!wsErr) {
           // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
