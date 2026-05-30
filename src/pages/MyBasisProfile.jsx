@@ -483,9 +483,12 @@ function MomenteSection({ moments, onChange }) {
 
       const newItems = [...items];
       for (const file of files) {
+        console.log("MOMENT_UPLOAD START", file.name, user.id);
         const url = await uploadProfileImage(file, user.id, "moments");
+        console.log("MOMENT_UPLOAD URL", url);
         newItems.push({ id: `m_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, img: url });
       }
+      console.log("MOMENT_UPLOAD onChange", newItems);
       onChange(newItems);
     } catch (err) {
       console.error("Moment upload error:", err?.message, JSON.stringify(err));
@@ -765,21 +768,22 @@ export default function MyBasisProfile({ onClose, profileId }) {
       uid = au?.id;
     }
     if (!uid) { console.warn("autoSave: kein userId für Feld", field); return; }
+    console.log("AUTO_SAVE START", field, value, "uid:", uid);
     setSaving(true);
     try {
       const { error: saveErr } = await supabase.from("profiles")
         .update({ [field]: value, updated_at: new Date().toISOString() })
         .eq("id", uid);
       if (saveErr) {
-        // Sichtbarer Fehler statt silent warning
-        console.error("autoSave DB error:", field, saveErr.message, saveErr.code, JSON.stringify(saveErr));
+        console.error("AUTO_SAVE ERROR:", field, saveErr.message, saveErr.code, JSON.stringify(saveErr));
       } else {
+        console.log("AUTO_SAVE OK:", field, value);
         setSaveOk(true); setTimeout(()=>setSaveOk(false), 2000);
         // AuthContext-Cache sofort mitaktualisieren
         setAuthProfile(prev => prev ? { ...prev, [field]: value } : prev);
       }
     } catch(e) {
-      console.error("autoSave exception:", field, e?.message);
+      console.error("AUTO_SAVE EXCEPTION:", field, e?.message);
     }
     setSaving(false);
   },[profile?.id, setAuthProfile]);
