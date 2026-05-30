@@ -722,7 +722,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,mood_dna,focus_type,interests")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,interests")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code);
         if (data) {
@@ -730,9 +730,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           setBio(s(data.bio));
           // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
           setInterests(Array.isArray(data.skills) ? data.skills : []);
-          // Momente aus mood_dna laden (ARRAY von URL-Strings, existiert in DB)
-          if (Array.isArray(data.mood_dna) && data.mood_dna.length) {
-            setMoments(data.mood_dna.map((url, i) => ({ id: `db_${i}`, img: url })));
+          // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
+          if (Array.isArray(data.dna_tags) && data.dna_tags.length) {
+            setMoments(data.dna_tags.map((url, i) => ({ id: `db_${i}`, img: url })));
           }
           // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
@@ -789,9 +789,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   const handleMomentsChange = (newItems) => {
     setMoments(newItems);
-    // Persistenz via mood_dna-Spalte (ARRAY von URL-Strings, existiert in profiles)
+    // Persistenz via dna_tags-Spalte (ARRAY von URL-Strings, existiert in profiles)
     const urls = newItems.map(m => m.img).filter(Boolean);
-    autoSave("mood_dna", urls);
+    autoSave("dna_tags", urls);
   };
 
   const handleVisibilityChange = (v) => {

@@ -580,7 +580,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
     (async()=>{
       try {
         const { data } = await supabase.from("profiles")
-          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,mood_dna")
+          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags")
           .eq("id", profileId).single();
         if (data) {
           // Wenn eigenes Profil: AuthContext hat immer die neuesten Änderungen

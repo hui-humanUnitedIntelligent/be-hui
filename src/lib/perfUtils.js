@@ -249,7 +249,7 @@ export const FIELDS = {
 export const PROFILE_FIELDS =
   'id,display_name,username,avatar_url,header_img,bio,' +
   'is_wirker,has_talent_profile,' +
-  'location,availability,skills,mood_dna,' +
+  'location,availability,skills,dna_tags,' +
   'impact_eur,role,membership_type,membership_active,created_at';
 
 // ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
