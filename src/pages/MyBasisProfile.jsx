@@ -499,7 +499,7 @@ function MomenteSection({ moments, onChange }) {
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Momente" sub="Teile kleine Augenblicke aus deinem Alltag."/>
+      <SectionRow title="✨ Meine Erlebnisse" sub="Zeige, was dich bewegt und ausmacht."/>
 
       {items.length > 0 && (
         <div className="mbp-hscroll" style={{
@@ -519,7 +519,7 @@ function MomenteSection({ moments, onChange }) {
         }}>
           <div style={{fontSize:28, marginBottom:6}}>📸</div>
           <div style={{fontSize:13, color:T.inkFaint, lineHeight:1.5}}>
-            Noch keine Momente.<br/>Füge deinen ersten Augenblick hinzu.
+            Noch keine Erlebnisse.<br/>Füge deinen ersten Einblick hinzu.
           </div>
         </div>
       )}
@@ -555,7 +555,7 @@ function MomenteSection({ moments, onChange }) {
       >
         {uploading
           ? <><span className="mbp-uploading" style={{fontSize:14}}>⏳</span> Wird hochgeladen…</>
-          : <><span style={{fontSize:16}}>+</span> Moment hinzufügen</>
+          : <><span style={{fontSize:16}}>+</span> Erlebnis hinzufügen</>
         }
       </button>
     </div>
