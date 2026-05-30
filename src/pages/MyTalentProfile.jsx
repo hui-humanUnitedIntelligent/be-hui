@@ -1,412 +1,257 @@
-// src/pages/MyTalentProfile.jsx — HUI Creator Talent Profile v2
-// "Meine kreative Welt" — UNIFIED: same page for owner + visitor.
-// Owner: edit buttons visible per section.
-// Visitor: read-only view of identical layout.
-// Reference: screenshot 2026-05-29, verbindlich 1:1.
+// src/pages/MyTalentProfile.jsx — HUI Talent Profile v3
+// Referenz: Screenshot 2026-05-30 — 1:1 Umsetzung
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 
-// ── Design Tokens ────────────────────────────────────────────────
+// ── Design Tokens ─────────────────────────────────────────────
 const T = {
-  bg:       "#F8F7F4",
-  bgCard:   "#FFFFFF",
-  bgSheet:  "rgba(252,251,248,0.98)",
-  teal:     "#0EC4B8",
-  tealSoft: "rgba(14,196,184,0.10)",
-  tealMid:  "rgba(14,196,184,0.22)",
-  tealDark: "#0DBBAF",
-  ink:      "#1A1A18",
-  inkSoft:  "rgba(26,26,24,0.55)",
-  inkFaint: "rgba(26,26,24,0.30)",
-  border:   "rgba(26,26,24,0.09)",
-  borderMid:"rgba(26,26,24,0.14)",
+  bg:        "#F8F7F4",
+  bgCard:    "#FFFFFF",
+  teal:      "#0EC4B8",
+  tealSoft:  "rgba(14,196,184,0.10)",
+  tealMid:   "rgba(14,196,184,0.22)",
+  tealDark:  "#0DBBAF",
+  ink:       "#1A1A18",
+  inkSoft:   "rgba(26,26,24,0.55)",
+  inkFaint:  "rgba(26,26,24,0.32)",
+  border:    "rgba(26,26,24,0.09)",
+  borderMid: "rgba(26,26,24,0.14)",
+  card:      "0 1px 6px rgba(26,26,24,0.06), 0 1px 2px rgba(26,26,24,0.03)",
   px: 16,
-  r8:8, r12:12, r16:16, r20:20, r24:24, r99:99,
-  card:     "0 1px 8px rgba(26,26,24,0.07), 0 1px 2px rgba(26,26,24,0.04)",
-  cardMd:   "0 2px 12px rgba(26,26,24,0.09), 0 1px 3px rgba(26,26,24,0.05)",
-  glow:     "0 4px 18px rgba(14,196,184,0.28)",
-  sheet:    "0 -10px 40px rgba(26,26,24,0.12)",
 };
 
 const CSS = `
-  .ctp-root {
-    background:${T.bg};
+  .mtp-root {
+    background:#F8F7F4;
     font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
-    color:${T.ink}; width:100%; overflow-x:hidden;
+    color:#1A1A18; width:100%; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
   }
-  .ctp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-  .ctp-scroll::-webkit-scrollbar { display:none; }
-  .ctp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-  .ctp-hscroll::-webkit-scrollbar { display:none; }
-  @keyframes ctp-fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes ctp-slide-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
-  @keyframes ctp-shimmer { from{background-position:-200% 0} to{background-position:200% 0} }
-  .ctp-sk {
-    background:linear-gradient(90deg,rgba(26,26,24,.05) 25%,rgba(26,26,24,.10) 50%,rgba(26,26,24,.05) 75%);
-    background-size:200% 100%; animation:ctp-shimmer 1.4s ease-in-out infinite; border-radius:8px;
-  }
-  .ctp-press { transition:transform .13s cubic-bezier(.22,1,.36,1),opacity .13s ease; cursor:pointer; }
-  .ctp-press:active { transform:scale(0.93); opacity:0.72; }
-  .ctp-in { animation:ctp-fade .42s ease both; }
-  .ctp-sheet { animation:ctp-slide-up .26s cubic-bezier(.22,1,.36,1) both; }
-  .ctp-section {
-    background:${T.bgCard}; border-radius:${T.r16}px;
-    border:1px solid ${T.border};
-    margin:0 ${T.px}px;
-    box-shadow:${T.card};
+  .mtp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .mtp-scroll::-webkit-scrollbar { display:none; }
+  @keyframes mtp-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  .mtp-in { animation:mtp-in .38s ease both; }
+  .mtp-press { transition:transform .12s ease,opacity .12s ease; cursor:pointer; }
+  .mtp-press:active { transform:scale(0.95); opacity:0.7; }
+  .mtp-sec {
+    background:#FFFFFF; border-radius:14px;
+    border:1px solid rgba(26,26,24,0.09);
+    margin:0 16px;
+    box-shadow:0 1px 6px rgba(26,26,24,0.06),0 1px 2px rgba(26,26,24,0.03);
     overflow:hidden;
   }
-  .ctp-section-pad { padding:18px 18px 20px; }
-  .ctp-edit-btn {
-    display:inline-flex; align-items:center; gap:5px;
-    background:none; border:none; padding:0;
-    font-size:12px; color:${T.teal}; font-weight:600;
-    cursor:pointer; touch-action:manipulation;
-    font-family:inherit; flex-shrink:0;
+  .mtp-sec-pad { padding:16px 16px 18px; }
+  .mtp-sec-hdr { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
+  .mtp-sec-title { font-size:15px;font-weight:700;color:#1A1A18; }
+  .mtp-sec-sub { font-size:12px;color:rgba(26,26,24,0.32);margin-top:1px; }
+  .mtp-edit {
+    font-size:12.5px;font-weight:600;color:#0EC4B8;
+    background:none;border:none;padding:0;cursor:pointer;
+    font-family:inherit;touch-action:manipulation;flex-shrink:0;
+    display:inline-flex;align-items:center;gap:2px;
   }
-  .ctp-edit-btn:active { opacity:0.6; }
-  .ctp-add-btn {
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; padding:12px;
-    border:1.5px dashed ${T.borderMid}; border-radius:${T.r12}px;
-    background:transparent; font-size:13px; font-weight:600; color:${T.inkFaint};
-    cursor:pointer; touch-action:manipulation; font-family:inherit;
-    transition:all .18s ease;
+  .mtp-edit:active { opacity:0.6; }
+  .mtp-add {
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    width:100%;padding:11px;
+    border:1.5px dashed rgba(26,26,24,0.14);border-radius:12px;
+    background:transparent;font-size:12.5px;font-weight:600;color:rgba(26,26,24,0.32);
+    cursor:pointer;touch-action:manipulation;font-family:inherit;
+    transition:background .15s ease;margin-top:10px;box-sizing:border-box;
   }
-  .ctp-add-btn:active { background:rgba(26,26,24,0.03); }
+  .mtp-add:active { background:rgba(26,26,24,0.03); }
+  .mtp-overlay {
+    position:fixed;inset:0;z-index:9800;
+    background:rgba(0,0,0,0.38);
+    display:flex;align-items:flex-end;
+  }
+  @keyframes mtp-up { from{transform:translateY(100%)} to{transform:none} }
+  .mtp-sheet {
+    width:100%;background:#FFFFFF;
+    border-radius:20px 20px 0 0;
+    padding:24px 20px max(28px,calc(20px + env(safe-area-inset-bottom,0px)));
+    animation:mtp-up .24s cubic-bezier(.22,1,.36,1) both;
+    max-height:82vh;overflow-y:auto;box-sizing:border-box;
+  }
 `;
 
-// ── Helpers ──────────────────────────────────────────────────────
-const s  = (v, fb="") => (v && typeof v==="string" ? v.trim() : fb);
-const a  = (v) => Array.isArray(v) ? v : [];
-const dl = (i, ms=50) => ({ animationDelay:`${i*ms}ms` });
-
-const FB_COVER = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
-const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
-
-const DEFAULT_TAGS  = ["Kunst","Natur","Farbe","Emotion"];
-const DEFAULT_BIO   = "Ich male, um das Unsichtbare sichtbar zu machen.\nInspiration finde ich in der Natur, im Licht\nund in echten Begegnungen.";
-const DEFAULT_ROLE  = "Malerin & Illustratorin aus Hamburg";
-
-const DEFAULT_TALENTS = [
-  { icon:"🎨", label:"Malen",        sub:"Öl, Acryl, Aquarell"     },
-  { icon:"🖌",  label:"Illustration",  sub:"Digital & Handzeichnung" },
-  { icon:"👥", label:"Workshops",     sub:"Kreativ Workshops"        },
-  { icon:"⭐", label:"Kunstberatung", sub:"Räume & Konzepte"         },
-  { icon:"👜", label:"Auftragskunst", sub:"Individuelle Werke"       },
-];
-
+// ── Seed Data ──────────────────────────────────────────────────
+const DEFAULT_BIO = "Ich male, um das Unsichtbare sichtbar zu machen.\nInspiration finde ich in der Natur, im Licht\nund in echten Begegnungen.";
+const DEFAULT_TALENTS = ["Malen","Illustration","Workshops","Kunstberatung","Auftragskunst"];
+const TALENT_ICONS = {
+  "Malen":"🎨","Illustration":"🖌","Workshops":"👥","Kunstberatung":"⭐",
+  "Auftragskunst":"👜","Fotografie":"📷","Musik":"🎵","Design":"✏️",
+};
 const SEED_WORKS = [
   { id:"w1", img:"https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=75" },
   { id:"w2", img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&q=75" },
   { id:"w3", img:"https://images.unsplash.com/photo-1518791841217-8f162f1912da?w=400&q=75" },
   { id:"w4", img:"https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=400&q=75" },
+  { id:"w5", img:"https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&q=75" },
 ];
-
 const SEED_EXP = [
   { id:"e1", title:"Malkurs: Intuitives Malen",  type:"Workshop",    date:"Mai 2024",   img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&q=70" },
   { id:"e2", title:"Gemeinschaftsausstellung",    type:"Ausstellung", date:"März 2024",  img:"https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=300&q=70" },
   { id:"e3", title:"Live Painting Event",         type:"Event",       date:"Feb. 2024",  img:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&q=70" },
   { id:"e4", title:"Kunst für den guten Zweck",   type:"Projekt",     date:"Jan. 2024",  img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&q=70" },
 ];
+const SEED_REVIEW = {
+  text: "Deine Bilder berühren etwas in mir, das Worte nicht können.",
+  author: "– Julia M.",
+  avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=70",
+};
+const FB_COVER = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
+const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
 
-// ── Atoms ─────────────────────────────────────────────────────────
-function Gap({ h=16 }) { return <div style={{ height:h }}/>; }
-function Sk({ w, h, r=8, style={} }) {
-  return <div className="ctp-sk" style={{ width:w, height:h, borderRadius:r, flexShrink:0, ...style }}/>;
-}
-function SectionHeader({ title, isOwner, onEdit }) {
-  return (
-    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-      <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>{title}</div>
-      {isOwner && (
-        <button className="ctp-edit-btn" onClick={onEdit}>
-          <span style={{ fontSize:13 }}>✏</span> Bearbeiten
-        </button>
-      )}
-    </div>
-  );
-}
+// ── Helpers ────────────────────────────────────────────────────
+const sv = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
+function Gap({ h=12 }) { return <div style={{ height:h }}/>; }
+
+// ── BottomSheet ────────────────────────────────────────────────
 function BottomSheet({ onClose, children }) {
   return (
-    <div onClick={onClose} style={{
-      position:"fixed", inset:0, zIndex:9900,
-      background:"rgba(26,26,24,0.42)", display:"flex", alignItems:"flex-end",
-    }}>
-      <div className="ctp-sheet" onClick={e=>e.stopPropagation()} style={{
-        width:"100%", background:T.bgSheet,
-        borderRadius:`${T.r24}px ${T.r24}px 0 0`,
-        padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
-        boxShadow:T.sheet, maxHeight:"82vh", overflowY:"auto",
-      }}>
-        <div style={{ width:36, height:4, borderRadius:99, background:T.borderMid, margin:"0 auto 22px" }}/>
+    <div className="mtp-overlay" onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
+      <div className="mtp-sheet">
+        <div style={{ width:36,height:4,borderRadius:99,background:"rgba(26,26,24,0.15)",margin:"0 auto 20px" }}/>
         {children}
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// 1. HERO COVER + AVATAR IDENTITY BLOCK
-// ══════════════════════════════════════════════════════════════════
-function HeroBlock({ profile, loading, isOwner }) {
-  const [coverOk, setCoverOk] = useState(false);
-  const [avOk,    setAvOk]    = useState(false);
-  const cover  = s(profile?.header_img, FB_COVER);
-  const avatar = s(profile?.avatar_url, FB_AVT);
-  const name   = s(profile?.display_name || profile?.username, "Lea Martin");
-  const role   = s(profile?.talent_role || profile?.role_label, DEFAULT_ROLE);
-  const tags   = a(profile?.value_tags).length ? a(profile.value_tags) : DEFAULT_TAGS;
-
+// ── SecHdr ─────────────────────────────────────────────────────
+function SecHdr({ title, sub, onEdit, isOwner }) {
   return (
-    <div style={{ background:T.bgCard, borderRadius:T.r16, margin:`0 ${T.px}px`, overflow:"hidden", boxShadow:T.cardMd, border:`1px solid ${T.border}` }}>
-      {/* Cover image */}
-      <div style={{ width:"100%", height:160, position:"relative", background:"linear-gradient(135deg,#3B2010 0%,#8B4513 40%,#C8722A 100%)", overflow:"hidden" }}>
-        {loading
-          ? <div className="ctp-sk" style={{ position:"absolute", inset:0, borderRadius:0 }}/>
-          : <img src={cover} alt="" onLoad={()=>setCoverOk(true)} onError={()=>setCoverOk(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
-                opacity:coverOk?0.88:0, transition:"opacity 1s ease" }}/>
-        }
+    <div className="mtp-sec-hdr">
+      <div>
+        <div className="mtp-sec-title">{title}</div>
+        {sub && <div className="mtp-sec-sub">{sub}</div>}
       </div>
-
-      {/* Identity row: avatar left + info right */}
-      <div style={{ padding:"0 16px 16px" }}>
-        <div style={{ display:"flex", alignItems:"flex-end", gap:14, marginTop:-36 }}>
-          {/* Avatar with camera button */}
-          <div style={{ position:"relative", flexShrink:0 }}>
-            <div style={{
-              width:80, height:80, borderRadius:"50%",
-              border:"3.5px solid white",
-              boxShadow:"0 3px 16px rgba(0,0,0,0.18)",
-              overflow:"hidden", background:T.bg,
-            }}>
-              {loading
-                ? <div className="ctp-sk" style={{ width:"100%", height:"100%", borderRadius:"50%" }}/>
-                : <>
-                    {!avOk && <div className="ctp-sk" style={{ position:"absolute", inset:0, borderRadius:"50%" }}/>}
-                    <img src={avatar} alt="" onLoad={()=>setAvOk(true)} onError={()=>setAvOk(true)}
-                      style={{ width:"100%", height:"100%", objectFit:"cover",
-                        opacity:avOk?1:0, transition:"opacity .5s ease" }}/>
-                  </>
-              }
-            </div>
-            {isOwner && (
-              <button className="ctp-press" style={{
-                position:"absolute", bottom:1, right:1,
-                width:24, height:24, borderRadius:"50%",
-                background:T.bgCard, border:`1.5px solid ${T.border}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:11, touchAction:"manipulation",
-                boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
-              }}>📷</button>
-            )}
-          </div>
-
-          {/* Name + role + tags */}
-          <div style={{ flex:1, paddingBottom:2 }}>
-            {loading
-              ? <Sk w={140} h={22} r={6} style={{ marginBottom:6 }}/>
-              : <div style={{ fontSize:20, fontWeight:800, color:T.ink, letterSpacing:"-0.03em",
-                  display:"flex", alignItems:"center", gap:7, lineHeight:1.2, marginBottom:2 }}>
-                  {name} <span style={{ fontSize:16 }}>🌿</span>
-                </div>
-            }
-            {loading
-              ? <Sk w={180} h={14} r={5} style={{ marginBottom:10 }}/>
-              : <div style={{ fontSize:12.5, color:T.inkSoft, marginBottom:10, fontWeight:400 }}>{role}</div>
-            }
-            {/* Value tags */}
-            <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-              {loading
-                ? [0,1,2,3].map(i=><Sk key={i} w={52} h={26} r={T.r99}/>)
-                : tags.map((tag, i) => (
-                    <div key={i} style={{
-                      padding:"5px 12px", borderRadius:T.r99,
-                      background:T.bg, border:`1px solid ${T.border}`,
-                      fontSize:12, fontWeight:600, color:T.ink,
-                      boxShadow:T.card,
-                    }}>{tag}</div>
-                  ))
-              }
-            </div>
-          </div>
-        </div>
-
-        {/* Action buttons: Profil teilen + Profilvorschau */}
-        <Gap h={14}/>
-        <div style={{ display:"flex", gap:8 }}>
-          <button className="ctp-press" style={{
-            flex:1, padding:"10px 0", borderRadius:T.r12,
-            background:T.bgCard, border:`1.5px solid ${T.border}`,
-            fontSize:13, fontWeight:700, color:T.ink,
-            touchAction:"manipulation", fontFamily:"inherit",
-            boxShadow:T.card,
-          }}>Profil teilen</button>
-          <button className="ctp-press" style={{
-            flex:1, padding:"10px 0", borderRadius:T.r12,
-            background:`linear-gradient(135deg,${T.teal},${T.tealDark})`,
-            border:"none",
-            fontSize:13, fontWeight:700, color:"white",
-            touchAction:"manipulation", fontFamily:"inherit",
-            boxShadow:T.glow,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-          }}>
-            <span style={{ fontSize:14 }}>👁</span> Profilvorschau
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// 2. ÜBER MICH — editorial text card with nature thumbnail right
-// ══════════════════════════════════════════════════════════════════
-function UeberMich({ profile, loading, isOwner }) {
-  const [editing, setEditing] = useState(false);
-  const [draft,   setDraft]   = useState("");
-  const [imgOk,   setImgOk]   = useState(false);
-  const bio = s(profile?.bio, DEFAULT_BIO);
-  const MAX = 280;
-
-  const handleSave = async () => {
-    setEditing(false);
-    if (!profile?.id) return;
-    try { await supabase.from("profiles").update({ bio: draft.trim() }).eq("id", profile.id); }
-    catch(e) { console.warn("bio save:", e); }
-  };
-
-  return (
-    <div className="ctp-section">
-      <div className="ctp-section-pad">
-        <SectionHeader title="Über mich" isOwner={isOwner} onEdit={()=>{ setDraft(bio); setEditing(true); }}/>
-        <div style={{ display:"flex", gap:14, alignItems:"flex-start" }}>
-          {/* Text left */}
-          <div style={{ flex:1 }}>
-            {loading ? (
-              <><Sk w="100%" h={14} r={5} style={{marginBottom:6}}/><Sk w="90%" h={14} r={5} style={{marginBottom:6}}/><Sk w="75%" h={14} r={5}/></>
-            ) : editing ? (
-              <>
-                <textarea autoFocus value={draft} onChange={e=>setDraft(e.target.value.slice(0,MAX))}
-                  style={{ width:"100%", minHeight:80, border:`1.5px solid ${T.tealMid}`,
-                    borderRadius:T.r12, padding:"10px 12px", outline:"none",
-                    background:T.bgSheet, fontSize:13.5, color:T.ink,
-                    lineHeight:1.68, resize:"none", fontFamily:"inherit",
-                    fontStyle:"italic", boxSizing:"border-box" }}
-                  placeholder="Deine persönliche Vorstellung..."
-                />
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8 }}>
-                  <span style={{ fontSize:11, color:T.inkFaint }}>{draft.length} / {MAX}</span>
-                  <div style={{ display:"flex", gap:8 }}>
-                    <button className="ctp-press" onClick={()=>setEditing(false)} style={{
-                      padding:"7px 14px", borderRadius:T.r99, border:`1px solid ${T.border}`,
-                      background:"transparent", fontSize:12, fontWeight:600, color:T.inkSoft,
-                      touchAction:"manipulation", fontFamily:"inherit",
-                    }}>Abbrechen</button>
-                    <button className="ctp-press" onClick={handleSave} style={{
-                      padding:"7px 16px", borderRadius:T.r99, border:"none",
-                      background:`linear-gradient(135deg,${T.teal},${T.tealDark})`,
-                      fontSize:12, fontWeight:700, color:"white",
-                      touchAction:"manipulation", fontFamily:"inherit", boxShadow:T.glow,
-                    }}>Speichern</button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <p style={{ fontSize:13.5, lineHeight:1.72, color:T.inkSoft, margin:0,
-                fontFamily:"-apple-system,'Georgia',serif", fontStyle:"italic",
-                whiteSpace:"pre-line" }}>{bio}</p>
-            )}
-          </div>
-          {/* Thumbnail right — matches screenshot nature image */}
-          {!editing && (
-            <div style={{ flexShrink:0, width:100, height:90, borderRadius:T.r12, overflow:"hidden",
-              background:"rgba(26,26,24,0.06)", position:"relative" }}>
-              {!imgOk && <div className="ctp-sk" style={{ position:"absolute", inset:0 }}/>}
-              <img
-                src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=75"
-                alt="" onLoad={()=>setImgOk(true)} onError={()=>setImgOk(true)}
-                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
-                  opacity:imgOk?1:0, transition:"opacity .5s ease" }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// 3. MEINE WERKE — 2×2 grid + "..." menu per work + add button
-// ══════════════════════════════════════════════════════════════════
-function WorkImg({ w, isOwner, onRemove }) {
-  const [ok, setOk] = useState(false);
-  const [menu, setMenu] = useState(false);
-  return (
-    <div style={{ position:"relative", borderRadius:T.r12, overflow:"hidden",
-      background:"rgba(26,26,24,0.07)", aspectRatio:"1" }}>
-      {!ok && <div className="ctp-sk" style={{ position:"absolute", inset:0 }}/>}
-      <img src={w.img} alt="" onLoad={()=>setOk(true)} onError={()=>setOk(true)}
-        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
-          opacity:ok?1:0, transition:"opacity .5s ease" }}/>
-      {isOwner && (
-        <>
-          <button onClick={()=>setMenu(m=>!m)} style={{
-            position:"absolute", top:7, right:7,
-            width:26, height:26, borderRadius:"50%",
-            background:"rgba(255,255,255,0.88)", backdropFilter:"blur(6px)",
-            border:"none", fontSize:14, display:"flex", alignItems:"center",
-            justifyContent:"center", cursor:"pointer", touchAction:"manipulation",
-            boxShadow:"0 1px 6px rgba(0,0,0,0.12)", color:T.ink,
-          }}>···</button>
-          {menu && (
-            <div style={{
-              position:"absolute", top:36, right:7, zIndex:20,
-              background:T.bgCard, borderRadius:T.r12, boxShadow:T.cardMd,
-              border:`1px solid ${T.border}`, overflow:"hidden", minWidth:120,
-            }}>
-              {[["✏","Bearbeiten"],["🗑","Entfernen"]].map(([ic,lb])=>(
-                <button key={lb} onClick={()=>{ if(lb==="Entfernen") onRemove(w.id); setMenu(false); }} style={{
-                  display:"flex", alignItems:"center", gap:9, width:"100%",
-                  padding:"11px 14px", background:"none", border:"none",
-                  fontSize:13, fontWeight:600, color: lb==="Entfernen" ? "#E53E3E" : T.ink,
-                  cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-                  textAlign:"left",
-                }}><span>{ic}</span>{lb}</button>
-              ))}
-            </div>
-          )}
-        </>
+      {isOwner && onEdit && (
+        <button className="mtp-edit" onClick={onEdit}>
+          Bearbeiten <span style={{ fontSize:11, color:"#0EC4B8" }}>›</span>
+        </button>
       )}
     </div>
   );
 }
 
-function MeineWerke({ profile, loading, isOwner }) {
-  const [works, setWorks] = useState(SEED_WORKS);
-  const remove = (id) => setWorks(w=>w.filter(x=>x.id!==id));
+// ══════════════════════════════════════════════════════════════
+// 0. PAGE TITLE
+// ══════════════════════════════════════════════════════════════
+function PageTitle({ isOwner }) {
   return (
-    <div className="ctp-section">
-      <div className="ctp-section-pad">
-        <SectionHeader title="Meine Werke" isOwner={isOwner} onEdit={()=>{}}/>
-        {loading ? (
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {[0,1,2,3].map(i=><Sk key={i} w="100%" h={140} r={T.r12} style={{aspectRatio:"1"}}/>)}
-          </div>
-        ) : (
+    <div style={{ padding:"14px 16px 10px", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
+      <div>
+        <div style={{ fontSize:22, fontWeight:800, color:"#1A1A18", letterSpacing:-0.3 }}>
+          Mein Talent-Profil ✨
+        </div>
+        <div style={{ fontSize:12.5, color:"rgba(26,26,24,0.32)", marginTop:3, lineHeight:1.4 }}>
+          Gestalte dein Talent-Profil so, wie es dich und dein Wirken zeigt.
+        </div>
+      </div>
+      {isOwner && (
+        <button style={{ background:"none", border:"none", padding:"2px 0 0 10px", cursor:"pointer", touchAction:"manipulation", flexShrink:0 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="rgba(26,26,24,0.32)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 1. HEADER — Cover + Avatar
+// ══════════════════════════════════════════════════════════════
+function ProfileHeader({ profile, loading, isOwner }) {
+  const coverRef  = useRef(null);
+  const avatarRef = useRef(null);
+  const cover  = sv(profile?.header_img, FB_COVER);
+  const avatar = sv(profile?.avatar_url, FB_AVT);
+
+  async function uploadImage(file, folder) {
+    if (!file) return null;
+    const { data:{ user } } = await supabase.auth.getUser();
+    const ext = file.name.split(".").pop();
+    const path = `${folder}/${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("media").upload(path, file, { upsert:true });
+    if (error) { console.error(error); return null; }
+    const { data } = supabase.storage.from("media").getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  async function handleCoverChange(e) {
+    const file = e.target.files?.[0]; if (!file) return;
+    const url = await uploadImage(file, "covers");
+    if (url) {
+      const { data:{ user } } = await supabase.auth.getUser();
+      await supabase.from("profiles").update({ header_img:url }).eq("id", user.id);
+    }
+  }
+
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0]; if (!file) return;
+    const url = await uploadImage(file, "avatars");
+    if (url) {
+      const { data:{ user } } = await supabase.auth.getUser();
+      await supabase.from("profiles").update({ avatar_url:url }).eq("id", user.id);
+    }
+  }
+
+  return (
+    <div style={{ position:"relative", width:"100%" }}>
+      {/* Cover */}
+      <div style={{ width:"100%", height:160, position:"relative", overflow:"hidden", background:"#e8e4df" }}>
+        {!loading && <img src={cover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>}
+        {isOwner && (
           <>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
-              {works.map(w=><WorkImg key={w.id} w={w} isOwner={isOwner} onRemove={remove}/>)}
-            </div>
-            {isOwner && (
-              <button className="ctp-add-btn">
-                <span style={{ fontSize:16 }}>+</span> Werk hinzufügen
-              </button>
-            )}
+            <input ref={coverRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleCoverChange}/>
+            <button onClick={() => coverRef.current?.click()} style={{
+              position:"absolute", top:10, right:10, width:32, height:32, borderRadius:"50%",
+              background:"rgba(0,0,0,0.40)", border:"none",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", touchAction:"manipulation",
+            }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Avatar */}
+      <div style={{ position:"absolute", bottom:-42, left:"50%", transform:"translateX(-50%)" }}>
+        <div style={{
+          width:84, height:84, borderRadius:"50%",
+          border:"3px solid white",
+          boxShadow:"0 2px 12px rgba(0,0,0,0.18)",
+          overflow:"hidden", background:"#ddd", position:"relative",
+        }}>
+          {!loading && <img src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+        </div>
+        {isOwner && (
+          <>
+            <input ref={avatarRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleAvatarChange}/>
+            <button onClick={() => avatarRef.current?.click()} style={{
+              position:"absolute", bottom:0, right:0,
+              width:26, height:26, borderRadius:"50%",
+              background:"#FFFFFF", border:"2px solid white",
+              boxShadow:"0 1px 4px rgba(0,0,0,0.18)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", touchAction:"manipulation",
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A1A18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </button>
           </>
         )}
       </div>
@@ -414,54 +259,166 @@ function MeineWerke({ profile, loading, isOwner }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// 4. MEINE TALENTE & ANGEBOTE — pills with subtitle text
-// ══════════════════════════════════════════════════════════════════
-function TalenteAngebote({ profile, loading, isOwner }) {
-  const [showEdit, setShowEdit] = useState(false);
-  const talents = DEFAULT_TALENTS;
+// ══════════════════════════════════════════════════════════════
+// 2. ÜBER MICH
+// ══════════════════════════════════════════════════════════════
+function UeberMich({ profile, loading, isOwner }) {
+  const MAX = 220;
+  const [bio, setBio]         = useState(DEFAULT_BIO);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft]     = useState("");
+  const [saving, setSaving]   = useState(false);
+
+  useEffect(() => { if (profile?.bio) setBio(profile.bio); }, [profile?.bio]);
+
+  async function save() {
+    setSaving(true);
+    const { data:{ user } } = await supabase.auth.getUser();
+    await supabase.from("profiles").update({ bio: draft }).eq("id", user.id);
+    setBio(draft); setSaving(false); setEditing(false);
+  }
+
   return (
-    <div className="ctp-section">
-      <div className="ctp-section-pad">
-        <SectionHeader title="Meine Talente & Angebote" isOwner={isOwner} onEdit={()=>setShowEdit(true)}/>
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <SecHdr title="Über mich" isOwner={isOwner}
+          onEdit={() => { setDraft(bio); setEditing(true); }}/>
         {loading ? (
-          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-            {[0,1,2,3,4].map(i=><Sk key={i} w={120} h={72} r={T.r12}/>)}
-          </div>
+          <div style={{ height:72, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
         ) : (
-          <div className="ctp-hscroll" style={{ display:"flex", gap:10, paddingBottom:4 }}>
-            {talents.map((t,i)=>(
-              <div key={i} className="ctp-in" style={{ ...dl(i,50),
-                flexShrink:0, width:110,
-                background:T.bg, borderRadius:T.r12,
-                border:`1px solid ${T.border}`, padding:"12px",
-                boxShadow:T.card,
-              }}>
-                <div style={{ fontSize:22, marginBottom:6 }}>{t.icon}</div>
-                <div style={{ fontSize:12.5, fontWeight:700, color:T.ink, lineHeight:1.3, marginBottom:3 }}>{t.label}</div>
-                <div style={{ fontSize:10.5, color:T.inkFaint, lineHeight:1.35 }}>{t.sub}</div>
-              </div>
-            ))}
+          <div style={{
+            position:"relative",
+            border:"1px solid rgba(26,26,24,0.09)", borderRadius:12,
+            padding:"12px 14px 28px", background:"#FFFFFF",
+          }}>
+            <p style={{ margin:0, fontSize:13.5, lineHeight:1.7, color:"#1A1A18", whiteSpace:"pre-line" }}>
+              {bio || DEFAULT_BIO}
+            </p>
+            <span style={{ position:"absolute", bottom:8, right:12, fontSize:11, color:"rgba(26,26,24,0.32)", fontWeight:500 }}>
+              {(bio||DEFAULT_BIO).length} / {MAX}
+            </span>
           </div>
         )}
       </div>
-      {showEdit && (
-        <BottomSheet onClose={()=>setShowEdit(false)}>
-          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:16 }}>Talente & Angebote bearbeiten</div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
-            {DEFAULT_TALENTS.map((t,i)=>(
-              <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"10px 16px",
-                borderRadius:T.r99, background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-                fontSize:13, fontWeight:600, color:T.teal, boxShadow:T.card }}>
-                <span style={{fontSize:14}}>{t.icon}</span>{t.label}
+      {editing && (
+        <BottomSheet onClose={() => setEditing(false)}>
+          <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18", marginBottom:14 }}>Über mich bearbeiten</div>
+          <div style={{ position:"relative" }}>
+            <textarea value={draft} onChange={e => setDraft(e.target.value.slice(0,MAX))} rows={5}
+              style={{
+                width:"100%", boxSizing:"border-box", padding:"12px 14px 28px", borderRadius:12,
+                border:"1.5px solid rgba(14,196,184,0.22)", outline:"none",
+                fontSize:13.5, lineHeight:1.7, resize:"none", fontFamily:"inherit", color:"#1A1A18", background:"#FFFFFF",
+              }}/>
+            <span style={{ position:"absolute", bottom:10, right:12, fontSize:11, color:"rgba(26,26,24,0.32)" }}>
+              {draft.length} / {MAX}
+            </span>
+          </div>
+          <Gap h={12}/>
+          <button onClick={save} disabled={saving} style={{
+            width:"100%", padding:"14px", borderRadius:14,
+            background:"linear-gradient(135deg,#0EC4B8,#0DBBAF)", border:"none",
+            color:"white", fontSize:14, fontWeight:700,
+            cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
+          }}>
+            {saving ? "Speichert…" : "Speichern"}
+          </button>
+        </BottomSheet>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 3. MEINE TALENTE & ANGEBOTE
+// ══════════════════════════════════════════════════════════════
+function TalenteAngebote({ loading, isOwner }) {
+  const [tags, setTags]       = useState(DEFAULT_TALENTS);
+  const [editing, setEditing] = useState(false);
+  const [newTag, setNewTag]   = useState("");
+
+  function addTag() {
+    const t = newTag.trim();
+    if (t && !tags.includes(t)) setTags(p => [...p, t]);
+    setNewTag("");
+  }
+
+  return (
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <SecHdr title="Meine Talente & Angebote" isOwner={isOwner} onEdit={() => setEditing(true)}/>
+        {loading ? (
+          <div style={{ height:56, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
+        ) : (
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {tags.map(tag => (
+              <div key={tag} style={{
+                display:"inline-flex", alignItems:"center", gap:5,
+                padding:"7px 13px", borderRadius:99,
+                border:"1.5px solid rgba(26,26,24,0.09)", background:"#FFFFFF",
+                fontSize:13, fontWeight:600, color:"#1A1A18",
+                boxShadow:"0 1px 3px rgba(26,26,24,0.06)",
+              }}>
+                {TALENT_ICONS[tag] && <span style={{ fontSize:13 }}>{TALENT_ICONS[tag]}</span>}
+                {tag}
+              </div>
+            ))}
+            {isOwner && (
+              <button onClick={() => setEditing(true)} style={{
+                display:"inline-flex", alignItems:"center", gap:5,
+                padding:"7px 13px", borderRadius:99,
+                border:"1.5px dashed rgba(26,26,24,0.14)", background:"transparent",
+                fontSize:13, fontWeight:600, color:"rgba(26,26,24,0.32)",
+                cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
+              }}>
+                + Weiteres hinzufügen
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      {editing && (
+        <BottomSheet onClose={() => setEditing(false)}>
+          <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18", marginBottom:14 }}>Talente & Angebote</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
+            {tags.map(tag => (
+              <div key={tag} style={{
+                display:"inline-flex", alignItems:"center", gap:6,
+                padding:"7px 12px", borderRadius:99,
+                background:"rgba(14,196,184,0.10)", border:"1px solid rgba(14,196,184,0.22)",
+                fontSize:13, fontWeight:600, color:"#0EC4B8",
+              }}>
+                {TALENT_ICONS[tag] && <span>{TALENT_ICONS[tag]}</span>}
+                {tag}
+                <button onClick={() => setTags(p => p.filter(t => t!==tag))} style={{
+                  background:"none", border:"none", padding:"0 0 0 2px",
+                  cursor:"pointer", color:"#0EC4B8", fontSize:14, lineHeight:1, touchAction:"manipulation",
+                }}>×</button>
               </div>
             ))}
           </div>
-          <button className="ctp-press" onClick={()=>setShowEdit(false)} style={{
-            width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
-            background:`linear-gradient(135deg,${T.teal},${T.tealDark})`,
-            color:"white", fontSize:15, fontWeight:700,
-            touchAction:"manipulation", fontFamily:"inherit", boxShadow:T.glow,
+          <div style={{ display:"flex", gap:8 }}>
+            <input value={newTag} onChange={e => setNewTag(e.target.value)}
+              onKeyDown={e => e.key==="Enter" && addTag()}
+              placeholder="Neues Talent…"
+              style={{
+                flex:1, padding:"11px 14px", borderRadius:12,
+                border:"1.5px solid rgba(26,26,24,0.09)", outline:"none",
+                fontSize:13.5, fontFamily:"inherit", color:"#1A1A18", background:"#FFFFFF",
+              }}/>
+            <button onClick={addTag} style={{
+              padding:"11px 16px", borderRadius:12,
+              background:"linear-gradient(135deg,#0EC4B8,#0DBBAF)", border:"none",
+              color:"white", fontSize:13, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
+            }}>+</button>
+          </div>
+          <Gap h={14}/>
+          <button onClick={() => setEditing(false)} style={{
+            width:"100%", padding:"14px", borderRadius:14,
+            background:"linear-gradient(135deg,#0EC4B8,#0DBBAF)", border:"none",
+            color:"white", fontSize:14, fontWeight:700,
+            cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
           }}>Fertig</button>
         </BottomSheet>
       )}
@@ -469,57 +426,90 @@ function TalenteAngebote({ profile, loading, isOwner }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// 5. ERLEBNISSE & PROJEKTE — 130×110 cards + "+ Projekt hinzufügen"
-// ══════════════════════════════════════════════════════════════════
-function ExpCard({ e, i, isOwner }) {
-  const [ok, setOk] = useState(false);
+// ══════════════════════════════════════════════════════════════
+// 4. MEINE WERKE
+// ══════════════════════════════════════════════════════════════
+function MeineWerke({ loading, isOwner }) {
+  const [works, setWorks] = useState(SEED_WORKS);
+
   return (
-    <div className="ctp-in" style={{ ...dl(i,55), flexShrink:0, width:130, position:"relative" }}>
-      {isOwner && (
-        <button style={{
-          position:"absolute", top:7, left:7, zIndex:5,
-          width:22, height:22, borderRadius:"50%",
-          background:"rgba(255,255,255,0.88)", backdropFilter:"blur(6px)",
-          border:"none", fontSize:11, display:"flex", alignItems:"center",
-          justifyContent:"center", cursor:"pointer", touchAction:"manipulation",
-          color:T.ink, boxShadow:"0 1px 4px rgba(0,0,0,0.10)",
-        }}>+</button>
-      )}
-      <div style={{ width:130, height:110, borderRadius:T.r12, overflow:"hidden",
-        background:"rgba(26,26,24,0.07)", marginBottom:8, position:"relative" }}>
-        {!ok && <div className="ctp-sk" style={{ position:"absolute", inset:0 }}/>}
-        <img src={e.img} alt={e.title} onLoad={()=>setOk(true)} onError={()=>setOk(true)}
-          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
-            opacity:ok?1:0, transition:"opacity .5s ease" }}/>
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <SecHdr title="Meine Werke" isOwner={isOwner} onEdit={() => {}}/>
+        {loading ? (
+          <div style={{ height:90, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
+        ) : (
+          <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:2, scrollbarWidth:"none" }}>
+            {works.map(w => (
+              <div key={w.id} style={{
+                flexShrink:0, position:"relative",
+                width:90, height:90, borderRadius:8, overflow:"hidden", background:"#e8e4df",
+              }}>
+                <img src={w.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+                {isOwner && (
+                  <button onClick={() => setWorks(p => p.filter(x => x.id!==w.id))} style={{
+                    position:"absolute", top:3, right:3, width:20, height:20, borderRadius:"50%",
+                    background:"rgba(0,0,0,0.50)", border:"none", color:"white", fontSize:12,
+                    cursor:"pointer", touchAction:"manipulation",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                  }}>×</button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {isOwner && (
+          <button className="mtp-add">
+            <span style={{ fontSize:15 }}>+</span> Werk hinzufügen
+          </button>
+        )}
       </div>
-      <div style={{ fontSize:11.5, fontWeight:700, color:T.ink, lineHeight:1.35, marginBottom:2 }}>{e.title}</div>
-      <div style={{ fontSize:10.5, color:T.inkFaint }}>{e.type}</div>
-      <div style={{ fontSize:10.5, color:T.inkFaint }}>{e.date}</div>
     </div>
   );
 }
 
+// ══════════════════════════════════════════════════════════════
+// 5. ERLEBNISSE & PROJEKTE
+// ══════════════════════════════════════════════════════════════
 function ErlebnisseProjekte({ loading, isOwner }) {
+  const [exps] = useState(SEED_EXP);
+
   return (
-    <div className="ctp-section">
-      <div className="ctp-section-pad">
-        <SectionHeader title="Erlebnisse & Projekte" isOwner={isOwner} onEdit={()=>{}}/>
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <SecHdr title="Erlebnisse & Projekte"
+          sub="Momente, die mein Wirken zeigen."
+          isOwner={isOwner} onEdit={() => {}}/>
         {loading ? (
-          <div style={{ display:"flex", gap:10 }}>
-            {[0,1,2,3].map(i=><Sk key={i} w={130} h={110} r={T.r12}/>)}
-          </div>
+          <div style={{ height:110, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
         ) : (
-          <div className="ctp-hscroll" style={{ display:"flex", gap:10, paddingBottom:4 }}>
-            {SEED_EXP.map((e,i)=><ExpCard key={e.id} e={e} i={i} isOwner={isOwner}/>)}
-            {/* Add slot */}
+          <div style={{ display:"flex", gap:10, overflowX:"auto", paddingBottom:2, scrollbarWidth:"none" }}>
+            {exps.map(e => (
+              <div key={e.id} style={{ flexShrink:0, width:100 }}>
+                <div style={{ width:100, height:80, borderRadius:8, overflow:"hidden", background:"#e8e4df", marginBottom:6 }}>
+                  <img src={e.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+                </div>
+                <div style={{
+                  fontSize:11.5, fontWeight:700, color:"#1A1A18", lineHeight:1.3, marginBottom:2,
+                  overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+                }}>{e.title}</div>
+                <div style={{ fontSize:11, color:"rgba(26,26,24,0.32)" }}>{e.type}</div>
+                <div style={{ fontSize:11, color:"rgba(26,26,24,0.32)" }}>{e.date}</div>
+              </div>
+            ))}
             {isOwner && (
-              <div style={{ flexShrink:0, width:90, minHeight:110,
-                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                gap:6, borderRadius:T.r12, border:`1.5px dashed ${T.borderMid}`,
-                cursor:"pointer", touchAction:"manipulation", padding:12 }}>
-                <span style={{ fontSize:20, color:T.inkFaint }}>+</span>
-                <span style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", lineHeight:1.4 }}>Projekt hinzufügen</span>
+              <div style={{ flexShrink:0, width:80 }}>
+                <div style={{
+                  width:80, height:80, borderRadius:8,
+                  border:"1.5px dashed rgba(26,26,24,0.14)", background:"transparent",
+                  display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+                  gap:4, cursor:"pointer", marginBottom:6,
+                }}>
+                  <span style={{ fontSize:20, color:"rgba(26,26,24,0.32)" }}>+</span>
+                </div>
+                <div style={{ fontSize:11, fontWeight:600, color:"rgba(26,26,24,0.32)", textAlign:"center", lineHeight:1.3 }}>
+                  Erlebnis<br/>hinzufügen
+                </div>
               </div>
             )}
           </div>
@@ -529,135 +519,274 @@ function ErlebnisseProjekte({ loading, isOwner }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// 6. VERFÜGBARKEIT — calendar row + "Verfügbar" pill
-// ══════════════════════════════════════════════════════════════════
-function Verfuegbarkeit({ profile, loading, isOwner }) {
-  const [open, setOpen] = useState(false);
+// ══════════════════════════════════════════════════════════════
+// 6. KUNDENSTIMMEN
+// ══════════════════════════════════════════════════════════════
+function Kundenstimmen({ loading, isOwner }) {
   return (
-    <div className="ctp-section">
-      <div className="ctp-section-pad">
-        <SectionHeader title="Verfügbarkeit" isOwner={isOwner} onEdit={()=>setOpen(true)}/>
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <SecHdr title="Kundenstimmen" isOwner={isOwner} onEdit={() => {}}/>
         {loading ? (
-          <Sk w="100%" h={48} r={T.r12}/>
+          <div style={{ height:64, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
         ) : (
-          <div style={{
-            display:"flex", alignItems:"center", gap:12,
-            background:T.bg, borderRadius:T.r12,
-            border:`1px solid ${T.border}`, padding:"12px 14px",
-            boxShadow:T.card,
-          }}>
-            <span style={{ fontSize:18, flexShrink:0 }}>📅</span>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:12.5, color:T.inkSoft, fontWeight:500 }}>
-                Für Auftragsarbeiten & Kollaborationen
+          <div style={{ display:"flex", gap:10, alignItems:"stretch" }}>
+            {/* Review card */}
+            <div style={{
+              flex:1, border:"1px solid rgba(26,26,24,0.09)", borderRadius:12,
+              padding:"12px 14px", background:"#FFFFFF",
+              boxShadow:"0 1px 6px rgba(26,26,24,0.06)",
+              display:"flex", alignItems:"flex-start", gap:10,
+            }}>
+              <span style={{ fontSize:28, lineHeight:1, color:"rgba(26,26,24,0.14)", fontFamily:"Georgia,serif", marginTop:-5, flexShrink:0 }}>"</span>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ margin:"0 0 6px", fontSize:12.5, lineHeight:1.6, color:"#1A1A18", fontStyle:"italic" }}>
+                  {SEED_REVIEW.text}
+                </p>
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <img src={SEED_REVIEW.avatar} alt="" style={{ width:22, height:22, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}/>
+                  <span style={{ fontSize:11.5, fontWeight:600, color:"rgba(26,26,24,0.55)" }}>{SEED_REVIEW.author}</span>
+                </div>
               </div>
             </div>
-            <div style={{
-              display:"flex", alignItems:"center", gap:5,
-              padding:"5px 12px", borderRadius:T.r99,
-              background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-              fontSize:12, fontWeight:700, color:T.teal, flexShrink:0,
-            }}>
-              <div style={{ width:6, height:6, borderRadius:"50%", background:T.teal }}/>
-              Verfügbar
-              <span style={{ fontSize:10, color:T.teal }}>▾</span>
-            </div>
+            {/* Add card */}
+            {isOwner && (
+              <div style={{
+                flexShrink:0, width:72,
+                border:"1.5px dashed rgba(26,26,24,0.14)", borderRadius:12,
+                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+                gap:4, cursor:"pointer", padding:"10px 6px",
+              }}>
+                <span style={{ fontSize:20, color:"rgba(26,26,24,0.32)" }}>+</span>
+                <span style={{ fontSize:10.5, color:"rgba(26,26,24,0.32)", fontWeight:600, textAlign:"center", lineHeight:1.3 }}>
+                  Weitere<br/>hinzufügen
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>
-      {open && (
-        <BottomSheet onClose={()=>setOpen(false)}>
-          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:16 }}>📅 Verfügbarkeit</div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 7. VERFÜGBARKEIT + STANDORT (side by side)
+// ══════════════════════════════════════════════════════════════
+function VerfuegbarkeitStandort({ profile, loading, isOwner }) {
+  const location = sv(profile?.location, "Freiburg, Deutschland");
+  const [avSheet, setAvSheet]   = useState(false);
+  const [locSheet, setLocSheet] = useState(false);
+  const [locDraft, setLocDraft] = useState("");
+
+  async function saveLocation() {
+    const { data:{ user } } = await supabase.auth.getUser();
+    await supabase.from("profiles").update({ location: locDraft }).eq("id", user.id);
+    setLocSheet(false);
+  }
+
+  return (
+    <>
+      <div style={{ display:"flex", gap:10, margin:"0 16px" }}>
+        {/* Verfügbarkeit */}
+        <div style={{ flex:1, background:"#FFFFFF", borderRadius:14, border:"1px solid rgba(26,26,24,0.09)", boxShadow:"0 1px 6px rgba(26,26,24,0.06)", overflow:"hidden" }}>
+          <div style={{ padding:"14px 14px 16px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+              <span style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>Verfügbarkeit</span>
+              {isOwner && (
+                <button className="mtp-edit" onClick={() => setAvSheet(true)}>
+                  Bearbeiten <span style={{ fontSize:11 }}>›</span>
+                </button>
+              )}
+            </div>
+            {loading ? (
+              <div style={{ height:48, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
+            ) : (
+              <div style={{
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"10px 12px", background:"#FFFFFF", borderRadius:12,
+                border:"1px solid rgba(26,26,24,0.09)",
+              }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                    <div style={{ width:7, height:7, borderRadius:"50%", background:"#22c55e", flexShrink:0 }}/>
+                    <span style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>Offen für neue Anfragen</span>
+                  </div>
+                  <div style={{ fontSize:10.5, color:"rgba(26,26,24,0.32)", paddingLeft:13 }}>Antwortzeit innerhalb von 24h</div>
+                </div>
+                <span style={{ color:"rgba(26,26,24,0.32)", fontSize:14 }}>›</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Standort */}
+        <div style={{ flex:1, background:"#FFFFFF", borderRadius:14, border:"1px solid rgba(26,26,24,0.09)", boxShadow:"0 1px 6px rgba(26,26,24,0.06)", overflow:"hidden" }}>
+          <div style={{ padding:"14px 14px 16px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+              <span style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>Standort</span>
+              {isOwner && (
+                <button className="mtp-edit" onClick={() => { setLocDraft(location); setLocSheet(true); }}>
+                  Bearbeiten <span style={{ fontSize:11 }}>›</span>
+                </button>
+              )}
+            </div>
+            {loading ? (
+              <div style={{ height:48, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
+            ) : (
+              <div style={{
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"10px 12px", background:"#FFFFFF", borderRadius:12,
+                border:"1px solid rgba(26,26,24,0.09)",
+              }}>
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0EC4B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <span style={{ fontSize:12, fontWeight:600, color:"#1A1A18" }}>{location}</span>
+                </div>
+                <span style={{ color:"rgba(26,26,24,0.32)", fontSize:14 }}>›</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {avSheet && (
+        <BottomSheet onClose={() => setAvSheet(false)}>
+          <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18", marginBottom:14 }}>Verfügbarkeit</div>
           {[
-            ["Verfügbar","Offen für neue Anfragen"],
-            ["Eingeschränkt","Begrenzte Kapazität"],
-            ["Nicht verfügbar","Momentan ausgebucht"],
-          ].map(([label,sub])=>(
-            <button key={label} onClick={()=>setOpen(false)} style={{
+            { label:"Offen für neue Anfragen", sub:"Antwortzeit innerhalb von 24h", color:"#22c55e" },
+            { label:"Eingeschränkt",            sub:"Begrenzte Kapazität",            color:"#f59e0b" },
+            { label:"Nicht verfügbar",          sub:"Momentan ausgebucht",            color:"#ef4444" },
+          ].map(opt => (
+            <button key={opt.label} onClick={() => setAvSheet(false)} style={{
               display:"flex", alignItems:"center", gap:12, width:"100%",
-              padding:"14px 16px", borderRadius:T.r12, border:`1px solid ${T.border}`,
-              background:label==="Verfügbar"?T.tealSoft:T.bgCard,
-              marginBottom:8, cursor:"pointer", touchAction:"manipulation",
-              fontFamily:"inherit", textAlign:"left",
+              padding:"14px 16px", borderRadius:12, border:"1px solid rgba(26,26,24,0.09)",
+              background:"#FFFFFF", marginBottom:8,
+              cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit", textAlign:"left",
             }}>
-              <div style={{ width:8, height:8, borderRadius:"50%",
-                background:label==="Verfügbar"?"#22c55e":label==="Eingeschränkt"?"#f59e0b":"#ef4444",
-              }}/>
+              <div style={{ width:8, height:8, borderRadius:"50%", background:opt.color, flexShrink:0 }}/>
               <div>
-                <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>{label}</div>
-                <div style={{ fontSize:11, color:T.inkFaint }}>{sub}</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#1A1A18" }}>{opt.label}</div>
+                <div style={{ fontSize:11.5, color:"rgba(26,26,24,0.32)" }}>{opt.sub}</div>
               </div>
             </button>
           ))}
         </BottomSheet>
       )}
-    </div>
+
+      {locSheet && (
+        <BottomSheet onClose={() => setLocSheet(false)}>
+          <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18", marginBottom:14 }}>Standort bearbeiten</div>
+          <input value={locDraft} onChange={e => setLocDraft(e.target.value)}
+            placeholder="z.B. Freiburg, Deutschland"
+            style={{
+              width:"100%", boxSizing:"border-box", padding:"12px 14px", borderRadius:12,
+              border:"1.5px solid rgba(14,196,184,0.22)", outline:"none",
+              fontSize:13.5, fontFamily:"inherit", color:"#1A1A18", background:"#FFFFFF",
+            }}/>
+          <Gap h={12}/>
+          <button onClick={saveLocation} style={{
+            width:"100%", padding:"14px", borderRadius:14,
+            background:"linear-gradient(135deg,#0EC4B8,#0DBBAF)", border:"none",
+            color:"white", fontSize:14, fontWeight:700,
+            cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
+          }}>Speichern</button>
+        </BottomSheet>
+      )}
+    </>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// 7. BOTTOM CTA — "Lass uns gemeinsam..." + "Nachricht senden"
-// ══════════════════════════════════════════════════════════════════
-function BottomCTA({ isOwner }) {
-  if (isOwner) return null; // Owner sieht keinen CTA auf eigenem Profil
+// ══════════════════════════════════════════════════════════════
+// 8. SICHTBARKEIT
+// ══════════════════════════════════════════════════════════════
+function Sichtbarkeit({ profile, loading, isOwner }) {
+  const [selected, setSelected] = useState("connections");
+
+  useEffect(() => {
+    if (profile?.focus_type && ["public","connections","private"].includes(profile.focus_type))
+      setSelected(profile.focus_type);
+  }, [profile?.focus_type]);
+
+  async function choose(key) {
+    setSelected(key);
+    if (isOwner) {
+      const { data:{ user } } = await supabase.auth.getUser();
+      await supabase.from("profiles").update({ focus_type:key }).eq("id", user.id);
+    }
+  }
+
+  const VIS = [
+    {
+      key:"public",
+      icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+      label:"Öffentlich", sub:"Für alle sichtbar",
+    },
+    {
+      key:"connections",
+      icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+      label:"Verbindungen", sub:"Nur für deine Verbindungen",
+    },
+    {
+      key:"private",
+      icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+      label:"Privat", sub:"Nur für dich",
+    },
+  ];
+
   return (
-    <div style={{
-      margin:`0 ${T.px}px`,
-      background:T.bgCard, borderRadius:T.r16,
-      border:`1px solid ${T.border}`, padding:"18px 18px",
-      boxShadow:T.cardMd,
-      display:"flex", alignItems:"center", gap:14,
-    }}>
-      {/* HUI leaf icon */}
-      <div style={{
-        width:42, height:42, borderRadius:"50%",
-        background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:20, flexShrink:0,
-      }}>🌿</div>
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, lineHeight:1.35, marginBottom:3 }}>
-          Lass uns gemeinsam etwas Schönes erschaffen.
-        </div>
-        <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:400 }}>
-          Ich freue mich auf neue Ideen & inspirierende Projekte.
-        </div>
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <SecHdr title="Sichtbarkeit" sub="Wähle, wer dein Profil sehen kann." isOwner={false}/>
+        {loading ? (
+          <div style={{ height:72, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
+        ) : (
+          <div style={{ display:"flex", gap:8 }}>
+            {VIS.map(opt => {
+              const active = selected === opt.key;
+              return (
+                <button key={opt.key} onClick={() => isOwner && choose(opt.key)} style={{
+                  flex:1, padding:"12px 6px 14px", borderRadius:14,
+                  border:`1.5px solid ${active ? "#0EC4B8" : "rgba(26,26,24,0.09)"}`,
+                  background: active ? "rgba(14,196,184,0.10)" : "#FFFFFF",
+                  cursor: isOwner ? "pointer" : "default",
+                  touchAction:"manipulation", fontFamily:"inherit",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                  transition:"all .18s ease",
+                  boxShadow: active ? "0 0 0 1px rgba(14,196,184,0.22)" : "0 1px 3px rgba(26,26,24,0.06)",
+                }}>
+                  <span style={{ color: active ? "#0EC4B8" : "rgba(26,26,24,0.32)" }}>{opt.icon}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color: active ? "#0EC4B8" : "#1A1A18" }}>{opt.label}</span>
+                  <span style={{ fontSize:10.5, color: active ? "#0EC4B8" : "rgba(26,26,24,0.32)", textAlign:"center", lineHeight:1.3 }}>{opt.sub}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
-      <button className="ctp-press" style={{
-        flexShrink:0, display:"flex", alignItems:"center", gap:7,
-        padding:"11px 16px", borderRadius:T.r12, border:"none",
-        background:`linear-gradient(135deg,${T.teal},${T.tealDark})`,
-        color:"white", fontSize:12.5, fontWeight:700,
-        touchAction:"manipulation", fontFamily:"inherit", boxShadow:T.glow,
-      }}>
-        Nachricht senden <span style={{ fontSize:14 }}>✉️</span>
-      </button>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 // ROOT
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 export default function MyTalentProfile({ onClose, profileId, viewerMode = false }) {
-  const [profile,  setProfile]  = useState(null);
-  const [loading,  setLoading]  = useState(true);
-  const [mounted,  setMounted]  = useState(false);
-  const [saveOk,   setSaveOk]   = useState(false);
-  const [saving,   setSaving]   = useState(false);
-
-  // isOwner: true wenn keine profileId übergeben (= eigenes Profil)
-  // oder explizit viewerMode=false
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const isOwner = !viewerMode && !profileId;
 
-  useEffect(()=>{
-    const t = setTimeout(()=>setMounted(true), 30);
-    return ()=>clearTimeout(t);
-  },[]);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 30);
+    return () => clearTimeout(t);
+  }, []);
 
-  useEffect(()=>{
-    (async()=>{
+  useEffect(() => {
+    (async () => {
       try {
         let id = profileId;
         if (!id) {
@@ -666,71 +795,63 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         }
         if (!id) { setLoading(false); return; }
         const { data } = await supabase.from("profiles")
-          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type")
+          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type")
           .eq("id", id).single();
         setProfile(data || null);
       } catch(e) { console.warn("MyTalentProfile:", e); }
       setLoading(false);
     })();
-  },[profileId]);
+  }, [profileId]);
 
   return (
-    <div className="ctp-root" style={{
+    <div className="mtp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
       display:"flex", flexDirection:"column",
-      opacity:mounted?1:0,
-      transform:mounted?"none":"translateY(12px)",
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? "none" : "translateY(12px)",
       transition:"opacity .32s ease, transform .32s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
 
-      {/* Save toast */}
-      {(saving||saveOk) && (
-        <div style={{
-          position:"fixed", top:16, right:16, zIndex:9999,
-          padding:"6px 14px", borderRadius:T.r99,
-          background:saveOk ? T.tealSoft : "rgba(26,26,24,0.06)",
-          border:`1px solid ${saveOk ? T.tealMid : T.border}`,
-          fontSize:11.5, fontWeight:600, color:saveOk ? T.teal : T.inkFaint,
-          backdropFilter:"blur(10px)",
-        }}>
-          {saveOk ? "✓ Gespeichert" : "Speichert…"}
-        </div>
-      )}
-
-      {/* Scrollable page */}
-      <div className="ctp-scroll" style={{
+      <div className="mtp-scroll" style={{
         flex:1, overflowY:"auto",
-        paddingTop:8,
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))",
       }}>
-        {/* 1. Hero block */}
-        <HeroBlock profile={profile} loading={loading} isOwner={isOwner}/>
-        <Gap h={14}/>
+        {/* 0. Titel */}
+        <PageTitle isOwner={isOwner}/>
+
+        {/* 1. Cover + Avatar */}
+        <ProfileHeader profile={profile} loading={loading} isOwner={isOwner}/>
+        <Gap h={52}/>
 
         {/* 2. Über mich */}
         <UeberMich profile={profile} loading={loading} isOwner={isOwner}/>
-        <Gap h={14}/>
+        <Gap/>
 
-        {/* 3. Meine Werke */}
-        <MeineWerke profile={profile} loading={loading} isOwner={isOwner}/>
-        <Gap h={14}/>
+        {/* 3. Meine Talente & Angebote */}
+        <TalenteAngebote loading={loading} isOwner={isOwner}/>
+        <Gap/>
 
-        {/* 4. Talente & Angebote */}
-        <TalenteAngebote profile={profile} loading={loading} isOwner={isOwner}/>
-        <Gap h={14}/>
+        {/* 4. Meine Werke */}
+        <MeineWerke loading={loading} isOwner={isOwner}/>
+        <Gap/>
 
         {/* 5. Erlebnisse & Projekte */}
         <ErlebnisseProjekte loading={loading} isOwner={isOwner}/>
-        <Gap h={14}/>
+        <Gap/>
 
-        {/* 6. Verfügbarkeit */}
-        <Verfuegbarkeit profile={profile} loading={loading} isOwner={isOwner}/>
-        <Gap h={14}/>
+        {/* 6. Kundenstimmen */}
+        <Kundenstimmen loading={loading} isOwner={isOwner}/>
+        <Gap/>
 
-        {/* 7. Bottom CTA (visitor only) */}
-        <BottomCTA isOwner={isOwner}/>
-        <Gap h={28}/>
+        {/* 7. Verfügbarkeit + Standort */}
+        <VerfuegbarkeitStandort profile={profile} loading={loading} isOwner={isOwner}/>
+        <Gap/>
+
+        {/* 8. Sichtbarkeit */}
+        <Sichtbarkeit profile={profile} loading={loading} isOwner={isOwner}/>
+
+        <Gap h={32}/>
       </div>
     </div>
   );
