@@ -608,7 +608,7 @@ function OffenFuerSection({ openFor, onChange }) {
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Offen für Begegnungen" sub="Wofür bist du offen? Was interessiert dich?" onEdit={()=>setShowEdit(true)}/>
+      <SectionRow title="Offen für Begegnungen" sub="Wofür bist du offen? Was interessiert dich?"/>
       <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
         {display.map((t,i)=>(
           <div key={i} style={{
