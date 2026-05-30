@@ -740,10 +740,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
           setInterests(nextInterests);
           console.log("SET INTERESTS", nextInterests);
           // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
+          console.log("DNA_CHECK isArray:", Array.isArray(data.dna_tags), "length:", data.dna_tags?.length, "raw:", JSON.stringify(data.dna_tags));
           if (Array.isArray(data.dna_tags) && data.dna_tags.length) {
             const mapped = data.dna_tags.map((url, i) => ({ id: `db_${i}`, img: url }));
             setMoments(mapped);
-            console.log("MOMENTS STATE", mapped);
+            console.log("MOMENTS STATE SET", mapped);
+          } else {
+            console.log("MOMENTS SKIPPED — dna_tags leer oder kein Array");
           }
           // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
@@ -807,6 +810,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setMoments(newItems);
     // Persistenz via dna_tags-Spalte (ARRAY von URL-Strings, existiert in profiles)
     const urls = newItems.map(m => m.img).filter(Boolean);
+    console.log("HANDLE_MOMENTS_CHANGE newItems:", JSON.stringify(newItems));
+    console.log("HANDLE_MOMENTS_CHANGE urls (nach filter):", JSON.stringify(urls));
+    console.log("HANDLE_MOMENTS_CHANGE profile?.id:", profile?.id);
     autoSave("dna_tags", urls);
   };
 
