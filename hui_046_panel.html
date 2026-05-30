@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUI Migration 046 — Experience Wizard Fields</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 820px; margin: 40px auto; padding: 0 20px; background: #F8F7F4; color: #1A1A18; }
+  h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 700; margin: 24px 0 8px; color: #0EC4B8; }
+  pre { background: #1A1A18; color: #e8f4f0; padding: 18px 20px; border-radius: 12px; font-size: 12.5px; line-height: 1.7; overflow-x: auto; white-space: pre-wrap; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:700; background:#0EC4B8; color:#fff; margin-left:8px; }
+  .warn { background: rgba(239,68,68,0.08); border:1.5px solid rgba(239,68,68,0.2); border-radius:10px; padding:12px 16px; font-size:13px; color:#b91c1c; margin:16px 0; }
+  .ok { background: rgba(14,196,184,0.08); border:1.5px solid rgba(14,196,184,0.2); border-radius:10px; padding:12px 16px; font-size:13px; color:#0d9488; margin:16px 0; }
+</style>
+</head>
+<body>
+<h1>HUI Migration 046 <span class="badge">IDEMPOTENT</span></h1>
+<p>Neue Spalten für den 4-Schritte-Erlebnis-Wizard.</p>
+
+<div class="warn">⚠ Nur ausführen wenn du Supabase-Admin-Zugriff hast. Diese Migration ist idempotent (kann mehrfach ausgeführt werden).</div>
+
+<h2>Neue Spalten</h2>
+<pre>
+time_start           TEXT                -- '18:00'  (Beginn-Uhrzeit)
+time_end             TEXT                -- '20:30'  (Ende-Uhrzeit, optional)
+currency             TEXT DEFAULT 'EUR'  -- Währung
+price_per            TEXT                -- Teilnehmer|Ticket|Stunde|Tag|Kurs|Gruppe|Monat
+registration_required BOOLEAN DEFAULT false  -- Anmeldung erforderlich?
+caption              TEXT                -- Kurzbeschreibung (war implizit)
+</pre>
+
+<h2>SQL — direkt kopieren und in Supabase SQL Editor ausführen</h2>
+<pre id="sql-block">Lade SQL…</pre>
+
+<div class="ok" id="copy-msg" style="display:none">✅ SQL in die Zwischenablage kopiert!</div>
+
+<button onclick="copySql()" style="background:linear-gradient(135deg,#0EC4B8,#0DBBAF);color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;">SQL kopieren</button>
+
+<h2>Validierung (nach Ausführung)</h2>
+<pre>SELECT column_name, data_type, column_default
+FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'experiences'
+  AND column_name IN ('time_start','time_end','currency','price_per','registration_required')
+ORDER BY ordinal_position;</pre>
+
+<script>
+const SQL = `-- HUI Migration 046 — experiences: Felder für 4-Schritte-Wizard
+-- IDEMPOTENT
+
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS time_start  TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS time_end    TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS currency    TEXT NOT NULL DEFAULT 'EUR';
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS price_per   TEXT;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS registration_required BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS caption     TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_exp_time_start ON public.experiences(time_start);
+CREATE INDEX IF NOT EXISTS idx_exp_price_per  ON public.experiences(price_per);
+
+COMMENT ON COLUMN public.experiences.time_start  IS 'Beginn-Uhrzeit als TEXT z.B. "18:00"';
+COMMENT ON COLUMN public.experiences.time_end    IS 'Ende-Uhrzeit als TEXT z.B. "20:30", optional';
+COMMENT ON COLUMN public.experiences.currency    IS 'Währung: EUR | CHF | USD';
+COMMENT ON COLUMN public.experiences.price_per   IS 'Preisbezug: Teilnehmer|Ticket|Stunde|Tag|Kurs|Gruppe|Monat';
+COMMENT ON COLUMN public.experiences.registration_required IS 'true = Anmeldung vor Teilnahme erforderlich';`;
+
+document.getElementById('sql-block').textContent = SQL;
+
+function copySql() {
+  navigator.clipboard.writeText(SQL).then(() => {
+    document.getElementById('copy-msg').style.display = 'block';
+    setTimeout(() => { document.getElementById('copy-msg').style.display='none'; }, 3000);
+  });
+}
+</script>
+</body>
+</html>
