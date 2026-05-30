@@ -457,31 +457,56 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     if (!userId) return;
     setSaving(true);
     const cover_url=form.images?.[0]?.url||null;
-    // WICHTIG: images als Array (nicht JSON.stringify) — Spalte ist JSONB
-    // JSON.stringify würde TEXT liefern → 22P02 Type-Error bei INSERT
+    // ── Payload: nur Spalten die in public.works existieren (045) ──
+    // images als JSONB Array (kein JSON.stringify → kein 22P02)
     const imagesArr = (form.images||[]).map(img =>
       typeof img === "object" ? img : { url: img }
     );
-    console.log("[SAVE WERK] payload.images length:", imagesArr.length);
-    const payload={
-      user_id:    userId,
-      title:      form.title       || "",
-      description:form.description || null,
-      caption:    form.shortDesc   || null,
+
+    // size: Breite × Höhe × Tiefe als TEXT-String zusammenführen
+    const sizeStr = [form.breite, form.hoehe, form.tiefe]
+      .filter(Boolean)
+      .map(v => `${v} cm`)
+      .join(" × ") || null;
+
+    const payload = {
+      // ── Basis ────────────────────────────────────────────────
+      user_id:      userId,
+      title:        form.title        || "",
+      description:  form.description  || null,
+      caption:      form.shortDesc    || null,
       cover_url,
-      media_url:  cover_url,
-      images:     imagesArr,          // JSONB: Array direkt, kein stringify
-      category:   form.category    || null,
-      tags:       form.tags        || [],
-      medium:     form.werktyp     || null,
-      price:      parseFloat(form.price) || null,
-      for_sale:   form.availability === "available",
-      location_text: form.abholort || null,
-      visibility: form.sichtbarkeit || "public",
+      media_url:    cover_url,
+      images:       imagesArr,              // JSONB
+      // ── Klassifikation ───────────────────────────────────────
+      category:     form.category     || null,
+      tags:         form.tags         || [],
+      medium:       form.werktyp      || null,  // Originalwerk / Druck / Digital
+      // ── Preis & Verkauf ──────────────────────────────────────
+      price:        parseFloat(form.price) || null,
+      for_sale:     form.availability === "available",
+      sale_mode:    "fixed",
+      // ── Physikalisch ─────────────────────────────────────────
+      materials:    form.material     || null,  // materials TEXT
+      size:         sizeStr,                    // size TEXT: "30 cm × 40 cm × 5 cm"
+      condition:    form.werktyp === "original" ? "new" : null,
+      // ── Versand & Abholung ───────────────────────────────────
+      shipping:     !!form.versand,
+      shipping_cost: form.versandkosten ? parseFloat(form.versandkosten) : null,
+      shipping_countries: [
+        form.versandNational,
+        form.versandInternational,
+      ].filter(Boolean).join(", ") || null,
+      shipping_time: form.versandTime || null,
+      location_text: form.abholort    || null,
+      // ── Sichtbarkeit & Status ─────────────────────────────────
+      visibility:   form.sichtbarkeit || "public",
       status,
-      updated_at: new Date().toISOString(),
+      updated_at:   new Date().toISOString(),
     };
-    console.log("[SAVE WERK] DB-call, existingWork:", existingWork?.id || "NEW");
+
+    console.log("[SAVE WERK] payload keys:", Object.keys(payload).join(", "));
+    console.log("[SAVE WERK] images.length:", imagesArr.length, "| medium:", payload.medium, "| status:", status);
     const { data:saved, error }=existingWork?.id
       ? await supabase.from("works").update(payload).eq("id",existingWork.id).eq("user_id",userId).select().single()
       : await supabase.from("works").insert(payload).select().single();
