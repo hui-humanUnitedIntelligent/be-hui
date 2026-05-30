@@ -727,47 +727,207 @@ function MeineWerke({ loading, isOwner, userId }) {
 // ══════════════════════════════════════════════════════════════
 // 5. ERLEBNISSE & PROJEKTE
 // ══════════════════════════════════════════════════════════════
-function ErlebnisseProjekte({ loading, isOwner }) {
-  const [exps] = useState(SEED_EXP);
+function ErlebnisseProjekte({ isOwner, userId }) {
+  const [exps, setExps]         = useState([]);
+  const [expsLoading, setExpsLoading] = useState(true);
+
+  // ── Echte Daten aus public.experiences laden ──────────────────
+  useEffect(() => {
+    if (!userId) { setExpsLoading(false); return; }
+    let cancelled = false;
+    (async () => {
+      setExpsLoading(true);
+      console.log("[EXPERIENCE CARD] Lade Erlebnisse für userId:", userId);
+      const { data, error } = await supabase
+        .from("experiences")
+        .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
+        .eq("user_id", userId)
+        .neq("status", "archived")
+        .order("created_at", { ascending: false });
+      if (!cancelled) {
+        if (error) {
+          console.error("[EXPERIENCE CARD] DB-Fehler:", error.message, "| code:", error.code);
+        } else {
+          console.log("[EXPERIENCE CARD] Geladen:", data?.length ?? 0, "Erlebnisse");
+          setExps(data || []);
+        }
+        setExpsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  // ── Status-Logik ──────────────────────────────────────────────
+  function expStatus(e) {
+    if (e.status === "draft")     return { label:"Entwurf",    color:"rgba(26,26,24,0.38)", dot:"#bbb" };
+    if (e.date) {
+      const d = new Date(e.date);
+      const now = new Date();
+      if (d > now)  return { label:"Geplant",    color:"#D97706", dot:"#D97706" };
+      return            { label:"Abgeschlossen", color:"rgba(26,26,24,0.38)", dot:"#bbb" };
+    }
+    return                { label:"Aktiv",       color:"#16A34A", dot:"#16A34A" };
+  }
+
+  // ── Datum formatieren ─────────────────────────────────────────
+  function fmtDate(isoStr) {
+    if (!isoStr) return null;
+    try {
+      const d = new Date(isoStr);
+      return d.toLocaleDateString("de-DE", { day:"numeric", month:"short", year:"numeric" });
+    } catch { return null; }
+  }
+
+  // ── Typ-Label ─────────────────────────────────────────────────
+  function expTypeLabel(e) {
+    const raw = e.experience_type || e.category || "";
+    const MAP = {
+      workshop:"Workshop", event:"Event", ausstellung:"Ausstellung",
+      projekt:"Projekt", kurs:"Kurs", online:"Online",
+    };
+    return MAP[raw.toLowerCase()] || raw || "Erlebnis";
+  }
+
+  // ── TYPE-BADGE-FARBE ──────────────────────────────────────────
+  const TYPE_COLOR = {
+    Workshop:    { bg:"rgba(99,102,241,0.10)",  text:"#6366F1" },
+    Event:       { bg:"rgba(14,196,184,0.10)",  text:"#0EC4B8" },
+    Ausstellung: { bg:"rgba(245,158,11,0.10)",  text:"#D97706" },
+    Projekt:     { bg:"rgba(22,163,74,0.10)",   text:"#16A34A" },
+    Kurs:        { bg:"rgba(255,138,107,0.10)", text:"#FF8A6B" },
+  };
 
   return (
     <div className="mtp-sec">
       <div className="mtp-sec-pad">
-        <SecHdr title="Erlebnisse & Projekte"
+        <SecHdr
+          title="Erlebnisse & Projekte"
           sub="Momente, die mein Wirken zeigen."
-          isOwner={isOwner} onEdit={() => {}}/>
-        {loading ? (
-          <div style={{ height:110, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
-        ) : (
-          <div style={{ display:"flex", gap:10, overflowX:"auto", paddingBottom:2, scrollbarWidth:"none" }}>
-            {exps.map(e => (
-              <div key={e.id} style={{ flexShrink:0, width:100 }}>
-                <div style={{ width:100, height:80, borderRadius:8, overflow:"hidden", background:"#e8e4df", marginBottom:6 }}>
-                  <img src={e.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
-                </div>
-                <div style={{
-                  fontSize:11.5, fontWeight:700, color:"#1A1A18", lineHeight:1.3, marginBottom:2,
-                  overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-                }}>{e.title}</div>
-                <div style={{ fontSize:11, color:"rgba(26,26,24,0.32)" }}>{e.type}</div>
-                <div style={{ fontSize:11, color:"rgba(26,26,24,0.32)" }}>{e.date}</div>
-              </div>
+          isOwner={isOwner}
+          onEdit={null}
+        />
+
+        {expsLoading ? (
+          <div style={{ display:"flex", gap:10 }}>
+            {[0,1,2].map(i => (
+              <div key={i} style={{
+                flexShrink:0, width:170, height:225, borderRadius:12,
+                background:"rgba(26,26,24,0.05)",
+              }}/>
             ))}
-            {isOwner && (
-              <div style={{ flexShrink:0, width:80 }}>
-                <div style={{
-                  width:80, height:80, borderRadius:8,
-                  border:"1.5px dashed rgba(26,26,24,0.14)", background:"transparent",
-                  display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                  gap:4, cursor:"pointer", marginBottom:6,
+          </div>
+        ) : exps.length === 0 ? (
+          <div style={{
+            textAlign:"center", padding:"28px 16px",
+            color:"rgba(26,26,24,0.35)", fontSize:13,
+          }}>
+            Noch keine Erlebnisse veröffentlicht.
+          </div>
+        ) : (
+          <div style={{
+            display:"flex", gap:10,
+            overflowX:"auto", paddingBottom:4,
+            scrollbarWidth:"none", WebkitOverflowScrolling:"touch",
+          }}>
+            {exps.map(e => {
+              const st      = expStatus(e);
+              const typeL   = expTypeLabel(e);
+              const typeCol = TYPE_COLOR[typeL] || { bg:"rgba(14,196,184,0.10)", text:"#0EC4B8" };
+              const dateStr = fmtDate(e.date);
+
+              return (
+                <div key={e.id} style={{
+                  flexShrink:0, width:170, borderRadius:12,
+                  background:"#fff",
+                  border:"1px solid rgba(26,26,24,0.09)",
+                  boxShadow:"0 1px 8px rgba(26,26,24,0.07)",
+                  overflow:"hidden",
+                  touchAction:"manipulation",
                 }}>
-                  <span style={{ fontSize:20, color:"rgba(26,26,24,0.32)" }}>+</span>
+                  {/* Bild */}
+                  <div style={{
+                    width:"100%", height:125,
+                    background:"#eee9e3", position:"relative", overflow:"hidden",
+                  }}>
+                    {e.cover_url ? (
+                      <img
+                        src={e.cover_url}
+                        alt={e.title || ""}
+                        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+                        onError={ev => { ev.currentTarget.style.display="none"; }}
+                      />
+                    ) : (
+                      <div style={{
+                        width:"100%", height:"100%",
+                        display:"flex", alignItems:"center",
+                        justifyContent:"center", fontSize:32, opacity:0.3,
+                      }}>📅</div>
+                    )}
+                    {/* Typ-Badge oben links */}
+                    <div style={{
+                      position:"absolute", top:7, left:7,
+                      background: e.cover_url ? "rgba(0,0,0,0.50)" : typeCol.bg,
+                      backdropFilter: e.cover_url ? "blur(6px)" : "none",
+                      borderRadius:99, padding:"2px 9px",
+                      fontSize:9, fontWeight:700,
+                      color: e.cover_url ? "rgba(255,255,255,0.92)" : typeCol.text,
+                      letterSpacing:".03em",
+                    }}>
+                      {typeL}
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ padding:"10px 11px 12px" }}>
+                    {/* Titel */}
+                    <div style={{
+                      fontSize:13, fontWeight:700, color:"#1A1A18",
+                      lineHeight:1.25, marginBottom:6,
+                      overflow:"hidden", display:"-webkit-box",
+                      WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+                    }}>
+                      {e.title || "Ohne Titel"}
+                    </div>
+
+                    {/* Datum */}
+                    {dateStr && (
+                      <div style={{
+                        fontSize:11, color:"rgba(26,26,24,0.45)",
+                        marginBottom:5, display:"flex", alignItems:"center", gap:4,
+                      }}>
+                        <span style={{ fontSize:9 }}>📅</span>
+                        {dateStr}
+                      </div>
+                    )}
+
+                    {/* Standort */}
+                    {e.location_text && (
+                      <div style={{
+                        fontSize:11, color:"rgba(26,26,24,0.45)",
+                        marginBottom:5, display:"flex", alignItems:"center", gap:4,
+                        overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
+                      }}>
+                        <span style={{ fontSize:9 }}>📍</span>
+                        <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+                          {e.location_text}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Status-Dot */}
+                    <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                      <span style={{
+                        width:6, height:6, borderRadius:"50%",
+                        background:st.dot, flexShrink:0, display:"inline-block",
+                      }}/>
+                      <span style={{ fontSize:10.5, fontWeight:600, color:st.color }}>
+                        {st.label}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize:11, fontWeight:600, color:"rgba(26,26,24,0.32)", textAlign:"center", lineHeight:1.3 }}>
-                  Erlebnis<br/>hinzufügen
-                </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         )}
       </div>
@@ -1107,7 +1267,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         <Gap/>
 
         {/* 5. Erlebnisse & Projekte */}
-        <ErlebnisseProjekte loading={loading} isOwner={isOwner}/>
+        <ErlebnisseProjekte isOwner={isOwner} userId={userId}/>
         <Gap/>
 
         {/* 6. Kundenstimmen */}

@@ -776,11 +776,27 @@ const SEED_ERLEBNISSE = [
 function ErlebnisCard({ erlebnis, delay=0 }) {
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && erlebnis.cover) ? erlebnis.cover : null;
-  const isToday = erlebnis.dayLabel === "Heute";
+
+  // Status-Farben
+  const STATUS_DOT = {
+    "Aktiv":        "#16A34A",
+    "Geplant":      "#D97706",
+    "Abgeschlossen":"rgba(26,26,46,0.35)",
+  };
+  const statusDot   = STATUS_DOT[erlebnis.statusLabel] || T.inkFaint;
+  const statusColor = erlebnis.statusColor || T.inkFaint;
+
+  console.log("[DISCOVER EXPERIENCE CARD]", {
+    id:     erlebnis.id,
+    title:  erlebnis.title,
+    status: erlebnis.statusLabel,
+    cover:  !!erlebnis.cover,
+    type:   erlebnis.typeLabel,
+  });
 
   return (
     <div className="dp-press dp-in dp-card-hover" style={{
-      width:155, flexShrink:0,
+      width:165, flexShrink:0,
       borderRadius:18, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
@@ -788,64 +804,95 @@ function ErlebnisCard({ erlebnis, delay=0 }) {
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
     }}>
-      {/* Cover mit Datum */}
-      <div style={{ width:"100%", height:105, position:"relative", overflow:"hidden", background:cover?"#000":T.tealSoft }}>
+      {/* Cover */}
+      <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : T.tealSoft }}>
         {cover ? (
           <img src={cover} alt={erlebnis.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.85 }}/>
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.88 }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:32, opacity:0.4 }}>📅</span>
+            <span style={{ fontSize:36, opacity:0.35 }}>📅</span>
           </div>
         )}
 
-        {/* Datum-Block */}
-        <div style={{
-          position:"absolute", top:8, left:8,
-          background:"rgba(255,255,255,0.94)", backdropFilter:"blur(8px)",
-          borderRadius:10, padding:"5px 9px", textAlign:"center", minWidth:36,
-        }}>
-          <div style={{ fontSize:15, fontWeight:900, color:T.ink, lineHeight:1 }}>{erlebnis.date}</div>
-          <div style={{ fontSize:8.5, fontWeight:700, color:T.inkSoft, textTransform:"uppercase", letterSpacing:".04em", marginTop:1 }}>{erlebnis.month}</div>
-        </div>
-
-        {/* "Heute"-Badge */}
-        {isToday && (
+        {/* Datum-Block oben links — nur wenn Datum vorhanden */}
+        {erlebnis.date && (
           <div style={{
-            position:"absolute", bottom:8, left:8,
-            background:T.teal, borderRadius:99, padding:"2px 8px",
-            fontSize:9.5, fontWeight:800, color:"white",
+            position:"absolute", top:8, left:8,
+            background:"rgba(255,255,255,0.94)", backdropFilter:"blur(8px)",
+            borderRadius:10, padding:"5px 9px", textAlign:"center", minWidth:36,
           }}>
-            Heute · {erlebnis.time}
+            <div style={{ fontSize:16, fontWeight:900, color:T.ink, lineHeight:1 }}>
+              {erlebnis.date}
+            </div>
+            {erlebnis.month && (
+              <div style={{ fontSize:8.5, fontWeight:700, color:T.inkSoft, textTransform:"uppercase", letterSpacing:".04em", marginTop:1 }}>
+                {erlebnis.month}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Typ-Badge oben rechts */}
+        {erlebnis.typeLabel && (
+          <div style={{
+            position:"absolute", top:8, right:8,
+            background: cover ? "rgba(0,0,0,0.50)" : "rgba(14,196,184,0.15)",
+            backdropFilter: cover ? "blur(6px)" : "none",
+            borderRadius:99, padding:"2px 8px",
+            fontSize:9, fontWeight:700,
+            color: cover ? "rgba(255,255,255,0.92)" : T.teal,
+            letterSpacing:".03em",
+          }}>
+            {erlebnis.typeLabel}
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div style={{ padding:"10px 10px 11px" }}>
+      <div style={{ padding:"10px 11px 12px" }}>
+        {/* Titel */}
         <div style={{
-          fontSize:12, fontWeight:700, color:T.ink, marginBottom:4,
+          fontSize:13, fontWeight:700, color:T.ink, marginBottom:5,
           letterSpacing:"-0.02em", lineHeight:1.3,
           overflow:"hidden", display:"-webkit-box",
           WebkitLineClamp:2, WebkitBoxOrient:"vertical",
         }}>
           {erlebnis.title}
         </div>
-        {!isToday && (
-          <div style={{ fontSize:10.5, color:T.teal, fontWeight:600, marginBottom:4 }}>
-            {erlebnis.dayLabel} · {erlebnis.time}
+
+        {/* Standort */}
+        {erlebnis.location && (
+          <div style={{ display:"flex", alignItems:"center", gap:4, marginBottom:4 }}>
+            <span style={{ fontSize:9.5, color:T.inkFaint }}>📍</span>
+            <span style={{
+              fontSize:10.5, color:T.inkFaint, fontWeight:500,
+              overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
+            }}>
+              {erlebnis.location}
+            </span>
           </div>
         )}
-        <div style={{ display:"flex", alignItems:"center", gap:4, marginBottom:8 }}>
-          <span style={{ fontSize:10, color:T.inkFaint }}>📍</span>
-          <span style={{ fontSize:10.5, color:T.inkFaint, fontWeight:500 }}>{erlebnis.location}</span>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-          <span style={{ fontSize:11 }}>👥</span>
-          <span style={{ fontSize:10.5, color:T.inkSoft, fontWeight:500 }}>
-            {erlebnis.spots} Plätze frei
-          </span>
-        </div>
+
+        {/* Dauer falls vorhanden */}
+        {erlebnis.time && (
+          <div style={{ fontSize:10.5, color:T.teal, fontWeight:600, marginBottom:4 }}>
+            {erlebnis.time}
+          </div>
+        )}
+
+        {/* Status-Dot */}
+        {erlebnis.statusLabel && (
+          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+            <span style={{
+              width:6, height:6, borderRadius:"50%",
+              background:statusDot, flexShrink:0, display:"inline-block",
+            }}/>
+            <span style={{ fontSize:10.5, fontWeight:600, color:statusColor }}>
+              {erlebnis.statusLabel}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -878,27 +925,43 @@ function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards' }) {
             ? Array.from({length:4}).map((_,i) => (
                 <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div></div>
               ))
-            : erlebnisse.map((e) => (
-                <div key={e.id} className="dp-list-card">
-                  <div className="dp-list-thumb-placeholder" style={{ background:"rgba(232,87,58,0.07)", position:"relative", overflow:"hidden" }}>
-                    {e.cover
-                      ? <img src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.target.style.display='none'}/>
-                      : <span>📅</span>
-                    }
-                    <div style={{ position:"absolute", bottom:2, left:2, right:2, background:"rgba(255,255,255,0.92)", borderRadius:6, padding:"1px 4px", textAlign:"center" }}>
-                      <span style={{ fontSize:9, fontWeight:800, color:T.ink }}>{e.date} {e.month}</span>
+            : erlebnisse.map((e) => {
+                const statusDot = {
+                  "Aktiv":"#16A34A", "Geplant":"#D97706",
+                }[e.statusLabel] || "rgba(26,26,46,0.30)";
+                return (
+                  <div key={e.id} className="dp-list-card">
+                    <div className="dp-list-thumb-placeholder" style={{ background: e.cover ? "#1A1A18" : T.tealSoft, position:"relative", overflow:"hidden" }}>
+                      {e.cover
+                        ? <img src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
+                        : <span style={{ fontSize:20 }}>📅</span>
+                      }
+                      {e.date && (
+                        <div style={{ position:"absolute", bottom:3, left:0, right:0, textAlign:"center",
+                          background:"rgba(0,0,0,0.45)", padding:"1px 0" }}>
+                          <span style={{ fontSize:9, fontWeight:800, color:"white" }}>{e.date} {e.month}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ flex:1, overflow:"hidden" }}>
+                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em",
+                        overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{e.title}</div>
+                      {e.typeLabel && (
+                        <div style={{ fontSize:11, color:T.teal, fontWeight:600, marginBottom:3 }}>{e.typeLabel}</div>
+                      )}
+                      {e.location && (
+                        <div style={{ fontSize:11, color:T.inkFaint, marginBottom:3 }}>📍 {e.location}</div>
+                      )}
+                      {e.statusLabel && (
+                        <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                          <span style={{ width:6, height:6, borderRadius:"50%", background:statusDot, display:"inline-block" }}/>
+                          <span style={{ fontSize:10.5, fontWeight:600, color:e.statusColor }}>{e.statusLabel}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div style={{ flex:1, overflow:"hidden" }}>
-                    <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em", overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{e.title}</div>
-                    <div style={{ fontSize:11.5, color:T.teal, fontWeight:600, marginBottom:4 }}>{e.dayLabel} · {e.time}</div>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ fontSize:11, color:T.inkFaint }}>📍 {e.location}</span>
-                      <span style={{ fontSize:11, color:T.inkSoft }}>👥 {e.spots} frei</span>
-                    </div>
-                  </div>
-                </div>
-              ))
+                );
+              })
           }
         </div>
       )}
@@ -1223,28 +1286,60 @@ export default function DiscoverPage({ onView, onMap }) {
           if (!cancelled) setWerke([]);
         }
 
-        // Erlebnisse
-        const { data: exps } = await supabase
+        // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
+        console.log("[DISCOVER EXP QUERY] public.experiences wird geladen...");
+        const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,description,cover_url,date,duration,location,spots_available")
+          .select("id,title,cover_url,date,duration,location_text,max_participants,status,category,experience_type,created_at")
+          .eq("status", "published")
           .order("created_at", { ascending:false })
           .limit(8);
 
+        if (expsErr) {
+          console.error("[DISCOVER EXP QUERY ERROR]", expsErr.message, "| code:", expsErr.code);
+        } else {
+          console.log("[DISCOVER EXP RESULT COUNT]", exps?.length ?? 0, "Erlebnisse geladen");
+        }
+
         if (!cancelled && exps?.length > 0) {
-          setErlebnisse(exps.map((e, i) => {
+          setErlebnisse(exps.map(e => {
             const d = e.date ? new Date(e.date) : null;
+            const now = new Date();
+            // Status ableiten
+            let statusLabel = "Aktiv";
+            let statusColor = "#16A34A";
+            if (d && d > now) { statusLabel = "Geplant";       statusColor = "#D97706"; }
+            if (d && d < now) { statusLabel = "Abgeschlossen"; statusColor = "rgba(26,26,46,0.38)"; }
+
+            // Typ-Label
+            const typeRaw = e.experience_type || e.category || "";
+            const typeMap = { workshop:"Workshop", event:"Event", ausstellung:"Ausstellung",
+              projekt:"Projekt", kurs:"Kurs", online:"Online" };
+            const typeLabel = typeMap[typeRaw.toLowerCase()] || typeRaw || "Erlebnis";
+
+            // Datum
+            const dateStr = d ? d.toLocaleDateString("de-DE",{ day:"numeric", month:"short" }) : null;
+            const dayNum  = d ? String(d.getDate()).padStart(2,"0") : null;
+            const monthSh = d ? d.toLocaleString("de",{month:"short"}) : null;
+
             return {
-              id:       e.id,
-              title:    safeStr(e.title, "Erlebnis"),
-              cover:    safeStr(e.cover_url),
-              date:     d ? String(d.getDate()).padStart(2,"0") : SEED_ERLEBNISSE[i % SEED_ERLEBNISSE.length].date,
-              month:    d ? d.toLocaleString("de",{month:"short"}) : SEED_ERLEBNISSE[i % SEED_ERLEBNISSE.length].month,
-              dayLabel: i === 0 ? "Heute" : SEED_ERLEBNISSE[i % SEED_ERLEBNISSE.length].dayLabel,
-              time:     safeStr(e.duration, "10:00"),
-              location: safeStr(e.location, "Berlin"),
-              spots:    safeNum(e.spots_available, 8),
+              id:          e.id,
+              title:       safeStr(e.title, "Erlebnis"),
+              cover:       safeStr(e.cover_url),
+              date:        dayNum,
+              month:       monthSh,
+              dateStr,
+              dayLabel:    dateStr || "",
+              time:        safeStr(e.duration),
+              location:    safeStr(e.location_text),
+              spots:       safeNum(e.max_participants, 0),
+              statusLabel,
+              statusColor,
+              typeLabel,
             };
           }));
+        } else if (!expsErr) {
+          if (!cancelled) setErlebnisse([]);
         }
 
         // Projekte (aus HUI Impact)
