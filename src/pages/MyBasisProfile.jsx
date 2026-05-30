@@ -637,7 +637,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [interests,  setInterests]  = useState([]);
   const [openFor,    setOpenFor]    = useState([]);
   const [moments,    setMoments]    = useState([]);
-  // visibility — Spalte existiert nicht in DB
+  const [visibility, setVisibility] = useState("connections"); // lokal — kein DB-Write
   const [saving,     setSaving]     = useState(false);
   const [saveOk,     setSaveOk]     = useState(false);
   // Lokale URL-Overrides für sofortige UI-Aktualisierung nach Upload
@@ -707,7 +707,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     // interests-Spalte existiert nicht in DB — kein autoSave
   };
 
-  // handleVisibilityChange entfernt — visibility nicht in DB;
+  const handleVisibilityChange = (v) => { setVisibility(v); }; // lokal — kein DB-Write;
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
