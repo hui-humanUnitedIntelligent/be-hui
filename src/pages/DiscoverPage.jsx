@@ -1152,22 +1152,42 @@ export default function DiscoverPage({ onView, onMap }) {
           })));
         }
 
-        // Werke
-        const { data: ws } = await supabase
+        // Werke — nur existierende DB-Felder (medium/media_url/likes_count existieren NICHT)
+        // Felder: id, title, cover_url, category, file_format, tags, status, visibility, user_id, created_at
+        console.log("[DISCOVER QUERY] public.works wird geladen...");
+        const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,media_url,medium,category,likes_count,user_id,created_at")
+          .select("id,title,cover_url,category,file_format,tags,status,visibility,user_id,created_at")
+          .eq("status", "published")
+          .eq("visibility", "public")
           .order("created_at", { ascending:false })
           .limit(8);
 
+        if (wsErr) {
+          console.error("[DISCOVER QUERY ERROR]", wsErr.message, "| code:", wsErr.code);
+        } else {
+          console.log("[DISCOVER RESULT COUNT]", ws?.length ?? 0, "Werke geladen");
+        }
+
         if (!cancelled && ws?.length > 0) {
+          // file_format-Werte: 'original'|'druck'|'digital'
+          // Mappen auf lesbare Labels für MEDIUM_COLOR-Fallback
+          const FILE_FORMAT_LABEL = {
+            original: "Original",
+            druck:    "Druck",
+            digital:  "Digital Art",
+          };
           setWerke(ws.map(w => ({
             id:     w.id,
             title:  safeStr(w.title, "Werk"),
-            cover:  safeStr(w.cover_url || w.media_url),
-            medium: safeStr(w.medium || w.category, "Werk"),
-            likes:  safeNum(w.likes_count, 0),
-            author: "Kreativperson",
+            cover:  safeStr(w.cover_url),
+            medium: FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
+            likes:  0,   // likes_count existiert nicht in DB
+            author: "HUI Talent",
           })));
+        } else if (!wsErr) {
+          // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
+          if (!cancelled) setWerke([]);
         }
 
         // Erlebnisse
