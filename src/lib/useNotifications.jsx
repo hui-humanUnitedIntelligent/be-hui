@@ -91,7 +91,6 @@ export function useNotifications() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(80);
-      console.log("[RESONANZZENTRUM] notifications geladen:", { count: data?.length, error: error?.message });
       if (data && Array.isArray(data)) {
         setItems(data);
         const wichtigTypes = Object.entries(TYPE_META)
@@ -158,7 +157,6 @@ function useConnectionRequests(userId) {
         .eq("target_id", userId)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
-      console.log("[RESONANZZENTRUM] connection_requests geladen:", { count: data?.length, error: error?.message });
       if (data && Array.isArray(data)) setRequests(data);
     } catch(e) {
       console.error("[RESONANZZENTRUM] connection_requests load error:", e.message);
@@ -758,7 +756,6 @@ export function ResonanzzentrumPanel({ onClose }) {
 
         {/* ── CONTENT ── */}
         <div
-          id="rz-content-container"
           style={{
             flex:1, overflowY:"auto",
             WebkitOverflowScrolling:"touch",
