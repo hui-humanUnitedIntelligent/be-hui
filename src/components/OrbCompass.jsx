@@ -519,12 +519,12 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
 
           {/* ── CENTER HUI LOGO — tappable, opens HUI-Moment ── */}
           <div
-            onClick={isTalent ? () => setShowMoment(true) : undefined}
+            onClick={() => setShowMoment(true)}
             style={{
               position: "absolute",
               left: cx, top: cy,
               zIndex: 10,
-              cursor: isTalent ? "pointer" : "default",
+              cursor: "pointer",
               touchAction: "manipulation",
               WebkitTapHighlightColor: "transparent",
               animation: `
@@ -643,6 +643,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
       <HuiMomentSheet
         visible={showMoment}
         onClose={() => setShowMoment(false)}
+        visibilityScope={isTalent ? "public" : "connections_only"}
       />
     </>
   );

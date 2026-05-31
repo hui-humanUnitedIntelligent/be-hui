@@ -432,34 +432,16 @@ function HomeInner() {
             canRenderOrbContent,
           });
 
-          // BasisUser Gate — isTalent is the single source of truth:
-          // isTalent = profile.is_member===true OR profile.role==="talent"
-          //            OR profile.has_talent_profile===true
-          // If NOT a talent/member → open membership flow, show nothing else
-          if (isBaseUser || !canCreate) {
-            console.log("[HUI ORB] BasisUser → membership flow", {
-              is_member: authProfile?.is_member,
-              role:      authProfile?.role,
-              isMember,
-            });
-            // CLEAN OPEN: no openSurface("membership") — that conflicts with surface manager
-            // Just show the modal directly; it uses fixed zIndex:9800 independently
-            setShowMembership(true);
-            return;
-          }
-
-          // Member+: validate content renderable BEFORE activating any overlay
+          // Einheitlicher Orb: alle User öffnen den OrbCompass.
+          // Sichtbarkeits-Scope wird in OrbCompass via isTalent-Prop gesteuert:
+          //   isTalent=true  → visibility_scope='public'         (Feed, Entdecken, Community)
+          //   isTalent=false → visibility_scope='connections_only' (nur Verbindungen)
           if (!canRenderOrbContent) {
-            // Ghost-State-Guard: SAFE_MODE.orb disabled
-            // Do NOT open overlay — do NOT activate blur
-            console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE, skip open");
+            console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE");
             return;
           }
-
-          // Phase 4B: ContentTypeSelector statt direktem Orb-Overlay
-          // Mitglieder wählen zuerst den Content-Typ
-          console.log("[HUI ORB] → ContentTypeSelector öffnen (Phase 4B)");
-          setShowContentSelector(true);
+          console.log("[HUI ORB] → OrbCompass öffnen", { isTalent, isBaseUser });
+          setShowPlusSheet(true);
         }}
       />
 

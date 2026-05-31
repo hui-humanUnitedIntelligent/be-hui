@@ -154,7 +154,7 @@ async function uploadToMedia(file, userId) {
 }
 
 // ════════════════════════════════════════════════════════════════
-export default function HuiMomentSheet({ visible, onClose }) {
+export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'public' }) {
   const [phase,     setPhase]     = useState("hidden");
   const [text,      setText]      = useState("");
   const [mediaURL,  setMediaURL]  = useState(null);
@@ -218,10 +218,11 @@ export default function HuiMomentSheet({ visible, onClose }) {
 
     // 2. Payload
     const payload = {
-      user_id: userId,
-      src:     src    || null,
-      type:    type   || "gedanke",
-      caption: caption || null,
+      user_id:          userId,
+      src:              src     || null,
+      type:             type    || "gedanke",
+      caption:          caption || null,
+      visibility_scope: visibilityScope,
     };
     console.log("[HuiMoment] Post Payload:", payload);
 
