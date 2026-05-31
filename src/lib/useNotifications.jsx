@@ -78,26 +78,18 @@ export function useNotifications() {
   const [items,   setItems]   = useState([]);
   const [unread,  setUnread]  = useState(0);
   const [loading, setLoading] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({
-    panelUser: null, panelRows: null, panelError: null
-  });
   const subRef = useRef(null);
 
   const load = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
     try {
-      console.log("[PANEL USER]", user?.id);
       const { data, error } = await supabase
         .from("notifications")
         .select("id,type,title,body,read,created_at,data")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(80);
-      console.log("[PANEL ROWS]", data?.length ?? 0);
-      console.log("[PANEL DATA]", data);
-      console.log("[PANEL ERROR]", error);
-      setDebugInfo({ panelUser: user?.id ?? "NULL", panelRows: data?.length ?? 0, panelError: error ? JSON.stringify(error) : null });
       console.log("[RESONANZZENTRUM] notifications geladen:", { count: data?.length, error: error?.message });
       if (data && Array.isArray(data)) {
         setItems(data);
@@ -145,7 +137,7 @@ export function useNotifications() {
     } catch { /* silent */ }
   }, [user?.id]);
 
-  return { items, unread, loading, markRead, markAllRead, reload: load, debugInfo };
+  return { items, unread, loading, markRead, markAllRead, reload: load };
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -236,7 +228,6 @@ function NotifItem({ n, onRead }) {
   const meta = getMeta(n.type);
   const [hov, setHov] = useState(false);
 
-  console.log("[NOTIFITEM CALLED]", { id: n?.id, type: n?.type, title: n?.title });
   return (
     <button
       onClick={() => onRead(n.id)}
@@ -255,11 +246,6 @@ function NotifItem({ n, onRead }) {
         touchAction:"manipulation",
       }}
     >
-      {/* DEBUG ITEM */}
-      <div style={{fontSize:9,color:"red",fontFamily:"monospace",padding:"0 0 2px 0",wordBreak:"break-all"}}>
-        DEBUG ITEM: {n?.id}
-      </div>
-
       {/* Icon */}
       <div style={{
         width:42, height:42, borderRadius:14, flexShrink:0,
@@ -575,21 +561,6 @@ export function ResonanzzentrumPanel({ onClose }) {
 
   const [tab, setTab] = useState("alle");
 
-  // DEBUG — Badge-Query direkt im Panel wiederholen um Werte sichtbar zu machen
-  const [badgeDebug, setBadgeDebug] = useState({ user: "…", count: "…", error: "…" });
-  useEffect(() => {
-    if (!user?.id) { setBadgeDebug({ user: "NULL", count: "–", error: "–" }); return; }
-    setBadgeDebug(prev => ({ ...prev, user: user.id }));
-    supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("read", false)
-      .then(({ count, error }) => {
-        setBadgeDebug({ user: user.id, count: String(count ?? "null"), error: error ? error.message : "null" });
-      });
-  }, [user?.id]);
-
   // Null-Guards für alle Arrays — verhindert .map()/.filter() auf undefined
   const safeItems    = Array.isArray(notif?.items)        ? notif.items        : [];
   const safeRequests = Array.isArray(connReqs?.requests)  ? connReqs.requests  : [];
@@ -619,8 +590,6 @@ export function ResonanzzentrumPanel({ onClose }) {
     const w = safeItems.filter(n => getMeta(n?.type).tab === "wichtig");
     const r = safeItems.filter(n => getMeta(n?.type).tab === "relevant");
     const i = safeItems.filter(n => getMeta(n?.type).tab === "info");
-    console.log("[GROUPED CALC] wichtig:", w.length, "relevant:", r.length, "info:", i.length);
-    console.log("[GROUPED INFO ITEMS]", i.map(x => ({ id: x?.id, type: x?.type, title: x?.title })));
     return { wichtig: w, relevant: r, info: i };
   }, [safeItems, tab]);
 
@@ -632,11 +601,6 @@ export function ResonanzzentrumPanel({ onClose }) {
   ];
 
   const isEmpty = (filteredItems?.length ?? 0) === 0 && (tab !== "alle" || safeRequests.length === 0);
-
-  console.log("[TAB]", tab);
-  console.log("[GROUPED INFO]", grouped?.info?.length ?? "null (tab !== alle)");
-  console.log("[FILTERED]", filteredItems?.length ?? "–");
-  console.log("[GROUPED NULL?]", grouped === null);
 
   return (
     <>
@@ -666,48 +630,6 @@ export function ResonanzzentrumPanel({ onClose }) {
           boxShadow:"-4px 0 40px rgba(26,26,24,0.16)",
         }}
       >
-        {/* ── DEBUG KARTE ── */}
-        <div style={{
-          margin:"12px 12px 0",
-          padding:"10px 12px",
-          background:"rgba(0,0,0,0.85)",
-          borderRadius:10,
-          fontFamily:"monospace",
-          fontSize:11,
-          color:"#00FF88",
-          lineHeight:1.7,
-          flexShrink:0,
-        }}>
-          <div style={{fontWeight:700, color:"#FFD700", marginBottom:4}}>🛠 DEBUG</div>
-          <div><span style={{color:"#aaa"}}>BADGE USER:</span> {badgeDebug.user}</div>
-          <div><span style={{color:"#aaa"}}>BADGE COUNT:</span> {badgeDebug.count}</div>
-          <div><span style={{color:"#aaa"}}>BADGE ERROR:</span> {badgeDebug.error}</div>
-          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
-          <div><span style={{color:"#aaa"}}>PANEL USER:</span> {notif?.debugInfo?.panelUser ?? "…"}</div>
-          <div><span style={{color:"#aaa"}}>PANEL ROWS:</span> {String(notif?.debugInfo?.panelRows ?? "…")}</div>
-          <div><span style={{color:"#aaa"}}>PANEL ERROR:</span> {notif?.debugInfo?.panelError ?? "null"}</div>
-          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
-          <div><span style={{color:"#aaa"}}>items.length:</span> {safeItems.length}</div>
-          <div><span style={{color:"#aaa"}}>items[0].type:</span> {safeItems[0]?.type ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>items[0].read:</span> {String(safeItems[0]?.read ?? "–")}</div>
-          <div><span style={{color:"#aaa"}}>getMeta(type).tab:</span> {safeItems[0] ? getMeta(safeItems[0].type).tab : "–"}</div>
-          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
-          <div><span style={{color:"#aaa"}}>filteredItems.length:</span> {filteredItems?.length ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>grouped.wichtig:</span> {grouped?.wichtig?.length ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>grouped.relevant:</span> {grouped?.relevant?.length ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>grouped.info:</span> {grouped?.info?.length ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>isEmpty:</span> {String(isEmpty)}</div>
-          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
-          <div><span style={{color:"#aaa"}}>tab:</span> {tab}</div>
-          <div><span style={{color:"#aaa"}}>grouped===null:</span> {String(grouped === null)}</div>
-          <div><span style={{color:"#aaa"}}>tab==="alle":</span> {String(tab === "alle")}</div>
-          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
-          <div><span style={{color:"#aaa"}}>filtered[0].id:</span> {filteredItems?.[0]?.id?.slice(0,8) ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>filtered[0].type:</span> {filteredItems?.[0]?.type ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>filtered[0].title:</span> {filteredItems?.[0]?.title ?? "–"}</div>
-          <div><span style={{color:"#aaa"}}>BRANCH:</span> {tab !== "alle" ? (isEmpty ? "EmptyTab" : "filteredItems.map") : "grouped"}</div>
-        </div>
-
         {/* ── HEADER ── */}
         <div style={{
           padding:"env(safe-area-inset-top,16px) 16px 0",
@@ -871,11 +793,7 @@ export function ResonanzzentrumPanel({ onClose }) {
               {grouped.info.length > 0 && (
                 <>
                   <SectionHeader emoji="⭐" label="Informativ" />
-                  {grouped.info.map(n => (
-                    <div key={n.id} style={{background:"red",color:"white",padding:20,marginBottom:12}}>
-                      RAW GROUPED TEST
-                    </div>
-                  ))}
+                  {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
                 </>
               )}
               {safeItems.length === 0 && safeRequests.length === 0 && (
@@ -885,20 +803,11 @@ export function ResonanzzentrumPanel({ onClose }) {
           )}
 
           {/* Einzelne Tabs */}
-          {tab !== "alle" && (() => {
-            console.log("[SINGLE-TAB BRANCH]", {
-              tab, isEmpty,
-              filteredLen: filteredItems?.length,
-              ids:   filteredItems?.map(x => x?.id),
-              types: filteredItems?.map(x => x?.type),
-            });
-            console.log("[LIST CONTAINER RENDERED]");
-            return (
-              <div style={{background:"red",color:"white",padding:20,minHeight:200}}>
-                CONTAINER TEST — tab: {tab} — filteredLen: {filteredItems?.length}
-              </div>
-            );
-          })()}
+          {tab !== "alle" && (
+            isEmpty
+              ? <EmptyTab tab={tab} />
+              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)
+          )}
 
           {/* Lade-Spinner */}
           {notif?.loading && safeItems.length === 0 && safeRequests.length === 0 && (
