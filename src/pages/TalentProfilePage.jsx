@@ -501,92 +501,23 @@ function CinematicHero({ profile, loading }) {
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
 function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
-  React.useEffect(() => {
-    setTimeout(() => {
-      const el = document.querySelector("[data-kompass-sheet]");
-      if (!el) { alert("SHEET ROOT\nel: NICHT GEFUNDEN"); return; }
-      const cs = window.getComputedStyle(el);
-      const r  = el.getBoundingClientRect();
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const inViewport = r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
-      alert(
-        "SHEET ROOT\n" +
-        "display: "       + cs.display       + "\n" +
-        "visibility: "    + cs.visibility    + "\n" +
-        "opacity: "       + cs.opacity       + "\n" +
-        "z-index: "       + cs.zIndex        + "\n" +
-        "position: "      + cs.position      + "\n" +
-        "transform: "     + cs.transform     + "\n\n" +
-        "clientHeight: "  + el.clientHeight  + "\n" +
-        "clientWidth: "   + el.clientWidth   + "\n\n" +
-        "rectTop: "    + Math.round(r.top)    + "\n" +
-        "rectBottom: " + Math.round(r.bottom) + "\n" +
-        "rectLeft: "   + Math.round(r.left)   + "\n" +
-        "rectRight: "  + Math.round(r.right)  + "\n\n" +
-        "FAKT\n" +
-        "Element sichtbar im Viewport: " + (inViewport ? "JA" : "NEIN")
-      );
-    }, 150);
-  }, []);
-  const [pressed, setPressed] = React.useState(null);
-
-  function handleShare() {
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: profile?.display_name || "HUI Profil", url });
-    } else {
-      navigator.clipboard?.writeText(url);
-    }
-    onClose();
-  }
-
-  const items = [
-    {
-      id: "share",
-      emoji: "🔗",
-      label: "Profil teilen",
-      sub: "Link kopieren oder weiterleiten",
-      action: handleShare,
-    },
-    {
-      id: "watch",
-      emoji: isWatching ? "👁️" : "🌱",
-      label: isWatching ? "Beobachtung beenden" : "Talent beobachten",
-      sub: isWatching ? "Aus deiner Beobachtungsliste entfernen" : "In deiner Beobachtungsliste speichern",
-      action: () => { onWatch(); onClose(); },
-    },
-    {
-      id: "message",
-      emoji: "💬",
-      label: "Nachricht senden",
-      sub: "Direkte Unterhaltung beginnen",
-      action: onClose,
-    },
-    {
-      id: "save",
-      emoji: "✨",
-      label: "Als Inspiration speichern",
-      sub: "Zu deinen Favoriten hinzufügen",
-      action: onClose,
-    },
-    {
-      id: "report",
-      emoji: "🚩",
-      label: "Profil melden",
-      sub: "Einem HUI-Moderator mitteilen",
-      isDestructive: true,
-      action: onClose,
-    },
-  ];
-
   return createPortal(
     <div style={{
-      position:"fixed", top:"120px", left:"20px", right:"20px", height:"300px",
-      background:"red", zIndex:999999,
-      display:"flex", alignItems:"center", justifyContent:"center",
+      position: "fixed",
+      left: 20,
+      right: 20,
+      top: 120,
+      height: 300,
+      background: "red",
+      color: "white",
+      zIndex: 999999,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 32,
+      fontWeight: 900,
     }}>
-      <span style={{ color:"white", fontSize:32, fontWeight:900 }}>KOMPASS TEST</span>
+      KOMPASS TEST
     </div>,
     document.body
   );
