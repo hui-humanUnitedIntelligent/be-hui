@@ -501,7 +501,34 @@ function CinematicHero({ profile, loading }) {
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
 function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
-  React.useEffect(() => { setTimeout(() => { const el = document.querySelector("[data-kompass-sheet]"); const all = document.querySelectorAll("[data-kompass-sheet]").length; alert("MOUNTED+100ms. el=" + (el ? "JA h=" + el.offsetHeight + " vis=" + (el.offsetParent !== null ? "JA" : "NEIN") : "NEIN") + " count=" + all); }, 100); }, []);
+  React.useEffect(() => {
+    setTimeout(() => {
+      const el = document.querySelector("[data-kompass-sheet]");
+      if (!el) { alert("SHEET ROOT\nel: NICHT GEFUNDEN"); return; }
+      const cs = window.getComputedStyle(el);
+      const r  = el.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const inViewport = r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+      alert(
+        "SHEET ROOT\n" +
+        "display: "       + cs.display       + "\n" +
+        "visibility: "    + cs.visibility    + "\n" +
+        "opacity: "       + cs.opacity       + "\n" +
+        "z-index: "       + cs.zIndex        + "\n" +
+        "position: "      + cs.position      + "\n" +
+        "transform: "     + cs.transform     + "\n\n" +
+        "clientHeight: "  + el.clientHeight  + "\n" +
+        "clientWidth: "   + el.clientWidth   + "\n\n" +
+        "rectTop: "    + Math.round(r.top)    + "\n" +
+        "rectBottom: " + Math.round(r.bottom) + "\n" +
+        "rectLeft: "   + Math.round(r.left)   + "\n" +
+        "rectRight: "  + Math.round(r.right)  + "\n\n" +
+        "FAKT\n" +
+        "Element sichtbar im Viewport: " + (inViewport ? "JA" : "NEIN")
+      );
+    }, 150);
+  }, []);
   const [pressed, setPressed] = React.useState(null);
 
   function handleShare() {
