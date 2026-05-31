@@ -1500,6 +1500,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 8. Abschluss */}
         <AbschlussBar profile={profile} loading={loading}/>
+      {showKompassSheet && alert("RENDER: showKompassSheet=true — Sheet wird gerendert")}
       {showKompassSheet && (
         <KompassActionSheet
           profile={profile}
