@@ -1268,22 +1268,68 @@ function AbschlussButtons({ profile, currentUserId }) {
   const [watchingLocal, setWatchingLocal] = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
 
+  // Doppel-Aufruf-Schutz (onTouchEnd + onClick können beide feuern)
+  const _toggleRunning = React.useRef(false);
+
   async function toggleWatch() {
-    console.log("[WATCHLIST CLICK / AbschlussButtons]", { profileId: profile?.id, currentUserId, isWatching });
-    if (!currentUserId || !profile?.id || rel.loading) return;
+    if (_toggleRunning.current) return;
+    _toggleRunning.current = true;
+    setTimeout(() => { _toggleRunning.current = false; }, 800);
+
+    showDebugToast(2, "toggleWatch gestartet [Abschluss]",
+      `loading=${rel.loading} | user=${currentUserId?.slice(0,8) ?? "NULL"}`);
+
+    if (!currentUserId || !profile?.id || rel.loading) {
+      const reason = [
+        !currentUserId  && "kein currentUserId",
+        !profile?.id    && "kein profile.id",
+        rel.loading     && "rel.loading=true",
+      ].filter(Boolean).join(" | ");
+      showDebugToast(3, "GUARD GEBLOCKT ❌ [Abschluss]", reason, true);
+      return;
+    }
+    showDebugToast(3, "Guard passiert ✅ [Abschluss]",
+      `isWatching=${isWatching} → next=${!isWatching}`);
+
     const next = !isWatching;
     setWatchingLocal(next);
+
     if (next) {
       const payload = { watcher_id: currentUserId, profile_id: profile.id };
-      console.log("[WATCHLIST INSERT / Abschluss]", payload);
-      const { data, error } = await supabase.from("profile_watchlist").insert(payload).select("id").single();
-      if (error) { console.error("[WATCHLIST ERROR / Abschluss]", error); setWatchingLocal(null); return; }
-      console.log("[WATCHLIST SUCCESS / Abschluss]", data);
+      showDebugToast(4, "Supabase INSERT [Abschluss]",
+        `watcher: ${currentUserId.slice(0,8)}…`);
+      const { data, error } = await supabase
+        .from("profile_watchlist")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) {
+        const detail = `code: ${error?.code ?? "–"}
+msg: ${error?.message ?? "–"}
+details: ${error?.details ?? "–"}
+hint: ${error?.hint ?? "–"}`;
+        showDebugToast(5, "INSERT FEHLER ❌ [Abschluss]", detail, true);
+        setWatchingLocal(null);
+        return;
+      }
+      showDebugToast(5, "INSERT ERFOLG ✅ [Abschluss]", `id: ${data?.id?.slice(0,12)}…`);
       rel.refetch();
     } else {
-      const { error } = await supabase.from("profile_watchlist").delete()
-        .eq("watcher_id", currentUserId).eq("profile_id", profile.id);
-      if (error) { console.error("[WATCHLIST DELETE ERROR / Abschluss]", error); setWatchingLocal(null); return; }
+      showDebugToast(4, "Supabase DELETE [Abschluss]",
+        `watcher: ${currentUserId.slice(0,8)}…`);
+      const { error } = await supabase
+        .from("profile_watchlist")
+        .delete()
+        .eq("watcher_id", currentUserId)
+        .eq("profile_id", profile.id);
+      if (error) {
+        const detail = `code: ${error?.code ?? "–"}
+msg: ${error?.message ?? "–"}`;
+        showDebugToast(5, "DELETE FEHLER ❌ [Abschluss]", detail, true);
+        setWatchingLocal(null);
+        return;
+      }
+      showDebugToast(5, "DELETE ERFOLG ✅ [Abschluss]");
       rel.refetch();
     }
   }
@@ -1303,13 +1349,27 @@ function AbschlussButtons({ profile, currentUserId }) {
     primaryAction = () => setShowVerbindungsDialog(true);
   }
 
+  function handleTouch(e) {
+    e.preventDefault();
+    showDebugToast(1, "Button-Klick [Abschluss touch]",
+      `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
+    if (!primaryDisabled) primaryAction();
+  }
+
+  function handleClick() {
+    showDebugToast(1, "Button-Klick [Abschluss click]",
+      `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
+    if (!primaryDisabled) primaryAction();
+  }
+
   return (
     <>
       <div style={{padding:`0 ${T.px}px`,display:"flex",gap:10}}>
         <button
           className="tpp-press"
           disabled={primaryDisabled}
-          onClick={primaryAction}
+          onTouchEnd={handleTouch}
+          onClick={handleClick}
           style={{
             flex:1, padding:"14px 16px",
             background: primaryDisabled
@@ -1323,6 +1383,8 @@ function AbschlussButtons({ profile, currentUserId }) {
             boxShadow: primaryDisabled ? "none" : T.glow,
             touchAction:"manipulation",
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            WebkitUserSelect:"none", userSelect:"none",
+            WebkitTapHighlightColor:"transparent",
           }}>
           {primaryLabel}
         </button>
