@@ -141,11 +141,11 @@ function useRelationship(profileId, currentUserId) {
 
 // Intentions für den Verbindungsdialog
 const INTENTIONS = [
-  { key:"interests",   emoji:"🌱", label:"Gemeinsame Interessen" },
-  { key:"inspiration", emoji:"🎨", label:"Inspiration & Austausch" },
-  { key:"meet",        emoji:"☕", label:"Begegnung & Gespräch" },
-  { key:"create",      emoji:"🤝", label:"Gemeinsam etwas erschaffen" },
-  { key:"other",       emoji:"✨", label:"Sonstiges" },
+  { key:"work",        emoji:"🎨", label:"Ich interessiere mich für deine Arbeit" },
+  { key:"experience",  emoji:"✨", label:"Ich möchte an deinen Erlebnissen teilnehmen" },
+  { key:"exchange",    emoji:"☕", label:"Ich suche Austausch" },
+  { key:"create",      emoji:"🌍", label:"Ich möchte gemeinsam etwas bewirken" },
+  { key:"other",       emoji:"💬", label:"Eigene Nachricht" },
 ];
 
 const CSS_DIALOG = `
@@ -203,12 +203,12 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
         {sent ? (
           // Bestätigung
           <div style={{textAlign:"center",padding:"20px 0 8px"}}>
-            <div style={{fontSize:44,marginBottom:14}}>🌱</div>
+            <div style={{fontSize:44,marginBottom:14}}>🤝</div>
             <div style={{fontSize:18,fontWeight:800,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:8}}>
               Anfrage gesendet
             </div>
-            <div style={{fontSize:14,color:"rgba(26,26,24,0.52)",lineHeight:1.55}}>
-              {name} kann sich nun verbinden, wenn es für sie/ihn stimmt.
+            <div style={{fontSize:14,color:"rgba(26,26,24,0.52)",lineHeight:1.55,maxWidth:260,margin:"0 auto"}}>
+              {name} entscheidet in Ruhe, ob eine Verbindung entstehen soll.
             </div>
           </div>
         ) : (
@@ -216,10 +216,10 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
             {/* Titel */}
             <div style={{marginBottom:20}}>
               <div style={{fontSize:17,fontWeight:800,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:6}}>
-                Mit {name} verbinden
+                Warum möchtest du dich verbinden?
               </div>
               <div style={{fontSize:13,color:"rgba(26,26,24,0.50)",lineHeight:1.5}}>
-                Warum möchtest du dich verbinden?
+                Deine Anfrage geht persönlich an {name}. Sie entscheiden, ob eine Verbindung entsteht.
               </div>
             </div>
 
@@ -297,89 +297,6 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
 
 
 // ══════════════════════════════════════════════════════════════
-// DEBUG TOAST — NUR TEMPORÄR FÜR WATCHLIST-DEBUGGING
-// Zeigt jeden Flow-Schritt sichtbar auf dem iPad
-// ══════════════════════════════════════════════════════════════
-
-// Globaler Debug-State außerhalb von React
-// (damit er nicht durch Re-Renders verloren geht)
-const _debugToasts = [];
-let _debugSetToasts = null;
-
-function showDebugToast(step, label, detail = null, isError = false) {
-  const entry = {
-    id:      Date.now() + Math.random(),
-    step,
-    label,
-    detail,
-    isError,
-    time:    new Date().toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit", second:"2-digit" }),
-  };
-  _debugToasts.push(entry);
-  if (_debugSetToasts) _debugSetToasts([..._debugToasts]);
-  // Auto-remove nach 12s (Fehler bleiben 20s)
-  setTimeout(() => {
-    const idx = _debugToasts.findIndex(t => t.id === entry.id);
-    if (idx > -1) {
-      _debugToasts.splice(idx, 1);
-      if (_debugSetToasts) _debugSetToasts([..._debugToasts]);
-    }
-  }, isError ? 20000 : 12000);
-}
-
-function DebugToastLayer() {
-  const [toasts, setToasts] = React.useState([]);
-  React.useEffect(() => {
-    _debugSetToasts = setToasts;
-    return () => { _debugSetToasts = null; };
-  }, []);
-
-  if (toasts.length === 0) return null;
-
-  return (
-    <div style={{
-      position:"fixed", top:0, left:0, right:0, zIndex:99999,
-      pointerEvents:"none",
-      padding:"8px 10px 0",
-      display:"flex", flexDirection:"column", gap:6,
-    }}>
-      {toasts.map(t => (
-        <div key={t.id} style={{
-          background: t.isError
-            ? "rgba(200,40,40,0.96)"
-            : t.step === 5
-              ? "rgba(14,140,90,0.96)"
-              : "rgba(20,20,20,0.92)",
-          color:"#fff",
-          borderRadius:10,
-          padding:"10px 14px",
-          fontSize:13,
-          fontFamily:"monospace",
-          boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
-          borderLeft: t.isError ? "4px solid #ff6b6b"
-            : t.step === 5 ? "4px solid #0EC4B8"
-            : "4px solid #888",
-          pointerEvents:"none",
-        }}>
-          <div style={{fontWeight:700, fontSize:14, marginBottom: t.detail ? 4 : 0}}>
-            {t.isError ? "❌" : t.step === 5 ? "✅" : "🔵"} [STEP {t.step}] {t.label}
-            <span style={{float:"right", fontWeight:400, fontSize:11, opacity:0.7}}>{t.time}</span>
-          </div>
-          {t.detail && (
-            <div style={{
-              fontSize:12, opacity:0.9, lineHeight:1.4,
-              wordBreak:"break-all", whiteSpace:"pre-wrap",
-              maxHeight:120, overflowY:"auto",
-            }}>
-              {t.detail}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ── Helpers ────────────────────────────────────────────────────
 const s  = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
 const a  = (v) => Array.isArray(v) ? v : [];
@@ -581,240 +498,158 @@ function CinematicHero({ profile, loading }) {
 // 3. ACTION BUTTONS (Verbinden, Nachricht)
 // ══════════════════════════════════════════════════════════════
 function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
-  // ── DEBUG LOG 3: Was kommt in ActionButtons an? ──
-  console.log("[ACTIONBUTTONS PROFILE]", profile);
-  console.log("[PROFILE ID]", profile?.id ?? "FEHLT ❌");
   const rel = useRelationship(profile?.id, currentUserId);
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
-  const [watchingLocal,         setWatchingLocal]         = React.useState(null); // optimistic
-
-  // Watchlist-Status: optimistic override falls vorhanden
+  const [watchingLocal,         setWatchingLocal]         = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
-
-  // Stufe 4: Chat nur nach accepted
-  const canChat = rel.relationStatus === "accepted";
-
-  // Doppel-Aufruf-Schutz (onTouchEnd + onClick können beide feuern)
   const _toggleRunning = React.useRef(false);
 
   async function toggleWatch() {
-    // Doppel-Aufruf verhindern (iOS: touchEnd + click)
     if (_toggleRunning.current) return;
     _toggleRunning.current = true;
     setTimeout(() => { _toggleRunning.current = false; }, 800);
-
-    // STEP 2: toggleWatch aufgerufen
-    showDebugToast(2, "toggleWatch gestartet", `loading=${loading} | relLoading=${rel.loading} | user=${currentUserId?.slice(0,8) ?? "NULL"}`);
-
-    // STEP 3: Guard-Check
-    if (!currentUserId || !profile?.id || loading || rel.loading) {
-      const reason = [
-        !currentUserId  && "kein currentUserId",
-        !profile?.id    && "kein profile.id",
-        loading         && "loading=true",
-        rel.loading     && "rel.loading=true",
-      ].filter(Boolean).join(" | ");
-      showDebugToast(3, "GUARD GEBLOCKT ❌", reason, true);
-      return;
-    }
-    showDebugToast(3, "Guard passiert ✅", `isWatching=${isWatching} → next=${!isWatching}`);
+    if (!currentUserId || !profile?.id || loading || rel.loading) return;
 
     const next = !isWatching;
     setWatchingLocal(next);
-
     if (next) {
-      // STEP 4: INSERT
-      const payload = { watcher_id: currentUserId, profile_id: profile.id };
-      showDebugToast(4, "Supabase INSERT gestartet", `watcher: ${currentUserId.slice(0,8)}… | profile: ${profile.id.slice(0,8)}…`);
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("profile_watchlist")
-        .insert(payload)
-        .select("id")
-        .single();
-
-      // STEP 5: Antwort
-      if (error) {
-        const detail = [
-          `code: ${error?.code ?? "–"}`,
-          `msg: ${error?.message ?? "–"}`,
-          `details: ${error?.details ?? "–"}`,
-          `hint: ${error?.hint ?? "–"}`,
-        ].join("\n");
-        showDebugToast(5, "INSERT FEHLER ❌", detail, true);
-        setWatchingLocal(null);
-        return;
-      }
-      showDebugToast(5, "INSERT ERFOLG ✅", `id: ${data?.id?.slice(0,12)}…`);
+        .insert({ watcher_id: currentUserId, profile_id: profile.id })
+        .select("id").single();
+      if (error) { setWatchingLocal(null); return; }
       rel.refetch();
-
     } else {
-      // STEP 4: DELETE
-      showDebugToast(4, "Supabase DELETE gestartet", `watcher: ${currentUserId.slice(0,8)}…`);
       const { error } = await supabase
         .from("profile_watchlist")
         .delete()
         .eq("watcher_id", currentUserId)
         .eq("profile_id", profile.id);
-
-      if (error) {
-        const detail = `code: ${error?.code ?? "–"}\nmsg: ${error?.message ?? "–"}\ndetails: ${error?.details ?? "–"}`;
-        showDebugToast(5, "DELETE FEHLER ❌", detail, true);
-        setWatchingLocal(null);
-        return;
-      }
-      showDebugToast(5, "DELETE ERFOLG ✅");
+      if (error) { setWatchingLocal(null); return; }
       rel.refetch();
     }
   }
 
-  // Ladezustand
   if (loading || rel.loading) {
     return (
-      <div style={{padding:`0 ${T.px}px`,display:"flex",gap:10}}>
+      <div style={{display:"flex",gap:10}}>
         <div className="tpp-skeleton" style={{flex:1,height:48,borderRadius:T.r99}}/>
         <div className="tpp-skeleton" style={{width:48,height:48,borderRadius:"50%"}}/>
       </div>
     );
   }
 
-  // ── PRIMÄRER BUTTON: abhängig von Beziehungsstatus ─────────
-  let primaryBtn = null;
-
-  if (rel.relationStatus === "accepted") {
-    // STUFE 4: Verbunden → Nachricht senden
-    primaryBtn = (
-      <button className="tpp-press" onClick={onOpenChat} style={{
-        flex:1, padding:"13px 16px",
-        background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-        color:"#fff", border:"none", borderRadius:T.r99,
-        fontSize:14, fontWeight:800, cursor:"pointer",
-        fontFamily:"inherit", boxShadow:T.glow,
-        display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-        touchAction:"manipulation",
-      }}>
-        💬 Nachricht senden
-      </button>
-    );
-  } else if (rel.relationStatus === "pending") {
-    // STUFE 3: Anfrage läuft — zeige Status
-    primaryBtn = (
-      <button disabled style={{
-        flex:1, padding:"13px 16px",
-        background:"rgba(14,196,184,0.10)",
-        color:T.teal, border:`1.5px solid ${T.teal}`,
-        borderRadius:T.r99, fontSize:14, fontWeight:700,
-        fontFamily:"inherit", cursor:"default",
-        display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-      }}>
-        🌿 Anfrage gesendet
-      </button>
-    );
-  } else if (rel.relationStatus === "declined") {
-    // Abgelehnt — kein aggressiver CTA
-    primaryBtn = (
-      <button disabled style={{
-        flex:1, padding:"13px 16px",
-        background:"transparent", color:"rgba(26,26,24,0.35)",
-        border:`1.5px solid rgba(26,26,24,0.10)`,
-        borderRadius:T.r99, fontSize:13, fontWeight:600,
-        fontFamily:"inherit", cursor:"default",
-        display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-      }}>
-        Verbindung nicht möglich
-      </button>
-    );
-  } else if (isWatching) {
-    // STUFE 2 aktiv → Verbinden anbieten
-    primaryBtn = (
-      <button className="tpp-press" onClick={() => setShowVerbindungsDialog(true)} style={{
-        flex:1, padding:"13px 16px",
-        background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-        color:"#fff", border:"none", borderRadius:T.r99,
-        fontSize:14, fontWeight:800, cursor:"pointer",
-        fontFamily:"inherit", boxShadow:T.glow,
-        display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-        touchAction:"manipulation",
-      }}>
-        🤝 Verbinden
-      </button>
-    );
-  } else {
-    // STUFE 2: Im Blick behalten (erster Schritt)
-    primaryBtn = (
-      <button
-        className="tpp-press"
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          showDebugToast(1, "Button-Klick erkannt (touch)", `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
-          toggleWatch();
-        }}
-        onClick={(e) => {
-          showDebugToast(1, "Button-Klick erkannt (click)", `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
-          toggleWatch();
-        }}
-        style={{
-          flex:1, padding:"13px 16px",
-          background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-          color:"#fff", border:"none", borderRadius:T.r99,
-          fontSize:14, fontWeight:800, cursor:"pointer",
-          fontFamily:"inherit", boxShadow:T.glow,
-          display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-          touchAction:"manipulation",
-        }}>
-        🚨 DEBUG BUTTON 🚨
-      </button>
-    );
-  }
+  const isAccepted = rel.relationStatus === "accepted";
+  const isPending  = rel.relationStatus === "pending";
+  const isDeclined = rel.relationStatus === "declined";
 
   return (
     <>
-      <div style={{padding:`0 ${T.px}px`,display:"flex",gap:10}}>
-        {primaryBtn}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        <div style={{display:"flex",gap:10}}>
 
-        {/* Sekundär: Im Blick behalten / Aus Blick (wenn Verbinden schon primär ist) */}
-        {(isWatching && rel.relationStatus === null) && (
-          <button className="tpp-press-light" onClick={toggleWatch} style={{
-            height:48, padding:"0 14px",
-            background:T.tealSoft,
-            border:`1.5px solid ${T.teal}`,
-            borderRadius:T.r99, fontSize:12, fontWeight:700,
-            color:T.teal, cursor:"pointer",
-            fontFamily:"inherit", flexShrink:0,
-            display:"flex", alignItems:"center", gap:5,
-            touchAction:"manipulation",
+          {/* Primär-Button */}
+          {isAccepted ? (
+            <button className="tpp-press" onClick={onOpenChat} style={{
+              flex:1, padding:"13px 16px",
+              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+              color:"#fff", border:"none", borderRadius:T.r99,
+              fontSize:14, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:T.glow,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+              touchAction:"manipulation",
+            }}>
+              💬 Nachricht senden
+            </button>
+
+          ) : isPending ? (
+            <button disabled style={{
+              flex:1, padding:"13px 16px",
+              background:"rgba(14,196,184,0.10)",
+              color:T.teal, border:`1.5px solid ${T.teal}`,
+              borderRadius:T.r99, fontSize:14, fontWeight:700,
+              fontFamily:"inherit", cursor:"default",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            }}>
+              🌿 Anfrage gesendet
+            </button>
+
+          ) : isDeclined ? (
+            <button disabled style={{
+              flex:1, padding:"13px 16px",
+              background:"transparent", color:"rgba(26,26,24,0.30)",
+              border:`1.5px solid rgba(26,26,24,0.08)`,
+              borderRadius:T.r99, fontSize:13, fontWeight:600,
+              fontFamily:"inherit", cursor:"default",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              Verbindung nicht möglich
+            </button>
+
+          ) : isWatching ? (
+            // STUFE 2 → Verbinden
+            <button className="tpp-press" onClick={() => setShowVerbindungsDialog(true)} style={{
+              flex:1, padding:"13px 16px",
+              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+              color:"#fff", border:"none", borderRadius:T.r99,
+              fontSize:14, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:T.glow,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+              touchAction:"manipulation",
+            }}>
+              🤝 Verbinden
+            </button>
+
+          ) : (
+            // STUFE 1 → Im Blick behalten
+            <button className="tpp-press" onClick={toggleWatch} style={{
+              flex:1, padding:"13px 16px",
+              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+              color:"#fff", border:"none", borderRadius:T.r99,
+              fontSize:14, fontWeight:800, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:T.glow,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+              touchAction:"manipulation",
+            }}>
+              🌱 Im Blick behalten
+            </button>
+          )}
+
+          {/* Optionen-Button */}
+          <button className="tpp-press-light" style={{
+            width:46, height:46,
+            background:T.bgCard, border:`1.5px solid ${T.borderMid}`,
+            borderRadius:"50%", cursor:"pointer", fontSize:16,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            flexShrink:0, boxShadow:T.card, touchAction:"manipulation",
           }}>
-            🌱 Im Blick
+            ···
           </button>
-        )}
+        </div>
 
-        {/* Optionen */}
-        <button className="tpp-press-light" style={{
-          width:46, height:46,
-          background:T.bgCard, border:`1.5px solid ${T.borderMid}`,
-          borderRadius:"50%", cursor:"pointer", fontSize:16,
-          display:"flex", alignItems:"center", justifyContent:"center",
-          flexShrink:0, boxShadow:T.card, touchAction:"manipulation",
-        }}>
-          ···
-        </button>
+        {/* Untertext: Beobachter-Status */}
+        {isWatching && !isAccepted && (
+          <div style={{
+            textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
+            letterSpacing:"0.01em",
+          }}>
+            Du beobachtest das Wirken dieses Talents.
+          </div>
+        )}
       </div>
 
-      {/* Verbindungsdialog */}
       {showVerbindungsDialog && (
         <VerbindungsDialog
           profile={profile}
           currentUserId={currentUserId}
           onClose={() => setShowVerbindungsDialog(false)}
-          onSuccess={() => {
-            setShowVerbindungsDialog(false);
-            // relationStatus wird durch Re-Load sichtbar
-          }}
+          onSuccess={() => { setShowVerbindungsDialog(false); rel.refetch(); }}
         />
       )}
     </>
   );
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // 4. SCHWERPUNKT-KARTE + QUICK-STATS
@@ -1267,127 +1102,119 @@ function AbschlussButtons({ profile, currentUserId }) {
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
   const [watchingLocal, setWatchingLocal] = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
-
-  // Doppel-Aufruf-Schutz (onTouchEnd + onClick können beide feuern)
   const _toggleRunning = React.useRef(false);
 
   async function toggleWatch() {
     if (_toggleRunning.current) return;
     _toggleRunning.current = true;
     setTimeout(() => { _toggleRunning.current = false; }, 800);
-
-    showDebugToast(2, "toggleWatch gestartet [Abschluss]",
-      `loading=${rel.loading} | user=${currentUserId?.slice(0,8) ?? "NULL"}`);
-
-    if (!currentUserId || !profile?.id || rel.loading) {
-      const reason = [
-        !currentUserId  && "kein currentUserId",
-        !profile?.id    && "kein profile.id",
-        rel.loading     && "rel.loading=true",
-      ].filter(Boolean).join(" | ");
-      showDebugToast(3, "GUARD GEBLOCKT ❌ [Abschluss]", reason, true);
-      return;
-    }
-    showDebugToast(3, "Guard passiert ✅ [Abschluss]",
-      `isWatching=${isWatching} → next=${!isWatching}`);
+    if (!currentUserId || !profile?.id || rel.loading) return;
 
     const next = !isWatching;
     setWatchingLocal(next);
-
     if (next) {
-      const payload = { watcher_id: currentUserId, profile_id: profile.id };
-      showDebugToast(4, "Supabase INSERT [Abschluss]",
-        `watcher: ${currentUserId.slice(0,8)}…`);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("profile_watchlist")
-        .insert(payload)
-        .select("id")
-        .single();
-      if (error) {
-        const detail = `code: ${error?.code ?? "–"}
-msg: ${error?.message ?? "–"}
-details: ${error?.details ?? "–"}
-hint: ${error?.hint ?? "–"}`;
-        showDebugToast(5, "INSERT FEHLER ❌ [Abschluss]", detail, true);
-        setWatchingLocal(null);
-        return;
-      }
-      showDebugToast(5, "INSERT ERFOLG ✅ [Abschluss]", `id: ${data?.id?.slice(0,12)}…`);
+        .insert({ watcher_id: currentUserId, profile_id: profile.id })
+        .select("id").single();
+      if (error) { setWatchingLocal(null); return; }
       rel.refetch();
     } else {
-      showDebugToast(4, "Supabase DELETE [Abschluss]",
-        `watcher: ${currentUserId.slice(0,8)}…`);
       const { error } = await supabase
         .from("profile_watchlist")
         .delete()
         .eq("watcher_id", currentUserId)
         .eq("profile_id", profile.id);
-      if (error) {
-        const detail = `code: ${error?.code ?? "–"}
-msg: ${error?.message ?? "–"}`;
-        showDebugToast(5, "DELETE FEHLER ❌ [Abschluss]", detail, true);
-        setWatchingLocal(null);
-        return;
-      }
-      showDebugToast(5, "DELETE ERFOLG ✅ [Abschluss]");
+      if (error) { setWatchingLocal(null); return; }
       rel.refetch();
     }
   }
 
-  let primaryLabel = "🚨 DEBUG ABSCHLUSS 🚨";
-  let primaryAction = toggleWatch;
-  let primaryDisabled = false;
-
-  if (rel.relationStatus === "accepted") {
-    primaryLabel = "💬 Nachricht senden";
-    primaryAction = () => {};
-  } else if (rel.relationStatus === "pending") {
-    primaryLabel = "🌿 Anfrage gesendet";
-    primaryDisabled = true;
-  } else if (isWatching) {
-    primaryLabel = "🤝 Verbinden";
-    primaryAction = () => setShowVerbindungsDialog(true);
-  }
-
-  function handleTouch(e) {
-    e.preventDefault();
-    showDebugToast(1, "Button-Klick [Abschluss touch]",
-      `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
-    if (!primaryDisabled) primaryAction();
-  }
-
-  function handleClick() {
-    showDebugToast(1, "Button-Klick [Abschluss click]",
-      `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
-    if (!primaryDisabled) primaryAction();
-  }
+  // Stufe bestimmen
+  const isAccepted = rel.relationStatus === "accepted";
+  const isPending  = rel.relationStatus === "pending";
+  const isDeclined = rel.relationStatus === "declined";
 
   return (
     <>
-      <div style={{padding:`0 ${T.px}px`,display:"flex",gap:10}}>
-        <button
-          className="tpp-press"
-          disabled={primaryDisabled}
-          onTouchEnd={handleTouch}
-          onClick={handleClick}
-          style={{
-            flex:1, padding:"14px 16px",
-            background: primaryDisabled
-              ? "rgba(14,196,184,0.10)"
-              : `linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-            color: primaryDisabled ? T.teal : "#fff",
-            border: primaryDisabled ? `1.5px solid ${T.teal}` : "none",
-            borderRadius:T.r99,
-            fontSize:14.5, fontWeight:800, cursor: primaryDisabled ? "default" : "pointer",
-            fontFamily:"inherit",
-            boxShadow: primaryDisabled ? "none" : T.glow,
-            touchAction:"manipulation",
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+
+        {/* ── Primär-Button ── */}
+        {isAccepted ? (
+          <button className="tpp-press" onClick={() => {}} style={{
+            width:"100%", padding:"14px 16px",
+            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+            color:"#fff", border:"none", borderRadius:T.r99,
+            fontSize:14.5, fontWeight:800, cursor:"pointer",
+            fontFamily:"inherit", boxShadow:T.glow,
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-            WebkitUserSelect:"none", userSelect:"none",
-            WebkitTapHighlightColor:"transparent",
+            touchAction:"manipulation",
           }}>
-          {primaryLabel}
-        </button>
+            💬 Nachricht senden
+          </button>
+
+        ) : isPending ? (
+          <button disabled style={{
+            width:"100%", padding:"14px 16px",
+            background:"rgba(14,196,184,0.10)",
+            color:T.teal, border:`1.5px solid ${T.teal}`,
+            borderRadius:T.r99, fontSize:14, fontWeight:700,
+            fontFamily:"inherit", cursor:"default",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+          }}>
+            🌿 Anfrage gesendet
+          </button>
+
+        ) : isDeclined ? (
+          <button disabled style={{
+            width:"100%", padding:"14px 16px",
+            background:"transparent", color:"rgba(26,26,24,0.30)",
+            border:`1.5px solid rgba(26,26,24,0.08)`,
+            borderRadius:T.r99, fontSize:13, fontWeight:600,
+            fontFamily:"inherit", cursor:"default",
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            Verbindung nicht möglich
+          </button>
+
+        ) : isWatching ? (
+          // STUFE 2 → Verbinden
+          <button className="tpp-press" onClick={() => setShowVerbindungsDialog(true)} style={{
+            width:"100%", padding:"14px 16px",
+            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+            color:"#fff", border:"none", borderRadius:T.r99,
+            fontSize:14.5, fontWeight:800, cursor:"pointer",
+            fontFamily:"inherit", boxShadow:T.glow,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            touchAction:"manipulation",
+          }}>
+            🤝 Verbinden
+          </button>
+
+        ) : (
+          // STUFE 1 → Im Blick behalten
+          <button className="tpp-press" onClick={toggleWatch} style={{
+            width:"100%", padding:"14px 16px",
+            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+            color:"#fff", border:"none", borderRadius:T.r99,
+            fontSize:14.5, fontWeight:800, cursor:"pointer",
+            fontFamily:"inherit", boxShadow:T.glow,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            touchAction:"manipulation",
+          }}>
+            🌱 Im Blick behalten
+          </button>
+        )}
+
+        {/* ── Untertext: Beobachter-Status ── */}
+        {isWatching && !isAccepted && (
+          <div style={{
+            textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
+            letterSpacing:"0.01em",
+          }}>
+            Du beobachtest das Wirken dieses Talents.
+          </div>
+        )}
       </div>
 
       {showVerbindungsDialog && (
@@ -1395,7 +1222,7 @@ msg: ${error?.message ?? "–"}`;
           profile={profile}
           currentUserId={currentUserId}
           onClose={() => setShowVerbindungsDialog(false)}
-          onSuccess={() => setShowVerbindungsDialog(false)}
+          onSuccess={() => { setShowVerbindungsDialog(false); rel.refetch(); }}
         />
       )}
     </>
@@ -1478,14 +1305,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
           setProfile({ id: profileId });
         }
 
-        // ── DEBUG LOG 1: Was kommt aus Supabase zurück? ──
-        console.log("[PROFILE LOADED]", {
-          profileId,
-          "profileRes.data": profileRes.data,
-          "profileRes.error": profileRes.error,
-          "data.id": profileRes.data?.id ?? "FEHLT",
-        });
-
         setWorks(worksRes.data || []);
         setExperiences(experiencesRes.data || []);
         setMoments(momentsRes.data || []);
@@ -1508,8 +1327,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
       transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
-      <DebugToastLayer/>
-
       {/* ── Sticky Header ─────────────────────── */}
       <Header onBack={handleBack} profile={profile}/>
 
@@ -1526,8 +1343,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          {/* ── DEBUG LOG 2: profile vor ActionButtons ── */}
-          {console.log("[PROFILE BEFORE ACTIONBUTTONS]", profile, "| id:", profile?.id ?? "FEHLT")}
           <ActionButtons profile={profile} currentUserId={user?.id} loading={loading}/>
         </div>
         <Gap h={20}/>
