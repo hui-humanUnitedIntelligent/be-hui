@@ -762,7 +762,7 @@ details: ${error?.details ?? "–"}`;
           display:"flex", alignItems:"center", justifyContent:"center", gap:7,
           touchAction:"manipulation",
         }}>
-        🌱 Im Blick behalten
+        🚨 DEBUG BUTTON 🚨
       </button>
     );
   }
@@ -1334,7 +1334,7 @@ msg: ${error?.message ?? "–"}`;
     }
   }
 
-  let primaryLabel = "🌱 Im Blick behalten";
+  let primaryLabel = "🚨 DEBUG ABSCHLUSS 🚨";
   let primaryAction = toggleWatch;
   let primaryDisabled = false;
 
