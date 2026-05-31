@@ -793,7 +793,10 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
           {/* Kompass-Button */}
           <button
             className="tpp-press-light"
-            onClick={() => { alert("COMPASS CLICK"); setShowKompassSheet(true); }}
+            onClick={() => {
+              setShowKompassSheet(true);
+              setTimeout(() => alert("showKompassSheet nach 100ms: " + showKompassSheet), 100);
+            }}
             style={{
               width:46, height:46,
               background:"#FFFFFF",
