@@ -1433,7 +1433,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const [mounted,    setMounted]    = useState(false);
   const [showKompassSheet, setShowKompassSheet] = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
-  const [kompassToggle,    setKompassToggle]    = useState(() => () => {});
+  const kompassToggleRef = React.useRef(() => {});
 
   // Mount animation
   useEffect(() => {
@@ -1536,7 +1536,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); setKompassToggle(() => tw); setShowKompassSheet(true); }}/>
+          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
         </div>
         <Gap h={20}/>
 
@@ -1573,7 +1573,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <KompassActionSheet
           profile={profile}
           isWatching={kompassWatchLocal}
-          onWatch={kompassToggle}
+          onWatch={kompassToggleRef.current}
           onClose={() => setShowKompassSheet(false)}
         />
       )}
