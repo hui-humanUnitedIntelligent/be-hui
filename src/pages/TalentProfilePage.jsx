@@ -48,6 +48,7 @@ const CSS = `
   .tpp-scroll::-webkit-scrollbar{display:none;}
   .tpp-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
   .tpp-hscroll::-webkit-scrollbar{display:none;}
+  @keyframes tpp-fade-in{from{opacity:0}to{opacity:1}}
   @keyframes tpp-fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes tpp-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
   @keyframes tpp-shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
@@ -496,12 +497,177 @@ function CinematicHero({ profile, loading }) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// KOMPASS ACTION SHEET
+// ══════════════════════════════════════════════════════════════
+function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
+  const [pressed, setPressed] = React.useState(null);
+
+  function handleShare() {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: profile?.display_name || "HUI Profil", url });
+    } else {
+      navigator.clipboard?.writeText(url);
+    }
+    onClose();
+  }
+
+  const items = [
+    {
+      id: "share",
+      emoji: "🔗",
+      label: "Profil teilen",
+      sub: "Link kopieren oder weiterleiten",
+      action: handleShare,
+    },
+    {
+      id: "watch",
+      emoji: isWatching ? "👁️" : "🌱",
+      label: isWatching ? "Beobachtung beenden" : "Talent beobachten",
+      sub: isWatching ? "Aus deiner Beobachtungsliste entfernen" : "In deiner Beobachtungsliste speichern",
+      action: () => { onWatch(); onClose(); },
+    },
+    {
+      id: "message",
+      emoji: "💬",
+      label: "Nachricht senden",
+      sub: "Direkte Unterhaltung beginnen",
+      action: onClose,
+    },
+    {
+      id: "save",
+      emoji: "✨",
+      label: "Als Inspiration speichern",
+      sub: "Zu deinen Favoriten hinzufügen",
+      action: onClose,
+    },
+    {
+      id: "report",
+      emoji: "🚩",
+      label: "Profil melden",
+      sub: "Einem HUI-Moderator mitteilen",
+      isDestructive: true,
+      action: onClose,
+    },
+  ];
+
+  return createPortal(
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position:"fixed", inset:0, zIndex:8900,
+          background:"rgba(26,26,24,0.38)",
+          backdropFilter:"blur(6px)",
+          WebkitBackdropFilter:"blur(6px)",
+          animation:"tpp-fade-in .18s ease both",
+        }}
+      />
+      {/* Sheet */}
+      <div style={{
+        position:"fixed", bottom:0, left:0, right:0, zIndex:8950,
+        background:T.bgSheet,
+        borderRadius:"24px 24px 0 0",
+        boxShadow:"0 -8px 48px rgba(26,26,24,0.14)",
+        padding:"0 0 calc(env(safe-area-inset-bottom,0px) + 16px)",
+        animation:"tpp-slide-up .26s cubic-bezier(.22,1,.36,1) both",
+        fontFamily:"inherit",
+      }}>
+        {/* Handle */}
+        <div style={{display:"flex",justifyContent:"center",paddingTop:12,paddingBottom:4}}>
+          <div style={{width:36,height:4,borderRadius:99,background:"rgba(26,26,24,0.14)"}}/>
+        </div>
+
+        {/* Header */}
+        <div style={{
+          display:"flex", alignItems:"center", gap:12,
+          padding:"12px 20px 16px",
+          borderBottom:"1px solid rgba(26,26,24,0.07)",
+        }}>
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="" style={{
+              width:42,height:42,borderRadius:"50%",
+              objectFit:"cover",border:`2px solid ${T.tealSoft}`,
+            }}/>
+          ) : (
+            <div style={{
+              width:42,height:42,borderRadius:"50%",
+              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:18,
+            }}>🧭</div>
+          )}
+          <div>
+            <div style={{fontSize:15,fontWeight:800,color:T.ink,lineHeight:1.2}}>
+              {profile?.display_name || "Talent"}
+            </div>
+            <div style={{fontSize:12,color:T.inkSoft,marginTop:2}}>
+              Weitere Möglichkeiten entdecken
+            </div>
+          </div>
+        </div>
+
+        {/* Items */}
+        <div style={{padding:"8px 0"}}>
+          {items.map(item => (
+            <button
+              key={item.id}
+              className="tpp-press-light"
+              onPointerDown={() => setPressed(item.id)}
+              onPointerUp={() => setPressed(null)}
+              onPointerLeave={() => setPressed(null)}
+              onClick={item.action}
+              style={{
+                display:"flex", alignItems:"center", gap:14,
+                width:"100%", padding:"13px 20px",
+                background: pressed === item.id ? "rgba(14,196,184,0.07)" : "transparent",
+                border:"none", cursor:"pointer", textAlign:"left",
+                transition:"background .12s ease",
+                fontFamily:"inherit",
+              }}
+            >
+              <div style={{
+                width:40,height:40,borderRadius:12,flexShrink:0,
+                background: item.isDestructive
+                  ? "rgba(255,107,82,0.09)"
+                  : T.tealSoft,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:20,
+              }}>
+                {item.emoji}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{
+                  fontSize:15, fontWeight:700, lineHeight:1.25,
+                  color: item.isDestructive ? T.coral : T.ink,
+                }}>
+                  {item.label}
+                </div>
+                <div style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>
+                  {item.sub}
+                </div>
+              </div>
+              {!item.isDestructive && (
+                <div style={{fontSize:12,color:T.teal,fontWeight:700}}>›</div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
 // 3. ACTION BUTTONS (Verbinden, Nachricht)
 // ══════════════════════════════════════════════════════════════
 function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   const rel = useRelationship(profile?.id, currentUserId);
   const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
+  const [showKompassSheet,      setShowKompassSheet]      = React.useState(false);
   const [watchingLocal,         setWatchingLocal]         = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
   const _toggleRunning = React.useRef(false);
@@ -623,15 +789,24 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
             </button>
           )}
 
-          {/* Optionen-Button */}
-          <button className="tpp-press-light" style={{
-            width:46, height:46,
-            background:T.bgCard, border:`1.5px solid ${T.borderMid}`,
-            borderRadius:"50%", cursor:"pointer", fontSize:16,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            flexShrink:0, boxShadow:T.card, touchAction:"manipulation",
-          }}>
-            ···
+          {/* Kompass-Button */}
+          <button
+            className="tpp-press-light"
+            onClick={() => setShowKompassSheet(true)}
+            style={{
+              width:46, height:46,
+              background:"#FFFFFF",
+              border:`1.5px solid ${T.borderMid}`,
+              borderRadius:"50%", cursor:"pointer", fontSize:22,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              flexShrink:0,
+              boxShadow:"0 2px 12px rgba(26,26,24,0.10), 0 1px 3px rgba(26,26,24,0.06)",
+              touchAction:"manipulation",
+              color:T.teal,
+            }}
+            aria-label="Weitere Optionen"
+          >
+            🧭
           </button>
         </div>
 
@@ -645,6 +820,15 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
           </div>
         )}
       </div>
+
+      {showKompassSheet && (
+        <KompassActionSheet
+          profile={profile}
+          isWatching={isWatching}
+          onWatch={toggleWatch}
+          onClose={() => setShowKompassSheet(false)}
+        />
+      )}
 
       {showVerbindungsDialog && (
         <VerbindungsDialog
