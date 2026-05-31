@@ -5,7 +5,8 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback } from "react";
-import HuiMomentSheet from "./HuiMomentSheet.jsx";
+import HuiMomentSheet   from "./HuiMomentSheet.jsx";
+import GemeinschaftsFlow from "./GemeinschaftsFlow.jsx";
 
 const HUI_LOGO = "https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png";
 
@@ -230,7 +231,9 @@ function GlassSphere({ world, size, animDelay }) {
 export default function OrbCompass({ visible, isTalent = false, onClose, onWorldSelect }) {
   const [phase,  setPhase]  = useState("hidden");
   const [logoOk,     setLogoOk]     = useState(false);
-  const [showMoment, setShowMoment] = useState(false);
+  const [showMoment,      setShowMoment]      = useState(false);
+  const [showOrbDialog,   setShowOrbDialog]   = useState(false);
+  const [showGemeinschaft,setShowGemeinschaft]= useState(false);
 
   useEffect(() => {
     if (visible  && phase === "hidden") setPhase("open");
@@ -519,7 +522,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
 
           {/* ── CENTER HUI LOGO — tappable, opens HUI-Moment ── */}
           <div
-            onClick={() => setShowMoment(true)}
+            onClick={() => isTalent ? setShowMoment(true) : setShowOrbDialog(true)}
             style={{
               position: "absolute",
               left: cx, top: cy,
@@ -639,12 +642,176 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
       </div>
     </div>
 
-      {/* HUI-Moment Sheet — floats above orb, orb stays visible */}
+      {/* HUI-Moment Sheet — nur für Talent-User */}
       <HuiMomentSheet
         visible={showMoment}
         onClose={() => setShowMoment(false)}
-        visibilityScope={isTalent ? "public" : "connections_only"}
+        visibilityScope="public"
       />
+
+      {/* Orb-Dialog für Basis-User */}
+      {showOrbDialog && (
+        <OrbLockedDialog
+          onJoin={() => { setShowOrbDialog(false); setShowGemeinschaft(true); }}
+          onClose={() => setShowOrbDialog(false)}
+        />
+      )}
+
+      {/* GemeinschaftsFlow — startet nach Button-Tap */}
+      {showGemeinschaft && (
+        <GemeinschaftsFlow
+          onClose={() => setShowGemeinschaft(false)}
+          onComplete={() => {
+            setShowGemeinschaft(false);
+            // isTalent flippt automatisch via AuthContext + useMemo
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// OrbLockedDialog — herzliches Dialogfenster für Basis-User
+// Öffnet sich wenn Basis-User den HUI-Orb antippt.
+// ══════════════════════════════════════════════════════════════
+const OrbLockedDialogCSS = `
+  @keyframes old-scale-in {
+    from { opacity:0; transform:translate(-50%,-50%) scale(0.88); }
+    to   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  }
+  @keyframes old-fade-in {
+    from { opacity:0; }
+    to   { opacity:1; }
+  }
+`;
+
+function OrbLockedDialog({ onJoin, onClose }) {
+  return (
+    <>
+      <style>{OrbLockedDialogCSS}</style>
+
+      {/* Overlay */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 12000,
+          background: "rgba(26,53,48,0.52)",
+          WebkitBackdropFilter: "blur(6px)",
+          backdropFilter: "blur(6px)",
+          animation: "old-fade-in .22s ease both",
+        }}
+      />
+
+      {/* Dialog Card */}
+      <div style={{
+        position: "fixed",
+        top: "50%", left: "50%",
+        transform: "translate(-50%,-50%)",
+        zIndex: 12001,
+        width: "min(calc(100% - 40px), 360px)",
+        background: "#F7F5F0",
+        borderRadius: 24,
+        padding: "32px 24px 28px",
+        boxShadow: "0 24px 64px rgba(26,53,48,0.22), 0 4px 16px rgba(26,53,48,0.10)",
+        animation: "old-scale-in .32s cubic-bezier(.34,1.56,.64,1) both",
+        textAlign: "center",
+      }}>
+        {/* Orb-Illustration */}
+        <div style={{
+          width: 72, height: 72,
+          borderRadius: "50%",
+          background: "radial-gradient(circle at 36% 30%, rgba(195,245,240,0.98) 0%, rgba(14,196,184,0.82) 55%, rgba(10,173,163,0.92) 100%)",
+          boxShadow: "0 8px 28px rgba(14,196,184,0.38)",
+          margin: "0 auto 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}>
+          <img
+            src="https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png"
+            alt="HUI"
+            style={{ width: 44, height: 44, objectFit: "contain" }}
+            onError={e => { e.currentTarget.style.display = "none"; }}
+          />
+        </div>
+
+        {/* Titel */}
+        <h3 style={{
+          fontSize: 20,
+          fontWeight: 800,
+          color: "#1A3530",
+          letterSpacing: "-0.03em",
+          lineHeight: 1.25,
+          margin: "0 0 14px",
+        }}>
+          Der HUI-Orb wartet<br/>auf dich ✨
+        </h3>
+
+        {/* Text */}
+        <p style={{
+          fontSize: 14.5,
+          lineHeight: 1.72,
+          color: "rgba(26,53,48,0.62)",
+          margin: "0 0 24px",
+        }}>
+          Mit dem HUI-Orb teilen Talente und Wirker ihre Werke,
+          Erlebnisse, Momente und ihre Wirkung mit der Gemeinschaft.
+          <br/><br/>
+          Werde Teil der Gemeinschaft und schalte den HUI-Orb
+          für dein Profil frei.
+        </p>
+
+        {/* Primär-Button */}
+        <button
+          onClick={onJoin}
+          style={{
+            display: "block",
+            width: "100%",
+            padding: "16px 20px",
+            background: "linear-gradient(135deg,#0EC4B8,#0AADA3)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 99,
+            fontSize: 15.5,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            boxShadow: "0 4px 18px rgba(14,196,184,0.30)",
+            marginBottom: 10,
+            touchAction: "manipulation",
+            transition: "transform .15s",
+          }}
+          onTouchStart={e => { e.currentTarget.style.transform = "scale(0.97)"; }}
+          onTouchEnd={e   => { e.currentTarget.style.transform = "scale(1)"; }}
+        >
+          Mitglied der Gemeinschaft werden ✨
+        </button>
+
+        {/* Sekundär-Button */}
+        <button
+          onClick={onClose}
+          style={{
+            display: "block",
+            width: "100%",
+            padding: "13px 20px",
+            background: "transparent",
+            color: "rgba(26,53,48,0.48)",
+            border: "none",
+            borderRadius: 99,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            touchAction: "manipulation",
+          }}
+        >
+          Später
+        </button>
+      </div>
     </>
   );
 }
