@@ -84,12 +84,13 @@ const CSS = `
    NOTIFICATION TYPE CONFIG
 ══════════════════════════════════════════════════════════════ */
 const TYPE = {
-  begegnung: { color:C.teal,  bg:C.tealPale,  icon:"💬", label:"Begegnung"  },
-  buchung:   { color:C.coral, bg:C.coralPale, icon:"📅", label:"Buchung"    },
-  impact:    { color:C.green, bg:C.greenPale, icon:"🌿", label:"Wirkung"    },
-  community: { color:C.gold,  bg:C.goldPale,  icon:"👥", label:"Community"  },
-  inspiration:{ color:C.violet,bg:"#F5F0FF",  icon:"✨", label:"Inspiration" },
-  system:    { color:C.muted, bg:C.cream,     icon:"ⓘ",  label:"System"     },
+  begegnung:  { color:C.teal,   bg:C.tealPale,   icon:"💬", label:"Begegnung"  },
+  buchung:    { color:C.coral,  bg:C.coralPale,  icon:"📅", label:"Buchung"    },
+  impact:     { color:C.green,  bg:C.greenPale,  icon:"🌿", label:"Wirkung"    },
+  community:  { color:C.gold,   bg:C.goldPale,   icon:"👥", label:"Community"  },
+  inspiration:{ color:C.violet, bg:"#F5F0FF",    icon:"✨", label:"Inspiration" },
+  admin:      { color:"#6366F1",bg:"#EEF2FF",    icon:"📢", label:"Ankündigung" },
+  system:     { color:C.muted,  bg:C.cream,      icon:"ⓘ",  label:"System"     },
 };
 
 function getType(n) {
@@ -99,6 +100,7 @@ function getType(n) {
   if (t.includes("impact") || t.includes("wirkung") || t.includes("pool"))    return TYPE.impact;
   if (t.includes("community") || t.includes("projekt") || t.includes("vote")) return TYPE.community;
   if (t.includes("inspiration") || t.includes("erlebnis"))                    return TYPE.inspiration;
+  if (t.includes("admin_broadcast") || t.includes("broadcast") || t.includes("ankündig")) return TYPE.admin;
   return TYPE.system;
 }
 
