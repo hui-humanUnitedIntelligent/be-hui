@@ -699,6 +699,11 @@ export function ResonanzzentrumPanel({ onClose }) {
           <div><span style={{color:"#aaa"}}>tab:</span> {tab}</div>
           <div><span style={{color:"#aaa"}}>grouped===null:</span> {String(grouped === null)}</div>
           <div><span style={{color:"#aaa"}}>tab==="alle":</span> {String(tab === "alle")}</div>
+          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
+          <div><span style={{color:"#aaa"}}>filtered[0].id:</span> {filteredItems?.[0]?.id?.slice(0,8) ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>filtered[0].type:</span> {filteredItems?.[0]?.type ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>filtered[0].title:</span> {filteredItems?.[0]?.title ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>BRANCH:</span> {tab !== "alle" ? (isEmpty ? "EmptyTab" : "filteredItems.map") : "grouped"}</div>
         </div>
 
         {/* ── HEADER ── */}
@@ -877,11 +882,18 @@ export function ResonanzzentrumPanel({ onClose }) {
           )}
 
           {/* Einzelne Tabs */}
-          {tab !== "alle" && (
-            isEmpty
+          {tab !== "alle" && (() => {
+            console.log("[SINGLE-TAB BRANCH]", {
+              tab,
+              isEmpty,
+              filteredLen: filteredItems?.length,
+              ids:   filteredItems?.map(x => x?.id),
+              types: filteredItems?.map(x => x?.type),
+            });
+            return isEmpty
               ? <EmptyTab tab={tab} />
-              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)
-          )}
+              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />);
+          })()}
 
           {/* Lade-Spinner */}
           {notif?.loading && safeItems.length === 0 && safeRequests.length === 0 && (
