@@ -84,12 +84,16 @@ export function useNotifications() {
     if (!user?.id) return;
     setLoading(true);
     try {
+      console.log("[PANEL USER]", user?.id);
       const { data, error } = await supabase
         .from("notifications")
         .select("id,type,title,body,read,created_at,sender_id,entity_id,entity_type,icon,data,priority")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(80);
+      console.log("[PANEL ROWS]", data?.length ?? 0);
+      console.log("[PANEL DATA]", data);
+      console.log("[PANEL ERROR]", error);
       console.log("[RESONANZZENTRUM] notifications geladen:", { count: data?.length, error: error?.message });
       if (data && Array.isArray(data)) {
         setItems(data);
