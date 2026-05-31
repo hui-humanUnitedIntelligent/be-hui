@@ -4,6 +4,7 @@
 // Slide-Over von rechts, 4 Tabs, Verbindungsanfragen, Wochenstats
 // ══════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "./supabaseClient.js";
 import { useAuth }  from "./AuthContext.jsx";
 
@@ -602,7 +603,7 @@ export function ResonanzzentrumPanel({ onClose }) {
 
   const isEmpty = (filteredItems?.length ?? 0) === 0 && (tab !== "alle" || safeRequests.length === 0);
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -838,7 +839,7 @@ export function ResonanzzentrumPanel({ onClose }) {
         </div>
       </div>
     </>
-  );
+  , document.body);
 }
 
 // ══════════════════════════════════════════════════════════════
