@@ -116,7 +116,7 @@ export function useNotifications() {
         setUnread(prev => prev + 1);
       }).subscribe();
     subRef.current = ch;
-    return () => { ch.unsubscribe(); };
+    return () => { supabase.removeChannel(ch); };
   }, [user?.id, load]);
 
   const markRead = useCallback(async (id) => {
