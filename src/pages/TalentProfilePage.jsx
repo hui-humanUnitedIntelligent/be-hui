@@ -507,50 +507,87 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   const canChat = rel.relationStatus === "accepted";
 
   async function toggleWatch() {
-    console.log("[WATCHLIST CLICK]", { profileId: profile?.id, currentUserId, isWatching, relLoading: rel.loading });
+    // ── STEP 2: toggleWatch() wurde aufgerufen ─────────────────
+    console.log("[STEP 2] toggleWatch() aufgerufen", {
+      profileId:    profile?.id,
+      currentUserId,
+      isWatching,
+      loading,
+      relLoading:   rel.loading,
+      relWatching:  rel.watching,
+      watchingLocal,
+    });
+
+    // ── STEP 3: Guard-Check ────────────────────────────────────
     if (!currentUserId || !profile?.id || loading || rel.loading) {
-      console.warn("[WATCHLIST CLICK] Guard geblockt:", { currentUserId, profileId: profile?.id, loading, relLoading: rel.loading });
+      console.warn("[STEP 3] ❌ GUARD GEBLOCKT — hier stoppt der Flow", {
+        reason_no_currentUserId: !currentUserId,
+        reason_no_profileId:     !profile?.id,
+        reason_loading:          loading,
+        reason_relLoading:       rel.loading,
+      });
       return;
     }
+    console.log("[STEP 3] ✅ Guard passiert");
+
     const next = !isWatching;
     setWatchingLocal(next); // optimistisch
 
     if (next) {
-      // ── INSERT ──────────────────────────────────────────────
+      // ── STEP 4: Supabase INSERT wird gestartet ─────────────
       const payload = { watcher_id: currentUserId, profile_id: profile.id };
-      console.log("[WATCHLIST INSERT]", payload);
+      console.log("[STEP 4] Supabase INSERT gestartet", payload);
+
       const { data, error } = await supabase
         .from("profile_watchlist")
         .insert(payload)
         .select("id")
         .single();
 
+      // ── STEP 5: Supabase hat geantwortet ───────────────────
+      console.log("[STEP 5] Supabase Antwort", { data, error });
       if (error) {
-        console.error("[WATCHLIST ERROR]", error);            // vollständiges Error-Objekt
-        console.error("[WATCHLIST ERROR] code:", error?.code, "msg:", error?.message, "details:", error?.details, "hint:", error?.hint);
-        setWatchingLocal(null); // Rollback: zurück auf DB-Wert
+        console.error("[STEP 5] ❌ INSERT FEHLER", {
+          code:    error?.code,
+          message: error?.message,
+          details: error?.details,
+          hint:    error?.hint,
+          full:    error,
+        });
+        setWatchingLocal(null);
         return;
       }
-      console.log("[WATCHLIST SUCCESS]", data);
-      rel.refetch(); // DB-State neu laden → isWatching = true aus DB
+      console.log("[STEP 5] ✅ INSERT ERFOLG — refetch wird ausgelöst");
+      rel.refetch();
     } else {
-      // ── DELETE ──────────────────────────────────────────────
-      console.log("[WATCHLIST DELETE]", { watcher_id: currentUserId, profile_id: profile.id });
+      const payload = { watcher_id: currentUserId, profile_id: profile.id };
+      console.log("[STEP 4] Supabase DELETE gestartet", payload);
       const { error } = await supabase
         .from("profile_watchlist")
         .delete()
         .eq("watcher_id", currentUserId)
         .eq("profile_id", profile.id);
-
+      console.log("[STEP 5] Supabase DELETE Antwort", { error });
       if (error) {
-        console.error("[WATCHLIST DELETE ERROR]", error);
-        setWatchingLocal(null); // Rollback
+        console.error("[STEP 5] ❌ DELETE FEHLER", error);
+        setWatchingLocal(null);
         return;
       }
-      console.log("[WATCHLIST DELETE SUCCESS]");
+      console.log("[STEP 5] ✅ DELETE ERFOLG — refetch wird ausgelöst");
       rel.refetch();
     }
   }
+
+  // ── STEP 0: ActionButtons gerendert — Props ankommen? ─────────
+  console.log("[STEP 0] ActionButtons render", {
+    profileId:     profile?.id,
+    currentUserId,
+    loading,
+    relLoading:    rel.loading,
+    relWatching:   rel.watching,
+    relStatus:     rel.relationStatus,
+    isWatching,
+  });
 
   // Ladezustand
   if (loading || rel.loading) {
@@ -626,7 +663,10 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   } else {
     // STUFE 2: Im Blick behalten (erster Schritt)
     primaryBtn = (
-      <button className="tpp-press" onClick={toggleWatch} style={{
+      <button className="tpp-press" onClick={(e) => {
+          console.log("[STEP 1] Button onClick ausgelöst", { event: e.type, target: e.currentTarget?.tagName });
+          toggleWatch();
+        }} style={{
         flex:1, padding:"13px 16px",
         background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
         color:"#fff", border:"none", borderRadius:T.r99,
