@@ -51,7 +51,7 @@ const CSS = `
   @keyframes tpp-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
   @keyframes tpp-shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
   .tpp-skeleton{background:linear-gradient(90deg,rgba(26,26,24,.05) 25%,rgba(26,26,24,.09) 50%,rgba(26,26,24,.05) 75%);background-size:200% 100%;animation:tpp-shimmer 1.4s ease-in-out infinite;border-radius:8px;}
-  .tpp-press{transition:transform .12s cubic-bezier(.22,1,.36,1),opacity .12s ease;}
+  .tpp-press{transition:transform .12s cubic-bezier(.22,1,.36,1),opacity .12s ease;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
   .tpp-press:active{transform:scale(0.94);opacity:0.75;}
   .tpp-press-light{transition:transform .14s ease,opacity .14s ease;}
   .tpp-press-light:active{transform:scale(0.97);opacity:0.82;}
@@ -591,7 +591,15 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   // Stufe 4: Chat nur nach accepted
   const canChat = rel.relationStatus === "accepted";
 
+  // Doppel-Aufruf-Schutz (onTouchEnd + onClick können beide feuern)
+  const _toggleRunning = React.useRef(false);
+
   async function toggleWatch() {
+    // Doppel-Aufruf verhindern (iOS: touchEnd + click)
+    if (_toggleRunning.current) return;
+    _toggleRunning.current = true;
+    setTimeout(() => { _toggleRunning.current = false; }, 800);
+
     // STEP 2: toggleWatch aufgerufen
     showDebugToast(2, "toggleWatch gestartet", `loading=${loading} | relLoading=${rel.loading} | user=${currentUserId?.slice(0,8) ?? "NULL"}`);
 
@@ -734,18 +742,26 @@ details: ${error?.details ?? "–"}`;
   } else {
     // STUFE 2: Im Blick behalten (erster Schritt)
     primaryBtn = (
-      <button className="tpp-press" onClick={(e) => {
-          showDebugToast(1, "Button-Klick erkannt", `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
+      <button
+        className="tpp-press"
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          showDebugToast(1, "Button-Klick erkannt (touch)", `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
           toggleWatch();
-        }} style={{
-        flex:1, padding:"13px 16px",
-        background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-        color:"#fff", border:"none", borderRadius:T.r99,
-        fontSize:14, fontWeight:800, cursor:"pointer",
-        fontFamily:"inherit", boxShadow:T.glow,
-        display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-        touchAction:"manipulation",
-      }}>
+        }}
+        onClick={(e) => {
+          showDebugToast(1, "Button-Klick erkannt (click)", `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
+          toggleWatch();
+        }}
+        style={{
+          flex:1, padding:"13px 16px",
+          background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+          color:"#fff", border:"none", borderRadius:T.r99,
+          fontSize:14, fontWeight:800, cursor:"pointer",
+          fontFamily:"inherit", boxShadow:T.glow,
+          display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+          touchAction:"manipulation",
+        }}>
         🌱 Im Blick behalten
       </button>
     );
@@ -1425,6 +1441,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
       <div className="tpp-scroll" style={{
         flex:1,
         overflowY:"auto",
+        touchAction:"pan-y",
         paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))",
       }}>
 
