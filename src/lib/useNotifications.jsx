@@ -71,7 +71,10 @@ function fmtTime(iso) {
 // HOOK
 // ══════════════════════════════════════════════════════════════
 export function useNotifications() {
-  const { user } = useAuth();
+  let authUser = null;
+  try { authUser = useAuth()?.user ?? null; } catch { authUser = null; }
+  const user = authUser;
+
   const [items,   setItems]   = useState([]);
   const [unread,  setUnread]  = useState(0);
   const [loading, setLoading] = useState(false);
@@ -81,20 +84,23 @@ export function useNotifications() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
         .select("id,type,title,body,read,created_at,sender_id,entity_id,entity_type,icon,data,priority")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(80);
-      if (data) {
+      console.log("[RESONANZZENTRUM] notifications geladen:", { count: data?.length, error: error?.message });
+      if (data && Array.isArray(data)) {
         setItems(data);
         const wichtigTypes = Object.entries(TYPE_META)
           .filter(([,v]) => v.tab === "wichtig").map(([k]) => k);
         setUnread(data.filter(n => !n.read && wichtigTypes.includes(n.type)).length ||
                   data.filter(n => !n.read).length);
       }
-    } catch { /* silent */ }
+    } catch(e) {
+      console.error("[RESONANZZENTRUM] notifications load error:", e.message);
+    }
     finally { setLoading(false); }
   }, [user?.id]);
 
@@ -139,14 +145,17 @@ function useConnectionRequests(userId) {
     if (!userId) return;
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profile_relations")
         .select("id,requester_id,intention,message,created_at,status")
         .eq("target_id", userId)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
-      if (data) setRequests(data);
-    } catch { /* silent */ }
+      console.log("[RESONANZZENTRUM] connection_requests geladen:", { count: data?.length, error: error?.message });
+      if (data && Array.isArray(data)) setRequests(data);
+    } catch(e) {
+      console.error("[RESONANZZENTRUM] connection_requests load error:", e.message);
+    }
     setLoading(false);
   }, [userId]);
 
@@ -536,45 +545,68 @@ function injectCSS() {
 // ══════════════════════════════════════════════════════════════
 export function ResonanzzentrumPanel({ onClose }) {
   injectCSS();
-  const { user }  = useAuth();
-  const notif     = useNotifications();
-  const connReqs  = useConnectionRequests(user?.id);
+  console.log("[RESONANZZENTRUM MOUNT] Panel wird gemountet");
+
+  // Hooks MÜSSEN bedingungslos aufgerufen werden (React Hooks Rules)
+  const authCtx  = useAuth();
+  const user     = authCtx?.user ?? null;
+  const notif    = useNotifications();
+  const connReqs = useConnectionRequests(user?.id);
+
   const [tab, setTab] = useState("alle");
 
-  // Tab-Counts
+  // Null-Guards für alle Arrays — verhindert .map()/.filter() auf undefined
+  const safeItems    = Array.isArray(notif?.items)        ? notif.items        : [];
+  const safeRequests = Array.isArray(connReqs?.requests)  ? connReqs.requests  : [];
+
+  console.log("[RESONANZZENTRUM RENDER]", {
+    userId: user?.id ?? "kein user",
+    items: safeItems.length,
+    requests: safeRequests.length,
+    loading: notif?.loading,
+  });
+
+  console.log("[RESONANZZENTRUM MOUNT]", {
+    user: user?.id ?? "null",
+    itemsCount: safeItems.length,
+    requestsCount: safeRequests.length,
+    loading: notif?.loading,
+  });
+
+  // Tab-Counts — safeItems/safeRequests statt direkte Zugriffe
   const counts = useMemo(() => {
-    const alle = notif.items.length + connReqs.requests.length;
-    const wichtig = notif.items.filter(n => getMeta(n.type).tab === "wichtig" && !n.read).length
-                  + connReqs.requests.length;
-    const relevant = notif.items.filter(n => getMeta(n.type).tab === "relevant" && !n.read).length;
-    const info     = notif.items.filter(n => getMeta(n.type).tab === "info"     && !n.read).length;
+    const alle = safeItems.length + safeRequests.length;
+    const wichtig = safeItems.filter(n => getMeta(n?.type).tab === "wichtig" && !n?.read).length
+                  + safeRequests.length;
+    const relevant = safeItems.filter(n => getMeta(n?.type).tab === "relevant" && !n?.read).length;
+    const info     = safeItems.filter(n => getMeta(n?.type).tab === "info"     && !n?.read).length;
     return { alle, wichtig, relevant, info };
-  }, [notif.items, connReqs.requests]);
+  }, [safeItems, safeRequests]);
 
   // Items gefiltert
   const filteredItems = useMemo(() => {
-    if (tab === "alle") return notif.items;
+    if (tab === "alle") return safeItems;
     const tabKey = tab === "wichtig" ? "wichtig" : tab === "relevant" ? "relevant" : "info";
-    return notif.items.filter(n => getMeta(n.type).tab === tabKey);
-  }, [notif.items, tab]);
+    return safeItems.filter(n => getMeta(n?.type).tab === tabKey);
+  }, [safeItems, tab]);
 
   // Gruppen für "alle" Tab
   const grouped = useMemo(() => {
     if (tab !== "alle") return null;
-    const w = notif.items.filter(n => getMeta(n.type).tab === "wichtig");
-    const r = notif.items.filter(n => getMeta(n.type).tab === "relevant");
-    const i = notif.items.filter(n => getMeta(n.type).tab === "info");
+    const w = safeItems.filter(n => getMeta(n?.type).tab === "wichtig");
+    const r = safeItems.filter(n => getMeta(n?.type).tab === "relevant");
+    const i = safeItems.filter(n => getMeta(n?.type).tab === "info");
     return { wichtig: w, relevant: r, info: i };
-  }, [notif.items, tab]);
+  }, [safeItems, tab]);
 
   const TABS = [
-    { key:"alle",     label:"Alle",        count: notif.items.length + connReqs.requests.length },
-    { key:"wichtig",  label:"Wichtig",     count: counts.wichtig  },
-    { key:"relevant", label:"Relevant",    count: counts.relevant },
-    { key:"info",     label:"Informativ",  count: counts.info     },
+    { key:"alle",     label:"Alle",        count: safeItems.length + safeRequests.length },
+    { key:"wichtig",  label:"Wichtig",     count: counts?.wichtig  ?? 0 },
+    { key:"relevant", label:"Relevant",    count: counts?.relevant ?? 0 },
+    { key:"info",     label:"Informativ",  count: counts?.info     ?? 0 },
   ];
 
-  const isEmpty = filteredItems.length === 0 && (tab !== "alle" || connReqs.requests.length === 0);
+  const isEmpty = (filteredItems?.length ?? 0) === 0 && (tab !== "alle" || safeRequests.length === 0);
 
   return (
     <>
@@ -597,7 +629,7 @@ export function ResonanzzentrumPanel({ onClose }) {
           position:"fixed",
           top:0, right:0, bottom:0,
           zIndex:19600,
-          width: Math.min(420, window.innerWidth),
+          width: Math.min(420, typeof window !== 'undefined' ? window.innerWidth : 420),
           background:T.cream,
           display:"flex", flexDirection:"column",
           fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
@@ -625,7 +657,7 @@ export function ResonanzzentrumPanel({ onClose }) {
                   display:"flex", alignItems:"center", gap:8,
                 }}>
                   Resonanzzentrum
-                  {notif.unread > 0 && (
+                  {(notif?.unread ?? 0) > 0 && (
                     <span style={{
                       background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
                       color:"#fff", fontSize:12, fontWeight:800,
@@ -708,9 +740,9 @@ export function ResonanzzentrumPanel({ onClose }) {
             })}
 
             {/* Alle gelesen */}
-            {notif.unread > 0 && (
+            {(notif?.unread ?? 0) > 0 && (
               <button
-                onClick={notif.markAllRead}
+                onClick={notif?.markAllRead ?? (() => {})}
                 style={{
                   marginLeft:"auto", flexShrink:0,
                   padding:"7px 12px", borderRadius:20,
@@ -736,10 +768,10 @@ export function ResonanzzentrumPanel({ onClose }) {
         }}>
 
           {/* Verbindungsanfragen — immer oben (wenn Alle oder Wichtig aktiv) */}
-          {(tab === "alle" || tab === "wichtig") && connReqs.requests.length > 0 && (
+          {(tab === "alle" || tab === "wichtig") && safeRequests.length > 0 && (
             <>
               {tab === "alle" && <SectionHeader emoji="⭐" label="Wichtig" />}
-              {connReqs.requests.map(req => (
+              {safeRequests.map(req => (
                 <ConnectionRequestItem
                   key={req.id}
                   req={req}
@@ -754,23 +786,23 @@ export function ResonanzzentrumPanel({ onClose }) {
             <>
               {grouped.wichtig.length > 0 && (
                 <>
-                  {connReqs.requests.length === 0 && <SectionHeader emoji="⭐" label="Wichtig" />}
-                  {grouped.wichtig.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)}
+                  {safeRequests.length === 0 && <SectionHeader emoji="⭐" label="Wichtig" />}
+                  {grouped.wichtig.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
                 </>
               )}
               {grouped.relevant.length > 0 && (
                 <>
                   <SectionHeader emoji="⭐" label="Relevant" />
-                  {grouped.relevant.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)}
+                  {grouped.relevant.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
                 </>
               )}
               {grouped.info.length > 0 && (
                 <>
                   <SectionHeader emoji="⭐" label="Informativ" />
-                  {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)}
+                  {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
                 </>
               )}
-              {notif.items.length === 0 && connReqs.requests.length === 0 && (
+              {safeItems.length === 0 && safeRequests.length === 0 && (
                 <EmptyTab tab="alle" />
               )}
             </>
@@ -780,11 +812,11 @@ export function ResonanzzentrumPanel({ onClose }) {
           {tab !== "alle" && (
             isEmpty
               ? <EmptyTab tab={tab} />
-              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)
+              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)
           )}
 
           {/* Lade-Spinner */}
-          {notif.loading && notif.items.length === 0 && connReqs.requests.length === 0 && (
+          {notif?.loading && safeItems.length === 0 && safeRequests.length === 0 && (
             <div style={{display:"flex",justifyContent:"center",padding:40}}>
               <div style={{
                 width:24, height:24, borderRadius:"50%",
