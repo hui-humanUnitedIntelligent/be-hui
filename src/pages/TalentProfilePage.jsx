@@ -501,7 +501,7 @@ function CinematicHero({ profile, loading }) {
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
 function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
-  React.useEffect(() => { const el = document.querySelector("[data-kompass-sheet]"); alert("MOUNTED. el=" + (el ? "JA h=" + el.offsetHeight + " vis=" + (el.offsetParent !== null ? "JA" : "NEIN") : "NEIN")); }, []);
+  React.useEffect(() => { setTimeout(() => { const el = document.querySelector("[data-kompass-sheet]"); const all = document.querySelectorAll("[data-kompass-sheet]").length; alert("MOUNTED+100ms. el=" + (el ? "JA h=" + el.offsetHeight + " vis=" + (el.offsetParent !== null ? "JA" : "NEIN") : "NEIN") + " count=" + all); }, 100); }, []);
   const [pressed, setPressed] = React.useState(null);
 
   function handleShare() {
