@@ -637,8 +637,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
           `msg: ${error?.message ?? "–"}`,
           `details: ${error?.details ?? "–"}`,
           `hint: ${error?.hint ?? "–"}`,
-        ].join("
-");
+        ].join("\n");
         showDebugToast(5, "INSERT FEHLER ❌", detail, true);
         setWatchingLocal(null);
         return;
@@ -656,9 +655,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
         .eq("profile_id", profile.id);
 
       if (error) {
-        const detail = `code: ${error?.code ?? "–"}
-msg: ${error?.message ?? "–"}
-details: ${error?.details ?? "–"}`;
+        const detail = `code: ${error?.code ?? "–"}\nmsg: ${error?.message ?? "–"}\ndetails: ${error?.details ?? "–"}`;
         showDebugToast(5, "DELETE FEHLER ❌", detail, true);
         setWatchingLocal(null);
         return;
