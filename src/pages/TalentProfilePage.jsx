@@ -552,6 +552,9 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
     },
   ];
 
+  console.log("[COMPASS]");
+  console.log("showKompassSheet / isWatching:", isWatching);
+
   return createPortal(
     <>
       {/* Backdrop */}
@@ -793,7 +796,15 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
           {/* Kompass-Button */}
           <button
             className="tpp-press-light"
-            onClick={() => setShowKompassSheet(true)}
+            onClick={() => {
+              console.log("[COMPASS CLICK]");
+              console.log("before:", showKompassSheet);
+              setShowKompassSheet(true);
+              setTimeout(() => {
+                console.log("[COMPASS CLICK AFTER]");
+                console.log("after:", showKompassSheet);
+              }, 0);
+            }}
             style={{
               width:46, height:46,
               background:"#FFFFFF",
