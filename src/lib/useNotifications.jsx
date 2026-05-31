@@ -78,6 +78,9 @@ export function useNotifications() {
   const [items,   setItems]   = useState([]);
   const [unread,  setUnread]  = useState(0);
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    panelUser: null, panelRows: null, panelError: null
+  });
   const subRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -94,6 +97,7 @@ export function useNotifications() {
       console.log("[PANEL ROWS]", data?.length ?? 0);
       console.log("[PANEL DATA]", data);
       console.log("[PANEL ERROR]", error);
+      setDebugInfo({ panelUser: user?.id ?? "NULL", panelRows: data?.length ?? 0, panelError: error ? JSON.stringify(error) : null });
       console.log("[RESONANZZENTRUM] notifications geladen:", { count: data?.length, error: error?.message });
       if (data && Array.isArray(data)) {
         setItems(data);
@@ -141,7 +145,7 @@ export function useNotifications() {
     } catch { /* silent */ }
   }, [user?.id]);
 
-  return { items, unread, loading, markRead, markAllRead, reload: load };
+  return { items, unread, loading, markRead, markAllRead, reload: load, debugInfo };
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -565,6 +569,21 @@ export function ResonanzzentrumPanel({ onClose }) {
 
   const [tab, setTab] = useState("alle");
 
+  // DEBUG — Badge-Query direkt im Panel wiederholen um Werte sichtbar zu machen
+  const [badgeDebug, setBadgeDebug] = useState({ user: "…", count: "…", error: "…" });
+  useEffect(() => {
+    if (!user?.id) { setBadgeDebug({ user: "NULL", count: "–", error: "–" }); return; }
+    setBadgeDebug(prev => ({ ...prev, user: user.id }));
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("read", false)
+      .then(({ count, error }) => {
+        setBadgeDebug({ user: user.id, count: String(count ?? "null"), error: error ? error.message : "null" });
+      });
+  }, [user?.id]);
+
   // Null-Guards für alle Arrays — verhindert .map()/.filter() auf undefined
   const safeItems    = Array.isArray(notif?.items)        ? notif.items        : [];
   const safeRequests = Array.isArray(connReqs?.requests)  ? connReqs.requests  : [];
@@ -634,6 +653,28 @@ export function ResonanzzentrumPanel({ onClose }) {
           boxShadow:"-4px 0 40px rgba(26,26,24,0.16)",
         }}
       >
+        {/* ── DEBUG KARTE ── */}
+        <div style={{
+          margin:"12px 12px 0",
+          padding:"10px 12px",
+          background:"rgba(0,0,0,0.85)",
+          borderRadius:10,
+          fontFamily:"monospace",
+          fontSize:11,
+          color:"#00FF88",
+          lineHeight:1.7,
+          flexShrink:0,
+        }}>
+          <div style={{fontWeight:700, color:"#FFD700", marginBottom:4}}>🛠 DEBUG</div>
+          <div><span style={{color:"#aaa"}}>BADGE USER:</span> {badgeDebug.user}</div>
+          <div><span style={{color:"#aaa"}}>BADGE COUNT:</span> {badgeDebug.count}</div>
+          <div><span style={{color:"#aaa"}}>BADGE ERROR:</span> {badgeDebug.error}</div>
+          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
+          <div><span style={{color:"#aaa"}}>PANEL USER:</span> {notif?.debugInfo?.panelUser ?? "…"}</div>
+          <div><span style={{color:"#aaa"}}>PANEL ROWS:</span> {String(notif?.debugInfo?.panelRows ?? "…")}</div>
+          <div><span style={{color:"#aaa"}}>PANEL ERROR:</span> {notif?.debugInfo?.panelError ?? "null"}</div>
+        </div>
+
         {/* ── HEADER ── */}
         <div style={{
           padding:"env(safe-area-inset-top,16px) 16px 0",
