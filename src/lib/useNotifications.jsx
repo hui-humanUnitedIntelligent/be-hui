@@ -884,15 +884,17 @@ export function ResonanzzentrumPanel({ onClose }) {
           {/* Einzelne Tabs */}
           {tab !== "alle" && (() => {
             console.log("[SINGLE-TAB BRANCH]", {
-              tab,
-              isEmpty,
+              tab, isEmpty,
               filteredLen: filteredItems?.length,
               ids:   filteredItems?.map(x => x?.id),
               types: filteredItems?.map(x => x?.type),
             });
-            return isEmpty
-              ? <EmptyTab tab={tab} />
-              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />);
+            console.log("[LIST CONTAINER RENDERED]");
+            return (
+              <div style={{background:"red",color:"white",padding:20,minHeight:200}}>
+                CONTAINER TEST — tab: {tab} — filteredLen: {filteredItems?.length}
+              </div>
+            );
           })()}
 
           {/* Lade-Spinner */}
