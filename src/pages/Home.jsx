@@ -38,7 +38,7 @@ const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.js
 const ExperienceFlow = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
 const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlow.jsx"));
 
-const NotificationCenter  = React.lazy(() => import("../components/NotificationCenter.jsx"));
+// NotificationCenter deaktiviert — Resonanzzentrum übernimmt (NotificationButton.jsx)
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
@@ -593,53 +593,10 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {showNotifs && SAFE_MODE.notifications && (
-          (() => {
-            console.log("[GLOCKE STEP 7] Home.jsx: showNotifs=true → NotificationCenter wird gerendert");
-            console.log("[GLOCKE STEP 7] SAFE_MODE.notifications:", SAFE_MODE.notifications);
-            console.log("[RENDERING COMPONENT: NotificationCenter]");
-            return null;
-          })()
-        )}
-        {showNotifs && SAFE_MODE.notifications && (
-          <SafeRender flag="notifications" label="NotificationCenter">
-            <NotificationCenter
-              onClose={() => setShowNotifs(false)}
-              onNavigate={(target) => {
-                // Phase 23: echte Navigation aus Notifications heraus
-                setShowNotifs(false);
-                if (!target) return;
-
-                // String-Shortcuts
-                if (target === "chat")    { setShowChat(true); return; }
-                if (target === "impact")  { handleTab("impact"); return; }
-                if (target === "feed")    { handleTab("home"); return; }
-                if (target === "discover"){ handleTab("discover"); return; }
-
-                // Objekt: { type, id, ... }
-                if (typeof target === "object") {
-                  if (target.type === "chat" && target.recipientId) {
-                    setChatRecipient({
-                      id:           target.recipientId,
-                      display_name: target.recipientName || "Creator",
-                      avatar_url:   target.recipientAvatar || null,
-                    });
-                    setShowChat(true);
-                    return;
-                  }
-                  if (target.type === "profile" && target.userId) {
-                    if (target?.userId) openProfileById(target.userId);
-                    return;
-                  }
-                  if (target.type === "impact") {
-                    handleTab("impact");
-                    return;
-                  }
-                }
-              }}
-            />
-          </SafeRender>
-        )}
+        {/* DEAKTIVIERT: NotificationCenter.jsx (altes System).
+             Notification-Zugang läuft jetzt ausschliesslich über
+             ResonanzzentrumPanel in NotificationButton.jsx.
+             showNotifs / setShowNotifs bleiben im State für spätere Entfernung. */}
         {showMembership && SAFE_MODE.membership && (
           <SafeRender flag="membership" label="HuiMembershipFlow">
             <HuiMembershipFlow

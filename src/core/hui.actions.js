@@ -366,12 +366,10 @@ export function buildActions(shell) {
     },
 
     [A.OPEN_NOTIFICATIONS]: () => {
-      console.log("[GLOCKE STEP 5] hui.actions OPEN_NOTIFICATIONS ausgelöst");
-      console.log("[GLOCKE STEP 5] setShowNotifs vorhanden:", typeof setShowNotifs);
+      // DEAKTIVIERT: NotificationCenter.jsx ist abgeschaltet.
+      // Notification-Zugang läuft über NotificationButton → ResonanzzentrumPanel.
+      // Action ist absichtlich noop — kein setShowNotifs mehr.
       logAction(A.OPEN_NOTIFICATIONS);
-      setShowNotifs?.(true);
-      console.log("[GLOCKE STEP 5] setShowNotifs(true) aufgerufen");
-      return true; // signalisiert dass Action Engine gehandelt hat
     },
 
     [A.OPEN_MAP]: () => {

@@ -870,31 +870,20 @@ export function useNotifCount() {
    Props: { onClose, onNavigate } — unverändert
 ══════════════════════════════════════════════════════════════ */
 export default function NotificationCenter({ onClose, onNavigate }) {
-  console.log("[GLOCKE STEP 8] NotificationCenter MOUNT BEGINN");
-  console.log("[RENDERING COMPONENT: NotificationCenter]");
-
+  // HINWEIS: Diese Komponente ist in Home.jsx deaktiviert.
+  // Sie wird nicht mehr gerendert. Resonanzzentrum übernimmt.
   const actions = useHuiActions();
-  // ── Hooks (stabile Reihenfolge) ───────────────────────────────────
-  const appState = useAppState();
-  console.log("[GLOCKE STEP 8] useAppState() zurückgegeben:", appState ? "OK" : "NULL/UNDEFINED");
-
   const {
     notifications,
     unreadNotifCount,
     markNotifsRead,
     loadNotifications,
-  } = appState ?? {};
-
-  console.log("[GLOCKE STEP 8] notifications:", notifications?.length ?? "undefined/null");
-  console.log("[GLOCKE STEP 8] loadNotifications:", typeof loadNotifications);
+  } = useAppState() ?? {};
 
   const [activeFilter,  setActiveFilter]  = useState("Alle");
   const [activeNotif,   setActiveNotif]   = useState(null);
   const [weeklyEur,     setWeeklyEur]     = useState(8950);
-  // Desktop >= 1200px: 2-Spalten Layout.
-  // Mobile + Tablet (< 1200px): Mobile-UI.
   const safeInnerWidth = typeof window !== "undefined" ? window.innerWidth : 390;
-  console.log("[GLOCKE STEP 8] window.innerWidth:", safeInnerWidth);
   const [isWide, setIsWide] = React.useState(safeInnerWidth >= 1200);
   React.useEffect(() => {
     const fn = () => setIsWide(window.innerWidth >= 1200);

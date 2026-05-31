@@ -32,15 +32,7 @@ export default function HomeHeader({
   }
 
   function handleNotif() {
-    console.log("[GLOCKE STEP 4] HomeHeader.handleNotif() aufgerufen");
-    console.log("[GLOCKE STEP 4] actions[OPEN_NOTIFICATIONS] vorhanden:", typeof actions[A.OPEN_NOTIFICATIONS]);
-    console.log("[GLOCKE STEP 4] onNotif prop vorhanden:", typeof onNotif);
-    const actionResult = actions[A.OPEN_NOTIFICATIONS]?.();
-    console.log("[GLOCKE STEP 4] action result:", actionResult);
-    if (!actionResult) {
-      console.log("[GLOCKE STEP 4] Action Engine hat nicht gehandelt → onNotif() wird aufgerufen");
-      onNotif?.();
-    }
+    // noop — NotificationButton öffnet Resonanzzentrum via eigenem State.
   }
 
   return (

@@ -8,13 +8,10 @@ export default function NotificationButton({ onPress }) {
   const [pressed, setPressed] = useState(false);
 
   function handlePress() {
-    console.log("[GLOCKE STEP 1] NotificationButton.handlePress() aufgerufen");
-    console.log("[GLOCKE STEP 1] onPress prop:", typeof onPress);
-    setOpen(prev => {
-      console.log("[GLOCKE STEP 2] setOpen:", prev, "->", !prev);
-      return !prev;
-    });
-    onPress?.();
+    // Nur eigenen open-State toggeln → ResonanzzentrumPanel.
+    // onPress() (→ HomeHeader.handleNotif → Action Engine) wird NICHT aufgerufen.
+    // Verhindert doppeltes Rendering von altem NotificationCenter.
+    setOpen(prev => !prev);
   }
 
   return (
@@ -51,9 +48,6 @@ export default function NotificationButton({ onPress }) {
         <NotificationBadge count={unread} />
       </button>
 
-      {open && (
-        (() => { console.log("[GLOCKE STEP 3] Rendere: ResonanzzentrumPanel (aus NotificationButton)"); return null; })()
-      )}
       {open && (
         <ResonanzzentrumPanel onClose={() => setOpen(false)} />
       )}
