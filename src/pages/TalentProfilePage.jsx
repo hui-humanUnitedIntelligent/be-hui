@@ -581,6 +581,9 @@ function CinematicHero({ profile, loading }) {
 // 3. ACTION BUTTONS (Verbinden, Nachricht)
 // ══════════════════════════════════════════════════════════════
 function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
+  // ── DEBUG LOG 3: Was kommt in ActionButtons an? ──
+  console.log("[ACTIONBUTTONS PROFILE]", profile);
+  console.log("[PROFILE ID]", profile?.id ?? "FEHLT ❌");
   const rel = useRelationship(profile?.id, currentUserId);
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
   const [watchingLocal,         setWatchingLocal]         = React.useState(null); // optimistic
@@ -1469,6 +1472,14 @@ export default function TalentProfilePage({ profileId, onClose }) {
           );
         }
 
+        // ── DEBUG LOG 1: Was kommt aus Supabase zurück? ──
+        console.log("[PROFILE LOADED]", {
+          profileId,
+          "profileRes.data": profileRes.data,
+          "profileRes.error": profileRes.error,
+          "data.id": profileRes.data?.id ?? "FEHLT",
+        });
+
         setWorks(worksRes.data || []);
         setExperiences(experiencesRes.data || []);
         setMoments(momentsRes.data || []);
@@ -1509,6 +1520,8 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
+          {/* ── DEBUG LOG 2: profile vor ActionButtons ── */}
+          {console.log("[PROFILE BEFORE ACTIONBUTTONS]", profile, "| id:", profile?.id ?? "FEHLT")}
           <ActionButtons profile={profile} currentUserId={user?.id} loading={loading}/>
         </div>
         <Gap h={20}/>
