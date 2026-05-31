@@ -1,24 +1,80 @@
-// src/lib/useNotifications.jsx — Phase 4B
+// src/lib/useNotifications.jsx — Resonanzzentrum v2
 // ══════════════════════════════════════════════════════════════
-// Notification hook + Inbox component.
-// Real data from Supabase + realtime subscription.
-// Badge count, mark-as-read, all-read.
+// Hook + vollständiges Resonanzzentrum Panel
+// Slide-Over von rechts, 4 Tabs, Verbindungsanfragen, Wochenstats
 // ══════════════════════════════════════════════════════════════
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "./supabaseClient.js";
 import { useAuth }  from "./AuthContext.jsx";
 
-const TEAL  = "#16D7C5";
-const CORAL = "#FF8A6B";
-const INK   = "#1A1A2E";
-const CREAM = "#F9F7F4";
+// ── Design Tokens ─────────────────────────────────────────────
+const T = {
+  teal:     "#16D7C5",
+  tealDeep: "#0AADA3",
+  tealSoft: "rgba(22,215,197,0.10)",
+  coral:    "#FF8A6B",
+  ink:      "#1A1A18",
+  inkSoft:  "rgba(26,26,24,0.55)",
+  inkFaint: "rgba(26,26,24,0.35)",
+  cream:    "#F9F7F4",
+  card:     "#FFFFFF",
+  border:   "rgba(26,26,24,0.08)",
+  r12:      12,
+  r16:      16,
+  r20:      20,
+};
 
-// ── Hook ─────────────────────────────────────────────────────
+// ── Kategorie-Regeln ──────────────────────────────────────────
+// type → { tab, icon, color }
+const TYPE_META = {
+  // WICHTIG
+  order:          { tab:"wichtig", icon:"🎨", color:"#FF8A6B", label:"Bestellung" },
+  booking:        { tab:"wichtig", icon:"📅", color:"#22C55E", label:"Buchung" },
+  connection_req: { tab:"wichtig", icon:"🤝", color:T.teal,   label:"Verbindungsanfrage" },
+  message:        { tab:"wichtig", icon:"💬", color:T.teal,   label:"Nachricht" },
+  booking_change: { tab:"wichtig", icon:"⚠️", color:"#F59E0B", label:"Buchungsänderung" },
+  experience_soon:{ tab:"wichtig", icon:"📅", color:"#22C55E", label:"Erlebnis morgen" },
+  // RELEVANT
+  like:           { tab:"relevant", icon:"❤️", color:"#EF4444", label:"Favorisiert" },
+  save:           { tab:"relevant", icon:"⭐", color:"#F59E0B", label:"Gespeichert" },
+  profile_visit:  { tab:"relevant", icon:"👀", color:"#8B5CF6", label:"Profilbesuch" },
+  participant:    { tab:"relevant", icon:"🙌", color:T.teal,   label:"Neue Teilnehmer" },
+  watcher:        { tab:"relevant", icon:"🌱", color:"#22C55E", label:"Neue Beobachter" },
+  interest:       { tab:"relevant", icon:"🎯", color:T.coral,  label:"Interesse" },
+  follow:         { tab:"relevant", icon:"👤", color:T.teal,   label:"Neuer Follower" },
+  // INFORMATIV
+  milestone:      { tab:"info", icon:"📈", color:T.teal,   label:"Meilenstein" },
+  impact:         { tab:"info", icon:"🌿", color:"#22C55E", label:"Neue Wirkung" },
+  share:          { tab:"info", icon:"🎨", color:"#8B5CF6", label:"Werk geteilt" },
+  connection_new: { tab:"info", icon:"🤝", color:T.teal,   label:"Neue Verbindung" },
+  achievement:    { tab:"info", icon:"🏆", color:"#F59E0B", label:"Meilenstein" },
+  // Default
+  default:        { tab:"info", icon:"✦",  color:T.teal,   label:"Aktivität" },
+};
+
+function getMeta(type) {
+  return TYPE_META[type] || TYPE_META.default;
+}
+
+// ── Zeit-Formatter ────────────────────────────────────────────
+function fmtTime(iso) {
+  if (!iso) return "";
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60)    return "Gerade eben";
+  if (diff < 3600)  return `vor ${Math.floor(diff/60)} Min`;
+  if (diff < 86400) return `vor ${Math.floor(diff/3600)} Std`;
+  if (diff < 172800)return "gestern";
+  return `vor ${Math.floor(diff/86400)} Tagen`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// HOOK
+// ══════════════════════════════════════════════════════════════
 export function useNotifications() {
   const { user } = useAuth();
-  const [items,    setItems]   = useState([]);
-  const [unread,   setUnread]  = useState(0);
-  const [loading,  setLoading] = useState(false);
+  const [items,   setItems]   = useState([]);
+  const [unread,  setUnread]  = useState(0);
+  const [loading, setLoading] = useState(false);
   const subRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -27,40 +83,34 @@ export function useNotifications() {
     try {
       const { data } = await supabase
         .from("notifications")
-        .select("id,type,title,body,read,created_at,sender_id,entity_id,entity_type,icon,data")
+        .select("id,type,title,body,read,created_at,sender_id,entity_id,entity_type,icon,data,priority")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(80);
       if (data) {
         setItems(data);
-        setUnread(data.filter(n => !n.read).length);
+        const wichtigTypes = Object.entries(TYPE_META)
+          .filter(([,v]) => v.tab === "wichtig").map(([k]) => k);
+        setUnread(data.filter(n => !n.read && wichtigTypes.includes(n.type)).length ||
+                  data.filter(n => !n.read).length);
       }
     } catch { /* silent */ }
     finally { setLoading(false); }
   }, [user?.id]);
 
-  // Initial load + realtime sub
   useEffect(() => {
     if (!user?.id) { setItems([]); setUnread(0); return; }
     load();
-
-    // Realtime: new notification for this user
     const ch = supabase.channel(`notif:${user.id}`)
       .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "notifications",
-        filter: `user_id=eq.${user.id}`,
+        event: "INSERT", schema: "public",
+        table: "notifications", filter: `user_id=eq.${user.id}`,
       }, (payload) => {
         setItems(prev => [payload.new, ...prev]);
         setUnread(prev => prev + 1);
-      })
-      .subscribe();
+      }).subscribe();
     subRef.current = ch;
-
-    return () => {
-      ch.unsubscribe();
-    };
+    return () => { ch.unsubscribe(); };
   }, [user?.id, load]);
 
   const markRead = useCallback(async (id) => {
@@ -72,226 +122,710 @@ export function useNotifications() {
   const markAllRead = useCallback(async () => {
     setItems(prev => prev.map(n => ({ ...n, read: true })));
     setUnread(0);
-    await supabase.from("notifications")
-      .update({ read: true }).eq("user_id", user.id).eq("read", false);
+    await supabase.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
   }, [user?.id]);
 
   return { items, unread, loading, markRead, markAllRead, reload: load };
 }
 
-// ── Icon map ─────────────────────────────────────────────────
-const TYPE_CONFIG = {
-  follow:   { icon: "👤", color: TEAL,  label: "Neuer Follower" },
-  like:     { icon: "✦",  color: CORAL, label: "Mag deinen Beitrag" },
-  inspire:  { icon: "✨",  color: "#A78BFA", label: "Inspiration" },
-  save:     { icon: "🔖", color: "#F59E0B", label: "Gespeichert" },
-  message:  { icon: "✉️", color: TEAL,  label: "Neue Nachricht" },
-  booking:  { icon: "📅", color: "#22C55E", label: "Buchung" },
-  resonanz: { icon: "⚡", color: "#A78BFA", label: "Resonanz" },
-  system:   { icon: "ℹ️", color: "rgba(26,26,46,0.4)", label: "System" },
-  default:  { icon: "✦",  color: TEAL,  label: "Aktivität" },
-};
+// ══════════════════════════════════════════════════════════════
+// VERBINDUNGSANFRAGEN HOOK
+// ══════════════════════════════════════════════════════════════
+function useConnectionRequests(userId) {
+  const [requests, setRequests] = useState([]);
+  const [loading,  setLoading]  = useState(false);
 
-function fmtTime(iso) {
-  if (!iso) return "";
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 60)   return "Gerade eben";
-  if (diff < 3600) return `vor ${Math.floor(diff/60)} Min`;
-  if (diff < 86400)return `vor ${Math.floor(diff/3600)} Std`;
-  return `vor ${Math.floor(diff/86400)} Tagen`;
+  const load = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from("profile_relations")
+        .select("id,requester_id,intention,message,created_at,status")
+        .eq("target_id", userId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (data) setRequests(data);
+    } catch { /* silent */ }
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function respond(id, action) {
+    const status = action === "accept" ? "accepted" : action === "decline" ? "declined" : "pending";
+    await supabase.from("profile_relations").update({ status }).eq("id", id);
+    setRequests(prev => prev.filter(r => r.id !== id));
+  }
+
+  return { requests, loading, respond, reload: load };
 }
 
-// ── EmptyState ────────────────────────────────────────────────
-function NotifEmpty() {
+// ══════════════════════════════════════════════════════════════
+// WOCHENSTATS HOOK
+// ══════════════════════════════════════════════════════════════
+function useWeekStats(userId) {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+
+    Promise.all([
+      supabase.from("profile_watchlist")
+        .select("id", { count:"exact", head:true })
+        .eq("profile_id", userId)
+        .gte("created_at", weekAgo),
+      supabase.from("notifications")
+        .select("id", { count:"exact", head:true })
+        .eq("user_id", userId)
+        .eq("type", "like")
+        .gte("created_at", weekAgo),
+      supabase.from("notifications")
+        .select("id", { count:"exact", head:true })
+        .eq("user_id", userId)
+        .eq("type", "save")
+        .gte("created_at", weekAgo),
+      supabase.from("notifications")
+        .select("id", { count:"exact", head:true })
+        .eq("user_id", userId)
+        .eq("type", "booking")
+        .gte("created_at", weekAgo),
+    ]).then(([w, l, s, b]) => {
+      setStats({
+        connections: w.count ?? 0,
+        reached:     (l.count ?? 0) * 4 + (s.count ?? 0) * 2,
+        saved:       s.count ?? 0,
+        booked:      b.count ?? 0,
+      });
+    });
+  }, [userId]);
+
+  return stats;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SUBKOMPONENTEN
+// ══════════════════════════════════════════════════════════════
+
+// ── Notification Item ─────────────────────────────────────────
+function NotifItem({ n, onRead }) {
+  const meta = getMeta(n.type);
+  const [hov, setHov] = useState(false);
+
+  return (
+    <button
+      onClick={() => onRead(n.id)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:"flex", alignItems:"flex-start", gap:12,
+        padding:"13px 16px",
+        background: hov
+          ? "rgba(26,26,24,0.025)"
+          : n.read ? "transparent" : "rgba(22,215,197,0.05)",
+        border:"none",
+        borderBottom:`1px solid ${T.border}`,
+        cursor:"pointer", width:"100%", textAlign:"left",
+        transition:"background 0.15s",
+        touchAction:"manipulation",
+      }}
+    >
+      {/* Icon */}
+      <div style={{
+        width:42, height:42, borderRadius:14, flexShrink:0,
+        background:`linear-gradient(135deg,${meta.color}22,${meta.color}11)`,
+        border:`1.5px solid ${meta.color}30`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:19,
+      }}>
+        {n.icon || meta.icon}
+      </div>
+
+      {/* Text */}
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{
+          fontSize:13.5, fontWeight: n.read ? 500 : 700,
+          color: n.read ? T.inkSoft : T.ink,
+          lineHeight:1.4, marginBottom:2,
+        }}>
+          {n.title || meta.label}
+        </div>
+        {n.body && (
+          <div style={{
+            fontSize:12.5, color:T.inkFaint, lineHeight:1.5,
+            overflow:"hidden", display:"-webkit-box",
+            WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+          }}>
+            {n.body}
+          </div>
+        )}
+        <div style={{ fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:4 }}>
+          {fmtTime(n.created_at)}
+        </div>
+      </div>
+
+      {/* Chevron + Unread dot */}
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flexShrink:0}}>
+        {!n.read && (
+          <div style={{
+            width:7, height:7, borderRadius:"50%",
+            background:T.teal, marginTop:4,
+          }}/>
+        )}
+        <span style={{fontSize:14, color:"rgba(26,26,24,0.20)", marginTop: n.read ? 8 : 0}}>›</span>
+      </div>
+    </button>
+  );
+}
+
+// ── Verbindungsanfrage Item ───────────────────────────────────
+function ConnectionRequestItem({ req, onRespond }) {
+  const [state, setState] = useState("idle"); // idle | accepted | declined | later
+  const name = req.requester_name || "Jemand";
+  const INTENTIONS_MAP = {
+    work:       "Ich interessiere mich für deine Arbeit",
+    experience: "Ich möchte an deinen Erlebnissen teilnehmen",
+    exchange:   "Ich suche Austausch",
+    create:     "Ich möchte gemeinsam etwas bewirken",
+    other:      "Persönliche Nachricht",
+  };
+
+  if (state === "accepted") return (
+    <div style={{padding:"14px 16px", borderBottom:`1px solid ${T.border}`}}>
+      <div style={{
+        display:"flex", alignItems:"center", gap:10,
+        padding:"12px 16px", borderRadius:12,
+        background:"rgba(22,215,197,0.08)",
+        border:`1px solid rgba(22,215,197,0.20)`,
+      }}>
+        <span style={{fontSize:20}}>🌿</span>
+        <span style={{fontSize:13.5, fontWeight:600, color:T.teal}}>
+          Ihr seid jetzt verbunden.
+        </span>
+      </div>
+    </div>
+  );
+
+  if (state === "declined") return null;
+
   return (
     <div style={{
-      display:"flex",flexDirection:"column",alignItems:"center",
-      justifyContent:"center",padding:"48px 24px",gap:16,
+      padding:"14px 16px",
+      borderBottom:`1px solid ${T.border}`,
+      background:"rgba(22,215,197,0.03)",
     }}>
-      <div style={{
-        width:72,height:72,borderRadius:24,
-        background:"linear-gradient(135deg,rgba(22,215,197,0.10),rgba(255,138,107,0.08))",
-        display:"flex",alignItems:"center",justifyContent:"center",
-        fontSize:32,
-      }}>✦</div>
-      <div style={{textAlign:"center"}}>
-        <div style={{fontSize:16,fontWeight:700,color:INK,marginBottom:6}}>
-          Noch ruhig hier
+      {/* Header */}
+      <div style={{display:"flex", gap:12, marginBottom:12}}>
+        <div style={{
+          width:42, height:42, borderRadius:14, flexShrink:0,
+          background:`linear-gradient(135deg,rgba(22,215,197,0.20),rgba(22,215,197,0.10))`,
+          display:"flex", alignItems:"center", justifyContent:"center", fontSize:19,
+        }}>
+          🤝
         </div>
-        <div style={{fontSize:13.5,color:"rgba(26,26,46,0.45)",lineHeight:1.6,maxWidth:220}}>
-          Wenn jemand deinem Werk folgt, reagiert oder sich von dir inspirieren lässt — erscheint es hier.
+        <div style={{flex:1}}>
+          <div style={{fontSize:13.5, fontWeight:700, color:T.ink, lineHeight:1.4}}>
+            {name} möchte sich verbinden
+          </div>
+          {req.intention && (
+            <div style={{fontSize:12, color:T.inkFaint, marginTop:2}}>
+              {INTENTIONS_MAP[req.intention] || req.intention}
+            </div>
+          )}
+          {req.message && (
+            <div style={{
+              fontSize:12.5, color:T.inkSoft, marginTop:6,
+              fontStyle:"italic", lineHeight:1.5,
+              padding:"8px 10px",
+              background:"rgba(26,26,24,0.04)",
+              borderRadius:8, borderLeft:`2px solid ${T.teal}`,
+            }}>
+              „{req.message}"
+            </div>
+          )}
+          <div style={{fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:6}}>
+            {fmtTime(req.created_at)}
+          </div>
         </div>
+      </div>
+
+      {/* Buttons */}
+      <div style={{display:"flex", gap:8}}>
+        <button
+          onClick={async () => { await onRespond(req.id, "accept"); setState("accepted"); }}
+          style={{
+            flex:1, padding:"10px 0",
+            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+            color:"#fff", border:"none", borderRadius:10,
+            fontSize:13, fontWeight:700, cursor:"pointer",
+            fontFamily:"inherit", touchAction:"manipulation",
+          }}>
+          Annehmen
+        </button>
+        <button
+          onClick={() => { onRespond(req.id, "later"); setState("later"); }}
+          style={{
+            flex:1, padding:"10px 0",
+            background:"rgba(26,26,24,0.06)", color:T.inkSoft,
+            border:"none", borderRadius:10,
+            fontSize:13, fontWeight:600, cursor:"pointer",
+            fontFamily:"inherit", touchAction:"manipulation",
+          }}>
+          Später
+        </button>
+        <button
+          onClick={() => { onRespond(req.id, "decline"); setState("declined"); }}
+          style={{
+            flex:1, padding:"10px 0",
+            background:"rgba(239,68,68,0.08)", color:"#EF4444",
+            border:"none", borderRadius:10,
+            fontSize:13, fontWeight:600, cursor:"pointer",
+            fontFamily:"inherit", touchAction:"manipulation",
+          }}>
+          Ablehnen
+        </button>
       </div>
     </div>
   );
 }
 
-// ── Notification Item ─────────────────────────────────────────
-function NotifItem({ n, onRead }) {
-  const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.default;
+// ── Kategorie-Header ──────────────────────────────────────────
+function SectionHeader({ emoji, label }) {
   return (
-    <button
-      onClick={() => { onRead(n.id); }}
-      style={{
-        display:"flex",alignItems:"flex-start",gap:13,
-        padding:"14px 18px",
-        background: n.read ? "transparent" : "rgba(22,215,197,0.05)",
-        border:"none",borderBottom:"1px solid rgba(26,26,46,0.06)",
-        cursor:"pointer",width:"100%",textAlign:"left",
-        transition:"background 0.2s",
-        touchAction:"manipulation",
-      }}
-      onMouseEnter={e => e.currentTarget.style.background="rgba(26,26,46,0.03)"}
-      onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(22,215,197,0.05)"}
-    >
-      {/* Icon bubble */}
-      <div style={{
-        width:40,height:40,borderRadius:14,flexShrink:0,
-        background:`linear-gradient(135deg,${cfg.color}22,${cfg.color}11)`,
-        display:"flex",alignItems:"center",justifyContent:"center",
-        fontSize:18,
-        border:`1.5px solid ${cfg.color}30`,
-      }}>{n.icon || cfg.icon}</div>
-
-      <div style={{flex:1,minWidth:0}}>
-        <div style={{
-          fontSize:13.5,fontWeight: n.read ? 500 : 700,
-          color: n.read ? "rgba(26,26,46,0.6)" : INK,
-          lineHeight:1.4,marginBottom:2,
-        }}>{n.title || cfg.label}</div>
-        {n.body && (
-          <div style={{
-            fontSize:12.5,color:"rgba(26,26,46,0.45)",
-            lineHeight:1.5,
-            overflow:"hidden",display:"-webkit-box",
-            WebkitLineClamp:2,WebkitBoxOrient:"vertical",
-          }}>{n.body}</div>
-        )}
-        <div style={{fontSize:11,color:"rgba(26,26,46,0.3)",marginTop:4}}>
-          {fmtTime(n.created_at)}
-        </div>
-      </div>
-
-      {/* Unread dot */}
-      {!n.read && (
-        <div style={{
-          width:8,height:8,borderRadius:"50%",
-          background:TEAL,flexShrink:0,marginTop:6,
-        }}/>
-      )}
-    </button>
+    <div style={{
+      display:"flex", alignItems:"center", gap:6,
+      padding:"14px 16px 6px",
+      fontSize:11, fontWeight:800,
+      color:"rgba(26,26,24,0.40)",
+      letterSpacing:"0.07em",
+      textTransform:"uppercase",
+    }}>
+      <span>{emoji}</span>
+      <span>{label}</span>
+    </div>
   );
 }
 
-// ── NotificationInbox component ───────────────────────────────
-const CSS = `
-@keyframes notifIn {
-  from { opacity:0; transform:translateY(-10px) scale(0.97); }
-  to   { opacity:1; transform:translateY(0) scale(1); }
-}`;
-let _css = false;
-function injectCSS() {
-  if (_css || typeof document==="undefined") return;
-  _css = true;
-  const s = document.createElement("style"); s.textContent = CSS;
-  document.head.appendChild(s);
+// ── Wochenstats ───────────────────────────────────────────────
+function WeekStats({ userId }) {
+  const stats = useWeekStats(userId);
+
+  const items = [
+    { emoji:"🌱", value: stats?.connections ?? "–", label:"Neue\nVerbindungen", color:"#22C55E" },
+    { emoji:"❤️", value: stats?.reached     ?? "–", label:"Menschen\nerreicht",  color:"#EF4444" },
+    { emoji:"⭐", value: stats?.saved       ?? "–", label:"Werke\ngespeichert", color:"#F59E0B" },
+    { emoji:"📅", value: stats?.booked      ?? "–", label:"Erlebnisse\ngebucht", color:"#8B5CF6" },
+  ];
+
+  return (
+    <div style={{padding:"4px 16px 24px"}}>
+      {/* Header */}
+      <div style={{
+        display:"flex", alignItems:"center", gap:8,
+        padding:"14px 0 12px",
+        borderTop:`1px solid ${T.border}`,
+      }}>
+        <div style={{
+          width:22, height:22, borderRadius:6,
+          background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:11, color:"#fff",
+        }}>📊</div>
+        <span style={{
+          fontSize:11, fontWeight:800,
+          color:"rgba(26,26,24,0.40)",
+          letterSpacing:"0.07em", textTransform:"uppercase",
+        }}>
+          Diese Woche
+        </span>
+      </div>
+
+      {/* Stat Karten */}
+      <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:8}}>
+        {items.map((it, i) => (
+          <div key={i} style={{
+            background:T.card,
+            borderRadius:14, padding:"12px 8px",
+            border:`1px solid ${T.border}`,
+            textAlign:"center",
+            boxShadow:"0 1px 4px rgba(26,26,24,0.05)",
+          }}>
+            <div style={{fontSize:20, marginBottom:4}}>{it.emoji}</div>
+            <div style={{
+              fontSize:22, fontWeight:900,
+              color: stats ? it.color : "rgba(26,26,24,0.20)",
+              letterSpacing:"-0.04em", lineHeight:1,
+            }}>
+              {it.value}
+            </div>
+            <div style={{
+              fontSize:10, color:T.inkFaint,
+              whiteSpace:"pre-line", lineHeight:1.3, marginTop:4,
+            }}>
+              {it.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-export function NotificationInbox({ onClose, anchorRect }) {
-  injectCSS();
-  const { items, unread, loading, markRead, markAllRead } = useNotifications();
+// ── Leerer Zustand ────────────────────────────────────────────
+function EmptyTab({ tab }) {
+  const msgs = {
+    alle:      { icon:"✦",  text:"Alles ruhig – Dein Wirken entfaltet sich." },
+    wichtig:   { icon:"🌿", text:"Nichts Dringendes. Genieße die Ruhe." },
+    relevant:  { icon:"❤️", text:"Wenn Menschen auf dein Wirken reagieren, erscheint es hier." },
+    info:      { icon:"📈", text:"Meilensteine und Entwicklungen erscheinen hier." },
+  };
+  const m = msgs[tab] || msgs.alle;
+  return (
+    <div style={{
+      display:"flex", flexDirection:"column", alignItems:"center",
+      padding:"48px 24px", gap:14, textAlign:"center",
+    }}>
+      <div style={{
+        width:64, height:64, borderRadius:20,
+        background:`linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))`,
+        display:"flex", alignItems:"center", justifyContent:"center", fontSize:28,
+      }}>
+        {m.icon}
+      </div>
+      <div style={{fontSize:13.5, color:T.inkSoft, lineHeight:1.6, maxWidth:240}}>
+        {m.text}
+      </div>
+    </div>
+  );
+}
 
-  // Smart position: below anchor button
-  const top  = anchorRect ? anchorRect.bottom + 8 : 64;
-  const right = anchorRect ? Math.max(8, window.innerWidth - anchorRect.right) : 12;
+// ══════════════════════════════════════════════════════════════
+// CSS
+// ══════════════════════════════════════════════════════════════
+const PANEL_CSS = `
+@keyframes rz-slide-in {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes rz-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.rz-panel {
+  animation: rz-slide-in 0.32s cubic-bezier(0.22,1,0.36,1) both;
+}
+.rz-backdrop {
+  animation: rz-fade-in 0.22s ease both;
+}
+.rz-tab { transition: all 0.18s ease; }
+.rz-tab:active { transform: scale(0.95); }
+`;
+
+let _css = false;
+function injectCSS() {
+  if (_css || typeof document === "undefined") return;
+  _css = true;
+  const el = document.createElement("style");
+  el.textContent = PANEL_CSS;
+  document.head.appendChild(el);
+}
+
+// ══════════════════════════════════════════════════════════════
+// RESONANZZENTRUM PANEL
+// ══════════════════════════════════════════════════════════════
+export function ResonanzzentrumPanel({ onClose }) {
+  injectCSS();
+  const { user }  = useAuth();
+  const notif     = useNotifications();
+  const connReqs  = useConnectionRequests(user?.id);
+  const [tab, setTab] = useState("alle");
+
+  // Tab-Counts
+  const counts = useMemo(() => {
+    const alle = notif.items.length + connReqs.requests.length;
+    const wichtig = notif.items.filter(n => getMeta(n.type).tab === "wichtig" && !n.read).length
+                  + connReqs.requests.length;
+    const relevant = notif.items.filter(n => getMeta(n.type).tab === "relevant" && !n.read).length;
+    const info     = notif.items.filter(n => getMeta(n.type).tab === "info"     && !n.read).length;
+    return { alle, wichtig, relevant, info };
+  }, [notif.items, connReqs.requests]);
+
+  // Items gefiltert
+  const filteredItems = useMemo(() => {
+    if (tab === "alle") return notif.items;
+    const tabKey = tab === "wichtig" ? "wichtig" : tab === "relevant" ? "relevant" : "info";
+    return notif.items.filter(n => getMeta(n.type).tab === tabKey);
+  }, [notif.items, tab]);
+
+  // Gruppen für "alle" Tab
+  const grouped = useMemo(() => {
+    if (tab !== "alle") return null;
+    const w = notif.items.filter(n => getMeta(n.type).tab === "wichtig");
+    const r = notif.items.filter(n => getMeta(n.type).tab === "relevant");
+    const i = notif.items.filter(n => getMeta(n.type).tab === "info");
+    return { wichtig: w, relevant: r, info: i };
+  }, [notif.items, tab]);
+
+  const TABS = [
+    { key:"alle",     label:"Alle",        count: notif.items.length + connReqs.requests.length },
+    { key:"wichtig",  label:"Wichtig",     count: counts.wichtig  },
+    { key:"relevant", label:"Relevant",    count: counts.relevant },
+    { key:"info",     label:"Informativ",  count: counts.info     },
+  ];
+
+  const isEmpty = filteredItems.length === 0 && (tab !== "alle" || connReqs.requests.length === 0);
 
   return (
     <>
       {/* Backdrop */}
-      <div onClick={onClose} style={{
-        position:"fixed",inset:0,zIndex:19500,
-        background:"rgba(0,0,0,0.08)",
-      }}/>
+      <div
+        className="rz-backdrop"
+        onClick={onClose}
+        style={{
+          position:"fixed", inset:0, zIndex:19500,
+          background:"rgba(26,26,24,0.40)",
+          backdropFilter:"blur(4px)",
+          WebkitBackdropFilter:"blur(4px)",
+        }}
+      />
+
       {/* Panel */}
-      <div style={{
-        position:"fixed",
-        top, right,
-        zIndex:19600,
-        width: Math.min(360, window.innerWidth - 16),
-        maxHeight:"70vh",
-        background:"#fff",
-        borderRadius:22,
-        boxShadow:"0 8px 40px rgba(26,26,46,0.14), 0 2px 8px rgba(26,26,46,0.06)",
-        animation:"notifIn 0.22s cubic-bezier(.22,1,.36,1) both",
-        display:"flex",flexDirection:"column",
-        overflow:"hidden",
-        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-      }}>
-        {/* Header */}
+      <div
+        className="rz-panel"
+        style={{
+          position:"fixed",
+          top:0, right:0, bottom:0,
+          zIndex:19600,
+          width: Math.min(420, window.innerWidth),
+          background:T.cream,
+          display:"flex", flexDirection:"column",
+          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+          boxShadow:"-4px 0 40px rgba(26,26,24,0.16)",
+        }}
+      >
+        {/* ── HEADER ── */}
         <div style={{
-          display:"flex",alignItems:"center",justifyContent:"space-between",
-          padding:"16px 18px 12px",
-          borderBottom:"1px solid rgba(26,26,46,0.07)",
+          padding:"env(safe-area-inset-top,16px) 16px 0",
+          paddingTop:`calc(env(safe-area-inset-top, 0px) + 16px)`,
+          background:T.cream,
           flexShrink:0,
         }}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:15,fontWeight:800,color:INK}}>Aktivität</span>
-            {unread > 0 && (
-              <div style={{
-                background:TEAL,color:"#fff",
-                fontSize:11,fontWeight:800,
-                padding:"1px 7px",borderRadius:20,
-                minWidth:20,textAlign:"center",
-              }}>{unread}</div>
+          {/* Titel-Zeile */}
+          <div style={{
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+            marginBottom:4,
+          }}>
+            <div style={{display:"flex", alignItems:"center", gap:10}}>
+              <span style={{fontSize:24}}>🔔</span>
+              <div>
+                <div style={{
+                  fontSize:20, fontWeight:900, color:T.ink,
+                  letterSpacing:"-0.03em", lineHeight:1.1,
+                  display:"flex", alignItems:"center", gap:8,
+                }}>
+                  Resonanzzentrum
+                  {notif.unread > 0 && (
+                    <span style={{
+                      background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+                      color:"#fff", fontSize:12, fontWeight:800,
+                      padding:"2px 8px", borderRadius:20,
+                      minWidth:20, textAlign:"center",
+                    }}>
+                      {notif.unread}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Schließen */}
+            <button
+              onClick={onClose}
+              style={{
+                width:34, height:34, borderRadius:"50%",
+                background:"rgba(26,26,24,0.07)",
+                border:"none", cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:16, color:T.inkSoft,
+                touchAction:"manipulation",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Untertitel */}
+          <div style={{
+            fontSize:12.5, color:T.inkFaint,
+            lineHeight:1.5, marginBottom:14, paddingLeft:2,
+          }}>
+            Alles Wichtige rund um dein Wirken, deine Verbindungen und deine Gemeinschaft.
+          </div>
+
+          {/* ── TABS ── */}
+          <div style={{
+            display:"flex", gap:6,
+            overflowX:"auto", paddingBottom:12,
+            scrollbarWidth:"none",
+          }}>
+            {TABS.map(t => {
+              const active = tab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  className="rz-tab"
+                  onClick={() => setTab(t.key)}
+                  style={{
+                    display:"flex", alignItems:"center", gap:5,
+                    padding:"7px 12px",
+                    borderRadius:20,
+                    border:"none",
+                    background: active
+                      ? `linear-gradient(135deg,${T.teal},${T.tealDeep})`
+                      : "rgba(26,26,24,0.07)",
+                    color: active ? "#fff" : T.inkSoft,
+                    fontSize:13, fontWeight: active ? 800 : 600,
+                    cursor:"pointer", flexShrink:0,
+                    fontFamily:"inherit",
+                    touchAction:"manipulation",
+                    boxShadow: active ? `0 2px 12px rgba(22,215,197,0.30)` : "none",
+                  }}
+                >
+                  {t.label}
+                  {t.count > 0 && (
+                    <span style={{
+                      background: active ? "rgba(255,255,255,0.25)" : T.teal,
+                      color: "#fff",
+                      fontSize:10.5, fontWeight:800,
+                      padding:"1px 6px", borderRadius:12,
+                    }}>
+                      {t.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {/* Alle gelesen */}
+            {notif.unread > 0 && (
+              <button
+                onClick={notif.markAllRead}
+                style={{
+                  marginLeft:"auto", flexShrink:0,
+                  padding:"7px 12px", borderRadius:20,
+                  background:"transparent", border:"none",
+                  color:T.teal, fontSize:12.5, fontWeight:600,
+                  cursor:"pointer", fontFamily:"inherit",
+                  touchAction:"manipulation",
+                }}
+              >
+                ✓ Alle gelesen
+              </button>
             )}
           </div>
-          {unread > 0 && (
-            <button onClick={markAllRead} style={{
-              background:"none",border:"none",
-              color:TEAL,fontSize:12.5,fontWeight:600,
-              cursor:"pointer",touchAction:"manipulation",
-            }}>Alle gelesen</button>
-          )}
+
+          {/* Divider */}
+          <div style={{height:1, background:T.border, marginBottom:0}}/>
         </div>
 
-        {/* List */}
-        <div style={{overflowY:"auto",flex:1}}>
-          {loading && items.length === 0 ? (
-            <div style={{padding:"32px",textAlign:"center"}}>
-              <div style={{
-                width:24,height:24,borderRadius:"50%",margin:"0 auto",
-                border:"2.5px solid rgba(22,215,197,0.2)",
-                borderTop:`2.5px solid ${TEAL}`,
-                animation:"notifSpin 0.8s linear infinite",
-              }}/>
-              <style>{`@keyframes notifSpin{to{transform:rotate(360deg)}}`}</style>
-            </div>
-          ) : items.length === 0 ? (
-            <NotifEmpty />
-          ) : (
-            items.map(n => <NotifItem key={n.id} n={n} onRead={markRead} />)
+        {/* ── CONTENT ── */}
+        <div style={{
+          flex:1, overflowY:"auto",
+          WebkitOverflowScrolling:"touch",
+        }}>
+
+          {/* Verbindungsanfragen — immer oben (wenn Alle oder Wichtig aktiv) */}
+          {(tab === "alle" || tab === "wichtig") && connReqs.requests.length > 0 && (
+            <>
+              {tab === "alle" && <SectionHeader emoji="⭐" label="Wichtig" />}
+              {connReqs.requests.map(req => (
+                <ConnectionRequestItem
+                  key={req.id}
+                  req={req}
+                  onRespond={connReqs.respond}
+                />
+              ))}
+            </>
           )}
+
+          {/* Alle-Tab: gruppiert */}
+          {tab === "alle" && grouped && (
+            <>
+              {grouped.wichtig.length > 0 && (
+                <>
+                  {connReqs.requests.length === 0 && <SectionHeader emoji="⭐" label="Wichtig" />}
+                  {grouped.wichtig.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)}
+                </>
+              )}
+              {grouped.relevant.length > 0 && (
+                <>
+                  <SectionHeader emoji="⭐" label="Relevant" />
+                  {grouped.relevant.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)}
+                </>
+              )}
+              {grouped.info.length > 0 && (
+                <>
+                  <SectionHeader emoji="⭐" label="Informativ" />
+                  {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)}
+                </>
+              )}
+              {notif.items.length === 0 && connReqs.requests.length === 0 && (
+                <EmptyTab tab="alle" />
+              )}
+            </>
+          )}
+
+          {/* Einzelne Tabs */}
+          {tab !== "alle" && (
+            isEmpty
+              ? <EmptyTab tab={tab} />
+              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif.markRead} />)
+          )}
+
+          {/* Lade-Spinner */}
+          {notif.loading && notif.items.length === 0 && connReqs.requests.length === 0 && (
+            <div style={{display:"flex",justifyContent:"center",padding:40}}>
+              <div style={{
+                width:24, height:24, borderRadius:"50%",
+                border:"2.5px solid rgba(22,215,197,0.2)",
+                borderTop:`2.5px solid ${T.teal}`,
+                animation:"rz-spin 0.8s linear infinite",
+              }}/>
+              <style>{`@keyframes rz-spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+          )}
+
+          {/* ── WOCHE-STATS ── */}
+          <WeekStats userId={user?.id} />
         </div>
       </div>
     </>
   );
 }
 
-// ── NotificationBadge — für Header Button ────────────────────
+// ══════════════════════════════════════════════════════════════
+// BADGE — für Header Button
+// ══════════════════════════════════════════════════════════════
 export function NotificationBadge({ count }) {
   if (!count || count < 1) return null;
   return (
     <div style={{
       position:"absolute", top:-4, right:-4,
       minWidth:17, height:17,
-      background: "linear-gradient(135deg,#FF8A6B,#FF6B4A)",
+      background:"linear-gradient(135deg,#FF8A6B,#FF6B4A)",
       borderRadius:10,
-      display:"flex",alignItems:"center",justifyContent:"center",
+      display:"flex", alignItems:"center", justifyContent:"center",
       fontSize:10, fontWeight:800, color:"#fff",
-      border:"2px solid #fff",
-      padding:"0 4px",
-      lineHeight:1,
-      pointerEvents:"none",
-    }}>{count > 99 ? "99+" : count}</div>
+      border:"2px solid #fff", padding:"0 4px",
+      lineHeight:1, pointerEvents:"none",
+    }}>
+      {count > 99 ? "99+" : count}
+    </div>
   );
+}
+
+// Legacy-Export für alte NotificationInbox-Aufrufe (Backwards Compat)
+export function NotificationInbox({ onClose }) {
+  return <ResonanzzentrumPanel onClose={onClose} />;
 }

@@ -1,26 +1,22 @@
-// header/NotificationButton.jsx — Phase 4B: Real Notifications
+// header/NotificationButton.jsx — Resonanzzentrum Trigger
 import React, { useState } from "react";
-import { useNotifications, NotificationInbox, NotificationBadge } from "../../../lib/useNotifications.jsx";
+import { useNotifications, ResonanzzentrumPanel, NotificationBadge } from "../../../lib/useNotifications.jsx";
 
 export default function NotificationButton({ onPress }) {
-  const { unread } = useNotifications();
-  const [showInbox, setShowInbox] = useState(false);
-  const [pressed,   setPressed]   = useState(false);
-  const btnRef = React.useRef(null);
+  const { unread }  = useNotifications();
+  const [open, setOpen] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
   function handlePress() {
-    setShowInbox(prev => !prev);
+    setOpen(prev => !prev);
     onPress?.();
   }
-
-  const anchorRect = btnRef.current?.getBoundingClientRect?.() || null;
 
   return (
     <>
       <button
-        ref={btnRef}
         onClick={handlePress}
-        aria-label="Meldungen"
+        aria-label="Resonanzzentrum"
         style={{
           flexShrink:0, width:36, height:36, borderRadius:"50%",
           background:"rgba(255,255,255,0.80)",
@@ -38,6 +34,7 @@ export default function NotificationButton({ onPress }) {
         onMouseDown={() => setPressed(true)}
         onMouseUp={() => setPressed(false)}
       >
+        {/* Glocken-Icon */}
         <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
           <path d="M9 2 C6.2 2 4.5 4.2 4.5 6.5 L4.5 10 L3 11.5 L15 11.5 L13.5 10 L13.5 6.5 C13.5 4.2 11.8 2 9 2Z"
             fill="rgba(22,215,197,0.10)" stroke="#16D7C5" strokeWidth="1.35" strokeLinejoin="round"/>
@@ -49,11 +46,8 @@ export default function NotificationButton({ onPress }) {
         <NotificationBadge count={unread} />
       </button>
 
-      {showInbox && (
-        <NotificationInbox
-          anchorRect={anchorRect}
-          onClose={() => setShowInbox(false)}
-        />
+      {open && (
+        <ResonanzzentrumPanel onClose={() => setOpen(false)} />
       )}
     </>
   );
