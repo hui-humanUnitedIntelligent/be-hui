@@ -631,6 +631,11 @@ export function ResonanzzentrumPanel({ onClose }) {
 
   const isEmpty = (filteredItems?.length ?? 0) === 0 && (tab !== "alle" || safeRequests.length === 0);
 
+  console.log("[TAB]", tab);
+  console.log("[GROUPED INFO]", grouped?.info?.length ?? "null (tab !== alle)");
+  console.log("[FILTERED]", filteredItems?.length ?? "–");
+  console.log("[GROUPED NULL?]", grouped === null);
+
   return (
     <>
       {/* Backdrop */}
@@ -690,6 +695,10 @@ export function ResonanzzentrumPanel({ onClose }) {
           <div><span style={{color:"#aaa"}}>grouped.relevant:</span> {grouped?.relevant?.length ?? "–"}</div>
           <div><span style={{color:"#aaa"}}>grouped.info:</span> {grouped?.info?.length ?? "–"}</div>
           <div><span style={{color:"#aaa"}}>isEmpty:</span> {String(isEmpty)}</div>
+          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
+          <div><span style={{color:"#aaa"}}>tab:</span> {tab}</div>
+          <div><span style={{color:"#aaa"}}>grouped===null:</span> {String(grouped === null)}</div>
+          <div><span style={{color:"#aaa"}}>tab==="alle":</span> {String(tab === "alle")}</div>
         </div>
 
         {/* ── HEADER ── */}
