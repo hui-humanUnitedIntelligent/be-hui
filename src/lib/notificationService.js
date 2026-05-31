@@ -68,6 +68,7 @@ const notifDefaults = {
   booking:  { title: "Buchungsanfrage",             body: "Jemand möchte ein Erlebnis mit dir buchen." },
   resonanz: { title: "Resonanz auf dein Werk",      body: "Dein Werk berührt jemanden." },
   system:   { title: "HUI-Plattform",               body: "" },
+  watcher:  { title: "Jemand beobachtet dein Wirken", body: "Deine Präsenz zieht Aufmerksamkeit an." },
 };
 
 /**
@@ -128,5 +129,20 @@ export async function notifyResonanz({ senderId, recipientId, senderName, workId
     body:        workTitle ? `"${workTitle.slice(0,60)}"` : "Dein Werk bewegt jemanden.",
     entityId:    workId,
     entityType:  "work",
+  });
+}
+
+/**
+ * Notification wenn jemand ein Profil in die Watchlist nimmt ("Im Blick behalten")
+ */
+export async function notifyWatcher({ watcherId, profileId, watcherName }) {
+  return createNotification({
+    recipientId: profileId,
+    senderId:    watcherId,
+    type:        "watcher",
+    title:       `${watcherName || "Jemand"} beobachtet dein Wirken`,
+    body:        "Deine Präsenz zieht Aufmerksamkeit an.",
+    entityId:    watcherId,
+    entityType:  "profile",
   });
 }

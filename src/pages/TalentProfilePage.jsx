@@ -17,6 +17,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
+import { notifyWatcher } from "../lib/notificationService.js";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -499,6 +500,7 @@ function CinematicHero({ profile, loading }) {
 // ══════════════════════════════════════════════════════════════
 function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   const rel = useRelationship(profile?.id, currentUserId);
+  const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
   const [watchingLocal,         setWatchingLocal]         = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
@@ -518,6 +520,12 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
         .insert({ watcher_id: currentUserId, profile_id: profile.id })
         .select("id").single();
       if (error) { setWatchingLocal(null); return; }
+      // Notification an Profilinhaber — non-blocking, bestehender Service
+      notifyWatcher({
+        watcherId:   currentUserId,
+        profileId:   profile.id,
+        watcherName: authProfile?.display_name || "Jemand",
+      }).catch(() => {});
       rel.refetch();
     } else {
       const { error } = await supabase
@@ -1099,6 +1107,7 @@ function AbschlussBar({ profile, loading }) {
 
 function AbschlussButtons({ profile, currentUserId }) {
   const rel = useRelationship(profile?.id, currentUserId);
+  const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
   const [watchingLocal, setWatchingLocal] = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
@@ -1118,6 +1127,12 @@ function AbschlussButtons({ profile, currentUserId }) {
         .insert({ watcher_id: currentUserId, profile_id: profile.id })
         .select("id").single();
       if (error) { setWatchingLocal(null); return; }
+      // Notification an Profilinhaber — non-blocking, bestehender Service
+      notifyWatcher({
+        watcherId:   currentUserId,
+        profileId:   profile.id,
+        watcherName: authProfile?.display_name || "Jemand",
+      }).catch(() => {});
       rel.refetch();
     } else {
       const { error } = await supabase
