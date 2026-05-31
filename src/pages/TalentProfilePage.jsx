@@ -501,6 +501,7 @@ function CinematicHero({ profile, loading }) {
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
 function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
+  React.useEffect(() => { alert("KompassActionSheet MOUNTED"); }, []);
   const [pressed, setPressed] = React.useState(null);
 
   function handleShare() {
@@ -1569,7 +1570,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 8. Abschluss */}
         <AbschlussBar profile={profile} loading={loading}/>
-      {showKompassSheet && (() => { alert("SHEET RENDER: showKompassSheet=" + showKompassSheet); return null; })()}
       {showKompassSheet && (
         <KompassActionSheet
           profile={profile}
