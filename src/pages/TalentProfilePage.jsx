@@ -552,9 +552,6 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
     },
   ];
 
-  console.log("[COMPASS]");
-  console.log("showKompassSheet / isWatching:", isWatching);
-
   return createPortal(
     <>
       {/* Backdrop */}
@@ -672,6 +669,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
   const [showKompassSheet,      setShowKompassSheet]      = React.useState(false);
+  const [compassLog,            setCompassLog]            = React.useState([]);
   const [watchingLocal,         setWatchingLocal]         = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
   const _toggleRunning = React.useRef(false);
@@ -797,12 +795,15 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
           <button
             className="tpp-press-light"
             onClick={() => {
-              console.log("[COMPASS CLICK]");
-              console.log("before:", showKompassSheet);
+              const ts = new Date().toISOString().slice(11,23);
+              setCompassLog(prev => [...prev,
+                ts + " [CLICK] before=" + showKompassSheet
+              ]);
               setShowKompassSheet(true);
               setTimeout(() => {
-                console.log("[COMPASS CLICK AFTER]");
-                console.log("after:", showKompassSheet);
+                setCompassLog(prev => [...prev,
+                  "[CLICK_AFTER] after=" + showKompassSheet
+                ]);
               }, 0);
             }}
             style={{
@@ -1530,6 +1531,27 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
 
   return (
+    <>
+    {/* ── DEBUG OVERLAY ── nur temporär ── */}
+    {compassLog.length > 0 && (
+      <div style={{
+        position:"fixed", top:60, left:12, right:12, zIndex:99999,
+        background:"rgba(0,0,0,0.88)", borderRadius:10, padding:"10px 14px",
+        fontFamily:"monospace", fontSize:12, color:"#0ff", lineHeight:1.6,
+        pointerEvents:"none",
+      }}>
+        <div style={{color:"#ff0", marginBottom:4, fontWeight:"bold"}}>
+          COMPASS DEBUG
+        </div>
+        <div style={{color:"#aaa", fontSize:10, marginBottom:6}}>
+          showKompassSheet: {String(showKompassSheet)}
+        </div>
+        {compassLog.map((l,i) => <div key={i}>{l}</div>)}
+        <div style={{marginTop:6, color:"#888", fontSize:10}}>
+          KompassSheet rendered: {showKompassSheet ? "JA" : "NEIN"}
+        </div>
+      </div>
+    )}
     <div className="tpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
       display:"flex", flexDirection:"column",
@@ -1592,5 +1614,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <Gap h={40}/>
       </div>
     </div>
+    </>
   );
 }
