@@ -90,7 +90,7 @@ export function useNotifications() {
       console.log("[PANEL USER]", user?.id);
       const { data, error } = await supabase
         .from("notifications")
-        .select("id,type,title,body,read,created_at,sender_id,entity_id,entity_type,icon,data,priority")
+        .select("id,type,title,body,read,created_at,data")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(80);
