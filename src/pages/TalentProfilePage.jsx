@@ -79,20 +79,24 @@ const CSS = `
 // Liest den aktuellen Beziehungsstatus zur profileId
 // Gibt: { watching, relationStatus, loading }
 function useRelationship(profileId, currentUserId) {
-  const [state, setState] = React.useState({
-    watching:       false,   // true = in Watchlist
-    relationStatus: null,    // null | 'pending' | 'accepted' | 'declined' | 'withdrawn'
+  const [state,      setState]      = React.useState({
+    watching:       false,
+    relationStatus: null,
     loading:        true,
   });
+  // refreshKey: increment → Effect erneut ausführen → DB neu lesen
+  const [refreshKey, setRefreshKey] = React.useState(0);
 
   React.useEffect(() => {
     if (!profileId || !currentUserId || profileId === currentUserId) {
       setState({ watching: false, relationStatus: null, loading: false });
       return;
     }
+    let cancelled = false;
     (async () => {
       setState(s => ({ ...s, loading: true }));
       try {
+        console.log("[RELATIONSHIP] DB-Query starten", { profileId, currentUserId, refreshKey });
         const [watchRes, relRes] = await Promise.all([
           supabase
             .from("profile_watchlist")
@@ -107,19 +111,32 @@ function useRelationship(profileId, currentUserId) {
             .or(`target_id.eq.${profileId},requester_id.eq.${profileId}`)
             .maybeSingle(),
         ]);
-        setState({
+        if (cancelled) return;
+
+        if (watchRes.error) console.error("[RELATIONSHIP] watchlist query error:", watchRes.error);
+        if (relRes.error)   console.error("[RELATIONSHIP] relations query error:", relRes.error);
+
+        const nextState = {
           watching:       !!watchRes.data,
           relationStatus: relRes.data?.status ?? null,
           loading:        false,
-        });
+        };
+        console.log("[RELATIONSHIP] STATE UPDATE:", nextState);
+        setState(nextState);
       } catch(e) {
-        console.warn("[useRelationship] error:", e);
+        if (cancelled) return;
+        console.warn("[useRelationship] exception:", e);
         setState({ watching: false, relationStatus: null, loading: false });
       }
     })();
-  }, [profileId, currentUserId]);
+    return () => { cancelled = true; };
+  }, [profileId, currentUserId, refreshKey]);
 
-  return state;
+  const refetch = React.useCallback(() => {
+    setRefreshKey(k => k + 1);
+  }, []);
+
+  return { ...state, refetch };
 }
 
 // Intentions für den Verbindungsdialog
@@ -490,26 +507,48 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   const canChat = rel.relationStatus === "accepted";
 
   async function toggleWatch() {
-    if (!currentUserId || loading || rel.loading) return;
+    console.log("[WATCHLIST CLICK]", { profileId: profile?.id, currentUserId, isWatching, relLoading: rel.loading });
+    if (!currentUserId || !profile?.id || loading || rel.loading) {
+      console.warn("[WATCHLIST CLICK] Guard geblockt:", { currentUserId, profileId: profile?.id, loading, relLoading: rel.loading });
+      return;
+    }
     const next = !isWatching;
     setWatchingLocal(next); // optimistisch
-    try {
-      if (next) {
-        await supabase.from("profile_watchlist").insert({
-          watcher_id: currentUserId,
-          profile_id: profile.id,
-        });
-        console.log("[RELATIONSHIP] Im Blick behalten:", profile.id);
-      } else {
-        await supabase.from("profile_watchlist")
-          .delete()
-          .eq("watcher_id", currentUserId)
-          .eq("profile_id", profile.id);
-        console.log("[RELATIONSHIP] Aus Blick entfernt:", profile.id);
+
+    if (next) {
+      // ── INSERT ──────────────────────────────────────────────
+      const payload = { watcher_id: currentUserId, profile_id: profile.id };
+      console.log("[WATCHLIST INSERT]", payload);
+      const { data, error } = await supabase
+        .from("profile_watchlist")
+        .insert(payload)
+        .select("id")
+        .single();
+
+      if (error) {
+        console.error("[WATCHLIST ERROR]", error);            // vollständiges Error-Objekt
+        console.error("[WATCHLIST ERROR] code:", error?.code, "msg:", error?.message, "details:", error?.details, "hint:", error?.hint);
+        setWatchingLocal(null); // Rollback: zurück auf DB-Wert
+        return;
       }
-    } catch(e) {
-      setWatchingLocal(!next); // Rollback
-      console.warn("[RELATIONSHIP] toggleWatch error:", e);
+      console.log("[WATCHLIST SUCCESS]", data);
+      rel.refetch(); // DB-State neu laden → isWatching = true aus DB
+    } else {
+      // ── DELETE ──────────────────────────────────────────────
+      console.log("[WATCHLIST DELETE]", { watcher_id: currentUserId, profile_id: profile.id });
+      const { error } = await supabase
+        .from("profile_watchlist")
+        .delete()
+        .eq("watcher_id", currentUserId)
+        .eq("profile_id", profile.id);
+
+      if (error) {
+        console.error("[WATCHLIST DELETE ERROR]", error);
+        setWatchingLocal(null); // Rollback
+        return;
+      }
+      console.log("[WATCHLIST DELETE SUCCESS]");
+      rel.refetch();
     }
   }
 
@@ -1103,17 +1142,23 @@ function AbschlussButtons({ profile, currentUserId }) {
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
 
   async function toggleWatch() {
-    if (!currentUserId || rel.loading) return;
+    console.log("[WATCHLIST CLICK / AbschlussButtons]", { profileId: profile?.id, currentUserId, isWatching });
+    if (!currentUserId || !profile?.id || rel.loading) return;
     const next = !isWatching;
     setWatchingLocal(next);
-    try {
-      if (next) {
-        await supabase.from("profile_watchlist").insert({ watcher_id: currentUserId, profile_id: profile.id });
-      } else {
-        await supabase.from("profile_watchlist").delete()
-          .eq("watcher_id", currentUserId).eq("profile_id", profile.id);
-      }
-    } catch(e) { setWatchingLocal(!next); }
+    if (next) {
+      const payload = { watcher_id: currentUserId, profile_id: profile.id };
+      console.log("[WATCHLIST INSERT / Abschluss]", payload);
+      const { data, error } = await supabase.from("profile_watchlist").insert(payload).select("id").single();
+      if (error) { console.error("[WATCHLIST ERROR / Abschluss]", error); setWatchingLocal(null); return; }
+      console.log("[WATCHLIST SUCCESS / Abschluss]", data);
+      rel.refetch();
+    } else {
+      const { error } = await supabase.from("profile_watchlist").delete()
+        .eq("watcher_id", currentUserId).eq("profile_id", profile.id);
+      if (error) { console.error("[WATCHLIST DELETE ERROR / Abschluss]", error); setWatchingLocal(null); return; }
+      rel.refetch();
+    }
   }
 
   let primaryLabel = "🌱 Im Blick behalten";
