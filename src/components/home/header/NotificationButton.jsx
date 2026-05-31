@@ -1,9 +1,11 @@
 // header/NotificationButton.jsx — Resonanzzentrum Trigger
 import React, { useState } from "react";
-import { useNotifications, ResonanzzentrumPanel, NotificationBadge } from "../../../lib/useNotifications.jsx";
+import { ResonanzzentrumPanel, NotificationBadge } from "../../../lib/useNotifications.jsx";
 
-export default function NotificationButton({ onPress }) {
-  const { unread }  = useNotifications();
+// WICHTIG: kein useNotifications() hier — würde Channel notif:X doppelt öffnen.
+// unread kommt als Prop von HomeHeader (notifCount).
+export default function NotificationButton({ onPress, count = 0 }) {
+  const unread = count;
   const [open, setOpen] = useState(false);
   const [pressed, setPressed] = useState(false);
 
