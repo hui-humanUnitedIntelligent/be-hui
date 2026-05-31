@@ -262,7 +262,10 @@ function HomeInner() {
           onMoodSelect={setActiveMood}
           notifCount={liveNotifCount}
           msgCount={0}
-          onNotif={() => setShowNotifs(true)}
+          onNotif={() => {
+            console.log("[GLOCKE STEP 6] Home.jsx onNotif callback aufgerufen → setShowNotifs(true)");
+            setShowNotifs(true);
+          }}
           onChat={() => setShowChat(true)}
         />
 
@@ -589,6 +592,14 @@ function HomeInner() {
               onClose={() => setShowExperienceCreator(false)}
             />
           </SafeRender>
+        )}
+        {showNotifs && SAFE_MODE.notifications && (
+          (() => {
+            console.log("[GLOCKE STEP 7] Home.jsx: showNotifs=true → NotificationCenter wird gerendert");
+            console.log("[GLOCKE STEP 7] SAFE_MODE.notifications:", SAFE_MODE.notifications);
+            console.log("[RENDERING COMPONENT: NotificationCenter]");
+            return null;
+          })()
         )}
         {showNotifs && SAFE_MODE.notifications && (
           <SafeRender flag="notifications" label="NotificationCenter">

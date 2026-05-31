@@ -8,7 +8,12 @@ export default function NotificationButton({ onPress }) {
   const [pressed, setPressed] = useState(false);
 
   function handlePress() {
-    setOpen(prev => !prev);
+    console.log("[GLOCKE STEP 1] NotificationButton.handlePress() aufgerufen");
+    console.log("[GLOCKE STEP 1] onPress prop:", typeof onPress);
+    setOpen(prev => {
+      console.log("[GLOCKE STEP 2] setOpen:", prev, "->", !prev);
+      return !prev;
+    });
     onPress?.();
   }
 
@@ -46,6 +51,9 @@ export default function NotificationButton({ onPress }) {
         <NotificationBadge count={unread} />
       </button>
 
+      {open && (
+        (() => { console.log("[GLOCKE STEP 3] Rendere: ResonanzzentrumPanel (aus NotificationButton)"); return null; })()
+      )}
       {open && (
         <ResonanzzentrumPanel onClose={() => setOpen(false)} />
       )}
