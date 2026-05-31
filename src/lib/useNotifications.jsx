@@ -835,12 +835,86 @@ export function ResonanzzentrumPanel({ onClose }) {
 
         {/* ── CONTENT ── */}
         <div style={{
-          background:"red",
-          color:"white",
-          minHeight:400,
-          padding:20,
+          flex:1, overflowY:"auto",
+          WebkitOverflowScrolling:"touch",
         }}>
-          PANEL CONTENT TEST
+
+          {/* Verbindungsanfragen — immer oben (wenn Alle oder Wichtig aktiv) */}
+          {(tab === "alle" || tab === "wichtig") && safeRequests.length > 0 && (
+            <>
+              {tab === "alle" && <SectionHeader emoji="⭐" label="Wichtig" />}
+              {safeRequests.map(req => (
+                <ConnectionRequestItem
+                  key={req.id}
+                  req={req}
+                  onRespond={connReqs.respond}
+                />
+              ))}
+            </>
+          )}
+
+          {/* Alle-Tab: gruppiert */}
+          {tab === "alle" && grouped && (
+            <>
+              {grouped.wichtig.length > 0 && (
+                <>
+                  {safeRequests.length === 0 && <SectionHeader emoji="⭐" label="Wichtig" />}
+                  {grouped.wichtig.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
+                </>
+              )}
+              {grouped.relevant.length > 0 && (
+                <>
+                  <SectionHeader emoji="⭐" label="Relevant" />
+                  {grouped.relevant.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
+                </>
+              )}
+              {grouped.info.length > 0 && (
+                <>
+                  <SectionHeader emoji="⭐" label="Informativ" />
+                  {grouped.info.map(n => (
+                    <div key={n.id} style={{background:"red",color:"white",padding:20,marginBottom:12}}>
+                      RAW GROUPED TEST
+                    </div>
+                  ))}
+                </>
+              )}
+              {safeItems.length === 0 && safeRequests.length === 0 && (
+                <EmptyTab tab="alle" />
+              )}
+            </>
+          )}
+
+          {/* Einzelne Tabs */}
+          {tab !== "alle" && (() => {
+            console.log("[SINGLE-TAB BRANCH]", {
+              tab, isEmpty,
+              filteredLen: filteredItems?.length,
+              ids:   filteredItems?.map(x => x?.id),
+              types: filteredItems?.map(x => x?.type),
+            });
+            console.log("[LIST CONTAINER RENDERED]");
+            return (
+              <div style={{background:"red",color:"white",padding:20,minHeight:200}}>
+                CONTAINER TEST — tab: {tab} — filteredLen: {filteredItems?.length}
+              </div>
+            );
+          })()}
+
+          {/* Lade-Spinner */}
+          {notif?.loading && safeItems.length === 0 && safeRequests.length === 0 && (
+            <div style={{display:"flex",justifyContent:"center",padding:40}}>
+              <div style={{
+                width:24, height:24, borderRadius:"50%",
+                border:"2.5px solid rgba(22,215,197,0.2)",
+                borderTop:`2.5px solid ${T.teal}`,
+                animation:"rz-spin 0.8s linear infinite",
+              }}/>
+              <style>{`@keyframes rz-spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+          )}
+
+          {/* ── WOCHE-STATS ── */}
+          <WeekStats userId={user?.id} />
         </div>
       </div>
     </>
