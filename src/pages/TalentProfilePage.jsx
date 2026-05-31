@@ -581,110 +581,13 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
   ];
 
   return createPortal(
-    <>
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{
-          position:"fixed", inset:0, zIndex:8900,
-          background:"rgba(26,26,24,0.38)",
-          backdropFilter:"blur(6px)",
-          WebkitBackdropFilter:"blur(6px)",
-          animation:"tpp-fade-in .18s ease both",
-        }}
-      />
-      {/* Sheet */}
-      <div data-kompass-sheet="1" style={{
-        position:"fixed", bottom:0, left:0, right:0, zIndex:8950,
-        background:T.bgSheet,
-        borderRadius:"24px 24px 0 0",
-        boxShadow:"0 -8px 48px rgba(26,26,24,0.14)",
-        padding:"0 0 calc(env(safe-area-inset-bottom,0px) + 16px)",
-        animation:"tpp-slide-up .26s cubic-bezier(.22,1,.36,1) both",
-        fontFamily:"inherit",
-      }}>
-        {/* Handle */}
-        <div style={{display:"flex",justifyContent:"center",paddingTop:12,paddingBottom:4}}>
-          <div style={{width:36,height:4,borderRadius:99,background:"rgba(26,26,24,0.14)"}}/>
-        </div>
-
-        {/* Header */}
-        <div style={{
-          display:"flex", alignItems:"center", gap:12,
-          padding:"12px 20px 16px",
-          borderBottom:"1px solid rgba(26,26,24,0.07)",
-        }}>
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" style={{
-              width:42,height:42,borderRadius:"50%",
-              objectFit:"cover",border:`2px solid ${T.tealSoft}`,
-            }}/>
-          ) : (
-            <div style={{
-              width:42,height:42,borderRadius:"50%",
-              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-              display:"flex",alignItems:"center",justifyContent:"center",
-              fontSize:18,
-            }}>🧭</div>
-          )}
-          <div>
-            <div style={{fontSize:15,fontWeight:800,color:T.ink,lineHeight:1.2}}>
-              {profile?.display_name || "Talent"}
-            </div>
-            <div style={{fontSize:12,color:T.inkSoft,marginTop:2}}>
-              Weitere Möglichkeiten entdecken
-            </div>
-          </div>
-        </div>
-
-        {/* Items */}
-        <div style={{padding:"8px 0"}}>
-          {items.map(item => (
-            <button
-              key={item.id}
-              className="tpp-press-light"
-              onPointerDown={() => setPressed(item.id)}
-              onPointerUp={() => setPressed(null)}
-              onPointerLeave={() => setPressed(null)}
-              onClick={item.action}
-              style={{
-                display:"flex", alignItems:"center", gap:14,
-                width:"100%", padding:"13px 20px",
-                background: pressed === item.id ? "rgba(14,196,184,0.07)" : "transparent",
-                border:"none", cursor:"pointer", textAlign:"left",
-                transition:"background .12s ease",
-                fontFamily:"inherit",
-              }}
-            >
-              <div style={{
-                width:40,height:40,borderRadius:12,flexShrink:0,
-                background: item.isDestructive
-                  ? "rgba(255,107,82,0.09)"
-                  : T.tealSoft,
-                display:"flex",alignItems:"center",justifyContent:"center",
-                fontSize:20,
-              }}>
-                {item.emoji}
-              </div>
-              <div style={{flex:1}}>
-                <div style={{
-                  fontSize:15, fontWeight:700, lineHeight:1.25,
-                  color: item.isDestructive ? T.coral : T.ink,
-                }}>
-                  {item.label}
-                </div>
-                <div style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>
-                  {item.sub}
-                </div>
-              </div>
-              {!item.isDestructive && (
-                <div style={{fontSize:12,color:T.teal,fontWeight:700}}>›</div>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-    </>,
+    <div style={{
+      position:"fixed", top:"120px", left:"20px", right:"20px", height:"300px",
+      background:"red", zIndex:999999,
+      display:"flex", alignItems:"center", justifyContent:"center",
+    }}>
+      <span style={{ color:"white", fontSize:32, fontWeight:900 }}>KOMPASS TEST</span>
+    </div>,
     document.body
   );
 }
