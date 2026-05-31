@@ -1536,7 +1536,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); alert("SHEET SET: " + true); }}/>
+          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
         </div>
         <Gap h={20}/>
 
@@ -1569,6 +1569,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 8. Abschluss */}
         <AbschlussBar profile={profile} loading={loading}/>
+      {showKompassSheet && (() => { alert("SHEET RENDER: showKompassSheet=" + showKompassSheet); return null; })()}
       {showKompassSheet && (
         <KompassActionSheet
           profile={profile}
