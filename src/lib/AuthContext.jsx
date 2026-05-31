@@ -481,6 +481,7 @@ export function AuthProvider({ children }) {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth muss innerhalb von <AuthProvider> verwendet werden");
-  return ctx;
+  // Kein throw — gibt null zurück wenn kein Provider vorhanden
+  // Komponenten müssen selbst null-guarden
+  return ctx ?? null;
 };

@@ -71,9 +71,9 @@ function fmtTime(iso) {
 // HOOK
 // ══════════════════════════════════════════════════════════════
 export function useNotifications() {
-  let authUser = null;
-  try { authUser = useAuth()?.user ?? null; } catch { authUser = null; }
-  const user = authUser;
+  // WICHTIG: useAuth() darf nicht in try/catch aufgerufen werden (React Rules of Hooks)
+  const authCtx = useAuth();
+  const user = authCtx?.user ?? null;
 
   const [items,   setItems]   = useState([]);
   const [unread,  setUnread]  = useState(0);
@@ -120,15 +120,21 @@ export function useNotifications() {
   }, [user?.id, load]);
 
   const markRead = useCallback(async (id) => {
+    if (!user?.id) return;
     setItems(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     setUnread(prev => Math.max(0, prev - 1));
-    await supabase.from("notifications").update({ read: true }).eq("id", id).eq("user_id", user.id);
+    try {
+      await supabase.from("notifications").update({ read: true }).eq("id", id).eq("user_id", user.id);
+    } catch { /* silent */ }
   }, [user?.id]);
 
   const markAllRead = useCallback(async () => {
+    if (!user?.id) return;
     setItems(prev => prev.map(n => ({ ...n, read: true })));
     setUnread(0);
-    await supabase.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
+    try {
+      await supabase.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
+    } catch { /* silent */ }
   }, [user?.id]);
 
   return { items, unread, loading, markRead, markAllRead, reload: load };
@@ -544,8 +550,8 @@ function injectCSS() {
 // RESONANZZENTRUM PANEL
 // ══════════════════════════════════════════════════════════════
 export function ResonanzzentrumPanel({ onClose }) {
-  injectCSS();
-  console.log("[RESONANZZENTRUM MOUNT] Panel wird gemountet");
+  // DOM-Mutation NIEMALS im Render-Body — immer in useEffect
+  useEffect(() => { injectCSS(); }, []);
 
   // Hooks MÜSSEN bedingungslos aufgerufen werden (React Hooks Rules)
   const authCtx  = useAuth();
@@ -559,19 +565,7 @@ export function ResonanzzentrumPanel({ onClose }) {
   const safeItems    = Array.isArray(notif?.items)        ? notif.items        : [];
   const safeRequests = Array.isArray(connReqs?.requests)  ? connReqs.requests  : [];
 
-  console.log("[RESONANZZENTRUM RENDER]", {
-    userId: user?.id ?? "kein user",
-    items: safeItems.length,
-    requests: safeRequests.length,
-    loading: notif?.loading,
-  });
 
-  console.log("[RESONANZZENTRUM MOUNT]", {
-    user: user?.id ?? "null",
-    itemsCount: safeItems.length,
-    requestsCount: safeRequests.length,
-    loading: notif?.loading,
-  });
 
   // Tab-Counts — safeItems/safeRequests statt direkte Zugriffe
   const counts = useMemo(() => {
