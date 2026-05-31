@@ -236,6 +236,7 @@ function NotifItem({ n, onRead }) {
   const meta = getMeta(n.type);
   const [hov, setHov] = useState(false);
 
+  console.log("[NOTIFITEM CALLED]", { id: n?.id, type: n?.type, title: n?.title });
   return (
     <button
       onClick={() => onRead(n.id)}
@@ -254,6 +255,11 @@ function NotifItem({ n, onRead }) {
         touchAction:"manipulation",
       }}
     >
+      {/* DEBUG ITEM */}
+      <div style={{fontSize:9,color:"red",fontFamily:"monospace",padding:"0 0 2px 0",wordBreak:"break-all"}}>
+        DEBUG ITEM: {n?.id}
+      </div>
+
       {/* Icon */}
       <div style={{
         width:42, height:42, borderRadius:14, flexShrink:0,
@@ -849,6 +855,9 @@ export function ResonanzzentrumPanel({ onClose }) {
               {grouped.info.length > 0 && (
                 <>
                   <SectionHeader emoji="⭐" label="Informativ" />
+                  <div style={{background:"red",color:"white",fontFamily:"monospace",fontSize:11,padding:"4px 12px"}}>
+                    RENDER INFO COUNT: {grouped.info.length} | IDs: {grouped.info.map(x=>x.id).join(", ")}
+                  </div>
                   {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
                 </>
               )}
