@@ -1461,15 +1461,21 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         // Profil
         if (profileRes.data) {
-          const isOwn = user?.id && profileRes.data.id === user.id;
+          // Sicherstellen dass id immer vorhanden ist
+          const safeData = { ...profileRes.data, id: profileRes.data.id ?? profileId };
+          const isOwn = user?.id && safeData.id === user.id;
           setProfile(isOwn && authProfile
-            ? { ...profileRes.data,
-                avatar_url: authProfile.avatar_url ?? profileRes.data.avatar_url,
-                header_img: authProfile.header_img  ?? profileRes.data.header_img,
-                bio:        authProfile.bio          ?? profileRes.data.bio,
+            ? { ...safeData,
+                avatar_url: authProfile.avatar_url ?? safeData.avatar_url,
+                header_img: authProfile.header_img  ?? safeData.header_img,
+                bio:        authProfile.bio          ?? safeData.bio,
               }
-            : profileRes.data
+            : safeData
           );
+        } else {
+          // Fallback: profileId ist bekannt — Mindest-Objekt setzen
+          // damit ActionButtons nicht mit null-profile arbeitet
+          setProfile({ id: profileId });
         }
 
         // ── DEBUG LOG 1: Was kommt aus Supabase zurück? ──
