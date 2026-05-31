@@ -673,6 +673,17 @@ export function ResonanzzentrumPanel({ onClose }) {
           <div><span style={{color:"#aaa"}}>PANEL USER:</span> {notif?.debugInfo?.panelUser ?? "…"}</div>
           <div><span style={{color:"#aaa"}}>PANEL ROWS:</span> {String(notif?.debugInfo?.panelRows ?? "…")}</div>
           <div><span style={{color:"#aaa"}}>PANEL ERROR:</span> {notif?.debugInfo?.panelError ?? "null"}</div>
+          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
+          <div><span style={{color:"#aaa"}}>items.length:</span> {safeItems.length}</div>
+          <div><span style={{color:"#aaa"}}>items[0].type:</span> {safeItems[0]?.type ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>items[0].read:</span> {String(safeItems[0]?.read ?? "–")}</div>
+          <div><span style={{color:"#aaa"}}>getMeta(type).tab:</span> {safeItems[0] ? getMeta(safeItems[0].type).tab : "–"}</div>
+          <div style={{borderTop:"1px solid #333", margin:"4px 0"}}/>
+          <div><span style={{color:"#aaa"}}>filteredItems.length:</span> {filteredItems?.length ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>grouped.wichtig:</span> {grouped?.wichtig?.length ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>grouped.relevant:</span> {grouped?.relevant?.length ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>grouped.info:</span> {grouped?.info?.length ?? "–"}</div>
+          <div><span style={{color:"#aaa"}}>isEmpty:</span> {String(isEmpty)}</div>
         </div>
 
         {/* ── HEADER ── */}
