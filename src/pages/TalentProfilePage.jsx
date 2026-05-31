@@ -664,11 +664,10 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
 // ══════════════════════════════════════════════════════════════
 // 3. ACTION BUTTONS (Verbinden, Nachricht)
 // ══════════════════════════════════════════════════════════════
-function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
+function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKompass }) {
   const rel = useRelationship(profile?.id, currentUserId);
   const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
-  const [showKompassSheet,      setShowKompassSheet]      = React.useState(false);
   const [watchingLocal,         setWatchingLocal]         = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
   const _toggleRunning = React.useRef(false);
@@ -793,10 +792,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
           {/* Kompass-Button */}
           <button
             className="tpp-press-light"
-            onClick={() => {
-              setShowKompassSheet(true);
-              setTimeout(() => alert("showKompassSheet nach 100ms: " + showKompassSheet), 100);
-            }}
+            onClick={() => onOpenKompass({ isWatching, toggleWatch })}
             style={{
               width:46, height:46,
               background:"#FFFFFF",
@@ -824,15 +820,6 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
           </div>
         )}
       </div>
-
-      {showKompassSheet && (
-        <KompassActionSheet
-          profile={profile}
-          isWatching={isWatching}
-          onWatch={toggleWatch}
-          onClose={() => setShowKompassSheet(false)}
-        />
-      )}
 
       {showVerbindungsDialog && (
         <VerbindungsDialog
@@ -1444,6 +1431,9 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const [moments,    setMoments]    = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
+  const [showKompassSheet, setShowKompassSheet] = useState(false);
+  const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
+  const [kompassToggle,    setKompassToggle]    = useState(() => () => {});
 
   // Mount animation
   useEffect(() => {
@@ -1546,7 +1536,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading}/>
+          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); setKompassToggle(() => tw); setShowKompassSheet(true); }}/>
         </div>
         <Gap h={20}/>
 
@@ -1579,6 +1569,14 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 8. Abschluss */}
         <AbschlussBar profile={profile} loading={loading}/>
+      {showKompassSheet && (
+        <KompassActionSheet
+          profile={profile}
+          isWatching={kompassWatchLocal}
+          onWatch={kompassToggle}
+          onClose={() => setShowKompassSheet(false)}
+        />
+      )}
         <Gap h={16}/>
         <AbschlussButtons profile={profile} currentUserId={user?.id}/>
         <Gap h={40}/>
