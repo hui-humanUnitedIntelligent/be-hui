@@ -295,6 +295,91 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
   );
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// DEBUG TOAST — NUR TEMPORÄR FÜR WATCHLIST-DEBUGGING
+// Zeigt jeden Flow-Schritt sichtbar auf dem iPad
+// ══════════════════════════════════════════════════════════════
+
+// Globaler Debug-State außerhalb von React
+// (damit er nicht durch Re-Renders verloren geht)
+const _debugToasts = [];
+let _debugSetToasts = null;
+
+function showDebugToast(step, label, detail = null, isError = false) {
+  const entry = {
+    id:      Date.now() + Math.random(),
+    step,
+    label,
+    detail,
+    isError,
+    time:    new Date().toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit", second:"2-digit" }),
+  };
+  _debugToasts.push(entry);
+  if (_debugSetToasts) _debugSetToasts([..._debugToasts]);
+  // Auto-remove nach 12s (Fehler bleiben 20s)
+  setTimeout(() => {
+    const idx = _debugToasts.findIndex(t => t.id === entry.id);
+    if (idx > -1) {
+      _debugToasts.splice(idx, 1);
+      if (_debugSetToasts) _debugSetToasts([..._debugToasts]);
+    }
+  }, isError ? 20000 : 12000);
+}
+
+function DebugToastLayer() {
+  const [toasts, setToasts] = React.useState([]);
+  React.useEffect(() => {
+    _debugSetToasts = setToasts;
+    return () => { _debugSetToasts = null; };
+  }, []);
+
+  if (toasts.length === 0) return null;
+
+  return (
+    <div style={{
+      position:"fixed", top:0, left:0, right:0, zIndex:99999,
+      pointerEvents:"none",
+      padding:"8px 10px 0",
+      display:"flex", flexDirection:"column", gap:6,
+    }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{
+          background: t.isError
+            ? "rgba(200,40,40,0.96)"
+            : t.step === 5
+              ? "rgba(14,140,90,0.96)"
+              : "rgba(20,20,20,0.92)",
+          color:"#fff",
+          borderRadius:10,
+          padding:"10px 14px",
+          fontSize:13,
+          fontFamily:"monospace",
+          boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
+          borderLeft: t.isError ? "4px solid #ff6b6b"
+            : t.step === 5 ? "4px solid #0EC4B8"
+            : "4px solid #888",
+          pointerEvents:"none",
+        }}>
+          <div style={{fontWeight:700, fontSize:14, marginBottom: t.detail ? 4 : 0}}>
+            {t.isError ? "❌" : t.step === 5 ? "✅" : "🔵"} [STEP {t.step}] {t.label}
+            <span style={{float:"right", fontWeight:400, fontSize:11, opacity:0.7}}>{t.time}</span>
+          </div>
+          {t.detail && (
+            <div style={{
+              fontSize:12, opacity:0.9, lineHeight:1.4,
+              wordBreak:"break-all", whiteSpace:"pre-wrap",
+              maxHeight:120, overflowY:"auto",
+            }}>
+              {t.detail}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Helpers ────────────────────────────────────────────────────
 const s  = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
 const a  = (v) => Array.isArray(v) ? v : [];
@@ -507,36 +592,29 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
   const canChat = rel.relationStatus === "accepted";
 
   async function toggleWatch() {
-    // ── STEP 2: toggleWatch() wurde aufgerufen ─────────────────
-    console.log("[STEP 2] toggleWatch() aufgerufen", {
-      profileId:    profile?.id,
-      currentUserId,
-      isWatching,
-      loading,
-      relLoading:   rel.loading,
-      relWatching:  rel.watching,
-      watchingLocal,
-    });
+    // STEP 2: toggleWatch aufgerufen
+    showDebugToast(2, "toggleWatch gestartet", `loading=${loading} | relLoading=${rel.loading} | user=${currentUserId?.slice(0,8) ?? "NULL"}`);
 
-    // ── STEP 3: Guard-Check ────────────────────────────────────
+    // STEP 3: Guard-Check
     if (!currentUserId || !profile?.id || loading || rel.loading) {
-      console.warn("[STEP 3] ❌ GUARD GEBLOCKT — hier stoppt der Flow", {
-        reason_no_currentUserId: !currentUserId,
-        reason_no_profileId:     !profile?.id,
-        reason_loading:          loading,
-        reason_relLoading:       rel.loading,
-      });
+      const reason = [
+        !currentUserId  && "kein currentUserId",
+        !profile?.id    && "kein profile.id",
+        loading         && "loading=true",
+        rel.loading     && "rel.loading=true",
+      ].filter(Boolean).join(" | ");
+      showDebugToast(3, "GUARD GEBLOCKT ❌", reason, true);
       return;
     }
-    console.log("[STEP 3] ✅ Guard passiert");
+    showDebugToast(3, "Guard passiert ✅", `isWatching=${isWatching} → next=${!isWatching}`);
 
     const next = !isWatching;
-    setWatchingLocal(next); // optimistisch
+    setWatchingLocal(next);
 
     if (next) {
-      // ── STEP 4: Supabase INSERT wird gestartet ─────────────
+      // STEP 4: INSERT
       const payload = { watcher_id: currentUserId, profile_id: profile.id };
-      console.log("[STEP 4] Supabase INSERT gestartet", payload);
+      showDebugToast(4, "Supabase INSERT gestartet", `watcher: ${currentUserId.slice(0,8)}… | profile: ${profile.id.slice(0,8)}…`);
 
       const { data, error } = await supabase
         .from("profile_watchlist")
@@ -544,50 +622,43 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
         .select("id")
         .single();
 
-      // ── STEP 5: Supabase hat geantwortet ───────────────────
-      console.log("[STEP 5] Supabase Antwort", { data, error });
+      // STEP 5: Antwort
       if (error) {
-        console.error("[STEP 5] ❌ INSERT FEHLER", {
-          code:    error?.code,
-          message: error?.message,
-          details: error?.details,
-          hint:    error?.hint,
-          full:    error,
-        });
+        const detail = [
+          `code: ${error?.code ?? "–"}`,
+          `msg: ${error?.message ?? "–"}`,
+          `details: ${error?.details ?? "–"}`,
+          `hint: ${error?.hint ?? "–"}`,
+        ].join("
+");
+        showDebugToast(5, "INSERT FEHLER ❌", detail, true);
         setWatchingLocal(null);
         return;
       }
-      console.log("[STEP 5] ✅ INSERT ERFOLG — refetch wird ausgelöst");
+      showDebugToast(5, "INSERT ERFOLG ✅", `id: ${data?.id?.slice(0,12)}…`);
       rel.refetch();
+
     } else {
-      const payload = { watcher_id: currentUserId, profile_id: profile.id };
-      console.log("[STEP 4] Supabase DELETE gestartet", payload);
+      // STEP 4: DELETE
+      showDebugToast(4, "Supabase DELETE gestartet", `watcher: ${currentUserId.slice(0,8)}…`);
       const { error } = await supabase
         .from("profile_watchlist")
         .delete()
         .eq("watcher_id", currentUserId)
         .eq("profile_id", profile.id);
-      console.log("[STEP 5] Supabase DELETE Antwort", { error });
+
       if (error) {
-        console.error("[STEP 5] ❌ DELETE FEHLER", error);
+        const detail = `code: ${error?.code ?? "–"}
+msg: ${error?.message ?? "–"}
+details: ${error?.details ?? "–"}`;
+        showDebugToast(5, "DELETE FEHLER ❌", detail, true);
         setWatchingLocal(null);
         return;
       }
-      console.log("[STEP 5] ✅ DELETE ERFOLG — refetch wird ausgelöst");
+      showDebugToast(5, "DELETE ERFOLG ✅");
       rel.refetch();
     }
   }
-
-  // ── STEP 0: ActionButtons gerendert — Props ankommen? ─────────
-  console.log("[STEP 0] ActionButtons render", {
-    profileId:     profile?.id,
-    currentUserId,
-    loading,
-    relLoading:    rel.loading,
-    relWatching:   rel.watching,
-    relStatus:     rel.relationStatus,
-    isWatching,
-  });
 
   // Ladezustand
   if (loading || rel.loading) {
@@ -664,7 +735,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat }) {
     // STUFE 2: Im Blick behalten (erster Schritt)
     primaryBtn = (
       <button className="tpp-press" onClick={(e) => {
-          console.log("[STEP 1] Button onClick ausgelöst", { event: e.type, target: e.currentTarget?.tagName });
+          showDebugToast(1, "Button-Klick erkannt", `profile: ${profile?.id?.slice(0,8)}… | user: ${currentUserId?.slice(0,8)}…`);
           toggleWatch();
         }} style={{
         flex:1, padding:"13px 16px",
@@ -1345,6 +1416,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
       transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
+      <DebugToastLayer/>
 
       {/* ── Sticky Header ─────────────────────── */}
       <Header onBack={handleBack} profile={profile}/>
