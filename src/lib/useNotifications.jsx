@@ -756,10 +756,21 @@ export function ResonanzzentrumPanel({ onClose }) {
         </div>
 
         {/* ── CONTENT ── */}
-        <div style={{
-          flex:1, overflowY:"auto",
-          WebkitOverflowScrolling:"touch",
-        }}>
+        <div
+          id="rz-content-container"
+          style={{
+            flex:1, overflowY:"auto",
+            WebkitOverflowScrolling:"touch",
+          }}
+        >
+          <div style={{
+            background:"red",
+            color:"white",
+            padding:"20px",
+            fontWeight:"bold"
+          }}>
+            CONTENT START TEST
+          </div>
 
           {/* Verbindungsanfragen — immer oben (wenn Alle oder Wichtig aktiv) */}
           {(tab === "alle" || tab === "wichtig") && safeRequests.length > 0 && (
