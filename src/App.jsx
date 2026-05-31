@@ -115,6 +115,10 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    // DEBUG: Echten Fehler IMMER sichtbar loggen
+    console.error("[GLOBAL ERROR] message:", error?.message);
+    console.error("[GLOBAL ERROR] stack:", error?.stack);
+    console.error("[GLOBAL ERROR] componentStack:", errorInfo?.componentStack);
     // ── Sentry: Crash mit vollem Kontext senden ──────────────
     // console.error entfernt — Sentry loggt vollständig (Phase 4B)
     const ws = window.__HUI_WORLD_STATE__ || {};
@@ -204,6 +208,26 @@ class ErrorBoundary extends React.Component {
             color:"#888", fontWeight:600, fontSize:13, cursor:"pointer" }}>
           Trotzdem versuchen
         </button>
+
+        {/* ── DEBUG: Echter Fehler — IMMER sichtbar (temporär) ── */}
+        <div style={{
+          marginTop:24, padding:"14px 16px", borderRadius:12,
+          background:"#1A1A1A", color:"#FF6B6B",
+          fontFamily:"monospace", fontSize:11, lineHeight:1.7,
+          maxWidth:360, width:"100%", overflowX:"auto",
+          textAlign:"left", wordBreak:"break-word",
+        }}>
+          <div style={{ color:"#FF6B6B", fontWeight:800, marginBottom:6 }}>
+            ⛔ {this.state.error?.name ?? "Error"}
+          </div>
+          <div style={{ color:"#FFD700", marginBottom:8 }}>
+            {this.state.error?.message ?? "Kein Message"}
+          </div>
+          <div style={{ color:"#aaa", fontSize:10, whiteSpace:"pre-wrap" }}>
+            {this.state.error?.stack?.slice(0, 600) ?? "Kein Stack"}
+          </div>
+        </div>
+
         {/* Phase 16.6: Dev world state — only in development */}
         {process.env.NODE_ENV !== "production" && (
           <details style={{ marginTop:20, maxWidth:340, width:"100%", textAlign:"left" }}>
