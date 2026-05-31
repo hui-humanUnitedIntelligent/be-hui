@@ -619,6 +619,8 @@ export function ResonanzzentrumPanel({ onClose }) {
     const w = safeItems.filter(n => getMeta(n?.type).tab === "wichtig");
     const r = safeItems.filter(n => getMeta(n?.type).tab === "relevant");
     const i = safeItems.filter(n => getMeta(n?.type).tab === "info");
+    console.log("[GROUPED CALC] wichtig:", w.length, "relevant:", r.length, "info:", i.length);
+    console.log("[GROUPED INFO ITEMS]", i.map(x => ({ id: x?.id, type: x?.type, title: x?.title })));
     return { wichtig: w, relevant: r, info: i };
   }, [safeItems, tab]);
 
@@ -869,10 +871,14 @@ export function ResonanzzentrumPanel({ onClose }) {
               {grouped.info.length > 0 && (
                 <>
                   <SectionHeader emoji="⭐" label="Informativ" />
-                  <div style={{background:"red",color:"white",fontFamily:"monospace",fontSize:11,padding:"4px 12px"}}>
-                    RENDER INFO COUNT: {grouped.info.length} | IDs: {grouped.info.map(x=>x.id).join(", ")}
+                  <div style={{background:"orange",color:"black",fontFamily:"monospace",fontSize:11,padding:"4px 12px"}}>
+                    RENDER grouped.info.length: {grouped.info.length} | IDs: {grouped.info.map(x=>x?.id?.slice(0,8)).join(", ")}
                   </div>
-                  {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
+                  {grouped.info.map(n => (
+                    <div key={n.id} style={{background:"red",color:"white",padding:20,margin:10}}>
+                      RAW GROUPED TEST — {n?.id} — {n?.title}
+                    </div>
+                  ))}
                 </>
               )}
               {safeItems.length === 0 && safeRequests.length === 0 && (
