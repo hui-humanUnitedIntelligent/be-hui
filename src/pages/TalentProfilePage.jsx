@@ -18,6 +18,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
+import { useHome }  from "../components/home/HomeShell.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
@@ -1660,6 +1661,7 @@ function AbschlussButtons({ profile, currentUserId }) {
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose }) {
   const { user, authProfile } = useAuth();
+  const { setShowChat, setChatRecipient } = useHome();
 
   const [profile,    setProfile]    = useState(null);
   const [works,      setWorks]      = useState([]);
@@ -1671,6 +1673,18 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const [showKompassSheet, setShowKompassSheet] = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const kompassToggleRef = React.useRef(() => {});
+
+  // ── Chat aus Kompass öffnen ──────────────────────────────
+  const handleOpenChat = useCallback(() => {
+    if (!profile) return;
+    setChatRecipient({
+      id:           profile.id,
+      display_name: profile.display_name || profile.username || "Creator",
+      avatar_url:   profile.avatar_url   || null,
+      talent:       profile.talent        || null,
+    });
+    setShowChat(true);
+  }, [profile, setChatRecipient, setShowChat]);
 
   // Mount animation
   useEffect(() => {
@@ -1819,7 +1833,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           isWatching={kompassWatchLocal}
           onWatch={kompassToggleRef.current}
           onClose={() => setShowKompassSheet(false)}
-          onOpenChat={undefined}
+          onOpenChat={handleOpenChat}
         />
       )}
         <Gap h={16}/>
