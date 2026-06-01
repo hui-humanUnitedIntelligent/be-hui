@@ -106,6 +106,10 @@ export function isAtLeast(userRole, requiredRole) {
 export function getUserRole(profile) {
   if (!profile) return ROLES.BASIS_USER;
 
+  // Admin-Guard: privilegierte Rollen vor allen membership-Checks (Safety Fix)
+  if (profile.role === "superadmin") return ROLES.SUPERADMIN;
+  if (profile.role === "moderator")  return ROLES.MODERATOR;
+
   // Phase 4C: neue Felder haben höchste Priorität
   if (profile.membership_type === "talent" && profile.membership_active === true) return ROLES.TALENT;
   if (profile.membership_type === "guardian") return ROLES.GUARDIAN;
@@ -288,3 +292,4 @@ export function getRoleLabel(profile) {
   const role = getUserRole(profile);
   return ROLE_LABELS[role] || 'Entdecker';
 }
+
