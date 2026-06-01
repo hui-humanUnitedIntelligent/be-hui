@@ -508,7 +508,18 @@ export function usePresence(userId) {
     setLoading(true);
     try {
       const [profRes, worksRes, bookRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).single(),
+        supabase.from('profiles').select(`
+          id,
+          bio,
+          created_at,
+          display_name,
+          dna_tags,
+          focus_type,
+          is_available,
+          location_label,
+          talent,
+          updated_at
+        `).eq('id', userId).single(),
         supabase.from('works').select('id, created_at, updated_at, mood, tags')
           .eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
         supabase.from('bookings').select('id, created_at, status, client_user_id')
@@ -573,3 +584,4 @@ export function usePresence(userId) {
 
   return { presence, loading, reload: load };
 }
+
