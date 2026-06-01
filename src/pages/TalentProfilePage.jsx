@@ -505,7 +505,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onOpenChat 
   const avatar     = profile?.avatar_url   || null;
   const bio        = profile?.bio          || null;
   const talent     = profile?.talent       || profile?.role     || null;
-  const location   = profile?.location     || null;
+  const location   = profile?.location_label || profile?.location || null;
   const profileUrl = window.location.origin + "/profile/" + (profile?.username || profile?.id || "");
 
   async function handleShare() {
@@ -758,12 +758,12 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onOpenChat 
                     <span>{location}</span>
                   </div>
                 )}
-                {(profile?.role === "talent" || profile?.role === "wirker" || profile?.has_talent_profile) && (
+                {(profile?.is_wirker === true || profile?.role === "talent" || profile?.role === "wirker" || profile?.has_talent_profile) && (
                   <div style={{
                     display:"flex", alignItems:"center", gap:4,
                     fontSize:12, color:inkSoft,
                   }}>
-                    <span>☆</span>
+                    <span>⭐</span>
                     <span>Wirker</span>
                   </div>
                 )}
