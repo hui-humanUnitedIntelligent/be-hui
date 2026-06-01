@@ -470,11 +470,14 @@ export async function findOrCreateChat({
   userId, otherUserId, chatType = "direct",
   bookingId = null, contextTitle = null, contextType = null,
 }) {
-  if (!userId || !otherUserId) return null;
+  console.log("[CHAT] findOrCreateChat aufgerufen", { userId, otherUserId, chatType });
 
-  // Existing chat suchen — direkte Suche nach beiden Kombinationen
-  // (participant_a=userId AND participant_b=otherUserId)
-  // OR (participant_a=otherUserId AND participant_b=userId)
+  if (!userId || !otherUserId) {
+    console.log("[CHAT] STOP: userId oder otherUserId fehlt", { userId, otherUserId });
+    return null;
+  }
+
+  // ── Bestehenden Chat suchen ─────────────────────────────────
   const { data: existing, error: findError } = await supabase
     .from("chats")
     .select("id, participant_a, participant_b, chat_type, state, last_message, booking_id")
@@ -487,11 +490,19 @@ export async function findOrCreateChat({
     .limit(5);
 
   if (findError) {
-    console.error("[HUI_CHAT] findOrCreateChat SELECT fehlgeschlagen:", findError.message, findError.code);
-    // Trotzdem weiterversuchen — neuen Chat erstellen
+    console.error("[CHAT] SELECT Fehler", {
+      code:    findError?.code,
+      message: findError?.message,
+      details: findError?.details,
+      hint:    findError?.hint,
+    });
+    // Trotzdem weiterversuchen
   }
 
-  console.log("[HUI_CHAT] findOrCreateChat: gefundene Chats:", existing?.length ?? 0, existing?.map(c=>c.id));
+  console.log("[CHAT] existing conversations found", {
+    count: existing?.length ?? 0,
+    ids:   existing?.map(c => c.id),
+  });
 
   const match = (existing || []).find(c =>
     (c.participant_a === userId && c.participant_b === otherUserId) ||
@@ -499,12 +510,13 @@ export async function findOrCreateChat({
   );
 
   if (match) {
-    console.log("[HUI_CHAT] findOrCreateChat: bestehender Chat gefunden:", match.id);
+    console.log("[CHAT] existing conversation found — returning", match.id);
     return match;
   }
 
-  // Neuen Chat erstellen
-  console.log("[HUI_CHAT] findOrCreateChat: neuer Chat wird erstellt…", { userId, otherUserId });
+  // ── Neuen Chat erstellen ────────────────────────────────────
+  console.log("[CHAT] creating conversation", { userId, otherUserId });
+
   const { data: newChat, error: createError } = await supabase
     .from("chats")
     .insert({
@@ -523,15 +535,16 @@ export async function findOrCreateChat({
     .single();
 
   if (createError) {
-    console.error("[HUI_CHAT] findOrCreateChat INSERT fehlgeschlagen:", {
-      code:    createError.code,
-      message: createError.message,
-      details: createError.details,
-      hint:    createError.hint,
+    console.error("[CHAT] create error", {
+      code:    createError?.code,
+      message: createError?.message,
+      details: createError?.details,
+      hint:    createError?.hint,
     });
-    return null; // explizit null statt undefined
+    console.log("[CHAT] returning null");
+    return null;
   }
 
-  console.log("[HUI_CHAT] findOrCreateChat: Chat erstellt:", newChat?.id);
+  console.log("[CHAT] conversation created", newChat?.id);
   return newChat;
 }
