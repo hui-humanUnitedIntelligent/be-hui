@@ -142,6 +142,7 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose,
           />
       </div>
     </div>
+
   );
 }
 
@@ -157,6 +158,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // initialRecipient: von Profil/Action aus Chat öffnen
   // KEIN fake-ID Fallback. Nur echte UUID oder kein Conv.
   const [loadingConv, setLoadingConv] = React.useState(false);
+  const [debugStep,   setDebugStep]   = React.useState("idle");
+  const [debugError,  setDebugError]  = React.useState(null);
 
   // ── initialRecipient → Chat direkt öffnen ──────────────────
   // Fix: user?.id im Dep-Array reicht nicht — wenn user zuerst
@@ -173,16 +176,19 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
     if (!initialRecipient?.id) {
       console.log("[CHAT] STOP: kein initialRecipient.id");
+      setDebugStep("stop: no recipient.id");
       return;
     }
     if (!user?.id) {
       console.log("[CHAT] STOP: kein user.id — Auth noch nicht geladen");
+      setDebugStep("stop: no user.id");
       return;
     }
     if (lastRecipientRef.current === initialRecipient.id && activeConv) {
       console.log("[CHAT] STOP: gleicher Recipient bereits aktiv", {
         last: lastRecipientRef.current, active: activeConv?.id,
       });
+      setDebugStep("stop: same recipient active");
       return;
     }
     lastRecipientRef.current = initialRecipient.id;
@@ -192,6 +198,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       me:        user.id,
       recipient: recipientId,
     });
+    setDebugStep("calling findOrCreateChat");
+    setDebugError(null);
 
     setLoadingConv(true);
     setActiveConv(null);
@@ -206,9 +214,12 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         const realId = chatRecord?.id;
         if (!realId) {
           console.error("[CHAT] STOP: chatRecord ohne id", chatRecord);
+          setDebugStep("stop: chatRecord null");
+          setDebugError({ code: "NO_ID", message: JSON.stringify(chatRecord).slice(0,120) });
           return;
         }
         console.log("[CHAT] setActiveConv", realId);
+        setDebugStep("setActiveConv: " + realId.slice(0,8));
         setActiveConv({
           id:           realId,
           name:         initialRecipient.display_name || "Creator",
@@ -226,6 +237,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           details: err?.details,
           hint:    err?.hint,
         });
+        setDebugStep("exception");
+        setDebugError({ code: err?.code, message: err?.message });
       })
       .finally(() => setLoadingConv(false));
   // user?.id + initialRecipient?.id: Effekt soll erneut feuern
@@ -255,6 +268,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   }
 
   return (
+    <>
     <div style={{
       position:"fixed", inset:0, zIndex:10001,
       display:"flex", overflow:"hidden",
@@ -376,5 +390,55 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         </div>
       )}
     </div>
+
+      {/* ── TEMPORÄRES DEBUG-OVERLAY (iPad-Diagnose — nach Screenshot entfernen) ── */}
+      <div style={{
+        position: "fixed",
+        top: 12,
+        right: 12,
+        zIndex: 99999,
+        background: "rgba(0,0,0,0.88)",
+        color: "#fff",
+        fontFamily: "monospace",
+        fontSize: 11,
+        lineHeight: 1.6,
+        padding: "10px 14px",
+        borderRadius: 8,
+        maxWidth: 280,
+        pointerEvents: "none",
+        backdropFilter: "blur(4px)",
+        border: "1px solid rgba(255,255,255,0.15)",
+      }}>
+        <div style={{ color: "#16D7C5", fontWeight: 700, marginBottom: 4 }}>
+          ⬡ CHAT DEBUG
+        </div>
+        <div>recipient: <span style={{ color: "#ffd" }}>
+          {initialRecipient?.id ? initialRecipient.id.slice(0, 8) + "…" : "—"}
+        </span></div>
+        <div>user: <span style={{ color: "#ffd" }}>
+          {user?.id ? user.id.slice(0, 8) + "…" : "—"}
+        </span></div>
+        <div>activeConv: <span style={{ color: "#ffd" }}>
+          {activeConv?.id ? activeConv.id.slice(0, 8) + "…" : "—"}
+        </span></div>
+        <div style={{ marginTop: 4 }}>
+          step: <span style={{ color: "#7effb2" }}>{debugStep}</span>
+        </div>
+        {debugError && (
+          <>
+            <div style={{ color: "#ff7e7e", marginTop: 4 }}>
+              code: {debugError.code ?? "—"}
+            </div>
+            <div style={{
+              color: "#ffb07e",
+              wordBreak: "break-all",
+              maxWidth: 256,
+            }}>
+              msg: {String(debugError.message ?? "").slice(0, 140)}
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
