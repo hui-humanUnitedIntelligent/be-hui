@@ -167,15 +167,33 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   const lastRecipientRef = React.useRef(null);
 
   React.useEffect(() => {
-    if (!initialRecipient?.id) return;
-    if (!user?.id) return; // warten bis Auth geladen
-    // Guard: gleichen Recipient nicht doppelt öffnen
-    if (lastRecipientRef.current === initialRecipient.id && activeConv) return;
+    // ── DIAG ENTRY ──────────────────────────────────────────────
+    console.log("[CHAT] useEffect initialRecipient", initialRecipient);
+    console.log("[CHAT] useEffect user?.id", user?.id);
+
+    if (!initialRecipient?.id) {
+      console.log("[CHAT] STOP: kein initialRecipient.id");
+      return;
+    }
+    if (!user?.id) {
+      console.log("[CHAT] STOP: kein user.id — Auth noch nicht geladen");
+      return;
+    }
+    if (lastRecipientRef.current === initialRecipient.id && activeConv) {
+      console.log("[CHAT] STOP: gleicher Recipient bereits aktiv", {
+        last: lastRecipientRef.current, active: activeConv?.id,
+      });
+      return;
+    }
     lastRecipientRef.current = initialRecipient.id;
 
     const recipientId = initialRecipient.id;
+    console.log("[CHAT] calling findOrCreateChat", {
+      me:        user.id,
+      recipient: recipientId,
+    });
+
     setLoadingConv(true);
-    // Bestehenden Conv zurücksetzen damit Spinner sichtbar wird
     setActiveConv(null);
 
     findOrCreateChat({
@@ -184,11 +202,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       chatType:    "direct",
     })
       .then(chatRecord => {
+        console.log("[CHAT] conversation result", chatRecord);
         const realId = chatRecord?.id;
         if (!realId) {
-          console.error("[HUI_CHAT] initialRecipient: kein chatRecord.id!", chatRecord);
+          console.error("[CHAT] STOP: chatRecord ohne id", chatRecord);
           return;
         }
+        console.log("[CHAT] setActiveConv", realId);
         setActiveConv({
           id:           realId,
           name:         initialRecipient.display_name || "Creator",
@@ -200,7 +220,12 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         });
       })
       .catch(err => {
-        console.error("[HUI_CHAT] initialRecipient Exception:", err?.message, err);
+        console.error("[CHAT] Exception in findOrCreateChat", {
+          message: err?.message,
+          code:    err?.code,
+          details: err?.details,
+          hint:    err?.hint,
+        });
       })
       .finally(() => setLoadingConv(false));
   // user?.id + initialRecipient?.id: Effekt soll erneut feuern
