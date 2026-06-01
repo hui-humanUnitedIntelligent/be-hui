@@ -515,9 +515,11 @@ export async function findOrCreateChat({
   }
 
   // ── Neuen Chat erstellen ────────────────────────────────────
+  // INSERT ohne .select() — verhindert Supabase "silent null"
+  // wenn RLS-SELECT-Policy nach INSERT nicht greift
   console.log("[CHAT] creating conversation", { userId, otherUserId });
 
-  const { data: newChat, error: createError } = await supabase
+  const { error: createError } = await supabase
     .from("chats")
     .insert({
       participant_a:    userId,
@@ -530,9 +532,9 @@ export async function findOrCreateChat({
       context_type:     contextType,
       opened_at:        new Date().toISOString(),
       last_message_at:  new Date().toISOString(),
-    })
-    .select("id")
-    .single();
+    });
+
+  console.log("[CHAT] insert finished", createError);
 
   if (createError) {
     console.error("[CHAT] create error", {
@@ -545,6 +547,31 @@ export async function findOrCreateChat({
     return null;
   }
 
-  console.log("[CHAT] conversation created", newChat?.id);
-  return newChat;
+  // ── Gerade erzeugten Chat separat nachladen ─────────────────
+  // Separater SELECT entkoppelt INSERT von RLS-SELECT-Policy
+  const { data: created, error: fetchError } = await supabase
+    .from("chats")
+    .select("id, participant_a, participant_b, chat_type, state, booking_id")
+    .or(
+      `and(participant_a.eq.${userId},participant_b.eq.${otherUserId}),` +
+      `and(participant_a.eq.${otherUserId},participant_b.eq.${userId})`
+    )
+    .eq("state", "open")
+    .order("last_message_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  console.log("[CHAT] created fetch", { created, fetchError });
+
+  if (fetchError) {
+    console.error("[CHAT] fetch after insert error", {
+      code:    fetchError?.code,
+      message: fetchError?.message,
+      details: fetchError?.details,
+      hint:    fetchError?.hint,
+    });
+    return null;
+  }
+
+  return created ?? null;
 }
