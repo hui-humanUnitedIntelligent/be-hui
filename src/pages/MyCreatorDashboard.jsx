@@ -462,13 +462,14 @@ export default function MyCreatorDashboard({ onClose }) {
     let cancelled = false;
     async function load() {
       try {
-        const [profRes, bookRes] = await Promise.all([
+        const [profRes, bookRes, fcRes] = await Promise.all([
           supabase.from("profiles")
-            .select("id,display_name,full_name,username,bio,avatar_url,header_img,talent,focus_type,location,location_label,impact_eur,experiences_count,followers_count,connections_count,bookings_count,dna_tags,interests,profile_complete,membership_type,membership_active,membership_since,is_verified,verified,tagline")
+            .select("id,display_name,full_name,username,bio,avatar_url,header_img,talent,focus_type,location,location_label,impact_eur,experiences_count,connections_count,bookings_count,dna_tags,interests,profile_complete,membership_type,membership_active,membership_since,is_verified,verified,tagline")
             .eq("id", authId).single(),
           supabase.from("bookings")
             .select("id,status,total_eur")
             .eq("wirker_id", authId).limit(200),
+          supabase.rpc("get_follow_counts", { target_id: authId }),
         ]);
         if (cancelled) return;
         if (profRes.data) setDbProfile(profRes.data);
@@ -477,7 +478,7 @@ export default function MyCreatorDashboard({ onClose }) {
         setStats({
           bookings:  bkgs.filter(b=>b.status==="upcoming"||b.status==="confirmed").length,
           earned,
-          followers: profRes.data?.followers_count||0,
+          followers: fcRes.data?.[0]?.followers ?? 0,
           impact:    profRes.data?.impact_eur||0,
         });
       } catch(e) { console.warn("[MCD]",e?.message); }
@@ -630,3 +631,4 @@ export default function MyCreatorDashboard({ onClose }) {
     </div>
   );
 }
+
