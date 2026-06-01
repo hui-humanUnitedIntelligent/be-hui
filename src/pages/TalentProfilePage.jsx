@@ -501,163 +501,399 @@ function CinematicHero({ profile, loading }) {
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
 function KompassActionSheet({ profile, isWatching, onWatch, onClose, onOpenChat }) {
-  const name    = profile?.display_name || profile?.username || "Dieses Talent";
-  const avatar  = profile?.avatar_url   || null;
-  const bio     = profile?.bio          || null;
+  const name       = profile?.display_name || profile?.username || "Dieses Talent";
+  const avatar     = profile?.avatar_url   || null;
+  const bio        = profile?.bio          || null;
+  const talent     = profile?.talent       || profile?.role     || null;
+  const location   = profile?.location     || null;
   const profileUrl = window.location.origin + "/profile/" + (profile?.username || profile?.id || "");
 
   async function handleShare() {
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: name,
-          text:  name + " auf HUI",
-          url:   profileUrl,
-        });
-      } catch (_) { /* abgebrochen oder nicht unterstützt */ }
+        await navigator.share({ title: name, text: name + " auf HUI", url: profileUrl });
+      } catch (_) {}
     } else {
       try { await navigator.clipboard.writeText(profileUrl); } catch (_) {}
     }
   }
 
+  // ── Design-Tokens (inline, self-contained) ─────────────────
+  const teal      = "#0EC4B8";
+  const tealDeep  = "#0AADA3";
+  const tealSoft  = "rgba(14,196,184,0.10)";
+  const tealChip  = "rgba(14,196,184,0.13)";
+  const ink       = "#1A1A18";
+  const inkSoft   = "rgba(26,26,24,0.52)";
+  const inkFaint  = "rgba(26,26,24,0.08)";
+  const bgCard    = "#FFFFFF";
+  const bgSheet   = "#F7F5F0";
+  const ff        = "-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif";
+
+  // ── Aktions-Card Komponente ─────────────────────────────────
+  function ActionCard({ icon, iconBg, iconColor, title, subtitle, rightEl, onClick, danger }) {
+    const [pressed, setPressed] = React.useState(false);
+    return (
+      <div
+        onPointerDown={() => setPressed(true)}
+        onPointerUp={() => setPressed(false)}
+        onPointerLeave={() => setPressed(false)}
+        onClick={onClick}
+        style={{
+          display:"flex", alignItems:"center", gap:14,
+          background: pressed ? "rgba(26,26,24,0.04)" : bgCard,
+          borderRadius:16,
+          padding:"14px 16px",
+          cursor:"pointer",
+          transition:"background 0.12s",
+          WebkitTapHighlightColor:"transparent",
+          touchAction:"manipulation",
+          userSelect:"none",
+        }}
+      >
+        {/* Icon-Bubble */}
+        <div style={{
+          width:44, height:44, borderRadius:14, flexShrink:0,
+          background: iconBg || tealSoft,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:20,
+        }}>
+          {typeof icon === "string" ? icon : icon}
+        </div>
+
+        {/* Text */}
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{
+            fontSize:15, fontWeight:700,
+            color: danger ? "#E53E3E" : ink,
+            letterSpacing:"-0.01em",
+            marginBottom:2,
+          }}>{title}</div>
+          {subtitle && (
+            <div style={{
+              fontSize:12.5, color: danger ? "rgba(229,62,62,0.65)" : inkSoft,
+              lineHeight:1.4,
+            }}>{subtitle}</div>
+          )}
+        </div>
+
+        {/* Rechts-Element oder Chevron */}
+        <div style={{flexShrink:0, display:"flex", alignItems:"center", gap:6}}>
+          {rightEl || (
+            <svg width="7" height="13" viewBox="0 0 7 13" fill="none">
+              <path d="M1 1l5 5.5L1 12" stroke={danger ? "#E53E3E" : "rgba(26,26,24,0.25)"}
+                    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Watch Chip ──────────────────────────────────────────────
+  const WatchChip = ({ active }) => (
+    <div style={{
+      display:"flex", alignItems:"center", gap:5,
+      padding:"5px 10px",
+      borderRadius:99,
+      background: active ? "rgba(14,196,184,0.12)" : "rgba(26,26,24,0.06)",
+      border: active ? "1px solid rgba(14,196,184,0.30)" : "1px solid rgba(26,26,24,0.10)",
+    }}>
+      {active && (
+        <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+          <path d="M1 4.5L4 7.5L10 1" stroke={teal} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+      <span style={{
+        fontSize:12, fontWeight:700,
+        color: active ? tealDeep : "rgba(26,26,24,0.45)",
+        letterSpacing:"-0.01em",
+      }}>
+        {active ? "Aktiv" : "Nicht aktiv"}
+      </span>
+    </div>
+  );
+
+  // ── Kontext-Karte (Beziehungskontext) ───────────────────────
+  function ContextCard({ emoji, value, label, color }) {
+    return (
+      <div style={{
+        flex:1, display:"flex", flexDirection:"column", alignItems:"center",
+        gap:4, padding:"10px 6px",
+      }}>
+        <div style={{
+          width:32, height:32, borderRadius:"50%",
+          background: color || "rgba(14,196,184,0.10)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:16, marginBottom:2,
+        }}>{emoji}</div>
+        <div style={{
+          fontSize:15, fontWeight:800, color:ink,
+          letterSpacing:"-0.02em", lineHeight:1,
+        }}>{value}</div>
+        <div style={{
+          fontSize:11, color:inkSoft, textAlign:"center",
+          lineHeight:1.3,
+        }}>{label}</div>
+      </div>
+    );
+  }
+
   return createPortal(
     <>
-      {/* Overlay */}
+      {/* ── Backdrop ── */}
       <div
         onClick={onClose}
         style={{
           position:"fixed", inset:0,
-          background:"rgba(26,26,24,0.48)",
-          backdropFilter:"blur(4px)",
+          background:"rgba(20,18,15,0.52)",
+          backdropFilter:"blur(6px)",
+          WebkitBackdropFilter:"blur(6px)",
           zIndex:9998,
         }}
       />
 
-      {/* Sheet */}
+      {/* ── Sheet ── */}
       <div style={{
         position:"fixed",
         left:0, right:0, bottom:0,
         zIndex:9999,
-        background:"#FEFCF9",
-        borderRadius:"20px 20px 0 0",
-        padding:"0 0 max(24px,env(safe-area-inset-bottom,24px))",
-        boxShadow:"0 -8px 40px rgba(26,26,24,0.14)",
-        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+        background:bgSheet,
+        borderRadius:"26px 26px 0 0",
+        paddingBottom:"max(20px,env(safe-area-inset-bottom,20px))",
+        boxShadow:"0 -12px 60px rgba(26,26,24,0.18), 0 -2px 8px rgba(26,26,24,0.08)",
+        fontFamily:ff,
+        maxHeight:"92vh",
+        overflowY:"auto",
+        WebkitOverflowScrolling:"touch",
       }}>
 
-        {/* Handle */}
-        <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
-          <div style={{width:36,height:4,borderRadius:2,background:"rgba(26,26,24,0.13)"}}/>
+        {/* ── Handle ── */}
+        <div style={{display:"flex",justifyContent:"center",padding:"10px 0 0"}}>
+          <div style={{width:38,height:4,borderRadius:2,background:"rgba(26,26,24,0.15)"}}/>
         </div>
 
-        {/* Profilkopf */}
+        {/* ══════════════════════════════════
+            BEREICH 1 — PROFILKOPF
+            ══════════════════════════════════ */}
         <div style={{
-          display:"flex", alignItems:"center", gap:12,
-          padding:"12px 20px 16px",
-          borderBottom:"1px solid rgba(26,26,24,0.07)",
+          background:bgCard,
+          borderRadius:20,
+          margin:"12px 16px 0",
+          padding:"18px 18px 16px",
+          boxShadow:"0 1px 8px rgba(26,26,24,0.06)",
         }}>
-          {avatar ? (
-            <img src={avatar} alt={name}
-              style={{width:48,height:48,borderRadius:"50%",objectFit:"cover",flexShrink:0,
-                      border:"2px solid rgba(14,196,184,0.30)"}}
-            />
-          ) : (
-            <div style={{
-              width:48,height:48,borderRadius:"50%",flexShrink:0,
-              background:"linear-gradient(135deg,#0EC4B8,#0AADA3)",
-              display:"flex",alignItems:"center",justifyContent:"center",
-              fontSize:20,color:"#fff",
-            }}>
-              {name.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{
-              fontSize:16,fontWeight:800,color:"#1A1A18",
-              letterSpacing:"-0.02em",
-              overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
-            }}>{name}</div>
-            {bio && (
+          <div style={{display:"flex", gap:14, alignItems:"flex-start"}}>
+
+            {/* Avatar */}
+            <div style={{position:"relative", flexShrink:0}}>
+              {avatar ? (
+                <img src={avatar} alt={name} style={{
+                  width:72, height:72, borderRadius:"50%",
+                  objectFit:"cover",
+                  border:"3px solid #fff",
+                  boxShadow:"0 2px 12px rgba(26,26,24,0.14)",
+                }}/>
+              ) : (
+                <div style={{
+                  width:72, height:72, borderRadius:"50%",
+                  background:`linear-gradient(135deg,${teal},${tealDeep})`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:28, fontWeight:800, color:"#fff",
+                  boxShadow:"0 2px 12px rgba(14,196,184,0.28)",
+                }}>
+                  {name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              {/* Online-Dot */}
               <div style={{
-                fontSize:13,color:"rgba(26,26,24,0.52)",lineHeight:1.4,marginTop:2,
-                display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",
-                overflow:"hidden",
-              }}>{bio}</div>
+                position:"absolute", bottom:2, right:2,
+                width:13, height:13, borderRadius:"50%",
+                background:"#22C55E",
+                border:"2.5px solid #fff",
+              }}/>
+            </div>
+
+            {/* Identität */}
+            <div style={{flex:1, minWidth:0, paddingTop:2}}>
+              <div style={{
+                fontSize:20, fontWeight:900, color:ink,
+                letterSpacing:"-0.03em", lineHeight:1.15,
+                marginBottom:4,
+              }}>{name}</div>
+
+              {talent && (
+                <div style={{
+                  display:"flex", alignItems:"center", gap:5,
+                  marginBottom:6,
+                }}>
+                  <span style={{fontSize:13}}>🎨</span>
+                  <span style={{
+                    fontSize:13, fontWeight:700,
+                    color:tealDeep, letterSpacing:"-0.01em",
+                  }}>{talent}</span>
+                </div>
+              )}
+
+              {bio && (
+                <div style={{
+                  fontSize:13, color:inkSoft, lineHeight:1.5,
+                  marginBottom:6,
+                  display:"-webkit-box",
+                  WebkitLineClamp:2,
+                  WebkitBoxOrient:"vertical",
+                  overflow:"hidden",
+                }}>
+                  &ldquo;{bio}&rdquo;
+                </div>
+              )}
+
+              <div style={{display:"flex", alignItems:"center", gap:10, flexWrap:"wrap"}}>
+                {location && (
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:4,
+                    fontSize:12, color:inkSoft,
+                  }}>
+                    <span>📍</span>
+                    <span>{location}</span>
+                  </div>
+                )}
+                {(profile?.role === "talent" || profile?.role === "wirker" || profile?.has_talent_profile) && (
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:4,
+                    fontSize:12, color:inkSoft,
+                  }}>
+                    <span>☆</span>
+                    <span>Wirker</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Watch-Status-Chip oben rechts */}
+            {isWatching && (
+              <div style={{flexShrink:0, paddingTop:2}}>
+                <div style={{
+                  display:"flex", flexDirection:"column", alignItems:"center",
+                  padding:"7px 10px",
+                  borderRadius:14,
+                  background:tealSoft,
+                  border:`1px solid rgba(14,196,184,0.22)`,
+                  gap:3,
+                }}>
+                  <span style={{fontSize:16}}>🌱</span>
+                  <span style={{fontSize:11,fontWeight:700,color:tealDeep}}>Im Blick</span>
+                  <span style={{fontSize:10,color:inkSoft}}>aktiv</span>
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Aktionen */}
-        <div style={{padding:"8px 0"}}>
-
-          {/* Im Blick behalten */}
-          <button
-            onClick={() => { onWatch?.(); onClose?.(); }}
-            style={{
-              width:"100%", padding:"15px 20px",
-              background:"none", border:"none",
-              display:"flex", alignItems:"center", gap:14,
-              cursor:"pointer", textAlign:"left",
-              fontFamily:"inherit",
-            }}
-          >
-            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>
-              {isWatching ? "👁" : "🌱"}
-            </span>
-            <span style={{fontSize:15,fontWeight:600,color:"#1A1A18"}}>
-              {isWatching ? "Nicht mehr im Blick behalten" : "Im Blick behalten"}
-            </span>
-          </button>
-
-          {/* Nachricht senden */}
-          <button
-            onClick={() => { onOpenChat?.(); onClose?.(); }}
-            style={{
-              width:"100%", padding:"15px 20px",
-              background:"none", border:"none",
-              display:"flex", alignItems:"center", gap:14,
-              cursor:"pointer", textAlign:"left",
-              fontFamily:"inherit",
-            }}
-          >
-            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>💬</span>
-            <span style={{fontSize:15,fontWeight:600,color:"#1A1A18"}}>Nachricht senden</span>
-          </button>
-
-          {/* Profil teilen */}
-          <button
-            onClick={handleShare}
-            style={{
-              width:"100%", padding:"15px 20px",
-              background:"none", border:"none",
-              display:"flex", alignItems:"center", gap:14,
-              cursor:"pointer", textAlign:"left",
-              fontFamily:"inherit",
-            }}
-          >
-            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>⎙</span>
-            <span style={{fontSize:15,fontWeight:600,color:"#1A1A18"}}>Profil teilen</span>
-          </button>
-
-          {/* Trennlinie */}
-          <div style={{height:1,background:"rgba(26,26,24,0.07)",margin:"4px 20px"}}/>
-
-          {/* Schließen */}
-          <button
-            onClick={onClose}
-            style={{
-              width:"100%", padding:"15px 20px",
-              background:"none", border:"none",
-              display:"flex", alignItems:"center", gap:14,
-              cursor:"pointer", textAlign:"left",
-              fontFamily:"inherit",
-            }}
-          >
-            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>✕</span>
-            <span style={{fontSize:15,fontWeight:600,color:"rgba(26,26,24,0.50)"}}>Schließen</span>
-          </button>
-
+        {/* ══════════════════════════════════
+            BEREICH 2 — BEZIEHUNGSKONTEXT
+            ══════════════════════════════════ */}
+        <div style={{
+          background:bgCard,
+          borderRadius:20,
+          margin:"10px 16px 0",
+          padding:"4px 8px",
+          boxShadow:"0 1px 8px rgba(26,26,24,0.06)",
+          display:"flex",
+          alignItems:"stretch",
+        }}>
+          <ContextCard
+            emoji="👥"
+            value="2"
+            label={"Gemeinsame
+Kontakte"}
+            color="rgba(14,196,184,0.10)"
+          />
+          <div style={{width:1,background:inkFaint,margin:"12px 0"}}/>
+          <ContextCard
+            emoji="👁"
+            value="1"
+            label={"Beobachtet
+dich"}
+            color="rgba(14,196,184,0.10)"
+          />
+          <div style={{width:1,background:inkFaint,margin:"12px 0"}}/>
+          <ContextCard
+            emoji="🤝"
+            value="—"
+            label={"Noch keine
+Verbindung"}
+            color="rgba(255,107,82,0.10)"
+          />
         </div>
+
+        {/* ══════════════════════════════════
+            BEREICH 3 — AKTIONEN
+            ══════════════════════════════════ */}
+        <div style={{
+          display:"flex", flexDirection:"column", gap:8,
+          margin:"10px 16px 0",
+        }}>
+
+          {/* Card 1: Im Blick behalten */}
+          <ActionCard
+            icon="🌱"
+            iconBg={isWatching ? "rgba(14,196,184,0.12)" : "rgba(14,196,184,0.09)"}
+            title="Im Blick behalten"
+            subtitle="Du siehst Updates dieser Person."
+            rightEl={<WatchChip active={!!isWatching} />}
+            onClick={() => { onWatch?.(); onClose?.(); }}
+          />
+
+          {/* Card 2: Nachricht senden */}
+          <ActionCard
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+                  stroke="#6B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="9" cy="11" r="1" fill="#6B5CF6"/>
+                <circle cx="12" cy="11" r="1" fill="#6B5CF6"/>
+                <circle cx="15" cy="11" r="1" fill="#6B5CF6"/>
+              </svg>
+            }
+            iconBg="rgba(107,92,246,0.10)"
+            title="Nachricht senden"
+            subtitle="Starte ein Gespräch und tausche dich aus."
+            onClick={() => { onOpenChat?.(); onClose?.(); }}
+          />
+
+          {/* Card 3: Profil teilen */}
+          <ActionCard
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"
+                  stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            }
+            iconBg="rgba(59,130,246,0.10)"
+            title="Profil teilen"
+            subtitle="Profil mit anderen teilen."
+            onClick={handleShare}
+          />
+
+          {/* Card 4: Schließen */}
+          <ActionCard
+            icon={
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 2l12 12M14 2L2 14"
+                  stroke="#E53E3E" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            }
+            iconBg="rgba(229,62,62,0.10)"
+            title="Schließen"
+            subtitle="Kompass schließen"
+            onClick={onClose}
+            danger={true}
+          />
+        </div>
+
+        {/* Boden-Abstand */}
+        <div style={{height:8}}/>
       </div>
     </>,
     document.body
