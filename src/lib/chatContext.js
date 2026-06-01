@@ -478,14 +478,13 @@ export async function findOrCreateChat({
   }
 
   // ── Bestehenden Chat suchen ─────────────────────────────────
+  // participant_ids ist uuid[] → .contains() mit beiden UUIDs
+  // state-Wert in DB ist "opened" (nicht "open")
   const { data: existing, error: findError } = await supabase
     .from("chats")
-    .select("id, participant_a, participant_b, chat_type, state, last_message, booking_id")
-    .or(
-      `and(participant_a.eq.${userId},participant_b.eq.${otherUserId}),` +
-      `and(participant_a.eq.${otherUserId},participant_b.eq.${userId})`
-    )
-    .eq("state", "open")
+    .select("id, participant_ids, state, last_message, last_message_at, booking_id")
+    .contains("participant_ids", [userId, otherUserId])
+    .eq("state", "opened")
     .order("last_message_at", { ascending: false })
     .limit(5);
 
@@ -505,8 +504,9 @@ export async function findOrCreateChat({
   });
 
   const match = (existing || []).find(c =>
-    (c.participant_a === userId && c.participant_b === otherUserId) ||
-    (c.participant_a === otherUserId && c.participant_b === userId)
+    Array.isArray(c.participant_ids) &&
+    c.participant_ids.includes(userId) &&
+    c.participant_ids.includes(otherUserId)
   );
 
   if (match) {
@@ -515,21 +515,18 @@ export async function findOrCreateChat({
   }
 
   // ── Neuen Chat erstellen ────────────────────────────────────
-  // INSERT ohne .select() — verhindert Supabase "silent null"
-  // wenn RLS-SELECT-Policy nach INSERT nicht greift
+  // INSERT nur mit existierenden DB-Spalten (verifiziert 2026-06-01):
+  //   id, booking_id, participant_ids, state, last_message_at,
+  //   last_message, opened_at, closed_at, created_at, booking_title
+  // participant_a / participant_b / chat_type / context_* existieren NICHT
+  // state-Default der DB ist "opened" (nicht "open")
   console.log("[CHAT] creating conversation", { userId, otherUserId });
 
   const { error: createError } = await supabase
     .from("chats")
     .insert({
-      participant_a:    userId,
-      participant_b:    otherUserId,
       participant_ids:  [userId, otherUserId],
-      chat_type:        chatType,
-      state:            "open",
-      booking_id:       bookingId,
-      context_title:    contextTitle,
-      context_type:     contextType,
+      booking_id:       bookingId ?? null,
       opened_at:        new Date().toISOString(),
       last_message_at:  new Date().toISOString(),
     });
@@ -543,21 +540,18 @@ export async function findOrCreateChat({
       details: createError?.details,
       hint:    createError?.hint,
     });
-    console.log("[CHAT] returning null");
     return null;
   }
 
-  // ── Gerade erzeugten Chat separat nachladen ─────────────────
-  // Separater SELECT entkoppelt INSERT von RLS-SELECT-Policy
+  // ── Gerade erzeugten Chat nachladen ─────────────────────────
+  // participant_ids is uuid[] → cs. (contains) mit beiden UUIDs
+  // state-Wert in DB ist "opened" (DB-Default), nicht "open"
   const { data: created, error: fetchError } = await supabase
     .from("chats")
-    .select("id, participant_a, participant_b, chat_type, state, booking_id")
-    .or(
-      `and(participant_a.eq.${userId},participant_b.eq.${otherUserId}),` +
-      `and(participant_a.eq.${otherUserId},participant_b.eq.${userId})`
-    )
-    .eq("state", "open")
-    .order("last_message_at", { ascending: false })
+    .select("id, participant_ids, state, booking_id, opened_at")
+    .contains("participant_ids", [userId, otherUserId])
+    .eq("state", "opened")
+    .order("opened_at", { ascending: false })
     .limit(1)
     .single();
 
