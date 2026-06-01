@@ -699,14 +699,14 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
 // ══════════════════════════════════════════════════════════════
 // 4. SCHWERPUNKT-KARTE + QUICK-STATS
 // ══════════════════════════════════════════════════════════════
-function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading }) {
+function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, followCounts }) {
   const sp = useMemo(
     () => detectSchwerpunkt(profile, works, experiences),
     [profile, works, experiences]
   );
 
   const stats = [
-    { emoji:"👥", value: loading ? "–" : "24",          label:"Verbindungen" },
+    { emoji:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Follower" },
     { emoji:"🤝", value: loading ? "–" : String(Math.max(experiences.length * 3, 8)), label:"Begegnungen" },
     { emoji:"💬", value: loading ? "–" : String(moments.length || 6), label:"Momente" },
     { emoji:"⭐", value: loading ? "–" : String(works.length + experiences.length || 12), label:"Projekte &\nInitiativen" },
@@ -1293,6 +1293,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const [moments,    setMoments]    = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
+  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
   const [showKompassSheet, setShowKompassSheet] = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const kompassToggleRef = React.useRef(() => {});
@@ -1310,7 +1311,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
     (async () => {
       setLoading(true);
       try {
-        const [profileRes, worksRes, experiencesRes, momentsRes] = await Promise.all([
+        const [profileRes, worksRes, experiencesRes, momentsRes, fcRes] = await Promise.all([
           // Profil
           supabase.from("profiles")
             .select("id,username,display_name,bio,avatar_url,header_img,location,interests,skills,has_talent_profile,role,membership_type")
@@ -1339,6 +1340,9 @@ export default function TalentProfilePage({ profileId, onClose }) {
             .eq("user_id", profileId)
             .order("created_at", { ascending: false })
             .limit(16),
+
+          // Follower-Zähler (live aus follows-Tabelle)
+          supabase.rpc("get_follow_counts", { target_id: profileId }),
         ]);
 
         // Profil
@@ -1363,6 +1367,10 @@ export default function TalentProfilePage({ profileId, onClose }) {
         setWorks(worksRes.data || []);
         setExperiences(experiencesRes.data || []);
         setMoments(momentsRes.data || []);
+        setFollowCounts({
+          followers: fcRes.data?.[0]?.followers ?? 0,
+          following: fcRes.data?.[0]?.following ?? 0,
+        });
 
       } catch(e) {
         console.warn("[TalentProfilePage] load error:", e);
@@ -1406,7 +1414,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <SchwerpunktStatsBlock
           profile={profile} works={works}
           experiences={experiences} moments={moments}
-          loading={loading}/>
+          loading={loading} followCounts={followCounts}/>
         <Gap h={28}/>
 
         {/* 4. Mein Wirken */}
@@ -1447,3 +1455,4 @@ export default function TalentProfilePage({ profileId, onClose }) {
     </div>
   );
 }
+
