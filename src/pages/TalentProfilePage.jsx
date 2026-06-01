@@ -805,24 +805,21 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onOpenChat 
           <ContextCard
             emoji="👥"
             value="2"
-            label={"Gemeinsame
-Kontakte"}
+            label="Gemeinsame Kontakte"
             color="rgba(14,196,184,0.10)"
           />
           <div style={{width:1,background:inkFaint,margin:"12px 0"}}/>
           <ContextCard
             emoji="👁"
             value="1"
-            label={"Beobachtet
-dich"}
+            label="Beobachtet dich"
             color="rgba(14,196,184,0.10)"
           />
           <div style={{width:1,background:inkFaint,margin:"12px 0"}}/>
           <ContextCard
             emoji="🤝"
             value="—"
-            label={"Noch keine
-Verbindung"}
+            label="Noch keine Verbindung"
             color="rgba(255,107,82,0.10)"
           />
         </div>
