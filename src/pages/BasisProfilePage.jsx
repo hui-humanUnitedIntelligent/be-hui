@@ -520,9 +520,9 @@ function SichtbarkeitSection({ profile, loading }) {
 // ══════════════════════════════════════════════════════════════════
 // SOCIAL CONTEXT BAR — 3 soft columns: Verbindungen · Begegnungen · Momente
 // ══════════════════════════════════════════════════════════════════
-function SocialContextBar({ loading }) {
+function SocialContextBar({ loading, followCounts }) {
   const stats = [
-    { icon:"👥", value:"24", label:"Verbindungen"           },
+    { icon:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Follower" },
     { icon:"🤝", value:"8",  label:"Gemeinsame Begegnungen" },
     { icon:"💬", value:"6",  label:"Gemeinsame Momente"     },
   ];
@@ -572,6 +572,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
@@ -579,9 +580,13 @@ export default function BasisProfilePage({ profileId, onClose }) {
     if (!profileId) { setLoading(false); return; }
     (async()=>{
       try {
-        const { data } = await supabase.from("profiles")
-          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags")
-          .eq("id", profileId).single();
+        const [profRes, fcRes] = await Promise.all([
+          supabase.from("profiles")
+            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags")
+            .eq("id", profileId).single(),
+          supabase.rpc("get_follow_counts", { target_id: profileId }),
+        ]);
+        const data = profRes.data;
         if (data) {
           // Wenn eigenes Profil: AuthContext hat immer die neuesten Änderungen
           const isOwnProfile = user?.id && data.id === user.id;
@@ -598,6 +603,10 @@ export default function BasisProfilePage({ profileId, onClose }) {
         } else {
           setProfile(null);
         }
+        setFollowCounts({
+          followers: fcRes.data?.[0]?.followers ?? 0,
+          following: fcRes.data?.[0]?.following ?? 0,
+        });
       } catch(e) { console.warn("BasisProfilePage load:", e); }
       setLoading(false);
     })();
@@ -647,9 +656,10 @@ export default function BasisProfilePage({ profileId, onClose }) {
         <Gap h={24}/>
 
         {/* 7. Social context bar */}
-        <SocialContextBar loading={loading}/>
+        <SocialContextBar loading={loading} followCounts={followCounts}/>
         <Gap h={32}/>
       </div>
     </div>
   );
 }
+
