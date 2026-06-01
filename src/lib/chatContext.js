@@ -1,19 +1,17 @@
-// chatContext.js — HUI Chat Intelligence Layer v1.1
-// Phase 3D: softText Status-Übergänge
-// Phase 3B: Intelligentes Creator-Kommunikationssystem
+// chatContext.js — HUI Chat Intelligence Layer v1.2
+// Schema-Fix 2026-06-01: Live-DB-Struktur verifiziert
+// TABLE chats:    id, booking_id, participant_ids, state("opened"),
+//                last_message_at, last_message, opened_at, closed_at,
+//                created_at, booking_title
+// TABLE messages: id, created_at, chat_id, sender_id, sender_name,
+//                sender_img, text, read, message_type, is_read, updated_at
 //
-// CHAT TYPEN:
-// direct       — einfacher Direktchat
-// booking      — verknüpft mit Buchungsanfrage
-// collaboration — gemeinsames Kreativprojekt
-// project      — laufendes Projekt
-// support      — Support-Gespräch
-//
-// MESSAGE TYPEN:
-// text / image / voice / file
-// booking_update / availability_update
-// shared_work / shared_experience
-// recommendation / system_message
+// ENTFERNT (existieren nicht in DB):
+//   chats:    participant_a, participant_b, chat_type, context_type,
+//             context_title, context_id, last_message_type, is_pinned,
+//             unread_a, unread_b
+//   messages: msg_type, media_url, media_type, media_meta,
+//             context_ref, is_deleted, reply_to
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { feedback } from './feedback/index.js';
@@ -78,7 +76,9 @@ export function formatMsgDate(iso) {
 }
 
 // ────────────────────────────────────────────────────────────────
-// useChatList — alle Chats des Users, sortiert + mit Kontext
+// PRIO 1: useChatList — echtes DB-Schema
+// participant_ids (uuid[]) statt participant_a/participant_b
+// state = "opened" statt "open"
 // ────────────────────────────────────────────────────────────────
 export function useChatList() {
   const { user } = useAuth();
@@ -89,55 +89,57 @@ export function useChatList() {
   const load = useCallback(async () => {
     if (!user?.id) return;
     try {
-      // Chats laden (participant_a/b Schema)
-      const { data: rawChats } = await supabase
+      // SELECT nur existierende Spalten (verifiziert 2026-06-01)
+      const { data: rawChats, error: chatError } = await supabase
         .from("chats")
         .select(`
-          id, chat_type, state, booking_title, context_type, context_id,
-          context_title, last_message, last_message_at, last_message_type,
-          is_pinned, unread_a, unread_b, updated_at,
-          booking_id,
-          participant_a, participant_b,
-          profile_a:profiles!chats_participant_a_fkey(
-            id, display_name, avatar_url, username, last_seen, availability
-          ),
-          profile_b:profiles!chats_participant_b_fkey(
-            id, display_name, avatar_url, username, last_seen, availability
-          )
+          id, state, booking_title,
+          last_message, last_message_at,
+          opened_at, booking_id,
+          participant_ids
         `)
-        .or(`participant_a.eq.${user.id},participant_b.eq.${user.id}`)
-        .eq("state", "open")
+        // participant_ids ist uuid[] → cs. (contains) prüft ob user.id enthalten
+        .contains("participant_ids", [user.id])
+        .eq("state", "opened")
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
 
+      if (chatError) {
+        console.error("[useChatList] SELECT Fehler:", chatError.code, chatError.message);
+        setLoading(false);
+        return;
+      }
       if (!rawChats) { setLoading(false); return; }
 
-      // Anreichern: other_profile + unread für diesen User
-      console.log('[HUI MAP DEBUG] rawChats', rawChats);
-  const enriched = (rawChats||[]).filter(c=>c&&c.id).map(c => {
-        const isA  = c.participant_a === user.id;
-        const other = isA ? c.profile_b : c.profile_a;
-        const unread = isA ? (c.unread_a || 0) : (c.unread_b || 0);
+      console.log('[useChatList] rawChats count:', rawChats.length);
 
-        return {
-          ...c,
-          other_profile: other,
-          unread,
-          // Booking-Kontext-Priorität
-          _priority: unread > 0 ? 100 :
-                     c.chat_type === "booking" ? 50 :
-                     c.chat_type === "collaboration" ? 40 :
-                     c.chat_type === "project" ? 35 : 0,
-        };
-      });
+      // Für jeden Chat: anderen Teilnehmer-Profil laden
+      // participant_ids = [userA, userB] — der andere ist nicht user.id
+      const enriched = await Promise.all(
+        (rawChats || []).filter(c => c && c.id).map(async (c) => {
+          const otherId = (c.participant_ids || []).find(id => id !== user.id);
+          let otherProfile = null;
+          if (otherId) {
+            const { data: prof } = await supabase
+              .from("profiles")
+              .select("id, display_name, avatar_url, username, last_seen, availability")
+              .eq("id", otherId)
+              .single();
+            otherProfile = prof;
+          }
+          return {
+            ...c,
+            other_profile: otherProfile,
+            unread: 0, // unread_a/unread_b existieren nicht in DB
+            _priority: 0,
+          };
+        })
+      );
 
-      // Sortierung: Pinned → Unread → priority → last_message_at
-      enriched.sort((a, b) => {
-        if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
-        if (a.unread > 0 !== b.unread > 0) return a.unread > 0 ? -1 : 1;
-        if (a._priority !== b._priority)   return b._priority - a._priority;
-        return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
-      });
+      // Sortierung: last_message_at
+      enriched.sort((a, b) =>
+        new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0)
+      );
 
       setChats(enriched);
     } catch(e) {
@@ -168,15 +170,10 @@ export function useChatList() {
   const unreadTotal = useMemo(() =>
     chats.reduce((sum, c) => sum + (c.unread || 0), 0), [chats]);
 
-  // markChatRead — setzt unread für diesen User auf 0
+  // markChatRead — setzt messages als gelesen
+  // unread_a/unread_b existieren nicht → nur messages.read updaten
   const markChatRead = useCallback(async (chatId) => {
     if (!user?.id) return;
-    const c = chats.find(ch => ch.id === chatId);
-    if (!c) return;
-    const isA = c.participant_a === user.id;
-    const updateField = isA ? { unread_a: 0 } : { unread_b: 0 };
-    await supabase.from("chats").update(updateField).eq("id", chatId);
-    // Auch messages als gelesen markieren
     await supabase.from("messages")
       .update({ read: true })
       .eq("chat_id", chatId)
@@ -184,13 +181,17 @@ export function useChatList() {
     setChats(prev => prev.map(ch =>
       ch.id === chatId ? { ...ch, unread: 0 } : ch
     ));
-  }, [user?.id, chats]);
+  }, [user?.id]);
 
   return { chats, loading, unreadTotal, reload: load, markChatRead };
 }
 
 // ────────────────────────────────────────────────────────────────
-// useChatThread — Nachrichten eines Chats + Realtime
+// PRIO 2: useChatThread — echtes messages-Schema
+// Nur existierende Felder: id, created_at, chat_id, sender_id,
+// sender_name, sender_img, text, read, message_type, is_read, updated_at
+// Entfernt: msg_type, media_url, media_type, media_meta,
+//           context_ref, is_deleted, reply_to
 // ────────────────────────────────────────────────────────────────
 export function useChatThread(chatId) {
   const { user } = useAuth();
@@ -213,15 +214,14 @@ export function useChatThread(chatId) {
     }
     console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
     try {
+      // SELECT nur existierende Spalten (verifiziert 2026-06-01)
       const { data } = await supabase
         .from("messages")
         .select(`
-          id, text, sender_id, created_at, read, updated_at,
-          msg_type, media_url, media_type, media_meta,
-          context_ref, is_deleted, reply_to
+          id, text, sender_id, sender_name, sender_img,
+          created_at, updated_at, read, is_read, message_type
         `)
         .eq("chat_id", chatId)
-        .eq("is_deleted", false)
         .order("created_at", { ascending: true })
         .limit(100);
       if (data) setMessages(data);
@@ -270,7 +270,9 @@ export function useChatThread(chatId) {
     return () => { supabase.removeChannel(realtimeRef.current); };
   }, [chatId]);
 
-  // sendMessage — Optimistic Update + Supabase
+  // PRIO 3: sendMessage — echtes messages-Schema
+  // message_type statt msg_type
+  // Entfernt: media_url, media_type, media_meta, context_ref
   const sendMessage = useCallback(async ({
     text, msgType = "text", mediaUrl, mediaType, mediaMeta, contextRef,
   }) => {
@@ -283,23 +285,19 @@ export function useChatThread(chatId) {
       console.error("[HUI_MESSAGE_ERROR] kein user.id — nicht eingeloggt?", { chatId });
       return { error: "not_authenticated" };
     }
-    if (!text?.trim() && !mediaUrl) {
-      console.warn("[HUI_MESSAGE_ERROR] leerer Text + kein mediaUrl — abgebrochen");
+    if (!text?.trim()) {
+      console.warn("[HUI_MESSAGE_ERROR] leerer Text — abgebrochen");
       return { error: "empty_message" };
     }
 
-    // ── PAYLOAD LOG ────────────────────────────────────────────
+    // Payload: nur existierende DB-Spalten (verifiziert 2026-06-01)
     const payload = {
-      chat_id:    chatId,
-      sender_id:  user.id,
-      text:       text?.trim() || "",
-      msg_type:   msgType,
-      media_url:  mediaUrl || null,
-      media_type: mediaType || null,
-      media_meta: mediaMeta || null,
-      context_ref: contextRef || null,
-      created_at: new Date().toISOString(),
-      read:       false,
+      chat_id:      chatId,
+      sender_id:    user.id,
+      text:         text?.trim() || "",
+      message_type: msgType,   // DB-Spalte heißt "message_type", nicht "msg_type"
+      read:         false,
+      created_at:   new Date().toISOString(),
     };
     console.log("[HUI_MESSAGE_SEND] Payload →", JSON.stringify(payload));
     setSending(true);
@@ -318,7 +316,6 @@ export function useChatThread(chatId) {
         .single();
 
       if (error) {
-        // ── INSERT ERROR ───────────────────────────────────────
         console.error("[HUI_MESSAGE_ERROR] Supabase INSERT fehlgeschlagen:", {
           code:    error.code,
           message: error.message,
@@ -336,19 +333,19 @@ export function useChatThread(chatId) {
         m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
       ));
 
-      // Phase 4E: Notification an Gesprächspartner (non-blocking)
+      // PRIO 4: Notification — participant_ids statt participant_a/b
       if (insertedData?.id && chatId) {
         Promise.resolve().then(async () => {
           try {
             const { data: chatRow } = await supabase
               .from("chats")
-              .select("participant_a, participant_b")
+              .select("participant_ids")
               .eq("id", chatId)
               .single();
-            if (!chatRow) return;
-            const recipientId = chatRow.participant_a === user?.id
-              ? chatRow.participant_b
-              : chatRow.participant_a;
+            if (!chatRow?.participant_ids) return;
+            // Empfänger = das andere Element in participant_ids
+            const recipientId = (chatRow.participant_ids || []).find(id => id !== user?.id);
+            if (!recipientId) return;
             const { data: me } = await supabase
               .from("profiles").select("display_name").eq("id", user?.id).single();
             await notifyMessage({
@@ -375,19 +372,16 @@ export function useChatThread(chatId) {
 
   // sendSystemMessage — für Booking-Updates etc.
   const sendSystemMessage = useCallback(async (text, contextRef) => {
-    return sendMessage({ text, msgType: "system_message", contextRef });
+    return sendMessage({ text, msgType: "system_message" });
   }, [sendMessage]);
 
   // sendBookingUpdate — weiche Status-Beschreibung statt technischer Text
-  // Verwendet BOOKING_STATUS.softText wenn vorhanden
   const sendBookingUpdate = useCallback(async (statusText, bookingData) => {
-    // softText aus bookingData.status holen wenn nicht explizit übergeben
     const finalText = statusText || (bookingData?.status
       ? `Status: ${bookingData.status}` : "Status aktualisiert");
     return sendMessage({
-      text:       finalText,
-      msgType:    "booking_update",
-      contextRef: bookingData,
+      text:    finalText,
+      msgType: "booking_update",
     });
   }, [sendMessage]);
 
@@ -396,24 +390,15 @@ export function useChatThread(chatId) {
     return sendMessage({
       text:    `Ich teile mein Werk: ${work.title}`,
       msgType: "shared_work",
-      contextRef: {
-        type:      "work",
-        id:        work.id,
-        title:     work.title,
-        thumbnail: work.cover_url || work.media_url,
-        price:     work.price,
-      },
     });
   }, [sendMessage]);
 
-  // deleteMessage — soft delete
+  // deleteMessage — UI-only (is_deleted existiert nicht in DB)
+  // Markiert message lokal als gelöscht, kein DB-Update
   const deleteMessage = useCallback(async (messageId) => {
-    await supabase.from("messages")
-      .update({ is_deleted: true })
-      .eq("id", messageId)
-      .eq("sender_id", user.id);
+    // is_deleted existiert nicht in DB — nur lokal entfernen
     setMessages(prev => prev.filter(m => m.id !== messageId));
-  }, [user?.id]);
+  }, []);
 
   return {
     messages, loading, sending,
@@ -423,8 +408,9 @@ export function useChatThread(chatId) {
 }
 
 // ────────────────────────────────────────────────────────────────
-// useChatContext — vollständiger Kontext eines Chats
-// (Booking-Daten, andere Profile, Projekt-Status)
+// useChatContext — Kontext eines Chats (Booking-Daten etc.)
+// context_title/context_type existieren nicht in DB → entfernt
+// booking_title existiert → bleibt
 // ────────────────────────────────────────────────────────────────
 export function useChatContext(chat) {
   const [booking,  setBooking]  = useState(null);
@@ -450,13 +436,10 @@ export function useChatContext(chat) {
   }, [chat?.booking_id]);
 
   // Kontext-Label für Header
+  // context_title/chat_type existieren nicht in DB — nur booking_title
   const contextLabel = useMemo(() => {
-    if (chat?.context_title) return chat.context_title;
     if (chat?.booking_title) return chat.booking_title;
     if (booking?.req_type)   return booking.req_type;
-    if (chat?.chat_type && chat.chat_type !== "direct") {
-      return CHAT_TYPES[chat.chat_type]?.label || "";
-    }
     return null;
   }, [chat, booking]);
 
@@ -464,13 +447,15 @@ export function useChatContext(chat) {
 }
 
 // ────────────────────────────────────────────────────────────────
-// useOrCreateChat — Chat zwischen zwei Usern finden oder neu erstellen
+// findOrCreateChat — Chat zwischen zwei Usern finden oder erstellen
+// participant_ids (uuid[]) — verifiziert 2026-06-01
+// state = "opened" (DB-Default)
 // ────────────────────────────────────────────────────────────────
 export async function findOrCreateChat({
   userId, otherUserId, chatType = "direct",
   bookingId = null, contextTitle = null, contextType = null,
 }) {
-  console.log("[CHAT] findOrCreateChat aufgerufen", { userId, otherUserId, chatType });
+  console.log("[CHAT] findOrCreateChat aufgerufen", { userId, otherUserId });
 
   if (!userId || !otherUserId) {
     console.log("[CHAT] STOP: userId oder otherUserId fehlt", { userId, otherUserId });
@@ -515,11 +500,7 @@ export async function findOrCreateChat({
   }
 
   // ── Neuen Chat erstellen ────────────────────────────────────
-  // INSERT nur mit existierenden DB-Spalten (verifiziert 2026-06-01):
-  //   id, booking_id, participant_ids, state, last_message_at,
-  //   last_message, opened_at, closed_at, created_at, booking_title
-  // participant_a / participant_b / chat_type / context_* existieren NICHT
-  // state-Default der DB ist "opened" (nicht "open")
+  // INSERT nur mit existierenden DB-Spalten (verifiziert 2026-06-01)
   console.log("[CHAT] creating conversation", { userId, otherUserId });
 
   const { error: createError } = await supabase
@@ -544,8 +525,6 @@ export async function findOrCreateChat({
   }
 
   // ── Gerade erzeugten Chat nachladen ─────────────────────────
-  // participant_ids is uuid[] → cs. (contains) mit beiden UUIDs
-  // state-Wert in DB ist "opened" (DB-Default), nicht "open"
   const { data: created, error: fetchError } = await supabase
     .from("chats")
     .select("id, participant_ids, state, booking_id, opened_at")
