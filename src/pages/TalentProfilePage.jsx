@@ -500,25 +500,166 @@ function CinematicHero({ profile, loading }) {
 // ══════════════════════════════════════════════════════════════
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
-function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
+function KompassActionSheet({ profile, isWatching, onWatch, onClose, onOpenChat }) {
+  const name    = profile?.display_name || profile?.username || "Dieses Talent";
+  const avatar  = profile?.avatar_url   || null;
+  const bio     = profile?.bio          || null;
+  const profileUrl = window.location.origin + "/profile/" + (profile?.username || profile?.id || "");
+
+  async function handleShare() {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: name,
+          text:  name + " auf HUI",
+          url:   profileUrl,
+        });
+      } catch (_) { /* abgebrochen oder nicht unterstützt */ }
+    } else {
+      try { await navigator.clipboard.writeText(profileUrl); } catch (_) {}
+    }
+  }
+
   return createPortal(
-    <div style={{
-      position: "fixed",
-      left: 20,
-      right: 20,
-      top: 120,
-      height: 300,
-      background: "red",
-      color: "white",
-      zIndex: 999999,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: 32,
-      fontWeight: 900,
-    }}>
-      KOMPASS TEST
-    </div>,
+    <>
+      {/* Overlay */}
+      <div
+        onClick={onClose}
+        style={{
+          position:"fixed", inset:0,
+          background:"rgba(26,26,24,0.48)",
+          backdropFilter:"blur(4px)",
+          zIndex:9998,
+        }}
+      />
+
+      {/* Sheet */}
+      <div style={{
+        position:"fixed",
+        left:0, right:0, bottom:0,
+        zIndex:9999,
+        background:"#FEFCF9",
+        borderRadius:"20px 20px 0 0",
+        padding:"0 0 max(24px,env(safe-area-inset-bottom,24px))",
+        boxShadow:"0 -8px 40px rgba(26,26,24,0.14)",
+        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+      }}>
+
+        {/* Handle */}
+        <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
+          <div style={{width:36,height:4,borderRadius:2,background:"rgba(26,26,24,0.13)"}}/>
+        </div>
+
+        {/* Profilkopf */}
+        <div style={{
+          display:"flex", alignItems:"center", gap:12,
+          padding:"12px 20px 16px",
+          borderBottom:"1px solid rgba(26,26,24,0.07)",
+        }}>
+          {avatar ? (
+            <img src={avatar} alt={name}
+              style={{width:48,height:48,borderRadius:"50%",objectFit:"cover",flexShrink:0,
+                      border:"2px solid rgba(14,196,184,0.30)"}}
+            />
+          ) : (
+            <div style={{
+              width:48,height:48,borderRadius:"50%",flexShrink:0,
+              background:"linear-gradient(135deg,#0EC4B8,#0AADA3)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:20,color:"#fff",
+            }}>
+              {name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{
+              fontSize:16,fontWeight:800,color:"#1A1A18",
+              letterSpacing:"-0.02em",
+              overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+            }}>{name}</div>
+            {bio && (
+              <div style={{
+                fontSize:13,color:"rgba(26,26,24,0.52)",lineHeight:1.4,marginTop:2,
+                display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",
+                overflow:"hidden",
+              }}>{bio}</div>
+            )}
+          </div>
+        </div>
+
+        {/* Aktionen */}
+        <div style={{padding:"8px 0"}}>
+
+          {/* Im Blick behalten */}
+          <button
+            onClick={() => { onWatch?.(); onClose?.(); }}
+            style={{
+              width:"100%", padding:"15px 20px",
+              background:"none", border:"none",
+              display:"flex", alignItems:"center", gap:14,
+              cursor:"pointer", textAlign:"left",
+              fontFamily:"inherit",
+            }}
+          >
+            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>
+              {isWatching ? "👁" : "🌱"}
+            </span>
+            <span style={{fontSize:15,fontWeight:600,color:"#1A1A18"}}>
+              {isWatching ? "Nicht mehr im Blick behalten" : "Im Blick behalten"}
+            </span>
+          </button>
+
+          {/* Nachricht senden */}
+          <button
+            onClick={() => { onOpenChat?.(); onClose?.(); }}
+            style={{
+              width:"100%", padding:"15px 20px",
+              background:"none", border:"none",
+              display:"flex", alignItems:"center", gap:14,
+              cursor:"pointer", textAlign:"left",
+              fontFamily:"inherit",
+            }}
+          >
+            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>💬</span>
+            <span style={{fontSize:15,fontWeight:600,color:"#1A1A18"}}>Nachricht senden</span>
+          </button>
+
+          {/* Profil teilen */}
+          <button
+            onClick={handleShare}
+            style={{
+              width:"100%", padding:"15px 20px",
+              background:"none", border:"none",
+              display:"flex", alignItems:"center", gap:14,
+              cursor:"pointer", textAlign:"left",
+              fontFamily:"inherit",
+            }}
+          >
+            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>⎙</span>
+            <span style={{fontSize:15,fontWeight:600,color:"#1A1A18"}}>Profil teilen</span>
+          </button>
+
+          {/* Trennlinie */}
+          <div style={{height:1,background:"rgba(26,26,24,0.07)",margin:"4px 20px"}}/>
+
+          {/* Schließen */}
+          <button
+            onClick={onClose}
+            style={{
+              width:"100%", padding:"15px 20px",
+              background:"none", border:"none",
+              display:"flex", alignItems:"center", gap:14,
+              cursor:"pointer", textAlign:"left",
+              fontFamily:"inherit",
+            }}
+          >
+            <span style={{fontSize:20,width:26,textAlign:"center",flexShrink:0}}>✕</span>
+            <span style={{fontSize:15,fontWeight:600,color:"rgba(26,26,24,0.50)"}}>Schließen</span>
+          </button>
+
+        </div>
+      </div>
+    </>,
     document.body
   );
 }
@@ -1406,7 +1547,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { alert("onOpenKompass called. loading=" + loading + " iw=" + iw); setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); alert("showKompassSheet set to true. loading=" + loading); }}/>
+          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
         </div>
         <Gap h={20}/>
 
@@ -1439,13 +1580,13 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 8. Abschluss */}
         <AbschlussBar profile={profile} loading={loading}/>
-      {showKompassSheet && alert("RENDER: showKompassSheet=true — Sheet wird gerendert")}
       {showKompassSheet && (
         <KompassActionSheet
           profile={profile}
           isWatching={kompassWatchLocal}
           onWatch={kompassToggleRef.current}
           onClose={() => setShowKompassSheet(false)}
+          onOpenChat={undefined}
         />
       )}
         <Gap h={16}/>
