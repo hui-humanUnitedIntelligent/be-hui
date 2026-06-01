@@ -409,6 +409,9 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         backdropFilter: "blur(4px)",
         border: "1px solid rgba(255,255,255,0.15)",
       }}>
+        <div style={{ color: "#888", fontSize: 10, marginBottom: 2 }}>
+          BUILD: de9efe0913
+        </div>
         <div style={{ color: "#16D7C5", fontWeight: 700, marginBottom: 4 }}>
           ⬡ CHAT DEBUG
         </div>
