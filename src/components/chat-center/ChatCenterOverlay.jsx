@@ -158,32 +158,37 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // KEIN fake-ID Fallback. Nur echte UUID oder kein Conv.
   const [loadingConv, setLoadingConv] = React.useState(false);
 
+  // ── initialRecipient → Chat direkt öffnen ──────────────────
+  // Fix: user?.id im Dep-Array reicht nicht — wenn user zuerst
+  // geladen wird und initialRecipient?.id sich nicht ändert,
+  // feuert der Effekt kein zweites Mal. Lösung: beide als Deps
+  // + activeConv Guard entfernt (neuer Recipient soll immer
+  // eine frische Konversation öffnen, aktive dabei überschreiben).
+  const lastRecipientRef = React.useRef(null);
+
   React.useEffect(() => {
     if (!initialRecipient?.id) return;
-    if (activeConv) return;
-    if (!user?.id) {
-      // user noch nicht geladen — Effekt läuft erneut sobald user?.id sich setzt
-      console.log("[HUI_CHAT] initialRecipient: warte auf user.id…");
-      return;
-    }
+    if (!user?.id) return; // warten bis Auth geladen
+    // Guard: gleichen Recipient nicht doppelt öffnen
+    if (lastRecipientRef.current === initialRecipient.id && activeConv) return;
+    lastRecipientRef.current = initialRecipient.id;
+
     const recipientId = initialRecipient.id;
-    console.log("[HUI_CHAT] initialRecipient → findOrCreateChat", {
-      userId: user.id, recipientId, name: initialRecipient.display_name,
-    });
     setLoadingConv(true);
+    // Bestehenden Conv zurücksetzen damit Spinner sichtbar wird
+    setActiveConv(null);
+
     findOrCreateChat({
       userId:      user.id,
       otherUserId: recipientId,
       chatType:    "direct",
     })
       .then(chatRecord => {
-        console.log("[HUI_CHAT] initialRecipient chatRecord:", chatRecord);
         const realId = chatRecord?.id;
         if (!realId) {
           console.error("[HUI_CHAT] initialRecipient: kein chatRecord.id!", chatRecord);
-          return; // kein Conv öffnen — Fehler wurde in findOrCreateChat geloggt
+          return;
         }
-        console.log("[HUI_CHAT] ✓ Conv öffnen:", realId);
         setActiveConv({
           id:           realId,
           name:         initialRecipient.display_name || "Creator",
@@ -195,11 +200,12 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         });
       })
       .catch(err => {
-        console.error("[HUI_CHAT] initialRecipient: Exception:", err?.message, err);
+        console.error("[HUI_CHAT] initialRecipient Exception:", err?.message, err);
       })
       .finally(() => setLoadingConv(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, initialRecipient?.id]);
+  // user?.id + initialRecipient?.id: Effekt soll erneut feuern
+  // wenn BEIDE bereit sind — auch wenn nur eines sich ändert
+  }, [user?.id, initialRecipient?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const { chats, loading, unreadTotal } = useChatList();
 
   // Wenn Conv geöffnet: normalize conv shape
