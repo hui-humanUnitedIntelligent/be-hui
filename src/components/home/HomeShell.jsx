@@ -202,6 +202,8 @@ export default function HomeShell({ children }) {
   const switchTab = useCallback((newTab) => {
     // GUARD: Orb is a world-layer, never a tab destination
     if (!assertValidTab(newTab)) return;
+    // [DIAG] switchTab aufgerufen — Aufrufer ermitteln
+    console.log("[SWITCH_TAB]", { newTab, showChat, stack: new Error().stack });
     // World continuity: track tab transition for atmospheric carry-over
     setPrevTab(tab);
     setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
@@ -217,6 +219,7 @@ export default function HomeShell({ children }) {
     setShowInvitationFlow(false);
     setShowMatch(false);
     setShowMap(false);
+    console.log("[CHAT_CLOSE]", { reason: "switchTab", newTab, stack: new Error().stack });
     setShowChat(false);
     setShowNotifs(false);
     setShowMembership(false);
