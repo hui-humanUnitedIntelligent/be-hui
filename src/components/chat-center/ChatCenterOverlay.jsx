@@ -455,6 +455,23 @@ function DebugTimeline() {
   );
 }
 
+/* CCO_MOUNT/UNMOUNT — zeigt ob Overlay gerade gemountet ist */
+function CCOMountInfo() {
+  const [mountTs]   = React.useState(Date.now());
+  const [elapsed, setElapsed] = React.useState(0);
+  React.useEffect(() => {
+    const id = setInterval(() => setElapsed(Math.round((Date.now() - mountTs) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [mountTs]);
+  return (
+    <div style={{ marginTop:4, borderTop:"1px solid rgba(0,255,0,0.15)", paddingTop:4 }}>
+      <div style={{ color:"#44ff88", fontSize:10 }}>
+        {"CCO gemountet seit " + elapsed + "s"}
+      </div>
+    </div>
+  );
+}
+
 /* [CCO_CRASH] — fängt Crashes in ConversationRoom und loggt sie sichtbar */
 class CrashWatcher extends React.Component {
   constructor(props) { super(props); this.state = { crashed: false, error: null, stack: null }; }
@@ -904,6 +921,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <div style={{ color: "#16D7C5", fontWeight: 700, marginBottom: 4 }}>
           ⬡ CHAT DEBUG
         </div>
+        {/* CCO MOUNT DAUER */}
+        <CCOMountInfo />
         {/* CHAT KILLER */}
         <LastKillerInfo />
         {/* KILLER4 HISTORY */}
