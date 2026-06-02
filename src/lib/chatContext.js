@@ -18,6 +18,7 @@ import { feedback } from './feedback/index.js';
 import { assertAuthenticated, globalMutationGuard } from './security/index.js';
 import { validateMessage } from './validation/index.js';
 import { supabase } from "./supabaseClient";
+import { logDebug } from "./debugCollector.js";
 import { notifyMessage } from "./notificationService";
 import { useAuth } from "./AuthContext";
 
@@ -455,16 +456,23 @@ export async function findOrCreateChat({
   userId, otherUserId, chatType = "direct",
   bookingId = null, contextTitle = null, contextType = null,
 }) {
-  console.log("[CHAT] findOrCreateChat aufgerufen", { userId, otherUserId });
+  const _fccTs = Date.now();
+  const _fccMeta = { userId, recipientId: otherUserId, ts: _fccTs };
+
+  // [FCC_START]
+  console.log("[FCC_START]", _fccMeta);
+  logDebug("FCC_START", _fccMeta);
+  if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = { event: "FCC_START", ..._fccMeta };
 
   if (!userId || !otherUserId) {
-    console.log("[CHAT] STOP: userId oder otherUserId fehlt", { userId, otherUserId });
+    const _err = { event: "FCC_ERROR", ..._fccMeta, error: "userId oder otherUserId fehlt" };
+    console.error("[FCC_ERROR]", _err);
+    logDebug("FCC_ERROR", _err);
+    if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _err;
     return null;
   }
 
   // ── Bestehenden Chat suchen ─────────────────────────────────
-  // participant_ids ist uuid[] → .contains() mit beiden UUIDs
-  // state-Wert in DB ist "opened" (nicht "open")
   const { data: existing, error: findError } = await supabase
     .from("chats")
     .select("id, participant_ids, state, last_message, last_message_at, booking_id")
@@ -474,19 +482,9 @@ export async function findOrCreateChat({
     .limit(5);
 
   if (findError) {
-    console.error("[CHAT] SELECT Fehler", {
-      code:    findError?.code,
-      message: findError?.message,
-      details: findError?.details,
-      hint:    findError?.hint,
-    });
+    console.error("[CHAT] SELECT Fehler", { code: findError?.code, message: findError?.message });
     // Trotzdem weiterversuchen
   }
-
-  console.log("[CHAT] existing conversations found", {
-    count: existing?.length ?? 0,
-    ids:   existing?.map(c => c.id),
-  });
 
   const match = (existing || []).find(c =>
     Array.isArray(c.participant_ids) &&
@@ -495,13 +493,25 @@ export async function findOrCreateChat({
   );
 
   if (match) {
-    console.log("[CHAT] existing conversation found — returning", match.id);
+    // [FCC_FOUND_EXISTING]
+    const _found = { event: "FCC_FOUND_EXISTING", ..._fccMeta, chatId: match.id };
+    console.log("[FCC_FOUND_EXISTING]", _found);
+    logDebug("FCC_FOUND_EXISTING", _found);
+    if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _found;
+    // [FCC_SUCCESS]
+    const _succ = { event: "FCC_SUCCESS", ..._fccMeta, chatId: match.id };
+    console.log("[FCC_SUCCESS]", _succ);
+    logDebug("FCC_SUCCESS", _succ);
+    if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _succ;
     return match;
   }
 
   // ── Neuen Chat erstellen ────────────────────────────────────
-  // INSERT nur mit existierenden DB-Spalten (verifiziert 2026-06-01)
-  console.log("[CHAT] creating conversation", { userId, otherUserId });
+  // [FCC_CREATING]
+  const _creating = { event: "FCC_CREATING", ..._fccMeta };
+  console.log("[FCC_CREATING]", _creating);
+  logDebug("FCC_CREATING", _creating);
+  if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _creating;
 
   const { error: createError } = await supabase
     .from("chats")
@@ -512,15 +522,13 @@ export async function findOrCreateChat({
       last_message_at:  new Date().toISOString(),
     });
 
-  console.log("[CHAT] insert finished", createError);
-
   if (createError) {
-    console.error("[CHAT] create error", {
-      code:    createError?.code,
-      message: createError?.message,
-      details: createError?.details,
-      hint:    createError?.hint,
-    });
+    const _err2 = { event: "FCC_ERROR", ..._fccMeta, error: createError?.message, code: createError?.code };
+    console.error("[FCC_ERROR]", _err2);
+    logDebug("FCC_ERROR", _err2);
+    if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _err2;
+    // [FCC_FINALLY]
+    logDebug("FCC_FINALLY", { ..._fccMeta, result: "error" });
     return null;
   }
 
@@ -534,17 +542,30 @@ export async function findOrCreateChat({
     .limit(1)
     .single();
 
-  console.log("[CHAT] created fetch", { created, fetchError });
-
   if (fetchError) {
-    console.error("[CHAT] fetch after insert error", {
-      code:    fetchError?.code,
-      message: fetchError?.message,
-      details: fetchError?.details,
-      hint:    fetchError?.hint,
-    });
+    const _err3 = { event: "FCC_ERROR", ..._fccMeta, error: fetchError?.message, code: fetchError?.code, phase: "fetch_after_insert" };
+    console.error("[FCC_ERROR]", _err3);
+    logDebug("FCC_ERROR", _err3);
+    if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _err3;
+    // [FCC_FINALLY]
+    logDebug("FCC_FINALLY", { ..._fccMeta, result: "fetch_error" });
     return null;
   }
+
+  // [FCC_CREATED]
+  const _created = { event: "FCC_CREATED", ..._fccMeta, chatId: created?.id };
+  console.log("[FCC_CREATED]", _created);
+  logDebug("FCC_CREATED", _created);
+  if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _created;
+
+  // [FCC_SUCCESS]
+  const _succ2 = { event: "FCC_SUCCESS", ..._fccMeta, chatId: created?.id };
+  console.log("[FCC_SUCCESS]", _succ2);
+  logDebug("FCC_SUCCESS", _succ2);
+  if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _succ2;
+
+  // [FCC_FINALLY]
+  logDebug("FCC_FINALLY", { ..._fccMeta, chatId: created?.id, result: "ok" });
 
   return created ?? null;
 }
