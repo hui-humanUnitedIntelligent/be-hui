@@ -170,6 +170,40 @@ export default function HomeShell({ children }) {
     }
   }, [showChat]);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
+  // DIAG: chatRecipient-Watcher — RECIPIENT_SET / RECIPIENT_CHANGED / RECIPIENT_CLEARED
+  const _prevChatRecipientRef = React.useRef(undefined);
+  React.useEffect(() => {
+    const prev = _prevChatRecipientRef.current;
+    const next = chatRecipient;
+    const stack = new Error().stack;
+    if (prev === undefined) { _prevChatRecipientRef.current = next; return; }
+    const prevId = prev?.id ?? null;
+    const nextId = next?.id ?? null;
+    let event;
+    if (!prevId && nextId)                           event = "RECIPIENT_SET";
+    else if (prevId && !nextId)                     event = "RECIPIENT_CLEARED";
+    else if (prevId && nextId && prevId !== nextId) event = "RECIPIENT_CHANGED";
+    else return;
+    const shortStack = (stack || "").split("\n").slice(1, 5).join(" | ");
+    const payload = { event, prevId, nextId,
+      prevName: prev?.display_name ?? null, nextName: next?.display_name ?? null,
+      ts: Date.now(), stack: shortStack };
+    console.warn("[" + event + "]", payload);
+    if (typeof window !== "undefined") {
+      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+      window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event, payload: {
+        prevId, nextId, prevName: prev?.display_name ?? null,
+        nextName: next?.display_name ?? null, stack: shortStack } });
+      if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+      window.HUI_LAST_RECIPIENT_EVENT = { event, prevId, nextId, ts: Date.now(), caller: shortStack };
+      if (event === "RECIPIENT_CLEARED") {
+        window.HUI_CHAT_KILLER = { reason: "RECIPIENT_CLEARED", caller: "chatRecipient-watcher",
+          prevId, ts: Date.now() };
+      }
+    }
+    _prevChatRecipientRef.current = next;
+  }, [chatRecipient]);
+
   const [showNotifs,             setShowNotifs]            = useState(false);
   const [showMap,                setShowMap]               = useState(false);
   const [showMatch,              setShowMatch]             = useState(false);
