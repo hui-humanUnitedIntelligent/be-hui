@@ -239,6 +239,40 @@ function ConvRoomMountInfo() {
     </div>
   );
 }
+/* [CCO_CRASH] — fängt Crashes in ConversationRoom und loggt sie sichtbar */
+class CrashWatcher extends React.Component {
+  constructor(props) { super(props); this.state = { crashed: false, error: null, stack: null }; }
+  static getDerivedStateFromError(e) { return { crashed: true, error: e }; }
+  componentDidCatch(error, info) {
+    console.error("[CCO_CRASH]", {
+      label:          this.props.label || "?",
+      message:        error?.message,
+      stack:          error?.stack?.split("\n").slice(0,8).join("\n"),
+      componentStack: info?.componentStack?.split("\n").slice(0,8).join("\n"),
+      ts:             Date.now(),
+    });
+    if (typeof window !== "undefined") {
+      window.__HUI_CCO_CRASH__ = {
+        message: error?.message,
+        stack:   error?.stack?.split("\n").slice(0,4).join("\n"),
+        ts:      Date.now(),
+      };
+    }
+  }
+  render() {
+    if (!this.state.crashed) return this.props.children;
+    return (
+      <div style={{ padding: 16, background: "rgba(255,0,0,0.1)",
+        color: "#ff4444", fontSize: 12, fontFamily: "monospace",
+        position: "absolute", inset: 0, zIndex: 9999,
+        overflow: "auto", whiteSpace: "pre-wrap" }}>
+        [CCO_CRASH] {this.state.error?.message}\n\n
+        {this.state.error?.stack?.split("\n").slice(0,10).join("\n")}
+      </div>
+    );
+  }
+}
+
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
@@ -336,6 +370,30 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   }, [user?.id, initialRecipient?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const { chats, loading, unreadTotal } = useChatList();
 
+  // [CCO_RENDER] — feuert bei jedem Render
+  const _ccoRenderCount = React.useRef(0);
+  _ccoRenderCount.current += 1;
+  console.log("[CCO_RENDER]", {
+    render:     _ccoRenderCount.current,
+    activeConv: activeConv?.id ?? null,
+    loadingConv,
+    recipient:  initialRecipient?.id ?? null,
+    userId:     user?.id ?? null,
+    ts:         Date.now(),
+  });
+
+  // [CCO_ACTIVECONV] — wenn activeConv sich ändert
+  React.useEffect(() => {
+    console.log("[CCO_ACTIVECONV]", {
+      id:      activeConv?.id ?? null,
+      name:    activeConv?.name ?? null,
+      ts:      Date.now(),
+    });
+    if (typeof window !== "undefined") {
+      window.__HUI_CCO_ACTIVECONV__ = { id: activeConv?.id ?? null, ts: Date.now() };
+    }
+  }, [activeConv]);
+
   // Wenn Conv geöffnet: normalize conv shape
   function openConv(rawConv) {
     const realId = rawConv?.id;
@@ -356,6 +414,15 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       other_profile: rawConv.other_profile || null,
     });
   }
+
+  // [CCO_RETURN] — direkt vor dem render-Return
+  console.log("[CCO_RETURN]", {
+    activeConv:    activeConv?.id ?? null,
+    loadingConv,
+    showPeopleSearch,
+    chatCount:     chats?.length ?? 0,
+    ts:            Date.now(),
+  });
 
   return (
     <>
@@ -463,20 +530,22 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           animation:"cc-room-in 0.22s ease both",
           // Kein overflow:hidden — ChatInput muss bis zum Boden sichtbar sein
         }}>
-          <ConversationRoom
-            conv={activeConv}
-            onBack={() => setActiveConv(null)}
-            onOpenProfile={(conv) => {
-              // Phase 23: Chat → Profil öffnen
-              // Chat schließt sich, Profil öffnet sich
-              const userId = conv?.user_id || conv?.id;
-              if (userId) openCreatorProfile(userId, {
-                display_name: conv?.name,
-                avatar_url:   conv?.avatar_url,
-                talent:       conv?.talent,
-              });
-            }}
-          />
+          <CrashWatcher label="ConversationRoom">
+            <ConversationRoom
+              conv={activeConv}
+              onBack={() => setActiveConv(null)}
+              onOpenProfile={(conv) => {
+                // Phase 23: Chat → Profil öffnen
+                // Chat schließt sich, Profil öffnet sich
+                const userId = conv?.user_id || conv?.id;
+                if (userId) openCreatorProfile(userId, {
+                  display_name: conv?.name,
+                  avatar_url:   conv?.avatar_url,
+                  talent:       conv?.talent,
+                });
+              }}
+            />
+          </CrashWatcher>
         </div>
       )}
     </div>
