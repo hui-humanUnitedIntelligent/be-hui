@@ -182,6 +182,36 @@ function LastSwitchTabInfo() {
     </div>
   );
 }
+
+/* Diagnose-Komponente — liest window.__HUI_LAST_SHOWCHAT__ live */
+function LastShowChatInfo() {
+  const [info, setInfo] = React.useState(null);
+  React.useEffect(() => {
+    setInfo(window.__HUI_LAST_SHOWCHAT__ || null);
+    const id = setInterval(() => {
+      setInfo(window.__HUI_LAST_SHOWCHAT__ || null);
+    }, 400);
+    return () => clearInterval(id);
+  }, []);
+  if (!info) return (
+    <div style={{ color: "#555", marginTop: 4, fontSize: 10 }}>
+      LAST SHOWCHAT: —
+    </div>
+  );
+  const ago = Math.round((Date.now() - info.ts) / 1000);
+  const callerShort = (info.caller || "?").slice(0, 60);
+  const valColor = info.value ? "#7effb2" : "#ff7e7e";
+  return (
+    <div style={{ marginTop: 5, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 5 }}>
+      <div style={{ color: "#aaa", fontSize: 10 }}>LAST SHOWCHAT ({ago}s ago):</div>
+      <div style={{ color: valColor, fontWeight: 700, fontSize: 12 }}>
+        → {info.value ? "TRUE" : "FALSE"}
+      </div>
+      <div style={{ color: "#aaa", fontSize: 10, marginTop: 1 }}>CALLER:</div>
+      <div style={{ color: "#ffd700", wordBreak: "break-all", fontSize: 10 }}>{callerShort}</div>
+    </div>
+  );
+}
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
@@ -476,6 +506,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         )}
         {/* LAST SWITCH TAB — zeigt wer switchTab() aufgerufen hat */}
         <LastSwitchTabInfo />
+        {/* LAST SHOWCHAT EVENT — zeigt wer setShowChat() aufgerufen hat */}
+        <LastShowChatInfo />
       </div>
     </>
   );
