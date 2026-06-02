@@ -14,6 +14,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 import { useChatList, findOrCreateChat }  from "../../lib/chatContext.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
+import { logDebug } from "../../lib/debugCollector.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
 
@@ -284,6 +285,58 @@ function LastCRInfo() {
   );
 }
 
+/* DEBUG TIMELINE — zeigt window.HUI_DEBUG_LOGS live */
+function DebugTimeline() {
+  const [logs, setLogs] = React.useState([]);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      const all = (typeof window !== "undefined" && window.HUI_DEBUG_LOGS) || [];
+      setLogs([...all].reverse().slice(0, 20));
+    }, 500);
+    return () => clearInterval(id);
+  }, []);
+  if (logs.length === 0) {
+    return (
+      <div style={{ marginTop:6, borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:5 }}>
+        <div style={{ color:"#555", fontSize:10 }}>DEBUG TIMELINE: —</div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ marginTop:6, borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:5 }}>
+      <div style={{ color:"#888", fontSize:10, marginBottom:3 }}>DEBUG TIMELINE ({logs.length}):</div>
+      <div style={{
+        maxHeight: 180,
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
+        fontFamily: "monospace",
+        fontSize: 10,
+        lineHeight: 1.5,
+      }}>
+        {logs.map((entry, idx) => {
+          const evColor =
+            entry.event.includes("UNMOUNT")  ? "#ff7e7e" :
+            entry.event.includes("MOUNT")    ? "#7effb2" :
+            entry.event.includes("FALSE")    ? "#ff9966" :
+            entry.event.includes("TRUE")     ? "#66ff99" :
+            entry.event.includes("CCO_")     ? "#ffd700" :
+            "#aaa";
+          const ts = new Date(entry.ts).toISOString().slice(11, 23);
+          const pay = entry.payload
+            ? " " + JSON.stringify(entry.payload).slice(0, 40)
+            : "";
+          return (
+            <div key={idx} style={{ color: evColor, borderBottom:"1px solid rgba(255,255,255,0.04)", paddingBottom:1 }}>
+              <span style={{ color:"#555" }}>{ts} </span>
+              {entry.event}{pay}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* [CCO_CRASH] — fängt Crashes in ConversationRoom und loggt sie sichtbar */
 class CrashWatcher extends React.Component {
   constructor(props) { super(props); this.state = { crashed: false, error: null, stack: null }; }
@@ -417,6 +470,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   // [CCO_RENDER] — feuert bei jedem Render
   console.log("[CCO_RENDER]");
+  logDebug("CCO_RENDER", { activeConv: activeConv?.id ?? null });
   if (typeof window !== "undefined") {
     window.__HUI_LAST_CCO__ = { event: "CCO_RENDER", activeConv: activeConv?.id ?? null, ts: Date.now() };
   }
@@ -424,6 +478,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // [CCO_ACTIVECONV] — wenn activeConv sich ändert
   React.useEffect(() => {
     console.log("[CCO_ACTIVECONV]", activeConv?.id);
+    logDebug("CCO_ACTIVECONV", { activeConv: activeConv?.id ?? null });
     if (typeof window !== "undefined") {
       window.__HUI_LAST_CCO__ = { event: "CCO_ACTIVECONV", activeConv: activeConv?.id ?? null, ts: Date.now() };
     }
@@ -452,6 +507,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   // [CCO_RETURN] — direkt vor dem render-Return
   console.log("[CCO_RETURN]");
+  logDebug("CCO_RETURN", { activeConv: activeConv?.id ?? null });
 
   return (
     <>
@@ -560,7 +616,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           // Kein overflow:hidden — ChatInput muss bis zum Boden sichtbar sein
         }}>
           {/* [CCO_RENDER_ROOM] */}
-          {console.log("[CCO_RENDER_ROOM]", activeConv?.id) || null}
+          {(console.log("[CCO_RENDER_ROOM]", activeConv?.id) || logDebug("CCO_RENDER_ROOM", { activeConv: activeConv?.id })) && null}
           <CrashWatcher label="ConversationRoom">
             <ConversationRoom
               conv={activeConv}
@@ -639,6 +695,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <LastSwitchTabInfo />
         {/* LAST SHOWCHAT EVENT */}
         <LastShowChatInfo />
+        {/* DEBUG TIMELINE */}
+        <DebugTimeline />
       </div>
     </>
   );
