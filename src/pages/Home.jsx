@@ -493,6 +493,12 @@ function HomeInner() {
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
+          {(console.error("HOME_CHAT_RECIPIENT", {
+            chatRecipient,
+            recipientId: chatRecipient?.id,
+            showChat,
+            ts: Date.now(),
+          })) || null}
           <ChatCenterOverlay
             onClose={() => {
               logDebug("SHOWCHAT_FALSE", { caller: "Home/onClose" });
