@@ -316,6 +316,22 @@ export default function HomeShell({ children }) {
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
+    // ── PROFILE_OPEN INSTRUMENTATION ────────────────────────────
+    const _stack2 = new Error().stack;
+    const _short2 = (_stack2 || "").split("\n").slice(1, 6).join(" | ");
+    const _ev2 = { event: "PROFILE_OPEN", profileId: id, ts: Date.now(), caller: _short2 };
+    console.log("[PROFILE_OPEN]", _ev2);
+    if (typeof window !== "undefined") {
+      if (!window.HUI_PROFILE_EVENTS) window.HUI_PROFILE_EVENTS = [];
+      window.HUI_PROFILE_EVENTS.push(_ev2);
+      if (window.HUI_PROFILE_EVENTS.length > 20) window.HUI_PROFILE_EVENTS.shift();
+      window.HUI_LAST_PROFILE_EVENT = _ev2;
+      window.__HUI_SELECTED_PROFILE_ID__ = id;
+      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+      window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "PROFILE_OPEN", payload: _ev2 });
+      if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+    }
+    // ── end instrumentation ─────────────────────────────────────
     console.log("🟠 STEP 4 — HomeShell openProfileById aufgerufen", { id, typeOf: typeof id });
     if (!id || typeof id !== "string" || id.trim() === "") {
       console.warn("🔴 STEP 4 — HomeShell openProfileById: leere oder fehlende ID ignoriert", { id });
@@ -340,8 +356,55 @@ export default function HomeShell({ children }) {
   }, []);
 
   const closeProfileById = React.useCallback(() => {
+    // ── PROFILE_CLOSE INSTRUMENTATION ──────────────────────────
+    const _stack = new Error().stack;
+    const _short = (_stack || "").split("\n").slice(1, 6).join(" | ");
+    const _ev = {
+      event:             "PROFILE_CLOSE",
+      selectedProfileId: (typeof window !== "undefined" && window.__HUI_SELECTED_PROFILE_ID__) ?? null,
+      recipientId:       null,  // filled by watcher
+      ts:                Date.now(),
+      caller:            _short,
+    };
+    console.warn("[PROFILE_CLOSE]", _ev);
+    if (typeof window !== "undefined") {
+      if (!window.HUI_PROFILE_EVENTS) window.HUI_PROFILE_EVENTS = [];
+      window.HUI_PROFILE_EVENTS.push(_ev);
+      if (window.HUI_PROFILE_EVENTS.length > 20) window.HUI_PROFILE_EVENTS.shift();
+      window.HUI_LAST_PROFILE_EVENT = _ev;
+      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+      window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "PROFILE_CLOSE", payload: _ev });
+      if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+    }
+    // ── end instrumentation ─────────────────────────────────────
     setSelectedProfileId(null);
   }, []);
+
+  // DIAG: selectedProfileId-Watcher
+  React.useEffect(() => {
+    const _ev = {
+      event:             selectedProfileId ? "SELECTED_PROFILE_SET" : "SELECTED_PROFILE_CLEARED",
+      selectedProfileId: selectedProfileId ?? null,
+      ts:                Date.now(),
+      stack:             new Error().stack.split("\n").slice(1,5).join(" | "),
+    };
+    console.log("[SELECTED_PROFILE_CHANGE]", _ev);
+    if (typeof window !== "undefined") {
+      window.__HUI_SELECTED_PROFILE_ID__ = selectedProfileId ?? null;
+      if (!window.HUI_PROFILE_EVENTS) window.HUI_PROFILE_EVENTS = [];
+      window.HUI_PROFILE_EVENTS.push(_ev);
+      if (window.HUI_PROFILE_EVENTS.length > 20) window.HUI_PROFILE_EVENTS.shift();
+      window.HUI_LAST_PROFILE_EVENT = _ev;
+      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+      window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: _ev.event, payload: _ev });
+      if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+      if (!selectedProfileId) {
+        // PROFILE_CLOSE → potentieller CHAT_KILLER
+        window.HUI_CHAT_KILLER = { reason: "SELECTED_PROFILE_CLEARED", caller: _ev.stack,
+          ts: Date.now() };
+      }
+    }
+  }, [selectedProfileId]);
 
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
