@@ -212,6 +212,33 @@ function LastShowChatInfo() {
     </div>
   );
 }
+
+/* Diagnose-Komponente — zeigt CR_MOUNT / CR_UNMOUNT live */
+function ConvRoomMountInfo() {
+  const [mount, setMount] = React.useState(null);
+  const [unmount, setUnmount] = React.useState(null);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setMount(window.__HUI_CR_MOUNT__ || null);
+      setUnmount(window.__HUI_CR_UNMOUNT__ || null);
+    }, 400);
+    return () => clearInterval(id);
+  }, []);
+  const mAgo = mount   ? Math.round((Date.now() - mount.ts)   / 1000) : null;
+  const uAgo = unmount ? Math.round((Date.now() - unmount.ts) / 1000) : null;
+  return (
+    <div style={{ marginTop: 5, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 5 }}>
+      <div style={{ color: "#aaa", fontSize: 10 }}>CR_MOUNT {mAgo !== null ? `(${mAgo}s ago)` : "—"}:</div>
+      <div style={{ color: mount ? "#7effb2" : "#555", fontSize: 10, wordBreak:"break-all" }}>
+        {mount ? `id:${(mount.convId||"?").slice(0,8)} real:${mount.realChatId ? mount.realChatId.slice(0,8) : "null"}` : "—"}
+      </div>
+      <div style={{ color: "#aaa", fontSize: 10, marginTop: 2 }}>CR_UNMOUNT {uAgo !== null ? `(${uAgo}s ago)` : "—"}:</div>
+      <div style={{ color: unmount ? "#ff7e7e" : "#555", fontSize: 10, wordBreak:"break-all" }}>
+        {unmount ? `id:${(unmount.convId||"?").slice(0,8)} ts:${uAgo}s` : "—"}
+      </div>
+    </div>
+  );
+}
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
@@ -508,6 +535,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <LastSwitchTabInfo />
         {/* LAST SHOWCHAT EVENT — zeigt wer setShowChat() aufgerufen hat */}
         <LastShowChatInfo />
+        {/* CR MOUNT/UNMOUNT — zeigt ob ConversationRoom tatsächlich mountet */}
+        <ConvRoomMountInfo />
       </div>
     </>
   );
