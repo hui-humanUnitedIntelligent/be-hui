@@ -490,6 +490,27 @@ class CrashWatcher extends React.Component {
 }
 
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
+  // CCO_UNMOUNT — feuert wenn ChatCenterOverlay komplett unmountet
+  React.useEffect(() => {
+    const _mountTs = Date.now();
+    if (typeof window !== "undefined") {
+      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+      window.HUI_DEBUG_LOGS.push({ ts: _mountTs, event: "CCO_MOUNT", payload: null });
+    }
+    console.log("[CCO_MOUNT]", { ts: _mountTs });
+    return () => {
+      const _unmountTs = Date.now();
+      console.warn("[CCO_UNMOUNT]", { mountedFor: _unmountTs - _mountTs + "ms", ts: _unmountTs });
+      const reason = "CCO_UNMOUNT", caller = "ChatCenterOverlay unmounted";
+      if (typeof window !== "undefined") {
+        window.HUI_CHAT_KILLER = { reason, caller, ts: _unmountTs, mountedFor: _unmountTs - _mountTs };
+        if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+        window.HUI_DEBUG_LOGS.push({ ts: _unmountTs, event: "CCO_UNMOUNT", payload: { mountedFor: _unmountTs - _mountTs } });
+        if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+      }
+    };
+  }, []);
+
   const [activeConv, setActiveConv] = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
   const { openCreatorProfile } = useProfileLauncher();
