@@ -149,6 +149,39 @@ function ListPanel({ onClose, onOpen, chats, loading, activeId, onDiscoverClose,
 /* ══════════════════════════════════════════════════════════════
    HAUPT-OVERLAY
 ══════════════════════════════════════════════════════════════ */
+
+/* Diagnose-Komponente — liest window.__HUI_LAST_SWITCH_TAB__ live */
+function LastSwitchTabInfo() {
+  const [info, setInfo] = React.useState(null);
+  React.useEffect(() => {
+    // Sofort lesen
+    setInfo(window.__HUI_LAST_SWITCH_TAB__ || null);
+    // Alle 500ms aktualisieren
+    const id = setInterval(() => {
+      setInfo(window.__HUI_LAST_SWITCH_TAB__ || null);
+    }, 500);
+    return () => clearInterval(id);
+  }, []);
+  if (!info) return (
+    <div style={{ color: "#555", marginTop: 6, fontSize: 10 }}>
+      LAST SWITCH TAB: —
+    </div>
+  );
+  const ago = Math.round((Date.now() - info.ts) / 1000);
+  // Caller: zeige nur Dateiname + Zeilennummer
+  const callerShort = (info.caller || "?")
+    .replace(/.*\//, "")   // alles vor letztem /
+    .replace(/\?.*/, "")    // query params
+    .slice(0, 60);
+  return (
+    <div style={{ marginTop: 6, borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 6 }}>
+      <div style={{ color: "#aaa", fontSize: 10 }}>LAST SWITCH TAB ({ago}s ago):</div>
+      <div style={{ color: "#ff7e7e", fontWeight: 700 }}>→ {info.newTab}</div>
+      <div style={{ color: "#aaa", fontSize: 10, marginTop: 2 }}>LAST CALLER:</div>
+      <div style={{ color: "#ffd700", wordBreak: "break-all", fontSize: 10 }}>{callerShort}</div>
+    </div>
+  );
+}
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
   const [activeConv, setActiveConv] = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
@@ -441,6 +474,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             </div>
           </>
         )}
+        {/* LAST SWITCH TAB — zeigt wer switchTab() aufgerufen hat */}
+        <LastSwitchTabInfo />
       </div>
     </>
   );
