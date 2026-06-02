@@ -454,6 +454,76 @@ function EffectRunsPanel() {
   );
 }
 
+/* CHAT CLOSE TRACE — zeigt window.HUI_CHAT_CLOSE_TRACE + letzten Log-Eintrag */
+function ChatCloseTracePanel() {
+  const [trace, setTrace] = React.useState(null);
+  const [log,   setLog]   = React.useState([]);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setTrace((typeof window !== "undefined" && window.HUI_CHAT_CLOSE_TRACE) || null);
+      setLog((typeof window !== "undefined" && window.HUI_CHAT_CLOSE_TRACE_LOG)
+        ? [...window.HUI_CHAT_CLOSE_TRACE_LOG].reverse().slice(0, 5) : []);
+    }, 300);
+    return () => clearInterval(id);
+  }, []);
+
+  const srcColor = (src) => {
+    if (!src) return "#888";
+    if (src.includes("UNKNOWN")) return "#ff4444";
+    if (src.includes("onClose")) return "#ffaa44";
+    if (src.includes("CLOSE_CHAT")) return "#ff8844";
+    if (src.includes("BLOCKED")) return "#44aaff";
+    return "#aaffaa";
+  };
+
+  return (
+    <div style={{
+      marginTop: 6,
+      borderTop: "2px solid rgba(255,60,60,0.4)",
+      paddingTop: 5,
+      background: "rgba(80,0,0,0.18)",
+      borderRadius: 4,
+      padding: "5px 6px",
+    }}>
+      <div style={{ color:"#ff4444", fontSize:11, fontWeight:800, letterSpacing:"0.04em" }}>
+        ⚡ LAST CHAT CLOSE TRACE
+      </div>
+      {!trace ? (
+        <div style={{ color:"#555", fontSize:10 }}>— kein Trace bisher —</div>
+      ) : (
+        <div style={{ fontFamily:"monospace", fontSize:10, lineHeight:1.6 }}>
+          <div>
+            <span style={{ color:"#888" }}>source: </span>
+            <span style={{ color: srcColor(trace.source), fontWeight:700 }}>{trace.source || "?"}</span>
+          </div>
+          <div>
+            <span style={{ color:"#888" }}>file:   </span>
+            <span style={{ color:"#ffcc88" }}>{trace.file || "?"}:{trace.line || "?"}</span>
+          </div>
+          <div>
+            <span style={{ color:"#888" }}>ts:     </span>
+            <span style={{ color:"#aaa" }}>{new Date(trace.ts || 0).toISOString().slice(11,23)}</span>
+          </div>
+          <div style={{ marginTop:2, color:"#666", wordBreak:"break-all", fontSize:9 }}>
+            {(trace.stack || "").split("\n").slice(1,4).join(" | ").slice(0, 180)}
+          </div>
+        </div>
+      )}
+      {log.length > 1 && (
+        <div style={{ marginTop:4, borderTop:"1px solid rgba(255,60,60,0.2)", paddingTop:3 }}>
+          <div style={{ color:"#884444", fontSize:9, fontWeight:700 }}>LOG (letzte {log.length}):</div>
+          {log.map((e, i) => (
+            <div key={i} style={{ fontFamily:"monospace", fontSize:9, color: srcColor(e.source),
+              whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+              {new Date(e.ts||0).toISOString().slice(11,23) + " " + (e.source||"?")}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* KILLER4 HISTORY — zeigt window.HUI_KILLER4_HISTORY live (max 30) */
 function Killer4History() {
   const [logs, setLogs] = React.useState([]);
@@ -1074,6 +1144,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <CCOMountInfo />
         {/* CHAT KILLER */}
         <LastKillerInfo />
+        {/* CHAT CLOSE TRACE — ganz oben */}
+        <ChatCloseTracePanel />
         {/* KILLER4 HISTORY */}
         <Killer4History />
         {/* EFFECT RUNS */}
