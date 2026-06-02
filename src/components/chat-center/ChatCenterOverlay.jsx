@@ -1079,6 +1079,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       animation:"cc-in 0.22s ease both",
     }}>
       <style>{CSS}</style>
+      {/* DIAG MARKER */}
+      <div style={{position:"fixed",top:20,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>ChatCenterOverlay</div>
 
       {/* ── LIST PANEL ── */}
       <div style={{
