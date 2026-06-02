@@ -1,5 +1,5 @@
-// chat-center/ConversationRoom.jsx v4 — REALITY
-// Phase 4A: kein getMockMsgs mehr — echter Empty State wenn kein Verlauf
+// chat-center/ConversationRoom.jsx v4 — REALITY + DIAG LOGS
+// [CR_MOUNT] [CR_RENDER] [CR_RETURN] — Runtime-Beweis
 
 import React, { useCallback } from "react";
 import ChatAtmosphere from "./ChatAtmosphere.jsx";
@@ -50,9 +50,32 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   const { messages: liveMessages, sendMessage, sending, loading } =
     useChatThread(realChatId);
 
+  // [CR_MOUNT] — feuert einmal beim Mount und wenn rawId sich ändert
   React.useEffect(() => {
-    console.log("[HUI_ROOM] mount:", { convId: rawId, realChatId, isFakeId, userId: user?.id });
-  }, [rawId]);  // eslint-disable-line
+    const info = { convId: rawId, realChatId, isFakeId, userId: user?.id, ts: Date.now() };
+    console.log("[CR_MOUNT]", info);
+    if (typeof window !== "undefined") {
+      window.__HUI_CR_MOUNT__ = info;
+    }
+    return () => {
+      console.log("[CR_UNMOUNT]", { convId: rawId, ts: Date.now() });
+      if (typeof window !== "undefined") {
+        window.__HUI_CR_UNMOUNT__ = { convId: rawId, ts: Date.now() };
+      }
+    };
+  }, [rawId]); // eslint-disable-line
+
+  // [CR_RENDER] — feuert bei jedem Render (loading + messages-Änderung)
+  const renderCount = React.useRef(0);
+  renderCount.current += 1;
+  console.log("[CR_RENDER]", {
+    render: renderCount.current,
+    convId: rawId,
+    realChatId,
+    loading,
+    msgCount: (liveMessages || []).length,
+    ts: Date.now(),
+  });
 
   // Normalisierung — kein Mock-Fallback
   const messages = (liveMessages || []).filter(m => m?.id).map(m => ({
@@ -82,6 +105,16 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   }, [sendMessage, realChatId, rawId]);
 
   const showEmpty = !loading && messages.length === 0 && realChatId;
+
+  // [CR_RETURN] — direkt vor dem return, einmal pro Render
+  console.log("[CR_RETURN]", {
+    convId:      rawId,
+    realChatId,
+    loading,
+    showEmpty,
+    msgCount:    messages.length,
+    ts:          Date.now(),
+  });
 
   return (
     <div style={{
