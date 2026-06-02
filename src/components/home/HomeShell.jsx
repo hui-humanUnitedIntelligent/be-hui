@@ -230,6 +230,7 @@ export default function HomeShell({ children }) {
     console.log("[CHAT_CLOSE]", { reason: "switchTab", newTab, stack: new Error().stack });
     console.log("[SHOW_CHAT_FALSE]", { caller: "HomeShell/switchTab", stack: new Error().stack, ts: Date.now() });
     if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "HomeShell/switchTab(" + newTab + ")", ts: Date.now() }; }
+    { const reason = "setShowChat(false) BLOCKED", caller = "HomeShell/switchTab(" + newTab + ")"; if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller }); }
     console.log("[BLOCKED_SHOWCHAT_FALSE]", newTab); // DIAG TEMP — kein setShowChat(false)
     setShowNotifs(false);
     setShowMembership(false);
