@@ -335,7 +335,7 @@ function LastFCCInfo() {
   );
 }
 
-/* KILLER4 HISTORY — zeigt window.HUI_KILLER4_HISTORY live */
+/* KILLER4 HISTORY — zeigt window.HUI_KILLER4_HISTORY live (max 30) */
 function Killer4History() {
   const [logs, setLogs] = React.useState([]);
   React.useEffect(() => {
@@ -358,25 +358,34 @@ function Killer4History() {
         {"KILLER4 HISTORY (" + logs.length + "):"}
       </div>
       <div style={{
-        maxHeight: 200, overflowY: "auto", WebkitOverflowScrolling: "touch",
+        maxHeight: 260, overflowY: "auto", WebkitOverflowScrolling: "touch",
         fontFamily: "monospace", fontSize: 10, lineHeight: 1.6,
       }}>
         {logs.map((entry, idx) => {
           const ev = entry.event || "";
           const evColor =
+            ev === "KILLER4_SECOND_RUN"      ? "#ff0000" :
+            ev === "KILLER4_DEP_CHANGE"      ? "#ff88ff" :
             ev === "KILLER4_CLEAR"           ? "#ff6644" :
             ev === "KILLER4_CLEANUP"         ? "#ff4488" :
             ev === "KILLER4_SET_ACTIVE_CONV" ? "#44ff88" :
             ev === "KILLER4_EFFECT_START"    ? "#ffdd44" :
-            ev === "KILLER4_EFFECT_STOP"     ? "#aaaaaa" :
+            ev === "KILLER4_EFFECT_STOP"     ? "#888888" :
+            ev === "KILLER4_FCC_NO_ID"       ? "#ff4444" :
+            ev === "KILLER4_FCC_ERROR"       ? "#ff4444" :
             "#ffaa00";
           const ts = new Date(entry.ts).toISOString().slice(11, 23);
           const p = entry.payload || {};
-          const detail = [
-            "ac:" + (p.activeConvId ? p.activeConvId.slice(0,6) : "null"),
-            p.chatId  ? "chat:" + p.chatId.slice(0,6)         : null,
-            p.reason  ? "r:" + String(p.reason).slice(0,18)   : null,
-          ].filter(Boolean).join(" ");
+          // Kompakte Darstellung
+          const parts = [];
+          if (p.activeConvId !== undefined) parts.push("ac:" + (p.activeConvId ? p.activeConvId.slice(0,6) : "null"));
+          if (p.chatId)            parts.push("chat:" + p.chatId.slice(0,6));
+          if (p.userChanged  !== undefined) parts.push("uChg:" + p.userChanged);
+          if (p.recipientChanged !== undefined) parts.push("rChg:" + p.recipientChanged);
+          if (p.prevRecipientId)   parts.push("pR:" + p.prevRecipientId.slice(0,6));
+          if (p.nextRecipientId)   parts.push("nR:" + p.nextRecipientId.slice(0,6));
+          if (p.reason)            parts.push("r:" + String(p.reason).slice(0,20));
+          const detail = parts.join(" ");
           return (
             <div key={idx} style={{
               color: evColor,
@@ -385,7 +394,7 @@ function Killer4History() {
             }}>
               <span style={{ color:"#555" }}>{ts + " "}</span>
               <span style={{ fontWeight:700 }}>{ev}</span>
-              {"  "}<span style={{ color:"#888" }}>{detail}</span>
+              {"  "}<span style={{ color:"#888", fontSize:9 }}>{detail}</span>
             </div>
           );
         })}
@@ -500,25 +509,78 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // eine frische Konversation öffnen, aktive dabei überschreiben).
   const lastRecipientRef = React.useRef(null);
 
+  // Refs für Dependency-Change-Tracking (außerhalb des Effects)
+  const _prevUserIdRef      = React.useRef(null);
+  const _prevRecipientIdRef = React.useRef(null);
+
   React.useEffect(() => {
-    // ── KILLER4 HISTORY HELPER ────────────────────────────────
+    // ── KILLER4 HELPER — MAX 30, CLEANUP getrennt ─────────────
     const _k4push = (event, payload) => {
       if (typeof window === "undefined") return;
       if (!window.HUI_KILLER4_HISTORY) window.HUI_KILLER4_HISTORY = [];
       window.HUI_KILLER4_HISTORY.push({ ts: Date.now(), event, payload });
-      if (window.HUI_KILLER4_HISTORY.length > 20) window.HUI_KILLER4_HISTORY.shift();
+      if (window.HUI_KILLER4_HISTORY.length > 30) window.HUI_KILLER4_HISTORY.shift();
       logDebug(event, payload);
     };
+    const _k4pushCleanup = (payload) => {
+      if (typeof window === "undefined") return;
+      if (!window.HUI_KILLER4_CLEANUP) window.HUI_KILLER4_CLEANUP = [];
+      window.HUI_KILLER4_CLEANUP.push({ ts: Date.now(), event: "KILLER4_CLEANUP", payload });
+      if (window.HUI_KILLER4_CLEANUP.length > 50) window.HUI_KILLER4_CLEANUP.shift();
+      _k4push("KILLER4_CLEANUP", payload);
+    };
+
+    const _nowUserId   = user?.id ?? null;
+    const _nowRecipId  = initialRecipient?.id ?? null;
+    const _prevUserId  = _prevUserIdRef.current;
+    const _prevRecipId = _prevRecipientIdRef.current;
 
     // [KILLER4_EFFECT_START] ──────────────────────────────────
     const _k4meta = {
-      userId:       user?.id ?? null,
-      recipientId:  initialRecipient?.id ?? null,
+      userId:       _nowUserId,
+      recipientId:  _nowRecipId,
       activeConvId: activeConv?.id ?? null,
       ts:           Date.now(),
     };
     console.log("[KILLER4_EFFECT_START]", _k4meta);
     _k4push("KILLER4_EFFECT_START", _k4meta);
+
+    // [KILLER4_DEP_CHANGE] — wenn nicht erster Run ─────────────
+    if (_prevUserId !== null || _prevRecipId !== null) {
+      const _depChange = {
+        prevUserId:       _prevUserId,
+        nextUserId:       _nowUserId,
+        prevRecipientId:  _prevRecipId,
+        nextRecipientId:  _nowRecipId,
+        prevActiveConv:   activeConv?.id ?? null,
+        nextActiveConv:   null,
+        userChanged:      _prevUserId !== _nowUserId,
+        recipientChanged: _prevRecipId !== _nowRecipId,
+        ts:               Date.now(),
+      };
+      console.log("[KILLER4_DEP_CHANGE]", _depChange);
+      _k4push("KILLER4_DEP_CHANGE", _depChange);
+
+      // SECOND_EFFECT_RUN: Effect feuert erneut UND activeConv war gesetzt
+      if (activeConv?.id) {
+        const _second = {
+          reason:          "SECOND_EFFECT_RUN",
+          activeConv:      activeConv.id,
+          prevRecipientId: _prevRecipId,
+          nextRecipientId: _nowRecipId,
+          prevUserId:      _prevUserId,
+          nextUserId:      _nowUserId,
+          ts:              Date.now(),
+        };
+        console.warn("[KILLER4_SECOND_RUN]", _second);
+        _k4push("KILLER4_SECOND_RUN", _second);
+        if (typeof window !== "undefined") {
+          window.HUI_CHAT_KILLER = { reason: "SECOND_EFFECT_RUN", ..._second };
+        }
+      }
+    }
+    _prevUserIdRef.current      = _nowUserId;
+    _prevRecipientIdRef.current = _nowRecipId;
 
     if (!initialRecipient?.id) {
       console.log("[CHAT] STOP: kein initialRecipient.id");
@@ -608,7 +670,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         }
       });
 
-    // [KILLER4_CLEANUP] ───────────────────────────────────────
+    // [KILLER4_CLEANUP] — separates Array, niemals überschreiben ─
     return () => {
       const _k4cleanup = {
         userId:       user?.id ?? null,
@@ -617,7 +679,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         ts:           Date.now(),
       };
       console.log("[KILLER4_CLEANUP]", _k4cleanup);
-      _k4push("KILLER4_CLEANUP", _k4cleanup);
+      _k4pushCleanup(_k4cleanup);
     };
   // user?.id + initialRecipient?.id: Effekt soll erneut feuern
   // wenn BEIDE bereit sind — auch wenn nur eines sich ändert
