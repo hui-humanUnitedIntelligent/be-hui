@@ -35,7 +35,6 @@ export default function ChatAtmosphere({ dark = false }) {
       overflow:"hidden",
     }}>
       <style>{CSS}</style>
-      {/* DIAG */}<div style={{position:"fixed",top:150,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>ChatAtmosphere</div>
       {/* Teal Aura — oben links */}
       <div style={{
         position:"absolute", top:"-15%", left:"-10%",
