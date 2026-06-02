@@ -162,7 +162,26 @@ export function buildActions(shell) {
   } = shell;
 
   // ── helper: close all overlays before opening another ────────────
-  function closeAll() {
+  function closeAll(callerAction) {
+    // ── CLOSEALL INSTRUMENTATION ─────────────────────────────
+    const _caStack = new Error().stack;
+    const _caShort = (_caStack || "").split("\n").slice(1, 6).join(" | ");
+    const _caPayload = {
+      action:    callerAction ?? "UNKNOWN",
+      caller:    _caShort,
+      ts:        Date.now(),
+    };
+    console.warn("[CLOSEALL]", _caPayload);
+    if (typeof window !== "undefined") {
+      window.HUI_CLOSEALL_CALLER = _caPayload;
+      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+      window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CLOSEALL", payload: _caPayload });
+      if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+      // CHAT_KILLER setzen — closeAll schließt immer den Chat
+      window.HUI_CHAT_KILLER = { reason: "closeAll("UNKNOWN")", caller: _caShort,
+        action: callerAction ?? "UNKNOWN", ts: Date.now() };
+    }
+    // ── end instrumentation ──────────────────────────────────
     setShowWirker?.(null);
     setShowChat?.(false);
     setShowPlusSheet?.(false);
