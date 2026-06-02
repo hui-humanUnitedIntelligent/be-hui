@@ -259,6 +259,20 @@ export function buildActions(shell) {
 
     [A.CLOSE_CHAT]: () => {
       logAction(A.CLOSE_CHAT);
+      // ── TRACE: A.CLOSE_CHAT → setShowChat(false) ────────────
+      if (typeof window !== "undefined") {
+        const _tr = { source: "A.CLOSE_CHAT", file: "hui.actions.js", line: 262,
+          stack: new Error().stack, ts: Date.now() };
+        window.HUI_CHAT_CLOSE_TRACE = _tr;
+        if (!window.HUI_CHAT_CLOSE_TRACE_LOG) window.HUI_CHAT_CLOSE_TRACE_LOG = [];
+        window.HUI_CHAT_CLOSE_TRACE_LOG.push(_tr);
+        if (window.HUI_CHAT_CLOSE_TRACE_LOG.length > 30) window.HUI_CHAT_CLOSE_TRACE_LOG.shift();
+        console.warn("[CHAT_CLOSE_TRACE]", _tr);
+        window.HUI_CHAT_KILLER = { reason: "A.CLOSE_CHAT", caller: "hui.actions.js:262", ts: Date.now() };
+        if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+        window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_CLOSE_TRACE", payload: _tr });
+        if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+      }
       setShowChat?.(false);
     },
 
