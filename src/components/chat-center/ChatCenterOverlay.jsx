@@ -191,24 +191,18 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // ── ConversationRoom ──
   if (activeConv) {
     return (
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 10001,
-        display: "flex", flexDirection: "column",
-        fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-      }}>
-        <ConversationRoom
-          conv={activeConv}
-          onBack={() => setActiveConv(null)}
-          onOpenProfile={(conv) => {
-            const userId = conv?.user_id || conv?.id;
-            if (userId) openCreatorProfile(userId, {
-              display_name: conv?.name,
-              avatar_url:   conv?.avatar_url,
-              talent:       conv?.talent,
-            });
-          }}
-        />
-      </div>
+      <ConversationRoom
+        conv={activeConv}
+        onBack={() => setActiveConv(null)}
+        onOpenProfile={(conv) => {
+          const userId = conv?.user_id || conv?.id;
+          if (userId) openCreatorProfile(userId, {
+            display_name: conv?.name,
+            avatar_url:   conv?.avatar_url,
+            talent:       conv?.talent,
+          });
+        }}
+      />
     );
   }
 
