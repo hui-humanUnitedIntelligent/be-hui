@@ -335,6 +335,65 @@ function LastFCCInfo() {
   );
 }
 
+/* KILLER4 HISTORY — zeigt window.HUI_KILLER4_HISTORY live */
+function Killer4History() {
+  const [logs, setLogs] = React.useState([]);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      const all = (typeof window !== "undefined" && window.HUI_KILLER4_HISTORY) || [];
+      setLogs([...all].reverse());
+    }, 400);
+    return () => clearInterval(id);
+  }, []);
+  if (logs.length === 0) {
+    return (
+      <div style={{ marginTop:6, borderTop:"1px solid rgba(255,165,0,0.2)", paddingTop:5 }}>
+        <div style={{ color:"#555", fontSize:10 }}>KILLER4 HISTORY: ---</div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ marginTop:6, borderTop:"1px solid rgba(255,165,0,0.35)", paddingTop:5 }}>
+      <div style={{ color:"#ffaa00", fontSize:10, fontWeight:700, marginBottom:3 }}>
+        {"KILLER4 HISTORY (" + logs.length + "):"}
+      </div>
+      <div style={{
+        maxHeight: 200, overflowY: "auto", WebkitOverflowScrolling: "touch",
+        fontFamily: "monospace", fontSize: 10, lineHeight: 1.6,
+      }}>
+        {logs.map((entry, idx) => {
+          const ev = entry.event || "";
+          const evColor =
+            ev === "KILLER4_CLEAR"           ? "#ff6644" :
+            ev === "KILLER4_CLEANUP"         ? "#ff4488" :
+            ev === "KILLER4_SET_ACTIVE_CONV" ? "#44ff88" :
+            ev === "KILLER4_EFFECT_START"    ? "#ffdd44" :
+            ev === "KILLER4_EFFECT_STOP"     ? "#aaaaaa" :
+            "#ffaa00";
+          const ts = new Date(entry.ts).toISOString().slice(11, 23);
+          const p = entry.payload || {};
+          const detail = [
+            "ac:" + (p.activeConvId ? p.activeConvId.slice(0,6) : "null"),
+            p.chatId  ? "chat:" + p.chatId.slice(0,6)         : null,
+            p.reason  ? "r:" + String(p.reason).slice(0,18)   : null,
+          ].filter(Boolean).join(" ");
+          return (
+            <div key={idx} style={{
+              color: evColor,
+              borderBottom: "1px solid rgba(255,255,255,0.04)",
+              paddingBottom: 1,
+            }}>
+              <span style={{ color:"#555" }}>{ts + " "}</span>
+              <span style={{ fontWeight:700 }}>{ev}</span>
+              {"  "}<span style={{ color:"#888" }}>{detail}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* DEBUG TIMELINE — zeigt window.HUI_DEBUG_LOGS live */
 function DebugTimeline() {
   const [logs, setLogs] = React.useState([]);
@@ -764,6 +823,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         </div>
         {/* CHAT KILLER */}
         <LastKillerInfo />
+        {/* KILLER4 HISTORY */}
+        <Killer4History />
         <div>recipient: <span style={{ color: "#ffd" }}>
           {initialRecipient?.id ? initialRecipient.id.slice(0, 8) + "…" : "—"}
         </span></div>
