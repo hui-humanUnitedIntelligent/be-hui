@@ -765,11 +765,11 @@ class CrashWatcher extends React.Component {
 }
 
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
-  console.error("CCO_INITIAL_RECIPIENT", {
-    initialRecipient,
-    recipientId: initialRecipient?.id,
-    ts: Date.now(),
-  });
+  const _cco_ir = { k:"CCO_INITIAL_RECIPIENT", recipientId: initialRecipient?.id, display_name: initialRecipient?.display_name, full: JSON.stringify(initialRecipient ?? {}).slice(0,120), ts: Date.now() };
+  console.error("CCO_INITIAL_RECIPIENT", _cco_ir);
+  if (!window.__HUI_RLOG__) window.__HUI_RLOG__ = [];
+  window.__HUI_RLOG__.unshift(_cco_ir);
+  if (window.__HUI_RLOG__.length > 10) window.__HUI_RLOG__.pop();
   // CCO_UNMOUNT — feuert wenn ChatCenterOverlay komplett unmountet
   React.useEffect(() => {
     const _mountTs = Date.now();
