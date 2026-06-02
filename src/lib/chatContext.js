@@ -235,26 +235,29 @@ export function useChatThread(chatId) {
   // Realtime für neue Nachrichten
   useEffect(() => {
     if (!chatId) return;
-    realtimeRef.current = supabase
+
+    const channel = supabase
       .channel(`thread:${chatId}`)
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "messages",
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
-        console.log("[HUI_REALTIME_RECEIVED] neue Message:", {
+        console.log("[MESSAGE_INSERT_EVENT]", {
           id:        payload.new?.id,
           sender_id: payload.new?.sender_id,
           chat_id:   payload.new?.chat_id,
           text:      payload.new?.text?.substring(0, 40),
+          ts:        Date.now(),
         });
         setMessages(prev => {
           const exists = prev.find(m => m.id === payload.new.id);
           if (exists) return prev;
-          // Optimistic message ersetzen wenn ID passt, sonst anhängen
-          const withoutMatchingOptimistic = prev.filter(m =>
+          const withoutOptimistic = prev.filter(m =>
             !(m._optimistic && m.text === payload.new.text && m.sender_id === payload.new.sender_id)
           );
-          return [...withoutMatchingOptimistic, payload.new];
+          const next = [...withoutOptimistic, payload.new];
+          console.log("[MESSAGE_RECEIVED]", { total: next.length, newId: payload.new?.id });
+          return next;
         });
       })
       .on("postgres_changes", {
@@ -266,9 +269,19 @@ export function useChatThread(chatId) {
         ));
       })
       .subscribe((status, err) => {
-        console.log("[HUI_REALTIME]", chatId, "subscription status:", status, err || "");
+        if (status === "SUBSCRIBED") {
+          console.log("[SUBSCRIBE_CREATED]", { chatId, status, ts: Date.now() });
+        } else {
+          console.log("[SUBSCRIBE_STATUS]", { chatId, status, err: err?.message || null, ts: Date.now() });
+        }
       });
-    return () => { supabase.removeChannel(realtimeRef.current); };
+
+    realtimeRef.current = channel;
+
+    return () => {
+      console.log("[UNSUBSCRIBED]", { chatId, ts: Date.now() });
+      supabase.removeChannel(channel);
+    };
   }, [chatId]);
 
   // PRIO 3: sendMessage — echtes messages-Schema
