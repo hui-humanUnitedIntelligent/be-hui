@@ -178,7 +178,7 @@ export function buildActions(shell) {
       window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CLOSEALL", payload: _caPayload });
       if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
       // CHAT_KILLER setzen — closeAll schließt immer den Chat
-      window.HUI_CHAT_KILLER = { reason: "closeAll("UNKNOWN")", caller: _caShort,
+      window.HUI_CHAT_KILLER = { reason: "closeAll(UNKNOWN)", caller: _caShort,
         action: callerAction ?? "UNKNOWN", ts: Date.now() };
     }
     // ── end instrumentation ──────────────────────────────────
