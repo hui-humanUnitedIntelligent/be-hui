@@ -30,6 +30,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile }) {
       position:"relative", zIndex:2, flexShrink:0,
     }}>
       {/* ← Zurück */}
+      {/* DIAG */}<div style={{position:"fixed",top:175,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>ChatHeader</div>
       <button onClick={onBack} style={{
         width:36, height:36, borderRadius:"50%", flexShrink:0,
         background:"rgba(255,255,255,0.70)", border:"1px solid rgba(22,215,197,0.15)",
