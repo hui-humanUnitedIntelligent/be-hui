@@ -75,6 +75,40 @@ const GLOBAL_CSS = IX.CSS + `
 `;
 
 /* ══════════════════════════════════════════════════════════════ */
+
+/* ── DIAG: Recipient Log Overlay — polling, 250ms ─────────────────── */
+function RLogOverlay() {
+  const [logs, setLogs] = React.useState([]);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setLogs([...(window.__HUI_RLOG__ || [])]);
+    }, 250);
+    return () => clearInterval(id);
+  }, []);
+  if (!logs.length) return null;
+  return (
+    <div style={{
+      position:"fixed", bottom:90, left:8, right:8, zIndex:999999,
+      background:"rgba(0,0,0,0.93)", color:"#0ff",
+      fontFamily:"monospace", fontSize:10, padding:10,
+      borderRadius:10, maxHeight:240, overflowY:"auto",
+      pointerEvents:"none",
+      border:"1px solid rgba(0,255,255,0.3)",
+    }}>
+      <div style={{color:"#ff0",fontWeight:700,marginBottom:5}}>▶ RECIPIENT LOG ({logs.length})</div>
+      {logs.map((e,i) => (
+        <div key={i} style={{marginBottom:5,borderBottom:"1px solid rgba(255,255,255,0.08)",paddingBottom:4}}>
+          <span style={{color:"#ff0"}}>{e.k}</span>{" "}
+          id=<span style={{color: e.recipientId ? "#0f0" : "#f00"}}>{String(e.recipientId ?? "UNDEFINED")}</span>{" "}
+          <span style={{color:"#aaa",fontSize:9,wordBreak:"break-all"}}>
+            {JSON.stringify(e).slice(0,100)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function HomeInner() {
   // Phase 16.6: Tab element refs for imperative Safari paint recovery
   const tabRefs = {
@@ -762,24 +796,7 @@ function HomeInner() {
         </div>
       )}
 
-      {/* DIAG: Recipient Log Overlay — immer sichtbar wenn Logs vorhanden */}
-      <div id="hui-rlog" style={{
-        position:"fixed", bottom:100, left:8, right:8, zIndex:999999,
-        background:"rgba(0,0,0,0.92)", color:"#0ff",
-        fontFamily:"monospace", fontSize:10, padding:10,
-        borderRadius:10, maxHeight:220, overflowY:"auto",
-        display: (typeof window !== "undefined" && window.__HUI_RLOG__?.length) ? "block" : "none",
-        pointerEvents:"none",
-      }}>
-        <div style={{color:"#ff0",fontWeight:700,marginBottom:4}}>▶ RECIPIENT LOG</div>
-        {(typeof window !== "undefined" ? (window.__HUI_RLOG__ || []) : []).map((e,i) => (
-          <div key={i} style={{marginBottom:6,borderBottom:"1px solid rgba(255,255,255,0.1)",paddingBottom:4}}>
-            <span style={{color:"#ff0"}}>{e.k}</span>{" "}
-            id=<span style={{color:"#0f0"}}>{String(e.recipientId ?? "undefined")}</span>{" "}
-            <span style={{color:"#aaa",fontSize:9}}>{JSON.stringify(e.chatRecipient ?? e.initialRecipient ?? {}).slice(0,80)}</span>
-          </div>
-        ))}
-      </div>
+      <RLogOverlay />
 
     </>
   );
