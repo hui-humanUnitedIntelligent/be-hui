@@ -155,6 +155,20 @@ export default function HomeShell({ children }) {
     try { return sessionStorage.getItem("hui_active_tab") === "profile"; } catch { return false; }
   });
   const [showChat,               setShowChat]              = useState(false);
+  // DIAG: showChat-Wert überwachen — feuert bei jeder Änderung
+  React.useEffect(() => {
+    console.log("[SHOWCHAT_STATE_CHANGE]", { showChat, ts: Date.now() });
+    if (typeof window !== "undefined") {
+      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
+      window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: showChat ? "SHOWCHAT_TRUE" : "SHOWCHAT_FALSE_STATE", payload: { showChat } });
+      if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
+      if (!showChat) {
+        const reason = "showChat===false (state)", caller = "HomeShell/showChat-watcher";
+        window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() };
+        console.warn("[CHAT_KILLER]", { reason, caller });
+      }
+    }
+  }, [showChat]);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
   const [showNotifs,             setShowNotifs]            = useState(false);
   const [showMap,                setShowMap]               = useState(false);
