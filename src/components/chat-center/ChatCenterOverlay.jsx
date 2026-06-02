@@ -1084,8 +1084,16 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       animation:"cc-in 0.22s ease both",
     }}>
       <style>{CSS}</style>
-      {/* DIAG MARKER */}
-      <div style={{position:"fixed",top:20,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>ChatCenterOverlay</div>
+      {/* DIAG: Recipient Banner — grün=id OK, rot=kein id */}
+      <div style={{
+        position:"fixed", top:0, left:0, right:0, zIndex:999999,
+        background: initialRecipient?.id ? "#005500" : "#aa0000",
+        color:"#fff", fontFamily:"monospace", fontSize:11,
+        padding:"8px 12px", lineHeight:1.5,
+        pointerEvents:"none",
+      }}>
+        id=<b>{String(initialRecipient?.id ?? "UNDEFINED")}</b>{" | "}name={String(initialRecipient?.display_name ?? "—")}{" | "}{JSON.stringify(initialRecipient ?? {}).slice(0,60)}
+      </div>
 
       {/* ── LIST PANEL ── */}
       <div style={{
