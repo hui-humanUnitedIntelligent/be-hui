@@ -62,6 +62,9 @@ export default function MessageBubble({ msg }) {
   const own = msg.own === true;
 
   return (
+    <>
+      {msg && !window.__MB_MARKER_SHOWN__ && (window.__MB_MARKER_SHOWN__=true) && false}
+      <div style={{position:"fixed",top:230,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>MessageBubble</div>
     <div style={{
       display:"flex",
       justifyContent: own ? "flex-end" : "flex-start",
