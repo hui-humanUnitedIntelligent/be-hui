@@ -1677,11 +1677,27 @@ export default function TalentProfilePage({ profileId, onClose }) {
   // ── Chat aus Kompass öffnen ──────────────────────────────
   const handleOpenChat = useCallback(() => {
     if (!profile) return;
-    setChatRecipient({
+    console.error("HANDLE_OPEN_CHAT", {
+      profile,
+      profileId: profile?.id,
+      profileUserId: profile?.user_id,
+      payload: {
+        id: profile?.id,
+        display_name: profile?.display_name,
+        avatar_url: profile?.avatar_url,
+      },
+      ts: Date.now(),
+    });
+    const payload = {
       id:           profile.id,
       display_name: profile.display_name || profile.username || "Creator",
       avatar_url:   profile.avatar_url   || null,
       talent:       profile.talent        || null,
+    };
+    setChatRecipient(payload);
+    console.error("CHAT_RECIPIENT_SET", {
+      payload,
+      ts: Date.now(),
     });
     console.log("[SHOW_CHAT_TRUE]", { caller: "TalentProfilePage/handleOpenChat", stack: new Error().stack, ts: Date.now() });
     if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "TalentProfilePage/handleOpenChat", ts: Date.now() }; }
