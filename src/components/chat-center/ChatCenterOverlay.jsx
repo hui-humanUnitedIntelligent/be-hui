@@ -442,18 +442,35 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   const lastRecipientRef = React.useRef(null);
 
   React.useEffect(() => {
-    // ── DIAG ENTRY ──────────────────────────────────────────────
-    console.log("[CHAT] useEffect initialRecipient", initialRecipient);
-    console.log("[CHAT] useEffect user?.id", user?.id);
+    // ── KILLER4 HISTORY HELPER ────────────────────────────────
+    const _k4push = (event, payload) => {
+      if (typeof window === "undefined") return;
+      if (!window.HUI_KILLER4_HISTORY) window.HUI_KILLER4_HISTORY = [];
+      window.HUI_KILLER4_HISTORY.push({ ts: Date.now(), event, payload });
+      if (window.HUI_KILLER4_HISTORY.length > 20) window.HUI_KILLER4_HISTORY.shift();
+      logDebug(event, payload);
+    };
+
+    // [KILLER4_EFFECT_START] ──────────────────────────────────
+    const _k4meta = {
+      userId:       user?.id ?? null,
+      recipientId:  initialRecipient?.id ?? null,
+      activeConvId: activeConv?.id ?? null,
+      ts:           Date.now(),
+    };
+    console.log("[KILLER4_EFFECT_START]", _k4meta);
+    _k4push("KILLER4_EFFECT_START", _k4meta);
 
     if (!initialRecipient?.id) {
       console.log("[CHAT] STOP: kein initialRecipient.id");
       setDebugStep("stop: no recipient.id");
+      _k4push("KILLER4_EFFECT_STOP", { reason: "no recipientId", ..._k4meta });
       return;
     }
     if (!user?.id) {
       console.log("[CHAT] STOP: kein user.id — Auth noch nicht geladen");
       setDebugStep("stop: no user.id");
+      _k4push("KILLER4_EFFECT_STOP", { reason: "no userId", ..._k4meta });
       return;
     }
     if (lastRecipientRef.current === initialRecipient.id && activeConv) {
@@ -461,20 +478,27 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         last: lastRecipientRef.current, active: activeConv?.id,
       });
       setDebugStep("stop: same recipient active");
+      _k4push("KILLER4_EFFECT_STOP", { reason: "same recipient active", ..._k4meta });
       return;
     }
     lastRecipientRef.current = initialRecipient.id;
 
     const recipientId = initialRecipient.id;
-    console.log("[CHAT] calling findOrCreateChat", {
-      me:        user.id,
-      recipient: recipientId,
-    });
     setDebugStep("calling findOrCreateChat");
     setDebugError(null);
 
-    setLoadingConv(true);
+    // [KILLER4_CLEAR] ─────────────────────────────────────────
+    const _k4clear = {
+      userId:       user.id,
+      recipientId,
+      activeConvId: activeConv?.id ?? null,
+      ts:           Date.now(),
+    };
+    console.log("[KILLER4_CLEAR]", _k4clear);
+    _k4push("KILLER4_CLEAR", _k4clear);
     { const reason = "setActiveConv(null) — reset before findOrCreateChat", caller = "CCO/useEffect/initialRecipient"; if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller }); }
+
+    setLoadingConv(true);
     setActiveConv(null);
 
     findOrCreateChat({
@@ -489,10 +513,12 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           console.error("[CHAT] STOP: chatRecord ohne id", chatRecord);
           setDebugStep("stop: chatRecord null");
           setDebugError({ code: "NO_ID", message: JSON.stringify(chatRecord).slice(0,120) });
+          _k4push("KILLER4_FCC_NO_ID", { recipientId, userId: user.id, chatRecord: JSON.stringify(chatRecord).slice(0,80) });
           return;
         }
         console.log("[CHAT] setActiveConv", realId);
         setDebugStep("setActiveConv: " + realId.slice(0,8));
+        _k4push("KILLER4_SET_ACTIVE_CONV", { userId: user.id, recipientId, chatId: realId, ts: Date.now() });
         setActiveConv({
           id:           realId,
           name:         initialRecipient.display_name || "Creator",
@@ -505,14 +531,12 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       })
       .catch(err => {
         console.error("[CHAT] Exception in findOrCreateChat", {
-          message: err?.message,
-          code:    err?.code,
-          details: err?.details,
-          hint:    err?.hint,
+          message: err?.message, code: err?.code,
         });
         setDebugStep("exception");
         setDebugError({ code: err?.code, message: err?.message });
         logDebug("FCC_ERROR", { recipientId, userId: user.id, error: err?.message });
+        _k4push("KILLER4_FCC_ERROR", { recipientId, userId: user.id, error: err?.message });
         if (typeof window !== "undefined") {
           window.__HUI_LAST_FCC__ = { event: "FCC_ERROR", recipientId, userId: user.id, error: err?.message, ts: Date.now() };
         }
@@ -524,6 +548,18 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           window.__HUI_LAST_FCC__ = window.__HUI_LAST_FCC__ ?? { event: "FCC_FINALLY", recipientId, ts: Date.now() };
         }
       });
+
+    // [KILLER4_CLEANUP] ───────────────────────────────────────
+    return () => {
+      const _k4cleanup = {
+        userId:       user?.id ?? null,
+        recipientId:  initialRecipient?.id ?? null,
+        activeConvId: activeConv?.id ?? null,
+        ts:           Date.now(),
+      };
+      console.log("[KILLER4_CLEANUP]", _k4cleanup);
+      _k4push("KILLER4_CLEANUP", _k4cleanup);
+    };
   // user?.id + initialRecipient?.id: Effekt soll erneut feuern
   // wenn BEIDE bereit sind — auch wenn nur eines sich ändert
   }, [user?.id, initialRecipient?.id]); // eslint-disable-line react-hooks/exhaustive-deps
