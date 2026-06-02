@@ -285,6 +285,26 @@ function LastCRInfo() {
   );
 }
 
+/* HUI_CHAT_KILLER — zeigt window.HUI_CHAT_KILLER live */
+function LastKillerInfo() {
+  const [info, setInfo] = React.useState(null);
+  React.useEffect(() => {
+    const id = setInterval(() => setInfo(
+      (typeof window !== "undefined" && window.HUI_CHAT_KILLER) || null
+    ), 400);
+    return () => clearInterval(id);
+  }, []);
+  if (!info) return <div style={{ color:"#555", fontSize:10, marginTop:4 }}>CHAT_KILLER: —</div>;
+  const ago = Math.round((Date.now() - (info.ts ?? Date.now())) / 1000);
+  return (
+    <div style={{ marginTop:4, borderTop:"1px solid rgba(255,0,0,0.25)", paddingTop:4 }}>
+      <div style={{ color:"#ff4444", fontSize:10, fontWeight:700 }}>⚠ CHAT_KILLER ({ago}s ago):</div>
+      <div style={{ color:"#ffaaaa", fontSize:11, wordBreak:"break-all" }}>{info.reason}</div>
+      <div style={{ color:"#ff8888", fontSize:10, wordBreak:"break-all" }}>{info.caller}</div>
+    </div>
+  );
+}
+
 /* LAST FCC EVENT — spiegelt window.__HUI_LAST_FCC__ */
 function LastFCCInfo() {
   const [info, setInfo] = React.useState(null);
@@ -454,6 +474,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     setDebugError(null);
 
     setLoadingConv(true);
+    { const reason = "setActiveConv(null) — reset before findOrCreateChat", caller = "CCO/useEffect/initialRecipient"; if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller }); }
     setActiveConv(null);
 
     findOrCreateChat({
@@ -660,7 +681,11 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           <CrashWatcher label="ConversationRoom">
             <ConversationRoom
               conv={activeConv}
-              onBack={() => setActiveConv(null)}
+              onBack={() => {
+                const reason = "setActiveConv(null)", caller = "CCO/ConversationRoom/onBack";
+                if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller });
+                setActiveConv(null);
+              }}
               onOpenProfile={(conv) => {
                 // Phase 23: Chat → Profil öffnen
                 // Chat schließt sich, Profil öffnet sich
@@ -701,6 +726,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <div style={{ color: "#16D7C5", fontWeight: 700, marginBottom: 4 }}>
           ⬡ CHAT DEBUG
         </div>
+        {/* CHAT KILLER */}
+        <LastKillerInfo />
         <div>recipient: <span style={{ color: "#ffd" }}>
           {initialRecipient?.id ? initialRecipient.id.slice(0, 8) + "…" : "—"}
         </span></div>
