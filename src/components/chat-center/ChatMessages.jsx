@@ -96,17 +96,6 @@ export default function ChatMessages({ messages, typing, event }) {
   });
 
   return (
-    <>
-      {/* DIAG MARKER: ChatMessages */}
-      <div style={{
-        position:"fixed", top:120, right:20, zIndex:999999,
-        background:"red", color:"white", padding:"4px 8px",
-        fontSize:11, fontFamily:"monospace", fontWeight:700,
-        borderRadius:4, pointerEvents:"none",
-        boxShadow:"0 2px 8px rgba(0,0,0,0.4)",
-      }}>
-        ChatMessages
-      </div>
     <div className="hui-scroll" style={{
       flex:1, overflowY:"auto", overflowX:"hidden",
       display:"flex", flexDirection:"column",
@@ -158,6 +147,5 @@ export default function ChatMessages({ messages, typing, event }) {
       {typing && <TypingBubble/>}
       <div ref={endRef}/>
     </div>
-    </>
   );
 }
