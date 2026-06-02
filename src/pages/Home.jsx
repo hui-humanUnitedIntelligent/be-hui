@@ -266,7 +266,7 @@ function HomeInner() {
             console.log("[GLOCKE STEP 6] Home.jsx onNotif callback aufgerufen → setShowNotifs(true)");
             setShowNotifs(true);
           }}
-          onChat={() => setShowChat(true)}
+          onChat={() => { console.log("[SHOW_CHAT_TRUE]", { caller: "Home/HomeHeader-onChat", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "Home/HomeHeader-onChat", ts: Date.now() }; } setShowChat(true); }}
         />
 
         {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,
@@ -493,6 +493,8 @@ function HomeInner() {
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
+              console.log("[SHOW_CHAT_FALSE]", { caller: "Home/onClose", stack: new Error().stack, ts: Date.now() });
+              if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "Home/onClose", ts: Date.now() }; }
               setShowChat(false);
               setChatRecipient(null);
               // Phase 2 LOOP 1: Return zum Profil wenn Chat vom Profil aus kam
@@ -505,6 +507,8 @@ function HomeInner() {
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
+              console.log("[SHOW_CHAT_FALSE]", { caller: "Home/onDiscoverClose", stack: new Error().stack, ts: Date.now() });
+              if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "Home/onDiscoverClose", ts: Date.now() }; }
               setShowChat(false);
               setChatRecipient(null);
               flow.clearReturnProfile(); // kein Return bei Discover-Navigate
