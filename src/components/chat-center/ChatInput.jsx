@@ -60,6 +60,7 @@ export default function ChatInput({
       outline: "3px solid rgba(22,215,197,0.40)",
     }}>
       <style>{CSS}</style>
+      {/* DIAG */}<div style={{position:"fixed",top:200,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>ChatInput</div>
 
       <div style={{
         display: "flex",
