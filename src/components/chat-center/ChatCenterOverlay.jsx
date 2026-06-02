@@ -364,6 +364,57 @@ function CloseAllPanel() {
   );
 }
 
+/* PROFILE EVENTS — zeigt HUI_PROFILE_EVENTS + HUI_LAST_PROFILE_EVENT */
+function ProfileEventsPanel() {
+  const [events, setEvents] = React.useState([]);
+  const [last,   setLast]   = React.useState(null);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setEvents((typeof window !== "undefined" && window.HUI_PROFILE_EVENTS)
+        ? [...window.HUI_PROFILE_EVENTS].reverse().slice(0, 6) : []);
+      setLast((typeof window !== "undefined" && window.HUI_LAST_PROFILE_EVENT) || null);
+    }, 400);
+    return () => clearInterval(id);
+  }, []);
+  const evColor = (ev) => {
+    if (ev === "PROFILE_CLOSE" || ev === "SELECTED_PROFILE_CLEARED") return "#ff5555";
+    if (ev === "PROFILE_OPEN"  || ev === "SELECTED_PROFILE_SET")     return "#44ff88";
+    return "#aaaaaa";
+  };
+  return (
+    <div style={{ marginTop:5, borderTop:"1px solid rgba(180,120,255,0.25)", paddingTop:4 }}>
+      <div style={{ color:"#bb88ff", fontSize:10, fontWeight:700 }}>
+        {"PROFILE EVENTS (letzte 6):"}
+      </div>
+      {events.length === 0 && (
+        <div style={{ color:"#555", fontSize:10 }}>---</div>
+      )}
+      <div style={{ fontFamily:"monospace", fontSize:10, lineHeight:1.5 }}>
+        {events.map((e, i) => {
+          const ts = new Date(e.ts || 0).toISOString().slice(11, 23);
+          return (
+            <div key={i} style={{ borderBottom:"1px solid rgba(255,255,255,0.03)", paddingBottom:1 }}>
+              <span style={{ color:"#555" }}>{ts + " "}</span>
+              <span style={{ color: evColor(e.event), fontWeight:700 }}>{e.event}</span>
+              {e.selectedProfileId && (
+                <span style={{ color:"#aaa" }}>{" pid:" + String(e.selectedProfileId).slice(0,8)}</span>
+              )}
+              {e.profileId && (
+                <span style={{ color:"#aaa" }}>{" pid:" + String(e.profileId).slice(0,8)}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {last && last.caller && (
+        <div style={{ color:"#886688", fontSize:9, marginTop:2, wordBreak:"break-all" }}>
+          {"last caller: " + (last.caller || "").slice(0, 100)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* EFFECT_RUNS — zeigt window.HUI_EFFECT_RUNS (letzte 10 Runs global) */
 function EffectRunsPanel() {
   const [runs, setRuns] = React.useState([]);
@@ -1029,6 +1080,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <EffectRunsPanel />
         {/* CLOSEALL */}
         <CloseAllPanel />
+        {/* PROFILE EVENTS */}
+        <ProfileEventsPanel />
         <div>recipient: <span style={{ color: "#ffd" }}>
           {initialRecipient?.id ? initialRecipient.id.slice(0, 8) + "…" : "—"}
         </span></div>
