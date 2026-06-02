@@ -1,7 +1,6 @@
 // chat-center/ConversationRoom.jsx
 
 import React, { useCallback } from "react";
-import ChatAtmosphere from "./ChatAtmosphere.jsx";
 import ChatHeader     from "./ChatHeader.jsx";
 import ChatMessages   from "./ChatMessages.jsx";
 import ChatInput      from "./ChatInput.jsx";
@@ -57,10 +56,8 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       position: "fixed", inset: 0,
       display: "flex", flexDirection: "column",
       fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-      background: "rgba(249,247,244,1)",
     }}>
       <style>{CSS}</style>
-      <ChatAtmosphere dark={false}/>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
 
       <div style={{
