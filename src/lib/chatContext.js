@@ -225,8 +225,16 @@ export function useChatThread(chatId) {
         .eq("chat_id", chatId)
         .order("created_at", { ascending: true })
         .limit(100);
+      console.log("[LOAD_RESULT]", {
+        chatId,
+        count:  data?.length ?? 0,
+        error:  null,
+        ts:     Date.now(),
+      });
       if (data) setMessages(data);
-    } catch(e) { console.warn("[useChatThread]", e.message); }
+    } catch(e) {
+      console.error("[LOAD_RESULT]", { chatId, count: 0, error: e.message, ts: Date.now() });
+    }
     finally { setLoading(false); }
   }, [chatId]);
 
@@ -330,18 +338,27 @@ export function useChatThread(chatId) {
         .single();
 
       if (error) {
-        console.error("[HUI_MESSAGE_ERROR] Supabase INSERT fehlgeschlagen:", {
+        console.error("[SEND_RESULT]", {
+          ok:      false,
+          chatId,
+          payload,
           code:    error.code,
           message: error.message,
           details: error.details,
           hint:    error.hint,
-          payload,
+          ts:      Date.now(),
         });
         setMessages(prev => prev.filter(m => m.id !== tempId));
         return { error: error.message, code: error.code };
       }
 
-      console.log("[HUI_REALITY] chat persisted ✓", insertedData?.id);
+      console.log("[SEND_RESULT]", {
+        ok:     true,
+        chatId,
+        msgId:  insertedData?.id,
+        payload,
+        ts:     Date.now(),
+      });
       // Optimistic message mit echter ID ersetzen
       setMessages(prev => prev.map(m =>
         m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
