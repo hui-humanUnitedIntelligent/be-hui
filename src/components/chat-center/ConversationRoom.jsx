@@ -22,6 +22,10 @@ function EmptyConvState({ name }) {
       alignItems:"center", justifyContent:"center",
       padding:"40px 24px", gap:16,
     }}>
+      {/* DIAG MARKER: EmptyConvState */}
+      <div style={{position:"fixed",top:90,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>
+        EmptyConvState
+      </div>
       <div style={{
         width:56, height:56, borderRadius:"50%",
         background:"linear-gradient(135deg,rgba(22,215,197,0.15),rgba(255,138,107,0.10))",
@@ -129,6 +133,10 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
     }}>
       <style>{CSS}</style>
+      {/* DIAG MARKER: ConversationRoom */}
+      <div style={{position:"fixed",top:60,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>
+        ConversationRoom
+      </div>
       <ChatAtmosphere dark={false}/>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
 
