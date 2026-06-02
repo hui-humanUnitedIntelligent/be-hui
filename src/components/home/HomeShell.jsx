@@ -163,9 +163,21 @@ export default function HomeShell({ children }) {
       window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: showChat ? "SHOWCHAT_TRUE" : "SHOWCHAT_FALSE_STATE", payload: { showChat } });
       if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
       if (!showChat) {
-        const reason = "showChat===false (state)", caller = "HomeShell/showChat-watcher";
-        window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() };
-        console.warn("[CHAT_KILLER]", { reason, caller });
+        // Wenn showChat=false ohne bekannten TRACE → UNKNOWN Close
+        const existing = window.HUI_CHAT_CLOSE_TRACE;
+        const isStale  = !existing || (Date.now() - (existing.ts || 0) > 2000);
+        if (isStale) {
+          const _tr = { source: "UNKNOWN — showChat=false ohne Trace",
+            file: "HomeShell.jsx", line: 0,
+            stack: new Error().stack, ts: Date.now() };
+          window.HUI_CHAT_CLOSE_TRACE = _tr;
+          if (!window.HUI_CHAT_CLOSE_TRACE_LOG) window.HUI_CHAT_CLOSE_TRACE_LOG = [];
+          window.HUI_CHAT_CLOSE_TRACE_LOG.push(_tr);
+          if (window.HUI_CHAT_CLOSE_TRACE_LOG.length > 30) window.HUI_CHAT_CLOSE_TRACE_LOG.shift();
+          console.warn("[CHAT_CLOSE_TRACE_UNKNOWN]", _tr);
+          window.HUI_CHAT_KILLER = { reason: "UNKNOWN showChat=false", caller: "HomeShell/watcher",
+            ts: Date.now() };
+        }
       }
     }
   }, [showChat]);
@@ -278,7 +290,16 @@ export default function HomeShell({ children }) {
     console.log("[CHAT_CLOSE]", { reason: "switchTab", newTab, stack: new Error().stack });
     console.log("[SHOW_CHAT_FALSE]", { caller: "HomeShell/switchTab", stack: new Error().stack, ts: Date.now() });
     if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "HomeShell/switchTab(" + newTab + ")", ts: Date.now() }; }
-    { const reason = "setShowChat(false) BLOCKED", caller = "HomeShell/switchTab(" + newTab + ")"; if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller }); }
+    // ── TRACE: switchTab — BLOCKED (kein setShowChat(false)) ────
+    if (typeof window !== "undefined") {
+      const _tr = { source: "HomeShell/switchTab BLOCKED", file: "HomeShell.jsx", line: 281,
+        stack: new Error().stack, ts: Date.now() };
+      // BLOCKED = kein Close — nur loggen, kein HUI_CHAT_CLOSE_TRACE setzen
+      if (!window.HUI_CHAT_CLOSE_TRACE_LOG) window.HUI_CHAT_CLOSE_TRACE_LOG = [];
+      window.HUI_CHAT_CLOSE_TRACE_LOG.push({ ..._tr, source: "switchTab/BLOCKED" });
+      if (window.HUI_CHAT_CLOSE_TRACE_LOG.length > 30) window.HUI_CHAT_CLOSE_TRACE_LOG.shift();
+      console.log("[SWITCH_TAB_BLOCKED]", _tr);
+    }
     console.log("[BLOCKED_SHOWCHAT_FALSE]", newTab); // DIAG TEMP — kein setShowChat(false)
     setShowNotifs(false);
     setShowMembership(false);
