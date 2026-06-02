@@ -454,6 +454,75 @@ function EffectRunsPanel() {
   );
 }
 
+/* EFFECT TRACE — zeigt window.HUI_EFFECT_TRACE (direkt vor setActiveConv(null)) */
+function EffectTracePanel() {
+  const [trace, setTrace] = React.useState(null);
+  const [log,   setLog]   = React.useState([]);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setTrace((typeof window !== "undefined" && window.HUI_EFFECT_TRACE) || null);
+      setLog((typeof window !== "undefined" && window.HUI_EFFECT_TRACE_LOG)
+        ? [...window.HUI_EFFECT_TRACE_LOG].reverse().slice(0, 6) : []);
+    }, 300);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div style={{
+      marginTop: 5,
+      borderTop: "2px solid rgba(255,200,0,0.35)",
+      paddingTop: 4,
+      background: "rgba(60,50,0,0.20)",
+      borderRadius: 4,
+      padding: "4px 6px",
+    }}>
+      <div style={{ color:"#ffdd44", fontSize:11, fontWeight:800, letterSpacing:"0.04em" }}>
+        🔁 LAST EFFECT TRACE (vor setActiveConv null)
+      </div>
+      {!trace ? (
+        <div style={{ color:"#555", fontSize:10 }}>— noch kein Trace —</div>
+      ) : (
+        <div style={{ fontFamily:"monospace", fontSize:10, lineHeight:1.7 }}>
+          <div>
+            <span style={{ color:"#888" }}>run:             </span>
+            <span style={{ color:"#ffdd44", fontWeight:700 }}>{trace.run ?? "?"}</span>
+          </div>
+          <div>
+            <span style={{ color:"#888" }}>userId:          </span>
+            <span style={{ color:"#88ccff" }}>{trace.userId ? String(trace.userId).slice(0,12)+"…" : "null"}</span>
+          </div>
+          <div>
+            <span style={{ color:"#888" }}>recipientId:     </span>
+            <span style={{ color:"#88ffcc" }}>{trace.recipientId ? String(trace.recipientId).slice(0,12)+"…" : "null"}</span>
+          </div>
+          <div>
+            <span style={{ color:"#888" }}>activeConvBefore: </span>
+            <span style={{ color: trace.activeConvBefore ? "#ff8844" : "#555", fontWeight: trace.activeConvBefore ? 700 : 400 }}>
+              {trace.activeConvBefore ? String(trace.activeConvBefore).slice(0,12)+"…" : "null"}
+            </span>
+          </div>
+          <div>
+            <span style={{ color:"#888" }}>ts:              </span>
+            <span style={{ color:"#aaa" }}>{new Date(trace.ts||0).toISOString().slice(11,23)}</span>
+          </div>
+        </div>
+      )}
+      {log.length > 1 && (
+        <div style={{ marginTop:3, borderTop:"1px solid rgba(255,200,0,0.15)", paddingTop:2 }}>
+          <div style={{ color:"#886600", fontSize:9, fontWeight:700 }}>{"LOG (" + log.length + " runs):"}</div>
+          {log.map((e, i) => (
+            <div key={i} style={{ fontFamily:"monospace", fontSize:9,
+              color: e.activeConvBefore ? "#ff8844" : "#888" }}>
+              {"#" + e.run + " " + new Date(e.ts||0).toISOString().slice(11,23)
+                + " conv:" + (e.activeConvBefore ? String(e.activeConvBefore).slice(0,8)+"…" : "null")
+                + " recip:" + (e.recipientId ? String(e.recipientId).slice(0,8)+"…" : "null")}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* CHAT CLOSE TRACE — zeigt window.HUI_CHAT_CLOSE_TRACE + letzten Log-Eintrag */
 function ChatCloseTracePanel() {
   const [trace, setTrace] = React.useState(null);
@@ -869,6 +938,23 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     _k4push("KILLER4_CLEAR", _k4clear);
     { const reason = "setActiveConv(null) — reset before findOrCreateChat", caller = "CCO/useEffect/initialRecipient"; if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller }); }
 
+    // ── HUI_EFFECT_TRACE — direkt vor setActiveConv(null) ────
+    if (typeof window !== "undefined") {
+      window.HUI_EFFECT_TRACE = {
+        run:             (window.HUI_EFFECT_RUNS_COUNT || 0) + 1,
+        userId:          user?.id ?? null,
+        recipientId:     initialRecipient?.id ?? null,
+        activeConvBefore: activeConv?.id ?? null,
+        ts:              Date.now(),
+      };
+      window.HUI_EFFECT_RUNS_COUNT = (window.HUI_EFFECT_RUNS_COUNT || 0) + 1;
+      if (!window.HUI_EFFECT_TRACE_LOG) window.HUI_EFFECT_TRACE_LOG = [];
+      window.HUI_EFFECT_TRACE_LOG.push({ ...window.HUI_EFFECT_TRACE });
+      if (window.HUI_EFFECT_TRACE_LOG.length > 20) window.HUI_EFFECT_TRACE_LOG.shift();
+      console.warn("[HUI_EFFECT_TRACE]", window.HUI_EFFECT_TRACE);
+    }
+    // ────────────────────────────────────────────────────────
+
     setLoadingConv(true);
     setActiveConv(null);
 
@@ -1146,6 +1232,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <LastKillerInfo />
         {/* CHAT CLOSE TRACE — ganz oben */}
         <ChatCloseTracePanel />
+        {/* EFFECT TRACE */}
+        <EffectTracePanel />
         {/* KILLER4 HISTORY */}
         <Killer4History />
         {/* EFFECT RUNS */}
