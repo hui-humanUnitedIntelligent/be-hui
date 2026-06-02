@@ -498,6 +498,7 @@ function HomeInner() {
               logDebug("SHOWCHAT_FALSE", { caller: "Home/onClose" });
               console.log("[SHOW_CHAT_FALSE]", { caller: "Home/onClose", stack: new Error().stack, ts: Date.now() });
               if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "Home/onClose", ts: Date.now() }; }
+              { const reason = "setShowChat(false)", caller = "Home/onClose"; if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller }); }
               setShowChat(false);
               setChatRecipient(null);
               // Phase 2 LOOP 1: Return zum Profil wenn Chat vom Profil aus kam
@@ -513,6 +514,7 @@ function HomeInner() {
               logDebug("SHOWCHAT_FALSE", { caller: "Home/onDiscoverClose" });
               console.log("[SHOW_CHAT_FALSE]", { caller: "Home/onDiscoverClose", stack: new Error().stack, ts: Date.now() });
               if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "Home/onDiscoverClose", ts: Date.now() }; }
+              { const reason = "setShowChat(false)", caller = "Home/onDiscoverClose"; if (typeof window !== "undefined") { window.HUI_CHAT_KILLER = { reason, caller, ts: Date.now() }; if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = []; window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_KILLER", payload: { reason, caller } }); if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift(); } console.warn("[CHAT_KILLER]", { reason, caller }); }
               setShowChat(false);
               setChatRecipient(null);
               flow.clearReturnProfile(); // kein Return bei Discover-Navigate
