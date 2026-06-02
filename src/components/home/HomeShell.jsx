@@ -203,7 +203,15 @@ export default function HomeShell({ children }) {
     // GUARD: Orb is a world-layer, never a tab destination
     if (!assertValidTab(newTab)) return;
     // [DIAG] switchTab aufgerufen — Aufrufer ermitteln
-    console.log("[SWITCH_TAB]", { newTab, showChat, stack: new Error().stack });
+    const _stStack = new Error().stack;
+    // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
+    const _stLines = (_stStack || "").split("\n");
+    const _stCaller = (_stLines.find((l, i) => i > 1 && !l.includes("switchTab") && !l.includes("HomeShell")) || _stLines[2] || "").trim();
+    console.log("[SWITCH_TAB]", { newTab, showChat, stack: _stStack });
+    // Für Debug-Overlay sichern
+    if (typeof window !== "undefined") {
+      window.__HUI_LAST_SWITCH_TAB__ = { newTab, caller: _stCaller, ts: Date.now() };
+    }
     // World continuity: track tab transition for atmospheric carry-over
     setPrevTab(tab);
     setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
