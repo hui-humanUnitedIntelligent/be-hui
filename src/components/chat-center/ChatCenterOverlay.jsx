@@ -335,6 +335,35 @@ function LastFCCInfo() {
   );
 }
 
+/* CLOSEALL — zeigt window.HUI_CLOSEALL_CALLER */
+function CloseAllPanel() {
+  const [info, setInfo] = React.useState(null);
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setInfo((typeof window !== "undefined" && window.HUI_CLOSEALL_CALLER) || null);
+    }, 400);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div style={{ marginTop:5, borderTop:"1px solid rgba(255,80,80,0.25)", paddingTop:4 }}>
+      <div style={{ color:"#ff5050", fontSize:10, fontWeight:700 }}>
+        {"LAST CLOSEALL: " + (info ? "" : "---")}
+      </div>
+      {info && (
+        <div style={{ fontFamily:"monospace", fontSize:10, lineHeight:1.5 }}>
+          <div style={{ color:"#ff8888" }}>{"action: " + (info.action || "?")}</div>
+          <div style={{ color:"#ffaaaa", wordBreak:"break-all" }}>
+            {"caller: " + (info.caller || "?").slice(0, 120)}
+          </div>
+          <div style={{ color:"#888" }}>
+            {"ts: " + new Date(info.ts || 0).toISOString().slice(11, 23)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* EFFECT_RUNS — zeigt window.HUI_EFFECT_RUNS (letzte 10 Runs global) */
 function EffectRunsPanel() {
   const [runs, setRuns] = React.useState([]);
@@ -998,6 +1027,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <Killer4History />
         {/* EFFECT RUNS */}
         <EffectRunsPanel />
+        {/* CLOSEALL */}
+        <CloseAllPanel />
         <div>recipient: <span style={{ color: "#ffd" }}>
           {initialRecipient?.id ? initialRecipient.id.slice(0, 8) + "…" : "—"}
         </span></div>
