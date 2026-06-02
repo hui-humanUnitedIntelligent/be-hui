@@ -73,7 +73,7 @@ export default function HuiContextBridge({ children }) {
   const [state, dispatch] = useReducer(bridgeReducer, INITIAL_BRIDGE);
 
   const pushContext = useCallback((type, id, data, enteredFrom) => {
-    dispatch({ type: "PUSH_CONTEXT", type: type, id, data, enteredFrom });
+    dispatch({ type: "PUSH_CONTEXT", contextType: type, id, data, enteredFrom });
   }, []);
 
   const popContext = useCallback(() => {
