@@ -228,6 +228,8 @@ export default function HomeShell({ children }) {
     setShowMatch(false);
     setShowMap(false);
     console.log("[CHAT_CLOSE]", { reason: "switchTab", newTab, stack: new Error().stack });
+    console.log("[SHOW_CHAT_FALSE]", { caller: "HomeShell/switchTab", stack: new Error().stack, ts: Date.now() });
+    if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "HomeShell/switchTab(" + newTab + ")", ts: Date.now() }; }
     setShowChat(false);
     setShowNotifs(false);
     setShowMembership(false);
