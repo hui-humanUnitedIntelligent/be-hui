@@ -765,6 +765,11 @@ class CrashWatcher extends React.Component {
 }
 
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
+  console.error("CCO_INITIAL_RECIPIENT", {
+    initialRecipient,
+    recipientId: initialRecipient?.id,
+    ts: Date.now(),
+  });
   // CCO_UNMOUNT — feuert wenn ChatCenterOverlay komplett unmountet
   React.useEffect(() => {
     const _mountTs = Date.now();
