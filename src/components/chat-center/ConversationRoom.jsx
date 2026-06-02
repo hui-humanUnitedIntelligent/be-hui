@@ -53,9 +53,10 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
 
   return (
     <div style={{
-      position: "fixed", inset: 0,
+      position: "fixed", inset: 0, zIndex: 10002,
       display: "flex", flexDirection: "column",
       fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      background: "#F2F4F8",
     }}>
       <style>{CSS}</style>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
