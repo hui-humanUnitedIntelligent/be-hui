@@ -8,6 +8,7 @@ import ChatMessages   from "./ChatMessages.jsx";
 import ChatInput      from "./ChatInput.jsx";
 import { useChatThread } from "../../lib/chatContext.js";
 import { useAuth }       from "../../lib/AuthContext.jsx";
+import { logDebug }      from "../../lib/debugCollector.js";
 
 const CSS = `
   .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
@@ -51,11 +52,13 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   // [CR_MOUNT] — leere deps: feuert einmal beim Mount / [CR_UNMOUNT] beim Unmount
   React.useEffect(() => {
     console.log("[CR_MOUNT]", conv?.id);
+    logDebug("CR_MOUNT", { convId: conv?.id });
     if (typeof window !== "undefined") {
       window.__HUI_LAST_CR__ = { event: "CR_MOUNT", convId: conv?.id, ts: Date.now() };
     }
     return () => {
       console.log("[CR_UNMOUNT]", conv?.id);
+      logDebug("CR_UNMOUNT", { convId: conv?.id });
       if (typeof window !== "undefined") {
         window.__HUI_LAST_CR__ = { event: "CR_UNMOUNT", convId: conv?.id, ts: Date.now() };
       }
@@ -68,6 +71,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
     loading,
     messages: (liveMessages || []).length,
   });
+  logDebug("CR_RENDER", { convId: conv?.id, loading, messages: (liveMessages || []).length });
   if (typeof window !== "undefined") {
     window.__HUI_LAST_CR__ = {
       event: "CR_RENDER", convId: conv?.id,
@@ -109,6 +113,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
     loading,
     messages: messages.length,
   });
+  logDebug("CR_RETURN", { convId: conv?.id, showEmpty, loading, messages: messages.length });
   if (typeof window !== "undefined") {
     window.__HUI_LAST_CR__ = {
       event: "CR_RETURN", convId: conv?.id,
