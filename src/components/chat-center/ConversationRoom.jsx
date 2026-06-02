@@ -1,5 +1,5 @@
 // chat-center/ConversationRoom.jsx v4 — REALITY + DIAG LOGS
-// [CR_MOUNT] [CR_RENDER] [CR_RETURN] — Runtime-Beweis
+// [CR_MOUNT] [CR_RENDER] [CR_RETURN] [CR_UNMOUNT]
 
 import React, { useCallback } from "react";
 import ChatAtmosphere from "./ChatAtmosphere.jsx";
@@ -14,7 +14,6 @@ const CSS = `
   .hui-scroll::-webkit-scrollbar{display:none;}
 `;
 
-// Leerer Raum — erste Begegnung
 function EmptyConvState({ name }) {
   return (
     <div style={{
@@ -28,9 +27,9 @@ function EmptyConvState({ name }) {
         border:"1.5px solid rgba(22,215,197,0.25)",
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:22,
-      }}>✦</div>
+      }}>\u2736</div>
       <p style={{ margin:0, fontSize:15, fontWeight:600, color:"#2D2D2D", letterSpacing:-0.2 }}>
-        {name ? `Schreib ${name} als Erste:s` : "Beginne das Gespräch"}
+        {name ? `Schreib ${name} als Erste:s` : "Beginne das Gespr\u00e4ch"}
       </p>
       <p style={{ margin:0, fontSize:13, color:"rgba(80,80,80,0.65)", textAlign:"center", lineHeight:1.6, maxWidth:240 }}>
         Dieser Raum wartet auf eure erste Begegnung.
@@ -42,42 +41,40 @@ function EmptyConvState({ name }) {
 export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   const { user } = useAuth();
 
-  // IMMER aufrufen — useChatThread handled null intern
-  const rawId     = conv?.id ?? null;
-  const isFakeId  = typeof rawId === "string" && rawId.startsWith("direct_");
+  const rawId      = conv?.id ?? null;
+  const isFakeId   = typeof rawId === "string" && rawId.startsWith("direct_");
   const realChatId = (rawId && !isFakeId) ? rawId : null;
 
   const { messages: liveMessages, sendMessage, sending, loading } =
     useChatThread(realChatId);
 
-  // [CR_MOUNT] — feuert einmal beim Mount und wenn rawId sich ändert
+  // [CR_MOUNT] — leere deps: feuert einmal beim Mount / [CR_UNMOUNT] beim Unmount
   React.useEffect(() => {
-    const info = { convId: rawId, realChatId, isFakeId, userId: user?.id, ts: Date.now() };
-    console.log("[CR_MOUNT]", info);
+    console.log("[CR_MOUNT]", conv?.id);
     if (typeof window !== "undefined") {
-      window.__HUI_CR_MOUNT__ = info;
+      window.__HUI_LAST_CR__ = { event: "CR_MOUNT", convId: conv?.id, ts: Date.now() };
     }
     return () => {
-      console.log("[CR_UNMOUNT]", { convId: rawId, ts: Date.now() });
+      console.log("[CR_UNMOUNT]", conv?.id);
       if (typeof window !== "undefined") {
-        window.__HUI_CR_UNMOUNT__ = { convId: rawId, ts: Date.now() };
+        window.__HUI_LAST_CR__ = { event: "CR_UNMOUNT", convId: conv?.id, ts: Date.now() };
       }
     };
-  }, [rawId]); // eslint-disable-line
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // [CR_RENDER] — feuert bei jedem Render (loading + messages-Änderung)
-  const renderCount = React.useRef(0);
-  renderCount.current += 1;
+  // [CR_RENDER] — feuert bei jedem Render
   console.log("[CR_RENDER]", {
-    render: renderCount.current,
-    convId: rawId,
-    realChatId,
+    convId:   conv?.id,
     loading,
-    msgCount: (liveMessages || []).length,
-    ts: Date.now(),
+    messages: (liveMessages || []).length,
   });
+  if (typeof window !== "undefined") {
+    window.__HUI_LAST_CR__ = {
+      event: "CR_RENDER", convId: conv?.id,
+      loading, messages: (liveMessages || []).length, ts: Date.now(),
+    };
+  }
 
-  // Normalisierung — kein Mock-Fallback
   const messages = (liveMessages || []).filter(m => m?.id).map(m => ({
     ...m,
     own:         m.sender_id === user?.id,
@@ -95,32 +92,34 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       console.error("[HUI_ROOM] sendMessage undefined");
       return;
     }
-    console.log("[HUI_ROOM] send →", { realChatId, len: text.length });
+    console.log("[HUI_ROOM] send \u2192", { realChatId, len: text.length });
     const result = await sendMessage({ text: text.trim(), msgType: "text" });
     if (result?.error) {
       console.error("[HUI_ROOM] send error:", result.error?.code, result.error?.message);
     } else {
-      console.log("[HUI_REALITY] chat persisted ✓", result?.id);
+      console.log("[HUI_REALITY] chat persisted \u2713", result?.id);
     }
   }, [sendMessage, realChatId, rawId]);
 
   const showEmpty = !loading && messages.length === 0 && realChatId;
 
-  // [CR_RETURN] — direkt vor dem return, einmal pro Render
+  // [CR_RETURN] — direkt vor return
   console.log("[CR_RETURN]", {
-    convId:      rawId,
-    realChatId,
-    loading,
     showEmpty,
-    msgCount:    messages.length,
-    ts:          Date.now(),
+    loading,
+    messages: messages.length,
   });
+  if (typeof window !== "undefined") {
+    window.__HUI_LAST_CR__ = {
+      event: "CR_RETURN", convId: conv?.id,
+      showEmpty, loading, messages: messages.length, ts: Date.now(),
+    };
+  }
 
   return (
     <div style={{
       position:"absolute", inset:0, zIndex:3,
       display:"flex", flexDirection:"column",
-      // CRITICAL: kein overflow:hidden — ChatInput würde sonst abgeschnitten
       overflow:"visible",
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
     }}>
@@ -128,7 +127,6 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       <ChatAtmosphere dark={false}/>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
 
-      {/* Messages: flex:1 + minHeight:0 — nur den verfügbaren Raum nutzen */}
       <div style={{ flex:1, minHeight:0, overflow:"hidden", display:"flex", flexDirection:"column" }}>
         {showEmpty
           ? <EmptyConvState name={conv?.name}/>
@@ -136,13 +134,11 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
         }
       </div>
 
-      {/* ChatInput: NIEMALS flex:1, niemals overflow:hidden Parent, IMMER am unteren Rand */}
       <div style={{
         flexShrink: 0,
         width: "100%",
         zIndex: 10,
         position: "relative",
-        /* DEBUG — sichtbarkeits-Beweis: */
         background: "rgba(255,0,0,0.08)",
         minHeight: 60,
         outline: "3px solid red",
