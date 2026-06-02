@@ -285,6 +285,36 @@ function LastCRInfo() {
   );
 }
 
+/* LAST FCC EVENT — spiegelt window.__HUI_LAST_FCC__ */
+function LastFCCInfo() {
+  const [info, setInfo] = React.useState(null);
+  React.useEffect(() => {
+    const id = setInterval(() => setInfo(
+      (typeof window !== "undefined" && window.__HUI_LAST_FCC__) || null
+    ), 400);
+    return () => clearInterval(id);
+  }, []);
+  if (!info) return <div style={{ color:"#555", fontSize:10, marginTop:4 }}>LAST FCC: —</div>;
+  const ago = Math.round((Date.now() - (info.ts ?? Date.now())) / 1000);
+  const evColor =
+    info.event === "FCC_ERROR"          ? "#ff7e7e" :
+    info.event === "FCC_SUCCESS"        ? "#7effb2" :
+    info.event === "FCC_FOUND_EXISTING" ? "#66ddff" :
+    info.event === "FCC_CREATED"        ? "#aaffaa" :
+    info.event === "FCC_CREATING"       ? "#ffd700" :
+    "#aaa";
+  return (
+    <div style={{ marginTop:4, borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:4 }}>
+      <div style={{ color:"#aaa", fontSize:10 }}>LAST FCC ({ago}s ago):</div>
+      <div style={{ color:evColor, fontSize:11, fontWeight:700 }}>{info.event}</div>
+      <div style={{ color:"#aaa", fontSize:10, wordBreak:"break-all" }}>
+        {info.chatId ? "chat:" + info.chatId.slice(0,8) + "…" : ""}
+        {info.error  ? " err:" + String(info.error).slice(0,40) : ""}
+      </div>
+    </div>
+  );
+}
+
 /* DEBUG TIMELINE — zeigt window.HUI_DEBUG_LOGS live */
 function DebugTimeline() {
   const [logs, setLogs] = React.useState([]);
@@ -461,8 +491,18 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         });
         setDebugStep("exception");
         setDebugError({ code: err?.code, message: err?.message });
+        logDebug("FCC_ERROR", { recipientId, userId: user.id, error: err?.message });
+        if (typeof window !== "undefined") {
+          window.__HUI_LAST_FCC__ = { event: "FCC_ERROR", recipientId, userId: user.id, error: err?.message, ts: Date.now() };
+        }
       })
-      .finally(() => setLoadingConv(false));
+      .finally(() => {
+        setLoadingConv(false);
+        logDebug("FCC_FINALLY", { recipientId, userId: user.id, ts: Date.now() });
+        if (typeof window !== "undefined") {
+          window.__HUI_LAST_FCC__ = window.__HUI_LAST_FCC__ ?? { event: "FCC_FINALLY", recipientId, ts: Date.now() };
+        }
+      });
   // user?.id + initialRecipient?.id: Effekt soll erneut feuern
   // wenn BEIDE bereit sind — auch wenn nur eines sich ändert
   }, [user?.id, initialRecipient?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -687,6 +727,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             </div>
           </>
         )}
+        {/* LAST FCC EVENT */}
+        <LastFCCInfo />
         {/* LAST CCO EVENT */}
         <LastCCOInfo />
         {/* LAST CR EVENT */}
