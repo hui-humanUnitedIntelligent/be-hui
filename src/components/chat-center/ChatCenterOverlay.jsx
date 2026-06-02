@@ -239,6 +239,51 @@ function ConvRoomMountInfo() {
     </div>
   );
 }
+/* LAST CCO EVENT — spiegelt window.__HUI_LAST_CCO__ */
+function LastCCOInfo() {
+  const [info, setInfo] = React.useState(null);
+  React.useEffect(() => {
+    const id = setInterval(() => setInfo(window.__HUI_LAST_CCO__ || null), 400);
+    return () => clearInterval(id);
+  }, []);
+  if (!info) return <div style={{ color:"#555", fontSize:10, marginTop:4 }}>LAST CCO: —</div>;
+  const ago = Math.round((Date.now() - info.ts) / 1000);
+  return (
+    <div style={{ marginTop:4, borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:4 }}>
+      <div style={{ color:"#aaa", fontSize:10 }}>LAST CCO ({ago}s ago):</div>
+      <div style={{ color:"#ffd700", fontSize:11, fontWeight:700 }}>{info.event}</div>
+      <div style={{ color:"#aaa", fontSize:10, wordBreak:"break-all" }}>
+        {info.activeConv ? info.activeConv.slice(0,8) + "…" : "null"}
+      </div>
+    </div>
+  );
+}
+
+/* LAST CR EVENT — spiegelt window.__HUI_LAST_CR__ */
+function LastCRInfo() {
+  const [info, setInfo] = React.useState(null);
+  React.useEffect(() => {
+    const id = setInterval(() => setInfo(window.__HUI_LAST_CR__ || null), 400);
+    return () => clearInterval(id);
+  }, []);
+  if (!info) return <div style={{ color:"#555", fontSize:10, marginTop:4 }}>LAST CR: —</div>;
+  const ago = Math.round((Date.now() - info.ts) / 1000);
+  const evColor = info.event === "CR_UNMOUNT" ? "#ff7e7e"
+                : info.event === "CR_MOUNT"   ? "#7effb2"
+                : "#ffd700";
+  return (
+    <div style={{ marginTop:4, borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:4 }}>
+      <div style={{ color:"#aaa", fontSize:10 }}>LAST CR ({ago}s ago):</div>
+      <div style={{ color:evColor, fontSize:11, fontWeight:700 }}>{info.event}</div>
+      <div style={{ color:"#aaa", fontSize:10, wordBreak:"break-all" }}>
+        {info.convId ? info.convId.slice(0,8) + "…" : "null"}
+        {info.event === "CR_RENDER" || info.event === "CR_RETURN"
+          ? ` | loading:${info.loading} msg:${info.messages}` : ""}
+      </div>
+    </div>
+  );
+}
+
 /* [CCO_CRASH] — fängt Crashes in ConversationRoom und loggt sie sichtbar */
 class CrashWatcher extends React.Component {
   constructor(props) { super(props); this.state = { crashed: false, error: null, stack: null }; }
@@ -371,26 +416,16 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   const { chats, loading, unreadTotal } = useChatList();
 
   // [CCO_RENDER] — feuert bei jedem Render
-  const _ccoRenderCount = React.useRef(0);
-  _ccoRenderCount.current += 1;
-  console.log("[CCO_RENDER]", {
-    render:     _ccoRenderCount.current,
-    activeConv: activeConv?.id ?? null,
-    loadingConv,
-    recipient:  initialRecipient?.id ?? null,
-    userId:     user?.id ?? null,
-    ts:         Date.now(),
-  });
+  console.log("[CCO_RENDER]");
+  if (typeof window !== "undefined") {
+    window.__HUI_LAST_CCO__ = { event: "CCO_RENDER", activeConv: activeConv?.id ?? null, ts: Date.now() };
+  }
 
   // [CCO_ACTIVECONV] — wenn activeConv sich ändert
   React.useEffect(() => {
-    console.log("[CCO_ACTIVECONV]", {
-      id:      activeConv?.id ?? null,
-      name:    activeConv?.name ?? null,
-      ts:      Date.now(),
-    });
+    console.log("[CCO_ACTIVECONV]", activeConv?.id);
     if (typeof window !== "undefined") {
-      window.__HUI_CCO_ACTIVECONV__ = { id: activeConv?.id ?? null, ts: Date.now() };
+      window.__HUI_LAST_CCO__ = { event: "CCO_ACTIVECONV", activeConv: activeConv?.id ?? null, ts: Date.now() };
     }
   }, [activeConv]);
 
@@ -416,13 +451,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   }
 
   // [CCO_RETURN] — direkt vor dem render-Return
-  console.log("[CCO_RETURN]", {
-    activeConv:    activeConv?.id ?? null,
-    loadingConv,
-    showPeopleSearch,
-    chatCount:     chats?.length ?? 0,
-    ts:            Date.now(),
-  });
+  console.log("[CCO_RETURN]");
 
   return (
     <>
@@ -530,6 +559,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           animation:"cc-room-in 0.22s ease both",
           // Kein overflow:hidden — ChatInput muss bis zum Boden sichtbar sein
         }}>
+          {/* [CCO_RENDER_ROOM] */}
+          {console.log("[CCO_RENDER_ROOM]", activeConv?.id) || null}
           <CrashWatcher label="ConversationRoom">
             <ConversationRoom
               conv={activeConv}
@@ -600,12 +631,14 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             </div>
           </>
         )}
-        {/* LAST SWITCH TAB — zeigt wer switchTab() aufgerufen hat */}
+        {/* LAST CCO EVENT */}
+        <LastCCOInfo />
+        {/* LAST CR EVENT */}
+        <LastCRInfo />
+        {/* LAST SWITCH TAB */}
         <LastSwitchTabInfo />
-        {/* LAST SHOWCHAT EVENT — zeigt wer setShowChat() aufgerufen hat */}
+        {/* LAST SHOWCHAT EVENT */}
         <LastShowChatInfo />
-        {/* CR MOUNT/UNMOUNT — zeigt ob ConversationRoom tatsächlich mountet */}
-        <ConvRoomMountInfo />
       </div>
     </>
   );
