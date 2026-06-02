@@ -1677,17 +1677,11 @@ export default function TalentProfilePage({ profileId, onClose }) {
   // ── Chat aus Kompass öffnen ──────────────────────────────
   const handleOpenChat = useCallback(() => {
     if (!profile) return;
-    console.error("HANDLE_OPEN_CHAT", {
-      profile,
-      profileId: profile?.id,
-      profileUserId: profile?.user_id,
-      payload: {
-        id: profile?.id,
-        display_name: profile?.display_name,
-        avatar_url: profile?.avatar_url,
-      },
-      ts: Date.now(),
-    });
+    const _hoc = { k:"HANDLE_OPEN_CHAT", profileId: profile?.id, profileUserId: profile?.user_id, display_name: profile?.display_name, ts: Date.now() };
+    console.error("HANDLE_OPEN_CHAT", _hoc);
+    if (!window.__HUI_RLOG__) window.__HUI_RLOG__ = [];
+    window.__HUI_RLOG__.unshift(_hoc);
+    if (window.__HUI_RLOG__.length > 10) window.__HUI_RLOG__.pop();
     const payload = {
       id:           profile.id,
       display_name: profile.display_name || profile.username || "Creator",
@@ -1695,10 +1689,10 @@ export default function TalentProfilePage({ profileId, onClose }) {
       talent:       profile.talent        || null,
     };
     setChatRecipient(payload);
-    console.error("CHAT_RECIPIENT_SET", {
-      payload,
-      ts: Date.now(),
-    });
+    const _crs = { k:"CHAT_RECIPIENT_SET", recipientId: payload?.id, display_name: payload?.display_name, ts: Date.now() };
+    console.error("CHAT_RECIPIENT_SET", _crs);
+    window.__HUI_RLOG__.unshift(_crs);
+    if (window.__HUI_RLOG__.length > 10) window.__HUI_RLOG__.pop();
     console.log("[SHOW_CHAT_TRUE]", { caller: "TalentProfilePage/handleOpenChat", stack: new Error().stack, ts: Date.now() });
     if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "TalentProfilePage/handleOpenChat", ts: Date.now() }; }
     setShowChat(true);
