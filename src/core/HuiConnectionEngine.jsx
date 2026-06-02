@@ -261,7 +261,7 @@ export default function HuiConnectionEngine({ children }) {
         }
         if (parsed.bookmarks) {
           Object.entries(parsed.bookmarks).forEach(([id, bm]) => {
-            dispatch({ type: "BOOKMARK", entityId: id, type: bm.type, data: bm.data });
+            dispatch({ type: "BOOKMARK", entityId: id, bookmarkType: bm.type, data: bm.data });
           });
         }
       }
@@ -348,11 +348,11 @@ export default function HuiConnectionEngine({ children }) {
   }, []);
 
   const bookmark = useCallback((entityId, type, data) => {
-    dispatch({ type: "BOOKMARK", entityId, type, data });
+    dispatch({ type: "BOOKMARK", entityId, bookmarkType: type, data });
   }, []);
 
   const cacheContext = useCallback((id, type, data) => {
-    dispatch({ type: "CACHE_CONTEXT", id, type, data });
+    dispatch({ type: "CACHE_CONTEXT", id, entityType: type, data });
   }, []);
 
   const setFlow = useCallback((from, to, intent, payload) => {
