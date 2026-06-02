@@ -61,18 +61,10 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       <style>{CSS}</style>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
 
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
-        overflowX: "hidden",
-        display: "flex",
-        flexDirection: "column",
-      }}>
-        {showEmpty
-          ? <EmptyConvState name={conv?.name}/>
-          : <ChatMessages messages={messages} typing={false} event={null}/>
-        }
-      </div>
+      {showEmpty
+        ? <EmptyConvState name={conv?.name}/>
+        : <ChatMessages messages={messages} typing={false} event={null}/>
+      }
 
       <div style={{ flexShrink: 0 }}>
         <ChatInput onSend={handleSend} sending={sending}/>
