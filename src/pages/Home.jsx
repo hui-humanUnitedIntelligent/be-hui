@@ -493,12 +493,14 @@ function HomeInner() {
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
-          {(console.error("HOME_CHAT_RECIPIENT", {
-            chatRecipient,
-            recipientId: chatRecipient?.id,
-            showChat,
-            ts: Date.now(),
-          })) || null}
+          {(() => {
+            const _d = { chatRecipient, recipientId: chatRecipient?.id, showChat, ts: Date.now() };
+            console.error("HOME_CHAT_RECIPIENT", _d);
+            if (!window.__HUI_RLOG__) window.__HUI_RLOG__ = [];
+            window.__HUI_RLOG__.unshift({ k:"HOME_CHAT_RECIPIENT", ..._d });
+            if (window.__HUI_RLOG__.length > 10) window.__HUI_RLOG__.pop();
+          })()}
+          {null}
           <ChatCenterOverlay
             onClose={() => {
               logDebug("SHOWCHAT_FALSE", { caller: "Home/onClose" });
@@ -759,6 +761,26 @@ function HomeInner() {
           </b></div>
         </div>
       )}
+
+      {/* DIAG: Recipient Log Overlay — immer sichtbar wenn Logs vorhanden */}
+      <div id="hui-rlog" style={{
+        position:"fixed", bottom:100, left:8, right:8, zIndex:999999,
+        background:"rgba(0,0,0,0.92)", color:"#0ff",
+        fontFamily:"monospace", fontSize:10, padding:10,
+        borderRadius:10, maxHeight:220, overflowY:"auto",
+        display: (typeof window !== "undefined" && window.__HUI_RLOG__?.length) ? "block" : "none",
+        pointerEvents:"none",
+      }}>
+        <div style={{color:"#ff0",fontWeight:700,marginBottom:4}}>▶ RECIPIENT LOG</div>
+        {(typeof window !== "undefined" ? (window.__HUI_RLOG__ || []) : []).map((e,i) => (
+          <div key={i} style={{marginBottom:6,borderBottom:"1px solid rgba(255,255,255,0.1)",paddingBottom:4}}>
+            <span style={{color:"#ff0"}}>{e.k}</span>{" "}
+            id=<span style={{color:"#0f0"}}>{String(e.recipientId ?? "undefined")}</span>{" "}
+            <span style={{color:"#aaa",fontSize:9}}>{JSON.stringify(e.chatRecipient ?? e.initialRecipient ?? {}).slice(0,80)}</span>
+          </div>
+        ))}
+      </div>
+
     </>
   );
 }
