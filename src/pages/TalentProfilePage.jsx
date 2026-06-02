@@ -1683,6 +1683,8 @@ export default function TalentProfilePage({ profileId, onClose }) {
       avatar_url:   profile.avatar_url   || null,
       talent:       profile.talent        || null,
     });
+    console.log("[SHOW_CHAT_TRUE]", { caller: "TalentProfilePage/handleOpenChat", stack: new Error().stack, ts: Date.now() });
+    if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "TalentProfilePage/handleOpenChat", ts: Date.now() }; }
     setShowChat(true);
   }, [profile, setChatRecipient, setShowChat]);
 
