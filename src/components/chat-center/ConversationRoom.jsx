@@ -133,9 +133,19 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
     }}>
       <style>{CSS}</style>
-      {/* DIAG MARKER: ConversationRoom */}
-      <div style={{position:"fixed",top:60,right:20,zIndex:999999,background:"red",color:"white",padding:"4px 8px",fontSize:11,fontFamily:"monospace",fontWeight:700,borderRadius:4,pointerEvents:"none"}}>
-        ConversationRoom
+      {/* DIAG: CR State Overlay */}
+      <div style={{
+        position:"fixed", top:44, left:0, right:0, zIndex:999999,
+        background:"rgba(0,0,0,0.90)", color:"#0ff",
+        fontFamily:"monospace", fontSize:11, padding:"6px 12px",
+        pointerEvents:"none", lineHeight:1.6,
+        borderBottom:"1px solid rgba(0,255,255,0.3)",
+      }}>
+        <b style={{color:"#ff0"}}>CR</b>{" "}
+        chatId=<b style={{color: realChatId ? "#0f0" : "#f00"}}>{String(realChatId ?? "null")}</b>{" | "}
+        msgs=<b style={{color:"#0ff"}}>{messages.length}</b>{" | "}
+        loading=<b style={{color: loading ? "#f80" : "#0f0"}}>{String(loading)}</b>{" | "}
+        empty=<b style={{color: showEmpty ? "#f80" : "#0f0"}}>{String(showEmpty)}</b>
       </div>
       <ChatAtmosphere dark={false}/>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
