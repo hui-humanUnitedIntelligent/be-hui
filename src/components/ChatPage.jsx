@@ -892,10 +892,10 @@ function ChatDetailView({ chat, messages, onBack, onSend, isWide }) {
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:15.5, fontWeight:800, color:C.ink,
             letterSpacing:-0.3, lineHeight:1.2 }}>
-            {other.display_name}
+            {other.display_name || chat.name || "—"}
           </div>
           <div style={{ fontSize:11.5, color:C.muted, display:"flex", alignItems:"center", gap:4 }}>
-            <span>{chat.category || other.talent || "Creator"}</span>
+            <span>{chat.category || other.talent || other.username || ""}</span>
             {other.location && (
               <>
                 <span>·</span>
