@@ -600,17 +600,49 @@ function EmptyChatState({ onDiscover }) {
 ══════════════════════════════════════════════════════════════ */
 function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClose, isWide }) {
   const [search, setSearch]   = useState("");
-  const [activeCategory, setActiveCat] = useState("Alle");
-  const [showSearch, setShowSearch] = useState(false);
+  const [focused,  setFocused] = useState(false);
   const searchRef = useRef(null);
 
-  useEffect(() => {
-    if (showSearch) setTimeout(() => searchRef.current?.focus(), 60);
-  }, [showSearch]);
+  // ── Suche: nur im eigenen Netzwerk ──────────────────────────────
+  const q = search.trim().toLowerCase();
 
-  const allActive = chats.filter(c =>
-    !search || c.other_profile?.display_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  // Menschen: aus Chats + Verbindungen (Duplikate per id dedupliziert)
+  const networkPeople = React.useMemo(() => {
+    const seen = new Set();
+    const people = [];
+    [...chats, ...bookingChats].forEach(c => {
+      const p = c.other_profile;
+      if (!p?.id || seen.has(p.id)) return;
+      seen.add(p.id);
+      people.push({ ...p, _chatId: c.id, _source: "chat" });
+    });
+    (connections || []).forEach(conn => {
+      if (!conn?.id || seen.has(conn.id)) return;
+      seen.add(conn.id);
+      people.push({ id: conn.id, display_name: conn.name, avatar_url: conn.img,
+        _source: "connection" });
+    });
+    return people;
+  }, [chats, bookingChats, connections]);
+
+  // Gefilterte Ergebnisse
+  const filteredPeople    = q ? networkPeople.filter(p =>
+    p.display_name?.toLowerCase().includes(q) ||
+    p.username?.toLowerCase().includes(q)
+  ) : [];
+  const filteredChats     = q ? [...chats, ...bookingChats].filter(c =>
+    c.other_profile?.display_name?.toLowerCase().includes(q) ||
+    c.other_profile?.username?.toLowerCase().includes(q) ||
+    c.booking_title?.toLowerCase().includes(q)
+  ) : [];
+  const filteredBookings  = q ? bookingChats.filter(c =>
+    c.booking_title?.toLowerCase().includes(q) ||
+    c.other_profile?.display_name?.toLowerCase().includes(q)
+  ) : [];
+  const hasResults = filteredPeople.length > 0 || filteredChats.length > 0;
+
+  // Ohne Suche: normale Chat-Liste
+  const allActive = !q ? chats : [];
 
   return (
     <div style={{
@@ -657,10 +689,8 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
           background:"rgba(255,255,255,0.80)",
           backdropFilter:"blur(8px)",
           borderRadius:16, padding:"0 14px", height:42,
-          border: showSearch
-            ? `1.5px solid ${C.teal}`
-            : `1px solid ${C.border}`,
-          boxShadow: showSearch ? `0 0 0 3px ${C.tealGlow}` : "none",
+          border: focused ? `1.5px solid ${C.teal}` : `1px solid ${C.border}`,
+          boxShadow: focused ? `0 0 0 3px ${C.tealGlow}` : "none",
           transition:"all 0.2s ease",
         }}>
           <span style={{ fontSize:15, opacity:0.45 }}>🔍</span>
@@ -668,87 +698,134 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
             ref={searchRef}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            onFocus={() => setShowSearch(true)}
-            onBlur={() => !search && setShowSearch(false)}
-            placeholder="Suche nach Namen, Projekten, Orten ..."
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder="In meinem Netzwerk suchen …"
             style={{
               flex:1, border:"none", background:"none",
               fontSize:13.5, color:C.ink, outline:"none",
             }}
           />
-          <button className="cp-tap" style={{
-            background:"none", border:"none", fontSize:14,
-            color:C.muted, cursor:"pointer", padding:0,
-          }}>⚙</button>
+          {search && (
+            <button className="cp-tap" onClick={() => setSearch("")} style={{
+              background:"none", border:"none", fontSize:14,
+              color:C.muted, cursor:"pointer", padding:0,
+            }}>✕</button>
+          )}
         </div>
-      </div>
-
-      {/* ── Category Pills ──────────────────────────────────────── */}
-      <div className="cp-scroll" style={{
-        display:"flex", gap:7, overflowX:"auto",
-        padding:"10px 16px", flexShrink:0,
-      }}>
-        {(CATS || []).filter(Boolean).map(cat => {
-          const active = activeCategory === cat;
-          return (
-            <button key={cat} className="cp-pill"
-              onClick={() => setActiveCat(cat)}
-              style={{
-                background: active ? C.teal : "rgba(255,255,255,0.90)",
-                color: active ? "#fff" : C.ink2,
-                boxShadow: active
-                  ? `0 3px 12px ${C.tealGlow}`
-                  : "0 1px 4px rgba(0,0,0,0.06)",
-                fontWeight: active ? 700 : 500,
-                transform: active ? "scale(1.03)" : "scale(1)",
-                fontSize:12.5, padding:"6px 14px",
-              }}>
-              {cat}
-            </button>
-          );
-        })}
       </div>
 
       {/* ── Chat Liste ──────────────────────────────────────────── */}
       <div className="cp-scroll" style={{ flex:1, overflowY:"auto" }}>
-        {/* Aktive Gespraeche */}
-        {allActive.length > 0 && (
-          <>
-            <div style={{ padding:"8px 16px 4px",
-              fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
-              AKTIVE GESPRAECHE
-            </div>
-            {(allActive || []).filter(Boolean).map(chat => (
-              <ChatConversationCard
-                key={chat.id}
-                chat={chat}
-                active={chat.id === activeId}
-                onOpen={onOpen}
-              />
-            ))}
-          </>
-        )}
 
-        {/* Buchungsanfragen */}
-        {bookingChats.length > 0 && (
+        {/* ═══ SUCHMODUS ════════════════════════════════════════════ */}
+        {q ? (
+          <div style={{ padding:"8px 0" }}>
+            {!hasResults && (
+              <div style={{ padding:"32px 24px", textAlign:"center" }}>
+                <div style={{ fontSize:28, marginBottom:10 }}>🔍</div>
+                <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:6 }}>
+                  Keine Treffer in deinem Netzwerk
+                </div>
+                <div style={{ fontSize:12.5, color:C.muted, lineHeight:1.6 }}>
+                  HUI sucht nur in deinen bestehenden<br/>Verbindungen und Gesprächen.
+                </div>
+              </div>
+            )}
+
+            {/* Gruppe: Menschen */}
+            {filteredPeople.length > 0 && (
+              <>
+                <div style={{ padding:"10px 16px 4px",
+                  fontSize:11, fontWeight:700, color:C.muted, letterSpacing:0.5 }}>
+                  👤 MENSCHEN
+                </div>
+                {filteredPeople.map(p => (
+                  <div key={p.id} className="cp-card-hover cp-tap"
+                    onClick={() => {
+                      const chat = [...chats, ...bookingChats].find(c => c.id === p._chatId);
+                      if (chat) onOpen(chat);
+                    }}
+                    style={{ display:"flex", alignItems:"center", gap:12,
+                      padding:"11px 16px", cursor:"pointer" }}>
+                    <img src={p.avatar_url || "https://i.pravatar.cc/40?img=5"} alt={p.display_name}
+                      style={{ width:40, height:40, borderRadius:"50%", objectFit:"cover",
+                        border:`1.5px solid ${C.teal}22` }}/>
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:700, color:C.ink }}>
+                        {p.display_name}
+                      </div>
+                      {p.username && (
+                        <div style={{ fontSize:11.5, color:C.muted }}>@{p.username}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Gruppe: Gespräche */}
+            {filteredChats.length > 0 && (
+              <>
+                <div style={{ padding:"10px 16px 4px",
+                  fontSize:11, fontWeight:700, color:C.muted, letterSpacing:0.5 }}>
+                  💬 GESPRÄCHE
+                </div>
+                {filteredChats.map(chat => (
+                  <ChatConversationCard key={chat.id} chat={chat}
+                    active={chat.id === activeId} onOpen={onOpen} />
+                ))}
+              </>
+            )}
+
+            {/* Gruppe: Buchungen */}
+            {filteredBookings.length > 0 && (
+              <>
+                <div style={{ padding:"10px 16px 4px",
+                  fontSize:11, fontWeight:700, color:C.muted, letterSpacing:0.5 }}>
+                  🎟️ BUCHUNGEN
+                </div>
+                {filteredBookings.map(chat => (
+                  <ChatConversationCard key={chat.id} chat={chat}
+                    active={chat.id === activeId} onOpen={onOpen} />
+                ))}
+              </>
+            )}
+          </div>
+
+        ) : (
+          /* ═══ NORMAL-MODUS (kein Suchbegriff) ═══════════════════ */
           <>
-            <div style={{ padding:"12px 16px 4px",
-              display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <span style={{ fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
-                BUCHUNGSANFRAGEN
-              </span>
-              <span style={{ fontSize:11.5, color:C.teal, fontWeight:700, cursor:"pointer" }}>›</span>
-            </div>
-            {(bookingChats || []).filter(Boolean).map(chat => (
-              <ChatConversationCard
-                key={chat.id}
-                chat={chat}
-                active={chat.id === activeId}
-                onOpen={onOpen}
-              />
-            ))}
-          </>
-        )}
+            {/* Zuletzt kontaktiert */}
+            {allActive.length > 0 && (
+              <>
+                <div style={{ padding:"8px 16px 4px",
+                  fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
+                  AKTIVE GESPRÄCHE
+                </div>
+                {allActive.map(chat => (
+                  <ChatConversationCard key={chat.id} chat={chat}
+                    active={chat.id === activeId} onOpen={onOpen} />
+                ))}
+              </>
+            )}
+
+            {/* Buchungsanfragen */}
+            {bookingChats.length > 0 && (
+              <>
+                <div style={{ padding:"12px 16px 4px",
+                  display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <span style={{ fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
+                    BUCHUNGEN
+                  </span>
+                </div>
+                {bookingChats.map(chat => (
+                  <ChatConversationCard key={chat.id} chat={chat}
+                    active={chat.id === activeId} onOpen={onOpen} />
+                ))}
+              </>
+            )}
+        </>)}
 
         {/* Neueste Verbindungen */}
         <div style={{ padding:"12px 16px 6px",
