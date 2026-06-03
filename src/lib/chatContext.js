@@ -214,6 +214,7 @@ export function useChatThread(chatId) {
       return;
     }
     console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
+    console.log("[THREAD_LOAD]", { chatId, typeofChatId: typeof chatId, isFake: String(chatId).startsWith("direct_") });
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
       const { data } = await supabase
