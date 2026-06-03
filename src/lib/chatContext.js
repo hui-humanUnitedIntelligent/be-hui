@@ -101,7 +101,7 @@ export function useChatList() {
         `)
         // participant_ids ist uuid[] → cs. (contains) prüft ob user.id enthalten
         .contains("participant_ids", [user.id])
-        .eq("state", "opened")
+        .or("state.eq.opened,state.is.null")
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
 
@@ -554,6 +554,7 @@ export async function findOrCreateChat({
     .from("chats")
     .insert({
       participant_ids:  [userId, otherUserId],
+      state:            "opened",
       booking_id:       bookingId ?? null,
       opened_at:        new Date().toISOString(),
       last_message_at:  new Date().toISOString(),
