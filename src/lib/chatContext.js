@@ -215,9 +215,10 @@ export function useChatThread(chatId) {
     }
     console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
     console.log("[THREAD_LOAD]", { chatId, typeofChatId: typeof chatId, isFake: String(chatId).startsWith("direct_") });
+    console.error("CHAT_TRACE", { step: "8_useChatThread_load", chatId, typeofChatId: typeof chatId, ts: Date.now() });
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
-      const { data } = await supabase
+      const { data, error: loadError } = await supabase
         .from("messages")
         .select(`
           id, text, sender_id, sender_name, sender_img,
@@ -228,10 +229,15 @@ export function useChatThread(chatId) {
         .limit(100);
       console.log("[LOAD_RESULT]", {
         chatId,
-        count:  data?.length ?? 0,
-        error:  null,
-        ts:     Date.now(),
+        count:        data?.length ?? 0,
+        error:        loadError?.message ?? null,
+        errorCode:    loadError?.code ?? null,
+        firstMsgId:   data?.[0]?.id ?? null,
+        ts:           Date.now(),
       });
+      console.error("CHAT_TRACE", { step: "8b_LOAD_RESULT", chatId,
+        count: data?.length ?? 0, firstMsgId: data?.[0]?.id ?? null,
+        error: loadError?.message ?? null, ts: Date.now() });
       if (data) setMessages(data);
     } catch(e) {
       console.error("[LOAD_RESULT]", { chatId, count: 0, error: e.message, ts: Date.now() });
