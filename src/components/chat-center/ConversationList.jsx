@@ -124,6 +124,11 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover })
 
   return (
     <div style={{ padding:"0 16px" }}>
+      {/* ── CONVERSATIONLIST MARKER ── */}
+      <div style={{
+        background:"#1a0000", color:"#ff4444", fontFamily:"monospace",
+        fontSize:10, padding:"3px 10px", margin:"0 -16px 4px",
+      }}>[CONVERSATIONLIST] loading={String(loading)} chats={String((chats||[]).length)} first={(chats||[])[0]?.name ?? (chats||[])[0]?.other_profile?.display_name ?? "—"}</div>
       {/* Category Filter Pills */}
       <div className="hui-scroll" style={{
         display:"flex", gap:8, overflowX:"auto",
