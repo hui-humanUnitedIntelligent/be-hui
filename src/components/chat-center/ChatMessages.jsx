@@ -84,38 +84,44 @@ export default function ChatMessages({ messages, typing, event }) {
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const COLORS = [
-      ["CHILD_1","rgba(255,0,0,0.35)"],
-      ["CHILD_2","rgba(0,0,255,0.25)"],
-      ["CHILD_3","rgba(0,180,0,0.30)"],
-      ["CHILD_4","rgba(255,200,0,0.45)"],
-      ["CHILD_5","rgba(160,0,220,0.30)"],
-    ];
-    Array.from(el.children).forEach((child, i) => {
-      const [label, color] = COLORS[i] || [`CHILD_${i+1}`,"rgba(128,128,128,0.3)"];
-      child.style.outline = "4px solid black";
-      child.style.background = color;
-      child.style.position = child.style.position || "relative";
-      // Label einfügen falls noch nicht vorhanden
-      if (!child.querySelector(".__hui_label")) {
-        const lbl = document.createElement("div");
-        lbl.className = "__hui_label";
-        lbl.textContent = `${label} h=${child.offsetHeight}px`;
-        Object.assign(lbl.style, {
-          position:"absolute", top:"0", left:"0",
-          background:"rgba(0,0,0,0.85)", color:"white",
-          fontSize:"11px", fontWeight:"700", fontFamily:"monospace",
-          padding:"2px 6px", zIndex:"999999", pointerEvents:"none",
-        });
-        child.insertBefore(lbl, child.firstChild);
-      }
-      console.log(`[CHILD_${i+1}]`, {
-        tag: child.tagName,
-        offsetHeight: child.offsetHeight,
-        flex: window.getComputedStyle(child).flex,
-        flexGrow: window.getComputedStyle(child).flexGrow,
-        marginTop: window.getComputedStyle(child).marginTop,
+    // CM selbst: blaue Outline + Label
+    el.style.outline = "4px solid blue";
+    const existing = el.querySelector(".__cm_label");
+    if (!existing) {
+      const lbl = document.createElement("div");
+      lbl.className = "__cm_label";
+      lbl.textContent =
+        `CM_h=${el.offsetHeight} CM_client=${el.clientHeight} ` +
+        `CM_scroll=${el.scrollHeight} CM_scrollTop=${el.scrollTop}`;
+      Object.assign(lbl.style, {
+        position:"sticky", top:"8px", left:"4px",
+        background:"blue", color:"white",
+        fontSize:"10px", fontWeight:"700", fontFamily:"monospace",
+        padding:"2px 6px", zIndex:"999999", pointerEvents:"none",
+        display:"block", width:"fit-content",
       });
+      el.insertBefore(lbl, el.firstChild);
+    }
+    // PARENT: grüne Outline + Label
+    const parent = el.parentElement;
+    if (parent && !parent.querySelector(".__parent_label")) {
+      parent.style.outline = "4px solid green";
+      const pl = document.createElement("div");
+      pl.className = "__parent_label";
+      pl.textContent = `PARENT_h=${parent.offsetHeight} PARENT_client=${parent.clientHeight}`;
+      Object.assign(pl.style, {
+        position:"absolute", top:"0", right:"0",
+        background:"green", color:"white",
+        fontSize:"10px", fontWeight:"700", fontFamily:"monospace",
+        padding:"2px 6px", zIndex:"999999", pointerEvents:"none",
+      });
+      parent.style.position = parent.style.position || "relative";
+      parent.appendChild(pl);
+    }
+    console.log("[CM_DIAG]", {
+      CM_h: el.offsetHeight, CM_client: el.clientHeight,
+      CM_scroll: el.scrollHeight, CM_scrollTop: el.scrollTop,
+      PARENT_h: el.parentElement?.offsetHeight,
     });
   }, [messages]);
 
@@ -143,6 +149,9 @@ export default function ChatMessages({ messages, typing, event }) {
       paddingBottom:8,
     }}>
       <style>{CSS}</style>
+      {/* DIAG: sticky rote Linie — zeigt wo ChatMessages wirklich beginnt */}
+      <div style={{ position:"sticky", top:0, height:4,
+        background:"red", zIndex:99999, flexShrink:0 }}/>
 
       {/* Event Preview — oben im Chat */}
       <EventPreviewCard event={event}/>
