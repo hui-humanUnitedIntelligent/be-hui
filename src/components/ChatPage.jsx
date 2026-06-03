@@ -183,7 +183,15 @@ function ChatConversationCard({ chat, active, onOpen }) {
   return (
     <div
       className="cp-card-hover cp-tap"
-      onClick={() => onOpen(chat)}
+      onClick={() => {
+        console.warn("[CHAT_CLICK]", JSON.stringify({
+          id: chat?.id,
+          name: chat?.other_profile?.display_name ?? chat?.name ?? "?",
+          chat_type: chat?.chat_type,
+          hasOtherProfile: !!chat?.other_profile,
+        }));
+        onOpen(chat);
+      }}
       style={{
         display:"flex", alignItems:"center", gap:12,
         padding:"13px 16px",
@@ -1226,6 +1234,13 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
   const { chats: dbChats, loading: chatsLoading, markChatRead } = useChatList();
   const networkPeopleDB = useNetworkPeople();
   const [activeChat, setActiveChat] = useState(null);
+  React.useEffect(() => {
+    console.warn("[ACTIVE_CHAT_CHANGED]", JSON.stringify({
+      activeChatId: activeChat?.id ?? null,
+      name: activeChat?.other_profile?.display_name ?? activeChat?.name ?? null,
+      exists: !!activeChat,
+    }));
+  }, [activeChat]);
 
   // initialRecipient → direkt Chat öffnen (von Profil / Kompass)
   React.useEffect(() => {
@@ -1264,6 +1279,12 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
 
   // ── Handler ────────────────────────────────────────────────────────
   const handleOpen = useCallback((chat) => {
+    console.warn("[SET_ACTIVE_CHAT]", JSON.stringify({
+      id: chat?.id,
+      name: chat?.other_profile?.display_name ?? chat?.name ?? "?",
+      chat_type: chat?.chat_type,
+      _newChat: chat?._newChat ?? false,
+    }));
     markChatRead?.(chat.id);
     setActiveChat(chat);
   }, [markChatRead]);
@@ -1322,13 +1343,20 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
       {/* ── DETAIL VIEW ──────────────────────────────────────────── */}
       {(isWide || activeChat) && (
         activeChat ? (
-          <ChatDetailView
-            chat={activeChat}
-            messages={messages}
-            onBack={handleBack}
-            onSend={handleSend}
-            isWide={isWide}
-          />
+          <>
+            {console.warn("[THREAD_RENDER]", JSON.stringify({
+              activeChatId: activeChat?.id,
+              exists: true,
+              msgCount: messages?.length ?? 0,
+            })) || null}
+            <ChatDetailView
+              chat={activeChat}
+              messages={messages}
+              onBack={handleBack}
+              onSend={handleSend}
+              isWide={isWide}
+            />
+          </>
         ) : isWide ? (
           /* Empty State auf iPad wenn kein Chat selektiert */
           <div style={{ flex:1, display:"flex", flexDirection:"column",
