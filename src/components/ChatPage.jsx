@@ -95,12 +95,8 @@ const CREATIVE_PRESENCE = [
 const MOCK_CHATS = [];
 const MOCK_BOOKING_CHATS = [];
 
-const MOCK_CONNECTIONS = [
-  { id:"x1", name:"Klara M.", img:"https://i.pravatar.cc/56?img=21" },
-  { id:"x2", name:"Paul L.",  img:"https://i.pravatar.cc/56?img=36" },
-  { id:"x3", name:"Sophie B.",img:"https://i.pravatar.cc/56?img=5"  },
-  { id:"x4", name:"Marc T.",  img:"https://i.pravatar.cc/56?img=44" },
-];
+// MOCK_CONNECTIONS entfernt — Neueste Verbindungen kommen aus useNetworkPeople()
+const MOCK_CONNECTIONS = [];
 
 const MOCK_MESSAGES = [
   { id:"m1", sender:"other", type:"text",
@@ -533,7 +529,7 @@ function EmptyChatState({ onDiscover }) {
 /* ══════════════════════════════════════════════════════════════
    CHAT SIDEBAR
 ══════════════════════════════════════════════════════════════ */
-function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], activeId, onOpen, onClose, isWide, loading = false }) {
+function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], activeId, onOpen, onClose, isWide, loading = false, onDiscover }) {
   const [search, setSearch]   = useState("");
   const [focused,  setFocused] = useState(false);
   const searchRef = useRef(null);
@@ -565,13 +561,7 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
       people.push({ ...p, _chatId: chat?.id ?? null });
     });
 
-    // Prio 3: Mock-Verbindungen
-    (connections || []).forEach(conn => {
-      if (!conn?.id || seen.has(conn.id)) return;
-      seen.add(conn.id);
-      people.push({ id: conn.id, display_name: conn.name, avatar_url: conn.img,
-        _source: "connection", relation: "Verbindung", relationIcon: "🤝" });
-    });
+    // Mock-Verbindungen entfernt — nur DB-Netzwerk (follows/followers)
     return people;
   }, [chats, bookingChats, connections, networkPeople]);
 
@@ -803,39 +793,94 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
             )}
         </>)}
 
-        {/* Neueste Verbindungen */}
+        {/* Neueste Verbindungen — echte DB-Daten aus useNetworkPeople() */}
         <div style={{ padding:"12px 16px 6px",
           display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span style={{ fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
             NEUESTE VERBINDUNGEN
           </span>
-          <span style={{ fontSize:11.5, color:C.teal, fontWeight:700, cursor:"pointer" }}>›</span>
+          {networkPeople.length > 0 && (
+            <span style={{ fontSize:11.5, color:C.teal, fontWeight:600 }}>
+              {networkPeople.length} {networkPeople.length === 1 ? "Person" : "Personen"}
+            </span>
+          )}
         </div>
-        <div className="cp-scroll" style={{ display:"flex", gap:14,
-          overflowX:"auto", padding:"4px 16px 12px" }}>
-          {/* Entdecken */}
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-            <div style={{
-              width:52, height:52, borderRadius:"50%",
-              background:C.cream, border:`1.5px dashed ${C.teal}`,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:20, cursor:"pointer",
-            }}>🔍</div>
-            <span style={{ fontSize:10.5, color:C.muted }}>Entdecken</span>
-          </div>
-          {(connections || []).filter(Boolean).map(conn => (
-            <div key={conn.id} style={{ display:"flex", flexDirection:"column",
-              alignItems:"center", gap:5 }}>
-              <img src={conn.img} alt={conn.name}
-                style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover",
-                  border:`2px solid rgba(255,255,255,0.80)`,
-                  boxShadow:"0 2px 8px rgba(0,0,0,0.10)" }}/>
-              <span style={{ fontSize:10.5, color:C.muted, whiteSpace:"nowrap" }}>
-                {conn.name}
-              </span>
+        {networkPeople.length === 0 ? (
+          /* Empty State */
+          <div style={{ padding:"12px 16px 16px", display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ fontSize:22 }}>🌱</div>
+            <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>
+              Noch keine Verbindungen.<br/>
+              <span style={{ color:C.teal, fontWeight:600, cursor:"pointer" }}
+                onClick={onDiscover}>Entdecke kreative Menschen.</span>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="cp-scroll" style={{ display:"flex", gap:14,
+            overflowX:"auto", padding:"4px 16px 12px" }}>
+            {/* Entdecken-Bubble */}
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+              flexShrink:0 }}
+              onClick={onDiscover}>
+              <div style={{
+                width:52, height:52, borderRadius:"50%",
+                background:C.cream, border:`1.5px dashed ${C.teal}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:20, cursor:"pointer",
+              }}>🔍</div>
+              <span style={{ fontSize:10.5, color:C.muted }}>Entdecken</span>
+            </div>
+            {/* Echte Verbindungen */}
+            {networkPeople.slice(0, 12).map(p => {
+              const name = p.display_name || p.username || "?";
+              const shortName = name.length > 9 ? name.split(" ").map((w,i) =>
+                i === 0 ? w : w[0]+".").join(" ") : name;
+              const initials = name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+              const hasChat = !!p._chatId;
+              return (
+                <div key={p.id}
+                  style={{ display:"flex", flexDirection:"column", alignItems:"center",
+                    gap:5, flexShrink:0, cursor:"pointer" }}
+                  onClick={() => {
+                    if (hasChat) {
+                      const chat = [...chats, ...bookingChats].find(c => c.id === p._chatId);
+                      if (chat) onOpen(chat);
+                    } else {
+                      onOpen({ _newChat: true, other_profile: p });
+                    }
+                  }}>
+                  {/* Avatar */}
+                  <div style={{ position:"relative" }}>
+                    {p.avatar_url ? (
+                      <img src={p.avatar_url} alt={name}
+                        style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover",
+                          border:`2px solid rgba(255,255,255,0.85)`,
+                          boxShadow:"0 2px 8px rgba(0,0,0,0.10)" }}/>
+                    ) : (
+                      <div style={{ width:52, height:52, borderRadius:"50%",
+                        background:`linear-gradient(135deg,${C.teal}80,${C.coral}60)`,
+                        border:`2px solid rgba(255,255,255,0.85)`,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:16, fontWeight:700, color:"#fff" }}>
+                        {initials}
+                      </div>
+                    )}
+                    {/* Relation-Badge */}
+                    {p.relationIcon && (
+                      <div style={{ position:"absolute", bottom:-2, right:-2,
+                        fontSize:11, lineHeight:1 }}>{p.relationIcon}</div>
+                    )}
+                  </div>
+                  <span style={{ fontSize:10.5, color:C.muted, whiteSpace:"nowrap",
+                    maxWidth:58, overflow:"hidden", textOverflow:"ellipsis",
+                    textAlign:"center" }}>
+                    {shortName}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Impact Banner */}
         <div style={{
@@ -1269,6 +1314,7 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
             onOpen={handleOpen}
             onClose={onClose}
             isWide={isWide}
+            onDiscover={onDiscoverClose}
           />
         </>
       )}
