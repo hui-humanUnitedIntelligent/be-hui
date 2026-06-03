@@ -77,7 +77,8 @@ export default function ChatMessages({ messages, typing, event }) {
   const rootRef = useRef(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior:"smooth" });
+    const el = rootRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages, typing]);
 
 
@@ -100,7 +101,7 @@ export default function ChatMessages({ messages, typing, event }) {
   return (
     <div ref={rootRef} className="hui-scroll" style={{
       flex:1, minHeight:0, overflowY:"auto", overflowX:"hidden",
-      display:"flex", flexDirection:"column", justifyContent:"flex-start",
+      display:"flex", flexDirection:"column", justifyContent:"flex-end",
       paddingBottom:8,
     }}>
       <style>{CSS}</style>
@@ -147,7 +148,6 @@ export default function ChatMessages({ messages, typing, event }) {
       )}
 
       {typing && <TypingBubble/>}
-      <div ref={endRef}/>
     </div>
   );
 }
