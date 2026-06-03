@@ -1210,7 +1210,7 @@ function useNetworkPeople() {
 export default function ChatPage({ onClose, initialRecipient = null }) {
   // ── Hooks (stabile Reihenfolge) ───────────────────────────────────
   const { user } = useAuth();
-  const { chats: dbChats, loading, markChatRead } = useChatList();
+  const { chats: dbChats, loading: chatsLoading, markChatRead } = useChatList();
   const networkPeopleDB = useNetworkPeople();
   const [activeChat, setActiveChat] = useState(null);
 
@@ -1244,13 +1244,16 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
   // ── Chat-Thread für aktiven Chat ──────────────────────────────────
   const { messages, sendMessage } = useChatThread(activeChat?.id ?? null);
 
-  // ── Daten: DB oder Mock ───────────────────────────────────────────
-  const activeChats  = dbChats.length > 0
-    ? dbChats.filter(c => c.chat_type !== "booking")
-    : MOCK_CHATS;
-  const bookingChats = dbChats.length > 0
-    ? dbChats.filter(c => c.chat_type === "booking")
-    : MOCK_BOOKING_CHATS;
+  // ── Daten: Mock NUR solange DB noch lädt, danach ausschließlich DB ──
+  // WICHTIG: dbChats.length > 0 reicht nicht — nach dem Laden kann die
+  // DB leer sein (kein Chat) und würde trotzdem Mocks anzeigen.
+  // Korrekt: Mock nur wenn chatsLoading === true (DB noch nicht fertig).
+  const activeChats  = chatsLoading
+    ? MOCK_CHATS
+    : dbChats.filter(c => c.chat_type !== "booking");
+  const bookingChats = chatsLoading
+    ? MOCK_BOOKING_CHATS
+    : dbChats.filter(c => c.chat_type === "booking");
 
   // ── Handler ────────────────────────────────────────────────────────
   const handleOpen = useCallback((chat) => {
