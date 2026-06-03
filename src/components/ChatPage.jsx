@@ -603,6 +603,11 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
       display:"flex", flexDirection:"column",
       height:"100%",
     }}>
+      {/* ── SIDEBAR MARKER ── */}
+      <div style={{
+        background:"#001a00", color:"#00ff88", fontFamily:"monospace",
+        fontSize:10, padding:"3px 10px", flexShrink:0,
+      }}>[CHATSIDEBAR] loading={String(loading)} chats={chats.length} booking={bookingChats.length}</div>
       {/* ── Header ─────────────────────────────────────────────── */}
       <div style={{
         padding:"max(52px,env(safe-area-inset-top,52px)) 20px 12px",
@@ -1239,6 +1244,21 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
 
       {/* ── SIDEBAR ──────────────────────────────────────────────── */}
       {(isWide || !activeChat) && (
+        {/* ── RUNTIME DEBUG ── */}
+        <div style={{
+          background:"#000", color:"#0f0", fontFamily:"monospace",
+          fontSize:11, padding:"8px 12px", zIndex:99999, flexShrink:0,
+          borderBottom:"2px solid #0f0",
+        }}>
+          <div style={{fontWeight:900, marginBottom:4}}>DEBUG CHAT SOURCE</div>
+          <div>[CHATPAGE]</div>
+          <div>Component: ChatPage</div>
+          <div>Loading: {String(chatsLoading)}</div>
+          <div>activeChats.length: {activeChats.length}</div>
+          <div>bookingChats.length: {bookingChats.length}</div>
+          <div>First: {activeChats[0]?.other_profile?.display_name ?? bookingChats[0]?.other_profile?.display_name ?? "—"}</div>
+          <div>dbChats.length: {dbChats.length}</div>
+        </div>
         <ChatSidebar
           chats={activeChats}
           bookingChats={bookingChats}
