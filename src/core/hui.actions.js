@@ -183,6 +183,7 @@ export function buildActions(shell) {
     }
     // ── end instrumentation ──────────────────────────────────
     setShowWirker?.(null);
+    console.warn("[SHOWCHAT_FALSE]", { caller: "hui.actions/closeAll", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "hui.actions/closeAll", stack: new Error().stack.split("\\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
     setShowChat?.(false);
     setShowPlusSheet?.(false);
     setShowConnect?.(false);
@@ -273,6 +274,7 @@ export function buildActions(shell) {
         window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_CLOSE_TRACE", payload: _tr });
         if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
       }
+      console.warn("[SHOWCHAT_FALSE]", { caller: "hui.actions/A.CLOSE_CHAT", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "hui.actions/A.CLOSE_CHAT", stack: new Error().stack.split("\\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
       setShowChat?.(false);
     },
 
