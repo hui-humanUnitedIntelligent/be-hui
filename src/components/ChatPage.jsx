@@ -90,67 +90,10 @@ const CREATIVE_PRESENCE = [
   "Auf Reisen",
 ];
 
-const MOCK_CHATS = [
-  {
-    id:"c1", other_profile:{ id:"u1", display_name:"Leon Brandt",
-      avatar_url:"https://i.pravatar.cc/80?img=53",
-      talent:"Musik & Klang", location:"Berlin" },
-    last_message:"Ich freue mich auf unser Treffen!", last_message_at: new Date(Date.now()-5*60000).toISOString(),
-    unread:2, chat_type:"active", presence:"online",
-    category:"Musik & Klang", categoryIcon:"🎵",
-    presenceLabel:"Gerade kreativ im Studio",
-  },
-  {
-    id:"c2", other_profile:{ id:"u2", display_name:"Mia Kern",
-      avatar_url:"https://i.pravatar.cc/80?img=47",
-      talent:"Keramik & Handwerk", location:"München" },
-    last_message:"Die neuen Workshop-Termine sind online ✨", last_message_at: new Date(Date.now()-25*60000).toISOString(),
-    unread:1, chat_type:"active", presence:"online",
-    category:"Keramik & Handwerk", categoryIcon:"🏺",
-    presenceLabel:"In der Werkstatt",
-  },
-  {
-    id:"c3", other_profile:{ id:"u3", display_name:"Jonas Weber",
-      avatar_url:"https://i.pravatar.cc/80?img=52",
-      talent:"Fotografie & Film", location:"Hamburg" },
-    last_message:"Danke dir! Das Bild ist wunderschoen.", last_message_at: new Date(Date.now()-90*60000).toISOString(),
-    unread:0, chat_type:"active", presence:"away",
-    category:"Fotografie & Film", categoryIcon:"📷",
-    presenceLabel:"Nimmt sich Zeit",
-  },
-  {
-    id:"c4", other_profile:{ id:"u4", display_name:"Hanna Vogt",
-      avatar_url:"https://i.pravatar.cc/80?img=11",
-      talent:"Yoga & Bewegung", location:"Berlin" },
-    last_message:"Bis morgen im Studio! 🧘", last_message_at: new Date(Date.now()-60*60*24*1000).toISOString(),
-    unread:0, chat_type:"active", presence:"away",
-    category:"Yoga & Bewegung", categoryIcon:"🌿",
-    presenceLabel:"Nimmt sich Zeit",
-  },
-];
-
-const MOCK_BOOKING_CHATS = [
-  {
-    id:"b1", other_profile:{ id:"u5", display_name:"Tim Schmid",
-      avatar_url:"https://i.pravatar.cc/80?img=32",
-      talent:"Street Photography", location:"Berlin" },
-    last_message:"Hi! Ich hatte eine Frage zum Workshop.",
-    last_message_at: new Date(Date.now()-4*60*60000).toISOString(),
-    unread:1, chat_type:"booking", presence:"online",
-    booking_title:"Workshop: Street Photography", categoryIcon:"📸",
-    presenceLabel:"Gerade kreativ im Studio",
-  },
-  {
-    id:"b2", other_profile:{ id:"u6", display_name:"Anna Keller",
-      avatar_url:"https://i.pravatar.cc/80?img=9",
-      talent:"Stimme & Ausdruck", location:"Koeln" },
-    last_message:"Wann ist der naechste Termin?",
-    last_message_at: new Date(Date.now()-60*60*24*1000).toISOString(),
-    unread:0, chat_type:"booking", presence:"away",
-    booking_title:"Live Session: Stimme & Ausdruck", categoryIcon:"🎤",
-    presenceLabel:"Nimmt sich Zeit",
-  },
-];
+// MOCK_CHATS entfernt — kein Fallback auf Fake-Daten.
+// Während chatsLoading: Skeleton-UI. Danach: nur echte DB-Daten.
+const MOCK_CHATS = [];
+const MOCK_BOOKING_CHATS = [];
 
 const MOCK_CONNECTIONS = [
   { id:"x1", name:"Klara M.", img:"https://i.pravatar.cc/56?img=21" },
@@ -590,7 +533,7 @@ function EmptyChatState({ onDiscover }) {
 /* ══════════════════════════════════════════════════════════════
    CHAT SIDEBAR
 ══════════════════════════════════════════════════════════════ */
-function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], activeId, onOpen, onClose, isWide }) {
+function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], activeId, onOpen, onClose, isWide, loading = false }) {
   const [search, setSearch]   = useState("");
   const [focused,  setFocused] = useState(false);
   const searchRef = useRef(null);
@@ -804,8 +747,28 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
         ) : (
           /* ═══ NORMAL-MODUS (kein Suchbegriff) ═══════════════════ */
           <>
-            {/* Zuletzt kontaktiert */}
-            {allActive.length > 0 && (
+            {/* Laden: Skeleton */}
+            {loading ? (
+              <>
+                <div style={{ padding:"8px 16px 4px",
+                  fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
+                  AKTIVE GESPRÄCHE
+                </div>
+                {[1,2,3].map(k => (
+                  <div key={k} style={{ display:"flex", alignItems:"center", gap:12,
+                    padding:"13px 16px", opacity: 0.5 }}>
+                    <div style={{ width:52, height:52, borderRadius:"50%",
+                      background:"rgba(0,0,0,0.07)" }}/>
+                    <div style={{ flex:1 }}>
+                      <div style={{ height:13, borderRadius:6, background:"rgba(0,0,0,0.07)",
+                        width:"60%", marginBottom:7 }}/>
+                      <div style={{ height:11, borderRadius:6, background:"rgba(0,0,0,0.05)",
+                        width:"80%" }}/>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : allActive.length > 0 ? (
               <>
                 <div style={{ padding:"8px 16px 4px",
                   fontSize:12, fontWeight:700, color:C.muted, letterSpacing:0.4 }}>
@@ -816,7 +779,7 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
                     active={chat.id === activeId} onOpen={onOpen} />
                 ))}
               </>
-            )}
+            ) : null}
 
             {/* Buchungsanfragen */}
             {bookingChats.length > 0 && (
@@ -1244,16 +1207,10 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
   // ── Chat-Thread für aktiven Chat ──────────────────────────────────
   const { messages, sendMessage } = useChatThread(activeChat?.id ?? null);
 
-  // ── Daten: Mock NUR solange DB noch lädt, danach ausschließlich DB ──
-  // WICHTIG: dbChats.length > 0 reicht nicht — nach dem Laden kann die
-  // DB leer sein (kein Chat) und würde trotzdem Mocks anzeigen.
-  // Korrekt: Mock nur wenn chatsLoading === true (DB noch nicht fertig).
-  const activeChats  = chatsLoading
-    ? MOCK_CHATS
-    : dbChats.filter(c => c.chat_type !== "booking");
-  const bookingChats = chatsLoading
-    ? MOCK_BOOKING_CHATS
-    : dbChats.filter(c => c.chat_type === "booking");
+  // ── Daten: immer DB — kein Mock-Fallback ─────────────────────────
+  // Während chatsLoading zeigt ChatSidebar ein Skeleton (keine Fake-Namen).
+  const activeChats  = dbChats.filter(c => c.chat_type !== "booking");
+  const bookingChats = dbChats.filter(c => c.chat_type === "booking");
 
   // ── Handler ────────────────────────────────────────────────────────
   const handleOpen = useCallback((chat) => {
@@ -1287,6 +1244,7 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
           bookingChats={bookingChats}
           connections={MOCK_CONNECTIONS}
           networkPeople={networkPeopleDB}
+          loading={chatsLoading}
           activeId={activeChat?.id}
           onOpen={handleOpen}
           onClose={onClose}
