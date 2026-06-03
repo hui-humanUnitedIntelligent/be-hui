@@ -157,7 +157,13 @@ export default function HomeShell({ children }) {
   const [showChat,               setShowChat]              = useState(false);
   // DIAG: showChat-Wert überwachen — feuert bei jeder Änderung
   React.useEffect(() => {
-    console.log("[SHOWCHAT_STATE_CHANGE]", { showChat, ts: Date.now() });
+    const _stack = new Error().stack;
+    if (showChat) {
+      console.warn("[SHOWCHAT_TRUE]", { caller: "HomeShell/watcher", stack: _stack, ts: Date.now() });
+    } else {
+      console.warn("[SHOWCHAT_FALSE]", { caller: "HomeShell/watcher", stack: _stack, ts: Date.now() });
+      if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "HomeShell/watcher", stack: _stack.split("\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
+    }
     if (typeof window !== "undefined") {
       if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
       window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: showChat ? "SHOWCHAT_TRUE" : "SHOWCHAT_FALSE_STATE", payload: { showChat } });
@@ -267,6 +273,7 @@ export default function HomeShell({ children }) {
     // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
     const _stLines = (_stStack || "").split("\n");
     const _stCaller = (_stLines.find((l, i) => i > 1 && !l.includes("switchTab") && !l.includes("HomeShell")) || _stLines[2] || "").trim();
+    console.warn("[NAVIGATE_TO]", { newTab, showChatBefore: showChat, stack: _stStack, ts: Date.now() });
     console.log("[SWITCH_TAB]", { newTab, showChat, stack: _stStack });
     // Für Debug-Overlay sichern
     if (typeof window !== "undefined") {
