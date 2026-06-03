@@ -824,6 +824,7 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
    CHAT DETAIL VIEW
 ══════════════════════════════════════════════════════════════ */
 function ChatDetailView({ chat, messages, onBack, onSend, isWide }) {
+  const { user } = useAuth();
   const [input, setInput]   = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
@@ -941,7 +942,7 @@ function ChatDetailView({ chat, messages, onBack, onSend, isWide }) {
           <MessageBubble
             key={msg.id || i}
             msg={msg}
-            isOwn={msg.sender === "me"}
+            isOwn={msg.sender_id === user?.id}
             otherAvatar={other.avatar_url}
           />
         ))}
