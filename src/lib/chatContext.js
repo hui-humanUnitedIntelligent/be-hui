@@ -101,10 +101,17 @@ export function useChatList() {
         `)
         // participant_ids ist uuid[] → cs. (contains) prüft ob user.id enthalten
         .contains("participant_ids", [user.id])
-        .or("state.eq.opened,state.is.null")
+        // state-Filter bewusst entfernt — akzeptiere alle states
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
 
+      console.error("[CHATLIST_QUERY]", {
+        userId: user?.id,
+        rawChatsCount: rawChats?.length ?? null,
+        rawChatsIds: (rawChats||[]).slice(0,5).map(c => ({ id: c.id, state: c.state, pids: c.participant_ids })),
+        chatError: chatError ? { code: chatError.code, msg: chatError.message } : null,
+        ts: Date.now(),
+      });
       if (chatError) {
         console.error("[useChatList] SELECT Fehler:", chatError.code, chatError.message);
         setLoading(false);
