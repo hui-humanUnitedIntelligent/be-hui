@@ -103,6 +103,11 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
 
       {/* List */}
       <div className="hui-scroll" style={{ flex: 1, overflowY: "auto" }}>
+        {/* ── CCO MARKER ── */}
+        <div style={{
+          background:"#00001a", color:"#4488ff", fontFamily:"monospace",
+          fontSize:10, padding:"3px 10px", flexShrink:0,
+        }}>[CHATCENTEROVERLAY→LISTPANEL] chats={String((chats||[]).length)} loading={String(loading)}</div>
         <ConversationList
           chats={chats}
           loading={loading}
