@@ -81,6 +81,43 @@ export default function ChatMessages({ messages, typing, event }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, typing]);
 
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const cs = window.getComputedStyle(el);
+    const root = {
+      tag: "ChatMessages-root",
+      offsetHeight: el.offsetHeight,
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+      flex:          cs.flex,
+      flexGrow:      cs.flexGrow,
+      justifyContent: cs.justifyContent,
+      overflowY:     cs.overflowY,
+      minHeight:     cs.minHeight,
+    };
+    const kids = Array.from(el.children).map((c, i) => {
+      const s = window.getComputedStyle(c);
+      return {
+        i,
+        tag:           c.tagName,
+        class:         c.className || "",
+        offsetHeight:  c.offsetHeight,
+        scrollHeight:  c.scrollHeight,
+        flex:          s.flex,
+        flexGrow:      s.flexGrow,
+        marginTop:     s.marginTop,
+        justifyContent: s.justifyContent,
+        position:      s.position,
+        minHeight:     s.minHeight,
+        height:        s.height,
+      };
+    });
+    window.HUI_CM_MEASURE = { root, kids, ts: Date.now() };
+    console.log("[CM_MEASURE] root:", JSON.stringify(root));
+    console.log("[CM_MEASURE] kids:", JSON.stringify(kids));
+  }, [messages]);
+
 
   // Gruppiere Nachrichten nach Datum
   const groups = [];
