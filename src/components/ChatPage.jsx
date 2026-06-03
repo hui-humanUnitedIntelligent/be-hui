@@ -964,7 +964,7 @@ function ChatDetailView({ chat, messages, onBack, onSend, isWide }) {
 
       {/* ── Input Bar ─────────────────────────────────────────────── */}
       <div style={{
-        padding:"8px 16px max(20px,env(safe-area-inset-bottom,20px))",
+        padding:"8px 16px max(72px,calc(env(safe-area-inset-bottom,0px) + 64px))",
         background:"rgba(254,252,249,0.95)",
         backdropFilter:"blur(16px)",
         WebkitBackdropFilter:"blur(16px)",
@@ -1103,7 +1103,7 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:400,
+      position:"fixed", inset:0, zIndex:9500,
       display:"flex", flexDirection:"row",
       fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
       overflow:"hidden",
