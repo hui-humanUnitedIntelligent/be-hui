@@ -598,7 +598,7 @@ function EmptyChatState({ onDiscover }) {
 /* ══════════════════════════════════════════════════════════════
    CHAT SIDEBAR
 ══════════════════════════════════════════════════════════════ */
-function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClose, isWide }) {
+function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], activeId, onOpen, onClose, isWide }) {
   const [search, setSearch]   = useState("");
   const [focused,  setFocused] = useState(false);
   const searchRef = useRef(null);
@@ -606,27 +606,42 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
   // ── Suche: nur im eigenen Netzwerk ──────────────────────────────
   const q = search.trim().toLowerCase();
 
-  // Menschen: aus Chats + Verbindungen (Duplikate per id dedupliziert)
-  const networkPeople = React.useMemo(() => {
+  // Menschen: aus Chats + DB-Netzwerk (follows/followers) dedupliziert
+  const allNetworkPeople = React.useMemo(() => {
     const seen = new Set();
     const people = [];
+
+    // Prio 1: bestehende Chat-Partner
     [...chats, ...bookingChats].forEach(c => {
       const p = c.other_profile;
       if (!p?.id || seen.has(p.id)) return;
       seen.add(p.id);
-      people.push({ ...p, _chatId: c.id, _source: "chat" });
+      people.push({ ...p, _chatId: c.id, _source: "chat",
+        relation: "Chat vorhanden", relationIcon: "💬" });
     });
+
+    // Prio 2: DB-Netzwerk (follows/followers) — mit relation-Label
+    (networkPeople || []).forEach(p => {
+      if (!p?.id || seen.has(p.id)) return;
+      seen.add(p.id);
+      // _chatId suchen falls Chat existiert
+      const chat = [...chats, ...bookingChats].find(c =>
+        c.other_profile?.id === p.id);
+      people.push({ ...p, _chatId: chat?.id ?? null });
+    });
+
+    // Prio 3: Mock-Verbindungen
     (connections || []).forEach(conn => {
       if (!conn?.id || seen.has(conn.id)) return;
       seen.add(conn.id);
       people.push({ id: conn.id, display_name: conn.name, avatar_url: conn.img,
-        _source: "connection" });
+        _source: "connection", relation: "Verbindung", relationIcon: "🤝" });
     });
     return people;
-  }, [chats, bookingChats, connections]);
+  }, [chats, bookingChats, connections, networkPeople]);
 
   // Gefilterte Ergebnisse
-  const filteredPeople    = q ? networkPeople.filter(p =>
+  const filteredPeople    = q ? allNetworkPeople.filter(p =>
     p.display_name?.toLowerCase().includes(q) ||
     p.username?.toLowerCase().includes(q)
   ) : [];
@@ -755,9 +770,10 @@ function ChatSidebar({ chats, bookingChats, connections, activeId, onOpen, onClo
                       <div style={{ fontSize:14, fontWeight:700, color:C.ink }}>
                         {p.display_name}
                       </div>
-                      {p.username && (
-                        <div style={{ fontSize:11.5, color:C.muted }}>@{p.username}</div>
-                      )}
+                      <div style={{ fontSize:11.5, color:C.muted, display:"flex", gap:4, alignItems:"center" }}>
+                        {p.relationIcon && <span>{p.relationIcon}</span>}
+                        <span>{p.relation || (p.username ? `@${p.username}` : "")}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1119,10 +1135,91 @@ function ChatDetailView({ chat, messages, onBack, onSend, isWide }) {
 /* ══════════════════════════════════════════════════════════════
    MAIN: ChatPage
 ══════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   useNetworkPeople — lädt alle Personen mit Netzwerk-Beziehung:
+   - follows (ich folge jemand)
+   - followers (jemand folgt mir)
+   Gibt dedupliziertes Array mit relation-Label zurück.
+══════════════════════════════════════════════════════════════ */
+function useNetworkPeople() {
+  const { user } = useAuth();
+  const [people, setPeople] = React.useState([]);
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+
+    async function load() {
+      try {
+        // Ich folge wem?
+        const { data: following } = await supabase
+          .from("follows")
+          .select("following_id, profiles!follows_following_id_fkey(id, display_name, avatar_url, username)")
+          .eq("follower_id", user.id)
+          .limit(200);
+
+        // Wer folgt mir?
+        const { data: followers } = await supabase
+          .from("follows")
+          .select("follower_id, profiles!follows_follower_id_fkey(id, display_name, avatar_url, username)")
+          .eq("following_id", user.id)
+          .limit(200);
+
+        if (cancelled) return;
+
+        const map = new Map(); // id → person
+
+        // Ich folge
+        (following || []).forEach(row => {
+          const p = row.profiles;
+          if (!p?.id) return;
+          map.set(p.id, { ...p, _relations: new Set(["following"]) });
+        });
+
+        // Folgt mir
+        (followers || []).forEach(row => {
+          const p = row.profiles;
+          if (!p?.id) return;
+          if (map.has(p.id)) {
+            map.get(p.id)._relations.add("follower");
+          } else {
+            map.set(p.id, { ...p, _relations: new Set(["follower"]) });
+          }
+        });
+
+        // Relation-Label berechnen
+        const result = [...map.values()].map(p => {
+          const r = p._relations;
+          let relation, relationIcon;
+          if (r.has("following") && r.has("follower")) {
+            relation = "Verbindung"; relationIcon = "🤝";
+          } else if (r.has("following")) {
+            relation = "Du folgst"; relationIcon = "➡️";
+          } else {
+            relation = "Folgt dir"; relationIcon = "➕";
+          }
+          return { ...p, _relations: undefined, relation, relationIcon, _source: "network" };
+        });
+
+        setPeople(result);
+      } catch(e) {
+        console.warn("[useNetworkPeople]", e.message);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  return people;
+}
+
 export default function ChatPage({ onClose, initialRecipient = null }) {
   // ── Hooks (stabile Reihenfolge) ───────────────────────────────────
   const { user } = useAuth();
   const { chats: dbChats, loading, markChatRead } = useChatList();
+  const networkPeopleDB = useNetworkPeople();
   const [activeChat, setActiveChat] = useState(null);
 
   // initialRecipient → direkt Chat öffnen (von Profil / Kompass)
@@ -1194,6 +1291,7 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
           chats={activeChats}
           bookingChats={bookingChats}
           connections={MOCK_CONNECTIONS}
+          networkPeople={networkPeopleDB}
           activeId={activeChat?.id}
           onOpen={handleOpen}
           onClose={onClose}
