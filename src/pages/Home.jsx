@@ -270,7 +270,7 @@ function HomeInner() {
             setShowNotifs(true);
           }}
           onChat={() => { logDebug("SHOWCHAT_TRUE", { caller: "Home/HomeHeader-onChat" });
-          console.log("[SHOW_CHAT_TRUE]", { caller: "Home/HomeHeader-onChat", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "Home/HomeHeader-onChat", ts: Date.now() }; } setShowChat(true); }}
+          console.warn("[SHOWCHAT_TRUE]", { caller: "Home/HomeHeader-onChat", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "Home/HomeHeader-onChat", ts: Date.now() }; } setShowChat(true); }}
         />
 
         {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,
@@ -498,7 +498,8 @@ function HomeInner() {
           <ChatCenterOverlay
             onClose={() => {
               logDebug("SHOWCHAT_FALSE", { caller: "Home/onClose" });
-              console.log("[SHOW_CHAT_FALSE]", { caller: "Home/onClose", stack: new Error().stack, ts: Date.now() });
+              console.warn("[SHOWCHAT_FALSE]", { caller: "Home/onClose", stack: new Error().stack, ts: Date.now() });
+              if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "Home/onClose", stack: new Error().stack.split("\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
               if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "Home/onClose", ts: Date.now() }; }
               // ── TRACE: Home/onClose → setShowChat(false) ──────
               if (typeof window !== "undefined") {
@@ -543,6 +544,7 @@ function HomeInner() {
                 window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_CLOSE_TRACE", payload: _tr });
                 if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
               }
+                            console.warn("[SHOWCHAT_FALSE]", { caller: "Home/onDiscoverClose", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "Home/onDiscoverClose", stack: new Error().stack.split("\\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
               setShowChat(false);
               setChatRecipient(null);
               flow.clearReturnProfile(); // kein Return bei Discover-Navigate
