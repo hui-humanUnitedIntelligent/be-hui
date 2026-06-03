@@ -80,16 +80,6 @@ export default function ChatMessages({ messages, typing, event }) {
     endRef.current?.scrollIntoView({ behavior:"smooth" });
   }, [messages, typing]);
 
-  useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    console.log("CHAT_GEOMETRY", {
-      clientHeight: el.clientHeight,
-      scrollHeight: el.scrollHeight,
-      offsetHeight: el.offsetHeight,
-      childCount:   el.children.length,
-    });
-  }, [messages]);
 
   // Gruppiere Nachrichten nach Datum
   const groups = [];
@@ -110,7 +100,7 @@ export default function ChatMessages({ messages, typing, event }) {
   return (
     <div ref={rootRef} className="hui-scroll" style={{
       flex:1, minHeight:0, overflowY:"auto", overflowX:"hidden",
-      display:"flex", flexDirection:"column",
+      display:"flex", flexDirection:"column", justifyContent:"flex-end",
       paddingBottom:8,
     }}>
       <style>{CSS}</style>
@@ -150,11 +140,11 @@ export default function ChatMessages({ messages, typing, event }) {
         </div>
       )}
 
-      {groups.map((g, i) => {
-        if (g.type === "date") return <DateDivider key={`d-${i}`} label={g.label}/>;
-        console.log("BUBBLE_RENDER", { id: g.msg.id, text: g.msg.text?.slice(0,40) });
-        return <MessageBubble key={g.msg.id || i} msg={g.msg}/>;
-      })}
+      {groups.map((g, i) =>
+        g.type === "date"
+          ? <DateDivider key={`d-${i}`} label={g.label}/>
+          : <MessageBubble key={g.msg.id || i} msg={g.msg}/>
+      )}
 
       {typing && <TypingBubble/>}
       <div ref={endRef}/>
