@@ -135,6 +135,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       chatType:    "direct",
     }).then(chatRecord => {
       if (!chatRecord?.id) return;
+      console.log("[ACTIVE_CONV]", { id: chatRecord.id, typeofId: typeof chatRecord.id, source: "initialRecipient" });
       setActiveConv({
         id:         chatRecord.id,
         name:       initialRecipient.display_name || "Creator",
@@ -151,8 +152,10 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   function openConv(rawConv) {
     const realId = rawConv?.id;
+    console.log("[OPEN_CONV]", { rawId: rawConv?.id, typeofId: typeof rawConv?.id, raw: rawConv });
     if (!realId) return;
     const other = rawConv.other_profile || {};
+    console.log("[ACTIVE_CONV]", { id: realId, typeofId: typeof realId });
     setActiveConv({
       id:          realId,
       name:        rawConv.name || other.display_name || "Gespräch",
