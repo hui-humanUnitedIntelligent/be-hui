@@ -76,38 +76,6 @@ const GLOBAL_CSS = IX.CSS + `
 
 /* ══════════════════════════════════════════════════════════════ */
 
-/* ── DIAG: Recipient Log Overlay — polling, 250ms ─────────────────── */
-function RLogOverlay() {
-  const [logs, setLogs] = React.useState([]);
-  React.useEffect(() => {
-    const id = setInterval(() => {
-      setLogs([...(window.__HUI_RLOG__ || [])]);
-    }, 250);
-    return () => clearInterval(id);
-  }, []);
-  if (!logs.length) return null;
-  return (
-    <div style={{
-      position:"fixed", bottom:90, left:8, right:8, zIndex:999999,
-      background:"rgba(0,0,0,0.93)", color:"#0ff",
-      fontFamily:"monospace", fontSize:10, padding:10,
-      borderRadius:10, maxHeight:240, overflowY:"auto",
-      pointerEvents:"none",
-      border:"1px solid rgba(0,255,255,0.3)",
-    }}>
-      <div style={{color:"#ff0",fontWeight:700,marginBottom:5}}>▶ RECIPIENT LOG ({logs.length})</div>
-      {logs.map((e,i) => (
-        <div key={i} style={{marginBottom:5,borderBottom:"1px solid rgba(255,255,255,0.08)",paddingBottom:4}}>
-          <span style={{color:"#ff0"}}>{e.k}</span>{" "}
-          id=<span style={{color: e.recipientId ? "#0f0" : "#f00"}}>{String(e.recipientId ?? "UNDEFINED")}</span>{" "}
-          <span style={{color:"#aaa",fontSize:9,wordBreak:"break-all"}}>
-            {JSON.stringify(e).slice(0,100)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function HomeInner() {
   // Phase 16.6: Tab element refs for imperative Safari paint recovery
@@ -527,14 +495,6 @@ function HomeInner() {
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
-          {(() => {
-            const _d = { chatRecipient, recipientId: chatRecipient?.id, showChat, ts: Date.now() };
-            console.error("HOME_CHAT_RECIPIENT", _d);
-            if (!window.__HUI_RLOG__) window.__HUI_RLOG__ = [];
-            window.__HUI_RLOG__.unshift({ k:"HOME_CHAT_RECIPIENT", ..._d });
-            if (window.__HUI_RLOG__.length > 10) window.__HUI_RLOG__.pop();
-          })()}
-          {null}
           <ChatCenterOverlay
             onClose={() => {
               logDebug("SHOWCHAT_FALSE", { caller: "Home/onClose" });
@@ -796,7 +756,7 @@ function HomeInner() {
         </div>
       )}
 
-      <RLogOverlay />
+      
 
     </>
   );
