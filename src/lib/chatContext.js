@@ -128,12 +128,29 @@ export function useChatList() {
           const otherId = (c.participant_ids || []).find(id => id !== user.id);
           let otherProfile = null;
           if (otherId) {
-            const { data: prof } = await supabase
+            // Versuch 1: profiles.id = auth.uid()
+            const { data: prof1 } = await supabase
               .from("profiles")
               .select("id, display_name, avatar_url, username, last_seen, availability")
               .eq("id", otherId)
-              .single();
-            otherProfile = prof;
+              .maybeSingle();
+            if (prof1) {
+              otherProfile = prof1;
+            } else {
+              // Versuch 2: profiles.user_id = otherId (alternative Schema-Variante)
+              const { data: prof2 } = await supabase
+                .from("profiles")
+                .select("id, display_name, avatar_url, username, last_seen, availability")
+                .eq("user_id", otherId)
+                .maybeSingle();
+              otherProfile = prof2 ?? null;
+            }
+            console.error("[OTHER_PROFILE]", {
+              otherId,
+              found: !!otherProfile,
+              display_name: otherProfile?.display_name ?? null,
+              myId: user?.id,
+            });
           }
           return {
             ...c,
