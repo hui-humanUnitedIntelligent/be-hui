@@ -11,6 +11,7 @@ import {
   useDraftPersist, useScrollMemory,
   usePresence, getPresenceLabel,
 } from "../lib/sessionHooks";
+import { findOrCreateChat } from "../lib/chatContext";
 import {
   useChatList, useChatThread, useChatContext,
   CHAT_TYPES, MSG_TYPES, formatChatTime, formatMsgDate,
@@ -1040,11 +1041,30 @@ function ChatDetailView({ chat, messages, onBack, onSend, isWide }) {
 /* ══════════════════════════════════════════════════════════════
    MAIN: ChatPage
 ══════════════════════════════════════════════════════════════ */
-export default function ChatPage({ onClose }) {
+export default function ChatPage({ onClose, initialRecipient = null }) {
   // ── Hooks (stabile Reihenfolge) ───────────────────────────────────
   const { user } = useAuth();
   const { chats: dbChats, loading, markChatRead } = useChatList();
   const [activeChat, setActiveChat] = useState(null);
+
+  // initialRecipient → direkt Chat öffnen (von Profil / Kompass)
+  React.useEffect(() => {
+    if (!initialRecipient?.id || !user?.id || activeChat) return;
+    findOrCreateChat({ userId: user.id, otherUserId: initialRecipient.id, chatType: "direct" })
+      .then(chatRecord => {
+        if (!chatRecord?.id) return;
+        setActiveChat({
+          id:          chatRecord.id,
+          name:        initialRecipient.display_name || "Creator",
+          avatar_url:  initialRecipient.avatar_url   || null,
+          talent:      initialRecipient.talent       || null,
+          participant_ids: chatRecord.participant_ids || [],
+          other_profile: { display_name: initialRecipient.display_name, avatar_url: initialRecipient.avatar_url },
+        });
+      })
+      .catch(err => console.error("[ChatPage] findOrCreateChat:", err?.message));
+  }, [initialRecipient?.id, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Desktop >= 1200px: 2-Spalten Chat.
   // Mobile + Tablet (< 1200px): Mobile-UI, kein Split-View.
   const [isWide, setIsWide] = React.useState(window.innerWidth >= 1200);
