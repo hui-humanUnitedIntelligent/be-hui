@@ -75,13 +75,6 @@ const CSS = `
     animation:shimmer 1.6s infinite;
     border-radius:10px;
   }
-  .cp-pill {
-    flex-shrink:0; border-radius:999px; padding:7px 16px;
-    font-size:13px; font-weight:600; cursor:pointer; border:none; outline:none;
-    transition:all 0.18s ease; -webkit-tap-highlight-color:transparent;
-    white-space:nowrap;
-  }
-  .cp-pill:active { transform:scale(0.965) translateY(1px); }
   .cp-input-send:active { transform:scale(0.930) translateY(0.5px); }
 `;
 
@@ -193,7 +186,6 @@ const MOCK_MESSAGES = [
     created_at: new Date().toISOString() },
 ];
 
-const CATS = ["Alle","Buchungen","Kreative Gespraeche","Community","Support"];
 
 /* ══════════════════════════════════════════════════════════════
    HELPER
