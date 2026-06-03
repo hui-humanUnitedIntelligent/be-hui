@@ -238,7 +238,7 @@ export function useChatThread(chatId) {
       return;
     }
     console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
-    console.log("[THREAD_LOAD]", { chatId, typeofChatId: typeof chatId, isFake: String(chatId).startsWith("direct_") });
+    console.warn("[THREAD_LOAD]", JSON.stringify({ chatId, typeofChatId: typeof chatId, isFake: String(chatId).startsWith("direct_") }));
     console.error("CHAT_TRACE", { step: "8_useChatThread_load", chatId, typeofChatId: typeof chatId, ts: Date.now() });
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
@@ -251,14 +251,13 @@ export function useChatThread(chatId) {
         .eq("chat_id", chatId)
         .order("created_at", { ascending: true })
         .limit(100);
-      console.log("[LOAD_RESULT]", {
+      console.warn("[THREAD_RESULT]", JSON.stringify({
         chatId,
         count:        data?.length ?? 0,
         error:        loadError?.message ?? null,
-        errorCode:    loadError?.code ?? null,
-        firstMsgId:   data?.[0]?.id ?? null,
+        firstMessage: data?.[0]?.text?.substring(0,40) ?? null,
         ts:           Date.now(),
-      });
+      }));
       console.error("CHAT_TRACE", { step: "8b_LOAD_RESULT", chatId,
         count: data?.length ?? 0, firstMsgId: data?.[0]?.id ?? null,
         error: loadError?.message ?? null, ts: Date.now() });
