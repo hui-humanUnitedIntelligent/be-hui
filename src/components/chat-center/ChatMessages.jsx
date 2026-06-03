@@ -84,38 +84,39 @@ export default function ChatMessages({ messages, typing, event }) {
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const cs = window.getComputedStyle(el);
-    const root = {
-      tag: "ChatMessages-root",
-      offsetHeight: el.offsetHeight,
-      scrollHeight: el.scrollHeight,
-      clientHeight: el.clientHeight,
-      flex:          cs.flex,
-      flexGrow:      cs.flexGrow,
-      justifyContent: cs.justifyContent,
-      overflowY:     cs.overflowY,
-      minHeight:     cs.minHeight,
-    };
-    const kids = Array.from(el.children).map((c, i) => {
-      const s = window.getComputedStyle(c);
-      return {
-        i,
-        tag:           c.tagName,
-        class:         c.className || "",
-        offsetHeight:  c.offsetHeight,
-        scrollHeight:  c.scrollHeight,
-        flex:          s.flex,
-        flexGrow:      s.flexGrow,
-        marginTop:     s.marginTop,
-        justifyContent: s.justifyContent,
-        position:      s.position,
-        minHeight:     s.minHeight,
-        height:        s.height,
-      };
+    const COLORS = [
+      ["CHILD_1","rgba(255,0,0,0.35)"],
+      ["CHILD_2","rgba(0,0,255,0.25)"],
+      ["CHILD_3","rgba(0,180,0,0.30)"],
+      ["CHILD_4","rgba(255,200,0,0.45)"],
+      ["CHILD_5","rgba(160,0,220,0.30)"],
+    ];
+    Array.from(el.children).forEach((child, i) => {
+      const [label, color] = COLORS[i] || [`CHILD_${i+1}`,"rgba(128,128,128,0.3)"];
+      child.style.outline = "4px solid black";
+      child.style.background = color;
+      child.style.position = child.style.position || "relative";
+      // Label einfügen falls noch nicht vorhanden
+      if (!child.querySelector(".__hui_label")) {
+        const lbl = document.createElement("div");
+        lbl.className = "__hui_label";
+        lbl.textContent = `${label} h=${child.offsetHeight}px`;
+        Object.assign(lbl.style, {
+          position:"absolute", top:"0", left:"0",
+          background:"rgba(0,0,0,0.85)", color:"white",
+          fontSize:"11px", fontWeight:"700", fontFamily:"monospace",
+          padding:"2px 6px", zIndex:"999999", pointerEvents:"none",
+        });
+        child.insertBefore(lbl, child.firstChild);
+      }
+      console.log(`[CHILD_${i+1}]`, {
+        tag: child.tagName,
+        offsetHeight: child.offsetHeight,
+        flex: window.getComputedStyle(child).flex,
+        flexGrow: window.getComputedStyle(child).flexGrow,
+        marginTop: window.getComputedStyle(child).marginTop,
+      });
     });
-    window.HUI_CM_MEASURE = { root, kids, ts: Date.now() };
-    console.log("[CM_MEASURE] root:", JSON.stringify(root));
-    console.log("[CM_MEASURE] kids:", JSON.stringify(kids));
   }, [messages]);
 
 
