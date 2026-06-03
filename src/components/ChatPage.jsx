@@ -1244,32 +1244,33 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
 
       {/* ── SIDEBAR ──────────────────────────────────────────────── */}
       {(isWide || !activeChat) && (
-        {/* ── RUNTIME DEBUG ── */}
-        <div style={{
-          background:"#000", color:"#0f0", fontFamily:"monospace",
-          fontSize:11, padding:"8px 12px", zIndex:99999, flexShrink:0,
-          borderBottom:"2px solid #0f0",
-        }}>
-          <div style={{fontWeight:900, marginBottom:4}}>DEBUG CHAT SOURCE</div>
-          <div>[CHATPAGE]</div>
-          <div>Component: ChatPage</div>
-          <div>Loading: {String(chatsLoading)}</div>
-          <div>activeChats.length: {activeChats.length}</div>
-          <div>bookingChats.length: {bookingChats.length}</div>
-          <div>First: {activeChats[0]?.other_profile?.display_name ?? bookingChats[0]?.other_profile?.display_name ?? "—"}</div>
-          <div>dbChats.length: {dbChats.length}</div>
-        </div>
-        <ChatSidebar
-          chats={activeChats}
-          bookingChats={bookingChats}
-          connections={MOCK_CONNECTIONS}
-          networkPeople={networkPeopleDB}
-          loading={chatsLoading}
-          activeId={activeChat?.id}
-          onOpen={handleOpen}
-          onClose={onClose}
-          isWide={isWide}
-        />
+        <>
+          <div style={{
+            background:"#000", color:"#0f0", fontFamily:"monospace",
+            fontSize:11, padding:"8px 12px", zIndex:99999, flexShrink:0,
+            borderBottom:"2px solid #0f0",
+          }}>
+            <div style={{fontWeight:900, marginBottom:4}}>DEBUG CHAT SOURCE</div>
+            <div>[CHATPAGE]</div>
+            <div>Component: ChatPage</div>
+            <div>Loading: {String(chatsLoading)}</div>
+            <div>activeChats.length: {activeChats.length}</div>
+            <div>bookingChats.length: {bookingChats.length}</div>
+            <div>First: {activeChats[0]?.other_profile?.display_name ?? bookingChats[0]?.other_profile?.display_name ?? "—"}</div>
+            <div>dbChats.length: {dbChats.length}</div>
+          </div>
+          <ChatSidebar
+            chats={activeChats}
+            bookingChats={bookingChats}
+            connections={MOCK_CONNECTIONS}
+            networkPeople={networkPeopleDB}
+            loading={chatsLoading}
+            activeId={activeChat?.id}
+            onOpen={handleOpen}
+            onClose={onClose}
+            isWide={isWide}
+          />
+        </>
       )}
 
       {/* ── DETAIL VIEW ──────────────────────────────────────────── */}
