@@ -97,7 +97,7 @@ export default function ChatMessages({ messages, typing, event }) {
 
   return (
     <div className="hui-scroll" style={{
-      flex:1, overflowY:"auto", overflowX:"hidden",
+      flex:1, minHeight:0, overflowY:"auto", overflowX:"hidden",
       display:"flex", flexDirection:"column",
       paddingBottom:8,
     }}>
