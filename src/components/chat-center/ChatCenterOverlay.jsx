@@ -131,18 +131,10 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   // CCO_STATE — feuert bei Mount und bei jedem initialRecipient-Change
   React.useEffect(() => {
-    console.error("[CCO_STATE]", {
-      initialRecipient: initialRecipient ? { id: initialRecipient.id, name: initialRecipient.display_name } : null,
-      activeConv:   activeConv ? { id: activeConv.id } : null,
-      loadingConv:  loadingConv,
-      userId:       user?.id ?? null,
-      ts:           Date.now(),
-    });
   }, [initialRecipient?.id, activeConv?.id, loadingConv]);
 
   // initialRecipient → Chat direkt öffnen
   React.useEffect(() => {
-    console.error("[CCO_STATE]", { event: "EFFECT_RUN", initialRecipientId: initialRecipient?.id, userId: user?.id, hasActiveConv: !!activeConv, ts: Date.now() });
     if (!initialRecipient?.id || !user?.id) return;
     if (activeConv) return;
     setLoadingConv(true);
