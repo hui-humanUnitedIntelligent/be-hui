@@ -82,13 +82,18 @@ export function formatMsgDate(iso) {
 // state = "opened" statt "open"
 // ────────────────────────────────────────────────────────────────
 export function useChatList() {
-  const { user } = useAuth();
+  const { user, authChecked } = useAuth();
   const [chats,   setChats]   = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Wenn authChecked aber kein User → kein Login → loading beenden
+  useEffect(() => {
+    if (authChecked && !user?.id) setLoading(false);
+  }, [authChecked, user?.id]);
   const realtimeRef = useRef(null);
 
   const load = useCallback(async () => {
-    if (!user?.id) return;
+    if (!authChecked || !user?.id) return;
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
       const { data: rawChats, error: chatError } = await supabase
