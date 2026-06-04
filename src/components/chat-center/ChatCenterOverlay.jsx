@@ -152,8 +152,6 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       chatType:    "direct",
     }).then(chatRecord => {
       if (!chatRecord?.id) return;
-      console.log("[ACTIVE_CONV]", { id: chatRecord.id, typeofId: typeof chatRecord.id, source: "initialRecipient" });
-      console.error("CHAT_TRACE", { step: "6_setActiveConv", chatId: chatRecord.id, source: "initialRecipient", ts: Date.now() });
       setActiveConv({
         id:         chatRecord.id,
         name:       initialRecipient.display_name || "Creator",
@@ -170,11 +168,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   function openConv(rawConv) {
     const realId = rawConv?.id;
-    console.log("[OPEN_CONV]", { rawId: rawConv?.id, typeofId: typeof rawConv?.id, raw: rawConv });
-    console.error("CHAT_TRACE", { step: "5_openConv", rawConvId: rawConv?.id, typeofId: typeof rawConv?.id, ts: Date.now() });
     if (!realId) return;
     const other = rawConv.other_profile || {};
-    console.log("[ACTIVE_CONV]", { id: realId, typeofId: typeof realId });
     setActiveConv({
       id:          realId,
       name:        rawConv.name || other.display_name || "Gespräch",
@@ -268,7 +263,6 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           }}
         />
       ) : (
-        {console.error("CHAT_TRACE", { step: "4_ListPanel_render", chatCount: (chats||[]).length, chatIds: (chats||[]).slice(0,5).map(c=>({ id: c.id, participant_ids: c.participant_ids, lma: c.last_message_at })), ts: Date.now() }) || null}
         <ListPanel
           onClose={onClose}
           onOpen={openConv}
