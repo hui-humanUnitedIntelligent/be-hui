@@ -14,10 +14,8 @@ import { isBookable } from "../utils/profileGuards";
  *
  * @param {{ profile: object|null, user: object|null }} params
  * @returns {{
- *   showChat:       boolean,
  *   showRequest:    boolean,
  *   showMore:       boolean,
- *   setShowChat:    fn,
  *   setShowRequest: fn,
  *   setShowMore:    fn,
  *   followed:       boolean,
@@ -28,7 +26,6 @@ import { isBookable } from "../utils/profileGuards";
  * }}
  */
 export function useBookingState({ profile, user }) {
-  const [showChat,      setShowChat]      = useState(false);
   const [showRequest,   setShowRequest]   = useState(false);
   const [showMore,      setShowMore]      = useState(false);
   const [followed,      setFollowed]      = useState(false);
@@ -103,7 +100,6 @@ export function useBookingState({ profile, user }) {
   }
 
   return {
-    showChat,    setShowChat,
     showRequest, setShowRequest,
     showMore,    setShowMore,
     followed,
