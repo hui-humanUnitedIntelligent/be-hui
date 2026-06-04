@@ -282,15 +282,29 @@ export function useTabKeepAlive(isActive) {
 // Speichert activeTab in sessionStorage
 // Stellt bei App-Reload den letzten Tab wieder her
 // ────────────────────────────────────────────────────────────────
+// useSessionRestore
+// Tab-Restore erfolgt erst NACH Auth-Check (authChecked=true).
+// Vor Auth-Check startet der Tab immer mit defaultTab ("feed").
+// Das verhindert falschen Tab-State während des Startups.
+// ────────────────────────────────────────────────────────────────
 export function useSessionRestore(defaultTab = "feed") {
-  const [tab, setTabState] = useState(() => {
-    return sessionStorage.getItem("hui_active_tab") || defaultTab;
-  });
+  const [tab, setTabState] = useState(defaultTab);
+  const restoredRef = React.useRef(false);
+
+  // Tab aus sessionStorage laden — aber erst wenn Auth bekannt ist.
+  // authChecked wird von HomeShell als Prop übergeben (kein zirkulärer Import).
+  // Solange authChecked=false: Tab bleibt auf defaultTab.
+  const restoreTab = useCallback(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    const saved = sessionStorage.getItem("hui_active_tab");
+    if (saved && saved !== defaultTab) setTabState(saved);
+  }, [defaultTab]);
 
   const setTab = useCallback((newTab) => {
     sessionStorage.setItem("hui_active_tab", newTab);
     setTabState(newTab);
   }, []);
 
-  return [tab, setTab];
+  return [tab, setTab, restoreTab];
 }
