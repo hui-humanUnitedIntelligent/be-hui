@@ -10,7 +10,10 @@ export default function MessageButton({ count=0, onPress }) {
   function handleTouchEnd(e) {
     e.preventDefault();          // verhindert ghost-click delay
     setPressed(false);
+    const _showChatVal = typeof window !== "undefined" ? window.__HUI_LAST_SHOWCHAT__ : "?";
+    window.alert("[MSG_BTN] onTouchEnd fired.\nonPress=" + typeof onPress + "\nshowChat_before=" + JSON.stringify(_showChatVal));
     onPress?.();                 // direkt auslösen — nicht auf onClick warten
+    setTimeout(() => { window.alert("[MSG_BTN] nach onPress.\nshowChat_after=" + JSON.stringify(window.__HUI_LAST_SHOWCHAT__)); }, 200);
   }
 
   function handleClick(e) {
