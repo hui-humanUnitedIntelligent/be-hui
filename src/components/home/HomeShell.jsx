@@ -53,6 +53,7 @@ export default function HomeShell({ children }) {
     hasTalentProfile,
     isMember,
     refreshProfile,
+    authChecked,
   } = useAuth();
 
   // authProfile normalisieren — kommt roh aus Supabase
@@ -66,7 +67,11 @@ export default function HomeShell({ children }) {
   const liveNotifCount = useNotifCount();
 
   /* Tab */
-  const [tab, _setTab]          = useSessionRestore("feed");
+  const [tab, _setTab, restoreTab] = useSessionRestore("feed");
+  // Tab aus sessionStorage erst nach Auth-Check laden
+  React.useEffect(() => {
+    if (authChecked) restoreTab();
+  }, [authChecked, restoreTab]);
   const [prevTab, setPrevTab]   = React.useState("feed");
   const [carryOver, setCarryOver] = React.useState(null);
   const { ref: mainScrollRef }  = useScrollMemory(tab);
