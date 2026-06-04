@@ -250,17 +250,13 @@ export default function HomeShell({ children }) {
     setShowNotifs(false);
     setShowMembership(false);
     setShowCreateFlow(false);
-    if (window.__PUBLISHING__) {
-    } else {
+    if (!window.__PUBLISHING__) {
       setShowTeilen(false);
     }
     setShowPlusSheet(false);
     setCreateType(null);
-    // FIX BUG 3: Profil-Overlay schließen wenn User auf anderen Tab wechselt
     setShowCreatorDashboard(false);
     _setTab(newTab);
-    // Phase 16.6: sync activeTab to window for ErrorBoundary diagnostics
-    }
   }, [_setTab, setShowCreatorDashboard]);
 
   /* openOwnProfile → öffnet MyCreatorDashboard (eigene, separate Seite) */
