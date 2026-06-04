@@ -133,11 +133,6 @@ export default function HomeShell({ children }) {
         authProfile.email?.split("@")[0] ||
         ""
       );
-      // Expose on window for ErrorBoundary crash context
-      if (typeof window !== "undefined") {
-          membershipType: authProfile.membership_type ?? "free",
-        };
-      }
     }
   }, [
     authProfile?.id,
