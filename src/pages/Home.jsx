@@ -496,30 +496,21 @@ function HomeInner() {
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
-              if (typeof window !== "undefined") {
-                  stack: new Error().stack, ts: Date.now() };
-              }
               setShowChat(false);
-              console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "Home/onClose", ts: Date.now(), stack: new Error().stack });
               setChatRecipient(null);
-              // Phase 2 LOOP 1: Return zum Profil wenn Chat vom Profil aus kam
               const returnProfile = flow.getReturnProfile();
               if (returnProfile) {
                 flow.clearReturnProfile();
-                // Flow-Return: nach Chat → Profil wieder öffnen via ID
-              const retId = returnProfile?.id || returnProfile?.user_id; if(retId) { setTimeout(() => openProfileById(retId), 80); }
+                const retId = returnProfile?.id || returnProfile?.user_id;
+                if (retId) { setTimeout(() => openProfileById(retId), 50); }
               }
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
-              if (typeof window !== "undefined") {
-                  stack: new Error().stack, ts: Date.now() };
-              }
               setShowChat(false);
-              console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "Home/onDiscoverClose", ts: Date.now(), stack: new Error().stack });
               setChatRecipient(null);
-              flow.clearReturnProfile(); // kein Return bei Discover-Navigate
-              handleTab("discover");   // Phase 23: Chat leer → Discover
+              flow.clearReturnProfile();
+              handleTab("discover");
             }}
           />
         </SafeRender>
