@@ -206,6 +206,14 @@ export default function HomeShell({ children }) {
     const payload = { event, prevId, nextId,
       prevName: prev?.display_name ?? null, nextName: next?.display_name ?? null,
       ts: Date.now(), stack: shortStack };
+    // Upgrade zu console.error damit es in allen Browsern sichtbar bleibt
+    if (event === 'RECIPIENT_CLEARED') {
+      console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "HomeShell/chatRecipient-watcher", prevId, ts: Date.now(), stack: (new Error().stack) });
+    } else if (event === 'RECIPIENT_SET') {
+      console.error("[CHAT_RECIPIENT_SET]", { recipientId: nextId, recipient: chatRecipient, caller: "HomeShell/chatRecipient-watcher", ts: Date.now(), stack: (new Error().stack) });
+    } else {
+      console.error("[CHAT_RECIPIENT_CHANGED]", { from: prevId, to: nextId, caller: "HomeShell/chatRecipient-watcher", ts: Date.now(), stack: (new Error().stack) });
+    }
     console.warn("[" + event + "]", payload);
     if (typeof window !== "undefined") {
       if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
