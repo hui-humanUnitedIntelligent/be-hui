@@ -135,8 +135,6 @@ export default function HomeShell({ children }) {
       );
       // Expose on window for ErrorBoundary crash context
       if (typeof window !== "undefined") {
-        window.__HUI_WORLD_STATE__ = {
-          ...(window.__HUI_WORLD_STATE__ || {}),
           membershipType: authProfile.membership_type ?? "free",
         };
       }
@@ -232,8 +230,6 @@ export default function HomeShell({ children }) {
     // GUARD: Orb is a world-layer, never a tab destination
     if (!assertValidTab(newTab)) return;
     // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
-    if (typeof window !== "undefined") {
-    }
     // World continuity: track tab transition for atmospheric carry-over
     setPrevTab(tab);
     setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
@@ -264,8 +260,6 @@ export default function HomeShell({ children }) {
     setShowCreatorDashboard(false);
     _setTab(newTab);
     // Phase 16.6: sync activeTab to window for ErrorBoundary diagnostics
-    if (typeof window !== "undefined" && window.__HUI_WORLD_STATE__) {
-      window.__HUI_WORLD_STATE__.activeTab = newTab;
     }
   }, [_setTab, setShowCreatorDashboard]);
 
@@ -289,11 +283,6 @@ export default function HomeShell({ children }) {
     const _ev2 = { event: "PROFILE_OPEN", profileId: id, ts: Date.now(), caller: _short2 };
     console.log("[PROFILE_OPEN]", _ev2);
     if (typeof window !== "undefined") {
-      if (!window.HUI_PROFILE_EVENTS) window.HUI_PROFILE_EVENTS = [];
-      window.HUI_PROFILE_EVENTS.push(_ev2);
-      if (window.HUI_PROFILE_EVENTS.length > 20) window.HUI_PROFILE_EVENTS.shift();
-      window.HUI_LAST_PROFILE_EVENT = _ev2;
-      window.__HUI_SELECTED_PROFILE_ID__ = id;
     }
     // ── end instrumentation ─────────────────────────────────────
     console.log("🟠 STEP 4 — HomeShell openProfileById aufgerufen", { id, typeOf: typeof id });
@@ -325,37 +314,17 @@ export default function HomeShell({ children }) {
     const _short = (_stack || "").split("\n").slice(1, 6).join(" | ");
     const _ev = {
       event:             "PROFILE_CLOSE",
-      selectedProfileId: (typeof window !== "undefined" && window.__HUI_SELECTED_PROFILE_ID__) ?? null,
       recipientId:       null,  // filled by watcher
       ts:                Date.now(),
       caller:            _short,
     };
     console.warn("[PROFILE_CLOSE]", _ev);
     if (typeof window !== "undefined") {
-      if (!window.HUI_PROFILE_EVENTS) window.HUI_PROFILE_EVENTS = [];
-      window.HUI_PROFILE_EVENTS.push(_ev);
-      if (window.HUI_PROFILE_EVENTS.length > 20) window.HUI_PROFILE_EVENTS.shift();
-      window.HUI_LAST_PROFILE_EVENT = _ev;
     }
     // ── end instrumentation ─────────────────────────────────────
     setSelectedProfileId(null);
   }, []);
 
-  // DIAG: selectedProfileId-Watcher
-  React.useEffect(() => {
-    const _ev = {
-      event:             selectedProfileId ? "SELECTED_PROFILE_SET" : "SELECTED_PROFILE_CLEARED",
-      selectedProfileId: selectedProfileId ?? null,
-      ts:                Date.now(),
-      stack:             new Error().stack.split("\n").slice(1,5).join(" | "),
-    };
-    console.log("[SELECTED_PROFILE_CHANGE]", _ev);
-    if (typeof window !== "undefined") {
-      window.__HUI_SELECTED_PROFILE_ID__ = selectedProfileId ?? null;
-      if (!window.HUI_PROFILE_EVENTS) window.HUI_PROFILE_EVENTS = [];
-      window.HUI_PROFILE_EVENTS.push(_ev);
-      if (window.HUI_PROFILE_EVENTS.length > 20) window.HUI_PROFILE_EVENTS.shift();
-  }, [selectedProfileId]);
 
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
