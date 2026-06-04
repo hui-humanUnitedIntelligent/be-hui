@@ -560,7 +560,8 @@ function ProfileCompletionTrigger() {
 
       // Profile loaded (or timed out waiting)
       const isComplete = p?.profile_complete === true ||
-                         (p?.username && p.username.length >= 3);
+                         (p?.username && p.username.length >= 3) ||
+                         !!(p?.display_name && p.display_name.trim().length > 0);
 
       if (isComplete) {
         console.log("[PROFILE_FLOW_TRIGGER] profile already complete — skipping");
