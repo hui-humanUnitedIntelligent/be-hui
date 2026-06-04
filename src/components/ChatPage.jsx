@@ -600,6 +600,7 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
         background:"#001a00", color:"#00ff88", fontFamily:"monospace",
         fontSize:10, padding:"3px 10px", flexShrink:0,
         pointerEvents:"none",
+      }}/>
       {/* ── Header ─────────────────────────────────────────────── */}
       <div style={{
         padding:"max(52px,env(safe-area-inset-top,52px)) 20px 12px",
