@@ -19,6 +19,7 @@
 //   8. Community Health (von useCommunityHealth)
 // ═══════════════════════════════════════════════════════════════
 
+import React from "react";
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import {
