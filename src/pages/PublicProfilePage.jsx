@@ -986,12 +986,9 @@ export default function PublicProfilePage({ profileId, onClose }) {
           onFollow={handleFollow} followed={followed}
           onChat={()=>{
             if (!profile) return;
-            setChatRecipient({
-              id:           profile.id,
-              display_name: profile.display_name || profile.name || "Creator",
-              avatar_url:   profile.avatar_url  || null,
-              talent:       profile.talent       || null,
-            });
+            const _rec = { id: profile.id, display_name: profile.display_name || profile.name || "Creator", avatar_url: profile.avatar_url || null, talent: profile.talent || null };
+            console.error("[CHAT_RECIPIENT_SET]", { recipientId: _rec.id, recipient: _rec, caller: "PublicProfilePage/onChat", ts: Date.now(), stack: new Error().stack });
+            setChatRecipient(_rec);
             setShowChat(true);
           }}
           onSupport={()=>setShowSupport(true)}
