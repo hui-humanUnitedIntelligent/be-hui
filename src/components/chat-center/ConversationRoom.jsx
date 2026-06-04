@@ -18,8 +18,6 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
   const rawId      = conv?.id ?? null;
   const isFakeId   = typeof rawId === "string" && rawId.startsWith("direct_");
   const realChatId = (rawId && !isFakeId) ? rawId : null;
-  console.log("[REAL_CHAT_ID]", { rawId, typeofRaw: typeof rawId, isFakeId, realChatId });
-  console.error("CHAT_TRACE", { step: "7_ConversationRoom", rawId, isFakeId, realChatId, convName: conv?.name, ts: Date.now() });
 
   const { messages: liveMessages, sendMessage, sending, loading } =
     useChatThread(realChatId);
