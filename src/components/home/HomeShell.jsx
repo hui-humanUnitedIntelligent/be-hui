@@ -259,9 +259,6 @@ export default function HomeShell({ children }) {
     setShowMap(false);
     console.error("[TAB_SWITCH_CLEAR_CHAT_RECIPIENT]", { newTab, ts: Date.now() });
     setChatRecipient?.(null);
-    if (typeof window !== "undefined") {
-        stack: new Error().stack, ts: Date.now() };
-    }
     setShowNotifs(false);
     setShowMembership(false);
     setShowCreateFlow(false);
@@ -366,12 +363,6 @@ export default function HomeShell({ children }) {
       if (!window.HUI_PROFILE_EVENTS) window.HUI_PROFILE_EVENTS = [];
       window.HUI_PROFILE_EVENTS.push(_ev);
       if (window.HUI_PROFILE_EVENTS.length > 20) window.HUI_PROFILE_EVENTS.shift();
-      window.HUI_LAST_PROFILE_EVENT = _ev;
-      if (!selectedProfileId) {
-        // PROFILE_CLOSE → potentieller CHAT_KILLER
-          ts: Date.now() };
-      }
-    }
   }, [selectedProfileId]);
 
   /* handleTab — einziger onTab-Handler für BottomNav */
