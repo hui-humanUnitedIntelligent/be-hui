@@ -36,7 +36,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
 
   return (
     <button
-      onClick={() => console.log("[OPEN_CONV]", { id: conv?.id, typeofId: typeof conv?.id, name: conv?.name || conv?.other_profile?.display_name, raw: conv }); onPress?.(conv)}
+      onClick={() => onPress?.(conv)}
       style={{
         width:"100%", textAlign:"left",
         padding:"15px 14px",
