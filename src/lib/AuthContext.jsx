@@ -91,6 +91,28 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  // Session-Refresh: stellt sicher dass Supabase-Client einen gültigen
+  // Access-Token hat bevor Chat-Queries laufen.
+  // Läuft einmalig nach authChecked=true, wenn eine Session vorliegt.
+  const sessionRefreshedRef = useRef(false);
+  useEffect(() => {
+    if (!authSettledRef.current) return;
+    if (sessionRefreshedRef.current) return;
+    sessionRefreshedRef.current = true;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          // Kein gültiger Token → refresh versuchen
+          const { data: refreshed } = await supabase.auth.refreshSession();
+          if (refreshed?.session?.user) {
+            applySession(refreshed.session);
+          }
+        }
+      } catch (e) { /* silent — kein crash */ }
+    })();
+  }, [authSettledRef.current, applySession]); // eslint-disable-line
+
   // ── Haupt-Auth-Bootstrap ──────────────────────────────────────────
   useEffect(() => {
     // ── A) onAuthStateChange — primärer Weg ──────────────────────────
