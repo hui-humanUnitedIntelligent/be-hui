@@ -152,13 +152,10 @@ export default function HomeShell({ children }) {
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
   const [showChat,               setShowChat]              = useState(false);
-  // DIAG: showChat-Wert überwachen — feuert bei jeder Änderung
   React.useEffect(() => {
     const _stack = new Error().stack;
     if (showChat) {
-      console.warn("[SHOWCHAT_TRUE]", { caller: "HomeShell/watcher", stack: _stack, ts: Date.now() });
     } else {
-      console.warn("[SHOWCHAT_FALSE]", { caller: "HomeShell/watcher", stack: _stack, ts: Date.now() });
       if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "HomeShell/watcher", stack: _stack.split("\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
     }
     if (typeof window !== "undefined") {
@@ -176,7 +173,6 @@ export default function HomeShell({ children }) {
     }
   }, [showChat]);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
-  // DIAG: chatRecipient-Watcher — RECIPIENT_SET / RECIPIENT_CHANGED / RECIPIENT_CLEARED
   const _prevChatRecipientRef = React.useRef(undefined);
   React.useEffect(() => {
     const prev = _prevChatRecipientRef.current;
@@ -194,7 +190,6 @@ export default function HomeShell({ children }) {
     const payload = { event, prevId, nextId,
       prevName: prev?.display_name ?? null, nextName: next?.display_name ?? null,
       ts: Date.now(), stack: shortStack };
-    // Upgrade zu console.error damit es in allen Browsern sichtbar bleibt
     if (event === 'RECIPIENT_CLEARED') {
       console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "HomeShell/chatRecipient-watcher", prevId, ts: Date.now(), stack: (new Error().stack) });
     } else if (event === 'RECIPIENT_SET') {
