@@ -1679,9 +1679,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
     if (!profile) return;
     const _hoc = { k:"HANDLE_OPEN_CHAT", profileId: profile?.id, profileUserId: profile?.user_id, display_name: profile?.display_name, ts: Date.now() };
     console.error("HANDLE_OPEN_CHAT", _hoc);
-    if (!window.__HUI_RLOG__) window.__HUI_RLOG__ = [];
-    window.__HUI_RLOG__.unshift(_hoc);
-    if (window.__HUI_RLOG__.length > 10) window.__HUI_RLOG__.pop();
     const payload = {
       id:           profile.id,
       display_name: profile.display_name || profile.username || "Creator",
