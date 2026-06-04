@@ -517,6 +517,7 @@ function HomeInner() {
                 if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
               }
               setShowChat(false);
+              console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "Home/onClose", ts: Date.now(), stack: new Error().stack });
               setChatRecipient(null);
               // Phase 2 LOOP 1: Return zum Profil wenn Chat vom Profil aus kam
               const returnProfile = flow.getReturnProfile();
@@ -547,6 +548,7 @@ function HomeInner() {
               }
                             console.warn("[SHOWCHAT_FALSE]", { caller: "Home/onDiscoverClose", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "Home/onDiscoverClose", stack: new Error().stack.split("\\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
               setShowChat(false);
+              console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "Home/onDiscoverClose", ts: Date.now(), stack: new Error().stack });
               setChatRecipient(null);
               flow.clearReturnProfile(); // kein Return bei Discover-Navigate
               handleTab("discover");   // Phase 23: Chat leer → Discover
