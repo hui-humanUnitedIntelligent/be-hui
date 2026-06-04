@@ -270,8 +270,6 @@ function HomeInner() {
             console.log("[GLOCKE STEP 6] Home.jsx onNotif callback aufgerufen → setShowNotifs(true)");
             setShowNotifs(true);
           }}
-          onChat={() => { logDebug("SHOWCHAT_TRUE", { caller: "Home/HomeHeader-onChat" });
-          console.warn("[SHOWCHAT_TRUE]", { caller: "Home/HomeHeader-onChat", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "Home/HomeHeader-onChat", ts: Date.now() }; } setShowChat(true); }}
         />
 
         {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,
@@ -498,23 +496,8 @@ function HomeInner() {
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
-              logDebug("SHOWCHAT_FALSE", { caller: "Home/onClose" });
-              console.warn("[SHOWCHAT_FALSE]", { caller: "Home/onClose", stack: new Error().stack, ts: Date.now() });
-              if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "Home/onClose", stack: new Error().stack.split("\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
-              if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "Home/onClose", ts: Date.now() }; }
-              // ── TRACE: Home/onClose → setShowChat(false) ──────
               if (typeof window !== "undefined") {
-                const _tr = { source: "Home/onClose", file: "Home.jsx", line: 502,
                   stack: new Error().stack, ts: Date.now() };
-                window.HUI_CHAT_CLOSE_TRACE = _tr;
-                if (!window.HUI_CHAT_CLOSE_TRACE_LOG) window.HUI_CHAT_CLOSE_TRACE_LOG = [];
-                window.HUI_CHAT_CLOSE_TRACE_LOG.push(_tr);
-                if (window.HUI_CHAT_CLOSE_TRACE_LOG.length > 30) window.HUI_CHAT_CLOSE_TRACE_LOG.shift();
-                console.warn("[CHAT_CLOSE_TRACE]", _tr);
-                window.HUI_CHAT_KILLER = { reason: "Home/onClose", caller: "Home.jsx:502", ts: Date.now() };
-                if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
-                window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_CLOSE_TRACE", payload: _tr });
-                if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
               }
               setShowChat(false);
               console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "Home/onClose", ts: Date.now(), stack: new Error().stack });
@@ -529,24 +512,9 @@ function HomeInner() {
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
-              logDebug("SHOWCHAT_FALSE", { caller: "Home/onDiscoverClose" });
-              console.log("[SHOW_CHAT_FALSE]", { caller: "Home/onDiscoverClose", stack: new Error().stack, ts: Date.now() });
-              if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: false, caller: "Home/onDiscoverClose", ts: Date.now() }; }
-              // ── TRACE: Home/onDiscoverClose → setShowChat(false) ──
               if (typeof window !== "undefined") {
-                const _tr = { source: "Home/onDiscoverClose", file: "Home.jsx", line: 518,
                   stack: new Error().stack, ts: Date.now() };
-                window.HUI_CHAT_CLOSE_TRACE = _tr;
-                if (!window.HUI_CHAT_CLOSE_TRACE_LOG) window.HUI_CHAT_CLOSE_TRACE_LOG = [];
-                window.HUI_CHAT_CLOSE_TRACE_LOG.push(_tr);
-                if (window.HUI_CHAT_CLOSE_TRACE_LOG.length > 30) window.HUI_CHAT_CLOSE_TRACE_LOG.shift();
-                console.warn("[CHAT_CLOSE_TRACE]", _tr);
-                window.HUI_CHAT_KILLER = { reason: "Home/onDiscoverClose", caller: "Home.jsx:518", ts: Date.now() };
-                if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
-                window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_CLOSE_TRACE", payload: _tr });
-                if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
               }
-                            console.warn("[SHOWCHAT_FALSE]", { caller: "Home/onDiscoverClose", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "Home/onDiscoverClose", stack: new Error().stack.split("\\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
               setShowChat(false);
               console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "Home/onDiscoverClose", ts: Date.now(), stack: new Error().stack });
               setChatRecipient(null);
