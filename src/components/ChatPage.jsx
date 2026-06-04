@@ -605,6 +605,7 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
       <div style={{
         background:"#001a00", color:"#00ff88", fontFamily:"monospace",
         fontSize:10, padding:"3px 10px", flexShrink:0,
+        pointerEvents:"none",
       }}>[CHATSIDEBAR] loading={String(loading)} chats={chats.length} booking={bookingChats.length}</div>
       {/* ── Header ─────────────────────────────────────────────── */}
       <div style={{
@@ -1312,9 +1313,11 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
       {(isWide || !activeChat) && (
         <>
           <div style={{
-            background:"#000", color:"#0f0", fontFamily:"monospace",
-            fontSize:11, padding:"8px 12px", zIndex:99999, flexShrink:0,
+            position:"fixed", top:0, left:0, right:0,
+            background:"rgba(0,0,0,0.92)", color:"#0f0", fontFamily:"monospace",
+            fontSize:11, padding:"8px 12px", zIndex:99999,
             borderBottom:"2px solid #0f0",
+            pointerEvents:"none",
           }}>
             <div style={{fontWeight:900, marginBottom:4}}>DEBUG CHAT SOURCE</div>
             <div>[CHATPAGE]</div>
