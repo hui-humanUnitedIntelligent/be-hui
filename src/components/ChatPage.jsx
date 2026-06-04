@@ -1306,6 +1306,7 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
       display:"flex", flexDirection:"row",
       fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
       overflow:"hidden",
+      background:"#F9F7F4",
     }}>
       <style>{CSS}</style>
 
