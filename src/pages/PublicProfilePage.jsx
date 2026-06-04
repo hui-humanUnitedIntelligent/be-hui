@@ -12,6 +12,7 @@ import React, {
 import { supabase } from "../lib/supabaseClient.js";
 import { useConnectionEngine } from "../core/HuiConnectionEngine.jsx";
 import { useAuth }   from "../lib/AuthContext.jsx";
+import { useHome }   from "../components/home/HomeShell.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -916,11 +917,11 @@ function SupportSheet({ name, onClose, profileId }) {
 // ══════════════════════════════════════════════════════════════
 export default function PublicProfilePage({ profileId, onClose }) {
   const { user, authProfile } = useAuth();
+  const { setShowChat, setChatRecipient } = useHome();
 
   const [profile,     setProfile]     = useState(null);
   const [loading,     setLoading]     = useState(true);
   const [mounted,     setMounted]     = useState(false);
-  const [showChat,    setShowChat]    = useState(false);
   const [showSupport, setShowSupport] = useState(false);
 
   const engine      = useConnectionEngine();
@@ -983,7 +984,16 @@ export default function PublicProfilePage({ profileId, onClose }) {
           profile={profile} loading={loading}
           onClose={handleClose}
           onFollow={handleFollow} followed={followed}
-          onChat={()=>setShowChat(true)}
+          onChat={()=>{
+            if (!profile) return;
+            setChatRecipient({
+              id:           profile.id,
+              display_name: profile.display_name || profile.name || "Creator",
+              avatar_url:   profile.avatar_url  || null,
+              talent:       profile.talent       || null,
+            });
+            setShowChat(true);
+          }}
           onSupport={()=>setShowSupport(true)}
         />
 
@@ -1024,11 +1034,10 @@ export default function PublicProfilePage({ profileId, onClose }) {
       </div>
 
       {/* Overlays */}
-      {showChat    && <ChatSheet    name={name} onClose={()=>setShowChat(false)}/>}
       {showSupport && <SupportSheet name={name} onClose={()=>setShowSupport(false)} profileId={profileId}/>}
 
       {/* Floating CTA */}
-      {!showChat && !showSupport && (
+      {!showSupport && (
         <FloatingConnect onConnect={handleConnect} connected={isConnected}/>
       )}
     </div>
