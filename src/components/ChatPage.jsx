@@ -184,12 +184,6 @@ function ChatConversationCard({ chat, active, onOpen }) {
     <div
       className="cp-card-hover cp-tap"
       onClick={() => {
-        console.warn("[CHAT_CLICK]", JSON.stringify({
-          id: chat?.id,
-          name: chat?.other_profile?.display_name ?? chat?.name ?? "?",
-          chat_type: chat?.chat_type,
-          hasOtherProfile: !!chat?.other_profile,
-        }));
         onOpen(chat);
       }}
       style={{
@@ -606,7 +600,6 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
         background:"#001a00", color:"#00ff88", fontFamily:"monospace",
         fontSize:10, padding:"3px 10px", flexShrink:0,
         pointerEvents:"none",
-      }}>[CHATSIDEBAR] loading={String(loading)} chats={chats.length} booking={bookingChats.length}</div>
       {/* ── Header ─────────────────────────────────────────────── */}
       <div style={{
         padding:"max(52px,env(safe-area-inset-top,52px)) 20px 12px",
@@ -1236,11 +1229,6 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
   const networkPeopleDB = useNetworkPeople();
   const [activeChat, setActiveChat] = useState(null);
   React.useEffect(() => {
-    console.warn("[ACTIVE_CHAT_CHANGED]", JSON.stringify({
-      activeChatId: activeChat?.id ?? null,
-      name: activeChat?.other_profile?.display_name ?? activeChat?.name ?? null,
-      exists: !!activeChat,
-    }));
   }, [activeChat]);
 
   // initialRecipient → direkt Chat öffnen (von Profil / Kompass)
@@ -1280,12 +1268,6 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
 
   // ── Handler ────────────────────────────────────────────────────────
   const handleOpen = useCallback((chat) => {
-    console.warn("[SET_ACTIVE_CHAT]", JSON.stringify({
-      id: chat?.id,
-      name: chat?.other_profile?.display_name ?? chat?.name ?? "?",
-      chat_type: chat?.chat_type,
-      _newChat: chat?._newChat ?? false,
-    }));
     markChatRead?.(chat.id);
     setActiveChat(chat);
   }, [markChatRead]);
@@ -1321,7 +1303,6 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
             pointerEvents:"none",
           }}>
             <div style={{fontWeight:900, marginBottom:4}}>DEBUG CHAT SOURCE</div>
-            <div>[CHATPAGE]</div>
             <div>Component: ChatPage</div>
             <div>Loading: {String(chatsLoading)}</div>
             <div>activeChats.length: {activeChats.length}</div>
@@ -1348,27 +1329,4 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
       {(isWide || activeChat) && (
         activeChat ? (
           <>
-            {console.warn("[THREAD_RENDER]", JSON.stringify({
-              activeChatId: activeChat?.id,
-              exists: true,
-              msgCount: messages?.length ?? 0,
-            })) || null}
-            <ChatDetailView
-              chat={activeChat}
-              messages={messages}
-              onBack={handleBack}
-              onSend={handleSend}
-              isWide={isWide}
-            />
-          </>
-        ) : isWide ? (
-          /* Empty State auf iPad wenn kein Chat selektiert */
-          <div style={{ flex:1, display:"flex", flexDirection:"column",
-            background:C.warm, alignItems:"center", justifyContent:"center" }}>
-            <EmptyChatState onDiscover={onClose} />
-          </div>
-        ) : null
-      )}
-    </div>
-  );
 }
