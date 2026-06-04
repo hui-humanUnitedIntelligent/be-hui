@@ -105,21 +105,12 @@ export function useChatList() {
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
 
-      console.error("[CHATLIST_QUERY]", {
-        userId: user?.id,
-        rawChatsCount: rawChats?.length ?? null,
-        rawChatsIds: (rawChats||[]).slice(0,5).map(c => ({ id: c.id, state: c.state, pids: c.participant_ids })),
-        chatError: chatError ? { code: chatError.code, msg: chatError.message } : null,
-        ts: Date.now(),
-      });
       if (chatError) {
-        console.error("[useChatList] SELECT Fehler:", chatError.code, chatError.message);
         setLoading(false);
         return;
       }
       if (!rawChats) { setLoading(false); return; }
 
-      console.log('[useChatList] rawChats count:', rawChats.length);
 
       // Für jeden Chat: anderen Teilnehmer-Profil laden
       // participant_ids = [userA, userB] — der andere ist nicht user.id
@@ -145,12 +136,6 @@ export function useChatList() {
                 .maybeSingle();
               otherProfile = prof2 ?? null;
             }
-            console.error("[OTHER_PROFILE]", {
-              otherId,
-              found: !!otherProfile,
-              display_name: otherProfile?.display_name ?? null,
-              myId: user?.id,
-            });
           }
           return {
             ...c,
@@ -168,7 +153,6 @@ export function useChatList() {
 
       setChats(enriched);
     } catch(e) {
-      console.warn("[useChatList]", e.message);
     } finally {
       setLoading(false);
     }
@@ -238,8 +222,6 @@ export function useChatThread(chatId) {
       return;
     }
     console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
-    console.warn("[THREAD_LOAD]", JSON.stringify({ chatId, typeofChatId: typeof chatId, isFake: String(chatId).startsWith("direct_") }));
-    console.error("CHAT_TRACE", { step: "8_useChatThread_load", chatId, typeofChatId: typeof chatId, ts: Date.now() });
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
       const { data, error: loadError } = await supabase
@@ -251,19 +233,8 @@ export function useChatThread(chatId) {
         .eq("chat_id", chatId)
         .order("created_at", { ascending: true })
         .limit(100);
-      console.warn("[THREAD_RESULT]", JSON.stringify({
-        chatId,
-        count:        data?.length ?? 0,
-        error:        loadError?.message ?? null,
-        firstMessage: data?.[0]?.text?.substring(0,40) ?? null,
-        ts:           Date.now(),
-      }));
-      console.error("CHAT_TRACE", { step: "8b_LOAD_RESULT", chatId,
-        count: data?.length ?? 0, firstMsgId: data?.[0]?.id ?? null,
-        error: loadError?.message ?? null, ts: Date.now() });
       if (data) setMessages(data);
     } catch(e) {
-      console.error("[LOAD_RESULT]", { chatId, count: 0, error: e.message, ts: Date.now() });
     }
     finally { setLoading(false); }
   }, [chatId]);
@@ -280,13 +251,6 @@ export function useChatThread(chatId) {
         event: "INSERT", schema: "public", table: "messages",
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
-        console.log("[MESSAGE_INSERT_EVENT]", {
-          id:        payload.new?.id,
-          sender_id: payload.new?.sender_id,
-          chat_id:   payload.new?.chat_id,
-          text:      payload.new?.text?.substring(0, 40),
-          ts:        Date.now(),
-        });
         setMessages(prev => {
           const exists = prev.find(m => m.id === payload.new.id);
           if (exists) return prev;
@@ -294,7 +258,6 @@ export function useChatThread(chatId) {
             !(m._optimistic && m.text === payload.new.text && m.sender_id === payload.new.sender_id)
           );
           const next = [...withoutOptimistic, payload.new];
-          console.log("[MESSAGE_RECEIVED]", { total: next.length, newId: payload.new?.id });
           return next;
         });
       })
@@ -308,16 +271,13 @@ export function useChatThread(chatId) {
       })
       .subscribe((status, err) => {
         if (status === "SUBSCRIBED") {
-          console.log("[SUBSCRIBE_CREATED]", { chatId, status, ts: Date.now() });
         } else {
-          console.log("[SUBSCRIBE_STATUS]", { chatId, status, err: err?.message || null, ts: Date.now() });
         }
       });
 
     realtimeRef.current = channel;
 
     return () => {
-      console.log("[UNSUBSCRIBED]", { chatId, ts: Date.now() });
       supabase.removeChannel(channel);
     };
   }, [chatId]);
