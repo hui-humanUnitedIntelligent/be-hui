@@ -289,7 +289,7 @@ export function useTabKeepAlive(isActive) {
 // ────────────────────────────────────────────────────────────────
 export function useSessionRestore(defaultTab = "feed") {
   const [tab, setTabState] = useState(defaultTab);
-  const restoredRef = React.useRef(false);
+  const restoredRef = useRef(false);
 
   // Tab aus sessionStorage laden — aber erst wenn Auth bekannt ist.
   // authChecked wird von HomeShell als Prop übergeben (kein zirkulärer Import).
