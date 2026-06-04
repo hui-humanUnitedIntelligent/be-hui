@@ -600,7 +600,7 @@ function ChatSidebar({ chats, bookingChats, connections, networkPeople = [], act
         background:"#001a00", color:"#00ff88", fontFamily:"monospace",
         fontSize:10, padding:"3px 10px", flexShrink:0,
         pointerEvents:"none",
-      }}/>
+      }}>[CHATSIDEBAR] loading={String(loading)} chats={chats.length} booking={bookingChats.length}</div>
       {/* ── Header ─────────────────────────────────────────────── */}
       <div style={{
         padding:"max(52px,env(safe-area-inset-top,52px)) 20px 12px",
@@ -1212,7 +1212,6 @@ function useNetworkPeople() {
 
         setPeople(result);
       } catch(e) {
-        console.warn("[useNetworkPeople]", e.message);
       }
     }
 
@@ -1303,7 +1302,7 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
             borderBottom:"2px solid #0f0",
             pointerEvents:"none",
           }}>
-            <div style={{fontWeight:900, marginBottom:4}}>DEBUG CHAT SOURCE</div>
+            <div>[CHATPAGE]</div>
             <div>Component: ChatPage</div>
             <div>Loading: {String(chatsLoading)}</div>
             <div>activeChats.length: {activeChats.length}</div>
@@ -1330,4 +1329,22 @@ export default function ChatPage({ onClose, initialRecipient = null }) {
       {(isWide || activeChat) && (
         activeChat ? (
           <>
+            <ChatDetailView
+              chat={activeChat}
+              messages={messages}
+              onBack={handleBack}
+              onSend={handleSend}
+              isWide={isWide}
+            />
+          </>
+        ) : isWide ? (
+          /* Empty State auf iPad wenn kein Chat selektiert */
+          <div style={{ flex:1, display:"flex", flexDirection:"column",
+            background:C.warm, alignItems:"center", justifyContent:"center" }}>
+            <EmptyChatState onDiscover={onClose} />
+          </div>
+        ) : null
+      )}
+    </div>
+  );
 }
