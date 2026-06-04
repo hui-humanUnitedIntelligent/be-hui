@@ -31,20 +31,9 @@ export function AuthProvider({ children }) {
   const [loadingProfile,  setLoadingProfile]  = useState(false);
   const [authChecked,     setAuthChecked]     = useState(false);
 
-  // Phase 15.2: Boot restore — hydrate membership from localStorage
-  // Prevents Orb from showing during the DB load gap on page refresh
-  const [profile, setProfile] = useState(() => {
-    try {
-      const isMem  = localStorage.getItem("hui_is_member") === "1";
-      const mType  = localStorage.getItem("hui_membership_type") || "free";
-      const talent = localStorage.getItem("hui_talent") === "1";
-      // Only hydrate membership flags — full profile comes from DB
-      if (isMem) {
-        return { is_member: true, membership_type: mType, has_talent_profile: talent };
-      }
-    } catch (_) {}
-    return null;
-  });
+  // Profile startet immer null — echte Daten kommen ausschließlich aus der DB.
+  // Kein Ghost-Profil aus localStorage — verhindert UI-Flip und falschen isTalent-State.
+  const [profile, setProfile] = useState(null);
 
   const profileLoadingRef = useRef(false);
   const authSettledRef    = useRef(false);  // verhindert doppelten Bootstrap
@@ -130,7 +119,7 @@ export function AuthProvider({ children }) {
     // authSettledRef verhindert doppeltes Setzen.
     const sessionFallback = async () => {
       // Kurzes Warten: onAuthStateChange hat Vorrang
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise(r => setTimeout(r, 800));
       if (authSettledRef.current) return;  // onAuthStateChange war schneller
 
       // getSession Sicherheitsnetz aktiv
