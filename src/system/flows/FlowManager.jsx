@@ -22,7 +22,7 @@
 //   authProfile      — Auth-Profil
 // ═══════════════════════════════════════════════════════════════
 
-import React, { useCallback } from "react";
+import React, { useState, useCallback } from "react";
 
 // Statische Imports — kein Lazy, kein Suspense, kein Race
 import TeilenFlow          from "../../components/teilen/TeilenFlow.jsx";
@@ -143,7 +143,6 @@ export function FlowManager({
    Verwaltet den activeFlow State zentral.
    Wird im HomeShell verwendet, nicht im Orb selbst.
 ────────────────────────────────────────────────────────────── */
-import { useState, useCallback as useC } from "react";
 
 export function useFlowManager() {
   const [activeFlow, setActiveFlow] = useState(null);
