@@ -58,7 +58,6 @@ function ConnectionBubbles({ people }) {
       display:"flex", gap:14, overflowX:"auto",
       padding:"4px 0 18px", WebkitOverflowScrolling:"touch",
     }}>
-      {console.log('[HUI MAP DEBUG] ConversationList.people', people) || null}
           {(people||[]).filter(p=>p&&(p.id||p.user_id)).map(p => (
         <div key={p.id} style={{ display:"flex", flexDirection:"column",
           alignItems:"center", gap:6, flexShrink:0 }}>
