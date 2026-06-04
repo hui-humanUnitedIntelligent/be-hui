@@ -182,14 +182,6 @@ export default function HomeShell({ children }) {
     } else {
       console.error("[CHAT_RECIPIENT_CHANGED]", { from: prevId, to: nextId, caller: "HomeShell/chatRecipient-watcher", ts: Date.now(), stack: (new Error().stack) });
     }
-    console.warn("[" + event + "]", payload);
-    if (typeof window !== "undefined") {
-        prevId, nextId, prevName: prev?.display_name ?? null,
-        nextName: next?.display_name ?? null, stack: shortStack } });
-      if (event === "RECIPIENT_CLEARED") {
-          prevId, ts: Date.now() };
-      }
-    }
     _prevChatRecipientRef.current = next;
   }, [chatRecipient]);
 
