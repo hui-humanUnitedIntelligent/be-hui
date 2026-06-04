@@ -23,6 +23,7 @@
 //
 // ═══════════════════════════════════════════════════════════════
 
+import React from "react";
 import React, { useState, useEffect, useMemo } from "react";
 import { ORB_CSS }                    from "./OrbAnimations.js";
 import { OrbAtmosphere, OrbParticles } from "./OrbAtmosphere.jsx";
