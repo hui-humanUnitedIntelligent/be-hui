@@ -157,26 +157,6 @@ export default function HomeShell({ children }) {
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
   const [showChat,               setShowChat]              = useState(false);
-  React.useEffect(() => {
-    const _stack = new Error().stack;
-    if (showChat) {
-    } else {
-      if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "HomeShell/watcher", stack: _stack.split("\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
-    }
-    if (typeof window !== "undefined") {
-      if (!showChat) {
-        // Wenn showChat=false ohne bekannten TRACE → UNKNOWN Close
-        const isStale  = !existing || (Date.now() - (existing.ts || 0) > 2000);
-        if (isStale) {
-          const _tr = { source: "UNKNOWN — showChat=false ohne Trace",
-            file: "HomeShell.jsx", line: 0,
-            stack: new Error().stack, ts: Date.now() };
-          console.warn("[CHAT_CLOSE_TRACE_UNKNOWN]", _tr);
-            ts: Date.now() };
-        }
-      }
-    }
-  }, [showChat]);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
   const _prevChatRecipientRef = React.useRef(undefined);
   React.useEffect(() => {
