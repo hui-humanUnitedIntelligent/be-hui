@@ -25,6 +25,7 @@ import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { usePresence } from "../lib/usePresence.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatPage                  from "../components/ChatPage.jsx";
+import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
@@ -494,8 +495,8 @@ function HomeInner() {
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
-        <SafeRender flag="chatCenter" label="ChatPage">
-          <ChatPage
+        <SafeRender flag="chatCenter" label="ChatCenterOverlay">
+          <ChatCenterOverlay
             onClose={() => {
               logDebug("SHOWCHAT_FALSE", { caller: "Home/onClose" });
               console.warn("[SHOWCHAT_FALSE]", { caller: "Home/onClose", stack: new Error().stack, ts: Date.now() });
