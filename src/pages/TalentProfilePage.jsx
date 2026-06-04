@@ -1688,14 +1688,8 @@ export default function TalentProfilePage({ profileId, onClose }) {
       avatar_url:   profile.avatar_url   || null,
       talent:       profile.talent        || null,
     };
-    console.error("CHAT_TRACE", { step: "1_handleOpenChat", recipientId: payload.id, profile_id: profile?.id, profile_user_id: profile?.user_id, display_name: payload.display_name, ts: Date.now() });
+    console.error("[CHAT_RECIPIENT_SET]", { recipientId: payload?.id, recipient: payload, caller: "TalentProfilePage/handleOpenChat", ts: Date.now(), stack: new Error().stack });
     setChatRecipient(payload);
-    const _crs = { k:"CHAT_RECIPIENT_SET", recipientId: payload?.id, display_name: payload?.display_name, ts: Date.now() };
-    console.error("CHAT_RECIPIENT_SET", _crs);
-    window.__HUI_RLOG__.unshift(_crs);
-    if (window.__HUI_RLOG__.length > 10) window.__HUI_RLOG__.pop();
-    console.log("[SHOW_CHAT_TRUE]", { caller: "TalentProfilePage/handleOpenChat", stack: new Error().stack, ts: Date.now() });
-    if (typeof window !== "undefined") { window.__HUI_LAST_SHOWCHAT__ = { value: true, caller: "TalentProfilePage/handleOpenChat", ts: Date.now() }; }
     setShowChat(true);
   }, [profile, setChatRecipient, setShowChat]);
 
