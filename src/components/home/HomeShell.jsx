@@ -149,7 +149,11 @@ export default function HomeShell({ children }) {
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
-  const [showChat,               setShowChat]              = useState(false);
+  const [showChat,               _setShowChat_raw]         = useState(false);
+  const setShowChat = React.useCallback((val) => {
+    console.trace('[TRACE_SETSHOWCHAT] setShowChat(' + val + ') aufgerufen', { val, ts: Date.now() });
+    _setShowChat_raw(val);
+  }, [_setShowChat_raw]);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
   const _prevChatRecipientRef = React.useRef(undefined);
   React.useEffect(() => {
@@ -224,6 +228,7 @@ export default function HomeShell({ children }) {
   const switchTab = useCallback((newTab) => {
     // GUARD: Orb is a world-layer, never a tab destination
     if (!assertValidTab(newTab)) return;
+    console.trace('[TRACE_SWITCHTAB] switchTab aufgerufen', { newTab, ts: Date.now() });
     // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
     // World continuity: track tab transition for atmospheric carry-over
     setPrevTab(tab);
