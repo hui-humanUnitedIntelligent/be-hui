@@ -92,8 +92,8 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
             <path d="m21 21-4.35-4.35" stroke={C.muted} strokeWidth="2" strokeLinecap="round"/>
           </svg>
           <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            value=""
+            onChange={() => {}}
             placeholder="Suche nach Namen, Projekten…"
             style={{ flex: 1, border: "none", background: "none", outline: "none", fontSize: 13.5, color: C.ink, fontFamily: "inherit" }}
           />

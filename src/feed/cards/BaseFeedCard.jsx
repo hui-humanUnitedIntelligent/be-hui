@@ -364,17 +364,18 @@ export default function BaseFeedCard({
   item, onProfile, onReaction, onShare, badge, children, extraActions
 }) {
   injectCardCSS();
-  if (!item?.id) return null;
 
-  const reactions = item._reactions || {};
+  const reactions = item?._reactions || {};
 
   // Optimistic like state
   const [localReactions, setLocalReactions] = useState(reactions);
 
   // Sync if item changes externally
   React.useEffect(() => {
-    setLocalReactions(reactions);
-  }, [item.id]); // eslint-disable-line
+    setLocalReactions(item?._reactions || {});
+  }, [item?.id]); // eslint-disable-line
+
+  if (!item?.id) return null;
 
   const handleReaction = useCallback((type) => {
     // Optimistic update

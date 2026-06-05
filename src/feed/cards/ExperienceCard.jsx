@@ -78,9 +78,10 @@ function useExpCreator(item) {
 }
 
 export default function ExperienceCard({ item, onProfile, onReaction, onBook, itemReactions = {} }) {
-  if (!item) return null;
   const creator = useExpCreator(item);
   const [imgErr, setImgErr] = useState(false);
+
+  if (!item) return null;
 
   // Bild-Extraktion
   const image = (!imgErr && (

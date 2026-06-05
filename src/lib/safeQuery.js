@@ -27,7 +27,7 @@ export async function safeQuery(queryBuilder) {
     return result;
   } catch (e) {
     const msg = e?.message || String(e);
-    if (process.env.NODE_ENV !== 'production') {
+    if (import.meta.env.DEV) {
       console.warn('[safeQuery] caught:', msg);
     }
     return { data: null, error: e };

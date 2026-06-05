@@ -303,7 +303,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       const { data: likeRow } = await supabase
         .from("work_likes").select("id")
         .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
-      setLiked(!!likeRow);
+      setResonated(!!likeRow);
 
       // Like count
       const { count: lc } = await supabase

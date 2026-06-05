@@ -679,7 +679,7 @@ function HomeInner() {
       )}
 
       {/* Phase 16.4: World Surface + Tab Debug — tree-shaken in prod */}
-      {process.env.NODE_ENV !== "production" && (
+      {import.meta.env.DEV && (
         <div style={{
           position:"fixed", top:8, right:8, zIndex:99999,
           background:"rgba(0,0,0,0.88)", backdropFilter:"blur(10px)",
@@ -689,32 +689,32 @@ function HomeInner() {
           border:"1px solid rgba(255,255,255,0.15)",
           minWidth:200,
         }}>
-          <div style={{ color:HUI.COLOR.teal, fontWeight:700, marginBottom:3, fontSize:11 }}>
+          <div style={{ color:"#16D7C5", fontWeight:700, marginBottom:3, fontSize:11 }}>
             🌍 World Surface
           </div>
-          <div>surface: <b style={{color: activeSurface ? HUI.COLOR.coral:"#aaa"}}>
+          <div>surface: <b style={{color: activeSurface ? "#FF8A6B":"#aaa"}}>
             {activeSurface ?? "null"}
           </b></div>
-          <div>confirmed: <b style={{color: worldState?.overlayConfirmed ? HUI.COLOR.teal:"#aaa"}}>
+          <div>confirmed: <b style={{color: worldState?.overlayConfirmed ? "#16D7C5":"#aaa"}}>
             {String(worldState?.overlayConfirmed ?? false)}
           </b></div>
-          <div>navLocked: <b style={{color: worldState?.navLocked ? HUI.COLOR.coral:"#aaa"}}>
+          <div>navLocked: <b style={{color: worldState?.navLocked ? "#FF8A6B":"#aaa"}}>
             {String(worldState?.navLocked ?? false)}
           </b></div>
-          <div>sheet: <b style={{color: showPlusSheet ? HUI.COLOR.coral:"#aaa"}}>
+          <div>sheet: <b style={{color: showPlusSheet ? "#FF8A6B":"#aaa"}}>
             {String(showPlusSheet)}
           </b></div>
 
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.12)", margin:"5px 0 3px" }} />
           <div style={{ color:"#a8d8cf", fontWeight:700, marginBottom:2 }}>📋 Tabs</div>
-          <div>activeTab: <b style={{color:HUI.COLOR.teal}}>{tab}</b></div>
-          <div>feed op: <b style={{color: keepFeed?.opacity === 1 ? HUI.COLOR.teal:HUI.COLOR.coral}}>
+          <div>activeTab: <b style={{color:"#16D7C5"}}>{tab}</b></div>
+          <div>feed op: <b style={{color: keepFeed?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
             {keepFeed?.opacity ?? "?"}
           </b></div>
-          <div>impact op: <b style={{color: keepImpact?.opacity === 1 ? HUI.COLOR.teal:HUI.COLOR.coral}}>
+          <div>impact op: <b style={{color: keepImpact?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
             {keepImpact?.opacity ?? "?"}
           </b></div>
-          <div>discover op: <b style={{color: keepDiscover?.opacity === 1 ? HUI.COLOR.teal:HUI.COLOR.coral}}>
+          <div>discover op: <b style={{color: keepDiscover?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
             {keepDiscover?.opacity ?? "?"}
           </b></div>
           <div>tab→ptr: <b style={{color:"#aaa"}}>

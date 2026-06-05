@@ -63,7 +63,7 @@ export async function getResonanceDiscovery({
           'has_talent_profile, is_verified, impact_eur, follower_count',
         ].join(''))
         .eq('has_talent_profile', true)
-        .not('id', 'in', `(${excludeIds.join(',') || ''''''})`  )
+        .not('id', 'in', `(${excludeIds.join(',') || '00000000-0000-0000-0000-000000000000'})`)
         .limit(limit),
 
       // Work-Discovery: Werke mit Resonanz

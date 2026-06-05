@@ -287,7 +287,7 @@ export function rhythmizeFeed(rawItems) {
   });
 
   // Debug-Log (tree-shaken in prod via NODE_ENV)
-  if (process.env.NODE_ENV !== "production") {
+  if (import.meta.env.DEV) {
     const sequence = result.map(i => i._rhythm.contentType[0].toUpperCase()).join(" · ");
     console.log("[HUI_RHYTHM]", sequence);
     console.log("[HUI_RHYTHM] stats:", {

@@ -114,7 +114,7 @@ export default class ErrorBoundary extends React.Component {
             Neu laden
           </button>
         </div>
-        {process.env.NODE_ENV === 'development' && this.state.error && (
+        {import.meta.env.DEV && this.state.error && (
           <details style={{ marginTop: 24, maxWidth: 400, width: '100%' }}>
             <summary style={{ fontSize: 11, color: C.muted, cursor: 'pointer' }}>
               Dev: Fehler-Details

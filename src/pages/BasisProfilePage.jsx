@@ -566,8 +566,9 @@ function SocialContextBar({ loading, followCounts }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function BasisProfilePage({ profileId, onClose }) {
-  // Wenn eigenes Profil → AuthContext-Daten bevorzugen (immer aktuell)
-  const { user, authProfile } = useAuth();
+  // Wenn kein profileId übergeben → eigenes Profil des eingeloggten Users anzeigen
+  const { user, profile: authProfile } = useAuth();
+  const resolvedId = profileId || user?.id;
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -577,26 +578,27 @@ export default function BasisProfilePage({ profileId, onClose }) {
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
   useEffect(()=>{
-    if (!profileId) { setLoading(false); return; }
+    // Wenn kein User und kein profileId → AuthContext noch nicht bereit, kurz warten
+    if (!resolvedId) {
+      // Zeige AuthContext-Profil direkt wenn vorhanden (schnellster Weg)
+      if (authProfile) { setProfile(authProfile); setLoading(false); }
+      return;
+    }
     (async()=>{
       try {
         const [profRes, fcRes] = await Promise.all([
           supabase.from("profiles")
-            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags")
-            .eq("id", profileId).single(),
-          supabase.rpc("get_follow_counts", { target_id: profileId }),
+            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags,open_for,interests")
+            .eq("id", resolvedId).single(),
+          supabase.rpc("get_follow_counts", { target_id: resolvedId })
+            .then(r => r).catch(() => ({ data: null })),
         ]);
         const data = profRes.data;
         if (data) {
-          // Wenn eigenes Profil: AuthContext hat immer die neuesten Änderungen
+          // Eigenes Profil: AuthContext-Felder haben Vorrang (sind frischer)
           const isOwnProfile = user?.id && data.id === user.id;
           if (isOwnProfile && authProfile) {
-            setProfile({
-              ...data,
-              avatar_url: authProfile.avatar_url ?? data.avatar_url,
-              header_img: authProfile.header_img  ?? data.header_img,
-              bio:        authProfile.bio          ?? data.bio,
-            });
+            setProfile({ ...data, ...authProfile, id: data.id });
           } else {
             setProfile(data);
           }
@@ -604,13 +606,13 @@ export default function BasisProfilePage({ profileId, onClose }) {
           setProfile(null);
         }
         setFollowCounts({
-          followers: fcRes.data?.[0]?.followers ?? 0,
-          following: fcRes.data?.[0]?.following ?? 0,
+          followers: fcRes.data?.[0]?.followers ?? fcRes.data?.followers ?? 0,
+          following: fcRes.data?.[0]?.following ?? fcRes.data?.following ?? 0,
         });
       } catch(e) { console.warn("BasisProfilePage load:", e); }
       setLoading(false);
     })();
-  }, [profileId]);
+  }, [resolvedId]);
 
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
@@ -662,4 +664,3 @@ export default function BasisProfilePage({ profileId, onClose }) {
     </div>
   );
 }
-

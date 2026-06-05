@@ -77,10 +77,16 @@ function ResponseBtn({ label, emoji, type, current, onRespond, count }) {
 
 /* ── Haupt-Card ───────────────────────────────────────────────── */
 export default function InvitationCard({ item, onProfile }) {
-  if (!item) return null;
-
-  const invId    = item._raw?.id || item.id;
+  const invId    = item?._raw?.id || item?.id;
   const { myResponse, counts, respond, withdraw } = useInvitationResponse(invId);
+
+  // Primary CTA: "Ich komme gerne mit" → "coming"
+  const handlePrimaryJoin = useCallback(() => {
+    if (myResponse === "coming") withdraw();
+    else respond("coming");
+  }, [myResponse, respond, withdraw]);
+
+  if (!item) return null;
 
   const creator  = item.creator || {};
   const text     = item.caption || item.text || item.title || "";
@@ -88,7 +94,6 @@ export default function InvitationCard({ item, onProfile }) {
   const location = item.location || item._raw?.location;
   const timeLabel = item._raw?.time_label || item.time || "";
 
-  // Ablauf-Hinweis
   let expiryHint = "";
   if (item._raw?.expires_at) {
     try {
@@ -99,12 +104,6 @@ export default function InvitationCard({ item, onProfile }) {
       else                expiryHint = `Noch ${Math.floor(rem / 24)}d`;
     } catch { /* noop */ }
   }
-
-  // Primary CTA: "Ich komme gerne mit" → "coming"
-  const handlePrimaryJoin = useCallback(() => {
-    if (myResponse === "coming") withdraw();
-    else respond("coming");
-  }, [myResponse, respond, withdraw]);
 
   const joined = myResponse === "coming";
   const totalResponses = (counts.coming || 0) + (counts.interested || 0) + (counts.maybe || 0);

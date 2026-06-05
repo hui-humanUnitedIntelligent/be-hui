@@ -229,7 +229,7 @@ class ErrorBoundary extends React.Component {
         </div>
 
         {/* Phase 16.6: Dev world state — only in development */}
-        {process.env.NODE_ENV !== "production" && (
+        {import.meta.env.DEV && (
           <details style={{ marginTop:20, maxWidth:340, width:"100%", textAlign:"left" }}>
             <summary style={{ fontSize:11, color:"#aaa", cursor:"pointer", paddingLeft:4 }}>
               Dev: Crash-Kontext

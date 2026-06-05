@@ -851,7 +851,7 @@ function NotifFeed({
             );
           })
         )}
-        <InspireBanner onSettings={() => actions[A.OPEN_NOTIFICATIONS_SETTINGS]?.()} />
+        <InspireBanner onSettings={() => {}} />
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import StepOneTypeSelection   from "./StepOneTypeSelection.jsx";
 import StepTwoConnectionDetails from "./StepTwoConnectionDetails.jsx";
 import StepThreePreview       from "./StepThreePreview.jsx";
 import { useAuth }            from "../../lib/AuthContext.jsx";
+import { supabase }          from "../../lib/supabaseClient.js";
 import { HUI } from "../../design/hui.design.js";
 
 const C = {

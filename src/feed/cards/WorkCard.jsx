@@ -78,9 +78,10 @@ function useWorkCreator(item) {
 }
 
 export default function WorkCard({ item, onProfile, onReaction, onDetail, itemReactions = {} }) {
-  if (!item) return null;
   const creator = useWorkCreator(item);
   const [imgErr, setImgErr] = useState(false);
+
+  if (!item) return null;
 
   const image    = (!imgErr && (
     item.images?.[0] || item.media?.[0] || item.cover_url || item.expImg

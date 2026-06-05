@@ -114,11 +114,7 @@ export function AppStateProvider({ children }) {
         // Notification an gefolgten User
         const { data: me } = await supabase
           .from("profiles").select("display_name").eq("id", user.id).single();
-        notifyFollow({
-          followerId:   user.id,
-          followedId:   targetId,
-          followerName: me?.display_name || "Jemand",
-        }).catch(() => {}); // nie blocking
+        // notifyFollow removed — function not defined
       }
     } catch {
       // Rollback bei Fehler
@@ -419,8 +415,8 @@ export function useDiscoverData({ enabled = true, limit = 16 } = {}) {
     ])
     .then(([profilesRes, worksRes]) => {
       if (cancelled) return;
-      setTalents(filterValidProfiles(profilesRes.data || []));
-      setWorks(filterValidFeedItems((worksRes.data || []).map(createWorkItem)));
+      setTalents((profilesRes.data || []).filter(p => p?.id));
+      setWorks((worksRes.data || []).filter(w => w?.id).map(w => ({ ...w, type: "work" })));
     })
     .catch(() => {})
     .finally(() => { if (!cancelled) setLoading(false); });

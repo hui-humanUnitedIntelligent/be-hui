@@ -92,7 +92,7 @@ export async function emit(eventType, {
     });
   } catch (err) {
     // Silently fail — Events blockieren nie den User-Flow
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn('[EventLayer] emit failed:', eventType, err.message);
     }
     sentryCapture(err, { context: 'platform_events.emit', eventType });

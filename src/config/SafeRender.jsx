@@ -152,7 +152,7 @@ export function SafeRender({
   // 1. SAFE_MODE Check — NEVER return null silently, show disabled state
   if (!SAFE_MODE[flag]) {
     // Only log in dev — no console spam in production
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.info(`[HUI SafeMode] ${label || flag} deaktiviert`);
     }
     // Return empty non-null node — no white screen, no layout shift
