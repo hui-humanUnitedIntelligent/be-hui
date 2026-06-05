@@ -229,7 +229,7 @@ export default function HomeShell({ children }) {
     setShowPlusSheet(false);
     setCreateType(null);
     setShowCreatorDashboard(false);
-    setShowChat(false);
+    // showChat bleibt offen bei Tab-Wechsel (Chat ist Tab-unabhängiges Overlay)
     setShowConnect(false);
     setShowTalentFlow(false);
     _setTab(newTab);
