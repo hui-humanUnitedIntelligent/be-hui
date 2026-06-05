@@ -93,7 +93,12 @@ export function useChatList() {
   const realtimeRef = useRef(null);
 
   const load = useCallback(async () => {
-    if (!authChecked || !user?.id) return;
+    if (!authChecked) return;
+    if (!user?.id) {
+      setChats([]);
+      setLoading(false);
+      return;
+    }
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
       const { data: rawChats, error: chatError } = await supabase
