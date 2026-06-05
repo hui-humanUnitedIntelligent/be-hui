@@ -220,8 +220,10 @@ export function useChatList() {
   // Realtime: Chat-Updates + neue Nachrichten → unread live aktualisieren
   useEffect(() => {
     if (!user?.id) return;
+    const channelName = `chat-list:${user.id}`;
+    console.log("[CHAT_CHANNEL_SUBSCRIBE]", channelName);
     realtimeRef.current = supabase
-      .channel(`chat-list:${user.id}`)
+      .channel(channelName)
       .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "chats",
       }, () => load())
@@ -244,8 +246,13 @@ export function useChatList() {
           return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
         }));
       })
-      .subscribe();
-    return () => { supabase.removeChannel(realtimeRef.current); };
+      .subscribe((status) => {
+        console.log("[CHAT_CHANNEL_STATUS]", channelName, status);
+      });
+    return () => {
+      console.log("[CHAT_CHANNEL_REMOVE]", channelName);
+      supabase.removeChannel(realtimeRef.current);
+    };
   }, [user?.id, load]);
 
   // unreadTotal für Badge im Tab
