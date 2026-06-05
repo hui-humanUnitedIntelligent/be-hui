@@ -139,7 +139,6 @@ export function buildActions(shell) {
     // Chat
     setShowChat,
     setChatRecipient,
-    chatRecipient,
     // Role
     isTalent,
     // Overlays
@@ -225,7 +224,7 @@ export function buildActions(shell) {
         display_name: name ?? null,
         avatar_url: avatar ?? null,
         ...rest,
-      } : chatRecipient);
+      } : null);
       const rec = rawRec ? normalizeRecipient(rawRec) : null;
       if (rec) setChatRecipient?.(rec);
       // Semantic guard (DEV): prüft ob der Chat-Payload vollständig ist
