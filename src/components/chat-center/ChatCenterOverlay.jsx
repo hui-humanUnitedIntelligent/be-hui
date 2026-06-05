@@ -160,6 +160,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
 
 /* ── HAUPT-OVERLAY ── */
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
+  console.log("[CCO_RENDER_START]", { hasInitialRecipient: !!initialRecipient?.id });
   const [activeConv,       setActiveConv]       = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
   const [loadingConv,      setLoadingConv]      = useState(false);
