@@ -31,7 +31,13 @@ export default function ConversationCard({ conv, onPress, isActive }) {
   const unread     = conv.unread || 0;
   const online     = conv.online ?? (conv.other_profile?.last_seen
     ? (Date.now() - new Date(conv.other_profile.last_seen)) < 300000 : false);
-  const mood       = MOODS[conv.id % MOODS.length];
+  const moodIndex =
+    Math.abs(
+      String(conv.id)
+        .split("")
+        .reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+    ) % MOODS.length;
+  const mood = MOODS[moodIndex] ?? { icon: "✦", label: "Im kreativen Fluss" };
   const initials   = name[0]?.toUpperCase() || "?";
 
   return (
