@@ -98,6 +98,7 @@ function ImpactCard() {
 
 /* ══════════════════════════════════════════════════════════════ */
 export default function ConversationList({ chats, loading, onOpen, onDiscover }) {
+  console.log("[CONVERSATION_LIST_RENDER]", { chatCount: chats?.length, loading });
   const [activeFilter, setActiveFilter] = useState("alle");
 
   // Nur echte Daten — kein Mock-Fallback
