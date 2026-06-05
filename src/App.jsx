@@ -564,11 +564,29 @@ function ProfileCompletionTrigger() {
                          !!(p?.display_name && p.display_name.trim().length > 0);
 
       if (isComplete) {
+        console.log("[PROFILE_SETUP_CHECK]", {
+          userId: user?.id,
+          authProfile: profile,
+          username: profile?.username,
+          display_name: profile?.display_name,
+          profile_complete: profile?.profile_complete,
+          resolvedProfile: p,
+          attempts,
+        });
         console.log("[PROFILE_FLOW_TRIGGER] profile already complete — skipping");
         try { localStorage.setItem("hui_profile_completed","true"); } catch {}
         return;
       }
 
+      console.log("[PROFILE_SETUP_CHECK]", {
+        userId: user?.id,
+        authProfile: profile,
+        username: profile?.username,
+        display_name: profile?.display_name,
+        profile_complete: profile?.profile_complete,
+        resolvedProfile: p,
+        attempts,
+      });
       console.log("[PROFILE_FLOW_TRIGGER] showing flow — profile incomplete");
       hasTriggeredRef.current = true;
       setShow(true);
