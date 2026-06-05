@@ -135,7 +135,7 @@ function HomeInner() {
   } = useHome();
 
   // ── Unread Message Count — live aus chatContext ────────
-  const { unreadTotal, markChatRead } = useChatList();
+  const { unreadTotal, markChatRead } = useChatList("home");
 
   // ── DIAG: showChat State-Änderung tracen ─────────────
   React.useEffect(() => {
