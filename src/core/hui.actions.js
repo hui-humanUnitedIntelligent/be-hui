@@ -163,28 +163,7 @@ export function buildActions(shell) {
 
   // ── helper: close all overlays before opening another ────────────
   function closeAll(callerAction) {
-    console.trace('[TRACE_CLOSEALL] closeAll() aufgerufen', { callerAction, ts: Date.now() });
-    // ── CLOSEALL INSTRUMENTATION ─────────────────────────────
-    const _caStack = new Error().stack;
-    const _caShort = (_caStack || "").split("\n").slice(1, 6).join(" | ");
-    const _caPayload = {
-      action:    callerAction ?? "UNKNOWN",
-      caller:    _caShort,
-      ts:        Date.now(),
-    };
-    console.warn("[CLOSEALL]", _caPayload);
-    if (typeof window !== "undefined") {
-      window.HUI_CLOSEALL_CALLER = _caPayload;
-      if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
-      window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CLOSEALL", payload: _caPayload });
-      if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
-      // CHAT_KILLER setzen — closeAll schließt immer den Chat
-      window.HUI_CHAT_KILLER = { reason: "closeAll(UNKNOWN)", caller: _caShort,
-        action: callerAction ?? "UNKNOWN", ts: Date.now() };
-    }
-    // ── end instrumentation ──────────────────────────────────
     setShowWirker?.(null);
-    console.warn("[SHOWCHAT_FALSE]", { caller: "hui.actions/closeAll", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "hui.actions/closeAll", stack: new Error().stack.split("\\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
     setShowChat?.(false);
     setShowPlusSheet?.(false);
     setShowConnect?.(false);
@@ -202,7 +181,6 @@ export function buildActions(shell) {
 
     // ── PROFILE ──────────────────────────────────────────────────
     [A.OPEN_PROFILE]: (rawPayload) => {
-      console.trace('[TRACE_OPEN_PROFILE] OPEN_PROFILE action aufgerufen', { rawPayload, ts: Date.now() });
       const payload = validate("OPEN_PROFILE", rawPayload);
       if (!payload) return;
       logAction(A.OPEN_PROFILE, payload);
@@ -237,7 +215,6 @@ export function buildActions(shell) {
 
     // ── CHAT ─────────────────────────────────────────────────────
     [A.OPEN_CHAT]: (rawPayload) => {
-      console.trace('[TRACE_OPEN_CHAT] OPEN_CHAT action aufgerufen', { rawPayload, ts: Date.now() });
       const payload = validate("OPEN_CHAT", rawPayload);
       if (!payload) { console.warn('[TRACE_OPEN_CHAT] validate() returned null — ABBRUCH'); return; }
       logAction(A.OPEN_CHAT, payload);
@@ -263,21 +240,10 @@ export function buildActions(shell) {
 
     [A.CLOSE_CHAT]: () => {
       logAction(A.CLOSE_CHAT);
-      // ── TRACE: A.CLOSE_CHAT → setShowChat(false) ────────────
       if (typeof window !== "undefined") {
         const _tr = { source: "A.CLOSE_CHAT", file: "hui.actions.js", line: 262,
           stack: new Error().stack, ts: Date.now() };
-        window.HUI_CHAT_CLOSE_TRACE = _tr;
-        if (!window.HUI_CHAT_CLOSE_TRACE_LOG) window.HUI_CHAT_CLOSE_TRACE_LOG = [];
-        window.HUI_CHAT_CLOSE_TRACE_LOG.push(_tr);
-        if (window.HUI_CHAT_CLOSE_TRACE_LOG.length > 30) window.HUI_CHAT_CLOSE_TRACE_LOG.shift();
-        console.warn("[CHAT_CLOSE_TRACE]", _tr);
-        window.HUI_CHAT_KILLER = { reason: "A.CLOSE_CHAT", caller: "hui.actions.js:262", ts: Date.now() };
-        if (!window.HUI_DEBUG_LOGS) window.HUI_DEBUG_LOGS = [];
-        window.HUI_DEBUG_LOGS.push({ ts: Date.now(), event: "CHAT_CLOSE_TRACE", payload: _tr });
-        if (window.HUI_DEBUG_LOGS.length > 100) window.HUI_DEBUG_LOGS.shift();
       }
-      console.warn("[SHOWCHAT_FALSE]", { caller: "hui.actions/A.CLOSE_CHAT", stack: new Error().stack, ts: Date.now() }); if (typeof window !== "undefined") { window.HUI_KILLER_LOG = window.HUI_KILLER_LOG || []; window.HUI_KILLER_LOG.unshift({ caller: "hui.actions/A.CLOSE_CHAT", stack: new Error().stack.split("\\n").slice(0,6).join(" | "), ts: Date.now() }); if (window.HUI_KILLER_LOG.length > 20) window.HUI_KILLER_LOG.pop(); }
       setShowChat?.(false);
     },
 
