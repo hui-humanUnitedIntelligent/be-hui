@@ -1456,7 +1456,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenChat={handleOpenChat} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
+          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
         </div>
         <Gap h={20}/>
 
