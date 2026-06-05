@@ -97,13 +97,25 @@ function ImpactCard() {
 }
 
 /* ══════════════════════════════════════════════════════════════ */
-export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [] }) {
+export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [], search = "" }) {
   console.log("[CONVERSATION_LIST_RENDER]", { chatCount: chats?.length, loading });
   const [activeFilter, setActiveFilter] = useState("alle");
 
   // Nur echte Daten — kein Mock-Fallback
-  const activeConvs  = (chats || []).filter(c => c?.id && c.chat_type !== "booking");
-  const bookingConvs = (chats || []).filter(c => c?.id && c.chat_type === "booking");
+  // Suchfilter: display_name, name, username, title (case-insensitive)
+  const q = (search || "").trim().toLowerCase();
+  const filteredChats = q
+    ? (chats || []).filter(c => {
+        if (!c?.id) return false;
+        const hay = [
+          c.name, c.title, c.display_name, c.username,
+          c.other_profile?.display_name, c.other_profile?.username,
+        ].filter(Boolean).join(" ").toLowerCase();
+        return hay.includes(q);
+      })
+    : (chats || []);
+  const activeConvs  = filteredChats.filter(c => c?.id && c.chat_type !== "booking");
+  const bookingConvs = filteredChats.filter(c => c?.id && c.chat_type === "booking");
 
   return (
     <div style={{ padding:"0 16px" }}>
@@ -135,7 +147,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
         <div style={{ padding:"24px 0", textAlign:"center", color:C.muted, fontSize:13 }}>
           Laden\u2026
         </div>
-      ) : chats?.length === 0 ? (
+      ) : (chats?.length === 0 || (q && activeConvs.length === 0 && bookingConvs.length === 0)) ? (
         /* Phase 23: Echter Empty State — keine Mock-Gespräche */
         <div style={{
           padding:"32px 0 16px", textAlign:"center",
