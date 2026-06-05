@@ -492,10 +492,12 @@ function HomeInner() {
       />
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
+      {(() => { console.log("[CHAT_RENDER]", { showChat, chatCenter: !!SAFE_MODE.chatCenter, recipientId: chatRecipient?.id }); return null; })()}
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
+              console.log("[CHAT_CLOSE] Quelle: onClose (ChatCenterOverlay ← Schliessen-Button)");
               setShowChat(false);
               setChatRecipient(null);
               const returnProfile = flow.getReturnProfile();
@@ -507,6 +509,7 @@ function HomeInner() {
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
+              console.log("[CHAT_CLOSE] Quelle: onDiscoverClose (Menschen entdecken → Button)");
               setShowChat(false);
               setChatRecipient(null);
               flow.clearReturnProfile();
