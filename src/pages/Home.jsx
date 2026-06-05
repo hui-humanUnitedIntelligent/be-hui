@@ -497,7 +497,7 @@ function HomeInner() {
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
-              console.log("[CHAT_CLOSE] Quelle: onClose (ChatCenterOverlay ← Schliessen-Button)");
+              console.log("[CHAT_CLOSE_TRIGGER]", { src:"onClose_button", stack:(new Error().stack||"").split("\n").slice(1,5).join(" | ") });
               setShowChat(false);
               setChatRecipient(null);
               const returnProfile = flow.getReturnProfile();
@@ -509,7 +509,7 @@ function HomeInner() {
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
-              console.log("[CHAT_CLOSE] Quelle: onDiscoverClose (Menschen entdecken → Button)");
+              console.log("[CHAT_CLOSE_TRIGGER]", { src:"onDiscoverClose", stack:(new Error().stack||"").split("\n").slice(1,5).join(" | ") });
               setShowChat(false);
               setChatRecipient(null);
               flow.clearReturnProfile();
