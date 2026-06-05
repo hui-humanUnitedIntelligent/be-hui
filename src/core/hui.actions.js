@@ -216,7 +216,7 @@ export function buildActions(shell) {
     // ── CHAT ─────────────────────────────────────────────────────
     [A.OPEN_CHAT]: (rawPayload) => {
       const payload = validate("OPEN_CHAT", rawPayload);
-      if (!payload) { console.warn('[TRACE_OPEN_CHAT] validate() returned null — ABBRUCH'); return; }
+      if (!payload) return;
       logAction(A.OPEN_CHAT, payload);
       const { recipient, recipientId, name, avatar, ...rest } = payload;
       // Semantic: normalizeRecipient schützt vor rohen Supabase-Objekten
