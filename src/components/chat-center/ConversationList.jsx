@@ -7,23 +7,6 @@ import { HUI } from "../../design/hui.design.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
 
-const MOCK_ACTIVE = [
-  { id:1, name:"Leon Brandt",  last_message:"Ich freue mich auf unser Treffen!", last_at:new Date(Date.now()-240000).toISOString(), unread:2, online:true  },
-  { id:2, name:"Mia Kern",     last_message:"Die neuen Workshop-Termine sind online ✨", last_at:new Date(Date.now()-3000000).toISOString(), unread:1, online:true  },
-  { id:3, name:"Jonas Weber",  last_message:"Danke dir! Das Bild ist wunderschön.", last_at:new Date(Date.now()-7200000).toISOString(), unread:0, online:true  },
-  { id:4, name:"Hanna Vogt",   last_message:"Bis morgen im Studio! 🤸", last_at:new Date(Date.now()-86400000).toISOString(), unread:0, online:false },
-];
-
-const MOCK_BOOKINGS = [
-  { id:5, name:"Tim Schmid",  last_message:"Hi! Ich hätte eine Frage zum Workshop.", last_at:new Date(Date.now()-1800000).toISOString(), unread:0, pending:true, online:false },
-  { id:6, name:"Anna Keller", last_message:"Wann ist der nächste Termin?", last_at:new Date(Date.now()-86400000).toISOString(), unread:0, pending:true, online:false },
-];
-
-const MOCK_CONNECTIONS = [
-  { id:7, name:"Klara M.",  avatar_url:null },
-  { id:8, name:"Paul L.",   avatar_url:null },
-  { id:9, name:"Sophie B.", avatar_url:null },
-];
 
 const SECTION_LABELS = [
   { key:"alle",       label:"Alle"               },
