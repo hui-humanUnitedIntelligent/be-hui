@@ -25,6 +25,7 @@ import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { usePresence } from "../lib/usePresence.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
+import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
@@ -132,6 +133,9 @@ function HomeInner() {
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
   } = useHome();
+
+  // ── Unread Message Count — live aus chatContext ────────
+  const { unreadTotal, markChatRead } = useChatList();
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
@@ -263,7 +267,7 @@ function HomeInner() {
           activeMood={activeMood}
           onMoodSelect={setActiveMood}
           notifCount={liveNotifCount}
-          msgCount={0}
+          msgCount={unreadTotal}
           onNotif={() => {
             console.log("[GLOCKE STEP 6] Home.jsx onNotif callback aufgerufen → setShowNotifs(true)");
             setShowNotifs(true);
@@ -416,7 +420,7 @@ function HomeInner() {
         }
         authProfile={authProfile}
         notifCount={liveNotifCount}
-        msgCount={0}
+        msgCount={unreadTotal}
         onOrbAction={(key) => {
           if (key !== "create") return;
 
@@ -503,6 +507,7 @@ function HomeInner() {
                 if (retId) { setTimeout(() => openProfileById(retId), 50); }
               }
             }}
+            onMarkRead={markChatRead}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
               setShowChat(false);
