@@ -18,20 +18,27 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
     }
   }, [authChecked, isLoadingAuth, checkUserAuth]);
 
+  console.log("[PROTECTED_ROUTE]", { loadingAuth: isLoadingAuth, authChecked, user: !!isAuthenticated });
+
   if (isLoadingAuth || !authChecked) {
+    console.log("[PROTECTED_ROUTE] → FALLBACK (loading/not checked)");
     return fallback;
   }
 
   if (authError) {
     if (authError.type === 'user_not_registered') {
+      console.log("[PROTECTED_ROUTE] → USER_NOT_REGISTERED");
       return <UserNotRegisteredError />;
     }
+    console.log("[PROTECTED_ROUTE] → AUTH_ERROR");
     return unauthenticatedElement;
   }
 
   if (!isAuthenticated) {
+    console.log("[PROTECTED_ROUTE] → UNAUTHENTICATED");
     return unauthenticatedElement;
   }
 
+  console.log("[PROTECTED_ROUTE] → OUTLET");
   return <Outlet />;
 }
