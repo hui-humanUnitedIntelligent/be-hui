@@ -24,6 +24,7 @@ async function withTimeout(promise, ms = 4000) {
 //   3. loadingAuth bleibt true bis einer der beiden Wege settled hat
 //   4. ProtectedRoute wartet auf loadingAuth=false bevor redirect
 export function AuthProvider({ children }) {
+  console.log("[AUTH] PROVIDER_MOUNT");
   const [user,            setUser]            = useState(null);
   const [wirkerProfile,   setWirkerProfile]   = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -82,6 +83,7 @@ export function AuthProvider({ children }) {
 
   // ── Auth-State setzen (zentralisiert, idempotent) ─────────────────
   const applySession = useCallback((session) => {
+    console.log("[AUTH] APPLY_SESSION", !!session, session?.user?.id || null);
     const u = session?.user ?? null;
     setUser(u);
     setIsAuthenticated(!!u);
@@ -122,9 +124,9 @@ export function AuthProvider({ children }) {
     // Supabase feuert INITIAL_SESSION synchron (wenn Session im localStorage)
     // oder kurz async (bei Token-Refresh). Wir verlassen uns darauf als
     // primäre Quelle.
+    console.log("[AUTH] REGISTER_LISTENER");
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // auth event (Sentry handles errors)
-
+      console.log("[AUTH] EVENT", event, !!session);
       const u = applySession(session);
 
       if (u && ["SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","INITIAL_SESSION"].includes(event)) {
@@ -148,15 +150,18 @@ export function AuthProvider({ children }) {
       if (authSettledRef.current) return;  // onAuthStateChange war schneller
 
       // getSession Sicherheitsnetz aktiv
+      console.log("[AUTH] GET_SESSION_START");
       try {
         const { data: { session } } = await withTimeout(
           supabase.auth.getSession(),
           4000
         );
+        console.log("[AUTH] GET_SESSION_DONE");
         if (authSettledRef.current) return;  // onAuthStateChange hat zwischenzeitlich gefeuert
         const u = applySession(session);
         if (u && !profileLoadingRef.current) loadProfile(u.id);
       } catch (e) {
+        console.error("[AUTH] GET_SESSION_ERROR", e);
         console.warn("[HUI Auth] getSession Fehler:", e.message);
         if (!authSettledRef.current) applySession(null);
       }
@@ -166,6 +171,7 @@ export function AuthProvider({ children }) {
     // ── C) Absoluter Fallback nach 5s (offline/netzwerkfehler) ───────
     const absoluteFallback = setTimeout(() => {
       if (!authSettledRef.current) {
+        console.warn("[AUTH] ABSOLUTE_FALLBACK");
         console.warn("[HUI Auth] Absoluter Fallback nach 5s — kein Auth-Event");
         applySession(null);
       }
