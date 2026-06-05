@@ -125,11 +125,57 @@ export function AuthProvider({ children }) {
     // oder kurz async (bei Token-Refresh). Wir verlassen uns darauf als
     // primäre Quelle.
     console.log("[AUTH] REGISTER_LISTENER");
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("[AUTH] EVENT", event, !!session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // AUFGABE 1: erweitertes Event-Logging
+      console.log("[AUTH_EVENT]", event, {
+        hasSession: !!session,
+        userId: session?.user?.id || null,
+        expires_at: session?.expires_at || null,
+        now: Math.floor(Date.now() / 1000),
+      });
+      if (!session) {
+        console.warn("[AUTH_NULL_SESSION]", event);
+      }
+
+      // AUFGABE 3: TOKEN_REFRESH_FAILED — erst Retry, dann Logout
+      if (event === "TOKEN_REFRESH_FAILED") {
+        console.warn("[AUTH_REFRESH_FAILED]");
+        try {
+          const { data } = await supabase.auth.refreshSession();
+          if (data?.session) {
+            console.log("[AUTH_REFRESH_RECOVERED]");
+            console.log("[AUTH_APPLY]", { event, hasSession: true, userId: data.session?.user?.id || null });
+            applySession(data.session);
+            return;
+          }
+        } catch (err) {
+          console.error("[AUTH_REFRESH_RECOVERY_FAILED]", err);
+        }
+        console.warn("[AUTH_FORCE_LOGOUT]");
+        console.warn("[AUTH_LOGOUT_REASON]", event);
+        applySession(null);
+        return;
+      }
+
+      // AUFGABE 5: Logout-Grund sichtbar machen
+      if (!session) {
+        console.warn("[AUTH_LOGOUT_REASON]", event);
+      }
+
+      // AUFGABE 1: Log vor applySession
+      console.log("[AUTH_APPLY]", {
+        event,
+        hasSession: !!session,
+        userId: session?.user?.id || null,
+      });
+      if (!session) {
+        console.warn("[AUTH_APPLY_NULL]", event);
+      }
+
       const u = applySession(session);
 
-      if (u && ["SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","INITIAL_SESSION"].includes(event)) {
+      // AUFGABE 4: TOKEN_REFRESHED aus Profil-Reload entfernt
+      if (u && ["SIGNED_IN","USER_UPDATED","INITIAL_SESSION"].includes(event)) {
         if (!profileLoadingRef.current) loadProfile(u.id);
       }
       if (!u) {
@@ -150,20 +196,27 @@ export function AuthProvider({ children }) {
       if (authSettledRef.current) return;  // onAuthStateChange war schneller
 
       // getSession Sicherheitsnetz aktiv
-      console.log("[AUTH] GET_SESSION_START");
+      console.log("[AUTH_GET_SESSION_START]");
       try {
         const { data: { session } } = await withTimeout(
           supabase.auth.getSession(),
           4000
         );
-        console.log("[AUTH] GET_SESSION_DONE");
+        console.log("[AUTH_GET_SESSION_DONE]", {
+          hasSession: !!session,
+          userId: session?.user?.id || null,
+        });
         if (authSettledRef.current) return;  // onAuthStateChange hat zwischenzeitlich gefeuert
+        console.log("[AUTH_APPLY]", { event: "sessionFallback", hasSession: !!session, userId: session?.user?.id || null });
+        if (!session) console.warn("[AUTH_APPLY_NULL]", "sessionFallback");
         const u = applySession(session);
         if (u && !profileLoadingRef.current) loadProfile(u.id);
       } catch (e) {
-        console.error("[AUTH] GET_SESSION_ERROR", e);
-        console.warn("[HUI Auth] getSession Fehler:", e.message);
-        if (!authSettledRef.current) applySession(null);
+        console.error("[AUTH_GET_SESSION_ERROR]", e);
+        if (!authSettledRef.current) {
+          console.warn("[AUTH_LOGOUT_REASON]", "sessionFallback_error");
+          applySession(null);
+        }
       }
     };
     sessionFallback();
@@ -172,6 +225,7 @@ export function AuthProvider({ children }) {
     const absoluteFallback = setTimeout(() => {
       if (!authSettledRef.current) {
         console.warn("[AUTH] ABSOLUTE_FALLBACK");
+        console.warn("[AUTH_LOGOUT_REASON]", "absoluteFallback");
         console.warn("[HUI Auth] Absoluter Fallback nach 5s — kein Auth-Event");
         applySession(null);
       }
