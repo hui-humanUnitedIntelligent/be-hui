@@ -159,19 +159,55 @@ export function useChatList() {
           return {
             ...c,
             other_profile: otherProfile,
-            unread: 0, // unread_a/unread_b existieren nicht in DB
+            unread: 0, // wird nach Enrichment berechnet
             _priority: 0,
           };
         })
       );
 
-      // Sortierung: last_message_at
-      enriched.sort((a, b) =>
-        new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0)
-      );
+      // ── Unread-Count per Chat berechnen ───────────────────────
+      // 1. Letzten Lesezeitpunkt des Users für jeden Chat laden
+      const chatIds = enriched.map(c => c.id);
+      const { data: readRows } = await supabase
+        .from("chat_participants")
+        .select("chat_id, last_read_at")
+        .eq("user_id", user.id)
+        .in("chat_id", chatIds);
 
-      console.log("[CHATLIST_LOAD_DONE]", { chatCount: enriched?.length });
-      setChats(enriched);
+      const lastReadMap = {};
+      (readRows || []).forEach(r => { lastReadMap[r.chat_id] = r.last_read_at; });
+
+      // 2. Alle ungelesenen Nachrichten für diese Chats in einer Query
+      const { data: unreadMsgs } = await supabase
+        .from("messages")
+        .select("chat_id, created_at")
+        .in("chat_id", chatIds)
+        .neq("sender_id", user.id);
+
+      // 3. Unread pro Chat berechnen
+      const unreadMap = {};
+      (unreadMsgs || []).forEach(m => {
+        const lr = lastReadMap[m.chat_id] || "1970-01-01T00:00:00Z";
+        if (new Date(m.created_at) > new Date(lr)) {
+          unreadMap[m.chat_id] = (unreadMap[m.chat_id] || 0) + 1;
+        }
+      });
+
+      // 4. Unread in enriched eintragen
+      const withUnread = enriched.map(c => ({
+        ...c,
+        unread: unreadMap[c.id] || 0,
+      }));
+
+      // Sortierung: ungelesene zuerst, dann last_message_at
+      withUnread.sort((a, b) => {
+        if (b.unread !== a.unread) return b.unread - a.unread;
+        return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
+      });
+
+      console.log("[CHATLIST_LOAD_DONE]", { chatCount: withUnread?.length,
+        unreadTotal: withUnread.reduce((s, c) => s + c.unread, 0) });
+      setChats(withUnread);
     } catch(e) {
       console.error("[CHATLIST_LOAD_ERROR]", e?.message);
     } finally {
@@ -181,7 +217,7 @@ export function useChatList() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Realtime: Chat-Updates (neue Nachrichten, Status)
+  // Realtime: Chat-Updates + neue Nachrichten → unread live aktualisieren
   useEffect(() => {
     if (!user?.id) return;
     realtimeRef.current = supabase
@@ -192,6 +228,22 @@ export function useChatList() {
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "chats",
       }, () => load())
+      .on("postgres_changes", {
+        // Neue Nachricht → unread_count neu berechnen
+        event: "INSERT", schema: "public", table: "messages",
+      }, (payload) => {
+        const msg = payload.new;
+        if (!msg?.chat_id || msg.sender_id === user.id) return; // eigene Nachricht ignorieren
+        // Optimistic: unread für diesen Chat +1
+        setChats(prev => prev.map(ch =>
+          ch.id === msg.chat_id
+            ? { ...ch, unread: (ch.unread || 0) + 1 }
+            : ch
+        ).sort((a, b) => {
+          if (b.unread !== a.unread) return b.unread - a.unread;
+          return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
+        }));
+      })
       .subscribe();
     return () => { supabase.removeChannel(realtimeRef.current); };
   }, [user?.id, load]);
@@ -203,11 +255,14 @@ export function useChatList() {
   // markChatRead — setzt messages als gelesen
   // unread_a/unread_b existieren nicht → nur messages.read updaten
   const markChatRead = useCallback(async (chatId) => {
-    if (!user?.id) return;
-    await supabase.from("messages")
-      .update({ read: true })
-      .eq("chat_id", chatId)
-      .neq("sender_id", user.id);
+    if (!user?.id || !chatId) return;
+    // UPSERT in chat_participants — setzt last_read_at auf now()
+    // Tabelle: chat_participants(chat_id, user_id, last_read_at) — Migration 048
+    await supabase
+      .from("chat_participants")
+      .upsert({ chat_id: chatId, user_id: user.id, last_read_at: new Date().toISOString() },
+               { onConflict: "chat_id,user_id" });
+    // Optimistic update: unread sofort auf 0
     setChats(prev => prev.map(ch =>
       ch.id === chatId ? { ...ch, unread: 0 } : ch
     ));
