@@ -221,7 +221,6 @@ export function useChatList(instanceId = "default") {
   useEffect(() => {
     if (!user?.id) return;
     const channelName = `chat-list:${user.id}:${instanceId}`;
-    console.log("[CHAT_CHANNEL_SUBSCRIBE]", channelName);
     realtimeRef.current = supabase
       .channel(channelName)
       .on("postgres_changes", {
@@ -246,13 +245,8 @@ export function useChatList(instanceId = "default") {
           return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
         }));
       })
-      .subscribe((status) => {
-        console.log("[CHAT_CHANNEL_STATUS]", channelName, status);
-      });
-    return () => {
-      console.log("[CHAT_CHANNEL_REMOVE]", channelName);
-      supabase.removeChannel(realtimeRef.current);
-    };
+      .subscribe();
+    return () => { supabase.removeChannel(realtimeRef.current); };
   }, [user?.id, load]);
 
   // unreadTotal für Badge im Tab
