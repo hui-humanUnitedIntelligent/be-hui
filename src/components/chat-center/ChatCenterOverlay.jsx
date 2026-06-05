@@ -227,7 +227,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
-  const { chats, loading } = useChatList(user?.id);
+  const { chats, loading } = useChatList("cco");
 
 
 
