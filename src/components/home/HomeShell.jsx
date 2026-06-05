@@ -72,6 +72,7 @@ export default function HomeShell({ children }) {
   React.useEffect(() => {
     if (authChecked) restoreTab();
   }, [authChecked, restoreTab]);
+  // ── Navigation State ───────────────────────────────────────────
   const [prevTab, setPrevTab]   = React.useState("feed");
   const [carryOver, setCarryOver] = React.useState(null);
   const { ref: mainScrollRef }  = useScrollMemory(tab);
@@ -148,10 +149,13 @@ export default function HomeShell({ children }) {
   const [showWirker,             setShowWirker]            = useState(null);
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
+  // ── Creator / Profile State ────────────────────────────────────
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
+  // ── Chat State ─────────────────────────────────────────────────
   const [showChat,               setShowChat]              = useState(false);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
 
+  // ── Overlay State (22 Overlays) ────────────────────────────────
   const [showNotifs,             setShowNotifs]            = useState(false);
   const [showMap,                setShowMap]               = useState(false);
   const [showMatch,              setShowMatch]             = useState(false);
@@ -178,6 +182,7 @@ export default function HomeShell({ children }) {
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
+  // ── Content / Commerce State ───────────────────────────────────
   const [createType,             setCreateType]            = useState(null);
   const [activeStory,            setActiveStory]           = useState(null);
   const [cart,                   setCart]                  = useState([]);
@@ -224,6 +229,9 @@ export default function HomeShell({ children }) {
     setShowPlusSheet(false);
     setCreateType(null);
     setShowCreatorDashboard(false);
+    setShowChat(false);
+    setShowConnect(false);
+    setShowTalentFlow(false);
     _setTab(newTab);
   }, [_setTab, setShowCreatorDashboard]);
 
