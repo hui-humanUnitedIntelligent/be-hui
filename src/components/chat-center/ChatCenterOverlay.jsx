@@ -44,7 +44,7 @@ function ComposeBtn({ onClick }) {
 }
 
 /* ── LIST PANEL ── */
-function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending }) {
+function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending, connections }) {
   // iOS tap-through guard: ignoriere clicks auf ← in den ersten 400ms nach Mount
   const mountedAt = React.useRef(Date.now());
   function safeClose() {
@@ -152,6 +152,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           loading={loading}
           onOpen={onOpen}
           onDiscover={onDiscoverClose}
+          connections={connections || []}
         />
       </div>
     </div>
@@ -332,6 +333,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           onDiscoverClose={onDiscoverClose}
           pendingRecipient={pendingRecipient}
           onOpenPending={openPendingChat}
+          connections={[]}
         />
       )}
     </>
