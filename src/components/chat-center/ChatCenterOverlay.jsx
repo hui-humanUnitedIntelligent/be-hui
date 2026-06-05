@@ -128,6 +128,11 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   const { user } = useAuth();
   const { chats, loading } = useChatList(user?.id);
 
+  // LOG 6: CHAT_OVERLAY_MOUNT
+  React.useEffect(() => {
+    console.log("[CHAT_OVERLAY_MOUNT]", { initialRecipientId: initialRecipient?.id, userId: user?.id });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // CCO_STATE — feuert bei Mount und bei jedem initialRecipient-Change
   React.useEffect(() => {
   }, [initialRecipient?.id, activeConv?.id, loadingConv]);
