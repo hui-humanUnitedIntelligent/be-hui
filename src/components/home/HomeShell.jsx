@@ -39,6 +39,7 @@ export function useHome() {
 
 /* ── HomeShell ────────────────────────────────────────────────── */
 export default function HomeShell({ children }) {
+  console.log("[HOMESHELL] MOUNT");
 
   // ── HOME MOUNT DEBUG ─────────────────────────────────────────────────
   React.useEffect(() => {
