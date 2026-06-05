@@ -1,6 +1,5 @@
 // header/MessageButton.jsx — HUI Chat/Resonanz Button
-// FIX: onTouchEnd löst onPress direkt aus (iOS sticky-overflow safety)
-// FIX: touchAction:manipulation entfernt 300ms delay
+// DIAG: zeigt nach Klick das HUI_KILLER_LOG + TRACE via alert
 
 import React from "react";
 
@@ -10,7 +9,24 @@ export default function MessageButton({ count=0, onPress }) {
   function handleTouchEnd(e) {
     e.preventDefault();          // verhindert ghost-click delay
     setPressed(false);
-    onPress?.();                 // direkt auslösen — nicht auf onClick warten
+    console.trace('[MSG_BTN_TOUCH] onTouchEnd → onPress wird aufgerufen');
+    onPress?.();
+    // Zeige nach 1200ms was passiert ist
+    setTimeout(() => {
+      const killer = window.HUI_KILLER_LOG || [];
+      const chatState = window.__HUI_LAST_SHOWCHAT__;
+      const logs = (window.HUI_DEBUG_LOGS || []).slice(-8);
+      const msg = [
+        '[MSG_BTN_DIAG] showChat nach 1200ms: ' + JSON.stringify(chatState),
+        '',
+        'HUI_KILLER_LOG (letzter):',
+        killer.length ? JSON.stringify(killer[0], null, 2) : '(leer)',
+        '',
+        'HUI_DEBUG_LOGS (letzte 8):',
+        ...logs.map(l => JSON.stringify(l)),
+      ].join('\n');
+      window.alert(msg);
+    }, 1200);
   }
 
   function handleClick(e) {
