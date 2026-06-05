@@ -115,7 +115,15 @@ export function useChatList() {
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
 
+      console.log("[CHATLIST_QUERY]", {
+        userId: user.id,
+        rawCount: rawChats?.length ?? 0,
+        error: chatError?.message ?? null,
+        firstId: rawChats?.[0]?.id ?? null,
+      });
+
       if (chatError) {
+        console.warn("[CHATLIST_ERROR]", chatError.message, chatError.code);
         setLoading(false);
         return;
       }
