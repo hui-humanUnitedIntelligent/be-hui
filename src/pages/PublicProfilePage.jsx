@@ -822,51 +822,8 @@ function FloatingConnect({ onConnect, connected }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// SHEETS — Chat + Support
+// SHEETS — Support
 // ══════════════════════════════════════════════════════════════
-function ChatSheet({ name, onClose }) {
-  const [msg, setMsg] = useState("");
-  const [sent, setSent] = useState(false);
-  const handleSend = () => {
-    if (!msg.trim()) return;
-    setSent(true);
-    setTimeout(onClose, 1800);
-  };
-  return (
-    <Sheet onClose={onClose} zIndex={9750}>
-      {sent ? (
-        <div className="ppp-success" style={{ textAlign:"center", padding:"24px 0" }}>
-          <div style={{ fontSize:40, marginBottom:12 }}>✦</div>
-          <div style={{ fontSize:17, fontWeight:700, color:T.teal, marginBottom:6 }}>Nachricht gesendet</div>
-          <div style={{ fontSize:13, color:T.inkFaint }}>{name} wird deine Nachricht sehen</div>
-        </div>
-      ) : (
-        <>
-          <div style={{ fontSize:15, fontWeight:700, color:T.ink, marginBottom:16 }}>✉️ Nachricht an {name}</div>
-          <textarea
-            value={msg} onChange={e=>setMsg(e.target.value)}
-            placeholder="Was möchtest du mitteilen?"
-            style={{
-              width:"100%", minHeight:110, padding:"13px 14px",
-              borderRadius:T.r16, border:`1.5px solid ${T.border}`,
-              background:T.bg, fontSize:14, color:T.ink, resize:"none",
-              fontFamily:"inherit", lineHeight:1.6, outline:"none",
-              boxSizing:"border-box",
-            }}
-          />
-          <div style={{ height:14 }}/>
-          <button className="ppp-press" onClick={handleSend} disabled={!msg.trim()} style={{
-            width:"100%", padding:"15px", borderRadius:T.r99, border:"none",
-            background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-            color:"white", fontSize:15, fontWeight:700,
-            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-            boxShadow:T.glowTeal, opacity:msg.trim()?1:0.45,
-          }}>Senden</button>
-        </>
-      )}
-    </Sheet>
-  );
-}
 
 function SupportSheet({ name, onClose, profileId }) {
   const [amount, setAmount] = useState(5);
@@ -987,7 +944,6 @@ export default function PublicProfilePage({ profileId, onClose }) {
           onChat={()=>{
             if (!profile) return;
             const _rec = { id: profile.id, display_name: profile.display_name || profile.name || "Creator", avatar_url: profile.avatar_url || null, talent: profile.talent || null };
-            console.error("[CHAT_RECIPIENT_SET]", { recipientId: _rec.id, recipient: _rec, caller: "PublicProfilePage/onChat", ts: Date.now(), stack: new Error().stack });
             setChatRecipient(_rec);
             setShowChat(true);
           }}
