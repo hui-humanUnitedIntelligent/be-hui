@@ -239,10 +239,7 @@ export function buildActions(shell) {
 
     [A.CLOSE_CHAT]: () => {
       logAction(A.CLOSE_CHAT);
-      if (typeof window !== "undefined") {
-        const _tr = { source: "A.CLOSE_CHAT", file: "hui.actions.js", line: 262,
-          stack: new Error().stack, ts: Date.now() };
-      }
+      console.log('[CHAT_CLOSE_TRIGGER]', { src: 'A.CLOSE_CHAT', stack: (new Error().stack||'').split('\n').slice(1,6).join(' | '), ts: Date.now() });
       setShowChat?.(false);
     },
 
