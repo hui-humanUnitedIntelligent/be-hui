@@ -153,14 +153,20 @@ export default function HomeShell({ children }) {
   // ── Creator / Profile State ────────────────────────────────────
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
   // ── Chat State ─────────────────────────────────────────────────
-  const [showChat,               setShowChat]              = useState(false);
-  const _prevShowChat = React.useRef(false);
-  React.useEffect(() => {
-    if (_prevShowChat.current !== showChat) {
-      console.log('[SHOW_CHAT_CHANGED]', { from: _prevShowChat.current, to: showChat, stack: (new Error().stack||'').split('\n').slice(1,5).join(' | ') });
-      _prevShowChat.current = showChat;
+  const [showChat, _setShowChatRaw] = useState(false);
+  const _showChatRef = React.useRef(false);
+  const setShowChat = React.useCallback((val) => {
+    const next = typeof val === 'function' ? val(_showChatRef.current) : val;
+    if (next !== _showChatRef.current) {
+      console.log('[SHOW_CHAT_CHANGED]', {
+        from: _showChatRef.current, to: next,
+        stack: (new Error().stack||'').split('\n').slice(1,6).join(' | '),
+        ts: Date.now(),
+      });
     }
-  }); // no deps — feuert nach jedem render
+    _showChatRef.current = next;
+    _setShowChatRaw(next);
+  }, []);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
 
   // ── Overlay State (22 Overlays) ────────────────────────────────
