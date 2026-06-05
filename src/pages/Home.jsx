@@ -78,6 +78,7 @@ const GLOBAL_CSS = IX.CSS + `
 
 
 function HomeInner() {
+  console.log("[HOME] MOUNT");
   // Phase 16.6: Tab element refs for imperative Safari paint recovery
   const tabRefs = {
     feed:      React.useRef(null),
