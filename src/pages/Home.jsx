@@ -137,6 +137,11 @@ function HomeInner() {
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList();
 
+  // ── DIAG: showChat State-Änderung tracen ─────────────
+  React.useEffect(() => {
+    console.log("[SHOW_CHAT_CHANGED]", showChat);
+  }, [showChat]);
+
   // ── Phase 4C: Talent Flow global registrieren ────────────────
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
   React.useEffect(() => {
