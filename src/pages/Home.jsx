@@ -137,12 +137,6 @@ function HomeInner() {
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList("home");
 
-  // ── DIAG: showChat State-Änderung tracen ─────────────
-  React.useEffect(() => {
-    console.log("[SHOW_CHAT_CHANGED]", showChat);
-    if (!window.__CHAT_TRACE) window.__CHAT_TRACE = [];
-    window.__CHAT_TRACE.push(showChat ? "SHOW_CHAT_TRUE" : "SHOW_CHAT_FALSE");
-  }, [showChat]);
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
@@ -248,20 +242,7 @@ function HomeInner() {
   return (
     <>
       <style>{GLOBAL_CSS + SAFE_MOTION_CSS}</style>
-      {/* ── DIAG: Chat Trace Button ── */}
-      <button
-        onClick={() => alert(JSON.stringify(window.__CHAT_TRACE || ["(leer — noch kein Klick)"], null, 2))}
-        style={{
-          position: "fixed", bottom: 90, left: 16, zIndex: 99999,
-          background: "#FF4757", color: "white",
-          border: "none", borderRadius: 8,
-          padding: "6px 12px", fontSize: 12, fontWeight: 700,
-          cursor: "pointer", opacity: 0.92,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-        }}
-      >
-        Chat Trace
-      </button>
+
 
       {/* ── Haupt-Layout: KEIN overflow:hidden hier ────────────── */}
       {/* overflow:hidden würde in iOS Safari pointer-events auf    */}
