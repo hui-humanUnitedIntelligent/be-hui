@@ -175,7 +175,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
 
   return (
     <div style={{
-      position: "fixed", inset: 0, zIndex: 9600,
+      position: "fixed", inset: 0, zIndex: 10002,
       display: "flex", flexDirection: "column",
       fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
       background: "rgba(242,244,248,0.97)",
