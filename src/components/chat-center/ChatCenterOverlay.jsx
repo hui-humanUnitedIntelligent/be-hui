@@ -233,6 +233,12 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   const [pendingRecipient, setPendingRecipient] = React.useState(initialRecipient || null);
 
+  // ── DIAG: Mount / Unmount tracen ─────────────────────
+  React.useEffect(() => {
+    console.log("[CCO_MOUNT]");
+    return () => console.log("[CCO_UNMOUNT]");
+  }, []);
+
   // AUTO-OPEN: initialRecipient beim Mount vorhanden → direkt ConversationRoom öffnen.
   // Fallback auf Banner-Tap wenn user?.id noch nicht verfügbar.
   React.useEffect(() => {
