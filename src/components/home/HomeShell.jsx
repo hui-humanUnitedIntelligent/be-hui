@@ -154,6 +154,13 @@ export default function HomeShell({ children }) {
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
   // ── Chat State ─────────────────────────────────────────────────
   const [showChat,               setShowChat]              = useState(false);
+  const _prevShowChat = React.useRef(false);
+  React.useEffect(() => {
+    if (_prevShowChat.current !== showChat) {
+      console.log('[SHOW_CHAT_CHANGED]', { from: _prevShowChat.current, to: showChat, stack: (new Error().stack||'').split('\n').slice(1,5).join(' | ') });
+      _prevShowChat.current = showChat;
+    }
+  }); // no deps — feuert nach jedem render
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
 
   // ── Overlay State (22 Overlays) ────────────────────────────────
