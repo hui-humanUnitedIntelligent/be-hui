@@ -19,6 +19,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
+import { useHome }       from "../components/home/HomeShell.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -1429,6 +1430,24 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
 
+  // AUFGABE 2+3: handleOpenChat — identisch zu PublicProfilePage.jsx
+  const { setShowChat, setChatRecipient } = useHome();
+  const handleOpenChat = useCallback(() => {
+    console.log("[CHAT] HANDLE_OPEN_CHAT", {
+      profileId: profile?.id,
+      profileName: profile?.display_name,
+    });
+    if (!profile?.id) return;
+    const recipient = {
+      id:           profile.id,
+      display_name: profile.display_name || profile.username || "Talent",
+      avatar_url:   profile.avatar_url || null,
+    };
+    setChatRecipient(recipient);
+    console.log("[CHAT] SET_SHOW_CHAT_TRUE");
+    setShowChat(true);
+  }, [profile, setChatRecipient, setShowChat]);
+
   return (
     <div className="tpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -1454,7 +1473,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
+          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenChat={handleOpenChat} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
         </div>
         <Gap h={20}/>
 
