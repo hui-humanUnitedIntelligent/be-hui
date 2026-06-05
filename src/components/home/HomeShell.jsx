@@ -149,38 +149,8 @@ export default function HomeShell({ children }) {
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
-  const [showChat,               _setShowChat_raw]         = useState(false);
-  const setShowChat = React.useCallback((val) => {
-    console.trace('[TRACE_SETSHOWCHAT] setShowChat(' + val + ') aufgerufen', { val, ts: Date.now() });
-    _setShowChat_raw(val);
-  }, [_setShowChat_raw]);
+  const [showChat,               setShowChat]              = useState(false);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
-  const _prevChatRecipientRef = React.useRef(undefined);
-  React.useEffect(() => {
-    const prev = _prevChatRecipientRef.current;
-    const next = chatRecipient;
-    const stack = new Error().stack;
-    if (prev === undefined) { _prevChatRecipientRef.current = next; return; }
-    const prevId = prev?.id ?? null;
-    const nextId = next?.id ?? null;
-    let event;
-    if (!prevId && nextId)                           event = "RECIPIENT_SET";
-    else if (prevId && !nextId)                     event = "RECIPIENT_CLEARED";
-    else if (prevId && nextId && prevId !== nextId) event = "RECIPIENT_CHANGED";
-    else return;
-    const shortStack = (stack || "").split("\n").slice(1, 5).join(" | ");
-    const payload = { event, prevId, nextId,
-      prevName: prev?.display_name ?? null, nextName: next?.display_name ?? null,
-      ts: Date.now(), stack: shortStack };
-    if (event === 'RECIPIENT_CLEARED') {
-      console.error("[CHAT_RECIPIENT_CLEAR]", { caller: "HomeShell/chatRecipient-watcher", prevId, ts: Date.now(), stack: (new Error().stack) });
-    } else if (event === 'RECIPIENT_SET') {
-      console.error("[CHAT_RECIPIENT_SET]", { recipientId: nextId, recipient: chatRecipient, caller: "HomeShell/chatRecipient-watcher", ts: Date.now(), stack: (new Error().stack) });
-    } else {
-      console.error("[CHAT_RECIPIENT_CHANGED]", { from: prevId, to: nextId, caller: "HomeShell/chatRecipient-watcher", ts: Date.now(), stack: (new Error().stack) });
-    }
-    _prevChatRecipientRef.current = next;
-  }, [chatRecipient]);
 
   const [showNotifs,             setShowNotifs]            = useState(false);
   const [showMap,                setShowMap]               = useState(false);
@@ -228,7 +198,6 @@ export default function HomeShell({ children }) {
   const switchTab = useCallback((newTab) => {
     // GUARD: Orb is a world-layer, never a tab destination
     if (!assertValidTab(newTab)) return;
-    console.trace('[TRACE_SWITCHTAB] switchTab aufgerufen', { newTab, ts: Date.now() });
     // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
     // World continuity: track tab transition for atmospheric carry-over
     setPrevTab(tab);
@@ -245,7 +214,6 @@ export default function HomeShell({ children }) {
     setShowInvitationFlow(false);
     setShowMatch(false);
     setShowMap(false);
-    console.error("[TAB_SWITCH_CLEAR_CHAT_RECIPIENT]", { newTab, ts: Date.now() });
     setChatRecipient?.(null);
     setShowNotifs(false);
     setShowMembership(false);
@@ -314,7 +282,6 @@ export default function HomeShell({ children }) {
       ts:                Date.now(),
       caller:            _short,
     };
-    console.warn("[PROFILE_CLOSE]", _ev);
     if (typeof window !== "undefined") {
     }
     // ── end instrumentation ─────────────────────────────────────
@@ -341,8 +308,10 @@ export default function HomeShell({ children }) {
     switchTab(key);
   }, [openOwnProfile, switchTab]);
 
-  /* Context Value */
-  const ctx = {
+  /* Context Value — useMemo für Referenzstabilität */
+  // Ohne useMemo: ctx ist bei JEDEM render ein neues Objekt →
+  // alle useHome()-Consumer re-rendern + buildActions() rebuildet.
+  const ctx = useMemo(() => ({
     user, authProfile, isTalent, isBaseUser, canCreate, isMember,
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
@@ -383,8 +352,29 @@ export default function HomeShell({ children }) {
     activeStory,           setActiveStory,
     cart,                  setCart,
     openOwnProfile,
-    flowStore,          // Phase 2: Flow Memory
-  };
+    flowStore,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [
+    user, authProfile, isTalent, isBaseUser, canCreate, isMember,
+    currentUser, userName, tab, switchTab, handleTab,
+    keepFeed, keepDiscover, keepImpact, keepFavorites,
+    tabFeed, tabDiscover, tabImpact, tabFavorites,
+    activeSurface, prevTab, carryOver,
+    isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
+    activeMood, liveNotifCount,
+    showWirker, selectedProfileId,
+    showCreatorDashboard, openCreatorDashboard,
+    openProfileById, closeProfileById,
+    showChat, chatRecipient,
+    showNotifs, showMap, showMatch, showMembership,
+    showPlusSheet, showCreateFlow, showConnect,
+    showTeilen, showTalentFlow, showStoryComposer,
+    showWerkPublisher, showExperienceCreator,
+    showImpactFlow, showContentSelector, showInvitationFlow,
+    showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
+    createType, activeStory, cart,
+    openOwnProfile, flowStore,
+  ]);
 
   return (
     <>
