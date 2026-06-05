@@ -78,7 +78,6 @@ const GLOBAL_CSS = IX.CSS + `
 
 
 function HomeInner() {
-  console.log("[HOME] MOUNT");
   // Phase 16.6: Tab element refs for imperative Safari paint recovery
   const tabRefs = {
     feed:      React.useRef(null),
@@ -92,7 +91,6 @@ function HomeInner() {
   const feedRefreshRef = React.useRef(null);   // wird von UnifiedFeed befüllt
   React.useEffect(() => {
     const handler = () => {
-      console.log("[HUI_HOME] feed-refresh → refresh");
       feedRefreshRef.current?.();
     };
     window.addEventListener("feed-refresh", handler);
@@ -492,12 +490,10 @@ function HomeInner() {
       />
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
-      {(() => { console.log("[CHAT_RENDER]", { showChat, chatCenter: !!SAFE_MODE.chatCenter, recipientId: chatRecipient?.id }); return null; })()}
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
-              console.log("[CHAT_CLOSE_TRIGGER]", { src:"onClose_button", stack:(new Error().stack||"").split("\n").slice(1,5).join(" | ") });
               setShowChat(false);
               setChatRecipient(null);
               const returnProfile = flow.getReturnProfile();
@@ -509,7 +505,6 @@ function HomeInner() {
             }}
             initialRecipient={chatRecipient}
             onDiscoverClose={() => {
-              console.log("[CHAT_CLOSE_TRIGGER]", { src:"onDiscoverClose", stack:(new Error().stack||"").split("\n").slice(1,5).join(" | ") });
               setShowChat(false);
               setChatRecipient(null);
               flow.clearReturnProfile();
