@@ -45,7 +45,6 @@ function ComposeBtn({ onClick }) {
 
 /* ── LIST PANEL ── */
 function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose }) {
-  const [search, setSearch] = useState("");
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 10001,
