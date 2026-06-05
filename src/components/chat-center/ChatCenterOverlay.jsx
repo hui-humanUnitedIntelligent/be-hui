@@ -48,7 +48,9 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
   // iOS tap-through guard: ignoriere clicks auf ← in den ersten 400ms nach Mount
   const mountedAt = React.useRef(Date.now());
   function safeClose() {
-    if (Date.now() - mountedAt.current < 400) return; // iOS ghost-click guard
+    const age = Date.now() - mountedAt.current;
+    console.log('[CHAT_BACK_BUTTON]', { age_ms: age, blocked: age < 400, ts: Date.now() });
+    if (age < 400) return; // iOS ghost-click guard
     onClose?.();
   }
   return (
@@ -150,6 +152,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           </div>
         )}
 
+        {console.log('[CHAT_LIST_RENDER]', { chatsLength: (chats||[]).length, loading, ts: Date.now() })}
         <ConversationList
           chats={chats}
           loading={loading}
@@ -171,9 +174,11 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   const { user } = useAuth();
   const { chats, loading } = useChatList(user?.id);
 
-  // LOG 6: CHAT_OVERLAY_MOUNT
   React.useEffect(() => {
-    console.log("[CHAT_OVERLAY_MOUNT]", { initialRecipientId: initialRecipient?.id, userId: user?.id });
+    console.log('[CHAT_OVERLAY_MOUNT]', { initialRecipientId: initialRecipient?.id, userId: user?.id, ts: Date.now() });
+    return () => {
+      console.log('[CHAT_OVERLAY_UNMOUNT]', { ts: Date.now(), stack: (new Error().stack||'').split('\n').slice(1,5).join(' | ') });
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // CCO_STATE — feuert bei Mount und bei jedem initialRecipient-Change
@@ -218,6 +223,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   function openConv(rawConv) {
     const realId = rawConv?.id;
     if (!realId) return;
+    console.log('[CHAT_ROOM_OPEN]', { conversationId: realId, ts: Date.now() });
     const other = rawConv.other_profile || {};
     setActiveConv({
       id:          realId,
@@ -315,7 +321,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <ListPanel
           onClose={onClose}
           onOpen={openConv}
-          onCompose={() => setShowPeopleSearch(true)}
+          onCompose={() => console.log('[PEOPLE_SEARCH_OPEN]', { ts: Date.now() }); setShowPeopleSearch(true)}
           chats={chats}
           loading={loading}
           onDiscoverClose={onDiscoverClose}
