@@ -81,7 +81,7 @@ export function formatMsgDate(iso) {
 // participant_ids (uuid[]) statt participant_a/participant_b
 // state = "opened" statt "open"
 // ────────────────────────────────────────────────────────────────
-export function useChatList() {
+export function useChatList(instanceId = "default") {
   const { user, authChecked } = useAuth();
   const [chats,   setChats]   = useState([]);
   const [loading, setLoading] = useState(true);
@@ -220,7 +220,7 @@ export function useChatList() {
   // Realtime: Chat-Updates + neue Nachrichten → unread live aktualisieren
   useEffect(() => {
     if (!user?.id) return;
-    const channelName = `chat-list:${user.id}`;
+    const channelName = `chat-list:${user.id}:${instanceId}`;
     console.log("[CHAT_CHANNEL_SUBSCRIBE]", channelName);
     realtimeRef.current = supabase
       .channel(channelName)
