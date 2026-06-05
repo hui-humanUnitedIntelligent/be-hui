@@ -99,7 +99,6 @@ function useRelationship(profileId, currentUserId) {
     (async () => {
       setState(s => ({ ...s, loading: true }));
       try {
-        console.log("[RELATIONSHIP] DB-Query starten", { profileId, currentUserId, refreshKey });
         const [watchRes, relRes] = await Promise.all([
           supabase
             .from("profile_watchlist")
@@ -124,7 +123,6 @@ function useRelationship(profileId, currentUserId) {
           relationStatus: relRes.data?.status ?? null,
           loading:        false,
         };
-        console.log("[RELATIONSHIP] STATE UPDATE:", nextState);
         setState(nextState);
       } catch(e) {
         if (cancelled) return;
