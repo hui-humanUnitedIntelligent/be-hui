@@ -170,16 +170,36 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
 
 
-  // initialRecipient → wird als pendingRecipient für Banner in der Liste gehalten
-  // Kein direktes Öffnen — User sieht zuerst die Liste mit Kategorien & Verbindungen
-  // Banner oben: "Gespräch mit X beginnen" → Klick öffnet ConversationRoom
   const [pendingRecipient, setPendingRecipient] = React.useState(initialRecipient || null);
 
+  // AUTO-OPEN: initialRecipient beim Mount vorhanden → direkt ConversationRoom öffnen.
+  // Fallback auf Banner-Tap wenn user?.id noch nicht verfügbar.
   React.useEffect(() => {
-    if (initialRecipient?.id) {
+    if (!initialRecipient?.id) return;
+    if (!user?.id) {
       setPendingRecipient(initialRecipient);
+      return;
     }
-  }, [initialRecipient?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    setLoadingConv(true);
+    findOrCreateChat({
+      userId:      user.id,
+      otherUserId: initialRecipient.id,
+      chatType:    "direct",
+    }).then(chatRecord => {
+      if (!chatRecord?.id) { setPendingRecipient(initialRecipient); return; }
+      setActiveConv({
+        id:         chatRecord.id,
+        name:       initialRecipient.display_name || "Creator",
+        avatar_url: initialRecipient.avatar_url   || null,
+        talent:     initialRecipient.talent        || null,
+        online:     true,
+      });
+    }).catch(() => {
+      setPendingRecipient(initialRecipient);
+    }).finally(() => {
+      setLoadingConv(false);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function openPendingChat() {
     if (!pendingRecipient?.id || !user?.id) return;
