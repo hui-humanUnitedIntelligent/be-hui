@@ -22,7 +22,10 @@ export default function HuiActionProvider({ children }) {
 
   // Rebuild actions only when shell reference changes
   // shell is the full HomeCtx value — stable reference from useMemo in HomeShell
-  const actions = useMemo(() => buildActions(shell), [shell]);
+  const actions = useMemo(() => {
+    console.trace('[TRACE_BUILD_ACTIONS] buildActions(shell) — shell neu, actions werden rebuildet', { shellSetShowChat: typeof shell?.setShowChat, ts: Date.now() });
+    return buildActions(shell);
+  }, [shell]);
 
   return (
     <ActionCtx.Provider value={actions}>
