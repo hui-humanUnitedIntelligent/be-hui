@@ -53,7 +53,7 @@ function ConnectionBubbles({ people }) {
             boxShadow:"0 3px 10px rgba(0,0,0,0.09)",
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:18, color:"white", fontWeight:700,
-          }}>{!p.avatar_url && p.name[0]}</div>
+          }}>{!p.avatar_url && (p.name?.[0] || "?")}</div>
           <span style={{ fontSize:11.5, color:C.ink, fontWeight:500,
             whiteSpace:"nowrap" }}>{p.name}</span>
         </div>
@@ -97,7 +97,7 @@ function ImpactCard() {
 }
 
 /* ══════════════════════════════════════════════════════════════ */
-export default function ConversationList({ chats, loading, onOpen, onDiscover }) {
+export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [] }) {
   console.log("[CONVERSATION_LIST_RENDER]", { chatCount: chats?.length, loading });
   const [activeFilter, setActiveFilter] = useState("alle");
 
@@ -185,7 +185,13 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover })
         </>
       )}
 
-      {/* Neueste Verbindungen — wird geladen wenn follows-Daten verfügbar */}
+      {/* Neueste Verbindungen */}
+      {connections.length > 0 && (
+        <>
+          <SectionHead title="Neueste Verbindungen" onMore={() => {}}/>
+          <ConnectionBubbles people={connections}/>
+        </>
+      )}
 
       {/* Impact Card */}
       <ImpactCard/>
