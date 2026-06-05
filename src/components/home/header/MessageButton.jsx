@@ -49,15 +49,24 @@ export default function MessageButton({ count=0, onPress }) {
 
       {count > 0 && (
         <div style={{
-          position:"absolute", top:5, right:5,
-          minWidth:13, height:13, borderRadius:7,
-          background:"linear-gradient(135deg,#16D7C5,#11C5B7)",
-          color:"white", fontSize:7, fontWeight:800,
+          position:"absolute", top:3, right:3,
+          minWidth: count > 9 ? 16 : 14,
+          height: count > 9 ? 16 : 14,
+          borderRadius:8,
+          background:"linear-gradient(135deg,#FF4757,#E8353F)",
+          color:"white",
+          fontSize: count > 9 ? 8 : 9,
+          fontWeight:800,
           display:"flex", alignItems:"center", justifyContent:"center",
-          padding:"0 2px",
-          border:"1.5px solid rgba(255,251,248,0.96)",
-          boxShadow:"0 0 5px rgba(22,215,197,0.5)",
-        }}>{count > 9 ? "9+" : count}</div>
+          padding:"0 3px",
+          border:"1.5px solid rgba(255,251,248,0.97)",
+          boxShadow:"0 1px 6px rgba(255,71,87,0.55)",
+          opacity:1,
+          transform:"scale(1)",
+          transition:"opacity 0.2s ease, transform 0.2s cubic-bezier(.175,.885,.32,1.275)",
+        }}>
+          {count >= 100 ? "99+" : count > 9 ? count : count}
+        </div>
       )}
     </button>
   );
