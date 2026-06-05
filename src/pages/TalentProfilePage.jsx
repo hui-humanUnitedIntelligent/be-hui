@@ -502,22 +502,72 @@ function CinematicHero({ profile, loading }) {
 // ══════════════════════════════════════════════════════════════
 function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
   return createPortal(
-    <div style={{
-      position: "fixed",
-      left: 20,
-      right: 20,
-      top: 120,
-      height: 300,
-      background: "red",
-      color: "white",
-      zIndex: 999999,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: 32,
-      fontWeight: 900,
-    }}>
-      KOMPASS TEST
+    <div
+      onClick={onClose}
+      style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"rgba(26,26,24,0.45)",
+        display:"flex", alignItems:"flex-end",
+        WebkitTapHighlightColor:"transparent",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width:"100%",
+          background:"#FFFBF8",
+          borderRadius:"22px 22px 0 0",
+          padding:"24px 20px max(28px,calc(16px + env(safe-area-inset-bottom,0px)))",
+          boxShadow:"0 -8px 40px rgba(26,26,24,0.18)",
+          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+        }}
+      >
+        <div style={{
+          width:36, height:4, borderRadius:2,
+          background:"rgba(26,26,24,0.12)",
+          margin:"0 auto 18px",
+        }}/>
+        <div style={{fontSize:15, fontWeight:700, color:"rgba(26,26,24,0.55)", marginBottom:18, textAlign:"center"}}>
+          {profile?.display_name || "Creator"}
+        </div>
+        <button
+          onClick={() => { onWatch?.(); onClose(); }}
+          style={{
+            width:"100%", padding:"15px 18px",
+            background: isWatching ? "rgba(255,138,107,0.07)" : "rgba(22,215,197,0.07)",
+            border: isWatching
+              ? "1.5px solid rgba(255,138,107,0.22)"
+              : "1.5px solid rgba(22,215,197,0.22)",
+            borderRadius:14, cursor:"pointer", fontFamily:"inherit",
+            display:"flex", alignItems:"center", gap:12,
+            marginBottom:10, touchAction:"manipulation",
+          }}
+        >
+          <span style={{fontSize:20}}>{isWatching ? "\uD83D\uDC41" : "\uD83C\uDF31"}</span>
+          <div style={{textAlign:"left"}}>
+            <div style={{fontSize:14, fontWeight:700, color:"#1a1a18"}}>
+              {isWatching ? "Nicht mehr beobachten" : "Im Blick behalten"}
+            </div>
+            <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
+              {isWatching
+                ? "Aus deiner Beobachtungsliste entfernen"
+                : "Werde benachrichtigt wenn sich etwas tut"}
+            </div>
+          </div>
+        </button>
+        <button
+          onClick={onClose}
+          style={{
+            width:"100%", padding:"14px",
+            background:"rgba(26,26,24,0.05)",
+            border:"none", borderRadius:14,
+            fontSize:14, fontWeight:600, color:"rgba(26,26,24,0.55)",
+            cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
+          }}
+        >
+          Abbrechen
+        </button>
+      </div>
     </div>,
     document.body
   );
@@ -1406,7 +1456,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 2. Action Buttons */}
         <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { alert("onOpenKompass called. loading=" + loading + " iw=" + iw); setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); alert("showKompassSheet set to true. loading=" + loading); }}/>
+          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenChat={handleOpenChat} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
         </div>
         <Gap h={20}/>
 
@@ -1439,7 +1489,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
         {/* 8. Abschluss */}
         <AbschlussBar profile={profile} loading={loading}/>
-      {showKompassSheet && alert("RENDER: showKompassSheet=true — Sheet wird gerendert")}
       {showKompassSheet && (
         <KompassActionSheet
           profile={profile}
