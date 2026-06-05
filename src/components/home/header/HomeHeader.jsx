@@ -28,6 +28,7 @@ export default function HomeHeader({
 
   // Route through Action Engine — prop fallbacks for non-HomeShell contexts
   function handleChat() {
+    window.__CHAT_TRACE = ["OPEN_CHAT_CLICK"];
     console.log("[OPEN_CHAT_CLICK]");
     actions[A.OPEN_CHAT]?.({ source: S.HOME }) || onChat?.();
   }
