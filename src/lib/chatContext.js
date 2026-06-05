@@ -161,7 +161,7 @@ export function useChatList() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [authChecked, user?.id]);
 
   useEffect(() => { load(); }, [load]);
 
