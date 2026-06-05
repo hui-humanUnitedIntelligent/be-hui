@@ -6,7 +6,7 @@ import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 const AuthContext = createContext(null);
 
 // ─── Helper: Promise mit Timeout ─────────────────────────────────────
-async function withTimeout(promise, ms = 8000) {
+async function withTimeout(promise, ms = 4000) {
   let timer;
   const timeout = new Promise(resolve => {
     timer = setTimeout(() => resolve({ data: null, error: { message:"timeout", code:"TIMEOUT" } }), ms);
@@ -101,7 +101,10 @@ export function AuthProvider({ children }) {
     sessionRefreshedRef.current = true;
     (async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await withTimeout(
+          supabase.auth.getSession(),
+          4000
+        );
         if (!session?.access_token) {
           // Kein gültiger Token → refresh versuchen
           const { data: refreshed } = await supabase.auth.refreshSession();
@@ -146,7 +149,10 @@ export function AuthProvider({ children }) {
 
       // getSession Sicherheitsnetz aktiv
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await withTimeout(
+          supabase.auth.getSession(),
+          4000
+        );
         if (authSettledRef.current) return;  // onAuthStateChange hat zwischenzeitlich gefeuert
         const u = applySession(session);
         if (u && !profileLoadingRef.current) loadProfile(u.id);
@@ -157,13 +163,13 @@ export function AuthProvider({ children }) {
     };
     sessionFallback();
 
-    // ── C) Absoluter Fallback nach 12s (offline/netzwerkfehler) ──────
+    // ── C) Absoluter Fallback nach 5s (offline/netzwerkfehler) ───────
     const absoluteFallback = setTimeout(() => {
       if (!authSettledRef.current) {
-        console.warn("[HUI Auth] Absoluter Fallback nach 12s — kein Auth-Event");
+        console.warn("[HUI Auth] Absoluter Fallback nach 5s — kein Auth-Event");
         applySession(null);
       }
-    }, 12000);
+    }, 5000);
 
     return () => {
       subscription.unsubscribe();
