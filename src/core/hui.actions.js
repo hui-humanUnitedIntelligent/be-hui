@@ -163,6 +163,7 @@ export function buildActions(shell) {
 
   // ── helper: close all overlays before opening another ────────────
   function closeAll(callerAction) {
+    console.trace('[TRACE_CLOSEALL] closeAll() aufgerufen', { callerAction, ts: Date.now() });
     // ── CLOSEALL INSTRUMENTATION ─────────────────────────────
     const _caStack = new Error().stack;
     const _caShort = (_caStack || "").split("\n").slice(1, 6).join(" | ");
@@ -201,6 +202,7 @@ export function buildActions(shell) {
 
     // ── PROFILE ──────────────────────────────────────────────────
     [A.OPEN_PROFILE]: (rawPayload) => {
+      console.trace('[TRACE_OPEN_PROFILE] OPEN_PROFILE action aufgerufen', { rawPayload, ts: Date.now() });
       const payload = validate("OPEN_PROFILE", rawPayload);
       if (!payload) return;
       logAction(A.OPEN_PROFILE, payload);
@@ -235,8 +237,9 @@ export function buildActions(shell) {
 
     // ── CHAT ─────────────────────────────────────────────────────
     [A.OPEN_CHAT]: (rawPayload) => {
+      console.trace('[TRACE_OPEN_CHAT] OPEN_CHAT action aufgerufen', { rawPayload, ts: Date.now() });
       const payload = validate("OPEN_CHAT", rawPayload);
-      if (!payload) return;
+      if (!payload) { console.warn('[TRACE_OPEN_CHAT] validate() returned null — ABBRUCH'); return; }
       logAction(A.OPEN_CHAT, payload);
       const { recipient, recipientId, name, avatar, ...rest } = payload;
       // Semantic: normalizeRecipient schützt vor rohen Supabase-Objekten
