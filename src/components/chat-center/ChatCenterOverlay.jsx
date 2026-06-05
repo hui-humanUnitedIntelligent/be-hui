@@ -236,7 +236,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // ── DIAG: Mount / Unmount tracen ─────────────────────
   React.useEffect(() => {
     console.log("[CCO_MOUNT]");
-    return () => console.log("[CCO_UNMOUNT]");
+    if (!window.__CHAT_TRACE) window.__CHAT_TRACE = [];
+    window.__CHAT_TRACE.push("CCO_MOUNT");
+    return () => {
+      console.log("[CCO_UNMOUNT]");
+      if (!window.__CHAT_TRACE) window.__CHAT_TRACE = [];
+      window.__CHAT_TRACE.push("CCO_UNMOUNT");
+    };
   }, []);
 
   // AUTO-OPEN: initialRecipient beim Mount vorhanden → direkt ConversationRoom öffnen.
