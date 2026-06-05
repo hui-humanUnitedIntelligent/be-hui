@@ -44,7 +44,7 @@ function ComposeBtn({ onClick }) {
 }
 
 /* ── LIST PANEL ── */
-function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose }) {
+function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 10001,
@@ -107,6 +107,43 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           background:"#00001a", color:"#4488ff", fontFamily:"monospace",
           fontSize:10, padding:"3px 10px", flexShrink:0,
         }}>[CHATCENTEROVERLAY→LISTPANEL] chats={String((chats||[]).length)} loading={String(loading)}</div>
+
+        {/* ── Pending Recipient Banner ── */}
+        {pendingRecipient?.id && onOpenPending && (
+          <div
+            onClick={onOpenPending}
+            style={{
+              margin:"12px 16px 4px",
+              padding:"14px 16px",
+              borderRadius:16,
+              background:"linear-gradient(135deg,rgba(22,215,197,0.12),rgba(22,215,197,0.06))",
+              border:"1.5px solid rgba(22,215,197,0.28)",
+              display:"flex", alignItems:"center", gap:12,
+              cursor:"pointer",
+              WebkitTapHighlightColor:"transparent",
+            }}
+          >
+            <div style={{
+              width:40, height:40, borderRadius:"50%", flexShrink:0,
+              background: pendingRecipient.avatar_url
+                ? `url(${pendingRecipient.avatar_url}) center/cover no-repeat`
+                : "linear-gradient(135deg,#16D7C5,#0ea3c2)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:17, color:"white", fontWeight:700,
+            }}>
+              {!pendingRecipient.avatar_url && (pendingRecipient.display_name?.[0] || "?")}
+            </div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13.5, fontWeight:700, color:"#1a1a18" }}>
+                Gespräch mit {pendingRecipient.display_name || "diesem Talent"} beginnen
+              </div>
+              <div style={{ fontSize:12, color:"rgba(80,80,80,0.6)", marginTop:2 }}>
+                Tippe hier um direkt zu schreiben →
+              </div>
+            </div>
+          </div>
+        )}
+
         <ConversationList
           chats={chats}
           loading={loading}
@@ -137,22 +174,32 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   React.useEffect(() => {
   }, [initialRecipient?.id, activeConv?.id, loadingConv]);
 
-  // initialRecipient → Chat direkt öffnen
+  // initialRecipient → wird als pendingRecipient für Banner in der Liste gehalten
+  // Kein direktes Öffnen — User sieht zuerst die Liste mit Kategorien & Verbindungen
+  // Banner oben: "Gespräch mit X beginnen" → Klick öffnet ConversationRoom
+  const [pendingRecipient, setPendingRecipient] = React.useState(initialRecipient || null);
+
   React.useEffect(() => {
-    if (!initialRecipient?.id || !user?.id) return;
-    if (activeConv) return;
+    if (initialRecipient?.id) {
+      setPendingRecipient(initialRecipient);
+    }
+  }, [initialRecipient?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function openPendingChat() {
+    if (!pendingRecipient?.id || !user?.id) return;
+    setPendingRecipient(null);
     setLoadingConv(true);
     findOrCreateChat({
       userId:      user.id,
-      otherUserId: initialRecipient.id,
+      otherUserId: pendingRecipient.id,
       chatType:    "direct",
     }).then(chatRecord => {
       if (!chatRecord?.id) return;
       setActiveConv({
         id:         chatRecord.id,
-        name:       initialRecipient.display_name || "Creator",
-        avatar_url: initialRecipient.avatar_url   || null,
-        talent:     initialRecipient.talent        || null,
+        name:       pendingRecipient.display_name || "Creator",
+        avatar_url: pendingRecipient.avatar_url   || null,
+        talent:     pendingRecipient.talent        || null,
         online:     true,
       });
     }).catch(err => {
@@ -160,7 +207,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     }).finally(() => {
       setLoadingConv(false);
     });
-  }, [initialRecipient?.id, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   function openConv(rawConv) {
     const realId = rawConv?.id;
@@ -266,6 +313,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           chats={chats}
           loading={loading}
           onDiscoverClose={onDiscoverClose}
+          pendingRecipient={pendingRecipient}
+          onOpenPending={openPendingChat}
         />
       )}
     </>
