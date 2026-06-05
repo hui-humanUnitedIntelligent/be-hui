@@ -142,15 +142,6 @@ function useProfileType(profileId) {
           data?.membership_type === "talent"
         );
 
-        console.log(
-          "[PROFILE ROUTER]",
-          "\n  profileId:", profileId,
-          "\n  role:", data?.role,
-          "\n  has_talent_profile:", data?.has_talent_profile,
-          "\n  membership_type:", data?.membership_type,
-          "\n  isTalentProfile:", isTalent,
-          "\n  rendering:", isTalent ? "TalentProfilePage" : "BasisProfilePage"
-        );
 
         setState({ resolved: true, isTalent, role: data?.role ?? null });
 
@@ -228,13 +219,6 @@ export default function ProfileLauncher() {
       authProfile?.membership_type       === "talent"
     );
 
-    console.log(
-      "[PROFILE ROUTER] eigenes Profil",
-      "\n  role:", authProfile?.role,
-      "\n  has_talent_profile:", authProfile?.has_talent_profile,
-      "\n  isSelfTalent:", isSelfTalent,
-      "\n  rendering:", isSelfTalent ? "MyTalentProfile" : "MyBasisProfile"
-    );
 
     const ProfileEditor = isSelfTalent ? MyTalentProfile : MyBasisProfile;
 
