@@ -321,7 +321,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <ListPanel
           onClose={onClose}
           onOpen={openConv}
-          onCompose={() => console.log('[PEOPLE_SEARCH_OPEN]', { ts: Date.now() }); setShowPeopleSearch(true)}
+          onCompose={() => { console.log('[PEOPLE_SEARCH_OPEN]', { ts: Date.now() }); setShowPeopleSearch(true); }}
           chats={chats}
           loading={loading}
           onDiscoverClose={onDiscoverClose}
