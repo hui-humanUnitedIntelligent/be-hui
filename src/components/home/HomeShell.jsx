@@ -39,12 +39,6 @@ export function useHome() {
 
 /* ── HomeShell ────────────────────────────────────────────────── */
 export default function HomeShell({ children }) {
-  console.log("[HOMESHELL] MOUNT");
-
-  // ── HOME MOUNT DEBUG ─────────────────────────────────────────────────
-  React.useEffect(() => {
-    console.log("HOME_MOUNTED", new Date().toISOString());
-  }, []);
 
   /* Auth */
   const {
@@ -263,50 +257,14 @@ export default function HomeShell({ children }) {
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
-    // ── PROFILE_OPEN INSTRUMENTATION ────────────────────────────
-    const _stack2 = new Error().stack;
-    const _short2 = (_stack2 || "").split("\n").slice(1, 6).join(" | ");
-    const _ev2 = { event: "PROFILE_OPEN", profileId: id, ts: Date.now(), caller: _short2 };
-    console.log("[PROFILE_OPEN]", _ev2);
-    if (typeof window !== "undefined") {
-    }
-    // ── end instrumentation ─────────────────────────────────────
-    console.log("🟠 STEP 4 — HomeShell openProfileById aufgerufen", { id, typeOf: typeof id });
     if (!id || typeof id !== "string" || id.trim() === "") {
-      console.warn("🔴 STEP 4 — HomeShell openProfileById: leere oder fehlende ID ignoriert", { id });
       return;
     }
     const trimmed = id.trim();
-    console.log("🟠 STEP 4 — HomeShell setSelectedProfileId →", trimmed);
-    // Visueller Beweis: Temporärer DOM-Banner für iPad-Debugging
-    try {
-      let banner = document.getElementById("__hui_profile_debug__");
-      if (!banner) {
-        banner = document.createElement("div");
-        banner.id = "__hui_profile_debug__";
-        banner.style.cssText = "position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:99999;background:#0DC4B5;color:#000;padding:8px 18px;border-radius:20px;font-size:13px;font-family:monospace;font-weight:bold;pointer-events:none;";
-        document.body.appendChild(banner);
-      }
-      banner.textContent = "openProfileById: " + trimmed.slice(0,12) + "…";
-      banner.style.display = "block";
-      setTimeout(() => { if(banner) banner.style.display = "none"; }, 4000);
-    } catch(e) {}
     setSelectedProfileId(trimmed);
   }, []);
 
   const closeProfileById = React.useCallback(() => {
-    // ── PROFILE_CLOSE INSTRUMENTATION ──────────────────────────
-    const _stack = new Error().stack;
-    const _short = (_stack || "").split("\n").slice(1, 6).join(" | ");
-    const _ev = {
-      event:             "PROFILE_CLOSE",
-      recipientId:       null,  // filled by watcher
-      ts:                Date.now(),
-      caller:            _short,
-    };
-    if (typeof window !== "undefined") {
-    }
-    // ── end instrumentation ─────────────────────────────────────
     setSelectedProfileId(null);
   }, []);
 
