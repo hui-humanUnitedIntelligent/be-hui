@@ -110,11 +110,6 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
 
       {/* List */}
       <div className="hui-scroll" style={{ flex: 1, overflowY: "auto" }}>
-        {/* ── CCO MARKER ── */}
-        <div style={{
-          background:"#00001a", color:"#4488ff", fontFamily:"monospace",
-          fontSize:10, padding:"3px 10px", flexShrink:0,
-        }}>[CHATCENTEROVERLAY→LISTPANEL] chats={String((chats||[]).length)} loading={String(loading)}</div>
 
         {/* ── Pending Recipient Banner ── */}
         {pendingRecipient?.id && onOpenPending && (
@@ -152,7 +147,6 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           </div>
         )}
 
-        {console.log('[CHAT_LIST_RENDER]', { chatsLength: (chats||[]).length, loading, ts: Date.now() })}
         <ConversationList
           chats={chats}
           loading={loading}
@@ -174,16 +168,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   const { user } = useAuth();
   const { chats, loading } = useChatList(user?.id);
 
-  React.useEffect(() => {
-    console.log('[CHAT_OVERLAY_MOUNT]', { initialRecipientId: initialRecipient?.id, userId: user?.id, ts: Date.now() });
-    return () => {
-      console.log('[CHAT_OVERLAY_UNMOUNT]', { ts: Date.now(), stack: (new Error().stack||'').split('\n').slice(1,5).join(' | ') });
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // CCO_STATE — feuert bei Mount und bei jedem initialRecipient-Change
-  React.useEffect(() => {
-  }, [initialRecipient?.id, activeConv?.id, loadingConv]);
 
   // initialRecipient → wird als pendingRecipient für Banner in der Liste gehalten
   // Kein direktes Öffnen — User sieht zuerst die Liste mit Kategorien & Verbindungen
@@ -223,7 +208,6 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   function openConv(rawConv) {
     const realId = rawConv?.id;
     if (!realId) return;
-    console.log('[CHAT_ROOM_OPEN]', { conversationId: realId, ts: Date.now() });
     const other = rawConv.other_profile || {};
     setActiveConv({
       id:          realId,
@@ -321,7 +305,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <ListPanel
           onClose={onClose}
           onOpen={openConv}
-          onCompose={() => { console.log('[PEOPLE_SEARCH_OPEN]', { ts: Date.now() }); setShowPeopleSearch(true); }}
+          onCompose={() => { setShowPeopleSearch(true); }}
           chats={chats}
           loading={loading}
           onDiscoverClose={onDiscoverClose}
