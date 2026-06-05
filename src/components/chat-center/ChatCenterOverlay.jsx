@@ -3,13 +3,14 @@
 // Wenn activeConv: zeige ConversationRoom. Sonst: zeige Liste.
 // Keine opacity-Tricks, keine doppelten Layer, keine Animation-Gates.
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useChatList, findOrCreateChat } from "../../lib/chatContext.js";
+import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
 
@@ -168,6 +169,62 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   const { openCreatorProfile } = useProfileLauncher();
   const { user } = useAuth();
+
+  // ── Neueste Verbindungen — gegenseitige Follows ──────────────
+  const [connections, setConnections] = useState([]);
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Step 1: Wem folge ich?
+        const { data: iFollow } = await supabase
+          .from("follows")
+          .select("followed_id")
+          .eq("follower_id", user.id);
+        const followCount = iFollow?.length ?? 0;
+
+        if (!followCount) {
+          console.log("[CONNECTIONS_LOAD]", { followCount: 0, mutualCount: 0, profileCount: 0 });
+          return;
+        }
+
+        const iFollowIds = iFollow.map(r => r.followed_id);
+
+        // Step 2: Wer davon folgt mir zurück? (mutual)
+        const { data: mutual } = await supabase
+          .from("follows")
+          .select("follower_id")
+          .eq("followed_id", user.id)
+          .in("follower_id", iFollowIds);
+        const mutualCount = mutual?.length ?? 0;
+
+        console.log("[CONNECTIONS_LOAD]", { followCount, mutualCount, profileCount: mutualCount });
+
+        if (!mutualCount || cancelled) return;
+
+        const mutualIds = mutual.map(r => r.follower_id);
+
+        // Step 3: Profile laden
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url")
+          .in("id", mutualIds)
+          .limit(10);
+
+        if (!cancelled && profiles?.length) {
+          setConnections(profiles.map(p => ({
+            id:         p.id,
+            name:       p.display_name || "?",
+            avatar_url: p.avatar_url   || null,
+          })));
+        }
+      } catch (e) {
+        console.warn("[CONNECTIONS_LOAD] error:", e?.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
   const { chats, loading } = useChatList(user?.id);
 
 
@@ -333,7 +390,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           onDiscoverClose={onDiscoverClose}
           pendingRecipient={pendingRecipient}
           onOpenPending={openPendingChat}
-          connections={[]}
+          connections={connections}
         />
       )}
     </>
