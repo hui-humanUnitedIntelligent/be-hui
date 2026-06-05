@@ -1433,9 +1433,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
   // AUFGABE 2+3: handleOpenChat — identisch zu PublicProfilePage.jsx
   const { setShowChat, setChatRecipient } = useHome();
   const handleOpenChat = useCallback(() => {
-    console.log("[CHAT_STEP_1] handleOpenChat", { profileId: profile?.id, profileName: profile?.display_name });
     if (!profile?.id) {
-      console.log("[CHAT_STEP_1_ABORT] profile.id fehlt — kein Chat möglich");
       return;
     }
     const recipient = {
@@ -1443,9 +1441,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
       display_name: profile.display_name || profile.username || "Talent",
       avatar_url:   profile.avatar_url || null,
     };
-    console.log("[CHAT_STEP_2] recipient set", { recipientId: recipient.id, name: recipient.display_name });
     setChatRecipient(recipient);
-    console.log("[CHAT_STEP_3] setShowChat true");
     setShowChat(true);
   }, [profile, setChatRecipient, setShowChat]);
 
