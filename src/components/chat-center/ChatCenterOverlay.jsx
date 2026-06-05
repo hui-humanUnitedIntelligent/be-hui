@@ -46,6 +46,7 @@ function ComposeBtn({ onClick }) {
 
 /* ── LIST PANEL ── */
 function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending, connections }) {
+  const [search, setSearch] = React.useState("");
   // iOS tap-through guard: ignoriere clicks auf ← in den ersten 400ms nach Mount
   const mountedAt = React.useRef(Date.now());
   function safeClose() {
@@ -101,8 +102,8 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
             <path d="m21 21-4.35-4.35" stroke={C.muted} strokeWidth="2" strokeLinecap="round"/>
           </svg>
           <input
-            value=""
-            onChange={() => {}}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
             placeholder="Suche nach Namen, Projekten…"
             style={{ flex: 1, border: "none", background: "none", outline: "none", fontSize: 13.5, color: C.ink, fontFamily: "inherit" }}
           />
@@ -154,6 +155,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           onOpen={onOpen}
           onDiscover={onDiscoverClose}
           connections={connections || []}
+          search={search}
         />
       </div>
     </div>
