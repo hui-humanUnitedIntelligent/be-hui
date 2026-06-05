@@ -163,7 +163,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
 }
 
 /* ── HAUPT-OVERLAY ── */
-export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose }) {
+export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose, onMarkRead }) {
   console.log("[CCO_RENDER_START]", { hasInitialRecipient: !!initialRecipient?.id });
   const [activeConv,       setActiveConv]       = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
@@ -299,6 +299,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       last_message: rawConv.last_message,
       other_profile: rawConv.other_profile || null,
     });
+    // Phase 8: Chat als gelesen markieren — aktualisiert unread_count + Header Badge
+    if (onMarkRead) onMarkRead(realId);
   }
 
   // ── Ladescreen ──
