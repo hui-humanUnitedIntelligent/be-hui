@@ -93,6 +93,7 @@ export function useChatList() {
   const realtimeRef = useRef(null);
 
   const load = useCallback(async () => {
+    console.log("[CHATLIST_LOAD_START]", { authChecked, userId: user?.id });
     if (!authChecked) return;
     if (!user?.id) {
       setChats([]);
@@ -169,8 +170,10 @@ export function useChatList() {
         new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0)
       );
 
+      console.log("[CHATLIST_LOAD_DONE]", { chatCount: enriched?.length });
       setChats(enriched);
     } catch(e) {
+      console.error("[CHATLIST_LOAD_ERROR]", e?.message);
     } finally {
       setLoading(false);
     }
