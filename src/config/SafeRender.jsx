@@ -48,6 +48,30 @@ class SafeBoundary extends React.Component {
         stack: error?.stack,
         componentStack: info?.componentStack,
       });
+      // DIAG: Fehlertext als sichtbares Overlay auf dem Screen anzeigen
+      if (!window.__CHAT_TRACE) window.__CHAT_TRACE = [];
+      window.__CHAT_TRACE.push("CCO_CRASH: " + (error?.message || String(error)));
+      window.__CHAT_TRACE.push("STACK: " + (error?.stack?.split('\n').slice(0,3).join(' | ') || '?'));
+      // Erzeuge ein sofort sichtbares DOM-Overlay
+      try {
+        const existing = document.getElementById('__hui_cco_crash__');
+        if (existing) existing.remove();
+        const el = document.createElement('div');
+        el.id = '__hui_cco_crash__';
+        el.style.cssText = [
+          'position:fixed', 'top:60px', 'left:12px', 'right:12px', 'z-index:999999',
+          'background:#1a0a0a', 'color:#ff6b6b', 'border-radius:12px',
+          'padding:14px 16px', 'font-size:12px', 'font-family:monospace',
+          'white-space:pre-wrap', 'word-break:break-all',
+          'box-shadow:0 4px 24px rgba(255,0,0,0.4)',
+          'border:1.5px solid #ff4757',
+        ].join(';');
+        el.textContent = '[CCO CRASH]\n' + (error?.message || String(error)) +
+          '\n\n' + (error?.stack?.split('\n').slice(0,6).join('\n') || '');
+        // Tap zum Schließen
+        el.onclick = () => el.remove();
+        document.body.appendChild(el);
+      } catch(_) {}
     }
     try { onError?.(error); } catch (_) {}
   }
