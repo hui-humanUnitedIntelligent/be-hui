@@ -42,6 +42,13 @@ class SafeBoundary extends React.Component {
     console.error('Error message:', error?.message || String(error));
     console.error('Component stack:', info?.componentStack?.split('\n').slice(0,12).join('\n'));
     console.error('JS stack:', error?.stack?.split('\n').slice(0,8).join('\n'));
+    if (label === 'ChatCenterOverlay') {
+      console.error('[CHAT_CENTER_CRASH]', {
+        message: error?.message,
+        stack: error?.stack,
+        componentStack: info?.componentStack,
+      });
+    }
     try { onError?.(error); } catch (_) {}
   }
 
