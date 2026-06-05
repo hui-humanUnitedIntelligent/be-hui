@@ -239,7 +239,6 @@ export function buildActions(shell) {
 
     [A.CLOSE_CHAT]: () => {
       logAction(A.CLOSE_CHAT);
-      console.log('[CHAT_CLOSE_TRIGGER]', { src: 'A.CLOSE_CHAT', stack: (new Error().stack||'').split('\n').slice(1,6).join(' | '), ts: Date.now() });
       setShowChat?.(false);
     },
 
