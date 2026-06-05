@@ -1191,7 +1191,7 @@ function AbschlussBar({ profile, loading }) {
   );
 }
 
-function AbschlussButtons({ profile, currentUserId }) {
+function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
   const rel = useRelationship(profile?.id, currentUserId);
   const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
@@ -1242,7 +1242,7 @@ function AbschlussButtons({ profile, currentUserId }) {
 
         {/* ── Primär-Button ── */}
         {isAccepted ? (
-          <button className="tpp-press" onClick={() => {}} style={{
+          <button className="tpp-press" onClick={onOpenChat} style={{
             width:"100%", padding:"14px 16px",
             background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
             color:"#fff", border:"none", borderRadius:T.r99,
@@ -1516,7 +1516,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
         />
       )}
         <Gap h={16}/>
-        <AbschlussButtons profile={profile} currentUserId={user?.id}/>
+        <AbschlussButtons profile={profile} currentUserId={user?.id} onOpenChat={handleOpenChat}/>
         <Gap h={40}/>
       </div>
     </div>
