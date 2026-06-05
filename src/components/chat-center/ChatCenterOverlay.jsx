@@ -45,6 +45,12 @@ function ComposeBtn({ onClick }) {
 
 /* ── LIST PANEL ── */
 function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending }) {
+  // iOS tap-through guard: ignoriere clicks auf ← in den ersten 400ms nach Mount
+  const mountedAt = React.useRef(Date.now());
+  function safeClose() {
+    if (Date.now() - mountedAt.current < 400) return; // iOS ghost-click guard
+    onClose?.();
+  }
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 10001,
@@ -64,7 +70,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
         borderBottom: "1px solid rgba(22,215,197,0.08)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-          <button onClick={onClose} style={{
+          <button onClick={safeClose} style={{
             width: 38, height: 38, borderRadius: "50%",
             background: "rgba(22,215,197,0.09)", border: "1.5px solid rgba(22,215,197,0.18)",
             display: "flex", alignItems: "center", justifyContent: "center",
