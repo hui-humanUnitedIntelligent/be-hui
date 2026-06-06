@@ -269,8 +269,8 @@ function HomeInner() {
           onMoodSelect={setActiveMood}
           notifCount={liveNotifCount}
           msgCount={unreadTotal}
+          currentUser={currentUser}
           onNotif={() => {
-            console.log("[GLOCKE STEP 6] Home.jsx onNotif callback aufgerufen → setShowNotifs(true)");
             setShowNotifs(true);
           }}
         />
