@@ -484,7 +484,7 @@ function MenschenDuKennenSolltest({ currentUser, openProfileById, engine, onDisc
             Entdecke Menschen, die zu deinen Interessen, Projekten und Zielen passen.
           </div>
         </div>
-        <button onClick={refresh} style={{
+        <button onClick={() => onDiscover?.()} style={{
           background:"none", border:"none", cursor:"pointer",
           fontSize:10, color:T.teal, fontWeight:600,
           flexShrink:0, padding:"2px 0",
