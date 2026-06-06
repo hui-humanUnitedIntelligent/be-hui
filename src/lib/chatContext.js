@@ -141,7 +141,7 @@ export function useChatList(instanceId = "default") {
             // Versuch 1: profiles.id = auth.uid()
             const { data: prof1 } = await supabase
               .from("profiles")
-              .select("id, display_name, avatar_url, username, last_seen, availability")
+              .select("id, display_name, avatar_url, username, last_seen_at, availability")
               .eq("id", otherId)
               .maybeSingle();
             if (prof1) {
@@ -150,7 +150,7 @@ export function useChatList(instanceId = "default") {
               // Versuch 2: profiles.user_id = otherId (alternative Schema-Variante)
               const { data: prof2 } = await supabase
                 .from("profiles")
-                .select("id, display_name, avatar_url, username, last_seen, availability")
+                .select("id, display_name, avatar_url, username, last_seen_at, availability")
                 .eq("user_id", otherId)
                 .maybeSingle();
               otherProfile = prof2 ?? null;
