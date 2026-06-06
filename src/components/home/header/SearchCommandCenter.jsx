@@ -324,9 +324,12 @@ function useUnifiedSearch(query) {
 
 // ── HAUPTKOMPONENTE: SearchCommandCenter ──────────────────────
 export default function SearchCommandCenter({ activeMood, currentUser }) {
-  const [open,  setOpen]  = useState(false);
-  const [query, setQuery] = useState("");
-  const inputRef = useRef(null);
+  const [open,           setOpen]          = useState(false);
+  const [query,          setQuery]          = useState("");
+  // searchQuery: sofort bei Thema/History, debounced beim Tippen
+  const [searchQuery,    setSearchQuery]    = useState("");
+  const [activeTheme,    setActiveTheme]    = useState(null);
+  const inputRef   = useRef(null);
   const overlayRef = useRef(null);
 
   // Lokale Suchhistorie
@@ -335,8 +338,15 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     catch { return []; }
   });
 
+  // Tippen → debounced
   const debouncedQuery = useDebounce(query, 250);
-  const { results, loading, total } = useUnifiedSearch(debouncedQuery);
+
+  // searchQuery folgt debouncedQuery beim Tippen ODER wird sofort gesetzt
+  useEffect(() => {
+    setSearchQuery(debouncedQuery);
+  }, [debouncedQuery]);
+
+  const { results, loading, total } = useUnifiedSearch(searchQuery);
 
   // Placeholder rotierend
   const PLACEHOLDERS = ["Was möchtest du heute bewirken?", "Menschen finden…", "Projekte entdecken…", "Werke erkunden…", "Orte & Räume…"];
@@ -385,6 +395,8 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   function handleClose() {
     setOpen(false);
     setQuery("");
+    setSearchQuery("");
+    setActiveTheme(null);
     inputRef.current?.blur();
   }
 
@@ -396,22 +408,29 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   }
 
   function handleTheme(theme) {
-    setQuery(theme.label);
-    saveHistory(theme.label);
+    const label = theme.label;
+    setQuery(label);
+    setSearchQuery(label);   // sofort — kein Debounce
+    setActiveTheme(label);
+    saveHistory(label);
     inputRef.current?.focus();
   }
 
   function handleHistoryItem(q) {
     setQuery(q);
+    setSearchQuery(q);       // sofort — kein Debounce
+    setActiveTheme(null);
     inputRef.current?.focus();
   }
 
   function handleSelect(item) {
-    saveHistory(query || item.title);
+    // Thema oder Tipp-Query speichern — was auch immer aktiver war
+    const q = searchQuery || query || item.title;
+    saveHistory(q);
     handleClose();
   }
 
-  const showResults = debouncedQuery.trim().length > 0;
+  const showResults = searchQuery.trim().length > 0;
 
   return (
     <>
@@ -515,7 +534,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
           {/* Clear */}
           {query && (
             <button
-              onClick={e => { e.stopPropagation(); setQuery(""); inputRef.current?.focus(); }}
+              onClick={e => { e.stopPropagation(); setQuery(""); setSearchQuery(""); setActiveTheme(null); inputRef.current?.focus(); }}
               style={{
                 flexShrink:0, width:18, height:18, borderRadius:"50%",
                 background:"rgba(0,0,0,0.11)", border:"none",
@@ -576,7 +595,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                   <div style={{ textAlign:"center", padding:"20px 0" }}>
                     <div style={{ fontSize:24, marginBottom:8 }}>🔍</div>
                     <div style={{ fontSize:13, color:T.inkFaint }}>
-                      Keine Ergebnisse für „{debouncedQuery}"
+                      Keine Ergebnisse für „{searchQuery}"
                     </div>
                   </div>
                 )}
@@ -617,24 +636,39 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                       Beliebte Themen
                     </div>
                     <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
-                      {THEMES.map(t => (
-                        <button key={t.label} onClick={() => handleTheme(t)} style={{
-                          display:"flex", alignItems:"center", gap:8,
-                          background:t.bg, border:`1px solid ${t.color}22`,
-                          borderRadius:10, padding:"8px 12px",
-                          cursor:"pointer", textAlign:"left",
-                          transition:"transform .1s ease, box-shadow .1s ease",
-                          WebkitTapHighlightColor:"transparent",
-                        }}
-                          onMouseEnter={e => e.currentTarget.style.transform="translateX(2px)"}
-                          onMouseLeave={e => e.currentTarget.style.transform="translateX(0)"}
-                        >
-                          <span style={{ fontSize:14 }}>{t.emoji}</span>
-                          <span style={{ fontSize:12.5, fontWeight:600, color:t.color }}>
-                            {t.label}
-                          </span>
-                        </button>
-                      ))}
+                      {THEMES.map(t => {
+                        const isActive = activeTheme === t.label;
+                        return (
+                          <button key={t.label} onClick={() => handleTheme(t)} style={{
+                            display:"flex", alignItems:"center", gap:8,
+                            background: isActive ? t.color : t.bg,
+                            border:`1.5px solid ${isActive ? t.color : t.color+"22"}`,
+                            borderRadius:10, padding:"8px 12px",
+                            cursor:"pointer", textAlign:"left",
+                            transition:"all .15s ease",
+                            WebkitTapHighlightColor:"transparent",
+                            boxShadow: isActive ? `0 2px 10px ${t.color}40` : "none",
+                            transform: isActive ? "translateX(3px)" : "translateX(0)",
+                          }}
+                            onMouseEnter={e => { if(!isActive) e.currentTarget.style.transform="translateX(2px)"; }}
+                            onMouseLeave={e => { if(!isActive) e.currentTarget.style.transform="translateX(0)"; }}
+                          >
+                            <span style={{ fontSize:14 }}>{t.emoji}</span>
+                            <span style={{
+                              fontSize:12.5, fontWeight:700,
+                              color: isActive ? "white" : t.color,
+                            }}>
+                              {t.label}
+                            </span>
+                            {isActive && (
+                              <span style={{
+                                marginLeft:"auto", fontSize:9, fontWeight:700,
+                                color:"rgba(255,255,255,0.80)",
+                              }}>✓</span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -675,21 +709,27 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                       }}>Löschen</button>
                     </div>
                     <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                      {history.slice(0,6).map((h,i) => (
-                        <button key={i} onClick={() => handleHistoryItem(h)} style={{
-                          background:"rgba(26,53,48,0.05)",
-                          border:"1px solid rgba(26,53,48,0.09)",
-                          borderRadius:99, padding:"5px 12px",
-                          fontSize:12, fontWeight:500, color:T.inkSoft,
-                          cursor:"pointer", transition:"background .12s",
-                          WebkitTapHighlightColor:"transparent",
-                        }}
-                          onMouseEnter={e => e.currentTarget.style.background="rgba(14,196,184,0.09)"}
-                          onMouseLeave={e => e.currentTarget.style.background="rgba(26,53,48,0.05)"}
-                        >
-                          {h}
-                        </button>
-                      ))}
+                      {history.slice(0,6).map((h,i) => {
+                        const isActive = searchQuery === h;
+                        return (
+                          <button key={i} onClick={() => handleHistoryItem(h)} style={{
+                            display:"flex", alignItems:"center", gap:5,
+                            background: isActive ? "rgba(14,196,184,0.12)" : "rgba(26,53,48,0.05)",
+                            border: isActive ? "1px solid rgba(14,196,184,0.30)" : "1px solid rgba(26,53,48,0.09)",
+                            borderRadius:99, padding:"5px 12px",
+                            fontSize:12, fontWeight: isActive ? 700 : 500,
+                            color: isActive ? T.teal : T.inkSoft,
+                            cursor:"pointer", transition:"all .12s ease",
+                            WebkitTapHighlightColor:"transparent",
+                          }}
+                            onMouseEnter={e => { if(!isActive) e.currentTarget.style.background="rgba(14,196,184,0.09)"; }}
+                            onMouseLeave={e => { if(!isActive) e.currentTarget.style.background="rgba(26,53,48,0.05)"; }}
+                          >
+                            <span style={{ fontSize:10, opacity:0.5 }}>🕐</span>
+                            {h}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
