@@ -429,7 +429,9 @@ function MenschCard({ person, idx, openProfileById, engine }) {
 
       {/* CTA Buttons */}
       <div style={{ padding: "10px 12px 12px", display: "flex", gap: 6 }}>
-        <button style={{
+        <button
+          onClick={() => openProfileById?.(person.id)}
+          style={{
           flex: 1, padding: "8px 0",
           background: hov ? T.teal : "transparent",
           border: `1.5px solid ${T.teal}`,
@@ -437,7 +439,6 @@ function MenschCard({ person, idx, openProfileById, engine }) {
           color: hov ? "white" : T.teal,
           cursor: "pointer", transition: "all .18s ease",
           WebkitTapHighlightColor: "transparent",
-          onClick={() => openProfileById?.(person.id)}
         }}>Kennenlernen</button>
 
         <button style={{
