@@ -5,7 +5,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import { useEffect, useRef } from "react";
-import { supabase } from "./supabase.js";
+import { supabase } from "./supabaseClient.js";
 
 // ── formatPresence — öffentliche Utility ──────────────────────
 export function formatPresence(last_seen_at) {
