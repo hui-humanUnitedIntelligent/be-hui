@@ -26,6 +26,7 @@ import { usePresence } from "../lib/usePresence.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
+import { usePresence }             from "../lib/usePresence.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
@@ -136,6 +137,7 @@ function HomeInner() {
 
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList("home");
+  usePresence(user?.id);  // Activity Tracking: App-Start, Foreground, Heartbeat
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
