@@ -22,11 +22,10 @@ import HomeHeader                from "../components/home/header/HomeHeader.jsx"
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
-import { usePresence } from "../lib/usePresence.jsx";
+import { usePresence }             from "../lib/usePresence.js";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
-import { usePresence }             from "../lib/usePresence.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
@@ -153,8 +152,6 @@ function HomeInner() {
     };
   }, [setShowMembership, setShowCreatorDash]);
 
-  // ── Presence — Phase 3D — isolated, never blocks feed ────────
-  usePresence(currentUser?.id, "home");
   // ─────────────────────────────────────────────────────────────
 
   // Phase 2: Flow Memory System
