@@ -146,6 +146,405 @@ function SectionLabel({ children, color, action, onAction }) {
   );
 }
 
+
+// ─────────────────────────────────────────────────────────────
+// PHASE 4 — "FÜR DICH AUSGEWÄHLT"
+// Personalisierter Mix: Profiles · Works · Experiences
+// Basis: dna_tags, follows, mood_tags, view_count
+// ─────────────────────────────────────────────────────────────
+
+// Empfehlungs-Gründe pro Typ
+const REC_REASON_MAP = {
+  profile:    [ "✨ Passend zu deinen Interessen", "🤝 Gemeinsame Themen", "🌱 Ähnliche Werte", "👥 Folgen dir gemeinsam" ],
+  work:       [ "🎨 Ähnliche Werke angesehen",     "✨ Passt zu deinem Stil", "🌱 Gleiches Thema", "🎵 Kreativität & Kunst" ],
+  experience: [ "📅 Könnte dir gefallen",           "📍 In deiner Nähe",      "🤝 Menschen wie du", "🌍 Passendes Erlebnis" ],
+};
+
+function recReason(type, seed) {
+  const pool = REC_REASON_MAP[type] || REC_REASON_MAP.profile;
+  return pool[Math.abs(seed) % pool.length];
+}
+
+// localStorage-basiertes Interaktions-Tracking
+// Schlüssel: hui_disco_prefs → { profiles:n, works:n, experiences:n }
+function getPrefs() {
+  try { return JSON.parse(localStorage.getItem("hui_disco_prefs") || "{}"); }
+  catch { return {}; }
+}
+function trackPref(type) {
+  const p = getPrefs();
+  p[type] = (p[type] || 0) + 1;
+  try { localStorage.setItem("hui_disco_prefs", JSON.stringify(p)); } catch {}
+}
+
+// Hook: lädt personalisierten Mix aus Supabase
+function useForDich(currentUser) {
+  const [items, setItems] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
+  React.useEffect(() => {
+    const prefs = getPrefs();
+    // Gewichtung: Nutzer-Präferenzen bestimmen wieviele von jedem Typ
+    const total  = 6;
+    const pTotal = (prefs.profiles||0) + (prefs.works||0) + (prefs.experiences||0);
+    let nP, nW, nE;
+    if (pTotal === 0) {
+      // Default: gleichmäßige Mischung
+      nP = 2; nW = 2; nE = 2;
+    } else {
+      // Proportional aus Präferenzen, min 1 pro Typ
+      nP = Math.max(1, Math.min(3, Math.round((prefs.profiles||0) / pTotal * total)));
+      nW = Math.max(1, Math.min(3, Math.round((prefs.works||0)    / pTotal * total)));
+      nE = Math.max(1, total - nP - nW);
+    }
+
+    // Baue user-spezifische Queries
+    const uid = currentUser?.id;
+    const userDnaTags = currentUser?.dna_tags || [];
+
+    Promise.all([
+      // Menschen: nicht ich selbst, sortiert nach impact + follower
+      supabase.from("profiles")
+        .select("id,display_name,username,avatar_url,bio,talent,tagline,impact_eur,follower_count,dna_tags,is_available,location")
+        .neq("id", uid || "00000000-0000-0000-0000-000000000000")
+        .order("impact_eur", { ascending: false })
+        .limit(nP + 2),
+
+      // Werke: publiziert, sortiert nach view_count
+      supabase.from("works")
+        .select("id,title,description,cover_url,category,work_category,price_eur,views_count,mood_tags,creator_id,user_id")
+        .eq("status", "published")
+        .order("views_count", { ascending: false })
+        .limit(nW + 2),
+
+      // Erlebnisse: publiziert, zukünftig oder ohne Datum
+      supabase.from("experiences")
+        .select("id,title,description,cover_url,category,price,location_text,date,time_start,mood_tags,spots_available,user_id")
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(nE + 2),
+
+      // Follows für "gemeinsame Kontakte"-Signal
+      uid ? supabase.from("follows")
+        .select("followed_id")
+        .eq("follower_id", uid)
+        .limit(50)
+        : Promise.resolve({ data: [] }),
+    ]).then(([pr, wr, er, fr]) => {
+      const myFollowing = new Set((fr.data || []).map(f => f.followed_id));
+      const all = [];
+
+      // Seed für deterministischen reason-Index
+      function seed(id) {
+        return id ? id.charCodeAt(0) + id.charCodeAt(id.length - 1) : 0;
+      }
+
+      // Profile → Items
+      (pr.data || []).slice(0, nP).forEach(p => {
+        const sharedFollow = [...myFollowing].some(fid => fid === p.id);
+        all.push({
+          id:     "p" + p.id,
+          rawId:  p.id,
+          type:   "profile",
+          badge:  "Person",
+          badgeColor: "#9333EA",
+          emoji:  "👤",
+          title:  p.display_name || p.username || "HUI Mitglied",
+          desc:   p.tagline || p.talent || (p.bio ? p.bio.slice(0, 55) : p.location || ""),
+          img:    p.avatar_url,
+          round:  true,
+          cta:    "Profil ansehen",
+          reason: sharedFollow ? "🤝 Gemeinsame Kontakte" : recReason("profile", seed(p.id)),
+          score:  Math.min(99, 68 + Math.round(Math.min(p.impact_eur||0,500)/500*18) + (p.is_available?4:0) + (seed(p.id)%9)),
+        });
+      });
+
+      // Works → Items
+      (wr.data || []).slice(0, nW).forEach(w => {
+        all.push({
+          id:     "w" + w.id,
+          rawId:  w.id,
+          type:   "work",
+          badge:  "Werk",
+          badgeColor: "#0EA5E9",
+          emoji:  "🎨",
+          title:  w.title,
+          desc:   w.description ? w.description.slice(0, 55) : (w.work_category || w.category || ""),
+          img:    w.cover_url,
+          round:  false,
+          cta:    "Werk öffnen",
+          reason: recReason("work", seed(w.id)),
+          score:  null,
+        });
+      });
+
+      // Experiences → Items
+      (er.data || []).slice(0, nE).forEach(e => {
+        const when = e.date
+          ? new Date(e.date).toLocaleDateString("de-DE",{day:"numeric",month:"short"})
+          : null;
+        const time = e.time_start ? " · " + e.time_start.slice(0,5) + " Uhr" : "";
+        all.push({
+          id:     "e" + e.id,
+          rawId:  e.id,
+          type:   "experience",
+          badge:  "Erlebnis",
+          badgeColor: T.teal,
+          emoji:  "📅",
+          title:  e.title,
+          desc:   (e.location_text || "") + (when ? (e.location_text ? " · " : "") + when + time : time),
+          img:    e.cover_url,
+          round:  false,
+          cta:    "Erlebnis ansehen",
+          reason: recReason("experience", seed(e.id)),
+          score:  null,
+        });
+      });
+
+      // Mischen: Menschen immer erste Position, dann abwechseln
+      // Sortiere: erst ein Profile, dann ein Work, dann ein Experience, repeat
+      const profiles    = all.filter(i => i.type === "profile");
+      const works       = all.filter(i => i.type === "work");
+      const experiences = all.filter(i => i.type === "experience");
+      const mixed = [];
+      const maxLen = Math.max(profiles.length, works.length, experiences.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (profiles[i])    mixed.push(profiles[i]);
+        if (works[i])       mixed.push(works[i]);
+        if (experiences[i]) mixed.push(experiences[i]);
+      }
+
+      setItems(mixed.slice(0, 6));
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [currentUser?.id, refreshKey]);
+
+  function refresh() { setRefreshKey(k => k + 1); }
+  return { items, loading, refresh };
+}
+
+// Einzel-Karte — Premium Design
+function ForDichCard({ item, idx, onSelect }) {
+  const [hovered, setHovered] = React.useState(false);
+  const [imgErr,  setImgErr]  = React.useState(false);
+
+  return (
+    <div
+      onClick={() => { trackPref(item.type); onSelect?.(item); }}
+      style={{
+        flexShrink: 0,
+        width: 200,
+        scrollSnapAlign: "start",
+        borderRadius: 16,
+        overflow: "hidden",
+        background: hovered
+          ? `linear-gradient(145deg,${item.badgeColor}12,${item.badgeColor}06)`
+          : `linear-gradient(145deg,${item.badgeColor}0A,${item.badgeColor}04)`,
+        border: `1.5px solid ${item.badgeColor}${hovered ? "40" : "20"}`,
+        boxShadow: hovered ? `0 8px 28px ${item.badgeColor}22` : "none",
+        cursor: "pointer",
+        transition: "all .2s ease",
+        transform: hovered ? "translateY(-3px) scale(1.01)" : "translateY(0) scale(1)",
+        animation: `dc-slidein .32s ease both`,
+        animationDelay: `${idx * 0.08}s`,
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Cover / Avatar */}
+      <div style={{
+        width: "100%", height: 88, overflow: "hidden",
+        background: item.img && !imgErr ? "transparent" : item.badgeColor + "14",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        position: "relative",
+      }}>
+        {item.img && !imgErr ? (
+          <img src={item.img} alt="" onError={() => setImgErr(true)} style={{
+            width: "100%", height: "100%", objectFit: "cover",
+            transform: hovered ? "scale(1.06)" : "scale(1)",
+            transition: "transform .3s ease",
+          }}/>
+        ) : (
+          <span style={{ fontSize: 32 }}>{item.emoji}</span>
+        )}
+
+        {/* Type Badge */}
+        <div style={{
+          position: "absolute", top: 8, left: 8,
+          background: item.badgeColor,
+          borderRadius: 99, padding: "3px 8px",
+          fontSize: 9, fontWeight: 800, color: "white",
+          letterSpacing: ".04em",
+        }}>{item.badge}</div>
+
+        {/* Score Badge (nur bei Profilen) */}
+        {item.score && (
+          <div style={{
+            position: "absolute", top: 8, right: 8,
+            background: item.score >= 85 ? T.teal : "#D97706",
+            borderRadius: 99, padding: "3px 7px",
+            fontSize: 9, fontWeight: 900, color: "white",
+            border: "1.5px solid rgba(255,255,255,0.4)",
+          }}>{item.score}%</div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: "10px 11px 11px" }}>
+        {/* Titel */}
+        <div style={{
+          fontSize: 12.5, fontWeight: 800, color: T.ink,
+          overflow: "hidden", display: "-webkit-box",
+          WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+          lineHeight: 1.3, marginBottom: 4,
+        }}>{item.title}</div>
+
+        {/* Beschreibung */}
+        {item.desc && (
+          <div style={{
+            fontSize: 10.5, color: T.inkS, lineHeight: 1.4,
+            overflow: "hidden", display: "-webkit-box",
+            WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+            marginBottom: 7,
+          }}>{item.desc}</div>
+        )}
+
+        {/* Empfehlungs-Grund */}
+        <div style={{
+          fontSize: 10, fontWeight: 600, color: item.badgeColor,
+          marginBottom: 9, letterSpacing: ".01em",
+        }}>{item.reason}</div>
+
+        {/* CTA */}
+        <button style={{
+          width: "100%", padding: "7px 0",
+          background: hovered ? item.badgeColor : "transparent",
+          border: `1.5px solid ${item.badgeColor}`,
+          borderRadius: 9,
+          fontSize: 11, fontWeight: 700,
+          color: hovered ? "white" : item.badgeColor,
+          cursor: "pointer",
+          transition: "all .18s ease",
+        }}>{item.cta} →</button>
+      </div>
+    </div>
+  );
+}
+
+// Container Komponente
+function ForDichAusgewaehlt({ currentUser }) {
+  const { items, loading, refresh } = useForDich(currentUser);
+  const [showEmpty, setShowEmpty] = React.useState(false);
+
+  // Nach 3s ohne Daten → Empty State zeigen
+  React.useEffect(() => {
+    if (!loading && items.length === 0) setShowEmpty(true);
+  }, [loading, items]);
+
+  return (
+    <div style={{
+      padding: "14px 16px 16px",
+      borderBottom: "1px solid rgba(14,196,184,0.08)",
+      background: "linear-gradient(180deg,rgba(14,196,184,0.025),transparent)",
+    }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:12 }}>
+        <div>
+          <div style={{
+            display:"flex", alignItems:"center", gap:7, marginBottom:3,
+          }}>
+            <span style={{ fontSize:14 }}>✨</span>
+            <span style={{ fontSize:13, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+              Für dich ausgewählt
+            </span>
+          </div>
+          <div style={{ fontSize:10.5, color:T.inkF, lineHeight:1.4 }}>
+            Menschen, Projekte und Erlebnisse, die zu deinen Interessen passen.
+          </div>
+        </div>
+        <button onClick={refresh} style={{
+          background:"none", border:"none", cursor:"pointer",
+          fontSize:10, color:T.teal, fontWeight:600,
+          padding:"2px 0", flexShrink:0,
+          transition:"opacity .15s",
+        }}
+          onMouseEnter={e=>e.currentTarget.style.opacity=".65"}
+          onMouseLeave={e=>e.currentTarget.style.opacity="1"}
+        >Neu laden ↻</button>
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div style={{ display:"flex", gap:12, overflowX:"auto", paddingBottom:4 }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{
+              flexShrink:0, width:200, borderRadius:16, overflow:"hidden",
+              background:"rgba(14,196,184,0.05)",
+              border:"1.5px solid rgba(14,196,184,0.10)",
+              animation:`dc-slidein .3s ease both`,
+              animationDelay:`${i*0.08}s`,
+            }}>
+              <div style={{ width:"100%", height:88, background:"rgba(14,196,184,0.08)" }}/>
+              <div style={{ padding:"10px 11px 11px", display:"flex", flexDirection:"column", gap:7 }}>
+                <Sk w="75%" h={13} r={6}/>
+                <Sk w="60%" h={10} r={5}/>
+                <Sk w="85%" h={9} r={5}/>
+                <Sk w="100%" h={28} r={9}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && items.length === 0 && (
+        <div style={{
+          textAlign:"center", padding:"24px 0",
+          background:"rgba(14,196,184,0.04)",
+          borderRadius:16,
+          border:"1.5px dashed rgba(14,196,184,0.18)",
+        }}>
+          <div style={{ fontSize:28, marginBottom:10 }}>✨</div>
+          <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:6 }}>
+            HUI lernt gerade deine Interessen
+          </div>
+          <div style={{ fontSize:11.5, color:T.inkF, lineHeight:1.6, marginBottom:16, maxWidth:260, margin:"0 auto 16px" }}>
+            Interagiere mit Menschen, Werken, Projekten und Erlebnissen.<br/>
+            Je mehr du entdeckst, desto persönlicher werden deine Empfehlungen.
+          </div>
+          <button style={{
+            background:T.teal, border:"none", borderRadius:99,
+            padding:"9px 20px", fontSize:12, fontWeight:700, color:"white",
+            cursor:"pointer",
+          }}>Jetzt entdecken</button>
+        </div>
+      )}
+
+      {/* Karten — horizontal scrollbar */}
+      {!loading && items.length > 0 && (
+        <div style={{
+          display:"flex", gap:12, overflowX:"auto",
+          paddingBottom:4,
+          scrollSnapType:"x mandatory",
+          WebkitOverflowScrolling:"touch",
+          msOverflowStyle:"none", scrollbarWidth:"none",
+        }}>
+          {items.map((item, idx) => (
+            <ForDichCard
+              key={item.id}
+              item={item}
+              idx={idx}
+              onSelect={() => {}}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ─────────────────────────────────────────────────────────────
 // 1. PERSÖNLICHE HEUTE-ZEILE (Greeting erweitert)
 // ─────────────────────────────────────────────────────────────
@@ -1211,6 +1610,9 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
               <>
                 {/* 1. Greeting + persönliche Hints */}
                 <GreetingWithHints currentUser={currentUser} onCategoryClick={handleCategoryClick}/>
+
+                {/* 1b. Für dich ausgewählt — Phase 4 */}
+                <ForDichAusgewaehlt currentUser={currentUser}/>
 
                 {/* 2. Story Cards "Heute auf HUI" */}
                 <div style={{padding:"14px 16px 12px",borderBottom:"1px solid rgba(14,196,184,0.08)"}}>
