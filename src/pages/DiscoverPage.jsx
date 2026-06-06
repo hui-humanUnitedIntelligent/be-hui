@@ -44,8 +44,6 @@ const CSS = `
   }
   .dp-card-hover { transition:box-shadow .18s ease, transform .18s cubic-bezier(.22,1,.36,1); }
   .dp-card-hover:hover { box-shadow:0 6px 24px rgba(26,53,48,0.11)!important; transform:translateY(-2px); }
-  .dp-search-input { outline:none; border:none; background:none; width:100%; font-family:inherit; font-size:14px; color:#1A3530; }
-  .dp-search-input::placeholder { color:rgba(26,53,48,0.35); }
   @keyframes dp-live-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.75)} }
   .dp-live-dot { animation:dp-live-pulse 2.2s ease-in-out infinite; }
   /* List view */
@@ -167,70 +165,25 @@ function SectionHead({ title, sub, action, onAction, delay=0 }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 1. SUCHLEISTE
+// 1. TITELBEREICH (Suchleiste entfernt — globale Suche im Header)
 // ════════════════════════════════════════════════════════════════
-function SearchBar({ searchQ, onSearch, view, onViewChange }) {
-  const [focused, setFocused] = useState(false);
+function SearchBar({ view, onViewChange }) {
   return (
     <div style={{
-      padding:`14px ${T.px}px 12px`,
+      padding:`12px ${T.px}px 8px`,
       background:T.bg,
     }}>
       {/* Title Row */}
-      <div style={{ marginBottom:12 }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecken</span>
-            <span style={{ fontSize:18 }}>🌿</span>
-          </div>
-          {/* View Toggle — oben rechts */}
-          <ViewToggle view={view} onChange={onViewChange} />
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecken</span>
+          <span style={{ fontSize:18 }}>🌿</span>
         </div>
-        <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-          Menschen, Werke, Erlebnisse & Orte, die HUI lebendig machen.
-        </div>
+        {/* View Toggle — oben rechts */}
+        <ViewToggle view={view} onChange={onViewChange} />
       </div>
-
-      {/* Search Input */}
-      <div style={{
-        display:"flex", alignItems:"center", gap:10,
-        background:T.white,
-        border:`1.5px solid ${focused ? T.teal : T.border}`,
-        borderRadius:14,
-        padding:"11px 14px",
-        boxShadow: focused ? `0 0 0 3px rgba(14,196,184,0.10)` : T.cardShadow,
-        transition:"border-color .18s, box-shadow .18s",
-      }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink:0, opacity:0.35 }}>
-          <circle cx="11" cy="11" r="7" stroke={T.ink} strokeWidth="2"/>
-          <path d="M20 20 L16.5 16.5" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-        <input
-          className="dp-search-input"
-          value={searchQ}
-          onChange={e => onSearch(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          placeholder="Suche nach Menschen, Werken, Erlebnissen, Projekten oder Orten..."
-          style={{ flex:1, fontSize:13.5 }}
-        />
-        {searchQ && (
-          <button onClick={() => onSearch("")} style={{
-            background:"none", border:"none", cursor:"pointer",
-            fontSize:16, color:T.inkFaint, padding:0, lineHeight:1,
-          }}>×</button>
-        )}
-        {/* Filter Button */}
-        <div style={{
-          width:32, height:32, borderRadius:10,
-          background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-          display:"flex", alignItems:"center", justifyContent:"center",
-          cursor:"pointer", flexShrink:0,
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M4 6h16M7 12h10M10 18h4" stroke={T.teal} strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
+      <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
+        Menschen, Werke, Erlebnisse & Orte, die HUI lebendig machen.
       </div>
     </div>
   );
@@ -301,7 +254,7 @@ function ActivityCard({ act, idx }) {
 
 function LiveActivityBar() {
   return (
-    <div style={{ padding:`0 16px 16px`, marginBottom:0 }}>
+    <div style={{ padding:`4px 16px 14px`, marginBottom:0 }}>
       <div style={{
         background:"linear-gradient(135deg,rgba(14,196,184,0.05) 0%,rgba(232,87,58,0.03) 100%)",
         border:"1px solid rgba(14,196,184,0.12)",
@@ -343,7 +296,7 @@ const STAT_DEFS = [
 
 function TodayStats({ stats }) {
   return (
-    <div className="dp-in" style={{ padding:`0 ${T.px}px 16px`, animationDelay:"40ms" }}>
+    <div className="dp-in" style={{ padding:`0 ${T.px}px 14px`, animationDelay:"40ms" }}>
       {/* Header */}
       <div style={{
         background:`linear-gradient(135deg, rgba(14,196,184,0.06) 0%, rgba(232,87,58,0.04) 100%)`,
@@ -1446,7 +1399,6 @@ function OrtCard({ ort, delay=0, onMap }) {
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════
 export default function DiscoverPage({ onView, onMap }) {
-  const [searchQ, setSearchQ] = useState("");
   const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -1625,17 +1577,8 @@ export default function DiscoverPage({ onView, onMap }) {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Search filter ────────────────────────────────────────────
-  const filteredPeople = useMemo(() => {
-    const base = people.length > 0 ? people : SEED_PEOPLE;
-    if (!searchQ.trim()) return base;
-    const q = searchQ.toLowerCase();
-    return base.filter(p =>
-      p.name?.toLowerCase().includes(q) ||
-      p.bio?.toLowerCase().includes(q) ||
-      p.location?.toLowerCase().includes(q)
-    );
-  }, [people, searchQ]);
+  // ── People: DB oder Seed ─────────────────────────────────────
+  const filteredPeople = people.length > 0 ? people : SEED_PEOPLE;
 
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
@@ -1655,8 +1598,8 @@ export default function DiscoverPage({ onView, onMap }) {
     }}>
       <style>{CSS}</style>
 
-      {/* ── 1. Suchleiste ── */}
-      <SearchBar searchQ={searchQ} onSearch={setSearchQ} view={view} onViewChange={setView} />
+      {/* ── 1. Titelbereich ── */}
+      <SearchBar view={view} onViewChange={setView} />
 
       {/* ── 1b. Live Activity Bar ── */}
       <LiveActivityBar />
