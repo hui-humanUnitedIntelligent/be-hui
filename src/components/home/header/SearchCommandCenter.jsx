@@ -3,7 +3,9 @@
 // Weniger Zahlen. Mehr Menschen. Weniger Dashboard. Mehr HUI.
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { supabase } from "../../../lib/supabaseClient.js";
+import { supabase }              from "../../../lib/supabaseClient.js";
+import { useHome }               from "../../home/HomeShell.jsx";
+import { useConnectionEngine }   from "../../../core/HuiConnectionEngine.jsx";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -291,7 +293,7 @@ function useMenschenMatch(currentUser) {
 }
 
 // Einzel-Karte
-function MenschCard({ person, idx }) {
+function MenschCard({ person, idx, openProfileById, engine }) {
   const [hov, setHov] = React.useState(false);
   const [imgErr, setImgErr] = React.useState(false);
 
@@ -435,6 +437,7 @@ function MenschCard({ person, idx }) {
           color: hov ? "white" : T.teal,
           cursor: "pointer", transition: "all .18s ease",
           WebkitTapHighlightColor: "transparent",
+          onClick={() => openProfileById?.(person.id)}
         }}>Kennenlernen</button>
 
         <button style={{
@@ -445,17 +448,21 @@ function MenschCard({ person, idx }) {
           cursor: "pointer", fontSize: 14, transition: "all .15s ease",
           WebkitTapHighlightColor: "transparent",
         }}
-          title="Folgen"
+          title={engine?.isFollowed?.(person.id) ? "Gefolgt" : "Folgen"}
+          onClick={() => {
+            if (engine?.isFollowed?.(person.id)) engine.unfollow(person.id);
+            else engine?.follow?.(person.id);
+          }}
           onMouseEnter={e=>{ e.currentTarget.style.background="rgba(14,196,184,0.12)"; e.currentTarget.style.borderColor="rgba(14,196,184,0.30)"; }}
           onMouseLeave={e=>{ e.currentTarget.style.background="rgba(26,53,48,0.05)"; e.currentTarget.style.borderColor="rgba(26,53,48,0.09)"; }}
-        >➕</button>
+        >{engine?.isFollowed?.(person.id) ? "✓" : "➕"}</button>
       </div>
     </div>
   );
 }
 
 // Container
-function MenschenDuKennenSolltest({ currentUser }) {
+function MenschenDuKennenSolltest({ currentUser, openProfileById, engine, onDiscover }) {
   const { people, loading, refresh } = useMenschenMatch(currentUser);
 
   return (
@@ -535,7 +542,7 @@ function MenschenDuKennenSolltest({ currentUser }) {
             Interagiere mit Profilen, Projekten und Werken.<br/>
             Je mehr du entdeckst, desto bessere Empfehlungen erhältst du.
           </div>
-          <button style={{
+          <button onClick={() => onDiscover?.()} style={{
             background:T.teal, border:"none", borderRadius:99,
             padding:"9px 20px", fontSize:12, fontWeight:700, color:"white", cursor:"pointer",
           }}>Menschen entdecken</button>
@@ -552,7 +559,8 @@ function MenschenDuKennenSolltest({ currentUser }) {
           msOverflowStyle:"none", scrollbarWidth:"none",
         }}>
           {people.map((p, idx) => (
-            <MenschCard key={p.id} person={p} idx={idx}/>
+            <MenschCard key={p.id} person={p} idx={idx}
+              openProfileById={openProfileById} engine={engine}/>
           ))}
         </div>
       )}
@@ -739,7 +747,7 @@ function useForDich(currentUser) {
 }
 
 // Einzel-Karte — Premium Design
-function ForDichCard({ item, idx, onSelect }) {
+function ForDichCard({ item, idx, onSelect, openProfileById }) {
   const [hovered, setHovered] = React.useState(false);
   const [imgErr,  setImgErr]  = React.useState(false);
 
@@ -847,7 +855,7 @@ function ForDichCard({ item, idx, onSelect }) {
 }
 
 // Container Komponente
-function ForDichAusgewaehlt({ currentUser }) {
+function ForDichAusgewaehlt({ currentUser, openProfileById, onDiscover }) {
   const { items, loading, refresh } = useForDich(currentUser);
   const [showEmpty, setShowEmpty] = React.useState(false);
 
@@ -927,7 +935,7 @@ function ForDichAusgewaehlt({ currentUser }) {
             Interagiere mit Menschen, Werken, Projekten und Erlebnissen.<br/>
             Je mehr du entdeckst, desto persönlicher werden deine Empfehlungen.
           </div>
-          <button style={{
+          <button onClick={() => onDiscover?.()} style={{
             background:T.teal, border:"none", borderRadius:99,
             padding:"9px 20px", fontSize:12, fontWeight:700, color:"white",
             cursor:"pointer",
@@ -949,7 +957,12 @@ function ForDichAusgewaehlt({ currentUser }) {
               key={item.id}
               item={item}
               idx={idx}
-              onSelect={() => {}}
+              onSelect={(it) => {
+                if (it.type === "profile")     openProfileById?.(it.rawId);
+                else if (it.type === "work")   openProfileById?.(it.rawId);  // opens creator's profile
+                else if (it.type === "experience") openProfileById?.(it.rawId);
+                close_();
+              }}
             />
           ))}
         </div>
@@ -1234,7 +1247,7 @@ function StoryCards() {
 // ─────────────────────────────────────────────────────────────
 // 3. HUI EMPFEHLUNGSKARTE (aufgewertet)
 // ─────────────────────────────────────────────────────────────
-function PersonalRec({ currentUser }) {
+function PersonalRec({ currentUser, openProfileById }) {
   const [recs, setRecs]   = useState([]);
   const [idx,  setIdx]    = useState(0);
   const [loading, setL]   = useState(true);
@@ -1355,6 +1368,7 @@ function PersonalRec({ currentUser }) {
           cursor:"pointer", letterSpacing:".02em",
           transition:"opacity .14s, transform .14s",
         }}
+          onClick={() => rec?.id && openProfileById?.(rec.id)}
           onMouseEnter={e=>{ e.currentTarget.style.opacity=".88"; e.currentTarget.style.transform="scale(1.01)"; }}
           onMouseLeave={e=>{ e.currentTarget.style.opacity="1";   e.currentTarget.style.transform="scale(1)"; }}
         >Profil entdecken →</button>
@@ -1732,7 +1746,7 @@ function ResultCol({title,emoji,items,onSelect}){
           </div>
         ))}
         {items.length===5&&(
-          <button style={{background:"none",border:"none",cursor:"pointer",
+          <button onClick={handleDiscover} style={{background:"none",border:"none",cursor:"pointer",
             fontSize:11,color:T.teal,fontWeight:600,padding:"3px 6px",textAlign:"left"}}>
             Alle →
           </button>
@@ -1783,6 +1797,10 @@ function KiDiscoveryCol({query}){
 // HAUPTKOMPONENTE
 // ─────────────────────────────────────────────────────────────
 export default function SearchCommandCenter({ activeMood, currentUser }) {
+  // ── Navigation + Follow Engine ──────────────────────────────
+  const { openProfileById, switchTab } = useHome();
+  const engine = useConnectionEngine();
+
   const [open,        setOpen]        = useState(false);
   const [query,       setQuery]       = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1840,6 +1858,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   function handleKiSelect(text){ setQuery(text); setSearchQuery(text); setShowKi(false); inputRef.current?.focus(); }
   function handleSelect(item){ saveHistory(searchQuery||query||item.title); close_(); }
   function handleAction(label){ saveHistory(label); close_(); }
+  function handleDiscover() { close_(); switchTab?.("discover"); }
   function handleCategoryClick(cat){ setQuery(cat); setSearchQuery(cat); inputRef.current?.focus(); }
 
   const showResults = searchQuery.trim().length > 0;
@@ -2026,10 +2045,10 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                 <GreetingWithHints currentUser={currentUser} onCategoryClick={handleCategoryClick}/>
 
                 {/* 1b. Für dich ausgewählt — Phase 4 */}
-                <ForDichAusgewaehlt currentUser={currentUser}/>
+                <ForDichAusgewaehlt currentUser={currentUser} openProfileById={openProfileById} onDiscover={handleDiscover}/>
 
                 {/* 2. Menschen die du kennen solltest — Phase 5 */}
-                <MenschenDuKennenSolltest currentUser={currentUser}/>
+                <MenschenDuKennenSolltest currentUser={currentUser} openProfileById={openProfileById} engine={engine} onDiscover={handleDiscover}/>
 
                 {/* 3. Story Cards "Heute auf HUI" */}
                 <div style={{padding:"14px 16px 12px",borderBottom:"1px solid rgba(14,196,184,0.08)"}}>
@@ -2040,7 +2059,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:0}}>
                   {/* LINKS — HUI Empfehlung */}
                   <div style={{padding:"14px 14px",borderRight:"1px solid rgba(14,196,184,0.08)"}}>
-                    <PersonalRec currentUser={currentUser}/>
+                    <PersonalRec currentUser={currentUser} openProfileById={openProfileById}/>
                   </div>
 
                   {/* MITTE — Kategorien */}
