@@ -136,7 +136,7 @@ function HomeInner() {
 
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList("home");
-  usePresence(user?.id);  // Activity Tracking: App-Start, Foreground, Heartbeat
+  usePresence(currentUser?.id);  // Activity Tracking: App-Start, Foreground, Heartbeat
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
