@@ -584,12 +584,12 @@ const SEED_MOMENTE = [
   { id:"m6", src:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75", caption:"Kreativworkshop für Kinder",                      name:"Anne K.", location:"Wien",        created_at: new Date(Date.now()-3600000*8).toISOString(),    type:"foto" },
 ];
 
-function MomentCard({ moment, delay=0 }) {
+function MomentCard({ moment, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const ago = timeAgo(moment.created_at);
 
   return (
-    <div className="dp-press dp-in dp-card-hover" style={{
+    <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(moment)} style={{
       width:175, flexShrink:0,
       borderRadius:18, overflow:"hidden",
       background:"#111", position:"relative",
@@ -670,7 +670,7 @@ function MomentCard({ moment, delay=0 }) {
   );
 }
 
-function MomenteSection({ momente, loading, delay=0, view='cards' }) {
+function MomenteSection({ momente, loading, delay=0, view='cards', onPress }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -688,7 +688,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards' }) {
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
                 </div>
               ))
-            : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} />)
+            : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -698,7 +698,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards' }) {
                 <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="45%" h={10} r={5}/></div></div>
               ))
             : momente.map((m) => (
-                <div key={m.id} className="dp-list-card">
+                <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}}>
                   {m.src
                     ? <img src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
                     : <div className="dp-list-thumb-placeholder">📸</div>
@@ -741,7 +741,7 @@ const MEDIUM_COLOR = {
   "Text":       { bg:"rgba(100,116,139,0.12)", text:"#64748B" },
 };
 
-function WerkCard({ werk, delay=0 }) {
+function WerkCard({ werk, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover  = (!imgErr && werk.cover) ? werk.cover : null;
   const medCol = MEDIUM_COLOR[werk.medium] || { bg:T.tealSoft, text:T.teal };
@@ -750,7 +750,7 @@ function WerkCard({ werk, delay=0 }) {
     : null;
 
   return (
-    <div className="dp-press dp-in dp-card-hover" style={{
+    <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(werk)} style={{
       width:165, flexShrink:0,
       borderRadius:16, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
@@ -836,7 +836,7 @@ function WerkCard({ werk, delay=0 }) {
   );
 }
 
-function WerkeSection({ werke, loading, delay=0, view='cards' }) {
+function WerkeSection({ werke, loading, delay=0, view='cards', onPress }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -854,7 +854,7 @@ function WerkeSection({ werke, loading, delay=0, view='cards' }) {
                   <div style={{ padding:"9px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div>
                 </div>
               ))
-            : werke.map((w, i) => <WerkCard key={w.id} werk={w} delay={i*35+delay} />)
+            : werke.map((w, i) => <WerkCard key={w.id} werk={w} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -869,7 +869,7 @@ function WerkeSection({ werke, loading, delay=0, view='cards' }) {
                   ? parseFloat(w.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
                   : null;
                 return (
-                  <div key={w.id} className="dp-list-card">
+                  <div key={w.id} className="dp-list-card" onClick={() => onPress?.(w)} style={{cursor:"pointer"}}>
                     <div className="dp-list-thumb-placeholder" style={{ background: w.cover ? "#1A1A18" : medCol.bg }}>
                       {w.cover
                         ? <img src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
@@ -917,7 +917,7 @@ const SEED_ERLEBNISSE = [
   { id:"e6", title:"Tierheim Helfer Tag",       date:"07", month:"Jun",  dayLabel:"Sa",     time:"11:00", location:"Leipzig",  spots:9,  cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75" },
 ];
 
-function ErlebnisCard({ erlebnis, delay=0 }) {
+function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && erlebnis.cover) ? erlebnis.cover : null;
 
@@ -939,7 +939,7 @@ function ErlebnisCard({ erlebnis, delay=0 }) {
   });
 
   return (
-    <div className="dp-press dp-in dp-card-hover" style={{
+    <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(erlebnis)} style={{
       width:165, flexShrink:0,
       borderRadius:18, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
@@ -1042,7 +1042,7 @@ function ErlebnisCard({ erlebnis, delay=0 }) {
   );
 }
 
-function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards' }) {
+function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -1060,7 +1060,7 @@ function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards' }) {
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="55%" h={10} r={5}/></div>
                 </div>
               ))
-            : erlebnisse.map((e, i) => <ErlebnisCard key={e.id} erlebnis={e} delay={i*35+delay} />)
+            : erlebnisse.map((e, i) => <ErlebnisCard key={e.id} erlebnis={e} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -1125,13 +1125,13 @@ const SEED_PROJEKTE = [
   { id:"pr6", title:"Klima Zukunft",       desc:"Bildung & Aktionen für eine bessere Welt",            members:54, cat:"Klima",     cover:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=280&q=75", catColor:{ bg:"rgba(22,163,74,0.12)", text:"#16A34A" } },
 ];
 
-function ProjektCard({ projekt, delay=0 }) {
+function ProjektCard({ projekt, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
   const cc = projekt.catColor || { bg:T.tealSoft, text:T.teal };
 
   return (
-    <div className="dp-press dp-in dp-card-hover" style={{
+    <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(projekt)} style={{
       width:160, flexShrink:0,
       borderRadius:18, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
@@ -1187,7 +1187,7 @@ function ProjektCard({ projekt, delay=0 }) {
   );
 }
 
-function ProjekteSection({ projekte, loading, delay=0, view='cards' }) {
+function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress }) {
   const allProjekte = projekte.length > 0 ? projekte : SEED_PROJEKTE;
   const hero = allProjekte[0];
   const rest = allProjekte.slice(1);
@@ -1443,6 +1443,7 @@ export default function DiscoverPage({ onView, onMap }) {
         if (!cancelled && beitr?.length > 0) {
           setMomente(beitr.map(b => ({
             id:         b.id,
+            user_id:    b.user_id,
             src:        safeStr(b.src),
             caption:    safeStr(b.caption, "Ein Moment"),
             type:       safeStr(b.type, "foto"),
@@ -1475,6 +1476,7 @@ export default function DiscoverPage({ onView, onMap }) {
           };
           setWerke(ws.map(w => ({
             id:       w.id,
+            user_id:  w.user_id || w.creator_id,
             title:    safeStr(w.title, "Werk"),
             cover:    safeStr(w.cover_url),
             medium:   FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
@@ -1521,6 +1523,7 @@ export default function DiscoverPage({ onView, onMap }) {
 
             return {
               id:          e.id,
+              user_id:     e.user_id,
               title:       safeStr(e.title, "Erlebnis"),
               cover:       safeStr(e.cover_url),
               date:        dayNum,
@@ -1589,6 +1592,30 @@ export default function DiscoverPage({ onView, onMap }) {
     if (typeof onView === "function") onView(person.id || person.user_id);
   }, [onView]);
 
+  // Werk-Karte: öffne Ersteller-Profil
+  const handleWerkPress = useCallback((werk) => {
+    const profileId = werk.user_id;
+    if (profileId && typeof onView === "function") onView(profileId);
+  }, [onView]);
+
+  // Moment-Karte: öffne Ersteller-Profil
+  const handleMomentPress = useCallback((moment) => {
+    const profileId = moment.user_id;
+    if (profileId && typeof onView === "function") onView(profileId);
+  }, [onView]);
+
+  // Erlebnis-Karte: öffne Ersteller-Profil
+  const handleErlebnisPress = useCallback((erlebnis) => {
+    const profileId = erlebnis.user_id;
+    if (profileId && typeof onView === "function") onView(profileId);
+  }, [onView]);
+
+  // Projekt-Karte: öffne Ersteller-Profil (falls vorhanden)
+  const handleProjektPress = useCallback((projekt) => {
+    const profileId = projekt.user_id || projekt.creator_id;
+    if (profileId && typeof onView === "function") onView(profileId);
+  }, [onView]);
+
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="dp-root" style={{
@@ -1622,6 +1649,7 @@ export default function DiscoverPage({ onView, onMap }) {
         loading={loading && momente.length === 0}
         delay={80}
         view={view}
+        onPress={handleMomentPress}
       />
 
       {/* ── 5. Werke entdecken ── */}
@@ -1630,6 +1658,7 @@ export default function DiscoverPage({ onView, onMap }) {
         loading={loading && werke.length === 0}
         delay={100}
         view={view}
+        onPress={handleWerkPress}
       />
 
       {/* ── 6. Erlebnisse für dich ── */}
@@ -1638,6 +1667,7 @@ export default function DiscoverPage({ onView, onMap }) {
         loading={loading && erlebnisse.length === 0}
         delay={120}
         view={view}
+        onPress={handleErlebnisPress}
       />
 
       {/* ── 7. Projekte & Initiativen ── */}
@@ -1646,6 +1676,7 @@ export default function DiscoverPage({ onView, onMap }) {
         loading={loading}
         delay={140}
         view={view}
+        onPress={handleProjektPress}
       />
 
       {/* ── 8. Orte entdecken ── */}
