@@ -147,6 +147,420 @@ function SectionLabel({ children, color, action, onAction }) {
 }
 
 
+
+// ─────────────────────────────────────────────────────────────
+// PHASE 5 — "MENSCHEN DIE DU KENNEN SOLLTEST"
+// Echtes Match-System: follows-Netzwerk · impact · dna_tags
+// ─────────────────────────────────────────────────────────────
+
+// Match-Gründe Pool
+const MATCH_REASONS_POOL = [
+  { emoji:"🌱", text:"Gemeinsame Interessen" },
+  { emoji:"🤝", text:"Ähnliche Werte" },
+  { emoji:"🎨", text:"Ähnliche Werke" },
+  { emoji:"🎵", text:"Gleiche Themen" },
+  { emoji:"📚", text:"Gemeinsame Lernbereiche" },
+  { emoji:"🌍", text:"Gleiches Wirkungsfeld" },
+  { emoji:"🏗", text:"Ähnliche Projekte" },
+  { emoji:"✨", text:"Passend zu deinem Profil" },
+];
+
+// DNA-Tag → Emoji + Label Mapping
+const DNA_DISPLAY = {
+  nachhaltigkeit: { emoji:"🌱", label:"Nachhaltigkeit" },
+  kreativitaet:   { emoji:"🎨", label:"Kreativität"   },
+  musik:          { emoji:"🎵", label:"Musik"          },
+  gemeinschaft:   { emoji:"🤝", label:"Gemeinschaft"   },
+  bildung:        { emoji:"📚", label:"Bildung"        },
+  spiritualitaet: { emoji:"✨", label:"Spiritualität"  },
+  natur:          { emoji:"🌿", label:"Natur"          },
+  kunst:          { emoji:"🎨", label:"Kunst"          },
+  sport:          { emoji:"⚽", label:"Sport"          },
+  technologie:    { emoji:"💻", label:"Technologie"    },
+};
+
+function dnaDisplay(tag) {
+  const key = (tag || "").toLowerCase().replace(/[^a-z]/g, "");
+  return DNA_DISPLAY[key] || { emoji:"✨", label: tag };
+}
+
+// MATCH SCORE — echte Gewichtung
+// Basis 60 + Impact (max 18) + Trust (max 8) + Available (4) + Netzwerk (10) + Variation (9)
+function calcMatchScore(profile, commonContacts) {
+  const base    = 60;
+  const impact  = Math.min(profile.impact_eur  || 0, 500) / 500 * 18;
+  const trust   = Math.min(profile.trust_score || 0, 100) / 100 * 8;
+  const avail   = profile.is_available ? 4 : 0;
+  const network = Math.min(commonContacts, 5) * 2;  // max 10 Punkte
+  // Deterministisch aus ID → 0-8
+  const id = profile.id || "";
+  const vari = (id.charCodeAt(0) + id.charCodeAt(id.length - 1)) % 9;
+  return Math.min(99, Math.round(base + impact + trust + avail + network + vari));
+}
+
+// MATCH GRÜNDE — 2-3 Gründe pro Person
+function buildReasons(profile, commonContacts, myDna) {
+  const reasons = [];
+  // Gemeinsame Kontakte — stärkster Grund
+  if (commonContacts > 0) {
+    reasons.push({ emoji:"🤝", text:`${commonContacts} gemeinsame Kontakt${commonContacts>1?"e":""}` });
+  }
+  // DNA Überschneidung
+  const theirDna = profile.dna_tags || [];
+  const shared   = theirDna.filter(t => myDna.includes(t));
+  if (shared.length > 0) {
+    const d = dnaDisplay(shared[0]);
+    reasons.push({ emoji:d.emoji, text:`Gemeinsam: ${d.label}` });
+  }
+  // Standort
+  if (profile.location && profile.location.trim()) {
+    reasons.push({ emoji:"📍", text:profile.location });
+  }
+  // Fallback
+  if (reasons.length === 0) {
+    const seed = (profile.id?.charCodeAt(0) || 0) % MATCH_REASONS_POOL.length;
+    reasons.push(MATCH_REASONS_POOL[seed]);
+  }
+  return reasons.slice(0, 2);
+}
+
+// Hook — lädt People-Matches
+function useMenschenMatch(currentUser) {
+  const [people,   setPeople]   = React.useState([]);
+  const [loading,  setLoading]  = React.useState(true);
+  const [refreshK, setRefreshK] = React.useState(0);
+
+  React.useEffect(() => {
+    const uid    = currentUser?.id;
+    const myDna  = currentUser?.dna_tags || [];
+
+    Promise.all([
+      // Alle Profile außer mein eigenes
+      supabase.from("profiles")
+        .select("id,display_name,username,avatar_url,tagline,talent,bio,dna_tags,impact_eur,trust_score,is_available,location,follower_count")
+        .neq("id", uid || "00000000-0000-0000-0000-000000000000")
+        .order("impact_eur", { ascending: false })
+        .limit(20),
+
+      // Meine follows → wer folge ich
+      uid
+        ? supabase.from("follows").select("followed_id").eq("follower_id", uid).limit(100)
+        : Promise.resolve({ data: [] }),
+
+      // Wer folgt wem — für "gemeinsame Kontakte" (2. Ebene)
+      supabase.from("follows").select("follower_id,followed_id").limit(200),
+    ]).then(([pRes, myFollowRes, allFollowRes]) => {
+      const profiles    = pRes.data || [];
+      const myFollowing = new Set((myFollowRes.data || []).map(f => f.followed_id));
+      const allFollows  = allFollowRes.data || [];
+
+      // Berechne gemeinsame Kontakte pro Profil
+      // = Personen, denen sowohl ich ALS AUCH das Target-Profil folgen
+      function commonContacts(targetId) {
+        // Wem folgt target?
+        const targetFollowing = new Set(
+          allFollows.filter(f => f.follower_id === targetId).map(f => f.followed_id)
+        );
+        // Schnittmenge mit meinen follows
+        return [...myFollowing].filter(id => targetFollowing.has(id)).length;
+      }
+
+      // Filtere wen ich bereits folge heraus
+      const candidates = profiles.filter(p => !myFollowing.has(p.id));
+
+      // Berechne Score + Gründe
+      const scored = candidates.map(p => {
+        const cc = commonContacts(p.id);
+        return {
+          ...p,
+          _score:   calcMatchScore(p, cc),
+          _reasons: buildReasons(p, cc, myDna),
+          _cc:      cc,
+        };
+      });
+
+      // Sortiere: Score absteigend, dann Variation
+      scored.sort((a, b) => b._score - a._score);
+
+      setPeople(scored.slice(0, 6));
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [currentUser?.id, refreshK]);
+
+  return { people, loading, refresh: () => setRefreshK(k => k + 1) };
+}
+
+// Einzel-Karte
+function MenschCard({ person, idx }) {
+  const [hov, setHov] = React.useState(false);
+  const [imgErr, setImgErr] = React.useState(false);
+
+  const name    = person.display_name || person.username || "HUI Mitglied";
+  const sub     = person.tagline || person.talent || (person.bio ? person.bio.slice(0, 42) + "…" : null);
+  const score   = person._score;
+  const reasons = person._reasons || [];
+  const dna     = (person.dna_tags || []).slice(0, 2);
+
+  // Score-Farbe
+  const scoreColor = score >= 88 ? "#16A34A" : score >= 75 ? T.teal : "#D97706";
+
+  return (
+    <div style={{
+      flexShrink: 0, width: 188,
+      scrollSnapAlign: "start",
+      borderRadius: 18,
+      border: `1.5px solid ${hov ? "rgba(14,196,184,0.35)" : "rgba(14,196,184,0.14)"}`,
+      background: hov
+        ? "linear-gradient(145deg,rgba(14,196,184,0.08),rgba(255,252,250,0.99))"
+        : "rgba(255,252,250,0.96)",
+      boxShadow: hov ? "0 10px 32px rgba(14,196,184,0.18)" : "0 2px 8px rgba(26,53,48,0.05)",
+      transform: hov ? "translateY(-3px) scale(1.015)" : "translateY(0) scale(1)",
+      transition: "all .20s ease",
+      cursor: "pointer",
+      overflow: "hidden",
+      animation: "dc-slidein .32s ease both",
+      animationDelay: `${idx * 0.08}s`,
+    }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
+      {/* Avatar Bereich */}
+      <div style={{
+        padding: "16px 14px 10px",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        background: hov
+          ? "linear-gradient(180deg,rgba(14,196,184,0.06),transparent)"
+          : "transparent",
+        transition: "background .2s ease",
+      }}>
+        {/* Avatar */}
+        <div style={{
+          position: "relative", marginBottom: 10,
+          transform: hov ? "scale(1.06)" : "scale(1)",
+          transition: "transform .2s ease",
+        }}>
+          <div style={{
+            width: 62, height: 62, borderRadius: "50%",
+            overflow: "hidden", flexShrink: 0,
+            background: T.tealS,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: `2.5px solid ${hov ? T.teal : "rgba(14,196,184,0.20)"}`,
+            boxShadow: hov ? `0 0 0 4px rgba(14,196,184,0.12)` : "none",
+            transition: "border-color .2s, box-shadow .2s",
+          }}>
+            {person.avatar_url && !imgErr
+              ? <img src={person.avatar_url} alt={name} onError={() => setImgErr(true)}
+                  style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+              : <span style={{ fontSize: 26 }}>👤</span>}
+          </div>
+
+          {/* Score Badge */}
+          <div style={{
+            position: "absolute", bottom: -3, right: -8,
+            background: scoreColor,
+            borderRadius: 99, padding: "2px 7px",
+            fontSize: 9, fontWeight: 900, color: "white",
+            border: "2px solid white",
+            whiteSpace: "nowrap",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+          }}>{score}%</div>
+        </div>
+
+        {/* Name */}
+        <div style={{
+          fontSize: 13, fontWeight: 800, color: T.ink,
+          textAlign: "center", lineHeight: 1.25,
+          marginBottom: sub ? 4 : 0,
+          overflow: "hidden", display: "-webkit-box",
+          WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+        }}>{name}</div>
+
+        {/* Talent / Sub */}
+        {sub && (
+          <div style={{
+            fontSize: 10.5, color: T.inkS, textAlign: "center",
+            overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+            maxWidth: "100%",
+          }}>{sub}</div>
+        )}
+      </div>
+
+      {/* Trennlinie */}
+      <div style={{ height: 1, background: "rgba(14,196,184,0.08)", margin: "0 12px" }}/>
+
+      {/* DNA Tags */}
+      {dna.length > 0 && (
+        <div style={{
+          display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center",
+          padding: "8px 12px 4px",
+        }}>
+          {dna.map((tag, i) => {
+            const d = dnaDisplay(tag);
+            return (
+              <span key={i} style={{
+                fontSize: 10, fontWeight: 700, color: T.teal,
+                background: T.tealS, borderRadius: 99, padding: "2px 8px",
+                border: "1px solid rgba(14,196,184,0.18)",
+              }}>{d.emoji} {d.label}</span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Empfehlungs-Gründe */}
+      <div style={{ padding: "6px 12px 10px", display: "flex", flexDirection: "column", gap: 4 }}>
+        {reasons.map((r, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "center", gap: 5,
+            fontSize: 10.5, color: T.inkS, fontWeight: 500,
+          }}>
+            <span style={{ fontSize: 12 }}>{r.emoji}</span>
+            <span style={{
+              overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+            }}>{r.text}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Trennlinie */}
+      <div style={{ height: 1, background: "rgba(14,196,184,0.07)", margin: "0 12px" }}/>
+
+      {/* CTA Buttons */}
+      <div style={{ padding: "10px 12px 12px", display: "flex", gap: 6 }}>
+        <button style={{
+          flex: 1, padding: "8px 0",
+          background: hov ? T.teal : "transparent",
+          border: `1.5px solid ${T.teal}`,
+          borderRadius: 99, fontSize: 11, fontWeight: 700,
+          color: hov ? "white" : T.teal,
+          cursor: "pointer", transition: "all .18s ease",
+          WebkitTapHighlightColor: "transparent",
+        }}>Kennenlernen</button>
+
+        <button style={{
+          width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+          background: "rgba(26,53,48,0.05)",
+          border: "1.5px solid rgba(26,53,48,0.09)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", fontSize: 14, transition: "all .15s ease",
+          WebkitTapHighlightColor: "transparent",
+        }}
+          title="Folgen"
+          onMouseEnter={e=>{ e.currentTarget.style.background="rgba(14,196,184,0.12)"; e.currentTarget.style.borderColor="rgba(14,196,184,0.30)"; }}
+          onMouseLeave={e=>{ e.currentTarget.style.background="rgba(26,53,48,0.05)"; e.currentTarget.style.borderColor="rgba(26,53,48,0.09)"; }}
+        >➕</button>
+      </div>
+    </div>
+  );
+}
+
+// Container
+function MenschenDuKennenSolltest({ currentUser }) {
+  const { people, loading, refresh } = useMenschenMatch(currentUser);
+
+  return (
+    <div style={{
+      padding: "14px 16px 16px",
+      borderBottom: "1px solid rgba(14,196,184,0.08)",
+    }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10 }}>
+        <div>
+          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
+            <span style={{ fontSize:14 }}>🤝</span>
+            <span style={{ fontSize:13, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+              Menschen die du kennen solltest
+            </span>
+          </div>
+          <div style={{ fontSize:10.5, color:T.inkF, lineHeight:1.4 }}>
+            Entdecke Menschen, die zu deinen Interessen, Projekten und Zielen passen.
+          </div>
+        </div>
+        <button onClick={refresh} style={{
+          background:"none", border:"none", cursor:"pointer",
+          fontSize:10, color:T.teal, fontWeight:600,
+          flexShrink:0, padding:"2px 0",
+          transition:"opacity .15s",
+          whiteSpace:"nowrap",
+        }}
+          onMouseEnter={e=>e.currentTarget.style.opacity=".6"}
+          onMouseLeave={e=>e.currentTarget.style.opacity="1"}
+        >Alle ansehen →</button>
+      </div>
+
+      {/* Loading Skeletons */}
+      {loading && (
+        <div style={{ display:"flex", gap:12, overflowX:"auto", paddingBottom:4 }}>
+          {[0,1,2,3].map(i => (
+            <div key={i} style={{
+              flexShrink:0, width:188, borderRadius:18,
+              border:"1.5px solid rgba(14,196,184,0.10)",
+              background:"rgba(255,252,250,0.96)",
+              overflow:"hidden",
+              animation:`dc-slidein .3s ease both`,
+              animationDelay:`${i*0.08}s`,
+            }}>
+              <div style={{ padding:"16px 14px 10px", display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
+                <Sk w={62} h={62} r={99}/>
+                <Sk w="70%" h={13} r={6}/>
+                <Sk w="55%" h={10} r={5}/>
+              </div>
+              <div style={{ height:1, background:"rgba(14,196,184,0.08)", margin:"0 12px" }}/>
+              <div style={{ padding:"8px 12px 10px", display:"flex", flexDirection:"column", gap:6 }}>
+                <Sk w="80%" h={10} r={5}/>
+                <Sk w="65%" h={10} r={5}/>
+              </div>
+              <div style={{ height:1, background:"rgba(14,196,184,0.07)", margin:"0 12px" }}/>
+              <div style={{ padding:"10px 12px 12px" }}>
+                <Sk w="100%" h={32} r={99}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && people.length === 0 && (
+        <div style={{
+          textAlign:"center", padding:"24px 16px",
+          background:"rgba(14,196,184,0.04)",
+          borderRadius:16,
+          border:"1.5px dashed rgba(14,196,184,0.16)",
+        }}>
+          <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
+          <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:6 }}>
+            HUI sucht passende Menschen für dich
+          </div>
+          <div style={{ fontSize:11.5, color:T.inkF, lineHeight:1.6, marginBottom:16 }}>
+            Interagiere mit Profilen, Projekten und Werken.<br/>
+            Je mehr du entdeckst, desto bessere Empfehlungen erhältst du.
+          </div>
+          <button style={{
+            background:T.teal, border:"none", borderRadius:99,
+            padding:"9px 20px", fontSize:12, fontWeight:700, color:"white", cursor:"pointer",
+          }}>Menschen entdecken</button>
+        </div>
+      )}
+
+      {/* Karten-Karussell */}
+      {!loading && people.length > 0 && (
+        <div style={{
+          display:"flex", gap:12, overflowX:"auto",
+          paddingBottom:6,
+          scrollSnapType:"x mandatory",
+          WebkitOverflowScrolling:"touch",
+          msOverflowStyle:"none", scrollbarWidth:"none",
+        }}>
+          {people.map((p, idx) => (
+            <MenschCard key={p.id} person={p} idx={idx}/>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ─────────────────────────────────────────────────────────────
 // PHASE 4 — "FÜR DICH AUSGEWÄHLT"
 // Personalisierter Mix: Profiles · Works · Experiences
@@ -1614,7 +2028,10 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                 {/* 1b. Für dich ausgewählt — Phase 4 */}
                 <ForDichAusgewaehlt currentUser={currentUser}/>
 
-                {/* 2. Story Cards "Heute auf HUI" */}
+                {/* 2. Menschen die du kennen solltest — Phase 5 */}
+                <MenschenDuKennenSolltest currentUser={currentUser}/>
+
+                {/* 3. Story Cards "Heute auf HUI" */}
                 <div style={{padding:"14px 16px 12px",borderBottom:"1px solid rgba(14,196,184,0.08)"}}>
                   <StoryCards/>
                 </div>
