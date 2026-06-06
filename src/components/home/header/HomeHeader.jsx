@@ -1,9 +1,8 @@
-// header/HomeHeader.jsx — HUI Match Header (Orchestrator)
-// Sticky Header: MatchBar + MoodOrb + Notif + Chat
-// FIX: touchAction:manipulation am Container, trace logs
+// header/HomeHeader.jsx — HUI Command Center Header
+// MatchBar ersetzt durch SearchCommandCenter (intelligente Plattform-Suche)
 
 import React from "react";
-import MatchBar           from "./MatchBar.jsx";
+import SearchCommandCenter from "./SearchCommandCenter.jsx";
 import MoodOrbButton      from "./MoodOrbButton.jsx";
 import NotificationButton from "./NotificationButton.jsx";
 import MessageButton      from "./MessageButton.jsx";
@@ -18,21 +17,16 @@ export default function HomeHeader({
   msgCount    = 0,
   onNotif,
   onChat,
+  currentUser,
 }) {
-  const [showMood,  setShowMood]  = React.useState(false);
-  const [matchVal,  setMatchVal]  = React.useState("");
+  const [showMood, setShowMood] = React.useState(false);
   const actions = useHuiActions();
 
   const mc  = activeMood?.color || "#16D7C5";
   const has = !!activeMood;
 
-  // Route through Action Engine — prop fallbacks for non-HomeShell contexts
   function handleChat() {
     actions[A.OPEN_CHAT]?.({ source: S.HOME }) || onChat?.();
-  }
-
-  function handleNotif() {
-    // noop — NotificationButton öffnet Resonanzzentrum via eigenem State.
   }
 
   return (
@@ -56,10 +50,10 @@ export default function HomeHeader({
           padding:"8px 12px", gap:8,
           touchAction:"manipulation",
         }}>
-          <MatchBar
+          {/* Command Center — nimmt flex:1 ein */}
+          <SearchCommandCenter
             activeMood={activeMood}
-            value={matchVal}
-            onChange={setMatchVal}
+            currentUser={currentUser}
           />
 
           <MoodOrbButton
@@ -68,7 +62,7 @@ export default function HomeHeader({
             onToggle={() => setShowMood(p => !p)}
           />
 
-          <NotificationButton count={notifCount} onPress={handleNotif}/>
+          <NotificationButton count={notifCount} onPress={onNotif}/>
 
           <MessageButton count={msgCount} onPress={handleChat}/>
         </div>
