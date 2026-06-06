@@ -5,7 +5,8 @@
 // KEINE Kategorie-Pills (HUI-Orb übernimmt Themennavigation)
 // ══════════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { supabase } from "../lib/supabaseClient.js";
+import { supabase }      from "../lib/supabaseClient.js";
+import { formatPresence } from "../lib/usePresence.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -56,6 +57,23 @@ const CSS = `
   /* Toggle animation */
   @keyframes dp-toggle-in { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
   .dp-toggle-in { animation:dp-toggle-in .18s ease both; }
+  /* Live Activity Bar */
+  @keyframes dp-activity-slide { from{transform:translateX(8px);opacity:0} to{transform:translateX(0);opacity:1} }
+  .dp-activity-card { animation:dp-activity-slide .35s cubic-bezier(.22,1,.36,1) both; }
+  /* Online Pulse */
+  @keyframes dp-online-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5)} 50%{box-shadow:0 0 0 4px rgba(34,197,94,0)} }
+  .dp-online-pulse { animation:dp-online-pulse 2.4s ease-in-out infinite; }
+  /* Stat card hover */
+  .dp-stat-card { transition:transform .15s ease,box-shadow .15s ease; cursor:default; }
+  .dp-stat-card:hover { transform:translateY(-2px); }
+  /* Projekt Hero */
+  .dp-projekt-hero { transition:transform .2s ease,box-shadow .2s ease; cursor:pointer; }
+  .dp-projekt-hero:hover { transform:scale(1.01); }
+  /* Tag pills */
+  .dp-tag { display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:600;cursor:default; }
+  /* Moment engagement row */
+  .dp-engage { display:flex;align-items:center;gap:10px;font-size:10px;color:rgba(26,53,48,0.50); }
+  .dp-engage span { display:flex;align-items:center;gap:3px; }
 `;
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -219,6 +237,100 @@ function SearchBar({ searchQ, onSearch, view, onViewChange }) {
 }
 
 // ════════════════════════════════════════════════════════════════
+// 1b. LIVE ACTIVITY BAR — "Jetzt auf HUI"
+// ════════════════════════════════════════════════════════════════
+const LIVE_ACTIVITIES = [
+  { id:"a1", avatar:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=80", name:"Sarah",  action:"hat einen Gemeinschaftsgarten gestartet", type:"Moment",   typeColor:"#16A34A", typeEmoji:"🌱", ago:"vor 2 Min"  },
+  { id:"a2", avatar:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80", name:"Jonas",  action:"sucht Mitgründer für ein Musikprojekt",   type:"Projekt",  typeColor:"#D97706", typeEmoji:"🎵", ago:"vor 5 Min"  },
+  { id:"a3", avatar:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80", name:"Anna",   action:"hat ein neues Werk veröffentlicht",        type:"Werk",     typeColor:"#9333EA", typeEmoji:"🎨", ago:"vor 8 Min"  },
+  { id:"a4", avatar:null,                                                                       name:"HUI",   action:"Heute finden 6 Erlebnisse statt",         type:"Erlebnis", typeColor:"#0EC4B8", typeEmoji:"📅", ago:"vor 12 Min" },
+  { id:"a5", avatar:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80", name:"Max",   action:"hat einen Workshop angekündigt",           type:"Workshop", typeColor:"#E8573A", typeEmoji:"✨", ago:"vor 15 Min" },
+];
+
+function ActivityCard({ act, idx }) {
+  const [imgErr, setImgErr] = useState(false);
+  const av = (!imgErr && act.avatar) ? act.avatar : null;
+  return (
+    <div className="dp-activity-card dp-press" style={{
+      width:155, flexShrink:0,
+      background:"rgba(255,255,255,0.88)",
+      backdropFilter:"blur(12px)",
+      borderRadius:16,
+      border:"1px solid rgba(255,255,255,0.70)",
+      boxShadow:"0 2px 12px rgba(26,53,48,0.07)",
+      padding:"11px 11px 10px",
+      animationDelay:`${idx*60}ms`,
+      touchAction:"manipulation",
+      WebkitTapHighlightColor:"transparent",
+      display:"flex", flexDirection:"column", gap:8,
+    }}>
+      {/* Top: avatar + name + time */}
+      <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+        <div style={{
+          width:28, height:28, borderRadius:"50%", flexShrink:0, overflow:"hidden",
+          background:av ? "transparent" : "rgba(14,196,184,0.15)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          border:"1.5px solid rgba(14,196,184,0.20)",
+        }}>
+          {av ? <img src={av} alt={act.name} onError={() => setImgErr(true)} style={{ width:"100%",height:"100%",objectFit:"cover" }}/> : <span style={{fontSize:12}}>👤</span>}
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:"#1A3530", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{act.name}</div>
+          <div style={{ fontSize:9.5, color:"rgba(26,53,48,0.40)", fontWeight:500 }}>{act.ago}</div>
+        </div>
+      </div>
+      {/* Action text */}
+      <div style={{
+        fontSize:11, color:"rgba(26,53,48,0.72)", lineHeight:1.4, fontWeight:400,
+        overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+      }}>{act.action}</div>
+      {/* Type badge */}
+      <div style={{
+        alignSelf:"flex-start",
+        background:`${act.typeColor}18`,
+        color:act.typeColor,
+        borderRadius:99, padding:"2px 8px",
+        fontSize:9, fontWeight:700, letterSpacing:".03em",
+        display:"flex", alignItems:"center", gap:3,
+      }}>
+        <span>{act.typeEmoji}</span>{act.type}
+      </div>
+    </div>
+  );
+}
+
+function LiveActivityBar() {
+  return (
+    <div style={{ padding:`0 16px 16px`, marginBottom:0 }}>
+      <div style={{
+        background:"linear-gradient(135deg,rgba(14,196,184,0.05) 0%,rgba(232,87,58,0.03) 100%)",
+        border:"1px solid rgba(14,196,184,0.12)",
+        borderRadius:20, padding:"14px 0 14px 14px", overflow:"hidden",
+      }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, paddingRight:14 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <div className="dp-live-dot" style={{ width:7,height:7,borderRadius:"50%",background:"#0EC4B8" }}/>
+            <span style={{ fontSize:14, fontWeight:800, color:"#1A3530", letterSpacing:"-0.03em" }}>Jetzt auf HUI</span>
+          </div>
+          <div style={{
+            background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.22)",
+            borderRadius:99, padding:"1px 7px",
+            fontSize:9, fontWeight:700, color:"#0EC4B8", letterSpacing:".04em",
+          }}>Live</div>
+          <div style={{ flex:1 }}/>
+          <span style={{ fontSize:11, color:"rgba(26,53,48,0.45)", fontWeight:500, paddingRight:14, cursor:"pointer" }}>Alles live →</span>
+        </div>
+        {/* Horizontal scroll */}
+        <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingRight:14 }}>
+          {LIVE_ACTIVITIES.map((act, i) => <ActivityCard key={act.id} act={act} idx={i}/>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
 // 2. HEUTE AUF HUI
 // ════════════════════════════════════════════════════════════════
 const STAT_DEFS = [
@@ -262,7 +374,7 @@ function TodayStats({ stats }) {
         {/* Stats row */}
         <div style={{ display:"flex", gap:10, overflowX:"auto" }} className="dp-hscroll">
           {STAT_DEFS.map((def, i) => (
-            <div key={def.key} style={{
+            <div key={def.key} className="dp-stat-card" style={{
               display:"flex", flexDirection:"column", alignItems:"center",
               background:T.white, borderRadius:14, padding:"12px 10px",
               minWidth:72, boxShadow:T.cardShadow, flexShrink:0,
@@ -284,6 +396,19 @@ function TodayStats({ stats }) {
               </span>
             </div>
           ))}
+          {/* Deine Aktivität */}
+          <div className="dp-stat-card" style={{
+            display:"flex", flexDirection:"column", alignItems:"center",
+            background:`linear-gradient(135deg,rgba(14,196,184,0.10),rgba(232,87,58,0.07))`,
+            borderRadius:14, padding:"12px 10px",
+            minWidth:82, boxShadow:T.cardShadow, flexShrink:0,
+            border:"1px solid rgba(14,196,184,0.18)",
+          }}>
+            <span style={{ fontSize:20, marginBottom:6 }}>✦</span>
+            <span style={{ fontSize:11, fontWeight:900, color:T.teal, letterSpacing:"-0.02em", lineHeight:1, textAlign:"center" }}>Deine</span>
+            <span style={{ fontSize:11, fontWeight:900, color:T.teal, letterSpacing:"-0.02em", lineHeight:1, textAlign:"center", marginBottom:4 }}>Aktivität</span>
+            <span style={{ fontSize:8.5, color:T.inkFaint, textAlign:"center", lineHeight:1.3, fontWeight:500 }}>diese Woche</span>
+          </div>
         </div>
 
         {/* Dekorative Illustration rechts */}
@@ -310,13 +435,25 @@ const SEED_PEOPLE = [
   { id:"p6", name:"Felix Braun",   bio:"Tierheim-Aktivist & Hundefreund",  location:"Leipzig", avatar:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80", impact:2800 },
 ];
 
+// Interesse-Tags pro Person — deterministisch aus index
+const INTEREST_POOLS = ["Natur","Musik","Kunst","Gemeinschaft","Spiritualität","Nachhaltigkeit","Fotografie","Design","Bildung","Umwelt"];
+function personTags(person, max=2) {
+  if (person.interests?.length) return person.interests.slice(0,max);
+  // deterministisch aus Name-Hashcode
+  const code = String(person.name||"").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+  const start = code % INTEREST_POOLS.length;
+  return [INTEREST_POOLS[start % INTEREST_POOLS.length], INTEREST_POOLS[(start+3) % INTEREST_POOLS.length]];
+}
+
 function PersonCard({ person, onPress, delay=0 }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && person.avatar) ? person.avatar : null;
+  const presence = formatPresence(person.last_seen_at);
+  const tags = personTags(person, 2);
 
   return (
-    <div className="dp-press dp-in" onClick={() => onPress?.(person)} style={{
-      width:130, flexShrink:0,
+    <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(person)} style={{
+      width:135, flexShrink:0,
       display:"flex", flexDirection:"column", alignItems:"center",
       padding:"14px 10px 12px",
       background:T.white,
@@ -326,28 +463,38 @@ function PersonCard({ person, onPress, delay=0 }) {
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
+      position:"relative",
     }}>
-      {/* Avatar */}
-      <div style={{
-        width:72, height:72, borderRadius:"50%", overflow:"hidden",
-        border:`2.5px solid ${T.white}`,
-        boxShadow:`0 0 0 2.5px rgba(14,196,184,0.30), 0 4px 14px rgba(26,53,48,0.12)`,
-        marginBottom:10, flexShrink:0,
-        background:av ? "transparent" : T.tealSoft,
-        display:"flex", alignItems:"center", justifyContent:"center",
-      }}>
-        {av ? (
-          <img src={av} alt={person.name} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
-        ) : (
-          <span style={{ fontSize:26, userSelect:"none" }}>👤</span>
-        )}
+      {/* Avatar + Online-Dot */}
+      <div style={{ position:"relative", marginBottom:10 }}>
+        <div style={{
+          width:72, height:72, borderRadius:"50%", overflow:"hidden",
+          border:`2.5px solid ${T.white}`,
+          boxShadow:`0 0 0 2.5px rgba(14,196,184,0.30), 0 4px 14px rgba(26,53,48,0.12)`,
+          background:av ? "transparent" : T.tealSoft,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          {av ? (
+            <img src={av} alt={person.name} onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+          ) : (
+            <span style={{ fontSize:26, userSelect:"none" }}>👤</span>
+          )}
+        </div>
+        {/* Online-Status Dot */}
+        <div style={{
+          position:"absolute", bottom:2, right:2,
+          width:14, height:14, borderRadius:"50%",
+          background: presence?.online ? "#22c55e" : presence ? "rgba(200,200,200,0.9)" : "rgba(200,200,200,0.9)",
+          border:"2px solid white",
+          boxShadow: presence?.online ? "0 0 0 2px rgba(34,197,94,0.25)" : "none",
+        }} className={presence?.online ? "dp-online-pulse" : ""}/>
       </div>
 
       {/* Name */}
       <div style={{
         fontSize:12.5, fontWeight:700, color:T.ink, textAlign:"center",
-        letterSpacing:"-0.02em", lineHeight:1.25, marginBottom:4,
+        letterSpacing:"-0.02em", lineHeight:1.25, marginBottom:3,
         overflow:"hidden", display:"-webkit-box",
         WebkitLineClamp:2, WebkitBoxOrient:"vertical",
       }}>
@@ -356,33 +503,58 @@ function PersonCard({ person, onPress, delay=0 }) {
 
       {/* Bio */}
       <div style={{
-        fontSize:11, color:T.inkSoft, textAlign:"center", lineHeight:1.4,
-        marginBottom:8, fontWeight:400,
+        fontSize:10.5, color:T.inkSoft, textAlign:"center", lineHeight:1.4,
+        marginBottom:6, fontWeight:400,
         overflow:"hidden", display:"-webkit-box",
         WebkitLineClamp:2, WebkitBoxOrient:"vertical",
       }}>
         {person.bio}
       </div>
 
+      {/* Online-Status Text */}
+      {presence && (
+        <div style={{
+          fontSize:10, fontWeight:600, marginBottom:6,
+          color: presence.online ? "#22c55e" : "rgba(26,53,48,0.42)",
+          display:"flex", alignItems:"center", gap:4,
+        }}>
+          <span style={{
+            display:"inline-block", width:6, height:6, borderRadius:"50%",
+            background:presence.dot, flexShrink:0,
+          }}/>
+          {presence.label}
+        </div>
+      )}
+
+      {/* Interesse-Tags */}
+      <div style={{ display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center", marginBottom:8 }}>
+        {tags.map(t => (
+          <span key={t} className="dp-tag" style={{ background:"rgba(14,196,184,0.09)", color:T.teal }}>
+            {t}
+          </span>
+        ))}
+      </div>
+
       {/* Location */}
       {person.location && (
         <div style={{
           display:"flex", alignItems:"center", gap:3,
-          fontSize:11, color:T.inkFaint, marginBottom:8,
+          fontSize:10, color:T.inkFaint, marginBottom:8,
         }}>
-          <span>📍</span>
+          <span style={{ fontSize:9 }}>📍</span>
           <span style={{ fontWeight:500 }}>{person.location}</span>
         </div>
       )}
 
-      {/* Impact */}
+      {/* Impact — stärker hervorgehoben */}
       <div style={{
         display:"flex", alignItems:"center", gap:4,
-        background:T.tealSoft, borderRadius:99,
-        padding:"3px 10px",
+        background:`linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))`,
+        borderRadius:99, padding:"4px 10px",
+        border:"1px solid rgba(14,196,184,0.18)",
       }}>
         <span style={{ fontSize:11 }}>⚡</span>
-        <span style={{ fontSize:11, fontWeight:700, color:T.teal }}>
+        <span style={{ fontSize:11.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
           {fmtImpact(person.impact)} Wirkung
         </span>
       </div>
@@ -497,17 +669,29 @@ function MomentCard({ moment, delay=0 }) {
         </div>
       </div>
 
+      {/* Live Badge — if fresh */}
+      {moment.isLive && (
+        <div style={{
+          position:"absolute", top:8, right:8,
+          background:"#E8573A", borderRadius:99, padding:"2px 7px",
+          fontSize:9, fontWeight:700, color:"white", letterSpacing:".04em",
+          display:"flex", alignItems:"center", gap:4,
+        }}>
+          <div className="dp-live-dot" style={{ width:5,height:5,borderRadius:"50%",background:"white" }}/>
+          Live
+        </div>
+      )}
       {/* Caption */}
       <div style={{ background:T.white, padding:"10px 10px 10px" }}>
         <div style={{
           fontSize:11.5, fontWeight:600, color:T.ink, lineHeight:1.35,
-          marginBottom:8,
+          marginBottom:6,
           overflow:"hidden", display:"-webkit-box",
           WebkitLineClamp:2, WebkitBoxOrient:"vertical",
         }}>
           {moment.caption}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:7 }}>
           <div style={{
             width:18, height:18, borderRadius:"50%",
             background:T.tealSoft,
@@ -521,6 +705,12 @@ function MomentCard({ moment, delay=0 }) {
               <span style={{ fontSize:10, color:T.inkFaint }}>📍 {moment.location}</span>
             </>
           )}
+        </div>
+        {/* Engagement Row */}
+        <div className="dp-engage">
+          <span>❤️ {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
+          <span>💬 {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
+          <span>🌱 {moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
         </div>
       </div>
     </div>
@@ -606,8 +796,6 @@ function WerkCard({ werk, delay=0 }) {
     ? parseFloat(werk.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
     : null;
 
-  console.log("[DISCOVER WORK CARD]", { id:werk.id, title:werk.title, price:werk.price, cover:!!werk.cover });
-
   return (
     <div className="dp-press dp-in dp-card-hover" style={{
       width:165, flexShrink:0,
@@ -675,18 +863,21 @@ function WerkCard({ werk, delay=0 }) {
         )}
 
         {/* Preis — prominente Teal-Farbe */}
-        {priceStr ? (
-          <div style={{
-            fontSize:14, fontWeight:800,
-            color:T.teal, letterSpacing:"-0.02em",
-          }}>
-            {priceStr}
-          </div>
-        ) : (
-          <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>
-            Nicht zum Verkauf
-          </div>
-        )}
+        {/* Price row */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+          {priceStr ? (
+            <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
+              {priceStr}
+            </div>
+          ) : (
+            <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Nicht zum Verkauf</div>
+          )}
+        </div>
+        {/* Likes + Views */}
+        <div className="dp-engage">
+          <span>❤️ {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
+          <span>👁 {werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
+        </div>
       </div>
     </div>
   );
@@ -1044,6 +1235,9 @@ function ProjektCard({ projekt, delay=0 }) {
 }
 
 function ProjekteSection({ projekte, loading, delay=0, view='cards' }) {
+  const allProjekte = projekte.length > 0 ? projekte : SEED_PROJEKTE;
+  const hero = allProjekte[0];
+  const rest = allProjekte.slice(1);
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
@@ -1053,17 +1247,64 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards' }) {
         delay={delay}
       />
       {view === "cards" ? (
-        <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
-          {loading
-            ? Array.from({length:4}).map((_,i) => (
-                <div key={i} style={{ width:160, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                  <Skel w="100%" h={90} r={0} mb={0}/>
-                  <div style={{ padding:"10px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5}/></div>
+        <div style={{ paddingLeft:T.px, paddingRight:T.px }}>
+          {/* ── Hero: Projekt der Woche ── */}
+          {!loading && hero && (
+            <div className="dp-projekt-hero dp-in" style={{
+              position:"relative", borderRadius:20, overflow:"hidden",
+              height:180, marginBottom:10,
+              background: hero.cover ? "#000" : "linear-gradient(135deg,rgba(14,196,184,0.15),rgba(232,87,58,0.10))",
+              boxShadow:"0 6px 24px rgba(26,53,48,0.12)",
+              animationDelay:`${delay}ms`,
+            }}>
+              {hero.cover && (
+                <img src={hero.cover} alt={hero.title}
+                  style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.75 }}
+                  onError={e => e.target.style.display="none"}/>
+              )}
+              {/* Gradient */}
+              <div style={{ position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.80) 0%,rgba(0,0,0,0.10) 60%)" }}/>
+              {/* Badge */}
+              <div style={{
+                position:"absolute",top:12,left:12,
+                background:"#D97706", borderRadius:99,
+                padding:"3px 10px", fontSize:9.5, fontWeight:800,
+                color:"white", letterSpacing:".04em",
+              }}>🔥 Projekt der Woche</div>
+              {/* Content */}
+              <div style={{ position:"absolute",bottom:14,left:14,right:14 }}>
+                <div style={{ fontSize:17, fontWeight:900, color:"white", letterSpacing:"-0.03em", marginBottom:4, lineHeight:1.2 }}>
+                  {hero.title}
                 </div>
-              ))
-            : projekte.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} />)
-          }
-        </div>
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.72)", marginBottom:10, lineHeight:1.4 }}>
+                  {hero.desc}
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.80)", display:"flex", alignItems:"center", gap:4 }}>
+                    <span>👥</span><span>{hero.members} Mitglieder</span>
+                  </div>
+                  <div style={{
+                    background:"rgba(14,196,184,0.90)", backdropFilter:"blur(8px)",
+                    borderRadius:99, padding:"5px 14px",
+                    fontSize:11, fontWeight:700, color:"white",
+                    cursor:"pointer",
+                  }}>Projekt ansehen →</div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* ── Restliche Projekte — horizontal scrollbar ── */}
+          <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingBottom:4 }}>
+            {loading
+              ? Array.from({length:4}).map((_,i) => (
+                  <div key={i} style={{ width:160, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                    <Skel w="100%" h={90} r={0} mb={0}/>
+                    <div style={{ padding:"10px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5}/></div>
+                  </div>
+                ))
+              : rest.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} />)
+            }
+          </div>
       ) : (
         <div className="dp-list-section dp-toggle-in">
           {loading
@@ -1102,12 +1343,12 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards' }) {
 // 8. ORTE ENTDECKEN
 // ════════════════════════════════════════════════════════════════
 const SEED_ORTE = [
-  { id:"o1", name:"Waldlichtung",      city:"München",  dist:"0 km",  cover:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=200&q=75"  },
-  { id:"o2", name:"Community Garten",  city:"Hamburg",  dist:"12 km", cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=75"  },
-  { id:"o3", name:"Atelier Raum",      city:"Berlin",   dist:"27 km", cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
-  { id:"o4", name:"Meditationsraum",   city:"Freiburg", dist:"—",     cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&q=75"     },
-  { id:"o5", name:"Tierheim Leipzig",  city:"Leipzig",  dist:"—",     cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&q=75"     },
-  { id:"o6", name:"Kreativwerkstatt",  city:"Wien",     dist:"—",     cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
+  { id:"o1", name:"Waldlichtung",      city:"München",  dist:"0,3 km",  active:8,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=200&q=75"  },
+  { id:"o2", name:"Community Garten",  city:"Hamburg",  dist:"1,2 km",  active:12, nextEvent:null,           cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=75"  },
+  { id:"o3", name:"Atelier Raum",      city:"Berlin",   dist:"2,7 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
+  { id:"o4", name:"Meditationsraum",   city:"Freiburg", dist:"3,1 km",  active:7,  nextEvent:"morgen",       cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&q=75"     },
+  { id:"o5", name:"Tierheim Treffpunkt",city:"Leipzig", dist:"4,0 km",  active:6,  nextEvent:"Heute 3 Begegnungen", cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&q=75"},
+  { id:"o6", name:"Kreativwerkstatt",  city:"Wien",     dist:"4,5 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
 ];
 
 function OrteSection({ onMap, delay=0, view='cards' }) {
@@ -1185,7 +1426,16 @@ function OrtCard({ ort, delay=0, onMap }) {
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical" }}>
           {ort.name}
         </div>
-        <div style={{ fontSize:10, color:T.inkFaint, fontWeight:500 }}>{ort.city}</div>
+        <div style={{ fontSize:9.5, color:T.inkFaint, fontWeight:500, marginBottom:4 }}>{ort.city}</div>
+        {/* Aktivität */}
+        {ort.nextEvent ? (
+          <div style={{ fontSize:9, color:"#D97706", fontWeight:600 }}>📅 {ort.nextEvent}</div>
+        ) : ort.active ? (
+          <div style={{ display:"flex", alignItems:"center", gap:3, fontSize:9.5, color:"#22c55e", fontWeight:700 }}>
+            <span style={{ display:"inline-block",width:6,height:6,borderRadius:"50%",background:"#22c55e" }}/>
+            {ort.active} aktiv
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -1213,18 +1463,20 @@ export default function DiscoverPage({ onView, onMap }) {
         // People
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id,username,display_name,bio,avatar_url,location,impact_eur,interests")
+          .select("id,username,display_name,bio,avatar_url,location,impact_eur,interests,last_seen_at")
           .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
           .limit(12);
 
         if (!cancelled && profiles?.length > 0) {
           setPeople(profiles.map(p => ({
-            id:       p.id,
-            name:     safeStr(p.display_name || p.username, "Human"),
-            bio:      safeStr(p.bio),
-            location: safeStr(p.location),
-            avatar:   safeStr(p.avatar_url),
-            impact:   safeNum(p.impact_eur, 0),
+            id:           p.id,
+            name:         safeStr(p.display_name || p.username, "Human"),
+            bio:          safeStr(p.bio),
+            location:     safeStr(p.location),
+            avatar:       safeStr(p.avatar_url),
+            impact:       safeNum(p.impact_eur, 0),
+            last_seen_at: p.last_seen_at || null,
+            interests:    Array.isArray(p.interests) ? p.interests : [],
           })));
         }
 
@@ -1249,7 +1501,6 @@ export default function DiscoverPage({ onView, onMap }) {
 
         // Werke — nur existierende DB-Felder (medium/media_url/likes_count existieren NICHT)
         // Felder: id, title, cover_url, category, file_format, tags, status, visibility, user_id, created_at
-        console.log("[DISCOVER QUERY] public.works wird geladen...");
         const { data: ws, error: wsErr } = await supabase
           .from("works")
           .select("id,title,cover_url,category,file_format,tags,status,visibility,price,location_text,user_id,created_at")
@@ -1259,9 +1510,6 @@ export default function DiscoverPage({ onView, onMap }) {
           .limit(8);
 
         if (wsErr) {
-          console.error("[DISCOVER QUERY ERROR]", wsErr.message, "| code:", wsErr.code);
-        } else {
-          console.log("[DISCOVER RESULT COUNT]", ws?.length ?? 0, "Werke geladen");
         }
 
         if (!cancelled && ws?.length > 0) {
@@ -1287,7 +1535,6 @@ export default function DiscoverPage({ onView, onMap }) {
         }
 
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
-        console.log("[DISCOVER EXP QUERY] public.experiences wird geladen...");
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
           .select("id,title,cover_url,date,duration,location_text,max_participants,status,category,experience_type,created_at")
@@ -1296,9 +1543,6 @@ export default function DiscoverPage({ onView, onMap }) {
           .limit(8);
 
         if (expsErr) {
-          console.error("[DISCOVER EXP QUERY ERROR]", expsErr.message, "| code:", expsErr.code);
-        } else {
-          console.log("[DISCOVER EXP RESULT COUNT]", exps?.length ?? 0, "Erlebnisse geladen");
         }
 
         if (!cancelled && exps?.length > 0) {
@@ -1412,6 +1656,9 @@ export default function DiscoverPage({ onView, onMap }) {
 
       {/* ── 1. Suchleiste ── */}
       <SearchBar searchQ={searchQ} onSearch={setSearchQ} view={view} onViewChange={setView} />
+
+      {/* ── 1b. Live Activity Bar ── */}
+      <LiveActivityBar />
 
       {/* ── 2. Heute auf HUI ── */}
       <TodayStats stats={stats} />
