@@ -82,14 +82,14 @@ function ImpactCard() {
         <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:14 }}>
           Jedes Gespr\u00e4ch kann der Anfang von etwas Gro\u00dfem sein.
         </div>
-        <button style={{
+        <button onClick={() => onDiscover?.()} style={{
           padding:"9px 18px", borderRadius:99,
           background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
           border:"none", color:"white", fontSize:13, fontWeight:700,
           cursor:"pointer",
           boxShadow:`0 4px 12px rgba(22,215,197,0.30)`,
           WebkitTapHighlightColor:"transparent",
-        }}>Impact Projekte entdecken</button>
+        }}>Menschen entdecken</button>
       </div>
       <div style={{ fontSize:48, flexShrink:0 }}>🌱</div>
     </div>
