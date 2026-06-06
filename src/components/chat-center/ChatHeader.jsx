@@ -4,15 +4,17 @@
 
 import React, { useState } from "react";
 import { HUI } from "../../design/hui.design.js";
+import { formatPresence } from "../../lib/usePresence.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
 export default function ChatHeader({ conv, onBack, onOpenProfile }) {
-  const name    = conv?.name   || "Gespräch";
-  const talent  = conv?.talent || conv?.type || "Kreative:r";
-  const mood    = conv?.mood   || "Gerade kreativ im Studio";
-  const avatar  = conv?.avatar_url;
+  const name     = conv?.name   || "Gespräch";
+  const talent   = conv?.talent || conv?.type || "Kreative:r";
+  const mood     = conv?.mood   || "Gerade kreativ im Studio";
+  const avatar   = conv?.avatar_url;
   const initials = name[0]?.toUpperCase() || "?";
+  const presence = formatPresence(conv?.other_profile?.last_seen_at || conv?.last_seen_at);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleAvatarTap = () => {
@@ -74,15 +76,31 @@ export default function ChatHeader({ conv, onBack, onOpenProfile }) {
           whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
         }}>{name}</div>
         <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:2, flexWrap:"wrap" }}>
-          <span style={{ fontSize:12, color:C.muted }}>{talent}</span>
-          {talent && mood && <span style={{ fontSize:10, color:"rgba(0,0,0,0.20)" }}>·</span>}
-          {mood && (
+          {presence ? (
             <span style={{
-              fontSize:12, color:"rgba(22,215,197,0.85)", fontWeight:500,
-              display:"flex", alignItems:"center", gap:4,
+              fontSize:12, display:"flex", alignItems:"center", gap:5,
+              color: presence.online ? "#22c55e" : C.muted,
+              fontWeight: presence.online ? 600 : 400,
             }}>
-              <span style={{ fontSize:10 }}>✦</span>{mood}
+              <span style={{
+                display:"inline-block", width:7, height:7, borderRadius:"50%",
+                background: presence.dot, flexShrink:0,
+              }}/>
+              {presence.label}
             </span>
+          ) : (
+            <>
+              <span style={{ fontSize:12, color:C.muted }}>{talent}</span>
+              {talent && mood && <span style={{ fontSize:10, color:"rgba(0,0,0,0.20)" }}>·</span>}
+              {mood && (
+                <span style={{
+                  fontSize:12, color:"rgba(22,215,197,0.85)", fontWeight:500,
+                  display:"flex", alignItems:"center", gap:4,
+                }}>
+                  <span style={{ fontSize:10 }}>✦</span>{mood}
+                </span>
+              )}
+            </>
           )}
         </div>
       </button>
