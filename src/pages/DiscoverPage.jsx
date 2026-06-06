@@ -200,11 +200,11 @@ const LIVE_ACTIVITIES = [
   { id:"a5", avatar:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80", name:"Max",   action:"hat einen Workshop angekündigt",           type:"Workshop", typeColor:"#E8573A", typeEmoji:"✨", ago:"vor 15 Min" },
 ];
 
-function ActivityCard({ act, idx }) {
+function ActivityCard({ act, idx, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && act.avatar) ? act.avatar : null;
   return (
-    <div className="dp-activity-card dp-press" style={{
+    <div className="dp-activity-card dp-press" onClick={() => onPress?.(act)} style={{
       width:155, flexShrink:0,
       background:"rgba(255,255,255,0.88)",
       backdropFilter:"blur(12px)",
@@ -252,7 +252,7 @@ function ActivityCard({ act, idx }) {
   );
 }
 
-function LiveActivityBar() {
+function LiveActivityBar({ onPersonPress }) {
   return (
     <div style={{ padding:`4px 16px 14px`, marginBottom:0 }}>
       <div style={{
@@ -272,11 +272,14 @@ function LiveActivityBar() {
             fontSize:9, fontWeight:700, color:"#0EC4B8", letterSpacing:".04em",
           }}>Live</div>
           <div style={{ flex:1 }}/>
-          <span style={{ fontSize:11, color:"rgba(26,53,48,0.45)", fontWeight:500, paddingRight:14, cursor:"pointer" }}>Alles live →</span>
+          <span onClick={() => {
+            const el = document.querySelector("[data-dp-people]");
+            if (el) el.scrollIntoView({ behavior:"smooth" });
+          }} style={{ fontSize:11, color:"rgba(26,53,48,0.45)", fontWeight:500, paddingRight:14, cursor:"pointer" }}>Alles live →</span>
         </div>
         {/* Horizontal scroll */}
         <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingRight:14 }}>
-          {LIVE_ACTIVITIES.map((act, i) => <ActivityCard key={act.id} act={act} idx={i}/>)}
+          {LIVE_ACTIVITIES.map((act, i) => <ActivityCard key={act.id} act={act} idx={i} onPress={onPersonPress}/>)}
         </div>
       </div>
     </div>
@@ -294,7 +297,7 @@ const STAT_DEFS = [
   { key:"projekte",   emoji:"🌍", label:"neue Projekte",   color:"#D97706", bg:"rgba(217,119,6,0.09)"   },
 ];
 
-function TodayStats({ stats }) {
+function TodayStats({ stats, onScrollTo }) {
   return (
     <div className="dp-in" style={{ padding:`0 ${T.px}px 14px`, animationDelay:"40ms" }}>
       {/* Header */}
@@ -327,11 +330,12 @@ function TodayStats({ stats }) {
         {/* Stats row */}
         <div style={{ display:"flex", gap:10, overflowX:"auto" }} className="dp-hscroll">
           {STAT_DEFS.map((def, i) => (
-            <div key={def.key} className="dp-stat-card" style={{
+            <div key={def.key} className="dp-stat-card dp-press" onClick={() => onScrollTo?.(def.key)} style={{
               display:"flex", flexDirection:"column", alignItems:"center",
               background:T.white, borderRadius:14, padding:"12px 10px",
               minWidth:72, boxShadow:T.cardShadow, flexShrink:0,
               border:`1px solid ${T.border}`,
+              cursor:"pointer", touchAction:"manipulation",
               animationDelay:`${i*30}ms`,
             }}>
               <span style={{ fontSize:20, marginBottom:6 }}>{def.emoji}</span>
@@ -515,13 +519,15 @@ function PersonCard({ person, onPress, delay=0 }) {
   );
 }
 
-function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards' }) {
+function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms` }}>
+      <div data-dp-people/>
       <SectionHead
         title="Inspiring Menschen"
         sub="Entdecke wundervolle Menschen auf HUI."
         action="Alle anzeigen"
+        onAction={onSectionAction}
         delay={delay}
       />
       {view === "cards" ? (
@@ -670,13 +676,15 @@ function MomentCard({ moment, delay=0, onPress }) {
   );
 }
 
-function MomenteSection({ momente, loading, delay=0, view='cards', onPress }) {
+function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSectionAction }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
+      <div data-dp-momente/>
       <SectionHead
         title="Momente aus deiner Nähe"
         sub="Echte Geschichten, gerade jetzt."
         action="Alle anzeigen"
+        onAction={onSectionAction}
         delay={delay}
       />
       {view === "cards" ? (
@@ -836,13 +844,15 @@ function WerkCard({ werk, delay=0, onPress }) {
   );
 }
 
-function WerkeSection({ werke, loading, delay=0, view='cards', onPress }) {
+function WerkeSection({ werke, loading, delay=0, view='cards', onPress, onSectionAction }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
+      <div data-dp-werke/>
       <SectionHead
         title="Werke entdecken"
         sub="Kunst, Musik, Fotografie & mehr von der HUI Community."
         action="Alle Werke"
+        onAction={onSectionAction}
         delay={delay}
       />
       {view === "cards" ? (
@@ -1042,13 +1052,15 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   );
 }
 
-function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress }) {
+function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress, onSectionAction }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
+      <div data-dp-erlebnisse/>
       <SectionHead
         title="Erlebnisse für dich"
         sub="Workshops, Treffen, Kurse & besondere Momente."
         action="Alle Erlebnisse"
+        onAction={onSectionAction}
         delay={delay}
       />
       {view === "cards" ? (
@@ -1187,24 +1199,27 @@ function ProjektCard({ projekt, delay=0, onPress }) {
   );
 }
 
-function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress }) {
+function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, onSectionAction }) {
   const allProjekte = projekte.length > 0 ? projekte : SEED_PROJEKTE;
   const hero = allProjekte[0];
   const rest = allProjekte.slice(1);
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
+      <div data-dp-projekte/>
       <SectionHead
         title="Projekte & Initiativen"
         sub="Gemeinsam echte Wirkung schaffen."
         action="Alle Projekte"
+        onAction={onSectionAction}
         delay={delay}
       />
       {view === "cards" ? (
         <div style={{ paddingLeft:T.px, paddingRight:T.px }}>
           {/* ── Hero: Projekt der Woche ── */}
           {!loading && hero && (
-            <div className="dp-projekt-hero dp-in" style={{
+            <div className="dp-projekt-hero dp-in" onClick={() => onPress?.(hero)} style={{
               position:"relative", borderRadius:20, overflow:"hidden",
+              cursor:"pointer",
               height:180, marginBottom:10,
               background: hero.cover ? "#000" : "linear-gradient(135deg,rgba(14,196,184,0.15),rgba(232,87,58,0.10))",
               boxShadow:"0 6px 24px rgba(26,53,48,0.12)",
@@ -1236,11 +1251,12 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress }) 
                   <div style={{ fontSize:11, color:"rgba(255,255,255,0.80)", display:"flex", alignItems:"center", gap:4 }}>
                     <span>👥</span><span>{hero.members} Mitglieder</span>
                   </div>
-                  <div style={{
+                  <div onClick={() => onPress?.(hero)} style={{
                     background:"rgba(14,196,184,0.90)", backdropFilter:"blur(8px)",
                     borderRadius:99, padding:"5px 14px",
                     fontSize:11, fontWeight:700, color:"white",
-                    cursor:"pointer",
+                    cursor:"pointer", touchAction:"manipulation",
+                    WebkitTapHighlightColor:"transparent",
                   }}>Projekt ansehen →</div>
                 </div>
               </div>
@@ -1255,7 +1271,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress }) 
                     <div style={{ padding:"10px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5}/></div>
                   </div>
                 ))
-              : rest.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} />)
+              : rest.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} onPress={onPress} />)
             }
           </div>
         </div>
@@ -1268,7 +1284,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress }) 
             : projekte.map((p) => {
                 const cc = p.catColor || { bg:T.tealSoft, text:T.teal };
                 return (
-                  <div key={p.id} className="dp-list-card">
+                  <div key={p.id} className="dp-list-card" onClick={() => onPress?.(p)} style={{cursor:"pointer"}}>
                     <div className="dp-list-thumb-placeholder" style={{ background:cc.bg, position:"relative", overflow:"hidden" }}>
                       {p.cover
                         ? <img src={p.cover} alt={p.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.85 }} onError={ev => ev.target.style.display='none'}/>
@@ -1616,6 +1632,38 @@ export default function DiscoverPage({ onView, onMap }) {
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onView]);
 
+  // ActivityCard → Profil öffnen (act.user_id wenn vorhanden, sonst People-Sektion)
+  const handleActivityPress = useCallback((act) => {
+    if (act?.user_id && typeof onView === "function") {
+      onView(act.user_id);
+    } else {
+      const el = document.querySelector("[data-dp-people]");
+      if (el) el.scrollIntoView({ behavior:"smooth" });
+    }
+  }, [onView]);
+
+  // TodayStats Stat-Karte → scroll zu jeweiliger Section
+  const handleScrollTo = useCallback((key) => {
+    const selectorMap = {
+      momente:     "[data-dp-momente]",
+      begegnungen: "[data-dp-people]",
+      werke:       "[data-dp-werke]",
+      erlebnisse:  "[data-dp-erlebnisse]",
+      projekte:    "[data-dp-projekte]",
+    };
+    const sel = selectorMap[key];
+    if (sel) {
+      const el = document.querySelector(sel);
+      if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+  }, []);
+
+  // SectionHead "Alle ansehen →" → scroll zum nächsten Marker
+  const makeScrollHandler = useCallback((selector) => () => {
+    const el = document.querySelector(selector);
+    if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+  }, []);
+
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="dp-root" style={{
@@ -1629,10 +1677,10 @@ export default function DiscoverPage({ onView, onMap }) {
       <SearchBar view={view} onViewChange={setView} />
 
       {/* ── 1b. Live Activity Bar ── */}
-      <LiveActivityBar />
+      <LiveActivityBar onPersonPress={handleActivityPress}/>
 
       {/* ── 2. Heute auf HUI ── */}
-      <TodayStats stats={stats} />
+      <TodayStats stats={stats} onScrollTo={handleScrollTo}/>
 
       {/* ── 3. Menschen entdecken ── */}
       <PeopleSection
@@ -1641,6 +1689,7 @@ export default function DiscoverPage({ onView, onMap }) {
         loading={loading && people.length === 0}
         delay={60}
         view={view}
+        onSectionAction={makeScrollHandler("[data-dp-people]")}
       />
 
       {/* ── 4. Momente aus deiner Nähe ── */}
@@ -1650,6 +1699,7 @@ export default function DiscoverPage({ onView, onMap }) {
         delay={80}
         view={view}
         onPress={handleMomentPress}
+        onSectionAction={makeScrollHandler("[data-dp-momente]")}
       />
 
       {/* ── 5. Werke entdecken ── */}
@@ -1659,6 +1709,7 @@ export default function DiscoverPage({ onView, onMap }) {
         delay={100}
         view={view}
         onPress={handleWerkPress}
+        onSectionAction={makeScrollHandler("[data-dp-werke]")}
       />
 
       {/* ── 6. Erlebnisse für dich ── */}
@@ -1668,6 +1719,7 @@ export default function DiscoverPage({ onView, onMap }) {
         delay={120}
         view={view}
         onPress={handleErlebnisPress}
+        onSectionAction={makeScrollHandler("[data-dp-erlebnisse]")}
       />
 
       {/* ── 7. Projekte & Initiativen ── */}
@@ -1677,6 +1729,7 @@ export default function DiscoverPage({ onView, onMap }) {
         delay={140}
         view={view}
         onPress={handleProjektPress}
+        onSectionAction={makeScrollHandler("[data-dp-projekte]")}
       />
 
       {/* ── 8. Orte entdecken ── */}
