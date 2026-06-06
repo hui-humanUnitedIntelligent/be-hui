@@ -1305,6 +1305,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards' }) {
               : rest.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} />)
             }
           </div>
+        </div>
       ) : (
         <div className="dp-list-section dp-toggle-in">
           {loading
