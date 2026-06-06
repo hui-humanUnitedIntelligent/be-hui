@@ -506,7 +506,7 @@ function ImpactHero({ pool, tick }) {
 
         {/* CTA — schlank, einladend */}
         <div style={{ marginBottom:20 }}>
-          <button style={{
+          <button onClick={() => { const el=document.querySelector("[data-impact-projects]"); if(el) el.scrollIntoView({behavior:"smooth"}); else window.scrollTo({top:600,behavior:"smooth"}); }} style={{
             display:"inline-flex", alignItems:"center", gap:8,
             padding:"11px 22px", borderRadius:99,
             background:`linear-gradient(135deg, ${T.teal} 0%, ${T.tealLight} 100%)`,
@@ -516,7 +516,7 @@ function ImpactHero({ pool, tick }) {
             boxShadow:S.btn(T.teal),
           }}>
             <span style={{ fontSize:14 }}>🫶</span>
-            Mehr \u00fcber den Impact Pool
+            Projekte entdecken
           </button>
         </div>
 
