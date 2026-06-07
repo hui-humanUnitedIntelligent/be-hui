@@ -213,13 +213,21 @@ export default function ProfileLauncher() {
     );
   }
 
-  // ── EIGENES PROFIL — "Mein HUI" Vertrauensprofil ────────────
-  // Immer MyCreatorDashboard — das zentrale persönliche Zuhause.
-  // MyTalentProfile/MyBasisProfile sind für öffentliche Fremdprofile.
+  // ── EIGENES PROFIL — Content-First (Talente · Werke · Erlebnisse) ──
+  // MyTalentProfile zeigt den Menschen: Profil, Talente, Werke, Empfehlungen.
+  // MyBasisProfile für Nutzer ohne Talent-Profil.
+  // MyCreatorDashboard = Account/Einstellungen (separater Aufruf).
   if (showCreatorDashboard) {
+    const isSelfTalent = !!(
+      authProfile?.has_talent_profile === true ||
+      authProfile?.role === "talent"  ||
+      authProfile?.role === "wirker"  ||
+      authProfile?.membership_type === "talent"
+    );
+    const OwnProfile = isSelfTalent ? MyTalentProfile : MyBasisProfile;
     return (
       <React.Suspense fallback={<Spinner />}>
-        <MyCreatorDashboard onClose={() => setShowCreatorDashboard(false)} />
+        <OwnProfile onClose={() => setShowCreatorDashboard(false)} />
       </React.Suspense>
     );
   }
