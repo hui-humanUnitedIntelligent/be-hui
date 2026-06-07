@@ -11,6 +11,7 @@ import { useAuth }   from "../lib/AuthContext.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
 import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
+import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
@@ -909,7 +910,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           avatar_url: localAvatar || profile?.avatar_url,
           header_img: localCover  || profile?.header_img,
         }}
-        onSettings={() => {}}
+        onSettings={() => setShowSettings(true)}
         onAvatarChange={handleAvatarChange}
         onCoverChange={handleCoverChange}
       />
