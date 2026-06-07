@@ -243,17 +243,19 @@ export default function HomeShell({ children }) {
     _setTab(newTab);
   }, [_setTab, setShowCreatorDashboard]);
 
-  /* openOwnProfile → öffnet MyCreatorDashboard (eigene, separate Seite) */
+  /* openOwnProfile → öffnet MyCreatorDashboard + markiert "creator"-Tab aktiv */
   const openOwnProfile = useCallback(() => {
+    _setTab("creator");          // ← Tab-Indikator auf "Mein HUI" setzen
     setShowCreatorDashboard(true);
     try { sessionStorage.setItem("hui_overlay_profile", "1"); } catch (_) {}
-  }, [setShowCreatorDashboard]);
+  }, [_setTab, setShowCreatorDashboard]);
 
   /* openCreatorDashboard — direkter Alias */
   const openCreatorDashboard = useCallback(() => {
+    _setTab("creator");          // ← Tab-Indikator auf "Mein HUI" setzen
     setShowCreatorDashboard(true);
     try { sessionStorage.setItem("hui_overlay_profile", "1"); } catch (_) {}
-  }, [setShowCreatorDashboard]);
+  }, [_setTab, setShowCreatorDashboard]);
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
@@ -271,9 +273,11 @@ export default function HomeShell({ children }) {
 
   /* handleTab — einziger onTab-Handler für BottomNav */
   const handleTab = useCallback((key) => {
-    // Creator tab → handled by OPEN_OWN_PROFILE action (overlay, no tab switch)
+    // Creator/"Mein HUI" tab → Overlay öffnen + tab-State auf "creator" setzen
+    // Ohne _setTab würde der vorherige Tab (z.B. "impact") aktiv bleiben
     if (key === "creator") {
-      openCreatorDashboard();
+      _setTab("creator");        // ← Tab aktiv markieren (NavItem zeigt Türkis)
+      openCreatorDashboard();    // ← Overlay öffnen
       return;
     }
     // Impact Tab
@@ -282,11 +286,12 @@ export default function HomeShell({ children }) {
       return;
     }
     if (key === "profile") {
+      _setTab("creator");        // profile → creator-Tab aktiv
       openOwnProfile();
       return;
     }
     switchTab(key);
-  }, [openOwnProfile, switchTab]);
+  }, [_setTab, openOwnProfile, openCreatorDashboard, switchTab]);
 
   /* Context Value — useMemo für Referenzstabilität */
   // Ohne useMemo: ctx ist bei JEDEM render ein neues Objekt →
