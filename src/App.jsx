@@ -74,6 +74,9 @@ function HuiSuspense({ children }) {
 window.__HUI_LAST_FEED_COMPONENT__ = null;
 window.__HUI_WORLD_STATE__         = { activeSurface: null, activeTab: "feed", repaintPhase: null };
 
+// Referral-Code aus URL beim App-Start erkennen
+if (typeof window !== 'undefined') { detectReferral(); }
+
 // Phase 16.6: Global error tracer for crash diagnostics
 if (typeof window !== "undefined" && !window.__HUI_ERROR_TRACER__) {
   window.__HUI_ERROR_TRACER__ = true;
