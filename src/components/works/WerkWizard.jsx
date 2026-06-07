@@ -394,7 +394,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
           </div>
         </div>
       </div>
-      {!hideButtons && <><PBtn label="Werk speichern" onClick={onSave} loading={saving}/><SBtn label="Entwurf speichern" onClick={onDraft}/></>}
+      {!hideButtons && <><PBtn label="Zur Prüfung einreichen" onClick={onSave} loading={saving}/><SBtn label="Entwurf speichern" onClick={onDraft}/></>}
     </div>
   );
 }
@@ -508,7 +508,15 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     }
     console.log("[SAVE WERK] success:", saved?.id, "status:", status);
     onSaved?.(saved);
-    onClose?.();
+    // Bei pending_review: kurze Bestätigung zeigen, dann schließen
+    if (status === "pending_review") {
+      setSaveError(null);
+      // Zeige Bestätigungs-Toast (nutze saveError-State als Info-Banner)
+      // Schließe nach 2s
+      setTimeout(() => { onClose?.(); }, 2000);
+    } else {
+      onClose?.();
+    }
   }
 
   // ── body class: blendet BottomNav (zIndex:9999) aus ─────────
@@ -574,7 +582,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
         {step===4&&<S4 data={form} onChange={patch} onNext={null}/>}
         {step===5&&<S5 data={form} onChange={patch} onNext={null}/>}
         {step===6&&<S6 data={form} onChange={patch}
-          onSave={()=>save("published")}
+          onSave={()=>save("pending_review")}
           onDraft={()=>save("draft")}
           saving={saving}
           hideButtons
@@ -658,7 +666,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
             cursor:saving?"not-allowed":"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>
-            {saving?"Wird gespeichert…":"Werk speichern"}
+            {saving?"Wird eingereicht…":"Zur Prüfung einreichen"}
           </button>
         )}
       </div>
