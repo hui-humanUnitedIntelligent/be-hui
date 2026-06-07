@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { processReferralAfterSignup } from '../lib/referralTracking.js'
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=85'
 
@@ -13,6 +14,10 @@ export default function AuthCallback() {
         const { data: { session }, error } = await supabase.auth.getSession()
         if (session) {
           setStatus('success')
+          // Referral-Zuordnung nach Registrierung
+          if (session.user) {
+            processReferralAfterSignup(supabase, session.user.id).catch(() => {})
+          }
           setTimeout(() => { window.location.href = '/Home' }, 800)
         } else {
           setStatus('error')
