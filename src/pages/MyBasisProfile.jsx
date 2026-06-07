@@ -985,6 +985,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <AmbassadorCTA
             isAmbassador={ambState.isAmbassador}
             isPending={ambState.isPending}
+            ambassadorStatus={(profile?.profile_modules?.ambassador?.status) || null}
             onApply={() => setShowAmbModal(true)}
           />
         )}
@@ -1027,8 +1028,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <AmbassadorModal
           userId={profile.id}
           onClose={() => setShowAmbModal(false)}
-          onSuccess={() => {
+          onSuccess={async () => {
             setShowAmbModal(false);
+            // Profil neu laden damit isPending sofort korrekt angezeigt wird
+            try {
+              const { data: freshProf } = await supabase.from("profiles")
+                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador")
+                .eq("id", profile.id).single();
+              if (freshProf) {
+                setProfile(freshProf);
+                setAuthProfile(prev => prev ? { ...prev, ...freshProf } : freshProf);
+              }
+            } catch(e) { /* silent */ }
             refreshProfile?.().catch(() => {});
           }}
         />
