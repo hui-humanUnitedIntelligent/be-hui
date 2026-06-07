@@ -22,6 +22,7 @@ import { detectReferral } from './lib/referralTracking.js'
 // Erzeugen separate Chunks → schnellerer Initial-Load
 // WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
 const Home              = lazy(() => import('./pages/Home'))
+const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
 import ImpactPage from './pages/ImpactPage'
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
@@ -503,6 +504,11 @@ function AppRoutes() {
         }/>
         <Route path="/studio/:section" element={
           <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+        }/>
+
+        {/* Ref-Link Weiterleitung */}
+        <Route path="/ref/:username" element={
+          <Suspense fallback={null}><RefRedirect /></Suspense>
         }/>
 
         {/* 404 → Home */}
