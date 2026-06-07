@@ -9,6 +9,9 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
+import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
+import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
+import { useAmbassador } from "../hooks/useAmbassador.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -701,6 +704,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const { setProfile: setAuthProfile, refreshProfile } = useAuth();
+  const ambState = useAmbassador(profile);
 
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
@@ -718,6 +722,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [localAvatar, setLocalAvatar] = useState(null);
   const [localCover,  setLocalCover]  = useState(null);
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
+  const [showAmbModal,    setShowAmbModal]    = useState(false);
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
@@ -943,6 +948,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         {/* SICHTBARKEIT */}
         <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+        <Gap h={24}/>
+        <Divider/>
+        <Gap h={20}/>
+
+        {/* AMBASSADOR */}
+        {ambState.isAmbassador ? (
+          <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
+        ) : (
+          <AmbassadorCTA
+            isAmbassador={ambState.isAmbassador}
+            isPending={ambState.isPending}
+            onApply={() => setShowAmbModal(true)}
+          />
+        )}
         <Gap h={40}/>
       </div>
 
@@ -952,6 +971,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => setShowGemeinschaft(false)}
           onComplete={() => {
             setShowGemeinschaft(false);
+            refreshProfile?.().catch(() => {});
+          }}
+        />
+      )}
+
+      {/* AMBASSADOR BEWERBUNGS-MODAL */}
+      {showAmbModal && profile?.id && (
+        <AmbassadorModal
+          userId={profile.id}
+          onClose={() => setShowAmbModal(false)}
+          onSuccess={() => {
+            setShowAmbModal(false);
             refreshProfile?.().catch(() => {});
           }}
         />
