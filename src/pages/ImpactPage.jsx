@@ -1230,6 +1230,35 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
 
 // ════════════════════════════════════════════════════════════════
 // 4b. WEITERE HERZENSPROJEKTE
+
+// Seed-Projekte für "Weitere Herzensprojekte" — werden angezeigt solange DB leer
+const SEED_WEITERE_PROJEKTE = [
+  { id:"s1", name:"Bücher für Kinder", category:"Bildung",
+    description:"Lesezugänge für Kinder aus einkommensschwachen Familien schaffen.",
+    icon:"📚", color:"#0DC4B5", status:"pending", goal_eur:1500,
+    img_url:"https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&q=80" },
+  { id:"s2", name:"Urban Gardening Rostock", category:"Umwelt",
+    description:"Gemeinsam gärtnern. Gemeinsam wachsen.",
+    icon:"🌱", color:"#16A34A", status:"pending", goal_eur:2000,
+    img_url:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=80" },
+  { id:"s3", name:"Sport für alle", category:"Soziales",
+    description:"Bewegung verbindet — kostenfreie Sportkurse für alle.",
+    icon:"⚽", color:"#F4714F", status:"approved", goal_eur:1700,
+    img_url:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&q=80" },
+  { id:"s4", name:"Umweltprojekt Küste", category:"Umwelt",
+    description:"Unsere Natur. Unsere Verantwortung.",
+    icon:"🌊", color:"#7264D6", status:"approved", goal_eur:2500,
+    img_url:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&q=80" },
+  { id:"s5", name:"Tierhilfe Nord", category:"Tierwohl",
+    description:"Tiere in Not — schnell und unbürokratisch helfen.",
+    icon:"🐶", color:"#D97706", status:"submitted", goal_eur:1100,
+    img_url:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&q=80" },
+  { id:"s6", name:"Lesecafé Ribnitz", category:"Soziales",
+    description:"Begegnung durch Bücher und Gespräche.",
+    icon:"☕", color:"#0DC4B5", status:"submitted", goal_eur:1200,
+    img_url:"https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&q=80" },
+];
+
 // ════════════════════════════════════════════════════════════════
 const HP_STATUS = {
   submitted:   { icon:"📬", color:"#9CA3AF", label:"Eingegangen"   },
@@ -1302,10 +1331,12 @@ function HerzensKarte({ p, idx }) {
 
 function WeitereHerzensprojekte({ data, loading }) {
   const [expanded, setExpanded] = React.useState(false);
-  const list    = Array.isArray(data) ? data : [];
+  // Wenn DB leer → Seed-Projekte als Platzhalter zeigen
+  const rawList = Array.isArray(data) ? data : [];
+  const list    = !loading && rawList.length === 0 ? SEED_WEITERE_PROJEKTE : rawList;
+  const isSeed  = !loading && rawList.length === 0;
   const visible = expanded ? list : list.slice(0, 4);
   const hasMore = list.length > 4;
-  if (!loading && list.length === 0) return null;
   return (
     <div style={{ marginTop:24, padding:"0 16px" }}>
       <div style={{ marginBottom:14 }}>
@@ -1326,7 +1357,9 @@ function WeitereHerzensprojekte({ data, loading }) {
         <p style={{ margin:0, fontSize:12.5, color:T.ink2, lineHeight:1.6 }}>
           {loading
             ? "Wird geladen…"
-            : `${list.length} Projekt${list.length !== 1 ? "e" : ""} — eingereicht, geprüft oder in Umsetzung.`
+            : isSeed
+              ? "Beispielprojekte — so sehen eingereichte Herzensprojekte aus."
+              : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — eingereicht, geprüft oder in Umsetzung.`
           }
         </p>
       </div>
@@ -1373,12 +1406,12 @@ function WeitereHerzensprojekte({ data, loading }) {
 // Horizontale Kette: eingereicht → Prüfung → nominiert → finanziert → in Umsetzung
 // ════════════════════════════════════════════════════════════════
 function ImpactTimeline({ transp }) {
-  if (transp.loading) return null;
+  // Immer rendern — auch wenn DB leer (zeigt 0er Counts als "noch ausstehend")
 
   const steps = [
     {
       icon: "📬",
-      count: transp.eingereicht,
+      count: transp.loading ? null : transp.eingereicht,
       label: "Eingereicht",
       sub: "Letzte 30 Tage",
       color: "#9CA3AF",
@@ -1457,10 +1490,12 @@ function ImpactTimeline({ transp }) {
                 </div>
                 {/* Zahl */}
                 <div style={{
-                  fontSize:20, fontWeight:900, color: step.count > 0 ? step.color : T.muted,
+                  fontSize:20, fontWeight:900,
+                  color: step.count === null ? T.muted : step.count > 0 ? step.color : T.muted,
                   letterSpacing:"-0.03em", lineHeight:1, marginBottom:3,
+                  minWidth:24, textAlign:"center",
                 }}>
-                  {step.count}
+                  {step.count === null ? "·" : step.count}
                 </div>
                 {/* Label */}
                 <div style={{
@@ -1490,7 +1525,12 @@ function ImpactTimeline({ transp }) {
           marginTop:12, fontSize:11, color:T.muted,
           textAlign:"center", lineHeight:1.5,
         }}>
-          Der Impact Pool lebt und wächst — gemeinsam bewegen wir mehr. 💚
+          {transp.loading
+            ? "Projektdaten werden geladen…"
+            : steps.every(s => s.count === 0 || s.count === null)
+              ? "Der Impact Pool startet — die ersten Projekte kommen bald. 🌱"
+              : "Der Impact Pool lebt und wächst — gemeinsam bewegen wir mehr. 💚"
+          }
         </div>
       </div>
     </div>
@@ -1542,16 +1582,44 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
       {/* Finanzierte Projekte */}
       {finanziert.length === 0 ? (
         <div style={{
-          background:`${T.teal}08`, border:`1px solid ${T.teal}18`,
-          borderRadius:20, padding:"24px 20px", textAlign:"center",
+          background:`linear-gradient(135deg,${T.teal}10,${T.teal}04)`,
+          border:`1.5px solid ${T.teal}22`,
+          borderRadius:20, padding:"24px 20px",
         }}>
-          <div style={{ fontSize:36, marginBottom:10 }}>🌱</div>
-          <div style={{ fontSize:14, fontWeight:700, color:T.ink, marginBottom:8 }}>
+          <div style={{ fontSize:32, marginBottom:10, textAlign:"center" }}>💚</div>
+          <div style={{ fontSize:14, fontWeight:800, color:T.ink, marginBottom:10, textAlign:"center" }}>
             Die ersten Projekte werden bald gemeinsam finanziert.
           </div>
-          <p style={{ fontSize:12, color:T.ink2, lineHeight:1.65, maxWidth:280, margin:"0 auto" }}>
-            Jeden Monat fließen Teile der HUI-Provisionen in den Impact Pool.
-            Sobald die ersten Projekte finanziert wurden, erscheinen sie hier.
+          {/* Beispiel-Wirkungskarten (Vorschau wie es aussehen wird) */}
+          {[
+            { name:"Repair Café Altona", month:"März 2026",
+              lines:["340 Geräte repariert","120 Menschen geholfen","18 Ehrenamtliche aktiv"], icon:"🔧" },
+            { name:"Musik verbindet", month:"Februar 2026",
+              lines:["42 Kinder erhalten Unterricht","3 neue Kurse gestartet","Selbstvertrauen gestärkt"], icon:"🎵" },
+          ].map((ex, ei) => (
+            <div key={ei} style={{
+              background:"rgba(255,255,255,0.55)", backdropFilter:"blur(6px)",
+              borderRadius:14, padding:"12px 14px", marginBottom:8,
+              border:`1px solid ${T.teal}15`, opacity:0.72,
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                <span style={{ fontSize:20 }}>{ex.icon}</span>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:800, color:T.ink }}>{ex.name}</div>
+                  <div style={{ fontSize:10, color:T.muted }}>Finanziert im {ex.month} · Beispiel</div>
+                </div>
+              </div>
+              {ex.lines.map((l, li) => (
+                <div key={li} style={{ display:"flex", gap:6, fontSize:11, color:T.ink2,
+                  marginBottom:3, alignItems:"center" }}>
+                  <span style={{ color:T.teal, fontSize:10 }}>✔</span><span>{l}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          <p style={{ fontSize:11, color:T.muted, lineHeight:1.6, margin:"10px 0 0",
+            textAlign:"center" }}>
+            So sehen finanzierte Wirkungsprojekte später aus.
           </p>
         </div>
       ) : (
