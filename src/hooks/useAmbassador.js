@@ -34,7 +34,7 @@ export function useAmbassador(profile) {
       });
   }, [profile?.id, isAmb]);
 
-  const computedRefLink = dbRefLink || amb?.referral_link || (profile?.username ? \`https://be-hui.com/\${profile.username}\` : null);
+  const computedRefLink = dbRefLink || amb?.referral_link || (profile?.username ? ("https://be-hui.com/" + profile.username) : null);
 
   return {
     isAmbassador:    isAmb,
