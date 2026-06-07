@@ -1,27 +1,23 @@
 // src/lib/referralTracking.js
 // ── HUI Referral-Tracking ─────────────────────────────────────
-// Erkennt Ref-Links beim Besuch und speichert den Ambassador-Username
-// für die spätere Zuordnung nach der Registrierung.
+import { supabase } from "./supabaseClient.js";
 
-const STORAGE_KEY = 'hui_referral_code';
 const STORAGE_AMB_KEY = 'hui_referral_ambassador';
 
 /**
  * Beim Seitenaufruf: URL-Pfad auf Ambassador-Username prüfen.
  * Format: https://be-hui.com/[username]
- * Speichert den Username 7 Tage in localStorage.
  */
 export function detectReferral() {
   try {
     const path = window.location.pathname;
-    // Nur einfache Pfade ohne Unterseiten (z.B. /max-mustermann)
     const match = path.match(/^\/([a-zA-Z0-9._-]{3,50})$/);
     if (!match) return null;
     const username = match[1].toLowerCase();
-    // Bekannte App-Routen ausschließen
-    const EXCLUDED = ['home', 'login', 'studio', 'impact', 'admin', 'diagnose', 'dashboard', 'profile', 'work', 'auth', 'ref'];
+    const EXCLUDED = ['home', 'login', 'studio', 'impact', 'admin', 'diagnose',
+      'dashboard', 'profile', 'work', 'auth', 'ref', 'entdecken', 'buchung',
+      'mein-hui', 'community', 'impressum', 'datenschutz'];
     if (EXCLUDED.includes(username)) return null;
-    // In localStorage speichern (7 Tage)
     const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
     localStorage.setItem(STORAGE_AMB_KEY, JSON.stringify({ username, expiry }));
     console.log('[HUI Referral] Ambassador erkannt:', username);
@@ -29,9 +25,6 @@ export function detectReferral() {
   } catch { return null; }
 }
 
-/**
- * Gespeicherten Referral-Ambassador-Username abrufen.
- */
 export function getStoredReferral() {
   try {
     const raw = localStorage.getItem(STORAGE_AMB_KEY);
@@ -43,51 +36,124 @@ export function getStoredReferral() {
 }
 
 /**
- * Referral-Zuordnung nach Registrierung verarbeiten.
- * Findet den Ambassador anhand des Username und aktualisiert
- * das Profil des neuen Nutzers sowie den Ambassador-Zähler.
+ * Referral-Link validieren (für manuelle Eingabe im Formular).
+ * Gibt { valid, username, ambassadorId } zurück.
  */
-export async function processReferralAfterSignup(supabase, newUserId) {
-  const username = getStoredReferral();
-  if (!username) return;
+export async function validateRefLink(linkOrUsername) {
+  if (!linkOrUsername?.trim()) return { valid: false };
   try {
-    // Ambassador anhand username finden
-    const { data: ambProfile } = await supabase
-      .from('profiles')
-      .select('id, profile_modules')
+    // aus Link den Username extrahieren
+    let username = linkOrUsername.trim().toLowerCase();
+    const match = username.match(/be-hui\.com\/([a-zA-Z0-9._-]+)/);
+    if (match) username = match[1].toLowerCase();
+
+    // In ambassador_ref_links nachschlagen
+    const { data } = await supabase
+      .from('ambassador_ref_links')
+      .select('user_id, username, ref_link')
       .eq('username', username)
       .single();
 
-    if (!ambProfile) return;
-    const pm  = ambProfile.profile_modules || {};
+    if (!data) return { valid: false, error: 'Einladungslink nicht gefunden' };
+    return { valid: true, username: data.username, ambassadorId: data.user_id };
+  } catch {
+    return { valid: false, error: 'Einladungslink ungültig' };
+  }
+}
+
+/**
+ * Referral-Zuordnung nach Registrierung verarbeiten.
+ * Wird nach erfolgreicher Registrierung aufgerufen.
+ */
+export async function processReferralAfterSignup(newUserId, manualUsername = null) {
+  const username = manualUsername || getStoredReferral();
+  if (!username) return;
+  try {
+    // Ambassador via ambassador_ref_links finden
+    const { data: refLink } = await supabase
+      .from('ambassador_ref_links')
+      .select('user_id, username, referral_code')
+      .eq('username', username)
+      .single();
+
+    if (!refLink) {
+      // Fallback: profile_modules
+      const { data: ambProfile } = await supabase
+        .from('profiles')
+        .select('id, profile_modules')
+        .eq('username', username)
+        .eq('is_ambassador', true)
+        .single();
+      if (!ambProfile) return;
+      const pm  = ambProfile.profile_modules || {};
+      const amb = pm.ambassador || {};
+      if (amb.is_ambassador !== true || amb.link_active === false) return;
+      await _assignReferral(newUserId, ambProfile.id, amb.referral_code || username, pm, amb);
+      return;
+    }
+
+    // Ambassador-Profil laden
+    const { data: ambProf } = await supabase
+      .from('profiles')
+      .select('profile_modules, is_ambassador')
+      .eq('id', refLink.user_id)
+      .single();
+
+    if (!ambProf?.is_ambassador) return;
+    const pm  = ambProf.profile_modules || {};
     const amb = pm.ambassador || {};
-    if (amb.is_ambassador !== true || amb.status !== 'active') return;
     if (amb.link_active === false) return;
 
-    const ambassadorId = ambProfile.id;
-
-    // Eigenes Profil mit referred_by_ambassador_id aktualisieren
-    await supabase.from('profiles').update({
-      referred_by_ambassador_id: ambassadorId,
-      profile_modules: {
-        ...(await supabase.from('profiles').select('profile_modules').eq('id', newUserId).single()).data?.profile_modules,
-        referred_by: amb.referral_code || username,
-      }
-    }).eq('id', newUserId);
-
-    // Ambassador: referral_count +1
-    const newCount = (Number(amb.referral_count) || 0) + 1;
-    await supabase.from('profiles').update({
-      profile_modules: {
-        ...pm,
-        ambassador: { ...amb, referral_count: newCount }
-      }
-    }).eq('id', ambassadorId);
-
-    // localStorage leeren
+    await _assignReferral(newUserId, refLink.user_id, refLink.referral_code || username, pm, amb);
     localStorage.removeItem(STORAGE_AMB_KEY);
-    console.log('[HUI Referral] Zuordnung erfolgreich — Ambassador:', username, '| Neue Referrals:', newCount);
   } catch (e) {
-    console.warn('[HUI Referral] Fehler bei der Zuordnung:', e);
+    console.warn('[HUI Referral] Fehler:', e);
   }
+}
+
+async function _assignReferral(newUserId, ambassadorId, refCode, ambPm, amb) {
+  // 1. Neues Profil: referred_by_ambassador_id + referred_by setzen
+  const { data: newProf } = await supabase
+    .from('profiles')
+    .select('profile_modules')
+    .eq('id', newUserId)
+    .single();
+  await supabase.from('profiles').update({
+    referred_by_ambassador_id: ambassadorId,
+    profile_modules: {
+      ...(newProf?.profile_modules || {}),
+      referred_by: refCode,
+    }
+  }).eq('id', newUserId);
+
+  // 2. Ambassador: referral_count +1
+  const newCount = (Number(amb.referral_count) || 0) + 1;
+  await supabase.from('profiles').update({
+    profile_modules: {
+      ...ambPm,
+      ambassador: { ...amb, referral_count: newCount }
+    }
+  }).eq('id', ambassadorId);
+
+  console.log('[HUI Referral] ✅ Zuordnung:', refCode, '→ neuer Nutzer:', newUserId);
+}
+
+/**
+ * Ref-Link-Eintrag für neuen Ambassador anlegen (bei Annahme der Bewerbung).
+ */
+export async function createRefLinkForAmbassador(userId, username, referralCode) {
+  const refLink = \`https://be-hui.com/\${username}\`;
+  const { error } = await supabase
+    .from('ambassador_ref_links')
+    .upsert({ user_id: userId, username, ref_link: refLink, referral_code: referralCode },
+             { onConflict: 'user_id' });
+  if (error) console.warn('[HUI Referral] createRefLink Fehler:', error);
+  return refLink;
+}
+
+/**
+ * Ref-Link-Eintrag löschen (bei Entzug oder Account-Löschung).
+ */
+export async function deleteRefLink(userId) {
+  await supabase.from('ambassador_ref_links').delete().eq('user_id', userId);
 }
