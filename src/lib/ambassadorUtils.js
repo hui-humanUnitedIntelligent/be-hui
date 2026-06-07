@@ -64,5 +64,16 @@ export function isActiveAmbassador(profile) {
 
 export function hasPendingApplication(profile) {
   const amb = getAmbassadorData(profile);
-  return amb?.status === 'pending';
+  // 'pending' = UI-Status nach Submit, 'offen' = DB-Status in ambassadors_applications
+  return amb?.status === 'pending' || amb?.status === 'offen';
+}
+
+// Kann der User sich erneut bewerben?
+// Erlaubt wenn: kein Ambassador, kein pending/offen, und entweder kein Eintrag ODER rejected/revoked
+export function canApplyAsAmbassador(profile) {
+  if (isActiveAmbassador(profile)) return false;
+  const amb = getAmbassadorData(profile);
+  if (!amb) return true;
+  const blockingStatuses = ['pending', 'offen', 'active'];
+  return !blockingStatuses.includes(amb?.status);
 }
