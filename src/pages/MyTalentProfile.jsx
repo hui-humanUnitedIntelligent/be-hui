@@ -507,9 +507,9 @@ function MeineWerke({ loading, isOwner, userId }) {
       setWorksLoading(true);
       const { data, error } = await supabase
         .from("works")
-        .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at")
+        .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at,rejection_reason")
         .eq("user_id", userId)
-        .neq("status", "archived")
+        .not("status", "in", '("archived","deleted")')
         .order("created_at", { ascending: false });
       if (error) {
         console.warn("[LOAD WORKS] error:", error.message);
@@ -529,9 +529,9 @@ function MeineWerke({ loading, isOwner, userId }) {
     (async () => {
       const { data } = await supabase
         .from("works")
-        .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at")
+        .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at,rejection_reason")
         .eq("user_id", userId)
-        .neq("status", "archived")
+        .not("status", "in", '("archived","deleted")')
         .order("created_at", { ascending: false });
       if (data) setWorks(data);
     })();
@@ -593,15 +593,21 @@ function MeineWerke({ loading, isOwner, userId }) {
           }}>
             {works.map(w => {
               // Status-Logik: for_sale=true → Verfügbar, status=draft → Entwurf, else → n/a
-              const statusLabel = w.status === "draft"
-                ? { label:"Entwurf", color:"rgba(26,26,24,0.40)", dot:"#aaa" }
-                : w.for_sale
-                  ? { label:"Verfügbar", color:"#16A34A", dot:"#16A34A" }
-                  : { label:"Nicht zum Verkauf", color:"rgba(26,26,24,0.40)", dot:"#aaa" };
+              const statusLabel = w.status === "pending_review"
+                ? { label:"⏳ In Prüfung", color:"#D97706", dot:"#F59E0B" }
+                : w.status === "rejected"
+                  ? { label:"❌ Abgelehnt", color:"#DC2626", dot:"#EF4444" }
+                  : w.status === "draft"
+                    ? { label:"Entwurf", color:"rgba(26,26,24,0.40)", dot:"#aaa" }
+                    : w.for_sale
+                      ? { label:"Verfügbar", color:"#16A34A", dot:"#16A34A" }
+                      : { label:"Nicht zum Verkauf", color:"rgba(26,26,24,0.40)", dot:"#aaa" };
 
               const priceStr = w.price
                 ? parseFloat(w.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
                 : null;
+              const isPending  = w.status === "pending_review";
+              const isRejected = w.status === "rejected";
 
               return (
                 <div key={w.id} style={{
