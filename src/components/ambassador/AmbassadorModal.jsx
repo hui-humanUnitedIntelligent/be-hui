@@ -56,6 +56,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
   const [form, setForm] = useState({
     first_name: "", last_name: "", age: "",
     gender: "", location: "", motivation_text: "",
+    phone: "", email: "",
   });
   const [mediaFiles, setMediaFiles] = useState([]);
   const [formErrors, setFormErrors] = useState({});
@@ -70,6 +71,8 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
     if (!form.age || isNaN(Number(form.age)) || Number(form.age) < 16)
       errs.age = "Bitte gültiges Alter eingeben (min. 16)";
     if (!form.location.trim()) errs.location = "Pflichtfeld";
+    if (!form.email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(form.email))
+      errs.email = "Bitte gültige E-Mail eingeben";
     if (form.motivation_text.trim().length < 30)
       errs.motivation_text = "Bitte mindestens 30 Zeichen schreiben.";
     return errs;
@@ -151,6 +154,21 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
                   <input className="amb-input" placeholder="Mustermann" value={form.last_name}
                     onChange={e => set("last_name", e.target.value)} />
                   {formErrors.last_name && <div style={{ fontSize: 11, color: "#FF5B5B", marginTop: 4 }}>{formErrors.last_name}</div>}
+                </div>
+              </div>
+
+              {/* Telefon + Email */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                <div>
+                  <label className="amb-label">Telefon</label>
+                  <input className="amb-input" type="tel" placeholder="+49 123 456789" value={form.phone}
+                    onChange={e => set("phone", e.target.value)} />
+                </div>
+                <div>
+                  <label className="amb-label">E-Mail<span className="amb-req">*</span></label>
+                  <input className="amb-input" type="email" placeholder="max@beispiel.de" value={form.email}
+                    onChange={e => set("email", e.target.value)} />
+                  {formErrors.email && <div style={{ fontSize: 11, color: "#FF5B5B", marginTop: 4 }}>{formErrors.email}</div>}
                 </div>
               </div>
 
