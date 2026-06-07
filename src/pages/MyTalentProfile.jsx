@@ -86,7 +86,7 @@ const CSS = `
 const DEFAULT_BIO = "Ich male, um das Unsichtbare sichtbar zu machen.\nInspiration finde ich in der Natur, im Licht\nund in echten Begegnungen.";
 const DEFAULT_TALENTS = ["Malen","Illustration","Workshops","Kunstberatung","Auftragskunst"];
 const TALENT_ICONS = {
-  "Malen":"🎨","Illustration":"🖌","Workshops":"👥","Kunstberatung":"⭐",
+  "Malen":"🎨","Illustration":"🖌","Workshops":"👥","Kunstberatung":"💡",
   "Auftragskunst":"👜","Fotografie":"📷","Musik":"🎵","Design":"✏️",
 };
 const SEED_WORKS = [
