@@ -14,11 +14,11 @@ const CSS = `
   .amb-overlay {
     position:fixed;inset:0;background:rgba(10,10,10,0.6);
     z-index:9999;display:flex;align-items:flex-end;justify-content:center;
-    padding-bottom:env(safe-area-inset-bottom,0);
+    padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));
   }
   .amb-sheet {
     background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;
-    max-height:88dvh;display:flex;flex-direction:column;
+    max-height:calc(88dvh - 64px);display:flex;flex-direction:column;
     animation:amb-slide-up .28s cubic-bezier(.22,1,.36,1) both;
   }
   .amb-sheet-header {
