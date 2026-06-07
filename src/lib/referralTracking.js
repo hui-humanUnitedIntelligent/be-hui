@@ -1,11 +1,11 @@
 // src/lib/referralTracking.js
-// ── HUI Referral-Tracking ─────────────────────────────────────
+// -- HUI Referral-Tracking -------------------------------------
 import { supabase } from "./supabaseClient.js";
 
 const STORAGE_AMB_KEY = 'hui_referral_ambassador';
 
 /**
- * Beim Seitenaufruf: URL-Pfad auf Ambassador-Username prüfen.
+ * Beim Seitenaufruf: URL-Pfad auf Ambassador-Username pruefen.
  * Format: https://be-hui.com/[username]
  */
 export function detectReferral() {
@@ -36,8 +36,8 @@ export function getStoredReferral() {
 }
 
 /**
- * Referral-Link validieren (für manuelle Eingabe im Formular).
- * Gibt { valid, username, ambassadorId } zurück.
+ * Referral-Link validieren (fuer manuelle Eingabe im Formular).
+ * Gibt { valid, username, ambassadorId } zurueck.
  */
 export async function validateRefLink(linkOrUsername) {
   if (!linkOrUsername?.trim()) return { valid: false };
@@ -57,7 +57,7 @@ export async function validateRefLink(linkOrUsername) {
     if (!data) return { valid: false, error: 'Einladungslink nicht gefunden' };
     return { valid: true, username: data.username, ambassadorId: data.user_id };
   } catch {
-    return { valid: false, error: 'Einladungslink ungültig' };
+    return { valid: false, error: 'Einladungslink ungueltig' };
   }
 }
 
@@ -135,14 +135,14 @@ async function _assignReferral(newUserId, ambassadorId, refCode, ambPm, amb) {
     }
   }).eq('id', ambassadorId);
 
-  console.log('[HUI Referral] ✅ Zuordnung:', refCode, '→ neuer Nutzer:', newUserId);
+  console.log('[HUI Referral] ? Zuordnung:', refCode, '-> neuer Nutzer:', newUserId);
 }
 
 /**
- * Ref-Link-Eintrag für neuen Ambassador anlegen (bei Annahme der Bewerbung).
+ * Ref-Link-Eintrag fuer neuen Ambassador anlegen (bei Annahme der Bewerbung).
  */
 export async function createRefLinkForAmbassador(userId, username, referralCode) {
-  const refLink = \`https://be-hui.com/\${username}\`;
+  const refLink = `https://be-hui.com/\${username}`;
   const { error } = await supabase
     .from('ambassador_ref_links')
     .upsert({ user_id: userId, username, ref_link: refLink, referral_code: referralCode },
@@ -152,7 +152,7 @@ export async function createRefLinkForAmbassador(userId, username, referralCode)
 }
 
 /**
- * Ref-Link-Eintrag löschen (bei Entzug oder Account-Löschung).
+ * Ref-Link-Eintrag loeschen (bei Entzug oder Account-Loeschung).
  */
 export async function deleteRefLink(userId) {
   await supabase.from('ambassador_ref_links').delete().eq('user_id', userId);
