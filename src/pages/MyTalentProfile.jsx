@@ -9,6 +9,7 @@ import WerkWizard from "../components/works/WerkWizard.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
+import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -159,7 +160,7 @@ function PageTitle({ isOwner }) {
         </div>
       </div>
       {isOwner && (
-        <button style={{ background:"none", border:"none", padding:"2px 0 0 10px", cursor:"pointer", touchAction:"manipulation", flexShrink:0 }}>
+        <button onClick={() => setShowSettings(true)} style={{ background:"none", border:"none", padding:"2px 0 0 10px", cursor:"pointer", touchAction:"manipulation", flexShrink:0 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="rgba(26,26,24,0.32)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3"/>
@@ -1404,6 +1405,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
   const [recList,     setRecList]     = useState([]);
   const isOwner = !viewerMode && !profileId;
   const [showAmbModal, setShowAmbModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const ambState = useAmbassador(profile);
   // useHuiActions: sicher aufrufen (innerhalb HomeShell-Provider)
   const huiActs = (() => { try { return useHuiActions(); } catch(_) { return {}; } })();
@@ -1551,6 +1553,19 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
 
         <Gap h={32}/>
       </div>
+
+      {/* SETTINGS MODAL */}
+      {showSettings && profile && (
+        <SettingsModal
+          profile={profile}
+          onClose={() => setShowSettings(false)}
+          onProfileUpdate={() => {
+            supabase.from("profiles")
+              .select("*").eq("id", userId).single()
+              .then(({ data }) => { if (data) setProfile(data); });
+          }}
+        />
+      )}
 
       {/* AMBASSADOR BEWERBUNGS-MODAL */}
       {showAmbModal && userId && (
