@@ -22,13 +22,19 @@ const CSS = `
   }
   .amb-modal-sheet {
     background:#FFFFFF;border-radius:24px 24px 0 0;width:100%;max-width:520px;
-    max-height:92dvh;overflow-y:auto;
+    max-height:88dvh;display:flex;flex-direction:column;
     animation:amb-slide-up .28s cubic-bezier(.22,1,.36,1) both;
-    padding-bottom:env(safe-area-inset-bottom,24px);
-    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
   }
-  .amb-modal-sheet::-webkit-scrollbar{display:none}
-  .amb-input {
+  .amb-modal-body {
+    flex:1;overflow-y:auto;scrollbar-width:none;
+  }
+  .amb-modal-body::-webkit-scrollbar{display:none}
+  .amb-modal-footer {
+    padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));
+    background:#FFFFFF;border-top:1px solid rgba(26,26,24,0.07);flex-shrink:0;
+  }
+    .amb-input {
     width:100%;padding:13px 14px;background:#F7F5F2;
     border:1.5px solid rgba(26,26,24,0.10);border-radius:12px;
     font-size:15px;color:#1A1A18;font-family:inherit;
@@ -113,7 +119,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
       <div className="amb-modal-overlay" onClick={onClose}>
         <div className="amb-modal-sheet" onClick={e => e.stopPropagation()}>
 
-          {/* Header */}
+          {/* Header — sticky oben, nicht scrollbar */}
           <div style={{ padding: '20px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: 22, marginBottom: 2 }}>🌟</div>
@@ -139,7 +145,8 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ padding: '20px 20px 32px' }}>
+            <div className="amb-modal-body">
+            <form onSubmit={handleSubmit} id="amb-form" style={{ padding: '20px 20px 8px' }}>
               {/* Name */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <div>
