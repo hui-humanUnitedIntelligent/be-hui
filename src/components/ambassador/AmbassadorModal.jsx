@@ -229,22 +229,24 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
                 )}
               </div>
 
+            </form>
+            </div>{/* end amb-modal-body */}
+            <div className="amb-modal-footer">
               {/* Error */}
               {error && (
-                <div style={{ background: 'rgba(255,91,91,0.08)', border: '1px solid rgba(255,91,91,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#FF5B5B', marginBottom: 16 }}>
+                <div style={{ background: 'rgba(255,91,91,0.08)', border: '1px solid rgba(255,91,91,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#FF5B5B', marginBottom: 12 }}>
                   ⚠️ {error}
                 </div>
               )}
-
               {/* Submit */}
-              <button type="submit" disabled={loading} className="amb-press"
+              <button type="submit" form="amb-form" disabled={loading} className="amb-press"
                 style={{ width: '100%', padding: '15px', background: loading ? 'rgba(14,196,184,0.5)' : T.teal,
                   border: 'none', borderRadius: 99, color: '#fff', fontSize: 16, fontWeight: 700,
                   cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                   boxShadow: loading ? 'none' : '0 4px 18px rgba(14,196,184,0.35)' }}>
                 {loading ? <span className="amb-spinner">⟳</span> : '🚀 Bewerbung einreichen'}
               </button>
-            </form>
+            </div>
           )}
         </div>
       </div>
