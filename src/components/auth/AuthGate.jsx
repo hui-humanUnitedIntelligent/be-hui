@@ -37,6 +37,8 @@ function injectCSS() {
   document.head.appendChild(s);
 }
 
+import { getStoredReferral, validateRefLink, processReferralAfterSignup } from "../../lib/referralTracking.js";
+
 // ── Auth Modal ────────────────────────────────────────────────
 function AuthModal({ action, onClose, onConfirm }) {
   injectCSS();
@@ -45,6 +47,11 @@ function AuthModal({ action, onClose, onConfirm }) {
   const [email,  setEmail] = useState("");
   const [pw,     setPw]    = useState("");
   const [name,   setName]  = useState("");
+  const [refInput, setRefInput]   = useState(() => {
+    const stored = getStoredReferral();
+    return stored ? "https://be-hui.com/" + stored : "";
+  });
+  const [refValid, setRefValid]   = useState(null); // null | true | false
   const [err,    setErr]   = useState(null);
   const [busy,   setBusy]  = useState(false);
   const navigate = useNavigate();
@@ -82,6 +89,15 @@ function AuthModal({ action, onClose, onConfirm }) {
         error.message || "Registrierung fehlgeschlagen"
       );
       return;
+    }
+    // Referral verarbeiten (non-blocking)
+    if (refInput.trim()) {
+      validateRefLink(refInput).then(res => {
+        if (res.valid) processReferralAfterSignup(undefined, res.username);
+      });
+    } else {
+      const stored = getStoredReferral();
+      if (stored) processReferralAfterSignup(undefined, stored);
     }
     // success
     setMode("verify");
@@ -180,6 +196,37 @@ function AuthModal({ action, onClose, onConfirm }) {
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               {err && <div style={{fontSize:13,color:"#EF4444",padding:"8px 12px",
                 background:"rgba(239,68,68,0.07)",borderRadius:10}}>{err}</div>}
+              {/* Einladungslink (optional) */}
+              <div style={{marginBottom:4}}>
+                <div style={{fontSize:11,color:"rgba(26,26,46,0.5)",marginBottom:5,fontWeight:500}}>
+                  Hast du einen Einladungslink? <span style={{fontWeight:400}}>(optional)</span>
+                </div>
+                <div style={{position:"relative"}}>
+                  <input
+                    type="text"
+                    value={refInput}
+                    onChange={async e => {
+                      setRefInput(e.target.value);
+                      setRefValid(null);
+                      if (e.target.value.trim().length > 5) {
+                        const res = await validateRefLink(e.target.value);
+                        setRefValid(res.valid);
+                      }
+                    }}
+                    placeholder="https://be-hui.com/username"
+                    style={{...inputStyle, paddingRight:36,
+                      borderColor: refValid === true ? "#0EC4B8" : refValid === false ? "#FF5B5B" : "rgba(26,26,46,0.12)"
+                    }}
+                    onFocus={e=>e.target.style.borderColor= refValid === false ? "#FF5B5B" : TEAL}
+                    onBlur={e=>e.target.style.borderColor= refValid === true ? "#0EC4B8" : refValid === false ? "#FF5B5B" : "rgba(26,26,46,0.12)"}
+                  />
+                  {refValid === true && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#0EC4B8",fontSize:14}}>✓</span>}
+                  {refValid === false && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#FF5B5B",fontSize:14}}>✗</span>}
+                </div>
+                {refValid === true && <div style={{fontSize:11,color:"#0EC4B8",marginTop:3}}>✅ Gültiger Einladungslink</div>}
+                {refValid === false && <div style={{fontSize:11,color:"#FF5B5B",marginTop:3}}>❌ Link nicht gefunden — trotzdem fortfahren?</div>}
+              </div>
+
               <button type="submit" disabled={busy} style={{
                 padding:"15px",borderRadius:18,border:"none",
                 background: busy ? "rgba(22,215,197,0.35)" : `linear-gradient(135deg,${TEAL},#0FC4B2)`,
@@ -224,6 +271,37 @@ function AuthModal({ action, onClose, onConfirm }) {
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               {err && <div style={{fontSize:13,color:"#EF4444",padding:"8px 12px",
                 background:"rgba(239,68,68,0.07)",borderRadius:10}}>{err}</div>}
+              {/* Einladungslink (optional) */}
+              <div style={{marginBottom:4}}>
+                <div style={{fontSize:11,color:"rgba(26,26,46,0.5)",marginBottom:5,fontWeight:500}}>
+                  Hast du einen Einladungslink? <span style={{fontWeight:400}}>(optional)</span>
+                </div>
+                <div style={{position:"relative"}}>
+                  <input
+                    type="text"
+                    value={refInput}
+                    onChange={async e => {
+                      setRefInput(e.target.value);
+                      setRefValid(null);
+                      if (e.target.value.trim().length > 5) {
+                        const res = await validateRefLink(e.target.value);
+                        setRefValid(res.valid);
+                      }
+                    }}
+                    placeholder="https://be-hui.com/username"
+                    style={{...inputStyle, paddingRight:36,
+                      borderColor: refValid === true ? "#0EC4B8" : refValid === false ? "#FF5B5B" : "rgba(26,26,46,0.12)"
+                    }}
+                    onFocus={e=>e.target.style.borderColor= refValid === false ? "#FF5B5B" : TEAL}
+                    onBlur={e=>e.target.style.borderColor= refValid === true ? "#0EC4B8" : refValid === false ? "#FF5B5B" : "rgba(26,26,46,0.12)"}
+                  />
+                  {refValid === true && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#0EC4B8",fontSize:14}}>✓</span>}
+                  {refValid === false && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#FF5B5B",fontSize:14}}>✗</span>}
+                </div>
+                {refValid === true && <div style={{fontSize:11,color:"#0EC4B8",marginTop:3}}>✅ Gültiger Einladungslink</div>}
+                {refValid === false && <div style={{fontSize:11,color:"#FF5B5B",marginTop:3}}>❌ Link nicht gefunden — trotzdem fortfahren?</div>}
+              </div>
+
               <button type="submit" disabled={busy} style={{
                 padding:"15px",borderRadius:18,border:"none",
                 background: busy ? "rgba(22,215,197,0.35)" : `linear-gradient(135deg,${TEAL},${CORAL})`,
