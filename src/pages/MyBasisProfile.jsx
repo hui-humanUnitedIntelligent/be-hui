@@ -164,8 +164,10 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
   const avatarInputRef = useRef(null);
   const coverInputRef  = useRef(null);
 
-  const cover  = s(profile?.header_img,  FB_COVER);
-  const avatar = s(profile?.avatar_url,  FB_AVT);
+  // ── Avatar + Cover: nur echte DB-Werte, kein Demo-Fallback ──────────
+  // localAvatar/localCover: sofortige UI-Aktualisierung nach Upload (Blob-URL)
+  const cover  = localCover  || profile?.header_img  || null;
+  const avatar = localAvatar || profile?.avatar_url  || null;
   const name   = s(profile?.display_name||profile?.username, "Mein Profil");
 
   async function handleAvatarFile(e) {
@@ -284,10 +286,24 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
               border:"3.5px solid white",
               boxShadow:"0 4px 20px rgba(0,0,0,0.16)",
               overflow:"hidden", background:T.bg }}>
-              {!avLoaded && <div className="mbp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>}
-              <img src={avatar} alt={name} onLoad={()=>setAvLoaded(true)} onError={()=>setAvLoaded(true)}
-                style={{ width:"100%", height:"100%", objectFit:"cover",
-                  opacity:avLoaded?1:0, transition:"opacity .5s ease" }}/>
+              {/* Avatar: Bild wenn vorhanden, sonst Initialen */}
+              {avatar ? (
+                <>
+                  {!avLoaded && <div className="mbp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>}
+                  <img src={avatar} alt={name} onLoad={()=>setAvLoaded(true)} onError={()=>setAvLoaded(true)}
+                    style={{ width:"100%", height:"100%", objectFit:"cover",
+                      opacity:avLoaded?1:0, transition:"opacity .5s ease" }}/>
+                </>
+              ) : (
+                <div style={{
+                  position:"absolute", inset:0, borderRadius:"50%",
+                  background:`linear-gradient(135deg, ${T.teal}, ${T.tealMid})`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:28, fontWeight:700, color:"white",
+                }}>
+                  {(name||"?").charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
             {/* Camera button */}
             <label style={{
