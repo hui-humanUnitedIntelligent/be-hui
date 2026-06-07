@@ -494,7 +494,8 @@ function ImpactPageInner({ currentUser }) {
         @keyframes ipFadeIn  { from{opacity:0} to{opacity:1} }
         @keyframes ipFloat   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         @keyframes ipPulse   { 0%,100%{opacity:1} 50%{opacity:0.38} }
-        @keyframes ipSlideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+        @keyframes ipSlideUp  { from{transform:translateY(100%)} to{transform:translateY(0)} }
+        @keyframes ipModalIn  { from{opacity:0;transform:scale(0.94) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes ipBreath  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
         .ip-p { cursor:pointer; -webkit-tap-highlight-color:transparent; }
         .ip-p:active { opacity:0.78; transform:scale(0.972) !important; transition:all 0.11s !important; }
@@ -1563,118 +1564,58 @@ function InfoSheet({ modal, onClose }) {
       subtitle: "Die Community entscheidet nur, welches Projekt zuerst verwirklicht wird. Nicht welches gewinnt und welches verliert.",
       body: (
         <>
-          <Section icon="🌱" title="Herzensprojekte werden geprüft">
-            Nicht jedes Projekt kommt automatisch in den Impact Pool.
-            Jedes Herzensprojekt wird zunächst vom HUI-Team geprüft.
-            <Bullets items={[
-              "echte Wirkung",
-              "Umsetzbarkeit",
-              "Transparenz",
-              "Gemeinwohl",
-              "Übereinstimmung mit den HUI-Werten",
-            ]}/>
-            <p style={{ margin:"10px 0 0", fontSize:13, color:T.ink2 }}>
-              Nur Projekte, die wirklich zur Vision von HUI passen, werden nominiert.
-            </p>
-          </Section>
+          {/* Haupttext */}
+          {[
+            "Bei HUI gewinnt zwar jeden Monat ein Projekt die Abstimmung und erhält seine komplette Wunschsumme.",
+            "Die übrigen Projekte gehen jedoch nicht leer aus.",
+            "Der verbleibende Community-Anteil des Impact Pools wird auf alle anderen zugelassenen Projekte verteilt.",
+            "Dadurch wächst jedes Projekt Monat für Monat weiter.",
+            "So entsteht kein Alles-oder-Nichts-System.",
+          ].map((text, i) => (
+            <p key={i} style={{
+              margin:"0 0 12px", fontSize:14, color:T.ink2, lineHeight:1.72,
+            }}>{text}</p>
+          ))}
 
-          <Section icon="🏆" title="Drei Projekte werden nominiert">
-            Jeden Monat wählt das HUI-Team drei Projekte aus dem Bewerberpool aus.
-            Diese drei Projekte treten in die aktuelle Community-Abstimmung ein.
-            Die Community entscheidet anschließend gemeinsam, welches Projekt
-            zuerst verwirklicht werden soll.
-          </Section>
-
-          <Section icon="🗳️" title="Die Community entscheidet">
-            <div style={{ display:"flex", alignItems:"center", gap:8,
-              background:`${T.gold}12`, borderRadius:10, padding:"9px 12px", marginBottom:10 }}>
-              <span style={{ fontSize:18 }}>✨</span>
-              <span style={{ fontSize:14, fontWeight:800, color:T.gold }}>
-                Mitglieder &amp; Talente: 2 Stimmen pro Monat
-              </span>
-            </div>
-            Diese Stimmen addieren sich nicht. Jeder Monat beginnt für alle gleich.
-            Dadurch bleibt die Abstimmung fair und lebendig.
-          </Section>
-
-          <Section icon="🥇" title="Das Siegerprojekt erhält die volle Wunschsumme">
-            Das Projekt mit den meisten Stimmen erhält seine komplette
-            gewünschte Fördersumme —{" "}
-            <b style={{ color:T.ink }}>nicht teilweise, nicht in Raten, sondern vollständig.</b>{" "}
-            Dadurch kann die Wirkung sofort entstehen.
-          </Section>
-
-          <Section icon="💚" title="Warum geht kein Projekt leer aus?">
-            Genau hier unterscheidet sich HUI von klassischem Crowdfunding.
-            <br/><br/>
-            Nachdem das Siegerprojekt vollständig finanziert wurde, wird das
-            verbleibende Community-Budget auf die anderen Projekte verteilt.
-            <br/><br/>
-            Vielleicht nicht sofort. Aber Schritt für Schritt. Monat für Monat.
-            So kommt jedes Herzensprojekt seinem Ziel näher.
-          </Section>
-
-          <Section icon="🌍" title="Der Impact Pool wächst jeden Monat weiter">
-            Von jeder erfolgreichen HUI-Buchung fließt automatisch ein Anteil
-            in den Impact Pool. Je aktiver die Community wird, desto größer
-            wird die gemeinsame Wirkung.
-          </Section>
-
-          <Section icon="📦" title="Wie wird der Impact Pool aufgeteilt?">
-            <div style={{ fontWeight:700, color:T.ink, marginBottom:10 }}>
-              100 % des Impact Pools bleiben Wirkungskapital.
-            </div>
+          {/* Kernaussagen */}
+          <div style={{
+            background:`${T.teal}08`, border:`1px solid ${T.teal}20`,
+            borderRadius:16, padding:"16px 18px", marginBottom:16,
+          }}>
             {[
-              { pct:"40 %", label:"Community-Fonds",   color:T.teal,
-                desc:"Die Community stimmt ab. Das Siegerprojekt erhält die volle Fördersumme." },
-              { pct:"30 %", label:"Wirkungsbudget",     color:T.coral,
-                desc:"Für strategische Projekte, die HUI und die Gemeinschaft schneller voranbringen." },
-              { pct:"20 %", label:"Innovationsbudget",  color:T.gold,
-                desc:"Für neue Ideen, technische Weiterentwicklung und zukünftige Wirkungsmöglichkeiten." },
-              { pct:"10 %", label:"Kurationsbudget",    color:T.violet,
-                desc:"Für Prüfung, Qualitätssicherung, Begleitung und transparente Verwaltung." },
-            ].map((sl, i) => (
+              { icon:"🩷", text:"Jede Stimme erzeugt Wirkung." },
+              { icon:"📦", text:"Jedes Projekt erhält Unterstützung." },
+              { icon:"🎯", text:"Früher oder später erreicht jedes Projekt sein Ziel." },
+            ].map((item, i) => (
               <div key={i} style={{
-                display:"flex", gap:10, alignItems:"flex-start",
-                padding:"8px 0",
-                borderBottom: i < 3 ? `1px solid ${T.line}` : "none",
+                display:"flex", alignItems:"center", gap:12,
+                padding:"9px 0",
+                borderBottom: i < 2 ? `1px solid ${T.teal}14` : "none",
               }}>
-                <div style={{
-                  minWidth:38, height:38, borderRadius:10, flexShrink:0,
-                  background:`${sl.color}16`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:13, fontWeight:900, color:sl.color,
-                }}>{sl.pct}</div>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>{sl.label}</div>
-                  <div style={{ fontSize:12, color:T.muted, lineHeight:1.5 }}>{sl.desc}</div>
-                </div>
+                <span style={{ fontSize:20, flexShrink:0 }}>{item.icon}</span>
+                <span style={{ fontSize:14, fontWeight:700, color:T.ink, lineHeight:1.4 }}>
+                  {item.text}
+                </span>
               </div>
             ))}
-          </Section>
+          </div>
 
-          {/* Abschluss-Karte */}
+          {/* Abschluss */}
           <div style={{
             background:`linear-gradient(135deg,${T.teal}15,${T.teal}05)`,
             border:`1.5px solid ${T.teal}30`,
-            borderRadius:20, padding:"20px 18px", textAlign:"center", marginTop:4,
+            borderRadius:18, padding:"18px 20px", textAlign:"center",
           }}>
-            <div style={{ fontSize:28, marginBottom:10 }}>💚</div>
-            <div style={{ fontSize:15, fontWeight:900, color:T.ink,
-              letterSpacing:"-0.018em", marginBottom:8 }}>HUI glaubt:</div>
-            <p style={{ margin:"0 0 12px", fontSize:14, fontWeight:700,
-              color:T.teal, lineHeight:1.6 }}>Wirkung ist kein Wettbewerb.</p>
-            <p style={{ margin:"0 0 4px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>
-              Die Community entscheidet lediglich,<br/>
-              welches Herzensprojekt zuerst Realität wird.
+            <div style={{ fontSize:24, marginBottom:8 }}>💚</div>
+            <p style={{ margin:"0 0 4px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+              Deshalb gilt bei HUI:
             </p>
-            {["Kein Projekt wird vergessen.",
-              "Kein Projekt wird ausgeschlossen.",
-              "Kein Projekt geht leer aus.",
-            ].map((line, i) => (
-              <div key={i} style={{ fontSize:14, fontWeight:700, color:T.teal,
-                marginTop:6, lineHeight:1.5 }}>✓ {line}</div>
-            ))}
+            <div style={{
+              fontSize:17, fontWeight:900, color:T.teal,
+              letterSpacing:"-0.018em", lineHeight:1.3,
+            }}>
+              "Kein Projekt geht leer aus."
+            </div>
           </div>
         </>
       ),
@@ -1735,60 +1676,127 @@ function InfoSheet({ modal, onClose }) {
       aria-modal="true"
       aria-label={c.title}
       style={{
-        position:"fixed", inset:0, zIndex:900,
-        background:"rgba(14,14,24,0.48)", backdropFilter:"blur(7px)",
-        display:"flex", alignItems:"flex-end",
+        position:"fixed", inset:0, zIndex:9999,
+        background:"rgba(14,14,24,0.52)",
+        backdropFilter:"blur(8px)",
+        WebkitBackdropFilter:"blur(8px)",
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"center",
+        padding:"16px",
         animation:"ipFadeIn 0.18s ease both",
       }}
       onClick={onClose}
     >
+      {/* Modal-Container — zentriert, max-width 640px */}
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          width:"100%",
+          width:"90%",
+          maxWidth:640,
           background:T.surfaceHi,
-          borderRadius:"28px 28px 0 0",
-          padding:"0 0 max(env(safe-area-inset-bottom, 12px), 24px) 0",
-          boxShadow:"0 -12px 60px rgba(0,0,0,0.14), 0 -1px 0 rgba(0,0,0,0.06)",
-          animation:"ipSlideUp 0.28s cubic-bezier(0.22,1,0.36,1) both",
-          maxHeight:"90vh",
-          display:"flex", flexDirection:"column",
+          borderRadius:24,
+          boxShadow:"0 24px 80px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.10)",
+          maxHeight:"88vh",
+          display:"flex",
+          flexDirection:"column",
+          overflow:"hidden",
+          animation:"ipModalIn 0.24s cubic-bezier(0.22,1,0.36,1) both",
         }}
       >
-        {/* Handle + Sticky Header */}
+        {/* Sticky Header */}
         <div style={{
-          padding:"12px 22px 0",
+          padding:"20px 22px 16px",
           borderBottom:`1px solid ${T.line}`,
-          paddingBottom:16,
           background:T.surfaceHi,
-          borderRadius:"28px 28px 0 0",
           flexShrink:0,
+          position:"relative",
         }}>
-          <div style={{ width:40, height:4, borderRadius:2,
-            background:"rgba(0,0,0,0.10)", margin:"0 auto 16px" }}/>
-          <h3 style={{ margin:"0 0 6px", fontSize:17, fontWeight:900,
-            color:T.ink, letterSpacing:"-0.02em", lineHeight:1.25 }}>
+          {/* Close-X */}
+          <button
+            onClick={onClose}
+            className="ip-p"
+            aria-label="Schließen"
+            style={{
+              position:"absolute", top:16, right:16,
+              width:32, height:32, borderRadius:"50%",
+              background:"rgba(0,0,0,0.06)",
+              border:"none", cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16, color:T.muted,
+              transition:"background 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.12)"}
+            onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0.06)"}
+          >✕</button>
+
+          <h3 style={{
+            margin:"0 40px 0 0",
+            fontSize:18, fontWeight:900,
+            color:T.ink, letterSpacing:"-0.022em", lineHeight:1.25,
+          }}>
             {c.title}
           </h3>
           {c.subtitle && (
-            <p style={{ margin:0, fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+            <p style={{ margin:"6px 0 0", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
               {c.subtitle}
             </p>
           )}
         </div>
 
         {/* Scrollbarer Body */}
-        <div style={{ flex:1, overflowY:"auto", padding:"20px 22px 0",
-          WebkitOverflowScrolling:"touch" }}>
+        <div style={{
+          flex:1,
+          overflowY:"auto",
+          padding:"20px 22px",
+          WebkitOverflowScrolling:"touch",
+        }}>
           {c.body}
+        </div>
 
+        {/* Sticky Footer Buttons */}
+        <div style={{
+          padding:"14px 22px 20px",
+          borderTop:`1px solid ${T.line}`,
+          background:T.surfaceHi,
+          flexShrink:0,
+          display:"flex", gap:10,
+        }}>
+          {/* Primär: Verstanden */}
           <button onClick={onClose} className="ip-p" style={{
-            marginTop:24, marginBottom:8,
-            width:"100%", background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
-            border:"none", borderRadius:18, padding:"14px 0", color:"white",
-            fontSize:14, fontWeight:750, cursor:"pointer",
-            boxShadow:`0 4px 18px ${T.teal}38`,
-          }}>Verstanden ✓</button>
+            flex:1,
+            background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
+            border:"none", borderRadius:16, padding:"13px 0",
+            color:"white", fontSize:14, fontWeight:750,
+            cursor:"pointer",
+            boxShadow:`0 4px 16px ${T.teal}38`,
+            transition:"opacity 0.15s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+          >Verstanden ✓</button>
+
+          {/* Sekundär: Impact Pool entdecken (scrollt nach oben) */}
+          {modal === "leeraus" && (
+            <button onClick={onClose} className="ip-p" style={{
+              flex:1,
+              background:"none",
+              border:`1.5px solid ${T.teal}38`,
+              borderRadius:16, padding:"13px 0",
+              color:T.teal, fontSize:14, fontWeight:700,
+              cursor:"pointer",
+              transition:"all 0.15s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = `${T.teal}10`;
+              e.currentTarget.style.borderColor = `${T.teal}60`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "none";
+              e.currentTarget.style.borderColor = `${T.teal}38`;
+            }}
+            >Impact Pool entdecken</button>
+          )}
         </div>
       </div>
     </div>
