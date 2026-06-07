@@ -65,8 +65,8 @@ const s = (v, fb="") => (v && typeof v==="string" ? v.trim() : fb);
 const a = (v) => Array.isArray(v) ? v : [];
 
 // ── Fallbacks ─────────────────────────────────────────────────
-const FB_COVER = "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80";
-const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
+const FB_COVER = null;   // Kein hardcodierter Cover-Fallback
+const FB_AVT   = null;   // Kein hardcodierter Avatar-Fallback — null zeigt Initialen/Icon
 
 // MOMENT_SEEDS entfernt — keine Placeholder-Bilder mehr
 
@@ -704,7 +704,13 @@ function SichtbarkeitSection({ visibility, onChange }) {
 export default function MyBasisProfile({ onClose, profileId }) {
   console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
-  const { setProfile: setAuthProfile, refreshProfile } = useAuth();
+  const { 
+    profile: authContextProfile, 
+    loadingAuth,
+    setProfile: setAuthProfile, 
+    refreshProfile,
+    loadProfile: reloadProfile,
+  } = useAuth();
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
@@ -727,53 +733,54 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
-  useEffect(()=>{
-    (async () => {
-      try {
-        const { data:{ user } } = await supabase.auth.getUser();
+  // ── Profil aus AuthContext laden (EINZIGE Quelle) ────────────────────
+  // KEIN eigener DB-Call — verhindert Doppel-State und Profile-Sprung.
+  // AuthContext.loadProfile() läuft bereits beim App-Start.
+  useEffect(() => {
+    // Warte bis Auth-Check abgeschlossen ist (loadingAuth = false)
+    if (loadingAuth) return;
 
-        if (!user) { setLoading(false); return; }
-        const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type")
-          .eq("id", user.id).single();
-        console.log("DB PROFILE", data);
-        if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
-        console.log("DNA_TAGS FROM DB", data?.dna_tags);
-        if (data) {
-          setProfile(data);
-          setBio(s(data.bio));
-          console.log("SET BIO", data.bio);
-          // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
-          const nextInterests = Array.isArray(data.skills) ? data.skills : [];
-          setInterests(nextInterests);
-          console.log("SET INTERESTS", nextInterests);
-          // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
-          // dna_tags kann als JS Array ODER als Postgres-String '{url1,url2}' kommen
-          let rawTags = data.dna_tags;
-          if (typeof rawTags === "string" && rawTags.startsWith("{")) {
-            // Postgres array literal parsen: '{a,b,c}' → ['a','b','c']
-            rawTags = rawTags.slice(1, -1).split(",").map(s => s.trim()).filter(Boolean);
-          }
-          const tagArr = Array.isArray(rawTags) ? rawTags : [];
-          console.log("DNA_CHECK type:", typeof data.dna_tags, "isArray:", Array.isArray(data.dna_tags), "tagArr.length:", tagArr.length, "sample:", tagArr[0]);
-          if (tagArr.length) {
-            const mapped = tagArr.map((url, i) => ({ id: `db_${i}`, img: url }));
-            setMoments(mapped);
-            console.log("MOMENTS STATE SET", mapped.length, "items");
-          } else {
-            console.log("MOMENTS SKIPPED — dna_tags leer");
-          }
-          // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
-          if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
-            setVisibility(data.focus_type);
-          }
-          // Offen für Begegnungen — interests-Spalte existiert nicht in DB, lokal verwaltet
-          setOpenFor([]);
-        }
-      } catch(e) { console.warn("MyBasisProfile load:", e); }
+    const data = authContextProfile;
+    console.log("[MyBasisProfile] AUTH_CONTEXT_PROFILE", {
+      userId: data?.id || null,
+      source: "AuthContext",
+      hasProfile: !!data,
+    });
+
+    if (!data) {
+      // Auth geladen, kein User → kein Profil zeigen
       setLoading(false);
-    })();
-  },[]);
+      return;
+    }
+
+    // Profil aus AuthContext übernehmen (KEINE eigene DB-Anfrage)
+    setProfile(data);
+    setBio(s(data.bio));
+
+    // Interessen aus skills-Spalte
+    const nextInterests = Array.isArray(data.skills) ? data.skills : [];
+    setInterests(nextInterests);
+
+    // Momente aus dna_tags
+    let rawTags = data.dna_tags;
+    if (typeof rawTags === "string" && rawTags.startsWith("{")) {
+      rawTags = rawTags.slice(1, -1).split(",").map(v => v.trim()).filter(Boolean);
+    }
+    const tagArr = Array.isArray(rawTags) ? rawTags : [];
+    if (tagArr.length) {
+      setMoments(tagArr.map((url, i) => ({ id: `db_${i}`, img: url })));
+    } else {
+      setMoments([]);
+    }
+
+    // Sichtbarkeit
+    if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
+      setVisibility(data.focus_type);
+    }
+
+    setOpenFor([]);
+    setLoading(false);
+  }, [loadingAuth, authContextProfile]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
