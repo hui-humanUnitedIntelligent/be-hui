@@ -1707,8 +1707,8 @@ function useUnifiedSearch(query) {
       if(!a.v)return;
       setResults({
         profiles:    (p.data||[]).map(r=>({id:r.id,type:"profile",    title:r.display_name||r.username||"HUI Mitglied",sub:r.bio?r.bio.slice(0,42):r.location,avatar:r.avatar_url,emoji:"👤",typeLabel:"Person"})),
-        works:       (w.data||[]).map(r=>({id:r.id,type:"work",       title:r.title,sub:r.category||r.location_text,avatar:r.cover_url,emoji:"🎨",typeLabel:"Werk"})),
-        experiences: (e.data||[]).map(r=>({id:r.id,type:"experience", title:r.title,sub:r.location_text||r.category,avatar:r.cover_url,emoji:"📅",typeLabel:"Erlebnis"})),
+        works:       (w.data||[]).map(r=>({id:r.id,type:"work",       title:r.title,sub:r.category||r.location_text,avatar:r.cover_url,emoji:"🎨",typeLabel:"Werk",userId:r.user_id})),
+        experiences: (e.data||[]).map(r=>({id:r.id,type:"experience", title:r.title,sub:r.location_text||r.category,avatar:r.cover_url,emoji:"📅",typeLabel:"Erlebnis",userId:r.user_id})),
         momente:     (b.data||[]).map(r=>({id:r.id,type:"moment",     title:r.caption||"Moment",sub:relTime(r.created_at),avatar:r.src,emoji:"📸",typeLabel:"Moment"})),
       });
       setLoading(false);
@@ -1719,7 +1719,7 @@ function useUnifiedSearch(query) {
   return {results,loading,total};
 }
 
-function ResultCol({title,emoji,items,onSelect}){
+function ResultCol({title,emoji,items,onSelect,startIdx=0,focusedIdx=-1}){
   if(!items.length)return null;
   return(
     <div style={{flex:1,minWidth:0}}>
@@ -1728,14 +1728,16 @@ function ResultCol({title,emoji,items,onSelect}){
         {emoji} {title}
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:1}}>
-        {items.map(it=>(
+        {items.map((it,localIdx)=>(
           <div key={it.id} onClick={()=>onSelect?.(it)} style={{
             display:"flex",alignItems:"center",gap:8,
             padding:"6px 6px",borderRadius:10,cursor:"pointer",
             transition:"background .10s",WebkitTapHighlightColor:"transparent",
+            background:(startIdx+localIdx)===focusedIdx?"rgba(14,196,184,0.13)":"transparent",
+            outline:(startIdx+localIdx)===focusedIdx?"2px solid rgba(14,196,184,0.35)":"none",
           }}
-            onMouseEnter={e=>e.currentTarget.style.background="rgba(14,196,184,0.08)"}
-            onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+            onMouseEnter={e=>{ if((startIdx+localIdx)!==focusedIdx) e.currentTarget.style.background="rgba(14,196,184,0.08)"; }}
+            onMouseLeave={e=>{ if((startIdx+localIdx)!==focusedIdx) e.currentTarget.style.background="transparent"; }}
           >
             <Av src={it.avatar} emoji={it.emoji} size={28} round={it.type==="profile"}/>
             <div style={{flex:1,minWidth:0}}>
@@ -1757,7 +1759,7 @@ function ResultCol({title,emoji,items,onSelect}){
   );
 }
 
-function KiDiscoveryCol({query}){
+function KiDiscoveryCol({query, onHintSelect}){
   const hints=useMemo(()=>{
     if(!query)return[];
     return[
@@ -1776,14 +1778,15 @@ function KiDiscoveryCol({query}){
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:6}}>
         {hints.map((h,i)=>(
-          <div key={i} style={{
+          <div key={i} onClick={()=>onHintSelect?.(h)} style={{
             display:"flex",alignItems:"center",gap:7,padding:"8px 9px",borderRadius:10,cursor:"pointer",
             background:"linear-gradient(135deg,rgba(14,196,184,0.07),rgba(14,196,184,0.03))",
             border:"1px solid rgba(14,196,184,0.12)",
-            transition:"transform .12s",
+            transition:"transform .12s, background .12s",
+            WebkitTapHighlightColor:"transparent",
           }}
-            onMouseEnter={e=>e.currentTarget.style.transform="translateX(2px)"}
-            onMouseLeave={e=>e.currentTarget.style.transform="translateX(0)"}
+            onMouseEnter={e=>{ e.currentTarget.style.transform="translateX(2px)"; e.currentTarget.style.background="linear-gradient(135deg,rgba(14,196,184,0.14),rgba(14,196,184,0.07))"; }}
+            onMouseLeave={e=>{ e.currentTarget.style.transform="translateX(0)"; e.currentTarget.style.background="linear-gradient(135deg,rgba(14,196,184,0.07),rgba(14,196,184,0.03))"; }}
           >
             <span style={{fontSize:14}}>{h.emoji}</span>
             <span style={{fontSize:11.5,fontWeight:500,color:T.ink}}>{h.text}</span>
@@ -1799,13 +1802,16 @@ function KiDiscoveryCol({query}){
 // ─────────────────────────────────────────────────────────────
 export default function SearchCommandCenter({ activeMood, currentUser }) {
   // ── Navigation + Follow Engine ──────────────────────────────
-  const { openProfileById, switchTab } = useHome();
+  const { openProfileById, switchTab,
+          setShowWerkPublisher, setShowExperienceCreator,
+          setShowImpactFlow } = useHome();
   const engine = useConnectionEngine();
 
   const [open,        setOpen]        = useState(false);
   const [query,       setQuery]       = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showKi,      setShowKi]      = useState(false);
+  const [focusedIdx,  setFocusedIdx]  = useState(-1);
 
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
@@ -1816,9 +1822,14 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     catch { return []; }
   });
 
+  const resultsRef = useRef({profiles:[],works:[],experiences:[],momente:[]});
+  const focusedIdxRef = useRef(-1);
   const debounced = useDebounce(query, 250);
-  useEffect(()=>{ setSearchQuery(debounced); },[debounced]);
+  useEffect(()=>{ setSearchQuery(debounced); setFocusedIdx(-1); },[debounced]);
   const {results,loading,total} = useUnifiedSearch(searchQuery);
+  // Sync refs für Keyboard-Handler (Closure über alten State vermeiden)
+  useEffect(()=>{ resultsRef.current = results; },[results]);
+  useEffect(()=>{ focusedIdxRef.current = focusedIdx; },[focusedIdx]);
 
   const PH = ["Was möchtest du heute bewirken?","Menschen finden…","Werke entdecken…","Projekte erkunden…"];
   const [phIdx,setPhIdx] = useState(0);
@@ -1843,7 +1854,19 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   },[open]);
 
   useEffect(()=>{
-    function h(e){ if(e.key!=="Escape")return; if(showKi){setShowKi(false);return;} close_(); }
+    function h(e){
+      if(e.key==="Escape"){ if(showKi){setShowKi(false);return;} close_(); return; }
+      if(!open)return;
+      const allItems=[...resultsRef.current.profiles,...resultsRef.current.works,...resultsRef.current.experiences,...resultsRef.current.momente];
+      if(e.key==="ArrowDown"){ e.preventDefault(); setFocusedIdx(i=>Math.min(i+1,allItems.length-1)); return; }
+      if(e.key==="ArrowUp"){ e.preventDefault(); setFocusedIdx(i=>Math.max(i-1,-1)); return; }
+      if(e.key==="Enter" && searchQuery.trim()){
+        e.preventDefault();
+        const target = focusedIdxRef.current>=0 ? allItems[focusedIdxRef.current] : allItems[0];
+        if(target) handleSelect(target);
+        return;
+      }
+    }
     document.addEventListener("keydown",h);
     return()=>document.removeEventListener("keydown",h);
   },[showKi]);
@@ -1857,9 +1880,70 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   function handleTheme(label){ setQuery(label); setSearchQuery(label); saveHistory(label); setShowKi(false); inputRef.current?.focus(); }
   function handleHistory(q){ setQuery(q); setSearchQuery(q); setShowKi(false); inputRef.current?.focus(); }
   function handleKiSelect(text){ setQuery(text); setSearchQuery(text); setShowKi(false); inputRef.current?.focus(); }
-  function handleSelect(item){ saveHistory(searchQuery||query||item.title); close_(); }
-  function handleAction(label){ saveHistory(label); close_(); }
+  function handleSelect(item){
+    saveHistory(searchQuery||query||item.title);
+    close_();
+    if(!item)return;
+    switch(item.type){
+      case "profile":
+        if(item.id) openProfileById(item.id);
+        break;
+      case "work":
+        // Werk-Detailseite existiert noch nicht → Ersteller-Profil
+        if(item.userId) openProfileById(item.userId);
+        break;
+      case "experience":
+        // Erlebnis-Detailseite existiert noch nicht → Ersteller-Profil
+        if(item.userId) openProfileById(item.userId);
+        break;
+      case "moment":
+        // Beitrag → Discover-Tab
+        switchTab?.("discover");
+        break;
+      default:
+        break;
+    }
+  }
+  function handleAction(label){
+    saveHistory(label);
+    close_();
+    // QuickAction → spezifischen Creator-Flow öffnen
+    const l = label.toLowerCase();
+    if(l.includes("werk") || l.includes("veröffentlichen")){
+      setShowWerkPublisher?.(true);
+    } else if(l.includes("erlebnis") || l.includes("erstellen")){
+      setShowExperienceCreator?.(true);
+    } else if(l.includes("projekt")){
+      setShowImpactFlow?.(true);
+    } else {
+      // "Menschen kennenlernen" + "Ort hinzufügen" → Discover
+      switchTab?.("discover");
+    }
+  }
   function handleDiscover() { close_(); switchTab?.("discover"); }
+  function handleKiHintSelect(hint){
+    // hint = { emoji, text }
+    const t = hint.text.toLowerCase();
+    if(t.includes("menschen") || t.includes("lieben")){
+      // Setze Suche auf people-only und öffne Discover
+      close_(); switchTab?.("discover");
+    } else if(t.includes("projekte")){
+      close_(); switchTab?.("discover");
+      setTimeout(()=>{
+        const el=document.querySelector("[data-dp-projekte]");
+        if(el)el.scrollIntoView({behavior:"smooth"});
+      },350);
+    } else if(t.includes("nähe") || t.includes("location")){
+      close_(); switchTab?.("discover");
+      setTimeout(()=>{
+        const el=document.querySelector("[data-dp-people]");
+        if(el)el.scrollIntoView({behavior:"smooth"});
+      },350);
+    } else {
+      // "neue Blickwinkel" → globale Discover-Suche
+      close_(); switchTab?.("discover");
+    }
+  }
   function handleCategoryClick(cat){ setQuery(cat); setSearchQuery(cat); inputRef.current?.focus(); }
 
   const showResults = searchQuery.trim().length > 0;
@@ -2012,10 +2096,10 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                   </div>
                 ) : (
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:14}}>
-                    <ResultCol title="Menschen"   emoji="👥" items={results.profiles}    onSelect={handleSelect}/>
-                    <ResultCol title="Erlebnisse" emoji="📅" items={results.experiences} onSelect={handleSelect}/>
-                    <ResultCol title="Werke"      emoji="🎨" items={results.works}       onSelect={handleSelect}/>
-                    <KiDiscoveryCol query={searchQuery}/>
+                    <ResultCol title="Menschen"   emoji="👥" items={results.profiles}    onSelect={handleSelect} startIdx={0} focusedIdx={focusedIdx}/>
+                    <ResultCol title="Erlebnisse" emoji="📅" items={results.experiences} onSelect={handleSelect} startIdx={results.profiles.length} focusedIdx={focusedIdx}/>
+                    <ResultCol title="Werke"      emoji="🎨" items={results.works}       onSelect={handleSelect} startIdx={results.profiles.length+results.experiences.length} focusedIdx={focusedIdx}/>
+                    <KiDiscoveryCol query={searchQuery} onHintSelect={handleKiHintSelect}/>
                   </div>
                 )}
                 {history.length>0 && (
