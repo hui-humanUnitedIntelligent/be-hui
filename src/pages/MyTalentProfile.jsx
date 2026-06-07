@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useHuiActions } from "../core/hui.actions.js";
 import { supabase } from "../lib/supabaseClient.js";
+import { useAuth }   from "../lib/AuthContext.jsx";
 import WerkWizard from "../components/works/WerkWizard.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
@@ -91,26 +92,10 @@ const TALENT_ICONS = {
   "Malen":"🎨","Illustration":"🖌","Workshops":"👥","Kunstberatung":"💡",
   "Auftragskunst":"👜","Fotografie":"📷","Musik":"🎵","Design":"✏️",
 };
-const SEED_WORKS = [
-  { id:"w1", img:"https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=75" },
-  { id:"w2", img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&q=75" },
-  { id:"w3", img:"https://images.unsplash.com/photo-1518791841217-8f162f1912da?w=400&q=75" },
-  { id:"w4", img:"https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=400&q=75" },
-  { id:"w5", img:"https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&q=75" },
-];
-const SEED_EXP = [
-  { id:"e1", title:"Malkurs: Intuitives Malen",  type:"Workshop",    date:"Mai 2024",   img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&q=70" },
-  { id:"e2", title:"Gemeinschaftsausstellung",    type:"Ausstellung", date:"März 2024",  img:"https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=300&q=70" },
-  { id:"e3", title:"Live Painting Event",         type:"Event",       date:"Feb. 2024",  img:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&q=70" },
-  { id:"e4", title:"Kunst für den guten Zweck",   type:"Projekt",     date:"Jan. 2024",  img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&q=70" },
-];
-const SEED_REVIEW = {
-  text: "Deine Bilder berühren etwas in mir, das Worte nicht können.",
-  author: "– Julia M.",
-  avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=70",
-};
-const FB_COVER = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
-const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
+// Demo-Seed-Daten entfernt — nur Supabase-Daten
+
+const FB_COVER = null;
+const FB_AVT   = null;
 
 // ── Helpers ────────────────────────────────────────────────────
 const sv = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
@@ -1362,6 +1347,12 @@ function MeinWegTimeline({ events }) {
 
 
 export default function MyTalentProfile({ onClose, profileId, viewerMode = false }) {
+  // AuthContext: EINZIGE Profil-Quelle für isOwner-Ansicht
+  const { 
+    profile: authContextProfile,
+    loadingAuth,
+    setProfile: setAuthProfile,
+  } = useAuth();
   const [profile,       setProfile]       = useState(null);
   const [wirkerProfile, setWirkerProfile] = useState(null);
   const [userId,        setUserId]        = useState(null);
@@ -1373,23 +1364,101 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
   const isOwner = !viewerMode && !profileId;
   const [showAmbModal, setShowAmbModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  // ── AuthContext-Sync: eigene Profile-Änderungen (Avatar, Name etc) sofort übernehmen ──
+  useEffect(() => {
+    if (!profileId && authContextProfile && authContextProfile.id) {
+      setProfile(prev => {
+        if (!prev || prev.id !== authContextProfile.id) return authContextProfile;
+        // Merge: AuthContext hat aktuellere Daten (z.B. nach Upload)
+        return { ...prev, ...authContextProfile };
+      });
+    }
+  }, [authContextProfile, profileId]);
+
   const ambState = useAmbassador(profile);
   // useHuiActions: sicher aufrufen (innerhalb HomeShell-Provider)
   const huiActs = (() => { try { return useHuiActions(); } catch(_) { return {}; } })();
 
+  // ── Profil laden: AuthContext (isOwner) ODER DB-Query (fremdes Profil) ──
+  // Verhindert Race Condition + doppeltes Profil-Rendering.
   useEffect(() => {
     let cancelled = false;
+
+    // isOwner: kein profileId → nutze AuthContext (KEIN eigener DB-Call für Profil)
+    if (!profileId) {
+      if (loadingAuth) return; // Warte bis Auth geladen
+
+      const authProf = authContextProfile;
+      console.log("[MyTalentProfile] OWN_PROFILE von AuthContext:", {
+        userId: authProf?.id || null,
+        source: "AuthContext (kein DB-Call)",
+        hasProfile: !!authProf,
+      });
+
+      if (!authProf) {
+        setLoading(false);
+        return;
+      }
+
+      const id = authProf.id;
+      setUserId(id);
+      setProfile(authProf); // Aus AuthContext, kein DB-Call
+
+      // Sekundäre Daten parallel laden (Wirken, Werke, Empfehlungen)
+      (async () => {
+        try {
+          const [wpRes, worksRes, expsRes, recsRes, followRes] = await Promise.allSettled([
+            supabase.from("wirker_profiles")
+              .select("id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count")
+              .eq("user_id", id).single(),
+            supabase.from("works")
+              .select("id,created_at,title").eq("user_id", id)
+              .order("created_at",{ascending:false}).limit(50),
+            supabase.from("experiences")
+              .select("id,created_at,title").eq("user_id", id)
+              .order("created_at",{ascending:false}).limit(50),
+            supabase.from("recommendations")
+              .select("id,text,collab_type,created_at,from_profile:profiles!recommendations_from_user_id_fkey(id,display_name,avatar_url)")
+              .eq("to_user_id", id).eq("is_public", true)
+              .order("created_at",{ascending:false}).limit(10),
+            supabase.rpc("get_follow_counts", { target_id: id }),
+          ]);
+          if (cancelled) return;
+
+          const wpData = wpRes.status    === "fulfilled" ? wpRes.value.data     : null;
+          const wks    = worksRes.status === "fulfilled" ? (worksRes.value.data || []) : [];
+          const exps_  = expsRes.status  === "fulfilled" ? (expsRes.value.data  || []) : [];
+          const recs_  = recsRes.status  === "fulfilled" ? (recsRes.value.data  || []) : [];
+          const conns  = followRes.status=== "fulfilled" ? (followRes.value.data?.[0]?.followers ?? 0) : 0;
+
+          setWirkerProfile(wpData || null);
+          setWirkenData({ recs: recs_.length, works: wks.length, exps: exps_.length, conns });
+          setRecList(recs_);
+
+          const evts = [];
+          if (authProf?.membership_since || authProf?.created_at) {
+            evts.push({ date: authProf?.membership_since || authProf?.created_at, icon:"🌱", label:"HUI-Mitglied geworden" });
+          }
+          wks.slice(0,2).forEach(w => evts.push({ date:w.created_at, icon:"🎨", label:`Werk: ${w.title || "veröffentlicht"}` }));
+          exps_.slice(0,2).forEach(e => evts.push({ date:e.created_at, icon:"🔭", label:`Erlebnis: ${e.title || "erstellt"}` }));
+          if (recs_.length > 0) evts.push({ date:recs_[0].created_at, icon:"💚", label:"Erste Weiterempfehlung erhalten" });
+          evts.sort((a,b) => new Date(b.date) - new Date(a.date));
+          setChronik(evts.slice(0, 5));
+        } catch(e) { console.warn("[MyTalentProfile] secondary load:", e?.message); }
+        if (!cancelled) setLoading(false);
+      })();
+      return () => { cancelled = true; };
+    }
+
+    // Fremdes Profil: DB-Query wie bisher
     (async () => {
       try {
-        let id = profileId;
-        if (!id) {
-          const { data: authData } = await supabase.auth.getUser();
-          id = authData?.user?.id;
-        }
+        const id = profileId;
         if (!id || cancelled) { if (!cancelled) setLoading(false); return; }
         if (!cancelled) setUserId(id);
 
-        // Profil-Daten + Wirken parallel laden
+        console.log("[MyTalentProfile] FOREIGN_PROFILE DB-Query:", { profileId: id });
+
         const [profRes, wpRes, worksRes, expsRes, recsRes, followRes] = await Promise.allSettled([
           supabase.from("profiles")
             .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type,profile_modules,membership_since,created_at")
@@ -1424,7 +1493,6 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         setWirkenData({ recs: recs_.length, works: wks.length, exps: exps_.length, conns });
         setRecList(recs_);
 
-        // Chronik aufbauen
         const evts = [];
         if (pData?.membership_since || pData?.created_at) {
           evts.push({ date: pData?.membership_since || pData?.created_at, icon:"🌱", label:"HUI-Mitglied geworden" });
@@ -1439,7 +1507,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
       if (!cancelled) setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [profileId]);
+  }, [profileId, loadingAuth, authContextProfile]);
 
   return (
     <div className="mtp-root" style={{
