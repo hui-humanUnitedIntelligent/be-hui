@@ -725,6 +725,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
+  const ambState = useAmbassador(profile);  // Nach States: profile ist jetzt null (nicht undefined)
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
