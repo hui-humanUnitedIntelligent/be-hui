@@ -848,6 +848,43 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote }) {
           </span>
         </div>
 
+        {/* Emotionale Stats-Leiste vor CTA */}
+        <div style={{
+          display:"flex", alignItems:"stretch", gap:0,
+          background:`${accent}08`, borderRadius:14,
+          border:`1px solid ${accent}18`, marginBottom:14,
+          overflow:"hidden",
+        }}>
+          {[
+            {
+              top: rank === 0 ? "🥇 Platz 1" : rank === 1 ? "🥈 Platz 2" : "🥉 Platz 3",
+              bot: "Aktuell",
+              accent,
+            },
+            {
+              top: `${p.votes || 0} Stimmen`,
+              bot: `${pct}% aller Stimmen`,
+              accent,
+            },
+            {
+              top: goalEur > safeNum(p.votes) * 15
+                ? `Noch ${fmtEur(Math.max(0, goalEur - safeNum(p.votes) * 15))}`
+                : "Ziel fast erreicht!",
+              bot: `Ziel: ${fmtEur(goalEur)}`,
+              accent,
+            },
+          ].map((stat, si) => (
+            <div key={si} style={{
+              flex:1, padding:"9px 8px", textAlign:"center",
+              borderRight: si < 2 ? `1px solid ${accent}15` : "none",
+            }}>
+              <div style={{ fontSize:11, fontWeight:800, color:T.ink,
+                lineHeight:1.25, marginBottom:2 }}>{stat.top}</div>
+              <div style={{ fontSize:9, color:T.muted, lineHeight:1.3 }}>{stat.bot}</div>
+            </div>
+          ))}
+        </div>
+
         {/* Vote Button — groß + premium */}
         <button onClick={() => !voted && onVote(p.id)} className="ip-p"
           disabled={voted} style={{
@@ -1158,45 +1195,59 @@ function LiveTicker({ activities }) {
 function MechanikErklaeung({ onInfo }) {
   return (
     <div style={{ padding:"20px 16px 0" }}>
-      <h2 style={{ margin:"0 0 6px", fontSize:18, fontWeight:900, color:T.ink,
-        letterSpacing:"-0.02em" }}>So funktioniert der Impact Pool</h2>
-      <p style={{ margin:"0 0 18px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
-        Transparent, fair, jeden Monat neu.
-      </p>
+      <div style={{ display:"flex", alignItems:"baseline",
+        justifyContent:"space-between", marginBottom:14 }}>
+        <h2 style={{ margin:0, fontSize:17, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.02em" }}>So funktioniert der Impact Pool</h2>
+        <button onClick={onInfo} className="ip-p" style={{
+          background:"none", border:`1px solid ${T.teal}28`,
+          borderRadius:99, padding:"5px 13px", fontSize:11, fontWeight:700,
+          color:T.teal, cursor:"pointer", flexShrink:0,
+        }}>Mehr erfahren</button>
+      </div>
 
-      <div style={{ background:T.surfaceHi, borderRadius:22, padding:"20px 18px",
+      <div style={{ background:T.surfaceHi, borderRadius:20, padding:"16px 14px",
         boxShadow:S.card, border:`1px solid ${T.line}` }}>
-        <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+        {/* 2×3 Grid */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
           {CYCLE_STEPS.map((step, i) => (
-            <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
-              {/* Connector */}
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
-                width:34, flexShrink:0 }}>
+            <div key={i} style={{
+              display:"flex", alignItems:"center", gap:10,
+              background:`${T.teal}07`, border:`1px solid ${T.teal}18`,
+              borderRadius:14, padding:"11px 13px",
+            }}>
+              {/* Schritt-Nummer + Icon */}
+              <div style={{ flexShrink:0, position:"relative" }}>
                 <div style={{
-                  width:34, height:34, borderRadius:"50%",
-                  background:`${T.teal}15`, border:`1.5px solid ${T.teal}35`,
-                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:16,
+                  width:36, height:36, borderRadius:"50%",
+                  background:`linear-gradient(135deg,${T.teal}22,${T.teal}08)`,
+                  border:`1.5px solid ${T.teal}35`,
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
                 }}>{step.icon}</div>
-                {i < CYCLE_STEPS.length - 1 && (
-                  <div style={{ width:1.5, height:18,
-                    background:`${T.teal}28`, margin:"2px 0" }}/>
-                )}
+                <div style={{
+                  position:"absolute", top:-4, left:-4,
+                  width:16, height:16, borderRadius:"50%",
+                  background:T.teal, display:"flex",
+                  alignItems:"center", justifyContent:"center",
+                  fontSize:9, fontWeight:900, color:"white",
+                  boxShadow:`0 1px 4px ${T.teal}44`,
+                }}>{i+1}</div>
               </div>
               {/* Label */}
-              <div style={{ paddingTop:7 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:T.ink, lineHeight:1.4 }}>
-                  {i+1}. {step.label}
-                </div>
+              <div style={{ fontSize:12, fontWeight:700, color:T.ink, lineHeight:1.35 }}>
+                {step.label}
               </div>
             </div>
           ))}
         </div>
 
-        <button onClick={onInfo} className="ip-p" style={{
-          marginTop:16, background:"none", border:`1px solid ${T.teal}28`,
-          borderRadius:99, padding:"8px 18px", fontSize:12, fontWeight:700,
-          color:T.teal, cursor:"pointer",
-        }}>Mehr erfahren</button>
+        {/* Schluss-Hinweis */}
+        <div style={{ marginTop:12, padding:"8px 12px",
+          background:`${T.teal}06`, borderRadius:10,
+          fontSize:11, color:T.ink2, lineHeight:1.5, textAlign:"center" }}>
+          Einmal im Monat. Immer gemeinsam.{" "}
+          <b style={{ color:T.teal }}>Kein Projekt geht leer aus.</b>
+        </div>
       </div>
     </div>
   );
