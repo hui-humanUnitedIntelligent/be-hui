@@ -1347,12 +1347,11 @@ function MeinWegTimeline({ events }) {
 
 
 export default function MyTalentProfile({ onClose, profileId, viewerMode = false }) {
-  // AuthContext: EINZIGE Profil-Quelle für isOwner-Ansicht
-  const { 
-    profile: authContextProfile,
-    loadingAuth,
-    setProfile: setAuthProfile,
-  } = useAuth();
+  // useAuth() kann null sein → safe fallback
+  const _auth = useAuth() || {};
+  const authContextProfile = _auth.profile ?? null;
+  const loadingAuth        = _auth.loadingAuth ?? false;
+  const setAuthProfile     = _auth.setProfile ?? null;
   const [profile,       setProfile]       = useState(null);
   const [wirkerProfile, setWirkerProfile] = useState(null);
   const [userId,        setUserId]        = useState(null);
@@ -1364,104 +1363,26 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
   const isOwner = !viewerMode && !profileId;
   const [showAmbModal, setShowAmbModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  // ── AuthContext-Sync: eigene Profile-Änderungen (Avatar, Name etc) sofort übernehmen ──
-  useEffect(() => {
-    if (!profileId && authContextProfile && authContextProfile.id) {
-      setProfile(prev => {
-        if (!prev || prev.id !== authContextProfile.id) return authContextProfile;
-        // Merge: AuthContext hat aktuellere Daten (z.B. nach Upload)
-        return { ...prev, ...authContextProfile };
-      });
-    }
-  }, [authContextProfile, profileId]);
-
   const ambState = useAmbassador(profile);
   // useHuiActions: sicher aufrufen (innerhalb HomeShell-Provider)
   const huiActs = (() => { try { return useHuiActions(); } catch(_) { return {}; } })();
 
-  // ── Profil laden: AuthContext (isOwner) ODER DB-Query (fremdes Profil) ──
-  // Verhindert Race Condition + doppeltes Profil-Rendering.
+  // ── Profil laden: direkter DB-Call (zuverlässig) ──────────────────
   useEffect(() => {
     let cancelled = false;
-
-    // isOwner: kein profileId → nutze AuthContext (KEIN eigener DB-Call für Profil)
-    if (!profileId) {
-      if (loadingAuth) return; // Warte bis Auth geladen
-
-      const authProf = authContextProfile;
-      console.log("[MyTalentProfile] OWN_PROFILE von AuthContext:", {
-        userId: authProf?.id || null,
-        source: "AuthContext (kein DB-Call)",
-        hasProfile: !!authProf,
-      });
-
-      if (!authProf) {
-        setLoading(false);
-        return;
-      }
-
-      const id = authProf.id;
-      setUserId(id);
-      setProfile(authProf); // Aus AuthContext, kein DB-Call
-
-      // Sekundäre Daten parallel laden (Wirken, Werke, Empfehlungen)
-      (async () => {
-        try {
-          const [wpRes, worksRes, expsRes, recsRes, followRes] = await Promise.allSettled([
-            supabase.from("wirker_profiles")
-              .select("id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count")
-              .eq("user_id", id).single(),
-            supabase.from("works")
-              .select("id,created_at,title").eq("user_id", id)
-              .order("created_at",{ascending:false}).limit(50),
-            supabase.from("experiences")
-              .select("id,created_at,title").eq("user_id", id)
-              .order("created_at",{ascending:false}).limit(50),
-            supabase.from("recommendations")
-              .select("id,text,collab_type,created_at,from_profile:profiles!recommendations_from_user_id_fkey(id,display_name,avatar_url)")
-              .eq("to_user_id", id).eq("is_public", true)
-              .order("created_at",{ascending:false}).limit(10),
-            supabase.rpc("get_follow_counts", { target_id: id }),
-          ]);
-          if (cancelled) return;
-
-          const wpData = wpRes.status    === "fulfilled" ? wpRes.value.data     : null;
-          const wks    = worksRes.status === "fulfilled" ? (worksRes.value.data || []) : [];
-          const exps_  = expsRes.status  === "fulfilled" ? (expsRes.value.data  || []) : [];
-          const recs_  = recsRes.status  === "fulfilled" ? (recsRes.value.data  || []) : [];
-          const conns  = followRes.status=== "fulfilled" ? (followRes.value.data?.[0]?.followers ?? 0) : 0;
-
-          setWirkerProfile(wpData || null);
-          setWirkenData({ recs: recs_.length, works: wks.length, exps: exps_.length, conns });
-          setRecList(recs_);
-
-          const evts = [];
-          if (authProf?.membership_since || authProf?.created_at) {
-            evts.push({ date: authProf?.membership_since || authProf?.created_at, icon:"🌱", label:"HUI-Mitglied geworden" });
-          }
-          wks.slice(0,2).forEach(w => evts.push({ date:w.created_at, icon:"🎨", label:`Werk: ${w.title || "veröffentlicht"}` }));
-          exps_.slice(0,2).forEach(e => evts.push({ date:e.created_at, icon:"🔭", label:`Erlebnis: ${e.title || "erstellt"}` }));
-          if (recs_.length > 0) evts.push({ date:recs_[0].created_at, icon:"💚", label:"Erste Weiterempfehlung erhalten" });
-          evts.sort((a,b) => new Date(b.date) - new Date(a.date));
-          setChronik(evts.slice(0, 5));
-        } catch(e) { console.warn("[MyTalentProfile] secondary load:", e?.message); }
-        if (!cancelled) setLoading(false);
-      })();
-      return () => { cancelled = true; };
-    }
-
-    // Fremdes Profil: DB-Query wie bisher
     (async () => {
       try {
-        const id = profileId;
+        let id = profileId;
+        if (!id) {
+          const { data: authData } = await supabase.auth.getUser();
+          id = authData?.user?.id;
+        }
         if (!id || cancelled) { if (!cancelled) setLoading(false); return; }
         if (!cancelled) setUserId(id);
 
-        console.log("[MyTalentProfile] FOREIGN_PROFILE DB-Query:", { profileId: id });
-
         const [profRes, wpRes, worksRes, expsRes, recsRes, followRes] = await Promise.allSettled([
           supabase.from("profiles")
-            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type,profile_modules,membership_since,created_at")
+            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type,profile_modules,membership_since,created_at,is_ambassador")
             .eq("id", id).single(),
           supabase.from("wirker_profiles")
             .select("id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count")
@@ -1507,7 +1428,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
       if (!cancelled) setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [profileId, loadingAuth, authContextProfile]);
+  }, [profileId]);
 
   return (
     <div className="mtp-root" style={{
