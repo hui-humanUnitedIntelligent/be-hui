@@ -722,13 +722,12 @@ function SichtbarkeitSection({ visibility, onChange }) {
 export default function MyBasisProfile({ onClose, profileId }) {
   console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
-  const { 
-    profile: authContextProfile, 
-    loadingAuth,
-    setProfile: setAuthProfile, 
-    refreshProfile,
-    loadProfile: reloadProfile,
-  } = useAuth();
+  // useAuth() kann null sein wenn kein Provider → safe fallback
+  const _auth = useAuth() || {};
+  const authContextProfile = _auth.profile ?? null;
+  const loadingAuth        = _auth.loadingAuth ?? false;
+  const setAuthProfile     = _auth.setProfile ?? null;
+  const refreshProfile     = _auth.refreshProfile ?? null;
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
@@ -751,54 +750,36 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
-  // ── Profil aus AuthContext laden (EINZIGE Quelle) ────────────────────
-  // KEIN eigener DB-Call — verhindert Doppel-State und Profile-Sprung.
-  // AuthContext.loadProfile() läuft bereits beim App-Start.
-  useEffect(() => {
-    // Warte bis Auth-Check abgeschlossen ist (loadingAuth = false)
-    if (loadingAuth) return;
-
-    const data = authContextProfile;
-    console.log("[MyBasisProfile] AUTH_CONTEXT_PROFILE", {
-      userId: data?.id || null,
-      source: "AuthContext",
-      hasProfile: !!data,
-    });
-
-    if (!data) {
-      // Auth geladen, kein User → kein Profil zeigen
+  // ── Profil direkt aus DB laden (zuverlässig, kein AuthContext-Race) ──
+  useEffect(()=>{
+    (async () => {
+      try {
+        const { data:{ user } } = await supabase.auth.getUser();
+        if (!user) { setLoading(false); return; }
+        const { data, error: loadErr } = await supabase.from("profiles")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador")
+          .eq("id", user.id).single();
+        if (loadErr) console.error("Profile load error:", loadErr.message);
+        if (data) {
+          setProfile(data);
+          setBio(s(data.bio));
+          const nextInterests = Array.isArray(data.skills) ? data.skills : [];
+          setInterests(nextInterests);
+          let rawTags = data.dna_tags;
+          if (typeof rawTags === "string" && rawTags.startsWith("{")) {
+            rawTags = rawTags.slice(1, -1).split(",").map(v => v.trim()).filter(Boolean);
+          }
+          const tagArr = Array.isArray(rawTags) ? rawTags : [];
+          if (tagArr.length) setMoments(tagArr.map((url, i) => ({ id: `db_${i}`, img: url })));
+          if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
+            setVisibility(data.focus_type);
+          }
+          setOpenFor([]);
+        }
+      } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
-      return;
-    }
-
-    // Profil aus AuthContext übernehmen (KEINE eigene DB-Anfrage)
-    setProfile(data);
-    setBio(s(data.bio));
-
-    // Interessen aus skills-Spalte
-    const nextInterests = Array.isArray(data.skills) ? data.skills : [];
-    setInterests(nextInterests);
-
-    // Momente aus dna_tags
-    let rawTags = data.dna_tags;
-    if (typeof rawTags === "string" && rawTags.startsWith("{")) {
-      rawTags = rawTags.slice(1, -1).split(",").map(v => v.trim()).filter(Boolean);
-    }
-    const tagArr = Array.isArray(rawTags) ? rawTags : [];
-    if (tagArr.length) {
-      setMoments(tagArr.map((url, i) => ({ id: `db_${i}`, img: url })));
-    } else {
-      setMoments([]);
-    }
-
-    // Sichtbarkeit
-    if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
-      setVisibility(data.focus_type);
-    }
-
-    setOpenFor([]);
-    setLoading(false);
-  }, [loadingAuth, authContextProfile]);
+    })();
+  },[]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
