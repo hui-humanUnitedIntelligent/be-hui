@@ -705,8 +705,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const { setProfile: setAuthProfile, refreshProfile } = useAuth();
-  const ambState = useAmbassador(profile);
-
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
