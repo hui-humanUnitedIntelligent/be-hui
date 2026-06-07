@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useHuiActions } from "../core/hui.actions.js";
 import { supabase } from "../lib/supabaseClient.js";
 import WerkWizard from "../components/works/WerkWizard.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
@@ -973,36 +974,75 @@ function ErlebnisseProjekte({ isOwner, userId }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// 6. KUNDENSTIMMEN
 // ══════════════════════════════════════════════════════════════
-function Kundenstimmen({ loading, isOwner }) {
+// 6. WEITEREMPFEHLUNGEN — Keine Sterne. Keine Likes. Nur echte Erfahrungen.
+// ══════════════════════════════════════════════════════════════
+const COLLAB_LABELS_MAP = {
+  experience: "Nach einem Erlebnis",
+  work:       "Nach einem Werkkauf",
+  collab:     "Nach Zusammenarbeit",
+  booking:    "Nach einer Buchung",
+};
+
+function Weiterempfehlungen({ recs, loading }) {
+  const list = Array.isArray(recs) ? recs : [];
   return (
     <div className="mtp-sec">
       <div className="mtp-sec-pad">
-        <SecHdr title="Kundenstimmen" isOwner={isOwner} onEdit={() => {}}/>
-        {loading ? (
-          <div style={{ height:64, background:"rgba(26,26,24,0.05)", borderRadius:8 }}/>
-        ) : (
-          <div style={{ display:"flex", gap:10, alignItems:"stretch" }}>
-            {/* Review card */}
-            <div style={{
-              flex:1, border:"1px solid rgba(26,26,24,0.09)", borderRadius:12,
-              padding:"12px 14px", background:"#FFFFFF",
-              boxShadow:"0 1px 6px rgba(26,26,24,0.06)",
-              display:"flex", alignItems:"flex-start", gap:10,
-            }}>
-              <span style={{ fontSize:28, lineHeight:1, color:"rgba(26,26,24,0.14)", fontFamily:"Georgia,serif", marginTop:-5, flexShrink:0 }}>"</span>
-              <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ margin:"0 0 6px", fontSize:12.5, lineHeight:1.6, color:"#1A1A18", fontStyle:"italic" }}>
-                  {SEED_REVIEW.text}
-                </p>
-                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-                  <img src={SEED_REVIEW.avatar} alt="" style={{ width:22, height:22, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}/>
-                  <span style={{ fontSize:11.5, fontWeight:600, color:"rgba(26,26,24,0.55)" }}>{SEED_REVIEW.author}</span>
-                </div>
-              </div>
+        <div className="mtp-sec-hdr">
+          <div>
+            <div className="mtp-sec-title">💚 Weiterempfehlungen</div>
+            <div className="mtp-sec-sub">
+              {loading ? "Lädt…" : list.length === 0
+                ? "Noch keine Empfehlungen"
+                : `Von ${list.length} ${list.length === 1 ? "Person" : "Menschen"} weiterempfohlen`}
             </div>
-
+          </div>
+        </div>
+        <div style={{ fontSize:11, color:"rgba(14,196,184,0.8)", fontWeight:600, marginBottom:10 }}>
+          Keine Sterne · Keine Likes · Nur echte Erfahrungen
+        </div>
+        {loading ? (
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {[0,1].map(i => <div key={i} style={{ height:64, background:"rgba(26,26,24,0.05)", borderRadius:10 }}/>)}
+          </div>
+        ) : list.length === 0 ? (
+          <div style={{ padding:"14px", borderRadius:12, background:"rgba(14,196,184,0.05)",
+            border:"1px solid rgba(14,196,184,0.10)", fontSize:12.5,
+            color:"rgba(26,26,24,0.45)", lineHeight:1.55 }}>
+            Weiterempfehlungen entstehen nach echten Erlebnissen, Buchungen oder Zusammenarbeit.
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {list.map((rec, i) => {
+              const author = rec?.from_profile?.display_name || "HUI-Mitglied";
+              const avatar = rec?.from_profile?.avatar_url   || null;
+              const type   = rec?.collab_type || "experience";
+              const text   = rec?.text || "";
+              return (
+                <div key={rec?.id || i} style={{ border:"1px solid rgba(14,196,184,0.14)",
+                  borderRadius:12, padding:"12px 14px", background:"rgba(14,196,184,0.04)" }}>
+                  <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(14,196,184,0.85)",
+                    marginBottom:5 }}>
+                    💚 {COLLAB_LABELS_MAP[type] || "Weiterempfohlen"}
+                  </div>
+                  {text ? (
+                    <p style={{ margin:"0 0 8px", fontSize:13, lineHeight:1.6,
+                      color:"#1A1A18", fontStyle:"italic" }}>"{text}"</p>
+                  ) : null}
+                  <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                    {avatar
+                      ? <img src={avatar} alt="" style={{ width:20, height:20, borderRadius:"50%",
+                          objectFit:"cover", flexShrink:0 }}/>
+                      : <div style={{ width:20, height:20, borderRadius:"50%",
+                          background:"rgba(14,196,184,0.15)", flexShrink:0 }}/>}
+                    <span style={{ fontSize:11.5, fontWeight:600, color:"rgba(26,26,24,0.55)" }}>
+                      — {author}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -1211,6 +1251,145 @@ function Sichtbarkeit({ profile, loading, isOwner }) {
   );
 }
 
+
+
+// ── HUI-Vertrauensstatus (kompakt) ───────────────────────────
+function HuiVertrauensstatus({ recCount, expCount }) {
+  const n = (v, d=0) => { const x=Number(v); return isFinite(x)?x:d; };
+  const r = n(recCount), e = n(expCount);
+  const s = r>=10||e>=20 ? {icon:"💎",label:"Vertrauenspartner",  color:"#D4952A"}
+          : r>=5 ||e>=10 ? {icon:"🌳",label:"Bewährtes Mitglied", color:"#0EC4B8"}
+          : r>=2 ||e>=3  ? {icon:"🍃",label:"Empfohlenes Mitglied",color:"#22C55E"}
+          :                {icon:"🌱",label:"Neues Mitglied",      color:"rgba(26,26,24,0.4)"};
+  return (
+    <div className="mtp-sec">
+      <div style={{ padding:"12px 16px", display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ width:36,height:36,borderRadius:12,flexShrink:0,
+          background:`${s.color}14`,display:"flex",alignItems:"center",
+          justifyContent:"center",fontSize:18 }}>{s.icon}</div>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:10.5,color:"rgba(26,26,24,0.35)",fontWeight:600,
+            letterSpacing:0.3,textTransform:"uppercase",marginBottom:1 }}>
+            HUI-Vertrauensstatus
+          </div>
+          <div style={{ fontSize:14,fontWeight:700,color:s.color }}>{s.label}</div>
+        </div>
+        <div style={{ fontSize:10.5,color:"rgba(26,26,24,0.26)",textAlign:"right",lineHeight:1.4 }}>
+          Keine Punkte.<br/>Kein Ranking.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Mein Wirken (kompakt, 2×2 Grid) ──────────────────────────
+function MeinWirkenKompakt({ wirkenData }) {
+  const d = wirkenData || {};
+  const n = (v) => { const x=Number(v); return isFinite(x)?x:0; };
+  const items = [
+    { icon:"💚", val:n(d.recs),  label:"Weiterempfehlungen" },
+    { icon:"🎨", val:n(d.works), label:"Werke veröffentlicht" },
+    { icon:"🔭", val:n(d.exps),  label:"Erlebnisse" },
+    { icon:"🤝", val:n(d.conns), label:"Verbindungen" },
+  ];
+  return (
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <div className="mtp-sec-hdr"><div className="mtp-sec-title">💚 Mein Wirken</div></div>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px 10px" }}>
+          {items.map(({ icon, val, label }) => (
+            <div key={label} style={{ display:"flex",alignItems:"center",gap:8,
+              padding:"8px 10px",borderRadius:10,
+              background:"rgba(14,196,184,0.05)",
+              border:"1px solid rgba(14,196,184,0.10)" }}>
+              <span style={{ fontSize:15 }}>{icon}</span>
+              <div>
+                <div style={{ fontSize:17,fontWeight:800,color:"#0EC4B8",lineHeight:1 }}>{val}</div>
+                <div style={{ fontSize:10,color:"rgba(26,26,24,0.42)",marginTop:1,lineHeight:1.2 }}>{label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Mein Weg auf HUI (Timeline, kompakt) ─────────────────────
+function MeinWegTimeline({ events }) {
+  const list = Array.isArray(events) ? events : [];
+  if (list.length === 0) return null;
+  function fmtD(ts) {
+    if (!ts) return "";
+    try { return new Date(ts).toLocaleDateString("de-DE",{month:"short",year:"numeric"}); }
+    catch { return ""; }
+  }
+  return (
+    <div className="mtp-sec">
+      <div className="mtp-sec-pad">
+        <div className="mtp-sec-hdr"><div className="mtp-sec-title">🕰 Mein Weg auf HUI</div></div>
+        <div style={{ position:"relative",paddingLeft:18 }}>
+          <div style={{ position:"absolute",left:6,top:4,bottom:4,width:2,
+            background:"linear-gradient(to bottom,rgba(14,196,184,0.6),rgba(14,196,184,0.08))",
+            borderRadius:1 }}/>
+          {list.map((ev, i) => (
+            <div key={i} style={{ display:"flex",gap:10,
+              marginBottom:i<list.length-1?12:0,alignItems:"flex-start" }}>
+              <div style={{ position:"absolute",left:2.5,width:9,height:9,borderRadius:"50%",
+                marginTop:4,background:i===0?"#0EC4B8":"#FFF",border:"2px solid #0EC4B8" }}/>
+              <div style={{ paddingLeft:6 }}>
+                <div style={{ fontSize:10,color:"rgba(26,26,24,0.35)",marginBottom:1 }}>
+                  {fmtD(ev?.date)}
+                </div>
+                <div style={{ fontSize:12.5,fontWeight:600,color:"#1A1A18",lineHeight:1.35 }}>
+                  {ev?.icon} {ev?.label}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Account & Einstellungen ───────────────────────────────────
+function AccountMenu({ acts, onClose }) {
+  // acts: kommt von ROOT via useHuiActions()
+  const MENU = [
+    { icon:"✏️", label:"Profil bearbeiten",    act:"OPEN_PROFILE_EDITOR" },
+    { icon:"📅", label:"Meine Buchungen",       act:"OPEN_EARNINGS"       },
+    { icon:"💰", label:"Einnahmen & Zahlungen", act:"OPEN_EARNINGS"       },
+    { icon:"🌍", label:"Impact Pool",           act:"OPEN_IMPACT"         },
+    { icon:"🔒", label:"Privatsphäre",          act:"OPEN_PRIVACY"        },
+    { icon:"↪️", label:"Abmelden",              act:"SIGN_OUT", danger:true},
+  ];
+  return (
+    <div className="mtp-sec" style={{ overflow:"hidden" }}>
+      <div style={{ padding:"12px 16px 4px" }}>
+        <div className="mtp-sec-title">Account & Einstellungen</div>
+      </div>
+      {MENU.map(({ icon, label, act, danger }, i) => (
+        <button key={act+i} onClick={() => acts?.[act]?.()}
+          style={{ width:"100%",display:"flex",alignItems:"center",gap:12,
+            padding:"13px 16px",background:"none",border:"none",cursor:"pointer",
+            borderBottom:i<MENU.length-1?"1px solid rgba(26,26,24,0.05)":"none",
+            fontFamily:"inherit",touchAction:"manipulation",
+            WebkitTapHighlightColor:"transparent",textAlign:"left" }}>
+          <div style={{ width:32,height:32,borderRadius:10,flexShrink:0,
+            background:danger?"rgba(255,122,89,0.10)":"rgba(14,196,184,0.08)",
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:15 }}>
+            {icon}
+          </div>
+          <span style={{ flex:1,fontSize:14,fontWeight:500,
+            color:danger?"#FF7A59":"#1A1A18" }}>{label}</span>
+          <span style={{ fontSize:16,color:"rgba(26,26,24,0.22)" }}>›</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════
 // ROOT
 // ══════════════════════════════════════════════════════════════
@@ -1219,53 +1398,86 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
   const [wirkerProfile, setWirkerProfile] = useState(null);
   const [userId,        setUserId]        = useState(null);
   const [loading,       setLoading]       = useState(true);
-  const [mounted,       setMounted]       = useState(false);
+  // mounted: entfernt — Animation via CSS keyframe (kein opacity-Flash)
+  const [wirkenData,  setWirkenData]  = useState({ recs:0, works:0, exps:0, conns:0 });
+  const [chronik,     setChronik]     = useState([]);
+  const [recList,     setRecList]     = useState([]);
   const isOwner = !viewerMode && !profileId;
   const [showAmbModal, setShowAmbModal] = useState(false);
   const ambState = useAmbassador(profile);
+  // useHuiActions: sicher aufrufen (innerhalb HomeShell-Provider)
+  const huiActs = (() => { try { return useHuiActions(); } catch(_) { return {}; } })();
 
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 30);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         let id = profileId;
         if (!id) {
-          const { data:{ user } } = await supabase.auth.getUser();
-          id = user?.id;
+          const { data: authData } = await supabase.auth.getUser();
+          id = authData?.user?.id;
         }
-        if (!id) { setLoading(false); return; }
-        setUserId(id);
+        if (!id || cancelled) { if (!cancelled) setLoading(false); return; }
+        if (!cancelled) setUserId(id);
 
-        // profiles laden
-        const { data: pData } = await supabase.from("profiles")
-          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type,profile_modules")
-          .eq("id", id).single();
+        // Profil-Daten + Wirken parallel laden
+        const [profRes, wpRes, worksRes, expsRes, recsRes, followRes] = await Promise.allSettled([
+          supabase.from("profiles")
+            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type,profile_modules,membership_since,created_at")
+            .eq("id", id).single(),
+          supabase.from("wirker_profiles")
+            .select("id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count")
+            .eq("user_id", id).single(),
+          supabase.from("works")
+            .select("id,created_at,title").eq("user_id", id)
+            .order("created_at",{ascending:false}).limit(50),
+          supabase.from("experiences")
+            .select("id,created_at,title").eq("user_id", id)
+            .order("created_at",{ascending:false}).limit(50),
+          supabase.from("recommendations")
+            .select("id,text,collab_type,created_at,from_profile:profiles!recommendations_from_user_id_fkey(id,display_name,avatar_url)")
+            .eq("to_user_id", id).eq("is_public", true)
+            .order("created_at",{ascending:false}).limit(10),
+          supabase.rpc("get_follow_counts", { target_id: id }),
+        ]);
+
+        if (cancelled) return;
+
+        const pData  = profRes.status  === "fulfilled" ? profRes.value.data   : null;
+        const wpData = wpRes.status    === "fulfilled" ? wpRes.value.data     : null;
+        const wks    = worksRes.status === "fulfilled" ? (worksRes.value.data || []) : [];
+        const exps_  = expsRes.status  === "fulfilled" ? (expsRes.value.data  || []) : [];
+        const recs_  = recsRes.status  === "fulfilled" ? (recsRes.value.data  || []) : [];
+        const conns  = followRes.status=== "fulfilled" ? (followRes.value.data?.[0]?.followers ?? 0) : 0;
+
         setProfile(pData || null);
-
-        // wirker_profiles laden — Quelle der Wahrheit für Talent-Daten
-        const { data: wpData, error: wpErr } = await supabase
-          .from("wirker_profiles")
-          .select("id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count")
-          .eq("user_id", id)
-          .single();
-        if (wpErr) console.warn("[MyTalentProfile] wirker_profiles:", wpErr.message);
         setWirkerProfile(wpData || null);
-      } catch(e) { console.warn("MyTalentProfile:", e); }
-      setLoading(false);
+        setWirkenData({ recs: recs_.length, works: wks.length, exps: exps_.length, conns });
+        setRecList(recs_);
+
+        // Chronik aufbauen
+        const evts = [];
+        if (pData?.membership_since || pData?.created_at) {
+          evts.push({ date: pData?.membership_since || pData?.created_at, icon:"🌱", label:"HUI-Mitglied geworden" });
+        }
+        wks.slice(0,2).forEach(w => evts.push({ date:w.created_at, icon:"🎨", label:`Werk: ${w.title || "veröffentlicht"}` }));
+        exps_.slice(0,2).forEach(e => evts.push({ date:e.created_at, icon:"🔭", label:`Erlebnis: ${e.title || "erstellt"}` }));
+        if (recs_.length > 0) evts.push({ date:recs_[0].created_at, icon:"💚", label:"Erste Weiterempfehlung erhalten" });
+        evts.sort((a,b) => new Date(b.date) - new Date(a.date));
+        setChronik(evts.slice(0, 5));
+
+      } catch(e) { console.warn("[MyTalentProfile] load:", e?.message); }
+      if (!cancelled) setLoading(false);
     })();
+    return () => { cancelled = true; };
   }, [profileId]);
 
   return (
     <div className="mtp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
       display:"flex", flexDirection:"column",
-      opacity: mounted ? 1 : 0,
-      transform: mounted ? "none" : "translateY(12px)",
-      transition:"opacity .32s ease, transform .32s cubic-bezier(.22,1,.36,1)",
+      opacity: 1,
+      animation:"mtp-in .32s ease both",
     }}>
       <style>{CSS}</style>
 
@@ -1296,8 +1508,8 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         <ErlebnisseProjekte isOwner={isOwner} userId={userId}/>
         <Gap/>
 
-        {/* 6. Kundenstimmen */}
-        <Kundenstimmen loading={loading} isOwner={isOwner}/>
+        {/* 6. Weiterempfehlungen */}
+        <Weiterempfehlungen recs={recList} loading={loading}/>
         <Gap/>
 
         {/* 7. Verfügbarkeit + Standort */}
@@ -1322,6 +1534,20 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
             )}
           </>
         )}
+
+        {/* 9. HUI-Vertrauensstatus */}
+        <Gap/>
+        <HuiVertrauensstatus recCount={wirkenData.recs} expCount={wirkenData.exps}/>
+
+        {/* 10. Mein Wirken */}
+        <Gap/>
+        <MeinWirkenKompakt wirkenData={wirkenData}/>
+
+        {/* 11. Mein Weg */}
+        {chronik.length > 0 && <><Gap/><MeinWegTimeline events={chronik}/></>}
+
+        {/* 12. Account */}
+        {isOwner && <><Gap/><AccountMenu acts={huiActs} onClose={onClose}/></>}
 
         <Gap h={32}/>
       </div>
