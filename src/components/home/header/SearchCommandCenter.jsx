@@ -856,7 +856,7 @@ function ForDichCard({ item, idx, onSelect, openProfileById }) {
 }
 
 // Container Komponente
-function ForDichAusgewaehlt({ currentUser, openProfileById, onDiscover }) {
+function ForDichAusgewaehlt({ currentUser, openProfileById, onDiscover, onClose }) {
   const { items, loading, refresh } = useForDich(currentUser);
   const [showEmpty, setShowEmpty] = React.useState(false);
 
@@ -962,7 +962,7 @@ function ForDichAusgewaehlt({ currentUser, openProfileById, onDiscover }) {
                 if (it.type === "profile")     openProfileById?.(it.rawId);
                 else if (it.type === "work")   openProfileById?.(it.rawId);  // opens creator's profile
                 else if (it.type === "experience") openProfileById?.(it.rawId);
-                close_();
+                onClose?.();
               }}
             />
           ))}
@@ -1697,9 +1697,9 @@ function useUnifiedSearch(query) {
     Promise.all([
       supabase.from("profiles").select("id,display_name,username,avatar_url,bio,location")
         .or(`display_name.ilike.%${q}%,username.ilike.%${q}%,bio.ilike.%${q}%,location.ilike.%${q}%`).limit(5),
-      supabase.from("works").select("id,title,cover_url,category,location_text")
+      supabase.from("works").select("id,title,cover_url,category,location_text,user_id")
         .or(`title.ilike.%${q}%,description.ilike.%${q}%,category.ilike.%${q}%`).limit(5),
-      supabase.from("experiences").select("id,title,cover_url,category,location_text")
+      supabase.from("experiences").select("id,title,cover_url,category,location_text,user_id")
         .or(`title.ilike.%${q}%,description.ilike.%${q}%,location_text.ilike.%${q}%`).limit(5),
       supabase.from("beitraege").select("id,caption,src,created_at")
         .ilike("caption",`%${q}%`).limit(5),
@@ -1824,12 +1824,16 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
 
   const resultsRef = useRef({profiles:[],works:[],experiences:[],momente:[]});
   const focusedIdxRef = useRef(-1);
+  const openRef = useRef(false);
+  const searchQueryRef = useRef("");
   const debounced = useDebounce(query, 250);
   useEffect(()=>{ setSearchQuery(debounced); setFocusedIdx(-1); },[debounced]);
   const {results,loading,total} = useUnifiedSearch(searchQuery);
   // Sync refs für Keyboard-Handler (Closure über alten State vermeiden)
   useEffect(()=>{ resultsRef.current = results; },[results]);
   useEffect(()=>{ focusedIdxRef.current = focusedIdx; },[focusedIdx]);
+  useEffect(()=>{ openRef.current = open; },[open]);
+  useEffect(()=>{ searchQueryRef.current = searchQuery; },[searchQuery]);
 
   const PH = ["Was möchtest du heute bewirken?","Menschen finden…","Werke entdecken…","Projekte erkunden…"];
   const [phIdx,setPhIdx] = useState(0);
@@ -1856,11 +1860,11 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   useEffect(()=>{
     function h(e){
       if(e.key==="Escape"){ if(showKi){setShowKi(false);return;} close_(); return; }
-      if(!open)return;
+      if(!openRef.current)return;
       const allItems=[...resultsRef.current.profiles,...resultsRef.current.works,...resultsRef.current.experiences,...resultsRef.current.momente];
       if(e.key==="ArrowDown"){ e.preventDefault(); setFocusedIdx(i=>Math.min(i+1,allItems.length-1)); return; }
       if(e.key==="ArrowUp"){ e.preventDefault(); setFocusedIdx(i=>Math.max(i-1,-1)); return; }
-      if(e.key==="Enter" && searchQuery.trim()){
+      if(e.key==="Enter" && searchQueryRef.current.trim()){
         e.preventDefault();
         const target = focusedIdxRef.current>=0 ? allItems[focusedIdxRef.current] : allItems[0];
         if(target) handleSelect(target);
@@ -2130,7 +2134,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                 <GreetingWithHints currentUser={currentUser} onCategoryClick={handleCategoryClick}/>
 
                 {/* 1b. Für dich ausgewählt — Phase 4 */}
-                <ForDichAusgewaehlt currentUser={currentUser} openProfileById={openProfileById} onDiscover={handleDiscover}/>
+                <ForDichAusgewaehlt currentUser={currentUser} openProfileById={openProfileById} onDiscover={handleDiscover} onClose={close_}/>
 
                 {/* 2. Menschen die du kennen solltest — Phase 5 */}
                 <MenschenDuKennenSolltest currentUser={currentUser} openProfileById={openProfileById} engine={engine} onDiscover={handleDiscover}/>
