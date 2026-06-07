@@ -1354,46 +1354,7 @@ function MeinWegTimeline({ events }) {
   );
 }
 
-// ── Account & Einstellungen ───────────────────────────────────
-function AccountMenu({ acts, onClose }) {
-  // acts: kommt von ROOT via useHuiActions()
-  const MENU = [
-    { icon:"✏️", label:"Profil bearbeiten",    act:"OPEN_PROFILE_EDITOR" },
-    { icon:"📅", label:"Meine Buchungen",       act:"OPEN_EARNINGS"       },
-    { icon:"💰", label:"Einnahmen & Zahlungen", act:"OPEN_EARNINGS"       },
-    { icon:"🌍", label:"Impact Pool",           act:"OPEN_IMPACT"         },
-    { icon:"🔒", label:"Privatsphäre",          act:"OPEN_PRIVACY"        },
-    { icon:"↪️", label:"Abmelden",              act:"SIGN_OUT", danger:true},
-  ];
-  return (
-    <div className="mtp-sec" style={{ overflow:"hidden" }}>
-      <div style={{ padding:"12px 16px 4px" }}>
-        <div className="mtp-sec-title">Account & Einstellungen</div>
-      </div>
-      {MENU.map(({ icon, label, act, danger }, i) => (
-        <button key={act+i} onClick={() => acts?.[act]?.()}
-          style={{ width:"100%",display:"flex",alignItems:"center",gap:12,
-            padding:"13px 16px",background:"none",border:"none",cursor:"pointer",
-            borderBottom:i<MENU.length-1?"1px solid rgba(26,26,24,0.05)":"none",
-            fontFamily:"inherit",touchAction:"manipulation",
-            WebkitTapHighlightColor:"transparent",textAlign:"left" }}>
-          <div style={{ width:32,height:32,borderRadius:10,flexShrink:0,
-            background:danger?"rgba(255,122,89,0.10)":"rgba(14,196,184,0.08)",
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:15 }}>
-            {icon}
-          </div>
-          <span style={{ flex:1,fontSize:14,fontWeight:500,
-            color:danger?"#FF7A59":"#1A1A18" }}>{label}</span>
-          <span style={{ fontSize:16,color:"rgba(26,26,24,0.22)" }}>›</span>
-        </button>
-      ))}
-    </div>
-  );
-}
 
-// ══════════════════════════════════════════════════════════════
-// ROOT
-// ══════════════════════════════════════════════════════════════
 export default function MyTalentProfile({ onClose, profileId, viewerMode = false }) {
   const [profile,       setProfile]       = useState(null);
   const [wirkerProfile, setWirkerProfile] = useState(null);
@@ -1549,7 +1510,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         {chronik.length > 0 && <><Gap/><MeinWegTimeline events={chronik}/></>}
 
         {/* 12. Account */}
-        {isOwner && <><Gap/><AccountMenu acts={huiActs} onClose={onClose}/></>}
+
 
         <Gap h={32}/>
       </div>
@@ -1564,6 +1525,8 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
               .select("*").eq("id", userId).single()
               .then(({ data }) => { if (data) setProfile(data); });
           }}
+          onEditProfile={() => huiActs?.["OPEN_PROFILE_EDITOR"]?.()}
+          onOpenBookings={() => huiActs?.["OPEN_EARNINGS"]?.()}
         />
       )}
 
