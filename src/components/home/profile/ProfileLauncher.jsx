@@ -226,9 +226,11 @@ export default function ProfileLauncher() {
     );
     const OwnProfile = isSelfTalent ? MyTalentProfile : MyBasisProfile;
     return (
-      <React.Suspense fallback={<Spinner />}>
-        <OwnProfile onClose={() => setShowCreatorDashboard(false)} />
-      </React.Suspense>
+      <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
+        <React.Suspense fallback={<Spinner />}>
+          <OwnProfile onClose={() => setShowCreatorDashboard(false)} />
+        </React.Suspense>
+      </ProfileErrorBoundary>
     );
   }
 
