@@ -116,6 +116,23 @@ export function useAmbassadorApplication() {
 
 
 // ── Referral-Liste laden ─────────────────────────────────────
+import { createRefLinkForAmbassador } from "../lib/referralTracking.js";
+
+/**
+ * Wird aufgerufen wenn das eigene Profil als Ambassador erkannt wird
+ * aber noch kein Ref-Link existiert → automatisch anlegen.
+ */
+export async function ensureRefLink(userId, username, referralCode) {
+  if (!userId || !username) return null;
+  const { data } = await supabase
+    .from("ambassador_ref_links")
+    .select("ref_link")
+    .eq("user_id", userId)
+    .single();
+  if (data?.ref_link) return data.ref_link;
+  return await createRefLinkForAmbassador(userId, username, referralCode);
+}
+
 export function useReferrals(refCode) {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading]     = useState(false);
