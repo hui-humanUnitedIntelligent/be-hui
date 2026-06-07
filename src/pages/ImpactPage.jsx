@@ -306,7 +306,7 @@ function useImpactActivity() {
       }
     })();
 
-    // Realtime — einfaches Polling-Substitute (kein removeChannel-Bug)
+    // Polling alle 30s — stable auf iOS/Safari
     const interval = setInterval(async () => {
       if (dead) return;
       try {
