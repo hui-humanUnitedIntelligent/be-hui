@@ -477,7 +477,7 @@ function ImpactPageInner({ currentUser }) {
       {/* ══ 1 ── GROSSER EMOTIONALER HERO ════════════════════════ */}
       <BigHero stats={hero} pool={pool} />
 
-      {/* ══ 2 ── POOL-KARTE (zentral, einfach) ══════════════════ */}
+      {/* ══ 2 ── POOL-KARTE mit Budget-Chips ════════════════════ */}
       <PoolCard pool={pool} stats={hero} />
 
       {/* ══ 3 ── AKTUELLE ABSTIMMUNG (Herzstück) ════════════════ */}
@@ -501,7 +501,7 @@ function ImpactPageInner({ currentUser }) {
         projects={projects}
       />
 
-      {/* ══ 5 ── GEMEINSAM ERMÖGLICHT (finanzierte Projekte) ════ */}
+      {/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
       <GemeinsamErmoegicht finanziert={finanziert} transp={transp} />
 
       {/* ══ 6 ── HERZENSPROJEKT EMOTIONAL ═══════════════════════ */}
@@ -510,13 +510,10 @@ function ImpactPageInner({ currentUser }) {
       {/* ══ 7 ── LIVE-TICKER ═════════════════════════════════════ */}
       {activities.length > 0 && <LiveTicker activities={activities} />}
 
-      {/* ══ 8 ── MECHANIK ERKLÄREN (weiter unten) ═══════════════ */}
+      {/* ══ 8 ── MECHANIK ERKLÄREN ═══════════════════════════════ */}
       <MechanikErklaeung onInfo={() => setInfoModal("cycle")} />
 
-      {/* ══ 9 ── FONDS-AUFTEILUNG (kompakt, ganz unten) ════════ */}
-      <FondsAufteilungKompakt pool={pool} />
-
-      {/* ══ LETZTE AUSZAHLUNG (footer-nah) ══════════════════════ */}
+      {/* ══ LETZTE AUSZAHLUNG ════════════════════════════════════ */}
       {payoutData.payout && (
         <LetzteAuszahlung payout={payoutData.payout} others={payoutData.others} />
       )}
@@ -649,27 +646,56 @@ function PoolCard({ pool, stats }) {
         boxShadow:`0 4px 28px ${T.teal}18, 0 1px 6px rgba(0,0,0,0.04)`,
         marginBottom:14,
       }}>
-        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between",
+          marginBottom:16 }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-              <span style={{ fontSize:20 }}>❤️</span>
-              <span style={{ fontSize:12, fontWeight:700, color:T.teal,
+              <span style={{ fontSize:18 }}>❤️</span>
+              <span style={{ fontSize:11, fontWeight:700, color:T.teal,
                 letterSpacing:"0.06em", textTransform:"uppercase" }}>
                 Diesen Monat im Impact Pool
               </span>
             </div>
-            <div style={{ fontSize:38, fontWeight:900, color:T.teal,
+            <div style={{ fontSize:36, fontWeight:900, color:T.teal,
               letterSpacing:"-0.035em", lineHeight:1 }}>
               {pool.loading ? "—" : fmtEur(pool.pool)}
             </div>
-            <div style={{ fontSize:12, color:T.ink2, marginTop:6 }}>
+            <div style={{ fontSize:11, color:T.ink2, marginTop:5 }}>
               Live berechnet aus HUI-Buchungen
             </div>
           </div>
-          <div style={{ fontSize:42,
+          <div style={{ fontSize:38,
             filter:"drop-shadow(0 4px 14px rgba(13,196,181,0.32))",
             animation:"ipBreath 6s ease-in-out infinite",
           }}>💚</div>
+        </div>
+
+        {/* Budget-Chips */}
+        <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+          {[
+            { pct:40, label:"Community",   color:T.teal,   eur:pool.community  },
+            { pct:30, label:"Wirkung",     color:T.coral,  eur:pool.wirkung    },
+            { pct:20, label:"Innovation",  color:T.gold,   eur:pool.innovation },
+            { pct:10, label:"Kuration",    color:T.violet, eur:pool.kuration   },
+          ].map((chip, i) => (
+            <div key={i} style={{
+              display:"inline-flex", alignItems:"center", gap:5,
+              background:`${chip.color}14`, border:`1px solid ${chip.color}28`,
+              borderRadius:99, padding:"5px 10px",
+            }}>
+              <div style={{ width:7, height:7, borderRadius:2,
+                background:chip.color, flexShrink:0 }}/>
+              <span style={{ fontSize:10, fontWeight:700, color:chip.color }}>
+                {chip.pct}%
+              </span>
+              <span style={{ fontSize:10, color:T.ink2 }}>{chip.label}</span>
+              {!pool.loading && chip.eur > 0 && (
+                <span style={{ fontSize:10, fontWeight:800, color:chip.color }}>
+                  {fmtEur(chip.eur)}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -699,8 +725,8 @@ function PoolCard({ pool, stats }) {
 // ════════════════════════════════════════════════════════════════
 function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, loading, onInfoClick }) {
   return (
-    <div style={{ marginTop:32 }}>
-      {/* Header */}
+    <div style={{ marginTop:24 }}>
+      {/* Header */
       <div style={{ padding:"0 16px", marginBottom:16 }}>
         <div style={{ display:"flex", alignItems:"baseline",
           justifyContent:"space-between", flexWrap:"wrap", gap:6 }}>
@@ -852,7 +878,7 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
   const projMap = Object.fromEntries(projects.map(p => [p.id, p]));
 
   return (
-    <div style={{ padding:"28px 16px 0" }}>
+    <div style={{ padding:"16px 16px 0" }}>
       <div style={{
         background:T.surfaceHi, borderRadius:24, padding:"22px 20px",
         boxShadow:S.card, border:`1px solid ${T.line}`,
@@ -928,11 +954,11 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
 // ════════════════════════════════════════════════════════════════
 function GemeinsamErmoegicht({ finanziert, transp }) {
   return (
-    <div style={{ padding:"32px 16px 0" }}>
+    <div style={{ padding:"20px 16px 0" }}>
       {/* Titel */}
-      <h2 style={{ margin:"0 0 6px", fontSize:20, fontWeight:900, color:T.ink,
-        letterSpacing:"-0.022em" }}>Gemeinsam ermöglicht</h2>
-      <p style={{ margin:"0 0 18px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+      <h2 style={{ margin:"0 0 4px", fontSize:18, fontWeight:900, color:T.ink,
+        letterSpacing:"-0.02em" }}>Gemeinsam ermöglicht</h2>
+      <p style={{ margin:"0 0 14px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
         Echte Projekte. Echte Wirkung. Durch euch.
       </p>
 
@@ -960,9 +986,18 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
 
       {/* Finanzierte Projekte */}
       {finanziert.length === 0 ? (
-        <div style={{ textAlign:"center", padding:"24px 0", color:T.muted }}>
-          <div style={{ fontSize:32, marginBottom:8 }}>🌱</div>
-          <div style={{ fontSize:13 }}>Die ersten Projekte werden bald finanziert.</div>
+        <div style={{
+          background:`${T.teal}08`, border:`1px solid ${T.teal}18`,
+          borderRadius:20, padding:"24px 20px", textAlign:"center",
+        }}>
+          <div style={{ fontSize:36, marginBottom:10 }}>🌱</div>
+          <div style={{ fontSize:14, fontWeight:700, color:T.ink, marginBottom:8 }}>
+            Die ersten Projekte werden bald gemeinsam finanziert.
+          </div>
+          <p style={{ margin:0, fontSize:12, color:T.ink2, lineHeight:1.65, maxWidth:280, margin:"0 auto" }}>
+            Jeden Monat fließen Teile der HUI-Provisionen in den Impact Pool.
+            Sobald die ersten Projekte finanziert wurden, erscheinen sie hier.
+          </p>
         </div>
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -1011,7 +1046,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
 // ════════════════════════════════════════════════════════════════
 function HerzensprojektEmotional({ onPropose }) {
   return (
-    <div style={{ padding:"32px 16px 0" }}>
+    <div style={{ padding:"20px 16px 0" }}>
       <div style={{
         background:`linear-gradient(145deg,${T.teal}14,${T.teal}04)`,
         border:`1.5px solid ${T.teal}28`,
@@ -1050,8 +1085,22 @@ function HerzensprojektEmotional({ onPropose }) {
           Herzensprojekt einreichen
         </button>
 
-        <div style={{ marginTop:12, fontSize:11, color:T.muted }}>
-          Dauert ~5 Minuten · Kostenlos · Kein Projekt geht leer aus
+        {/* Vertrauenselemente */}
+        <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center",
+          gap:8, marginTop:18 }}>
+          {[
+            "✓ Bewerbung kostenlos",
+            "✓ Dauer ~5 Minuten",
+            "✓ Kein Projekt geht leer aus",
+            "✓ Prüfung durch HUI-Team",
+          ].map((item, i) => (
+            <div key={i} style={{
+              display:"inline-flex", alignItems:"center",
+              background:"rgba(255,255,255,0.6)", backdropFilter:"blur(8px)",
+              border:`1px solid ${T.teal}22`, borderRadius:99,
+              padding:"5px 11px", fontSize:10, fontWeight:600, color:T.ink2,
+            }}>{item}</div>
+          ))}
         </div>
       </div>
     </div>
@@ -1063,7 +1112,7 @@ function HerzensprojektEmotional({ onPropose }) {
 // ════════════════════════════════════════════════════════════════
 function LiveTicker({ activities }) {
   return (
-    <div style={{ padding:"28px 16px 0" }}>
+    <div style={{ padding:"16px 16px 0" }}>
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
         <div style={{ width:7, height:7, borderRadius:"50%", background:T.teal,
           animation:"ipPulse 1.4s ease-in-out infinite" }}/>
@@ -1108,7 +1157,7 @@ function LiveTicker({ activities }) {
 // ════════════════════════════════════════════════════════════════
 function MechanikErklaeung({ onInfo }) {
   return (
-    <div style={{ padding:"32px 16px 0" }}>
+    <div style={{ padding:"20px 16px 0" }}>
       <h2 style={{ margin:"0 0 6px", fontSize:18, fontWeight:900, color:T.ink,
         letterSpacing:"-0.02em" }}>So funktioniert der Impact Pool</h2>
       <p style={{ margin:"0 0 18px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
