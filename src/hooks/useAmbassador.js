@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { isActiveAmbassador, hasPendingApplication, calcLevel, LEVEL_CONFIG } from "../lib/ambassadorUtils.js";
+import { createRefLinkForAmbassador } from "../lib/referralTracking.js";
 
 export function useAmbassador(profile) {
   const isAmb     = isActiveAmbassador(profile);
@@ -116,7 +117,6 @@ export function useAmbassadorApplication() {
 
 
 // ── Referral-Liste laden ─────────────────────────────────────
-import { createRefLinkForAmbassador } from "../lib/referralTracking.js";
 
 /**
  * Wird aufgerufen wenn das eigene Profil als Ambassador erkannt wird
