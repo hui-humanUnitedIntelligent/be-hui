@@ -164,10 +164,12 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
   const avatarInputRef = useRef(null);
   const coverInputRef  = useRef(null);
 
-  // ── Avatar + Cover: nur echte DB-Werte, kein Demo-Fallback ──────────
-  // localAvatar/localCover: sofortige UI-Aktualisierung nach Upload (Blob-URL)
-  const cover  = localCover  || profile?.header_img  || null;
-  const avatar = localAvatar || profile?.avatar_url  || null;
+  // ── Avatar + Cover: direkt aus profile (kein Demo-Fallback) ──────────
+  // localAvatar/localCover leben im Eltern-State (MyBasisProfile),
+  // werden via onAvatarChange/onCoverChange hochgereicht und dann als
+  // aktualisiertes profile weitergegeben.
+  const cover  = profile?.header_img  || null;
+  const avatar = profile?.avatar_url  || null;
   const name   = s(profile?.display_name||profile?.username, "Mein Profil");
 
   async function handleAvatarFile(e) {
