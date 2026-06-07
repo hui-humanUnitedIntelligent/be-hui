@@ -726,7 +726,7 @@ function PoolCard({ pool, stats }) {
 function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, loading, onInfoClick }) {
   return (
     <div style={{ marginTop:24 }}>
-      {/* Header */
+      {/* Header */}
       <div style={{ padding:"0 16px", marginBottom:16 }}>
         <div style={{ display:"flex", alignItems:"baseline",
           justifyContent:"space-between", flexWrap:"wrap", gap:6 }}>
