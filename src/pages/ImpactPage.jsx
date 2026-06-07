@@ -353,6 +353,37 @@ class ImpactErrorBoundary extends React.Component {
 // ════════════════════════════════════════════════════════════════
 // HAUPT-INNER
 // ════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════
+// HOOK: useWeitereHerzensprojekte — alle Projekte ausser nominierte
+// ════════════════════════════════════════════════════════════════
+function useWeitereHerzensprojekte(activeProjectIds) {
+  const [data,    setData]    = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const idsKey = (activeProjectIds || []).slice().sort().join(",");
+
+  React.useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const { data: rows } = await supabase
+          .from("impact_projects")
+          .select("id,name,category,description,icon,color,votes,goal_eur,status,img_url,awarded_eur,created_at")
+          .in("status", ["submitted","pending","approved","in_progress","funded","finished","nominated"])
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (dead) return;
+        const activeSet = new Set(activeProjectIds || []);
+        setData((rows || []).filter(p => !activeSet.has(p.id)).slice(0, 10));
+      } catch { /* silent */ }
+      if (!dead) setLoading(false);
+    })();
+    return () => { dead = true; };
+  }, [idsKey]);
+
+  return { data, loading };
+}
+
 function ImpactPageInner({ currentUser }) {
   // ── States ──
   const [projects,    setProjects]    = React.useState([]);
@@ -371,6 +402,8 @@ function ImpactPageInner({ currentUser }) {
   const payoutData = useLastPayout();
   const finanziert = useWeitereProjects();
   const activities = useImpactActivities();
+  const activeIds  = projects.map(p => p.id);
+  const weitereHP  = useWeitereHerzensprojekte(activeIds);
 
   // ── Projekte laden ──
   React.useEffect(() => {
@@ -528,7 +561,10 @@ function ImpactPageInner({ currentUser }) {
         projects={projects}
       />
 
-      {/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
+            {/* ══ 4b ══ WEITERE HERZENSPROJEKTE */}
+      <WeitereHerzensprojekte data={weitereHP.data} loading={weitereHP.loading} />
+
+{/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
       <GemeinsamErmoegicht finanziert={finanziert} transp={transp} />
 
       {/* ══ 6 ── HERZENSPROJEKT EMOTIONAL ═══════════════════════ */}
@@ -1178,6 +1214,136 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
 
 // ════════════════════════════════════════════════════════════════
 // 5. GEMEINSAM ERMÖGLICHT (finanzierte Projekte + Zahlen)
+
+
+// ════════════════════════════════════════════════════════════════
+// 4b. WEITERE HERZENSPROJEKTE
+// ════════════════════════════════════════════════════════════════
+const HP_STATUS = {
+  submitted:   { icon:"📬", color:"#9CA3AF", label:"Eingegangen"   },
+  pending:     { icon:"🟡", color:"#D97706", label:"In Prüfung"     },
+  approved:    { icon:"🟢", color:"#16A34A", label:"Genehmigt"     },
+  nominated:   { icon:"🗳️", color:"#0DC4B5", label:"Nominiert"     },
+  active:      { icon:"🗳️", color:"#0DC4B5", label:"Abstimmung"    },
+  in_progress: { icon:"🚀", color:"#7264D6", label:"In Umsetzung" },
+  funded:      { icon:"💪", color:"#0DC4B5", label:"Finanziert"   },
+  finished:    { icon:"✅",     color:"#16A34A", label:"Abgeschlossen" },
+};
+
+function HerzensKarte({ p, idx }) {
+  const [imgErr, setImgErr] = React.useState(false);
+  const cfg     = HP_STATUS[p.status] || HP_STATUS.pending;
+  const accent  = p.color || T.teal;
+  const goalEur = safeNum(p.goal_eur) || 0;
+  return (
+    <div style={{
+      background:T.surfaceHi, borderRadius:20,
+      boxShadow:S.card, border:`1px solid ${T.line}`,
+      overflow:"hidden",
+      animation:"ipFade 0.32s ease both",
+      animationDelay:`${(idx||0)*0.05}s`,
+    }}>
+      <div style={{ display:"flex", alignItems:"stretch" }}>
+        <div style={{ width:84, flexShrink:0, background:`${accent}12`,
+          display:"flex", alignItems:"center", justifyContent:"center", fontSize:30 }}>
+          {p.img_url && !imgErr
+            ? <img src={p.img_url} alt={p.name} onError={() => setImgErr(true)}
+                style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
+            : (p.icon || "🌱")
+          }
+        </div>
+        <div style={{ flex:1, padding:"11px 13px", minWidth:0 }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:4,
+            background:`${cfg.color}14`, border:`1px solid ${cfg.color}28`,
+            borderRadius:99, padding:"2px 8px", marginBottom:5 }}>
+            <span style={{ fontSize:10 }}>{cfg.icon}</span>
+            <span style={{ fontSize:9, fontWeight:800, color:cfg.color,
+              letterSpacing:"0.05em", textTransform:"uppercase" }}>{cfg.label}</span>
+          </div>
+          <div style={{ fontSize:14, fontWeight:800, color:T.ink, lineHeight:1.3,
+            whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
+            marginBottom: p.description ? 3 : 0 }}>{p.name}</div>
+          {p.description && (
+            <div style={{ fontSize:11.5, color:T.ink2, lineHeight:1.5, marginBottom:5,
+              display:"-webkit-box", WebkitLineClamp:1,
+              WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+              {p.description}
+            </div>
+          )}
+          <div style={{ display:"flex", alignItems:"center",
+            justifyContent:"space-between", gap:6 }}>
+            {p.category && (
+              <span style={{ fontSize:9, color:T.muted, fontWeight:700,
+                letterSpacing:"0.04em", textTransform:"uppercase" }}>{p.category}</span>
+            )}
+            {goalEur > 0 && (
+              <span style={{ fontSize:10, color:accent, fontWeight:800 }}>
+                Ziel: {fmtEur(goalEur)}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WeitereHerzensprojekte({ data, loading }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const list    = Array.isArray(data) ? data : [];
+  const visible = expanded ? list : list.slice(0, 4);
+  const hasMore = list.length > 4;
+  if (!loading && list.length === 0) return null;
+  return (
+    <div style={{ marginTop:24, padding:"0 16px" }}>
+      <div style={{ marginBottom:14 }}>
+        <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em" }}>
+          🌱 Weitere Herzensprojekte
+        </h2>
+        <p style={{ margin:0, fontSize:12.5, color:T.ink2, lineHeight:1.6 }}>
+          {loading
+            ? "Wird geladen…"
+            : `${list.length} Projekt${list.length !== 1 ? "e" : ""} — eingereicht, geprüft oder in Umsetzung.`
+          }
+        </p>
+      </div>
+      {loading ? <SkeletonCards count={3} /> : (
+        <>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {visible.map((p, i) => <HerzensKarte key={p.id||i} p={p} idx={i} />)}
+          </div>
+          {hasMore && (
+            <button onClick={() => setExpanded(e => !e)} className="ip-p"
+              style={{ width:"100%", marginTop:12, background:"none",
+                border:`1px solid ${T.teal}30`, borderRadius:14, padding:"11px 0",
+                fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
+                transition:"all 0.18s ease",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
+              onMouseEnter={e => { e.currentTarget.style.background=`${T.teal}08`; e.currentTarget.style.borderColor=`${T.teal}50`; }}
+              onMouseLeave={e => { e.currentTarget.style.background="none";        e.currentTarget.style.borderColor=`${T.teal}30`; }}
+            >
+              {expanded
+                ? <span>▲  Weniger anzeigen</span>
+                : <span>▼  Alle {list.length} Projekte anzeigen</span>
+              }
+            </button>
+          )}
+          <div style={{ marginTop:12, padding:"9px 13px",
+            background:`${T.teal}07`, border:`1px solid ${T.teal}14`,
+            borderRadius:13, display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:14 }}>📨</span>
+            <span style={{ fontSize:11, color:T.ink2, lineHeight:1.5 }}>
+              Neue Herzensprojekte kommen jeden Monat hinzu.{" "}
+              <b style={{ color:T.teal }}>Der Impact Pool lebt und wächst.</b>
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 function GemeinsamErmoegicht({ finanziert, transp }) {
   return (
