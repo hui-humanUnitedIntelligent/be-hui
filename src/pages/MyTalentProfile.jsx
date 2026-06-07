@@ -148,7 +148,7 @@ function SecHdr({ title, sub, onEdit, isOwner }) {
 // ══════════════════════════════════════════════════════════════
 // 0. PAGE TITLE
 // ══════════════════════════════════════════════════════════════
-function PageTitle({ isOwner }) {
+function PageTitle({ isOwner, onSettings }) {
   return (
     <div style={{ padding:"14px 16px 10px", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
       <div>
@@ -160,7 +160,7 @@ function PageTitle({ isOwner }) {
         </div>
       </div>
       {isOwner && (
-        <button onClick={() => setShowSettings(true)} style={{ background:"none", border:"none", padding:"2px 0 0 10px", cursor:"pointer", touchAction:"manipulation", flexShrink:0 }}>
+        <button onClick={onSettings} style={{ background:"none", border:"none", padding:"2px 0 0 10px", cursor:"pointer", touchAction:"manipulation", flexShrink:0 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="rgba(26,26,24,0.32)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3"/>
@@ -1449,7 +1449,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))",
       }}>
         {/* 0. Titel */}
-        <PageTitle isOwner={isOwner}/>
+        <PageTitle isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
         {/* 1. Cover + Avatar */}
         <ProfileHeader profile={profile} loading={loading} isOwner={isOwner}/>
