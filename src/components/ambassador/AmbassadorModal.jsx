@@ -230,7 +230,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
               </div>
 
             </form>
-            </div>{/* end amb-modal-body */}
+            </div>
             <div className="amb-modal-footer">
               {/* Error */}
               {error && (
