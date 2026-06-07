@@ -12,13 +12,37 @@ export function useAmbassador(profile) {
   const level     = amb?.level || (isAmb ? 'bronze' : null);
   const levelCfg  = level ? LEVEL_CONFIG[level] : null;
 
+  // Ref-Link: bevorzuge DB-Eintrag (ambassador_ref_links), Fallback profile_modules
+  const [dbRefLink, setDbRefLink] = useState(null);
+  useEffect(() => {
+    if (!isAmb || !profile?.id) return;
+    // Ref-Link aus DB laden
+    supabase
+      .from("ambassador_ref_links")
+      .select("ref_link, referral_code")
+      .eq("user_id", profile.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.ref_link) {
+          setDbRefLink(data.ref_link);
+        } else if (profile?.username) {
+          // Kein Eintrag → automatisch anlegen (ensureRefLink)
+          const code = amb?.referral_code || "AMB-" + profile.username.toUpperCase().slice(0,5);
+          ensureRefLink(profile.id, profile.username, code)
+            .then(link => { if (link) setDbRefLink(link); });
+        }
+      });
+  }, [profile?.id, isAmb]);
+
+  const computedRefLink = dbRefLink || amb?.referral_link || (profile?.username ? \`https://be-hui.com/\${profile.username}\` : null);
+
   return {
     isAmbassador:    isAmb,
     isPending,
-    ambassadorData:  amb,
+    ambassadorData:  { ...(amb || {}), referral_link: computedRefLink },
     level,
     levelCfg,
-    refLink:         amb?.referral_link || null,
+    refLink:         computedRefLink,
     refCode:         amb?.referral_code || null,
     referralsCount:  Number(amb?.referral_count) || 0,
     activeReferrals: Number(amb?.active_referral_count) || 0,
