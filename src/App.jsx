@@ -16,6 +16,7 @@ import ProfileCompletionFlow from './components/auth/ProfileCompletionFlow.jsx'
 import AuthCallback from './pages/AuthCallback'
 
 import { supabase } from './lib/supabaseClient'
+import { detectReferral } from './lib/referralTracking.js'
 
 // ── LAZY: Alle anderen Routes ───────────────────────────────────
 // Erzeugen separate Chunks → schnellerer Initial-Load
