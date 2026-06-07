@@ -360,8 +360,9 @@ function ImpactPageInner({ currentUser }) {
   const [activeRound, setActiveRound] = React.useState(null);
   const [userVotes,   setUserVotes]   = React.useState([]);
   const [voteLoading, setVoteLoading] = React.useState(false);
-  const [showPropose, setShowPropose] = React.useState(false);
-  const [infoModal,   setInfoModal]   = React.useState(null);
+  const [showPropose,   setShowPropose]   = React.useState(false);
+  const [infoModal,     setInfoModal]     = React.useState(null);
+  const [userImpact,    setUserImpact]    = React.useState({ eur:0, projekte:0, loading:true });
 
   // ── Hooks ──
   const hero       = useHeroStats();
@@ -420,6 +421,29 @@ function ImpactPageInner({ currentUser }) {
     return () => { dead = true; };
   }, [currentUser?.id]);
 
+  // ── Persönliche Wirkung des Nutzers ──
+  React.useEffect(() => {
+    if (!currentUser?.id) { setUserImpact(p => ({ ...p, loading:false })); return; }
+    let dead = false;
+    (async () => {
+      try {
+        const [payRes, voteRes] = await Promise.allSettled([
+          supabase.from("hui_payments")
+            .select("impact_eur").eq("user_id", currentUser.id).eq("payment_status","paid"),
+          supabase.from("impact_votes")
+            .select("id,project_id").eq("user_id", currentUser.id),
+        ]);
+        if (dead) return;
+        const pays  = payRes.status  === "fulfilled" ? (payRes.value.data  || []) : [];
+        const votes = voteRes.status === "fulfilled" ? (voteRes.value.data || []) : [];
+        const eur = pays.reduce((s, p) => s + (Number(p.impact_eur) || 0), 0);
+        const uniqueProj = [...new Set(votes.map(v => v.project_id))].length;
+        setUserImpact({ eur, projekte:uniqueProj, loading:false });
+      } catch { if (!dead) setUserImpact(p => ({ ...p, loading:false })); }
+    })();
+    return () => { dead = true; };
+  }, [currentUser?.id]);
+
   // ── Vote ──
   const castVote = async (projectId) => {
     if (!currentUser?.id || voteLoading) return;
@@ -461,30 +485,6 @@ function ImpactPageInner({ currentUser }) {
     ? Math.max(0, Math.ceil((new Date(activeRound.voting_ends_at) - Date.now()) / 86400000))
     : null;
 
-  // DEBUG: Layout-Audit
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      const pageEl = document.querySelector('[data-impact-page]');
-      if (!pageEl) return;
-      const pageHeight    = pageEl.scrollHeight;
-      const contentHeight = pageEl.getBoundingClientRect().height;
-      const viewportHeight = window.innerHeight;
-      const extraScrollSpace = pageHeight - viewportHeight;
-      console.table({ pageHeight, contentHeight, viewportHeight, extraScrollSpace });
-      if (extraScrollSpace > 40) {
-        // Suche Ghost-Container
-        const divs = pageEl.querySelectorAll('div');
-        divs.forEach(d => {
-          const h = d.getBoundingClientRect().height;
-          const content = d.textContent?.trim();
-          if (h > 60 && !content) {
-            console.warn('[GHOST CONTAINER]', d.className || d.getAttribute('style')?.slice(0,60), 'h='+Math.round(h));
-          }
-        });
-      }
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div data-impact-page style={{ width:"100%", background:T.page,
@@ -505,7 +505,7 @@ function ImpactPageInner({ currentUser }) {
       <BigHero stats={hero} pool={pool} />
 
       {/* ══ 2 ── POOL-KARTE mit Budget-Chips ════════════════════ */}
-      <PoolCard pool={pool} stats={hero} />
+      <PoolCard pool={pool} stats={hero} userImpact={userImpact} />
 
       {/* ══ 3 ── AKTUELLE ABSTIMMUNG (Herzstück) ════════════════ */}
       <VotingSection
@@ -660,25 +660,25 @@ const WIRKUNGSCHIPS = [
   {
     pct:40, emoji:"💚", label:"Projekte fördern",
     color:"#0DC4B5",
-    popover:"Dieser Anteil fließt direkt in Herzensprojekte, die von der Community gewählt werden.",
+    popover:"Finanziert Herzensprojekte der Gemeinschaft. Der Sieger erhält die volle Wunschsumme — die übrigen Projekte erhalten einen Anteil. Kein Projekt geht leer aus.",
     eurKey:"community",
   },
   {
     pct:30, emoji:"🚀", label:"HUI weiterentwickeln",
     color:"#F4714F",
-    popover:"Für strategische Projekte und Maßnahmen, die die Wirkung von HUI langfristig erhöhen.",
+    popover:"Ermöglicht neue Funktionen, Verbesserungen und strategische Projekte, die HUI als Plattform langfristig stärken — für alle Mitglieder.",
     eurKey:"wirkung",
   },
   {
     pct:20, emoji:"💡", label:"Neue Ideen ermöglichen",
     color:"#D4952A",
-    popover:"Für neue Funktionen, Experimente und zukünftige Wirkungsmodelle.",
+    popover:"Schafft Raum für innovative Projekte und Experimente. Ideen, die noch keinen Platz haben, bekommen hier ihre Chance.",
     eurKey:"innovation",
   },
   {
     pct:10, emoji:"🛡️", label:"Qualität sichern",
     color:"#7264D6",
-    popover:"Für Prüfung, Begleitung und Qualitätssicherung aller Impact-Projekte.",
+    popover:"Finanziert die Prüfung, Begleitung und Qualitätssicherung aller eingereichten Projekte — damit nur echte Wirkung gefördert wird.",
     eurKey:"kuration",
   },
 ];
@@ -796,7 +796,7 @@ function WirkungsChips({ pool }) {
 // ════════════════════════════════════════════════════════════════
 // 2. POOL-KARTE (zentral, einfach, emotional)
 // ════════════════════════════════════════════════════════════════
-function PoolCard({ pool, stats }) {
+function PoolCard({ pool, stats, userImpact }) {
   const MINI_STATS = [
     { emoji:"📦", val:stats.werke,      label:"Werke verkauft"          },
     { emoji:"📅", val:stats.erlebnisse, label:"Erlebnisse gebucht"      },
@@ -839,6 +839,36 @@ function PoolCard({ pool, stats }) {
 
         {/* Wirkungs-Chips mit Popover */}
         <WirkungsChips pool={pool} />
+
+        {/* Deine Wirkung — dezent, nur wenn User eingeloggt */}
+        {userImpact && !userImpact.loading && (
+          <div style={{
+            marginTop:14, paddingTop:12,
+            borderTop:"1px solid rgba(255,255,255,0.20)",
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+          }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ fontSize:13 }}>💚</span>
+              <span style={{ fontSize:11, fontWeight:700, color:T.teal }}>Deine Wirkung</span>
+            </div>
+            <div style={{ display:"flex", gap:18 }}>
+              <div style={{ textAlign:"right" }}>
+                <div style={{ fontSize:13, fontWeight:900, color:T.teal, lineHeight:1 }}>
+                  {userImpact.eur > 0 ? fmtEur(userImpact.eur) : "0 €"}
+                </div>
+                <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>eingebracht</div>
+              </div>
+              <div style={{ textAlign:"right" }}>
+                <div style={{ fontSize:13, fontWeight:900, color:T.teal, lineHeight:1 }}>
+                  {userImpact.projekte}
+                </div>
+                <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>
+                  Projekt{userImpact.projekte !== 1 ? "e" : ""} unterstützt
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 3 Mini-Stat-Karten */}
@@ -900,7 +930,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
             e.currentTarget.style.boxShadow  = `0 0 0 0 ${T.teal}00`;
             e.currentTarget.style.border     = `1px solid ${T.teal}38`;
           }}
-          >❤️ Warum geht kein Projekt leer aus?</button>
+          >💚 Kein Projekt geht leer aus</button>
         </div>
       </div>
 
@@ -1002,11 +1032,13 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote }) {
             ))}
           </div>
           <span style={{ fontSize:11, color:T.muted }}>
-            Du und {Math.max(0,(p.votes||0)-1)} weitere
+            {(p.votes||0) > 0
+              ? `${p.votes} ${p.votes === 1 ? "Mensch möchte" : "Menschen möchten"} dieses Projekt ermöglichen`
+              : "Sei der Erste, der unterstützt"}
           </span>
         </div>
 
-        {/* Emotionale Stats-Leiste vor CTA */}
+        {/* Emotionale Wirkungsleiste — Menschen, Anteil, Restbetrag */}
         <div style={{
           display:"flex", alignItems:"stretch", gap:0,
           background:`${accent}08`, borderRadius:14,
@@ -1015,20 +1047,20 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote }) {
         }}>
           {[
             {
-              top: rank === 0 ? "🥇 Platz 1" : rank === 1 ? "🥈 Platz 2" : "🥉 Platz 3",
-              bot: "Aktuell",
+              top: `${p.votes || 0} Menschen`,
+              bot: "möchten helfen",
               accent,
             },
             {
-              top: `${p.votes || 0} Stimmen`,
-              bot: `${pct}% aller Stimmen`,
+              top: `${pct} % der Stimmen`,
+              bot: "für dieses Projekt",
               accent,
             },
             {
-              top: goalEur > safeNum(p.votes) * 15
-                ? `Noch ${fmtEur(Math.max(0, goalEur - safeNum(p.votes) * 15))}`
-                : "Ziel fast erreicht!",
-              bot: `Ziel: ${fmtEur(goalEur)}`,
+              top: goalEur > 0 && pct > 0
+                ? `Noch ${fmtEur(Math.max(0, goalEur - Math.round(pct / 100 * goalEur)))}`
+                : `Ziel: ${fmtEur(goalEur)}`,
+              bot: "bis Finanzierung",
               accent,
             },
           ].map((stat, si) => (
@@ -1218,10 +1250,15 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
                   <span style={{ fontSize:13 }}>✅</span>
                   <span style={{ fontSize:14, fontWeight:800, color:T.ink }}>{p.name}</span>
                 </div>
-                <div style={{ fontSize:14, fontWeight:900, color:T.teal,
-                  letterSpacing:"-0.02em" }}>
-                  {fmtEur(p.awarded_eur)} finanziert
+                <div style={{ fontSize:12, fontWeight:700, color:T.teal,
+                  lineHeight:1.45 }}>
+                  Gemeinsam ermöglicht
                 </div>
+                {p.awarded_eur > 0 && (
+                  <div style={{ fontSize:11, color:T.muted, marginTop:1 }}>
+                    {fmtEur(p.awarded_eur)} durch die HUI-Gemeinschaft
+                  </div>
+                )}
                 {p.distributed_at && (
                   <div style={{ fontSize:11, color:T.muted, marginTop:2 }}>
                     {fmtMonth(p.distributed_at?.slice(0,7))}
