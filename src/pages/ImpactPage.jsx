@@ -178,31 +178,40 @@ function usePoolBudgets() {
 }
 
 function useTransparenz() {
-  const [s, setS] = React.useState({ projekte:0, eur:0, stimmen:0, menschen:0, loading:true });
+  const [s, setS] = React.useState({
+    projekte:0, eur:0, stimmen:0, menschen:0, loading:true,
+    // Status-Counts für "Impact auf einen Blick" Timeline
+    eingereicht:0, pruefung:0, nominiert:0, finanziert_count:0, umsetzung:0,
+  });
   React.useEffect(() => {
     let dead = false;
     (async () => {
       try {
-        const [pRes, vRes] = await Promise.allSettled([
+        const [allRes, vRes] = await Promise.allSettled([
           supabase.from("impact_projects")
-            .select("id,awarded_eur")
-            .in("status", ["funded","finished"]),
+            .select("id,status,awarded_eur"),
           supabase.from("impact_votes")
             .select("id,user_id", { count:"exact" }),
         ]);
         if (dead) return;
-        const projs = pRes.status === "fulfilled" ? (pRes.value.data || []) : [];
-        const vdata = vRes.status === "fulfilled" ? vRes.value : { count:0, data:[] };
-        const unique = new Set((vdata.data || []).map(v => v.user_id)).size;
+        const allProjs = allRes.status === "fulfilled" ? (allRes.value.data || []) : [];
+        const vdata    = vRes.status   === "fulfilled" ? vRes.value : { count:0, data:[] };
+        const unique   = new Set((vdata.data || []).map(v => v.user_id)).size;
+        const funded   = allProjs.filter(p => ["funded","finished"].includes(p.status));
         setS({
-          projekte: projs.length,
-          eur:      projs.reduce((a,p) => a + safeNum(p.awarded_eur), 0),
-          stimmen:  vdata.count || 0,
-          menschen: unique,
+          projekte:         funded.length,
+          eur:              funded.reduce((a,p) => a + safeNum(p.awarded_eur), 0),
+          stimmen:          vdata.count || 0,
+          menschen:         unique,
+          eingereicht:      allProjs.filter(p => p.status === "submitted").length,
+          pruefung:         allProjs.filter(p => ["pending","approved"].includes(p.status)).length,
+          nominiert:        allProjs.filter(p => ["nominated","active"].includes(p.status)).length,
+          finanziert_count: funded.length,
+          umsetzung:        allProjs.filter(p => p.status === "in_progress").length,
           loading: false,
         });
       } catch (e) {
-        console.warn("[TRANSPARENZ]", e?.message);
+        console.warn("[TRANSP]", e?.message);
         if (!dead) setS(d => ({ ...d, loading:false }));
       }
     })();
@@ -268,7 +277,7 @@ function useWeitereProjects() {
       try {
         const { data } = await supabase
           .from("impact_projects")
-          .select("id,name,icon,color,img_url,status,category,awarded_eur,distributed_at")
+          .select("id,name,icon,color,img_url,status,category,awarded_eur,distributed_at,impact_report,tags")
           .in("status", ["funded","finished"])
           .order("awarded_eur", { ascending:false })
           .limit(8);
@@ -561,20 +570,23 @@ function ImpactPageInner({ currentUser }) {
         projects={projects}
       />
 
-            {/* ══ 4b ══ WEITERE HERZENSPROJEKTE */}
+      {/* ══ 4b ── IMPACT TIMELINE "Impact auf einen Blick" ═══════ */}
+      <ImpactTimeline transp={transp} />
+
+      {/* ══ 4c ── WEITERE HERZENSPROJEKTE ════════════════════════ */}
       <WeitereHerzensprojekte data={weitereHP.data} loading={weitereHP.loading} />
 
-{/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
+      {/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
       <GemeinsamErmoegicht finanziert={finanziert} transp={transp} />
 
-      {/* ══ 6 ── HERZENSPROJEKT EMOTIONAL ═══════════════════════ */}
+      {/* ══ 6 ── HERZENSPROJEKT EINREICHEN ═══════════════════════ */}
       <HerzensprojektEmotional onPropose={() => setShowPropose(true)} />
 
-      {/* ══ 7 ── LIVE-TICKER ═════════════════════════════════════ */}
-      {activities.length > 0 && <LiveTicker activities={activities} />}
-
-      {/* ══ 8 ── MECHANIK ERKLÄREN ═══════════════════════════════ */}
+      {/* ══ 7 ── SO FUNKTIONIERT DER IMPACT POOL ════════════════ */}
       <MechanikErklaeung onInfo={() => setInfoModal("cycle")} />
+
+      {/* ══ 8 ── LIVE-TICKER (wenn Aktivitäten) ════════════════ */}
+      {activities.length > 0 && <LiveTicker activities={activities} />}
 
       {/* ══ LETZTE AUSZAHLUNG ════════════════════════════════════ */}
       {payoutData.payout && (
@@ -1297,10 +1309,20 @@ function WeitereHerzensprojekte({ data, loading }) {
   return (
     <div style={{ marginTop:24, padding:"0 16px" }}>
       <div style={{ marginBottom:14 }}>
-        <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.022em" }}>
-          🌱 Weitere Herzensprojekte
-        </h2>
+        <div style={{ display:"flex", alignItems:"baseline",
+          justifyContent:"space-between", marginBottom:4 }}>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:900, color:T.ink,
+            letterSpacing:"-0.022em" }}>
+            🌱 Weitere Herzensprojekte
+          </h2>
+          {!loading && list.length > 4 && !expanded && (
+            <button onClick={() => setExpanded(true)} className="ip-p"
+              style={{ background:"none", border:"none", padding:0, cursor:"pointer",
+                fontSize:11, fontWeight:700, color:T.teal, flexShrink:0, marginLeft:8 }}>
+              Alle {list.length} anzeigen →
+            </button>
+          )}
+        </div>
         <p style={{ margin:0, fontSize:12.5, color:T.ink2, lineHeight:1.6 }}>
           {loading
             ? "Wird geladen…"
@@ -1344,13 +1366,153 @@ function WeitereHerzensprojekte({ data, loading }) {
   );
 }
 
+
+
+// ════════════════════════════════════════════════════════════════
+// IMPACT TIMELINE — "Impact auf einen Blick"
+// Horizontale Kette: eingereicht → Prüfung → nominiert → finanziert → in Umsetzung
+// ════════════════════════════════════════════════════════════════
+function ImpactTimeline({ transp }) {
+  if (transp.loading) return null;
+
+  const steps = [
+    {
+      icon: "📬",
+      count: transp.eingereicht,
+      label: "Eingereicht",
+      sub: "Letzte 30 Tage",
+      color: "#9CA3AF",
+    },
+    {
+      icon: "🔍",
+      count: transp.pruefung,
+      label: "In Prüfung",
+      sub: "Aktuell",
+      color: "#D97706",
+    },
+    {
+      icon: "🌱",
+      count: transp.nominiert,
+      label: "Nominiert",
+      sub: "Diesen Monat",
+      color: T.teal,
+    },
+    {
+      icon: "💚",
+      count: transp.finanziert_count,
+      label: "Finanziert",
+      sub: "Insgesamt",
+      color: "#16A34A",
+    },
+    {
+      icon: "🚀",
+      count: transp.umsetzung,
+      label: "In Umsetzung",
+      sub: "Aktuell",
+      color: "#7264D6",
+    },
+  ];
+
+  return (
+    <div style={{ margin:"24px 16px 0" }}>
+      {/* Header */}
+      <div style={{ marginBottom:14 }}>
+        <h2 style={{ margin:"0 0 3px", fontSize:20, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em" }}>Impact auf einen Blick</h2>
+        <p style={{ margin:0, fontSize:12, color:T.muted, lineHeight:1.5 }}>
+          Wie Projekte durch HUI wachsen und wirken.
+        </p>
+      </div>
+
+      {/* Timeline — horizontal scroll auf mobil */}
+      <div style={{
+        background:T.surfaceHi, borderRadius:20,
+        boxShadow:S.card, border:`1px solid ${T.line}`,
+        padding:"18px 12px",
+        overflowX:"auto",
+        WebkitOverflowScrolling:"touch",
+      }}>
+        <div style={{
+          display:"flex", alignItems:"center",
+          gap:0, minWidth:"min-content",
+        }}>
+          {steps.map((step, i) => (
+            <React.Fragment key={i}>
+              {/* Schritt */}
+              <div style={{
+                display:"flex", flexDirection:"column", alignItems:"center",
+                minWidth:62, textAlign:"center", flexShrink:0,
+              }}>
+                {/* Icon-Kreis */}
+                <div style={{
+                  width:44, height:44, borderRadius:"50%",
+                  background:`${step.color}14`,
+                  border:`1.5px solid ${step.color}35`,
+                  display:"flex", alignItems:"center",
+                  justifyContent:"center", fontSize:20,
+                  marginBottom:8,
+                  boxShadow: step.count > 0 ? `0 2px 12px ${step.color}28` : "none",
+                }}>
+                  {step.icon}
+                </div>
+                {/* Zahl */}
+                <div style={{
+                  fontSize:20, fontWeight:900, color: step.count > 0 ? step.color : T.muted,
+                  letterSpacing:"-0.03em", lineHeight:1, marginBottom:3,
+                }}>
+                  {step.count}
+                </div>
+                {/* Label */}
+                <div style={{
+                  fontSize:9, fontWeight:700, color:T.ink2, lineHeight:1.35,
+                }}>
+                  {step.label}
+                </div>
+                {/* Sub */}
+                <div style={{ fontSize:8, color:T.muted, marginTop:2 }}>
+                  {step.sub}
+                </div>
+              </div>
+
+              {/* Pfeil zwischen Schritten */}
+              {i < steps.length - 1 && (
+                <div style={{
+                  fontSize:12, color:`${T.teal}55`, flexShrink:0,
+                  padding:"0 4px", marginBottom:18,
+                }}>→</div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Hinweis-Zeile */}
+        <div style={{
+          marginTop:12, fontSize:11, color:T.muted,
+          textAlign:"center", lineHeight:1.5,
+        }}>
+          Der Impact Pool lebt und wächst — gemeinsam bewegen wir mehr. 💚
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 function GemeinsamErmoegicht({ finanziert, transp }) {
   return (
     <div style={{ padding:"20px 16px 0" }}>
-      {/* Titel */}
-      <h2 style={{ margin:"0 0 4px", fontSize:18, fontWeight:900, color:T.ink,
-        letterSpacing:"-0.02em" }}>Gemeinsam ermöglicht</h2>
+      {/* Titel + Link */}
+      <div style={{ display:"flex", alignItems:"baseline",
+        justifyContent:"space-between", marginBottom:4 }}>
+        <h2 style={{ margin:0, fontSize:18, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.02em" }}>Gemeinsam ermöglicht</h2>
+        {finanziert.length > 0 && (
+          <span style={{ fontSize:11, color:T.teal, fontWeight:700, cursor:"pointer",
+            flexShrink:0, marginLeft:8 }}>
+            Alle {finanziert.length} ansehen →
+          </span>
+        )}
+      </div>
       <p style={{ margin:"0 0 14px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
         Echte Projekte. Echte Wirkung. Durch euch.
       </p>
@@ -1412,24 +1574,37 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
               </div>
               {/* Info */}
               <div style={{ flex:1, padding:"12px 16px" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
-                  <span style={{ fontSize:13 }}>✅</span>
-                  <span style={{ fontSize:14, fontWeight:800, color:T.ink }}>{p.name}</span>
+                {/* Titel + Datum */}
+                <div style={{ marginBottom:4 }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:T.ink, lineHeight:1.3,
+                    marginBottom:1 }}>{p.name}</div>
+                  {p.distributed_at && (
+                    <div style={{ fontSize:10, color:T.muted }}>
+                      Finanziert {fmtMonth(p.distributed_at?.slice(0,7))}
+                    </div>
+                  )}
                 </div>
-                <div style={{ fontSize:12, fontWeight:700, color:T.teal,
-                  lineHeight:1.45 }}>
-                  Gemeinsam ermöglicht
-                </div>
-                {p.awarded_eur > 0 && (
-                  <div style={{ fontSize:11, color:T.muted, marginTop:1 }}>
-                    {fmtEur(p.awarded_eur)} durch die HUI-Gemeinschaft
-                  </div>
-                )}
-                {p.distributed_at && (
-                  <div style={{ fontSize:11, color:T.muted, marginTop:2 }}>
-                    {fmtMonth(p.distributed_at?.slice(0,7))}
-                  </div>
-                )}
+                {/* Wirkungszeilen aus impact_report oder Fallback */}
+                {Array.isArray(p.impact_report) && p.impact_report.length > 0
+                  ? p.impact_report.slice(0, 3).map((line, li) => (
+                    <div key={li} style={{ display:"flex", alignItems:"center", gap:5,
+                      fontSize:11, color:T.ink2, lineHeight:1.45, marginBottom:2 }}>
+                      <span style={{ color:T.teal, fontSize:10, flexShrink:0 }}>✔</span>
+                      <span>{line}</span>
+                    </div>
+                  ))
+                  : (
+                    <div style={{ fontSize:12, fontWeight:700, color:T.teal, lineHeight:1.4 }}>
+                      Gemeinsam ermöglicht
+                      {p.awarded_eur > 0 && (
+                        <span style={{ fontSize:10, color:T.muted, fontWeight:500,
+                          marginLeft:6 }}>
+                          {fmtEur(p.awarded_eur)}
+                        </span>
+                      )}
+                    </div>
+                  )
+                }
               </div>
             </div>
           ))}
