@@ -1189,7 +1189,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
           <div style={{ fontSize:14, fontWeight:700, color:T.ink, marginBottom:8 }}>
             Die ersten Projekte werden bald gemeinsam finanziert.
           </div>
-          <p style={{ margin:0, fontSize:12, color:T.ink2, lineHeight:1.65, maxWidth:280, margin:"0 auto" }}>
+          <p style={{ fontSize:12, color:T.ink2, lineHeight:1.65, maxWidth:280, margin:"0 auto" }}>
             Jeden Monat fließen Teile der HUI-Provisionen in den Impact Pool.
             Sobald die ersten Projekte finanziert wurden, erscheinen sie hier.
           </p>
@@ -1261,10 +1261,10 @@ function HerzensprojektEmotional({ onPropose }) {
         <h2 style={{ margin:"0 0 10px", fontSize:22, fontWeight:900, color:T.ink,
           letterSpacing:"-0.022em" }}>Hast du ein Herzensprojekt?</h2>
 
-        <p style={{ margin:"0 0 8px", fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300, margin:"0 auto 8px" }}>
+        <p style={{ fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300, margin:"0 auto 8px" }}>
           Kennst du etwas, das unsere Welt besser machen könnte?
         </p>
-        <p style={{ margin:"0 0 24px", fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300, margin:"0 auto 24px" }}>
+        <p style={{ fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300, margin:"0 auto 24px" }}>
           Reiche dein Projekt ein und lass die Community mitentscheiden.
         </p>
 
