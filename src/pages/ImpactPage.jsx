@@ -263,54 +263,84 @@ function useImpactActivity() {
 
   React.useEffect(() => {
     let dead = false;
-    // Initial laden
+    // Initial laden — ohne FK-JOIN (kein guaranteed FK in schema)
     (async () => {
       try {
-        const { data } = await supabase
+        const { data: votes } = await supabase
           .from("impact_votes")
-          .select("id,created_at,user_id,project_id,weight,profiles(display_name,avatar_url),impact_projects(name,status)")
+          .select("id,created_at,user_id,project_id,weight")
           .order("created_at", { ascending: false })
           .limit(10);
+        if (dead || !votes?.length) return;
+
+        // User + Projekt-Namen separat laden (kein JOIN benötigt)
+        const userIds    = [...new Set(votes.map(v => v.user_id).filter(Boolean))];
+        const projectIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
+
+        const [uRes, pRes] = await Promise.allSettled([
+          userIds.length > 0
+            ? supabase.from("profiles").select("id,display_name,avatar_url").in("id", userIds)
+            : Promise.resolve({ data: [] }),
+          projectIds.length > 0
+            ? supabase.from("impact_projects").select("id,name").in("id", projectIds)
+            : Promise.resolve({ data: [] }),
+        ]);
+
+        const users    = (uRes.status === "fulfilled" ? uRes.value.data : null) || [];
+        const projects = (pRes.status === "fulfilled" ? pRes.value.data : null) || [];
+        const userMap  = Object.fromEntries(users.map(u => [u.id, u]));
+        const projMap  = Object.fromEntries(projects.map(p => [p.id, p]));
+
         if (dead) return;
-        setActivities((data || []).map(r => ({
-          id: r.id,
+        setActivities(votes.map(v => ({
+          id: v.id,
           type: "vote",
-          userName: r.profiles?.display_name || "Jemand",
-          avatar: r.profiles?.avatar_url,
-          projectName: r.impact_projects?.name || "ein Projekt",
-          ts: r.created_at,
-          ago: relTime(r.created_at),
+          userName:    userMap[v.user_id]?.display_name || "Jemand",
+          avatar:      userMap[v.user_id]?.avatar_url   || null,
+          projectName: projMap[v.project_id]?.name      || "ein Projekt",
+          ts:  v.created_at,
+          ago: relTime(v.created_at),
         })));
-      } catch { /* silent */ }
+      } catch(e) {
+        console.warn("[IMPACT ACTIVITY]", e?.message);
+      }
     })();
 
-    // Realtime
-    const sub = supabase.channel("impact_activity")
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "impact_votes"
-      }, async (payload) => {
-        if (dead) return;
-        const v = payload.new;
-        // Lade user + projekt nach
+    // Realtime — einfaches Polling-Substitute (kein removeChannel-Bug)
+    const interval = setInterval(async () => {
+      if (dead) return;
+      try {
+        const { data: votes } = await supabase
+          .from("impact_votes")
+          .select("id,created_at,user_id,project_id,weight")
+          .order("created_at", { ascending: false })
+          .limit(5);
+        if (dead || !votes?.length) return;
+        const userIds    = [...new Set(votes.map(v => v.user_id).filter(Boolean))];
+        const projectIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
         const [uRes, pRes] = await Promise.allSettled([
-          supabase.from("profiles").select("display_name,avatar_url").eq("id", v.user_id).single(),
-          supabase.from("impact_projects").select("name").eq("id", v.project_id).single(),
+          userIds.length > 0
+            ? supabase.from("profiles").select("id,display_name,avatar_url").in("id", userIds)
+            : Promise.resolve({ data: [] }),
+          projectIds.length > 0
+            ? supabase.from("impact_projects").select("id,name").in("id", projectIds)
+            : Promise.resolve({ data: [] }),
         ]);
-        const uName = uRes.status === "fulfilled" ? uRes.value.data?.display_name : "Jemand";
-        const pName = pRes.status === "fulfilled" ? pRes.value.data?.name : "ein Projekt";
-        setActivities(prev => [{
-          id: v.id || Date.now(),
-          type: "vote",
-          userName: uName || "Jemand",
-          avatar: uRes.status === "fulfilled" ? uRes.value.data?.avatar_url : null,
-          projectName: pName || "ein Projekt",
-          ts: v.created_at || new Date().toISOString(),
-          ago: "gerade eben",
-        }, ...prev].slice(0, 12));
-      })
-      .subscribe();
+        const users    = (uRes.status === "fulfilled" ? uRes.value.data : null) || [];
+        const projects = (pRes.status === "fulfilled" ? pRes.value.data : null) || [];
+        const userMap  = Object.fromEntries(users.map(u => [u.id, u]));
+        const projMap  = Object.fromEntries(projects.map(p => [p.id, p]));
+        if (!dead) setActivities(votes.map(v => ({
+          id: v.id, type: "vote",
+          userName:    userMap[v.user_id]?.display_name || "Jemand",
+          avatar:      userMap[v.user_id]?.avatar_url   || null,
+          projectName: projMap[v.project_id]?.name      || "ein Projekt",
+          ts:  v.created_at, ago: relTime(v.created_at),
+        })));
+      } catch { /* silent */ }
+    }, 30_000); // alle 30s aktualisieren
 
-    return () => { dead = true; supabase.removeChannel(sub); };
+    return () => { dead = true; clearInterval(interval); };
   }, []);
 
   return activities;
@@ -328,19 +358,24 @@ function useLastPayout() {
       try {
         const { data } = await supabase
           .from("impact_rounds")
-          .select("id,month,pool_eur,distributed_at,winner_project_id,impact_projects(name,icon,color,category)")
+          .select("id,month,pool_eur,distributed_at,winner_project_id")
           .eq("status", "distributed")
           .order("distributed_at", { ascending: false })
           .limit(1)
           .single();
         if (dead) return;
         if (data) {
-          // Weitere Projekte die auch etwas bekommen haben
+          // Gewinner-Projekt + weitere Projekte separat laden (kein FK-JOIN)
+          const winnerRes = data.winner_project_id
+            ? await supabase.from("impact_projects").select("id,name,icon,color").eq("id", data.winner_project_id).single()
+            : { data: null };
+          const winnerProj = winnerRes.data;
+
           const { data: winners } = await supabase
             .from("impact_projects")
             .select("id,name,awarded_eur,icon")
             .eq("status", "funded")
-            .neq("id", data.winner_project_id)
+            .neq("id", data.winner_project_id || "none")
             .order("awarded_eur", { ascending: false })
             .limit(4);
           setPayout({
@@ -348,9 +383,9 @@ function useLastPayout() {
             poolEur: data.pool_eur,
             distributedAt: data.distributed_at,
             winner: {
-              name: data.impact_projects?.name || "Siegerprojekt",
-              icon: data.impact_projects?.icon || "🏆",
-              color: data.impact_projects?.color || T.teal,
+              name:  winnerProj?.name  || "Siegerprojekt",
+              icon:  winnerProj?.icon  || "🏆",
+              color: winnerProj?.color || T.teal,
             },
             winnerAmount: Math.round((data.pool_eur || 0) * 0.40),
             others: (winners || []).map(w => ({
