@@ -87,6 +87,9 @@ const MyBasisProfile = React.lazy(
 const MyTalentProfile = React.lazy(
   () => import("../../../pages/MyTalentProfile.jsx")
 );
+const MyCreatorDashboard = React.lazy(
+  () => import("../../../pages/MyCreatorDashboard.jsx")
+);
 
 // ── Spinner Fallback ─────────────────────────────────────────────
 function Spinner() {
@@ -210,21 +213,13 @@ export default function ProfileLauncher() {
     );
   }
 
-  // ── EIGENES PROFIL (Creator Dashboard / Tabbar) ───────────────
+  // ── EIGENES PROFIL — "Mein HUI" Vertrauensprofil ────────────
+  // Immer MyCreatorDashboard — das zentrale persönliche Zuhause.
+  // MyTalentProfile/MyBasisProfile sind für öffentliche Fremdprofile.
   if (showCreatorDashboard) {
-    const isSelfTalent = !!(
-      authProfile?.has_talent_profile    === true ||
-      authProfile?.role                  === "talent" ||
-      authProfile?.role                  === "wirker" ||
-      authProfile?.membership_type       === "talent"
-    );
-
-
-    const ProfileEditor = isSelfTalent ? MyTalentProfile : MyBasisProfile;
-
     return (
       <React.Suspense fallback={<Spinner />}>
-        <ProfileEditor onClose={() => setShowCreatorDashboard(false)} />
+        <MyCreatorDashboard onClose={() => setShowCreatorDashboard(false)} />
       </React.Suspense>
     );
   }
