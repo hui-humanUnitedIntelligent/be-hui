@@ -6,6 +6,9 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import WerkWizard from "../components/works/WerkWizard.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
+import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
+import { useAmbassador } from "../hooks/useAmbassador.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -1218,6 +1221,8 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
   const [loading,       setLoading]       = useState(true);
   const [mounted,       setMounted]       = useState(false);
   const isOwner = !viewerMode && !profileId;
+  const [showAmbModal, setShowAmbModal] = useState(false);
+  const ambState = useAmbassador(profile);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 30);
@@ -1237,7 +1242,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
 
         // profiles laden
         const { data: pData } = await supabase.from("profiles")
-          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type")
+          .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type,profile_modules")
           .eq("id", id).single();
         setProfile(pData || null);
 
@@ -1302,8 +1307,40 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         {/* 8. Sichtbarkeit */}
         <Sichtbarkeit profile={profile} loading={loading} isOwner={isOwner}/>
 
+        {/* 9. Ambassador */}
+        {isOwner && (
+          <>
+            <Gap/>
+            {ambState.isAmbassador ? (
+              <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
+            ) : (
+              <AmbassadorCTA
+                isAmbassador={ambState.isAmbassador}
+                isPending={ambState.isPending}
+                onApply={() => setShowAmbModal(true)}
+              />
+            )}
+          </>
+        )}
+
         <Gap h={32}/>
       </div>
+
+      {/* AMBASSADOR BEWERBUNGS-MODAL */}
+      {showAmbModal && userId && (
+        <AmbassadorModal
+          userId={userId}
+          onClose={() => setShowAmbModal(false)}
+          onSuccess={() => {
+            setShowAmbModal(false);
+            // Profil neu laden
+            supabase.from("profiles")
+              .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,focus_type,profile_modules")
+              .eq("id", userId).single()
+              .then(({ data }) => { if (data) setProfile(data); });
+          }}
+        />
+      )}
     </div>
   );
 }
