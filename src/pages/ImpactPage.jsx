@@ -168,23 +168,11 @@ const TICKS = [
 /* ────────────────────────────────────────────────────────────────────
    HERO IMAGE + CONSTANTS
 ──────────────────────────────────────────────────────────────────── */
-const HERO_IMG = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1000&q=92";
 
-const AVATARS = [
-  "https://i.pravatar.cc/40?img=1","https://i.pravatar.cc/40?img=5",
-  "https://i.pravatar.cc/40?img=12","https://i.pravatar.cc/40?img=23",
-  "https://i.pravatar.cc/40?img=45",
-];
 
 /* ────────────────────────────────────────────────────────────────────
    CSS-SHADOWS (lokales S-Objekt)
 ──────────────────────────────────────────────────────────────────── */
-const S = {
-  card:    "0 2px 20px rgba(0,0,0,0.055), 0 1px 4px rgba(0,0,0,0.030)",
-  cardHov: "0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.040)",
-  glass:   "0 8px 40px rgba(0,0,0,0.08), 0 1px 6px rgba(0,0,0,0.030), inset 0 1px 0 rgba(255,255,255,0.95)",
-  btn:     (c) => `0 4px 18px ${c}38, 0 1px 4px ${c}28`,
-};
 
 /* ────────────────────────────────────────────────────────────────────
    useImpactStats — echte Supabase-Daten für Hero
@@ -1161,9 +1149,6 @@ const STATUS_LABELS = {
   finished:  { label:"Abgeschlossen",      color:"#94A3B8" },
 };
 
-// Hilfskonstanten die T noch nicht haben (fallback)
-const T_IMPACT_TEAL = "#0DC4B5";
-const T_IMPACT_GOLD = "#D4952A";
 
 function MoreProjectsSection({ projects }) {
   const [showAll, setShowAll] = React.useState(false);
