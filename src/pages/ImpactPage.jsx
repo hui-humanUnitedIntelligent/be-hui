@@ -461,9 +461,34 @@ function ImpactPageInner({ currentUser }) {
     ? Math.max(0, Math.ceil((new Date(activeRound.voting_ends_at) - Date.now()) / 86400000))
     : null;
 
+  // DEBUG: Layout-Audit
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      const pageEl = document.querySelector('[data-impact-page]');
+      if (!pageEl) return;
+      const pageHeight    = pageEl.scrollHeight;
+      const contentHeight = pageEl.getBoundingClientRect().height;
+      const viewportHeight = window.innerHeight;
+      const extraScrollSpace = pageHeight - viewportHeight;
+      console.table({ pageHeight, contentHeight, viewportHeight, extraScrollSpace });
+      if (extraScrollSpace > 40) {
+        // Suche Ghost-Container
+        const divs = pageEl.querySelectorAll('div');
+        divs.forEach(d => {
+          const h = d.getBoundingClientRect().height;
+          const content = d.textContent?.trim();
+          if (h > 60 && !content) {
+            console.warn('[GHOST CONTAINER]', d.className || d.getAttribute('style')?.slice(0,60), 'h='+Math.round(h));
+          }
+        });
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div style={{ width:"100%", minHeight:"100svh", background:T.page,
-      fontFamily:T.ff, paddingBottom:100, overflowX:"hidden" }}>
+    <div data-impact-page style={{ width:"100%", background:T.page,
+      fontFamily:T.ff, paddingBottom:"calc(env(safe-area-inset-bottom, 0px) + 32px)", overflowX:"hidden" }}>
       <style>{`
         @keyframes ipFade    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
         @keyframes ipFadeIn  { from{opacity:0} to{opacity:1} }
