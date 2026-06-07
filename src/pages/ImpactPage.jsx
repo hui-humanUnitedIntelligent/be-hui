@@ -1065,7 +1065,7 @@ function VotingCard({ project: p, rank, userVotes, onVote, totalVotes }) {
         <button
           onClick={() => !voted && onVote(p.id)}
           style={{
-            width:"100%", border:"none", borderRadius:16,
+            width:"100%", borderRadius:16,
             padding:"12px 0", cursor: voted ? "default" : "pointer",
             background: voted
               ? `linear-gradient(135deg,${accent}15,${accent}08)`
@@ -1176,8 +1176,8 @@ function VoteStatusRow({ remainingVotes, maxVotes, isMember, usedVotes }) {
 ──────────────────────────────────────────────────────────────────── */
 const STATUS_LABELS = {
   submitted: { label:"Eingereicht",        color:"#94A3B8" },
-  reviewing: { label:"In Prüfung",         color:T_IMPACT_GOLD || "#D97706" },
-  approved:  { label:"Angenommen",         color:T_IMPACT_TEAL || "#0DC4B5" },
+  reviewing: { label:"In Prüfung",         color:"#D97706" },
+  approved:  { label:"Angenommen",         color:"#0DC4B5" },
   rejected:  { label:"Abgelehnt",          color:"#EF4444" },
   nominated: { label:"Nominiert",          color:"#7264D6" },
   funded:    { label:"Finanziert ✓",       color:"#16A34A" },
