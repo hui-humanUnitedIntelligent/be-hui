@@ -1719,7 +1719,7 @@ function useUnifiedSearch(query) {
   return {results,loading,total};
 }
 
-function ResultCol({title,emoji,items,onSelect,startIdx=0,focusedIdx=-1}){
+function ResultCol({title,emoji,items,onSelect,startIdx=0,focusedIdx=-1,onDiscover}){
   if(!items.length)return null;
   return(
     <div style={{flex:1,minWidth:0}}>
@@ -1749,7 +1749,7 @@ function ResultCol({title,emoji,items,onSelect,startIdx=0,focusedIdx=-1}){
           </div>
         ))}
         {items.length===5&&(
-          <button onClick={handleDiscover} style={{background:"none",border:"none",cursor:"pointer",
+          <button onClick={()=>onDiscover?.()} style={{background:"none",border:"none",cursor:"pointer",
             fontSize:11,color:T.teal,fontWeight:600,padding:"3px 6px",textAlign:"left"}}>
             Alle →
           </button>
@@ -2096,9 +2096,9 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
                   </div>
                 ) : (
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:14}}>
-                    <ResultCol title="Menschen"   emoji="👥" items={results.profiles}    onSelect={handleSelect} startIdx={0} focusedIdx={focusedIdx}/>
-                    <ResultCol title="Erlebnisse" emoji="📅" items={results.experiences} onSelect={handleSelect} startIdx={results.profiles.length} focusedIdx={focusedIdx}/>
-                    <ResultCol title="Werke"      emoji="🎨" items={results.works}       onSelect={handleSelect} startIdx={results.profiles.length+results.experiences.length} focusedIdx={focusedIdx}/>
+                    <ResultCol title="Menschen"   emoji="👥" items={results.profiles}    onSelect={handleSelect} startIdx={0} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
+                    <ResultCol title="Erlebnisse" emoji="📅" items={results.experiences} onSelect={handleSelect} startIdx={results.profiles.length} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
+                    <ResultCol title="Werke"      emoji="🎨" items={results.works}       onSelect={handleSelect} startIdx={results.profiles.length+results.experiences.length} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
                     <KiDiscoveryCol query={searchQuery} onHintSelect={handleKiHintSelect}/>
                   </div>
                 )}
