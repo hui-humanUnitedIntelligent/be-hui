@@ -986,6 +986,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onProfileUpdate={(updated) => {
             refreshProfile?.().catch(() => {});
           }}
+          onEditProfile={() => {
+            setShowSettings(false);
+            // Öffne Profil-Editor falls vorhanden
+            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openEditor"));
+          }}
+          onOpenBookings={() => {
+            setShowSettings(false);
+            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
+          }}
         />
       )}
 
