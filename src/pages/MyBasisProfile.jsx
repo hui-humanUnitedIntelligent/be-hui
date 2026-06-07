@@ -724,6 +724,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [localCover,  setLocalCover]  = useState(null);
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
+  const [showSettings,    setShowSettings]    = useState(false);
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
@@ -972,6 +973,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => setShowGemeinschaft(false)}
           onComplete={() => {
             setShowGemeinschaft(false);
+            refreshProfile?.().catch(() => {});
+          }}
+        />
+      )}
+
+      {/* SETTINGS MODAL */}
+      {showSettings && (
+        <SettingsModal
+          profile={profile}
+          onClose={() => setShowSettings(false)}
+          onProfileUpdate={(updated) => {
             refreshProfile?.().catch(() => {});
           }}
         />
