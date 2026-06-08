@@ -25,8 +25,7 @@ const BG_IMAGES = [
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85', // Natur tief
 ];
 
-// ── HUI Logo — neue Brand Identity ──────────────────────────────
-function HuiLogo({ size = 64, glow = true }) {
+) {
   return (
     <div style={{
       width: size, height: size, position: 'relative', flexShrink: 0,
@@ -615,17 +614,7 @@ export default function LoginPage() {
       display: 'flex', flexDirection: 'column' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
 
-      {}
-      <div style={{ position: 'relative', zIndex: 1, padding: 'max(52px,env(safe-area-inset-top,52px)) 28px 0',
-        display: 'flex', alignItems: 'center', gap: 12 }}>
-        <HuiLogo size={44} />
-        <div>
-          <div style={{ fontWeight: 900, fontSize: 20, color: T.white, letterSpacing: -0.6 }}>HUI</div>
-          <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Human United Intelligent
-          </div>
-        </div>
-      </div>
+      <div style={{ minHeight: 24 }}/>
 
       <div style={{ flex: 1 }}/>
 
