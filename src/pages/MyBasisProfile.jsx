@@ -821,7 +821,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         const { data:{ user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,role,membership_since,talent_activated_at")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,talent_activated_at,blocked")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message);
         if (data) {
@@ -1258,7 +1258,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             // Profil neu laden damit isPending sofort korrekt angezeigt wird
             try {
               const { data: freshProf } = await supabase.from("profiles")
-                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,role,membership_since,talent_activated_at")
+                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,talent_activated_at,blocked")
                 .eq("id", profile.id).single();
               if (freshProf) {
                 setProfile(freshProf);
