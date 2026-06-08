@@ -95,3 +95,21 @@ export function buildPage(query, page = 0, pageSize = PAGE_SIZE) {
   const to   = from + pageSize - 1;
   return query.range(from, to);
 }
+
+// ── Weitere Legacy-Exports (von Komponenten benötigt) ─────────
+export async function batchQueries(queries) {
+  // Führt mehrere Supabase-Queries parallel aus
+  const results = await Promise.allSettled(queries.map(q => q()));
+  return results.map(r => r.status === 'fulfilled' ? r.value : { data: null, error: r.reason });
+}
+
+export function optimizeImg(url, width = 400) {
+  if (!url) return url;
+  if (url.includes('unsplash.com')) return `${url}&w=${width}&q=80&auto=format`;
+  if (url.includes('supabase')) return url; // Supabase hat eigene Optimierung
+  return url;
+}
+
+export function normalizeProfileInput(raw) {
+  return normalizeProfile(raw);
+}
