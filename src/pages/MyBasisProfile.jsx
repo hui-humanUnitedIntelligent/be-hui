@@ -858,14 +858,48 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
   }, [setAuthProfile]);
 
+  // CSS sofort in <head> injizieren — Safari-safe, kein Blink beim Lazy-Load
+  useEffect(() => {
+    const id = "__mbp_styles__";
+    if (!document.getElementById(id)) {
+      const el = document.createElement("style");
+      el.id = id;
+      el.textContent = CSS;
+      document.head.appendChild(el);
+    }
+    return () => {
+      // Style bleibt — kein Flicker bei re-mount
+    };
+  }, []);
+
+
+  // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
+  if (loading) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, zIndex:9500,
+        background:T.bg,
+        display:"flex", alignItems:"center", justifyContent:"center",
+      }}>
+        <div style={{
+          width:36, height:36, borderRadius:"50%",
+          border:"3px solid rgba(14,196,184,0.15)",
+          borderTop:"3px solid #0EC4B8",
+          animation:"spin .8s linear infinite",
+        }}/>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
+
   return (
-    <div className="mbp-root mbp-in" style={{
+    <div className="mbp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
       display:"flex", flexDirection:"column",
     }}>
 
       
-      <style>{CSS}</style>
+{/* styles via head-inject — siehe useEffect */}
 
       {/* Save-Error-Toast */}
       {saveErrMsg ? (
