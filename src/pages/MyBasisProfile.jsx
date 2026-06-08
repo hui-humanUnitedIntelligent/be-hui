@@ -735,7 +735,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
-  const [showStudio,      setShowStudio]      = useState(false);
+  const [showStudio,        setShowStudio]        = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const ambState = useAmbassador(profile);
 
 
