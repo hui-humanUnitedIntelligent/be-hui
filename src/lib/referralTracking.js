@@ -142,7 +142,7 @@ async function _assignReferral(newUserId, ambassadorId, refCode, ambPm, amb) {
  * Ref-Link-Eintrag fuer neuen Ambassador anlegen (bei Annahme der Bewerbung).
  */
 export async function createRefLinkForAmbassador(userId, username, referralCode) {
-  const refLink = `https://be-hui.com/\${username}`;
+  const refLink = `https://be-hui.com/${username}`;
   const { error } = await supabase
     .from('ambassador_ref_links')
     .upsert({ user_id: userId, username, ref_link: refLink, referral_code: referralCode },
