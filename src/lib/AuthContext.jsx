@@ -54,11 +54,14 @@ export function AuthProvider({ children }) {
 
       if (!prof && error?.code === "PGRST116") {
         // Profil existiert noch nicht → anlegen
+        // ── Neues Profil anlegen — NUR Minimalfelder, keine Überschreibung bestehender Werte ──
+        // onConflict: "id" + ignoreDuplicates: true → INSERT nur wenn wirklich neu
         const { data: newProf } = await withTimeout(
-          supabase.from("profiles").upsert({
-            id: userId, display_name: "", role: "basis_user",
-            is_wirker: false, has_talent_profile: false, profile_modules: {},
-          }).select().single(), 6000
+          supabase.from("profiles").upsert(
+            { id: userId, role: "basis_user", is_wirker: false,
+              has_talent_profile: false, profile_modules: {} },
+            { onConflict: "id", ignoreDuplicates: true }
+          ).select(PROFILE_FIELDS).single(), 6000
         );
         if (newProf) setProfile(newProf);
         return;
