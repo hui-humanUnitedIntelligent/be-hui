@@ -773,6 +773,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // isTalent: Prüfe BEIDE Quellen — authContextProfile (primär) + lokaler profile-State (Fallback)
   // Verhindert Race-Condition wenn AuthContext noch nicht geladen
   const _checkTalent = (p) => !!(
+    p?.is_talent === true ||           // persistentes Feld — primäre Quelle (Aufgabe 31)
     (p?.membership_type === "talent" && p?.membership_active === true) ||
     p?.membership_type === "guardian" ||
     p?.membership_type === "team"
@@ -820,8 +821,22 @@ export default function MyBasisProfile({ onClose, profileId }) {
       try {
         const { data:{ user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
+        // ── Race-Condition-Guard: AuthContext-Profil bevorzugen wenn frisch geladen ──
+        // Verhindert unnötigen zweiten DB-Call und State-Flip durch veraltete Daten
+        if (authContextProfile?.id === user.id && authContextProfile?.membership_type) {
+          setProfile(authContextProfile);
+          setBio(s(authContextProfile.bio));
+          const ni = Array.isArray(authContextProfile.skills) ? authContextProfile.skills : [];
+          setInterests(ni);
+          setOpenFor(Array.isArray(authContextProfile.profile_modules?.open_for)
+            ? authContextProfile.profile_modules.open_for : []);
+          if (authContextProfile.focus_type && ["public","connections","private"]
+            .includes(authContextProfile.focus_type)) setVisibility(authContextProfile.focus_type);
+          setLoading(false);
+          return; // AuthContext-Daten sind ausreichend frisch — kein zweiter DB-Call nötig
+        }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,talent_activated_at,blocked")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message);
         if (data) {
@@ -1258,7 +1273,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             // Profil neu laden damit isPending sofort korrekt angezeigt wird
             try {
               const { data: freshProf } = await supabase.from("profiles")
-                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,talent_activated_at,blocked")
+                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
                 .eq("id", profile.id).single();
               if (freshProf) {
                 setProfile(freshProf);
