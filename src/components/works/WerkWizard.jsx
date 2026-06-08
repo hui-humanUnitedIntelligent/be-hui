@@ -483,7 +483,10 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       location_text: form.abholort     || null,
       visibility:   form.sichtbarkeit  || "public",
       status,
-      updated_at:   new Date().toISOString(),
+      // Beim Einreichen: nie direkt veröffentlichen
+      published: status === "published" ? true : false,
+      visible:   status === "published" ? true : false,
+      updated_at: new Date().toISOString(),
     };
 
     console.log("[SAVE WERK] PRE-INSERT payload:", JSON.stringify({
@@ -508,12 +511,11 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     }
     console.log("[SAVE WERK] success:", saved?.id, "status:", status);
     onSaved?.(saved);
+    onSave?.(saved);   // Alias für MyBasisProfile/MyTalentProfile reload
     // Bei pending_review: kurze Bestätigung zeigen, dann schließen
     if (status === "pending_review") {
       setSaveError(null);
-      // Zeige Bestätigungs-Toast (nutze saveError-State als Info-Banner)
-      // Schließe nach 2s
-      setTimeout(() => { onClose?.(); }, 2000);
+      setTimeout(() => { onClose?.(); }, 1800);
     } else {
       onClose?.();
     }
@@ -656,7 +658,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
           </button>
         )}
         {isLast && (
-          <button onClick={()=>save("published")} disabled={saving} style={{
+          <button onClick={()=>save("pending_review")} disabled={saving} style={{
             flex:2, padding:"15px",
             background:saving
               ? "rgba(14,196,184,0.32)"
