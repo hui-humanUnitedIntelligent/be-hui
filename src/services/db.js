@@ -11,7 +11,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
-import { safeQuery, cachedQuery, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
+import { safeQuery, cachedQuery, clearQueryCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 const F = {
@@ -57,7 +57,6 @@ export const ProfileService = {
     );
     if (!error) {
       // Invalidate cache
-      const { clearQueryCache } = await import('../lib/perfUtils');
       clearQueryCache(`profile:${id}`);
     }
     return { data, error };
@@ -137,7 +136,6 @@ export const TalentService = {
         .eq('user_id', userId).select(F.wirker).single()
     );
     if (!error) {
-      const { clearQueryCache } = await import('../lib/perfUtils');
       clearQueryCache(`talent:${userId}`);
     }
     return { data, error };
