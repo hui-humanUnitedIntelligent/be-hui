@@ -180,7 +180,7 @@ function GhostBtn({ children, onClick, style: extStyle }) {
       onClick={onClick}
       style={{
         width: '100%',
-        padding: '16px',
+        padding: '11px',
         background: 'rgba(255,255,255,0.08)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
@@ -600,7 +600,7 @@ export default function LoginPage() {
         <HuiLogo size={44} />
         <div>
           <div style={{ fontWeight: 900, fontSize: 20, color: T.white, letterSpacing: -0.6 }}>HUI</div>
-          <div style={{ fontSize: 11, color: T.muted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 9, color: T.muted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Human United Intelligent
           </div>
         </div>
@@ -728,7 +728,7 @@ export default function LoginPage() {
                 display: 'block',
               }}
             />
-          <div style={{ marginTop: 8, fontSize: 11, color: T.muted, letterSpacing: '0.08em',
+          <div style={{ marginTop: 8, fontSize: 9, color: T.muted, letterSpacing: '0.08em',
             textTransform: 'uppercase' }}>Human United Intelligent</div>
         </div>
 
@@ -815,7 +815,7 @@ export default function LoginPage() {
 
             {/* REF-LINK — nur bei Registrierung sichtbar */}
             {mode === 'register' && (
-              <div style={{ marginTop: 10 }}>
+              <div style={{ marginTop: 8 }}>
                 <GlassInput
                   type="text"
                   value={refLink}
