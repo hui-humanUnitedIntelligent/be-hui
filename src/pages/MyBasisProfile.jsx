@@ -1234,6 +1234,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const _auth = useAuth() || {};
   const authContextProfile = _auth.profile ?? null;
   const loadingAuth        = _auth.loadingAuth ?? false;
+  const loadingProfile     = _auth.loadingProfile ?? false;
   const setAuthProfile     = _auth.setProfile ?? null;
   const refreshProfile     = _auth.refreshProfile ?? null;
   // isTalent: STRIKT — nur aktive Talent-Mitgliedschaft gilt
@@ -1488,6 +1489,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
     // localCover State reicht — profile kommt aus authContextProfile
     setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
   }, [setAuthProfile]);
+
+  // Warte bis Profil geladen — nie leer rendern
+  if (!authContextProfile && (loadingAuth || loadingProfile)) {
+    return (
+      <div style={{ position:"fixed", inset:0, zIndex:9500,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        background:"#F6F6F0" }}>
+        <div style={{ width:40, height:40, borderRadius:"50%",
+          border:"3px solid #E0F7F5", borderTopColor:"#16D7C5",
+          animation:"spin 0.8s linear infinite" }}/>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="mbp-root" style={{
