@@ -448,10 +448,12 @@ export default function LoginPage() {
 
         // 2. Referral-Tracking: Wer hat diesen Nutzer eingeladen?
         await supabase.from('ambassador_revenue').insert({
-          ambassador_id: refResult.ambassadorId,
-          referred_user_id: newUserId,
-          event_type:    'signup',
-          created_at:    new Date().toISOString(),
+          ambassador_user_id: refResult.ambassadorId,
+          referred_user_id:   newUserId,
+          transaction_id:     'signup_' + newUserId.slice(0, 8),
+          amount_total:       0,
+          impact_share:       0,
+          ambassador_share:   0,
         }).catch(() => {}); // Fehler ignorieren — Registrierung nicht blockieren
 
         // 3. referrals_count +1 beim Ambassador
