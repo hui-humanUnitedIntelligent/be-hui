@@ -795,8 +795,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
     if (!profile?.id) return;
     setWorksLoading(true);
     supabase.from("works")
-      .select("id,title,status,published,visible,created_at,media_urls,price,currency,category")
+      .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
       .eq("user_id", profile.id)
+      .not("status", "in", '("archived","deleted")')
       .order("created_at", { ascending: false })
       .limit(50)
       .then(({ data }) => {
@@ -992,8 +993,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
             if (!profile?.id) return;
             setWorksLoading(true);
             supabase.from("works")
-              .select("id,title,status,published,visible,created_at,media_urls,price,currency,category")
+              .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
               .eq("user_id", profile.id)
+              .not("status","in",'("archived","deleted")')
               .order("created_at",{ascending:false}).limit(50)
               .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
           }}
@@ -1056,8 +1058,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
             setShowWizard(false);
             // Werke neu laden
             supabase.from("works")
-              .select("id,title,status,published,visible,created_at,media_urls,price,currency,category")
+              .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
               .eq("user_id", profile.id)
+              .not("status","in",'("archived","deleted")')
               .order("created_at",{ascending:false}).limit(50)
               .then(({data}) => setWorks(data||[]));
           }}
@@ -1183,9 +1186,14 @@ function WerkStatusBadge({ status }) {
 }
 
 function WerkCard({ werk }) {
-  const thumb = Array.isArray(werk.media_urls) && werk.media_urls.length > 0
-    ? (werk.media_urls[0]?.url || werk.media_urls[0])
-    : null;
+  // Thumbnail: cover_url → images[0] → media_urls[0]
+  const thumb = werk.cover_url
+    || (Array.isArray(werk.images) && werk.images.length > 0
+        ? (werk.images[0]?.url || werk.images[0])
+        : null)
+    || (Array.isArray(werk.media_urls) && werk.media_urls.length > 0
+        ? (werk.media_urls[0]?.url || werk.media_urls[0])
+        : null);
   return (
     <div style={{
       display:"flex", alignItems:"center", gap:12,
