@@ -79,9 +79,9 @@ const CSS = `
   .mtp-sheet {
     width:100%;background:#FFFFFF;
     border-radius:20px 20px 0 0;
-    padding:24px 20px max(28px,calc(20px + env(safe-area-inset-bottom,0px)));
+    padding:24px 20px max(80px,calc(72px + env(safe-area-inset-bottom,0px)));
     animation:mtp-up .24s cubic-bezier(.22,1,.36,1) both;
-    max-height:82vh;overflow-y:auto;box-sizing:border-box;
+    max-height:85vh;overflow-y:auto;box-sizing:border-box;
   }
 `;
 
