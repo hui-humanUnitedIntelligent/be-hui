@@ -723,8 +723,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
-  // Verhindert TDZ und supabase-Fehler bei profile=null
-  const ambState = useAmbassador(profile ?? null);
 
 
   useEffect(()=>{
