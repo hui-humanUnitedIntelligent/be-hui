@@ -122,9 +122,10 @@ export default function AmbassadorSection({ ambassadorData }) {
     ? rawLink
     : "";
   const refCode  = ambassadorData.referral_code || null;
-  const refs     = Number(ambassadorData.referral_count)          || 0;
-  const active   = Number(ambassadorData.active_referral_count)   || 0;
-  const sleeping = Number(ambassadorData.sleeping_referral_count) || 0;
+  // Live-Counter aus echten DB-Abfragen (Fallback: ambassadorData)
+  const refs     = liveTotal    > 0 ? liveTotal    : (Number(ambassadorData.referral_count)          || 0);
+  const active   = liveTotal    > 0 ? liveActive   : (Number(ambassadorData.active_referral_count)   || 0);
+  const sleeping = liveTotal    > 0 ? liveSleeping : (Number(ambassadorData.sleeping_referral_count) || 0);
   const revenue  = Number(ambassadorData.revenue_generated)       || 0;
 
   const { referrals, loading: refLoading } = useReferrals(listView ? refCode : null);
