@@ -1,6 +1,7 @@
-// src/lib/ambassadorUtils.js
-// ── HUI Ambassador — Zentrale Logik (App + Admin nutzen dieselben Regeln) ──
-// WICHTIG: Nur diese Datei für Level-Grenzen und Reward-Sätze ändern.
+// src/lib/ambassadorUtils.js — HUI Ambassador Logik
+// VERIFIZIERT: Nur echte DB-Tabellen und Spalten (Stand 2026-06-08)
+// Tabellen: ambassadors_applications, ambassador_ref_links
+// Spalte: profiles.is_ambassador (boolean), profiles.profile_modules
 
 // ── Level-Grenzen ─────────────────────────────────────────────
 export const LEVEL_THRESHOLDS = {
@@ -12,14 +13,13 @@ export const LEVEL_THRESHOLDS = {
 
 // ── Reward-Sätze pro Level ────────────────────────────────────
 export const AMBASSADOR_REWARD_RATES = {
-  bronze:   0.01,  // 1 %
-  silver:   0.02,  // 2 %
-  gold:     0.03,  // 3 %
-  platinum: 0.04,  // 4 %
+  bronze:   0.01,
+  silver:   0.02,
+  gold:     0.03,
+  platinum: 0.04,
 };
 
-// ── Impact-Pool-Rate (unveränderlich) ─────────────────────────
-export const IMPACT_POOL_RATE = 0.15; // 15 %
+export const IMPACT_POOL_RATE = 0.15;
 
 // ── Level-Labels ──────────────────────────────────────────────
 export const LEVEL_CONFIG = {
@@ -38,7 +38,6 @@ export function calcLevel(referralsCount = 0) {
   return 'bronze';
 }
 
-// ── Reward-Betrag berechnen ───────────────────────────────────
 export function calcReward(amountTotal, level) {
   const rate = AMBASSADOR_REWARD_RATES[level] ?? AMBASSADOR_REWARD_RATES.bronze;
   return {
@@ -48,36 +47,38 @@ export function calcReward(amountTotal, level) {
   };
 }
 
-// ── Ambassador-Status direkt aus profiles-Spalten lesen ─────────────
-// EINZIGE QUELLE: profiles.is_ambassador (boolean)
-// NICHT: profile_modules.ambassador
-
+// ── Status-Checks (aus profiles.is_ambassador + profile_modules) ─
 export function isActiveAmbassador(profile) {
   return profile?.is_ambassador === true;
 }
 
-// Prüft ob Bewerbung läuft — basiert auf ambassador_applications Status im Profil
-// Wir speichern den pending-Status in profiles.profile_modules.ambassador.status
-// als kurzfristigen Cache — der echte Stand kommt aus ambassador_applications
-export function hasPendingApplication(profile) {
-  const status = profile?.profile_modules?.ambassador?.status;
-  return status === 'pending' || status === 'offen';
-}
-
+// Status kommt aus ambassadors_applications.status ODER profile_modules.ambassador.status
+// Werte: 'offen' | 'angenommen' | 'abgelehnt' | 'widerrufen' | null
 export function getAmbassadorStatus(profile) {
   return profile?.profile_modules?.ambassador?.status || null;
 }
 
-// Kann der User sich bewerben?
-export function canApplyAsAmbassador(profile) {
-  if (isActiveAmbassador(profile)) return false;
-  const status = profile?.profile_modules?.ambassador?.status;
-  const blocking = ['pending', 'offen'];
-  return !blocking.includes(status);
+export function hasPendingApplication(profile) {
+  const status = getAmbassadorStatus(profile);
+  return status === 'offen' || status === 'pending';
 }
 
-// Legacy-Alias (für Komponenten die getAmbassadorData noch nutzen)
-export function getAmbassadorData(profile) {
-  if (!profile) return null;
-  return profile.profile_modules?.ambassador || null;
+export function canApplyAsAmbassador(profile) {
+  if (isActiveAmbassador(profile)) return false;
+  const status = getAmbassadorStatus(profile);
+  return status !== 'offen' && status !== 'pending';
+}
+
+// Statistiken: aus profile_modules.ambassador (kein eigenes ambassador-Spalten in profiles)
+export function getAmbStats(profile) {
+  const amb = profile?.profile_modules?.ambassador || {};
+  return {
+    referral_count:          Number(amb.referral_count)          || 0,
+    active_referral_count:   Number(amb.active_referral_count)   || 0,
+    sleeping_referral_count: Number(amb.sleeping_referral_count) || 0,
+    revenue_total:           Number(amb.revenue_total)           || 0,
+    referral_code:           amb.referral_code                   || null,
+    link_active:             amb.link_active                     !== false,
+    level:                   amb.level                           || 'bronze',
+  };
 }
