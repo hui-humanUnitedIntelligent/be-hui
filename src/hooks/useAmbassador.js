@@ -12,7 +12,7 @@ export function useAmbassador(profile) {
   const ambStatus = getAmbassadorStatus(profile);
 
   // Level: aus profiles.ambassador_level, Fallback 'bronze'
-  const level    = profile?.ambassador_level || (isAmb ? 'bronze' : null);
+  const level    = profile?.ambassador_level || amb?.level || (isAmb ? 'bronze' : null);
   const levelCfg = level ? LEVEL_CONFIG[level] : null;
 
   // Ref-Link: aus profiles.ref_link, Fallback berechnet aus username
@@ -46,12 +46,10 @@ export function useAmbassador(profile) {
     || profile?.ref_link
     || (safeUsername ? ("https://be-hui.com/" + safeUsername) : null);
 
-  // Statistiken direkt aus profiles-Spalten
-  const referralsCount   = Number(profile?.referred_users_count) || 0;
-  const revenueTotal     = Number(profile?.impact_revenue)       || 0;
-
-  // ambassador_applications — für detailliertere Referral-Daten
+  // Statistiken — aus profile_modules.ambassador (profiles-Spalten existieren noch nicht)
   const amb = profile?.profile_modules?.ambassador || null;
+  const referralsCount    = Number(amb?.referral_count ?? profile?.referred_users_count) || 0;
+  const revenueTotal      = Number(amb?.revenue_total  ?? profile?.impact_revenue)       || 0;
   const activeReferrals   = Number(amb?.active_referral_count)   || 0;
   const sleepingReferrals = Number(amb?.sleeping_referral_count) || 0;
 
