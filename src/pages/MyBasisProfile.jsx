@@ -726,7 +726,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
-  const ambState = useAmbassador(profile);  // Nach States: profile ist jetzt null (nicht undefined)
+  // useAmbassador erst NACH Profil-Load aufrufen (null-safe)
+  // Verhindert TDZ und supabase-Fehler bei profile=null
+  const ambState = useAmbassador(profile ?? null);
 
 
   useEffect(()=>{
