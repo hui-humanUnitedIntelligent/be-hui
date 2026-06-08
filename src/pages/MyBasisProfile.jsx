@@ -940,7 +940,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
             avatar_url: localAvatar || profile?.avatar_url,
             header_img: localCover  || profile?.header_img,
           }}
-          onSettings={() => setShowStudio(true)}
+          onSettings={() => setShowSettings(true)}
+          onBell={() => setShowNotifications(v => !v)}
+          onStudio={() => setShowStudio(true)}
           onAvatarChange={handleAvatarChange}
           onCoverChange={handleCoverChange}
         />
@@ -1151,9 +1153,41 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {/* ── 6. SICHTBARKEIT ──────────────────────────────── */}
         <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
 
-        {/* TalentErweiterung → HUI Studio */}
+        {/* ── WERKE / STIMMEN / PROJEKTE (Mitte des Profils) ─── */}
+        <Gap h={20}/>
+        <Divider/>
+        <Gap h={20}/>
+        <div style={{ padding:"0 20px" }}>
+          <SectionRow title="Meine Welt" />
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+            {[
+              { emoji:"🎨", label:"Werke",    count: profile?.werke_count    || 0 },
+              { emoji:"🗳️", label:"Stimmen",  count: profile?.stimmen_count  || 0 },
+              { emoji:"🚀", label:"Projekte", count: profile?.projekte_count || 0 },
+            ].map(({ emoji, label, count }) => (
+              <div key={label} style={{
+                background:T.bgCard, borderRadius:T.r16,
+                border:`1px solid ${T.border}`, padding:"14px 10px",
+                textAlign:"center", boxShadow:T.card,
+              }}>
+                <div style={{ fontSize:22, marginBottom:4 }}>{emoji}</div>
+                <div style={{ fontSize:20, fontWeight:800, color:T.teal }}>{count}</div>
+                <div style={{ fontSize:11, color:T.inkFaint, marginTop:2 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-                {/* Ambassador → HUI Studio */}
+        {/* ── AMBASSADOR-BEREICH (unten im Profil) ─────────────── */}
+        <Gap h={20}/>
+        <Divider/>
+        <Gap h={20}/>
+        <AmbassadorProfilSection
+          profile={profile}
+          ambState={ambState}
+          onApply={() => setShowAmbModal(true)}
+        />
+
         <Gap h={40}/>
       </div>
 
