@@ -299,7 +299,7 @@ export default function SettingsModal({ profile, onClose, onProfileUpdate, onOpe
   };
 
   const overlay = {
-    position:"fixed", inset:0, zIndex:9000,
+    position:"fixed", inset:0, zIndex:10200,
     background:"rgba(10,10,8,0.55)", backdropFilter:"blur(4px)",
     display:"flex", alignItems:"flex-end", justifyContent:"center",
   };
