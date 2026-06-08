@@ -71,7 +71,7 @@ const CSS = `
   }
   .mtp-add:active { background:rgba(26,26,24,0.03); }
   .mtp-overlay {
-    position:fixed;inset:0;z-index:9800;
+    position:fixed;inset:0;z-index:10300;
     background:rgba(0,0,0,0.38);
     display:flex;align-items:flex-end;
   }
