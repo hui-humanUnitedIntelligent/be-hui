@@ -42,7 +42,7 @@ const CSS = `
     50%      { transform:scale(1.04); }
   }
   .gf-root {
-    position:fixed; inset:0; z-index:10600;
+    position:fixed; inset:0; z-index:19999;
     background:rgba(26,26,24,0.55);
     display:flex; align-items:flex-end; justify-content:center;
     -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
@@ -53,7 +53,10 @@ const CSS = `
     border-radius:28px 28px 0 0;
     overflow:hidden;
     animation: gf-scale-in .32s cubic-bezier(.22,1,.36,1) both;
-    max-height:94dvh; display:flex; flex-direction:column;
+    max-height:calc(92dvh - env(safe-area-inset-bottom, 0px));
+    display:flex; flex-direction:column;
+    margin-bottom:env(safe-area-inset-bottom, 0px);
+    padding-bottom: 72px;
   }
   .gf-scroll {
     flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
