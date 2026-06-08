@@ -1256,12 +1256,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
     p?.membership_type === "team"
   );
   const [profile,    setProfile]    = useState(null);
+  // isTalent: IMMER aus AuthContext — niemals aus lokalem profile-State
+  // AuthContext.profile ist die einzige Wahrheitsquelle für Membership-Status
   const isTalent = !!(
-    authContextProfile?.is_talent === true ||   // direkte DB-Quelle — primär
-    profile?.is_talent === true ||              // lokaler State — Fallback
-    _checkTalent(authContextProfile) ||         // membership_type-Check
-    _checkTalent(profile) ||                    // lokaler membership_type
-    _auth.isTalent === true                     // AuthContext-Calc — letzter Tiebreaker
+    _auth.isTalent === true ||                  // AuthContext-Calc (primär, immer aktuell)
+    authContextProfile?.is_talent === true ||   // direktes DB-Feld aus AuthContext
+    authContextProfile?.membership_type === "talent"  // membership_type-Check
   );
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
