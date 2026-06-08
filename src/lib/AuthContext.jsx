@@ -64,15 +64,7 @@ export function AuthProvider({ children }) {
 
       if (prof) {
         setProfile(prof);
-        if (prof.has_talent_profile) localStorage.setItem("hui_talent", "1");
-        if (prof.is_member) localStorage.setItem("hui_is_member", "1");
-        if (prof.membership_type) localStorage.setItem("hui_membership_type", prof.membership_type);
-        if (prof.is_wirker) {
-          const { data: wp } = await withTimeout(
-            supabase.from("wirker_profiles").select(FIELDS.wirker).eq("user_id", userId).single(), 6000
-          );
-          // wirkerProfile removed
-        }
+        // is_talent wird direkt aus prof geladen — kein localStorage nötig
       }
     } catch (e) {
       console.warn("[HUI] loadProfile:", e.message);
@@ -448,7 +440,6 @@ export function AuthProvider({ children }) {
     signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
     loadProfile, saveProfile, refreshProfile, becomeWirker,
     activateMembership,
-    activateTalentProfile,
     setProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
