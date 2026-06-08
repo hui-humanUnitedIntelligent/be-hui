@@ -983,21 +983,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Divider/>
         <Gap h={20}/>
 
-        {/* AMBASSADOR */}
-        {ambState.isAmbassador ? (
-          <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
-        ) : (
-          <AmbassadorCTA
-            isAmbassador={ambState.isAmbassador}
-            isPending={ambState.isPending}
-            ambassadorStatus={(profile?.profile_modules?.ambassador?.status) || null}
-            onApply={() => setShowAmbModal(true)}
-          />
-        )}
-        <Gap h={40}/>
-        <Divider/>
-        <Gap h={20}/>
-
         {/* MEINE WERKE */}
         <MeineWerkeSection
           works={works}
@@ -1013,6 +998,21 @@ export default function MyBasisProfile({ onClose, profileId }) {
               .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
           }}
         />
+        <Gap h={40}/>
+        <Divider/>
+        <Gap h={20}/>
+
+        {/* AMBASSADOR */}
+        {ambState.isAmbassador ? (
+          <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
+        ) : (
+          <AmbassadorCTA
+            isAmbassador={ambState.isAmbassador}
+            isPending={ambState.isPending}
+            ambassadorStatus={(profile?.profile_modules?.ambassador?.status) || null}
+            onApply={() => setShowAmbModal(true)}
+          />
+        )}
         <Gap h={40}/>
       </div>
 
