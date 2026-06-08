@@ -525,8 +525,8 @@ export function AuthProvider({ children }) {
     signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
     loadProfile, saveProfile, refreshProfile, becomeWirker,
     activateMembership,
-    saveWirkerProfile, activateTalentProfile,
-    setProfile, setWirkerProfile,
+    activateTalentProfile,
+    setProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [user, profile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
