@@ -13,6 +13,7 @@ import AmbassadorSection, { AmbassadorCTA } from "../components/ambassador/Ambas
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
+import HuiStudio       from "../components/studio/HuiStudio.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -734,6 +735,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
+  const [showStudio,      setShowStudio]      = useState(false);
   const ambState = useAmbassador(profile);
 
 
@@ -938,7 +940,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             avatar_url: localAvatar || profile?.avatar_url,
             header_img: localCover  || profile?.header_img,
           }}
-          onSettings={() => setShowSettings(true)}
+          onSettings={() => setShowStudio(true)}
           onAvatarChange={handleAvatarChange}
           onCoverChange={handleCoverChange}
         />
@@ -1151,30 +1153,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         {/* TalentErweiterung → HUI Studio */}
 
-        {/* ── AMBASSADOR-SEKTION: nur wenn Profil aus DB geladen ─── */}
-        {profile && (
-          <>
-            <Gap h={24}/>
-            <Divider/>
-            <Gap h={16}/>
-            <div style={{ padding: "0 16px" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(26,26,24,0.45)",
-                letterSpacing: "0.06em", marginBottom: 12 }}>
-                AMBASSADOR
-              </div>
-            </div>
-            {profile?.is_ambassador ? (
-              <AmbassadorSection ambassadorData={ambState.ambassadorData} userId={profile?.id} />
-            ) : (
-              <AmbassadorCTA
-                isAmbassador={false}
-                isPending={ambState.isPending}
-                ambassadorStatus={ambState.ambassadorStatus}
-                onApply={() => setShowAmbModal(true)}
-              />
-            )}
-          </>
-        )}
+                {/* Ambassador → HUI Studio */}
         <Gap h={40}/>
       </div>
 
@@ -1207,6 +1186,19 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onOpenBookings={() => {
             setShowSettings(false);
             if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
+          }}
+        />
+      )}
+
+      {/* HUI STUDIO MODAL */}
+      {showStudio && (
+        <HuiStudio
+          profile={profile}
+          onClose={() => setShowStudio(false)}
+          onProfileUpdate={(upd) => {
+            setProfile(p => ({ ...p, ...upd }));
+            setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
+            refreshProfile?.().catch(() => {});
           }}
         />
       )}
