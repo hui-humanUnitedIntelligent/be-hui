@@ -1085,8 +1085,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
 
         {/* GEMEINSCHAFT BEITRETEN */}
-        {/* GemeinschaftsKarte: nur wenn Profil GELADEN und Nutzer noch kein Talent */}
-        {!loading && !loadingAuth && !isTalent && (
+        {/* GemeinschaftsKarte: nur wenn Profil vollständig geladen und Nutzer kein Talent */}
+        {profile && !isTalent && (
           <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
         )}
         <Gap h={24}/>
@@ -1112,7 +1112,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
 
         {/* ══ TALENT-DASHBOARD — nur wenn isTalent ══ */}
-        {isTalent && (
+        {profile && isTalent && (
           <>
             {/* Divider + Talent-Header */}
             <div style={{ padding:"0 20px", marginBottom:4 }}>
