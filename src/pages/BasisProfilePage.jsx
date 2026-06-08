@@ -17,6 +17,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
+import { useHome }   from "../components/home/HomeShell.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
@@ -521,10 +522,10 @@ function SichtbarkeitSection({ profile, loading }) {
 // SOCIAL CONTEXT BAR — 3 soft columns: Verbindungen · Begegnungen · Momente
 // ══════════════════════════════════════════════════════════════════
 function SocialContextBar({ loading, followCounts }) {
+  // P4: Nur echte Daten — hardcoded Begegnungen/Momente entfernt
   const stats = [
-    { icon:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Follower" },
-    { icon:"🤝", value:"8",  label:"Gemeinsame Begegnungen" },
-    { icon:"💬", value:"6",  label:"Gemeinsame Momente"     },
+    { icon:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Followers" },
+    { icon:"🤝", value: loading ? "–" : String(followCounts?.following ?? 0), label:"Folgt"     },
   ];
 
   return (
@@ -616,6 +617,18 @@ export default function BasisProfilePage({ profileId, onClose }) {
 
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
+  // P3: Chat-Einstieg via ChatCenterOverlay — identisch zu TalentProfilePage
+  const { setShowChat, setChatRecipient } = useHome() || {};
+  const handleOpenChat = useCallback(() => {
+    if (!profile?.id || !setShowChat) return;
+    setChatRecipient?.({
+      id:           profile.id,
+      display_name: profile.display_name || profile.username || "Mitglied",
+      avatar_url:   profile.avatar_url || null,
+    });
+    setShowChat(true);
+  }, [profile, setChatRecipient, setShowChat]);
+
   return (
     <div className="bpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -628,6 +641,23 @@ export default function BasisProfilePage({ profileId, onClose }) {
 
       {/* Sticky header */}
       <ProfileHeader onBack={handleBack}/>
+
+      {/* P3: Chat-Button — CCO Standard, nur wenn Profil geladen */}
+      {profile && !loading && (
+        <div style={{ position:"absolute", top:12, right:52, zIndex:10001 }}>
+          <button
+            className="bpp-press"
+            onClick={handleOpenChat}
+            style={{
+              width:38, height:38, borderRadius:"50%",
+              background:"#0EC4B8", border:"none", cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              boxShadow:"0 2px 10px rgba(14,196,184,0.35)",
+              touchAction:"manipulation",
+            }}
+          ><span style={{fontSize:17}}>💬</span></button>
+        </div>
+      )}
 
       {/* Scrollable body */}
       <div className="bpp-scroll" style={{ flex:1, overflowY:"auto",
