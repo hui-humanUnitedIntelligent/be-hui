@@ -53,9 +53,11 @@ export function AuthProvider({ children }) {
         const { data: newProf } = await withTimeout(
           supabase.from("profiles").upsert({
             id: userId,
-            display_name: "",
+            display_name: null,   // null statt "" damit needsSetup-Check greift
+            username: null,       // sicher null
             is_talent: false,
             is_ambassador: false,
+            profile_complete: false,
           }).select().single(), 6000
         );
         if (newProf) setProfile(newProf);
