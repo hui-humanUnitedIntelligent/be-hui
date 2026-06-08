@@ -446,14 +446,13 @@ export default function LoginPage() {
           .update({ referred_by_ambassador_id: refResult.ambassadorId })
           .eq('id', newUserId);
 
-        // 2. ambassador_ref_links Eintrag erstellen
-        await supabase.from('ambassador_ref_links').insert({
+        // 2. Referral-Tracking: Wer hat diesen Nutzer eingeladen?
+        await supabase.from('ambassador_revenue').insert({
           ambassador_id: refResult.ambassadorId,
-          user_id:       newUserId,
-          username:      refResult.username,
-          ref_link:      refLink.trim(),
+          referred_user_id: newUserId,
+          event_type:    'signup',
           created_at:    new Date().toISOString(),
-        });
+        }).catch(() => {}); // Fehler ignorieren — Registrierung nicht blockieren
 
         // 3. referrals_count +1 beim Ambassador
         await supabase.rpc('increment_referrals', { ambassador_uuid: refResult.ambassadorId })
