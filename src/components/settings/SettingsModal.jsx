@@ -3,6 +3,7 @@
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
 // + Name | E-Mail | Telefon | Passwort ändern
 import { useState, useCallback } from "react";
+import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -139,7 +140,8 @@ function NameBlock({ profile, onProfileUpdate }) {
 
 // ── Block: E-Mail ─────────────────────────────────────────────
 function EmailBlock({ profile, onProfileUpdate }) {
-  const [email, setEmail] = useState(profile?.email || "");
+  const { profile: authProfile } = useAuth() || {};
+  const [email, setEmail] = useState(authProfile?.email || profile?.email || "");
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
   const [error,  setError]  = useState(null);
