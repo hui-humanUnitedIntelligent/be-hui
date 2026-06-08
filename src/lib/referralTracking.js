@@ -88,10 +88,18 @@ export async function deleteRefLink(userId) {
 // profiles.referred_by = referral_code (string)
 // profiles.referred_by_ambassador_id = ambassador user_id (uuid)
 export async function processReferralAfterSignup(newUserId, manualUsername = null) {
-  const username = manualUsername || getStoredReferral();
+  // Gespeicherte Referral-Daten aus localStorage lesen
+  let storedData = null;
+  try {
+    const raw = localStorage.getItem(STORAGE_AMB_KEY);
+    if (raw) storedData = JSON.parse(raw);
+  } catch {}
+
+  const username = manualUsername || storedData?.username || getStoredReferral();
   if (!username) return;
 
-  // Wenn keine userId → im localStorage merken, AuthCallback holt es nach
+  // Wenn keine userId → im localStorage pendingProcessing markieren
+  // AuthCallback ruft processStoredReferralForUser auf nach E-Mail-Bestätigung
   if (!newUserId) {
     try {
       const raw = localStorage.getItem(STORAGE_AMB_KEY);
@@ -101,54 +109,57 @@ export async function processReferralAfterSignup(newUserId, manualUsername = nul
         localStorage.setItem(STORAGE_AMB_KEY, JSON.stringify(parsed));
       }
     } catch {}
-    console.log('[HUI Referral] userId fehlt noch — wird nach E-Mail-Bestätigung verarbeitet');
     return;
   }
 
   try {
-    const { data: refLink } = await supabase
-      .from('ambassador_ref_links')
-      .select('user_id, referral_code')
-      .eq('username', username)
-      .single();
+    // ambassadorId direkt aus localStorage (falls vorhanden — kein extra DB-Call nötig)
+    let ambassadorId   = storedData?.ambassadorId   || null;
+    let referralCode   = storedData?.referralCode   || null;
 
-    if (!refLink) {
-      console.warn('[HUI Referral] Ref-Link nicht gefunden für username:', username);
-      return;
+    // Fallback: DB-Abfrage wenn localStorage keine ambassadorId hat
+    if (!ambassadorId) {
+      const { data: refLink } = await supabase
+        .from('ambassador_ref_links')
+        .select('user_id, referral_code')
+        .eq('username', username.toLowerCase())
+        .maybeSingle();
+
+      if (!refLink) return;
+      ambassadorId = refLink.user_id;
+      referralCode = refLink.referral_code;
     }
 
-    // Ambassador-Status prüfen
+    // Ambassador aktiv?
     const { data: ambProf } = await supabase
       .from('profiles')
       .select('is_ambassador, profile_modules')
-      .eq('id', refLink.user_id)
+      .eq('id', ambassadorId)
       .single();
 
     if (!ambProf?.is_ambassador) return;
-
     const amb = ambProf.profile_modules?.ambassador || {};
     if (amb.link_active === false) return;
 
-    // Nur setzen wenn noch nicht referriert
+    // Bereits verknüpft?
     const { data: existing } = await supabase
       .from('profiles')
       .select('referred_by_ambassador_id')
       .eq('id', newUserId)
-      .single();
+      .maybeSingle();
 
     if (existing?.referred_by_ambassador_id) {
       clearStoredReferral();
-      return; // bereits verknüpft
+      return;
     }
 
-    // Neues Profil: referred_by + referred_by_ambassador_id setzen
+    // Referral setzen
     await supabase.from('profiles').update({
-      referred_by:               refLink.referral_code || username,
-      referred_by_ambassador_id: refLink.user_id,
+      referred_by:               referralCode || username,
+      referred_by_ambassador_id: ambassadorId,
     }).eq('id', newUserId);
 
     clearStoredReferral();
-    console.log('[HUI Referral] ✅ Referral gesetzt:', username, '→', newUserId);
   } catch (e) {
     console.warn('[HUI Referral] Fehler:', e);
   }
