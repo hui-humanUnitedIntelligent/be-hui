@@ -211,14 +211,14 @@ function SocialBtn({ icon, label, onClick }) {
       onClick={onClick}
       style={{
         flex: 1,
-        padding: '14px 12px',
+        padding: '11px 10px',
         background: 'rgba(255,255,255,0.09)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         border: `1.5px solid ${T.glassBorder}`,
         borderRadius: 14,
         color: T.white,
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: 600,
         cursor: 'pointer',
         fontFamily: 'inherit',
