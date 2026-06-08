@@ -28,7 +28,7 @@ export function useAmbassador(profile) {
         } else if (profile?.username) {
           // Kein Eintrag → automatisch anlegen (ensureRefLink)
           const code = amb?.referral_code || "AMB-" + profile.username.toUpperCase().slice(0,5);
-          ensureRefLink(profile.id, profile.username, code)
+          createRefLinkForAmbassador(profile.id, profile.username, code)
             .then(link => { if (link) setDbRefLink(link); });
         }
       });
