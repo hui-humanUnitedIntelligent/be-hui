@@ -166,7 +166,7 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
 
   const cover  = s(profile?.header_img,  FB_COVER);
   const avatar = s(profile?.avatar_url,  FB_AVT);
-  const name   = s(profile?.display_name||profile?.username, "Mein Profil");
+  const name   = s(profile?.display_name || profile?.username);
 
   async function handleAvatarFile(e) {
     const file = e.target.files?.[0];
@@ -222,13 +222,15 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
         padding:`0 ${T.px}px 10px` }}>
         <div>
-          <div style={{ fontSize:24, fontWeight:800, color:T.ink, letterSpacing:"-0.03em",
-            display:"flex", alignItems:"center", gap:8, lineHeight:1.2 }}>
-            Mein Profil <span style={{fontSize:18}}>🌿</span>
+          <div style={{ fontSize:22, fontWeight:800, color:T.ink, letterSpacing:"-0.03em",
+            lineHeight:1.2 }}>
+            {profile?.display_name || profile?.username || "–"}
           </div>
-          <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-            Gestalte dein Profil so, wie du bist.
-          </div>
+          {profile?.username && (
+            <div style={{ fontSize:13, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
+              @{profile.username}
+            </div>
+          )}
         </div>
         <button className="mbp-press-light" onClick={onSettings} style={{
           width:36, height:36, borderRadius:"50%",
