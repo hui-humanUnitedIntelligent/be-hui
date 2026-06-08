@@ -307,13 +307,14 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     position:"fixed", inset:0, zIndex:10200,
     background:"rgba(10,10,8,0.55)", backdropFilter:"blur(4px)",
     display:"flex", alignItems:"flex-end", justifyContent:"center",
+    paddingBottom:64, // Navbar-Höhe — Sheet endet über der Navbar
   };
   const sheet = {
     background:T.bg, borderRadius:"20px 20px 0 0",
     width:"100%", maxWidth:560,
-    maxHeight:"92dvh", overflowY:"auto",
+    maxHeight:"calc(92dvh - 64px)", overflowY:"auto",
     boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
-    paddingBottom:"env(safe-area-inset-bottom, 20px)",
+    paddingBottom:"env(safe-area-inset-bottom, 16px)",
   };
   const header = {
     display:"flex", alignItems:"center", justifyContent:"space-between",
