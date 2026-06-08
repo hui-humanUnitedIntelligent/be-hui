@@ -1034,9 +1034,32 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Divider/>
         <Gap h={20}/>
 
-        {/* MEINE WERKE — nur wenn isTalent */}
-        {isTalent ? (
+        {/* ══ TALENT-DASHBOARD — nur wenn isTalent ══ */}
+        {isTalent && (
           <>
+            {/* Divider + Talent-Header */}
+            <div style={{ padding:"0 20px", marginBottom:4 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"16px 0 8px" }}>
+                <span style={{ fontSize:22 }}>🎨</span>
+                <div>
+                  <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18" }}>Mein Talent-Bereich</div>
+                  <div style={{ fontSize:12, color:"rgba(26,26,24,0.5)", marginTop:1 }}>Deine Werke, Erlebnisse & Wirkung</div>
+                </div>
+              </div>
+            </div>
+            <Divider/>
+            <Gap h={20}/>
+
+            {/* STATISTIK */}
+            <TalentStatsSection
+              works={works}
+              exps={exps}
+            />
+            <Gap h={24}/>
+            <Divider/>
+            <Gap h={20}/>
+
+            {/* MEINE WERKE */}
             <MeineWerkeSection
               works={works}
               loading={worksLoading}
@@ -1052,11 +1075,33 @@ export default function MyBasisProfile({ onClose, profileId }) {
                   .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
               }}
             />
+            <Gap h={32}/>
+            <Divider/>
+            <Gap h={20}/>
+
+            {/* ERLEBNISSE & PROJEKTE */}
+            <TalentErlebnisseSection
+              userId={profile?.id}
+              exps={exps}
+              loading={expsLoading}
+              onCreateNew={() => setShowExpWizard(true)}
+              onEdit={exp => { setEditingExp(exp); setShowExpWizard(true); }}
+              onRefresh={() => {
+                if (!profile?.id) return;
+                setExpsLoading(true);
+                supabase.from("experiences")
+                  .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
+                  .eq("user_id", profile.id)
+                  .neq("status", "archived")
+                  .order("created_at",{ascending:false})
+                  .then(({ data }) => { setExps(data||[]); setExpsLoading(false); });
+              }}
+            />
             <Gap h={40}/>
             <Divider/>
             <Gap h={20}/>
           </>
-        ) : null}
+        )}
 
         {/* AMBASSADOR */}
         {ambState.isAmbassador ? (
