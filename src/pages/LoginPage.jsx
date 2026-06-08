@@ -95,11 +95,11 @@ function GlassInput({ type = 'text', value, onChange, placeholder, autoComplete,
         autoComplete={autoComplete}
         style={{
           width: '100%',
-          padding: rightSlot ? '16px 52px 16px 20px' : '16px 20px',
+          padding: rightSlot ? '12px 44px 12px 16px' : '12px 16px',
           background: focused ? 'rgba(255,255,255,0.12)' : T.glass,
           border: `1.5px solid ${focused ? T.glassFocus : T.glassBorder}`,
-          borderRadius: 16,
-          fontSize: 16,
+          borderRadius: 14,
+          fontSize: 14,
           color: T.white,
           outline: 'none',
           fontFamily: 'inherit',
@@ -139,7 +139,7 @@ function PrimaryBtn({ children, onClick, type = 'button', disabled, loading }) {
       disabled={disabled || loading}
       style={{
         width: '100%',
-        padding: '17px',
+        padding: '13px',
         background: disabled
           ? 'rgba(22,215,197,0.35)'
           : 'linear-gradient(135deg, #16D7C5 0%, #0FC4B2 100%)',
@@ -719,13 +719,12 @@ export default function LoginPage() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
           marginBottom: 32, ...fadeStyle }}>
           <img
-              src="/hui-logo-real.jpg"
+              src="/hui-logo-app.png"
               alt="HUI Logo"
               style={{
-                width: 120, height: 120,
-                borderRadius: 28,
-                objectFit: 'cover',
-                boxShadow: '0 4px 24px rgba(14,196,184,0.30)',
+                width: 80, height: 80,
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 18px rgba(14,196,184,0.55)) drop-shadow(0 4px 12px rgba(0,0,0,0.30))',
                 display: 'block',
               }}
             />
@@ -736,9 +735,9 @@ export default function LoginPage() {
         {}
         <div style={{ ...cardStyle, ...fadeStyle }}>
           {}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontWeight: 900, fontSize: 26, color: T.white, letterSpacing: -0.8,
-              lineHeight: 1.2, marginBottom: 8, whiteSpace: 'pre-line' }}>
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontWeight: 900, fontSize: 20, color: T.white, letterSpacing: -0.5,
+              lineHeight: 1.2, marginBottom: 6, whiteSpace: 'pre-line' }}>
               {copy.headline}
             </div>
             <div style={{ fontSize: 14, color: T.muted, lineHeight: 1.6 }}>
