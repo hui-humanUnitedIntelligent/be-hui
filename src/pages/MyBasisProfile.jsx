@@ -841,6 +841,7 @@ function MeineTalenteSection({ profile, onEdit }) {
             }}>
               {t}
             </span>
+
           ))}
         </div>
       ) : (
@@ -900,7 +901,7 @@ function WeiterempfehlungenSection({ userId }) {
           boxShadow:T.card,
         }}>
           <div style={{ fontSize:13, color:T.inkFaint, lineHeight:1.6 }}>
-            Empfehlungen entstehen durch echte Erlebnisse, Buchungen und Zusammenarbeit.
+            Weiterempfehlungen entstehen nach echten Erlebnissen, Buchungen oder Zusammenarbeit.
           </div>
         </div>
       ) : (
@@ -1564,120 +1565,170 @@ export default function MyBasisProfile({ onClose, profileId }) {
       />
         <Gap h={62}/>
 
-        {/* ══ NEUE STRUKTUR: Über mich → Talente → Werke → Erlebnisse → Empfehlungen → Sidebar */}
-
-          {/* 1. ÜBER MICH */}
-          <WarumHUI profile={profile} onEdit={() => {}} />
-          <Gap h={20}/>
-          <Divider/>
-          <Gap h={20}/>
-
-          {/* 2. TALENTE & FÄHIGKEITEN */}
-          <MeineTalenteSection profile={profile} onEdit={() => {}} />
-          <Gap h={20}/>
-          <Divider/>
-          <Gap h={20}/>
-
-          {/* 3. TALENT-CONTENT — nur wenn isTalent */}
-          {authContextProfile && isTalent && (
-            <>
-              {/* MEINE WERKE */}
-              <MeineWerkeSection
-                works={works}
-                loading={worksLoading}
-                onCreateNew={() => setShowWizard(true)}
-                onRefresh={() => {
-                  if (!profile?.id) return;
-                  setWorksLoading(true);
-                  supabase.from("works")
-                    .select("id,title,status,created_at,media_urls,images,cover_url,price,price_type,description")
-                    .eq("user_id", profile.id)
-                    .not("status","in",'("archived","deleted")')
-                    .order("created_at",{ascending:false}).limit(50)
-                    .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
-                }}
-              />
-              <Gap h={20}/>
-              <Divider/>
-              <Gap h={20}/>
-
-              {/* ERLEBNISSE & PROJEKTE */}
-              <TalentErlebnisseSection
-                userId={profile?.id}
-                exps={exps}
-                loading={expsLoading}
-                onCreateNew={() => setShowExpWizard(true)}
-                onEdit={exp => { setEditingExp(exp); setShowExpWizard(true); }}
-                onRefresh={() => {
-                  if (!profile?.id) return;
-                  setExpsLoading(true);
-                  supabase.from("experiences")
-                    .select("id,title,cover_url,status,date,category,experience_type,location,price,max_participants,current_participants,description")
-                    .eq("user_id", profile.id)
-                    .neq("status", "archived")
-                    .order("created_at",{ascending:false})
-                    .then(({ data }) => { setExps(data||[]); setExpsLoading(false); });
-                }}
-              />
-              <Gap h={20}/>
-              <Divider/>
-              <Gap h={20}/>
-            </>
-          )}
-
-          {/* 4. WEITEREMPFEHLUNGEN */}
-          <WeiterempfehlungenSection userId={profile?.id} />
-          <Gap h={20}/>
-          <Divider/>
-          <Gap h={20}/>
-
-          {/* 5. INTERESSEN & WERTE */}
-          <InteressenSection interests={interests} onChange={handleInterestsChange}/>
-          <Gap h={20}/>
-          <Divider/>
-          <Gap h={20}/>
-
-          {/* 6. OFFEN FÜR BEGEGNUNGEN */}
-          <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
-          <Gap h={20}/>
-          <Divider/>
-          <Gap h={20}/>
-
-          {/* 7. GEMEINSCHAFT — nur für Nicht-Talents */}
-          {authContextProfile && !isTalent && (
-            <>
-              <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
-              <Gap h={20}/>
-              <Divider/>
-              <Gap h={20}/>
-            </>
-          )}
-
-          {/* 8. AMBASSADOR */}
-          {ambState.isAmbassador ? (
-            <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
+        {/* ── 1. ÜBER MICH ──────────────────────────────────────── */}
+        <div style={{ padding:"0 20px" }}>
+          <SectionRow title="Über mich" onEdit={() => {}} />
+          {bio ? (
+            <p style={{ margin:"0 0 12px", fontSize:14, lineHeight:1.75, color:T.ink }}>
+              {bio}
+            </p>
           ) : (
-            <AmbassadorCTA
-              isAmbassador={ambState.isAmbassador}
-              isPending={ambState.isPending}
-              ambassadorStatus={(profile?.profile_modules?.ambassador?.status) || null}
-              onApply={() => setShowAmbModal(true)}
-            />
+            <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:12 }}>
+              Erzähl etwas über dich…
+            </div>
           )}
-          <Gap h={20}/>
-          <Divider/>
-          <Gap h={20}/>
+          {/* Warum auf HUI — dezent, nur wenn befüllt */}
+          {profile?.profile_modules?.warum_hui && (
+            <div style={{
+              background:T.tealSoft, borderRadius:T.r12,
+              border:`1px solid ${T.tealMid}`, padding:"12px 14px", marginTop:4,
+            }}>
+              <div style={{ fontSize:11, fontWeight:700, color:T.teal, marginBottom:4 }}>
+                🌱 Warum ich auf HUI bin
+              </div>
+              <p style={{ margin:0, fontSize:13, color:T.ink, lineHeight:1.65 }}>
+                {profile.profile_modules.warum_hui}
+              </p>
+            </div>
+          )}
+        </div>
+        <Gap h={20}/>
+        <Divider/>
+        <Gap h={20}/>
 
-          {/* ══ SIDEBAR-SEKTIONEN — auf Mobile unterhalb, auf Desktop rechts ══ */}
-          <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", gap:14 }}>
-            <VertrauensstatusCard profile={profile} />
-            <MeinWirkenSection profile={profile} works={works} exps={exps} />
-            <StandortVerfuegbarkeit profile={profile} />
-            <SichtbarkeitSidebar visibility={visibility} onChange={handleVisibilityChange} />
-            <MeinWegTimeline userId={profile?.id} />
+        {/* ── 2. MEINE TALENTE & ANGEBOTE ───────────────────────── */}
+        {profile && isTalent && (() => {
+          const chips = Array.isArray(profile?.profile_modules?.talente)
+            ? profile.profile_modules.talente
+            : Array.isArray(profile?.skills) ? profile.skills : [];
+          if (!chips.length) return null;
+          return (
+            <div style={{ padding:"0 20px" }}>
+              <SectionRow title="Meine Talente & Angebote" onEdit={() => {}} />
+              <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                {chips.map((t, i) => (
+                  <span key={i} style={{
+                    display:"inline-flex", alignItems:"center",
+                    padding:"6px 13px", borderRadius:99,
+                    background:T.bgCard, border:`1.5px solid ${T.border}`,
+                    fontSize:13, fontWeight:600, color:T.ink, boxShadow:T.card,
+                  }}>{t}</span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+        {profile && isTalent && <Gap h={20}/>}
+        {profile && isTalent && <Divider/>}
+        {profile && isTalent && <Gap h={20}/>}
+
+        {/* ── 3. MEINE WERKE ────────────────────────────────────── */}
+        {profile && isTalent && (
+          <MeineWerkeSection
+            works={works}
+            loading={worksLoading}
+            onCreateNew={() => setShowWizard(true)}
+            onRefresh={() => {
+              if (!profile?.id) return;
+              setWorksLoading(true);
+              supabase.from("works")
+                .select("id,title,status,created_at,media_urls,images,cover_url,price,price_type,description")
+                .eq("user_id", profile.id)
+                .not("status","in",'("archived","deleted")')
+                .order("created_at",{ascending:false}).limit(50)
+                .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
+            }}
+          />
+        )}
+        {profile && isTalent && <Gap h={20}/>}
+        {profile && isTalent && <Divider/>}
+        {profile && isTalent && <Gap h={20}/>}
+
+        {/* ── 4. ERLEBNISSE & PROJEKTE ──────────────────────────── */}
+        {profile && isTalent && (
+          <TalentErlebnisseSection
+            userId={profile?.id}
+            exps={exps}
+            loading={expsLoading}
+            onCreateNew={() => setShowExpWizard(true)}
+            onEdit={exp => { setEditingExp(exp); setShowExpWizard(true); }}
+            onRefresh={() => {
+              if (!profile?.id) return;
+              setExpsLoading(true);
+              supabase.from("experiences")
+                .select("id,title,cover_url,status,date,category,experience_type,location,price,max_participants,current_participants,description")
+                .eq("user_id", profile.id)
+                .neq("status", "archived")
+                .order("created_at",{ascending:false})
+                .then(({ data }) => { setExps(data||[]); setExpsLoading(false); });
+            }}
+          />
+        )}
+        {profile && isTalent && <Gap h={20}/>}
+        {profile && isTalent && <Divider/>}
+        {profile && isTalent && <Gap h={20}/>}
+
+        {/* ── 5. WEITEREMPFEHLUNGEN ─────────────────────────────── */}
+        <WeiterempfehlungenSection userId={profile?.id} />
+        <Gap h={20}/>
+        <Divider/>
+        <Gap h={20}/>
+
+        {/* ── 6. VERFÜGBARKEIT ──────────────────────────────────── */}
+        <div style={{ padding:"0 20px" }}>
+          <SectionRow title="Verfügbarkeit" />
+          <div style={{
+            background:T.bgCard, borderRadius:T.r16,
+            border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card,
+          }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ width:7, height:7, borderRadius:"50%",
+                  background:"#16A34A", display:"inline-block", flexShrink:0 }}/>
+                <span style={{ fontSize:13, color:T.ink, fontWeight:600 }}>
+                  Online & Vor Ort
+                </span>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:13 }}>💬</span>
+                <span style={{ fontSize:13, color:T.inkSoft }}>Offen für neue Anfragen</span>
+              </div>
+              <div style={{ fontSize:11, color:T.inkFaint }}>
+                Antwortzeit: innerhalb von 24h
+              </div>
+            </div>
           </div>
+        </div>
+        <Gap h={20}/>
+        <Divider/>
+        <Gap h={20}/>
 
-          <Gap h={40}/>
+        {/* ── 7. STANDORT ───────────────────────────────────────── */}
+        {profile?.location && (
+          <>
+            <div style={{ padding:"0 20px" }}>
+              <SectionRow title="Standort" />
+              <div style={{
+                background:T.bgCard, borderRadius:T.r16,
+                border:`1px solid ${T.border}`, padding:"14px 16px",
+                boxShadow:T.card, display:"flex", alignItems:"center", gap:8,
+              }}>
+                <span style={{ fontSize:16 }}>📍</span>
+                <span style={{ fontSize:13, color:T.inkSoft, fontWeight:500 }}>
+                  {profile.location}
+                </span>
+              </div>
+            </div>
+            <Gap h={20}/>
+            <Divider/>
+            <Gap h={20}/>
+          </>
+        )}
+
+        {/* ── 8. SICHTBARKEIT ───────────────────────────────────── */}
+        <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+
+        <Gap h={40}/>
       </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
