@@ -832,7 +832,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
             setVisibility(data.focus_type);
           }
-          setOpenFor([]);
+          setOpenFor(Array.isArray(data.profile_modules?.open_for) ? data.profile_modules.open_for : []);
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
@@ -944,10 +944,26 @@ export default function MyBasisProfile({ onClose, profileId }) {
     autoSave("focus_type", v);
   };
 
-  const handleOpenForChange = (v) => {
+  const handleOpenForChange = async (v) => {
     setOpenFor(v);
-    // Persistenz via interests-Spalte (TEXT[], existiert in profiles)
-    autoSave("interests", v);
+    // Persistenz via profile_modules.open_for (JSONB-Feld, existiert in profiles)
+    let uid = profile?.id;
+    if (!uid) {
+      const { data: { user: au } } = await supabase.auth.getUser();
+      uid = au?.id;
+    }
+    if (!uid) return;
+    try {
+      const { data: curr } = await supabase.from("profiles")
+        .select("profile_modules").eq("id", uid).single();
+      const existing = curr?.profile_modules || {};
+      await supabase.from("profiles")
+        .update({
+          profile_modules: { ...existing, open_for: v },
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", uid);
+    } catch(e) { console.error("open_for save:", e?.message); }
   };
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
