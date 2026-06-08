@@ -734,6 +734,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const loadingAuth        = _auth.loadingAuth ?? false;
   const setAuthProfile     = _auth.setProfile ?? null;
   const refreshProfile     = _auth.refreshProfile ?? null;
+  // isTalent: aus AuthContext — reagiert sofort auf activateMembership()
+  const isTalent = !!(
+    _auth.isTalent === true ||
+    authContextProfile?.has_talent_profile === true ||
+    authContextProfile?.membership_type === "talent" ||
+    authContextProfile?.role === "talent" ||
+    authContextProfile?.role === "wirker"
+  );
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
