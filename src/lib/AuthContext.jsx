@@ -500,4 +500,3 @@ export function AuthProvider({ children }) {
     if (!profile) return false;  // kein localStorage-Fallback mehr
     if (profile.membership_type === "talent" && profile.membership_active === true) return true;
     if (profile.membership_type === "guardian" || profile.membership_type === "team") return true;
-    ;
