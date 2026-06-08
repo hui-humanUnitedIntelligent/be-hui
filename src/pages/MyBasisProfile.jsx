@@ -1570,7 +1570,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <Gap h={20}/>
 
           {/* 3. TALENT-CONTENT — nur wenn isTalent */}
-          {profile && isTalent && (
+          {authContextProfile && isTalent && (
             <>
               {/* MEINE WERKE */}
               <MeineWerkeSection
@@ -1635,7 +1635,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <Gap h={20}/>
 
           {/* 7. GEMEINSCHAFT — nur für Nicht-Talents */}
-          {profile && !isTalent && (
+          {authContextProfile && !isTalent && (
             <>
               <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
               <Gap h={20}/>
