@@ -1453,7 +1453,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
 
       <div className="mtp-scroll" style={{
         flex:1, overflowY:"auto",
-        paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))",
+        paddingBottom:"max(96px,calc(80px + env(safe-area-inset-bottom,0px)))",
       }}>
         {/* 0. Titel */}
         <PageTitle isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
