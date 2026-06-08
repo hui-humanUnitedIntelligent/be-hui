@@ -736,7 +736,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,is_talent,talent_since,profile_modules")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,is_talent,talent_since,is_ambassador,ambassador_since,ref_link,ambassador_level,referred_users_count,impact_revenue,profile_modules")
           .eq("id", user.id).single();
         console.log("DB PROFILE", data);
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
@@ -1102,6 +1102,26 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </>
         )}
 
+        {/* ── AMBASSADOR-SEKTION: IMMER SICHTBAR ─────────────────── */}
+        <Gap h={24}/>
+        <Divider/>
+        <Gap h={16}/>
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(26,26,24,0.45)",
+            letterSpacing: "0.06em", marginBottom: 12 }}>
+            AMBASSADOR
+          </div>
+        </div>
+        {profile?.is_ambassador ? (
+          <AmbassadorSection ambassadorData={ambState.ambassadorData} />
+        ) : (
+          <AmbassadorCTA
+            isAmbassador={false}
+            isPending={ambState.isPending}
+            ambassadorStatus={ambState.ambassadorStatus}
+            onApply={() => setShowAmbModal(true)}
+          />
+        )}
         <Gap h={40}/>
       </div>
 
