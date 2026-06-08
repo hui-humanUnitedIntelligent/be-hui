@@ -123,7 +123,7 @@ function SectionRow({ title, sub, onEdit }) {
   );
 }
 
-function Sheet({ onClose, children, zIndex=9800 }) {
+function Sheet({ onClose, children, zIndex=10300 }) {
   return (
     <div onClick={onClose} style={{
       position:"fixed", inset:0, zIndex,
@@ -133,8 +133,8 @@ function Sheet({ onClose, children, zIndex=9800 }) {
       <div className="mbp-sheet" onClick={e=>e.stopPropagation()} style={{
         width:"100%", background:T.bgSheet,
         borderRadius:`${T.r24}px ${T.r24}px 0 0`,
-        padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
-        boxShadow:T.sheet, maxHeight:"80vh", overflowY:"auto",
+        padding:"20px 20px max(80px,calc(70px + env(safe-area-inset-bottom,0px)))",
+        boxShadow:T.sheet, maxHeight:"85vh", overflowY:"auto",
       }}>
         <div style={{width:36,height:4,borderRadius:99,background:T.borderMid,margin:"0 auto 20px"}}/>
         {children}
