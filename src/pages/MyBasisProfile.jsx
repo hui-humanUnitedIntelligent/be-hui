@@ -158,7 +158,7 @@ async function uploadProfileImage(file, userId, folder) {
   return publicUrl;
 }
 
-function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }) {
+function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = () => {}, unreadCount = 0, onAvatarChange, onCoverChange }) {
   const [imgLoaded,       setImgLoaded]       = useState(false);
   const [avLoaded,        setAvLoaded]         = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
