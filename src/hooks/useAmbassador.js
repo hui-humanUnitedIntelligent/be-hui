@@ -34,7 +34,13 @@ export function useAmbassador(profile) {
       });
   }, [profile?.id, isAmb]);
 
-  const computedRefLink = dbRefLink || amb?.referral_link || (profile?.username ? ("https://be-hui.com/" + profile.username) : null);
+  // Fallback nur wenn username ein echter, nicht-leerer String (kein undefined/null/leer)
+  const safeUsername = (typeof profile?.username === "string" && profile.username.trim().length > 0)
+    ? profile.username.trim()
+    : null;
+  const computedRefLink = dbRefLink
+    || (amb?.referral_link && !amb.referral_link.includes("${") ? amb.referral_link : null)
+    || (safeUsername ? ("https://be-hui.com/" + safeUsername) : null);
 
   return {
     isAmbassador:    isAmb,
