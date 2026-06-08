@@ -1102,25 +1102,29 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </>
         )}
 
-        {/* ── AMBASSADOR-SEKTION: IMMER SICHTBAR ─────────────────── */}
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={16}/>
-        <div style={{ padding: "0 16px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(26,26,24,0.45)",
-            letterSpacing: "0.06em", marginBottom: 12 }}>
-            AMBASSADOR
-          </div>
-        </div>
-        {profile?.is_ambassador ? (
-          <AmbassadorSection ambassadorData={ambState.ambassadorData} />
-        ) : (
-          <AmbassadorCTA
-            isAmbassador={false}
-            isPending={ambState.isPending}
-            ambassadorStatus={ambState.ambassadorStatus}
-            onApply={() => setShowAmbModal(true)}
-          />
+        {/* ── AMBASSADOR-SEKTION: nur wenn Profil aus DB geladen ─── */}
+        {profile && (
+          <>
+            <Gap h={24}/>
+            <Divider/>
+            <Gap h={16}/>
+            <div style={{ padding: "0 16px" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(26,26,24,0.45)",
+                letterSpacing: "0.06em", marginBottom: 12 }}>
+                AMBASSADOR
+              </div>
+            </div>
+            {profile.is_ambassador ? (
+              <AmbassadorSection ambassadorData={ambState.ambassadorData} />
+            ) : (
+              <AmbassadorCTA
+                isAmbassador={false}
+                isPending={ambState.isPending}
+                ambassadorStatus={ambState.ambassadorStatus}
+                onApply={() => setShowAmbModal(true)}
+              />
+            )}
+          </>
         )}
         <Gap h={40}/>
       </div>
