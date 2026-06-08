@@ -52,10 +52,16 @@ export function AuthProvider({ children }) {
         supabase.from("profiles").select(PROFILE_FIELDS).eq("id", userId).single(), 8000
       );
 
+      // Timeout oder unerwarteter Fehler → Retry ohne Cache
+      if (!prof && error?.code === "TIMEOUT") {
+        console.warn("[HUI] loadProfile: Timeout — Retry ohne Cache");
+        profileLoadingRef.current = false;
+        setTimeout(() => loadProfile(userId), 1500);
+        return;
+      }
+
       if (!prof && error?.code === "PGRST116") {
-        // Profil existiert noch nicht → anlegen
-        // ── Neues Profil anlegen — NUR Minimalfelder, keine Überschreibung bestehender Werte ──
-        // onConflict: "id" + ignoreDuplicates: true → INSERT nur wenn wirklich neu
+        // Profil existiert noch nicht → neu anlegen (nur für echte Neu-Registrierungen)
         const { data: newProf } = await withTimeout(
           supabase.from("profiles").upsert(
             { id: userId, role: "basis_user", is_wirker: false,
@@ -64,6 +70,14 @@ export function AuthProvider({ children }) {
           ).select(PROFILE_FIELDS).single(), 6000
         );
         if (newProf) setProfile(newProf);
+        return;
+      }
+
+      // Anderer Fehler aber kein Profil — Retry
+      if (!prof && error) {
+        console.warn("[HUI] loadProfile error:", error.message, "— Retry in 2s");
+        profileLoadingRef.current = false;
+        setTimeout(() => loadProfile(userId), 2000);
         return;
       }
 
@@ -191,8 +205,12 @@ export function AuthProvider({ children }) {
 
       const u = applySession(session);
 
-      // AUFGABE 4: TOKEN_REFRESHED aus Profil-Reload entfernt
+      // Profil laden bei Login-Events — SIGNED_IN immer force-reload
       if (u && ["SIGNED_IN","USER_UPDATED","INITIAL_SESSION"].includes(event)) {
+        if (event === "SIGNED_IN") {
+          // SIGNED_IN: immer neu laden (erzwingt frischen DB-Abruf)
+          profileLoadingRef.current = false;
+        }
         if (!profileLoadingRef.current) loadProfile(u.id);
       }
       if (!u) {
