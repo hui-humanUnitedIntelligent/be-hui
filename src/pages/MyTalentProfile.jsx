@@ -163,8 +163,8 @@ function PageTitle({ isOwner, onSettings }) {
 function ProfileHeader({ profile, loading, isOwner }) {
   const coverRef  = useRef(null);
   const avatarRef = useRef(null);
-  const cover  = sv(profile?.header_img, FB_COVER);
-  const avatar = sv(profile?.avatar_url, FB_AVT);
+  const cover  = profile?.header_img || null;
+  const avatar = profile?.avatar_url || null;
 
   async function uploadImage(file, folder) {
     if (!file) return null;
@@ -226,7 +226,18 @@ function ProfileHeader({ profile, loading, isOwner }) {
           boxShadow:"0 2px 12px rgba(0,0,0,0.18)",
           overflow:"hidden", background:"#ddd", position:"relative",
         }}>
-          {!loading && <img src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+          {!loading && avatar ? (
+            <img src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+          ) : !loading ? (
+            <div style={{
+              width:"100%", height:"100%",
+              background:"linear-gradient(135deg,#0EC4B8,#0AADA3)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:30, fontWeight:800, color:"#fff",
+            }}>
+              {(profile?.display_name || profile?.username || "H")[0].toUpperCase()}
+            </div>
+          ) : null}
         </div>
         {isOwner && (
           <>
@@ -1446,9 +1457,9 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
         {/* 0. Titel */}
         <PageTitle isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
-        {/* 1. Cover + Avatar */}
+        {/* 1. Cover + Avatar + Name */}
         <ProfileHeader profile={profile} loading={loading} isOwner={isOwner}/>
-        <Gap h={52}/>
+        <Gap h={16}/>
 
         {/* 2. Über mich */}
         <UeberMich profile={profile} loading={loading} isOwner={isOwner}/>
@@ -1487,6 +1498,7 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
               <AmbassadorCTA
                 isAmbassador={ambState.isAmbassador}
                 isPending={ambState.isPending}
+                ambassadorStatus={(profile?.profile_modules?.ambassador?.status) || null}
                 onApply={() => setShowAmbModal(true)}
               />
             )}
