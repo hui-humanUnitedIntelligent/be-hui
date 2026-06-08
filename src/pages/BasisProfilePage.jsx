@@ -248,6 +248,22 @@ function IdentitySection({ profile, loading }) {
         </div>
       )}
 
+      {/* A1: Mitglieds-Badge */}
+      {!loading && (
+        <div style={{
+          display:"inline-flex", alignItems:"center", gap:5,
+          marginBottom:10,
+          background:"rgba(14,196,184,0.07)",
+          border:"1px solid rgba(14,196,184,0.18)",
+          borderRadius:99, padding:"3px 10px",
+          fontSize:11, fontWeight:700, color:"#0AADA3",
+        }}>
+          <span style={{fontSize:11}}>🌿</span>
+          <span>HUI-Mitglied</span>
+          <span style={{fontWeight:400,color:"rgba(10,173,163,0.6)",fontSize:10}}>· Teil der Gemeinschaft</span>
+        </div>
+      )}
+
       {/* Location + openness */}
       {loading ? (
         <Skeleton w={200} h={16} r={6} style={{ margin:"0 auto 14px" }}/>
