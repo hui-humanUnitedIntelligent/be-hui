@@ -777,12 +777,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
     p?.membership_type === "guardian" ||
     p?.membership_type === "team"
   );
+  const [profile,    setProfile]    = useState(null);
   const isTalent = !!(
     _checkTalent(authContextProfile) ||
     _checkTalent(profile) ||           // lokaler DB-State als Fallback
     _auth.isTalent === true            // AuthContext-Calc als letzter Tiebreaker
   );
-  const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
   const [bio,        setBio]        = useState("");
