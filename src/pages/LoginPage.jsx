@@ -817,7 +817,7 @@ export default function LoginPage() {
             {/* REF-LINK — nur bei Registrierung sichtbar */}
             {mode === 'register' && (
               <div style={{ marginTop: 10 }}>
-                <FloatInput
+                <GlassInput
                   type="text"
                   value={refLink}
                   onChange={e => setRefLink(e.target.value)}
