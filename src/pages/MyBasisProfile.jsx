@@ -1153,15 +1153,51 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <WerkWizard
           userId={profile.id}
           onClose={() => setShowWizard(false)}
+          onSaved={(werk) => {
+            setShowWizard(false);
+            if (werk) {
+              setWorks(prev => [werk, ...prev.filter(w => w.id !== werk.id)]);
+            } else {
+              // Fallback: Werke neu laden
+              supabase.from("works")
+                .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
+                .eq("user_id", profile.id)
+                .not("status","in",'("archived","deleted")')
+                .order("created_at",{ascending:false}).limit(50)
+                .then(({data}) => setWorks(data||[]));
+            }
+          }}
           onSave={() => {
             setShowWizard(false);
-            // Werke neu laden
             supabase.from("works")
               .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
               .eq("user_id", profile.id)
               .not("status","in",'("archived","deleted")')
               .order("created_at",{ascending:false}).limit(50)
               .then(({data}) => setWorks(data||[]));
+          }}
+        />
+      )}
+
+      {/* ERLEBNIS-WIZARD */}
+      {showExpWizard && profile?.id && (
+        <ExperienceWizard
+          userId={profile.id}
+          existingExp={editingExp}
+          onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
+          onSaved={(exp) => {
+            setShowExpWizard(false);
+            setEditingExp(null);
+            if (exp) {
+              setExps(prev => [exp, ...prev.filter(e => e.id !== exp.id)]);
+            } else {
+              supabase.from("experiences")
+                .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
+                .eq("user_id", profile.id)
+                .neq("status", "archived")
+                .order("created_at",{ascending:false})
+                .then(({ data }) => setExps(data||[]));
+            }
           }}
         />
       )}
