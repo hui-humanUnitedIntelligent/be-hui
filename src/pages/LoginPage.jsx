@@ -369,16 +369,24 @@ export default function LoginPage() {
     if (error) { setErr(translateError(error.message)); setLoading(false); return; }
 
     // ── BLOCK-CHECK nach erfolgreichem Login ──────────────────────────
-    // Profil sofort laden und blocked-Flag prüfen
+    // ── Profil-Check nach erfolgreichem Login ─────────────────────────────
     if (signInData?.user?.id) {
-      const { data: prof } = await supabase
+      const { data: prof, error: profErr } = await supabase
         .from("profiles")
         .select("blocked, blocked_at")
         .eq("id", signInData.user.id)
-        .single();
+        .maybeSingle(); // maybeSingle statt single → null wenn kein Profil (gelöschter Nutzer)
 
+      // 1. Kein Profil-Eintrag → Nutzer wurde gelöscht
+      if (!prof && !profErr) {
+        await supabase.auth.signOut();
+        setLoading(false);
+        setErr("Dieses Konto existiert nicht mehr. Bitte registriere dich neu.");
+        return;
+      }
+
+      // 2. Profil blockiert
       if (prof?.blocked === true) {
-        // Sofort wieder ausloggen
         await supabase.auth.signOut();
         setLoading(false);
         setErr("Dein Konto wurde blockiert und wird von unserem Team geprüft.");
