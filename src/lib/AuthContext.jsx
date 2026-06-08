@@ -174,8 +174,6 @@ export function AuthProvider({ children }) {
       }
       if (!u) {
         setProfile(null);
-        // wirkerProfile removed
-        localStorage.removeItem("hui_is_wirker");
         profileLoadingRef.current = false;
       }
     });
@@ -263,7 +261,7 @@ export function AuthProvider({ children }) {
   const becomeWirker = useCallback(async (wirkerData) => {
     if (!user) return { error: "Nicht eingeloggt" };
     const { error: e1 } = await supabase.from("profiles")
-      .update({ is_wirker:true, role:"wirker", updated_at:new Date().toISOString() })
+        // is_wirker update entfernt — is_talent ist die korrekte Spalte
       .eq("id", user.id);
     if (e1) return { error: e1.message };
     const slug = (wirkerData.name || user.email.split("@")[0])
@@ -274,9 +272,6 @@ export function AuthProvider({ children }) {
         wirker_type:wirkerData.type||"selbst", location_label:wirkerData.city||"",
         categories:wirkerData.categories||[] }).select().single();
     if (e2) return { error: e2.message };
-    // wirkerProfile removed
-    setProfile(p => ({ ...p, is_wirker:true, role:"wirker" }));
-    localStorage.setItem("hui_is_wirker","true");
     return { data: wp };
   }, [user]);
 
@@ -393,10 +388,9 @@ export function AuthProvider({ children }) {
     }
   }, [user?.id]);
 
-    const isWirker         = profile?.has_talent_profile || profile?.is_wirker || false;
-  const hasTalentProfile = profile?.has_talent_profile || false;
-  // Single source of truth: membership_type + is_member (both updated together)
-  const membershipType   = profile?.membership_type || "free";
+  const isWirker         = profile?.is_talent === true; // is_talent ist die korrekte Spalte
+  const hasTalentProfile = profile?.is_talent === true; // has_talent_profile nicht mehr
+  const membershipType   = "free"; // membership_type nicht in DB
   const isMember         = profile?.is_member === true || membershipType === "member" ||
                            membershipType === "creator" || membershipType === "guide" || false;
   const profileModules   = profile?.profile_modules || {};
@@ -411,7 +405,7 @@ export function AuthProvider({ children }) {
   // ── Debug Log (development only) ─────────────────────────────────────
   if (process.env.NODE_ENV !== "production" && profile) {
     console.log("[MEMBERSHIP]", {
-      membership_type:   profile?.membership_type,
+    membership_type:   "free", // nicht in profiles-Tabelle
       membership_active: profile?.membership_active,
       isTalent:          _isTalentCalc,
       canCreate:         _canCreateCalc,
