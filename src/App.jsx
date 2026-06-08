@@ -566,102 +566,61 @@ function AppRoutes() {
 //   5. Realtime updates / feed re-renders / notifications CANNOT reset this
 function ProfileCompletionTrigger() {
   const { user, profile, loadingAuth } = useAuth();
-  const [show, setShow]       = React.useState(false);
-  const hasTriggeredRef        = React.useRef(false);
-  const resolvedProfileRef     = React.useRef(null);
+  const [show, setShow] = React.useState(false);
+  const checkedRef      = React.useRef(false);
 
-  // Cache the profile ONCE when it arrives — do not re-read on every render
   React.useEffect(() => {
-    if (profile && !resolvedProfileRef.current) {
-      resolvedProfileRef.current = profile;
-    }
-  }, [profile]);
-
-  // SINGLE trigger — keyed ONLY on user.id, not on profile fields
-  React.useEffect(() => {
-    // Guard 1: already triggered this session
-    if (hasTriggeredRef.current) return;
-    // Guard 2: not ready yet
+    // Nur einmal prüfen — nicht bei jedem Re-render
+    if (checkedRef.current) return;
     if (loadingAuth || !user?.id) return;
-    // Guard 3: localStorage fast-exit (completed in a previous session)
-    if (typeof localStorage !== "undefined") {
-      try {
-        if (localStorage.getItem("hui_profile_completed") === "true") return;
-      } catch {}
-    }
 
-    console.log("[PROFILE_FLOW_TRIGGER] checking user:", user.id.slice(0,8));
+    checkedRef.current = true;
 
-    // Wait for profile to load — poll briefly
-    let attempts = 0;
-    const maxAttempts = 15; // 15 × 400ms = 6s max wait
-
-    const check = () => {
-      attempts++;
-      const p = resolvedProfileRef.current;
-
-      // If profile not yet loaded and we still have attempts, retry
-      if (!p && attempts < maxAttempts) {
-        setTimeout(check, 400);
-        return;
+    async function checkProfile() {
+      // 1. Erst warten ob AuthContext das Profil innerhalb 3s liefert
+      let p = profile;
+      if (!p) {
+        for (let i = 0; i < 8; i++) {
+          await new Promise(r => setTimeout(r, 400));
+          // Direkt aus DB laden — zuverlässig, unabhängig von AuthContext-Timing
+          try {
+            const { data } = await supabase
+              .from("profiles")
+              .select("id,username,display_name,profile_complete")
+              .eq("id", user.id)
+              .single();
+            if (data) { p = data; break; }
+          } catch {}
+        }
       }
 
-      // Profile loaded (or timed out waiting)
-      const isComplete = p?.profile_complete === true ||
-                         (p?.username && p.username.length >= 3) ||
-                         !!(p?.display_name && p.display_name.trim().length > 0);
+      // 2. Prüfen ob Profil vollständig
+      const isComplete =
+        p?.profile_complete === true ||
+        (p?.username && p.username.trim().length >= 2) ||
+        (p?.display_name && p.display_name.trim().length > 0);
 
       if (isComplete) {
-        console.log("[PROFILE_SETUP_CHECK]", {
-          userId: user?.id,
-          authProfile: profile,
-          username: profile?.username,
-          display_name: profile?.display_name,
-          profile_complete: profile?.profile_complete,
-          resolvedProfile: p,
-          attempts,
-        });
-        console.log("[PROFILE_FLOW_TRIGGER] profile already complete — skipping");
-        try { localStorage.setItem("hui_profile_completed","true"); } catch {}
+        // Profil existiert → kein Setup nötig
+        try { localStorage.setItem("hui_profile_completed", "true"); } catch {}
         return;
       }
 
-      console.log("[PROFILE_SETUP_CHECK]", {
-        userId: user?.id,
-        authProfile: profile,
-        username: profile?.username,
-        display_name: profile?.display_name,
-        profile_complete: profile?.profile_complete,
-        resolvedProfile: p,
-        attempts,
-      });
-      console.log("[PROFILE_FLOW_TRIGGER] showing flow — profile incomplete");
-      hasTriggeredRef.current = true;
+      // 3. Wirklich kein Profil → Setup zeigen
       setShow(true);
-    };
+    }
 
-    // Small initial delay so auth settles
-    const timer = setTimeout(check, 800);
-    return () => clearTimeout(timer);
-
-    // ⚠️  INTENTIONALLY only depends on user.id
-    // DO NOT add profile, profile_complete, loadingAuth — they cause re-triggers
+    checkProfile();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, loadingAuth]);
 
   function handleComplete() {
-    console.log("[PROFILE_FLOW_TRIGGER] flow completed — locking permanently");
-    try { localStorage.setItem("hui_profile_completed","true"); } catch {}
-    hasTriggeredRef.current = true;
+    try { localStorage.setItem("hui_profile_completed", "true"); } catch {}
     setShow(false);
   }
 
   if (!show) return null;
-  return (
-    <ProfileCompletionFlow
-      onComplete={handleComplete}
-    />
-  );
+  return <ProfileCompletionFlow onComplete={handleComplete} />;
 }
 
 
