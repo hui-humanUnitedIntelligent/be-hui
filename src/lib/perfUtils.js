@@ -252,7 +252,7 @@ export const PROFILE_FIELDS =
   'location,availability,skills,dna_tags,focus_type,' +
   'profile_modules,membership_since,member_since,' +
   'impact_eur,role,membership_type,membership_active,' +
-  'talent_activated_at,is_talent,talent_since,created_at';
+  'talent_activated_at,is_talent,talent_since,blocked,created_at';
 
 // ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
 // Gleicht alle historisch unterschiedlichen Feldnamen an:
