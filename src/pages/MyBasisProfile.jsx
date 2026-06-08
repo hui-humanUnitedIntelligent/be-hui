@@ -1307,9 +1307,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
       // AuthContext noch nicht geladen — warte (useEffect feuert erneut wenn authContextProfile sich ändert)
       return;
     }
-    // AuthContext hat ein Profil → synchronisieren
+    // AuthContext hat ein Profil → lokale States synchronisieren
     const p = authContextProfile;
-    setProfile(p);
+    // profile = authContextProfile direkt (kein setProfile nötig)
     setBio(s(p.bio));
     setInterests(Array.isArray(p.skills) ? p.skills : []);
     setOpenFor(Array.isArray(p.profile_modules?.open_for) ? p.profile_modules.open_for : []);
@@ -1485,15 +1485,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
     setLocalAvatar(url);
-    // Lokaler State
-    setProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+    // localAvatar State reicht — profile kommt aus authContextProfile
     // Globaler AuthContext → alle Komponenten die authProfile.avatar_url nutzen
     setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
   }, [setAuthProfile]);
 
   const handleCoverChange = useCallback((url) => {
     setLocalCover(url);
-    setProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    // localCover State reicht — profile kommt aus authContextProfile
     setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
   }, [setAuthProfile]);
 
@@ -1771,7 +1770,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
                 .eq("id", profile.id).single();
               if (freshProf) {
-                setProfile(freshProf);
+                // profile = authContextProfile — kein lokales setProfile
                 setAuthProfile(prev => prev ? { ...prev, ...freshProf } : freshProf);
               }
             } catch(e) { /* silent */ }
