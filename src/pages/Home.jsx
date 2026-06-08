@@ -429,14 +429,9 @@ function HomeInner() {
 
           const canRenderOrbContent = SAFE_MODE.orb;
 
-          // Phase 4C: ORB_MODE log — zeigt klaren Modus
+          // Phase 4C: Modus-Variablen (für bedingtes Rendering)
           const _mType = authProfile?.membership_type ?? "base";
           const _mActive = authProfile?.membership_active ?? false;
-            membership_type:   _mType,
-            membership_active: _mActive,
-            isTalent, isBaseUser, canCreate,
-            canRenderOrbContent,
-          });
 
           // Einheitlicher Orb: alle User öffnen den OrbCompass.
           // Sichtbarkeits-Scope wird in OrbCompass via isTalent-Prop gesteuert:
@@ -461,10 +456,7 @@ function HomeInner() {
               setShowConnect(false);
             }}
             onPublish={(result) => {
-                id:         result?.id   ?? "kein id",
-                type:       result?.type ?? "kein type",
-                title:      result?.title ?? "kein title",
-              });
+
               // Feed Refresh: falls FeedRefresh-Mechanismus existiert, hier auslösen
               // Aktuell: kein automatischer Refresh → nur schließen
               setShowConnect(false);
