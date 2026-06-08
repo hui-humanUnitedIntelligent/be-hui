@@ -26,6 +26,25 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     this.setState({ errorInfo });
+
+    // ── Stale-Asset-Erkennung: nach Deployment veraltete JS-Chunks ──
+    // "Failed to fetch dynamically imported module" = Browser hat alten Chunk-Hash gecached
+    // Fix: automatischer Hard-Reload (max. 1x pro Session um Loop zu verhindern)
+    const msg = error?.message || String(error);
+    if (msg.includes('Failed to fetch dynamically imported module') ||
+        msg.includes('Importing a module script failed') ||
+        msg.includes('error loading dynamically imported module')) {
+      try {
+        const reloadKey = 'hui_stale_reload_' + (window.__HUI_BUILD_ID__ || 'v');
+        if (!sessionStorage.getItem(reloadKey)) {
+          sessionStorage.setItem(reloadKey, '1');
+          console.warn('[HUI] Stale asset erkannt — Hard-Reload wird ausgeführt');
+          window.location.replace(window.location.href.split('?')[0] + '?r=' + Date.now());
+          return;
+        }
+      } catch (_) {}
+    }
+
     console.error('HOMEFEED_CRASH ══════════════════════════════════');
     console.error('Error:', error?.message || String(error));
     console.error('Stack:', error?.stack?.split('\n').slice(0,8).join('\n'));
