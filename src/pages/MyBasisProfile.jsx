@@ -736,7 +736,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,is_talent,talent_since,profile_modules")
           .eq("id", user.id).single();
         console.log("DB PROFILE", data);
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
