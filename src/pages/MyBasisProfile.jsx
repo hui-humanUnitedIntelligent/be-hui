@@ -1111,6 +1111,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => setShowGemeinschaft(false)}
           onComplete={() => {
             setShowGemeinschaft(false);
+            // Lokalen State sofort patchen → TalentErweiterung erscheint ohne Reload
+            setProfile(p => p ? { ...p, is_talent: true, talent_since: new Date().toISOString() } : p);
             refreshProfile?.().catch(() => {});
           }}
         />
