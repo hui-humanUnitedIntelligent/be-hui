@@ -704,7 +704,9 @@ function SichtbarkeitSection({ visibility, onChange }) {
 export default function MyBasisProfile({ onClose, profileId }) {
   console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
-  const { setProfile: setAuthProfile, refreshProfile } = useAuth();
+  const _auth = useAuth() || {};
+  const setAuthProfile = _auth.setProfile ?? null;
+  const refreshProfile  = _auth.refreshProfile ?? null;
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
@@ -914,55 +916,151 @@ export default function MyBasisProfile({ onClose, profileId }) {
         onAvatarChange={handleAvatarChange}
         onCoverChange={handleCoverChange}
       />
-        <Gap h={62}/> {/* space for floating avatar (82px/2 + 44px offset − 170px/2 = ~44px sichtbar) */}
+        {/* HEADER */}
+        <MeinProfilHeader
+          profile={{
+            ...profile,
+            avatar_url: localAvatar || profile?.avatar_url,
+            header_img: localCover  || profile?.header_img,
+          }}
+          onSettings={() => setShowSettings(true)}
+          onAvatarChange={handleAvatarChange}
+          onCoverChange={handleCoverChange}
+        />
+        <Gap h={62}/>
 
-        {/* ÜBER DICH */}
-        <UeberDich bio={bio} onChange={handleBioChange}/>
-        <Gap h={24}/>
+        {/* ── 1. ÜBER MICH ─────────────────────────────────── */}
+        <div style={{ padding:"0 20px" }}>
+          <SectionRow title="Über mich" onEdit={() => {}} />
+          {bio ? (
+            <p style={{ margin:"0 0 12px", fontSize:14, lineHeight:1.75, color:T.ink }}>
+              {bio}
+            </p>
+          ) : (
+            <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:12 }}>
+              Erzähl etwas über dich…
+            </div>
+          )}
+          {profile?.profile_modules?.warum_hui && (
+            <div style={{
+              background:T.tealSoft, borderRadius:T.r12,
+              border:`1px solid ${T.tealMid}`, padding:"12px 14px", marginTop:4,
+            }}>
+              <div style={{ fontSize:11, fontWeight:700, color:T.teal, marginBottom:4 }}>
+                🌱 Warum ich auf HUI bin
+              </div>
+              <p style={{ margin:0, fontSize:13, color:T.ink, lineHeight:1.65 }}>
+                {profile.profile_modules.warum_hui}
+              </p>
+            </div>
+          )}
+        </div>
+        <Gap h={20}/>
         <Divider/>
         <Gap h={20}/>
 
-        {/* GEMEINSCHAFT BEITRETEN */}
-        <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
-        <Gap h={24}/>
+        {/* ── 2. MEINE TALENTE & ANGEBOTE ──────────────────── */}
+        {profile && (() => {
+          const chips = Array.isArray(profile?.skills) ? profile.skills : [];
+          if (!chips.length) return null;
+          return (
+            <div style={{ padding:"0 20px" }}>
+              <SectionRow title="Meine Talente & Angebote" onEdit={() => {}} />
+              <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                {chips.map((t, i) => (
+                  <span key={i} style={{
+                    display:"inline-flex", alignItems:"center",
+                    padding:"6px 13px", borderRadius:99,
+                    background:T.bgCard, border:`1.5px solid ${T.border}`,
+                    fontSize:13, fontWeight:600, color:T.ink, boxShadow:T.card,
+                  }}>{t}</span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+        {profile?.skills?.length > 0 && <Gap h={20}/>}
+        {profile?.skills?.length > 0 && <Divider/>}
+        {profile?.skills?.length > 0 && <Gap h={20}/>}
+
+        {/* ── 3. WEITEREMPFEHLUNGEN ────────────────────────── */}
+        <div style={{ padding:"0 20px" }}>
+          <SectionRow title="Weiterempfehlungen" />
+          <div style={{
+            display:"inline-flex", alignItems:"center", gap:6,
+            padding:"5px 12px", borderRadius:99, marginBottom:12,
+            background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+            fontSize:11, fontWeight:700, color:T.teal,
+          }}>
+            💚 Keine Sterne. Keine Likes. Nur echte Erfahrungen.
+          </div>
+          <div style={{
+            background:T.bgCard, borderRadius:T.r16, padding:"16px",
+            border:`1px solid ${T.border}`, boxShadow:T.card,
+          }}>
+            <div style={{ fontSize:13, color:T.inkFaint, lineHeight:1.65 }}>
+              Weiterempfehlungen entstehen nach echten Erlebnissen, Buchungen oder Zusammenarbeit.
+            </div>
+          </div>
+        </div>
+        <Gap h={20}/>
         <Divider/>
         <Gap h={20}/>
 
-        {/* INTERESSEN & WERTE */}
-        <InteressenSection interests={interests} onChange={handleInterestsChange}/>
-        <Gap h={24}/>
+        {/* ── 4. VERFÜGBARKEIT ─────────────────────────────── */}
+        <div style={{ padding:"0 20px" }}>
+          <SectionRow title="Verfügbarkeit" />
+          <div style={{
+            background:T.bgCard, borderRadius:T.r16,
+            border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card,
+          }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ width:7, height:7, borderRadius:"50%",
+                  background:"#16A34A", display:"inline-block", flexShrink:0 }}/>
+                <span style={{ fontSize:13, color:T.ink, fontWeight:600 }}>
+                  Online & Vor Ort
+                </span>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:13 }}>💬</span>
+                <span style={{ fontSize:13, color:T.inkSoft }}>Offen für neue Anfragen</span>
+              </div>
+              <div style={{ fontSize:11, color:T.inkFaint }}>
+                Antwortzeit: innerhalb von 24h
+              </div>
+            </div>
+          </div>
+        </div>
+        <Gap h={20}/>
         <Divider/>
         <Gap h={20}/>
 
-        {/* MOMENTE */}
-        {(() => { console.log("RENDER MOMENTS", moments); return null; })()}
-        <MomenteSection moments={moments} onChange={handleMomentsChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
-
-        {/* OFFEN FÜR BEGEGNUNGEN */}
-        <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
-
-        {/* SICHTBARKEIT */}
-        <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
-
-        {/* AMBASSADOR */}
-        {ambState.isAmbassador ? (
-          <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
-        ) : (
-          <AmbassadorCTA
-            isAmbassador={ambState.isAmbassador}
-            isPending={ambState.isPending}
-            onApply={() => setShowAmbModal(true)}
-          />
+        {/* ── 5. STANDORT ──────────────────────────────────── */}
+        {profile?.location && (
+          <>
+            <div style={{ padding:"0 20px" }}>
+              <SectionRow title="Standort" />
+              <div style={{
+                background:T.bgCard, borderRadius:T.r16,
+                border:`1px solid ${T.border}`, padding:"14px 16px",
+                boxShadow:T.card, display:"flex", alignItems:"center", gap:8,
+              }}>
+                <span style={{ fontSize:16 }}>📍</span>
+                <span style={{ fontSize:13, color:T.inkSoft, fontWeight:500 }}>
+                  {profile.location}
+                </span>
+              </div>
+            </div>
+            <Gap h={20}/>
+            <Divider/>
+            <Gap h={20}/>
+          </>
         )}
+
+        {/* ── 6. SICHTBARKEIT ──────────────────────────────── */}
+        <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+
         <Gap h={40}/>
       </div>
 
