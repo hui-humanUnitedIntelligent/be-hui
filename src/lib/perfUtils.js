@@ -55,3 +55,43 @@ export function normalizeProfile(raw) {
     updated_at:               raw.updated_at      || null,
   };
 }
+
+// ── Legacy Exports (von db.js, content.js, discovery/index.js benötigt) ──────
+export const PAGE_SIZE = 20;
+
+// Query-Cache (in-memory)
+const _queryCache = new Map();
+
+export async function safeQuery(fn) {
+  try {
+    const result = await fn();
+    return result;
+  } catch (e) {
+    console.warn("[HUI safeQuery] Fehler:", e?.message);
+    return { data: null, error: e };
+  }
+}
+
+export async function cachedQuery(key, fn, ttl = 30_000) {
+  const now = Date.now();
+  const cached = _queryCache.get(key);
+  if (cached && now - cached.ts < ttl) return cached.data;
+  const result = await fn();
+  if (!result?.error) {
+    _queryCache.set(key, { data: result, ts: now });
+  }
+  return result;
+}
+
+export function clearQueryCache(keyPrefix) {
+  if (!keyPrefix) { _queryCache.clear(); return; }
+  for (const k of _queryCache.keys()) {
+    if (k.startsWith(keyPrefix)) _queryCache.delete(k);
+  }
+}
+
+export function buildPage(query, page = 0, pageSize = PAGE_SIZE) {
+  const from = page * pageSize;
+  const to   = from + pageSize - 1;
+  return query.range(from, to);
+}
