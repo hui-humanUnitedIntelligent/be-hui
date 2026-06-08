@@ -21,121 +21,221 @@ const CSS = `
   .amb-copy-btn:active { transform:scale(0.95);opacity:0.7; }
   @keyframes amb-copied { 0%{opacity:0;transform:translateY(-4px)} 20%{opacity:1} 80%{opacity:1} 100%{opacity:0} }
   .amb-copied-toast { animation:amb-copied 2s ease both;pointer-events:none; }
-  .amb-ref-row { display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(26,26,24,0.06); }
+
+  /* Modal Overlay */
+  @keyframes amb-modal-in { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+  .amb-modal-sheet { animation:amb-modal-in .25s ease both; }
+
+  .amb-ref-row {
+    display:flex;align-items:flex-start;gap:10px;
+    padding:12px 16px;border-bottom:1px solid rgba(26,26,24,0.06);
+  }
   .amb-ref-row:last-child { border-bottom:none; }
-  .amb-ref-avatar { width:34px;height:34px;border-radius:50%;background:#0EC4B8;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0; }
 `;
 
-function Avatar({ name, src, size = 34 }) {
-  if (src) return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
+function fmt(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" });
+}
+
+function Avatar({ name, src, size = 36 }) {
+  if (src) return <img src={src} alt={name} style={{
+    width:size, height:size, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />;
   const initials = (name || "?").slice(0, 2).toUpperCase();
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", background: "#0EC4B8",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+    <div style={{ width:size, height:size, borderRadius:"50%", background:"#0EC4B8",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      fontSize:13, fontWeight:700, color:"#fff", flexShrink:0 }}>
       {initials}
     </div>
   );
 }
 
-function StatBox({ icon, label, value, accent, onClick, active: isActive }) {
+// ── Plus-Button ───────────────────────────────────────────────
+function PlusBtn({ onClick }) {
   return (
-    <div onClick={onClick} style={{ background: isActive ? "rgba(14,196,184,0.08)" : "#F7F5F2",
-      borderRadius: 12, padding: "12px 14px", flex: 1, minWidth: 80,
-      cursor: onClick ? "pointer" : "default",
-      border: isActive ? "1.5px solid rgba(14,196,184,0.3)" : "1.5px solid transparent",
-      transition: "all .15s" }}>
-      <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: accent || T.ink, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 3, lineHeight: 1.3 }}>{label}</div>
+    <button
+      onClick={e => { e.stopPropagation(); onClick(); }}
+      style={{
+        width:22, height:22, borderRadius:"50%",
+        background:"rgba(14,196,184,0.12)",
+        border:"1.5px solid rgba(14,196,184,0.35)",
+        color:"#0EC4B8", fontSize:14, fontWeight:800,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        cursor:"pointer", flexShrink:0, padding:0,
+        lineHeight:1, marginLeft:4,
+      }}
+      aria-label="Liste öffnen"
+    >+</button>
+  );
+}
+
+// ── StatBox mit Plus-Button ───────────────────────────────────
+function StatBox({ icon, label, value, accent, onPlus }) {
+  return (
+    <div style={{ background:"#F7F5F2", borderRadius:12, padding:"12px 14px",
+      flex:1, minWidth:80, position:"relative" }}>
+      <div style={{ fontSize:18, marginBottom:4 }}>{icon}</div>
+      <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+        <div style={{ fontSize:20, fontWeight:800, color:accent || T.ink, lineHeight:1 }}>{value}</div>
+        <PlusBtn onClick={onPlus} />
+      </div>
+      <div style={{ fontSize:11, color:T.inkSoft, marginTop:3, lineHeight:1.3 }}>{label}</div>
     </div>
   );
 }
 
-function ReferralList({ referrals, filter, loading }) {
-  const list = filter === "active"
-    ? referrals.filter(r => r.isActive)
-    : referrals.filter(r => !r.isActive);
-
-  if (loading) return (
-    <div style={{ padding: "16px", textAlign: "center", fontSize: 12, color: T.inkSoft }}>Lade…</div>
-  );
-  if (list.length === 0) return (
-    <div style={{ padding: "16px", textAlign: "center", fontSize: 12, color: T.inkSoft }}>
-      {filter === "active" ? "Keine aktiven Nutzer" : "Keine schlafenden Nutzer"}
-    </div>
-  );
-
+// ── Nutzer-Zeile ──────────────────────────────────────────────
+function UserRow({ u }) {
+  const isActive = u.isActive;
   return (
-    <div style={{ maxHeight: 260, overflowY: "auto" }}>
-      {list.map(u => (
-        <div key={u.id} className="amb-ref-row">
-          <Avatar name={u.displayName} src={u.avatarUrl} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T.ink,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {u.displayName}
-            </div>
-            {u.username && (
-              <div style={{ fontSize: 11, color: T.inkSoft }}>@{u.username}</div>
-            )}
-            {/* Kontaktdaten nur bei Schlafenden */}
-            {filter === "sleeping" && (u.email || u.phone) && (
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 3 }}>
-                {u.email && (
-                  <a href={`mailto:${u.email}`} style={{ fontSize: 11, color: T.teal,
-                    textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                    ✉️ {u.email}
-                  </a>
-                )}
-                {u.phone && (
-                  <a href={`tel:${u.phone}`} style={{ fontSize: 11, color: T.teal,
-                    textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                    📞 {u.phone}
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-          <div style={{ fontSize: 10, color: T.inkFaint, flexShrink: 0 }}>
-            {filter === "active"
-              ? <span style={{ color: T.teal, fontWeight: 600 }}>⚡ aktiv</span>
-              : <span style={{ color: T.inkSoft }}>😴 inaktiv</span>}
-          </div>
+    <div className="amb-ref-row">
+      <Avatar name={u.displayName} src={u.avatarUrl} />
+      <div style={{ flex:1, minWidth:0 }}>
+        {/* Name + Status-Badge */}
+        <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+          <span style={{ fontSize:13, fontWeight:700, color:T.ink,
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:160 }}>
+            {u.displayName}
+          </span>
+          <span style={{
+            fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:20,
+            background: isActive ? "rgba(14,196,184,0.12)" : "rgba(26,26,24,0.07)",
+            color:      isActive ? "#0EC4B8"               : T.inkSoft,
+          }}>
+            {isActive ? "⚡ aktiv" : "😴 schlafend"}
+          </span>
         </div>
-      ))}
+        {/* @username */}
+        {u.username && (
+          <div style={{ fontSize:11, color:T.inkSoft, marginTop:1 }}>@{u.username}</div>
+        )}
+        {/* E-Mail */}
+        {u.email && (
+          <a href={`mailto:${u.email}`} style={{
+            fontSize:11, color:T.teal, textDecoration:"none",
+            display:"flex", alignItems:"center", gap:3, marginTop:2,
+          }}>
+            ✉️ {u.email}
+          </a>
+        )}
+        {/* Daten */}
+        <div style={{ display:"flex", gap:10, marginTop:3, flexWrap:"wrap" }}>
+          <span style={{ fontSize:10, color:T.inkFaint }}>
+            📅 Reg. {fmt(u.joinedAt) || "–"}
+          </span>
+          {u.firstTransactionAt && (
+            <span style={{ fontSize:10, color:"#0EC4B8" }}>
+              💳 Erste Zahlung {fmt(u.firstTransactionAt)}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
+// ── Modal: Liste ──────────────────────────────────────────────
+function ReferralModal({ title, icon, users, loading, onClose }) {
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:10500,
+      background:"rgba(10,10,8,0.6)", backdropFilter:"blur(4px)",
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="amb-modal-sheet" style={{
+        background:"#FAFAF8", borderRadius:"20px 20px 0 0",
+        width:"100%", maxWidth:560,
+        maxHeight:"82dvh", display:"flex", flexDirection:"column",
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
+        paddingBottom:"env(safe-area-inset-bottom, 16px)",
+      }}>
+        {/* Header */}
+        <div style={{
+          padding:"16px 20px 12px", borderBottom:"1px solid rgba(26,26,24,0.08)",
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          flexShrink:0,
+        }}>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>
+            {icon} {title}
+          </div>
+          <button onClick={onClose} style={{
+            background:"none", border:"none", fontSize:20, cursor:"pointer",
+            color:T.inkSoft, padding:"0 4px", display:"flex", alignItems:"center",
+          }}>✕</button>
+        </div>
+
+        {/* Body */}
+        <div style={{ overflowY:"auto", flex:1 }}>
+          {loading ? (
+            <div style={{ padding:32, textAlign:"center", fontSize:13, color:T.inkSoft }}>
+              Lade…
+            </div>
+          ) : users.length === 0 ? (
+            <div style={{ padding:32, textAlign:"center" }}>
+              <div style={{ fontSize:32, marginBottom:8 }}>🙈</div>
+              <div style={{ fontSize:13, color:T.inkSoft }}>Noch keine Einträge</div>
+            </div>
+          ) : (
+            users.map(u => <UserRow key={u.id} u={u} />)
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Haupt-Komponente ──────────────────────────────────────────
 export default function AmbassadorSection({ ambassadorData, userId }) {
-  const [copied, setCopied]     = useState(false);
-  const [listView, setListView] = useState(null); // null | "active" | "sleeping"
+  const [copied,  setCopied]  = useState(false);
+  const [modal,   setModal]   = useState(null); // null | "all" | "active" | "sleeping"
 
   if (!ambassadorData) return null;
 
-  const level    = ambassadorData.level || "bronze";
-  const lvlCfg   = LEVEL_CONFIG[level] || LEVEL_CONFIG.bronze;
-  // Sicherheitsfilter: kaputte Links (${username} als Literal) niemals anzeigen
-  const rawLink   = ambassadorData.referral_link || "";
-  const refLink   = (rawLink && !rawLink.includes("${") && !rawLink.endsWith("/undefined") && !rawLink.endsWith("/null"))
-    ? rawLink
-    : "";
+  const level   = ambassadorData.level || "bronze";
+  const lvlCfg  = LEVEL_CONFIG[level]  || LEVEL_CONFIG.bronze;
+
+  // Ref-Link validieren
+  const rawLink  = ambassadorData.referral_link || "";
+  const refLink  = (rawLink && !rawLink.includes("${") &&
+                    !rawLink.endsWith("/undefined") && !rawLink.endsWith("/null"))
+    ? rawLink : "";
   const refCode  = ambassadorData.referral_code || null;
   const revenue  = Number(ambassadorData.revenue_generated) || 0;
 
-  // Referrals laden — ambassadorId + refCode als Quellen
+  // Referrals immer laden (ambassadorId primär, refCode Fallback)
   const { referrals, loading: refLoading } = useReferrals(
     userId || null,
-    listView ? refCode : null
+    refCode || null
   );
-  // Live-Counter NACH useReferrals (kein TDZ)
+
+  // Live-Counter
   const liveTotal    = referrals.length;
-  const liveActive   = referrals.filter(r => r.isActive).length;
+  const liveActive   = referrals.filter(r =>  r.isActive).length;
   const liveSleeping = referrals.filter(r => !r.isActive).length;
-  const refs     = liveTotal > 0 ? liveTotal    : (Number(ambassadorData.referral_count)          || 0);
-  const active   = liveTotal > 0 ? liveActive   : (Number(ambassadorData.active_referral_count)   || 0);
-  const sleeping = liveTotal > 0 ? liveSleeping : (Number(ambassadorData.sleeping_referral_count) || 0);
+
+  // Anzeige-Werte: live wenn vorhanden, sonst DB-Fallback
+  const refs     = liveTotal > 0 ? liveTotal    : (Number(ambassadorData.referral_count)           || 0);
+  const active   = liveTotal > 0 ? liveActive   : (Number(ambassadorData.active_referral_count)    || 0);
+  const sleeping = liveTotal > 0 ? liveSleeping : (Number(ambassadorData.sleeping_referral_count)  || 0);
+
+  // Modal-Daten
+  const modalUsers = () => {
+    if (modal === "active")   return referrals.filter(r =>  r.isActive);
+    if (modal === "sleeping") return referrals.filter(r => !r.isActive);
+    return referrals; // "all"
+  };
+  const modalTitle = () => {
+    if (modal === "active")   return "Aktive Nutzer";
+    if (modal === "sleeping") return "Schlafende Nutzer";
+    return "Alle geworbenen Nutzer";
+  };
+  const modalIcon = () => {
+    if (modal === "active")   return "⚡";
+    if (modal === "sleeping") return "😴";
+    return "👥";
+  };
 
   const copyLink = () => {
     if (!refLink) return;
@@ -145,13 +245,21 @@ export default function AmbassadorSection({ ambassadorData, userId }) {
     });
   };
 
-  const toggleList = (type) => {
-    setListView(prev => prev === type ? null : type);
-  };
-
   return (
     <>
       <style>{CSS}</style>
+
+      {/* Modal */}
+      {modal && (
+        <ReferralModal
+          title={modalTitle()}
+          icon={modalIcon()}
+          users={modalUsers()}
+          loading={refLoading}
+          onClose={() => setModal(null)}
+        />
+      )}
+
       <div className="amb-sec-root" style={{
         background: T.bg, borderRadius: 16,
         border: `1.5px solid ${lvlCfg.color}33`,
@@ -183,33 +291,19 @@ export default function AmbassadorSection({ ambassadorData, userId }) {
         {/* Statistiken */}
         <div style={{ padding: "14px 16px" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-            <StatBox icon="👥" label="Geworbene Nutzer" value={refs} />
-            <StatBox icon="⚡" label="Aktive Nutzer"    value={active}   accent={T.teal}
-              active={listView === "active"}
-              onClick={active > 0 ? () => toggleList("active") : undefined} />
-            <StatBox icon="😴" label="Schlafende"       value={sleeping}
-              active={listView === "sleeping"}
-              onClick={sleeping > 0 ? () => toggleList("sleeping") : undefined} />
+            <StatBox
+              icon="👥" label="Geworbene Nutzer" value={refs}
+              onPlus={() => setModal("all")}
+            />
+            <StatBox
+              icon="⚡" label="Aktive Nutzer" value={active} accent={T.teal}
+              onPlus={() => setModal("active")}
+            />
+            <StatBox
+              icon="😴" label="Schlafende" value={sleeping}
+              onPlus={() => setModal("sleeping")}
+            />
           </div>
-
-          {/* Referral-Liste (ausklappbar) */}
-          {listView && (
-            <div style={{
-              background: "#F7F5F2", borderRadius: 12, marginBottom: 14,
-              border: "1px solid rgba(26,26,24,0.08)", overflow: "hidden",
-            }}>
-              <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(26,26,24,0.08)",
-                display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: T.ink }}>
-                  {listView === "active" ? "⚡ Aktive Nutzer" : "😴 Schlafende Nutzer"}
-                </div>
-                <button onClick={() => setListView(null)}
-                  style={{ background: "none", border: "none", fontSize: 16, cursor: "pointer",
-                    color: T.inkSoft, padding: 0, display: "flex", alignItems: "center" }}>✕</button>
-              </div>
-              <ReferralList referrals={referrals} filter={listView} loading={refLoading} />
-            </div>
-          )}
 
           {/* Umsatz */}
           <div style={{
@@ -219,178 +313,50 @@ export default function AmbassadorSection({ ambassadorData, userId }) {
           }}>
             <span style={{ fontSize: 22 }}>💶</span>
             <div>
-              <div style={{ fontSize: 13, color: T.inkSoft, marginBottom: 2 }}>Mein Anteil (Umsatz)</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: T.teal }}>
+              <div style={{ fontSize: 13, color: T.inkSoft }}>Mein Anteil (Umsatz)</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: T.teal, lineHeight: 1.2 }}>
                 {revenue.toFixed(2)} €
               </div>
             </div>
           </div>
 
           {/* Ref-Link */}
-          {refLink && (
-            <div>
-              <div style={{ fontSize: 12, color: T.inkSoft, fontWeight: 600, marginBottom: 6 }}>
-                🔗 Dein persönlicher Einladungslink
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, marginBottom: 7,
+              display: "flex", alignItems: "center", gap: 5 }}>
+              🔗 Dein persönlicher Einladungslink
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{
+                flex: 1, background: "#F7F5F2", borderRadius: 10,
+                padding: "10px 14px", fontSize: 13, color: T.ink,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                border: "1px solid rgba(26,26,24,0.09)",
+              }}>
+                {refLink || <span style={{ color: T.inkFaint }}>Kein Link verfügbar</span>}
               </div>
-              <div style={{ position: "relative" }}>
-                <div style={{
-                  background: "#F7F5F2", borderRadius: 10, padding: "11px 50px 11px 14px",
-                  fontSize: 13, color: T.ink, wordBreak: "break-all", lineHeight: 1.4,
-                  border: "1px solid rgba(26,26,24,0.10)",
+              {refLink && (
+                <button className="amb-copy-btn" onClick={copyLink} style={{
+                  background: T.teal, border: "none", borderRadius: 10,
+                  width: 40, height: 40, display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: 17, color: "#fff",
+                  flexShrink: 0, position: "relative",
                 }}>
-                  {refLink}
-                </div>
-                <button onClick={copyLink} className="amb-copy-btn"
-                  style={{
-                    position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                    background: copied ? "rgba(14,196,184,0.15)" : "rgba(14,196,184,0.10)",
-                    border: `1px solid ${copied ? T.teal : "rgba(14,196,184,0.3)"}`,
-                    borderRadius: 8, padding: "5px 10px", fontSize: 12, fontWeight: 600,
-                    color: T.teal, cursor: "pointer", fontFamily: "inherit",
-                  }}>
                   {copied ? "✓" : "📋"}
+                  {copied && (
+                    <span className="amb-copied-toast" style={{
+                      position: "absolute", bottom: "110%", left: "50%",
+                      transform: "translateX(-50%)",
+                      background: T.ink, color: "#fff", borderRadius: 6,
+                      padding: "4px 8px", fontSize: 10, whiteSpace: "nowrap",
+                    }}>Kopiert!</span>
+                  )}
                 </button>
-              </div>
-              {copied && (
-                <div className="amb-copied-toast" style={{
-                  fontSize: 12, color: T.teal, marginTop: 6, textAlign: "center",
-                }}>
-                  Link kopiert! ✓
-                </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </>
   );
 }
-
-// ── Level-Badge (für Profilkopf) ──────────────────────────────
-export function AmbassadorBadge({ level, size = "sm" }) {
-  if (!level) return null;
-  const cfg  = LEVEL_CONFIG[level] || LEVEL_CONFIG.bronze;
-  const pad  = size === "sm" ? "2px 8px" : "4px 12px";
-  const font = size === "sm" ? 10 : 12;
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 3,
-      background: cfg.bg, border: `1px solid ${cfg.color}44`,
-      borderRadius: 20, padding: pad,
-      fontSize: font, fontWeight: 700, color: cfg.color, flexShrink: 0,
-    }}>
-      {cfg.icon} {cfg.label}
-    </span>
-  );
-}
-
-// ── "Werde Ambassador" Button + Pending-Hinweis ───────────────
-export function AmbassadorCTA({ isAmbassador, isPending, ambassadorStatus, onApply }) {
-  if (isAmbassador) return null;
-
-  // ⏳ Bewerbung läuft
-  if (isPending) {
-    return (
-      <div style={{
-        margin: "0 16px",
-        background: "rgba(14,196,184,0.07)",
-        border: "1.5px solid rgba(14,196,184,0.25)",
-        borderRadius: 14, padding: "14px 16px",
-        display: "flex", alignItems: "center", gap: 10,
-      }}>
-        <span style={{ fontSize: 20 }}>⏳</span>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A18" }}>Deine Bewerbung wird geprüft.</div>
-          <div style={{ fontSize: 12, color: "rgba(26,26,24,0.52)", marginTop: 2 }}>
-            Wir melden uns bald bei dir.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ❌ Abgelehnt → erneut bewerben möglich
-  if (ambassadorStatus === 'rejected') {
-    return (
-      <div style={{ margin: "0 16px" }}>
-        <div style={{
-          background: "rgba(255,91,91,0.07)",
-          border: "1.5px solid rgba(255,91,91,0.20)",
-          borderRadius: 14, padding: "12px 16px",
-          marginBottom: 10,
-          display: "flex", alignItems: "center", gap: 10,
-        }}>
-          <span style={{ fontSize: 18 }}>❌</span>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A18" }}>Deine Bewerbung wurde abgelehnt.</div>
-            <div style={{ fontSize: 12, color: "rgba(26,26,24,0.52)", marginTop: 2 }}>
-              Du kannst dich erneut bewerben.
-            </div>
-          </div>
-        </div>
-        <button onClick={onApply} style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          width: "100%", padding: "14px", background: "#0EC4B8",
-          border: "none", borderRadius: 14, cursor: "pointer",
-          fontSize: 15, fontWeight: 700, color: "#fff",
-          transition: "transform .12s ease",
-        }}
-          onMouseDown={e => e.currentTarget.style.transform = "scale(0.97)"}
-          onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
-        >
-          🌟 Erneut bewerben
-        </button>
-      </div>
-    );
-  }
-
-  // ↩️ Widerrufen → erneut bewerben
-  if (ambassadorStatus === 'revoked') {
-    return (
-      <div style={{ margin: "0 16px" }}>
-        <div style={{
-          background: "rgba(255,165,0,0.07)",
-          border: "1.5px solid rgba(255,165,0,0.20)",
-          borderRadius: 14, padding: "12px 16px",
-          marginBottom: 10,
-          display: "flex", alignItems: "center", gap: 10,
-        }}>
-          <span style={{ fontSize: 18 }}>↩️</span>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A18" }}>Dein Ambassador-Status wurde widerrufen.</div>
-            <div style={{ fontSize: 12, color: "rgba(26,26,24,0.52)", marginTop: 2 }}>Du kannst dich erneut bewerben.</div>
-          </div>
-        </div>
-        <button onClick={onApply} style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          width: "100%", padding: "14px", background: "#0EC4B8",
-          border: "none", borderRadius: 14, cursor: "pointer",
-          fontSize: 15, fontWeight: 700, color: "#fff",
-        }}
-          onMouseDown={e => e.currentTarget.style.transform = "scale(0.97)"}
-          onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
-        >
-          🌟 Erneut bewerben
-        </button>
-      </div>
-    );
-  }
-
-  // Standard: noch keine Bewerbung
-  return (
-    <button onClick={onApply} style={{
-      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-      margin: "0 16px", width: "calc(100% - 32px)",
-      padding: "15px", background: "#0EC4B8",
-      border: "none", borderRadius: 14, cursor: "pointer",
-      fontSize: 15, fontWeight: 700, color: "#fff",
-      transition: "transform .12s ease",
-    }}
-      onMouseDown={e => e.currentTarget.style.transform = "scale(0.97)"}
-      onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
-    >
-      🌟 Werde Ambassador
-    </button>
-  );
-}
-
