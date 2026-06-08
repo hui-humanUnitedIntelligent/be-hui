@@ -356,6 +356,13 @@ function SuccessMessage({ msg }) {
 // ═══════════════════════════════════════════════════════════════════
 export default function LoginPage() {
   const navigate = useNavigate();
+
+  // Ref-Link aus URL-Param (?ref=username) vorausfüllen
+  useEffect(() => {
+    const refParam = searchParams.get('ref');
+    if (refParam) setRefLink(`https://be-hui.com/${refParam}`);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { isAuthenticated, loadingAuth } = useAuth();
 
   // Modes: 'splash' | 'login' | 'register' | 'magic' | 'forgot' | 'onboarding'
