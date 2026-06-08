@@ -1149,18 +1149,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {/* ── 6. SICHTBARKEIT ──────────────────────────────── */}
         <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
 
-        {/* ── TALENT-ERWEITERUNG: 6 Schritte + Werke + Erlebnisse ── */}
-        {profile?.is_talent && (
-          <>
-            <Gap h={20}/>
-            <Divider/>
-            <Gap h={20}/>
-            <TalentErweiterung profile={profile} onProfileUpdate={(upd) => {
-              setProfile(p => ({ ...p, ...upd }));
-              setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
-            }}/>
-          </>
-        )}
+        {/* TalentErweiterung → HUI Studio */}
 
         {/* ── AMBASSADOR-SEKTION: nur wenn Profil aus DB geladen ─── */}
         {profile && (
