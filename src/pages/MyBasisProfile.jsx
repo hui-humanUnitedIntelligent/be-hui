@@ -11,8 +11,6 @@ import { useAuth }   from "../lib/AuthContext.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
 import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
-import WerkWizard      from "../components/works/WerkWizard.jsx";
-import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 
@@ -67,8 +65,8 @@ const s = (v, fb="") => (v && typeof v==="string" ? v.trim() : fb);
 const a = (v) => Array.isArray(v) ? v : [];
 
 // ── Fallbacks ─────────────────────────────────────────────────
-const FB_COVER = null;   // Kein hardcodierter Cover-Fallback
-const FB_AVT   = null;   // Kein hardcodierter Avatar-Fallback — null zeigt Initialen/Icon
+const FB_COVER = "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80";
+const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
 
 // MOMENT_SEEDS entfernt — keine Placeholder-Bilder mehr
 
@@ -123,7 +121,7 @@ function SectionRow({ title, sub, onEdit }) {
   );
 }
 
-function Sheet({ onClose, children, zIndex=10300 }) {
+function Sheet({ onClose, children, zIndex=9800 }) {
   return (
     <div onClick={onClose} style={{
       position:"fixed", inset:0, zIndex,
@@ -133,8 +131,8 @@ function Sheet({ onClose, children, zIndex=10300 }) {
       <div className="mbp-sheet" onClick={e=>e.stopPropagation()} style={{
         width:"100%", background:T.bgSheet,
         borderRadius:`${T.r24}px ${T.r24}px 0 0`,
-        padding:"20px 20px max(80px,calc(70px + env(safe-area-inset-bottom,0px)))",
-        boxShadow:T.sheet, maxHeight:"85vh", overflowY:"auto",
+        padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
+        boxShadow:T.sheet, maxHeight:"80vh", overflowY:"auto",
       }}>
         <div style={{width:36,height:4,borderRadius:99,background:T.borderMid,margin:"0 auto 20px"}}/>
         {children}
@@ -166,12 +164,8 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
   const avatarInputRef = useRef(null);
   const coverInputRef  = useRef(null);
 
-  // ── Avatar + Cover: direkt aus profile (kein Demo-Fallback) ──────────
-  // localAvatar/localCover leben im Eltern-State (MyBasisProfile),
-  // werden via onAvatarChange/onCoverChange hochgereicht und dann als
-  // aktualisiertes profile weitergegeben.
-  const cover  = profile?.header_img  || null;
-  const avatar = profile?.avatar_url  || null;
+  const cover  = s(profile?.header_img,  FB_COVER);
+  const avatar = s(profile?.avatar_url,  FB_AVT);
   const name   = s(profile?.display_name||profile?.username, "Mein Profil");
 
   async function handleAvatarFile(e) {
@@ -230,34 +224,8 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
         <div>
           <div style={{ fontSize:24, fontWeight:800, color:T.ink, letterSpacing:"-0.03em",
             display:"flex", alignItems:"center", gap:8, lineHeight:1.2 }}>
-            {profile?.display_name || profile?.username || "Mein Profil"} <span style={{fontSize:18}}>🌿</span>
-
-          {/* Vertrauensstatus-Badge */}
-          {profile && (() => {
-            const recs = profile.recommendations || 0;
-            const mo = profile.created_at
-              ? Math.floor((Date.now()-new Date(profile.created_at))/(30*24*3600*1000)) : 0;
-            const st = recs>=10||mo>=12 ? {icon:"💎",label:"Vertrauenspartner",color:"#7264D6"}
-              : recs>=5||mo>=6 ? {icon:"🌳",label:"Bew\u00e4hrtes Mitglied",color:"#0DC4B5"}
-              : recs>=1||mo>=2 ? {icon:"🍃",label:"Empfohlenes Mitglied",color:"#D97706"}
-              : {icon:"🌱",label:"Neues Mitglied",color:"#16A34A"};
-            return (
-              <span style={{
-                display:"inline-flex",alignItems:"center",gap:3,
-                padding:"2px 8px",borderRadius:99,fontSize:10,fontWeight:700,
-                color:st.color,background:st.color+"18",
-                border:"1px solid "+st.color+"30",flexShrink:0,
-              }}>
-                {st.icon} {st.label}
-              </span>
-            );
-          })()}
+            Mein Profil <span style={{fontSize:18}}>🌿</span>
           </div>
-          {profile?.username && (
-            <div style={{ fontSize:13, color:T.teal, fontWeight:600, marginTop:2, letterSpacing:"0.01em" }}>
-              @{profile.username}
-            </div>
-          )}
           <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
             Gestalte dein Profil so, wie du bist.
           </div>
@@ -316,24 +284,10 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
               border:"3.5px solid white",
               boxShadow:"0 4px 20px rgba(0,0,0,0.16)",
               overflow:"hidden", background:T.bg }}>
-              {/* Avatar: Bild wenn vorhanden, sonst Initialen */}
-              {avatar ? (
-                <>
-                  {!avLoaded && <div className="mbp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>}
-                  <img src={avatar} alt={name} onLoad={()=>setAvLoaded(true)} onError={()=>setAvLoaded(true)}
-                    style={{ width:"100%", height:"100%", objectFit:"cover",
-                      opacity:avLoaded?1:0, transition:"opacity .5s ease" }}/>
-                </>
-              ) : (
-                <div style={{
-                  position:"absolute", inset:0, borderRadius:"50%",
-                  background:`linear-gradient(135deg, ${T.teal}, ${T.tealMid})`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:28, fontWeight:700, color:"white",
-                }}>
-                  {(name||"?").charAt(0).toUpperCase()}
-                </div>
-              )}
+              {!avLoaded && <div className="mbp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>}
+              <img src={avatar} alt={name} onLoad={()=>setAvLoaded(true)} onError={()=>setAvLoaded(true)}
+                style={{ width:"100%", height:"100%", objectFit:"cover",
+                  opacity:avLoaded?1:0, transition:"opacity .5s ease" }}/>
             </div>
             {/* Camera button */}
             <label style={{
@@ -653,7 +607,6 @@ function MomentThumb({ m, onRemove }) {
 function OffenFuerSection({ openFor, onChange }) {
   const [showEdit, setShowEdit] = useState(false);
   const current = a(openFor);
-  // Im Read-Mode: aktive Kacheln anzeigen, sonst Demo-Auswahl
   const display = current.length ? OPEN_FOR_ALL.filter(t=>current.includes(t.label)) : OPEN_FOR_ALL.slice(0,4);
 
   const toggle = (label) => {
@@ -661,22 +614,12 @@ function OffenFuerSection({ openFor, onChange }) {
     else onChange([...current, label]);
   };
 
-  const remove = (label) => onChange(current.filter(x => x !== label));
-
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      {/* Header mit Bearbeiten-Button — identisch zu InteressenSection */}
-      <SectionRow
-        title="Offen für Begegnungen"
-        sub="Wofür bist du offen? Was interessiert dich?"
-        onEdit={() => setShowEdit(true)}
-      />
-
-      {/* Read-Mode: Kacheln mit X-Icon */}
+      <SectionRow title="Offen für Begegnungen" sub="Wofür bist du offen? Was interessiert dich?"/>
       <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-        {display.map((t,i) => (
+        {display.map((t,i)=>(
           <div key={i} style={{
-            position:"relative",
             display:"inline-flex", alignItems:"center", gap:6,
             padding:"9px 16px", borderRadius:T.r99,
             background:T.bgCard, border:`1px solid ${T.border}`,
@@ -684,26 +627,9 @@ function OffenFuerSection({ openFor, onChange }) {
             boxShadow:T.card,
           }}>
             <span style={{fontSize:14}}>{t.icon}</span>{t.label}
-            {/* X-Button: nur wenn Kachel wirklich aktiv (nicht Demo) */}
-            {current.includes(t.label) && (
-              <button
-                onClick={() => remove(t.label)}
-                style={{
-                  marginLeft:2, width:16, height:16,
-                  borderRadius:"50%", border:"none",
-                  background:"rgba(26,26,24,0.12)",
-                  color:T.inkSoft, fontSize:10, fontWeight:800,
-                  cursor:"pointer", display:"flex", alignItems:"center",
-                  justifyContent:"center", lineHeight:1, padding:0,
-                  touchAction:"manipulation", fontFamily:"inherit",
-                }}
-                aria-label={`${t.label} entfernen`}
-              >✕</button>
-            )}
           </div>
         ))}
-        {/* + Hinzufügen Chip */}
-        <button className="mbp-press-light" onClick={() => setShowEdit(true)} style={{
+        <button className="mbp-press-light" onClick={()=>setShowEdit(true)} style={{
           display:"inline-flex", alignItems:"center", gap:6,
           padding:"9px 16px", borderRadius:T.r99,
           background:"transparent", border:`1px dashed ${T.borderMid}`,
@@ -714,21 +640,18 @@ function OffenFuerSection({ openFor, onChange }) {
         </button>
       </div>
 
-      {/* Edit-Sheet — identisch zu InteressenSection */}
       {showEdit && (
-        <Sheet onClose={() => setShowEdit(false)}>
+        <Sheet onClose={()=>setShowEdit(false)}>
           <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:4 }}>Offen für Begegnungen</div>
-          <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Was interessiert dich gerade? Wähle oder entferne Kategorien.</div>
+          <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Was interessiert dich gerade?</div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
-            {OPEN_FOR_ALL.map((t,i) => (
-              <InterestPill
-                key={i} icon={t.icon} label={t.label}
+            {OPEN_FOR_ALL.map((t,i)=>(
+              <InterestPill key={i} icon={t.icon} label={t.label}
                 active={current.includes(t.label)}
-                onToggle={() => toggle(t.label)}
-              />
+                onToggle={()=>toggle(t.label)}/>
             ))}
           </div>
-          <button className="mbp-press" onClick={() => setShowEdit(false)} style={{
+          <button className="mbp-press" onClick={()=>setShowEdit(false)} style={{
             width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
             background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
             color:"white", fontSize:15, fontWeight:700,
@@ -778,514 +701,12 @@ function SichtbarkeitSection({ visibility, onChange }) {
 // ══════════════════════════════════════════════════════════════
 // ROOT
 // ══════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════════
-// WARUM ICH AUF HUI BIN — Persönlicher Motivations-Bereich
-// ════════════════════════════════════════════════════════════════
-const WERT_TAGS = [
-  { icon:"🌱", label:"Natur"        },
-  { icon:"🤝", label:"Gemeinschaft" },
-  { icon:"🎨", label:"Kreativität"  },
-  { icon:"💚", label:"Vertrauen"    },
-  { icon:"✨", label:"Inspiration"  },
-  { icon:"🌍", label:"Wirkung"      },
-  { icon:"🎵", label:"Musik"        },
-  { icon:"📖", label:"Bildung"      },
-  { icon:"🧘", label:"Achtsamkeit"  },
-  { icon:"💡", label:"Innovation"   },
-];
-
-function WarumHUI({ profile, onEdit }) {
-  const warum = profile?.profile_modules?.warum_hui || "";
-  const tags  = Array.isArray(profile?.profile_modules?.wert_tags)
-    ? profile.profile_modules.wert_tags : [];
-  return (
-    <div style={{ padding:"0 20px" }}>
-      <SectionRow title="Über mich" onEdit={onEdit} />
-      <div style={{
-        background:T.bgCard, borderRadius:T.r16,
-        border:`1px solid ${T.border}`, padding:"16px",
-        boxShadow:T.card, marginBottom:12,
-      }}>
-        {warum ? (
-          <p style={{ margin:0, fontSize:14, lineHeight:1.7, color:T.ink }}>
-            {warum}
-          </p>
-        ) : (
-          <div style={{ fontSize:13, color:T.inkFaint, lineHeight:1.6, fontStyle:"italic" }}
-            onClick={onEdit}>
-            Schreib hier, warum du Teil von HUI bist, was dich antreibt und welche Werte dir wichtig sind…
-          </div>
-        )}
-        {tags.length > 0 && (
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:12 }}>
-            {tags.map((t, i) => (
-              <span key={i} style={{
-                display:"inline-flex", alignItems:"center", gap:4,
-                padding:"4px 10px", borderRadius:99,
-                background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-                fontSize:12, fontWeight:600, color:T.teal,
-              }}>{t}</span>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// MEINE TALENTE & FÄHIGKEITEN — Chip-basiert, sofort erkennbar
-// ════════════════════════════════════════════════════════════════
-const TALENT_CHIPS = [
-  "Fotografie","Musik","Handwerk","Coaching","Kunst","Programmierung",
-  "Bildung","Schreiben","Design","Tanz","Theater","Yoga","Kochen",
-  "Gartenbau","Architektur","Film","Illustration","Keramik","Textil",
-];
-
-function MeineTalenteSection({ profile, onEdit }) {
-  const talents = Array.isArray(profile?.profile_modules?.talente)
-    ? profile.profile_modules.talente
-    : (Array.isArray(profile?.skills) ? profile.skills : []);
-  return (
-    <div style={{ padding:"0 20px" }}>
-      <SectionRow title="Meine Talente & Fähigkeiten" onEdit={onEdit} />
-      {talents.length > 0 ? (
-        <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:4 }}>
-          {talents.map((t, i) => (
-            <span key={i} style={{
-              display:"inline-flex", alignItems:"center", gap:5,
-              padding:"6px 13px", borderRadius:99,
-              background:T.bgCard, border:`1.5px solid ${T.border}`,
-              fontSize:13, fontWeight:600, color:T.ink,
-              boxShadow:T.card,
-            }}>
-              {t}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <div style={{
-          background:T.tealSoft, borderRadius:T.r12,
-          border:`1px dashed ${T.tealMid}`, padding:"14px 16px",
-          textAlign:"center", cursor:"pointer",
-        }} onClick={onEdit}>
-          <div style={{ fontSize:13, color:T.teal, fontWeight:600 }}>
-            + Talente hinzufügen
-          </div>
-          <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
-            Fotografie · Musik · Coaching · Kunst · …
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// WEITEREMPFEHLUNGEN — Kein Sterne-System
-// ════════════════════════════════════════════════════════════════
-function WeiterempfehlungenSection({ userId }) {
-  const [recs, setRecs]       = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    if (!userId) { setLoading(false); return; }
-    supabase.from("recommendations")
-      .select("id,text,from_name,from_avatar,created_at")
-      .eq("to_user_id", userId)
-      .order("created_at", { ascending:false })
-      .limit(3)
-      .then(({ data }) => { setRecs(data || []); setLoading(false); });
-  }, [userId]);
-
-  return (
-    <div style={{ padding:"0 20px" }}>
-      <SectionRow title="Weiterempfehlungen" />
-      {/* Keine Sterne — Grundsatz */}
-      <div style={{
-        display:"inline-flex", alignItems:"center", gap:6,
-        padding:"5px 12px", borderRadius:99, marginBottom:12,
-        background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-        fontSize:11, fontWeight:700, color:T.teal,
-      }}>
-        💚 Keine Sterne. Keine Likes. Nur echte Erfahrungen.
-      </div>
-
-      {loading ? (
-        <div style={{ height:60, borderRadius:T.r12 }} className="mbp-skeleton"/>
-      ) : recs.length === 0 ? (
-        <div style={{
-          background:T.bgCard, borderRadius:T.r16, padding:"18px 16px",
-          border:`1px solid ${T.border}`, textAlign:"center",
-          boxShadow:T.card,
-        }}>
-          <div style={{ fontSize:13, color:T.inkFaint, lineHeight:1.6 }}>
-            Empfehlungen entstehen durch echte Erlebnisse, Buchungen und Zusammenarbeit.
-          </div>
-        </div>
-      ) : (
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {recs.map(r => (
-            <div key={r.id} style={{
-              background:T.bgCard, borderRadius:T.r16, padding:"14px 16px",
-              border:`1px solid ${T.border}`, boxShadow:T.card,
-            }}>
-              <p style={{ margin:"0 0 10px", fontSize:13.5, color:T.ink, lineHeight:1.65,
-                fontStyle:"italic" }}>
-                „{r.text}"
-              </p>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                {r.from_avatar ? (
-                  <img src={r.from_avatar} style={{ width:26, height:26, borderRadius:"50%",
-                    objectFit:"cover" }} alt=""/>
-                ) : (
-                  <div style={{ width:26, height:26, borderRadius:"50%",
-                    background:T.tealSoft, display:"flex", alignItems:"center",
-                    justifyContent:"center", fontSize:12 }}>👤</div>
-                )}
-                <span style={{ fontSize:12, fontWeight:600, color:T.inkSoft }}>
-                  {r.from_name || "Anonym"}
-                </span>
-              </div>
-            </div>
-          ))}
-          <button style={{
-            background:"none", border:`1px solid ${T.border}`,
-            borderRadius:99, padding:"9px 0", width:"100%",
-            fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
-          }}>
-            Alle Empfehlungen anzeigen →
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// MEIN WIRKEN — Wirkungskennzahlen (kein Ranking)
-// ════════════════════════════════════════════════════════════════
-function MeinWirkenSection({ profile, works, exps }) {
-  const [impact, setImpact] = React.useState({ votes:0, connections:0 });
-  React.useEffect(() => {
-    if (!profile?.id) return;
-    Promise.allSettled([
-      supabase.from("impact_votes").select("id", { count:"exact" }).eq("user_id", profile.id),
-      supabase.from("follows").select("id", { count:"exact" }).eq("following_id", profile.id),
-    ]).then(([vR, fR]) => {
-      setImpact({
-        votes:       vR.status === "fulfilled" ? (vR.value.count || 0) : 0,
-        connections: fR.status === "fulfilled" ? (fR.value.count || 0) : 0,
-      });
-    });
-  }, [profile?.id]);
-
-  const published = (works || []).filter(w => w.status === "published").length;
-  const expCount  = (exps  || []).filter(e => e.status !== "archived").length;
-  const recs      = profile?.recommendations || 0;
-
-  const stats = [
-    { icon:"💚", val:recs,               label:"Weiterempfehlungen" },
-    { icon:"🎨", val:published,           label:"Werke veröffentlicht" },
-    { icon:"🎟",  val:expCount,            label:"Erlebnisse angeboten" },
-    { icon:"🤝", val:impact.connections,  label:"Verbindungen" },
-    { icon:"🌍", val:impact.votes,        label:"Impact-Projekte unterstützt" },
-  ];
-
-  return (
-    <div style={{
-      background:T.bgCard, borderRadius:T.r16,
-      border:`1px solid ${T.border}`, padding:"16px 18px",
-      boxShadow:T.card,
-    }}>
-      <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:12 }}>
-        Mein Wirken
-      </div>
-      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {stats.map((s, i) => (
-          <div key={i} style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontSize:16, width:22, textAlign:"center", flexShrink:0 }}>{s.icon}</span>
-            <div style={{ flex:1, fontSize:13, fontWeight:700, color:T.ink }}>{s.val}</div>
-            <div style={{ fontSize:11, color:T.inkFaint }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// HUI-VERTRAUENSSTATUS — Vertrauensentwicklung (kein Level-System)
-// ════════════════════════════════════════════════════════════════
-function VertrauensstatusCard({ profile }) {
-  const recs = profile?.recommendations || 0;
-  const createdAt = profile?.created_at;
-  const monthsActive = createdAt
-    ? Math.max(0, Math.floor((Date.now() - new Date(createdAt)) / (30*24*3600*1000)))
-    : 0;
-
-  let status = { icon:"🌱", label:"Neues Mitglied",      color:"#16A34A", bg:"#DCFCE7",
-                 sub:"Willkommen in der HUI-Gemeinschaft" };
-  if (recs >= 10 || monthsActive >= 12) {
-    status = { icon:"💎", label:"Vertrauenspartner",    color:"#7264D6", bg:"#EDE9FE",
-               sub:"Langjährige Vertrauensbeziehung" };
-  } else if (recs >= 5 || monthsActive >= 6) {
-    status = { icon:"🌳", label:"Bewährtes Mitglied",   color:"#0DC4B5", bg:"#CCFBF1",
-               sub:"Aktiv und bewährt in der Community" };
-  } else if (recs >= 1 || monthsActive >= 2) {
-    status = { icon:"🍃", label:"Empfohlenes Mitglied", color:"#D97706", bg:"#FEF3C7",
-               sub:"Von der Community empfohlen" };
-  }
-
-  return (
-    <div style={{
-      background:T.bgCard, borderRadius:T.r16,
-      border:`1px solid ${T.border}`, padding:"16px 18px",
-      boxShadow:T.card,
-    }}>
-      <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:12 }}>
-        HUI-Vertrauensstatus
-      </div>
-      <div style={{
-        display:"flex", alignItems:"center", gap:10, marginBottom:12,
-        padding:"10px 12px", borderRadius:T.r12,
-        background:status.bg, border:`1px solid ${status.color}22`,
-      }}>
-        <span style={{ fontSize:22 }}>{status.icon}</span>
-        <div>
-          <div style={{ fontSize:13, fontWeight:800, color:status.color }}>{status.label}</div>
-          <div style={{ fontSize:10, color:T.inkFaint, marginTop:1 }}>{status.sub}</div>
-        </div>
-      </div>
-      <div style={{ fontSize:10, color:T.inkFaint, lineHeight:1.5 }}>
-        Keine Punkte. Kein Ranking. Nur Vertrauensentwicklung.
-      </div>
-      <button style={{
-        width:"100%", marginTop:12,
-        background:"none", border:`1.5px solid ${T.teal}`,
-        borderRadius:T.r99, padding:"9px 0",
-        fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
-      }}>
-        ✉ Vertrauen schenken
-      </button>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// MEIN WEG AUF HUI — Automatische Aktivitäten-Timeline
-// ════════════════════════════════════════════════════════════════
-function MeinWegTimeline({ userId }) {
-  const [events, setEvents] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    if (!userId) { setLoading(false); return; }
-    supabase.from("activities")
-      .select("id,type,description,created_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending:false })
-      .limit(5)
-      .then(({ data }) => { setEvents(data || []); setLoading(false); });
-  }, [userId]);
-
-  const TYPE_MAP = {
-    profile_created:   { icon:"🌱", label:"Profil erstellt"        },
-    work_published:    { icon:"🎨", label:"Werk veröffentlicht"     },
-    experience_created:{ icon:"🎟", label:"Erlebnis erstellt"       },
-    recommendation:    { icon:"💚", label:"Empfehlung erhalten"     },
-    impact_vote:       { icon:"🌍", label:"Projekt unterstützt"     },
-    connection:        { icon:"🤝", label:"Verbindung aufgebaut"    },
-  };
-
-  const fmtDate = (iso) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return d.toLocaleDateString("de-DE", { month:"long", year:"numeric" });
-  };
-
-  return (
-    <div style={{
-      background:T.bgCard, borderRadius:T.r16,
-      border:`1px solid ${T.border}`, padding:"16px 18px",
-      boxShadow:T.card,
-    }}>
-      <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:12 }}>
-        Mein Weg auf HUI
-      </div>
-      {loading ? (
-        <div style={{ height:40 }} className="mbp-skeleton"/>
-      ) : events.length === 0 ? (
-        <div style={{ fontSize:12, color:T.inkFaint, lineHeight:1.5 }}>
-          Deine HUI-Geschichte beginnt hier. 🌱
-        </div>
-      ) : (
-        <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
-          {events.map((ev, i) => {
-            const cfg = TYPE_MAP[ev.type] || { icon:"✨", label:ev.description || ev.type };
-            return (
-              <div key={ev.id} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                {/* Linie */}
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
-                  width:22, flexShrink:0 }}>
-                  <div style={{
-                    width:22, height:22, borderRadius:"50%",
-                    background:T.tealSoft, border:`1.5px solid ${T.tealMid}`,
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize:11, flexShrink:0,
-                  }}>{cfg.icon}</div>
-                  {i < events.length - 1 && (
-                    <div style={{ width:1.5, height:20, background:T.border, margin:"2px 0" }}/>
-                  )}
-                </div>
-                {/* Text */}
-                <div style={{ paddingTop:2, paddingBottom:i < events.length-1 ? 0 : 0 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:T.ink, lineHeight:1.3 }}>
-                    {cfg.label}
-                  </div>
-                  {ev.description && ev.description !== cfg.label && (
-                    <div style={{ fontSize:10, color:T.inkFaint, fontStyle:"italic",
-                      lineHeight:1.3, marginTop:1 }}>
-                      „{ev.description.slice(0, 40)}"
-                    </div>
-                  )}
-                  <div style={{ fontSize:9, color:T.inkFaint, marginTop:1 }}>
-                    {fmtDate(ev.created_at)}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          <button style={{
-            background:"none", border:"none", padding:"8px 0 0",
-            fontSize:11, color:T.teal, fontWeight:700, cursor:"pointer",
-            textAlign:"left",
-          }}>
-            Alle Aktivitäten ansehen
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// STANDORT + VERFÜGBARKEIT — kompakt, Sidebar
-// ════════════════════════════════════════════════════════════════
-function StandortVerfuegbarkeit({ profile }) {
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-      {/* Standort */}
-      {profile?.location && (
-        <div style={{
-          background:T.bgCard, borderRadius:T.r12,
-          border:`1px solid ${T.border}`, padding:"12px 14px",
-          boxShadow:T.card,
-        }}>
-          <div style={{ fontSize:12, fontWeight:800, color:T.ink, marginBottom:6 }}>Standort</div>
-          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            <span style={{ fontSize:13 }}>📍</span>
-            <span style={{ fontSize:12.5, color:T.inkSoft }}>{profile.location}</span>
-          </div>
-        </div>
-      )}
-      {/* Verfügbarkeit */}
-      <div style={{
-        background:T.bgCard, borderRadius:T.r12,
-        border:`1px solid ${T.border}`, padding:"12px 14px",
-        boxShadow:T.card,
-      }}>
-        <div style={{ fontSize:12, fontWeight:800, color:T.ink, marginBottom:8 }}>
-          Bereich & Verfügbarkeit
-        </div>
-        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            <span style={{ width:6, height:6, borderRadius:"50%", background:"#16A34A",
-              display:"inline-block", flexShrink:0 }}/>
-            <span style={{ fontSize:11.5, color:T.inkSoft }}>Online & Vor Ort</span>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            <span style={{ fontSize:11 }}>💬</span>
-            <span style={{ fontSize:11.5, color:T.inkSoft }}>Offen für neue Anfragen</span>
-          </div>
-          <div style={{ fontSize:10, color:T.inkFaint, marginTop:2 }}>
-            Antwortzeit: innerhalb von 24h
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// SICHTBARKEIT SIDEBAR — nur Creator-Sicht
-// ════════════════════════════════════════════════════════════════
-function SichtbarkeitSidebar({ visibility, onChange }) {
-  const opts = [
-    { key:"public",       icon:"🌍", label:"Öffentlich" },
-    { key:"connections",  icon:"👥", label:"Verbindungen" },
-    { key:"private",      icon:"🔒", label:"Privat" },
-  ];
-  const cur = opts.find(o => o.key === visibility) || opts[0];
-  return (
-    <div style={{
-      background:T.bgCard, borderRadius:T.r12,
-      border:`1px solid ${T.border}`, padding:"12px 14px",
-      boxShadow:T.card,
-    }}>
-      <div style={{ fontSize:12, fontWeight:800, color:T.ink, marginBottom:8 }}>Sichtbarkeit</div>
-      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8 }}>
-        <span style={{ fontSize:13 }}>{cur.icon}</span>
-        <span style={{ fontSize:12, color:T.inkSoft }}>
-          Profil sichtbar für {cur.label}
-        </span>
-      </div>
-      <button onClick={() => {
-        const idx = opts.findIndex(o => o.key === visibility);
-        onChange(opts[(idx+1) % opts.length].key);
-      }} style={{
-        background:"none", border:`1px solid ${T.border}`,
-        borderRadius:99, padding:"6px 12px", fontSize:11,
-        fontWeight:700, color:T.teal, cursor:"pointer", width:"100%",
-      }}>
-        ⚙ Einstellungen
-      </button>
-    </div>
-  );
-}
-
 export default function MyBasisProfile({ onClose, profileId }) {
   console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
-  // useAuth() kann null sein wenn kein Provider → safe fallback
-  const _auth = useAuth() || {};
-  const authContextProfile = _auth.profile ?? null;
-  const loadingAuth        = _auth.loadingAuth ?? false;
-  const setAuthProfile     = _auth.setProfile ?? null;
-  const refreshProfile     = _auth.refreshProfile ?? null;
-  // isTalent: STRIKT — nur aktive Talent-Mitgliedschaft gilt
-  // membership_type==="talent" UND membership_active===true (aus activateMembership gesetzt)
-  // has_talent_profile allein reicht NICHT (legacy-Feld, veraltet)
-  // is_member allein reicht NICHT (war früher für alle Members gesetzt)
-  // isTalent: Prüfe BEIDE Quellen — authContextProfile (primär) + lokaler profile-State (Fallback)
-  // Verhindert Race-Condition wenn AuthContext noch nicht geladen
-  const _checkTalent = (p) => !!(
-    p?.is_talent === true ||           // persistentes Feld — primäre Quelle (Aufgabe 31)
-    (p?.membership_type === "talent" && p?.membership_active === true) ||
-    p?.membership_type === "guardian" ||
-    p?.membership_type === "team"
-  );
+  const { setProfile: setAuthProfile, refreshProfile } = useAuth();
   const [profile,    setProfile]    = useState(null);
-  // isTalent: IMMER aus AuthContext — niemals aus lokalem profile-State
-  // AuthContext.profile ist die einzige Wahrheitsquelle für Membership-Status
-  const isTalent = !!(
-    _auth.isTalent === true ||                  // AuthContext-Calc (primär, immer aktuell)
-    authContextProfile?.is_talent === true ||   // direktes DB-Feld aus AuthContext
-    authContextProfile?.membership_type === "talent"  // membership_type-Check
-  );
-  // loading=false wenn authContextProfile bereits beim Mount da ist
-  const [loading,    setLoading]    = useState(() => !(_auth.profile));
+  const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
   const [bio,        setBio]        = useState("");
 
@@ -1302,98 +723,57 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
-  const [showWizard,      setShowWizard]      = useState(false);
-  const [works,           setWorks]           = useState([]);
-  const [worksLoading,    setWorksLoading]    = useState(false);
-  // Talent-Dashboard Erlebnisse
-  const [exps,            setExps]            = useState([]);
-  const [expsLoading,     setExpsLoading]     = useState(false);
-  const [showExpWizard,   setShowExpWizard]   = useState(false);
-  const [editingExp,      setEditingExp]      = useState(null);
-  // Talent-Dashboard wirker_profile (Kategorien/Tags)
-  const [wirkerProfile,   setWirkerProfile]   = useState(null);
   const ambState = useAmbassador(profile);  // Nach States: profile ist jetzt null (nicht undefined)
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
-  // ── Profil direkt aus DB laden (zuverlässig, kein AuthContext-Race) ──
-  // ── Profil-Sync: AuthContext → lokaler State ─────────────────────────────
-  // PRIMÄRE QUELLE: AuthContext.profile (wird von AuthContext geladen + gecacht)
-  // FALLBACK: direkter DB-Call wenn AuthContext beim ersten Render noch nicht fertig
-  // ── Profil-Laden: DIREKT aus DB beim Mount — keine AuthContext-Abhängigkeit ──
-  useEffect(() => {
-    let cancelled = false;
-    async function loadOwnProfile() {
+  useEffect(()=>{
+    (async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user || cancelled) return;
-        const { data } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
+        const { data:{ user } } = await supabase.auth.getUser();
+
+        if (!user) { setLoading(false); return; }
+        const { data, error: loadErr } = await supabase.from("profiles")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type")
           .eq("id", user.id).single();
-        if (data && !cancelled) {
+        console.log("DB PROFILE", data);
+        if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
+        console.log("DNA_TAGS FROM DB", data?.dna_tags);
+        if (data) {
           setProfile(data);
           setBio(s(data.bio));
-          setInterests(Array.isArray(data.skills) ? data.skills : []);
-          setOpenFor(Array.isArray(data.profile_modules?.open_for) ? data.profile_modules.open_for : []);
+          console.log("SET BIO", data.bio);
+          // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
+          const nextInterests = Array.isArray(data.skills) ? data.skills : [];
+          setInterests(nextInterests);
+          console.log("SET INTERESTS", nextInterests);
+          // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
+          // dna_tags kann als JS Array ODER als Postgres-String '{url1,url2}' kommen
+          let rawTags = data.dna_tags;
+          if (typeof rawTags === "string" && rawTags.startsWith("{")) {
+            // Postgres array literal parsen: '{a,b,c}' → ['a','b','c']
+            rawTags = rawTags.slice(1, -1).split(",").map(s => s.trim()).filter(Boolean);
+          }
+          const tagArr = Array.isArray(rawTags) ? rawTags : [];
+          console.log("DNA_CHECK type:", typeof data.dna_tags, "isArray:", Array.isArray(data.dna_tags), "tagArr.length:", tagArr.length, "sample:", tagArr[0]);
+          if (tagArr.length) {
+            const mapped = tagArr.map((url, i) => ({ id: `db_${i}`, img: url }));
+            setMoments(mapped);
+            console.log("MOMENTS STATE SET", mapped.length, "items");
+          } else {
+            console.log("MOMENTS SKIPPED — dna_tags leer");
+          }
+          // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
             setVisibility(data.focus_type);
           }
+          // Offen für Begegnungen — interests-Spalte existiert nicht in DB, lokal verwaltet
+          setOpenFor([]);
         }
-      } catch(e) {
-        console.warn("MyBasisProfile loadOwnProfile:", e);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    loadOwnProfile();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Werke des Nutzers laden ───────────────────────────────────────
-  useEffect(()=>{
-    if (!profile?.id) return;
-    setWorksLoading(true);
-    supabase.from("works")
-      .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
-      .eq("user_id", profile.id)
-      .not("status", "in", '("archived","deleted")')
-      .order("created_at", { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        setWorks(data || []);
-        setWorksLoading(false);
-      });
-  }, [profile?.id]);
-
-  // ── Erlebnisse laden (nur wenn isTalent) ─────────────────────
-  useEffect(() => {
-    if (!profile?.id || !isTalent) { setExpsLoading(false); return; }
-    let cancelled = false;
-    setExpsLoading(true);
-    supabase.from("experiences")
-      .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
-      .eq("user_id", profile.id)
-      .neq("status", "archived")
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (!cancelled) {
-          if (!error) setExps(data || []);
-          setExpsLoading(false);
-        }
-      });
-    return () => { cancelled = true; };
-  }, [profile?.id, isTalent]);
-
-  // ── wirker_profile laden (Kategorien/Tags) ───────────────────
-  useEffect(() => {
-    if (!profile?.id || !isTalent) return;
-    supabase.from("wirker_profiles")
-      .select("id,user_id,categories,talent,is_verified,hourly_rate")
-      .eq("user_id", profile.id)
-      .maybeSingle()
-      .then(({ data }) => { if (data) setWirkerProfile(data); });
-  }, [profile?.id, isTalent]);
+      } catch(e) { console.warn("MyBasisProfile load:", e); }
+      setLoading(false);
+    })();
+  },[]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
@@ -1455,26 +835,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
     autoSave("focus_type", v);
   };
 
-  const handleOpenForChange = async (v) => {
+  const handleOpenForChange = (v) => {
     setOpenFor(v);
-    // Persistenz via profile_modules.open_for (JSONB-Feld, existiert in profiles)
-    let uid = profile?.id;
-    if (!uid) {
-      const { data: { user: au } } = await supabase.auth.getUser();
-      uid = au?.id;
-    }
-    if (!uid) return;
-    try {
-      const { data: curr } = await supabase.from("profiles")
-        .select("profile_modules").eq("id", uid).single();
-      const existing = curr?.profile_modules || {};
-      await supabase.from("profiles")
-        .update({
-          profile_modules: { ...existing, open_for: v },
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", uid);
-    } catch(e) { console.error("open_for save:", e?.message); }
+    // Persistenz via interests-Spalte (TEXT[], existiert in profiles)
+    autoSave("interests", v);
   };
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
@@ -1535,7 +899,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
 
       <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        paddingBottom:"max(96px,calc(80px + env(safe-area-inset-bottom,0px)))" }}>
+        paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* HEADER */}
 
@@ -1550,171 +914,55 @@ export default function MyBasisProfile({ onClose, profileId }) {
         onAvatarChange={handleAvatarChange}
         onCoverChange={handleCoverChange}
       />
-        <Gap h={62}/>
+        <Gap h={62}/> {/* space for floating avatar (82px/2 + 44px offset − 170px/2 = ~44px sichtbar) */}
 
-        {/* ── 1. ÜBER MICH ─────────────────────────────────── */}
-        <div style={{ padding:"0 20px" }}>
-          <SectionRow title="Über mich" onEdit={() => {}} />
-          {bio ? (
-            <p style={{ margin:"0 0 12px", fontSize:14, lineHeight:1.75, color:T.ink }}>
-              {bio}
-            </p>
-          ) : (
-            <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:12 }}>
-              Erzähl etwas über dich…
-            </div>
-          )}
-          {/* Warum auf HUI — dezent, nur wenn befüllt */}
-          {profile?.profile_modules?.warum_hui && (
-            <div style={{
-              background:T.tealSoft, borderRadius:T.r12,
-              border:`1px solid ${T.tealMid}`, padding:"12px 14px", marginTop:4,
-            }}>
-              <div style={{ fontSize:11, fontWeight:700, color:T.teal, marginBottom:4 }}>
-                🌱 Warum ich auf HUI bin
-              </div>
-              <p style={{ margin:0, fontSize:13, color:T.ink, lineHeight:1.65 }}>
-                {profile.profile_modules.warum_hui}
-              </p>
-            </div>
-          )}
-        </div>
-        <Gap h={20}/>
+        {/* ÜBER DICH */}
+        <UeberDich bio={bio} onChange={handleBioChange}/>
+        <Gap h={24}/>
         <Divider/>
         <Gap h={20}/>
 
-        {/* ── 2. MEINE TALENTE & ANGEBOTE ──────────────────── */}
-        {profile && isTalent && (() => {
-          const chips = Array.isArray(profile?.profile_modules?.talente)
-            ? profile.profile_modules.talente
-            : Array.isArray(profile?.skills) ? profile.skills : [];
-          if (!chips.length) return null;
-          return (
-            <div style={{ padding:"0 20px" }}>
-              <SectionRow title="Meine Talente & Angebote" onEdit={() => {}} />
-              <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-                {chips.map((t, i) => (
-                  <span key={i} style={{
-                    display:"inline-flex", alignItems:"center",
-                    padding:"6px 13px", borderRadius:99,
-                    background:T.bgCard, border:`1.5px solid ${T.border}`,
-                    fontSize:13, fontWeight:600, color:T.ink, boxShadow:T.card,
-                  }}>{t}</span>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-        {profile && isTalent && <Gap h={20}/>}
-        {profile && isTalent && <Divider/>}
-        {profile && isTalent && <Gap h={20}/>}
-
-        {/* ── 3. MEINE WERKE ───────────────────────────────── */}
-        {profile && isTalent && (
-          <MeineWerkeSection
-            works={works}
-            loading={worksLoading}
-            onCreateNew={() => setShowWizard(true)}
-            onRefresh={() => {
-              if (!profile?.id) return;
-              setWorksLoading(true);
-              supabase.from("works")
-                .select("id,title,status,created_at,media_urls,images,cover_url,price,price_type,description")
-                .eq("user_id", profile.id)
-                .not("status","in",'("archived","deleted")')
-                .order("created_at",{ascending:false}).limit(50)
-                .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
-            }}
-          />
-        )}
-        {profile && isTalent && <Gap h={20}/>}
-        {profile && isTalent && <Divider/>}
-        {profile && isTalent && <Gap h={20}/>}
-
-        {/* ── 4. ERLEBNISSE & PROJEKTE ─────────────────────── */}
-        {profile && isTalent && (
-          <TalentErlebnisseSection
-            userId={profile?.id}
-            exps={exps}
-            loading={expsLoading}
-            onCreateNew={() => setShowExpWizard(true)}
-            onEdit={exp => { setEditingExp(exp); setShowExpWizard(true); }}
-            onRefresh={() => {
-              if (!profile?.id) return;
-              setExpsLoading(true);
-              supabase.from("experiences")
-                .select("id,title,cover_url,status,date,category,experience_type,location,price,max_participants,current_participants,description")
-                .eq("user_id", profile.id)
-                .neq("status", "archived")
-                .order("created_at",{ascending:false})
-                .then(({ data }) => { setExps(data||[]); setExpsLoading(false); });
-            }}
-          />
-        )}
-        {profile && isTalent && <Gap h={20}/>}
-        {profile && isTalent && <Divider/>}
-        {profile && isTalent && <Gap h={20}/>}
-
-        {/* ── 5. WEITEREMPFEHLUNGEN ────────────────────────── */}
-        <WeiterempfehlungenSection userId={profile?.id} />
-        <Gap h={20}/>
+        {/* GEMEINSCHAFT BEITRETEN */}
+        <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
+        <Gap h={24}/>
         <Divider/>
         <Gap h={20}/>
 
-        {/* ── 6. VERFÜGBARKEIT ─────────────────────────────── */}
-        <div style={{ padding:"0 20px" }}>
-          <SectionRow title="Verfügbarkeit" />
-          <div style={{
-            background:T.bgCard, borderRadius:T.r16,
-            border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card,
-          }}>
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ width:7, height:7, borderRadius:"50%",
-                  background:"#16A34A", display:"inline-block", flexShrink:0 }}/>
-                <span style={{ fontSize:13, color:T.ink, fontWeight:600 }}>
-                  Online & Vor Ort
-                </span>
-              </div>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ fontSize:13 }}>💬</span>
-                <span style={{ fontSize:13, color:T.inkSoft }}>Offen für neue Anfragen</span>
-              </div>
-              <div style={{ fontSize:11, color:T.inkFaint }}>
-                Antwortzeit: innerhalb von 24h
-              </div>
-            </div>
-          </div>
-        </div>
-        <Gap h={20}/>
+        {/* INTERESSEN & WERTE */}
+        <InteressenSection interests={interests} onChange={handleInterestsChange}/>
+        <Gap h={24}/>
         <Divider/>
         <Gap h={20}/>
 
-        {/* ── 7. STANDORT ──────────────────────────────────── */}
-        {profile?.location && (
-          <>
-            <div style={{ padding:"0 20px" }}>
-              <SectionRow title="Standort" />
-              <div style={{
-                background:T.bgCard, borderRadius:T.r16,
-                border:`1px solid ${T.border}`, padding:"14px 16px",
-                boxShadow:T.card, display:"flex", alignItems:"center", gap:8,
-              }}>
-                <span style={{ fontSize:16 }}>📍</span>
-                <span style={{ fontSize:13, color:T.inkSoft, fontWeight:500 }}>
-                  {profile.location}
-                </span>
-              </div>
-            </div>
-            <Gap h={20}/>
-            <Divider/>
-            <Gap h={20}/>
-          </>
-        )}
+        {/* MOMENTE */}
+        {(() => { console.log("RENDER MOMENTS", moments); return null; })()}
+        <MomenteSection moments={moments} onChange={handleMomentsChange}/>
+        <Gap h={24}/>
+        <Divider/>
+        <Gap h={20}/>
 
-        {/* ── 8. SICHTBARKEIT ──────────────────────────────── */}
+        {/* OFFEN FÜR BEGEGNUNGEN */}
+        <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
+        <Gap h={24}/>
+        <Divider/>
+        <Gap h={20}/>
+
+        {/* SICHTBARKEIT */}
         <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+        <Gap h={24}/>
+        <Divider/>
+        <Gap h={20}/>
 
+        {/* AMBASSADOR */}
+        {ambState.isAmbassador ? (
+          <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
+        ) : (
+          <AmbassadorCTA
+            isAmbassador={ambState.isAmbassador}
+            isPending={ambState.isPending}
+            onApply={() => setShowAmbModal(true)}
+          />
+        )}
         <Gap h={40}/>
       </div>
 
@@ -1749,77 +997,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
       )}
 
-      {/* WERK-WIZARD */}
-      {showWizard && profile?.id && (
-        <WerkWizard
-          userId={profile.id}
-          onClose={() => setShowWizard(false)}
-          onSaved={(werk) => {
-            setShowWizard(false);
-            if (werk) {
-              setWorks(prev => [werk, ...prev.filter(w => w.id !== werk.id)]);
-            } else {
-              // Fallback: Werke neu laden
-              supabase.from("works")
-                .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
-                .eq("user_id", profile.id)
-                .not("status","in",'("archived","deleted")')
-                .order("created_at",{ascending:false}).limit(50)
-                .then(({data}) => setWorks(data||[]));
-            }
-          }}
-          onSave={() => {
-            setShowWizard(false);
-            supabase.from("works")
-              .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
-              .eq("user_id", profile.id)
-              .not("status","in",'("archived","deleted")')
-              .order("created_at",{ascending:false}).limit(50)
-              .then(({data}) => setWorks(data||[]));
-          }}
-        />
-      )}
-
-      {/* ERLEBNIS-WIZARD */}
-      {showExpWizard && profile?.id && (
-        <ExperienceWizard
-          userId={profile.id}
-          existingExp={editingExp}
-          onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
-          onSaved={(exp) => {
-            setShowExpWizard(false);
-            setEditingExp(null);
-            if (exp) {
-              setExps(prev => [exp, ...prev.filter(e => e.id !== exp.id)]);
-            } else {
-              supabase.from("experiences")
-                .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
-                .eq("user_id", profile.id)
-                .neq("status", "archived")
-                .order("created_at",{ascending:false})
-                .then(({ data }) => setExps(data||[]));
-            }
-          }}
-        />
-      )}
-
       {/* AMBASSADOR BEWERBUNGS-MODAL */}
       {showAmbModal && profile?.id && (
         <AmbassadorModal
           userId={profile.id}
           onClose={() => setShowAmbModal(false)}
-          onSuccess={async () => {
+          onSuccess={() => {
             setShowAmbModal(false);
-            // Profil neu laden damit isPending sofort korrekt angezeigt wird
-            try {
-              const { data: freshProf } = await supabase.from("profiles")
-                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
-                .eq("id", profile.id).single();
-              if (freshProf) {
-                setProfile(freshProf);
-                setAuthProfile(prev => prev ? { ...prev, ...freshProf } : freshProf);
-              }
-            } catch(e) { /* silent */ }
             refreshProfile?.().catch(() => {});
           }}
         />
@@ -1827,7 +1011,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
     </div>
   );
 }
-
 
 // ══════════════════════════════════════════════════════════════
 // GEMEINSCHAFTSKARTE
@@ -1892,242 +1075,6 @@ function GemeinschaftsKarte({ onJoin }) {
           🤝 Der Gemeinschaft beitreten
         </button>
       </div>
-    </div>
-  );
-}
-
-
-// ══════════════════════════════════════════════════════════════
-// TALENT STATISTIK SECTION
-// ══════════════════════════════════════════════════════════════
-function TalentStatsSection({ works = [], exps = [] }) {
-  const published   = works.filter(w => w.status === "published").length;
-  const pending     = works.filter(w => w.status === "pending_review").length;
-  const expCount    = exps.filter(e => e.status !== "archived").length;
-  const stats = [
-    { icon:"🎨", label:"Werke", value: works.length, sub: `${published} veröffentlicht` },
-    { icon:"✨", label:"Erlebnisse", value: expCount, sub: "Workshops & Events" },
-    { icon:"⏳", label:"In Prüfung", value: pending, sub: "warten auf Freigabe" },
-  ];
-  return (
-    <div style={{ padding:"0 20px" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:12 }}>
-        <span style={{ fontSize:15 }}>📊</span>
-        <span style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>Statistik & Wirkung</span>
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-        {stats.map(s => (
-          <div key={s.label} style={{
-            background:"linear-gradient(135deg,#F0FDFB,#E8FAF8)",
-            border:"1.5px solid rgba(14,196,184,0.18)",
-            borderRadius:14, padding:"14px 10px 12px",
-            textAlign:"center",
-          }}>
-            <div style={{ fontSize:22, marginBottom:4 }}>{s.icon}</div>
-            <div style={{ fontSize:22, fontWeight:800, color:"#0EC4B8", lineHeight:1 }}>{s.value}</div>
-            <div style={{ fontSize:11, fontWeight:700, color:"#1A1A18", marginTop:3 }}>{s.label}</div>
-            <div style={{ fontSize:10, color:"rgba(26,26,24,0.45)", marginTop:2 }}>{s.sub}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════
-// TALENT ERLEBNISSE SECTION
-// ══════════════════════════════════════════════════════════════
-const EXP_STATUS = {
-  draft:          { label:"Entwurf",       color:"rgba(26,26,24,0.38)", bg:"rgba(26,26,24,0.05)" },
-  pending_review: { label:"In Prüfung",    color:"#D97706",             bg:"#FEF3C7" },
-  published:      { label:"Aktiv",         color:"#16A34A",             bg:"#DCFCE7" },
-  rejected:       { label:"Abgelehnt",     color:"#DC2626",             bg:"#FEE2E2" },
-};
-
-function TalentErlebnisseSection({ userId, exps, loading, onCreateNew, onEdit, onRefresh }) {
-  return (
-    <div style={{ padding:"0 20px" }}>
-      {/* Header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-          <span style={{ fontSize:18 }}>✨</span>
-          <span style={{ fontSize:15, fontWeight:800, color:"#1A1A18" }}>Erlebnisse & Projekte</span>
-        </div>
-        <button
-          onClick={onCreateNew}
-          style={{
-            display:"flex", alignItems:"center", gap:5,
-            padding:"8px 14px", borderRadius:99,
-            background:"#0EC4B8", border:"none",
-            color:"#fff", fontSize:12, fontWeight:700,
-            cursor:"pointer", touchAction:"manipulation",
-          }}
-        >
-          + Neues Erlebnis
-        </button>
-      </div>
-
-      {/* Liste */}
-      {loading ? (
-        <div style={{ height:80, background:"rgba(14,196,184,0.06)", borderRadius:12, animation:"pulse 1.5s infinite" }}/>
-      ) : exps.length === 0 ? (
-        <div style={{
-          textAlign:"center", padding:"32px 20px",
-          background:"rgba(14,196,184,0.04)", borderRadius:16,
-          border:"1.5px dashed rgba(14,196,184,0.20)",
-        }}>
-          <div style={{ fontSize:32, marginBottom:8 }}>✨</div>
-          <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18", marginBottom:4 }}>Noch keine Erlebnisse</div>
-          <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)" }}>Erstelle dein erstes Erlebnis, Event oder Projekt.</div>
-        </div>
-      ) : (
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {exps.map(exp => {
-            const st = EXP_STATUS[exp.status] || EXP_STATUS.draft;
-            const dateStr = exp.date ? new Date(exp.date).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }) : null;
-            return (
-              <div key={exp.id} style={{
-                background:"#fff", borderRadius:14,
-                border:"1px solid rgba(26,26,24,0.09)",
-                padding:"14px 16px",
-                display:"flex", alignItems:"center", gap:12,
-                boxShadow:"0 2px 8px rgba(26,26,24,0.05)",
-              }}>
-                {exp.cover_url ? (
-                  <img src={exp.cover_url} alt="" style={{ width:52, height:52, borderRadius:10, objectFit:"cover", flexShrink:0 }}/>
-                ) : (
-                  <div style={{ width:52, height:52, borderRadius:10, background:"rgba(14,196,184,0.10)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>✨</div>
-                )}
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{exp.title || "Unbenanntes Erlebnis"}</div>
-                  {dateStr && <div style={{ fontSize:11, color:"rgba(26,26,24,0.45)", marginTop:2 }}>📅 {dateStr}</div>}
-                  {exp.category && <div style={{ fontSize:11, color:"rgba(26,26,24,0.45)" }}>{exp.category}</div>}
-                </div>
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0 }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:st.color, background:st.bg, padding:"3px 8px", borderRadius:99 }}>{st.label}</span>
-                  <button
-                    onClick={() => onEdit?.(exp)}
-                    style={{ fontSize:11, fontWeight:600, color:"#0EC4B8", background:"none", border:"none", cursor:"pointer", padding:0 }}
-                  >Bearbeiten</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════
-// MEINE WERKE SECTION
-// ══════════════════════════════════════════════════════════════
-const STATUS_CONFIG = {
-  pending_review: { label:"In Prüfung",        color:"#E58A00", bg:"rgba(229,138,0,0.10)",  icon:"⏳" },
-  published:      { label:"Veröffentlicht",     color:"#0EC4B8", bg:"rgba(14,196,184,0.10)", icon:"✅" },
-  rejected:       { label:"Abgelehnt",          color:"#E53935", bg:"rgba(229,57,53,0.10)",  icon:"❌" },
-  draft:          { label:"Entwurf",            color:"#888",    bg:"rgba(0,0,0,0.07)",       icon:"✏️" },
-  approved:       { label:"Veröffentlicht",     color:"#0EC4B8", bg:"rgba(14,196,184,0.10)", icon:"✅" },
-};
-
-function WerkStatusBadge({ status }) {
-  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft;
-  return (
-    <span style={{
-      display:"inline-flex", alignItems:"center", gap:4,
-      padding:"3px 9px", borderRadius:99,
-      background:cfg.bg, color:cfg.color,
-      fontSize:11.5, fontWeight:700,
-    }}>
-      {cfg.icon} {cfg.label}
-    </span>
-  );
-}
-
-function WerkCard({ werk }) {
-  // Thumbnail: cover_url → images[0] → media_urls[0]
-  const thumb = werk.cover_url
-    || (Array.isArray(werk.images) && werk.images.length > 0
-        ? (werk.images[0]?.url || werk.images[0])
-        : null)
-    || (Array.isArray(werk.media_urls) && werk.media_urls.length > 0
-        ? (werk.media_urls[0]?.url || werk.media_urls[0])
-        : null);
-  return (
-    <div style={{
-      display:"flex", alignItems:"center", gap:12,
-      padding:"12px 0", borderBottom:"1px solid rgba(26,26,24,0.08)",
-    }}>
-      {thumb ? (
-        <img src={thumb} alt={werk.title} style={{
-          width:52, height:52, borderRadius:10, objectFit:"cover", flexShrink:0,
-          background:"rgba(26,26,24,0.06)",
-        }}/>
-      ) : (
-        <div style={{
-          width:52, height:52, borderRadius:10, flexShrink:0,
-          background:"rgba(14,196,184,0.10)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:22,
-        }}>🎨</div>
-      )}
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18",
-          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-          {werk.title || "Ohne Titel"}
-        </div>
-        <div style={{ marginTop:4 }}>
-          <WerkStatusBadge status={werk.status || "draft"}/>
-        </div>
-        {werk.status === "rejected" && (
-          <div style={{ fontSize:11.5, color:"#E53935", marginTop:4, lineHeight:1.4 }}>
-            Abgelehnt – bitte überarbeite und reiche es erneut ein.
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MeineWerkeSection({ works, loading, onCreateNew, onRefresh }) {
-  return (
-    <div style={{ padding:`0 20px` }}>
-      {/* Header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-        <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18" }}>🎨 Meine Werke</div>
-        <button onClick={onCreateNew} style={{
-          display:"flex", alignItems:"center", gap:6,
-          padding:"8px 14px", background:"#0EC4B8",
-          border:"none", borderRadius:99,
-          fontSize:13, fontWeight:700, color:"#fff",
-          cursor:"pointer", touchAction:"manipulation",
-        }}>+ Neues Werk</button>
-      </div>
-
-      {/* Liste */}
-      {loading ? (
-        <div style={{ textAlign:"center", padding:"24px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
-          Lädt…
-        </div>
-      ) : works.length === 0 ? (
-        <div style={{
-          textAlign:"center", padding:"28px 16px",
-          background:"rgba(14,196,184,0.05)", borderRadius:14,
-          border:"1.5px dashed rgba(14,196,184,0.25)",
-        }}>
-          <div style={{ fontSize:28, marginBottom:8 }}>🎨</div>
-          <div style={{ fontSize:13.5, fontWeight:600, color:"rgba(26,26,24,0.55)" }}>
-            Noch keine Werke
-          </div>
-          <div style={{ fontSize:12, color:"rgba(26,26,24,0.38)", marginTop:4 }}>
-            Erstelle dein erstes Werk und reiche es zur Freigabe ein.
-          </div>
-        </div>
-      ) : (
-        <div>
-          {works.map(w => <WerkCard key={w.id} werk={w}/>)}
-        </div>
-      )}
     </div>
   );
 }
