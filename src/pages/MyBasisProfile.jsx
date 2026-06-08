@@ -490,12 +490,9 @@ function MomenteSection({ moments, onChange }) {
 
       const newItems = [...items];
       for (const file of files) {
-        console.log("MOMENT_UPLOAD START", file.name, user.id);
         const url = await uploadProfileImage(file, user.id, "moments");
-        console.log("MOMENT_UPLOAD URL", url);
         newItems.push({ id: `m_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, img: url });
       }
-      console.log("MOMENT_UPLOAD onChange", newItems);
       onChange(newItems);
     } catch (err) {
       console.error("Moment upload error:", err?.message, JSON.stringify(err));
@@ -704,7 +701,6 @@ function SichtbarkeitSection({ visibility, onChange }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════
 export default function MyBasisProfile({ onClose, profileId }) {
-  console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
   const setAuthProfile = _auth.setProfile ?? null;
@@ -738,17 +734,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
         const { data, error: loadErr } = await supabase.from("profiles")
           .select("id,display_name,username,avatar_url,bio,is_talent,talent_since,is_ambassador,referred_by,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,created_at,updated_at")
           .eq("id", user.id).single();
-        console.log("DB PROFILE", data);
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
-        console.log("DNA_TAGS FROM DB", data?.dna_tags);
         if (data) {
           setProfile(data);
           setBio(s(data.bio));
-          console.log("SET BIO", data.bio);
           // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
           const nextInterests = Array.isArray(data.skills) ? data.skills : [];
           setInterests(nextInterests);
-          console.log("SET INTERESTS", nextInterests);
           // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
           // dna_tags kann als JS Array ODER als Postgres-String '{url1,url2}' kommen
           let rawTags = data.dna_tags;
@@ -757,13 +749,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
             rawTags = rawTags.slice(1, -1).split(",").map(s => s.trim()).filter(Boolean);
           }
           const tagArr = Array.isArray(rawTags) ? rawTags : [];
-          console.log("DNA_CHECK type:", typeof data.dna_tags, "isArray:", Array.isArray(data.dna_tags), "tagArr.length:", tagArr.length, "sample:", tagArr[0]);
           if (tagArr.length) {
             const mapped = tagArr.map((url, i) => ({ id: `db_${i}`, img: url }));
             setMoments(mapped);
-            console.log("MOMENTS STATE SET", mapped.length, "items");
           } else {
-            console.log("MOMENTS SKIPPED — dna_tags leer");
           }
           // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
@@ -787,7 +776,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
       uid = au?.id;
     }
     if (!uid) { console.warn("autoSave: kein userId für Feld", field); return; }
-    console.log("AUTO_SAVE START", field, value, "uid:", uid);
     setSaving(true);
     try {
       const { error: saveErr } = await supabase.from("profiles")
@@ -825,9 +813,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setMoments(newItems);
     // Persistenz via dna_tags-Spalte (ARRAY von URL-Strings, existiert in profiles)
     const urls = newItems.map(m => m.img).filter(Boolean);
-    console.log("HANDLE_MOMENTS_CHANGE newItems:", JSON.stringify(newItems));
-    console.log("HANDLE_MOMENTS_CHANGE urls (nach filter):", JSON.stringify(urls));
-    console.log("HANDLE_MOMENTS_CHANGE profile?.id:", profile?.id);
     autoSave("dna_tags", urls);
   };
 
@@ -1204,7 +1189,6 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
           Gestalte dein Profil und werde sichtbar.
         </div>
       </div>
-
 
 
       {/* Meine Werke */}
