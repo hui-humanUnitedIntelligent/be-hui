@@ -247,7 +247,7 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           {/* Glocke — Benachrichtigungen */}
-          <button className="mbp-press-light" onClick={onBell} style={{
+          <button className="mbp-press-light" onClick={() => onBell?.()} style={{
             width:36, height:36, borderRadius:"50%",
             background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
             display:"flex", alignItems:"center", justifyContent:"center",
