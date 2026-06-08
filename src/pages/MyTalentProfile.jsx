@@ -1319,55 +1319,6 @@ function MeinWirkenKompakt({ wirkenData }) {
 }
 
 // ── Mein Weg auf HUI (Timeline, kompakt) ─────────────────────
-// ══════════════════════════════════════════════════════════════
-// PROFIL-FOOTER — Rechtliche Links
-// ══════════════════════════════════════════════════════════════
-function ProfilFooter() {
-  const links = [
-    { label: "Datenschutz", href: "https://www.be-hui.com/datenschutz.html" },
-    { label: "Impressum",   href: "https://www.be-hui.com/impressum.html" },
-    { label: "AGB",         href: "https://www.be-hui.com/agb.html" },
-    { label: "Copyright",   href: "https://www.be-hui.com/copyright.html" },
-    { label: "Cookies",     href: "https://www.be-hui.com/cookies.html" },
-  ];
-  return (
-    <div style={{
-      padding: "20px 24px 8px",
-      display: "flex",
-      flexWrap: "wrap",
-      gap: "10px 18px",
-      justifyContent: "center",
-      alignItems: "center",
-      borderTop: "1px solid rgba(26,26,24,0.08)",
-      marginTop: 8,
-    }}>
-      {links.map(({ label, href }) => (
-        <a
-          key={label}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            fontSize: 12,
-            color: "rgba(26,26,24,0.42)",
-            textDecoration: "none",
-            fontWeight: 500,
-            letterSpacing: "0.01em",
-            transition: "color .15s",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.color = "rgba(14,196,184,0.9)"; }}
-          onMouseLeave={e => { e.currentTarget.style.color = "rgba(26,26,24,0.42)"; }}
-        >
-          {label}
-        </a>
-      ))}
-      <span style={{ width: "100%", textAlign: "center", fontSize: 11, color: "rgba(26,26,24,0.25)", marginTop: 4 }}>
-        © {new Date().getFullYear()} be-HUI. Alle Rechte vorbehalten.
-      </span>
-    </div>
-  );
-}
-
 
 function MeinWegTimeline({ events }) {
   const list = Array.isArray(events) ? events : [];
@@ -1570,10 +1521,6 @@ export default function MyTalentProfile({ onClose, profileId, viewerMode = false
 
 
         <Gap h={32}/>
-
-        {/* PROFIL-FOOTER */}
-        <ProfilFooter/>
-        <Gap h={20}/>
       </div>
 
       {/* SETTINGS MODAL */}
