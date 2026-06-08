@@ -364,6 +364,8 @@ export default function LoginPage() {
   const [pw,         setPw]         = useState('');
   const [showPw,     setShowPw]     = useState(false);
   const [fullName,   setFullName]   = useState('');
+  const [refLink,    setRefLink]    = useState('');
+  const [refValid,   setRefValid]   = useState(null);
   const [loading,    setLoading]    = useState(false);
   const [err,        setErr]        = useState('');
   const [success,    setSuccess]    = useState('');
@@ -407,12 +409,44 @@ export default function LoginPage() {
     // success → useEffect navigates
   }
 
+  // Ref-Link validieren und Ambassador-ID ermitteln
+  async function resolveRefLink(link) {
+    if (!link) return null;
+    // Format: https://be-hui.com/username oder be-hui.com/username
+    const match = link.match(/(?:https?:\/\/)?(?:www\.)?be-hui\.com\/([a-z0-9_]+)/i);
+    if (!match) return null;
+    const username = match[1].toLowerCase();
+    if (['impressum','datenschutz','agb','cookies','copyright'].includes(username)) return null;
+    // Ambassador in Supabase suchen
+    const { data } = await supabase
+      .from('ambassador_ref_links')
+      .select('ambassador_id')
+      .eq('username', username)
+      .limit(1)
+      .maybeSingle();
+    if (data?.ambassador_id) return { ambassadorId: data.ambassador_id, username };
+    // Fallback: profiles mit is_ambassador oder role=ambassador
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .or('role.eq.ambassador,is_ambassador.eq.true')
+      .limit(1)
+      .maybeSingle();
+    if (prof?.id) return { ambassadorId: prof.id, username };
+    return null;
+  }
+
   async function handleRegister(e) {
     e.preventDefault(); clearMessages();
     if (!email || !pw) { setErr('Bitte E-Mail und Passwort eingeben.'); return; }
     if (pw.length < 6) { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+
+    // Ref-Link auflösen (vor signUp, damit wir die ID haben)
+    const refResult = refLink.trim() ? await resolveRefLink(refLink.trim()) : null;
+
+    const { error, data: signUpData } = await supabase.auth.signUp({
       email, password: pw,
       options: { data: { full_name: fullName || '' } },
     });
@@ -421,6 +455,47 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
+
+    // Ref-Link Verarbeitung nach erfolgreicher Registrierung
+    if (refResult && signUpData?.user?.id) {
+      const newUserId = signUpData.user.id;
+      try {
+        // 1. referred_by_ambassador_id in profiles setzen
+        await supabase.from('profiles')
+          .update({ referred_by_ambassador_id: refResult.ambassadorId })
+          .eq('id', newUserId);
+
+        // 2. ambassador_ref_links Eintrag erstellen
+        await supabase.from('ambassador_ref_links').insert({
+          ambassador_id: refResult.ambassadorId,
+          user_id:       newUserId,
+          username:      refResult.username,
+          ref_link:      refLink.trim(),
+          created_at:    new Date().toISOString(),
+        });
+
+        // 3. referrals_count +1 beim Ambassador
+        await supabase.rpc('increment_referrals', { ambassador_uuid: refResult.ambassadorId })
+          .catch(() => {
+            // Fallback wenn RPC nicht existiert
+            supabase.from('ambassadors')
+              .select('referrals_count')
+              .eq('id', refResult.ambassadorId)
+              .single()
+              .then(({ data: amb }) => {
+                if (amb) {
+                  supabase.from('ambassadors')
+                    .update({ referrals_count: (amb.referrals_count || 0) + 1 })
+                    .eq('id', refResult.ambassadorId);
+                }
+              });
+          });
+      } catch (refErr) {
+        console.warn('Ref-Link Verarbeitung fehlgeschlagen:', refErr);
+        // Registrierung trotzdem fortsetzen
+      }
+    }
+
     // Auto-login
     const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password: pw });
     if (loginErr) {
