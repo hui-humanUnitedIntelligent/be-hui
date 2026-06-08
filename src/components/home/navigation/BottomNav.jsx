@@ -95,7 +95,7 @@ export default function BottomNav({
       <div data-bnroot="" style={{
         position: "fixed",
         bottom: 0, left: 0, right: 0,
-        zIndex: 9999,
+        zIndex: 200,
         pointerEvents: "none",
         contain: "layout paint",
         isolation: "isolate",
