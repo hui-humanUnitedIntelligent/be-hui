@@ -549,6 +549,11 @@ function AppRoutes() {
           <Suspense fallback={null}><RefRedirect /></Suspense>
         }/>
 
+        {/* Direkte Ref-Links: /:username → RefRedirect (z.B. be-hui.com/milileo) */}
+        <Route path="/:username" element={
+          <Suspense fallback={null}><RefRedirect /></Suspense>
+        }/>
+
         {/* 404 → Home */}
         <Route path="*" element={<Navigate to="/Home" replace />} />
       </Routes>
