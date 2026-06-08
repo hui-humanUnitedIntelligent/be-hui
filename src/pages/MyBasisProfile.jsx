@@ -1415,16 +1415,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
         </div>
       )}
 
-      {/* Ref-Code */}
-      {ref_code && (
-        <div style={{
-          background:T2.bgCard, borderRadius:T2.r12,
-          border:`1px solid ${T2.border}`, padding:"10px 14px",
-        }}>
-          <div style={{fontSize:11, color:T2.inkFaint, marginBottom:2}}>Dein Referral-Code</div>
-          <div style={{fontSize:14, fontWeight:800, color:T2.ink, fontFamily:"monospace"}}>{ref_code}</div>
-        </div>
-      )}
+
     </div>
   );
 }
