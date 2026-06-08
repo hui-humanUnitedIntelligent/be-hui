@@ -26,7 +26,6 @@ async function withTimeout(promise, ms = 4000) {
 export function AuthProvider({ children }) {
   console.log("[AUTH] PROVIDER_MOUNT");
   const [user,            setUser]            = useState(null);
-  const [wirkerProfile,   setWirkerProfile]   = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingAuth,     setLoadingAuth]     = useState(true);
   const [loadingProfile,  setLoadingProfile]  = useState(false);
@@ -53,8 +52,10 @@ export function AuthProvider({ children }) {
         // Profil existiert noch nicht → anlegen
         const { data: newProf } = await withTimeout(
           supabase.from("profiles").upsert({
-            id: userId, display_name: "", role: "basis_user",
-            is_wirker: false, has_talent_profile: false, profile_modules: {},
+            id: userId,
+            display_name: "",
+            is_talent: false,
+            is_ambassador: false,
           }).select().single(), 6000
         );
         if (newProf) setProfile(newProf);
@@ -494,18 +495,7 @@ export function AuthProvider({ children }) {
   // ── Phase 4C: Membership derived states (pre-memo, vor ctxValue berechnet) ────
   // Single source of truth — diese States werden VOR useMemo berechnet
   // damit sie im Memo-Value als echte Werte (nicht Getter) referenziert werden
-  const _isTalentCalc = (() => {
-    if (!profile) return localStorage.getItem("hui_talent") === "1";
-    // Primär: neue Phase-4C-Felder
-    if (profile.membership_type === "talent" && profile.membership_active === true) return true;
-    if (profile.membership_type === "guardian" || profile.membership_type === "team") return true;
-    // Legacy Kompatibilität
-    if (profile.is_member === true) return true;
-    if (profile.role === "talent" || profile.role === "wirker" || profile.role === "creator") return true;
-    if (profile.has_talent_profile === true) return true;
-    if (isMember) return true;
-    return localStorage.getItem("hui_talent") === "1";
-  })();
+  const _isTalentCalc = profile?.is_talent === true;
   const _isBaseUserCalc = !_isTalentCalc;
   const _canCreateCalc  = _isTalentCalc;
 
