@@ -219,9 +219,7 @@ export default function ProfileLauncher() {
   if (showCreatorDashboard) {
     return (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
-        <React.Suspense fallback={<Spinner />}>
-          <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
-        </React.Suspense>
+        <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
       </ProfileErrorBoundary>
     );
   }
