@@ -190,7 +190,7 @@ export function useReferrals(ambassadorId, refCode) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id, display_name, username, avatar_url, is_talent, created_at")
+          .select("id, display_name, username, avatar_url, is_talent, created_at, email, first_transaction_at")
           .eq("referred_by_ambassador_id", ambassadorId)
           .order("created_at", { ascending: false })
       );
@@ -200,7 +200,7 @@ export function useReferrals(ambassadorId, refCode) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id, display_name, username, avatar_url, is_talent, created_at")
+          .select("id, display_name, username, avatar_url, is_talent, created_at, email, first_transaction_at")
           .eq("referred_by", refCode)
           .order("created_at", { ascending: false })
       );
@@ -223,14 +223,15 @@ export function useReferrals(ambassadorId, refCode) {
       all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       setReferrals(all.map(p => ({
-        id:          p.id,
-        displayName: p.display_name || p.username || "Nutzer",
-        username:    p.username     || null,
-        avatarUrl:   p.avatar_url   || null,
-        // Aktiv = hat Profil ausgefüllt (Name + Bild) ODER ist Talent
-        isActive:    p.is_talent === true ||
-                     (!!p.display_name && !!p.avatar_url),
-        joinedAt:    p.created_at,
+        id:                  p.id,
+        displayName:         p.display_name || p.username || "Nutzer",
+        username:            p.username     || null,
+        avatarUrl:           p.avatar_url   || null,
+        email:               p.email        || null,
+        // Aktiv = erste Transaktion vorhanden (gemäß Spezifikation)
+        isActive:            !!p.first_transaction_at,
+        firstTransactionAt:  p.first_transaction_at || null,
+        joinedAt:            p.created_at,
       })));
       setLoading(false);
     }).catch(() => setLoading(false));
