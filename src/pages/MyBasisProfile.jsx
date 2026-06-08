@@ -816,49 +816,63 @@ export default function MyBasisProfile({ onClose, profileId }) {
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
   // ── Profil direkt aus DB laden (zuverlässig, kein AuthContext-Race) ──
-  useEffect(()=>{
-    (async () => {
+  // ── Profil-Sync: AuthContext → lokaler State ─────────────────────────────
+  // PRIMÄRE QUELLE: AuthContext.profile (wird von AuthContext geladen + gecacht)
+  // FALLBACK: direkter DB-Call wenn AuthContext beim ersten Render noch nicht fertig
+  const profileSyncedRef = useRef(false);
+
+  useEffect(() => {
+    if (!authContextProfile?.id) {
+      // AuthContext noch nicht geladen — warte (useEffect feuert erneut wenn authContextProfile sich ändert)
+      return;
+    }
+    // AuthContext hat ein Profil → synchronisieren
+    const p = authContextProfile;
+    setProfile(p);
+    setBio(s(p.bio));
+    setInterests(Array.isArray(p.skills) ? p.skills : []);
+    setOpenFor(Array.isArray(p.profile_modules?.open_for) ? p.profile_modules.open_for : []);
+    if (p.focus_type && ["public","connections","private"].includes(p.focus_type)) {
+      setVisibility(p.focus_type);
+    }
+    let rawTags = p.dna_tags;
+    if (typeof rawTags === "string" && rawTags.startsWith("{")) {
+      rawTags = rawTags.slice(1, -1).split(",").map(v => v.trim()).filter(Boolean);
+    }
+    const tagArr = Array.isArray(rawTags) ? rawTags : [];
+    if (tagArr.length) setMoments(tagArr.map((url, i) => ({ id: `db_${i}`, img: url })));
+    profileSyncedRef.current = true;
+    setLoading(false);
+  }, [authContextProfile?.id, authContextProfile?.is_talent, authContextProfile?.membership_type,
+      authContextProfile?.avatar_url, authContextProfile?.display_name,
+      authContextProfile?.bio, authContextProfile?.profile_modules,
+      authContextProfile?.skills]);
+
+  // ── Fallback: AuthContext zu langsam → direkter DB-Call nach 2s ───────────
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (profileSyncedRef.current) return; // bereits geladen
       try {
-        const { data:{ user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
-        // ── Race-Condition-Guard: AuthContext-Profil bevorzugen wenn frisch geladen ──
-        // Verhindert unnötigen zweiten DB-Call und State-Flip durch veraltete Daten
-        if (authContextProfile?.id === user.id && authContextProfile?.membership_type) {
-          setProfile(authContextProfile);
-          setBio(s(authContextProfile.bio));
-          const ni = Array.isArray(authContextProfile.skills) ? authContextProfile.skills : [];
-          setInterests(ni);
-          setOpenFor(Array.isArray(authContextProfile.profile_modules?.open_for)
-            ? authContextProfile.profile_modules.open_for : []);
-          if (authContextProfile.focus_type && ["public","connections","private"]
-            .includes(authContextProfile.focus_type)) setVisibility(authContextProfile.focus_type);
-          setLoading(false);
-          return; // AuthContext-Daten sind ausreichend frisch — kein zweiter DB-Call nötig
-        }
-        const { data, error: loadErr } = await supabase.from("profiles")
+        const { data } = await supabase.from("profiles")
           .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
           .eq("id", user.id).single();
-        if (loadErr) console.error("Profile load error:", loadErr.message);
-        if (data) {
+        if (data && !profileSyncedRef.current) {
           setProfile(data);
           setBio(s(data.bio));
-          const nextInterests = Array.isArray(data.skills) ? data.skills : [];
-          setInterests(nextInterests);
-          let rawTags = data.dna_tags;
-          if (typeof rawTags === "string" && rawTags.startsWith("{")) {
-            rawTags = rawTags.slice(1, -1).split(",").map(v => v.trim()).filter(Boolean);
-          }
-          const tagArr = Array.isArray(rawTags) ? rawTags : [];
-          if (tagArr.length) setMoments(tagArr.map((url, i) => ({ id: `db_${i}`, img: url })));
+          setInterests(Array.isArray(data.skills) ? data.skills : []);
+          setOpenFor(Array.isArray(data.profile_modules?.open_for) ? data.profile_modules.open_for : []);
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
             setVisibility(data.focus_type);
           }
-          setOpenFor(Array.isArray(data.profile_modules?.open_for) ? data.profile_modules.open_for : []);
+          profileSyncedRef.current = true;
         }
-      } catch(e) { console.warn("MyBasisProfile load:", e); }
+      } catch(e) { console.warn("MyBasisProfile fallback load:", e); }
       setLoading(false);
-    })();
-  },[]);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // ── Werke des Nutzers laden ───────────────────────────────────────
   useEffect(()=>{
