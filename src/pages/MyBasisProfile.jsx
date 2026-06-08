@@ -977,6 +977,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Divider/>
         <Gap h={20}/>
 
+        {/* ── GEMEINSCHAFTSKARTE: nur für Basis-User (kein Talent) ── */}
+        {!profile?.is_talent && (
+          <>
+            <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)} />
+            <Gap h={20}/>
+            <Divider/>
+            <Gap h={20}/>
+          </>
+        )}
+
         {/* ── 2. MEINE TALENTE & ANGEBOTE ──────────────────── */}
         {profile && (() => {
           const chips = Array.isArray(profile?.skills) ? profile.skills : [];
