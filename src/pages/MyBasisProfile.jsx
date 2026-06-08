@@ -711,7 +711,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const refreshProfile  = _auth.refreshProfile ?? null;
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
-  const [mounted,    setMounted]    = useState(false);
   const [bio,        setBio]        = useState("");
 
   const [interests,  setInterests]  = useState([]);
@@ -729,7 +728,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showSettings,    setShowSettings]    = useState(false);
   const ambState = useAmbassador(profile);  // Nach States: profile ist jetzt null (nicht undefined)
 
-  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
   useEffect(()=>{
     (async () => {
@@ -861,12 +859,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, [setAuthProfile]);
 
   return (
-    <div className="mbp-root" style={{
+    <div className="mbp-root mbp-in" style={{
       position:"fixed", inset:0, zIndex:9500,
       display:"flex", flexDirection:"column",
-      opacity:mounted?1:0,
-      transform:mounted?"none":"translateY(14px)",
-      transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
 
       
