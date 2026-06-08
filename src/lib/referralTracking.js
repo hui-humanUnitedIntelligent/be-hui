@@ -90,6 +90,21 @@ export async function deleteRefLink(userId) {
 export async function processReferralAfterSignup(newUserId, manualUsername = null) {
   const username = manualUsername || getStoredReferral();
   if (!username) return;
+
+  // Wenn keine userId → im localStorage merken, AuthCallback holt es nach
+  if (!newUserId) {
+    try {
+      const raw = localStorage.getItem(STORAGE_AMB_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        parsed.pendingProcessing = true;
+        localStorage.setItem(STORAGE_AMB_KEY, JSON.stringify(parsed));
+      }
+    } catch {}
+    console.log('[HUI Referral] userId fehlt noch — wird nach E-Mail-Bestätigung verarbeitet');
+    return;
+  }
+
   try {
     const { data: refLink } = await supabase
       .from('ambassador_ref_links')
@@ -97,7 +112,10 @@ export async function processReferralAfterSignup(newUserId, manualUsername = nul
       .eq('username', username)
       .single();
 
-    if (!refLink) return;
+    if (!refLink) {
+      console.warn('[HUI Referral] Ref-Link nicht gefunden für username:', username);
+      return;
+    }
 
     // Ambassador-Status prüfen
     const { data: ambProf } = await supabase
@@ -111,23 +129,39 @@ export async function processReferralAfterSignup(newUserId, manualUsername = nul
     const amb = ambProf.profile_modules?.ambassador || {};
     if (amb.link_active === false) return;
 
+    // Nur setzen wenn noch nicht referriert
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('referred_by_ambassador_id')
+      .eq('id', newUserId)
+      .single();
+
+    if (existing?.referred_by_ambassador_id) {
+      clearStoredReferral();
+      return; // bereits verknüpft
+    }
+
     // Neues Profil: referred_by + referred_by_ambassador_id setzen
     await supabase.from('profiles').update({
-      referred_by:              refLink.referral_code || username,
+      referred_by:               refLink.referral_code || username,
       referred_by_ambassador_id: refLink.user_id,
     }).eq('id', newUserId);
 
-    // Ambassador: referral_count +1
-    const newCount = (Number(amb.referral_count) || 0) + 1;
-    await supabase.from('profiles').update({
-      profile_modules: {
-        ...(ambProf.profile_modules || {}),
-        ambassador: { ...amb, referral_count: newCount }
-      }
-    }).eq('id', refLink.user_id);
-
     clearStoredReferral();
+    console.log('[HUI Referral] ✅ Referral gesetzt:', username, '→', newUserId);
   } catch (e) {
     console.warn('[HUI Referral] Fehler:', e);
   }
+}
+
+// ── Referral nach E-Mail-Bestätigung verarbeiten (AuthCallback) ──
+export async function processStoredReferralForUser(userId) {
+  if (!userId) return;
+  try {
+    const raw = localStorage.getItem(STORAGE_AMB_KEY);
+    if (!raw) return;
+    const { username } = JSON.parse(raw);
+    if (!username) return;
+    await processReferralAfterSignup(userId, username);
+  } catch {}
 }
