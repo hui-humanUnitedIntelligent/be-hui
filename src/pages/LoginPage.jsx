@@ -25,58 +25,7 @@ const BG_IMAGES = [
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85', // Natur tief
 ];
 
-) {
-  return (
-    <div style={{
-      width: size, height: size, position: 'relative', flexShrink: 0,
-      ...(glow && {
-        filter: [
-          'drop-shadow(0 0 ' + Math.round(size*0.22) + 'px rgba(22,215,197,0.55))',
-          'drop-shadow(0 0 ' + Math.round(size*0.45) + 'px rgba(22,215,197,0.22))',
-          'drop-shadow(0 ' + Math.round(size*0.06) + 'px ' + Math.round(size*0.18) + 'px rgba(0,0,0,0.35))',
-        ].join(' '),
-      }),
-    }}>
-      <svg width={size} height={size} viewBox="0 0 120 120" fill="none" aria-label="HUI Logo">
-        <defs>
-          <linearGradient id="hl-bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#1ED8C8"/>
-            <stop offset="45%" stopColor="#22D4C4"/>
-            <stop offset="100%" stopColor="#FF7A5C"/>
-          </linearGradient>
-          <linearGradient id="hl-sh" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="white" stopOpacity="0.28"/>
-            <stop offset="100%" stopColor="white" stopOpacity="0"/>
-          </linearGradient>
-          <radialGradient id="hl-cr" cx="80%" cy="80%" r="50%">
-            <stop offset="0%" stopColor={HUI.COLOR.coral} stopOpacity="0.55"/>
-            <stop offset="100%" stopColor={HUI.COLOR.coral} stopOpacity="0"/>
-          </radialGradient>
-          <radialGradient id="hl-tl" cx="20%" cy="20%" r="50%">
-            <stop offset="0%" stopColor="#22EDD8" stopOpacity="0.40"/>
-            <stop offset="100%" stopColor="#22EDD8" stopOpacity="0"/>
-          </radialGradient>
-        </defs>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hl-bg)"/>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hl-cr)"/>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hl-tl)"/>
-        <rect x="3" y="3" width="114" height="62"  rx="30" fill="url(#hl-sh)"/>
-        <circle cx="60" cy="62" r="38" fill="white" fillOpacity="0.92"/>
-        <path d="M30 42 C28 50 28 62 28 62 C28 74 30 82 30 82" stroke="url(#hl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <path d="M50 42 C52 50 52 62 52 62 C52 74 50 82 50 82" stroke="url(#hl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <path d="M29 62 L51 62" stroke="url(#hl-bg)" strokeWidth="8" strokeLinecap="round" fill="none"/>
-        <path d="M56 42 L56 68 C56 76 65 83 70 76 C74 69 72 42 72 42" stroke="url(#hl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <circle cx="82" cy="44" r="5.5" fill="url(#hl-bg)"/>
-        <path d="M82 54 L82 82" stroke="url(#hl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <path d="M72 18 C85 14 100 20 108 32 C114 42 112 55 105 62" stroke="#22EDD8" strokeWidth="7" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
-        <path d="M48 104 C38 108 22 104 14 92 C8 82 10 68 17 60" stroke={HUI.COLOR.coral} strokeWidth="7" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="none" stroke="white" strokeOpacity="0.18" strokeWidth="1.5"/>
-      </svg>
-    </div>
-  );
-}
 
-// ── Glass Input ──────────────────────────────────────────────────
 function GlassInput({ type = 'text', value, onChange, placeholder, autoComplete, id, rightSlot }) {
   const [focused, setFocused] = useState(false);
 
