@@ -140,8 +140,8 @@ function NameBlock({ profile, onProfileUpdate }) {
 
 // ── Block: E-Mail ─────────────────────────────────────────────
 function EmailBlock({ profile, onProfileUpdate }) {
-  const { profile: authProfile } = useAuth() || {};
-  const [email, setEmail] = useState(authProfile?.email || profile?.email || "");
+  // email direkt aus Supabase Auth holen
+  const [email, setEmail] = useState(authCtxProfile?.email || profile?.email || "");
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
   const [error,  setError]  = useState(null);
@@ -291,7 +291,10 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 }
 
 // ── Haupt-Komponente ─────────────────────────────────────────
-export default function SettingsModal({ profile, onClose, onProfileUpdate, onOpenBookings, onEditProfile }) {
+export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate, onOpenBookings, onEditProfile }) {
+  // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
+  const { profile: authCtxProfile } = useAuth() || {};
+  const profile = profileProp || authCtxProfile || null;
   if (!profile) return null;
   const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security"
 
