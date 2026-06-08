@@ -1296,6 +1296,128 @@ function GemeinschaftsKarte({ onJoin }) {
 
 
 // ══════════════════════════════════════════════════════════════
+// TALENT STATISTIK SECTION
+// ══════════════════════════════════════════════════════════════
+function TalentStatsSection({ works = [], exps = [] }) {
+  const published   = works.filter(w => w.status === "published").length;
+  const pending     = works.filter(w => w.status === "pending_review").length;
+  const expCount    = exps.filter(e => e.status !== "archived").length;
+  const stats = [
+    { icon:"🎨", label:"Werke", value: works.length, sub: `${published} veröffentlicht` },
+    { icon:"✨", label:"Erlebnisse", value: expCount, sub: "Workshops & Events" },
+    { icon:"⏳", label:"In Prüfung", value: pending, sub: "warten auf Freigabe" },
+  ];
+  return (
+    <div style={{ padding:"0 20px" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:12 }}>
+        <span style={{ fontSize:15 }}>📊</span>
+        <span style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>Statistik & Wirkung</span>
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+        {stats.map(s => (
+          <div key={s.label} style={{
+            background:"linear-gradient(135deg,#F0FDFB,#E8FAF8)",
+            border:"1.5px solid rgba(14,196,184,0.18)",
+            borderRadius:14, padding:"14px 10px 12px",
+            textAlign:"center",
+          }}>
+            <div style={{ fontSize:22, marginBottom:4 }}>{s.icon}</div>
+            <div style={{ fontSize:22, fontWeight:800, color:"#0EC4B8", lineHeight:1 }}>{s.value}</div>
+            <div style={{ fontSize:11, fontWeight:700, color:"#1A1A18", marginTop:3 }}>{s.label}</div>
+            <div style={{ fontSize:10, color:"rgba(26,26,24,0.45)", marginTop:2 }}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// TALENT ERLEBNISSE SECTION
+// ══════════════════════════════════════════════════════════════
+const EXP_STATUS = {
+  draft:          { label:"Entwurf",       color:"rgba(26,26,24,0.38)", bg:"rgba(26,26,24,0.05)" },
+  pending_review: { label:"In Prüfung",    color:"#D97706",             bg:"#FEF3C7" },
+  published:      { label:"Aktiv",         color:"#16A34A",             bg:"#DCFCE7" },
+  rejected:       { label:"Abgelehnt",     color:"#DC2626",             bg:"#FEE2E2" },
+};
+
+function TalentErlebnisseSection({ userId, exps, loading, onCreateNew, onEdit, onRefresh }) {
+  return (
+    <div style={{ padding:"0 20px" }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+          <span style={{ fontSize:18 }}>✨</span>
+          <span style={{ fontSize:15, fontWeight:800, color:"#1A1A18" }}>Erlebnisse & Projekte</span>
+        </div>
+        <button
+          onClick={onCreateNew}
+          style={{
+            display:"flex", alignItems:"center", gap:5,
+            padding:"8px 14px", borderRadius:99,
+            background:"#0EC4B8", border:"none",
+            color:"#fff", fontSize:12, fontWeight:700,
+            cursor:"pointer", touchAction:"manipulation",
+          }}
+        >
+          + Neues Erlebnis
+        </button>
+      </div>
+
+      {/* Liste */}
+      {loading ? (
+        <div style={{ height:80, background:"rgba(14,196,184,0.06)", borderRadius:12, animation:"pulse 1.5s infinite" }}/>
+      ) : exps.length === 0 ? (
+        <div style={{
+          textAlign:"center", padding:"32px 20px",
+          background:"rgba(14,196,184,0.04)", borderRadius:16,
+          border:"1.5px dashed rgba(14,196,184,0.20)",
+        }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>✨</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18", marginBottom:4 }}>Noch keine Erlebnisse</div>
+          <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)" }}>Erstelle dein erstes Erlebnis, Event oder Projekt.</div>
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {exps.map(exp => {
+            const st = EXP_STATUS[exp.status] || EXP_STATUS.draft;
+            const dateStr = exp.date ? new Date(exp.date).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }) : null;
+            return (
+              <div key={exp.id} style={{
+                background:"#fff", borderRadius:14,
+                border:"1px solid rgba(26,26,24,0.09)",
+                padding:"14px 16px",
+                display:"flex", alignItems:"center", gap:12,
+                boxShadow:"0 2px 8px rgba(26,26,24,0.05)",
+              }}>
+                {exp.cover_url ? (
+                  <img src={exp.cover_url} alt="" style={{ width:52, height:52, borderRadius:10, objectFit:"cover", flexShrink:0 }}/>
+                ) : (
+                  <div style={{ width:52, height:52, borderRadius:10, background:"rgba(14,196,184,0.10)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>✨</div>
+                )}
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{exp.title || "Unbenanntes Erlebnis"}</div>
+                  {dateStr && <div style={{ fontSize:11, color:"rgba(26,26,24,0.45)", marginTop:2 }}>📅 {dateStr}</div>}
+                  {exp.category && <div style={{ fontSize:11, color:"rgba(26,26,24,0.45)" }}>{exp.category}</div>}
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0 }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:st.color, background:st.bg, padding:"3px 8px", borderRadius:99 }}>{st.label}</span>
+                  <button
+                    onClick={() => onEdit?.(exp)}
+                    style={{ fontSize:11, fontWeight:600, color:"#0EC4B8", background:"none", border:"none", cursor:"pointer", padding:0 }}
+                  >Bearbeiten</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
 // MEINE WERKE SECTION
 // ══════════════════════════════════════════════════════════════
 const STATUS_CONFIG = {
