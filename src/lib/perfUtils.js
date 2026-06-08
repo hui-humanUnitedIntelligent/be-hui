@@ -248,10 +248,11 @@ export const FIELDS = {
 // Nur reale Felder aus profiles-Tabelle (Stand 2026-05-30)
 export const PROFILE_FIELDS =
   'id,display_name,username,avatar_url,bio,' +
-  'is_talent,talent_since,is_ambassador,ambassador_since,' +
-  'ref_link,ambassador_level,referred_users_count,impact_revenue,' +
+  'is_talent,talent_since,is_ambassador,' +
   'referred_by,blocked,profile_modules,' +
-  'skills,dna_tags,location,header_img,created_at,updated_at';
+  'skills,dna_tags,location,header_img,focus_type,profile_complete,created_at,updated_at';
+  // NOTE: ambassador_since, ref_link, ambassador_level, referred_users_count, impact_revenue
+  // werden in MyBasisProfile.jsx direkt geladen (eigener SELECT mit allen ambassador-Feldern)
 
 // ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
 // Gleicht alle historisch unterschiedlichen Feldnamen an:
