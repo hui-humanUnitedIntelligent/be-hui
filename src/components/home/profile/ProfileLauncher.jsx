@@ -213,22 +213,14 @@ export default function ProfileLauncher() {
     );
   }
 
-  // ── EIGENES PROFIL — Content-First (Talente · Werke · Erlebnisse) ──
-  // MyTalentProfile zeigt den Menschen: Profil, Talente, Werke, Empfehlungen.
-  // MyBasisProfile für Nutzer ohne Talent-Profil.
-  // MyCreatorDashboard = Account/Einstellungen (separater Aufruf).
+  // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
+  // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
+  // MyTalentProfile wird NICHT mehr verwendet — verhindert Profil-Duplikate.
   if (showCreatorDashboard) {
-    const isSelfTalent = !!(
-      authProfile?.has_talent_profile === true ||
-      authProfile?.role === "talent"  ||
-      authProfile?.role === "wirker"  ||
-      authProfile?.membership_type === "talent"
-    );
-    const OwnProfile = isSelfTalent ? MyTalentProfile : MyBasisProfile;
     return (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
         <React.Suspense fallback={<Spinner />}>
-          <OwnProfile onClose={() => setShowCreatorDashboard(false)} />
+          <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
         </React.Suspense>
       </ProfileErrorBoundary>
     );
