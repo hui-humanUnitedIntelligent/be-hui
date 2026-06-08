@@ -145,7 +145,10 @@ export default function HomeShell({ children }) {
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   // ── Creator / Profile State ────────────────────────────────────
-  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
+  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(() => {
+    // Beim Browser-Reload: Profil-Panel wieder öffnen wenn es vorher offen war
+    try { return sessionStorage.getItem("hui_overlay_profile") === "1"; } catch(_) { return false; }
+  });
   // ── Chat State ─────────────────────────────────────────────────
   const [showChat, _setShowChatRaw] = useState(false);
   const _showChatRef = React.useRef(false);
