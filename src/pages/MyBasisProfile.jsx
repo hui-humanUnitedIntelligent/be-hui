@@ -1115,7 +1115,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               </div>
             </div>
             {profile?.is_ambassador ? (
-              <AmbassadorSection ambassadorData={ambState.ambassadorData} />
+              <AmbassadorSection ambassadorData={ambState.ambassadorData} userId={profile?.id} />
             ) : (
               <AmbassadorCTA
                 isAmbassador={false}
