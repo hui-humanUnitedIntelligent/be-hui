@@ -248,7 +248,8 @@ export const FIELDS = {
 // Nur reale Felder aus profiles-Tabelle (Stand 2026-05-30)
 export const PROFILE_FIELDS =
   'id,display_name,username,avatar_url,bio,' +
-  'is_talent,talent_since,is_ambassador,' +
+  'is_talent,talent_since,is_ambassador,ambassador_since,' +
+  'ref_link,ambassador_level,referred_users_count,impact_revenue,' +
   'referred_by,blocked,profile_modules,' +
   'skills,dna_tags,location,header_img,created_at,updated_at';
 
