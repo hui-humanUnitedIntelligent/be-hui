@@ -580,13 +580,11 @@ function ProfileCompletionTrigger() {
     // Robuste Prüfung: .trim() damit leere Strings "" nicht als "gesetzt" gelten
     const hasUsername    = typeof profile.username === "string" && profile.username.trim().length > 0;
     const hasDisplayName = typeof profile.display_name === "string" && profile.display_name.trim().length > 0;
-    const isComplete     = profile.profile_complete === true;
-
-    // localStorage-Guard: verhindert Re-Trigger nach Reload wenn Flow bereits abgeschlossen
+    // profile_complete existiert nicht als DB-Spalte → localStorage als einziger Completion-Guard
     let localCompleted = false;
     try { localCompleted = localStorage.getItem("hui_profile_completed") === "true"; } catch {}
 
-    const needsSetup = !isComplete && !hasUsername && !hasDisplayName && !localCompleted;
+    const needsSetup = !hasUsername && !hasDisplayName && !localCompleted;
 
     if (needsSetup) {
       setShow(true);
