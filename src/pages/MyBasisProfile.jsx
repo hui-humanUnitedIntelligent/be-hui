@@ -757,6 +757,483 @@ function SichtbarkeitSection({ visibility, onChange }) {
 // ══════════════════════════════════════════════════════════════
 // ROOT
 // ══════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════
+// WARUM ICH AUF HUI BIN — Persönlicher Motivations-Bereich
+// ════════════════════════════════════════════════════════════════
+const WERT_TAGS = [
+  { icon:"🌱", label:"Natur"        },
+  { icon:"🤝", label:"Gemeinschaft" },
+  { icon:"🎨", label:"Kreativität"  },
+  { icon:"💚", label:"Vertrauen"    },
+  { icon:"✨", label:"Inspiration"  },
+  { icon:"🌍", label:"Wirkung"      },
+  { icon:"🎵", label:"Musik"        },
+  { icon:"📖", label:"Bildung"      },
+  { icon:"🧘", label:"Achtsamkeit"  },
+  { icon:"💡", label:"Innovation"   },
+];
+
+function WarumHUI({ profile, onEdit }) {
+  const warum = profile?.profile_modules?.warum_hui || "";
+  const tags  = Array.isArray(profile?.profile_modules?.wert_tags)
+    ? profile.profile_modules.wert_tags : [];
+  return (
+    <div style={{ padding:"0 20px" }}>
+      <SectionRow title="Über mich" onEdit={onEdit} />
+      <div style={{
+        background:T.bgCard, borderRadius:T.r16,
+        border:`1px solid ${T.border}`, padding:"16px",
+        boxShadow:T.card, marginBottom:12,
+      }}>
+        {warum ? (
+          <p style={{ margin:0, fontSize:14, lineHeight:1.7, color:T.ink }}>
+            {warum}
+          </p>
+        ) : (
+          <div style={{ fontSize:13, color:T.inkFaint, lineHeight:1.6, fontStyle:"italic" }}
+            onClick={onEdit}>
+            Schreib hier, warum du Teil von HUI bist, was dich antreibt und welche Werte dir wichtig sind…
+          </div>
+        )}
+        {tags.length > 0 && (
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:12 }}>
+            {tags.map((t, i) => (
+              <span key={i} style={{
+                display:"inline-flex", alignItems:"center", gap:4,
+                padding:"4px 10px", borderRadius:99,
+                background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+                fontSize:12, fontWeight:600, color:T.teal,
+              }}>{t}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// MEINE TALENTE & FÄHIGKEITEN — Chip-basiert, sofort erkennbar
+// ════════════════════════════════════════════════════════════════
+const TALENT_CHIPS = [
+  "Fotografie","Musik","Handwerk","Coaching","Kunst","Programmierung",
+  "Bildung","Schreiben","Design","Tanz","Theater","Yoga","Kochen",
+  "Gartenbau","Architektur","Film","Illustration","Keramik","Textil",
+];
+
+function MeineTalenteSection({ profile, onEdit }) {
+  const talents = Array.isArray(profile?.profile_modules?.talente)
+    ? profile.profile_modules.talente
+    : (Array.isArray(profile?.skills) ? profile.skills : []);
+  return (
+    <div style={{ padding:"0 20px" }}>
+      <SectionRow title="Meine Talente & Fähigkeiten" onEdit={onEdit} />
+      {talents.length > 0 ? (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:4 }}>
+          {talents.map((t, i) => (
+            <span key={i} style={{
+              display:"inline-flex", alignItems:"center", gap:5,
+              padding:"6px 13px", borderRadius:99,
+              background:T.bgCard, border:`1.5px solid ${T.border}`,
+              fontSize:13, fontWeight:600, color:T.ink,
+              boxShadow:T.card,
+            }}>
+              {t}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          background:T.tealSoft, borderRadius:T.r12,
+          border:`1px dashed ${T.tealMid}`, padding:"14px 16px",
+          textAlign:"center", cursor:"pointer",
+        }} onClick={onEdit}>
+          <div style={{ fontSize:13, color:T.teal, fontWeight:600 }}>
+            + Talente hinzufügen
+          </div>
+          <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
+            Fotografie · Musik · Coaching · Kunst · …
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// WEITEREMPFEHLUNGEN — Kein Sterne-System
+// ════════════════════════════════════════════════════════════════
+function WeiterempfehlungenSection({ userId }) {
+  const [recs, setRecs]       = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!userId) { setLoading(false); return; }
+    supabase.from("recommendations")
+      .select("id,text,from_name,from_avatar,created_at")
+      .eq("to_user_id", userId)
+      .order("created_at", { ascending:false })
+      .limit(3)
+      .then(({ data }) => { setRecs(data || []); setLoading(false); });
+  }, [userId]);
+
+  return (
+    <div style={{ padding:"0 20px" }}>
+      <SectionRow title="Weiterempfehlungen" />
+      {/* Keine Sterne — Grundsatz */}
+      <div style={{
+        display:"inline-flex", alignItems:"center", gap:6,
+        padding:"5px 12px", borderRadius:99, marginBottom:12,
+        background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+        fontSize:11, fontWeight:700, color:T.teal,
+      }}>
+        💚 Keine Sterne. Keine Likes. Nur echte Erfahrungen.
+      </div>
+
+      {loading ? (
+        <div style={{ height:60, borderRadius:T.r12 }} className="mbp-skeleton"/>
+      ) : recs.length === 0 ? (
+        <div style={{
+          background:T.bgCard, borderRadius:T.r16, padding:"18px 16px",
+          border:`1px solid ${T.border}`, textAlign:"center",
+          boxShadow:T.card,
+        }}>
+          <div style={{ fontSize:13, color:T.inkFaint, lineHeight:1.6 }}>
+            Empfehlungen entstehen durch echte Erlebnisse, Buchungen und Zusammenarbeit.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {recs.map(r => (
+            <div key={r.id} style={{
+              background:T.bgCard, borderRadius:T.r16, padding:"14px 16px",
+              border:`1px solid ${T.border}`, boxShadow:T.card,
+            }}>
+              <p style={{ margin:"0 0 10px", fontSize:13.5, color:T.ink, lineHeight:1.65,
+                fontStyle:"italic" }}>
+                „{r.text}"
+              </p>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                {r.from_avatar ? (
+                  <img src={r.from_avatar} style={{ width:26, height:26, borderRadius:"50%",
+                    objectFit:"cover" }} alt=""/>
+                ) : (
+                  <div style={{ width:26, height:26, borderRadius:"50%",
+                    background:T.tealSoft, display:"flex", alignItems:"center",
+                    justifyContent:"center", fontSize:12 }}>👤</div>
+                )}
+                <span style={{ fontSize:12, fontWeight:600, color:T.inkSoft }}>
+                  {r.from_name || "Anonym"}
+                </span>
+              </div>
+            </div>
+          ))}
+          <button style={{
+            background:"none", border:`1px solid ${T.border}`,
+            borderRadius:99, padding:"9px 0", width:"100%",
+            fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
+          }}>
+            Alle Empfehlungen anzeigen →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// MEIN WIRKEN — Wirkungskennzahlen (kein Ranking)
+// ════════════════════════════════════════════════════════════════
+function MeinWirkenSection({ profile, works, exps }) {
+  const [impact, setImpact] = React.useState({ votes:0, connections:0 });
+  React.useEffect(() => {
+    if (!profile?.id) return;
+    Promise.allSettled([
+      supabase.from("impact_votes").select("id", { count:"exact" }).eq("user_id", profile.id),
+      supabase.from("follows").select("id", { count:"exact" }).eq("following_id", profile.id),
+    ]).then(([vR, fR]) => {
+      setImpact({
+        votes:       vR.status === "fulfilled" ? (vR.value.count || 0) : 0,
+        connections: fR.status === "fulfilled" ? (fR.value.count || 0) : 0,
+      });
+    });
+  }, [profile?.id]);
+
+  const published = (works || []).filter(w => w.status === "published").length;
+  const expCount  = (exps  || []).filter(e => e.status !== "archived").length;
+  const recs      = profile?.recommendations || 0;
+
+  const stats = [
+    { icon:"💚", val:recs,               label:"Weiterempfehlungen" },
+    { icon:"🎨", val:published,           label:"Werke veröffentlicht" },
+    { icon:"🎟",  val:expCount,            label:"Erlebnisse angeboten" },
+    { icon:"🤝", val:impact.connections,  label:"Verbindungen" },
+    { icon:"🌍", val:impact.votes,        label:"Impact-Projekte unterstützt" },
+  ];
+
+  return (
+    <div style={{
+      background:T.bgCard, borderRadius:T.r16,
+      border:`1px solid ${T.border}`, padding:"16px 18px",
+      boxShadow:T.card,
+    }}>
+      <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:12 }}>
+        Mein Wirken
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {stats.map((s, i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:16, width:22, textAlign:"center", flexShrink:0 }}>{s.icon}</span>
+            <div style={{ flex:1, fontSize:13, fontWeight:700, color:T.ink }}>{s.val}</div>
+            <div style={{ fontSize:11, color:T.inkFaint }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// HUI-VERTRAUENSSTATUS — Vertrauensentwicklung (kein Level-System)
+// ════════════════════════════════════════════════════════════════
+function VertrauensstatusCard({ profile }) {
+  const recs = profile?.recommendations || 0;
+  const createdAt = profile?.created_at;
+  const monthsActive = createdAt
+    ? Math.max(0, Math.floor((Date.now() - new Date(createdAt)) / (30*24*3600*1000)))
+    : 0;
+
+  let status = { icon:"🌱", label:"Neues Mitglied",      color:"#16A34A", bg:"#DCFCE7",
+                 sub:"Willkommen in der HUI-Gemeinschaft" };
+  if (recs >= 10 || monthsActive >= 12) {
+    status = { icon:"💎", label:"Vertrauenspartner",    color:"#7264D6", bg:"#EDE9FE",
+               sub:"Langjährige Vertrauensbeziehung" };
+  } else if (recs >= 5 || monthsActive >= 6) {
+    status = { icon:"🌳", label:"Bewährtes Mitglied",   color:"#0DC4B5", bg:"#CCFBF1",
+               sub:"Aktiv und bewährt in der Community" };
+  } else if (recs >= 1 || monthsActive >= 2) {
+    status = { icon:"🍃", label:"Empfohlenes Mitglied", color:"#D97706", bg:"#FEF3C7",
+               sub:"Von der Community empfohlen" };
+  }
+
+  return (
+    <div style={{
+      background:T.bgCard, borderRadius:T.r16,
+      border:`1px solid ${T.border}`, padding:"16px 18px",
+      boxShadow:T.card,
+    }}>
+      <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:12 }}>
+        HUI-Vertrauensstatus
+      </div>
+      <div style={{
+        display:"flex", alignItems:"center", gap:10, marginBottom:12,
+        padding:"10px 12px", borderRadius:T.r12,
+        background:status.bg, border:`1px solid ${status.color}22`,
+      }}>
+        <span style={{ fontSize:22 }}>{status.icon}</span>
+        <div>
+          <div style={{ fontSize:13, fontWeight:800, color:status.color }}>{status.label}</div>
+          <div style={{ fontSize:10, color:T.inkFaint, marginTop:1 }}>{status.sub}</div>
+        </div>
+      </div>
+      <div style={{ fontSize:10, color:T.inkFaint, lineHeight:1.5 }}>
+        Keine Punkte. Kein Ranking. Nur Vertrauensentwicklung.
+      </div>
+      <button style={{
+        width:"100%", marginTop:12,
+        background:"none", border:`1.5px solid ${T.teal}`,
+        borderRadius:T.r99, padding:"9px 0",
+        fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
+      }}>
+        ✉ Vertrauen schenken
+      </button>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// MEIN WEG AUF HUI — Automatische Aktivitäten-Timeline
+// ════════════════════════════════════════════════════════════════
+function MeinWegTimeline({ userId }) {
+  const [events, setEvents] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!userId) { setLoading(false); return; }
+    supabase.from("activities")
+      .select("id,type,description,created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending:false })
+      .limit(5)
+      .then(({ data }) => { setEvents(data || []); setLoading(false); });
+  }, [userId]);
+
+  const TYPE_MAP = {
+    profile_created:   { icon:"🌱", label:"Profil erstellt"        },
+    work_published:    { icon:"🎨", label:"Werk veröffentlicht"     },
+    experience_created:{ icon:"🎟", label:"Erlebnis erstellt"       },
+    recommendation:    { icon:"💚", label:"Empfehlung erhalten"     },
+    impact_vote:       { icon:"🌍", label:"Projekt unterstützt"     },
+    connection:        { icon:"🤝", label:"Verbindung aufgebaut"    },
+  };
+
+  const fmtDate = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleDateString("de-DE", { month:"long", year:"numeric" });
+  };
+
+  return (
+    <div style={{
+      background:T.bgCard, borderRadius:T.r16,
+      border:`1px solid ${T.border}`, padding:"16px 18px",
+      boxShadow:T.card,
+    }}>
+      <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:12 }}>
+        Mein Weg auf HUI
+      </div>
+      {loading ? (
+        <div style={{ height:40 }} className="mbp-skeleton"/>
+      ) : events.length === 0 ? (
+        <div style={{ fontSize:12, color:T.inkFaint, lineHeight:1.5 }}>
+          Deine HUI-Geschichte beginnt hier. 🌱
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+          {events.map((ev, i) => {
+            const cfg = TYPE_MAP[ev.type] || { icon:"✨", label:ev.description || ev.type };
+            return (
+              <div key={ev.id} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                {/* Linie */}
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
+                  width:22, flexShrink:0 }}>
+                  <div style={{
+                    width:22, height:22, borderRadius:"50%",
+                    background:T.tealSoft, border:`1.5px solid ${T.tealMid}`,
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:11, flexShrink:0,
+                  }}>{cfg.icon}</div>
+                  {i < events.length - 1 && (
+                    <div style={{ width:1.5, height:20, background:T.border, margin:"2px 0" }}/>
+                  )}
+                </div>
+                {/* Text */}
+                <div style={{ paddingTop:2, paddingBottom:i < events.length-1 ? 0 : 0 }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:T.ink, lineHeight:1.3 }}>
+                    {cfg.label}
+                  </div>
+                  {ev.description && ev.description !== cfg.label && (
+                    <div style={{ fontSize:10, color:T.inkFaint, fontStyle:"italic",
+                      lineHeight:1.3, marginTop:1 }}>
+                      „{ev.description.slice(0, 40)}"
+                    </div>
+                  )}
+                  <div style={{ fontSize:9, color:T.inkFaint, marginTop:1 }}>
+                    {fmtDate(ev.created_at)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <button style={{
+            background:"none", border:"none", padding:"8px 0 0",
+            fontSize:11, color:T.teal, fontWeight:700, cursor:"pointer",
+            textAlign:"left",
+          }}>
+            Alle Aktivitäten ansehen
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// STANDORT + VERFÜGBARKEIT — kompakt, Sidebar
+// ════════════════════════════════════════════════════════════════
+function StandortVerfuegbarkeit({ profile }) {
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+      {/* Standort */}
+      {profile?.location && (
+        <div style={{
+          background:T.bgCard, borderRadius:T.r12,
+          border:`1px solid ${T.border}`, padding:"12px 14px",
+          boxShadow:T.card,
+        }}>
+          <div style={{ fontSize:12, fontWeight:800, color:T.ink, marginBottom:6 }}>Standort</div>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontSize:13 }}>📍</span>
+            <span style={{ fontSize:12.5, color:T.inkSoft }}>{profile.location}</span>
+          </div>
+        </div>
+      )}
+      {/* Verfügbarkeit */}
+      <div style={{
+        background:T.bgCard, borderRadius:T.r12,
+        border:`1px solid ${T.border}`, padding:"12px 14px",
+        boxShadow:T.card,
+      }}>
+        <div style={{ fontSize:12, fontWeight:800, color:T.ink, marginBottom:8 }}>
+          Bereich & Verfügbarkeit
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ width:6, height:6, borderRadius:"50%", background:"#16A34A",
+              display:"inline-block", flexShrink:0 }}/>
+            <span style={{ fontSize:11.5, color:T.inkSoft }}>Online & Vor Ort</span>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontSize:11 }}>💬</span>
+            <span style={{ fontSize:11.5, color:T.inkSoft }}>Offen für neue Anfragen</span>
+          </div>
+          <div style={{ fontSize:10, color:T.inkFaint, marginTop:2 }}>
+            Antwortzeit: innerhalb von 24h
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// SICHTBARKEIT SIDEBAR — nur Creator-Sicht
+// ════════════════════════════════════════════════════════════════
+function SichtbarkeitSidebar({ visibility, onChange }) {
+  const opts = [
+    { key:"public",       icon:"🌍", label:"Öffentlich" },
+    { key:"connections",  icon:"👥", label:"Verbindungen" },
+    { key:"private",      icon:"🔒", label:"Privat" },
+  ];
+  const cur = opts.find(o => o.key === visibility) || opts[0];
+  return (
+    <div style={{
+      background:T.bgCard, borderRadius:T.r12,
+      border:`1px solid ${T.border}`, padding:"12px 14px",
+      boxShadow:T.card,
+    }}>
+      <div style={{ fontSize:12, fontWeight:800, color:T.ink, marginBottom:8 }}>Sichtbarkeit</div>
+      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8 }}>
+        <span style={{ fontSize:13 }}>{cur.icon}</span>
+        <span style={{ fontSize:12, color:T.inkSoft }}>
+          Profil sichtbar für {cur.label}
+        </span>
+      </div>
+      <button onClick={() => {
+        const idx = opts.findIndex(o => o.key === visibility);
+        onChange(opts[(idx+1) % opts.length].key);
+      }} style={{
+        background:"none", border:`1px solid ${T.border}`,
+        borderRadius:99, padding:"6px 12px", fontSize:11,
+        fontWeight:700, color:T.teal, cursor:"pointer", width:"100%",
+      }}>
+        ⚙ Einstellungen
+      </button>
+    </div>
+  );
+}
+
 export default function MyBasisProfile({ onClose, profileId }) {
   console.log("PROFILE PAGE PARAM", profileId ?? "(keine profileId prop — lädt eigenes Profil)");
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
@@ -1076,122 +1553,122 @@ export default function MyBasisProfile({ onClose, profileId }) {
         onAvatarChange={handleAvatarChange}
         onCoverChange={handleCoverChange}
       />
-        <Gap h={62}/> {/* space for floating avatar (82px/2 + 44px offset − 170px/2 = ~44px sichtbar) */}
+        <Gap h={62}/>
 
-        {/* ÜBER DICH */}
-        <UeberDich bio={bio} onChange={handleBioChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
+        {/* ══ NEUE STRUKTUR: Über mich → Talente → Werke → Erlebnisse → Empfehlungen → Sidebar */}
 
-        {/* GEMEINSCHAFT BEITRETEN */}
-        {/* GemeinschaftsKarte: nur wenn Profil vollständig geladen und Nutzer kein Talent */}
-        {profile && !isTalent && (
-          <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
-        )}
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
+          {/* 1. ÜBER MICH */}
+          <WarumHUI profile={profile} onEdit={() => {}} />
+          <Gap h={20}/>
+          <Divider/>
+          <Gap h={20}/>
 
-        {/* INTERESSEN & WERTE */}
-        <InteressenSection interests={interests} onChange={handleInterestsChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
+          {/* 2. TALENTE & FÄHIGKEITEN */}
+          <MeineTalenteSection profile={profile} onEdit={() => {}} />
+          <Gap h={20}/>
+          <Divider/>
+          <Gap h={20}/>
 
-        {/* OFFEN FÜR BEGEGNUNGEN */}
-        <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
+          {/* 3. TALENT-CONTENT — nur wenn isTalent */}
+          {profile && isTalent && (
+            <>
+              {/* MEINE WERKE */}
+              <MeineWerkeSection
+                works={works}
+                loading={worksLoading}
+                onCreateNew={() => setShowWizard(true)}
+                onRefresh={() => {
+                  if (!profile?.id) return;
+                  setWorksLoading(true);
+                  supabase.from("works")
+                    .select("id,title,status,created_at,media_urls,images,cover_url,price,price_type,description")
+                    .eq("user_id", profile.id)
+                    .not("status","in",'("archived","deleted")')
+                    .order("created_at",{ascending:false}).limit(50)
+                    .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
+                }}
+              />
+              <Gap h={20}/>
+              <Divider/>
+              <Gap h={20}/>
 
-        {/* SICHTBARKEIT */}
-        <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
+              {/* ERLEBNISSE & PROJEKTE */}
+              <TalentErlebnisseSection
+                userId={profile?.id}
+                exps={exps}
+                loading={expsLoading}
+                onCreateNew={() => setShowExpWizard(true)}
+                onEdit={exp => { setEditingExp(exp); setShowExpWizard(true); }}
+                onRefresh={() => {
+                  if (!profile?.id) return;
+                  setExpsLoading(true);
+                  supabase.from("experiences")
+                    .select("id,title,cover_url,status,date,category,experience_type,location,price,max_participants,current_participants,description")
+                    .eq("user_id", profile.id)
+                    .neq("status", "archived")
+                    .order("created_at",{ascending:false})
+                    .then(({ data }) => { setExps(data||[]); setExpsLoading(false); });
+                }}
+              />
+              <Gap h={20}/>
+              <Divider/>
+              <Gap h={20}/>
+            </>
+          )}
 
-        {/* ══ TALENT-DASHBOARD — nur wenn isTalent ══ */}
-        {profile && isTalent && (
-          <>
-            {/* Divider + Talent-Header */}
-            <div style={{ padding:"0 20px", marginBottom:4 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"16px 0 8px" }}>
-                <span style={{ fontSize:22 }}>🎨</span>
-                <div>
-                  <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18" }}>Mein Talent-Bereich</div>
-                  <div style={{ fontSize:12, color:"rgba(26,26,24,0.5)", marginTop:1 }}>Deine Werke, Erlebnisse & Wirkung</div>
-                </div>
-              </div>
-            </div>
-            <Divider/>
-            <Gap h={20}/>
+          {/* 4. WEITEREMPFEHLUNGEN */}
+          <WeiterempfehlungenSection userId={profile?.id} />
+          <Gap h={20}/>
+          <Divider/>
+          <Gap h={20}/>
 
-            {/* STATISTIK */}
-            <TalentStatsSection
-              works={works}
-              exps={exps}
+          {/* 5. INTERESSEN & WERTE */}
+          <InteressenSection interests={interests} onChange={handleInterestsChange}/>
+          <Gap h={20}/>
+          <Divider/>
+          <Gap h={20}/>
+
+          {/* 6. OFFEN FÜR BEGEGNUNGEN */}
+          <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
+          <Gap h={20}/>
+          <Divider/>
+          <Gap h={20}/>
+
+          {/* 7. GEMEINSCHAFT — nur für Nicht-Talents */}
+          {profile && !isTalent && (
+            <>
+              <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
+              <Gap h={20}/>
+              <Divider/>
+              <Gap h={20}/>
+            </>
+          )}
+
+          {/* 8. AMBASSADOR */}
+          {ambState.isAmbassador ? (
+            <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
+          ) : (
+            <AmbassadorCTA
+              isAmbassador={ambState.isAmbassador}
+              isPending={ambState.isPending}
+              ambassadorStatus={(profile?.profile_modules?.ambassador?.status) || null}
+              onApply={() => setShowAmbModal(true)}
             />
-            <Gap h={24}/>
-            <Divider/>
-            <Gap h={20}/>
+          )}
+          <Gap h={20}/>
+          <Divider/>
+          <Gap h={20}/>
 
-            {/* MEINE WERKE */}
-            <MeineWerkeSection
-              works={works}
-              loading={worksLoading}
-              onCreateNew={() => setShowWizard(true)}
-              onRefresh={() => {
-                if (!profile?.id) return;
-                setWorksLoading(true);
-                supabase.from("works")
-                  .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
-                  .eq("user_id", profile.id)
-                  .not("status","in",'("archived","deleted")')
-                  .order("created_at",{ascending:false}).limit(50)
-                  .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
-              }}
-            />
-            <Gap h={32}/>
-            <Divider/>
-            <Gap h={20}/>
+          {/* ══ SIDEBAR-SEKTIONEN — auf Mobile unterhalb, auf Desktop rechts ══ */}
+          <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", gap:14 }}>
+            <VertrauensstatusCard profile={profile} />
+            <MeinWirkenSection profile={profile} works={works} exps={exps} />
+            <StandortVerfuegbarkeit profile={profile} />
+            <SichtbarkeitSidebar visibility={visibility} onChange={handleVisibilityChange} />
+            <MeinWegTimeline userId={profile?.id} />
+          </div>
 
-            {/* ERLEBNISSE & PROJEKTE */}
-            <TalentErlebnisseSection
-              userId={profile?.id}
-              exps={exps}
-              loading={expsLoading}
-              onCreateNew={() => setShowExpWizard(true)}
-              onEdit={exp => { setEditingExp(exp); setShowExpWizard(true); }}
-              onRefresh={() => {
-                if (!profile?.id) return;
-                setExpsLoading(true);
-                supabase.from("experiences")
-                  .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
-                  .eq("user_id", profile.id)
-                  .neq("status", "archived")
-                  .order("created_at",{ascending:false})
-                  .then(({ data }) => { setExps(data||[]); setExpsLoading(false); });
-              }}
-            />
-            <Gap h={40}/>
-            <Divider/>
-            <Gap h={20}/>
-          </>
-        )}
-
-        {/* AMBASSADOR */}
-        {ambState.isAmbassador ? (
-          <AmbassadorSection ambassadorData={ambState.ambassadorData}/>
-        ) : (
-          <AmbassadorCTA
-            isAmbassador={ambState.isAmbassador}
-            isPending={ambState.isPending}
-            ambassadorStatus={(profile?.profile_modules?.ambassador?.status) || null}
-            onApply={() => setShowAmbModal(true)}
-          />
-        )}
-        <Gap h={40}/>
+          <Gap h={40}/>
       </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
