@@ -716,23 +716,6 @@ export default function LoginPage() {
         </button>
 
         {}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
-          marginBottom: 32, ...fadeStyle }}>
-          <img
-              src="/hui-logo-app.png"
-              alt="HUI Logo"
-              style={{
-                width: 80, height: 80,
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 0 18px rgba(14,196,184,0.55)) drop-shadow(0 4px 12px rgba(0,0,0,0.30))',
-                display: 'block',
-              }}
-            />
-          <div style={{ marginTop: 8, fontSize: 9, color: T.muted, letterSpacing: '0.08em',
-            textTransform: 'uppercase' }}>Human United Intelligent</div>
-        </div>
-
-        {}
         <div style={{ ...cardStyle, ...fadeStyle }}>
           {}
           <div style={{ marginBottom: 14 }}>
