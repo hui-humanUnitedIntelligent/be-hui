@@ -154,9 +154,6 @@ export default function HomeShell({ children }) {
   const _showChatRef = React.useRef(false);
   const setShowChat = React.useCallback((val) => {
     const next = typeof val === 'function' ? val(_showChatRef.current) : val;
-    if (next !== _showChatRef.current) {
-
-    }
     _showChatRef.current = next;
     _setShowChatRaw(next);
   }, []);
