@@ -465,6 +465,21 @@ function CinematicHero({ profile, loading }) {
                   {name}
                 </div>
             }
+            {/* A1: Talent-Badge direkt unter Name */}
+            {!loading && (
+              <div style={{
+                display:"inline-flex", alignItems:"center", gap:5,
+                marginTop:4, marginBottom:2,
+                background:"rgba(14,196,184,0.09)",
+                border:"1px solid rgba(14,196,184,0.22)",
+                borderRadius:99, padding:"3px 10px",
+                fontSize:11, fontWeight:700, color:"#0AADA3",
+              }}>
+                <span style={{fontSize:11}}>✨</span>
+                <span>HUI-Talent</span>
+                <span style={{fontWeight:400,color:"rgba(10,173,163,0.6)",fontSize:10}}>· Aktiver Gestalter</span>
+              </div>
+            )}
             {loading
               ? <Sk w={100} h={14} r={5}/>
               : loc && (
@@ -947,8 +962,22 @@ function MeinWirkenSection({ works, experiences, loading }) {
                 </div>
               ))
             : (
-                <div style={{padding:"24px 0",color:T.inkFaint,fontSize:13,textAlign:"center",width:"100%"}}>
-                  Noch keine Inhalte in dieser Kategorie
+                <div style={{
+                  padding:"28px 16px",
+                  display:"flex", flexDirection:"column", gap:8, minWidth:260,
+                }}>
+                  <div style={{fontSize:12,fontWeight:700,color:T.teal,marginBottom:2}}>✨ HUI-Talent</div>
+                  <div style={{fontSize:12.5,color:T.inkFaint,lineHeight:1.6}}>Dieses Talent baut sein Profil gerade auf.</div>
+                  {[
+                    {icon:"🎨",text:"Noch keine Werke veröffentlicht"},
+                    {icon:"📅",text:"Noch keine Erlebnisse erstellt"},
+                    {icon:"🌱",text:"Noch keine Projekte veröffentlicht"},
+                  ].map((item,idx)=>(
+                    <div key={idx} style={{display:"flex",alignItems:"center",gap:7,fontSize:12,color:T.inkFaint}}>
+                      <span style={{fontSize:13}}>{item.icon}</span>
+                      <span>{item.text}</span>
+                    </div>
+                  ))}
                 </div>
               )
         }
