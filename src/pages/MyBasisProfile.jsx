@@ -770,11 +770,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // membership_type==="talent" UND membership_active===true (aus activateMembership gesetzt)
   // has_talent_profile allein reicht NICHT (legacy-Feld, veraltet)
   // is_member allein reicht NICHT (war früher für alle Members gesetzt)
+  // isTalent: Prüfe BEIDE Quellen — authContextProfile (primär) + lokaler profile-State (Fallback)
+  // Verhindert Race-Condition wenn AuthContext noch nicht geladen
+  const _checkTalent = (p) => !!(
+    (p?.membership_type === "talent" && p?.membership_active === true) ||
+    p?.membership_type === "guardian" ||
+    p?.membership_type === "team"
+  );
   const isTalent = !!(
-    (authContextProfile?.membership_type === "talent" && authContextProfile?.membership_active === true) ||
-    authContextProfile?.membership_type === "guardian" ||
-    authContextProfile?.membership_type === "team" ||
-    _auth.isTalent === true   // AuthContext-Calc als Tiebreaker
+    _checkTalent(authContextProfile) ||
+    _checkTalent(profile) ||           // lokaler DB-State als Fallback
+    _auth.isTalent === true            // AuthContext-Calc als letzter Tiebreaker
   );
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
@@ -815,7 +821,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         const { data:{ user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador")
+          .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,role,membership_since,talent_activated_at")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message);
         if (data) {
@@ -1252,7 +1258,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             // Profil neu laden damit isPending sofort korrekt angezeigt wird
             try {
               const { data: freshProf } = await supabase.from("profiles")
-                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador")
+                .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,membership_type,membership_active,is_member,has_talent_profile,role,membership_since,talent_activated_at")
                 .eq("id", profile.id).single();
               if (freshProf) {
                 setProfile(freshProf);
