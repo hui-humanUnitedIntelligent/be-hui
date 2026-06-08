@@ -186,6 +186,115 @@ function ReferralModal({ title, icon, users, loading, onClose }) {
   );
 }
 
+export function AmbassadorCTA({ isAmbassador, isPending, ambassadorStatus, onApply }) {
+  if (isAmbassador) return null;
+
+  // ⏳ Bewerbung läuft
+  if (isPending) {
+    return (
+      <div style={{
+        margin: "0 16px",
+        background: "rgba(14,196,184,0.07)",
+        border: "1.5px solid rgba(14,196,184,0.25)",
+        borderRadius: 14, padding: "14px 16px",
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{ fontSize: 20 }}>⏳</span>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A18" }}>Deine Bewerbung wird geprüft.</div>
+          <div style={{ fontSize: 12, color: "rgba(26,26,24,0.52)", marginTop: 2 }}>
+            Wir melden uns bald bei dir.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ❌ Abgelehnt → erneut bewerben möglich
+  if (ambassadorStatus === 'rejected') {
+    return (
+      <div style={{ margin: "0 16px" }}>
+        <div style={{
+          background: "rgba(255,91,91,0.07)",
+          border: "1.5px solid rgba(255,91,91,0.20)",
+          borderRadius: 14, padding: "12px 16px",
+          marginBottom: 10,
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <span style={{ fontSize: 18 }}>❌</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A18" }}>Deine Bewerbung wurde abgelehnt.</div>
+            <div style={{ fontSize: 12, color: "rgba(26,26,24,0.52)", marginTop: 2 }}>
+              Du kannst dich erneut bewerben.
+            </div>
+          </div>
+        </div>
+        <button onClick={onApply} style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          width: "100%", padding: "14px", background: "#0EC4B8",
+          border: "none", borderRadius: 14, cursor: "pointer",
+          fontSize: 15, fontWeight: 700, color: "#fff",
+          transition: "transform .12s ease",
+        }}
+          onMouseDown={e => e.currentTarget.style.transform = "scale(0.97)"}
+          onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+        >
+          🌟 Erneut bewerben
+        </button>
+      </div>
+    );
+  }
+
+  // ↩️ Widerrufen → erneut bewerben
+  if (ambassadorStatus === 'revoked') {
+    return (
+      <div style={{ margin: "0 16px" }}>
+        <div style={{
+          background: "rgba(255,165,0,0.07)",
+          border: "1.5px solid rgba(255,165,0,0.20)",
+          borderRadius: 14, padding: "12px 16px",
+          marginBottom: 10,
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <span style={{ fontSize: 18 }}>↩️</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A18" }}>Dein Ambassador-Status wurde widerrufen.</div>
+            <div style={{ fontSize: 12, color: "rgba(26,26,24,0.52)", marginTop: 2 }}>Du kannst dich erneut bewerben.</div>
+          </div>
+        </div>
+        <button onClick={onApply} style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          width: "100%", padding: "14px", background: "#0EC4B8",
+          border: "none", borderRadius: 14, cursor: "pointer",
+          fontSize: 15, fontWeight: 700, color: "#fff",
+        }}
+          onMouseDown={e => e.currentTarget.style.transform = "scale(0.97)"}
+          onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+        >
+          🌟 Erneut bewerben
+        </button>
+      </div>
+    );
+  }
+
+  // Standard: noch keine Bewerbung
+  return (
+    <button onClick={onApply} style={{
+      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+      margin: "0 16px", width: "calc(100% - 32px)",
+      padding: "15px", background: "#0EC4B8",
+      border: "none", borderRadius: 14, cursor: "pointer",
+      fontSize: 15, fontWeight: 700, color: "#fff",
+      transition: "transform .12s ease",
+    }}
+      onMouseDown={e => e.currentTarget.style.transform = "scale(0.97)"}
+      onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+    >
+      🌟 Werde Ambassador
+    </button>
+  );
+}
+
 // ── Haupt-Komponente ──────────────────────────────────────────
 export default function AmbassadorSection({ ambassadorData, userId }) {
   const [copied,  setCopied]  = useState(false);
