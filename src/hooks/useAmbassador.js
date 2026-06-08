@@ -172,33 +172,69 @@ export function useAmbassadorApplication() {
 
 // ── Referral-Liste (für Ambassador-Dashboard) ─────────────────
 // Nutzer die über diesen Ambassador referriert wurden
-export function useReferrals(refCode) {
+// Quellen: referred_by_ambassador_id (uuid) ODER referred_by (string refCode)
+// Aktiv = hat Profilbild ODER display_name ODER is_talent gesetzt
+// Schlafend = neu registriert, noch kein Profil ausgefüllt
+export function useReferrals(ambassadorId, refCode) {
   const [referrals, setReferrals] = useState([]);
   const [loading,   setLoading]   = useState(false);
 
   useEffect(() => {
-    if (!refCode) return;
+    // Brauchen mindestens eine der beiden Quellen
+    if (!ambassadorId && !refCode) return;
     setLoading(true);
-    supabase
-      .from("profiles")
-      .select("id, display_name, username, avatar_url, is_talent, created_at")
-      .eq("referred_by", refCode)
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (error || !data) { setLoading(false); return; }
-        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        setReferrals(data.map(p => ({
-          id:          p.id,
-          displayName: p.display_name || p.username || "Nutzer",
-          username:    p.username  || null,
-          avatarUrl:   p.avatar_url || null,
-          isActive:    p.is_talent === true,  // Talent = aktives Mitglied
-          joinedAt:    p.created_at,
-        })));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [refCode]);
+
+    const queries = [];
+    // Primär: nach ambassador_id (UUID-basiert, zuverlässig)
+    if (ambassadorId) {
+      queries.push(
+        supabase
+          .from("profiles")
+          .select("id, display_name, username, avatar_url, is_talent, created_at")
+          .eq("referred_by_ambassador_id", ambassadorId)
+          .order("created_at", { ascending: false })
+      );
+    }
+    // Sekundär: nach referred_by (string, Fallback für ältere Einträge)
+    if (refCode) {
+      queries.push(
+        supabase
+          .from("profiles")
+          .select("id, display_name, username, avatar_url, is_talent, created_at")
+          .eq("referred_by", refCode)
+          .order("created_at", { ascending: false })
+      );
+    }
+
+    Promise.all(queries).then(results => {
+      // Deduplizieren: beide Quellen zusammenführen, IDs nur einmal
+      const seen = new Set();
+      const all  = [];
+      for (const { data, error } of results) {
+        if (error || !data) continue;
+        for (const p of data) {
+          if (!seen.has(p.id)) {
+            seen.add(p.id);
+            all.push(p);
+          }
+        }
+      }
+      // Sortieren: neueste zuerst
+      all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setReferrals(all.map(p => ({
+        id:          p.id,
+        displayName: p.display_name || p.username || "Nutzer",
+        username:    p.username     || null,
+        avatarUrl:   p.avatar_url   || null,
+        // Aktiv = hat Profil ausgefüllt (Name + Bild) ODER ist Talent
+        isActive:    p.is_talent === true ||
+                     (!!p.display_name && !!p.avatar_url),
+        joinedAt:    p.created_at,
+      })));
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [ambassadorId, refCode]);
 
   return { referrals, loading };
 }
