@@ -992,25 +992,29 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Divider/>
         <Gap h={20}/>
 
-        {/* MEINE WERKE */}
-        <MeineWerkeSection
-          works={works}
-          loading={worksLoading}
-          onCreateNew={() => setShowWizard(true)}
-          onRefresh={() => {
-            if (!profile?.id) return;
-            setWorksLoading(true);
-            supabase.from("works")
-              .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
-              .eq("user_id", profile.id)
-              .not("status","in",'("archived","deleted")')
-              .order("created_at",{ascending:false}).limit(50)
-              .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
-          }}
-        />
-        <Gap h={40}/>
-        <Divider/>
-        <Gap h={20}/>
+        {/* MEINE WERKE — nur wenn isTalent */}
+        {isTalent ? (
+          <>
+            <MeineWerkeSection
+              works={works}
+              loading={worksLoading}
+              onCreateNew={() => setShowWizard(true)}
+              onRefresh={() => {
+                if (!profile?.id) return;
+                setWorksLoading(true);
+                supabase.from("works")
+                  .select("id,title,status,created_at,media_urls,images,cover_url,price,price_eur,currency,category")
+                  .eq("user_id", profile.id)
+                  .not("status","in",'("archived","deleted")')
+                  .order("created_at",{ascending:false}).limit(50)
+                  .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
+              }}
+            />
+            <Gap h={40}/>
+            <Divider/>
+            <Gap h={20}/>
+          </>
+        ) : null}
 
         {/* AMBASSADOR */}
         {ambState.isAmbassador ? (
