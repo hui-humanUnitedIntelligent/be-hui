@@ -904,19 +904,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* HEADER */}
-
-        <MeinProfilHeader
-        profile={{
-          ...profile,
-          // Lokale Overrides überschreiben DB-Wert sofort nach Upload
-          avatar_url: localAvatar || profile?.avatar_url,
-          header_img: localCover  || profile?.header_img,
-        }}
-        onSettings={() => setShowSettings(true)}
-        onAvatarChange={handleAvatarChange}
-        onCoverChange={handleCoverChange}
-      />
-        {/* HEADER */}
         <MeinProfilHeader
           profile={{
             ...profile,
