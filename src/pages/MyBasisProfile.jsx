@@ -743,6 +743,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [bio,        setBio]        = useState("");
+  const [showBioEdit, setShowBioEdit] = useState(false);
 
   const [interests,  setInterests]  = useState([]);
   const [openFor,    setOpenFor]    = useState([]);
@@ -975,7 +976,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         {/* ── 1. ÜBER MICH ─────────────────────────────────── */}
         <div style={{ padding:"0 20px" }}>
-          <SectionRow title="Über mich" onEdit={() => {}} />
+          <SectionRow title="Über mich" onEdit={() => setShowBioEdit(true)} />
           {bio ? (
             <p style={{ margin:"0 0 12px", fontSize:14, lineHeight:1.75, color:T.ink }}>
               {bio}
@@ -1280,6 +1281,24 @@ export default function MyBasisProfile({ onClose, profileId }) {
           userId={profile.id}
           onClose={() => setShowNotifications(false)}
           onUnreadChange={setUnreadCount}
+        />
+      )}
+
+      {/* ══ BIO BEARBEITEN MODAL ══════════════════════════════════════ */}
+      {showBioEdit && (
+        <BioEditModal
+          bio={bio}
+          onClose={() => setShowBioEdit(false)}
+          onSave={async (newBio) => {
+            setBio(newBio);
+            setShowBioEdit(false);
+            try {
+              await supabase
+                .from("profiles")
+                .update({ bio: newBio })
+                .eq("id", profile?.id);
+            } catch(e) { console.error("Bio save:", e); }
+          }}
         />
       )}
     </div>
