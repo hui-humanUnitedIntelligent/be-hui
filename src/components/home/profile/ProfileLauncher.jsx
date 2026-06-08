@@ -127,7 +127,7 @@ function useProfileType(profileId) {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, role, has_talent_profile, membership_type")
+          .select("id, is_talent")
           .eq("id", profileId)
           .single();
 
@@ -138,12 +138,8 @@ function useProfileType(profileId) {
           return;
         }
 
-        const isTalent = !!(
-          data?.has_talent_profile === true ||
-          data?.role === "talent"           ||
-          data?.role === "wirker"           ||
-          data?.membership_type === "talent"
-        );
+        // is_talent ist die einzige verlässliche Quelle
+        const isTalent = data?.is_talent === true;
 
 
         setState({ resolved: true, isTalent, role: data?.role ?? null });
