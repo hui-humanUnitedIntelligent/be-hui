@@ -565,57 +565,29 @@ function AppRoutes() {
 //   4. profile_complete check runs once when user.id is first known
 //   5. Realtime updates / feed re-renders / notifications CANNOT reset this
 function ProfileCompletionTrigger() {
-  const { user, profile, loadingAuth } = useAuth();
+  const { user, profile, loadingAuth, loadingProfile } = useAuth();
   const [show, setShow] = React.useState(false);
-  const checkedRef      = React.useRef(false);
 
   React.useEffect(() => {
-    // Nur einmal prüfen — nicht bei jedem Re-render
-    if (checkedRef.current) return;
-    if (loadingAuth || !user?.id) return;
+    // Warten bis Auth UND Profile vollständig geladen
+    if (loadingAuth || loadingProfile) return;
+    // Kein eingeloggter User → nichts tun
+    if (!user?.id) return;
+    // Profile noch null (lädt noch) → warten
+    if (!profile) return;
 
-    checkedRef.current = true;
+    // Profil ist geladen — prüfen ob Setup nötig
+    const needsSetup =
+      !profile.profile_complete &&
+      !profile.username &&
+      !profile.display_name;
 
-    async function checkProfile() {
-      // 1. Erst warten ob AuthContext das Profil innerhalb 3s liefert
-      let p = profile;
-      if (!p) {
-        for (let i = 0; i < 8; i++) {
-          await new Promise(r => setTimeout(r, 400));
-          // Direkt aus DB laden — zuverlässig, unabhängig von AuthContext-Timing
-          try {
-            const { data } = await supabase
-              .from("profiles")
-              .select("id,username,display_name,profile_complete")
-              .eq("id", user.id)
-              .single();
-            if (data) { p = data; break; }
-          } catch {}
-        }
-      }
-
-      // 2. Prüfen ob Profil vollständig
-      const isComplete =
-        p?.profile_complete === true ||
-        (p?.username && p.username.trim().length >= 2) ||
-        (p?.display_name && p.display_name.trim().length > 0);
-
-      if (isComplete) {
-        // Profil existiert → kein Setup nötig
-        try { localStorage.setItem("hui_profile_completed", "true"); } catch {}
-        return;
-      }
-
-      // 3. Wirklich kein Profil → Setup zeigen
+    if (needsSetup) {
       setShow(true);
     }
-
-    checkProfile();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, loadingAuth]);
+  }, [user?.id, profile, loadingAuth, loadingProfile]);
 
   function handleComplete() {
-    try { localStorage.setItem("hui_profile_completed", "true"); } catch {}
     setShow(false);
   }
 
