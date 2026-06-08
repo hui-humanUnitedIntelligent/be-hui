@@ -401,11 +401,11 @@ export default function LoginPage() {
     // Ambassador in Supabase suchen
     const { data } = await supabase
       .from('ambassador_ref_links')
-      .select('ambassador_id')
+      .select('user_id')
       .eq('username', username)
       .limit(1)
       .maybeSingle();
-    if (data?.ambassador_id) return { ambassadorId: data.ambassador_id, username };
+    if (data?.user_id) return { ambassadorId: data.user_id, username };
     // Fallback: profiles mit is_ambassador oder role=ambassador
     const { data: prof } = await supabase
       .from('profiles')
