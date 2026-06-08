@@ -80,44 +80,7 @@ export function useAmbassador(profile) {
   };
 }
 
-export function useReferrals(refCode) {
-  const [referrals, setReferrals] = useState([]);
-  const [loading, setLoading]     = useState(false);
 
-  useEffect(() => {
-    if (!refCode) return;
-    setLoading(true);
-    supabase
-      .from("profiles")
-      .select("id, display_name, username, avatar_url, profile_modules, created_at")
-      .eq("referred_by", refCode)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        if (!data) { setLoading(false); return; }
-        const list = data.map(p => {
-          const pm = p.profile_modules || {};
-          // Aktiv = hat in den letzten 30 Tagen gebucht oder ist Wirker
-          const isActive = pm.is_wirker === true || pm.last_booking_at
-            ? new Date(pm.last_booking_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-            : false;
-          return {
-            id:          p.id,
-            displayName: p.display_name || p.username || "Nutzer",
-            username:    p.username     || null,
-            avatarUrl:   p.avatar_url   || null,
-            isActive,
-            email:       pm.email       || null,
-            phone:       pm.phone       || null,
-            joinedAt:    p.created_at,
-          };
-        });
-        setReferrals(list);
-        setLoading(false);
-      });
-  }, [refCode]);
-
-  return { referrals, loading };
-}
 
 export function useAmbassadorApplication() {
   const [loading, setLoading]   = useState(false);
