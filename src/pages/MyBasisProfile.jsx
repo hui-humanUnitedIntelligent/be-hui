@@ -12,6 +12,7 @@ import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
 import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import WerkWizard      from "../components/works/WerkWizard.jsx";
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 
