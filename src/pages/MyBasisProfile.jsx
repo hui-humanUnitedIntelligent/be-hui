@@ -9,10 +9,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
-import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
-import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
-import { useAmbassador } from "../hooks/useAmbassador.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -726,7 +723,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
-  // useAmbassador erst NACH Profil-Load aufrufen (null-safe)
   // Verhindert TDZ und supabase-Fehler bei profile=null
   const ambState = useAmbassador(profile ?? null);
 
@@ -1116,16 +1112,22 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 AMBASSADOR
               </div>
             </div>
-            {profile.is_ambassador ? (
-              <AmbassadorSection ambassadorData={ambState.ambassadorData} />
-            ) : (
-              <AmbassadorCTA
-                isAmbassador={false}
-                isPending={ambState.isPending}
-                ambassadorStatus={ambState.ambassadorStatus}
-                onApply={() => setShowAmbModal(true)}
-              />
-            )}
+            {/* Ambassador-Bereich */}
+            <button
+              onClick={() => setShowAmbModal(true)}
+              style={{
+                display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+                margin:"0 16px",width:"calc(100% - 32px)",
+                padding:"15px",background:profile?.is_ambassador?"rgba(14,196,184,0.1)":"#0EC4B8",
+                border:profile?.is_ambassador?"2px solid #0EC4B8":"none",
+                borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:700,
+                color:profile?.is_ambassador?T.teal:"#fff",fontFamily:"inherit",
+              }}
+              onMouseDown={e=>{e.currentTarget.style.transform="scale(0.97)"}}
+              onMouseUp={e=>{e.currentTarget.style.transform="scale(1)"}}
+            >
+              {profile?.is_ambassador ? "🌟 Ambassador-Bereich" : "🌟 Werde Ambassador"}
+            </button>
           </>
         )}
         <Gap h={40}/>
@@ -1165,16 +1167,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
 
       {/* AMBASSADOR BEWERBUNGS-MODAL */}
-      {showAmbModal && profile?.id && (
-        <AmbassadorModal
-          userId={profile.id}
-          onClose={() => setShowAmbModal(false)}
-          onSuccess={() => {
-            setShowAmbModal(false);
-            refreshProfile?.().catch(() => {});
-          }}
-        />
-      )}
+      {/* Ambassador Modal: folgt in nächstem Update */}
     </div>
   );
 }
