@@ -907,7 +907,7 @@ function MeinWirkenSection({ works, experiences, loading }) {
   }, [allItems]);
 
   const showSection = loading || allItems.length > 0;
-  if (!showSection) return null;
+  // Aufgabe 2: Empty-State statt null — leeres Talent-Profil bleibt sichtbar
 
   return (
     <div>
@@ -1084,6 +1084,41 @@ function WirkungSection({ works, experiences, moments, loading }) {
         title="Wirkung"
         subtitle="Gemeinsam schaffen wir echte Veränderung."
       />
+      {/* Aufgabe 4: Talent-Info für Besucher */}
+      {!loading && (
+        <div style={{
+          margin:`0 ${T.px}px 16px`,
+          background:T.tealSoft,
+          border:`1px solid ${T.tealMid}`,
+          borderRadius:T.r16,
+          padding:"12px 16px",
+          display:"flex", flexDirection:"column", gap:6,
+        }}>
+          <div style={{fontSize:11.5,fontWeight:700,color:T.teal,letterSpacing:"0.01em"}}>
+            ✨ HUI-Talent
+          </div>
+          <div style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.55}}>
+            Dieses Mitglied veröffentlicht Werke, veranstaltet Erlebnisse
+            und gestaltet die Gemeinschaft aktiv mit.
+          </div>
+          {/* Aufgabe 5: Impact-Stimmen */}
+          <div style={{
+            display:"flex", alignItems:"center", gap:6,
+            marginTop:2, padding:"8px 10px",
+            background:"rgba(14,196,184,0.06)",
+            borderRadius:T.r12,
+            border:`1px solid rgba(14,196,184,0.15)`,
+          }}>
+            <span style={{fontSize:16}}>🗳️</span>
+            <div>
+              <div style={{fontSize:11.5,fontWeight:700,color:T.teal}}>2 Stimmen pro Monat</div>
+              <div style={{fontSize:11,color:T.inkFaint,lineHeight:1.4}}>
+                Als HUI-Talent entscheidest du mit, welche Impact-Projekte unterstützt werden.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={{
         margin:`0 ${T.px}px`,
         background:T.bgCard,
