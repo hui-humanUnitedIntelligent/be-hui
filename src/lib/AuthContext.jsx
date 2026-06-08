@@ -35,9 +35,6 @@ export function AuthProvider({ children }) {
   // Profile startet immer null — echte Daten kommen ausschließlich aus der DB.
   // Kein Ghost-Profil aus localStorage — verhindert UI-Flip und falschen isTalent-State.
   const [profile, setProfile] = useState(null);
-  const [isBlocked, setIsBlocked] = useState(false);
-  // Hilfsfunktion: verhindert State-Update nach Unmount
-  const setBlockedState = useCallback((val) => setIsBlocked(val), []);
 
   const profileLoadingRef = useRef(false);
   const authSettledRef    = useRef(false);  // verhindert doppelten Bootstrap
@@ -52,47 +49,19 @@ export function AuthProvider({ children }) {
         supabase.from("profiles").select(PROFILE_FIELDS).eq("id", userId).single(), 8000
       );
 
-      // Timeout oder unerwarteter Fehler → Retry ohne Cache
-      if (!prof && error?.code === "TIMEOUT") {
-        console.warn("[HUI] loadProfile: Timeout — Retry ohne Cache");
-        profileLoadingRef.current = false;
-        setTimeout(() => loadProfile(userId), 1500);
-        return;
-      }
-
       if (!prof && error?.code === "PGRST116") {
-        // Profil existiert noch nicht → neu anlegen (nur für echte Neu-Registrierungen)
+        // Profil existiert noch nicht → anlegen
         const { data: newProf } = await withTimeout(
-          supabase.from("profiles").upsert(
-            { id: userId, role: "basis_user", is_wirker: false,
-              has_talent_profile: false, profile_modules: {} },
-            { onConflict: "id", ignoreDuplicates: true }
-          ).select(PROFILE_FIELDS).single(), 6000
+          supabase.from("profiles").upsert({
+            id: userId, display_name: "", role: "basis_user",
+            is_wirker: false, has_talent_profile: false, profile_modules: {},
+          }).select().single(), 6000
         );
         if (newProf) setProfile(newProf);
         return;
       }
 
-      // Anderer Fehler aber kein Profil — Retry
-      if (!prof && error) {
-        console.warn("[HUI] loadProfile error:", error.message, "— Retry in 2s");
-        profileLoadingRef.current = false;
-        setTimeout(() => loadProfile(userId), 2000);
-        return;
-      }
-
       if (prof) {
-        // ── BLOCK-CHECK: blockierter Nutzer → sofort ausloggen ──────
-        if (prof.blocked === true) {
-          console.warn("[HUI Auth] Nutzer blockiert — Logout erzwungen");
-          setBlockedState(true);
-          await supabase.auth.signOut();
-          setProfile(null);
-          setLoadingProfile(false);
-          profileLoadingRef.current = false;
-          return;
-        }
-        setBlockedState(false);
         setProfile(prof);
         if (prof.has_talent_profile) localStorage.setItem("hui_talent", "1");
         if (prof.is_member) localStorage.setItem("hui_is_member", "1");
@@ -205,12 +174,8 @@ export function AuthProvider({ children }) {
 
       const u = applySession(session);
 
-      // Profil laden bei Login-Events — SIGNED_IN immer force-reload
+      // AUFGABE 4: TOKEN_REFRESHED aus Profil-Reload entfernt
       if (u && ["SIGNED_IN","USER_UPDATED","INITIAL_SESSION"].includes(event)) {
-        if (event === "SIGNED_IN") {
-          // SIGNED_IN: immer neu laden (erzwingt frischen DB-Abruf)
-          profileLoadingRef.current = false;
-        }
         if (!profileLoadingRef.current) loadProfile(u.id);
       }
       if (!u) {
@@ -271,87 +236,6 @@ export function AuthProvider({ children }) {
       clearTimeout(absoluteFallback);
     };
   }, [loadProfile, applySession]);
-
-  // ── Realtime: blocked/deleted Listener ───────────────────────────
-  // Wenn Admin profile.blocked setzt → Nutzer sofort ausloggen
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel(`profile-block-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${user.id}`,
-        },
-        async (payload) => {
-          const updated = payload.new;
-          if (updated?.blocked === true) {
-            console.warn("[HUI Auth] Realtime: Nutzer blockiert → Logout");
-            setBlockedState(true);
-            await supabase.auth.signOut();
-            setProfile(null);
-          } else if (updated?.blocked === false) {
-            setBlockedState(false);
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${user.id}`,
-        },
-        async () => {
-          console.warn("[HUI Auth] Realtime: Profil gelöscht → Logout");
-          await supabase.auth.signOut();
-          setProfile(null);
-          setBlockedState(false);
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [user?.id, setBlockedState]);
-
-  // ── Polling-Fallback: Profil-Existenz alle 20s prüfen ─────────────────────
-  // Nötig weil Supabase Realtime DELETE-Filter ohne REPLICA IDENTITY FULL keinen Payload liefert
-  useEffect(() => {
-    if (!user?.id) return;
-    const INTERVAL = 20_000; // 20 Sekunden
-    const poll = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("id,blocked")
-          .eq("id", user.id)
-          .maybeSingle();
-        // Profil nicht gefunden → Nutzer wurde gelöscht
-        if (!data && !error) {
-          console.warn("[HUI Auth] Polling: Profil nicht gefunden → Logout");
-          await supabase.auth.signOut();
-          setProfile(null);
-          return;
-        }
-        // Profil geblockt
-        if (data?.blocked === true) {
-          console.warn("[HUI Auth] Polling: Profil blockiert → Logout");
-          setBlockedState(true);
-          await supabase.auth.signOut();
-          setProfile(null);
-        }
-      } catch {
-        // Netzwerkfehler ignorieren — nächste Runde versucht es erneut
-      }
-    };
-    const timer = setInterval(poll, INTERVAL);
-    return () => clearInterval(timer);
-  }, [user?.id, setBlockedState]);
 
   // ── Shim für alte ProtectedRoute (components/) ───────────────────
   const checkUserAuth = useCallback(() => {}, []);
@@ -572,11 +456,9 @@ export function AuthProvider({ children }) {
         supabase.from("profiles")
           .update({
             is_member:           true,
-            is_talent:           true,        // persistentes Boolean-Feld
             membership_type:     "talent",   // Phase 4C: 'talent' statt 'member'
             membership_active:   true,       // Phase 4C: aktiv-Flag
             talent_activated_at: now,        // Phase 4C: Zeitstempel
-            talent_since:        now,        // persistentes Datum-Feld
             role:                "talent",
             has_talent_profile:  true,
             member_since:        now,
@@ -613,13 +495,16 @@ export function AuthProvider({ children }) {
   // Single source of truth — diese States werden VOR useMemo berechnet
   // damit sie im Memo-Value als echte Werte (nicht Getter) referenziert werden
   const _isTalentCalc = (() => {
-    if (!profile) return false;
-    // Primär: dediziertes Boolean-Feld (persistenteste Quelle)
-    if (profile.is_talent === true) return true;
-    // Sekundär: membership_type + membership_active (Phase 4C)
+    if (!profile) return localStorage.getItem("hui_talent") === "1";
+    // Primär: neue Phase-4C-Felder
     if (profile.membership_type === "talent" && profile.membership_active === true) return true;
     if (profile.membership_type === "guardian" || profile.membership_type === "team") return true;
-    return false;
+    // Legacy Kompatibilität
+    if (profile.is_member === true) return true;
+    if (profile.role === "talent" || profile.role === "wirker" || profile.role === "creator") return true;
+    if (profile.has_talent_profile === true) return true;
+    if (isMember) return true;
+    return localStorage.getItem("hui_talent") === "1";
   })();
   const _isBaseUserCalc = !_isTalentCalc;
   const _canCreateCalc  = _isTalentCalc;
@@ -639,7 +524,6 @@ export function AuthProvider({ children }) {
   const ctxValue = useMemo(() => ({
     user, profile,
     authProfile: profile,          // Alias: HomeShell + alle Components nutzen authProfile
-    isBlocked,
     wirkerProfile,
     isAuthenticated, isWirker, hasTalentProfile, isMember, membershipType, profileModules,
     loadingAuth,
@@ -663,7 +547,7 @@ export function AuthProvider({ children }) {
     setProfile, setWirkerProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc, isBlocked]); // _isTalentCalc derived from profile
+  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
 
   return (
     <AuthContext.Provider value={ctxValue}>
