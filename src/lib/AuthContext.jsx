@@ -497,6 +497,64 @@ export function AuthProvider({ children }) {
   const _isTalentCalc = (() => {
     // STRIKT: nur aktive Talent-Mitgliedschaft (membership_type=talent + membership_active=true)
     // Legacy-Felder (is_member, has_talent_profile, role) gelten NICHT mehr als Talent-Marker
-    if (!profile) return false;  // kein localStorage-Fallback mehr
+    if (!profile) return false;
     if (profile.membership_type === "talent" && profile.membership_active === true) return true;
     if (profile.membership_type === "guardian" || profile.membership_type === "team") return true;
+    return false;
+  })();
+  const _isBaseUserCalc = !_isTalentCalc;
+  const _canCreateCalc  = _isTalentCalc;
+
+  // ── Debug Log (development only) ─────────────────────────────────────
+  if (process.env.NODE_ENV !== "production" && profile) {
+    console.log("[MEMBERSHIP]", {
+      membership_type:   profile?.membership_type,
+      membership_active: profile?.membership_active,
+      isTalent:          _isTalentCalc,
+      canCreate:         _canCreateCalc,
+    });
+  }
+
+  // useMemo: verhindert unnötige Re-renders aller Consumer
+  // wenn sich unrelevante Parent-States ändern
+  const ctxValue = useMemo(() => ({
+    user, profile,
+    authProfile: profile,          // Alias: HomeShell + alle Components nutzen authProfile
+    wirkerProfile,
+    isAuthenticated, isWirker, hasTalentProfile, isMember, membershipType, profileModules,
+    loadingAuth,
+    isLoadingAuth: loadingAuth,    // Alias für components/ProtectedRoute.jsx
+    loadingProfile,
+    authChecked,
+    authError: null,
+    checkUserAuth,
+    // Phase 4C — Membership derived states (echte Werte, kein Getter-Bug)
+    isTalent:   _isTalentCalc,
+    isBaseUser: _isBaseUserCalc,
+    canCreate:  _canCreateCalc,
+    // Membership Felder direkt aus profile für einfachen Zugriff
+    // membershipType ist bereits oben als Variable deklariert und eingebunden
+    membershipActive:      profile?.membership_active ?? false,
+    talentActivatedAt:     profile?.talent_activated_at ?? null,
+    signUp, signIn, signOut, signInWithGoogle, signInWithApple, signInWithMagicLink, resetPassword,
+    loadProfile, saveProfile, refreshProfile, becomeWirker,
+    activateMembership,
+    saveWirkerProfile, activateTalentProfile,
+    setProfile, setWirkerProfile,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
+
+  return (
+    <AuthContext.Provider value={ctxValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  // Kein throw — gibt null zurück wenn kein Provider vorhanden
+  // Komponenten müssen selbst null-guarden
+  return ctx ?? null;
+};
