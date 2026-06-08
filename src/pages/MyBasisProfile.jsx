@@ -1159,7 +1159,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 // Basiert auf DEMSELBEN Profil — kein neues Profil
 // ══════════════════════════════════════════════════════════════
 function TalentErweiterung({ profile, onProfileUpdate }) {
-  const T = THEME;
   const steps = [
     { nr: 1, icon: "✏️",  title: "Profil erweitern",        done: !!(profile?.bio && profile?.display_name) },
     { nr: 2, icon: "💚",  title: "Werte & Interessen",       done: Array.isArray(profile?.dna_tags) && profile.dna_tags.length > 0 },
