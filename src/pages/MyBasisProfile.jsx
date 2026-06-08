@@ -9,7 +9,10 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
+import AmbassadorSection, { AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
+import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
+import { useAmbassador } from "../hooks/useAmbassador.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
