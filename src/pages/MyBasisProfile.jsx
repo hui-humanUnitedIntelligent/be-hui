@@ -1101,29 +1101,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {profile?.skills?.length > 0 && <Divider/>}
         {profile?.skills?.length > 0 && <Gap h={20}/>}
 
-        {/* ── 3. WEITEREMPFEHLUNGEN ────────────────────────── */}
-        <div style={{ padding:"0 20px" }}>
-          <SectionRow title="Weiterempfehlungen" />
-          <div style={{
-            display:"inline-flex", alignItems:"center", gap:6,
-            padding:"5px 12px", borderRadius:99, marginBottom:12,
-            background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-            fontSize:11, fontWeight:700, color:T.teal,
-          }}>
-            💚 Keine Sterne. Keine Likes. Nur echte Erfahrungen.
-          </div>
-          <div style={{
-            background:T.bgCard, borderRadius:T.r16, padding:"16px",
-            border:`1px solid ${T.border}`, boxShadow:T.card,
-          }}>
-            <div style={{ fontSize:13, color:T.inkFaint, lineHeight:1.65 }}>
-              Weiterempfehlungen entstehen nach echten Erlebnissen, Buchungen oder Zusammenarbeit.
-            </div>
-          </div>
-        </div>
-        <Gap h={20}/>
-        <Divider/>
-        <Gap h={20}/>
+
 
         {/* ── 4. VERFÜGBARKEIT ─────────────────────────────── */}
         <div style={{ padding:"0 20px" }}>
