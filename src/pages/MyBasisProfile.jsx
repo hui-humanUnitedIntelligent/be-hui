@@ -1040,14 +1040,7 @@ function VertrauensstatusCard({ profile }) {
       <div style={{ fontSize:10, color:T.inkFaint, lineHeight:1.5 }}>
         Keine Punkte. Kein Ranking. Nur Vertrauensentwicklung.
       </div>
-      <button style={{
-        width:"100%", marginTop:12,
-        background:"none", border:`1.5px solid ${T.teal}`,
-        borderRadius:T.r99, padding:"9px 0",
-        fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
-      }}>
-        ✉ Vertrauen schenken
-      </button>
+
     </div>
   );
 }
