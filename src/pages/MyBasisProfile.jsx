@@ -962,7 +962,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
 
         {/* GEMEINSCHAFT BEITRETEN */}
-        <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
+        {/* GemeinschaftsKarte: nur wenn Nutzer noch kein Talent */}
+        {!isTalent && (
+          <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
+        )}
         <Gap h={24}/>
         <Divider/>
         <Gap h={20}/>
