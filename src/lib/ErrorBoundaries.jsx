@@ -33,6 +33,18 @@ export class GlobalAppBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    // ChunkLoadError → Hard Reload (stale assets nach neuem Deploy)
+    const msg = error?.message || '';
+    if (msg.includes('Failed to fetch dynamically imported module') ||
+        msg.includes('Loading chunk') ||
+        msg.includes('ChunkLoadError')) {
+      const lastReload = Number(sessionStorage.getItem('_hui_chunk_reload') || 0);
+      if (Date.now() - lastReload > 10000) {
+        sessionStorage.setItem('_hui_chunk_reload', String(Date.now()));
+        window.location.reload();
+        return;
+      }
+    }
     const appErr = normalizeError(error, {
       componentStack: errorInfo?.componentStack?.slice(0, 500),
       lastFeedComponent: window.__HUI_LAST_FEED_COMPONENT__,
