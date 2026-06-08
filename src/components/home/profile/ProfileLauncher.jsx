@@ -127,19 +127,29 @@ function useProfileType(profileId) {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, is_talent")
+          // P2: is_talent als primärer Routing-Indikator
+          // Langfristig: isProfileTalent(data) aus src/lib/profileUtils.js verwenden
+          // Derzeit kein Import um den Routing-Pfad minimal zu halten
+          .select("id, is_talent, membership_type, role, has_talent_profile")
           .eq("id", profileId)
           .single();
 
         if (error) {
           console.error("[PROFILE ROUTER] DB-Fehler:", error.message);
-          // Bei Fehler → BasisProfilePage (sicherer Fallback)
           setState({ resolved: true, isTalent: false, role: "error" });
           return;
         }
 
-        // is_talent ist die einzige verlässliche Quelle
-        const isTalent = data?.is_talent === true;
+        // P2: Konsolidierte Talent-Erkennung — konsistent mit isProfileTalent()
+        const isTalent = !!(
+          data?.is_talent === true ||
+          data?.membership_type === "talent" ||
+          data?.membership_type === "guardian" ||
+          data?.membership_type === "team" ||
+          data?.role === "talent" ||
+          data?.role === "wirker" ||
+          data?.has_talent_profile === true
+        );
 
 
         setState({ resolved: true, isTalent, role: data?.role ?? null });
