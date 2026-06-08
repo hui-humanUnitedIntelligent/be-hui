@@ -706,7 +706,17 @@ export default function LoginPage() {
         {}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
           marginBottom: 32, ...fadeStyle }}>
-          <HuiLogo size={52} />
+          <img
+              src="/hui-logo-real.jpg"
+              alt="HUI Logo"
+              style={{
+                width: 120, height: 120,
+                borderRadius: 28,
+                objectFit: 'cover',
+                boxShadow: '0 4px 24px rgba(14,196,184,0.30)',
+                display: 'block',
+              }}
+            />
           <div style={{ marginTop: 8, fontSize: 11, color: T.muted, letterSpacing: '0.08em',
             textTransform: 'uppercase' }}>Human United Intelligent</div>
         </div>
@@ -790,6 +800,33 @@ export default function LoginPage() {
                   </button>
                 }
               />
+            )}
+
+            {/* REF-LINK — nur bei Registrierung sichtbar */}
+            {mode === 'register' && (
+              <div style={{ marginTop: 10 }}>
+                <FloatInput
+                  type="text"
+                  value={refLink}
+                  onChange={e => setRefLink(e.target.value)}
+                  placeholder="Einladungslink (optional)"
+                  autoComplete="off"
+                  rightSlot={
+                    refLink.trim() ? (
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+                        color: /^https?:\/\/(?:www\.)?be-hui\.com\/[a-z0-9_]+$/i.test(refLink.trim())
+                          ? '#0EC4B8' : 'rgba(255,138,107,0.9)',
+                      }}>
+                        {/^https?:\/\/(?:www\.)?be-hui\.com\/[a-z0-9_]+$/i.test(refLink.trim()) ? '✓' : '✗'}
+                      </span>
+                    ) : null
+                  }
+                />
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 6, paddingLeft: 4 }}>
+                  Format: https://be-hui.com/username
+                </div>
+              </div>
             )}
 
             {}
