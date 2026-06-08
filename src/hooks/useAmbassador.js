@@ -23,21 +23,24 @@ export function useAmbassador(profile) {
       setDbRefLink(profile.ref_link);
       return;
     }
-    // Kein ref_link im Profil → aus ambassador_ref_links Tabelle laden
+    // Kein ref_link im Profil → aus ambassador_ref_links Tabelle laden (mit Fehler-Guard)
     supabase
       .from("ambassador_ref_links")
       .select("ref_link, referral_code")
       .eq("user_id", profile.id)
       .single()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) return; // Tabelle existiert nicht oder kein Eintrag → ignorieren
         if (data?.ref_link) {
           setDbRefLink(data.ref_link);
         } else if (profile?.username) {
           const code = "AMB-" + profile.username.toUpperCase().slice(0, 5);
           createRefLinkForAmbassador(profile.id, profile.username, code)
-            .then(link => { if (link) setDbRefLink(link); });
+            .then(link => { if (link) setDbRefLink(link); })
+            .catch(() => {}); // Fehler ignorieren wenn Tabelle nicht existiert
         }
-      });
+      })
+      .catch(() => {}); // globaler Guard
   }, [profile?.id, isAmb, profile?.ref_link]);
 
   const safeUsername = (typeof profile?.username === "string" && profile.username.trim())
