@@ -517,9 +517,11 @@ export function AuthProvider({ children }) {
         supabase.from("profiles")
           .update({
             is_member:           true,
+            is_talent:           true,        // persistentes Boolean-Feld
             membership_type:     "talent",   // Phase 4C: 'talent' statt 'member'
             membership_active:   true,       // Phase 4C: aktiv-Flag
             talent_activated_at: now,        // Phase 4C: Zeitstempel
+            talent_since:        now,        // persistentes Datum-Feld
             role:                "talent",
             has_talent_profile:  true,
             member_since:        now,
@@ -556,9 +558,10 @@ export function AuthProvider({ children }) {
   // Single source of truth — diese States werden VOR useMemo berechnet
   // damit sie im Memo-Value als echte Werte (nicht Getter) referenziert werden
   const _isTalentCalc = (() => {
-    // STRIKT: nur aktive Talent-Mitgliedschaft (membership_type=talent + membership_active=true)
-    // Legacy-Felder (is_member, has_talent_profile, role) gelten NICHT mehr als Talent-Marker
     if (!profile) return false;
+    // Primär: dediziertes Boolean-Feld (persistenteste Quelle)
+    if (profile.is_talent === true) return true;
+    // Sekundär: membership_type + membership_active (Phase 4C)
     if (profile.membership_type === "talent" && profile.membership_active === true) return true;
     if (profile.membership_type === "guardian" || profile.membership_type === "team") return true;
     return false;
