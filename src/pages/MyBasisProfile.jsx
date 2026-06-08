@@ -1255,7 +1255,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
     p?.membership_type === "guardian" ||
     p?.membership_type === "team"
   );
-  const [profile,    setProfile]    = useState(null);
+  // profile direkt aus AuthContext — kein lokaler State, kein Sync nötig
+  // authContextProfile ist die einzige Wahrheitsquelle
+  const profile = authContextProfile;
   // isTalent: IMMER aus AuthContext — niemals aus lokalem profile-State
   // AuthContext.profile ist die einzige Wahrheitsquelle für Membership-Status
   const isTalent = !!(
@@ -1338,7 +1340,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
           .eq("id", user.id).single();
         if (data && !profileSyncedRef.current) {
-          setProfile(data);
+          // setProfile(data) — AuthContext handled this;
           setBio(s(data.bio));
           setInterests(Array.isArray(data.skills) ? data.skills : []);
           setOpenFor(Array.isArray(data.profile_modules?.open_for) ? data.profile_modules.open_for : []);
