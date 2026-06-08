@@ -1161,14 +1161,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 // Basiert auf DEMSELBEN Profil — kein neues Profil
 // ══════════════════════════════════════════════════════════════
 function TalentErweiterung({ profile, onProfileUpdate }) {
-  const steps = [
-    { nr: 1, icon: "✏️",  title: "Profil erweitern",        done: !!(profile?.bio && profile?.display_name) },
-    { nr: 2, icon: "💚",  title: "Werte & Interessen",       done: Array.isArray(profile?.dna_tags) && profile.dna_tags.length > 0 },
-    { nr: 3, icon: "🤝",  title: "Begegnungen",              done: false },
-    { nr: 4, icon: "🎨",  title: "Werke erstellen",          done: false },
-    { nr: 5, icon: "✨",  title: "Erlebnisse erstellen",     done: false },
-    { nr: 6, icon: "🌍",  title: "Sichtbarkeit & Abschluss", done: !!(profile?.dna_tags?.length > 0) },
-  ];
+
 
   return (
     <div style={{ padding: "0 20px" }}>
@@ -1188,42 +1181,7 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
         </div>
       </div>
 
-      {/* 6 Schritte */}
-      <div style={{ fontSize: 13, fontWeight: 700, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
-        DEINE 6 SCHRITTE
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
-        {steps.map(s => (
-          <div key={s.nr} style={{
-            display: "flex", alignItems: "center", gap: 12,
-            background: s.done ? "rgba(14,196,184,0.08)" : T.bgCard,
-            border: `1.5px solid ${s.done ? "rgba(14,196,184,0.30)" : T.border}`,
-            borderRadius: T.r12,
-            padding: "12px 14px",
-            boxShadow: T.card,
-          }}>
-            <span style={{
-              width: 28, height: 28, borderRadius: "50%",
-              background: s.done ? "#0EC4B8" : T.bgCard,
-              border: `1.5px solid ${s.done ? "#0EC4B8" : T.border}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 800,
-              color: s.done ? "#fff" : T.inkSoft,
-              flexShrink: 0,
-            }}>
-              {s.done ? "✓" : s.nr}
-            </span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
-              {s.icon} {s.title}
-            </span>
-            {s.done && (
-              <span style={{ marginLeft: "auto", fontSize: 11, color: "#0EC4B8", fontWeight: 700 }}>
-                Erledigt
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+
 
       {/* Meine Werke */}
       <div style={{ fontSize: 13, fontWeight: 700, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
