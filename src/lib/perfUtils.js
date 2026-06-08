@@ -247,10 +247,10 @@ export const FIELDS = {
 // Deckt profiles-Tabelle vollständig ab (keine imaginären Felder).
 // Nur reale Felder aus profiles-Tabelle (Stand 2026-05-30)
 export const PROFILE_FIELDS =
-  'id,display_name,username,avatar_url,header_img,bio,' +
-  'is_wirker,has_talent_profile,' +
-  'location,availability,skills,dna_tags,' +
-  'impact_eur,role,membership_type,membership_active,created_at';
+  'id,display_name,username,avatar_url,bio,' +
+  'is_talent,talent_since,is_ambassador,' +
+  'referred_by,blocked,profile_modules,' +
+  'skills,dna_tags,location,header_img,created_at,updated_at';
 
 // ─── 12. Normalisierung: beliebiges Rohobjekt → WirkerProfilePage-Input ──
 // Gleicht alle historisch unterschiedlichen Feldnamen an:
