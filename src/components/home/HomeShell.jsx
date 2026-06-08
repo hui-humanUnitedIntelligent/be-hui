@@ -155,7 +155,6 @@ export default function HomeShell({ children }) {
   const setShowChat = React.useCallback((val) => {
     const next = typeof val === 'function' ? val(_showChatRef.current) : val;
     if (next !== _showChatRef.current) {
-      console.log('[SHOW_CHAT_CHANGED]', {
         from: _showChatRef.current, to: next,
         stack: (new Error().stack||'').split('\n').slice(1,6).join(' | '),
         ts: Date.now(),
