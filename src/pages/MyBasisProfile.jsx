@@ -1046,13 +1046,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Divider/>
         <Gap h={20}/>
 
-        {/* MOMENTE */}
-        {(() => { console.log("RENDER MOMENTS", moments); return null; })()}
-        <MomenteSection moments={moments} onChange={handleMomentsChange}/>
-        <Gap h={24}/>
-        <Divider/>
-        <Gap h={20}/>
-
         {/* OFFEN FÜR BEGEGNUNGEN */}
         <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
         <Gap h={24}/>
