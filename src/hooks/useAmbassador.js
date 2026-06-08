@@ -1,166 +1,167 @@
-// src/hooks/useAmbassador.js
-// ── HUI Ambassador Hook — App-seitig ─────────────────────────
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient.js";
-import { isActiveAmbassador, hasPendingApplication, getAmbassadorStatus, calcLevel, LEVEL_CONFIG } from "../lib/ambassadorUtils.js";
-import { createRefLinkForAmbassador } from "../lib/referralTracking.js";
+// src/hooks/useAmbassador.js — HUI Ambassador Hook
+// VERIFIZIERT: Nur echte Supabase-Tabellen und Spalten (Stand 2026-06-08)
+// DB-Quellen:
+//   profiles.is_ambassador (bool)
+//   profiles.profile_modules.ambassador (JSON, für Status + Statistiken)
+//   profiles.referred_by (string)
+//   ambassador_ref_links: id, user_id, username, ref_link, referral_code, created_at
+//   ambassadors_applications: id, user_id, first_name, last_name, age, gender,
+//     location, motivation_text, media_urls, phone, email, status, created_at
 
+import { useState, useEffect, useCallback } from "react";
+import { supabase }                          from "../lib/supabaseClient.js";
+import {
+  isActiveAmbassador,
+  hasPendingApplication,
+  getAmbassadorStatus,
+  getAmbStats,
+  calcLevel,
+  LEVEL_CONFIG,
+} from "../lib/ambassadorUtils.js";
+import {
+  createRefLinkForAmbassador,
+} from "../lib/referralTracking.js";
+
+// ── Haupt-Hook für eigenes Ambassador-Profil ──────────────────
 export function useAmbassador(profile) {
-  // ── EINZIGE QUELLE: profiles.is_ambassador (boolean) ──────────
-  const isAmb     = profile?.is_ambassador === true;
+  const isAmb     = isActiveAmbassador(profile);
   const isPending = hasPendingApplication(profile);
   const ambStatus = getAmbassadorStatus(profile);
+  const stats     = getAmbStats(profile);
 
-  // Level: aus profiles.ambassador_level, Fallback 'bronze'
-  const level    = profile?.ambassador_level || amb?.level || (isAmb ? 'bronze' : null);
-  const levelCfg = level ? LEVEL_CONFIG[level] : null;
+  // Level berechnet aus referral_count in profile_modules
+  const level    = calcLevel(stats.referral_count);
+  const levelCfg = LEVEL_CONFIG[level] || LEVEL_CONFIG.bronze;
 
-  // Ref-Link: aus profiles.ref_link, Fallback berechnet aus username
-  const [dbRefLink, setDbRefLink] = useState(null);
+  // Ref-Link: aus ambassador_ref_links laden wenn Ambassador
+  const [refLink, setRefLink] = useState(null);
+
   useEffect(() => {
-    if (!isAmb || !profile?.id) return;
-    if (profile?.ref_link) {
-      setDbRefLink(profile.ref_link);
-      return;
-    }
-    // Kein ref_link im Profil → aus ambassador_ref_links Tabelle laden (mit Fehler-Guard)
+    if (!isAmb || !profile?.id) { setRefLink(null); return; }
     supabase
       .from("ambassador_ref_links")
       .select("ref_link, referral_code")
       .eq("user_id", profile.id)
-      .single()
+      .maybeSingle()  // kein Fehler wenn kein Eintrag
       .then(({ data, error }) => {
-        if (error) return; // Tabelle existiert nicht oder kein Eintrag → ignorieren
-        if (data?.ref_link) {
-          setDbRefLink(data.ref_link);
-        } else if (profile?.username) {
-          const code = "AMB-" + profile.username.toUpperCase().slice(0, 5);
-          createRefLinkForAmbassador(profile.id, profile.username, code)
-            .then(link => { if (link) setDbRefLink(link); })
-            .catch(() => {}); // Fehler ignorieren wenn Tabelle nicht existiert
+        if (error || !data) {
+          // Kein Eintrag → aus Username berechnen
+          if (profile.username) {
+            const code = "AMB-" + profile.username.toUpperCase().slice(0, 5);
+            createRefLinkForAmbassador(profile.id, profile.username, code)
+              .then(link => setRefLink(link || `https://be-hui.com/${profile.username}`))
+              .catch(() => setRefLink(profile.username ? `https://be-hui.com/${profile.username}` : null));
+          }
+          return;
         }
+        setRefLink(data.ref_link);
       })
-      .catch(() => {}); // globaler Guard
-  }, [profile?.id, isAmb, profile?.ref_link]);
+      .catch(() => {
+        // Fallback: Username-basierter Link
+        if (profile?.username) setRefLink(`https://be-hui.com/${profile.username}`);
+      });
+  }, [isAmb, profile?.id, profile?.username]);
 
-  const safeUsername = (typeof profile?.username === "string" && profile.username.trim())
-    ? profile.username.trim() : null;
-  const computedRefLink = dbRefLink
-    || profile?.ref_link
-    || (safeUsername ? ("https://be-hui.com/" + safeUsername) : null);
-
-  // Statistiken — aus profile_modules.ambassador (profiles-Spalten existieren noch nicht)
-  const amb = profile?.profile_modules?.ambassador || null;
-  const referralsCount    = Number(amb?.referral_count ?? profile?.referred_users_count) || 0;
-  const revenueTotal      = Number(amb?.revenue_total  ?? profile?.impact_revenue)       || 0;
-  const activeReferrals   = Number(amb?.active_referral_count)   || 0;
-  const sleepingReferrals = Number(amb?.sleeping_referral_count) || 0;
+  const computedRefLink = refLink
+    || (profile?.username ? `https://be-hui.com/${profile.username}` : null);
 
   return {
     isAmbassador:     isAmb,
     isPending,
     ambassadorStatus: ambStatus,
     ambassadorData: {
-      level:                  level || 'bronze',
+      level,
+      levelCfg,
       referral_link:          computedRefLink,
-      referral_code:          amb?.referral_code || null,
-      referral_count:         referralsCount,
-      active_referral_count:  activeReferrals,
-      sleeping_referral_count:sleepingReferrals,
-      revenue_generated:      revenueTotal,
+      referral_code:          stats.referral_code,
+      referral_count:         stats.referral_count,
+      active_referral_count:  stats.active_referral_count,
+      sleeping_referral_count:stats.sleeping_referral_count,
+      revenue_generated:      stats.revenue_total,
+      link_active:            stats.link_active,
     },
     level,
     levelCfg,
-    refLink:          computedRefLink,
-    refCode:          amb?.referral_code || null,
-    referralsCount,
-    activeReferrals,
-    sleepingReferrals,
-    revenueTotal,
-    linkActive:       amb?.link_active !== false,
+    refLink: computedRefLink,
+    refCode: stats.referral_code,
+    referralsCount:   stats.referral_count,
+    activeReferrals:  stats.active_referral_count,
+    sleepingReferrals:stats.sleeping_referral_count,
+    revenueTotal:     stats.revenue_total,
+    linkActive:       stats.link_active,
   };
 }
 
-
-
+// ── Bewerbungs-Hook ───────────────────────────────────────────
 export function useAmbassadorApplication() {
-  const [loading, setLoading]   = useState(false);
-  const [error,   setError]     = useState(null);
-  const [success, setSuccess]   = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
+  const [success, setSuccess] = useState(false);
 
   const submit = useCallback(async (userId, formData, mediaFiles) => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Medien hochladen
+      // 1. Medien hochladen (optional)
       const mediaUrls = [];
-      if (mediaFiles && mediaFiles.length > 0) {
+      if (mediaFiles?.length > 0) {
         for (const file of mediaFiles) {
-          const ext  = file.name.split('.').pop();
+          const ext  = file.name.split(".").pop() || "jpg";
           const name = `ambassador/${userId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-          const { data: up, error: upErr } = await supabase.storage
-            .from('ambassador-media')
+          const { error: upErr } = await supabase.storage
+            .from("ambassador-media")
             .upload(name, file, { upsert: true });
           if (upErr) throw upErr;
           const { data: { publicUrl } } = supabase.storage
-            .from('ambassador-media')
+            .from("ambassador-media")
             .getPublicUrl(name);
-          mediaUrls.push({ url: publicUrl, type: file.type.startsWith('video') ? 'video' : 'image', name: file.name });
+          mediaUrls.push({
+            url:  publicUrl,
+            type: file.type.startsWith("video") ? "video" : "image",
+            name: file.name,
+          });
         }
       }
 
-      // 2. Bewerbung in ambassadors_applications speichern
-      const appPayload = {
-        user_id:         userId,
-        first_name:      formData.first_name,
-        last_name:       formData.last_name,
-        age:             Number(formData.age),
-        gender:          formData.gender || null,
-        location:        formData.location,
-        motivation_text: formData.motivation_text,
-        media_urls:      mediaUrls,
-        phone:           formData.phone   || null,
-        email:           formData.email   || null,
-        status:          'offen',
-      };
-
+      // 2. Bewerbung in ambassadors_applications (echte Tabelle!) speichern
       const { error: insertErr } = await supabase
-        .from('ambassadors_applications')
-        .insert(appPayload);
+        .from("ambassadors_applications")
+        .insert({
+          user_id:         userId,
+          first_name:      formData.first_name      || "",
+          last_name:       formData.last_name       || "",
+          age:             Number(formData.age)     || null,
+          gender:          formData.gender          || null,
+          location:        formData.location        || "",
+          motivation_text: formData.motivation_text || "",
+          media_urls:      mediaUrls,
+          phone:           formData.phone           || null,
+          email:           formData.email           || null,
+          status:          "offen",
+        });
 
-      // Fallback: Tabelle existiert noch nicht → profile_modules nutzen
-      if (insertErr && (insertErr.code === 'PGRST205' || insertErr.message?.includes('ambassadors_applications'))) {
-        // Direkt in profile_modules speichern
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('profile_modules')
-          .eq('id', userId)
-          .single();
-        const pm  = prof?.profile_modules || {};
-        const amb = { ...pm.ambassador, is_ambassador: false, status: 'pending', applied_at: new Date().toISOString(),
-          motivation: formData.motivation_text, first_name: formData.first_name, last_name: formData.last_name,
-          age: formData.age, gender: formData.gender, location: formData.location, media_urls: mediaUrls };
-        await supabase.from('profiles').update({ profile_modules: { ...pm, ambassador: amb } }).eq('id', userId);
-      } else if (insertErr) {
-        throw insertErr;
-      } else {
-        // Auch profile_modules updaten für sofortige UI-Reaktion
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('profile_modules')
-          .eq('id', userId)
-          .single();
-        const pm  = prof?.profile_modules || {};
-        const amb = { ...pm.ambassador, is_ambassador: false, status: 'pending', applied_at: new Date().toISOString(),
-          motivation: formData.motivation_text };
-        await supabase.from('profiles').update({ profile_modules: { ...pm, ambassador: amb } }).eq('id', userId);
-      }
+      if (insertErr) throw insertErr;
+
+      // 3. profile_modules.ambassador.status → 'offen' setzen für sofortige UI-Reaktion
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("profile_modules")
+        .eq("id", userId)
+        .single();
+
+      const pm  = prof?.profile_modules || {};
+      const amb = { ...(pm.ambassador || {}), status: "offen", applied_at: new Date().toISOString() };
+      await supabase
+        .from("profiles")
+        .update({ profile_modules: { ...pm, ambassador: amb } })
+        .eq("id", userId);
 
       setSuccess(true);
       return { ok: true };
     } catch (e) {
-      setError(e.message || 'Fehler beim Einreichen der Bewerbung.');
-      return { ok: false, error: e.message };
+      const msg = e?.message || "Fehler beim Einreichen der Bewerbung.";
+      setError(msg);
+      return { ok: false, error: msg };
     } finally {
       setLoading(false);
     }
@@ -169,59 +170,51 @@ export function useAmbassadorApplication() {
   return { submit, loading, error, success };
 }
 
-
-// ── Referral-Liste laden ─────────────────────────────────────
-
-/**
- * Wird aufgerufen wenn das eigene Profil als Ambassador erkannt wird
- * aber noch kein Ref-Link existiert → automatisch anlegen.
- */
-export async function ensureRefLink(userId, username, referralCode) {
-  if (!userId || !username) return null;
-  const { data } = await supabase
-    .from("ambassador_ref_links")
-    .select("ref_link")
-    .eq("user_id", userId)
-    .single();
-  if (data?.ref_link) return data.ref_link;
-  return await createRefLinkForAmbassador(userId, username, referralCode);
-}
-
+// ── Referral-Liste (für Ambassador-Dashboard) ─────────────────
+// Nutzer die über diesen Ambassador referriert wurden
 export function useReferrals(refCode) {
   const [referrals, setReferrals] = useState([]);
-  const [loading, setLoading]     = useState(false);
+  const [loading,   setLoading]   = useState(false);
 
   useEffect(() => {
     if (!refCode) return;
     setLoading(true);
     supabase
       .from("profiles")
-      .select("id, display_name, username, avatar_url, profile_modules, created_at")
+      .select("id, display_name, username, avatar_url, is_talent, created_at")
       .eq("referred_by", refCode)
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        if (!data) { setLoading(false); return; }
-        const list = data.map(p => {
-          const pm = p.profile_modules || {};
-          // Aktiv = hat in den letzten 30 Tagen gebucht oder ist Wirker
-          const isActive = pm.is_wirker === true || pm.last_booking_at
-            ? new Date(pm.last_booking_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-            : false;
-          return {
-            id:          p.id,
-            displayName: p.display_name || p.username || "Nutzer",
-            username:    p.username     || null,
-            avatarUrl:   p.avatar_url   || null,
-            isActive,
-            email:       pm.email       || null,
-            phone:       pm.phone       || null,
-            joinedAt:    p.created_at,
-          };
-        });
-        setReferrals(list);
+      .then(({ data, error }) => {
+        if (error || !data) { setLoading(false); return; }
+        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        setReferrals(data.map(p => ({
+          id:          p.id,
+          displayName: p.display_name || p.username || "Nutzer",
+          username:    p.username  || null,
+          avatarUrl:   p.avatar_url || null,
+          isActive:    p.is_talent === true,  // Talent = aktives Mitglied
+          joinedAt:    p.created_at,
+        })));
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, [refCode]);
 
   return { referrals, loading };
+}
+
+// ── Ref-Link sicherstellen ────────────────────────────────────
+export async function ensureRefLink(userId, username, referralCode) {
+  if (!userId || !username) return null;
+  try {
+    const { data } = await supabase
+      .from("ambassador_ref_links")
+      .select("ref_link")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (data?.ref_link) return data.ref_link;
+    return await createRefLinkForAmbassador(userId, username, referralCode);
+  } catch {
+    return `https://be-hui.com/${username}`;
+  }
 }
