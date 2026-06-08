@@ -1024,7 +1024,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
 
       <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
+        paddingBottom:"max(96px,calc(80px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* HEADER */}
 
