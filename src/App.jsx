@@ -437,6 +437,44 @@ function OwnProfileRedirect() {
 }
 
 /* ── App Routes ────────────────────────────────────────────────────── */
+// ── BlockedScreen: globaler Overlay wenn Nutzer blockiert wird ───────
+function BlockedScreen() {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 99999,
+      background: 'linear-gradient(135deg, #0d1117 0%, #1a1f2e 100%)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: 32, textAlign: 'center',
+    }}>
+      <div style={{ fontSize: 64, marginBottom: 24 }}>🚫</div>
+      <div style={{
+        fontSize: 22, fontWeight: 800, color: '#fff',
+        marginBottom: 12, letterSpacing: -0.5,
+      }}>Konto gesperrt</div>
+      <div style={{
+        fontSize: 15, color: 'rgba(255,255,255,0.6)',
+        maxWidth: 320, lineHeight: 1.6,
+      }}>
+        Dein Konto wurde blockiert und wird von unserem Team geprüft.
+        Bei Fragen wende dich an{' '}
+        <a href="mailto:hello@be-hui.com" style={{ color: '#16D7C5', textDecoration: 'none' }}>
+          hello@be-hui.com
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── GlobalBlockGuard: prüft isBlocked aus AuthContext ────────────────
+function GlobalBlockGuard() {
+  const auth = useAuth();
+  if (!auth) return null;
+  const { isBlocked } = auth;
+  if (isBlocked) return <BlockedScreen />;
+  return null;
+}
+
 function AppRoutes() {
   // ── Route-Validierung beim Render ──────────────────────────────────
   // APP_ROUTES wurde durch createTabPage() normalisiert.
@@ -633,6 +671,7 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
       <AuthGateProvider>
+        <GlobalBlockGuard />
         <ProfileCompletionTrigger/>
         <AppStateProvider>
       <WorldSurfaceProvider>
