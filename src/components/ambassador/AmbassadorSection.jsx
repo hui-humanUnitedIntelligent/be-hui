@@ -122,13 +122,20 @@ export default function AmbassadorSection({ ambassadorData }) {
     ? rawLink
     : "";
   const refCode  = ambassadorData.referral_code || null;
-  // Live-Counter aus echten DB-Abfragen (Fallback: ambassadorData)
-  const refs     = liveTotal    > 0 ? liveTotal    : (Number(ambassadorData.referral_count)          || 0);
-  const active   = liveTotal    > 0 ? liveActive   : (Number(ambassadorData.active_referral_count)   || 0);
-  const sleeping = liveTotal    > 0 ? liveSleeping : (Number(ambassadorData.sleeping_referral_count) || 0);
-  const revenue  = Number(ambassadorData.revenue_generated)       || 0;
+  const revenue  = Number(ambassadorData.revenue_generated) || 0;
 
-  const { referrals, loading: refLoading } = useReferrals(listView ? refCode : null);
+  // Referrals laden — ambassadorId + refCode als Quellen
+  const { referrals, loading: refLoading } = useReferrals(
+    userId || null,
+    listView ? refCode : null
+  );
+  // Live-Counter NACH useReferrals (kein TDZ)
+  const liveTotal    = referrals.length;
+  const liveActive   = referrals.filter(r => r.isActive).length;
+  const liveSleeping = referrals.filter(r => !r.isActive).length;
+  const refs     = liveTotal > 0 ? liveTotal    : (Number(ambassadorData.referral_count)          || 0);
+  const active   = liveTotal > 0 ? liveActive   : (Number(ambassadorData.active_referral_count)   || 0);
+  const sleeping = liveTotal > 0 ? liveSleeping : (Number(ambassadorData.sleeping_referral_count) || 0);
 
   const copyLink = () => {
     if (!refLink) return;
