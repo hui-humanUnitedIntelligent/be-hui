@@ -48,32 +48,36 @@ export function calcReward(amountTotal, level) {
   };
 }
 
-// ── Ambassador-Status aus profile_modules lesen ───────────────
-export function getAmbassadorData(profile) {
-  if (!profile) return null;
-  const pm  = profile.profile_modules || {};
-  const amb = pm.ambassador || null;
-  if (!amb) return null;
-  return amb;
-}
+// ── Ambassador-Status direkt aus profiles-Spalten lesen ─────────────
+// EINZIGE QUELLE: profiles.is_ambassador (boolean)
+// NICHT: profile_modules.ambassador
 
 export function isActiveAmbassador(profile) {
-  const amb = getAmbassadorData(profile);
-  return amb?.is_ambassador === true && amb?.status === 'active';
+  return profile?.is_ambassador === true;
 }
 
+// Prüft ob Bewerbung läuft — basiert auf ambassador_applications Status im Profil
+// Wir speichern den pending-Status in profiles.profile_modules.ambassador.status
+// als kurzfristigen Cache — der echte Stand kommt aus ambassador_applications
 export function hasPendingApplication(profile) {
-  const amb = getAmbassadorData(profile);
-  // 'pending' = UI-Status nach Submit, 'offen' = DB-Status in ambassadors_applications
-  return amb?.status === 'pending' || amb?.status === 'offen';
+  const status = profile?.profile_modules?.ambassador?.status;
+  return status === 'pending' || status === 'offen';
 }
 
-// Kann der User sich erneut bewerben?
-// Erlaubt wenn: kein Ambassador, kein pending/offen, und entweder kein Eintrag ODER rejected/revoked
+export function getAmbassadorStatus(profile) {
+  return profile?.profile_modules?.ambassador?.status || null;
+}
+
+// Kann der User sich bewerben?
 export function canApplyAsAmbassador(profile) {
   if (isActiveAmbassador(profile)) return false;
-  const amb = getAmbassadorData(profile);
-  if (!amb) return true;
-  const blockingStatuses = ['pending', 'offen', 'active'];
-  return !blockingStatuses.includes(amb?.status);
+  const status = profile?.profile_modules?.ambassador?.status;
+  const blocking = ['pending', 'offen'];
+  return !blocking.includes(status);
+}
+
+// Legacy-Alias (für Komponenten die getAmbassadorData noch nutzen)
+export function getAmbassadorData(profile) {
+  if (!profile) return null;
+  return profile.profile_modules?.ambassador || null;
 }
