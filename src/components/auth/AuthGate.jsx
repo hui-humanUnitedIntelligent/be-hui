@@ -80,7 +80,7 @@ function AuthModal({ action, onClose, onConfirm }) {
     if (!email || !pw || !name) { setErr("Bitte alle Felder ausfüllen"); return; }
     if (pw.length < 8) { setErr("Passwort muss mindestens 8 Zeichen haben"); return; }
     setBusy(true); setErr(null);
-    const { error } = await signUp(email, pw, name);
+    const { error, data: signUpData } = await signUp(email, pw, name);
     setBusy(false);
     if (error) {
       setErr(
@@ -90,14 +90,15 @@ function AuthModal({ action, onClose, onConfirm }) {
       );
       return;
     }
-    // Referral verarbeiten (non-blocking)
+    // Referral verarbeiten — mit userId damit referred_by_ambassador_id gesetzt wird
+    const newUserId = signUpData?.user?.id || null;
     if (refInput.trim()) {
       validateRefLink(refInput).then(res => {
-        if (res.valid) processReferralAfterSignup(undefined, res.username);
+        if (res.valid) processReferralAfterSignup(newUserId, res.username);
       });
     } else {
       const stored = getStoredReferral();
-      if (stored) processReferralAfterSignup(undefined, stored);
+      if (stored) processReferralAfterSignup(newUserId, stored);
     }
     // success
     setMode("verify");
