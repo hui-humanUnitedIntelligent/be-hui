@@ -116,7 +116,11 @@ export default function AmbassadorSection({ ambassadorData }) {
 
   const level    = ambassadorData.level || "bronze";
   const lvlCfg   = LEVEL_CONFIG[level] || LEVEL_CONFIG.bronze;
-  const refLink  = ambassadorData.referral_link || "";
+  // Sicherheitsfilter: kaputte Links (${username} als Literal) niemals anzeigen
+  const rawLink   = ambassadorData.referral_link || "";
+  const refLink   = (rawLink && !rawLink.includes("${") && !rawLink.endsWith("/undefined") && !rawLink.endsWith("/null"))
+    ? rawLink
+    : "";
   const refCode  = ambassadorData.referral_code || null;
   const refs     = Number(ambassadorData.referral_count)          || 0;
   const active   = Number(ambassadorData.active_referral_count)   || 0;
