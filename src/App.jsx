@@ -577,10 +577,16 @@ function ProfileCompletionTrigger() {
     if (!profile) return;
 
     // Profil ist geladen — prüfen ob Setup nötig
-    const needsSetup =
-      !profile.profile_complete &&
-      !profile.username &&
-      !profile.display_name;
+    // Robuste Prüfung: .trim() damit leere Strings "" nicht als "gesetzt" gelten
+    const hasUsername    = typeof profile.username === "string" && profile.username.trim().length > 0;
+    const hasDisplayName = typeof profile.display_name === "string" && profile.display_name.trim().length > 0;
+    const isComplete     = profile.profile_complete === true;
+
+    // localStorage-Guard: verhindert Re-Trigger nach Reload wenn Flow bereits abgeschlossen
+    let localCompleted = false;
+    try { localCompleted = localStorage.getItem("hui_profile_completed") === "true"; } catch {}
+
+    const needsSetup = !isComplete && !hasUsername && !hasDisplayName && !localCompleted;
 
     if (needsSetup) {
       setShow(true);
