@@ -11,6 +11,7 @@ import { useAuth }   from "../lib/AuthContext.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
 import AmbassadorSection, { AmbassadorBadge, AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
+import WerkWizard      from "../components/works/WerkWizard.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 
@@ -228,8 +229,13 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
         <div>
           <div style={{ fontSize:24, fontWeight:800, color:T.ink, letterSpacing:"-0.03em",
             display:"flex", alignItems:"center", gap:8, lineHeight:1.2 }}>
-            Mein Profil <span style={{fontSize:18}}>🌿</span>
+            {profile?.display_name || profile?.username || "Mein Profil"} <span style={{fontSize:18}}>🌿</span>
           </div>
+          {profile?.username && (
+            <div style={{ fontSize:13, color:T.teal, fontWeight:600, marginTop:2, letterSpacing:"0.01em" }}>
+              @{profile.username}
+            </div>
+          )}
           <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
             Gestalte dein Profil so, wie du bist.
           </div>
@@ -746,6 +752,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
+  const [showWizard,      setShowWizard]      = useState(false);
+  const [works,           setWorks]           = useState([]);
+  const [worksLoading,    setWorksLoading]    = useState(false);
   const ambState = useAmbassador(profile);  // Nach States: profile ist jetzt null (nicht undefined)
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
@@ -780,6 +789,21 @@ export default function MyBasisProfile({ onClose, profileId }) {
       setLoading(false);
     })();
   },[]);
+
+  // ── Werke des Nutzers laden ───────────────────────────────────────
+  useEffect(()=>{
+    if (!profile?.id) return;
+    setWorksLoading(true);
+    supabase.from("works")
+      .select("id,title,status,published,visible,created_at,media_urls,price,currency,category")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        setWorks(data || []);
+        setWorksLoading(false);
+      });
+  }, [profile?.id]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
@@ -971,6 +995,25 @@ export default function MyBasisProfile({ onClose, profileId }) {
           />
         )}
         <Gap h={40}/>
+        <Divider/>
+        <Gap h={20}/>
+
+        {/* MEINE WERKE */}
+        <MeineWerkeSection
+          works={works}
+          loading={worksLoading}
+          onCreateNew={() => setShowWizard(true)}
+          onRefresh={() => {
+            if (!profile?.id) return;
+            setWorksLoading(true);
+            supabase.from("works")
+              .select("id,title,status,published,visible,created_at,media_urls,price,currency,category")
+              .eq("user_id", profile.id)
+              .order("created_at",{ascending:false}).limit(50)
+              .then(({data}) => { setWorks(data||[]); setWorksLoading(false); });
+          }}
+        />
+        <Gap h={40}/>
       </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
@@ -1000,6 +1043,23 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onOpenBookings={() => {
             setShowSettings(false);
             if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
+          }}
+        />
+      )}
+
+      {/* WERK-WIZARD */}
+      {showWizard && profile?.id && (
+        <WerkWizard
+          userId={profile.id}
+          onClose={() => setShowWizard(false)}
+          onSave={() => {
+            setShowWizard(false);
+            // Werke neu laden
+            supabase.from("works")
+              .select("id,title,status,published,visible,created_at,media_urls,price,currency,category")
+              .eq("user_id", profile.id)
+              .order("created_at",{ascending:false}).limit(50)
+              .then(({data}) => setWorks(data||[]));
           }}
         />
       )}
@@ -1092,6 +1152,115 @@ function GemeinschaftsKarte({ onJoin }) {
           🤝 Der Gemeinschaft beitreten
         </button>
       </div>
+    </div>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// MEINE WERKE SECTION
+// ══════════════════════════════════════════════════════════════
+const STATUS_CONFIG = {
+  pending_review: { label:"In Prüfung",        color:"#E58A00", bg:"rgba(229,138,0,0.10)",  icon:"⏳" },
+  published:      { label:"Veröffentlicht",     color:"#0EC4B8", bg:"rgba(14,196,184,0.10)", icon:"✅" },
+  rejected:       { label:"Abgelehnt",          color:"#E53935", bg:"rgba(229,57,53,0.10)",  icon:"❌" },
+  draft:          { label:"Entwurf",            color:"#888",    bg:"rgba(0,0,0,0.07)",       icon:"✏️" },
+  approved:       { label:"Veröffentlicht",     color:"#0EC4B8", bg:"rgba(14,196,184,0.10)", icon:"✅" },
+};
+
+function WerkStatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft;
+  return (
+    <span style={{
+      display:"inline-flex", alignItems:"center", gap:4,
+      padding:"3px 9px", borderRadius:99,
+      background:cfg.bg, color:cfg.color,
+      fontSize:11.5, fontWeight:700,
+    }}>
+      {cfg.icon} {cfg.label}
+    </span>
+  );
+}
+
+function WerkCard({ werk }) {
+  const thumb = Array.isArray(werk.media_urls) && werk.media_urls.length > 0
+    ? (werk.media_urls[0]?.url || werk.media_urls[0])
+    : null;
+  return (
+    <div style={{
+      display:"flex", alignItems:"center", gap:12,
+      padding:"12px 0", borderBottom:"1px solid rgba(26,26,24,0.08)",
+    }}>
+      {thumb ? (
+        <img src={thumb} alt={werk.title} style={{
+          width:52, height:52, borderRadius:10, objectFit:"cover", flexShrink:0,
+          background:"rgba(26,26,24,0.06)",
+        }}/>
+      ) : (
+        <div style={{
+          width:52, height:52, borderRadius:10, flexShrink:0,
+          background:"rgba(14,196,184,0.10)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:22,
+        }}>🎨</div>
+      )}
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18",
+          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+          {werk.title || "Ohne Titel"}
+        </div>
+        <div style={{ marginTop:4 }}>
+          <WerkStatusBadge status={werk.status || "draft"}/>
+        </div>
+        {werk.status === "rejected" && (
+          <div style={{ fontSize:11.5, color:"#E53935", marginTop:4, lineHeight:1.4 }}>
+            Abgelehnt – bitte überarbeite und reiche es erneut ein.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MeineWerkeSection({ works, loading, onCreateNew, onRefresh }) {
+  return (
+    <div style={{ padding:`0 20px` }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+        <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18" }}>🎨 Meine Werke</div>
+        <button onClick={onCreateNew} style={{
+          display:"flex", alignItems:"center", gap:6,
+          padding:"8px 14px", background:"#0EC4B8",
+          border:"none", borderRadius:99,
+          fontSize:13, fontWeight:700, color:"#fff",
+          cursor:"pointer", touchAction:"manipulation",
+        }}>+ Neues Werk</button>
+      </div>
+
+      {/* Liste */}
+      {loading ? (
+        <div style={{ textAlign:"center", padding:"24px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
+          Lädt…
+        </div>
+      ) : works.length === 0 ? (
+        <div style={{
+          textAlign:"center", padding:"28px 16px",
+          background:"rgba(14,196,184,0.05)", borderRadius:14,
+          border:"1.5px dashed rgba(14,196,184,0.25)",
+        }}>
+          <div style={{ fontSize:28, marginBottom:8 }}>🎨</div>
+          <div style={{ fontSize:13.5, fontWeight:600, color:"rgba(26,26,24,0.55)" }}>
+            Noch keine Werke
+          </div>
+          <div style={{ fontSize:12, color:"rgba(26,26,24,0.38)", marginTop:4 }}>
+            Erstelle dein erstes Werk und reiche es zur Freigabe ein.
+          </div>
+        </div>
+      ) : (
+        <div>
+          {works.map(w => <WerkCard key={w.id} werk={w}/>)}
+        </div>
+      )}
     </div>
   );
 }
