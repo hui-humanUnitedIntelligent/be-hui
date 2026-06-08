@@ -780,9 +780,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
   );
   const [profile,    setProfile]    = useState(null);
   const isTalent = !!(
-    _checkTalent(authContextProfile) ||
-    _checkTalent(profile) ||           // lokaler DB-State als Fallback
-    _auth.isTalent === true            // AuthContext-Calc als letzter Tiebreaker
+    authContextProfile?.is_talent === true ||   // direkte DB-Quelle — primär
+    profile?.is_talent === true ||              // lokaler State — Fallback
+    _checkTalent(authContextProfile) ||         // membership_type-Check
+    _checkTalent(profile) ||                    // lokaler membership_type
+    _auth.isTalent === true                     // AuthContext-Calc — letzter Tiebreaker
   );
   const [loading,    setLoading]    = useState(true);
   const [mounted,    setMounted]    = useState(false);
@@ -1083,8 +1085,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
 
         {/* GEMEINSCHAFT BEITRETEN */}
-        {/* GemeinschaftsKarte: nur wenn Nutzer noch kein Talent */}
-        {!isTalent && (
+        {/* GemeinschaftsKarte: nur wenn Profil GELADEN und Nutzer noch kein Talent */}
+        {!loading && !loadingAuth && !isTalent && (
           <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)}/>
         )}
         <Gap h={24}/>
