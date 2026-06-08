@@ -108,7 +108,7 @@ function ReferralList({ referrals, filter, loading }) {
   );
 }
 
-export default function AmbassadorSection({ ambassadorData }) {
+export default function AmbassadorSection({ ambassadorData, userId }) {
   const [copied, setCopied]     = useState(false);
   const [listView, setListView] = useState(null); // null | "active" | "sleeping"
 
