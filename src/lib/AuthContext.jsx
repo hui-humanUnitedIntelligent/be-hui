@@ -287,14 +287,7 @@ export function AuthProvider({ children }) {
     return { data: wp };
   }, [user]);
 
-  const saveWirkerProfile = useCallback(async (updates) => {
-    if (!user || !wirkerProfile) return { error: "Kein Wirkerprofil" };
-    const { data, error } = await supabase.from("wirker_profiles")
-      .update({ ...updates, updated_at:new Date().toISOString() })
-      .eq("user_id", user.id).select().single();
-    if (data) setWirkerProfile(data);
-    return { data, error };
-  }, [user, wirkerProfile]);
+
 
   // Phase 4C: activateTalent — atomarer DB-Aufruf via Supabase RPC
   // Setzt membership_type='talent', membership_active=true, talent_activated_at=NOW()
@@ -514,7 +507,6 @@ export function AuthProvider({ children }) {
   const ctxValue = useMemo(() => ({
     user, profile,
     authProfile: profile,          // Alias: HomeShell + alle Components nutzen authProfile
-    wirkerProfile,
     isAuthenticated, isWirker, hasTalentProfile, isMember, membershipType, profileModules,
     loadingAuth,
     isLoadingAuth: loadingAuth,    // Alias für components/ProtectedRoute.jsx
@@ -537,7 +529,7 @@ export function AuthProvider({ children }) {
     setProfile, setWirkerProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [user, profile, wirkerProfile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
+  }), [user, profile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
 
   return (
     <AuthContext.Provider value={ctxValue}>
