@@ -1301,12 +1301,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // FALLBACK: direkter DB-Call wenn AuthContext beim ersten Render noch nicht fertig
   const profileSyncedRef = useRef(false);
 
+  // Einmaliger Sync: sobald authContextProfile?.id verfügbar ist
+  // Kein Re-Render durch Avatar/Bio/etc. Änderungen — profileSyncedRef verhindert doppeltes Setzen
   useEffect(() => {
-    if (!authContextProfile?.id) {
-      // AuthContext noch nicht geladen — warte (useEffect feuert erneut wenn authContextProfile sich ändert)
-      return;
-    }
-    // AuthContext hat ein Profil → synchronisieren
+    if (!authContextProfile?.id) return;
+    if (profileSyncedRef.current) return; // bereits synchronisiert
     const p = authContextProfile;
     setProfile(p);
     setBio(s(p.bio));
@@ -1323,10 +1322,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
     if (tagArr.length) setMoments(tagArr.map((url, i) => ({ id: `db_${i}`, img: url })));
     profileSyncedRef.current = true;
     setLoading(false);
-  }, [authContextProfile?.id, authContextProfile?.is_talent, authContextProfile?.membership_type,
-      authContextProfile?.avatar_url, authContextProfile?.display_name,
-      authContextProfile?.bio, authContextProfile?.profile_modules,
-      authContextProfile?.skills]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authContextProfile?.id]);
 
   // ── Fallback: AuthContext zu langsam → direkter DB-Call nach 2s ───────────
   useEffect(() => {
