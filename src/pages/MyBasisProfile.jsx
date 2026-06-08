@@ -824,6 +824,35 @@ export default function MyBasisProfile({ onClose, profileId }) {
       });
   }, [profile?.id]);
 
+  // ── Erlebnisse laden (nur wenn isTalent) ─────────────────────
+  useEffect(() => {
+    if (!profile?.id || !isTalent) { setExpsLoading(false); return; }
+    let cancelled = false;
+    setExpsLoading(true);
+    supabase.from("experiences")
+      .select("id,title,cover_url,status,date,category,experience_type,location_text,duration,created_at")
+      .eq("user_id", profile.id)
+      .neq("status", "archived")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!cancelled) {
+          if (!error) setExps(data || []);
+          setExpsLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [profile?.id, isTalent]);
+
+  // ── wirker_profile laden (Kategorien/Tags) ───────────────────
+  useEffect(() => {
+    if (!profile?.id || !isTalent) return;
+    supabase.from("wirker_profiles")
+      .select("id,user_id,categories,talent,is_verified,hourly_rate")
+      .eq("user_id", profile.id)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setWirkerProfile(data); });
+  }, [profile?.id, isTalent]);
+
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
   const autoSave = useCallback(async (field, value) => {
