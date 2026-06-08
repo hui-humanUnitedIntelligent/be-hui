@@ -763,7 +763,7 @@ function BioEditModal({ bio = "", onClose = () => {}, onSave = () => {} }) {
       <div style={{
         width:"100%", maxWidth:520,
         background:"#FFFFFF", borderRadius:"20px 20px 0 0",
-        padding:"20px 20px 40px",
+        padding:"20px 20px 88px", /* oberhalb Navbar */
         boxShadow:"0 -4px 24px rgba(0,0,0,0.12)",
       }}>
         {/* Header */}
