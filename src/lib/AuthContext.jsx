@@ -71,7 +71,7 @@ export function AuthProvider({ children }) {
           const { data: wp } = await withTimeout(
             supabase.from("wirker_profiles").select(FIELDS.wirker).eq("user_id", userId).single(), 6000
           );
-          setWirkerProfile(wp || null);
+          // wirkerProfile removed
         }
       }
     } catch (e) {
@@ -181,7 +181,7 @@ export function AuthProvider({ children }) {
       }
       if (!u) {
         setProfile(null);
-        setWirkerProfile(null);
+        // wirkerProfile removed
         localStorage.removeItem("hui_is_wirker");
         profileLoadingRef.current = false;
       }
@@ -281,7 +281,7 @@ export function AuthProvider({ children }) {
         wirker_type:wirkerData.type||"selbst", location_label:wirkerData.city||"",
         categories:wirkerData.categories||[] }).select().single();
     if (e2) return { error: e2.message };
-    setWirkerProfile(wp);
+    // wirkerProfile removed
     setProfile(p => ({ ...p, is_wirker:true, role:"wirker" }));
     localStorage.setItem("hui_is_wirker","true");
     return { data: wp };
