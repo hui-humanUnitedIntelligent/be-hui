@@ -704,13 +704,13 @@ export default function LoginPage() {
       <div style={{
         position: 'relative', zIndex: 1, flex: 1,
         display: 'flex', flexDirection: 'column',
-        padding: 'max(52px,env(safe-area-inset-top,52px)) 20px max(32px,env(safe-area-inset-bottom,32px))',
+        padding: 'max(24px,env(safe-area-inset-top,24px)) 20px max(24px,env(safe-area-inset-bottom,24px))',
         overflowY: 'auto',
       }}>
         {}
         <button type="button" onClick={() => { clearMessages(); setMode('splash'); }}
           style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer',
-            color: T.muted, fontSize: 14, fontFamily: 'inherit', padding: '4px 0', marginBottom: 24,
+            color: T.muted, fontSize: 14, fontFamily: 'inherit', padding: '4px 0', marginBottom: 12,
             display: 'flex', alignItems: 'center', gap: 6 }}>
           ← Zurück
         </button>
