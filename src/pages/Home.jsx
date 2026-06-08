@@ -312,9 +312,7 @@ function HomeInner() {
                   showEvents={true}
                   currentUser={currentUser}
                   onProfile={(userId) => {
-                    console.log("🟡 STEP 3 — Home.jsx onProfile empfangen", { userId, typeOf: typeof userId });
                     if (!userId) {
-                      console.warn("🔴 STEP 3 — Home.jsx onProfile: userId fehlt!");
                       return;
                     }
                     // Visuelles Debug-Toast damit wir auf iPad sehen ob der Klick ankommt
@@ -434,7 +432,6 @@ function HomeInner() {
           // Phase 4C: ORB_MODE log — zeigt klaren Modus
           const _mType = authProfile?.membership_type ?? "base";
           const _mActive = authProfile?.membership_active ?? false;
-          console.log("[ORB_MODE]", isTalent ? "creator" : "membership", {
             membership_type:   _mType,
             membership_active: _mActive,
             isTalent, isBaseUser, canCreate,
@@ -449,7 +446,6 @@ function HomeInner() {
             console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE");
             return;
           }
-          console.log("[HUI ORB] → OrbCompass öffnen", { isTalent, isBaseUser });
           setShowPlusSheet(true);
         }}
       />
@@ -462,18 +458,15 @@ function HomeInner() {
         <SafeRender flag="connectFlow" label="ConnectionCreatePage">
           <ConnectionCreatePage
             onClose={() => {
-              console.log("[HUI CONNECTION] step 6 closing flow — Home.jsx onClose empfangen");
               setShowConnect(false);
             }}
             onPublish={(result) => {
-              console.log("[HUI CONNECTION] step 8 refresh feed — onPublish empfangen", {
                 id:         result?.id   ?? "kein id",
                 type:       result?.type ?? "kein type",
                 title:      result?.title ?? "kein title",
               });
               // Feed Refresh: falls FeedRefresh-Mechanismus existiert, hier auslösen
               // Aktuell: kein automatischer Refresh → nur schließen
-              console.log("[HUI CONNECTION] step 8 feed refresh: KEIN automatischer Refresh konfiguriert");
               setShowConnect(false);
             }}
           />
@@ -485,11 +478,9 @@ function HomeInner() {
       <TeilenFlow
         visible={showTeilen}
         onClose={() => {
-          console.log("[HUI_HOME] FLOW_CLOSE empfangen → setShowTeilen(false)");
           setShowTeilen(false);
         }}
         onPublished={(result) => {
-          console.log("[HUI_HOME] FLOW_RETURN_HOME empfangen, refresh=", result?.refresh);
           setShowTeilen(false);
         }}
       />
@@ -565,7 +556,6 @@ function HomeInner() {
             if (typeof setActiveMood === "function") {
               setActiveMood(worldId);
             }
-            console.log("[ORB] world selected:", worldId, worldLabel);
           }}
         />
         {showTalentFlow && SAFE_MODE.talentFlow && (
