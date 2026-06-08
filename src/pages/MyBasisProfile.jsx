@@ -735,6 +735,93 @@ function SichtbarkeitSection({ visibility, onChange }) {
 // ══════════════════════════════════════════════════════════════
 // ROOT
 // ══════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// BIO EDIT MODAL — "Über mich" bearbeiten
+// ══════════════════════════════════════════════════════════════
+const MAX_BIO = 500;
+function BioEditModal({ bio = "", onClose = () => {}, onSave = () => {} }) {
+  const [draft,  setDraft]  = useState(bio);
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    if (saving) return;
+    setSaving(true);
+    await onSave?.(draft.trim());
+    setSaving(false);
+  }
+
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose?.(); }}
+      style={{
+        position:"fixed", inset:0, zIndex:10300,
+        background:"rgba(0,0,0,0.45)",
+        display:"flex", alignItems:"flex-end", justifyContent:"center",
+      }}
+    >
+      <div style={{
+        width:"100%", maxWidth:520,
+        background:"#FFFFFF", borderRadius:"20px 20px 0 0",
+        padding:"20px 20px 40px",
+        boxShadow:"0 -4px 24px rgba(0,0,0,0.12)",
+      }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+          <span style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>
+            Über mich bearbeiten
+          </span>
+          <button
+            onClick={() => onClose?.()}
+            style={{
+              width:30, height:30, borderRadius:"50%",
+              background:"rgba(26,26,24,0.07)", border:"none",
+              fontSize:14, cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}
+          >✕</button>
+        </div>
+
+        {/* Textarea */}
+        <textarea
+          value={draft}
+          onChange={e => setDraft(e.target.value.slice(0, MAX_BIO))}
+          autoFocus
+          placeholder="Erzähl etwas über dich…"
+          rows={5}
+          style={{
+            width:"100%", boxSizing:"border-box",
+            padding:"12px 14px", borderRadius:12,
+            border:"1.5px solid rgba(14,196,184,0.35)",
+            fontSize:14, lineHeight:1.65, color:"#1A1A18",
+            fontFamily:"inherit", resize:"none", outline:"none",
+            background:"rgba(14,196,184,0.04)",
+          }}
+        />
+        <div style={{ fontSize:11, color:"#888", textAlign:"right", marginTop:4 }}>
+          {draft.length} / {MAX_BIO}
+        </div>
+
+        {/* Speichern */}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            width:"100%", marginTop:14, padding:"13px",
+            borderRadius:99, background:"#0EC4B8", border:"none",
+            color:"white", fontSize:14, fontWeight:700,
+            cursor: saving ? "default" : "pointer",
+            fontFamily:"inherit", opacity: saving ? 0.7 : 1,
+            touchAction:"manipulation",
+          }}
+        >
+          {saving ? "Speichert…" : "Speichern"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function MyBasisProfile({ onClose, profileId }) {
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
