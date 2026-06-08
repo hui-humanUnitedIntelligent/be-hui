@@ -231,6 +231,18 @@ function MeinProfilHeader({ profile, onSettings, onAvatarChange, onCoverChange }
               @{profile.username}
             </div>
           )}
+          {/* A1: Mitgliedschafts-Badge im eigenen Profil */}
+          <div style={{
+            display:"inline-flex", alignItems:"center", gap:5,
+            marginTop:5,
+            background: profile?.is_talent ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
+            border:`1px solid ${profile?.is_talent ? "rgba(14,196,184,0.22)" : "rgba(14,196,184,0.15)"}`,
+            borderRadius:99, padding:"3px 10px",
+            fontSize:11, fontWeight:700, color:"#0AADA3",
+          }}>
+            <span style={{fontSize:11}}>{profile?.is_talent ? "✨" : "🌿"}</span>
+            <span>{profile?.is_talent ? "HUI-Talent" : "HUI-Mitglied"}</span>
+          </div>
         </div>
         <button className="mbp-press-light" onClick={onSettings} style={{
           width:36, height:36, borderRadius:"50%",
@@ -961,6 +973,69 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={20}/>
         <Divider/>
         <Gap h={20}/>
+
+        {/* ── A3: TALENT-INFO-KARTE: nur für Basis-User ── */}
+        {!profile?.is_talent && (
+          <>
+            <div style={{ padding:"0 20px" }}>
+              <div style={{
+                background:T.bgCard,
+                borderRadius:T.r16,
+                border:`1px solid ${T.border}`,
+                padding:"16px 18px",
+                boxShadow:T.card,
+              }}>
+                <div style={{
+                  display:"flex", alignItems:"center", gap:8, marginBottom:10,
+                }}>
+                  <span style={{fontSize:16}}>✨</span>
+                  <span style={{fontSize:14, fontWeight:800, color:T.ink, letterSpacing:"-0.02em"}}>
+                    Talent werden
+                  </span>
+                </div>
+                <div style={{fontSize:13, color:T.inkSoft, lineHeight:1.65, marginBottom:12}}>
+                  Mit einem Talentprofil kannst du:
+                </div>
+                {[
+                  "Werke veröffentlichen",
+                  "Erlebnisse anbieten",
+                  "Projekte gestalten",
+                  "Empfehlungen erhalten",
+                  "Zwei Impact-Stimmen pro Monat nutzen",
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    display:"flex", alignItems:"center", gap:8,
+                    fontSize:13, color:T.inkSoft,
+                    marginBottom:6,
+                  }}>
+                    <span style={{
+                      width:6, height:6, borderRadius:"50%",
+                      background:T.teal, flexShrink:0,
+                    }}/>
+                    {item}
+                  </div>
+                ))}
+                <button
+                  onClick={() => setShowGemeinschaft(true)}
+                  style={{
+                    marginTop:14, padding:"9px 18px",
+                    borderRadius:99,
+                    background:"transparent",
+                    border:`1.5px solid ${T.teal}`,
+                    color:T.teal, fontSize:13, fontWeight:700,
+                    cursor:"pointer", fontFamily:"inherit",
+                    touchAction:"manipulation",
+                  }}
+                >
+                  Mehr erfahren
+                </button>
+              </div>
+            </div>
+            <Gap h={20}/>
+            <Divider/>
+            <Gap h={20}/>
+          </>
+        )}
 
         {/* ── GEMEINSCHAFTSKARTE: nur für Basis-User (kein Talent) ── */}
         {!profile?.is_talent && (
