@@ -416,8 +416,29 @@ export default function LoginPage() {
     e.preventDefault(); clearMessages();
     if (!email || !pw) { setErr('Bitte E-Mail und Passwort eingeben.'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
-    if (error) { setErr(translateError(error.message)); setLoading(false); }
+
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (error) { setErr(translateError(error.message)); setLoading(false); return; }
+
+    // ── BLOCK-CHECK nach erfolgreichem Login ──────────────────────────
+    // Profil sofort laden und blocked-Flag prüfen
+    if (signInData?.user?.id) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("blocked, blocked_at")
+        .eq("id", signInData.user.id)
+        .single();
+
+      if (prof?.blocked === true) {
+        // Sofort wieder ausloggen
+        await supabase.auth.signOut();
+        setLoading(false);
+        setErr("Dein Konto wurde blockiert und wird von unserem Team geprüft.");
+        return;
+      }
+    }
+
+    setLoading(false);
     // success → useEffect navigates
   }
 
