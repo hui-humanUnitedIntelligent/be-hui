@@ -766,6 +766,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showWizard,      setShowWizard]      = useState(false);
   const [works,           setWorks]           = useState([]);
   const [worksLoading,    setWorksLoading]    = useState(false);
+  // Talent-Dashboard Erlebnisse
+  const [exps,            setExps]            = useState([]);
+  const [expsLoading,     setExpsLoading]     = useState(false);
+  const [showExpWizard,   setShowExpWizard]   = useState(false);
+  const [editingExp,      setEditingExp]      = useState(null);
+  // Talent-Dashboard wirker_profile (Kategorien/Tags)
+  const [wirkerProfile,   setWirkerProfile]   = useState(null);
   const ambState = useAmbassador(profile);  // Nach States: profile ist jetzt null (nicht undefined)
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
