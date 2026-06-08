@@ -632,6 +632,7 @@ function MomentThumb({ m, onRemove }) {
 function OffenFuerSection({ openFor, onChange }) {
   const [showEdit, setShowEdit] = useState(false);
   const current = a(openFor);
+  // Im Read-Mode: aktive Kacheln anzeigen, sonst Demo-Auswahl
   const display = current.length ? OPEN_FOR_ALL.filter(t=>current.includes(t.label)) : OPEN_FOR_ALL.slice(0,4);
 
   const toggle = (label) => {
@@ -639,12 +640,22 @@ function OffenFuerSection({ openFor, onChange }) {
     else onChange([...current, label]);
   };
 
+  const remove = (label) => onChange(current.filter(x => x !== label));
+
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Offen für Begegnungen" sub="Wofür bist du offen? Was interessiert dich?"/>
+      {/* Header mit Bearbeiten-Button — identisch zu InteressenSection */}
+      <SectionRow
+        title="Offen für Begegnungen"
+        sub="Wofür bist du offen? Was interessiert dich?"
+        onEdit={() => setShowEdit(true)}
+      />
+
+      {/* Read-Mode: Kacheln mit X-Icon */}
       <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-        {display.map((t,i)=>(
+        {display.map((t,i) => (
           <div key={i} style={{
+            position:"relative",
             display:"inline-flex", alignItems:"center", gap:6,
             padding:"9px 16px", borderRadius:T.r99,
             background:T.bgCard, border:`1px solid ${T.border}`,
@@ -652,9 +663,26 @@ function OffenFuerSection({ openFor, onChange }) {
             boxShadow:T.card,
           }}>
             <span style={{fontSize:14}}>{t.icon}</span>{t.label}
+            {/* X-Button: nur wenn Kachel wirklich aktiv (nicht Demo) */}
+            {current.includes(t.label) && (
+              <button
+                onClick={() => remove(t.label)}
+                style={{
+                  marginLeft:2, width:16, height:16,
+                  borderRadius:"50%", border:"none",
+                  background:"rgba(26,26,24,0.12)",
+                  color:T.inkSoft, fontSize:10, fontWeight:800,
+                  cursor:"pointer", display:"flex", alignItems:"center",
+                  justifyContent:"center", lineHeight:1, padding:0,
+                  touchAction:"manipulation", fontFamily:"inherit",
+                }}
+                aria-label={`${t.label} entfernen`}
+              >✕</button>
+            )}
           </div>
         ))}
-        <button className="mbp-press-light" onClick={()=>setShowEdit(true)} style={{
+        {/* + Hinzufügen Chip */}
+        <button className="mbp-press-light" onClick={() => setShowEdit(true)} style={{
           display:"inline-flex", alignItems:"center", gap:6,
           padding:"9px 16px", borderRadius:T.r99,
           background:"transparent", border:`1px dashed ${T.borderMid}`,
@@ -665,18 +693,21 @@ function OffenFuerSection({ openFor, onChange }) {
         </button>
       </div>
 
+      {/* Edit-Sheet — identisch zu InteressenSection */}
       {showEdit && (
-        <Sheet onClose={()=>setShowEdit(false)}>
+        <Sheet onClose={() => setShowEdit(false)}>
           <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:4 }}>Offen für Begegnungen</div>
-          <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Was interessiert dich gerade?</div>
+          <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Was interessiert dich gerade? Wähle oder entferne Kategorien.</div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
-            {OPEN_FOR_ALL.map((t,i)=>(
-              <InterestPill key={i} icon={t.icon} label={t.label}
+            {OPEN_FOR_ALL.map((t,i) => (
+              <InterestPill
+                key={i} icon={t.icon} label={t.label}
                 active={current.includes(t.label)}
-                onToggle={()=>toggle(t.label)}/>
+                onToggle={() => toggle(t.label)}
+              />
             ))}
           </div>
-          <button className="mbp-press" onClick={()=>setShowEdit(false)} style={{
+          <button className="mbp-press" onClick={() => setShowEdit(false)} style={{
             width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
             background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
             color:"white", fontSize:15, fontWeight:700,
