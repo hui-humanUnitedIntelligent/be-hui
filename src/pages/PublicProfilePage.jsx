@@ -1,4 +1,10 @@
-// src/pages/PublicProfilePage.jsx — HUI Living Portrait v4
+// src/pages/PublicProfilePage.jsx
+// ─────────────────────────────────────────────────────────────────
+// LEGACY-KOMPONENTE — Phase 1.5 Audit (2026-06-08)
+// Aktuell NICHT Teil des aktiven Profilsystems.
+// Route /profile/:username rendert WirkerProfilePage, nicht diese Datei.
+// Nicht für neue Features verwenden. Nicht weiterentwickeln.
+// ───────────────────────────────────────────────────────────────── — HUI Living Portrait v4
 // "I am entering someone's world."
 // ════════════════════════════════════════════════════════════════
 // ARCHITECTURE: Fully self-contained. No owner mode. No metrics.
@@ -692,16 +698,14 @@ function BegegnungenSection({ encounters, onOpenProfile }) {
 // ══════════════════════════════════════════════════════════════
 function VerbindungenSection({ profileId, engine }) {
   const { ref, style } = useEntry(0);
-  const bridges = [
-    { icon:"👥", title:"3 gemeinsame Verbindungen", sub:"Lena, Jonas und 1 weiterer kennen diese Person", iconBg:"rgba(14,196,184,0.10)" },
-    { icon:"🌿", title:"Ähnliche Begegnungen",        sub:"Ihr habt beide Natur-Erlebnisse besucht",      iconBg:"rgba(34,197,94,0.10)"  },
-    { icon:"💛", title:"Gemeinsame Werte",             sub:"Natur · Achtsamkeit · Gemeinschaft",            iconBg:"rgba(245,158,11,0.10)" },
-  ];
+  // P4: Hardcoded Verbindungsdaten entfernt — keine echten Daten verfügbar
+  // Sektion wird ausgeblendet bis Echtdaten vorhanden sind
+  const bridges = [];
   return (
     <div ref={ref} style={{ ...style, padding:`0 ${T.px}px` }}>
       <SectionHead title="+ Verbindungen" sub="Was euch verbindet"/>
       <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
-        {bridges.map((b,i)=>(
+        {bridges.length > 0 && bridges.map((b,i)=>(
           <div key={i} className="ppp-press-light" style={{
             display:"flex", alignItems:"center", gap:14, padding:"14px 0",
             borderBottom: i < bridges.length-1 ? `1px solid ${T.border}` : "none",
