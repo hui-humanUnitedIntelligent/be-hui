@@ -80,6 +80,14 @@ function HuiLogo({ size = 64, glow = true }) {
 // ── Glass Input ──────────────────────────────────────────────────
 function GlassInput({ type = 'text', value, onChange, placeholder, autoComplete, id, rightSlot }) {
   const [focused, setFocused] = useState(false);
+
+  // Ref-Link aus URL-Param (?ref=username) vorausfüllen
+  useEffect(() => {
+    const refParam = searchParams.get('ref');
+    if (refParam) setRefLink(`https://be-hui.com/${refParam}`);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div style={{ position: 'relative' }}>
       <input
@@ -356,13 +364,8 @@ function SuccessMessage({ msg }) {
 // ═══════════════════════════════════════════════════════════════════
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Ref-Link aus URL-Param (?ref=username) vorausfüllen
-  useEffect(() => {
-    const refParam = searchParams.get('ref');
-    if (refParam) setRefLink(`https://be-hui.com/${refParam}`);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   const { isAuthenticated, loadingAuth } = useAuth();
 
   // Modes: 'splash' | 'login' | 'register' | 'magic' | 'forgot' | 'onboarding'
