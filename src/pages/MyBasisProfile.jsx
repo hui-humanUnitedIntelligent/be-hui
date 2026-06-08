@@ -734,13 +734,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const loadingAuth        = _auth.loadingAuth ?? false;
   const setAuthProfile     = _auth.setProfile ?? null;
   const refreshProfile     = _auth.refreshProfile ?? null;
-  // isTalent: aus AuthContext — reagiert sofort auf activateMembership()
+  // isTalent: STRIKT — nur aktive Talent-Mitgliedschaft gilt
+  // membership_type==="talent" UND membership_active===true (aus activateMembership gesetzt)
+  // has_talent_profile allein reicht NICHT (legacy-Feld, veraltet)
+  // is_member allein reicht NICHT (war früher für alle Members gesetzt)
   const isTalent = !!(
-    _auth.isTalent === true ||
-    authContextProfile?.has_talent_profile === true ||
-    authContextProfile?.membership_type === "talent" ||
-    authContextProfile?.role === "talent" ||
-    authContextProfile?.role === "wirker"
+    (authContextProfile?.membership_type === "talent" && authContextProfile?.membership_active === true) ||
+    authContextProfile?.membership_type === "guardian" ||
+    authContextProfile?.membership_type === "team" ||
+    _auth.isTalent === true   // AuthContext-Calc als Tiebreaker
   );
   const [profile,    setProfile]    = useState(null);
   const [loading,    setLoading]    = useState(true);
