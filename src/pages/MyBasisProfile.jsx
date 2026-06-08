@@ -1089,6 +1089,19 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {/* ── 6. SICHTBARKEIT ──────────────────────────────── */}
         <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
 
+        {/* ── TALENT-ERWEITERUNG: 6 Schritte + Werke + Erlebnisse ── */}
+        {profile?.is_talent && (
+          <>
+            <Gap h={20}/>
+            <Divider/>
+            <Gap h={20}/>
+            <TalentErweiterung profile={profile} onProfileUpdate={(upd) => {
+              setProfile(p => ({ ...p, ...upd }));
+              setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
+            }}/>
+          </>
+        )}
+
         <Gap h={40}/>
       </div>
 
@@ -1134,6 +1147,124 @@ export default function MyBasisProfile({ onClose, profileId }) {
           }}
         />
       )}
+    </div>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// TALENT-ERWEITERUNG
+// Sichtbar wenn profiles.is_talent = true
+// Zeigt 6 Schritte + Meine Werke + Meine Erlebnisse
+// Basiert auf DEMSELBEN Profil — kein neues Profil
+// ══════════════════════════════════════════════════════════════
+function TalentErweiterung({ profile, onProfileUpdate }) {
+  const T = THEME;
+  const steps = [
+    { nr: 1, icon: "✏️",  title: "Profil erweitern",        done: !!(profile?.bio && profile?.display_name) },
+    { nr: 2, icon: "💚",  title: "Werte & Interessen",       done: Array.isArray(profile?.dna_tags) && profile.dna_tags.length > 0 },
+    { nr: 3, icon: "🤝",  title: "Begegnungen",              done: false },
+    { nr: 4, icon: "🎨",  title: "Werke erstellen",          done: false },
+    { nr: 5, icon: "✨",  title: "Erlebnisse erstellen",     done: false },
+    { nr: 6, icon: "🌍",  title: "Sichtbarkeit & Abschluss", done: !!(profile?.dna_tags?.length > 0) },
+  ];
+
+  return (
+    <div style={{ padding: "0 20px" }}>
+      {/* Header */}
+      <div style={{
+        background: "linear-gradient(135deg, #0EC4B8 0%, #00A8A0 100%)",
+        borderRadius: T.r16,
+        padding: "20px",
+        marginBottom: 20,
+        color: "#fff",
+      }}>
+        <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>
+          🌱 Du bist Teil der Gemeinschaft
+        </div>
+        <div style={{ fontSize: 13, opacity: 0.85 }}>
+          Gestalte dein Profil und werde sichtbar.
+        </div>
+      </div>
+
+      {/* 6 Schritte */}
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
+        DEINE 6 SCHRITTE
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+        {steps.map(s => (
+          <div key={s.nr} style={{
+            display: "flex", alignItems: "center", gap: 12,
+            background: s.done ? "rgba(14,196,184,0.08)" : T.bgCard,
+            border: `1.5px solid ${s.done ? "rgba(14,196,184,0.30)" : T.border}`,
+            borderRadius: T.r12,
+            padding: "12px 14px",
+            boxShadow: T.card,
+          }}>
+            <span style={{
+              width: 28, height: 28, borderRadius: "50%",
+              background: s.done ? "#0EC4B8" : T.bgCard,
+              border: `1.5px solid ${s.done ? "#0EC4B8" : T.border}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 13, fontWeight: 800,
+              color: s.done ? "#fff" : T.inkSoft,
+              flexShrink: 0,
+            }}>
+              {s.done ? "✓" : s.nr}
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
+              {s.icon} {s.title}
+            </span>
+            {s.done && (
+              <span style={{ marginLeft: "auto", fontSize: 11, color: "#0EC4B8", fontWeight: 700 }}>
+                Erledigt
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Meine Werke */}
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
+        MEINE WERKE
+      </div>
+      <div style={{
+        background: T.bgCard, borderRadius: T.r16,
+        border: `1px solid ${T.border}`, padding: "16px",
+        boxShadow: T.card, marginBottom: 20,
+      }}>
+        <div style={{ fontSize: 13, color: T.inkFaint, lineHeight: 1.65 }}>
+          Noch keine Werke hinzugefügt. Teile deine Projekte, Ideen und Leistungen mit der Gemeinschaft.
+        </div>
+        <button style={{
+          marginTop: 12, padding: "8px 16px", borderRadius: 99,
+          background: "#0EC4B8", border: "none", cursor: "pointer",
+          fontSize: 13, fontWeight: 700, color: "#fff",
+        }}>
+          + Werk hinzufügen
+        </button>
+      </div>
+
+      {/* Meine Erlebnisse */}
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
+        MEINE ERLEBNISSE
+      </div>
+      <div style={{
+        background: T.bgCard, borderRadius: T.r16,
+        border: `1px solid ${T.border}`, padding: "16px",
+        boxShadow: T.card,
+      }}>
+        <div style={{ fontSize: 13, color: T.inkFaint, lineHeight: 1.65 }}>
+          Noch keine Erlebnisse hinzugefügt. Berichte von echten Begegnungen und Erfahrungen.
+        </div>
+        <button style={{
+          marginTop: 12, padding: "8px 16px", borderRadius: 99,
+          background: "#0EC4B8", border: "none", cursor: "pointer",
+          fontSize: 13, fontWeight: 700, color: "#fff",
+        }}>
+          + Erlebnis hinzufügen
+        </button>
+      </div>
     </div>
   );
 }
