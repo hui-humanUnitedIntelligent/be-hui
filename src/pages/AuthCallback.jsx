@@ -18,7 +18,15 @@ export default function AuthCallback() {
           if (session.user) {
             processReferralAfterSignup(supabase, session.user.id).catch(() => {})
           }
-          setTimeout(() => { window.location.href = '/Home' }, 800)
+          setTimeout(() => {
+            // Hard-Reload nach Login — verhindert Stale-Asset-Fehler nach Deployments
+            try {
+              const v = Date.now();
+              window.location.replace('/Home?v=' + v);
+            } catch (_) {
+              window.location.href = '/Home';
+            }
+          }, 800)
         } else {
           setStatus('error')
           setTimeout(() => { window.location.href = '/login' }, 1500)
