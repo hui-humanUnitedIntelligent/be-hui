@@ -1299,43 +1299,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // ── Profil-Sync: AuthContext → lokaler State ─────────────────────────────
   // PRIMÄRE QUELLE: AuthContext.profile (wird von AuthContext geladen + gecacht)
   // FALLBACK: direkter DB-Call wenn AuthContext beim ersten Render noch nicht fertig
-  const profileSyncedRef = useRef(false);
-
-  // Einmaliger Sync: sobald authContextProfile?.id verfügbar ist
-  // Kein Re-Render durch Avatar/Bio/etc. Änderungen — profileSyncedRef verhindert doppeltes Setzen
+  // ── Profil-Laden: DIREKT aus DB beim Mount — keine AuthContext-Abhängigkeit ──
   useEffect(() => {
-    if (!authContextProfile?.id) return;
-    if (profileSyncedRef.current) return; // bereits synchronisiert
-    const p = authContextProfile;
-    setProfile(p);
-    setBio(s(p.bio));
-    setInterests(Array.isArray(p.skills) ? p.skills : []);
-    setOpenFor(Array.isArray(p.profile_modules?.open_for) ? p.profile_modules.open_for : []);
-    if (p.focus_type && ["public","connections","private"].includes(p.focus_type)) {
-      setVisibility(p.focus_type);
-    }
-    let rawTags = p.dna_tags;
-    if (typeof rawTags === "string" && rawTags.startsWith("{")) {
-      rawTags = rawTags.slice(1, -1).split(",").map(v => v.trim()).filter(Boolean);
-    }
-    const tagArr = Array.isArray(rawTags) ? rawTags : [];
-    if (tagArr.length) setMoments(tagArr.map((url, i) => ({ id: `db_${i}`, img: url })));
-    profileSyncedRef.current = true;
-    setLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authContextProfile?.id]);
-
-  // ── Fallback: AuthContext zu langsam → direkter DB-Call nach 2s ───────────
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (profileSyncedRef.current) return; // bereits geladen
+    let cancelled = false;
+    async function loadOwnProfile() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
+        if (!user || cancelled) return;
         const { data } = await supabase.from("profiles")
           .select("id,username,display_name,avatar_url,header_img,bio,location,skills,dna_tags,focus_type,profile_modules,is_ambassador,is_wirker,membership_type,membership_active,is_member,has_talent_profile,is_talent,talent_since,role,membership_since,member_since,talent_activated_at,impact_eur,availability,blocked")
           .eq("id", user.id).single();
-        if (data && !profileSyncedRef.current) {
+        if (data && !cancelled) {
           setProfile(data);
           setBio(s(data.bio));
           setInterests(Array.isArray(data.skills) ? data.skills : []);
@@ -1343,12 +1317,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
             setVisibility(data.focus_type);
           }
-          profileSyncedRef.current = true;
         }
-      } catch(e) { console.warn("MyBasisProfile fallback load:", e); }
-      setLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
+      } catch(e) {
+        console.warn("MyBasisProfile loadOwnProfile:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    loadOwnProfile();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Werke des Nutzers laden ───────────────────────────────────────
