@@ -12,8 +12,8 @@ const CSS = `
   @keyframes amb-slide-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
   .amb-overlay {
     position:fixed;inset:0;background:rgba(10,10,10,0.55);
-    z-index:9999;display:flex;align-items:flex-end;justify-content:center;
-    padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));
+    z-index:10300;display:flex;align-items:flex-end;justify-content:center;
+    padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));
   }
   .amb-sheet {
     background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;
