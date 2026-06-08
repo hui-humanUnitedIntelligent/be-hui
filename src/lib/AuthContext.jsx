@@ -298,6 +298,40 @@ export function AuthProvider({ children }) {
     return () => { supabase.removeChannel(channel); };
   }, [user?.id, setBlockedState]);
 
+  // ── Polling-Fallback: Profil-Existenz alle 20s prüfen ─────────────────────
+  // Nötig weil Supabase Realtime DELETE-Filter ohne REPLICA IDENTITY FULL keinen Payload liefert
+  useEffect(() => {
+    if (!user?.id) return;
+    const INTERVAL = 20_000; // 20 Sekunden
+    const poll = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id,blocked")
+          .eq("id", user.id)
+          .maybeSingle();
+        // Profil nicht gefunden → Nutzer wurde gelöscht
+        if (!data && !error) {
+          console.warn("[HUI Auth] Polling: Profil nicht gefunden → Logout");
+          await supabase.auth.signOut();
+          setProfile(null);
+          return;
+        }
+        // Profil geblockt
+        if (data?.blocked === true) {
+          console.warn("[HUI Auth] Polling: Profil blockiert → Logout");
+          setBlockedState(true);
+          await supabase.auth.signOut();
+          setProfile(null);
+        }
+      } catch {
+        // Netzwerkfehler ignorieren — nächste Runde versucht es erneut
+      }
+    };
+    const timer = setInterval(poll, INTERVAL);
+    return () => clearInterval(timer);
+  }, [user?.id, setBlockedState]);
+
   // ── Shim für alte ProtectedRoute (components/) ───────────────────
   const checkUserAuth = useCallback(() => {}, []);
 
