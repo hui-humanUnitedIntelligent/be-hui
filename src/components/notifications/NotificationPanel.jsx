@@ -243,8 +243,8 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange }) {
                       {n.body}
                     </div>
                   )}
-                  {/* Ablehnungsgrund bei content_rejected */}
-                  {n.type === "content_rejected" && n.metadata?.rejection_reason && (
+                  {/* Ablehnungsgrund bei work_rejected + content_rejected */}
+                  {(n.type === "work_rejected" || n.type === "content_rejected") && n.metadata?.rejection_reason && (
                     <div style={{
                       marginTop:5, padding:"6px 10px", borderRadius:"8px",
                       background:"rgba(239,68,68,0.07)",
