@@ -29,6 +29,8 @@ const WIRKER_SELECT =
   "hourly_rate,is_verified,rating_avg,booking_count," +
   "avatar_url,header_img";
 
+// WORKS_SELECT — geprüfte Felder (Sprint E.11)
+// NICHT hinzufügen: medium (existiert nicht in der works-Tabelle)
 const WORKS_SELECT =
   "id,user_id,title,cover_url,category,status," +
   "approval_status,price,for_sale,visibility,created_at";
@@ -235,8 +237,11 @@ export function useProfileData(profileId) {
       setWirkerProfile(wp);
 
 
-      // ─────────────────────────────────────────────────────────────
-      setWorks(worksRes.data || []);
+      // ── Regressionsschutz: Schema-Fehler sofort sichtbar machen ──
+      if (worksRes.error) {
+        console.error('[WORKS QUERY FAILED]', worksRes.error);
+      }
+      setWorks(Array.isArray(worksRes.data) ? worksRes.data : []);
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);
       setMoments(momentsRes.data    || []);

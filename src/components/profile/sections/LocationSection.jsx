@@ -23,7 +23,6 @@ export function LocationSection({
   // location_final aus useProfileData bevorzugen
   const location = profile?.location_final || profile?.location || "";
   // ── SPRINT D.2 TRACE
-  console.log("LocationSection", { location_final: profile?.location_final, location: profile?.location, isOwner });
   // ── END TRACE
   const [editing,  setEditing]  = useState(false);
   const [draft,    setDraft]    = useState(location);
