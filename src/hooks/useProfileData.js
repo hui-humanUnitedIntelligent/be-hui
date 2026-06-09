@@ -111,6 +111,13 @@ export function useProfileData(profileId) {
     setError(null);
 
     try {
+      // ── SPRINT E.9 — NOOP + DATA TRACE ─────────────────────────
+      console.log('[E9] supabase.from IS NOOP?',
+        typeof supabase.from('works').not === 'undefined'
+          ? '⚠️ NOOP AKTIV — .not() fehlt'
+          : '✅ ECHTER CLIENT — .not() vorhanden'
+      );
+      console.log('[E9] profileId going into query:', profileId);
       // ── Alle Queries parallel ────────────────────────────────────
       const [
         profileRes,
@@ -253,6 +260,17 @@ export function useProfileData(profileId) {
       }
       // ── END E.5 TRACE ─────────────────────────────────────────────
 
+      // ── SPRINT E.9 — RAW RESULTS VOR setState ─────────────────
+      console.group('[E9] RAW RESULTS vor setState');
+      console.log('[E9] profileRes.data vorhanden?', !!profileRes.data);
+      console.log('[E9] worksRes.data?.length    :', worksRes.data?.length ?? 'null/undefined');
+      console.log('[E9] worksRes.error           :', worksRes.error ?? 'null');
+      console.log('[E9] expsRes.data?.length     :', expsRes.data?.length ?? 'null/undefined');
+      console.log('[E9] momentsRes.data?.length  :', momentsRes.data?.length ?? 'null/undefined');
+      console.log('[E9] recsRes.data?.length     :', recsRes.data?.length ?? 'null/undefined');
+      console.log('[E9] fcRes.data               :', fcRes.data ?? 'null');
+      console.groupEnd();
+      // ─────────────────────────────────────────────────────────────
       setWorks(worksRes.data || []);
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);
