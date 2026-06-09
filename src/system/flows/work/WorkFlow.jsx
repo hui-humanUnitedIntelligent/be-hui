@@ -176,7 +176,9 @@ export default function WorkFlow({ onClose }) {
         price:       form.price        ? parseFloat(form.price) : null,
         for_sale:    form.priceMode !== "free",
         visibility:  form.visibility   || "public",
-        status:      "published",
+        status:      "pending_review",
+        last_submitted_at: new Date().toISOString(),
+        is_update: false,
       };
       console.info("[HUI_PUBLISH] works payload:", {
         user_id:    workPayload.user_id,
@@ -203,6 +205,7 @@ export default function WorkFlow({ onClose }) {
       }
       console.info("[HUI_REALITY] work published ✓", workData?.id, workData);
       setDone(true);
+      setSuccessMsg?.("✅ Werk eingereicht! Es wird geprüft und bald freigeschaltet.");
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
       setError(e.message || "Fehler beim Veröffentlichen");
