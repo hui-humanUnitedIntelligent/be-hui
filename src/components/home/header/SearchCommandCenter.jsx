@@ -1801,407 +1801,23 @@ function KiDiscoveryCol({query, onHintSelect}){
 
 
 // ─────────────────────────────────────────────────────────────
-// MOBILE FULLSCREEN SEARCH VIEW
-// • Suchfeld IMMER sichtbar — sticky oben
-// • createPortal → über allem (z-index 99999)
-// • Zustand 1 (leer):  Kategorien + letzte Suchen
-// • Zustand 2 (query): Kategorie-Tabs + Ergebnisliste full-width
-// ─────────────────────────────────────────────────────────────
-const MOBILE_CATS = [
-  { key:"alle",        label:"Alle",          emoji:"🔍" },
-  { key:"personen",    label:"Personen",      emoji:"👥" },
-  { key:"talente",     label:"Talente",       emoji:"✨" },
-  { key:"werke",       label:"Werke",         emoji:"🎨" },
-  { key:"erlebnisse",  label:"Erlebnisse",    emoji:"📅" },
-  { key:"projekte",    label:"Projekte",      emoji:"🌱" },
-  { key:"beitraege",   label:"Beiträge",      emoji:"📝" },
-];
-const MOBILE_EMPTY_CATS = [
-  { label:"Menschen",       emoji:"👥", q:"Menschen"      },
-  { label:"Werke",          emoji:"🎨", q:"Werk"          },
-  { label:"Projekte",       emoji:"🌱", q:"Projekt"       },
-  { label:"Erlebnisse",     emoji:"📅", q:"Erlebnis"      },
-  { label:"Kreativität",    emoji:"🎨", q:"kreativ"       },
-  { label:"Musik",          emoji:"🎵", q:"Musik"         },
-  { label:"Gemeinschaft",   emoji:"🤝", q:"Gemeinschaft"  },
-  { label:"Nachhaltigkeit", emoji:"🌿", q:"nachhaltig"    },
-];
-
-function MobileSearchView({ initialQuery, history, onClose, onSelect, onHistory, currentUser }) {
-  const [q,        setQ]        = useState(initialQuery || "");
-  const [category, setCategory] = useState("alle");
-  const inputRef   = useRef(null);
-  const debouncedQ = useDebounce(q, 260);
-  const { results, loading, total } = useUnifiedSearch(debouncedQ);
-  const hasQuery = q.trim().length > 0;
-
-  // Autofokus
-  useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 70);
-    return () => clearTimeout(t);
-  }, []);
-
-  // iOS scroll-lock
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
-  }, []);
-
-  // Hardware-Back
-  useEffect(() => {
-    window.history.pushState(null, "", window.location.href);
-    const fn = () => onClose();
-    window.addEventListener("popstate", fn);
-    return () => window.removeEventListener("popstate", fn);
-  }, [onClose]);
-
-  // Kategorie zurücksetzen bei neuer Query
-  useEffect(() => { setCategory("alle"); }, [debouncedQ]);
-
-  function getFiltered() {
-    if (!hasQuery) return [];
-    switch (category) {
-      case "personen":   return results.profiles.filter(r => !r.talent);
-      case "talente":    return results.profiles.filter(r =>  r.talent);
-      case "werke":      return results.works;
-      case "erlebnisse": return results.experiences;
-      case "beitraege":  return results.momente;
-      case "projekte":   return [];
-      default:           return [
-        ...results.profiles, ...results.works,
-        ...results.experiences, ...results.momente,
-      ];
-    }
-  }
-  function catCount(key) {
-    switch (key) {
-      case "personen":   return results.profiles.filter(r => !r.talent).length;
-      case "talente":    return results.profiles.filter(r =>  r.talent).length;
-      case "werke":      return results.works.length;
-      case "erlebnisse": return results.experiences.length;
-      case "beitraege":  return results.momente.length;
-      case "projekte":   return 0;
-      default:           return total;
-    }
-  }
-  function typeIcon(t)  { return t==="profile"?"👤":t==="work"?"🎨":t==="experience"?"📅":t==="moment"?"📝":"✨"; }
-  function typeLabel(t) { return t==="profile"?"Person":t==="work"?"Werk":t==="experience"?"Erlebnis":t==="moment"?"Beitrag":""; }
-
-  const items = getFiltered();
-
-  const content = (
-    <div style={{
-      position:"fixed", inset:0, zIndex:99999,
-      background:"#F9F7F4",
-      display:"flex", flexDirection:"column",
-      overflow:"hidden",
-    }}>
-      <style>{`
-        @keyframes msv-in {
-          from { opacity:0; transform:translateY(10px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        .msv-root  { animation: msv-in .20s cubic-bezier(.22,1,.36,1) both; }
-        .msv-scroll::-webkit-scrollbar { display:none; }
-        .msv-item:active   { background:rgba(14,196,184,0.10) !important; }
-        .msv-chip:active   { opacity:.7; }
-        .msv-catbtn:active { opacity:.7; }
-      `}</style>
-
-      {/* ══ STICKY HEADER — Suchfeld IMMER sichtbar ══ */}
-      <div className="msv-root" style={{
-        flexShrink:0, zIndex:2,
-        background:"rgba(249,247,244,0.98)",
-        backdropFilter:"blur(24px) saturate(1.6)",
-        WebkitBackdropFilter:"blur(24px) saturate(1.6)",
-        borderBottom:"1px solid rgba(0,0,0,0.06)",
-        paddingTop:"max(14px, env(safe-area-inset-top, 14px))",
-      }}>
-
-        {/* Zeile 1: ← Zurück + Suchfeld */}
-        <div style={{ display:"flex", alignItems:"center", gap:9, padding:"0 12px 10px" }}>
-
-          {/* ← Zurück */}
-          <button onClick={onClose} style={{
-            flexShrink:0, width:38, height:38, borderRadius:"50%",
-            background:"rgba(26,53,48,0.07)", border:"none", cursor:"pointer",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M5 12L12 19M5 12L12 5"
-                stroke="#1A3530" strokeWidth="2.2"
-                strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-
-          {/* Suchfeld — IMMER sichtbar, IMMER tippbar */}
-          <div style={{
-            flex:1, display:"flex", alignItems:"center", gap:8, height:44,
-            background:"#fff", borderRadius:14,
-            border:"1.5px solid rgba(14,196,184,0.40)",
-            boxShadow:"0 0 0 3px rgba(14,196,184,0.07)",
-            padding:"0 12px",
-          }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-              style={{flexShrink:0, opacity:.45}}>
-              <circle cx="11" cy="11" r="7" stroke="#0EC4B8" strokeWidth="2.2"/>
-              <path d="M20 20L16.5 16.5" stroke="#0EC4B8" strokeWidth="2.2" strokeLinecap="round"/>
-            </svg>
-            <input
-              ref={inputRef}
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder="Suchen…"
-              autoCapitalize="off"
-              autoCorrect="off"
-              style={{
-                flex:1, border:"none", outline:"none", background:"transparent",
-                fontSize:16, fontWeight:500, color:"#1A3530",
-                fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
-              }}
-            />
-            {q && (
-              <button
-                onClick={() => { setQ(""); setTimeout(() => inputRef.current?.focus(), 30); }}
-                style={{
-                  flexShrink:0, width:20, height:20, borderRadius:"50%",
-                  background:"rgba(0,0,0,0.10)", border:"none", cursor:"pointer",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:11, color:"rgba(60,60,60,0.6)", fontWeight:700,
-                  WebkitTapHighlightColor:"transparent",
-                }}>✕</button>
-            )}
-          </div>
-        </div>
-
-        {/* Zeile 2: Kategorie-Tabs — nur wenn Query vorhanden */}
-        {hasQuery && (
-          <div className="msv-scroll" style={{
-            display:"flex", gap:6, overflowX:"auto", overflowY:"hidden",
-            padding:"0 12px 10px", scrollbarWidth:"none",
-          }}>
-            {MOBILE_CATS.map(cat => {
-              const cnt    = catCount(cat.key);
-              const active = category === cat.key;
-              return (
-                <button key={cat.key} className="msv-catbtn"
-                  onClick={() => setCategory(cat.key)}
-                  style={{
-                    flexShrink:0, display:"flex", alignItems:"center", gap:4,
-                    padding:"5px 11px", borderRadius:99,
-                    border: active ? "1.5px solid #0EC4B8" : "1.5px solid rgba(0,0,0,0.09)",
-                    background: active ? "rgba(14,196,184,0.13)" : "#fff",
-                    cursor:"pointer",
-                    WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-                  }}>
-                  <span style={{fontSize:12}}>{cat.emoji}</span>
-                  <span style={{
-                    fontSize:12, fontWeight:active?700:500,
-                    color:active?"#0EC4B8":"#1A3530",
-                  }}>{cat.label}</span>
-                  {cnt > 0 && (
-                    <span style={{
-                      fontSize:10, fontWeight:700,
-                      borderRadius:99, padding:"1px 5px",
-                      color:active?"#0EC4B8":"rgba(26,53,48,0.38)",
-                      background:active?"rgba(14,196,184,0.15)":"rgba(0,0,0,0.06)",
-                    }}>{cnt}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* ══ SCROLLBEREICH ══ */}
-      <div className="msv-scroll" style={{
-        flex:1, overflowY:"auto",
-        paddingBottom:"max(90px, calc(72px + env(safe-area-inset-bottom,0px)))",
-      }}>
-
-        {/* LEERZUSTAND */}
-        {!hasQuery && (
-          <div style={{padding:"20px 16px 0"}}>
-
-            {/* Letzte Suchen */}
-            {history.length > 0 && (
-              <div style={{marginBottom:24}}>
-                <div style={{
-                  fontSize:11, fontWeight:800, letterSpacing:".07em",
-                  textTransform:"uppercase", color:"rgba(26,53,48,0.35)",
-                  marginBottom:10,
-                }}>Zuletzt gesucht</div>
-                <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
-                  {history.slice(0,6).map((h,i) => (
-                    <button key={i} className="msv-chip" onClick={() => setQ(h)}
-                      style={{
-                        display:"flex", alignItems:"center", gap:5,
-                        padding:"6px 12px", borderRadius:99,
-                        background:"#fff", border:"1px solid rgba(0,0,0,0.09)",
-                        cursor:"pointer", fontSize:13, fontWeight:500, color:"#1A3530",
-                        WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-                      }}>
-                      <span style={{fontSize:11, opacity:.4}}>🕐</span>{h}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Beliebte Kategorien */}
-            <div>
-              <div style={{
-                fontSize:11, fontWeight:800, letterSpacing:".07em",
-                textTransform:"uppercase", color:"rgba(26,53,48,0.35)",
-                marginBottom:12,
-              }}>Beliebte Kategorien</div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
-                {MOBILE_EMPTY_CATS.map((cat,i) => (
-                  <button key={i} className="msv-item" onClick={() => setQ(cat.q)}
-                    style={{
-                      display:"flex", alignItems:"center", gap:10,
-                      padding:"12px 14px", borderRadius:14,
-                      background:"#fff", border:"1px solid rgba(0,0,0,0.07)",
-                      boxShadow:"0 1px 4px rgba(0,0,0,0.04)",
-                      cursor:"pointer", textAlign:"left",
-                      WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-                    }}>
-                    <span style={{fontSize:22}}>{cat.emoji}</span>
-                    <span style={{fontSize:13, fontWeight:600, color:"#1A3530"}}>{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* LADEN */}
-        {hasQuery && loading && (
-          <div style={{padding:"50px 0", textAlign:"center"}}>
-            <div style={{
-              width:28, height:28, borderRadius:"50%",
-              border:"2.5px solid rgba(14,196,184,0.15)",
-              borderTop:"2.5px solid #0EC4B8",
-              animation:"hui-spin .8s linear infinite",
-              margin:"0 auto",
-            }}/>
-            <style>{`@keyframes hui-spin{to{transform:rotate(360deg)}}`}</style>
-          </div>
-        )}
-
-        {/* KEINE ERGEBNISSE */}
-        {hasQuery && !loading && items.length === 0 && (
-          <div style={{padding:"52px 20px", textAlign:"center"}}>
-            <div style={{fontSize:36, marginBottom:12}}>🔍</div>
-            <div style={{fontSize:16, fontWeight:700, color:"#1A3530", marginBottom:6}}>
-              Nichts gefunden
-            </div>
-            <div style={{fontSize:13, color:"rgba(26,53,48,0.48)", lineHeight:1.5}}>
-              Keine Ergebnisse für „{debouncedQ}".<br/>
-              Versuch einen anderen Begriff.
-            </div>
-          </div>
-        )}
-
-        {/* ERGEBNISLISTE */}
-        {hasQuery && !loading && items.length > 0 && (
-          <div>
-            <div style={{
-              padding:"10px 16px 4px",
-              fontSize:11, fontWeight:600, color:"rgba(26,53,48,0.4)",
-            }}>
-              {items.length} Ergebnis{items.length !== 1 ? "se" : ""}
-            </div>
-            {items.map((item, idx) => (
-              <button key={item.id + idx} className="msv-item"
-                onClick={() => { onHistory?.(q); onSelect(item); onClose(); }}
-                style={{
-                  display:"flex", alignItems:"center", gap:12,
-                  width:"100%", padding:"11px 16px",
-                  background:"transparent", border:"none",
-                  borderBottom: idx < items.length-1 ? "1px solid rgba(0,0,0,0.045)" : "none",
-                  cursor:"pointer", textAlign:"left",
-                  WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-                }}>
-                {/* Avatar / Thumbnail */}
-                <div style={{
-                  width:46, height:46, flexShrink:0,
-                  borderRadius: item.type==="profile" ? "50%" : 11,
-                  overflow:"hidden",
-                  background:"rgba(14,196,184,0.08)",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  border:"1.5px solid rgba(14,196,184,0.13)",
-                }}>
-                  {(item.avatar || item.cover) ? (
-                    <img
-                      src={item.avatar || item.cover} alt=""
-                      style={{width:"100%", height:"100%", objectFit:"cover"}}
-                      onError={e => { e.target.style.display="none"; }}
-                    />
-                  ) : (
-                    <span style={{fontSize:22}}>{typeIcon(item.type)}</span>
-                  )}
-                </div>
-
-                {/* Text */}
-                <div style={{flex:1, minWidth:0}}>
-                  <div style={{
-                    fontSize:15, fontWeight:600, color:"#1A3530",
-                    overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
-                  }}>{item.title || "—"}</div>
-                  {item.sub && (
-                    <div style={{
-                      fontSize:12.5, color:"rgba(26,53,48,0.48)", marginTop:1,
-                      overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
-                    }}>{item.sub}</div>
-                  )}
-                  <div style={{
-                    display:"inline-flex", alignItems:"center", gap:3,
-                    marginTop:4, padding:"2px 7px", borderRadius:99,
-                    background:"rgba(14,196,184,0.07)",
-                    fontSize:10.5, fontWeight:600, color:"rgba(14,196,184,0.85)",
-                  }}>
-                    {typeIcon(item.type)} {typeLabel(item.type)}
-                  </div>
-                </div>
-
-                {/* Chevron */}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  style={{flexShrink:0, opacity:.2}}>
-                  <path d="M9 18L15 12L9 6" stroke="#1A3530"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-  return createPortal(content, document.body);
-}
-
-// ─────────────────────────────────────────────────────────────
-// HAUPTKOMPONENTE
+// HAUPTKOMPONENTE  — Eine Search Experience, responsive
+// Desktop: Dropdown-Overlay  |  Mobile: Fullscreen via Portal
 // ─────────────────────────────────────────────────────────────
 export default function SearchCommandCenter({ activeMood, currentUser }) {
-  // ── Navigation + Follow Engine ──────────────────────────────
   const { openProfileById, switchTab,
           setShowWerkPublisher, setShowExperienceCreator,
           setShowImpactFlow } = useHome();
   const engine = useConnectionEngine();
 
-  const [open,        setOpen]        = useState(false);
-  // Mobile Fullscreen Search
-  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [open,       setOpen]       = useState(false);
+  const [query,      setQuery]      = useState("");
+  const [searchQuery,setSearchQuery]= useState("");
+  const [showKi,     setShowKi]     = useState(false);
+  const [focusedIdx, setFocusedIdx] = useState(-1);
+
+  // Mobile: läuft über Portal wenn Bildschirm < 1024px
   const isMobile = () => typeof window !== "undefined" && window.innerWidth < 1024;
-  const [query,       setQuery]       = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showKi,      setShowKi]      = useState(false);
-  const [focusedIdx,  setFocusedIdx]  = useState(-1);
 
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
@@ -2212,19 +1828,21 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     catch { return []; }
   });
 
-  const resultsRef = useRef({profiles:[],works:[],experiences:[],momente:[]});
-  const focusedIdxRef = useRef(-1);
-  const openRef = useRef(false);
-  const searchQueryRef = useRef("");
+  const resultsRef      = useRef({profiles:[],works:[],experiences:[],momente:[]});
+  const focusedIdxRef   = useRef(-1);
+  const openRef         = useRef(false);
+  const searchQueryRef  = useRef("");
+
   const debounced = useDebounce(query, 250);
   useEffect(()=>{ setSearchQuery(debounced); setFocusedIdx(-1); },[debounced]);
   const {results,loading,total} = useUnifiedSearch(searchQuery);
-  // Sync refs für Keyboard-Handler (Closure über alten State vermeiden)
-  useEffect(()=>{ resultsRef.current = results; },[results]);
-  useEffect(()=>{ focusedIdxRef.current = focusedIdx; },[focusedIdx]);
-  useEffect(()=>{ openRef.current = open; },[open]);
-  useEffect(()=>{ searchQueryRef.current = searchQuery; },[searchQuery]);
 
+  useEffect(()=>{ resultsRef.current   = results;     },[results]);
+  useEffect(()=>{ focusedIdxRef.current= focusedIdx;  },[focusedIdx]);
+  useEffect(()=>{ openRef.current      = open;        },[open]);
+  useEffect(()=>{ searchQueryRef.current=searchQuery; },[searchQuery]);
+
+  // Placeholder-Rotation (nur wenn geschlossen)
   const PH = ["Was möchtest du heute bewirken?","Menschen finden…","Werke entdecken…","Projekte erkunden…"];
   const [phIdx,setPhIdx] = useState(0);
   const [phVis,setPhVis] = useState(true);
@@ -2237,6 +1855,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     return()=>clearInterval(t);
   },[open]);
 
+  // Click-Outside schließen (nur Desktop)
   useEffect(()=>{
     if(!open)return;
     function h(e){
@@ -2247,17 +1866,18 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     return()=>{ document.removeEventListener("mousedown",h); document.removeEventListener("touchstart",h); };
   },[open]);
 
+  // Keyboard-Navigation
   useEffect(()=>{
     function h(e){
       if(e.key==="Escape"){ if(showKi){setShowKi(false);return;} close_(); return; }
       if(!openRef.current)return;
-      const allItems=[...resultsRef.current.profiles,...resultsRef.current.works,...resultsRef.current.experiences,...resultsRef.current.momente];
-      if(e.key==="ArrowDown"){ e.preventDefault(); setFocusedIdx(i=>Math.min(i+1,allItems.length-1)); return; }
-      if(e.key==="ArrowUp"){ e.preventDefault(); setFocusedIdx(i=>Math.max(i-1,-1)); return; }
+      const all=[...resultsRef.current.profiles,...resultsRef.current.works,...resultsRef.current.experiences,...resultsRef.current.momente];
+      if(e.key==="ArrowDown"){ e.preventDefault(); setFocusedIdx(i=>Math.min(i+1,all.length-1)); return; }
+      if(e.key==="ArrowUp"){   e.preventDefault(); setFocusedIdx(i=>Math.max(i-1,-1)); return; }
       if(e.key==="Enter" && searchQueryRef.current.trim()){
         e.preventDefault();
-        const target = focusedIdxRef.current>=0 ? allItems[focusedIdxRef.current] : allItems[0];
-        if(target) handleSelect(target);
+        const t=focusedIdxRef.current>=0?all[focusedIdxRef.current]:all[0];
+        if(t)handleSelect(t);
         return;
       }
     }
@@ -2265,19 +1885,28 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     return()=>document.removeEventListener("keydown",h);
   },[showKi]);
 
+  // Mobile: scroll-lock wenn offen
+  useEffect(()=>{
+    if(!open || !isMobile()) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  },[open]);
+
   const mc  = activeMood?.color || "#0EC4B8";
   const has = !!activeMood;
 
   function open_(){
-    if (isMobile()) {
-      setMobileOpen(true);
-    } else {
-      setOpen(true);
-      setTimeout(()=>inputRef.current?.focus(),60);
-    }
+    setOpen(true);
+    setTimeout(()=>inputRef.current?.focus(), 60);
   }
-  function close_(){ setOpen(false); setQuery(""); setSearchQuery(""); setShowKi(false); inputRef.current?.blur(); }
-  function mobileClose(){ setMobileOpen(false); setQuery(""); setSearchQuery(""); }
+  function close_(){
+    setOpen(false);
+    setQuery("");
+    setSearchQuery("");
+    setShowKi(false);
+    inputRef.current?.blur();
+  }
   function saveHistory(q){ if(!q.trim())return; const n=[q,...history.filter(h=>h!==q)].slice(0,8); setHistory(n); try{localStorage.setItem("hui_search_history",JSON.stringify(n));}catch{} }
   function handleTheme(label){ setQuery(label); setSearchQuery(label); saveHistory(label); setShowKi(false); inputRef.current?.focus(); }
   function handleHistory(q){ setQuery(q); setSearchQuery(q); setShowKi(false); inputRef.current?.focus(); }
@@ -2287,68 +1916,305 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     close_();
     if(!item)return;
     switch(item.type){
-      case "profile":
-        if(item.id) openProfileById(item.id);
-        break;
-      case "work":
-        // Werk-Detailseite existiert noch nicht → Ersteller-Profil
-        if(item.userId) openProfileById(item.userId);
-        break;
-      case "experience":
-        // Erlebnis-Detailseite existiert noch nicht → Ersteller-Profil
-        if(item.userId) openProfileById(item.userId);
-        break;
-      case "moment":
-        // Beitrag → Discover-Tab
-        switchTab?.("discover");
-        break;
-      default:
-        break;
+      case "profile":    if(item.id)     openProfileById(item.id);      break;
+      case "work":       if(item.userId) openProfileById(item.userId);  break;
+      case "experience": if(item.userId) openProfileById(item.userId);  break;
+      case "moment":     switchTab?.("discover");                        break;
+      default: break;
     }
   }
   function handleAction(label){
     saveHistory(label);
     close_();
-    // QuickAction → spezifischen Creator-Flow öffnen
-    const l = label.toLowerCase();
-    if(l.includes("werk") || l.includes("veröffentlichen")){
-      setShowWerkPublisher?.(true);
-    } else if(l.includes("erlebnis") || l.includes("erstellen")){
-      setShowExperienceCreator?.(true);
-    } else if(l.includes("projekt")){
-      setShowImpactFlow?.(true);
-    } else {
-      // "Menschen kennenlernen" + "Ort hinzufügen" → Discover
-      switchTab?.("discover");
-    }
+    const l=label.toLowerCase();
+    if(l.includes("werk")||l.includes("veröffentlichen")){ setShowWerkPublisher?.(true); }
+    else if(l.includes("erlebnis")||l.includes("erstellen")){ setShowExperienceCreator?.(true); }
+    else if(l.includes("projekt")){ setShowImpactFlow?.(true); }
+    else { switchTab?.("discover"); }
   }
-  function handleDiscover() { close_(); switchTab?.("discover"); }
+  function handleDiscover(){ close_(); switchTab?.("discover"); }
   function handleKiHintSelect(hint){
-    // hint = { emoji, text }
-    const t = hint.text.toLowerCase();
-    if(t.includes("menschen") || t.includes("lieben")){
-      // Setze Suche auf people-only und öffne Discover
-      close_(); switchTab?.("discover");
-    } else if(t.includes("projekte")){
-      close_(); switchTab?.("discover");
-      setTimeout(()=>{
-        const el=document.querySelector("[data-dp-projekte]");
-        if(el)el.scrollIntoView({behavior:"smooth"});
-      },350);
-    } else if(t.includes("nähe") || t.includes("location")){
-      close_(); switchTab?.("discover");
-      setTimeout(()=>{
-        const el=document.querySelector("[data-dp-people]");
-        if(el)el.scrollIntoView({behavior:"smooth"});
-      },350);
-    } else {
-      // "neue Blickwinkel" → globale Discover-Suche
-      close_(); switchTab?.("discover");
+    const t=hint.text.toLowerCase();
+    close_(); switchTab?.("discover");
+    if(t.includes("projekte")){
+      setTimeout(()=>{ document.querySelector("[data-dp-projekte]")?.scrollIntoView({behavior:"smooth"}); },350);
     }
   }
   function handleCategoryClick(cat){ setQuery(cat); setSearchQuery(cat); inputRef.current?.focus(); }
 
   const showResults = searchQuery.trim().length > 0;
+  const mobile      = isMobile();
+
+  // ── OVERLAY-INHALT (geteilt Desktop + Mobile) ──────────────
+  function overlayContent() {
+    return (
+      <>
+        {/* ══ SUCHMODUS ══ */}
+        {showResults ? (
+          <div style={{padding:"14px 16px 16px"}}>
+            {loading ? (
+              <div style={{padding:"22px 0",textAlign:"center",color:T.inkF,fontSize:13}}>Suche läuft…</div>
+            ) : total===0 ? (
+              <div style={{padding:"24px 0",textAlign:"center"}}>
+                <div style={{fontSize:26,marginBottom:8}}>🔍</div>
+                <div style={{fontSize:13,color:T.inkF}}>Keine Ergebnisse für „{searchQuery}"</div>
+              </div>
+            ) : mobile ? (
+              /* ── Mobile Suchergebnisse: vertikal ── */
+              <div style={{display:"flex",flexDirection:"column",gap:0}}>
+                {[
+                  {title:"Menschen",   emoji:"👥", items:results.profiles},
+                  {title:"Erlebnisse", emoji:"📅", items:results.experiences},
+                  {title:"Werke",      emoji:"🎨", items:results.works},
+                ].filter(col=>col.items.length>0).map((col,ci)=>(
+                  <div key={ci} style={{marginBottom:18}}>
+                    <div style={{fontSize:10,fontWeight:800,color:T.inkF,letterSpacing:".07em",textTransform:"uppercase",marginBottom:8,display:"flex",alignItems:"center",gap:5}}>
+                      {col.emoji} {col.title}
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column",gap:1}}>
+                      {col.items.map((it,i)=>(
+                        <div key={it.id} onClick={()=>handleSelect(it)}
+                          style={{display:"flex",alignItems:"center",gap:10,padding:"9px 4px",borderRadius:12,cursor:"pointer",WebkitTapHighlightColor:"transparent",borderBottom:"1px solid rgba(14,196,184,0.06)"}}>
+                          <div style={{width:40,height:40,flexShrink:0,borderRadius:it.type==="profile"?"50%":10,overflow:"hidden",background:T.tealS,display:"flex",alignItems:"center",justifyContent:"center",border:"1.5px solid rgba(14,196,184,0.12)"}}>
+                            {it.avatar ? <img src={it.avatar} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>e.target.style.display="none"}/> : <span style={{fontSize:18}}>{it.type==="profile"?"👤":it.type==="work"?"🎨":"📅"}</span>}
+                          </div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:14,fontWeight:600,color:T.ink,overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{it.title}</div>
+                            {it.sub&&<div style={{fontSize:11.5,color:T.inkF,overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis",marginTop:1}}>{it.sub}</div>}
+                          </div>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:.2}}><path d="M9 18L15 12L9 6" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/></svg>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {/* KI-Hinweise auf Mobile */}
+                <KiDiscoveryCol query={searchQuery} onHintSelect={handleKiHintSelect}/>
+              </div>
+            ) : (
+              /* ── Desktop Suchergebnisse: 4-Spalten-Grid ── */
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:14}}>
+                <ResultCol title="Menschen"   emoji="👥" items={results.profiles}    onSelect={handleSelect} startIdx={0} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
+                <ResultCol title="Erlebnisse" emoji="📅" items={results.experiences} onSelect={handleSelect} startIdx={results.profiles.length} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
+                <ResultCol title="Werke"      emoji="🎨" items={results.works}       onSelect={handleSelect} startIdx={results.profiles.length+results.experiences.length} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
+                <KiDiscoveryCol query={searchQuery} onHintSelect={handleKiHintSelect}/>
+              </div>
+            )}
+            {/* Suchverlauf */}
+            {history.length>0 && (
+              <div style={{marginTop:16,paddingTop:12,borderTop:"1px solid rgba(14,196,184,0.08)",display:"flex",flexWrap:"wrap",gap:6}}>
+                {history.slice(0,5).map((h,i)=>(
+                  <button key={i} onClick={()=>handleHistory(h)} style={{
+                    display:"flex",alignItems:"center",gap:4,
+                    background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",
+                    borderRadius:99,padding:"4px 11px",
+                    fontSize:11.5,fontWeight:500,color:T.inkS,
+                    cursor:"pointer",WebkitTapHighlightColor:"transparent",
+                  }}>
+                    <span style={{fontSize:9.5,opacity:.42}}>🕐</span> {h}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+        ) : (
+          /* ══ DEFAULT OVERLAY ══ */
+          <>
+            <GreetingWithHints currentUser={currentUser} onCategoryClick={handleCategoryClick}/>
+            <ForDichAusgewaehlt currentUser={currentUser} openProfileById={openProfileById} onDiscover={handleDiscover} onClose={close_}/>
+            <MenschenDuKennenSolltest currentUser={currentUser} openProfileById={openProfileById} engine={engine} onDiscover={handleDiscover}/>
+
+            <div style={{padding:"14px 16px 12px",borderBottom:"1px solid rgba(14,196,184,0.08)"}}>
+              <StoryCards/>
+            </div>
+
+            {mobile ? (
+              /* ── Mobile Layout: vertikal ── */
+              <div style={{padding:"14px 16px"}}>
+                <PersonalRec currentUser={currentUser} openProfileById={openProfileById}/>
+                <div style={{marginTop:18}}><ThemeCards onThemeClick={handleTheme}/></div>
+                {history.length>0 && (
+                  <div style={{marginTop:18}}>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                      <SectionLabel>Zuletzt gesucht</SectionLabel>
+                      <button onClick={()=>{setHistory([]);localStorage.removeItem("hui_search_history");}} style={{background:"none",border:"none",cursor:"pointer",fontSize:10,color:T.inkF,padding:0}}>Löschen</button>
+                    </div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                      {history.slice(0,6).map((h,i)=>(
+                        <button key={i} onClick={()=>handleHistory(h)} style={{display:"flex",alignItems:"center",gap:4,background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",borderRadius:99,padding:"4px 11px",fontSize:11.5,fontWeight:500,color:T.inkS,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                          <span style={{fontSize:9.5,opacity:.42}}>🕐</span>{h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* ── Desktop Layout: 3-Spalten ── */
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:0}}>
+                <div style={{padding:"14px 14px",borderRight:"1px solid rgba(14,196,184,0.08)"}}>
+                  <PersonalRec currentUser={currentUser} openProfileById={openProfileById}/>
+                </div>
+                <div style={{padding:"14px 14px",borderRight:"1px solid rgba(14,196,184,0.08)"}}>
+                  <ThemeCards onThemeClick={handleTheme}/>
+                </div>
+                <div style={{padding:"14px 14px"}}>
+                  <LiveActivity/>
+                  {history.length>0 && (
+                    <div style={{marginTop:14}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        <SectionLabel>Zuletzt gesucht</SectionLabel>
+                        <button onClick={()=>{setHistory([]);localStorage.removeItem("hui_search_history");}} style={{background:"none",border:"none",cursor:"pointer",fontSize:10,color:T.inkF,padding:"0 0 10px 0"}}>Löschen</button>
+                      </div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                        {history.slice(0,5).map((h,i)=>(
+                          <button key={i} onClick={()=>handleHistory(h)} style={{display:"flex",alignItems:"center",gap:4,background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",borderRadius:99,padding:"4px 11px",fontSize:11.5,fontWeight:500,color:T.inkS,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
+                            onMouseEnter={e=>e.currentTarget.style.background="rgba(14,196,184,0.09)"}
+                            onMouseLeave={e=>e.currentTarget.style.background="rgba(26,53,48,0.05)"}
+                          ><span style={{fontSize:9.5,opacity:.42}}>🕐</span>{h}</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div style={{borderTop:"1px solid rgba(14,196,184,0.08)",padding:"14px 16px 16px"}}>
+              <QuickActions onAction={handleAction}/>
+            </div>
+          </>
+        )}
+      </>
+    );
+  }
+
+  // ── SEARCH-BAR (identisch Desktop + Mobile) ────────────────
+  const searchBar = (
+    <div onClick={open_} style={{
+      display:"flex", alignItems:"center", gap:9, height:40,
+      background: has ? `linear-gradient(135deg,${mc}12,rgba(255,251,248,0.96))` : "rgba(255,255,255,0.92)",
+      backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
+      borderRadius: open ? "14px 14px 0 0" : 999,
+      border:`1.5px solid ${open ? T.teal : has ? mc+"42" : "rgba(22,215,197,0.25)"}`,
+      borderBottom: open ? "1.5px solid rgba(14,196,184,0.09)" : undefined,
+      boxShadow: open ? "none" : "0 0 0 2px rgba(14,196,184,0.08),0 3px 14px rgba(0,0,0,0.05)",
+      padding:"0 10px 0 13px", cursor:"text",
+      transition:"border-radius .18s ease, border-color .18s, box-shadow .18s",
+    }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:open?.7:.38}}>
+        <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="2"/>
+        <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+      <div style={{flex:1,position:"relative",height:40,display:"flex",alignItems:"center"}}>
+        <input ref={inputRef} className="dc-input"
+          value={query}
+          onChange={e=>setQuery(e.target.value)}
+          onFocus={open_}
+          placeholder=""
+        />
+        {!query && !open && (
+          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13.5,fontWeight:500,color:has?`${mc}80`:"rgba(130,130,130,0.55)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .28s ease, transform .28s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
+        )}
+        {open && !query && (
+          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13.5,fontWeight:400,color:"rgba(26,53,48,0.24)",whiteSpace:"nowrap"}}>Was möchtest du heute bewirken?</span>
+        )}
+      </div>
+      {query && (
+        <button onClick={e=>{e.stopPropagation();setQuery("");setSearchQuery("");inputRef.current?.focus();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(0,0,0,0.11)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:10,color:"rgba(60,60,60,0.65)",fontWeight:700}}>✕</button>
+      )}
+      <div ref={kiRef} style={{position:"relative",flexShrink:0}}>
+        <button onClick={e=>{e.stopPropagation();open_();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.11)",border:`1px solid ${showKi?T.teal:"rgba(14,196,184,0.20)"}`,borderRadius:99,padding:"4px 10px",cursor:"pointer",transition:"all .14s ease",WebkitTapHighlightColor:"transparent"}}>
+          <span style={{fontSize:10}}>✨</span>
+          <span style={{fontSize:10,fontWeight:700,color:showKi?"white":T.teal}}>KI</span>
+        </button>
+        {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
+      </div>
+      <div style={{flexShrink:0,padding:"0 2px",opacity:.30,cursor:"pointer"}} onClick={e=>e.stopPropagation()}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <rect x="9" y="2" width="6" height="11" rx="3" stroke={T.ink} strokeWidth="2"/>
+          <path d="M5 10a7 7 0 0014 0" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/>
+          <line x1="12" y1="21" x2="12" y2="17" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      </div>
+    </div>
+  );
+
+  // ── MOBILE FULLSCREEN PORTAL ────────────────────────────────
+  const mobilePortal = mobile && open ? createPortal(
+    <div style={{
+      position:"fixed", inset:0, zIndex:99999,
+      background:T.bg,
+      display:"flex", flexDirection:"column",
+      overflow:"hidden",
+      animation:"dc-in .20s cubic-bezier(.22,1,.36,1) both",
+    }}>
+      <style>{`
+        @keyframes dc-in-msv { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .dc-scroll::-webkit-scrollbar { display:none; }
+        .dc-input { outline:none; border:none; background:none; width:100%; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; font-size:14px; font-weight:500; color:#1A3530; }
+        .dc-input::placeholder { color:rgba(26,53,48,0.28); }
+      `}</style>
+
+      {/* Sticky Header auf Mobile: Zurück + Suchfeld */}
+      <div style={{
+        flexShrink:0,
+        background:"rgba(249,247,244,0.98)",
+        backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",
+        borderBottom:"1px solid rgba(0,0,0,0.06)",
+        paddingTop:"max(12px,env(safe-area-inset-top,12px))",
+        padding:"max(12px,env(safe-area-inset-top,12px)) 12px 10px",
+        display:"flex", alignItems:"center", gap:10,
+        zIndex:2,
+      }}>
+        {/* ← Zurück */}
+        <button onClick={close_} style={{
+          flexShrink:0, width:38, height:38, borderRadius:"50%",
+          background:"rgba(26,53,48,0.07)", border:"none", cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#1A3530" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Suchfeld (volle Breite) */}
+        <div style={{flex:1,display:"flex",alignItems:"center",gap:8,height:42,background:"#fff",borderRadius:14,border:"1.5px solid rgba(14,196,184,0.40)",boxShadow:"0 0 0 3px rgba(14,196,184,0.07)",padding:"0 10px"}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:.5}}>
+            <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="2"/>
+            <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <input
+            ref={inputRef}
+            className="dc-input"
+            value={query}
+            onChange={e=>setQuery(e.target.value)}
+            placeholder="Was möchtest du heute bewirken?"
+            autoCapitalize="off"
+            autoCorrect="off"
+            style={{fontSize:15}}
+          />
+          {query && (
+            <button onClick={()=>{setQuery("");setSearchQuery("");setTimeout(()=>inputRef.current?.focus(),30);}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(0,0,0,0.10)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:10,color:"rgba(60,60,60,0.65)",fontWeight:700,WebkitTapHighlightColor:"transparent"}}>✕</button>
+          )}
+          {/* KI-Button */}
+          <button onClick={e=>{e.stopPropagation();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.11)",border:`1px solid ${showKi?T.teal:"rgba(14,196,184,0.20)"}`,borderRadius:99,padding:"4px 9px",cursor:"pointer",WebkitTapHighlightColor:"transparent",flexShrink:0}}>
+            <span style={{fontSize:10}}>✨</span>
+            <span style={{fontSize:10,fontWeight:700,color:showKi?"white":T.teal}}>KI</span>
+          </button>
+          {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
+        </div>
+      </div>
+
+      {/* Scrollbarer Inhalt — dieselbe overlayContent() Funktion */}
+      <div className="dc-scroll" style={{flex:1,overflowY:"auto",paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))"}}>
+        {overlayContent()}
+      </div>
+    </div>,
+    document.body
+  ) : null;
 
   return (
     <>
@@ -2371,27 +2237,18 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
         }
         .dc-input {
           outline:none; border:none; background:none; width:100%;
-          font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
+          font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
           font-size:14px; font-weight:500; color:#1A3530;
         }
         .dc-input::placeholder { color:rgba(26,53,48,0.28); }
         .dc-scroll::-webkit-scrollbar { display:none; }
       `}</style>
 
-      {/* Mobile Fullscreen Search */}
-      {mobileOpen && (
-        <MobileSearchView
-          initialQuery={query}
-          history={history}
-          onClose={mobileClose}
-          onSelect={handleSelect}
-          onHistory={saveHistory}
-          currentUser={currentUser}
-        />
-      )}
+      {/* Mobile Portal */}
+      {mobilePortal}
 
-      {/* Backdrop */}
-      {open && (
+      {/* Desktop Backdrop */}
+      {!mobile && open && (
         <div onClick={close_} style={{
           position:"fixed", inset:0, zIndex:299,
           background:"rgba(26,53,48,0.15)",
@@ -2400,90 +2257,17 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
         }}/>
       )}
 
-      {/* WRAPPER */}
+      {/* WRAPPER — Desktop */}
       <div ref={wrapRef} style={{ position:"relative", flex:1, zIndex:300 }}>
 
-        {/* SEARCH BAR */}
-        <div onClick={open_} style={{
-          display:"flex", alignItems:"center", gap:9, height:40,
-          background: has
-            ? `linear-gradient(135deg,${mc}12,rgba(255,251,248,0.96))`
-            : "rgba(255,255,255,0.92)",
-          backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
-          borderRadius: open ? "14px 14px 0 0" : 999,
-          border:`1.5px solid ${open ? T.teal : has ? mc+"42" : "rgba(22,215,197,0.25)"}`,
-          borderBottom: open ? "1.5px solid rgba(14,196,184,0.09)" : undefined,
-          boxShadow: open ? "none" : "0 0 0 2px rgba(14,196,184,0.08),0 3px 14px rgba(0,0,0,0.05)",
-          padding:"0 10px 0 13px", cursor:"text",
-          transition:"border-radius .18s ease, border-color .18s, box-shadow .18s",
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            style={{flexShrink:0, opacity:open?.7:.38}}>
-            <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="2"/>
-            <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+        {/* Search Bar — immer sichtbar (Desktop) */}
+        {!mobile && searchBar}
 
-          <div style={{flex:1,position:"relative",height:40,display:"flex",alignItems:"center"}}>
-            <input ref={inputRef} className="dc-input"
-              value={query}
-              onChange={e=>setQuery(e.target.value)}
-              onFocus={open_}
-              placeholder=""
-            />
-            {!query && !open && (
-              <span style={{
-                position:"absolute",left:0,pointerEvents:"none",
-                fontSize:13.5,fontWeight:500,
-                color:has?`${mc}80`:"rgba(130,130,130,0.55)",
-                opacity:phVis?1:0,
-                transform:phVis?"translateY(0)":"translateY(4px)",
-                transition:"opacity .28s ease, transform .28s ease",
-                whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%",
-              }}>{PH[phIdx]}</span>
-            )}
-            {open && !query && (
-              <span style={{
-                position:"absolute",left:0,pointerEvents:"none",
-                fontSize:13.5,fontWeight:400,color:"rgba(26,53,48,0.24)",whiteSpace:"nowrap",
-              }}>Was möchtest du heute bewirken?</span>
-            )}
-          </div>
+        {/* Search Bar — auf Mobile nur wenn NICHT offen */}
+        {mobile && !open && searchBar}
 
-          {query && (
-            <button onClick={e=>{e.stopPropagation();setQuery("");setSearchQuery("");inputRef.current?.focus();}} style={{
-              flexShrink:0,width:18,height:18,borderRadius:"50%",
-              background:"rgba(0,0,0,0.11)",border:"none",
-              display:"flex",alignItems:"center",justifyContent:"center",
-              cursor:"pointer",fontSize:10,color:"rgba(60,60,60,0.65)",fontWeight:700,
-            }}>✕</button>
-          )}
-
-          <div ref={kiRef} style={{position:"relative",flexShrink:0}}>
-            <button onClick={e=>{e.stopPropagation();open_();setShowKi(p=>!p);}} style={{
-              display:"flex",alignItems:"center",gap:3,
-              background:showKi?T.teal:"rgba(14,196,184,0.11)",
-              border:`1px solid ${showKi?T.teal:"rgba(14,196,184,0.20)"}`,
-              borderRadius:99,padding:"4px 10px",
-              cursor:"pointer",transition:"all .14s ease",
-              WebkitTapHighlightColor:"transparent",
-            }}>
-              <span style={{fontSize:10}}>✨</span>
-              <span style={{fontSize:10,fontWeight:700,color:showKi?"white":T.teal}}>KI</span>
-            </button>
-            {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
-          </div>
-
-          <div style={{flexShrink:0,padding:"0 2px",opacity:.30,cursor:"pointer"}} onClick={e=>e.stopPropagation()}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <rect x="9" y="2" width="6" height="11" rx="3" stroke={T.ink} strokeWidth="2"/>
-              <path d="M5 10a7 7 0 0014 0" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/>
-              <line x1="12" y1="21" x2="12" y2="17" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-        </div>
-
-        {/* DISCOVERY OVERLAY — left:0 right:0 = exakt bündig */}
-        {open && (
+        {/* DESKTOP OVERLAY */}
+        {!mobile && open && (
           <div style={{
             position:"absolute", top:"100%", left:0, right:0, zIndex:301,
             background:T.bg,
@@ -2497,114 +2281,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
             animation:"dc-in .20s cubic-bezier(.22,1,.36,1) both",
             maxHeight:"84vh", overflowY:"auto",
           }}>
-
-            {/* ══ SUCHMODUS ══ */}
-            {showResults ? (
-              <div style={{padding:"14px 16px 16px"}}>
-                {loading ? (
-                  <div style={{padding:"22px 0",textAlign:"center",color:T.inkF,fontSize:13}}>Suche läuft…</div>
-                ) : total===0 ? (
-                  <div style={{padding:"24px 0",textAlign:"center"}}>
-                    <div style={{fontSize:26,marginBottom:8}}>🔍</div>
-                    <div style={{fontSize:13,color:T.inkF}}>Keine Ergebnisse für „{searchQuery}"</div>
-                  </div>
-                ) : (
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:14}}>
-                    <ResultCol title="Menschen"   emoji="👥" items={results.profiles}    onSelect={handleSelect} startIdx={0} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
-                    <ResultCol title="Erlebnisse" emoji="📅" items={results.experiences} onSelect={handleSelect} startIdx={results.profiles.length} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
-                    <ResultCol title="Werke"      emoji="🎨" items={results.works}       onSelect={handleSelect} startIdx={results.profiles.length+results.experiences.length} focusedIdx={focusedIdx} onDiscover={handleDiscover}/>
-                    <KiDiscoveryCol query={searchQuery} onHintSelect={handleKiHintSelect}/>
-                  </div>
-                )}
-                {history.length>0 && (
-                  <div style={{marginTop:16,paddingTop:12,borderTop:"1px solid rgba(14,196,184,0.08)",display:"flex",flexWrap:"wrap",gap:6}}>
-                    {history.slice(0,5).map((h,i)=>(
-                      <button key={i} onClick={()=>handleHistory(h)} style={{
-                        display:"flex",alignItems:"center",gap:4,
-                        background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",
-                        borderRadius:99,padding:"4px 11px",
-                        fontSize:11.5,fontWeight:500,color:T.inkS,
-                        cursor:"pointer",WebkitTapHighlightColor:"transparent",
-                      }}
-                        onMouseEnter={e=>e.currentTarget.style.background="rgba(14,196,184,0.09)"}
-                        onMouseLeave={e=>e.currentTarget.style.background="rgba(26,53,48,0.05)"}
-                      >
-                        <span style={{fontSize:9.5,opacity:.42}}>🕐</span> {h}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-            ) : (
-              /* ══ DEFAULT OVERLAY ══
-                 Reihenfolge: Greeting+Hints → StoryCards → 3-Spalten → QuickActions */
-              <>
-                {/* 1. Greeting + persönliche Hints */}
-                <GreetingWithHints currentUser={currentUser} onCategoryClick={handleCategoryClick}/>
-
-                {/* 1b. Für dich ausgewählt — Phase 4 */}
-                <ForDichAusgewaehlt currentUser={currentUser} openProfileById={openProfileById} onDiscover={handleDiscover} onClose={close_}/>
-
-                {/* 2. Menschen die du kennen solltest — Phase 5 */}
-                <MenschenDuKennenSolltest currentUser={currentUser} openProfileById={openProfileById} engine={engine} onDiscover={handleDiscover}/>
-
-                {/* 3. Story Cards "Heute auf HUI" */}
-                <div style={{padding:"14px 16px 12px",borderBottom:"1px solid rgba(14,196,184,0.08)"}}>
-                  <StoryCards/>
-                </div>
-
-                {/* 3. Drei Spalten */}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:0}}>
-                  {/* LINKS — HUI Empfehlung */}
-                  <div style={{padding:"14px 14px",borderRight:"1px solid rgba(14,196,184,0.08)"}}>
-                    <PersonalRec currentUser={currentUser} openProfileById={openProfileById}/>
-                  </div>
-
-                  {/* MITTE — Kategorien */}
-                  <div style={{padding:"14px 14px",borderRight:"1px solid rgba(14,196,184,0.08)"}}>
-                    <ThemeCards onThemeClick={handleTheme}/>
-                  </div>
-
-                  {/* RECHTS — Live + Verlauf */}
-                  <div style={{padding:"14px 14px"}}>
-                    <LiveActivity/>
-                    {history.length>0 && (
-                      <div style={{marginTop:14}}>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                          <SectionLabel>Zuletzt gesucht</SectionLabel>
-                          <button onClick={()=>{setHistory([]);localStorage.removeItem("hui_search_history");}} style={{
-                            background:"none",border:"none",cursor:"pointer",
-                            fontSize:10,color:T.inkF,padding:"0 0 10px 0",
-                          }}>Löschen</button>
-                        </div>
-                        <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                          {history.slice(0,5).map((h,i)=>(
-                            <button key={i} onClick={()=>handleHistory(h)} style={{
-                              display:"flex",alignItems:"center",gap:4,
-                              background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",
-                              borderRadius:99,padding:"4px 11px",
-                              fontSize:11.5,fontWeight:500,color:T.inkS,
-                              cursor:"pointer",WebkitTapHighlightColor:"transparent",
-                            }}
-                              onMouseEnter={e=>e.currentTarget.style.background="rgba(14,196,184,0.09)"}
-                              onMouseLeave={e=>e.currentTarget.style.background="rgba(26,53,48,0.05)"}
-                            >
-                              <span style={{fontSize:9.5,opacity:.42}}>🕐</span> {h}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 4. Schnellaktionen */}
-                <div style={{borderTop:"1px solid rgba(14,196,184,0.08)",padding:"14px 16px 16px"}}>
-                  <QuickActions onAction={handleAction}/>
-                </div>
-              </>
-            )}
+            {overlayContent()}
           </div>
         )}
       </div>
