@@ -1869,6 +1869,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
         Werk hinzufügen
       </button>
     </div>
+    </>
   );
 }
 
