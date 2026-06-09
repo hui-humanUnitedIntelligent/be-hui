@@ -484,8 +484,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       visibility:   form.sichtbarkeit  || "public",
       status,
       // Beim Einreichen: nie direkt veröffentlichen
-      published: status === "published" ? true : false,
-      visible:   status === "published" ? true : false,
+      published_at: status === "published" ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
     };
 
