@@ -127,6 +127,7 @@ function FreigabenTab({ onPendingChange }) {
           "id","user_id","creator_id","title","description","cover_url",
           "category","status","created_at","reviewed_at","rejected_at",
           "admin_comment","review_note","rejection_reason",
+          "last_submitted_at","is_update",
           "profiles(display_name,username,avatar_url)",
         ].join(","))
         .eq("status", wStatus)
@@ -188,6 +189,8 @@ function FreigabenTab({ onPendingChange }) {
         ...cfg.approveExtra,
         reviewed_at: now,
         updated_at:  now,
+        last_submitted_at: null,
+        is_update: false,
       })
       .eq("id", item.id);
     if (error) { showToast("Fehler: "+error.message, false); }
@@ -223,6 +226,8 @@ function FreigabenTab({ onPendingChange }) {
         rejected_at:      now,
         reviewed_at:      now,
         updated_at:       now,
+        last_submitted_at: null,
+        is_update: false,
       })
       .eq("id", rejectDlg.id);
     if (error) { showToast("Fehler: "+error.message, false); }
