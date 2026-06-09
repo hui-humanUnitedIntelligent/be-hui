@@ -597,11 +597,15 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
     return () => { active = false; };
   }, [ambassadorId]);
 
-  const navigateTo = (uname) => {
-    if (!uname) { alert("Profil nicht mehr verfügbar."); return; }
+  const navigateTo = (userId, uname) => {
+    if (!userId && !uname) { alert("Profil nicht mehr verfügbar."); return; }
     onClose();
-    window.history.pushState({}, "", `/profile/${uname}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    if (userId) {
+      openCreatorProfile(userId);
+    } else {
+      window.history.pushState({}, "", `/profile/${uname}`);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
   };
 
   return createPortal(
