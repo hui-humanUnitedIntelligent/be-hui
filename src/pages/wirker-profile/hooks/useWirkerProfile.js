@@ -90,6 +90,7 @@ export function useWirkerProfile(rawWirker) {
               .select(FIELDS.WORK)
               .eq("user_id", uid)
               .eq("status", "published")
+              .eq("approval_status", "approved")
               .order("created_at", { ascending: false })
               .limit(20)
           ),
