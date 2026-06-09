@@ -109,69 +109,6 @@ function levelEmoji(lvl) {
   return "🥉";
 }
 
-// ── Nutzer-Liste Modal ────────────────────────────────────────────
-function UserListModal({ title, users, onClose }) {
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:9900,
-      background:"rgba(0,0,0,0.45)", display:"flex",
-      alignItems:"flex-end", justifyContent:"center",
-    }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
-        width:"100%", maxWidth:480,
-        background:T.bgCard, borderRadius:"20px 20px 0 0",
-        paddingBottom:"max(24px,calc(16px + env(safe-area-inset-bottom,0px)))",
-        maxHeight:"70vh", display:"flex", flexDirection:"column",
-      }}>
-        <div style={{
-          padding:"16px 20px 12px",
-          borderBottom:`1px solid ${T.border}`,
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-          flexShrink:0,
-        }}>
-          <span style={{ fontSize:15, fontWeight:800, color:T.ink }}>{title}</span>
-          <button onClick={onClose} style={{
-            background:"none", border:"none", fontSize:18, cursor:"pointer",
-            color:T.inkFaint, touchAction:"manipulation",
-          }}>✕</button>
-        </div>
-        <div style={{ overflowY:"auto", flex:1 }}>
-          {users.length === 0 ? (
-            <div style={{ padding:"28px 20px", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
-              Noch keine Einträge.
-            </div>
-          ) : (
-            users.map((u, i) => (
-              <div key={u.id||i} style={{
-                padding:"12px 20px",
-                borderBottom: i < users.length-1 ? `1px solid ${T.border}` : "none",
-                display:"flex", alignItems:"center", gap:12,
-              }}>
-                <div style={{
-                  width:36, height:36, borderRadius:"50%",
-                  background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:14, fontWeight:700, color:T.teal, flexShrink:0,
-                }}>
-                  {(u.display_name||u.username||"?")[0].toUpperCase()}
-                </div>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>
-                    {u.display_name || u.username || "Unbekannt"}
-                  </div>
-                  <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
-                    {u.first_transaction_at ? "✅ Aktiv" : "😴 Schlafend"} · @{u.username||"–"}
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Ambassador-Bereich Sektion ────────────────────────────────────
 // ── Level-Berechnung (live) ──────────────────────────────────────
 function calcLevel(referredCount) {
