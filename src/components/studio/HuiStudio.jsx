@@ -422,6 +422,7 @@ function AmbassadorStudioSection({ profile }) {
 export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAmbPanel, setShowAmbPanel] = useState(false);
 
   const isTalent   = profile?.is_talent === true;
   const isVerified = profile?.verified  === true;
@@ -500,11 +501,49 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         </div>
 
         {/* ── 1. Community & Empfehlungen ───────────────────── */}
-        <StudioSection label="Community & Empfehlungen">
-          <StudioRow icon="👥" label="Ambassador-Bereich"   onPress={() => {}} />
-          <StudioRow icon="⭐" label="Meine Empfehlungen"   onPress={() => {}} />
-          <StudioRow icon="✉️" label="Einladungen verwalten" onPress={() => {}} last />
-        </StudioSection>
+        <div style={{ padding:`0 ${T.px}px` }}>
+          <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
+            Community & Empfehlungen
+          </div>
+          <div style={{
+            background:T.bgCard, borderRadius:T.r16,
+            border:`1px solid ${T.border}`, overflow:"hidden", boxShadow:T.card,
+          }}>
+            {/* Ambassador-Bereich Row — toggle */}
+            <button className="studio-row-btn" onClick={() => setShowAmbPanel(v => !v)} style={{
+              width:"100%", display:"flex", alignItems:"center", gap:14,
+              padding:"15px 18px", background:"none", border:"none", cursor:"pointer",
+              fontFamily:"inherit", textAlign:"left",
+              borderBottom: showAmbPanel ? `1.5px solid ${T.tealMid}` : `1px solid ${T.border}`,
+            }}>
+              <span style={{
+                width:34, height:34, borderRadius:10, flexShrink:0,
+                background: showAmbPanel ? T.tealSoft : "rgba(26,26,24,0.05)",
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
+              }}>👥</span>
+              <span style={{ flex:1, fontSize:14, fontWeight:500, color: showAmbPanel ? T.teal : T.ink }}>
+                Ambassador-Bereich
+              </span>
+              <span style={{
+                fontSize:14, color:T.inkFaint, flexShrink:0,
+                transition:"transform .2s",
+                display:"inline-block",
+                transform: showAmbPanel ? "rotate(90deg)" : "rotate(0deg)",
+              }}>›</span>
+            </button>
+
+            {/* Ambassador-Panel — inline expandierbar */}
+            {showAmbPanel && (
+              <div style={{ borderBottom:`1px solid ${T.border}` }}>
+                <AmbassadorStudioSection profile={profile} />
+                <div style={{ height:8 }}/>
+              </div>
+            )}
+
+            <StudioRow icon="⭐" label="Meine Empfehlungen"   onPress={() => {}} />
+            <StudioRow icon="✉️" label="Einladungen verwalten" onPress={() => {}} last />
+          </div>
+        </div>
         <Gap h={20}/>
 
         {/* ── 2. Impact & Stimmen ───────────────────────────── */}
@@ -522,17 +561,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         </StudioSection>
         <Gap h={20}/>
 
-        {/* ── 4. Ambassador-Bereich (live Supabase) ─────────── */}
-        <div style={{ padding:`0 ${T.px}px`, marginBottom:0 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
-            Ambassador-Bereich
-          </div>
-          <div style={{ fontSize:12, color:T.inkSoft, marginBottom:12, lineHeight:1.5 }}>
-            Verwalte deine Empfehlungen, Einladungen und deinen Umsatz.
-          </div>
-        </div>
-        <AmbassadorStudioSection profile={profile} />
-        <Gap h={20}/>
+
 
         {/* ── 5. Account & Einstellungen ────────────────────── */}
         <StudioSection label="Account & Einstellungen">
