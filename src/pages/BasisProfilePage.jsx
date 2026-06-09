@@ -18,6 +18,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
+import SettingsModal  from "../components/settings/SettingsModal.jsx";
+import HuiStudio      from "../components/studio/HuiStudio.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
@@ -123,7 +125,7 @@ function Sheet({ onClose, children }) {
 // ══════════════════════════════════════════════════════════════════
 // HEADER — sticky nav bar: ‹ · "Öffentliches Profil 🌿" · ···
 // ══════════════════════════════════════════════════════════════════
-function ProfileHeader({ onBack }) {
+function ProfileHeader({ onBack, isOwner = false, onSettings }) {
   return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -150,14 +152,24 @@ function ProfileHeader({ onBack }) {
         </div>
       </div>
 
-      {/* Menu */}
-      <button className="bpp-press-light" style={{
-        width:36, height:36, borderRadius:"50%",
-        background:T.bgCard, border:`1px solid ${T.border}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:18, cursor:"pointer", touchAction:"manipulation",
-        boxShadow:T.card, color:T.ink, letterSpacing:"1px",
-      }}>···</button>
+      {/* Rechts: ⚙️ für Owner, ··· für Besucher */}
+      {isOwner ? (
+        <button className="bpp-press" onClick={onSettings} style={{
+          width:36, height:36, borderRadius:"50%",
+          background:T.bgCard, border:`1px solid ${T.border}`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:17, cursor:"pointer", touchAction:"manipulation",
+          boxShadow:T.card, color:T.ink,
+        }}>⚙️</button>
+      ) : (
+        <button className="bpp-press-light" style={{
+          width:36, height:36, borderRadius:"50%",
+          background:T.bgCard, border:`1px solid ${T.border}`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:18, cursor:"pointer", touchAction:"manipulation",
+          boxShadow:T.card, color:T.ink, letterSpacing:"1px",
+        }}>···</button>
+      )}
     </div>
   );
 }
@@ -587,10 +599,17 @@ export default function BasisProfilePage({ profileId, onClose }) {
   const { user, profile: authProfile } = useAuth();
   const resolvedId = profileId || user?.id;
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [profile, setProfile]         = useState(null);
+  const [loading, setLoading]         = useState(true);
+  const [mounted, setMounted]         = useState(false);
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
+
+  // Owner-spezifische States
+  const [showSettings, setShowSettings] = useState(false);
+  const [showStudio,   setShowStudio]   = useState(false);
+
+  // isOwner: true wenn das eigene Profil angesehen wird
+  const isOwner = !!user?.id && (resolvedId === user.id);
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 
@@ -656,10 +675,10 @@ export default function BasisProfilePage({ profileId, onClose }) {
       <style>{CSS}</style>
 
       {/* Sticky header */}
-      <ProfileHeader onBack={handleBack}/>
+      <ProfileHeader onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
-      {/* P3: Chat-Button — CCO Standard, nur wenn Profil geladen */}
-      {profile && !loading && (
+      {/* P3: Chat-Button — nur für Besucher (nicht für Owner selbst) */}
+      {profile && !loading && !isOwner && (
         <div style={{ position:"absolute", top:12, right:52, zIndex:10001 }}>
           <button
             className="bpp-press"
@@ -705,8 +724,100 @@ export default function BasisProfilePage({ profileId, onClose }) {
 
         {/* 7. Social context bar */}
         <SocialContextBar loading={loading} followCounts={followCounts}/>
-        <Gap h={32}/>
+        <Gap h={24}/>
+
+        {/* 8. "Mein HUI" — nur für Owner sichtbar */}
+        {isOwner && (
+          <div style={{ padding:`0 ${T.px}px`, marginBottom:32 }}>
+            {/* Divider */}
+            <div style={{ height:1, background:T.border, marginBottom:24 }}/>
+
+            {/* CTA-Karte */}
+            <div style={{
+              background:T.bgCard,
+              borderRadius:T.r20,
+              border:`1px solid ${T.border}`,
+              boxShadow:T.card,
+              padding:"20px",
+              display:"flex", flexDirection:"column", gap:14,
+            }}>
+              {/* Titel */}
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:22 }}>🌿</span>
+                <div>
+                  <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+                    Mein HUI
+                  </div>
+                  <div style={{ fontSize:11.5, color:T.inkFaint, marginTop:1 }}>
+                    Verwalte dein Profil und deine Einstellungen
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons-Reihe */}
+              <div style={{ display:"flex", gap:10 }}>
+                {/* Profil bearbeiten → SettingsModal */}
+                <button className="bpp-press" onClick={() => setShowSettings(true)} style={{
+                  flex:1, padding:"12px 10px", borderRadius:T.r16,
+                  background:`linear-gradient(135deg,#0EC4B8,#0DBBAF)`,
+                  border:"none", cursor:"pointer", touchAction:"manipulation",
+                  fontFamily:"inherit",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                  boxShadow:"0 4px 14px rgba(14,196,184,0.25)",
+                }}>
+                  <span style={{ fontSize:20 }}>⚙️</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:"white" }}>Einstellungen</span>
+                </button>
+
+                {/* HUI Studio */}
+                <button className="bpp-press" onClick={() => setShowStudio(true)} style={{
+                  flex:1, padding:"12px 10px", borderRadius:T.r16,
+                  background:T.bgCard, border:`1.5px solid ${T.border}`,
+                  cursor:"pointer", touchAction:"manipulation",
+                  fontFamily:"inherit",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                  boxShadow:T.card,
+                }}>
+                  <span style={{ fontSize:20 }}>🎛️</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:T.ink }}>HUI Studio</span>
+                </button>
+              </div>
+
+              {/* Hinweis */}
+              <div style={{
+                display:"flex", alignItems:"center", gap:8,
+                padding:"10px 14px", borderRadius:T.r12,
+                background:"rgba(14,196,184,0.06)",
+                border:`1px solid rgba(14,196,184,0.15)`,
+              }}>
+                <span style={{ fontSize:14 }}>🔒</span>
+                <span style={{ fontSize:11.5, color:T.inkSoft, lineHeight:1.45 }}>
+                  So sieht dein Profil für andere aus. Bearbeite es über Einstellungen.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
+
+      {/* ── Modals (nur Owner) ─────────────────────────────────── */}
+      {isOwner && showSettings && (
+        <SettingsModal
+          profile={profile}
+          onClose={() => setShowSettings(false)}
+          onSave={(updated) => {
+            setProfile(prev => ({ ...prev, ...updated }));
+            setShowSettings(false);
+          }}
+        />
+      )}
+      {isOwner && showStudio && (
+        <HuiStudio
+          profile={profile}
+          onClose={() => setShowStudio(false)}
+        />
+      )}
     </div>
   );
 }
