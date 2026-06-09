@@ -382,21 +382,16 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         ) : (
           visible.map(n => {
             const meta = TYPE_META[n.type] || TYPE_META.default;
-            const hasDetail = (n.type === "work_rejected" || n.type === "content_rejected")
-              && (n.metadata?.rejection_reason || n.metadata?.werk_title);
-            const isClickable = hasDetail || !n.is_read;
             return (
               <NotifCard
                 key={n.id}
                 n={n}
                 meta={meta}
-                hasDetail={hasDetail}
-                isClickable={isClickable}
                 onRead={markRead}
+                onAction={onAction}
               />
             );
           })
-        )}
       </div>
     </div>
   );
