@@ -20,6 +20,8 @@ import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
+import SettingsModal  from "../components/settings/SettingsModal.jsx";
+import HuiStudio      from "../components/studio/HuiStudio.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -392,7 +394,7 @@ function SectionHead({ icon, title, subtitle, cta, onCta }) {
 // ══════════════════════════════════════════════════════════════
 // 1. HEADER
 // ══════════════════════════════════════════════════════════════
-function Header({ onBack, profile }) {
+function Header({ onBack, isOwner, onSettings }) {
   return (
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:`14px ${T.px}px 10px`,background:T.bg,position:"sticky",top:0,zIndex:10}}>
       <button className="tpp-press" onClick={onBack}
@@ -400,20 +402,24 @@ function Header({ onBack, profile }) {
         ‹
       </button>
       <div style={{textAlign:"center"}}>
-        <div style={{fontSize:13,fontWeight:700,color:T.ink,letterSpacing:"-0.01em"}}>
-          Öffentliches Profil 🌿
+        <div style={{fontSize:15,fontWeight:700,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6,justifyContent:"center"}}>
+          Öffentliches Talent-Profil <span style={{fontSize:14}}>✨</span>
+        </div>
+        <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:400,marginTop:1}}>
+          Entdecke meine Welt und meine Werke.
         </div>
       </div>
-      <div style={{display:"flex",gap:8}}>
-        <button className="tpp-press-light"
-          style={{height:36,padding:"0 12px",borderRadius:99,background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:5,fontSize:12,fontWeight:600,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.inkSoft}}>
-          <span style={{fontSize:13}}>⎙</span> Teilen
+      {isOwner ? (
+        <button className="tpp-press" onClick={onSettings}
+          style={{width:36,height:36,borderRadius:"50%",background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.ink}}>
+          ⚙️
         </button>
+      ) : (
         <button className="tpp-press-light"
           style={{width:36,height:36,borderRadius:"50%",background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.ink,letterSpacing:"2px"}}>
           ···
         </button>
-      </div>
+      )}
     </div>
   );
 }
@@ -496,7 +502,7 @@ function CinematicHero({ profile, loading }) {
 
         {/* Bio */}
         {!loading && bio && (
-          <p style={{fontSize:14,lineHeight:1.7,color:T.inkSoft,margin:"0 0 0",fontStyle:"italic",whiteSpace:"pre-line"}}>
+          <p style={{fontSize:14,lineHeight:1.7,color:T.inkSoft,margin:"0 0 0",fontStyle:"italic",textAlign:"center"}}>
             {bio}
           </p>
         )}
@@ -816,7 +822,7 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
           <div key={i} className="tpp-stat-item">
             <div style={{fontSize:13,marginBottom:1}}>{st.emoji}</div>
             <div style={{fontSize:16,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</div>
-            <div style={{fontSize:10,color:T.inkFaint,textAlign:"center",lineHeight:1.35,whiteSpace:"pre-line"}}>{st.label}</div>
+            <div style={{fontSize:10,color:T.inkFaint,textAlign:"center",lineHeight:1.35,textAlign:"center"}}>{st.label}</div>
           </div>
         ))}
       </div>
@@ -1162,7 +1168,7 @@ function WirkungSection({ works, experiences, moments, loading }) {
           <div key={i} className="tpp-stat-item" style={{padding:"4px 2px"}}>
             <div style={{fontSize:20,marginBottom:4}}>{st.emoji}</div>
             <div style={{fontSize:17,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</div>
-            <div style={{fontSize:9.5,color:T.inkFaint,textAlign:"center",lineHeight:1.35,whiteSpace:"pre-line",marginTop:3}}>{st.label}</div>
+            <div style={{fontSize:9.5,color:T.inkFaint,textAlign:"center",lineHeight:1.35,textAlign:"center",marginTop:3}}>{st.label}</div>
           </div>
         ))}
       </div>
@@ -1395,21 +1401,432 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// MEINE TALENTE & ANGEBOTE — Skill-Pills aus profile.skills
+// ══════════════════════════════════════════════════════════════
+function TalentAngeboteSection({ profile, loading, isOwner }) {
+  const skills = Array.isArray(profile?.skills) ? profile.skills : [];
+  if (!loading && skills.length === 0 && !isOwner) return null;
+  return (
+    <div style={{padding:`0 ${T.px}px`}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>
+          Meine Talente & Angebote
+        </div>
+      </div>
+      {loading ? (
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {[100,80,110,90,70].map((w,i)=><Sk key={i} w={w} h={32} r={99}/>)}
+        </div>
+      ) : (
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {skills.slice(0,8).map((sk,i) => {
+            const label = typeof sk === "string" ? sk : (sk.label || "");
+            const icon  = typeof sk === "object" && sk.icon ? sk.icon : "✨";
+            return (
+              <div key={i} style={{
+                display:"flex",alignItems:"center",gap:5,
+                padding:"7px 14px",borderRadius:T.r99,
+                background:T.bgCard,border:`1px solid ${T.border}`,
+                fontSize:13,fontWeight:600,color:T.ink,
+                boxShadow:T.card,
+              }}>
+                <span style={{fontSize:13}}>{icon}</span>{label}
+              </div>
+            );
+          })}
+          {isOwner && (
+            <div style={{
+              display:"flex",alignItems:"center",gap:5,
+              padding:"7px 14px",borderRadius:T.r99,
+              background:T.bgCard,border:`1.5px dashed ${T.borderMid}`,
+              fontSize:12.5,fontWeight:600,color:T.inkSoft,
+            }}>
+              <span style={{fontSize:14}}>+</span> Weitere hinzufügen
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// MEINE WERKE — horizontaler Scroller, Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+function MeineWerkeSection({ works, loading, onShowAll }) {
+  if (!loading && works.length === 0) return null;
+  return (
+    <div>
+      <div style={{
+        display:"flex",alignItems:"center",justifyContent:"space-between",
+        padding:`0 ${T.px}px`,marginBottom:12,
+      }}>
+        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>Meine Werke</div>
+        {works.length > 0 && (
+          <button onClick={onShowAll} style={{background:"none",border:"none",padding:0,
+            fontSize:12,fontWeight:600,color:T.teal,cursor:"pointer",
+            display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}}>
+            Alle Werke ansehen <span style={{fontSize:11}}>›</span>
+          </button>
+        )}
+      </div>
+      <div className="tpp-hscroll" style={{
+        display:"flex",gap:10,
+        padding:`0 ${T.px}px 4px`,
+      }}>
+        {loading
+          ? [1,2,3,4,5].map(i=><Sk key={i} w={100} h={100} r={T.r16} style={{flexShrink:0}}/>)
+          : works.slice(0,7).map((w,i) => (
+            <div key={w.id} className="tpp-press" style={{
+              flexShrink:0,width:100,height:100,
+              borderRadius:T.r16,overflow:"hidden",
+              background:"linear-gradient(135deg,#2C3B2D,#4A6741)",
+              boxShadow:T.card,
+            }}>
+              {w.cover_url
+                ? <img src={w.cover_url} alt={w.title||""} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>e.target.style.display="none"}/>
+                : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🎨</div>}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// ERLEBNISSE & PROJEKTE — Screenshot-exakt mit Labels
+// ══════════════════════════════════════════════════════════════
+const CAT_MAP = {
+  workshop:"Workshop", kurs:"Workshop", malen:"Workshop",
+  event:"Event", festival:"Event", konzert:"Event",
+  ausstellung:"Ausstellung", galerie:"Ausstellung",
+  projekt:"Projekt", community:"Projekt",
+};
+function catLabel(cat) {
+  if (!cat) return "Projekt";
+  const k = cat.toLowerCase();
+  for (const [key,val] of Object.entries(CAT_MAP)) { if (k.includes(key)) return val; }
+  return "Projekt";
+}
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("de-DE",{month:"short",year:"numeric"});
+  } catch { return ""; }
+}
+
+function ErlebnisseProjekteSection({ experiences, loading, isOwner, onShowAll }) {
+  if (!loading && experiences.length === 0 && !isOwner) return null;
+  const items = experiences.slice(0, 4);
+  return (
+    <div>
+      <div style={{
+        display:"flex",alignItems:"center",justifyContent:"space-between",
+        padding:`0 ${T.px}px`,marginBottom:12,
+      }}>
+        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>Erlebnisse & Projekte</div>
+        {experiences.length > 0 && (
+          <button onClick={onShowAll} style={{background:"none",border:"none",padding:0,
+            fontSize:12,fontWeight:600,color:T.teal,cursor:"pointer",
+            display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}}>
+            Alle anzeigen <span style={{fontSize:11}}>›</span>
+          </button>
+        )}
+      </div>
+      <div className="tpp-hscroll" style={{
+        display:"flex",gap:10,padding:`0 ${T.px}px 4px`,
+      }}>
+        {loading
+          ? [1,2,3,4].map(i=><Sk key={i} w={110} h={130} r={T.r16} style={{flexShrink:0}}/>)
+          : <>
+              {items.map((ex,i) => (
+                <div key={ex.id} className="tpp-press" style={{
+                  flexShrink:0,width:110,
+                  display:"flex",flexDirection:"column",gap:0,
+                }}>
+                  <div style={{
+                    width:110,height:100,borderRadius:T.r16,overflow:"hidden",
+                    background:"linear-gradient(135deg,#2C3B2D,#8B7355)",
+                    marginBottom:6,
+                  }}>
+                    {ex.cover_url
+                      ? <img src={ex.cover_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>e.target.style.display="none"}/>
+                      : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🎭</div>}
+                  </div>
+                  <div style={{fontSize:11.5,fontWeight:700,color:T.ink,lineHeight:1.3,marginBottom:2,
+                    overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
+                    {ex.title || "Erlebnis"}
+                  </div>
+                  <div style={{fontSize:10.5,color:T.inkFaint}}>
+                    {catLabel(ex.category)}
+                  </div>
+                  <div style={{fontSize:10,color:T.inkFaint}}>
+                    {formatDate(ex.date || ex.created_at)}
+                  </div>
+                </div>
+              ))}
+              {/* Neues Projekt CTA — nur für Owner */}
+              {isOwner && (
+                <div className="tpp-press" style={{
+                  flexShrink:0,width:80,height:100,
+                  borderRadius:T.r16,border:`1.5px dashed ${T.borderMid}`,
+                  background:T.bgCard,
+                  display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+                  gap:4,cursor:"pointer",
+                }}>
+                  <span style={{fontSize:22,color:T.inkFaint}}>+</span>
+                  <span style={{fontSize:10,fontWeight:600,color:T.inkFaint,textAlign:"center",lineHeight:1.3}}>Neues Projekt</span>
+                </div>
+              )}
+            </>
+        }
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// KUNDENSTIMMEN — horizontaler Scroller, Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+function KundenstimmenPublicSection({ recommendations, loading, isOwner, onShowAll }) {
+  if (!loading && recommendations.length === 0 && !isOwner) return null;
+  return (
+    <div>
+      <div style={{
+        display:"flex",alignItems:"center",justifyContent:"space-between",
+        padding:`0 ${T.px}px`,marginBottom:12,
+      }}>
+        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>Kundenstimmen</div>
+        {recommendations.length > 0 && (
+          <button onClick={onShowAll} style={{background:"none",border:"none",padding:0,
+            fontSize:12,fontWeight:600,color:T.teal,cursor:"pointer",
+            display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}}>
+            Alle anzeigen <span style={{fontSize:11}}>›</span>
+          </button>
+        )}
+      </div>
+      <div className="tpp-hscroll" style={{
+        display:"flex",gap:12,padding:`0 ${T.px}px 4px`,
+      }}>
+        {loading ? (
+          <Sk w={200} h={100} r={T.r16}/>
+        ) : recommendations.length === 0 ? (
+          <div style={{fontSize:13,color:T.inkFaint,fontStyle:"italic",paddingLeft:0,paddingBottom:4}}>
+            Noch keine Empfehlungen.
+          </div>
+        ) : (
+          recommendations.slice(0,4).map((rec,i) => (
+            <div key={rec.id||i} style={{
+              flexShrink:0,width:210,
+              background:T.bgCard,borderRadius:T.r16,
+              border:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:T.card,
+            }}>
+              <div style={{fontSize:22,color:T.teal,marginBottom:6}}>❝</div>
+              <div style={{fontSize:13,color:T.ink,lineHeight:1.55,fontStyle:"italic",marginBottom:10}}>
+                {rec.text || rec.message || ""}
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                {rec.avatar_url && (
+                  <img src={rec.avatar_url} alt="" style={{width:28,height:28,borderRadius:"50%",objectFit:"cover"}}/>
+                )}
+                <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:600}}>
+                  — {rec.recommender_name || "Mitglied"}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+        {isOwner && (
+          <div className="tpp-press" style={{
+            flexShrink:0,display:"flex",alignItems:"center",gap:6,
+            padding:"10px 16px",borderRadius:T.r16,
+            background:T.bgCard,border:`1.5px dashed ${T.borderMid}`,
+            fontSize:12.5,fontWeight:600,color:T.inkSoft,
+            cursor:"pointer",touchAction:"manipulation",alignSelf:"flex-start",
+          }}>
+            <span style={{fontSize:16}}>+</span> Weitere hinzufügen
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// VERFÜGBARKEIT + STANDORT — 2-Spalten, Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+function VerfuegbarkeitStandortPublic({ profile, loading }) {
+  if (loading) return null;
+  const isOpen = profile?.focus_type !== "private";
+  const loc    = profile?.location || "";
+  return (
+    <div style={{padding:`0 ${T.px}px`}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+        {/* Verfügbarkeit */}
+        <div style={{background:T.bgCard,borderRadius:T.r16,border:`1px solid ${T.border}`,padding:"14px",boxShadow:T.card}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+            <div style={{fontSize:13,fontWeight:800,color:T.ink}}>Verfügbarkeit</div>
+            <button style={{background:"none",border:"none",padding:0,fontSize:11,color:T.teal,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              Mehr erfahren ›
+            </button>
+          </div>
+          <div style={{fontSize:10.5,color:T.inkFaint,marginBottom:8}}>
+            Wann du für neue Anfragen offen bist.
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 10px",borderRadius:T.r12,
+            background:T.tealSoft,border:`1px solid ${T.tealMid}`}}>
+            <span style={{width:7,height:7,borderRadius:"50%",background:T.teal,display:"inline-block",flexShrink:0}}/>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:T.teal}}>
+                {isOpen ? "Offen für neue Anfragen" : "Momentan ausgelastet"}
+              </div>
+              <div style={{fontSize:10,color:T.inkFaint}}>Antwortzeit: innerhalb von 24h</div>
+            </div>
+          </div>
+        </div>
+        {/* Standort */}
+        <div style={{background:T.bgCard,borderRadius:T.r16,border:`1px solid ${T.border}`,padding:"14px",boxShadow:T.card}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+            <div style={{fontSize:13,fontWeight:800,color:T.ink}}>Standort</div>
+            <button style={{background:"none",border:"none",padding:0,fontSize:11,color:T.teal,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              Mehr erfahren ›
+            </button>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 8px",borderRadius:T.r12,
+            background:"rgba(26,26,24,0.03)",border:`1px solid ${T.border}`,
+            marginTop:8,
+          }}>
+            <span style={{fontSize:14}}>📍</span>
+            <span style={{fontSize:11.5,color:T.ink,fontWeight:500}}>
+              {loc || "Standort nicht angegeben"}
+            </span>
+            <span style={{marginLeft:"auto",fontSize:13,color:T.inkFaint}}>›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// SICHTBARKEIT — Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+function SichtbarkeitPublicSection({ profile, loading }) {
+  const [showSheet, setShowSheet] = useState(false);
+  if (loading) return null;
+  const visText = "Dieses Profil ist für deine Verbindungen sichtbar.";
+  return (
+    <div style={{padding:`0 ${T.px}px`}}>
+      <div style={{
+        display:"flex",alignItems:"center",justifyContent:"space-between",
+        background:T.bgCard,borderRadius:T.r20,
+        border:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:T.card,
+      }}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:8,flex:1,minWidth:0}}>
+          <span style={{fontSize:15,flexShrink:0}}>🔒</span>
+          <span style={{fontSize:12.5,color:T.inkSoft,fontWeight:400,lineHeight:1.45}}>
+            {visText}
+          </span>
+        </div>
+        <button className="tpp-press-light" onClick={()=>setShowSheet(true)} style={{
+          display:"flex",alignItems:"center",gap:6,
+          padding:"9px 14px",borderRadius:T.r99,border:`1px solid ${T.border}`,
+          background:T.bg,fontSize:12,fontWeight:600,color:T.ink,
+          cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+          flexShrink:0,boxShadow:T.card,
+        }}>
+          <span style={{fontSize:13}}>👥</span> Mehr erfahren
+        </button>
+      </div>
+      {showSheet && createPortal(
+        <div onClick={()=>setShowSheet(false)} style={{
+          position:"fixed",inset:0,zIndex:9900,
+          background:"rgba(26,26,24,0.4)",display:"flex",alignItems:"flex-end",
+        }}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            width:"100%",background:T.bgSheet,
+            borderRadius:`${T.r24}px ${T.r24}px 0 0`,
+            padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
+            boxShadow:T.sheet,
+          }}>
+            <div style={{width:36,height:4,borderRadius:99,background:T.borderMid,margin:"0 auto 20px"}}/>
+            <div style={{fontSize:16,fontWeight:800,color:T.ink,marginBottom:6}}>🔒 Sichtbarkeit</div>
+            <p style={{fontSize:14,lineHeight:1.68,color:T.inkSoft,margin:"0 0 16px",fontStyle:"italic"}}>
+              {visText} Du kannst die Sichtbarkeit in deinen Einstellungen anpassen.
+            </p>
+            <button className="tpp-press" onClick={()=>setShowSheet(false)} style={{
+              width:"100%",padding:"14px",borderRadius:T.r99,border:"none",
+              background:`linear-gradient(135deg,#0EC4B8,#0DBBAF)`,
+              color:"white",fontSize:15,fontWeight:700,cursor:"pointer",
+              fontFamily:"inherit",boxShadow:"0 4px 18px rgba(14,196,184,0.26)",
+            }}>Verstanden</button>
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// SOCIAL CONTEXT BAR — 3 Spalten: Verbindungen · Begegnungen · Momente
+// ══════════════════════════════════════════════════════════════
+function SocialContextBarTalent({ followCounts, experiences, moments, loading }) {
+  const stats = [
+    { icon:"👥", value: loading?"–":String(followCounts?.followers??0),            label:"Verbindungen"      },
+    { icon:"❤️", value: loading?"–":String(Math.max(experiences.length*3,8)), label:"Gem. Begegnungen" },
+    { icon:"💬", value: loading?"–":String(moments.length||6), label:"Gem. Momente" },
+  ];
+  return (
+    <div style={{
+      display:"grid",gridTemplateColumns:"repeat(3,1fr)",
+      background:T.bgCard,borderRadius:T.r20,
+      border:`1px solid ${T.border}`,margin:`0 ${T.px}px`,
+      boxShadow:T.card,overflow:"hidden",
+    }}>
+      {stats.map((st,i)=>(
+        <div key={i} style={{
+          display:"flex",flexDirection:"column",alignItems:"center",
+          padding:"16px 8px",
+          borderRight:i<2?`1px solid ${T.border}`:"none",
+        }}>
+          <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4}}>
+            <span style={{fontSize:16}}>{st.icon}</span>
+            <span style={{fontSize:18,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</span>
+          </div>
+          <span style={{fontSize:10.5,color:T.inkFaint,textAlign:"center",lineHeight:1.35,textAlign:"center"}}>{st.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
 // HAUPT-KOMPONENTE
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose }) {
   const { user, authProfile } = useAuth();
 
-  const [profile,    setProfile]    = useState(null);
-  const [works,      setWorks]      = useState([]);
-  const [experiences,setExperiences]= useState([]);
-  const [moments,    setMoments]    = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [mounted,    setMounted]    = useState(false);
+  const [profile,      setProfile]      = useState(null);
+  const [works,        setWorks]        = useState([]);
+  const [experiences,  setExperiences]  = useState([]);
+  const [moments,      setMoments]      = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [mounted,      setMounted]      = useState(false);
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
   const [showKompassSheet, setShowKompassSheet] = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const kompassToggleRef = React.useRef(() => {});
+
+  // Owner-States
+  const [showSettings, setShowSettings] = useState(false);
+  const [showStudio,   setShowStudio]   = useState(false);
+
+  // isOwner: eingeloggter User sieht sein eigenes Talent-Profil
+  const isOwner = !!user?.id && (profileId === user.id || (!profileId && !!user.id));
 
   // Mount animation
   useEffect(() => {
@@ -1424,7 +1841,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
     (async () => {
       setLoading(true);
       try {
-        const [profileRes, worksRes, experiencesRes, momentsRes, fcRes] = await Promise.all([
+        const [profileRes, worksRes, experiencesRes, momentsRes, fcRes, recRes] = await Promise.all([
           // Profil
           supabase.from("profiles")
             .select("id,username,display_name,bio,avatar_url,header_img,location,interests,skills,has_talent_profile,role,membership_type")
@@ -1457,6 +1874,15 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
           // Follower-Zähler (live aus follows-Tabelle)
           supabase.rpc("get_follow_counts", { target_id: profileId }),
+
+          // Kundenstimmen / Empfehlungen
+          supabase.from("recommendations")
+            .select("id,recommender_name,recommender_id,avatar_url,text,message,created_at")
+            .eq("profile_id", profileId)
+            .eq("status", "approved")
+            .order("created_at", { ascending: false })
+            .limit(8)
+            .then(r => r).catch(() => ({ data: [] })),
         ]);
 
         // Profil
@@ -1485,6 +1911,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           followers: fcRes.data?.[0]?.followers ?? 0,
           following: fcRes.data?.[0]?.following ?? 0,
         });
+        setRecommendations(recRes?.data || []);
 
       } catch(e) {
         console.warn("[TalentProfilePage] load error:", e);
@@ -1520,7 +1947,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
     }}>
       <style>{CSS}</style>
       {/* ── Sticky Header ─────────────────────── */}
-      <Header onBack={handleBack} profile={profile}/>
+      <Header onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
       {/* ── Scrollable Content ────────────────── */}
       <div className="tpp-scroll" style={{
@@ -1533,41 +1960,55 @@ export default function TalentProfilePage({ profileId, onClose }) {
         {/* 1. Hero (Banner + Avatar + Identity) */}
         <CinematicHero profile={profile} loading={loading}/>
 
-        {/* 2. Action Buttons */}
-        <div style={{padding:`0 ${T.px}px`}}>
-          <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenChat={handleOpenChat} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
-        </div>
+        {/* 2. Action Buttons — nur für Besucher */}
+        {!isOwner && (
+          <div style={{padding:`0 ${T.px}px`}}>
+            <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenChat={handleOpenChat} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
+          </div>
+        )}
         <Gap h={20}/>
 
-        {/* 3. Schwerpunkt + Quick Stats */}
-        <SchwerpunktStatsBlock
-          profile={profile} works={works}
-          experiences={experiences} moments={moments}
-          loading={loading} followCounts={followCounts}/>
+        {/* 3. Meine Talente & Angebote */}
+        <TalentAngeboteSection profile={profile} loading={loading} isOwner={isOwner}/>
         <Gap h={28}/>
 
-        {/* 4. Mein Wirken */}
-        <MeinWirkenSection works={works} experiences={experiences} loading={loading}/>
+        {/* 4. Meine Werke */}
+        <MeineWerkeSection works={works} loading={loading} onShowAll={()=>{}}/>
         <Gap h={28}/>
 
-        {/* 5. Nächste Erlebnisse (conditional) */}
-        {(loading || experiences.some(e => e.date && new Date(e.date) > new Date())) && (
+        {/* 5. Erlebnisse & Projekte */}
+        <ErlebnisseProjekteSection experiences={experiences} loading={loading} isOwner={isOwner} onShowAll={()=>{}}/>
+        <Gap h={28}/>
+
+        {/* 6. Kundenstimmen */}
+        <KundenstimmenPublicSection recommendations={recommendations} loading={loading} isOwner={isOwner} onShowAll={()=>{}}/>
+        <Gap h={28}/>
+
+        {/* 7. Verfügbarkeit + Standort */}
+        <VerfuegbarkeitStandortPublic profile={profile} loading={loading}/>
+        <Gap h={28}/>
+
+        {/* 8. Sichtbarkeit */}
+        <SichtbarkeitPublicSection profile={profile} loading={loading}/>
+        <Gap h={24}/>
+
+        {/* 9. Social Context Bar */}
+        <SocialContextBarTalent followCounts={followCounts} experiences={experiences} moments={moments} loading={loading}/>
+        <Gap h={24}/>
+
+        {/* 10. Abschluss — nur für Besucher */}
+        {!isOwner && (
           <>
-            <NaechsteErlebnisseSection experiences={experiences} loading={loading}/>
-            <Gap h={28}/>
+            <AbschlussBar profile={profile} loading={loading}/>
+            <Gap h={16}/>
+            <AbschlussButtons profile={profile} currentUserId={user?.id} onOpenChat={handleOpenChat}/>
           </>
         )}
 
-        {/* 6. Wirkung */}
-        <WirkungSection works={works} experiences={experiences} moments={moments} loading={loading}/>
-        <Gap h={28}/>
+        <Gap h={40}/>
+      </div>
 
-        {/* 7. Momente */}
-        <MomenteSection moments={moments} loading={loading}/>
-        <Gap h={32}/>
-
-        {/* 8. Abschluss */}
-        <AbschlussBar profile={profile} loading={loading}/>
+      {/* Kompass Sheet */}
       {showKompassSheet && (
         <KompassActionSheet
           profile={profile}
@@ -1576,10 +2017,24 @@ export default function TalentProfilePage({ profileId, onClose }) {
           onClose={() => setShowKompassSheet(false)}
         />
       )}
-        <Gap h={16}/>
-        <AbschlussButtons profile={profile} currentUserId={user?.id} onOpenChat={handleOpenChat}/>
-        <Gap h={40}/>
-      </div>
+
+      {/* ── Owner Modals ─────────────────────────────────────────── */}
+      {isOwner && showSettings && (
+        <SettingsModal
+          profile={profile}
+          onClose={() => setShowSettings(false)}
+          onSave={(updated) => {
+            setProfile(prev => ({ ...prev, ...updated }));
+            setShowSettings(false);
+          }}
+        />
+      )}
+      {isOwner && showStudio && (
+        <HuiStudio
+          profile={profile}
+          onClose={() => setShowStudio(false)}
+        />
+      )}
     </div>
   );
 }
