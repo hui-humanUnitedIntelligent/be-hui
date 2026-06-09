@@ -489,6 +489,10 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       // Freigabe-Tracking
       last_submitted_at: status === "pending_review" ? new Date().toISOString() : undefined,
       is_update: status === "pending_review" ? !!existingWork?.id : undefined,
+      // Approval System: beim Einreichen immer pending, nur Admin kann auf approved setzen
+      approval_status: status === "pending_review" ? "pending" : undefined,
+      // Bei Update: rejection_reason zurücksetzen (neue Prüfung)
+      rejection_reason: status === "pending_review" ? null : undefined,
     };
 
     console.log("[SAVE WERK] PRE-INSERT payload:", JSON.stringify({
