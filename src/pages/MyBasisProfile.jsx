@@ -287,7 +287,7 @@ function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = (
         </div>
 
         {/* Floating avatar + Name/Username/Badge — zentriert unter Cover */}
-        <div style={{ position:"absolute", bottom:-82, left:"50%", transform:"translateX(-50%)",
+        <div style={{ position:"absolute", bottom:-41, left:"50%", transform:"translateX(-50%)",
           display:"flex", flexDirection:"column", alignItems:"center", zIndex:10, width:"100vw" }}>
           <div style={{ position:"relative" }}>
             {/* Teal ring */}
@@ -1064,7 +1064,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onAvatarChange={handleAvatarChange}
           onCoverChange={handleCoverChange}
         />
-        <Gap h={120}/>
+        <Gap h={130}/>
 
         {/* ═══════════════════════════════════════════════════════ */}
         {/*  N E U E S   D A S H B O A R D   L A Y O U T            */}
