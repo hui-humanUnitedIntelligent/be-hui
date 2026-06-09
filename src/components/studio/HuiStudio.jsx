@@ -694,14 +694,64 @@ function MyRecommendationsModal({ userId, onClose }) {
               {filtered.map(rec => {
                 const d = details[rec.item_id] || {};
                 const L = REC_LABELS[rec.item_type] || { emoji:"📌", label: rec.item_type };
+                // ── Routing: nur existierende Routen ──────────────────
+                // work   → /work/:id          (Route existiert ✅)
+                // profile→ /profile/:username  (Route existiert ✅, braucht username)
+                // project→ /impact             (keine /projects/:id Route → Impact-Page)
+                // experience / event → noch keine Route → Hinweis
+                const handleClick = () => {
+                  const t = rec.item_type;
+                  try {
+                    if (t === "work") {
+                      if (d.exists === false) { alert("Dieses Werk existiert nicht mehr."); return; }
+                      onClose();
+                      window.history.pushState({}, "", `/work/${rec.item_id}`);
+                      window.dispatchEvent(new PopStateEvent("popstate"));
+                    } else if (t === "profile") {
+                      const uname = d.username;
+                      if (!uname) { alert("Dieses Profil existiert nicht mehr."); return; }
+                      onClose();
+                      window.history.pushState({}, "", `/profile/${uname}`);
+                      window.dispatchEvent(new PopStateEvent("popstate"));
+                    } else if (t === "project") {
+                      onClose();
+                      window.history.pushState({}, "", `/impact`);
+                      window.dispatchEvent(new PopStateEvent("popstate"));
+                    } else if (t === "experience") {
+                      alert("Erlebnis-Detailseite ist noch nicht verfügbar.");
+                    } else if (t === "event") {
+                      alert("Event-Detailseite ist noch nicht verfügbar.");
+                    }
+                  } catch(e) {
+                    console.warn("[MyRec] Navigation Fehler:", e);
+                  }
+                };
+                const isClickable = ["work","profile","project","experience","event"].includes(rec.item_type);
+
                 return (
-                  <div key={rec.id} style={{
-                    background:"#fff", borderRadius:14,
-                    border:"1px solid rgba(26,26,24,0.08)",
-                    padding:"14px 16px",
-                    display:"flex", alignItems:"center", gap:14,
-                    boxShadow:"0 1px 4px rgba(26,26,24,0.05)",
-                  }}>
+                  <div
+                    key={rec.id}
+                    onClick={handleClick}
+                    style={{
+                      background:"#fff", borderRadius:14,
+                      border:"1px solid rgba(26,26,24,0.08)",
+                      padding:"14px 16px",
+                      display:"flex", alignItems:"center", gap:14,
+                      boxShadow:"0 1px 4px rgba(26,26,24,0.05)",
+                      cursor:"pointer",
+                      transition:"transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = "scale(1.015)";
+                      e.currentTarget.style.boxShadow = "0 4px 16px rgba(14,196,184,0.20)";
+                      e.currentTarget.style.borderColor = "rgba(14,196,184,0.40)";
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "0 1px 4px rgba(26,26,24,0.05)";
+                      e.currentTarget.style.borderColor = "rgba(26,26,24,0.08)";
+                    }}
+                  >
                     {/* Bild / Avatar */}
                     <div style={{
                       width:46, height:46, borderRadius: rec.item_type === "profile" ? "50%" : 10,
@@ -724,12 +774,15 @@ function MyRecommendationsModal({ userId, onClose }) {
                         {d.subtitle || L.label} · {new Date(rec.created_at).toLocaleDateString("de-DE")}
                       </div>
                     </div>
-                    {/* Badge */}
-                    <div style={{
-                      padding:"4px 10px", borderRadius:20, flexShrink:0,
-                      background:"rgba(14,196,184,0.10)",
-                      fontSize:11, fontWeight:600, color:"#0EC4B8",
-                    }}>{L.emoji} {L.label}</div>
+                    {/* Badge + Pfeil */}
+                    <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                      <div style={{
+                        padding:"4px 10px", borderRadius:20,
+                        background:"rgba(14,196,184,0.10)",
+                        fontSize:11, fontWeight:600, color:"#0EC4B8",
+                      }}>{L.emoji} {L.label}</div>
+                      <span style={{ fontSize:16, color:"rgba(14,196,184,0.55)", fontWeight:600 }}>›</span>
+                    </div>
                   </div>
                 );
               })}
