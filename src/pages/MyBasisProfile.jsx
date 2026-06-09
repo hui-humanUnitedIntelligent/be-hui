@@ -284,8 +284,8 @@ function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = (
               }}/>
             )}
           </button>
-          {/* Settings */}
-          <button onClick={onSettings} style={{
+          {/* Studio / Settings */}
+          <button onClick={() => onStudio?.()} style={{
             width:34, height:34, borderRadius:"50%",
             background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)",
             border:"none", display:"flex", alignItems:"center", justifyContent:"center",
