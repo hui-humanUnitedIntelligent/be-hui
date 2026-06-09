@@ -26,6 +26,7 @@ const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
 import ImpactPage from './pages/ImpactPage'
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
+const ProfileDebugPage  = lazy(() => import('./pages/ProfileDebugPage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
@@ -559,6 +560,9 @@ function AppRoutes() {
 
         {/* Diagnose — LAZY (nur Dev) */}
         <Route path="/diagnose" element={<DiagnosePage />} />
+
+        {/* Profile Debug — SPRINT D.3, temporär, READ-ONLY */}
+        <Route path="/profile-debug" element={<ProfileDebugPage />} />
 
         {/* Platform Dashboard — intern, Admin-only */}
         <Route path="/dashboard" element={
