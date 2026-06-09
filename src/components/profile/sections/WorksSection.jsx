@@ -58,6 +58,9 @@ export function WorksSection({
   onShowAll  = null,   // () => void
 }) {
   const [confirmWork, setConfirmWork] = useState(null);
+  // ── SPRINT D.2 TRACE
+  console.log("WorksSection", { worksReceived: works?.length, isOwner });
+  // ── END TRACE
 
   // Visitor: nur freigegebene Werke
   const visible = isOwner
