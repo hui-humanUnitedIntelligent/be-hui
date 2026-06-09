@@ -1094,7 +1094,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
-        {/* HEADER */}
+        {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <MeinProfilHeader
           profile={{
             ...profile,
@@ -1108,193 +1108,35 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onAvatarChange={handleAvatarChange}
           onCoverChange={handleCoverChange}
         />
-        <Gap h={16}/>
+        <Gap h={28}/>
 
-        {/* ═══════════════════════════════════════════════════════ */}
-        {/*  N E U E S   D A S H B O A R D   L A Y O U T            */}
-        {/* ═══════════════════════════════════════════════════════ */}
+        {/* ── 1. ÜBER DICH ─────────────────────────────────────── */}
+        <UeberDich bio={bio} onChange={handleBioChange}/>
+        <Gap h={24}/>
 
-        {/* ── ÜBER MICH CARD ──────────────────────────────────── */}
-        <div style={{ padding:"0 16px", marginTop:16 }}>
-          <div style={{
-            background:"#FFFFFF",
-            borderRadius:20,
-            border:"1px solid rgba(26,26,24,0.07)",
-            padding:"16px 18px",
-            boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
-          }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-              <span style={{ fontSize:15, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>Über mich</span>
-              <button
-                onClick={() => setShowBioEdit(true)}
-                style={{
-                  background:"none", border:"none", cursor:"pointer",
-                  fontSize:13, fontWeight:700, color:"#0EC4B8",
-                  fontFamily:"inherit", padding:0, touchAction:"manipulation",
-                }}
-              >
-                Bearbeiten ›
-              </button>
-            </div>
-            {bio ? (
-              <p style={{ margin:0, fontSize:13.5, lineHeight:1.75, color:"#444441" }}>
-                {bio}
-              </p>
-            ) : (
-              <p style={{ margin:0, fontSize:13, color:"#AAAAAA", fontStyle:"italic" }}>
-                Erzähl etwas über dich…
-              </p>
-            )}
-            {profile?.profile_modules?.warum_hui && (
-              <div style={{
-                background:"rgba(14,196,184,0.07)", borderRadius:12,
-                border:"1px solid rgba(14,196,184,0.2)", padding:"10px 14px", marginTop:12,
-              }}>
-                <div style={{ fontSize:11, fontWeight:700, color:"#0EC4B8", marginBottom:4 }}>🌱 Warum HUI?</div>
-                <p style={{ margin:0, fontSize:13, color:"#1A1A18", lineHeight:1.6 }}>
-                  {profile.profile_modules.warum_hui}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* ── 2. INTERESSEN & WERTE ─────────────────────────────── */}
+        <InteressenSection interests={interests} onChange={handleInterestsChange}/>
+        <Gap h={24}/>
 
-        {/* ── MEINE WELT — 3er Grid ───────────────────────────── */}
-        <div style={{ padding:"14px 16px 0" }}>
-          <div style={{ fontSize:12, fontWeight:800, color:"#AAAAAA", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
-            Meine Welt
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:9 }}>
-            {[
-              { emoji:"🎨", label:"Werke",    count: profile?.werke_count    ?? 0 },
-              { emoji:"🗳️", label:"Stimmen",  count: profile?.stimmen_count  ?? 0 },
-              { emoji:"🚀", label:"Projekte", count: profile?.projekte_count ?? 0 },
-            ].map(({ emoji, label, count }) => (
-              <div key={label} style={{
-                background:"#FFFFFF",
-                borderRadius:18,
-                border:"1px solid rgba(26,26,24,0.07)",
-                padding:"14px 8px 12px",
-                textAlign:"center",
-                boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
-              }}>
-                <div style={{ fontSize:22, marginBottom:5 }}>{emoji}</div>
-                <div style={{ fontSize:22, fontWeight:900, color:"#0EC4B8", lineHeight:1 }}>{count}</div>
-                <div style={{ fontSize:10.5, color:"#AAAAAA", marginTop:4, fontWeight:600 }}>{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* ── 3. MOMENTE ───────────────────────────────────────── */}
+        <MomenteSection moments={moments} onChange={handleMomentsChange}/>
+        <Gap h={24}/>
 
-        {/* ── QUICK-ACCESS: Sichtbarkeit / Verbindungen / Privat ── */}
-        <div style={{ padding:"12px 16px 0" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:9 }}>
-            {[
-              { emoji:"👁️",  label: visibility === "public" ? "Öffentlich" : visibility === "connections" ? "Verbindungen" : "Privat" },
-              { emoji:"👥",  label:"Verbindungen" },
-              { emoji:"🔒",  label:"Privat" },
-            ].map(({ emoji, label }, i) => (
-              <div key={i} style={{
-                background:"#FFFFFF",
-                borderRadius:16,
-                border:"1px solid rgba(26,26,24,0.07)",
-                padding:"12px 8px",
-                textAlign:"center",
-                boxShadow:"0 1px 6px rgba(0,0,0,0.04)",
-                cursor: i === 0 ? "pointer" : "default",
-              }}
-              onClick={i === 0 ? () => {} : undefined}
-              >
-                <div style={{ fontSize:18, marginBottom:5 }}>{emoji}</div>
-                <div style={{ fontSize:10.5, fontWeight:700, color:"#555552" }}>{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* ── 4. OFFEN FÜR BEGEGNUNGEN ──────────────────────────── */}
+        <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
+        <Gap h={24}/>
 
-        {/* ── BEGEGNUNGEN: Standort + Interessen ──────────────── */}
-        <div style={{ padding:"14px 16px 0" }}>
-          <div style={{ fontSize:12, fontWeight:800, color:"#AAAAAA", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
-            Begegnungen
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:9 }}>
-            <div style={{
-              background:"#FFFFFF", borderRadius:18,
-              border:"1px solid rgba(26,26,24,0.07)",
-              padding:"14px 14px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
-            }}>
-              <div style={{ fontSize:18, marginBottom:6 }}>📍</div>
-              <div style={{ fontSize:12, fontWeight:800, color:"#1A1A18", marginBottom:3 }}>Orte</div>
-              <div style={{ fontSize:11.5, color:"#AAAAAA" }}>
-                {profile?.location || "In meiner Stadt"}
-              </div>
-            </div>
-            <div style={{
-              background:"#FFFFFF", borderRadius:18,
-              border:"1px solid rgba(26,26,24,0.07)",
-              padding:"14px 14px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
-            }}>
-              <div style={{ fontSize:18, marginBottom:6 }}>💬</div>
-              <div style={{ fontSize:12, fontWeight:800, color:"#1A1A18", marginBottom:3 }}>Themen</div>
-              <div style={{ fontSize:11.5, color:"#AAAAAA" }}>Gemeinsame Interessen</div>
-            </div>
-          </div>
-        </div>
+        {/* ── 5. SICHTBARKEIT ──────────────────────────────────── */}
+        <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+        <Gap h={28}/>
 
-        {/* ── TALENTE & SKILLS (falls vorhanden) ──────────────── */}
-        {Array.isArray(profile?.skills) && profile.skills.length > 0 && (
-          <div style={{ padding:"14px 16px 0" }}>
-            <div style={{ fontSize:12, fontWeight:800, color:"#AAAAAA", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
-              Talente & Angebote
-            </div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-              {profile.skills.map((t, i) => (
-                <span key={i} style={{
-                  display:"inline-flex", alignItems:"center",
-                  padding:"7px 14px", borderRadius:99,
-                  background:"#FFFFFF", border:"1.5px solid rgba(14,196,184,0.3)",
-                  fontSize:12.5, fontWeight:600, color:"#1A1A18",
-                  boxShadow:"0 1px 6px rgba(0,0,0,0.04)",
-                }}>{t}</span>
-              ))}
-            </div>
-          </div>
-        )}
-
-
-
-        {/* ── TALENT-CTA (nur für Basis-User) ─────────────────── */}
-        {!profile?.is_talent && (
-          <div style={{ padding:"14px 16px 0" }}>
-            <div style={{
-              background:"linear-gradient(135deg, rgba(14,196,184,0.08) 0%, rgba(14,196,184,0.04) 100%)",
-              borderRadius:20,
-              border:"1.5px solid rgba(14,196,184,0.25)",
-              padding:"18px",
-            }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                <span style={{fontSize:18}}>✨</span>
-                <span style={{fontSize:14, fontWeight:800, color:"#1A1A18"}}>Talent werden</span>
-              </div>
-              <div style={{fontSize:13, color:"#555552", lineHeight:1.65, marginBottom:14}}>
-                Veröffentliche Werke, biete Erlebnisse an und erhalte echte Empfehlungen.
-              </div>
-              <button
-                onClick={() => setShowGemeinschaft(true)}
-                style={{
-                  padding:"10px 20px", borderRadius:99,
-                  background:"#0EC4B8", border:"none", color:"white",
-                  fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
-                  touchAction:"manipulation",
-                }}
-              >
-                Mehr erfahren ›
-              </button>
-            </div>
-          </div>
-        )}
-
-        <Gap h={48}/>
+        {/* ── 6. AMBASSADOR-BANNER ─────────────────────────────── */}
+        <AmbassadorBanner
+          profile={profile}
+          ambState={ambState}
+          onApply={() => setShowAmbModal(true)}
+        />
+        <Gap h={40}/>
       </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
@@ -1605,6 +1447,80 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
   );
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// AMBASSADOR BANNER — Screenshot-genau unten im Profil
+// Kompakter Banner mit Bild + Text + Button
+// ══════════════════════════════════════════════════════════════
+function AmbassadorBanner({ profile, ambState, onApply }) {
+  const isAmb     = profile?.is_ambassador === true;
+  const isPending = ambState?.isPending || ambState?.applicationStatus === "offen"
+                    || ambState?.applicationStatus === "pending";
+  if (isAmb) return null; // Aktive Ambassadors brauchen keinen CTA
+
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <div style={{
+        background:T.bgCard,
+        borderRadius:T.r20,
+        border:`1px solid ${T.border}`,
+        boxShadow:T.card,
+        padding:"16px 18px",
+        display:"flex", alignItems:"center", gap:14,
+      }}>
+        {/* Münz-Icon */}
+        <div style={{
+          width:44, height:44, borderRadius:T.r12, flexShrink:0,
+          background:"linear-gradient(135deg,rgba(255,193,7,0.15),rgba(255,193,7,0.08))",
+          border:"1.5px solid rgba(255,193,7,0.25)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:22,
+        }}>
+          🏅
+        </div>
+
+        {/* Text */}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:14, fontWeight:800, color:T.ink, marginBottom:2 }}>
+            Ambassador werden
+          </div>
+          <div style={{ fontSize:12, color:T.inkSoft, lineHeight:1.45 }}>
+            Teile HUI mit anderen und unterstütze das Wachstum der Gemeinschaft.
+          </div>
+          {isPending && (
+            <div style={{
+              marginTop:6, fontSize:11.5, fontWeight:600,
+              color:"#B8860B",
+            }}>
+              ⏳ Bewerbung wird geprüft
+            </div>
+          )}
+        </div>
+
+        {/* Button */}
+        {!isPending && (
+          <button
+            onClick={onApply}
+            className="mbp-press"
+            style={{
+              flexShrink:0,
+              padding:"10px 16px", borderRadius:T.r99,
+              background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
+              border:"none", color:"white",
+              fontSize:12.5, fontWeight:700,
+              cursor:"pointer", touchAction:"manipulation",
+              fontFamily:"inherit",
+              whiteSpace:"nowrap",
+              boxShadow:T.glowTeal,
+            }}
+          >
+            Jetzt anmelden ›
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 // ══════════════════════════════════════════════════════════════
 // GEMEINSCHAFTSKARTE
 // Einladende Karte zwischen "Über mich" und "Interessen"
