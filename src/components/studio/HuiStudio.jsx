@@ -571,6 +571,7 @@ function AmbassadorStudioSection({ profile }) {
 // Kein Löschen, kein Mutieren — nur lesen + navigieren
 // ═══════════════════════════════════════════════════════════════
 function EinladungenModal({ ambassadorId, username, onClose }) {
+  const { openPublicProfile } = useNavigateTo();
   const [invited, setInvited] = useState([]);
   const [loading, setLoading] = useState(true);
 
