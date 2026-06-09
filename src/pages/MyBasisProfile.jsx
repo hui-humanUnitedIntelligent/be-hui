@@ -218,145 +218,189 @@ function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = (
     e.target.value = "";
   }
 
+  // Avatar: 90px Durchmesser → Hälfte = 45px überlappt die Unterkante
+  // Cover-Wrapper hat overflow:visible damit Avatar rausragen kann
+  const AVT_SIZE = 90;
+
   return (
-    <div style={{ width:"100%", paddingTop:8 }}>
-      {/* Title row — nur Buttons, Name/Username jetzt unter Avatar */}
-      <div style={{ display:"flex", justifyContent:"flex-end", alignItems:"center",
-        padding:`0 ${T.px}px 10px` }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          {/* Glocke — Benachrichtigungen */}
-          <button className="mbp-press-light" onClick={() => onBell?.()} style={{
-            width:36, height:36, borderRadius:"50%",
-            background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:17, cursor:"pointer", touchAction:"manipulation",
-            position:"relative",
+    <div style={{ width:"100%" }}>
+
+      {/* Hidden file inputs */}
+      <input ref={coverInputRef} type="file" accept="image/*"
+        style={{ display:"none" }} onChange={handleCoverFile} />
+      <input ref={avatarInputRef} type="file" accept="image/*"
+        style={{ display:"none" }} onChange={handleAvatarFile} />
+
+      {/* ── COVER + Avatar-Overlap ─────────────────────────── */}
+      {/* Cover hat overflow:visible — Avatar ragt unten raus */}
+      <div style={{
+        margin:`0 ${T.px}px`,
+        borderRadius:T.r20,
+        height:165,
+        position:"relative",
+        overflow:"visible",
+        background:"linear-gradient(160deg,#1a2e3b,#5a7a6e)",
+      }}>
+        {/* Cover-Bild (overflow:hidden nur auf dem Bild selbst) */}
+        <div style={{
+          position:"absolute", inset:0,
+          borderRadius:T.r20, overflow:"hidden",
+        }}>
+          <img
+            src={cover} alt=""
+            onLoad={()=>setImgLoaded(true)}
+            onError={()=>setImgLoaded(true)}
+            style={{
+              width:"100%", height:"100%", objectFit:"cover",
+              opacity:imgLoaded ? 1 : 0, transition:"opacity 1.1s ease",
+            }}
+          />
+          {/* sanfter Gradient unten */}
+          <div style={{
+            position:"absolute", inset:0,
+            background:"linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.18) 100%)",
+          }}/>
+        </div>
+
+        {/* Buttons oben rechts IM Cover */}
+        <div style={{
+          position:"absolute", top:12, right:12, zIndex:20,
+          display:"flex", gap:8,
+        }}>
+          {/* Glocke */}
+          <button onClick={() => onBell?.()} style={{
+            width:34, height:34, borderRadius:"50%",
+            background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)",
+            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:16, cursor:"pointer", touchAction:"manipulation",
+            boxShadow:"0 2px 8px rgba(0,0,0,0.15)", position:"relative",
           }}>
             🔔
-            {/* Notification Dot — live */}
             {unreadCount > 0 && (
               <span style={{
-                position:"absolute", top:5, right:5,
+                position:"absolute", top:6, right:6,
                 width:8, height:8, borderRadius:"50%",
                 background:"#FF4444", border:"1.5px solid white",
               }}/>
             )}
           </button>
-          {/* Einstellungen */}
-          <button className="mbp-press-light" onClick={onSettings} style={{
-            width:36, height:36, borderRadius:"50%",
-            background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:17, cursor:"pointer", touchAction:"manipulation",
+          {/* Settings */}
+          <button onClick={onSettings} style={{
+            width:34, height:34, borderRadius:"50%",
+            background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)",
+            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:16, cursor:"pointer", touchAction:"manipulation",
+            boxShadow:"0 2px 8px rgba(0,0,0,0.15)",
           }}>⚙️</button>
         </div>
-      </div>
 
-      {/* Cinematic cover — Kamera-Icon triggert Upload */}
-      {/* Verstecktes Input für Cover-Bild */}
-      <input
-        ref={coverInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display:"none" }}
-        onChange={handleCoverFile}
-      />
-      {/* Cover-Wrapper: position:relative, KEIN overflow:hidden damit Avatar sichtbar bleibt */}
-      <div style={{ margin:`0 ${T.px}px`, borderRadius:T.r20,
-        height:170, position:"relative", background:"linear-gradient(160deg,#2C3E2D,#7B8E5E)" }}>
-        {/* Das Bild selbst hat overflow:hidden via borderRadius auf dem Container-Img-Wrapper */}
-        <div style={{ position:"absolute", inset:0, borderRadius:T.r20, overflow:"hidden" }}>
-          <img src={cover} alt="" onLoad={()=>setImgLoaded(true)} onError={()=>setImgLoaded(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover",
-              opacity:imgLoaded?0.7:0, transition:"opacity 1.1s ease" }}/>
-          <div style={{ position:"absolute", inset:0,
-            background:"linear-gradient(180deg,rgba(247,245,240,0) 30%,rgba(247,245,240,0.55) 100%)" }}/>
-          {/* Kamera-Icon oben rechts — öffnet Cover-Upload */}
-          <button
-            onClick={() => coverInputRef.current?.click()}
-            style={{
-              position:"absolute", top:10, right:10, zIndex:15,
-              width:32, height:32, borderRadius:"50%",
-              background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)",
-              border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:15, cursor:"pointer", touchAction:"manipulation",
-            }}
-          >
-            {coverUploading ? <span className="mbp-uploading" style={{fontSize:13}}>⏳</span> : "📷"}
-          </button>
-        </div>
+        {/* Cover-Kamera oben links */}
+        <button
+          onClick={() => coverInputRef.current?.click()}
+          style={{
+            position:"absolute", top:12, left:12, zIndex:20,
+            width:30, height:30, borderRadius:"50%",
+            background:"rgba(0,0,0,0.38)", backdropFilter:"blur(6px)",
+            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:13, cursor:"pointer", touchAction:"manipulation",
+          }}
+        >
+          {coverUploading ? "⏳" : "📷"}
+        </button>
 
-        {/* Floating avatar + Name/Username/Badge — zentriert unter Cover */}
-        <div style={{ position:"absolute", bottom:-41, left:"50%", transform:"translateX(-50%)",
-          display:"flex", flexDirection:"column", alignItems:"center", zIndex:10, width:"100vw" }}>
-          <div style={{ position:"relative" }}>
-            {/* Teal ring */}
-            <div style={{ position:"absolute", inset:-3, borderRadius:"50%",
-              background:`conic-gradient(from 0deg,${T.teal},rgba(14,196,184,0.3),${T.teal})`,
-              opacity:0.85 }}/>
-            <div style={{ position:"relative", width:82, height:82, borderRadius:"50%",
-              border:"3.5px solid white",
-              boxShadow:"0 4px 20px rgba(0,0,0,0.16)",
-              overflow:"hidden", background:T.bg }}>
-              {!avLoaded && <div className="mbp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>}
-              <img src={avatar} alt={name} onLoad={()=>setAvLoaded(true)} onError={()=>setAvLoaded(true)}
-                style={{ width:"100%", height:"100%", objectFit:"cover",
-                  opacity:avLoaded?1:0, transition:"opacity .5s ease" }}/>
+        {/* Avatar — zentriert, Hälfte überlappt Unterkante */}
+        <div style={{
+          position:"absolute",
+          bottom: -(AVT_SIZE / 2),   /* 45px unter Cover-Unterkante */
+          left:"50%",
+          transform:"translateX(-50%)",
+          zIndex:30,
+        }}>
+          <div style={{ position:"relative", width:AVT_SIZE, height:AVT_SIZE }}>
+            {/* Weißer Ring */}
+            <div style={{
+              position:"absolute", inset:-4, borderRadius:"50%",
+              background:"white",
+              boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
+            }}/>
+            {/* Teal-Ring innen */}
+            <div style={{
+              position:"absolute", inset:-2, borderRadius:"50%",
+              background:`conic-gradient(from 0deg,${T.teal},rgba(14,196,184,0.4),${T.teal})`,
+              opacity:0.9,
+            }}/>
+            {/* Avatar-Bild */}
+            <div style={{
+              position:"relative", width:AVT_SIZE, height:AVT_SIZE,
+              borderRadius:"50%", overflow:"hidden",
+              border:"3px solid white",
+              background:T.bg,
+            }}>
+              {!avLoaded && (
+                <div className="mbp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>
+              )}
+              <img
+                src={avatar} alt={name}
+                onLoad={()=>setAvLoaded(true)}
+                onError={()=>setAvLoaded(true)}
+                style={{
+                  width:"100%", height:"100%", objectFit:"cover",
+                  opacity:avLoaded ? 1 : 0, transition:"opacity .5s ease",
+                }}
+              />
             </div>
-            {/* Camera button */}
+            {/* Kamera-Icon auf Avatar */}
             <label style={{
-              position:"absolute", bottom:0, right:0,
+              position:"absolute", bottom:2, right:2,
               width:26, height:26, borderRadius:"50%",
               background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
               border:"2px solid white",
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:12, cursor:"pointer", touchAction:"manipulation",
-              boxShadow:"0 2px 8px rgba(14,196,184,0.3)",
-              zIndex:20,
+              boxShadow:"0 2px 8px rgba(14,196,184,0.35)",
+              zIndex:40,
             }}>
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display:"none" }}
-                onChange={handleAvatarFile}
-              />
-              {avatarUploading
-                ? <span className="mbp-uploading" style={{fontSize:11}}>⏳</span>
-                : "📷"
-              }
+              <input ref={avatarInputRef} type="file" accept="image/*"
+                style={{ display:"none" }} onChange={handleAvatarFile} />
+              {avatarUploading ? "⏳" : "📷"}
             </label>
-          </div>{/* /avatar-relative */}
-
-          {/* ── Name + @username + Badge — zentriert unter Avatar */}
-          <div style={{ marginTop:12, textAlign:"center" }}>
-            <div style={{
-              fontSize:21, fontWeight:900, color:T.ink,
-              letterSpacing:"-0.03em", lineHeight:1.2,
-              whiteSpace:"nowrap",
-            }}>
-              {profile?.display_name || profile?.username || "–"}
-            </div>
-            {profile?.username && (
-              <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:3, fontWeight:400 }}>
-                @{profile.username}
-              </div>
-            )}
-            <div style={{
-              display:"inline-flex", alignItems:"center", gap:5,
-              marginTop:8,
-              background: profile?.is_talent ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
-              border:`1px solid ${profile?.is_talent ? "rgba(14,196,184,0.22)" : "rgba(14,196,184,0.15)"}`,
-              borderRadius:99, padding:"4px 12px",
-              fontSize:11, fontWeight:700, color:"#0AADA3",
-            }}>
-              <span style={{fontSize:11}}>{profile?.is_talent ? "✨" : "🌿"}</span>
-              <span>{profile?.is_talent ? "HUI-Talent" : "HUI-Mitglied"}</span>
-            </div>
           </div>
+        </div>
 
-        </div>{/* /floating-col */}
-      </div>{/* /cover-wrapper */}
+      </div>{/* /cover */}
+
+      {/* ── Name + Badge — zentriert, unterhalb Avatar ──────── */}
+      {/* paddingTop = Avatar-Hälfte (45px) + 12px Luft */}
+      <div style={{
+        paddingTop: (AVT_SIZE / 2) + 14,
+        textAlign:"center",
+        paddingBottom:4,
+      }}>
+        <div style={{
+          fontSize:22, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.03em", lineHeight:1.2,
+        }}>
+          {profile?.display_name || profile?.username || "–"}
+        </div>
+        {profile?.username && (
+          <div style={{ fontSize:12, color:T.inkFaint, marginTop:3, fontWeight:400 }}>
+            @{profile.username}
+          </div>
+        )}
+        {/* Badge */}
+        <div style={{
+          display:"inline-flex", alignItems:"center", gap:5,
+          marginTop:8,
+          background: profile?.is_talent ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
+          border:`1px solid ${profile?.is_talent ? "rgba(14,196,184,0.25)" : "rgba(14,196,184,0.15)"}`,
+          borderRadius:99, padding:"4px 12px",
+          fontSize:11, fontWeight:700, color:"#0AADA3",
+        }}>
+          <span>{profile?.is_talent ? "✨" : "🌿"}</span>
+          <span>{profile?.is_talent ? "HUI-Talent" : "HUI-Mitglied"}</span>
+        </div>
+      </div>
+
     </div>
   );
 }
