@@ -365,6 +365,23 @@ function FreigabenTab({ onPendingChange }) {
         </div>
       )}
 
+      {/* Banner: Pending-Hinweis für Werke */}
+      {subTab === "pending" && items.filter(x => x._type==="werk").length > 0 && (
+        <div style={{...card, background:"rgba(251,191,36,0.09)",
+          border:"1px solid rgba(251,191,36,0.30)", marginBottom:8,
+          display:"flex", alignItems:"center", gap:10}}>
+          <span style={{fontSize:20}}>⚠️</span>
+          <div>
+            <div style={{fontSize:13,fontWeight:700,color:C.yellow}}>
+              {items.filter(x=>x._type==="werk").length} Werk{items.filter(x=>x._type==="werk").length!==1?"e":""} wartet{items.filter(x=>x._type==="werk").length===1?"":"en"} auf Freigabe
+            </div>
+            <div style={{fontSize:11,color:C.sub,marginTop:1}}>
+              Neue Einreichungen und Aktualisierungen müssen geprüft werden, bevor sie öffentlich erscheinen.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sub-Tab-Leiste */}
       <div style={{...card, display:"flex", alignItems:"center",
         justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:8}}>
@@ -418,8 +435,9 @@ function FreigabenTab({ onPendingChange }) {
         const profile = item.profiles || {};
         const uid     = item.user_id || item.creator_id;
         const acting  = actioning === item.id;
-        const dateStr = item.created_at
-          ? new Date(item.created_at).toLocaleDateString("de-DE",
+        const submittedAt = item._type==="werk" ? (item.last_submitted_at || item.created_at) : item.created_at;
+        const dateStr = submittedAt
+          ? new Date(submittedAt).toLocaleDateString("de-DE",
               {day:"2-digit",month:"2-digit",year:"numeric"}) : "—";
 
         return (
@@ -465,10 +483,17 @@ function FreigabenTab({ onPendingChange }) {
                   <StatusBadge status={item.status}/>
                 </div>
 
-                {/* Titel */}
+                {/* Titel + NEU/AKTUALISIERT Badge */}
                 <div style={{fontSize:13,fontWeight:800,color:C.text,
-                  marginBottom:3,lineHeight:1.3}}>
-                  {item.title||"Kein Titel"}
+                  marginBottom:3,lineHeight:1.3,display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                  <span>{item._title||item.title||"Kein Titel"}</span>
+                  {item._type==="werk" && subTab==="pending" && (
+                    item.is_update
+                      ? <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight:800,
+                          background:"rgba(168,139,250,0.20)",color:"#A78BFA",flexShrink:0}}>AKTUALISIERT</span>
+                      : <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight:800,
+                          background:"rgba(42,191,172,0.20)",color:"#2ABFAC",flexShrink:0}}>NEU</span>
+                  )}
                 </div>
 
                 {/* Beschreibung */}
