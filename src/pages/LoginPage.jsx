@@ -449,37 +449,14 @@ export default function LoginPage() {
     if (refResult && signUpData?.user?.id) {
       const newUserId = signUpData.user.id;
       try {
-        // 1. referred_by_ambassador_id in profiles setzen
+        // referred_by = UUID des Ambassadors (Single Source of Truth)
         await supabase.from('profiles')
-          .update({ referred_by_ambassador_id: refResult.ambassadorId })
+          .update({ referred_by: refResult.ambassadorId })
           .eq('id', newUserId);
 
-        // 2. Referral-Tracking: Wer hat diesen Nutzer eingeladen?
-        await supabase.from('ambassador_revenue').insert({
-          ambassador_user_id: refResult.ambassadorId,
-          referred_user_id:   newUserId,
-          transaction_id:     'signup_' + newUserId.slice(0, 8),
-          amount_total:       0,
-          impact_share:       0,
-          ambassador_share:   0,
-        }).catch(() => {}); // Fehler ignorieren — Registrierung nicht blockieren
+        // localStorage-Referral löschen nach Verarbeitung
+        localStorage.removeItem('hui_referral_ambassador');
 
-        // 3. referrals_count +1 beim Ambassador
-        await supabase.rpc('increment_referrals', { ambassador_uuid: refResult.ambassadorId })
-          .catch(() => {
-            // Fallback wenn RPC nicht existiert
-            supabase.from('ambassadors')
-              .select('referrals_count')
-              .eq('id', refResult.ambassadorId)
-              .single()
-              .then(({ data: amb }) => {
-                if (amb) {
-                  supabase.from('ambassadors')
-                    .update({ referrals_count: (amb.referrals_count || 0) + 1 })
-                    .eq('id', refResult.ambassadorId);
-                }
-              });
-          });
       } catch (refErr) {
         console.warn('Ref-Link Verarbeitung fehlgeschlagen:', refErr);
         // Registrierung trotzdem fortsetzen
