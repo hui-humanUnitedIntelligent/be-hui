@@ -673,7 +673,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
                 return (
                   <div
                     key={u.id}
-                    onClick={() => navigateTo(u.username)}
+                    onClick={() => navigateTo(u.id, u.username)}
                     style={{
                       background:"#fff", borderRadius:14,
                       border:"1px solid rgba(26,26,24,0.08)",
