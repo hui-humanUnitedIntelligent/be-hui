@@ -987,11 +987,15 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
     setShowSupport(true);
   }, []);
 
-  // Guard: WirkerProfilePage braucht eine gültige ID
-  // Ohne ID: Supabase-Query liefert nichts → Crash in VisitorHero
-  const wirkerHasId = !!(rawWirker?.id?.trim?.() || rawWirker?.user_id?.trim?.());
+  // Guard: WirkerProfilePage braucht id, user_id ODER username
+  // Ohne irgendeine Kennung: "Profil nicht gefunden"
+  const wirkerHasId = !!(
+    rawWirker?.id?.trim?.() ||
+    rawWirker?.user_id?.trim?.() ||
+    rawWirker?.username?.trim?.()
+  );
   if (!wirkerHasId) {
-    console.warn("[WirkerProfilePage] kein id — render abgebrochen", rawWirker);
+    console.warn("[WirkerProfilePage] kein id/username — render abgebrochen", rawWirker);
     return (
       <div style={{
         position:"fixed",inset:0,zIndex:_zIndex,
