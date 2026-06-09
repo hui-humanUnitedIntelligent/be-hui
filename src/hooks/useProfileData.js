@@ -96,7 +96,6 @@ export function useProfileData(profileId) {
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
-  const [rawDiag,      setRawDiag]      = useState(null);
 
   // Laufende Request-ID — verhindert Race Conditions
   const requestId = useRef(0);
@@ -112,13 +111,6 @@ export function useProfileData(profileId) {
     setError(null);
 
     try {
-      // ── SPRINT E.9 — NOOP + DATA TRACE ─────────────────────────
-      console.log('[E9] supabase.from IS NOOP?',
-        typeof supabase.from('works').not === 'undefined'
-          ? '⚠️ NOOP AKTIV — .not() fehlt'
-          : '✅ ECHTER CLIENT — .not() vorhanden'
-      );
-      console.log('[E9] profileId going into query:', profileId);
       // ── Alle Queries parallel ────────────────────────────────────
       const [
         profileRes,
@@ -242,47 +234,8 @@ export function useProfileData(profileId) {
       setProfile(normalizedProfile);
       setWirkerProfile(wp);
 
-      // ── SPRINT E.5 TRACE ──────────────────────────────────────────
-      console.log('[E5] PROFILE RAW', profileRes.data);
-      console.log('[E5] PROFILE RAW ID', profileRes.data?.id);
-      console.log('[E5] PROFILE ID (profileId param)', profileId);
-      console.log('[E5] WORKS QUERY eq(user_id,', profileId, ')');
-      console.log('[E5] WORKS RAW RESULT', worksRes.data);
-      console.log('[E5] WORKS COUNT', worksRes.data?.length ?? 0);
-      console.log('[E5] WORKS ERROR', worksRes.error ?? null);
-      if (worksRes.data?.length > 0) {
-        console.log('[E5] WORKS USER IDS', worksRes.data.map(w => ({
-          id: w.id,
-          user_id: w.user_id,
-          creator_id: w.creator_id,
-          status: w.status,
-          visibility: w.visibility,
-        })));
-      }
-      // ── END E.5 TRACE ─────────────────────────────────────────────
 
-      // ── SPRINT E.9 — RAW RESULTS VOR setState ─────────────────
-      console.group('[E9] RAW RESULTS vor setState');
-      console.log('[E9] profileRes.data vorhanden?', !!profileRes.data);
-      console.log('[E9] worksRes.data?.length    :', worksRes.data?.length ?? 'null/undefined');
-      console.log('[E9] worksRes.error           :', worksRes.error ?? 'null');
-      console.log('[E9] expsRes.data?.length     :', expsRes.data?.length ?? 'null/undefined');
-      console.log('[E9] momentsRes.data?.length  :', momentsRes.data?.length ?? 'null/undefined');
-      console.log('[E9] recsRes.data?.length     :', recsRes.data?.length ?? 'null/undefined');
-      console.log('[E9] fcRes.data               :', fcRes.data ?? 'null');
-      console.groupEnd();
       // ─────────────────────────────────────────────────────────────
-      // ── SPRINT E.10 — rawDiag für Debug-Panel ──────────────
-      setRawDiag({
-        worksDataLen:    worksRes.data?.length ?? null,
-        worksErrorMsg:   worksRes.error?.message ?? null,
-        worksErrorCode:  worksRes.error?.code    ?? null,
-        worksQueryExec:  true,
-        worksRows:       worksRes.data ?? null,
-        expsDataLen:     expsRes.data?.length    ?? null,
-        momentsDataLen:  momentsRes.data?.length ?? null,
-      });
-      // ─────────────────────────────────────────────────────────
       setWorks(worksRes.data || []);
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);
@@ -305,18 +258,6 @@ export function useProfileData(profileId) {
     load();
   }, [load]);
 
-  // ── SPRINT D.2 TRACE (State-Scope) ──────────────────────────
-  console.group("PROFILE TRACE");
-  console.log("WIRKER PROFILE", wirkerProfile);
-  console.log("PROFILE FINAL", profile);
-  console.log("skills_final", profile?.skills_final);
-  console.log("location_final", profile?.location_final);
-  console.log("works count", works?.length);
-  console.log("experiences count", experiences?.length);
-  console.log("recommendations count", recommendations?.length);
-  console.log("moments count", moments?.length);
-  console.groupEnd();
-  // ── END TRACE ─────────────────────────────────────────────────
   return {
     profile,
     wirkerProfile,
@@ -328,7 +269,6 @@ export function useProfileData(profileId) {
     loading,
     error,
     reload: load,
-    rawDiag,
   };
 }
 
