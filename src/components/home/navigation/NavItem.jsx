@@ -55,8 +55,6 @@ function NavIcon({ k, active }) {
       <path d="M5 21 Q5.5 15.5 12 15.5 Q18.5 15.5 19 21"
         stroke={col} strokeWidth={sw} strokeLinecap="round"
         fill={active ? `${C.teal}14` : "none"}/>
-      <path d="M15 5 L16.5 8 L20 8.5 L17.5 11 L18 14.5 L15 13 L12 14.5 L12.5 11 L10 8.5 L13.5 8 Z"
-        stroke={active ? C.coral : col} strokeWidth="0.8" fill={active ? `${C.coral}22` : "none"}/>
     </svg>
   );
   if (k === "profile") return (
