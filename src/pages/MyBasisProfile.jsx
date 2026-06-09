@@ -920,6 +920,28 @@ export default function MyBasisProfile({ onClose, profileId }) {
     })();
   },[]);
 
+  // ── Eigene Werke + Experiences aus Supabase laden ────────────────────────
+  useEffect(() => {
+    if (!profile?.id) return;
+    (async () => {
+      const { data: worksData } = await supabase
+        .from("works")
+        .select("id,title,cover_url,category,status,approval_status,rejection_reason,price,for_sale,created_at,images")
+        .eq("user_id", profile.id)
+        .not("status", "eq", "deleted")
+        .order("created_at", { ascending: false });
+      if (worksData) setWorks(worksData);
+
+      const { data: expsData } = await supabase
+        .from("experiences")
+        .select("id,title,cover_url,category,status,price,duration,format,created_at")
+        .eq("user_id", profile.id)
+        .not("status", "eq", "deleted")
+        .order("created_at", { ascending: false });
+      if (expsData) setExperiences(expsData);
+    })();
+  }, [profile?.id]);
+
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
   const autoSave = useCallback(async (field, value) => {
