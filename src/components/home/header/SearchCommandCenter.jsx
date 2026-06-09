@@ -1801,6 +1801,390 @@ function KiDiscoveryCol({query, onHintSelect}){
 
 
 // ─────────────────────────────────────────────────────────────
+// MOBILE FULLSCREEN SEARCH VIEW
+// • Suchfeld IMMER sichtbar — sticky oben
+// • createPortal → über allem (z-index 99999)
+// • Zustand 1 (leer):  Kategorien + letzte Suchen
+// • Zustand 2 (query): Kategorie-Tabs + Ergebnisliste full-width
+// ─────────────────────────────────────────────────────────────
+const MOBILE_CATS = [
+  { key:"alle",        label:"Alle",          emoji:"🔍" },
+  { key:"personen",    label:"Personen",      emoji:"👥" },
+  { key:"talente",     label:"Talente",       emoji:"✨" },
+  { key:"werke",       label:"Werke",         emoji:"🎨" },
+  { key:"erlebnisse",  label:"Erlebnisse",    emoji:"📅" },
+  { key:"projekte",    label:"Projekte",      emoji:"🌱" },
+  { key:"beitraege",   label:"Beiträge",      emoji:"📝" },
+];
+const MOBILE_EMPTY_CATS = [
+  { label:"Menschen",       emoji:"👥", q:"Menschen"      },
+  { label:"Werke",          emoji:"🎨", q:"Werk"          },
+  { label:"Projekte",       emoji:"🌱", q:"Projekt"       },
+  { label:"Erlebnisse",     emoji:"📅", q:"Erlebnis"      },
+  { label:"Kreativität",    emoji:"🎨", q:"kreativ"       },
+  { label:"Musik",          emoji:"🎵", q:"Musik"         },
+  { label:"Gemeinschaft",   emoji:"🤝", q:"Gemeinschaft"  },
+  { label:"Nachhaltigkeit", emoji:"🌿", q:"nachhaltig"    },
+];
+
+function MobileSearchView({ initialQuery, history, onClose, onSelect, onHistory, currentUser }) {
+  const [q,        setQ]        = useState(initialQuery || "");
+  const [category, setCategory] = useState("alle");
+  const inputRef   = useRef(null);
+  const debouncedQ = useDebounce(q, 260);
+  const { results, loading, total } = useUnifiedSearch(debouncedQ);
+  const hasQuery = q.trim().length > 0;
+
+  // Autofokus
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 70);
+    return () => clearTimeout(t);
+  }, []);
+
+  // iOS scroll-lock
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  // Hardware-Back
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const fn = () => onClose();
+    window.addEventListener("popstate", fn);
+    return () => window.removeEventListener("popstate", fn);
+  }, [onClose]);
+
+  // Kategorie zurücksetzen bei neuer Query
+  useEffect(() => { setCategory("alle"); }, [debouncedQ]);
+
+  function getFiltered() {
+    if (!hasQuery) return [];
+    switch (category) {
+      case "personen":   return results.profiles.filter(r => !r.talent);
+      case "talente":    return results.profiles.filter(r =>  r.talent);
+      case "werke":      return results.works;
+      case "erlebnisse": return results.experiences;
+      case "beitraege":  return results.momente;
+      case "projekte":   return [];
+      default:           return [
+        ...results.profiles, ...results.works,
+        ...results.experiences, ...results.momente,
+      ];
+    }
+  }
+  function catCount(key) {
+    switch (key) {
+      case "personen":   return results.profiles.filter(r => !r.talent).length;
+      case "talente":    return results.profiles.filter(r =>  r.talent).length;
+      case "werke":      return results.works.length;
+      case "erlebnisse": return results.experiences.length;
+      case "beitraege":  return results.momente.length;
+      case "projekte":   return 0;
+      default:           return total;
+    }
+  }
+  function typeIcon(t)  { return t==="profile"?"👤":t==="work"?"🎨":t==="experience"?"📅":t==="moment"?"📝":"✨"; }
+  function typeLabel(t) { return t==="profile"?"Person":t==="work"?"Werk":t==="experience"?"Erlebnis":t==="moment"?"Beitrag":""; }
+
+  const items = getFiltered();
+
+  const content = (
+    <div style={{
+      position:"fixed", inset:0, zIndex:99999,
+      background:"#F9F7F4",
+      display:"flex", flexDirection:"column",
+      overflow:"hidden",
+    }}>
+      <style>{`
+        @keyframes msv-in {
+          from { opacity:0; transform:translateY(10px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .msv-root  { animation: msv-in .20s cubic-bezier(.22,1,.36,1) both; }
+        .msv-scroll::-webkit-scrollbar { display:none; }
+        .msv-item:active   { background:rgba(14,196,184,0.10) !important; }
+        .msv-chip:active   { opacity:.7; }
+        .msv-catbtn:active { opacity:.7; }
+      `}</style>
+
+      {/* ══ STICKY HEADER — Suchfeld IMMER sichtbar ══ */}
+      <div className="msv-root" style={{
+        flexShrink:0, zIndex:2,
+        background:"rgba(249,247,244,0.98)",
+        backdropFilter:"blur(24px) saturate(1.6)",
+        WebkitBackdropFilter:"blur(24px) saturate(1.6)",
+        borderBottom:"1px solid rgba(0,0,0,0.06)",
+        paddingTop:"max(14px, env(safe-area-inset-top, 14px))",
+      }}>
+
+        {/* Zeile 1: ← Zurück + Suchfeld */}
+        <div style={{ display:"flex", alignItems:"center", gap:9, padding:"0 12px 10px" }}>
+
+          {/* ← Zurück */}
+          <button onClick={onClose} style={{
+            flexShrink:0, width:38, height:38, borderRadius:"50%",
+            background:"rgba(26,53,48,0.07)", border:"none", cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M19 12H5M5 12L12 19M5 12L12 5"
+                stroke="#1A3530" strokeWidth="2.2"
+                strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {/* Suchfeld — IMMER sichtbar, IMMER tippbar */}
+          <div style={{
+            flex:1, display:"flex", alignItems:"center", gap:8, height:44,
+            background:"#fff", borderRadius:14,
+            border:"1.5px solid rgba(14,196,184,0.40)",
+            boxShadow:"0 0 0 3px rgba(14,196,184,0.07)",
+            padding:"0 12px",
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+              style={{flexShrink:0, opacity:.45}}>
+              <circle cx="11" cy="11" r="7" stroke="#0EC4B8" strokeWidth="2.2"/>
+              <path d="M20 20L16.5 16.5" stroke="#0EC4B8" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+            <input
+              ref={inputRef}
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              placeholder="Suchen…"
+              autoCapitalize="off"
+              autoCorrect="off"
+              style={{
+                flex:1, border:"none", outline:"none", background:"transparent",
+                fontSize:16, fontWeight:500, color:"#1A3530",
+                fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
+              }}
+            />
+            {q && (
+              <button
+                onClick={() => { setQ(""); setTimeout(() => inputRef.current?.focus(), 30); }}
+                style={{
+                  flexShrink:0, width:20, height:20, borderRadius:"50%",
+                  background:"rgba(0,0,0,0.10)", border:"none", cursor:"pointer",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:11, color:"rgba(60,60,60,0.6)", fontWeight:700,
+                  WebkitTapHighlightColor:"transparent",
+                }}>✕</button>
+            )}
+          </div>
+        </div>
+
+        {/* Zeile 2: Kategorie-Tabs — nur wenn Query vorhanden */}
+        {hasQuery && (
+          <div className="msv-scroll" style={{
+            display:"flex", gap:6, overflowX:"auto", overflowY:"hidden",
+            padding:"0 12px 10px", scrollbarWidth:"none",
+          }}>
+            {MOBILE_CATS.map(cat => {
+              const cnt    = catCount(cat.key);
+              const active = category === cat.key;
+              return (
+                <button key={cat.key} className="msv-catbtn"
+                  onClick={() => setCategory(cat.key)}
+                  style={{
+                    flexShrink:0, display:"flex", alignItems:"center", gap:4,
+                    padding:"5px 11px", borderRadius:99,
+                    border: active ? "1.5px solid #0EC4B8" : "1.5px solid rgba(0,0,0,0.09)",
+                    background: active ? "rgba(14,196,184,0.13)" : "#fff",
+                    cursor:"pointer",
+                    WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+                  }}>
+                  <span style={{fontSize:12}}>{cat.emoji}</span>
+                  <span style={{
+                    fontSize:12, fontWeight:active?700:500,
+                    color:active?"#0EC4B8":"#1A3530",
+                  }}>{cat.label}</span>
+                  {cnt > 0 && (
+                    <span style={{
+                      fontSize:10, fontWeight:700,
+                      borderRadius:99, padding:"1px 5px",
+                      color:active?"#0EC4B8":"rgba(26,53,48,0.38)",
+                      background:active?"rgba(14,196,184,0.15)":"rgba(0,0,0,0.06)",
+                    }}>{cnt}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ══ SCROLLBEREICH ══ */}
+      <div className="msv-scroll" style={{
+        flex:1, overflowY:"auto",
+        paddingBottom:"max(90px, calc(72px + env(safe-area-inset-bottom,0px)))",
+      }}>
+
+        {/* LEERZUSTAND */}
+        {!hasQuery && (
+          <div style={{padding:"20px 16px 0"}}>
+
+            {/* Letzte Suchen */}
+            {history.length > 0 && (
+              <div style={{marginBottom:24}}>
+                <div style={{
+                  fontSize:11, fontWeight:800, letterSpacing:".07em",
+                  textTransform:"uppercase", color:"rgba(26,53,48,0.35)",
+                  marginBottom:10,
+                }}>Zuletzt gesucht</div>
+                <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
+                  {history.slice(0,6).map((h,i) => (
+                    <button key={i} className="msv-chip" onClick={() => setQ(h)}
+                      style={{
+                        display:"flex", alignItems:"center", gap:5,
+                        padding:"6px 12px", borderRadius:99,
+                        background:"#fff", border:"1px solid rgba(0,0,0,0.09)",
+                        cursor:"pointer", fontSize:13, fontWeight:500, color:"#1A3530",
+                        WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+                      }}>
+                      <span style={{fontSize:11, opacity:.4}}>🕐</span>{h}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Beliebte Kategorien */}
+            <div>
+              <div style={{
+                fontSize:11, fontWeight:800, letterSpacing:".07em",
+                textTransform:"uppercase", color:"rgba(26,53,48,0.35)",
+                marginBottom:12,
+              }}>Beliebte Kategorien</div>
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
+                {MOBILE_EMPTY_CATS.map((cat,i) => (
+                  <button key={i} className="msv-item" onClick={() => setQ(cat.q)}
+                    style={{
+                      display:"flex", alignItems:"center", gap:10,
+                      padding:"12px 14px", borderRadius:14,
+                      background:"#fff", border:"1px solid rgba(0,0,0,0.07)",
+                      boxShadow:"0 1px 4px rgba(0,0,0,0.04)",
+                      cursor:"pointer", textAlign:"left",
+                      WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+                    }}>
+                    <span style={{fontSize:22}}>{cat.emoji}</span>
+                    <span style={{fontSize:13, fontWeight:600, color:"#1A3530"}}>{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LADEN */}
+        {hasQuery && loading && (
+          <div style={{padding:"50px 0", textAlign:"center"}}>
+            <div style={{
+              width:28, height:28, borderRadius:"50%",
+              border:"2.5px solid rgba(14,196,184,0.15)",
+              borderTop:"2.5px solid #0EC4B8",
+              animation:"hui-spin .8s linear infinite",
+              margin:"0 auto",
+            }}/>
+            <style>{`@keyframes hui-spin{to{transform:rotate(360deg)}}`}</style>
+          </div>
+        )}
+
+        {/* KEINE ERGEBNISSE */}
+        {hasQuery && !loading && items.length === 0 && (
+          <div style={{padding:"52px 20px", textAlign:"center"}}>
+            <div style={{fontSize:36, marginBottom:12}}>🔍</div>
+            <div style={{fontSize:16, fontWeight:700, color:"#1A3530", marginBottom:6}}>
+              Nichts gefunden
+            </div>
+            <div style={{fontSize:13, color:"rgba(26,53,48,0.48)", lineHeight:1.5}}>
+              Keine Ergebnisse für „{debouncedQ}".<br/>
+              Versuch einen anderen Begriff.
+            </div>
+          </div>
+        )}
+
+        {/* ERGEBNISLISTE */}
+        {hasQuery && !loading && items.length > 0 && (
+          <div>
+            <div style={{
+              padding:"10px 16px 4px",
+              fontSize:11, fontWeight:600, color:"rgba(26,53,48,0.4)",
+            }}>
+              {items.length} Ergebnis{items.length !== 1 ? "se" : ""}
+            </div>
+            {items.map((item, idx) => (
+              <button key={item.id + idx} className="msv-item"
+                onClick={() => { onHistory?.(q); onSelect(item); onClose(); }}
+                style={{
+                  display:"flex", alignItems:"center", gap:12,
+                  width:"100%", padding:"11px 16px",
+                  background:"transparent", border:"none",
+                  borderBottom: idx < items.length-1 ? "1px solid rgba(0,0,0,0.045)" : "none",
+                  cursor:"pointer", textAlign:"left",
+                  WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+                }}>
+                {/* Avatar / Thumbnail */}
+                <div style={{
+                  width:46, height:46, flexShrink:0,
+                  borderRadius: item.type==="profile" ? "50%" : 11,
+                  overflow:"hidden",
+                  background:"rgba(14,196,184,0.08)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  border:"1.5px solid rgba(14,196,184,0.13)",
+                }}>
+                  {(item.avatar || item.cover) ? (
+                    <img
+                      src={item.avatar || item.cover} alt=""
+                      style={{width:"100%", height:"100%", objectFit:"cover"}}
+                      onError={e => { e.target.style.display="none"; }}
+                    />
+                  ) : (
+                    <span style={{fontSize:22}}>{typeIcon(item.type)}</span>
+                  )}
+                </div>
+
+                {/* Text */}
+                <div style={{flex:1, minWidth:0}}>
+                  <div style={{
+                    fontSize:15, fontWeight:600, color:"#1A3530",
+                    overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
+                  }}>{item.title || "—"}</div>
+                  {item.sub && (
+                    <div style={{
+                      fontSize:12.5, color:"rgba(26,53,48,0.48)", marginTop:1,
+                      overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
+                    }}>{item.sub}</div>
+                  )}
+                  <div style={{
+                    display:"inline-flex", alignItems:"center", gap:3,
+                    marginTop:4, padding:"2px 7px", borderRadius:99,
+                    background:"rgba(14,196,184,0.07)",
+                    fontSize:10.5, fontWeight:600, color:"rgba(14,196,184,0.85)",
+                  }}>
+                    {typeIcon(item.type)} {typeLabel(item.type)}
+                  </div>
+                </div>
+
+                {/* Chevron */}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  style={{flexShrink:0, opacity:.2}}>
+                  <path d="M9 18L15 12L9 6" stroke="#1A3530"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+  return createPortal(content, document.body);
+}
+
+// ─────────────────────────────────────────────────────────────
 // HAUPTKOMPONENTE
 // ─────────────────────────────────────────────────────────────
 export default function SearchCommandCenter({ activeMood, currentUser }) {
