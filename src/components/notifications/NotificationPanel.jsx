@@ -32,6 +32,9 @@ const TYPE_META = {
   content_approved:   { emoji:"✅", label:"Freigegeben" },
   content_rejected:   { emoji:"❌", label:"Abgelehnt" },
   content_pending:    { emoji:"🔍", label:"In Prüfung" },
+  work_approved:      { emoji:"✅", label:"Werk freigegeben" },
+  work_rejected:      { emoji:"❌", label:"Werk abgelehnt" },
+  admin_broadcast:    { emoji:"📣", label:"HUI Team" },
   default:            { emoji:"🔔", label:"Benachrichtigung" },
 };
 
