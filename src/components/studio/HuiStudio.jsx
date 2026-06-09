@@ -781,6 +781,7 @@ const REC_LABELS = {
 const CAT_ORDER = ["profile", "project", "work", "experience", "event"];
 
 function MyRecommendationsModal({ userId, onClose }) {
+  const { openPublicProfile } = useNavigateTo();
   const [recs,     setRecs]     = useState([]);
   const [details,  setDetails]  = useState({}); // item_id → enriched data
   const [loading,  setLoading]  = useState(true);
@@ -811,7 +812,7 @@ function MyRecommendationsModal({ userId, onClose }) {
             .from("profiles")
             .select("id, display_name, username, avatar_url")
             .in("id", profileIds);
-          (profs || []).forEach(p => { enriched[p.id] = { title: p.display_name || p.username || "Nutzer", subtitle: "@" + (p.username || ""), image: p.avatar_url }; });
+          (profs || []).forEach(p => { enriched[p.id] = { title: p.display_name || p.username || "Nutzer", subtitle: "@" + (p.username || ""), image: p.avatar_url, profileId: p.id, username: p.username }; });
         }
 
         // Projects → impact_projects
@@ -949,11 +950,16 @@ function MyRecommendationsModal({ userId, onClose }) {
                       window.history.pushState({}, "", `/work/${rec.item_id}`);
                       window.dispatchEvent(new PopStateEvent("popstate"));
                     } else if (t === "profile") {
+                      const pid = d.profileId;
                       const uname = d.username;
-                      if (!uname) { alert("Dieses Profil existiert nicht mehr."); return; }
+                      if (!pid && !uname) { alert("Dieses Profil existiert nicht mehr."); return; }
                       onClose();
-                      window.history.pushState({}, "", `/profile/${uname}`);
-                      window.dispatchEvent(new PopStateEvent("popstate"));
+                      if (pid) {
+                        openPublicProfile(pid);
+                      } else {
+                        window.history.pushState({}, "", `/profile/${uname}`);
+                        window.dispatchEvent(new PopStateEvent("popstate"));
+                      }
                     } else if (t === "project") {
                       onClose();
                       window.history.pushState({}, "", `/impact`);
