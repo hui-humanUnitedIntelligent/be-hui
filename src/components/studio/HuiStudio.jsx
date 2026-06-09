@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useNavigateTo } from "../../core/hui.navigator.jsx";
 import { supabase }    from "../../lib/supabaseClient.js";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
