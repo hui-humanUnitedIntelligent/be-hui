@@ -22,6 +22,18 @@ import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
+// Sprint D: Datenlayer
+import { useProfileData } from "../hooks/useProfileData.js";
+// Sprint D: Unified Sections (Sprint C)
+import { ProfileHeader }           from "../components/profile/ProfileHeader.jsx";
+import { TalentSection }          from "../components/profile/sections/TalentSection.jsx";
+import { WorksSection }           from "../components/profile/sections/WorksSection.jsx";
+import { ExperiencesSection }     from "../components/profile/sections/ExperiencesSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
+import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
+import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
+import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -1400,9 +1412,11 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
   );
 }
 
+
 // ══════════════════════════════════════════════════════════════
 // MEINE TALENTE & ANGEBOTE — Skill-Pills aus profile.skills
 // ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame TalentSection (src/components/profile/sections/TalentSection.jsx)
 function TalentAngeboteSection({ profile, wirkerProfile, loading, isOwner }) {
   // wirker_profiles.categories PRIMARY — profiles.skills FALLBACK
   const rawCats   = Array.isArray(wirkerProfile?.categories) ? wirkerProfile.categories : [];
@@ -1459,6 +1473,7 @@ function TalentAngeboteSection({ profile, wirkerProfile, loading, isOwner }) {
 // ══════════════════════════════════════════════════════════════
 // MEINE WERKE — horizontaler Scroller, Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame WorksSection (src/components/profile/sections/WorksSection.jsx)
 function MeineWerkeSection({ works, loading, onShowAll }) {
   if (!loading && works.length === 0) return null;
   return (
@@ -1523,6 +1538,7 @@ function formatDate(dateStr) {
   } catch { return ""; }
 }
 
+// LEGACY — Ersetzt durch gemeinsame ExperiencesSection (src/components/profile/sections/ExperiencesSection.jsx)
 function ErlebnisseProjekteSection({ experiences, loading, isOwner, onShowAll }) {
   if (!loading && experiences.length === 0 && !isOwner) return null;
   const items = experiences.slice(0, 4);
@@ -1596,6 +1612,7 @@ function ErlebnisseProjekteSection({ experiences, loading, isOwner, onShowAll })
 // ══════════════════════════════════════════════════════════════
 // KUNDENSTIMMEN — horizontaler Scroller, Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame RecommendationsSection (src/components/profile/sections/RecommendationsSection.jsx)
 function KundenstimmenPublicSection({ recommendations, loading, isOwner, onShowAll }) {
   if (!loading && recommendations.length === 0 && !isOwner) return null;
   return (
@@ -1669,6 +1686,7 @@ function KundenstimmenPublicSection({ recommendations, loading, isOwner, onShowA
 // ══════════════════════════════════════════════════════════════
 // VERFÜGBARKEIT + STANDORT — 2-Spalten, Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch AvailabilitySection + LocationSection (src/components/profile/sections/)
 function VerfuegbarkeitStandortPublic({ profile, wirkerProfile, loading }) {
   if (loading) return null;
   const isOpen = profile?.focus_type !== "private";
@@ -1726,6 +1744,7 @@ function VerfuegbarkeitStandortPublic({ profile, wirkerProfile, loading }) {
 // ══════════════════════════════════════════════════════════════
 // SICHTBARKEIT — Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame VisibilitySection (src/components/profile/sections/VisibilitySection.jsx)
 function SichtbarkeitPublicSection({ profile, loading }) {
   const [showSheet, setShowSheet] = useState(false);
   if (loading) return null;
@@ -1817,146 +1836,62 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 }
 
 // ══════════════════════════════════════════════════════════════
-// HAUPT-KOMPONENTE
+
+// ══════════════════════════════════════════════════════════════
+// HAUPT-KOMPONENTE — Sprint D
+// Datenlayer: useProfileData() statt lokaler Queries
+// Header: ProfileHeader (unified)
+// Sections: gemeinsame Sprint-C-Komponenten
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose }) {
-  const { user, authProfile } = useAuth();
+  const { user } = useAuth();
 
-  const [profile,      setProfile]      = useState(null);
-  const [works,        setWorks]        = useState([]);
-  const [experiences,  setExperiences]  = useState([]);
-  const [moments,      setMoments]      = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [wirkerProfile, setWirkerProfile] = useState(null);
-  const [loading,      setLoading]      = useState(true);
-  const [mounted,      setMounted]      = useState(false);
-  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
-  const [showKompassSheet, setShowKompassSheet] = useState(false);
+  // ── Sprint D: Datenlayer via useProfileData ─────────────────
+  const {
+    profile,
+    wirkerProfile,
+    works,
+    experiences,
+    recommendations,
+    moments,
+    followCounts,
+    loading,
+    reload,
+  } = useProfileData(profileId);
+
+  // ── Lokale UI-States (kein Datenlayer) ──────────────────────
+  const [mounted,           setMounted]           = useState(false);
+  const [showKompassSheet,  setShowKompassSheet]  = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
+  const [showSettings,      setShowSettings]      = useState(false);
+  const [showStudio,        setShowStudio]        = useState(false);
   const kompassToggleRef = React.useRef(() => {});
 
-  // Owner-States
-  const [showSettings, setShowSettings] = useState(false);
-  const [showStudio,   setShowStudio]   = useState(false);
-
-  // isOwner: eingeloggter User sieht sein eigenes Talent-Profil
   const isOwner = !!user?.id && (profileId === user.id || (!profileId && !!user.id));
 
-  // Mount animation
+  // Mount-Animation
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 30);
     return () => clearTimeout(t);
   }, []);
 
-  // Alle Daten parallel laden
-  useEffect(() => {
-    if (!profileId) { setLoading(false); return; }
-
-    (async () => {
-      setLoading(true);
-      try {
-        const [profileRes, worksRes, experiencesRes, momentsRes, fcRes, recRes, wpRes] = await Promise.all([
-          // 1. Profil (profiles-Tabelle — Single Source of Truth für Avatar/Cover/Bio/Location)
-          supabase.from("profiles")
-            .select("id,username,display_name,bio,avatar_url,header_img,location,interests,skills,has_talent_profile,role,membership_type,focus_type,is_talent")
-            .eq("id", profileId)
-            .single(),
-
-          // 2. Werke (veröffentlicht + approved)
-          supabase.from("works")
-            .select("id,user_id,title,description,cover_url,status,approval_status,price,for_sale,created_at")
-            .eq("user_id", profileId)
-            .in("status", ["published","approved"])
-            .order("created_at", { ascending: false })
-            .limit(20),
-
-          // 3. Erlebnisse (veröffentlicht + aktiv)
-          supabase.from("experiences")
-            .select("id,user_id,title,description,category,cover_url,date,status,visibility,format,location_text,created_at")
-            .eq("user_id", profileId)
-            .in("status", ["published","active","approved"])
-            .order("created_at", { ascending: false })
-            .limit(20),
-
-          // 4. Momente (beitraege)
-          supabase.from("beitraege")
-            .select("id,user_id,src,type,caption,created_at")
-            .eq("user_id", profileId)
-            .order("created_at", { ascending: false })
-            .limit(16),
-
-          // 5. Follower-Zähler
-          supabase.rpc("get_follow_counts", { target_id: profileId })
-            .then(r => r).catch(() => ({ data: null })),
-
-          // 6. Kundenstimmen — FK: wirker_id, Felder: reviewer_name, rating, text
-          supabase.from("recommendations")
-            .select("id,wirker_id,reviewer_id,reviewer_name,rating,text,work_title,created_at")
-            .eq("wirker_id", profileId)
-            .order("created_at", { ascending: false })
-            .limit(8)
-            .then(r => r).catch(() => ({ data: [] })),
-
-          // 7. wirker_profiles — Kategorien + location_label als ergänzende Quelle
-          supabase.from("wirker_profiles")
-            .select("id,user_id,talent,categories,location_label,hourly_rate,is_verified,rating_avg,booking_count,avatar_url,header_img")
-            .eq("user_id", profileId)
-            .maybeSingle()
-            .then(r => r).catch(() => ({ data: null })),
-        ]);
-
-        // Profil
-        if (profileRes.data) {
-          // Sicherstellen dass id immer vorhanden ist
-          const safeData = { ...profileRes.data, id: profileRes.data.id ?? profileId };
-          const isOwn = user?.id && safeData.id === user.id;
-          setProfile(isOwn && authProfile
-            ? { ...safeData,
-                avatar_url: authProfile.avatar_url ?? safeData.avatar_url,
-                header_img: authProfile.header_img  ?? safeData.header_img,
-                bio:        authProfile.bio          ?? safeData.bio,
-              }
-            : safeData
-          );
-        } else {
-          // Fallback: profileId ist bekannt — Mindest-Objekt setzen
-          // damit ActionButtons nicht mit null-profile arbeitet
-          setProfile({ id: profileId });
-        }
-
-        setWorks(worksRes.data || []);
-        setExperiences(experiencesRes.data || []);
-        setMoments(momentsRes.data || []);
-        setFollowCounts({
-          followers: fcRes.data?.[0]?.followers ?? 0,
-          following: fcRes.data?.[0]?.following ?? 0,
-        });
-        setRecommendations(recRes?.data || []);
-        setWirkerProfile(wpRes?.data || null);
-
-      } catch(e) {
-        console.warn("[TalentProfilePage] load error:", e);
-      }
-      setLoading(false);
-    })();
-  }, [profileId]);
-
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
 
-  // AUFGABE 2+3: handleOpenChat — identisch zu PublicProfilePage.jsx
+  // Chat via CCO (identisch zu bisheriger Logik)
   const { setShowChat, setChatRecipient } = useHome();
   const handleOpenChat = useCallback(() => {
-    if (!profile?.id) {
-      return;
-    }
-    const recipient = {
+    if (!profile?.id) return;
+    setChatRecipient({
       id:           profile.id,
       display_name: profile.display_name || profile.username || "Talent",
       avatar_url:   profile.avatar_url || null,
-    };
-    setChatRecipient(recipient);
+    });
     setShowChat(true);
   }, [profile, setChatRecipient, setShowChat]);
+
+  // Avatar/Cover-Update → reload damit ProfileHeader aktuell ist
+  const handleAvatarChange = useCallback(() => reload(), [reload]);
+  const handleCoverChange  = useCallback(() => reload(), [reload]);
 
   return (
     <div className="tpp-root" style={{
@@ -1967,57 +1902,142 @@ export default function TalentProfilePage({ profileId, onClose }) {
       transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
-      {/* ── Sticky Header ─────────────────────── */}
+
+      {/* ── Sticky Header (unverändert) ──────────────────────── */}
       <Header onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
-      {/* ── Scrollable Content ────────────────── */}
+      {/* ── Scrollable Content ───────────────────────────────── */}
       <div className="tpp-scroll" style={{
-        flex:1,
-        overflowY:"auto",
-        touchAction:"pan-y",
+        flex:1, overflowY:"auto", touchAction:"pan-y",
         paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))",
       }}>
 
-        {/* 1. Hero (Banner + Avatar + Identity) */}
-        <CinematicHero profile={profile} loading={loading}/>
+        {/* ── 1. ProfileHeader (Sprint B) ───────────────────── */}
+        <ProfileHeader
+          profile={profile}
+          isOwner={isOwner}
+          isTalent={profile?.is_talent === true}
+          loading={loading}
+          followCounts={followCounts}
+          onEditAvatar={handleAvatarChange}
+          onEditCover={handleCoverChange}
+        />
 
-        {/* 2. Action Buttons — nur für Besucher */}
+        {/* ── 2. Action Buttons — nur Besucher ─────────────── */}
         {!isOwner && (
           <div style={{padding:`0 ${T.px}px`}}>
-            <ActionButtons profile={profile} currentUserId={user?.id} loading={loading} onOpenChat={handleOpenChat} onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => { setKompassWatchLocal(iw); kompassToggleRef.current = tw; setShowKompassSheet(true); }}/>
+            <ActionButtons
+              profile={profile}
+              currentUserId={user?.id}
+              loading={loading}
+              onOpenChat={handleOpenChat}
+              onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => {
+                setKompassWatchLocal(iw);
+                kompassToggleRef.current = tw;
+                setShowKompassSheet(true);
+              }}
+            />
           </div>
         )}
         <Gap h={20}/>
 
-        {/* 3. Meine Talente & Angebote */}
-        <TalentAngeboteSection profile={profile} wirkerProfile={wirkerProfile} loading={loading} isOwner={isOwner}/>
+        {/* ── 3. Schwerpunkt + Stats (unverändert) ─────────── */}
+        <SchwerpunktStatsBlock
+          profile={profile} works={works} experiences={experiences}
+          moments={moments} loading={loading} followCounts={followCounts}
+        />
         <Gap h={28}/>
 
-        {/* 4. Meine Werke */}
-        <MeineWerkeSection works={works} loading={loading} onShowAll={()=>{}}/>
+        {/* ── 4. Mein Wirken — gemischt (unverändert) ──────── */}
+        <MeinWirkenSection works={works} experiences={experiences} loading={loading}/>
         <Gap h={28}/>
 
-        {/* 5. Erlebnisse & Projekte */}
-        <ErlebnisseProjekteSection experiences={experiences} loading={loading} isOwner={isOwner} onShowAll={()=>{}}/>
+        {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
+        <NaechsteErlebnisseSection experiences={experiences} loading={loading}/>
         <Gap h={28}/>
 
-        {/* 6. Kundenstimmen */}
-        <KundenstimmenPublicSection recommendations={recommendations} loading={loading} isOwner={isOwner} onShowAll={()=>{}}/>
+        {/* ── 6. Wirkung (unverändert) ─────────────────────── */}
+        <WirkungSection works={works} experiences={experiences} moments={moments} loading={loading}/>
         <Gap h={28}/>
 
-        {/* 7. Verfügbarkeit + Standort */}
-        <VerfuegbarkeitStandortPublic profile={profile} wirkerProfile={wirkerProfile} loading={loading}/>
+        {/* ── 7. Talente & Angebote → TalentSection ────────── */}
+        <TalentSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+        />
         <Gap h={28}/>
 
-        {/* 8. Sichtbarkeit */}
-        <SichtbarkeitPublicSection profile={profile} loading={loading}/>
+        {/* ── 8. Werke → WorksSection ──────────────────────── */}
+        <WorksSection
+          works={works}
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onShowAll={() => {}}
+        />
+        <Gap h={28}/>
+
+        {/* ── 9. Erlebnisse → ExperiencesSection ───────────── */}
+        <ExperiencesSection
+          experiences={experiences}
+          isOwner={isOwner}
+          loading={loading}
+          onShowAll={() => {}}
+        />
+        <Gap h={28}/>
+
+        {/* ── 10. Kundenstimmen → RecommendationsSection ───── */}
+        <RecommendationsSection
+          recommendations={recommendations}
+          isOwner={isOwner}
+          loading={loading}
+          onShowAll={() => {}}
+        />
+        <Gap h={28}/>
+
+        {/* ── 11. Verfügbarkeit → AvailabilitySection ──────── */}
+        <AvailabilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+        />
+        <Gap h={12}/>
+
+        {/* ── 12. Standort → LocationSection ───────────────── */}
+        <LocationSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+        />
+        <Gap h={12}/>
+
+        {/* ── 13. Sichtbarkeit → VisibilitySection ─────────── */}
+        <VisibilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+        />
         <Gap h={24}/>
 
-        {/* 9. Social Context Bar */}
-        <SocialContextBarTalent followCounts={followCounts} experiences={experiences} moments={moments} loading={loading}/>
+        {/* ── 14. Momente → MomentsSection (Sprint C) ──────── */}
+        <MomentsSection
+          moments={moments}
+          isOwner={isOwner}
+          loading={loading}
+        />
         <Gap h={24}/>
 
-        {/* 10. Abschluss — nur für Besucher */}
+        {/* ── 15. Social Context Bar (unverändert) ─────────── */}
+        <SocialContextBarTalent
+          followCounts={followCounts}
+          experiences={experiences}
+          moments={moments}
+          loading={loading}
+        />
+        <Gap h={24}/>
+
+        {/* ── 16. Abschluss — nur Besucher ─────────────────── */}
         {!isOwner && (
           <>
             <AbschlussBar profile={profile} loading={loading}/>
@@ -2025,11 +2045,10 @@ export default function TalentProfilePage({ profileId, onClose }) {
             <AbschlussButtons profile={profile} currentUserId={user?.id} onOpenChat={handleOpenChat}/>
           </>
         )}
-
         <Gap h={40}/>
       </div>
 
-      {/* Kompass Sheet */}
+      {/* ── Kompass Sheet ────────────────────────────────────── */}
       {showKompassSheet && (
         <KompassActionSheet
           profile={profile}
@@ -2039,13 +2058,13 @@ export default function TalentProfilePage({ profileId, onClose }) {
         />
       )}
 
-      {/* ── Owner Modals ─────────────────────────────────────────── */}
+      {/* ── Owner Modals ─────────────────────────────────────── */}
       {isOwner && showSettings && (
         <SettingsModal
           profile={profile}
           onClose={() => setShowSettings(false)}
           onSave={(updated) => {
-            setProfile(prev => ({ ...prev, ...updated }));
+            reload();
             setShowSettings(false);
           }}
         />
@@ -2059,4 +2078,3 @@ export default function TalentProfilePage({ profileId, onClose }) {
     </div>
   );
 }
-
