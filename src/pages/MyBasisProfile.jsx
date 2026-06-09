@@ -326,9 +326,37 @@ function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = (
                 : "📷"
               }
             </label>
+          </div>{/* /avatar-relative */}
+
+          {/* ── Name + @username + Badge — zentriert unter Avatar */}
+          <div style={{ marginTop:12, textAlign:"center" }}>
+            <div style={{
+              fontSize:21, fontWeight:900, color:T.ink,
+              letterSpacing:"-0.03em", lineHeight:1.2,
+              whiteSpace:"nowrap",
+            }}>
+              {profile?.display_name || profile?.username || "–"}
+            </div>
+            {profile?.username && (
+              <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:3, fontWeight:400 }}>
+                @{profile.username}
+              </div>
+            )}
+            <div style={{
+              display:"inline-flex", alignItems:"center", gap:5,
+              marginTop:8,
+              background: profile?.is_talent ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
+              border:`1px solid ${profile?.is_talent ? "rgba(14,196,184,0.22)" : "rgba(14,196,184,0.15)"}`,
+              borderRadius:99, padding:"4px 12px",
+              fontSize:11, fontWeight:700, color:"#0AADA3",
+            }}>
+              <span style={{fontSize:11}}>{profile?.is_talent ? "✨" : "🌿"}</span>
+              <span>{profile?.is_talent ? "HUI-Talent" : "HUI-Mitglied"}</span>
+            </div>
           </div>
-        </div>
-      </div>
+
+        </div>{/* /floating-col */}
+      </div>{/* /cover-wrapper */}
     </div>
   );
 }
