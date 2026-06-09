@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
+import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
 import AmbassadorSection, { AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
 import NotificationPanel from "../components/notifications/NotificationPanel.jsx";
@@ -868,6 +869,86 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // ── Notification Action Routing ───────────────────────────────────────────
+  const {
+    openProfileById   = () => {},
+    switchTab         = () => {},
+    setChatRecipient  = () => {},
+    setShowChat       = () => {},
+    setShowWerkDetail = () => {},
+  } = useHome?.() || {};
+
+  const handleNotifAction = (n) => {
+    // 1. action_url hat Vorrang
+    if (n.action_url) {
+      setShowNotifications(false);
+      // Intern-Routing via Typ trotzdem ausführen für nahtlose UX
+    }
+    const meta = n.metadata || {};
+    const targetId = meta.target_id || meta.actor_id || n.actor_id || null;
+    const werkId   = meta.werk_id   || null;
+
+    setShowNotifications(false); // Panel schließen
+
+    switch (n.type) {
+      // ── Profil öffnen ───────────────────────────────────────────────────
+      case "follow":
+      case "follow_request":
+      case "new_follower":
+        if (targetId) openProfileById(targetId);
+        break;
+
+      // ── Chat öffnen ─────────────────────────────────────────────────────
+      case "begegnung":
+      case "buchung":
+      case "booking":
+      case "message":
+      case "new_message":
+        if (targetId) { setChatRecipient(targetId); setShowChat(true); }
+        break;
+
+      // ── Tab-Navigation ──────────────────────────────────────────────────
+      case "impact":
+      case "project_update":
+      case "impact_update":
+        switchTab("impact");
+        break;
+
+      case "community":
+      case "community_update":
+        switchTab("discover");
+        break;
+
+      case "inspiration":
+      case "discover":
+        switchTab("discover");
+        break;
+
+      // ── Werk-Detail öffnen ──────────────────────────────────────────────
+      case "work_approved":
+        if (werkId) setShowWerkDetail(werkId);
+        break;
+
+      // ── Werk abgelehnt: Modal wird in NotifCard selbst geöffnet ─────────
+      case "work_rejected":
+      case "content_rejected":
+        // Handled by NotifCard → RejectionModal (kein weiteres Routing nötig)
+        break;
+
+      // ── Admin / System: Detailansicht ───────────────────────────────────
+      case "admin":
+      case "admin_broadcast":
+      case "system":
+      case "info":
+        // Kein spezifisches Routing — Panel bleibt offen für Lesbarkeit
+        break;
+
+      default:
+        // Unbekannter Typ — nichts tun, Panel wurde bereits geschlossen
+        break;
+    }
+  };
   const [unreadCount,       setUnreadCount]       = useState(0);
   const ambState = useAmbassador(profile);
   const [works,       setWorks]       = useState([]);
@@ -1293,6 +1374,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           userId={profile.id}
           onClose={() => setShowNotifications(false)}
           onUnreadChange={setUnreadCount}
+          onAction={handleNotifAction}
         />
       )}
 
