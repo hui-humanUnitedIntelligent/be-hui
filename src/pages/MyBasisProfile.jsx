@@ -1712,20 +1712,52 @@ function MeineWerkeSection({ works, onWerkWizard }) {
         <div style={{ display:"flex", gap:10, overflowX:"auto",
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
           paddingBottom:4, marginBottom:10 }}>
-          {works.map((w, i) => (
-            <div key={w.id || i} style={{
-              flexShrink:0, width:110, height:90,
-              borderRadius:T.r12, overflow:"hidden",
-              background:"#e8e4de",
-            }}>
-              {w.cover_url
-                ? <img src={w.cover_url} alt={w.title||""}
-                    style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                : <div style={{ width:"100%", height:"100%", display:"flex",
-                    alignItems:"center", justifyContent:"center", fontSize:24 }}>🎨</div>
-              }
-            </div>
-          ))}
+          {works.map((w, i) => {
+            // Status-Badge Logik
+            const isApproved = w.approval_status === "approved";
+            const isPending  = w.approval_status === "pending" || w.status === "pending_review";
+            const isRejected = w.approval_status === "rejected" && w.status !== "deleted";
+            const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
+            const badgeText  = isApproved ? "✅ Live" : isPending ? "⏳ Prüfung" : "❌ Abgelehnt";
+            return (
+              <div key={w.id || i}
+                onClick={() => onWerkWizard?.(w)}
+                style={{
+                  flexShrink:0, width:110, height:110,
+                  borderRadius:T.r12, overflow:"hidden",
+                  background:"#e8e4de", position:"relative", cursor:"pointer",
+                  boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
+                }}>
+                {w.cover_url
+                  ? <img src={w.cover_url} alt={w.title||""}
+                      style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                  : <div style={{ width:"100%", height:"100%", display:"flex",
+                      alignItems:"center", justifyContent:"center", fontSize:24 }}>🎨</div>
+                }
+                {/* Status-Badge */}
+                <div style={{
+                  position:"absolute", bottom:0, left:0, right:0,
+                  background: badgeBg, backdropFilter:"blur(4px)",
+                  fontSize:9, fontWeight:700, color:"#fff",
+                  padding:"3px 5px", textAlign:"center",
+                  letterSpacing:"0.3px",
+                }}>
+                  {badgeText}
+                </div>
+                {/* Titel Tooltip */}
+                {w.title && (
+                  <div style={{
+                    position:"absolute", top:0, left:0, right:0,
+                    background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
+                    padding:"3px 5px", whiteSpace:"nowrap", overflow:"hidden",
+                    textOverflow:"ellipsis",
+                  }}>
+                    {w.title}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       <button className="mbp-press-light" onClick={() => onWerkWizard?.()} style={{
