@@ -225,8 +225,10 @@ function useWeekStats(userId) {
 // ── Rejection Modal ───────────────────────────────────────────
 function RejectionDetailModal({ n, onClose }) {
   const meta     = n.metadata || {};
-  const werkTitle = meta.werk_title || meta.werk_id || "Dein Werk";
-  const reason    = meta.rejection_reason || meta.admin_comment || "(Kein Grund angegeben)";
+  // Admin sendet: content_title, rejection_reason (Admin.jsx rejectConfirm)
+  // Fallbacks für ältere / andere Felder
+  const werkTitle = meta.content_title || meta.werk_title || meta.title || n.title || "Dein Werk";
+  const reason    = meta.rejection_reason || meta.admin_comment || meta.review_note || n.body || "(Kein Grund angegeben)";
   return (
     <div
       onClick={onClose}
