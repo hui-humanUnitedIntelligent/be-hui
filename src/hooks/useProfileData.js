@@ -256,6 +256,19 @@ export function useProfileData(profileId) {
     load();
   }, [load]);
 
+  // ── SPRINT D.2 TRACE ─────────────────────────────────────────
+  console.group("PROFILE TRACE");
+  console.log("RAW PROFILE", profileRes?.data);
+  console.log("WIRKER PROFILE", wirkerProfile);
+  console.log("PROFILE FINAL", profile);
+  console.log("skills_final", profile?.skills_final);
+  console.log("location_final", profile?.location_final);
+  console.log("works count", works?.length);
+  console.log("experiences count", experiences?.length);
+  console.log("recommendations count", recommendations?.length);
+  console.log("moments count", moments?.length);
+  console.groupEnd();
+  // ── END TRACE ─────────────────────────────────────────────────
   return {
     profile,
     wirkerProfile,
