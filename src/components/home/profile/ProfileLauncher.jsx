@@ -42,6 +42,25 @@ class ProfileErrorBoundary extends React.Component {
   }
   render() {
     if (this.state.hasError) {
+      const isChunk = this.state.error?.message?.includes("Failed to fetch dynamically imported module")
+        || this.state.error?.message?.includes("Importing a module script failed");
+      // Bei ChunkLoadError: automatisch neu laden (einmalig)
+      if (isChunk && !sessionStorage.getItem("chunk_boundary_reloaded")) {
+        sessionStorage.setItem("chunk_boundary_reloaded", "1");
+        setTimeout(() => window.location.reload(), 100);
+        return (
+          <div style={{
+            position:"fixed", inset:0, zIndex:9500, background:"#F7F5F0",
+            display:"flex", flexDirection:"column", alignItems:"center",
+            justifyContent:"center", gap:12, padding:24,
+          }}>
+            <div style={{fontSize:32}}>🔄</div>
+            <p style={{color:"#1a1a18", fontSize:15, fontFamily:"sans-serif", textAlign:"center", margin:0}}>
+              Wird neu geladen…
+            </p>
+          </div>
+        );
+      }
       return (
         <div style={{
           position:"fixed", inset:0, zIndex:9500,
@@ -58,11 +77,21 @@ class ProfileErrorBoundary extends React.Component {
             {this.state.error?.message || "Unbekannter Fehler"}
           </p>
           <button
-            onClick={() => { this.setState({hasError:false,error:null}); this.props.onClose?.(); }}
+            onClick={() => window.location.reload()}
             style={{
               marginTop:8, padding:"10px 24px", borderRadius:20,
               background:"#0DC4B5", border:"none", color:"#000",
               fontWeight:700, fontSize:14, cursor:"pointer",
+            }}
+          >
+            🔄 Seite neu laden
+          </button>
+          <button
+            onClick={() => { this.setState({hasError:false,error:null}); this.props.onClose?.(); }}
+            style={{
+              padding:"8px 24px", borderRadius:20,
+              background:"transparent", border:"1px solid rgba(255,255,255,0.2)",
+              color:"rgba(255,255,255,0.6)", fontWeight:600, fontSize:13, cursor:"pointer",
             }}
           >
             Schließen
@@ -74,22 +103,33 @@ class ProfileErrorBoundary extends React.Component {
   }
 }
 
+// ── Chunk-Retry: bei ChunkLoadError einmalig Hard-Reload ────────────────────
+function lazyWithRetry(importFn) {
+  return React.lazy(() =>
+    importFn().catch((err) => {
+      const isChunkError =
+        err?.message?.includes("Failed to fetch dynamically imported module") ||
+        err?.message?.includes("Importing a module script failed") ||
+        err?.name === "ChunkLoadError";
+      if (isChunkError) {
+        const reloadKey = "chunk_reload_" + importFn.toString().slice(0, 80);
+        if (!sessionStorage.getItem(reloadKey)) {
+          sessionStorage.setItem(reloadKey, "1");
+          window.location.reload();
+          return new Promise(() => {}); // Reload läuft — Promise hängen lassen
+        }
+      }
+      throw err;
+    })
+  );
+}
+
 // ── Lazy Page Imports ────────────────────────────────────────────
-const BasisProfilePage = React.lazy(
-  () => import("../../../pages/BasisProfilePage.jsx")
-);
-const TalentProfilePage = React.lazy(
-  () => import("../../../pages/TalentProfilePage.jsx")
-);
-const MyBasisProfile = React.lazy(
-  () => import("../../../pages/MyBasisProfile.jsx")
-);
-const MyTalentProfile = React.lazy(
-  () => import("../../../pages/MyTalentProfile.jsx")
-);
-const MyCreatorDashboard = React.lazy(
-  () => import("../../../pages/MyCreatorDashboard.jsx")
-);
+const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
+const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
+const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
+const MyTalentProfile    = lazyWithRetry(() => import("../../../pages/MyTalentProfile.jsx"));
+const MyCreatorDashboard = lazyWithRetry(() => import("../../../pages/MyCreatorDashboard.jsx"));
 
 // ── Spinner Fallback ─────────────────────────────────────────────
 function Spinner() {
