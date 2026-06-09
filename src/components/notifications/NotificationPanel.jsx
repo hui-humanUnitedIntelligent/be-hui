@@ -29,6 +29,9 @@ const TYPE_META = {
   booking_confirmed:  { emoji:"✅", label:"Buchung" },
   impact_vote:        { emoji:"🗳️", label:"Impact" },
   referral_joined:    { emoji:"🎉", label:"Empfehlung" },
+  content_approved:   { emoji:"✅", label:"Freigegeben" },
+  content_rejected:   { emoji:"❌", label:"Abgelehnt" },
+  content_pending:    { emoji:"🔍", label:"In Prüfung" },
   default:            { emoji:"🔔", label:"Benachrichtigung" },
 };
 
