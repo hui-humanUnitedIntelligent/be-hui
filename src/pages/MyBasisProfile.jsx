@@ -220,32 +220,9 @@ function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = (
 
   return (
     <div style={{ width:"100%", paddingTop:8 }}>
-      {/* Title row */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+      {/* Title row — nur Buttons, Name/Username jetzt unter Avatar */}
+      <div style={{ display:"flex", justifyContent:"flex-end", alignItems:"center",
         padding:`0 ${T.px}px 10px` }}>
-        <div>
-          <div style={{ fontSize:22, fontWeight:800, color:T.ink, letterSpacing:"-0.03em",
-            lineHeight:1.2 }}>
-            {profile?.display_name || profile?.username || "–"}
-          </div>
-          {profile?.username && (
-            <div style={{ fontSize:13, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-              @{profile.username}
-            </div>
-          )}
-          {/* A1: Mitgliedschafts-Badge im eigenen Profil */}
-          <div style={{
-            display:"inline-flex", alignItems:"center", gap:5,
-            marginTop:5,
-            background: profile?.is_talent ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
-            border:`1px solid ${profile?.is_talent ? "rgba(14,196,184,0.22)" : "rgba(14,196,184,0.15)"}`,
-            borderRadius:99, padding:"3px 10px",
-            fontSize:11, fontWeight:700, color:"#0AADA3",
-          }}>
-            <span style={{fontSize:11}}>{profile?.is_talent ? "✨" : "🌿"}</span>
-            <span>{profile?.is_talent ? "HUI-Talent" : "HUI-Mitglied"}</span>
-          </div>
-        </div>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           {/* Glocke — Benachrichtigungen */}
           <button className="mbp-press-light" onClick={() => onBell?.()} style={{
@@ -309,9 +286,9 @@ function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = (
           </button>
         </div>
 
-        {/* Floating avatar — außerhalb des overflow:hidden, deshalb sichtbar */}
-        <div style={{ position:"absolute", bottom:-44, left:"50%", transform:"translateX(-50%)",
-          display:"flex", flexDirection:"column", alignItems:"center", zIndex:10 }}>
+        {/* Floating avatar + Name/Username/Badge — zentriert unter Cover */}
+        <div style={{ position:"absolute", bottom:-82, left:"50%", transform:"translateX(-50%)",
+          display:"flex", flexDirection:"column", alignItems:"center", zIndex:10, width:"100vw" }}>
           <div style={{ position:"relative" }}>
             {/* Teal ring */}
             <div style={{ position:"absolute", inset:-3, borderRadius:"50%",
@@ -1059,7 +1036,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onAvatarChange={handleAvatarChange}
           onCoverChange={handleCoverChange}
         />
-        <Gap h={62}/>
+        <Gap h={120}/>
 
         {/* ═══════════════════════════════════════════════════════ */}
         {/*  N E U E S   D A S H B O A R D   L A Y O U T            */}
