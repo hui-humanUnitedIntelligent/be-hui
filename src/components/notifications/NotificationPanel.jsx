@@ -392,6 +392,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
               />
             );
           })
+        )}
       </div>
     </div>
   );
