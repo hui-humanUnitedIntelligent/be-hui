@@ -557,6 +557,158 @@ function WorkCard({ w, onClick }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════
+// EmpfohlenVonSection — "Empfohlen von anderen"
+// Zeigt alle Nutzer die dieses Profil / dessen Items empfohlen haben
+// Quelle: user_recommendations WHERE target_user_id = profileId
+// ═══════════════════════════════════════════════════════════════
+function EmpfohlenVonSection({ profileId }) {
+  const [recs,    setRecs]    = React.useState([]);
+  const [users,   setUsers]   = React.useState({});
+  const [loading, setLoading] = React.useState(true);
+  const [expanded, setExpanded] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!profileId) return;
+    let active = true;
+    (async () => {
+      setLoading(true);
+      try {
+        // Alle Empfehlungen die auf diesen Nutzer zeigen
+        const { data } = await supabase
+          .from("user_recommendations")
+          .select("*")
+          .eq("target_user_id", profileId)
+          .order("created_at", { ascending: false });
+
+        if (!active) return;
+        const rows = data || [];
+        setRecs(rows);
+
+        // Empfehlende Nutzer laden
+        const uniqueUserIds = [...new Set(rows.map(r => r.user_id))];
+        if (uniqueUserIds.length > 0) {
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, display_name, username, avatar_url")
+            .in("id", uniqueUserIds);
+          const map = {};
+          (profs || []).forEach(p => { map[p.id] = p; });
+          setUsers(map);
+        }
+      } catch(e) {
+        console.warn("[EmpfohlenVon] Fehler:", e);
+      }
+      if (active) setLoading(false);
+    })();
+    return () => { active = false; };
+  }, [profileId]);
+
+  // Nichts anzeigen wenn keine Daten
+  if (!loading && recs.length === 0) return null;
+
+  const SHOW = expanded ? recs.length : 5;
+  const shown = recs.slice(0, SHOW);
+
+  // Eindeutige Empfehlende (jeder nur einmal)
+  const uniqueRecs = [];
+  const seenUsers = new Set();
+  for (const r of shown) {
+    if (!seenUsers.has(r.user_id)) {
+      seenUsers.add(r.user_id);
+      uniqueRecs.push(r);
+    }
+  }
+
+  const TYPE_LABEL = {
+    profile:    "folgt",
+    project:    "unterstützt",
+    work:       "hat gekauft",
+    experience: "erlebt",
+    event:      "dabei",
+  };
+
+  return (
+    <div style={{ padding: "0 20px" }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+        <div>
+          <div style={{ fontSize:17, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.02em" }}>
+            ⭐ Empfohlen von anderen
+          </div>
+          {!loading && (
+            <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
+              {recs.length} Empfehlung{recs.length !== 1 ? "en" : ""}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ display:"flex", gap:10 }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{
+              width:52, height:52, borderRadius:"50%",
+              background:"rgba(26,26,24,0.06)", flexShrink:0,
+            }}/>
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* Avatar-Reihe */}
+          <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom: uniqueRecs.length > 0 ? 14 : 0 }}>
+            {uniqueRecs.map(rec => {
+              const u = users[rec.user_id];
+              const initials = u
+                ? (u.display_name || u.username || "?").slice(0,2).toUpperCase()
+                : "?";
+              return (
+                <div key={rec.id} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                  {/* Avatar */}
+                  <div style={{
+                    width:48, height:48, borderRadius:"50%",
+                    background:"rgba(14,196,184,0.12)",
+                    border:"2px solid rgba(14,196,184,0.3)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    overflow:"hidden", fontSize:15, fontWeight:700, color:"#0EC4B8",
+                  }}>
+                    {u?.avatar_url
+                      ? <img src={u.avatar_url} alt={initials} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                      : initials
+                    }
+                  </div>
+                  {/* Name */}
+                  <div style={{ fontSize:10, color:"rgba(26,26,24,0.5)", textAlign:"center", maxWidth:52,
+                    whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                    {u?.username ? "@" + u.username : "–"}
+                  </div>
+                  {/* Aktion-Badge */}
+                  <div style={{
+                    fontSize:9, padding:"2px 7px", borderRadius:20,
+                    background:"rgba(14,196,184,0.10)", color:"#0AADA3", fontWeight:600,
+                  }}>
+                    {TYPE_LABEL[rec.item_type] || rec.item_type}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mehr anzeigen */}
+          {recs.length > 5 && (
+            <button onClick={() => setExpanded(v => !v)} style={{
+              background:"none", border:"none", cursor:"pointer",
+              fontSize:13, color:"#0EC4B8", fontWeight:600, padding:0,
+            }}>
+              {expanded ? "Weniger anzeigen" : `+ ${recs.length - 5} weitere`}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function WorkeSection({ works }) {
   const { ref, style } = useEntry(0);
   const items = a(works).length ? a(works) : SEED_WORKS;
@@ -958,6 +1110,13 @@ export default function PublicProfilePage({ profileId, onClose }) {
 
         {/* 2. Werke */}
         <WorkeSection works={profile?.works}/>
+
+        <Gap h={24}/>
+        <Divider/>
+        <Gap h={20}/>
+
+        {/* 2b. Empfohlen von anderen */}
+        <EmpfohlenVonSection profileId={profileId} />
 
         <Gap h={24}/>
         <Divider/>
