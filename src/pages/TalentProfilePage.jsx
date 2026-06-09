@@ -1856,6 +1856,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
     moments,
     followCounts,
     loading,
+    error,
     reload,
   } = useProfileData(profileId);
 
