@@ -38,6 +38,9 @@ function normalizeSkills(raw) {
 export function TalentSection({ profile, isOwner = false, loading = false, onChange }) {
   // skills_final aus useProfileData bevorzugen, Fallback auf profile.skills
   const skills = normalizeSkills(profile?.skills_final ?? profile?.skills ?? []);
+  // ── SPRINT D.2 TRACE
+  console.log("TalentSection", { skills_final: profile?.skills_final, skills: profile?.skills, isOwner });
+  // ── END TRACE
   const [showSheet, setShowSheet] = useState(false);
 
   const currentLabels = skills.map(s => s.label);
