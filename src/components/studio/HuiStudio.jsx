@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useNavigateTo } from "../../core/hui.navigator.jsx";
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { supabase }    from "../../lib/supabaseClient.js";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
@@ -571,7 +571,7 @@ function AmbassadorStudioSection({ profile }) {
 // Kein Löschen, kein Mutieren — nur lesen + navigieren
 // ═══════════════════════════════════════════════════════════════
 function EinladungenModal({ ambassadorId, username, onClose }) {
-  const { openPublicProfile } = useNavigateTo();
+  const { openCreatorProfile } = useProfileLauncher();
   const [invited, setInvited] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -783,7 +783,7 @@ const REC_LABELS = {
 const CAT_ORDER = ["profile", "project", "work", "experience", "event"];
 
 function MyRecommendationsModal({ userId, onClose }) {
-  const { openPublicProfile } = useNavigateTo();
+  const { openCreatorProfile } = useProfileLauncher();
   const [recs,     setRecs]     = useState([]);
   const [details,  setDetails]  = useState({}); // item_id → enriched data
   const [loading,  setLoading]  = useState(true);
@@ -957,7 +957,7 @@ function MyRecommendationsModal({ userId, onClose }) {
                       if (!pid && !uname) { alert("Dieses Profil existiert nicht mehr."); return; }
                       onClose();
                       if (pid) {
-                        openPublicProfile(pid);
+                        openCreatorProfile(pid);
                       } else {
                         window.history.pushState({}, "", `/profile/${uname}`);
                         window.dispatchEvent(new PopStateEvent("popstate"));
