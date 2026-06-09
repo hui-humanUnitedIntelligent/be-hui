@@ -280,27 +280,34 @@ export function useTabKeepAlive(isActive) {
 // ────────────────────────────────────────────────────────────────
 // useSessionRestore
 //
-// FIX (2026-06-09): Tab-State wird NIEMALS aus sessionStorage/
-// localStorage wiederhergestellt. Beim Refresh startet der Tab
-// immer mit defaultTab ("feed").
+// Tab-Restore via sessionStorage: Tab bleibt nach Refresh erhalten.
+// WICHTIG: Nur Tab-State (feed/discover/impact/favorites) — KEINE
+// Overlays (Creator-Dashboard etc.) werden wiederhergestellt.
 //
-// Grund: Die App hat kein URL-Routing pro Tab — alle Tabs laufen
-// auf /Home. sessionStorage würde nach Refresh den falschen Tab
-// anzeigen, obwohl der User neu startet.
-//
-// restoreTab() ist ein No-Op — bleibt für API-Kompatibilität.
-// setTab() schreibt NICHT mehr in sessionStorage.
+// "creator"-Tab wird NICHT wiederhergestellt — das Creator-Dashboard
+// ist ein Overlay das immer geschlossen startet.
 // ────────────────────────────────────────────────────────────────
+const RESTORABLE_TABS = new Set(["feed", "discover", "impact", "favorites"]);
+
 export function useSessionRestore(defaultTab = "feed") {
   const [tab, setTabState] = useState(defaultTab);
+  const restoredRef = useRef(false);
 
-  // No-Op — kein sessionStorage-Restore beim Refresh
+  // Tab aus sessionStorage laden — erst nach Auth-Check.
+  // "creator"-Tab wird nie wiederhergestellt (Overlay-Tab).
   const restoreTab = useCallback(() => {
-    // intentionally empty: Tab startet immer mit defaultTab
-  }, []);
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    try {
+      const saved = sessionStorage.getItem("hui_active_tab");
+      if (saved && RESTORABLE_TABS.has(saved) && saved !== defaultTab) {
+        setTabState(saved);
+      }
+    } catch (_) {}
+  }, [defaultTab]);
 
   const setTab = useCallback((newTab) => {
-    // Kein sessionStorage-Write mehr — Tab-State bleibt flüchtig
+    try { sessionStorage.setItem("hui_active_tab", newTab); } catch (_) {}
     setTabState(newTab);
   }, []);
 
