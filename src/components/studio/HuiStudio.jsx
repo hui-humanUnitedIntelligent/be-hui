@@ -233,13 +233,13 @@ function UserListModal({ title, users, onClose }) {
                     {u.display_name || u.username || "Unbekannt"}
                   </div>
                   <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
-                    {u.membership_active
-                      ? `✅ Aktives Mitglied`
-                      : "😴 Noch kein Umsatz"
+                    {u.first_transaction_at
+                      ? `✅ Aktiv seit ${new Date(u.first_transaction_at).toLocaleDateString("de-DE")}`
+                      : "😴 Noch keine Transaktion"
                     } · @{u.username||"–"}
                   </div>
                 </div>
-                {u.membership_active && (
+                {u.first_transaction_at && (
                   <span style={{
                     fontSize:10, fontWeight:700, color:T.teal,
                     background:T.tealSoft, border:`1px solid ${T.tealMid}`,
@@ -286,17 +286,17 @@ function AmbassadorStudioSection({ profile }) {
         const ambModule = selfProfile?.profile_modules?.ambassador || {};
         const refLink   = ambModule.ref_link || ambModule.referral_link || `https://be-hui.com/${profile?.username||""}`;
 
-        // 2. Geworbene Nutzer live aus profiles — Feld: referred_by_ambassador_id
+        // 2. Geworbene Nutzer live aus profiles — Feld: referred_by (UUID des Ambassadors)
         const { data: referred } = await supabase
           .from("profiles")
-          .select("id,display_name,username,membership_active,member_since,referred_by_ambassador_id")
-          .eq("referred_by_ambassador_id", uid);
+          .select("id,display_name,username,first_transaction_at,referred_by")
+          .eq("referred_by", uid);
 
         const users = referred || [];
 
-        // Aktiv = membership_active true, Schlafend = false/null
-        const activeUsers   = users.filter(u => u.membership_active === true);
-        const sleepingUsers = users.filter(u => !u.membership_active);
+        // Aktiv = first_transaction_at gesetzt, Schlafend = NULL
+        const activeUsers   = users.filter(u => u.first_transaction_at != null);
+        const sleepingUsers = users.filter(u => u.first_transaction_at == null);
 
         // 3. Level live aus Anzahl geworbener Nutzer
         const computedLevel = calcLevel(users.length);
