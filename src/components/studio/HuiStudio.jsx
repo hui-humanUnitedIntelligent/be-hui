@@ -233,13 +233,13 @@ function UserListModal({ title, users, onClose }) {
                     {u.display_name || u.username || "Unbekannt"}
                   </div>
                   <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
-                    {u.first_transaction_at
-                      ? `✅ Aktiv seit ${new Date(u.first_transaction_at).toLocaleDateString("de-DE")}`
-                      : "😴 Noch keine Transaktion"
+                    {u.membership_active
+                      ? `✅ Aktives Mitglied`
+                      : "😴 Noch kein Umsatz"
                     } · @{u.username||"–"}
                   </div>
                 </div>
-                {u.first_transaction_at && (
+                {u.membership_active && (
                   <span style={{
                     fontSize:10, fontWeight:700, color:T.teal,
                     background:T.tealSoft, border:`1px solid ${T.tealMid}`,
@@ -257,9 +257,11 @@ function UserListModal({ title, users, onClose }) {
 
 // ── Ambassador-Bereich Sektion ────────────────────────────────────
 function AmbassadorStudioSection({ profile }) {
-  const [ambData,    setAmbData]    = useState(null);
-  const [allUsers,   setAllUsers]   = useState([]);
-  const [earnings,   setEarnings]   = useState(0);
+  const [ambData,       setAmbData]       = useState(null);
+  const [allUsers,      setAllUsers]      = useState([]);
+  const [activeList,    setActiveList]    = useState([]);
+  const [sleepingList,  setSleepingList]  = useState([]);
+  const [earnings,      setEarnings]      = useState(0);
   const [loading,    setLoading]    = useState(true);
   const [copying,    setCopying]    = useState(false);
   const [showList,   setShowList]   = useState(null);
@@ -274,34 +276,42 @@ function AmbassadorStudioSection({ profile }) {
     (async () => {
       setLoading(true);
       try {
-        // Ambassador-Daten
-        const { data: amb } = await supabase
-          .from("ambassadors")
-          .select("id,level,ref_link,ref_code")
-          .eq("user_id", uid)
+        // 1. Ambassador-Daten aus profile_modules.ambassador
+        const { data: selfProfile } = await supabase
+          .from("profiles")
+          .select("profile_modules")
+          .eq("id", uid)
           .maybeSingle();
 
-        // Geworbene Nutzer live aus profiles
+        const ambModule = selfProfile?.profile_modules?.ambassador || {};
+        const refLink   = ambModule.ref_link || ambModule.referral_link || `https://be-hui.com/${profile?.username||""}`;
+
+        // 2. Geworbene Nutzer live aus profiles — Feld: referred_by_ambassador_id
         const { data: referred } = await supabase
           .from("profiles")
-          .select("id,display_name,username,first_transaction_at")
+          .select("id,display_name,username,membership_active,member_since,referred_by_ambassador_id")
           .eq("referred_by_ambassador_id", uid);
 
         const users = referred || [];
 
-        // Level live berechnen basierend auf referred_count
+        // Aktiv = membership_active true, Schlafend = false/null
+        const activeUsers   = users.filter(u => u.membership_active === true);
+        const sleepingUsers = users.filter(u => !u.membership_active);
+
+        // 3. Level live aus Anzahl geworbener Nutzer
         const computedLevel = calcLevel(users.length);
 
-        // Ambassador-Stats für earnings
-        const { data: st } = await supabase
-          .from("ambassador_stats")
-          .select("earnings_total")
-          .eq("ambassador_id", amb?.id || uid)
-          .maybeSingle();
+        // 4. Earnings aus profile_modules (revenue_generated)
+        const earnedFromModule = Number(ambModule.revenue_generated || 0);
 
-        setAmbData({ ...(amb || {}), level: computedLevel });
+        setAmbData({
+          level:    computedLevel,
+          ref_link: refLink,
+        });
         setAllUsers(users);
-        setEarnings(st?.earnings_total ?? 0);
+        setEarnings(earnedFromModule);
+        setActiveList(activeUsers);
+        setSleepingList(sleepingUsers);
       } catch(e) {
         console.warn("AmbassadorStudio load:", e);
       }
@@ -332,13 +342,13 @@ function AmbassadorStudioSection({ profile }) {
   const lc       = levelColor(level);
   const refLink  = ambData?.ref_link || `https://be-hui.com/${profile?.username||""}`;
   const referred = allUsers.length;
-  const active   = allUsers.filter(u => u.first_transaction_at).length;
-  const sleeping = allUsers.filter(u => !u.first_transaction_at).length;
+  const active   = activeList.length;
+  const sleeping = sleepingList.length;
 
   const listUsers = {
     geworbene:  allUsers,
-    aktive:     allUsers.filter(u => u.first_transaction_at),
-    schlafende: allUsers.filter(u => !u.first_transaction_at),
+    aktive:     activeList,
+    schlafende: sleepingList,
   };
 
   // ── Nicht-Ambassador: CTA ─────────────────────────────────────
