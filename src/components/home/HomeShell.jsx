@@ -63,10 +63,7 @@ export default function HomeShell({ children }) {
 
   /* Tab */
   const [tab, _setTab, restoreTab] = useSessionRestore("feed");
-  // Tab aus sessionStorage erst nach Auth-Check laden
-  React.useEffect(() => {
-    if (authChecked) restoreTab();
-  }, [authChecked, restoreTab]);
+  // Tab startet immer mit defaultTab ("feed") — kein sessionStorage-Restore
   // ── Navigation State ───────────────────────────────────────────
   const [prevTab, setPrevTab]   = React.useState("feed");
   const [carryOver, setCarryOver] = React.useState(null);
@@ -243,14 +240,14 @@ export default function HomeShell({ children }) {
   const openOwnProfile = useCallback(() => {
     _setTab("creator");          // ← Tab-Indikator auf "Mein HUI" setzen
     setShowCreatorDashboard(true);
-    try { sessionStorage.setItem("hui_overlay_profile", "1"); } catch (_) {}
+    // sessionStorage-Write entfernt — Tab-State ist flüchtig
   }, [_setTab, setShowCreatorDashboard]);
 
   /* openCreatorDashboard — direkter Alias */
   const openCreatorDashboard = useCallback(() => {
     _setTab("creator");          // ← Tab-Indikator auf "Mein HUI" setzen
     setShowCreatorDashboard(true);
-    try { sessionStorage.setItem("hui_overlay_profile", "1"); } catch (_) {}
+    // sessionStorage-Write entfernt — Tab-State ist flüchtig
   }, [_setTab, setShowCreatorDashboard]);
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
