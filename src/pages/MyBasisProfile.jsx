@@ -1135,7 +1135,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <MeineWerkeSection
               userId={profile?.id}
               works={works}
-              onWerkWizard={() => { setEditingWerk(null); setShowWerkWizard(true); }}
+              onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
             />
             <Gap h={24}/>
 
