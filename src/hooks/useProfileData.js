@@ -30,8 +30,8 @@ const WIRKER_SELECT =
   "avatar_url,header_img";
 
 const WORKS_SELECT =
-  "id,user_id,title,cover_url,category,medium,status," +
-  "approval_status,price,for_sale,created_at";
+  "id,user_id,title,cover_url,category,status," +
+  "approval_status,price,for_sale,visibility,created_at";
 
 const EXPERIENCES_SELECT =
   "id,user_id,title,cover_url,category,date,status," +
