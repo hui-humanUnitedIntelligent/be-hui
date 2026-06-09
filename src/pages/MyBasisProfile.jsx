@@ -264,37 +264,39 @@ function MeinProfilHeader({ profile, isTalentView = false, onSettings, onBell = 
           }}/>
         </div>
 
-        {/* Buttons oben rechts IM Cover */}
-        <div style={{
-          position:"absolute", top:12, right:12, zIndex:20,
-          display:"flex", gap:8,
-        }}>
-          {/* Glocke */}
-          <button onClick={() => onBell?.()} style={{
-            width:34, height:34, borderRadius:"50%",
-            background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)",
-            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:16, cursor:"pointer", touchAction:"manipulation",
-            boxShadow:"0 2px 8px rgba(0,0,0,0.15)", position:"relative",
+        {/* Buttons oben rechts IM Cover — nur Basis-Profil */}
+        {!isTalentView && (
+          <div style={{
+            position:"absolute", top:12, right:12, zIndex:20,
+            display:"flex", gap:8,
           }}>
-            🔔
-            {unreadCount > 0 && (
-              <span style={{
-                position:"absolute", top:6, right:6,
-                width:8, height:8, borderRadius:"50%",
-                background:"#FF4444", border:"1.5px solid white",
-              }}/>
-            )}
-          </button>
-          {/* Studio / Settings */}
-          <button onClick={() => onStudio?.()} style={{
-            width:34, height:34, borderRadius:"50%",
-            background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)",
-            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:16, cursor:"pointer", touchAction:"manipulation",
-            boxShadow:"0 2px 8px rgba(0,0,0,0.15)",
-          }}>⚙️</button>
-        </div>
+            {/* Glocke */}
+            <button onClick={() => onBell?.()} style={{
+              width:34, height:34, borderRadius:"50%",
+              background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)",
+              border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16, cursor:"pointer", touchAction:"manipulation",
+              boxShadow:"0 2px 8px rgba(0,0,0,0.15)", position:"relative",
+            }}>
+              🔔
+              {unreadCount > 0 && (
+                <span style={{
+                  position:"absolute", top:6, right:6,
+                  width:8, height:8, borderRadius:"50%",
+                  background:"#FF4444", border:"1.5px solid white",
+                }}/>
+              )}
+            </button>
+            {/* Studio / Settings */}
+            <button onClick={() => onStudio?.()} style={{
+              width:34, height:34, borderRadius:"50%",
+              background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)",
+              border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16, cursor:"pointer", touchAction:"manipulation",
+              boxShadow:"0 2px 8px rgba(0,0,0,0.15)",
+            }}>⚙️</button>
+          </div>
+        )}
 
         {/* Cover-Kamera oben links */}
         <button
