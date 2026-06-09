@@ -1103,6 +1103,33 @@ export default function MyBasisProfile({ onClose, profileId }) {
       <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
+        {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
+        <div style={{
+          padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
+          display:"flex", justifyContent:"space-between", alignItems:"flex-start",
+        }}>
+          <div>
+            <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
+              lineHeight:1.15 }}>
+              {profile?.is_talent ? "Mein Talent-Profil ✨" : "Mein Profil 🌿"}
+            </div>
+            <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
+              {profile?.is_talent
+                ? "Gestalte dein Talent-Profil, wie es dich und dein Wirken zeigt."
+                : "Gestalte dein Profil so, wie du bist."}
+            </div>
+          </div>
+          {/* Zahnrad */}
+          <button className="mbp-press-light" onClick={() => setShowStudio(true)} style={{
+            width:34, height:34, borderRadius:"50%",
+            background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:16, cursor:"pointer", touchAction:"manipulation",
+            flexShrink:0, marginTop:2,
+          }}>⚙️</button>
+        </div>
+        <Gap h={12}/>
+
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <MeinProfilHeader
           profile={{
