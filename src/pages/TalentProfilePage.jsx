@@ -1403,8 +1403,14 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
 // ══════════════════════════════════════════════════════════════
 // MEINE TALENTE & ANGEBOTE — Skill-Pills aus profile.skills
 // ══════════════════════════════════════════════════════════════
-function TalentAngeboteSection({ profile, loading, isOwner }) {
-  const skills = Array.isArray(profile?.skills) ? profile.skills : [];
+function TalentAngeboteSection({ profile, wirkerProfile, loading, isOwner }) {
+  // wirker_profiles.categories PRIMARY — profiles.skills FALLBACK
+  const rawCats   = Array.isArray(wirkerProfile?.categories) ? wirkerProfile.categories : [];
+  const rawSkills = Array.isArray(profile?.skills) ? profile.skills : [];
+  // Kategorien mergen: wirker_profiles zuerst, dann skills-Felder die noch nicht drin sind
+  const skills = rawCats.length > 0
+    ? rawCats.map(c => typeof c === "string" ? { icon: "✨", label: c } : c)
+    : rawSkills;
   if (!loading && skills.length === 0 && !isOwner) return null;
   return (
     <div style={{padding:`0 ${T.px}px`}}>
@@ -1657,10 +1663,11 @@ function KundenstimmenPublicSection({ recommendations, loading, isOwner, onShowA
 // ══════════════════════════════════════════════════════════════
 // VERFÜGBARKEIT + STANDORT — 2-Spalten, Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
-function VerfuegbarkeitStandortPublic({ profile, loading }) {
+function VerfuegbarkeitStandortPublic({ profile, wirkerProfile, loading }) {
   if (loading) return null;
   const isOpen = profile?.focus_type !== "private";
-  const loc    = profile?.location || "";
+  // wirker_profiles.location_label PRIMARY — profiles.location FALLBACK
+  const loc = wirkerProfile?.location_label || profile?.location || "";
   return (
     <div style={{padding:`0 ${T.px}px`}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -1814,6 +1821,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const [experiences,  setExperiences]  = useState([]);
   const [moments,      setMoments]      = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+  const [wirkerProfile, setWirkerProfile] = useState(null);
   const [loading,      setLoading]      = useState(true);
   const [mounted,      setMounted]      = useState(false);
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
@@ -1841,48 +1849,54 @@ export default function TalentProfilePage({ profileId, onClose }) {
     (async () => {
       setLoading(true);
       try {
-        const [profileRes, worksRes, experiencesRes, momentsRes, fcRes, recRes] = await Promise.all([
-          // Profil
+        const [profileRes, worksRes, experiencesRes, momentsRes, fcRes, recRes, wpRes] = await Promise.all([
+          // 1. Profil (profiles-Tabelle — Single Source of Truth für Avatar/Cover/Bio/Location)
           supabase.from("profiles")
-            .select("id,username,display_name,bio,avatar_url,header_img,location,interests,skills,has_talent_profile,role,membership_type")
+            .select("id,username,display_name,bio,avatar_url,header_img,location,interests,skills,has_talent_profile,role,membership_type,focus_type,is_talent")
             .eq("id", profileId)
             .single(),
 
-          // Werke (veröffentlicht)
+          // 2. Werke (veröffentlicht + approved)
           supabase.from("works")
             .select("id,user_id,title,description,cover_url,status,approval_status,price,for_sale,created_at")
             .eq("user_id", profileId)
-            .eq("status", "published")
-            .eq("approval_status", "approved")
+            .in("status", ["published","approved"])
             .order("created_at", { ascending: false })
             .limit(20),
 
-          // Erlebnisse (veröffentlicht + aktiv)
+          // 3. Erlebnisse (veröffentlicht + aktiv)
           supabase.from("experiences")
             .select("id,user_id,title,description,category,cover_url,date,status,visibility,format,location_text,created_at")
             .eq("user_id", profileId)
-            .in("status", ["published","active"])
+            .in("status", ["published","active","approved"])
             .order("created_at", { ascending: false })
             .limit(20),
 
-          // Momente (beitraege)
+          // 4. Momente (beitraege)
           supabase.from("beitraege")
             .select("id,user_id,src,type,caption,created_at")
             .eq("user_id", profileId)
             .order("created_at", { ascending: false })
             .limit(16),
 
-          // Follower-Zähler (live aus follows-Tabelle)
-          supabase.rpc("get_follow_counts", { target_id: profileId }),
+          // 5. Follower-Zähler
+          supabase.rpc("get_follow_counts", { target_id: profileId })
+            .then(r => r).catch(() => ({ data: null })),
 
-          // Kundenstimmen / Empfehlungen
+          // 6. Kundenstimmen — FK: wirker_id, Felder: reviewer_name, rating, text
           supabase.from("recommendations")
-            .select("id,recommender_name,recommender_id,avatar_url,text,message,created_at")
-            .eq("profile_id", profileId)
-            .eq("status", "approved")
+            .select("id,wirker_id,reviewer_id,reviewer_name,rating,text,work_title,created_at")
+            .eq("wirker_id", profileId)
             .order("created_at", { ascending: false })
             .limit(8)
             .then(r => r).catch(() => ({ data: [] })),
+
+          // 7. wirker_profiles — Kategorien + location_label als ergänzende Quelle
+          supabase.from("wirker_profiles")
+            .select("id,user_id,talent,categories,location_label,hourly_rate,is_verified,rating_avg,booking_count,avatar_url,header_img")
+            .eq("user_id", profileId)
+            .maybeSingle()
+            .then(r => r).catch(() => ({ data: null })),
         ]);
 
         // Profil
@@ -1912,6 +1926,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           following: fcRes.data?.[0]?.following ?? 0,
         });
         setRecommendations(recRes?.data || []);
+        setWirkerProfile(wpRes?.data || null);
 
       } catch(e) {
         console.warn("[TalentProfilePage] load error:", e);
@@ -1969,7 +1984,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <Gap h={20}/>
 
         {/* 3. Meine Talente & Angebote */}
-        <TalentAngeboteSection profile={profile} loading={loading} isOwner={isOwner}/>
+        <TalentAngeboteSection profile={profile} wirkerProfile={wirkerProfile} loading={loading} isOwner={isOwner}/>
         <Gap h={28}/>
 
         {/* 4. Meine Werke */}
@@ -1985,7 +2000,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <Gap h={28}/>
 
         {/* 7. Verfügbarkeit + Standort */}
-        <VerfuegbarkeitStandortPublic profile={profile} loading={loading}/>
+        <VerfuegbarkeitStandortPublic profile={profile} wirkerProfile={wirkerProfile} loading={loading}/>
         <Gap h={28}/>
 
         {/* 8. Sichtbarkeit */}
