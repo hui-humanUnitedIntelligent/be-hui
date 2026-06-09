@@ -50,6 +50,121 @@ function fmtTime(iso) {
   return d.toLocaleDateString("de-DE", { day:"numeric", month:"short" });
 }
 
+// ── NotifCard — einzelne Notification mit aufklappbarem Detail ─────────────
+function NotifCard({ n, meta, hasDetail, onRead }) {
+  const [expanded, setExpanded] = React.useState(false);
+
+  const handleClick = () => {
+    if (!n.is_read) onRead(n.id);
+    if (hasDetail) setExpanded(prev => !prev);
+  };
+
+  const isRejection = n.type === "work_rejected" || n.type === "content_rejected";
+  const werkTitle   = n.metadata?.werk_title || n.metadata?.werk_id || null;
+  const reason      = n.metadata?.rejection_reason || null;
+
+  return (
+    <div
+      onClick={handleClick}
+      style={{
+        borderRadius:T.r12, marginBottom:8, overflow:"hidden",
+        background: n.is_read ? T.bgCard : T.tealSoft,
+        border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
+        cursor: hasDetail ? "pointer" : n.is_read ? "default" : "pointer",
+        transition:"background .15s",
+      }}
+    >
+      {/* Haupt-Zeile */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"12px 14px" }}>
+        <div style={{
+          width:38, height:38, borderRadius:"50%", flexShrink:0,
+          background: n.is_read ? "rgba(26,26,24,0.05)" : T.tealSoft,
+          border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
+          display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
+        }}>{meta.emoji}</div>
+
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+            <span style={{ fontSize:11, fontWeight:700, color: n.is_read ? T.inkFaint : T.teal }}>
+              {meta.label}
+            </span>
+            {!n.is_read && (
+              <span style={{ width:6, height:6, borderRadius:"50%", background:T.teal, display:"inline-block" }}/>
+            )}
+          </div>
+          {n.title && (
+            <div style={{ fontSize:13, fontWeight: n.is_read ? 500 : 700, color:T.ink, marginBottom:2, lineHeight:1.4 }}>
+              {n.title}
+            </div>
+          )}
+          {n.body && (
+            <div style={{ fontSize:12, color:T.inkSoft, lineHeight:1.55 }}>
+              {n.body}
+            </div>
+          )}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:4 }}>
+            <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(n.created_at)}</span>
+            {hasDetail && (
+              <span style={{ fontSize:11, color:T.teal, fontWeight:600 }}>
+                {expanded ? "▲ Weniger" : "▼ Details"}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Aufgeklapptes Detail */}
+      {expanded && hasDetail && (
+        <div style={{
+          margin:"0 12px 12px",
+          borderRadius:10,
+          background:"rgba(239,68,68,0.05)",
+          border:"1px solid rgba(239,68,68,0.20)",
+          overflow:"hidden",
+        }}>
+          {/* Werk-Info */}
+          {werkTitle && (
+            <div style={{
+              padding:"10px 12px 8px",
+              borderBottom: reason ? "1px solid rgba(239,68,68,0.12)" : "none",
+              display:"flex", alignItems:"center", gap:8,
+            }}>
+              <span style={{ fontSize:16 }}>🎨</span>
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, color:"#DC2626", letterSpacing:"0.5px", textTransform:"uppercase" }}>
+                  Werk
+                </div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#1a1a18", lineHeight:1.3 }}>
+                  „{werkTitle}"
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Ablehnungsgrund */}
+          {reason && (
+            <div style={{ padding:"10px 12px 12px" }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#DC2626", letterSpacing:"0.5px", textTransform:"uppercase", marginBottom:5 }}>
+                Grund der Ablehnung
+              </div>
+              <div style={{
+                fontSize:13, color:"#1a1a18", lineHeight:1.6,
+                background:"rgba(239,68,68,0.07)", borderRadius:8,
+                padding:"8px 10px",
+                fontStyle:"italic",
+              }}>
+                „{reason}"
+              </div>
+              <div style={{ fontSize:11, color:"#888", marginTop:8, lineHeight:1.4 }}>
+                Du kannst dein Werk überarbeiten und erneut einreichen.
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NotificationPanel({ userId, onClose, onUnreadChange }) {
   const [notifs,  setNotifs]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -199,67 +314,18 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange }) {
         ) : (
           visible.map(n => {
             const meta = TYPE_META[n.type] || TYPE_META.default;
+            const hasDetail = (n.type === "work_rejected" || n.type === "content_rejected")
+              && (n.metadata?.rejection_reason || n.metadata?.werk_title);
+            const isClickable = hasDetail || !n.is_read;
             return (
-              <div
+              <NotifCard
                 key={n.id}
-                onClick={() => { if (!n.is_read) markRead(n.id); }}
-                style={{
-                  display:"flex", alignItems:"flex-start", gap:12,
-                  padding:"12px 14px", borderRadius:T.r12,
-                  background: n.is_read ? T.bgCard : T.tealSoft,
-                  border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
-                  marginBottom:8, cursor: n.is_read ? "default" : "pointer",
-                  transition:"background .15s",
-                }}
-              >
-                <div style={{
-                  width:38, height:38, borderRadius:"50%",
-                  background: n.is_read ? "rgba(26,26,24,0.05)" : T.tealSoft,
-                  border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:18, flexShrink:0,
-                }}>{meta.emoji}</div>
-
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
-                    <span style={{ fontSize:11, fontWeight:700, color: n.is_read ? T.inkFaint : T.teal }}>
-                      {meta.label}
-                    </span>
-                    {!n.is_read && (
-                      <span style={{
-                        width:6, height:6, borderRadius:"50%",
-                        background:T.teal, display:"inline-block",
-                      }}/>
-                    )}
-                  </div>
-                  {n.title && (
-                    <div style={{
-                      fontSize:13, fontWeight: n.is_read ? 500 : 700,
-                      color:T.ink, marginBottom:2, lineHeight:1.4,
-                    }}>{n.title}</div>
-                  )}
-                  {n.body && (
-                    <div style={{ fontSize:12, color:T.inkSoft, lineHeight:1.55 }}>
-                      {n.body}
-                    </div>
-                  )}
-                  {/* Ablehnungsgrund bei work_rejected + content_rejected */}
-                  {(n.type === "work_rejected" || n.type === "content_rejected") && n.metadata?.rejection_reason && (
-                    <div style={{
-                      marginTop:5, padding:"6px 10px", borderRadius:"8px",
-                      background:"rgba(239,68,68,0.07)",
-                      border:"1px solid rgba(239,68,68,0.18)",
-                      fontSize:11.5, color:"#DC2626", lineHeight:1.5,
-                    }}>
-                      <span style={{fontWeight:700}}>Grund: </span>
-                      {n.metadata.rejection_reason}
-                    </div>
-                  )}
-                  <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
-                    {fmtTime(n.created_at)}
-                  </div>
-                </div>
-              </div>
+                n={n}
+                meta={meta}
+                hasDetail={hasDetail}
+                isClickable={isClickable}
+                onRead={markRead}
+              />
             );
           })
         )}
