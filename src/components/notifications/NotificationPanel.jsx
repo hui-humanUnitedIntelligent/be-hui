@@ -142,15 +142,17 @@ return (
 }
 
 // ── NotifCard ─────────────────────────────────────────────────────────────────
-function NotifCard({ n, meta, onRead }) {
+function NotifCard({ n, meta, onRead, onAction = () => {} }) {
 const [showModal, setShowModal] = React.useState(false);
 
 const isRejection = n.type === "work_rejected" || n.type === "content_rejected";
 
 const handleCardClick = () => {
   if (!n.is_read) onRead?.(n.id);
-  // Für Ablehnungen: Modal öffnen
-  if (isRejection) setShowModal(true);
+  // Ablehnungen: Modal öffnen
+  if (isRejection) { setShowModal(true); return; }
+  // Alle anderen: Action auslösen
+  onAction(n);
 };
 
 const handleDetailBtn = (e) => {
@@ -231,7 +233,7 @@ return (
 }
 
 
-export default function NotificationPanel({ userId, onClose, onUnreadChange }) {
+export default function NotificationPanel({ userId, onClose, onUnreadChange, onAction = () => {} }) {
   const [notifs,  setNotifs]  = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab,     setTab]     = useState("all"); // all | unread
