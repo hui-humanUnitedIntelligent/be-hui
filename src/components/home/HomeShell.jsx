@@ -63,7 +63,10 @@ export default function HomeShell({ children }) {
 
   /* Tab */
   const [tab, _setTab, restoreTab] = useSessionRestore("feed");
-  // Tab startet immer mit defaultTab ("feed") — kein sessionStorage-Restore
+  // Tab aus sessionStorage erst nach Auth-Check laden
+  React.useEffect(() => {
+    if (authChecked) restoreTab();
+  }, [authChecked, restoreTab]);
   // ── Navigation State ───────────────────────────────────────────
   const [prevTab, setPrevTab]   = React.useState("feed");
   const [carryOver, setCarryOver] = React.useState(null);
@@ -142,10 +145,9 @@ export default function HomeShell({ children }) {
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   // ── Creator / Profile State ────────────────────────────────────
-  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(() => {
-    // Beim Browser-Reload: Profil-Panel wieder öffnen wenn es vorher offen war
-    try { return sessionStorage.getItem("hui_overlay_profile") === "1"; } catch(_) { return false; }
-  });
+  // showCreatorDashboard startet IMMER mit false beim Refresh.
+  // Creator-Dashboard ist ein Overlay — kein persistierter State.
+  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
   // ── Chat State ─────────────────────────────────────────────────
   const [showChat, _setShowChatRaw] = useState(false);
   const _showChatRef = React.useRef(false);
