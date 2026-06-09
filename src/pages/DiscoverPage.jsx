@@ -1473,8 +1473,9 @@ export default function DiscoverPage({ onView, onMap }) {
         // Felder: id, title, cover_url, category, file_format, tags, status, visibility, user_id, created_at
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,visibility,price,location_text,user_id,created_at")
+          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,user_id,created_at")
           .eq("status", "published")
+          .eq("approval_status", "approved")
           .eq("visibility", "public")
           .order("created_at", { ascending:false })
           .limit(8);
