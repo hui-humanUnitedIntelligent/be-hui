@@ -243,7 +243,22 @@ export function useProfileData(profileId) {
       // NORMALIZED: worksRes.data direkt (keine Transformation im Hook)
       console.log('[E3] NORMALIZED WORKS — identisch mit RAW (kein Transform im Hook):', worksRes.data?.length ?? 0);
       // ── END E.3 TRACE ─────────────────────────────────
-      setWorks(worksRes.data        || []);
+      // ── SPRINT E.4 DEBUG INJECTION ─────────────────────────────
+      setWorks([
+        {
+          id: "debug",
+          title: "DEBUG WORK",
+          status: "published",
+          visibility: "public",
+          approval_status: "approved",
+          cover_url: null,
+          category: "Test",
+          user_id: profileId,
+          created_at: new Date().toISOString(),
+        }
+      ]);
+      // ── END E.4 DEBUG INJECTION ──────────────────────────────────
+      // setWorks(worksRes.data || []);  // SUSPENDED FOR E.4
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);
       setMoments(momentsRes.data    || []);
