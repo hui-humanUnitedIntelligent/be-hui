@@ -916,6 +916,14 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <Gap h={20}/>
       </div>
 
+      {/* Meine Empfehlungen Modal */}
+      {showMyRec && (
+        <MyRecommendationsModal
+          userId={profile?.id}
+          onClose={() => setShowMyRec(false)}
+        />
+      )}
+
       {/* Settings Modal */}
       {showSettings && (
         <SettingsModal
