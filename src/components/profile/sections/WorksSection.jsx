@@ -63,9 +63,18 @@ export function WorksSection({
   // ── END TRACE
 
   // Visitor: nur freigegebene Werke
+  // [E2] LOG: VOR FILTER
+  console.log('[E2] WorksSection — VOR FILTER: works.length:', works?.length, 'isOwner:', isOwner);
+  if (works?.length > 0) console.log('[E2] WorksSection — sample[0] status/approval:', works[0]?.status, works[0]?.approval_status);
   const visible = isOwner
     ? works
     : works.filter(w => w.approval_status === "approved" || w.status === "published" || w.status === "approved");
+  // [E2] LOG: NACH FILTER
+  console.log('[E2] WorksSection — NACH FILTER: visible.length:', visible?.length);
+  if (visible?.length === 0 && works?.length > 0) {
+    console.warn('[E2] VERLUST-PUNKT: Filter hat alle', works.length, 'Werke eliminiert!');
+    console.log('[E2] VERLUST-DETAIL — Felder aller Werke:', works.map(w => ({ id:w.id, status:w.status, approval_status:w.approval_status })));
+  }
 
   const handleConfirmDelete = async () => {
     const w = confirmWork;

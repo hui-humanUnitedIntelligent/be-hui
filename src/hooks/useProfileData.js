@@ -233,6 +233,10 @@ export function useProfileData(profileId) {
 
       setProfile(normalizedProfile);
       setWirkerProfile(wp);
+      // ── SPRINT E.2 TRACE ───────────────────────────────
+      console.log('[E2] WORKS RAW from DB:', worksRes.data?.length ?? 0, worksRes.error ?? null);
+      if (worksRes.data?.length > 0) console.log('[E2] WORKS RAW sample:', JSON.stringify(worksRes.data[0]));
+      // ── END TRACE ─────────────────────────────────────
       setWorks(worksRes.data        || []);
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);

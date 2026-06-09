@@ -1893,15 +1893,17 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const handleAvatarChange = useCallback(() => reload(), [reload]);
   const handleCoverChange  = useCallback(() => reload(), [reload]);
 
-  // ── SPRINT D.2 TRACE ──────────────────────────────────────────
-  console.group("TALENT PROFILE PAGE");
-  console.log("profileId", profileId);
-  console.log("isOwner", isOwner);
-  console.log("profile", profile);
-  console.log("skills_final", profile?.skills_final);
-  console.log("location_final", profile?.location_final);
-  console.log("works", works?.length);
-  console.log("experiences", experiences?.length);
+  // ── SPRINT E.2 TRACE ──────────────────────────────────────────
+  console.group('[E2] TalentProfilePage render');
+  console.log('[E2] profileId:', profileId);
+  console.log('[E2] isOwner:', isOwner);
+  console.log('[E2] loading:', loading);
+  console.log('[E2] profile?.id:', profile?.id);
+  console.log('[E2] WORKS STATE works.length:', works?.length);
+  if (works?.length > 0) {
+    console.log('[E2] WORKS STATE sample[0]:', JSON.stringify(works[0]));
+  }
+  console.log('[E2] isOwner for WorksSection:', isOwner);
   console.groupEnd();
   // ── END TRACE ──────────────────────────────────────────────────
   return (
@@ -1980,6 +1982,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <Gap h={28}/>
 
         {/* ── 8. Werke → WorksSection ──────────────────────── */}
+        {/* [E2] WORKS RENDER */ console.log('[E2] WORKS RENDER — vor WorksSection:', works?.length, 'isOwner:', isOwner) || null}
         <WorksSection
           works={works}
           profile={profile}
