@@ -1108,7 +1108,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onAvatarChange={handleAvatarChange}
           onCoverChange={handleCoverChange}
         />
-        <Gap h={130}/>
+        <Gap h={16}/>
 
         {/* ═══════════════════════════════════════════════════════ */}
         {/*  N E U E S   D A S H B O A R D   L A Y O U T            */}
