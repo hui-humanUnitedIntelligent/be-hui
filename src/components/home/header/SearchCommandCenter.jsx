@@ -3,6 +3,7 @@
 // Weniger Zahlen. Mehr Menschen. Weniger Dashboard. Mehr HUI.
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { useHome }               from "../../home/HomeShell.jsx";
 import { useConnectionEngine }   from "../../../core/HuiConnectionEngine.jsx";
@@ -1678,6 +1679,7 @@ function KiPanel({ onSelect, onClose }) {
       </div>
     </div>
   );
+  return createPortal(content, document.body);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1870,9 +1872,9 @@ function MobileSearchView({ query, setQuery, onClose, onSelect, currentUser }) {
 
   const showResults = debouncedQ.trim().length > 0;
 
-  return (
+  const content = (
     <div style={{
-      position: "fixed", inset: 0, zIndex: 9800,
+      position: "fixed", inset: 0, zIndex: 99999,
       background: "rgba(249,247,244,1)",
       display: "flex", flexDirection: "column",
       overflow: "hidden",
@@ -2181,7 +2183,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   const [open,        setOpen]        = useState(false);
   // Mobile Fullscreen Search
   const [mobileOpen,  setMobileOpen]  = useState(false);
-  const isMobile = () => typeof window !== "undefined" && window.innerWidth < 768;
+  const isMobile = () => typeof window !== "undefined" && window.innerWidth < 1024;
   const [query,       setQuery]       = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showKi,      setShowKi]      = useState(false);
