@@ -193,8 +193,8 @@ function UserListModal({ title, users, onClose }) {
       <div onClick={e=>e.stopPropagation()} style={{
         width:"100%", maxWidth:480,
         background:T.bgCard, borderRadius:"20px 20px 0 0",
-        paddingBottom:"max(24px,calc(16px + env(safe-area-inset-bottom,0px)))",
-        maxHeight:"70vh", display:"flex", flexDirection:"column",
+        paddingBottom:"max(88px,calc(80px + env(safe-area-inset-bottom,0px)))",
+        maxHeight:"80vh", display:"flex", flexDirection:"column",
       }}>
         <div style={{
           padding:"16px 20px 12px",
