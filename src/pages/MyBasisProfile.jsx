@@ -15,6 +15,8 @@ import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import HuiStudio       from "../components/studio/HuiStudio.jsx";
+import WerkWizard      from "../components/works/WerkWizard.jsx";
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -158,7 +160,7 @@ async function uploadProfileImage(file, userId, folder) {
   return publicUrl;
 }
 
-function MeinProfilHeader({ profile, onSettings, onBell = () => {}, onStudio = () => {}, unreadCount = 0, onAvatarChange, onCoverChange }) {
+function MeinProfilHeader({ profile, isTalentView = false, onSettings, onBell = () => {}, onStudio = () => {}, unreadCount = 0, onAvatarChange, onCoverChange }) {
   const [imgLoaded,       setImgLoaded]       = useState(false);
   const [avLoaded,        setAvLoaded]         = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -898,6 +900,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount,       setUnreadCount]       = useState(0);
   const ambState = useAmbassador(profile);
+  const [works,       setWorks]       = useState([]);
+  const [experiences, setExperiences] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [showWerkWizard, setShowWerkWizard] = useState(false);
+  const [showExpWizard,  setShowExpWizard]  = useState(false);
+  const [editingWerk,   setEditingWerk]   = useState(null);
+  const [editingExp,    setEditingExp]    = useState(null);
 
 
   useEffect(()=>{
@@ -1101,6 +1110,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             avatar_url: localAvatar || profile?.avatar_url,
             header_img: localCover  || profile?.header_img,
           }}
+          isTalentView={!!profile?.is_talent}
           onSettings={() => setShowSettings(true)}
           onBell={() => setShowNotifications(v => !v)}
           onStudio={() => setShowStudio(true)}
@@ -1110,33 +1120,93 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
         <Gap h={28}/>
 
-        {/* ── 1. ÜBER DICH ─────────────────────────────────────── */}
-        <UeberDich bio={bio} onChange={handleBioChange}/>
-        <Gap h={24}/>
+        {/* ══ TALENT-PROFIL-LAYOUT (is_talent === true) ══════════ */}
+        {profile?.is_talent ? (
+          <>
+            {/* T1. Über mich */}
+            <UeberDich bio={bio} onChange={handleBioChange}/>
+            <Gap h={24}/>
 
-        {/* ── 2. INTERESSEN & WERTE ─────────────────────────────── */}
-        <InteressenSection interests={interests} onChange={handleInterestsChange}/>
-        <Gap h={24}/>
+            {/* T2. Meine Talente & Angebote */}
+            <MeineTalenteSection
+              skills={interests}
+              onChange={handleInterestsChange}
+            />
+            <Gap h={24}/>
 
-        {/* ── 3. MOMENTE ───────────────────────────────────────── */}
-        <MomenteSection moments={moments} onChange={handleMomentsChange}/>
-        <Gap h={24}/>
+            {/* T3. Meine Werke */}
+            <MeineWerkeSection
+              userId={profile?.id}
+              works={works}
+              onWerkWizard={() => { setEditingWerk(null); setShowWerkWizard(true); }}
+            />
+            <Gap h={24}/>
 
-        {/* ── 4. OFFEN FÜR BEGEGNUNGEN ──────────────────────────── */}
-        <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
-        <Gap h={24}/>
+            {/* T4. Erlebnisse & Projekte */}
+            <ErlebnisseSection
+              experiences={experiences}
+              onErlebnisWizard={() => { setEditingExp(null); setShowExpWizard(true); }}
+            />
+            <Gap h={24}/>
 
-        {/* ── 5. SICHTBARKEIT ──────────────────────────────────── */}
-        <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
-        <Gap h={28}/>
+            {/* T5. Kundenstimmen */}
+            <KundenstimmenSection
+              recommendations={recommendations}
+              onEdit={() => {}}
+            />
+            <Gap h={24}/>
 
-        {/* ── 6. AMBASSADOR-BANNER ─────────────────────────────── */}
-        <AmbassadorBanner
-          profile={profile}
-          ambState={ambState}
-          onApply={() => setShowAmbModal(true)}
-        />
-        <Gap h={40}/>
+            {/* T6. Verfügbarkeit + Standort */}
+            <VerfuegbarkeitStandortRow
+              profile={profile}
+              onSave={(upd) => {
+                setProfile(p => ({ ...p, ...upd }));
+                const uid = profile?.id;
+                if (uid) supabase.from("profiles")
+                  .update({ ...upd, updated_at: new Date().toISOString() })
+                  .eq("id", uid).then(({error}) => {
+                    if (error) console.error("Standort save:", error.message);
+                  });
+              }}
+            />
+            <Gap h={24}/>
+
+            {/* T7. Sichtbarkeit */}
+            <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+            <Gap h={40}/>
+          </>
+        ) : (
+          <>
+            {/* ══ BASIS-PROFIL-LAYOUT ══════════════════════════════ */}
+            {/* B1. Über dich */}
+            <UeberDich bio={bio} onChange={handleBioChange}/>
+            <Gap h={24}/>
+
+            {/* B2. Interessen & Werte */}
+            <InteressenSection interests={interests} onChange={handleInterestsChange}/>
+            <Gap h={24}/>
+
+            {/* B3. Momente */}
+            <MomenteSection moments={moments} onChange={handleMomentsChange}/>
+            <Gap h={24}/>
+
+            {/* B4. Offen für Begegnungen */}
+            <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
+            <Gap h={24}/>
+
+            {/* B5. Sichtbarkeit */}
+            <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+            <Gap h={28}/>
+
+            {/* B6. Ambassador-Banner */}
+            <AmbassadorBanner
+              profile={profile}
+              ambState={ambState}
+              onApply={() => setShowAmbModal(true)}
+            />
+            <Gap h={40}/>
+          </>
+        )}
       </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
@@ -1220,6 +1290,40 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 .update({ bio: newBio })
                 .eq("id", profile?.id);
             } catch(e) { console.error("Bio save:", e); }
+          }}
+        />
+      )}
+
+      {/* WERK WIZARD */}
+      {showWerkWizard && profile?.id && (
+        <WerkWizard
+          userId={profile.id}
+          existingWork={editingWerk}
+          onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
+          onSaved={(werk) => {
+            setShowWerkWizard(false); setEditingWerk(null);
+            setWorks(prev => {
+              const idx = prev.findIndex(w => w.id === werk.id);
+              if (idx >= 0) { const n=[...prev]; n[idx]=werk; return n; }
+              return [werk, ...prev];
+            });
+          }}
+        />
+      )}
+
+      {/* EXPERIENCE WIZARD */}
+      {showExpWizard && profile?.id && (
+        <ExperienceWizard
+          userId={profile.id}
+          existingExp={editingExp}
+          onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
+          onSaved={(exp) => {
+            setShowExpWizard(false); setEditingExp(null);
+            setExperiences(prev => {
+              const idx = prev.findIndex(e => e.id === exp.id);
+              if (idx >= 0) { const n=[...prev]; n[idx]=exp; return n; }
+              return [exp, ...prev];
+            });
           }}
         />
       )}
@@ -1517,6 +1621,324 @@ function AmbassadorBanner({ profile, ambState, onApply }) {
             Jetzt anmelden ›
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// TALENT-PROFIL SEKTIONEN (is_talent === true)
+// ══════════════════════════════════════════════════════════════
+
+const TALENT_KATEGORIEN = [
+  {icon:"🎨", label:"Malerei"},      {icon:"✏️", label:"Illustration"},
+  {icon:"📸", label:"Fotografie"},   {icon:"🎵", label:"Musik"},
+  {icon:"🎤", label:"Gesang"},       {icon:"🪡", label:"Handwerk"},
+  {icon:"💻", label:"Programmierung"},{icon:"📐", label:"Design"},
+  {icon:"📚", label:"Bildung"},      {icon:"🎭", label:"Theater"},
+  {icon:"🧘", label:"Coaching"},     {icon:"🌿", label:"Naturführung"},
+  {icon:"🍳", label:"Kochen"},       {icon:"🎬", label:"Film"},
+  {icon:"✍️", label:"Schreiben"},   {icon:"🏺", label:"Töpfern"},
+  {icon:"🎸", label:"Workshops"},    {icon:"⭐", label:"Kunstberatung"},
+  {icon:"🖼️", label:"Auftragskunst"},{icon:"🎁", label:"Weitere Angebote"},
+];
+
+function MeineTalenteSection({ skills, onChange }) {
+  const [showEdit, setShowEdit] = React.useState(false);
+  const current = Array.isArray(skills) ? skills : [];
+  const toggle = (label) => {
+    if (current.includes(label)) onChange(current.filter(x => x !== label));
+    else onChange([...current, label]);
+  };
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <SectionRow title="Meine Talente & Angebote" onEdit={() => setShowEdit(true)}/>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+        {current.length === 0 && (
+          <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:4 }}>
+            Noch keine Talente hinzugefügt.
+          </div>
+        )}
+        {current.map((label, i) => {
+          const cat = TALENT_KATEGORIEN.find(c => c.label === label);
+          return (
+            <div key={i} style={{
+              display:"inline-flex", alignItems:"center", gap:6,
+              padding:"8px 14px", borderRadius:T.r99,
+              background:T.bgCard, border:`1.5px solid ${T.tealMid}`,
+              fontSize:13, fontWeight:600, color:T.ink, boxShadow:T.card,
+            }}>
+              {cat && <span style={{fontSize:13}}>{cat.icon}</span>}
+              {label}
+            </div>
+          );
+        })}
+        <button className="mbp-press-light" onClick={() => setShowEdit(true)} style={{
+          display:"inline-flex", alignItems:"center", gap:6,
+          padding:"8px 14px", borderRadius:T.r99,
+          background:"transparent", border:`1.5px dashed ${T.borderMid}`,
+          fontSize:13, fontWeight:600, color:T.inkSoft,
+          cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+        }}>
+          <span style={{fontSize:14}}>+</span> Weiteres hinzufügen
+        </button>
+      </div>
+      {showEdit && (
+        <Sheet onClose={() => setShowEdit(false)}>
+          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:4 }}>
+            Meine Talente & Angebote
+          </div>
+          <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Was kannst du?</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
+            {TALENT_KATEGORIEN.map((t, i) => (
+              <InterestPill key={i} icon={t.icon} label={t.label}
+                active={current.includes(t.label)} onToggle={() => toggle(t.label)}/>
+            ))}
+          </div>
+          <button className="mbp-press" onClick={() => setShowEdit(false)} style={{
+            width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
+            background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
+            color:"white", fontSize:15, fontWeight:700,
+            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+          }}>Fertig</button>
+        </Sheet>
+      )}
+    </div>
+  );
+}
+
+function MeineWerkeSection({ works, onWerkWizard }) {
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <SectionRow title="Meine Werke" onEdit={() => onWerkWizard?.()}/>
+      {works.length > 0 && (
+        <div style={{ display:"flex", gap:10, overflowX:"auto",
+          WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
+          paddingBottom:4, marginBottom:10 }}>
+          {works.map((w, i) => (
+            <div key={w.id || i} style={{
+              flexShrink:0, width:110, height:90,
+              borderRadius:T.r12, overflow:"hidden",
+              background:"#e8e4de",
+            }}>
+              {w.cover_url
+                ? <img src={w.cover_url} alt={w.title||""}
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                : <div style={{ width:"100%", height:"100%", display:"flex",
+                    alignItems:"center", justifyContent:"center", fontSize:24 }}>🎨</div>
+              }
+            </div>
+          ))}
+        </div>
+      )}
+      <button className="mbp-press-light" onClick={() => onWerkWizard?.()} style={{
+        display:"flex", alignItems:"center", gap:8,
+        padding:"10px 16px", borderRadius:T.r12,
+        background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
+        fontSize:13, fontWeight:600, color:T.inkSoft,
+        cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+        width:"100%",
+      }}>
+        <span style={{fontSize:16}}>+</span>
+        Werk hinzufügen
+      </button>
+    </div>
+  );
+}
+
+function ErlebnisseSection({ experiences, onErlebnisWizard }) {
+  function fmtDate(d) {
+    if (!d) return "";
+    const dt = new Date(d);
+    if (isNaN(dt)) return "";
+    return dt.toLocaleDateString("de-DE", { month:"short", year:"numeric" });
+  }
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <SectionRow title="Erlebnisse & Projekte"
+        sub="Momente, die mein Wirken zeigen."
+        onEdit={() => onErlebnisWizard?.()}/>
+      <div style={{ display:"flex", gap:12, overflowX:"auto",
+        WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4 }}>
+        {experiences.map((exp, i) => (
+          <div key={exp.id || i} style={{ flexShrink:0, width:100 }}>
+            <div style={{ width:100, height:90, borderRadius:T.r12,
+              overflow:"hidden", background:"#e8e4de", marginBottom:6 }}>
+              {exp.cover_url
+                ? <img src={exp.cover_url} alt={exp.title||""}
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                : <div style={{ width:"100%", height:"100%", display:"flex",
+                    alignItems:"center", justifyContent:"center", fontSize:22 }}>🎟</div>
+              }
+            </div>
+            <div style={{ fontSize:11.5, fontWeight:700, color:T.ink,
+              overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+              {exp.title || "Erlebnis"}
+            </div>
+            <div style={{ fontSize:10.5, color:T.inkFaint, marginTop:1 }}>
+              {exp.category || ""}
+            </div>
+            <div style={{ fontSize:10.5, color:T.inkFaint }}>
+              {fmtDate(exp.date || exp.created_at)}
+            </div>
+          </div>
+        ))}
+        <div style={{ flexShrink:0, width:80 }}>
+          <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
+            width:80, height:90, borderRadius:T.r12,
+            background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
+            display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center", gap:4,
+            cursor:"pointer", touchAction:"manipulation",
+            marginBottom:6, fontFamily:"inherit",
+          }}>
+            <span style={{ fontSize:20, color:T.inkFaint }}>+</span>
+          </button>
+          <div style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", lineHeight:1.3 }}>
+            Erlebnis<br/>hinzufügen
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KundenstimmenSection({ recommendations, onEdit }) {
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <SectionRow title="Kundenstimmen" onEdit={onEdit}/>
+      <div style={{ display:"flex", gap:12, overflowX:"auto",
+        WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4 }}>
+        {recommendations.length === 0 ? (
+          <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", paddingBottom:8 }}>
+            Noch keine Empfehlungen.
+          </div>
+        ) : (
+          recommendations.slice(0,5).map((rec, i) => (
+            <div key={rec.id || i} style={{
+              flexShrink:0, width:200,
+              background:T.bgCard, borderRadius:T.r16,
+              border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card,
+            }}>
+              <div style={{ fontSize:22, color:T.teal, marginBottom:6 }}>❝</div>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.55, fontStyle:"italic", marginBottom:10 }}>
+                {rec.text || rec.message || ""}
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                {rec.avatar_url && (
+                  <img src={rec.avatar_url} alt=""
+                    style={{ width:28, height:28, borderRadius:"50%", objectFit:"cover" }}/>
+                )}
+                <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:600 }}>
+                  — {rec.recommender_name || "Mitglied"}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+        <button className="mbp-press-light" onClick={onEdit} style={{
+          flexShrink:0, display:"flex", alignItems:"center", gap:6,
+          padding:"10px 16px", borderRadius:T.r16,
+          background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
+          fontSize:12.5, fontWeight:600, color:T.inkSoft,
+          cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+          alignSelf:"flex-start",
+        }}>
+          <span style={{fontSize:16}}>+</span> Weitere hinzufügen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function VerfuegbarkeitStandortRow({ profile, onSave }) {
+  const [editLoc, setEditLoc] = React.useState(false);
+  const [locDraft, setLocDraft] = React.useState(profile?.location || "");
+  const isOpen = profile?.focus_type !== "private";
+  const saveLocation = async () => {
+    onSave?.({ location: locDraft });
+    setEditLoc(false);
+  };
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+        <div style={{ background:T.bgCard, borderRadius:T.r16,
+          border:`1px solid ${T.border}`, padding:"14px", boxShadow:T.card }}>
+          <div style={{ display:"flex", justifyContent:"space-between",
+            alignItems:"flex-start", marginBottom:6 }}>
+            <div style={{ fontSize:13, fontWeight:800, color:T.ink }}>Verfügbarkeit</div>
+            <button className="mbp-press-light" style={{
+              background:"none", border:"none", padding:0,
+              fontSize:11, color:T.teal, fontWeight:700,
+              cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+            }} onClick={() => {}}>Bearbeiten ›</button>
+          </div>
+          <div style={{ fontSize:10.5, color:T.inkFaint, marginBottom:8 }}>
+            Wann du für neue Anfragen offen bist.
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:6,
+            padding:"7px 10px", borderRadius:T.r12,
+            background:T.tealSoft, border:`1px solid ${T.tealMid}` }}>
+            <span style={{ width:7, height:7, borderRadius:"50%",
+              background:T.teal, display:"inline-block", flexShrink:0 }}/>
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:T.teal }}>
+                {isOpen ? "Offen für neue Anfragen" : "Momentan ausgelastet"}
+              </div>
+              <div style={{ fontSize:10, color:T.inkFaint }}>Antwortzeit: innerhalb von 24h</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ background:T.bgCard, borderRadius:T.r16,
+          border:`1px solid ${T.border}`, padding:"14px", boxShadow:T.card }}>
+          <div style={{ display:"flex", justifyContent:"space-between",
+            alignItems:"flex-start", marginBottom:6 }}>
+            <div style={{ fontSize:13, fontWeight:800, color:T.ink }}>Standort</div>
+            <button className="mbp-press-light" style={{
+              background:"none", border:"none", padding:0,
+              fontSize:11, color:T.teal, fontWeight:700,
+              cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+            }} onClick={() => setEditLoc(true)}>Bearbeiten ›</button>
+          </div>
+          {editLoc ? (
+            <div>
+              <input autoFocus value={locDraft} onChange={e => setLocDraft(e.target.value)}
+                placeholder="z.B. Berlin, Deutschland"
+                style={{ width:"100%", padding:"7px 8px", borderRadius:T.r12,
+                  border:`1.5px solid ${T.teal}`, outline:"none",
+                  fontSize:11, color:T.ink, fontFamily:"inherit", boxSizing:"border-box" }}/>
+              <div style={{ display:"flex", gap:5, marginTop:5 }}>
+                <button onClick={() => setEditLoc(false)} style={{
+                  flex:1, padding:"5px", borderRadius:T.r99,
+                  border:`1px solid ${T.border}`, background:"none",
+                  fontSize:10, color:T.inkSoft, cursor:"pointer", fontFamily:"inherit",
+                }}>✕</button>
+                <button onClick={saveLocation} style={{
+                  flex:2, padding:"5px", borderRadius:T.r99,
+                  border:"none", background:T.teal,
+                  fontSize:10, fontWeight:700, color:"white",
+                  cursor:"pointer", fontFamily:"inherit",
+                }}>✓</button>
+              </div>
+            </div>
+          ) : (
+            <button className="mbp-press-light" onClick={() => setEditLoc(true)} style={{
+              display:"flex", alignItems:"center", gap:6, width:"100%",
+              padding:"7px 8px", borderRadius:T.r12,
+              background:"rgba(26,26,24,0.03)", border:`1px solid ${T.border}`,
+              cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+              justifyContent:"space-between",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                <span style={{fontSize:12}}>📍</span>
+                <span style={{ fontSize:11, color:T.ink, fontWeight:500 }}>
+                  {profile?.location || "Standort eingeben"}
+                </span>
+              </div>
+              <span style={{ fontSize:12, color:T.inkFaint }}>›</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
