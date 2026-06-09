@@ -6,6 +6,23 @@ import { supabase } from "./supabaseClient.js";
 
 const STORAGE_AMB_KEY = 'hui_referral_ambassador';
 
+// ── detectReferral (URL-Pfad prüfen, z.B. be-hui.com/milileo) ──
+export function detectReferral() {
+  try {
+    const path = window.location.pathname;
+    const match = path.match(/^\/([a-zA-Z0-9._-]{3,50})$/);
+    if (!match) return null;
+    const username = match[1].toLowerCase();
+    const EXCLUDED = ['home','login','studio','impact','admin','diagnose',
+      'dashboard','profile','work','auth','ref','entdecken','buchung',
+      'mein-hui','community','impressum','datenschutz','agb','cookies','copyright'];
+    if (EXCLUDED.includes(username)) return null;
+    const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    localStorage.setItem('hui_referral_ambassador', JSON.stringify({ username, expiry }));
+    return username;
+  } catch { return null; }
+}
+
 // ── localStorage Helpers ───────────────────────────────────────
 export function getStoredReferral() {
   try {
