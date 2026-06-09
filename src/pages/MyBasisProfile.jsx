@@ -1261,14 +1261,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </div>
         )}
 
-        {/* ── AMBASSADOR SECTION ──────────────────────────────── */}
-        <div style={{ padding:"14px 16px 0" }}>
-          <AmbassadorProfilSection
-            profile={profile}
-            ambState={ambState}
-            onApply={() => setShowAmbModal(true)}
-          />
-        </div>
+
 
         {/* ── TALENT-CTA (nur für Basis-User) ─────────────────── */}
         {!profile?.is_talent && (
