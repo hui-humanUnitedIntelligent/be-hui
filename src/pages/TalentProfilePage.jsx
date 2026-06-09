@@ -1858,6 +1858,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
     loading,
     error,
     reload,
+    rawDiag,
   } = useProfileData(profileId);
 
   // ── Lokale UI-States (kein Datenlayer) ──────────────────────
@@ -1908,41 +1909,89 @@ export default function TalentProfilePage({ profileId, onClose }) {
     }}>
       <style>{CSS}</style>
 
-      {/* ── SPRINT E.6 DEBUG PANEL ─────────────────────────────────
+      {/* ── SPRINT E.10 DEBUG PANEL ────────────────────────────────
            Sichtbar nur wenn URL ?debug=1 enthält
            Entfernen nach Diagnose
       ─────────────────────────────────────────────────────────── */}
       {typeof window !== 'undefined' && window.location.search.includes('debug=1') && (
         <div style={{
-          position:'fixed', bottom:24, left:12, right:12, zIndex:99999,
-          background:'rgba(0,0,0,0.88)', borderRadius:12,
-          padding:'12px 14px', fontFamily:'monospace', fontSize:11,
-          color:'#00ff88', lineHeight:1.55,
-          boxShadow:'0 4px 24px rgba(0,0,0,0.6)',
-          pointerEvents:'none',
-          maxHeight:'45vh', overflowY:'auto',
+          position:'fixed', bottom:0, left:0, right:0, zIndex:99999,
+          background:'rgba(0,0,0,0.93)', borderRadius:'12px 12px 0 0',
+          padding:'14px 14px 28px', fontFamily:'monospace', fontSize:11,
+          color:'#00ff88', lineHeight:1.6,
+          boxShadow:'0 -4px 24px rgba(0,0,0,0.7)',
+          maxHeight:'55vh', overflowY:'auto',
+          pointerEvents:'auto',
         }}>
-          <div style={{color:'#ffcc00',fontWeight:'bold',marginBottom:4}}>🔍 E.6 DEBUG PANEL</div>
-          <div>profile?.id: <span style={{color:'#fff'}}>{profile?.id ?? 'null'}</span></div>
-          <div>profileId:   <span style={{color:'#fff'}}>{profileId ?? 'null'}</span></div>
-          <div>ID match:    <span style={{color: profile?.id === profileId ? '#00ff88' : '#ff4444'}}>
+          <div style={{color:'#ffcc00',fontWeight:'bold',marginBottom:6,fontSize:12}}>
+            🔍 E.10 DEBUG PANEL
+          </div>
+
+          {/* ── Basis ───────────────────── */}
+          <div>profile?.id:   <span style={{color:'#fff'}}>{profile?.id ?? 'null'}</span></div>
+          <div>profileId:     <span style={{color:'#fff'}}>{profileId ?? 'null'}</span></div>
+          <div>ID match:      <span style={{color: profile?.id === profileId ? '#00ff88' : '#ff4444'}}>
             {profile?.id === profileId ? '✅ GLEICH' : '❌ VERSCHIEDEN'}
           </span></div>
-          <div>works.length: <span style={{color:'#fff'}}>{works?.length ?? 0}</span></div>
-          <div>loading:      <span style={{color:'#fff'}}>{String(loading)}</span></div>
-          <div>error:        <span style={{color: error ? '#ff4444' : '#00ff88'}}>{error ?? 'none'}</span></div>
-          {works?.length > 0 && (
-            <div style={{marginTop:6,borderTop:'1px solid #333',paddingTop:6}}>
-              <div style={{color:'#ffcc00'}}>works[0]:</div>
-              <div>id:          <span style={{color:'#fff'}}>{works[0].id}</span></div>
-              <div>user_id:     <span style={{color:'#fff'}}>{works[0].user_id ?? 'null'}</span></div>
-              <div>creator_id:  <span style={{color:'#fff'}}>{works[0].creator_id ?? 'null'}</span></div>
-              <div>status:      <span style={{color:'#fff'}}>{works[0].status ?? 'null'}</span></div>
-              <div>visibility:  <span style={{color:'#fff'}}>{works[0].visibility ?? 'null'}</span></div>
+          <div>loading:       <span style={{color:'#fff'}}>{String(loading)}</span></div>
+          <div>error:         <span style={{color: error ? '#ff4444' : '#00ff88'}}>{error ?? 'none'}</span></div>
+
+          {/* ── E.10 Raw Query Results ───── */}
+          <div style={{marginTop:8,borderTop:'1px solid #333',paddingTop:6,color:'#ffcc00',fontWeight:'bold'}}>
+            RAW QUERY RESULTS
+          </div>
+          <div>WORKS QUERY EXEC: <span style={{color:'#fff'}}>{rawDiag ? 'YES' : 'NO (noch kein Load)'}</span></div>
+          <div>worksRes.data.length:   <span style={{color: rawDiag?.worksDataLen > 0 ? '#00ff88' : '#ff4444'}}>
+            {rawDiag?.worksDataLen ?? 'null'}
+          </span></div>
+          <div>worksRes.error.message: <span style={{color: rawDiag?.worksErrorMsg ? '#ff4444' : '#00ff88'}}>
+            {rawDiag?.worksErrorMsg ?? 'none'}
+          </span></div>
+          <div>worksRes.error.code:    <span style={{color: rawDiag?.worksErrorCode ? '#ff4444' : '#00ff88'}}>
+            {rawDiag?.worksErrorCode ?? 'none'}
+          </span></div>
+          <div>expsRes.data.length:    <span style={{color:'#fff'}}>{rawDiag?.expsDataLen ?? 'null'}</span></div>
+          <div>momentsRes.data.length: <span style={{color:'#fff'}}>{rawDiag?.momentsDataLen ?? 'null'}</span></div>
+
+          {/* ── works.length State ──────── */}
+          <div style={{marginTop:6}}>
+            works.length (State): <span style={{color: works?.length > 0 ? '#00ff88' : '#ff4444'}}>
+              {works?.length ?? 0}
+            </span>
+          </div>
+
+          {/* ── Works JSON dump ─────────── */}
+          {rawDiag?.worksRows?.length > 0 && (
+            <div style={{marginTop:8,borderTop:'1px solid #333',paddingTop:6}}>
+              <div style={{color:'#ffcc00',marginBottom:4}}>worksRes.data (alle Felder):</div>
+              <pre style={{
+                color:'#ccc', fontSize:9, lineHeight:1.4,
+                whiteSpace:'pre-wrap', wordBreak:'break-all',
+                maxHeight:'160px', overflowY:'auto',
+                background:'rgba(255,255,255,0.05)', borderRadius:6, padding:6,
+              }}>
+                {JSON.stringify(
+                  rawDiag.worksRows.map(w => ({
+                    id:              w.id,
+                    title:           w.title,
+                    status:          w.status,
+                    approval_status: w.approval_status,
+                    visibility:      w.visibility,
+                  })),
+                  null, 2
+                )}
+              </pre>
             </div>
           )}
-          {works?.length === 0 && !loading && (
-            <div style={{marginTop:6,color:'#ff4444'}}>⚠ works = [] (leer nach Load)</div>
+          {rawDiag?.worksRows?.length === 0 && rawDiag?.worksDataLen === 0 && (
+            <div style={{marginTop:6,color:'#ff4444'}}>
+              ⚠ worksRes.data = [] — DB liefert 0 Rows für diese user_id
+            </div>
+          )}
+          {rawDiag && rawDiag.worksRows === null && (
+            <div style={{marginTop:6,color:'#ff8800'}}>
+              ⚠ worksRes.data = null — Query fehlgeschlagen (siehe error oben)
+            </div>
           )}
         </div>
       )}

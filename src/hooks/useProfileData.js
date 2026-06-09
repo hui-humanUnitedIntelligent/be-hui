@@ -96,6 +96,7 @@ export function useProfileData(profileId) {
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
+  const [rawDiag,      setRawDiag]      = useState(null);
 
   // Laufende Request-ID — verhindert Race Conditions
   const requestId = useRef(0);
@@ -271,6 +272,17 @@ export function useProfileData(profileId) {
       console.log('[E9] fcRes.data               :', fcRes.data ?? 'null');
       console.groupEnd();
       // ─────────────────────────────────────────────────────────────
+      // ── SPRINT E.10 — rawDiag für Debug-Panel ──────────────
+      setRawDiag({
+        worksDataLen:    worksRes.data?.length ?? null,
+        worksErrorMsg:   worksRes.error?.message ?? null,
+        worksErrorCode:  worksRes.error?.code    ?? null,
+        worksQueryExec:  true,
+        worksRows:       worksRes.data ?? null,
+        expsDataLen:     expsRes.data?.length    ?? null,
+        momentsDataLen:  momentsRes.data?.length ?? null,
+      });
+      // ─────────────────────────────────────────────────────────
       setWorks(worksRes.data || []);
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);
@@ -316,6 +328,7 @@ export function useProfileData(profileId) {
     loading,
     error,
     reload: load,
+    rawDiag,
   };
 }
 
