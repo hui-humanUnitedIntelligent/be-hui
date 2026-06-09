@@ -138,7 +138,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
   const [username,  setUsername]  = useState(profile?.username || "");
   const [bio,       setBio]       = useState(profile?.bio || "");
   const [avatar,    setAvatar]    = useState(profile?.avatar_url || null);
-  const [interests, setInterests] = useState(profile?.interests || []);
+  const [interests, setInterests] = useState(profile?.skills || []); // interests nicht in DB → skills
   const [saving,    setSaving]    = useState(false);
   const [error,     setError]     = useState(null);
 
@@ -173,8 +173,8 @@ export default function ProfileCompletionFlow({ onComplete }) {
     if (step === 3) {
       // Write profile_complete = true — critical, do this first
       const { error: completeErr } = await supabase.from("profiles").update({
-        interests,
-        profile_complete: true,
+        skills: interests,
+        profile_complete: true, // interests → skills (interests nicht in DB)
         updated_at: new Date().toISOString(),
       }).eq("id", user.id);
       if (completeErr) {

@@ -333,7 +333,7 @@ const TYPE_STYLE = {
 
 // ── Schwerpunkt-Logik ──────────────────────────────────────────
 function detectSchwerpunkt(profile, works, experiences) {
-  const interests = a(profile?.interests);
+  const interests = a(profile?.dna_tags || profile?.skills); // interests nicht in DB → dna_tags/skills
   const wCount = works.length;
   const eCount = experiences.length;
 

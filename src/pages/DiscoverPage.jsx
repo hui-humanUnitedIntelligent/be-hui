@@ -1432,7 +1432,7 @@ export default function DiscoverPage({ onView, onMap }) {
         // People
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id,username,display_name,bio,avatar_url,location,impact_eur,interests,last_seen_at")
+          .select("id,username,display_name,bio,avatar_url,location,impact_eur,dna_tags,skills")
           .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
           .limit(12);
 
@@ -1445,7 +1445,7 @@ export default function DiscoverPage({ onView, onMap }) {
             avatar:       safeStr(p.avatar_url),
             impact:       safeNum(p.impact_eur, 0),
             last_seen_at: p.last_seen_at || null,
-            interests:    Array.isArray(p.interests) ? p.interests : [],
+            interests:    Array.isArray(p.dna_tags) ? p.dna_tags : (Array.isArray(p.skills) ? p.skills : []),
           })));
         }
 

@@ -378,7 +378,7 @@ export function AuthProvider({ children }) {
         .from("profiles")
         .update({ is_talent: true, talent_since: now })
         .eq("id", user.id)
-        .select("id,display_name,username,avatar_url,bio,is_talent,talent_since,is_ambassador,referred_by,blocked,profile_modules,skills,dna_tags,location,header_img,created_at,updated_at")
+        .select("id,display_name,username,avatar_url,bio,has_talent_profile,blocked,profile_modules,skills,dna_tags,location,header_img,created_at,updated_at")
         .single();
       if (error) return { error: error.message };
       setProfile(updated);

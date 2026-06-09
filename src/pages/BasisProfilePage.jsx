@@ -624,7 +624,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
       try {
         const [profRes, fcRes] = await Promise.all([
           supabase.from("profiles")
-            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags,open_for,interests")
+            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags")
             .eq("id", resolvedId).single(),
           supabase.rpc("get_follow_counts", { target_id: resolvedId })
             .then(r => r).catch(() => ({ data: null })),

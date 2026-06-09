@@ -20,9 +20,8 @@ import { supabase } from "../lib/supabaseClient.js";
 // ── Felder ────────────────────────────────────────────────────────────
 const PROFILE_SELECT =
   "id,username,display_name,bio,avatar_url,header_img," +
-  "location,skills,interests,dna_tags," +
+  "location,skills,dna_tags," +
   "membership_type,role,has_talent_profile,focus_type," +
-  "is_talent,talent_since,is_ambassador," +
   "blocked,profile_modules,created_at,updated_at";
 
 const WIRKER_SELECT =
@@ -229,7 +228,7 @@ export function useProfileData(profileId) {
         location_final,
         skills_final,
         // Talent-Flag normalisieren
-        is_talent: raw.is_talent === true,
+        is_talent: raw.has_talent_profile === true, // normalisiert aus has_talent_profile (is_talent nicht in DB)
       };
 
       setProfile(normalizedProfile);

@@ -967,7 +967,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,display_name,username,avatar_url,bio,is_talent,talent_since,is_ambassador,referred_by,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,created_at,updated_at")
+          .select("id,display_name,username,avatar_url,bio,has_talent_profile,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,created_at,updated_at")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
         if (data) {
@@ -1081,8 +1081,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   const handleOpenForChange = (v) => {
     setOpenFor(v);
-    // Persistenz via interests-Spalte (TEXT[], existiert in profiles)
-    autoSave("interests", v);
+    // interests-Spalte nicht sicher in DB — kein autoSave (nur lokal)
   };
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
