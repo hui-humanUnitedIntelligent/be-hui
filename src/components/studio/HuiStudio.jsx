@@ -264,8 +264,9 @@ function AmbassadorStudioSection({ profile }) {
   const [earnings,      setEarnings]      = useState(0);
   const [loading,    setLoading]    = useState(true);
   const [copying,    setCopying]    = useState(false);
-  const [showList,   setShowList]   = useState(null);
-  const [showLevel,  setShowLevel]  = useState(false);
+  const [showList,      setShowList]      = useState(null);
+  const [showLevel,     setShowLevel]     = useState(false);
+  const [showEinladungen, setShowEinladungen] = useState(false);
   const [applyOpen,  setApplyOpen]  = useState(false);
 
   const isAmb = profile?.is_ambassador === true;
@@ -502,6 +503,36 @@ function AmbassadorStudioSection({ profile }) {
         </div>
       </div>
 
+      {/* Einladungen verwalten — Row */}
+      <div style={{ margin:"0 14px 16px" }}>
+        <button
+          onClick={() => setShowEinladungen(true)}
+          style={{
+            width:"100%", display:"flex", alignItems:"center", gap:12,
+            padding:"13px 16px", borderRadius:T.r12,
+            background:"#fff", border:`1px solid ${T.border}`,
+            cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+            boxShadow:"0 1px 4px rgba(26,26,24,0.05)",
+            transition:"border-color 0.15s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(14,196,184,0.40)"}
+          onMouseLeave={e => e.currentTarget.style.borderColor = T.border}
+        >
+          <span style={{
+            width:34, height:34, borderRadius:9, flexShrink:0,
+            background:"rgba(14,196,184,0.08)",
+            display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
+          }}>✉️</span>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:14, fontWeight:600, color:T.ink }}>Einladungen verwalten</div>
+            <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
+              {allUsers.length > 0 ? `${allUsers.length} eingeladene Nutzer` : "Wer hat sich über deinen Link registriert?"}
+            </div>
+          </div>
+          <span style={{ fontSize:16, color:T.inkFaint }}>›</span>
+        </button>
+      </div>
+
       {/* Level-Info Popup */}
       {showLevel && <LevelInfoPopup onClose={() => setShowLevel(false)} />}
 
@@ -517,11 +548,221 @@ function AmbassadorStudioSection({ profile }) {
           onClose={() => setShowList(null)}
         />
       )}
+
+      {/* Einladungen Modal */}
+      {showEinladungen && (
+        <EinladungenModal
+          ambassadorId={uid}
+          username={profile?.username}
+          onClose={() => setShowEinladungen(false)}
+        />
+      )}
     </>
   );
 }
 
 
+
+// ═══════════════════════════════════════════════════════════════
+// EinladungenModal — "Einladungen verwalten"
+// Zeigt alle Nutzer die sich über den Ref-Link des Ambassadors registriert haben
+// Quelle: profiles WHERE referred_by = ambassador.id
+// Kein Löschen, kein Mutieren — nur lesen + navigieren
+// ═══════════════════════════════════════════════════════════════
+function EinladungenModal({ ambassadorId, username, onClose }) {
+  const [invited, setInvited] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ambassadorId) return;
+    let active = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, full_name, display_name, username, email, phone, avatar_url, created_at")
+          .eq("referred_by", ambassadorId)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        if (active) setInvited(data || []);
+      } catch(e) {
+        console.warn("[Einladungen] Fehler:", e);
+      }
+      if (active) setLoading(false);
+    })();
+    return () => { active = false; };
+  }, [ambassadorId]);
+
+  const navigateTo = (uname) => {
+    if (!uname) { alert("Profil nicht mehr verfügbar."); return; }
+    onClose();
+    window.history.pushState({}, "", `/profile/${uname}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
+  return createPortal(
+    <div style={{
+      position:"fixed", inset:0, zIndex:10000,
+      background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)",
+      display:"flex", flexDirection:"column", justifyContent:"flex-end",
+    }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{
+        background:"#F7F5F0", borderRadius:"20px 20px 0 0",
+        maxHeight:"88vh", display:"flex", flexDirection:"column",
+        paddingBottom:88,
+      }}>
+        {/* Header */}
+        <div style={{
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          padding:"18px 20px 14px",
+          borderBottom:"1px solid rgba(26,26,24,0.08)",
+          flexShrink:0,
+        }}>
+          <div>
+            <div style={{ fontSize:18, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.02em" }}>
+              ✉️ Einladungen verwalten
+            </div>
+            <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
+              {loading ? "Lade…" : `${invited.length} eingeladene Nutzer`}
+            </div>
+          </div>
+          <button onClick={onClose} style={{
+            background:"rgba(26,26,24,0.07)", border:"none", borderRadius:10,
+            width:34, height:34, cursor:"pointer", fontSize:16,
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>✕</button>
+        </div>
+
+        {/* Liste */}
+        <div style={{ overflowY:"auto", flex:1, padding:"12px 16px" }}>
+          {loading ? (
+            <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
+              Lade Einladungen…
+            </div>
+          ) : invited.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"50px 20px" }}>
+              <div style={{ fontSize:36, marginBottom:12 }}>✉️</div>
+              <div style={{ fontSize:15, fontWeight:600, color:"#1A1A18", marginBottom:6 }}>
+                Noch keine Einladungen
+              </div>
+              <div style={{ fontSize:13, color:"rgba(26,26,24,0.45)", lineHeight:1.6 }}>
+                Teile deinen persönlichen Link<br/>
+                <span style={{ fontFamily:"monospace", color:"#0EC4B8" }}>
+                  be-hui.com/{username || "…"}
+                </span><br/>
+                um Nutzer einzuladen.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {invited.map(u => {
+                const name = u.display_name || u.full_name || u.username || "Unbekannt";
+                const initials = name.slice(0,2).toUpperCase();
+                const date = u.created_at
+                  ? new Date(u.created_at).toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
+                  : "–";
+
+                return (
+                  <div
+                    key={u.id}
+                    onClick={() => navigateTo(u.username)}
+                    style={{
+                      background:"#fff", borderRadius:14,
+                      border:"1px solid rgba(26,26,24,0.08)",
+                      padding:"14px 16px",
+                      display:"flex", alignItems:"center", gap:14,
+                      boxShadow:"0 1px 4px rgba(26,26,24,0.05)",
+                      cursor: u.username ? "pointer" : "default",
+                      transition:"transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
+                    }}
+                    onMouseEnter={e => {
+                      if (!u.username) return;
+                      e.currentTarget.style.transform = "scale(1.015)";
+                      e.currentTarget.style.boxShadow = "0 4px 16px rgba(14,196,184,0.20)";
+                      e.currentTarget.style.borderColor = "rgba(14,196,184,0.40)";
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "0 1px 4px rgba(26,26,24,0.05)";
+                      e.currentTarget.style.borderColor = "rgba(26,26,24,0.08)";
+                    }}
+                  >
+                    {/* Avatar */}
+                    <div style={{
+                      width:46, height:46, borderRadius:"50%",
+                      background:"rgba(14,196,184,0.12)",
+                      border:"2px solid rgba(14,196,184,0.25)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      overflow:"hidden", fontSize:15, fontWeight:700, color:"#0EC4B8",
+                      flexShrink:0,
+                    }}>
+                      {u.avatar_url
+                        ? <img src={u.avatar_url} alt={initials} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                        : initials
+                      }
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:14, fontWeight:600, color:"#1A1A18", marginBottom:2,
+                        whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                        {name}
+                      </div>
+                      {u.email && (
+                        <div style={{ fontSize:12, color:"rgba(26,26,24,0.50)", marginBottom:1,
+                          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                          {u.email}
+                        </div>
+                      )}
+                      {u.phone && (
+                        <div style={{ fontSize:12, color:"rgba(26,26,24,0.50)", marginBottom:1 }}>
+                          {u.phone}
+                        </div>
+                      )}
+                      <div style={{ fontSize:11, color:"rgba(26,26,24,0.35)", marginTop:2 }}>
+                        Registriert: {date}
+                      </div>
+                    </div>
+
+                    {/* Kontakt-Buttons + Pfeil */}
+                    <div style={{ display:"flex", flexDirection:"column", gap:5, flexShrink:0, alignItems:"flex-end" }}>
+                      {u.email && (
+                        <a href={`mailto:${u.email}`}
+                          onClick={e => e.stopPropagation()}
+                          style={{
+                            padding:"4px 10px", borderRadius:20,
+                            background:"rgba(14,196,184,0.10)",
+                            fontSize:11, fontWeight:600, color:"#0EC4B8",
+                            textDecoration:"none", display:"block",
+                          }}>✉️ Mail</a>
+                      )}
+                      {u.phone && (
+                        <a href={`tel:${u.phone}`}
+                          onClick={e => e.stopPropagation()}
+                          style={{
+                            padding:"4px 10px", borderRadius:20,
+                            background:"rgba(14,196,184,0.10)",
+                            fontSize:11, fontWeight:600, color:"#0EC4B8",
+                            textDecoration:"none", display:"block",
+                          }}>📞 Anruf</a>
+                      )}
+                      {u.username && (
+                        <span style={{ fontSize:16, color:"rgba(14,196,184,0.55)", fontWeight:600 }}>›</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════
 // MyRecommendationsModal — Meine Empfehlungen
@@ -918,7 +1159,6 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             )}
 
             <StudioRow icon="⭐" label="Meine Empfehlungen"   onPress={() => setShowMyRec(true)} />
-            <StudioRow icon="✉️" label="Einladungen verwalten" onPress={() => {}} last />
           </div>
         </div>
         <Gap h={20}/>
