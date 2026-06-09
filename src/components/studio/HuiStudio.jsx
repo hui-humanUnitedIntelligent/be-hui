@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
+import { useHome } from "../home/HomeShell.jsx";
 import { supabase }    from "../../lib/supabaseClient.js";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
@@ -571,7 +571,7 @@ function AmbassadorStudioSection({ profile }) {
 // Kein Löschen, kein Mutieren — nur lesen + navigieren
 // ═══════════════════════════════════════════════════════════════
 function EinladungenModal({ ambassadorId, username, onClose }) {
-  const { openCreatorProfile } = useProfileLauncher();
+  const { openProfileById } = useHome();
   const [invited, setInvited] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -601,7 +601,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
     if (!userId && !uname) { alert("Profil nicht mehr verfügbar."); return; }
     onClose();
     if (userId) {
-      openCreatorProfile(userId);
+      openProfileById(userId);
     } else {
       window.history.pushState({}, "", `/profile/${uname}`);
       window.dispatchEvent(new PopStateEvent("popstate"));
@@ -787,7 +787,7 @@ const REC_LABELS = {
 const CAT_ORDER = ["profile", "project", "work", "experience", "event"];
 
 function MyRecommendationsModal({ userId, onClose }) {
-  const { openCreatorProfile } = useProfileLauncher();
+  const { openProfileById } = useHome();
   const [recs,     setRecs]     = useState([]);
   const [details,  setDetails]  = useState({}); // item_id → enriched data
   const [loading,  setLoading]  = useState(true);
@@ -961,7 +961,7 @@ function MyRecommendationsModal({ userId, onClose }) {
                       if (!pid && !uname) { alert("Dieses Profil existiert nicht mehr."); return; }
                       onClose();
                       if (pid) {
-                        openCreatorProfile(pid);
+                        openProfileById(pid);
                       } else {
                         window.history.pushState({}, "", `/profile/${uname}`);
                         window.dispatchEvent(new PopStateEvent("popstate"));
