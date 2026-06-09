@@ -486,6 +486,9 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       // Beim Einreichen: nie direkt veröffentlichen
       published_at: status === "published" ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
+      // Freigabe-Tracking
+      last_submitted_at: status === "pending_review" ? new Date().toISOString() : undefined,
+      is_update: status === "pending_review" ? !!existingWork?.id : undefined,
     };
 
     console.log("[SAVE WERK] PRE-INSERT payload:", JSON.stringify({
