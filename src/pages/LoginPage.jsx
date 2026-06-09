@@ -307,10 +307,23 @@ function SuccessMessage({ msg }) {
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  // Ref-Link aus URL-Param (?ref=username) vorausfüllen — setzt refLink beim Mount
+  // Ref-Link aus URL-Param (?ref=username) ODER localStorage vorausfüllen
   useEffect(() => {
     const refParam = searchParams.get('ref');
-    if (refParam) setRefLink(`https://be-hui.com/${refParam}`);
+    if (refParam) {
+      setRefLink(`https://be-hui.com/${refParam}`);
+      return;
+    }
+    // Fallback: localStorage (gesetzt von RefRedirect wenn Nutzer über be-hui.com/username kam)
+    try {
+      const stored = localStorage.getItem('hui_referral_ambassador');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.expiry && Date.now() < parsed.expiry && parsed.username) {
+          setRefLink(`https://be-hui.com/${parsed.username}`);
+        }
+      }
+    } catch (e) { /* ignorieren */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -401,8 +414,16 @@ export default function LoginPage() {
   // Ref-Link validieren und Ambassador-ID ermitteln
   async function resolveRefLink(link) {
     if (!link) return null;
-    // Format: https://be-hui.com/username oder be-hui.com/username
-    const match = link.match(/(?:https?:\/\/)?(?:www\.)?be-hui\.com\/([a-z0-9_]+)/i);
+    // Format: https://be-hui.com/username ODER be-hui.com/username ODER nur username
+    let usernameFromLink = null;
+    const urlMatch = link.match(/(?:https?:\/\/)?(?:www\.)?be-hui\.com\/([a-z0-9_]+)/i);
+    if (urlMatch) {
+      usernameFromLink = urlMatch[1].toLowerCase();
+    } else if (/^[a-z0-9_]{2,40}$/i.test(link.trim())) {
+      // Nur Username (z.B. "milileo")
+      usernameFromLink = link.trim().toLowerCase();
+    }
+    const match = usernameFromLink ? [null, usernameFromLink] : null;
     if (!match) return null;
     const username = match[1].toLowerCase();
     if (['impressum','datenschutz','agb','cookies','copyright'].includes(username)) return null;
@@ -450,9 +471,23 @@ export default function LoginPage() {
       const newUserId = signUpData.user.id;
       try {
         // referred_by = UUID des Ambassadors (Single Source of Truth)
-        await supabase.from('profiles')
-          .update({ referred_by: refResult.ambassadorId })
-          .eq('id', newUserId);
+        // Retry-Logik: Supabase erstellt Profile via Trigger (async) — kurz warten
+        let updateOk = false;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          await new Promise(r => setTimeout(r, 800)); // 800ms warten
+          const { data: updResult, error: updErr } = await supabase
+            .from('profiles')
+            .update({ referred_by: refResult.ambassadorId })
+            .eq('id', newUserId)
+            .select('id,referred_by')
+            .maybeSingle();
+          if (updResult?.referred_by === refResult.ambassadorId) {
+            updateOk = true;
+            break;
+          }
+          if (updErr) console.warn(`Ref-Update Versuch ${attempt+1} Fehler:`, updErr);
+        }
+        if (!updateOk) console.warn('referred_by konnte nicht gesetzt werden nach 5 Versuchen');
 
         // localStorage-Referral löschen nach Verarbeitung
         localStorage.removeItem('hui_referral_ambassador');
