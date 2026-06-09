@@ -1435,7 +1435,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           supabase.from("works")
             .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at")
             .eq("user_id", profileId)
-            .in("status", ["published","active"])
+            .eq("status", "published")
             .order("created_at", { ascending: false })
             .limit(20),
 
