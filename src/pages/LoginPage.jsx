@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { processReferralForUser } from '../lib/referralTracking.js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
@@ -466,36 +467,11 @@ export default function LoginPage() {
       return;
     }
 
-    // Ref-Link Verarbeitung nach erfolgreicher Registrierung
-    if (refResult && signUpData?.user?.id) {
-      const newUserId = signUpData.user.id;
-      try {
-        // referred_by = UUID des Ambassadors (Single Source of Truth)
-        // Retry-Logik: Supabase erstellt Profile via Trigger (async) — kurz warten
-        let updateOk = false;
-        for (let attempt = 0; attempt < 5; attempt++) {
-          await new Promise(r => setTimeout(r, 800)); // 800ms warten
-          const { data: updResult, error: updErr } = await supabase
-            .from('profiles')
-            .update({ referred_by: refResult.ambassadorId })
-            .eq('id', newUserId)
-            .select('id,referred_by')
-            .maybeSingle();
-          if (updResult?.referred_by === refResult.ambassadorId) {
-            updateOk = true;
-            break;
-          }
-          if (updErr) console.warn(`Ref-Update Versuch ${attempt+1} Fehler:`, updErr);
-        }
-        if (!updateOk) console.warn('referred_by konnte nicht gesetzt werden nach 5 Versuchen');
-
-        // localStorage-Referral löschen nach Verarbeitung
-        localStorage.removeItem('hui_referral_ambassador');
-
-      } catch (refErr) {
-        console.warn('Ref-Link Verarbeitung fehlgeschlagen:', refErr);
-        // Registrierung trotzdem fortsetzen
-      }
+    // Ref-Link Verarbeitung nach Auto-Login — processReferralForUser übernimmt alles
+    // (Retry-Logik + referred_by UUID + localStorage-Clearing in referralTracking.js)
+    if (signUpData?.user?.id) {
+      // Nicht awaiten — läuft im Hintergrund während Onboarding gezeigt wird
+      processReferralForUser(signUpData.user.id).catch(() => {});
     }
 
     // Auto-login
