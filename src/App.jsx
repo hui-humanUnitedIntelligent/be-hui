@@ -376,6 +376,35 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+
+/* ── SmartNotFound ─────────────────────────────────────────────────
+ * Ersetzt den sofortigen <Navigate to="/Home"> Catch-All.
+ *
+ * REGEL: Während Auth lädt → null (kein Redirect).
+ *        Nach Auth: eingeloggt  → /Home (echte 404).
+ *                  nicht eingeloggt → /login.
+ *
+ * Verhindert dass Refresh auf einer gültigen Route zu /Home springt,
+ * weil der Router die Route kurz als "unbekannt" einordnet.
+ * ──────────────────────────────────────────────────────────────── */
+function SmartNotFound() {
+  const { isAuthenticated, loadingAuth, authChecked } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    // Warten bis Auth vollständig geprüft ist
+    if (loadingAuth || !authChecked) return;
+    if (isAuthenticated) {
+      navigate("/Home", { replace: true });
+    } else {
+      navigate("/login", { replace: true });
+    }
+  }, [loadingAuth, authChecked, isAuthenticated, navigate]);
+
+  // Während Auth lädt: Loader zeigen, KEIN Redirect
+  return <HUILoader />;
+}
+
 /* ── Router Wrapper: /profile/:username → WirkerProfilePage ────────── */
 // onBook öffnet RequestSheet INNERHALB der WirkerProfilePage
 // Kein separates BookingFlow-Overlay mehr nötig
@@ -554,8 +583,8 @@ function AppRoutes() {
           <Suspense fallback={null}><RefRedirect /></Suspense>
         }/>
 
-        {/* 404 → Home */}
-        <Route path="*" element={<Navigate to="/Home" replace />} />
+        {/* 404 / Unbekannte Route: SmartNotFound wartet auf Auth */}
+        <Route path="*" element={<SmartNotFound />} />
       </Routes>
     </HuiSuspense>
   );
