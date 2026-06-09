@@ -1433,9 +1433,10 @@ export default function TalentProfilePage({ profileId, onClose }) {
 
           // Werke (veröffentlicht)
           supabase.from("works")
-            .select("id,user_id,title,description,cover_url,status,price,for_sale,created_at")
+            .select("id,user_id,title,description,cover_url,status,approval_status,price,for_sale,created_at")
             .eq("user_id", profileId)
             .eq("status", "published")
+            .eq("approval_status", "approved")
             .order("created_at", { ascending: false })
             .limit(20),
 
