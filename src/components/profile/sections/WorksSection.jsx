@@ -58,25 +58,10 @@ export function WorksSection({
   onShowAll  = null,   // () => void
 }) {
   const [confirmWork, setConfirmWork] = useState(null);
-  // ── SPRINT E.3 TRACE ──────────────────────────────────────────
-  console.log('[E3] BEFORE FILTER — works eingehend:', works?.length, '| isOwner:', isOwner);
-  if (works?.length > 0) {
-    console.log('[E3] BEFORE FILTER — alle status+approval_status:', works.map(w => ({ id: w.id, status: w.status, approval_status: w.approval_status })));
-  }
-  // ── END E.3 TRACE ─────────────────────────────────────────────
-
   // Visitor: nur freigegebene Werke
   const visible = isOwner
     ? works
     : works.filter(w => w.approval_status === "approved" || w.status === "published" || w.status === "approved");
-
-  // ── SPRINT E.3 TRACE ──────────────────────────────────────────
-  console.log('[E3] AFTER FILTER — visible:', visible?.length);
-  if (visible?.length === 0 && works?.length > 0) {
-    console.warn('[E3] ⚠ VERLUST-PUNKT WorksSection Filter — alle', works.length, 'Werke eliminiert!');
-    console.log('[E3] VERLUST-DETAIL:', works.map(w => ({ id: w.id, status: w.status, approval_status: w.approval_status })));
-  }
-  // ── END E.3 TRACE ─────────────────────────────────────────────
 
   const handleConfirmDelete = async () => {
     const w = confirmWork;

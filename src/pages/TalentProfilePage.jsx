@@ -1893,14 +1893,10 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const handleAvatarChange = useCallback(() => reload(), [reload]);
   const handleCoverChange  = useCallback(() => reload(), [reload]);
 
-  // ── SPRINT E.3 TRACE ──────────────────────────────────────────
-  console.log('[E3] PAGE WORKS — nach Hook, vor Render:', works?.length, '| loading:', loading, '| profileId:', profileId);
-  if (works?.length > 0) {
-    console.log('[E3] PAGE WORKS — sample[0]:', JSON.stringify(works[0]));
-  } else if (!loading) {
-    console.warn('[E3] PAGE WORKS — 0 Werke im State, loading=false');
-  }
-  // ── END E.3 TRACE ──────────────────────────────────────────────
+  // ── SPRINT E.5 TRACE ──────────────────────────────────────────
+  console.log('[E5] PAGE PROFILE', profile?.id);
+  console.log('[E5] PAGE WORKS', works?.length ?? 0);
+  // ── END E.5 TRACE ──────────────────────────────────────────────
   return (
     <div className="tpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -1977,7 +1973,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <Gap h={28}/>
 
         {/* ── 8. Werke → WorksSection ──────────────────────── */}
-        {/* [E3] WORKS TO SECTION */ console.log('[E3] WORKS TO SECTION — works:', works?.length, '| isOwner:', isOwner) || null}
         <WorksSection
           works={works}
           profile={profile}

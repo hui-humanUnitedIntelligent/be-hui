@@ -233,32 +233,27 @@ export function useProfileData(profileId) {
 
       setProfile(normalizedProfile);
       setWirkerProfile(wp);
-      // ── SPRINT E.3 TRACE ───────────────────────────────
-      console.log('[E3] RAW WORKS — DB rows:', worksRes.data?.length ?? 0, '| error:', worksRes.error ?? null);
+
+      // ── SPRINT E.5 TRACE ──────────────────────────────────────────
+      console.log('[E5] PROFILE RAW', profileRes.data);
+      console.log('[E5] PROFILE RAW ID', profileRes.data?.id);
+      console.log('[E5] PROFILE ID (profileId param)', profileId);
+      console.log('[E5] WORKS QUERY eq(user_id,', profileId, ')');
+      console.log('[E5] WORKS RAW RESULT', worksRes.data);
+      console.log('[E5] WORKS COUNT', worksRes.data?.length ?? 0);
+      console.log('[E5] WORKS ERROR', worksRes.error ?? null);
       if (worksRes.data?.length > 0) {
-        console.log('[E3] RAW WORKS — alle status/approval_status:', worksRes.data.map(w => ({ id: w.id, status: w.status, approval_status: w.approval_status })));
-      } else {
-        console.warn('[E3] RAW WORKS — 0 Rows von DB! user_id geprüft:', profileId);
+        console.log('[E5] WORKS USER IDS', worksRes.data.map(w => ({
+          id: w.id,
+          user_id: w.user_id,
+          creator_id: w.creator_id,
+          status: w.status,
+          visibility: w.visibility,
+        })));
       }
-      // NORMALIZED: worksRes.data direkt (keine Transformation im Hook)
-      console.log('[E3] NORMALIZED WORKS — identisch mit RAW (kein Transform im Hook):', worksRes.data?.length ?? 0);
-      // ── END E.3 TRACE ─────────────────────────────────
-      // ── SPRINT E.4 DEBUG INJECTION ─────────────────────────────
-      setWorks([
-        {
-          id: "debug",
-          title: "DEBUG WORK",
-          status: "published",
-          visibility: "public",
-          approval_status: "approved",
-          cover_url: null,
-          category: "Test",
-          user_id: profileId,
-          created_at: new Date().toISOString(),
-        }
-      ]);
-      // ── END E.4 DEBUG INJECTION ──────────────────────────────────
-      // setWorks(worksRes.data || []);  // SUSPENDED FOR E.4
+      // ── END E.5 TRACE ─────────────────────────────────────────────
+
+      setWorks(worksRes.data || []);
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);
       setMoments(momentsRes.data    || []);
