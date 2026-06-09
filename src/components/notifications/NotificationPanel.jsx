@@ -240,6 +240,18 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange }) {
                       {n.body}
                     </div>
                   )}
+                  {/* Ablehnungsgrund bei content_rejected */}
+                  {n.type === "content_rejected" && n.metadata?.rejection_reason && (
+                    <div style={{
+                      marginTop:5, padding:"6px 10px", borderRadius:"8px",
+                      background:"rgba(239,68,68,0.07)",
+                      border:"1px solid rgba(239,68,68,0.18)",
+                      fontSize:11.5, color:"#DC2626", lineHeight:1.5,
+                    }}>
+                      <span style={{fontWeight:700}}>Grund: </span>
+                      {n.metadata.rejection_reason}
+                    </div>
+                  )}
                   <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
                     {fmtTime(n.created_at)}
                   </div>
