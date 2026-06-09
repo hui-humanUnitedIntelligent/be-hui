@@ -1158,6 +1158,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               userId={profile?.id}
               works={works}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
+              onDeleteWerk={(id) => setWorks(prev => prev.filter(w => w.id !== id))}
             />
             <Gap h={24}/>
 
@@ -1726,8 +1727,72 @@ function MeineTalenteSection({ skills, onChange }) {
   );
 }
 
-function MeineWerkeSection({ works, onWerkWizard }) {
+function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
   return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:9999,
+      background:"rgba(0,0,0,0.55)", display:"flex",
+      alignItems:"center", justifyContent:"center", padding:"24px",
+    }} onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"#fff", borderRadius:16, padding:"24px 20px 20px",
+        maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+      }}>
+        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🗑️</div>
+        <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+          Werk unwiderruflich löschen?
+        </div>
+        <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
+          <strong>„{werk.title || 'Dieses Werk'}"</strong> wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.
+        </div>
+        <button onClick={onConfirm} style={{
+          width:"100%", padding:"12px", borderRadius:99,
+          background:"#ff3b3b", border:"none", color:"#fff",
+          fontSize:14, fontWeight:700, cursor:"pointer",
+          fontFamily:"inherit", marginBottom:8,
+        }}>
+          Ja, endgültig löschen
+        </button>
+        <button onClick={onCancel} style={{
+          width:"100%", padding:"12px", borderRadius:99,
+          background:"#f0f0ee", border:"none", color:"#444",
+          fontSize:14, fontWeight:600, cursor:"pointer",
+          fontFamily:"inherit",
+        }}>
+          Abbrechen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
+  const [confirmWork, setConfirmWork] = React.useState(null);
+
+  const handleDeleteClick = (e, w) => {
+    e.stopPropagation();
+    setConfirmWork(w);
+  };
+
+  const handleConfirmDelete = async () => {
+    const w = confirmWork;
+    setConfirmWork(null);
+    if (!w?.id) return;
+    try {
+      await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
+      onDeleteWerk(w.id);
+    } catch(e) { console.error("Werk löschen:", e); }
+  };
+
+  return (
+    <>
+    {confirmWork && (
+      <DeleteWerkConfirm
+        werk={confirmWork}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmWork(null)}
+      />
+    )}
     <div style={{ padding:`0 ${T.px}px` }}>
       <SectionRow title="Meine Werke" onEdit={() => onWerkWizard?.()}/>
       {works.length > 0 && (
@@ -1735,10 +1800,8 @@ function MeineWerkeSection({ works, onWerkWizard }) {
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
           paddingBottom:4, marginBottom:10 }}>
           {works.map((w, i) => {
-            // Status-Badge Logik
             const isApproved = w.approval_status === "approved";
             const isPending  = w.approval_status === "pending" || w.status === "pending_review";
-            const isRejected = w.approval_status === "rejected" && w.status !== "deleted";
             const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
             const badgeText  = isApproved ? "✅ Live" : isPending ? "⏳ Prüfung" : "❌ Abgelehnt";
             return (
@@ -1756,23 +1819,35 @@ function MeineWerkeSection({ works, onWerkWizard }) {
                   : <div style={{ width:"100%", height:"100%", display:"flex",
                       alignItems:"center", justifyContent:"center", fontSize:24 }}>🎨</div>
                 }
+                {/* X-Löschen-Button oben rechts */}
+                <button
+                  onClick={(e) => handleDeleteClick(e, w)}
+                  style={{
+                    position:"absolute", top:4, right:4,
+                    width:20, height:20, borderRadius:"50%",
+                    background:"rgba(0,0,0,0.65)", border:"none",
+                    color:"#fff", fontSize:11, fontWeight:700,
+                    cursor:"pointer", display:"flex",
+                    alignItems:"center", justifyContent:"center",
+                    lineHeight:1, padding:0, zIndex:2,
+                  }}
+                >✕</button>
                 {/* Status-Badge */}
                 <div style={{
                   position:"absolute", bottom:0, left:0, right:0,
                   background: badgeBg, backdropFilter:"blur(4px)",
                   fontSize:9, fontWeight:700, color:"#fff",
-                  padding:"3px 5px", textAlign:"center",
-                  letterSpacing:"0.3px",
+                  padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
                 }}>
                   {badgeText}
                 </div>
-                {/* Titel Tooltip */}
+                {/* Titel */}
                 {w.title && (
                   <div style={{
                     position:"absolute", top:0, left:0, right:0,
                     background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
-                    padding:"3px 5px", whiteSpace:"nowrap", overflow:"hidden",
-                    textOverflow:"ellipsis",
+                    padding:"3px 22px 3px 5px", whiteSpace:"nowrap",
+                    overflow:"hidden", textOverflow:"ellipsis",
                   }}>
                     {w.title}
                   </div>
