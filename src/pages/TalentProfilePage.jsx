@@ -1893,6 +1893,17 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const handleAvatarChange = useCallback(() => reload(), [reload]);
   const handleCoverChange  = useCallback(() => reload(), [reload]);
 
+  // ── SPRINT D.2 TRACE ──────────────────────────────────────────
+  console.group("TALENT PROFILE PAGE");
+  console.log("profileId", profileId);
+  console.log("isOwner", isOwner);
+  console.log("profile", profile);
+  console.log("skills_final", profile?.skills_final);
+  console.log("location_final", profile?.location_final);
+  console.log("works", works?.length);
+  console.log("experiences", experiences?.length);
+  console.groupEnd();
+  // ── END TRACE ──────────────────────────────────────────────────
   return (
     <div className="tpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
