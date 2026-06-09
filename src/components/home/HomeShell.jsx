@@ -145,9 +145,11 @@ export default function HomeShell({ children }) {
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   // ── Creator / Profile State ────────────────────────────────────
-  // showCreatorDashboard startet IMMER mit false beim Refresh.
-  // Creator-Dashboard ist ein Overlay — kein persistierter State.
-  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
+  // showCreatorDashboard: beim Refresh wiederherstellen wenn es offen war.
+  // sessionStorage-Key "hui_mein_hui_open" wird beim Öffnen/Schließen sync gehalten.
+  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(() => {
+    try { return sessionStorage.getItem("hui_mein_hui_open") === "1"; } catch(_) { return false; }
+  });
   // ── Chat State ─────────────────────────────────────────────────
   const [showChat, _setShowChatRaw] = useState(false);
   const _showChatRef = React.useRef(false);
@@ -232,6 +234,7 @@ export default function HomeShell({ children }) {
     setShowPlusSheet(false);
     setCreateType(null);
     setShowCreatorDashboard(false);
+    try { sessionStorage.removeItem("hui_mein_hui_open"); } catch(_) {}
     // showChat bleibt offen bei Tab-Wechsel (Chat ist Tab-unabhängiges Overlay)
     setShowConnect(false);
     setShowTalentFlow(false);
@@ -240,16 +243,16 @@ export default function HomeShell({ children }) {
 
   /* openOwnProfile → öffnet MyCreatorDashboard + markiert "creator"-Tab aktiv */
   const openOwnProfile = useCallback(() => {
-    _setTab("creator");          // ← Tab-Indikator auf "Mein HUI" setzen
+    _setTab("creator");
     setShowCreatorDashboard(true);
-    // sessionStorage-Write entfernt — Tab-State ist flüchtig
+    try { sessionStorage.setItem("hui_mein_hui_open", "1"); } catch(_) {}
   }, [_setTab, setShowCreatorDashboard]);
 
   /* openCreatorDashboard — direkter Alias */
   const openCreatorDashboard = useCallback(() => {
-    _setTab("creator");          // ← Tab-Indikator auf "Mein HUI" setzen
+    _setTab("creator");
     setShowCreatorDashboard(true);
-    // sessionStorage-Write entfernt — Tab-State ist flüchtig
+    try { sessionStorage.setItem("hui_mein_hui_open", "1"); } catch(_) {}
   }, [_setTab, setShowCreatorDashboard]);
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
