@@ -1893,19 +1893,14 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const handleAvatarChange = useCallback(() => reload(), [reload]);
   const handleCoverChange  = useCallback(() => reload(), [reload]);
 
-  // ── SPRINT E.2 TRACE ──────────────────────────────────────────
-  console.group('[E2] TalentProfilePage render');
-  console.log('[E2] profileId:', profileId);
-  console.log('[E2] isOwner:', isOwner);
-  console.log('[E2] loading:', loading);
-  console.log('[E2] profile?.id:', profile?.id);
-  console.log('[E2] WORKS STATE works.length:', works?.length);
+  // ── SPRINT E.3 TRACE ──────────────────────────────────────────
+  console.log('[E3] PAGE WORKS — nach Hook, vor Render:', works?.length, '| loading:', loading, '| profileId:', profileId);
   if (works?.length > 0) {
-    console.log('[E2] WORKS STATE sample[0]:', JSON.stringify(works[0]));
+    console.log('[E3] PAGE WORKS — sample[0]:', JSON.stringify(works[0]));
+  } else if (!loading) {
+    console.warn('[E3] PAGE WORKS — 0 Werke im State, loading=false');
   }
-  console.log('[E2] isOwner for WorksSection:', isOwner);
-  console.groupEnd();
-  // ── END TRACE ──────────────────────────────────────────────────
+  // ── END E.3 TRACE ──────────────────────────────────────────────
   return (
     <div className="tpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -1982,7 +1977,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
         <Gap h={28}/>
 
         {/* ── 8. Werke → WorksSection ──────────────────────── */}
-        {/* [E2] WORKS RENDER */ console.log('[E2] WORKS RENDER — vor WorksSection:', works?.length, 'isOwner:', isOwner) || null}
+        {/* [E3] WORKS TO SECTION */ console.log('[E3] WORKS TO SECTION — works:', works?.length, '| isOwner:', isOwner) || null}
         <WorksSection
           works={works}
           profile={profile}

@@ -233,10 +233,16 @@ export function useProfileData(profileId) {
 
       setProfile(normalizedProfile);
       setWirkerProfile(wp);
-      // ── SPRINT E.2 TRACE ───────────────────────────────
-      console.log('[E2] WORKS RAW from DB:', worksRes.data?.length ?? 0, worksRes.error ?? null);
-      if (worksRes.data?.length > 0) console.log('[E2] WORKS RAW sample:', JSON.stringify(worksRes.data[0]));
-      // ── END TRACE ─────────────────────────────────────
+      // ── SPRINT E.3 TRACE ───────────────────────────────
+      console.log('[E3] RAW WORKS — DB rows:', worksRes.data?.length ?? 0, '| error:', worksRes.error ?? null);
+      if (worksRes.data?.length > 0) {
+        console.log('[E3] RAW WORKS — alle status/approval_status:', worksRes.data.map(w => ({ id: w.id, status: w.status, approval_status: w.approval_status })));
+      } else {
+        console.warn('[E3] RAW WORKS — 0 Rows von DB! user_id geprüft:', profileId);
+      }
+      // NORMALIZED: worksRes.data direkt (keine Transformation im Hook)
+      console.log('[E3] NORMALIZED WORKS — identisch mit RAW (kein Transform im Hook):', worksRes.data?.length ?? 0);
+      // ── END E.3 TRACE ─────────────────────────────────
       setWorks(worksRes.data        || []);
       setExperiences(expsRes.data   || []);
       setRecommendations(recsRes.data || []);
