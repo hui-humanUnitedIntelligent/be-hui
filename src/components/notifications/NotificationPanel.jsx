@@ -54,23 +54,28 @@ function fmtTime(iso) {
 function NotifCard({ n, meta, hasDetail, onRead }) {
   const [expanded, setExpanded] = React.useState(false);
 
-  const handleClick = () => {
-    if (!n.is_read) onRead(n.id);
-    if (hasDetail) setExpanded(prev => !prev);
-  };
+  const werkTitle = n.metadata?.werk_title || null;
+  const reason    = n.metadata?.rejection_reason || null;
 
-  const isRejection = n.type === "work_rejected" || n.type === "content_rejected";
-  const werkTitle   = n.metadata?.werk_title || n.metadata?.werk_id || null;
-  const reason      = n.metadata?.rejection_reason || null;
+  const handleCardClick = () => {
+    // Details auf-/zuklappen — OHNE sofortiges als-gelesen markieren
+    if (hasDetail) {
+      setExpanded(prev => !prev);
+      // Als gelesen markieren erst beim Aufklappen
+      if (!n.is_read && !expanded) onRead?.(n.id);
+    } else {
+      if (!n.is_read) onRead?.(n.id);
+    }
+  };
 
   return (
     <div
-      onClick={handleClick}
+      onClick={handleCardClick}
       style={{
         borderRadius:T.r12, marginBottom:8, overflow:"hidden",
         background: n.is_read ? T.bgCard : T.tealSoft,
         border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
-        cursor: hasDetail ? "pointer" : n.is_read ? "default" : "pointer",
+        cursor:"pointer",
         transition:"background .15s",
       }}
     >
@@ -102,12 +107,19 @@ function NotifCard({ n, meta, hasDetail, onRead }) {
               {n.body}
             </div>
           )}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:4 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:6 }}>
             <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(n.created_at)}</span>
             {hasDetail && (
-              <span style={{ fontSize:11, color:T.teal, fontWeight:600 }}>
-                {expanded ? "▲ Weniger" : "▼ Details"}
-              </span>
+              <div style={{
+                display:"flex", alignItems:"center", gap:4,
+                background: expanded ? "rgba(14,196,184,0.12)" : "rgba(239,68,68,0.10)",
+                border: `1px solid ${expanded ? "rgba(14,196,184,0.3)" : "rgba(239,68,68,0.25)"}`,
+                borderRadius:99, padding:"3px 10px",
+              }}>
+                <span style={{ fontSize:11, fontWeight:700, color: expanded ? T.teal : "#DC2626" }}>
+                  {expanded ? "▲ Schließen" : "▼ Grund anzeigen"}
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -168,7 +180,7 @@ function NotifCard({ n, meta, hasDetail, onRead }) {
 export default function NotificationPanel({ userId, onClose, onUnreadChange }) {
   const [notifs,  setNotifs]  = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab,     setTab]     = useState("unread"); // unread | all
+  const [tab,     setTab]     = useState("all"); // all | unread
 
   const load = useCallback(async () => {
     if (!userId) return;
