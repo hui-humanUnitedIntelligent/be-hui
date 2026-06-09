@@ -87,7 +87,7 @@ export function useNotifications() {
     try {
       const { data, error } = await supabase
         .from("notifications")
-        .select("id,type,title,body,read,created_at,data")
+        .select("id,type,title,body,read,created_at,data,metadata,action_url,actor_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(80);
@@ -224,7 +224,7 @@ function useWeekStats(userId) {
 
 // ── Rejection Modal ───────────────────────────────────────────
 function RejectionDetailModal({ n, onClose }) {
-  const meta     = n.metadata || {};
+  const meta     = n.metadata || n.data || {};
   // Admin sendet: content_title, rejection_reason (Admin.jsx rejectConfirm)
   // Fallbacks für ältere / andere Felder
   const werkTitle = meta.content_title || meta.werk_title || meta.title || n.title || "Dein Werk";
