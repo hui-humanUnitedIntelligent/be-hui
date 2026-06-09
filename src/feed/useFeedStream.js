@@ -75,8 +75,9 @@ async function fetchFeedPage(userId = null, cursor = null) {
   const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
     rangeFilter(
       supabase.from("works")
-        .select("id,title,cover_url,media_url,category,description,caption,tags,price,status,user_id,creator_id,created_at")
+        .select("id,title,cover_url,media_url,category,description,caption,tags,price,status,approval_status,user_id,creator_id,created_at")
         .eq("status", "published")
+        .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
