@@ -125,7 +125,7 @@ export default function CreatorStudio() {
     const subPageMap = {
       analytics:    () => <AnalyticsPage          onBack={handleBack} />,
       earnings:     () => <EinnahmenPage          onBack={handleBack} />,
-      content:      () => <MeineInhaltePage       onBack={handleBack} />,
+      content:      () => <MeineInhaltePage       onBack={handleBack} userId={user?.id} />,
       availability: () => <VerfuegbarkeitPage     onBack={handleBack} />,
       orders:       () => <BestellungenPage       onBack={handleBack} />,
       impact:       () => <ImpactSubPage          onBack={handleBack} />,
