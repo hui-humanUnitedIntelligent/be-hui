@@ -222,74 +222,170 @@ function useWeekStats(userId) {
 // SUBKOMPONENTEN
 // ══════════════════════════════════════════════════════════════
 
+// ── Rejection Modal ───────────────────────────────────────────
+function RejectionDetailModal({ n, onClose }) {
+  const meta     = n.metadata || {};
+  const werkTitle = meta.werk_title || meta.werk_id || "Dein Werk";
+  const reason    = meta.rejection_reason || meta.admin_comment || "(Kein Grund angegeben)";
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position:"fixed", inset:0, zIndex:99999,
+        background:"rgba(10,26,26,0.72)", backdropFilter:"blur(4px)",
+        display:"flex", alignItems:"center", justifyContent:"center", padding:24,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background:"#fff", borderRadius:20, padding:28,
+          maxWidth:360, width:"100%",
+          boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+        }}
+      >
+        <div style={{fontSize:28, textAlign:"center", marginBottom:8}}>🎨</div>
+        <div style={{
+          fontSize:16, fontWeight:700, color:"#1a1a18",
+          textAlign:"center", marginBottom:4,
+        }}>{werkTitle}</div>
+        <div style={{
+          fontSize:11, fontWeight:700, letterSpacing:1,
+          color:"rgba(26,26,24,0.35)", textAlign:"center",
+          marginBottom:16, textTransform:"uppercase",
+        }}>NACHRICHT VOM ADMIN</div>
+        <div style={{
+          background:"rgba(239,68,68,0.06)",
+          border:"1.5px solid rgba(239,68,68,0.18)",
+          borderRadius:12, padding:"14px 16px",
+          fontSize:13.5, color:"#1a1a18", lineHeight:1.6,
+          marginBottom:16,
+        }}>{reason}</div>
+        <div style={{
+          fontSize:12, color:"rgba(26,26,24,0.45)",
+          textAlign:"center", marginBottom:20, lineHeight:1.5,
+        }}>
+          Du kannst dein Werk überarbeiten und erneut einreichen.
+        </div>
+        <button
+          onClick={onClose}
+          style={{
+            width:"100%", padding:"12px 0", borderRadius:99,
+            background:"#0DC4B5", border:"none", color:"#fff",
+            fontWeight:700, fontSize:14, cursor:"pointer",
+            fontFamily:"inherit",
+          }}
+        >Verstanden</button>
+      </div>
+    </div>
+  );
+}
+
 // ── Notification Item ─────────────────────────────────────────
 function NotifItem({ n, onRead }) {
   const meta = getMeta(n.type);
   const [hov, setHov] = useState(false);
+  const [showRejection, setShowRejection] = useState(false);
+
+  const isRejection = n.type === "work_rejected" || n.type === "content_rejected";
+
+  const handleClick = () => {
+    if (!n.read) onRead(n.id);
+    if (isRejection) setShowRejection(true);
+  };
+
+  const handleGrundBtn = (e) => {
+    e.stopPropagation();
+    if (!n.read) onRead(n.id);
+    setShowRejection(true);
+  };
 
   return (
-    <button
-      onClick={() => onRead(n.id)}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display:"flex", alignItems:"flex-start", gap:12,
-        padding:"13px 16px",
-        background: hov
-          ? "rgba(26,26,24,0.025)"
-          : n.read ? "transparent" : "rgba(22,215,197,0.05)",
-        border:"none",
-        borderBottom:`1px solid ${T.border}`,
-        cursor:"pointer", width:"100%", textAlign:"left",
-        transition:"background 0.15s",
-        touchAction:"manipulation",
-      }}
-    >
-      {/* Icon */}
-      <div style={{
-        width:42, height:42, borderRadius:14, flexShrink:0,
-        background:`linear-gradient(135deg,${meta.color}22,${meta.color}11)`,
-        border:`1.5px solid ${meta.color}30`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:19,
-      }}>
-        {n.icon || meta.icon}
-      </div>
-
-      {/* Text */}
-      <div style={{flex:1, minWidth:0}}>
+    <>
+      {showRejection && <RejectionDetailModal n={n} onClose={() => setShowRejection(false)} />}
+      <button
+        onClick={handleClick}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{
+          display:"flex", alignItems:"flex-start", gap:12,
+          padding:"13px 16px",
+          background: hov
+            ? "rgba(26,26,24,0.025)"
+            : n.read ? "transparent" : "rgba(22,215,197,0.05)",
+          border:"none",
+          borderBottom:`1px solid ${T.border}`,
+          cursor:"pointer", width:"100%", textAlign:"left",
+          transition:"background 0.15s",
+          touchAction:"manipulation",
+        }}
+      >
+        {/* Icon */}
         <div style={{
-          fontSize:13.5, fontWeight: n.read ? 500 : 700,
-          color: n.read ? T.inkSoft : T.ink,
-          lineHeight:1.4, marginBottom:2,
+          width:42, height:42, borderRadius:14, flexShrink:0,
+          background:`linear-gradient(135deg,${meta.color}22,${meta.color}11)`,
+          border:`1.5px solid ${meta.color}30`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:19,
         }}>
-          {n.title || meta.label}
+          {n.icon || meta.icon}
         </div>
-        {n.body && (
-          <div style={{
-            fontSize:12.5, color:T.inkFaint, lineHeight:1.5,
-            overflow:"hidden", display:"-webkit-box",
-            WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-          }}>
-            {n.body}
-          </div>
-        )}
-        <div style={{ fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:4 }}>
-          {fmtTime(n.created_at)}
-        </div>
-      </div>
 
-      {/* Chevron + Unread dot */}
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flexShrink:0}}>
-        {!n.read && (
+        {/* Text */}
+        <div style={{flex:1, minWidth:0}}>
           <div style={{
-            width:7, height:7, borderRadius:"50%",
-            background:T.teal, marginTop:4,
-          }}/>
-        )}
-        <span style={{fontSize:14, color:"rgba(26,26,24,0.20)", marginTop: n.read ? 8 : 0}}>›</span>
-      </div>
-    </button>
+            fontSize:13.5, fontWeight: n.read ? 500 : 700,
+            color: n.read ? T.inkSoft : T.ink,
+            lineHeight:1.4, marginBottom:2,
+          }}>
+            {n.title || meta.label}
+          </div>
+          {n.body && (
+            <div style={{
+              fontSize:12.5, color:T.inkFaint, lineHeight:1.5,
+              overflow:"hidden", display:"-webkit-box",
+              WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+            }}>
+              {n.body}
+            </div>
+          )}
+
+          {/* "Grund lesen" Button für Ablehnungen */}
+          {isRejection && (
+            <button
+              onClick={handleGrundBtn}
+              style={{
+                marginTop:7, padding:"4px 11px",
+                borderRadius:99,
+                border:"1.5px solid rgba(239,68,68,0.35)",
+                background:"rgba(239,68,68,0.07)",
+                color:"#DC2626",
+                fontSize:11, fontWeight:700,
+                cursor:"pointer", fontFamily:"inherit",
+                display:"inline-flex", alignItems:"center", gap:4,
+              }}
+            >
+              📋 Grund lesen
+            </button>
+          )}
+
+          <div style={{ fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:4 }}>
+            {fmtTime(n.created_at)}
+          </div>
+        </div>
+
+        {/* Chevron + Unread dot */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flexShrink:0}}>
+          {!n.read && (
+            <div style={{
+              width:7, height:7, borderRadius:"50%",
+              background:T.teal, marginTop:4,
+            }}/>
+          )}
+          <span style={{fontSize:14, color:"rgba(26,26,24,0.20)", marginTop: n.read ? 8 : 0}}>›</span>
+        </div>
+      </button>
+    </>
   );
 }
 
