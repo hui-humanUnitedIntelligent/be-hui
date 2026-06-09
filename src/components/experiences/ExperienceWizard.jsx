@@ -837,7 +837,13 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
     console.log("[EXPERIENCE INSERT DATA]", saved);
     onSaved?.(saved);
-    onClose?.();
+    // pending_review: kurze Bestätigung, dann schließen
+    if (saved?.status === "pending_review") {
+      setSaveError("✅ Eingereicht! Das Erlebnis wird geprüft und dann freigegeben.");
+      setTimeout(() => { setSaveError(null); onClose?.(); }, 2500);
+    } else {
+      onClose?.();
+    }
   }
 
   return (
@@ -936,7 +942,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
               {saving ? "…" : "Entwurf"}
             </button>
             <button
-              onClick={() => save("published")}
+              onClick={() => save("pending_review")}
               disabled={saving || !form.title?.trim() || !form.visibility}
               style={{
                 flex: 2, padding: "16px",
@@ -950,7 +956,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
                 letterSpacing: 0.2,
               }}
             >
-              {saving ? "Wird gespeichert…" : "Erlebnis veröffentlichen ✨"}
+              {saving ? "Wird eingereicht…" : "Zur Prüfung einreichen ✨"}
             </button>
           </>
         )}
