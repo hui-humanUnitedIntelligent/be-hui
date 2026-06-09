@@ -1061,225 +1061,198 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
         <Gap h={62}/>
 
-        {/* ── 1. ÜBER MICH ─────────────────────────────────── */}
-        <div style={{ padding:"0 20px" }}>
-          <SectionRow title="Über mich" onEdit={() => setShowBioEdit(true)} />
-          {bio ? (
-            <p style={{ margin:"0 0 12px", fontSize:14, lineHeight:1.75, color:T.ink }}>
-              {bio}
-            </p>
-          ) : (
-            <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:12 }}>
-              Erzähl etwas über dich…
-            </div>
-          )}
-          {profile?.profile_modules?.warum_hui && (
-            <div style={{
-              background:T.tealSoft, borderRadius:T.r12,
-              border:`1px solid ${T.tealMid}`, padding:"12px 14px", marginTop:4,
-            }}>
-              <div style={{ fontSize:11, fontWeight:700, color:T.teal, marginBottom:4 }}>
-                🌱 Warum ich auf HUI bin
-              </div>
-              <p style={{ margin:0, fontSize:13, color:T.ink, lineHeight:1.65 }}>
-                {profile.profile_modules.warum_hui}
-              </p>
-            </div>
-          )}
-        </div>
-        <Gap h={20}/>
-        <Divider/>
-        <Gap h={20}/>
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/*  N E U E S   D A S H B O A R D   L A Y O U T            */}
+        {/* ═══════════════════════════════════════════════════════ */}
 
-        {/* ── A3: TALENT-INFO-KARTE: nur für Basis-User ── */}
-        {!profile?.is_talent && (
-          <>
-            <div style={{ padding:"0 20px" }}>
-              <div style={{
-                background:T.bgCard,
-                borderRadius:T.r16,
-                border:`1px solid ${T.border}`,
-                padding:"16px 18px",
-                boxShadow:T.card,
-              }}>
-                <div style={{
-                  display:"flex", alignItems:"center", gap:8, marginBottom:10,
-                }}>
-                  <span style={{fontSize:16}}>✨</span>
-                  <span style={{fontSize:14, fontWeight:800, color:T.ink, letterSpacing:"-0.02em"}}>
-                    Talent werden
-                  </span>
-                </div>
-                <div style={{fontSize:13, color:T.inkSoft, lineHeight:1.65, marginBottom:12}}>
-                  Mit einem Talentprofil kannst du:
-                </div>
-                {[
-                  "Werke veröffentlichen",
-                  "Erlebnisse anbieten",
-                  "Projekte gestalten",
-                  "Empfehlungen erhalten",
-                  "Zwei Impact-Stimmen pro Monat nutzen",
-                ].map((item, i) => (
-                  <div key={i} style={{
-                    display:"flex", alignItems:"center", gap:8,
-                    fontSize:13, color:T.inkSoft,
-                    marginBottom:6,
-                  }}>
-                    <span style={{
-                      width:6, height:6, borderRadius:"50%",
-                      background:T.teal, flexShrink:0,
-                    }}/>
-                    {item}
-                  </div>
-                ))}
-                <button
-                  onClick={() => setShowGemeinschaft(true)}
-                  style={{
-                    marginTop:14, padding:"9px 18px",
-                    borderRadius:99,
-                    background:"transparent",
-                    border:`1.5px solid ${T.teal}`,
-                    color:T.teal, fontSize:13, fontWeight:700,
-                    cursor:"pointer", fontFamily:"inherit",
-                    touchAction:"manipulation",
-                  }}
-                >
-                  Mehr erfahren
-                </button>
-              </div>
-            </div>
-            <Gap h={20}/>
-            <Divider/>
-            <Gap h={20}/>
-          </>
-        )}
-
-        {/* ── GEMEINSCHAFTSKARTE: nur für Basis-User (kein Talent) ── */}
-        {!profile?.is_talent && (
-          <>
-            <GemeinschaftsKarte onJoin={() => setShowGemeinschaft(true)} />
-            <Gap h={20}/>
-            <Divider/>
-            <Gap h={20}/>
-          </>
-        )}
-
-        {/* ── 2. MEINE TALENTE & ANGEBOTE ──────────────────── */}
-        {profile && (() => {
-          const chips = Array.isArray(profile?.skills) ? profile.skills : [];
-          if (!chips.length) return null;
-          return (
-            <div style={{ padding:"0 20px" }}>
-              <SectionRow title="Meine Talente & Angebote" onEdit={() => {}} />
-              <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-                {chips.map((t, i) => (
-                  <span key={i} style={{
-                    display:"inline-flex", alignItems:"center",
-                    padding:"6px 13px", borderRadius:99,
-                    background:T.bgCard, border:`1.5px solid ${T.border}`,
-                    fontSize:13, fontWeight:600, color:T.ink, boxShadow:T.card,
-                  }}>{t}</span>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-        {profile?.skills?.length > 0 && <Gap h={20}/>}
-        {profile?.skills?.length > 0 && <Divider/>}
-        {profile?.skills?.length > 0 && <Gap h={20}/>}
-
-
-
-        {/* ── 4. VERFÜGBARKEIT ─────────────────────────────── */}
-        <div style={{ padding:"0 20px" }}>
-          <SectionRow title="Verfügbarkeit" />
+        {/* ── ÜBER MICH CARD ──────────────────────────────────── */}
+        <div style={{ padding:"0 16px", marginTop:16 }}>
           <div style={{
-            background:T.bgCard, borderRadius:T.r16,
-            border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card,
+            background:"#FFFFFF",
+            borderRadius:20,
+            border:"1px solid rgba(26,26,24,0.07)",
+            padding:"16px 18px",
+            boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
           }}>
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ width:7, height:7, borderRadius:"50%",
-                  background:"#16A34A", display:"inline-block", flexShrink:0 }}/>
-                <span style={{ fontSize:13, color:T.ink, fontWeight:600 }}>
-                  Online & Vor Ort
-                </span>
-              </div>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ fontSize:13 }}>💬</span>
-                <span style={{ fontSize:13, color:T.inkSoft }}>Offen für neue Anfragen</span>
-              </div>
-              <div style={{ fontSize:11, color:T.inkFaint }}>
-                Antwortzeit: innerhalb von 24h
-              </div>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+              <span style={{ fontSize:15, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>Über mich</span>
+              <button
+                onClick={() => setShowBioEdit(true)}
+                style={{
+                  background:"none", border:"none", cursor:"pointer",
+                  fontSize:13, fontWeight:700, color:"#0EC4B8",
+                  fontFamily:"inherit", padding:0, touchAction:"manipulation",
+                }}
+              >
+                Bearbeiten ›
+              </button>
             </div>
+            {bio ? (
+              <p style={{ margin:0, fontSize:13.5, lineHeight:1.75, color:"#444441" }}>
+                {bio}
+              </p>
+            ) : (
+              <p style={{ margin:0, fontSize:13, color:"#AAAAAA", fontStyle:"italic" }}>
+                Erzähl etwas über dich…
+              </p>
+            )}
+            {profile?.profile_modules?.warum_hui && (
+              <div style={{
+                background:"rgba(14,196,184,0.07)", borderRadius:12,
+                border:"1px solid rgba(14,196,184,0.2)", padding:"10px 14px", marginTop:12,
+              }}>
+                <div style={{ fontSize:11, fontWeight:700, color:"#0EC4B8", marginBottom:4 }}>🌱 Warum HUI?</div>
+                <p style={{ margin:0, fontSize:13, color:"#1A1A18", lineHeight:1.6 }}>
+                  {profile.profile_modules.warum_hui}
+                </p>
+              </div>
+            )}
           </div>
         </div>
-        <Gap h={20}/>
-        <Divider/>
-        <Gap h={20}/>
 
-        {/* ── 5. STANDORT ──────────────────────────────────── */}
-        {profile?.location && (
-          <>
-            <div style={{ padding:"0 20px" }}>
-              <SectionRow title="Standort" />
-              <div style={{
-                background:T.bgCard, borderRadius:T.r16,
-                border:`1px solid ${T.border}`, padding:"14px 16px",
-                boxShadow:T.card, display:"flex", alignItems:"center", gap:8,
-              }}>
-                <span style={{ fontSize:16 }}>📍</span>
-                <span style={{ fontSize:13, color:T.inkSoft, fontWeight:500 }}>
-                  {profile.location}
-                </span>
-              </div>
-            </div>
-            <Gap h={20}/>
-            <Divider/>
-            <Gap h={20}/>
-          </>
-        )}
-
-        {/* ── 6. SICHTBARKEIT ──────────────────────────────── */}
-        <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
-
-        {/* ── WERKE / STIMMEN / PROJEKTE (Mitte des Profils) ─── */}
-        <Gap h={20}/>
-        <Divider/>
-        <Gap h={20}/>
-        <div style={{ padding:"0 20px" }}>
-          <SectionRow title="Meine Welt" />
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+        {/* ── MEINE WELT — 3er Grid ───────────────────────────── */}
+        <div style={{ padding:"14px 16px 0" }}>
+          <div style={{ fontSize:12, fontWeight:800, color:"#AAAAAA", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
+            Meine Welt
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:9 }}>
             {[
-              { emoji:"🎨", label:"Werke",    count: profile?.werke_count    || 0 },
-              { emoji:"🗳️", label:"Stimmen",  count: profile?.stimmen_count  || 0 },
-              { emoji:"🚀", label:"Projekte", count: profile?.projekte_count || 0 },
+              { emoji:"🎨", label:"Werke",    count: profile?.werke_count    ?? 0 },
+              { emoji:"🗳️", label:"Stimmen",  count: profile?.stimmen_count  ?? 0 },
+              { emoji:"🚀", label:"Projekte", count: profile?.projekte_count ?? 0 },
             ].map(({ emoji, label, count }) => (
               <div key={label} style={{
-                background:T.bgCard, borderRadius:T.r16,
-                border:`1px solid ${T.border}`, padding:"14px 10px",
-                textAlign:"center", boxShadow:T.card,
+                background:"#FFFFFF",
+                borderRadius:18,
+                border:"1px solid rgba(26,26,24,0.07)",
+                padding:"14px 8px 12px",
+                textAlign:"center",
+                boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
               }}>
-                <div style={{ fontSize:22, marginBottom:4 }}>{emoji}</div>
-                <div style={{ fontSize:20, fontWeight:800, color:T.teal }}>{count}</div>
-                <div style={{ fontSize:11, color:T.inkFaint, marginTop:2 }}>{label}</div>
+                <div style={{ fontSize:22, marginBottom:5 }}>{emoji}</div>
+                <div style={{ fontSize:22, fontWeight:900, color:"#0EC4B8", lineHeight:1 }}>{count}</div>
+                <div style={{ fontSize:10.5, color:"#AAAAAA", marginTop:4, fontWeight:600 }}>{label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── AMBASSADOR-BEREICH (unten im Profil) ─────────────── */}
-        <Gap h={20}/>
-        <Divider/>
-        <Gap h={20}/>
-        <AmbassadorProfilSection
-          profile={profile}
-          ambState={ambState}
-          onApply={() => setShowAmbModal(true)}
-        />
+        {/* ── QUICK-ACCESS: Sichtbarkeit / Verbindungen / Privat ── */}
+        <div style={{ padding:"12px 16px 0" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:9 }}>
+            {[
+              { emoji:"👁️",  label: visibility === "public" ? "Öffentlich" : visibility === "connections" ? "Verbindungen" : "Privat" },
+              { emoji:"👥",  label:"Verbindungen" },
+              { emoji:"🔒",  label:"Privat" },
+            ].map(({ emoji, label }, i) => (
+              <div key={i} style={{
+                background:"#FFFFFF",
+                borderRadius:16,
+                border:"1px solid rgba(26,26,24,0.07)",
+                padding:"12px 8px",
+                textAlign:"center",
+                boxShadow:"0 1px 6px rgba(0,0,0,0.04)",
+                cursor: i === 0 ? "pointer" : "default",
+              }}
+              onClick={i === 0 ? () => {} : undefined}
+              >
+                <div style={{ fontSize:18, marginBottom:5 }}>{emoji}</div>
+                <div style={{ fontSize:10.5, fontWeight:700, color:"#555552" }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <Gap h={40}/>
+        {/* ── BEGEGNUNGEN: Standort + Interessen ──────────────── */}
+        <div style={{ padding:"14px 16px 0" }}>
+          <div style={{ fontSize:12, fontWeight:800, color:"#AAAAAA", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
+            Begegnungen
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:9 }}>
+            <div style={{
+              background:"#FFFFFF", borderRadius:18,
+              border:"1px solid rgba(26,26,24,0.07)",
+              padding:"14px 14px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
+            }}>
+              <div style={{ fontSize:18, marginBottom:6 }}>📍</div>
+              <div style={{ fontSize:12, fontWeight:800, color:"#1A1A18", marginBottom:3 }}>Orte</div>
+              <div style={{ fontSize:11.5, color:"#AAAAAA" }}>
+                {profile?.location || "In meiner Stadt"}
+              </div>
+            </div>
+            <div style={{
+              background:"#FFFFFF", borderRadius:18,
+              border:"1px solid rgba(26,26,24,0.07)",
+              padding:"14px 14px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
+            }}>
+              <div style={{ fontSize:18, marginBottom:6 }}>💬</div>
+              <div style={{ fontSize:12, fontWeight:800, color:"#1A1A18", marginBottom:3 }}>Themen</div>
+              <div style={{ fontSize:11.5, color:"#AAAAAA" }}>Gemeinsame Interessen</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TALENTE & SKILLS (falls vorhanden) ──────────────── */}
+        {Array.isArray(profile?.skills) && profile.skills.length > 0 && (
+          <div style={{ padding:"14px 16px 0" }}>
+            <div style={{ fontSize:12, fontWeight:800, color:"#AAAAAA", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
+              Talente & Angebote
+            </div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+              {profile.skills.map((t, i) => (
+                <span key={i} style={{
+                  display:"inline-flex", alignItems:"center",
+                  padding:"7px 14px", borderRadius:99,
+                  background:"#FFFFFF", border:"1.5px solid rgba(14,196,184,0.3)",
+                  fontSize:12.5, fontWeight:600, color:"#1A1A18",
+                  boxShadow:"0 1px 6px rgba(0,0,0,0.04)",
+                }}>{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── AMBASSADOR SECTION ──────────────────────────────── */}
+        <div style={{ padding:"14px 16px 0" }}>
+          <AmbassadorProfilSection
+            profile={profile}
+            ambState={ambState}
+            onApply={() => setShowAmbModal(true)}
+          />
+        </div>
+
+        {/* ── TALENT-CTA (nur für Basis-User) ─────────────────── */}
+        {!profile?.is_talent && (
+          <div style={{ padding:"14px 16px 0" }}>
+            <div style={{
+              background:"linear-gradient(135deg, rgba(14,196,184,0.08) 0%, rgba(14,196,184,0.04) 100%)",
+              borderRadius:20,
+              border:"1.5px solid rgba(14,196,184,0.25)",
+              padding:"18px",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                <span style={{fontSize:18}}>✨</span>
+                <span style={{fontSize:14, fontWeight:800, color:"#1A1A18"}}>Talent werden</span>
+              </div>
+              <div style={{fontSize:13, color:"#555552", lineHeight:1.65, marginBottom:14}}>
+                Veröffentliche Werke, biete Erlebnisse an und erhalte echte Empfehlungen.
+              </div>
+              <button
+                onClick={() => setShowGemeinschaft(true)}
+                style={{
+                  padding:"10px 20px", borderRadius:99,
+                  background:"#0EC4B8", border:"none", color:"white",
+                  fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+                  touchAction:"manipulation",
+                }}
+              >
+                Mehr erfahren ›
+              </button>
+            </div>
+          </div>
+        )}
+
+        <Gap h={48}/>
       </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
