@@ -1907,6 +1907,46 @@ export default function TalentProfilePage({ profileId, onClose }) {
     }}>
       <style>{CSS}</style>
 
+      {/* ── SPRINT E.6 DEBUG PANEL ─────────────────────────────────
+           Sichtbar nur wenn URL ?debug=1 enthält
+           Entfernen nach Diagnose
+      ─────────────────────────────────────────────────────────── */}
+      {typeof window !== 'undefined' && window.location.search.includes('debug=1') && (
+        <div style={{
+          position:'fixed', bottom:24, left:12, right:12, zIndex:99999,
+          background:'rgba(0,0,0,0.88)', borderRadius:12,
+          padding:'12px 14px', fontFamily:'monospace', fontSize:11,
+          color:'#00ff88', lineHeight:1.55,
+          boxShadow:'0 4px 24px rgba(0,0,0,0.6)',
+          pointerEvents:'none',
+          maxHeight:'45vh', overflowY:'auto',
+        }}>
+          <div style={{color:'#ffcc00',fontWeight:'bold',marginBottom:4}}>🔍 E.6 DEBUG PANEL</div>
+          <div>profile?.id: <span style={{color:'#fff'}}>{profile?.id ?? 'null'}</span></div>
+          <div>profileId:   <span style={{color:'#fff'}}>{profileId ?? 'null'}</span></div>
+          <div>ID match:    <span style={{color: profile?.id === profileId ? '#00ff88' : '#ff4444'}}>
+            {profile?.id === profileId ? '✅ GLEICH' : '❌ VERSCHIEDEN'}
+          </span></div>
+          <div>works.length: <span style={{color:'#fff'}}>{works?.length ?? 0}</span></div>
+          <div>loading:      <span style={{color:'#fff'}}>{String(loading)}</span></div>
+          <div>error:        <span style={{color: error ? '#ff4444' : '#00ff88'}}>{error ?? 'none'}</span></div>
+          {works?.length > 0 && (
+            <div style={{marginTop:6,borderTop:'1px solid #333',paddingTop:6}}>
+              <div style={{color:'#ffcc00'}}>works[0]:</div>
+              <div>id:          <span style={{color:'#fff'}}>{works[0].id}</span></div>
+              <div>user_id:     <span style={{color:'#fff'}}>{works[0].user_id ?? 'null'}</span></div>
+              <div>creator_id:  <span style={{color:'#fff'}}>{works[0].creator_id ?? 'null'}</span></div>
+              <div>status:      <span style={{color:'#fff'}}>{works[0].status ?? 'null'}</span></div>
+              <div>visibility:  <span style={{color:'#fff'}}>{works[0].visibility ?? 'null'}</span></div>
+            </div>
+          )}
+          {works?.length === 0 && !loading && (
+            <div style={{marginTop:6,color:'#ff4444'}}>⚠ works = [] (leer nach Load)</div>
+          )}
+        </div>
+      )}
+      {/* ── END E.6 DEBUG PANEL ──────────────────────────────────── */}
+
       {/* ── Sticky Header (unverändert) ──────────────────────── */}
       <Header onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
