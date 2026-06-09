@@ -256,9 +256,8 @@ export function useProfileData(profileId) {
     load();
   }, [load]);
 
-  // ── SPRINT D.2 TRACE ─────────────────────────────────────────
+  // ── SPRINT D.2 TRACE (State-Scope) ──────────────────────────
   console.group("PROFILE TRACE");
-  console.log("RAW PROFILE", profileRes?.data);
   console.log("WIRKER PROFILE", wirkerProfile);
   console.log("PROFILE FINAL", profile);
   console.log("skills_final", profile?.skills_final);
