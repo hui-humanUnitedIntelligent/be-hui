@@ -1979,7 +1979,25 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
   );
 }
 
-function ErlebnisseSection({ experiences, onErlebnisWizard }) {
+function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = () => {} }) {
+  const [confirmExp, setConfirmExp] = React.useState(null);
+
+  const handleDeleteClick = (e, exp) => {
+    e.stopPropagation();
+    setConfirmExp(exp);
+  };
+
+  const handleConfirmDelete = async () => {
+    const exp = confirmExp;
+    setConfirmExp(null);
+    if (!exp?.id) return;
+    try {
+      const table = exp._source === "projects" ? "projects" : "experiences";
+      await supabase.from(table).update({ status: "deleted" }).eq("id", exp.id);
+      onDeleteErlebnis(exp.id);
+    } catch(e) { console.error("Erlebnis löschen:", e); }
+  };
+
   function fmtDate(d) {
     if (!d) return "";
     const dt = new Date(d);
@@ -1987,6 +2005,43 @@ function ErlebnisseSection({ experiences, onErlebnisWizard }) {
     return dt.toLocaleDateString("de-DE", { month:"short", year:"numeric" });
   }
   return (
+    <>
+    {confirmExp && (
+      <div style={{
+        position:"fixed", inset:0, zIndex:9999,
+        background:"rgba(0,0,0,0.55)", display:"flex",
+        alignItems:"center", justifyContent:"center", padding:"24px",
+      }} onClick={() => setConfirmExp(null)}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background:"#fff", borderRadius:16, padding:"24px 20px 20px",
+          maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+        }}>
+          <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🗑️</div>
+          <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+            Erlebnis unwiderruflich löschen?
+          </div>
+          <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
+            <strong>„{confirmExp.title || 'Dieses Erlebnis'}"</strong> wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.
+          </div>
+          <button onClick={handleConfirmDelete} style={{
+            width:"100%", padding:"12px", borderRadius:99,
+            background:"#ff3b3b", border:"none", color:"#fff",
+            fontSize:14, fontWeight:700, cursor:"pointer",
+            fontFamily:"inherit", marginBottom:8,
+          }}>
+            Ja, endgültig löschen
+          </button>
+          <button onClick={() => setConfirmExp(null)} style={{
+            width:"100%", padding:"12px", borderRadius:99,
+            background:"#f0f0ee", border:"none", color:"#444",
+            fontSize:14, fontWeight:600, cursor:"pointer",
+            fontFamily:"inherit",
+          }}>
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    )}
     <div style={{ padding:`0 ${T.px}px` }}>
       <SectionRow title="Erlebnisse & Projekte"
         sub="Momente, die mein Wirken zeigen."
@@ -2028,6 +2083,19 @@ function ErlebnisseSection({ experiences, onErlebnisWizard }) {
                 : <div style={{ width:"100%", height:"100%", display:"flex",
                     alignItems:"center", justifyContent:"center", fontSize:24 }}>🎟</div>
               }
+              {/* X-Löschen-Button oben rechts */}
+              <button
+                onClick={(e) => handleDeleteClick(e, exp)}
+                style={{
+                  position:"absolute", top:4, right:4,
+                  width:20, height:20, borderRadius:"50%",
+                  background:"rgba(0,0,0,0.65)", border:"none",
+                  color:"#fff", fontSize:11, fontWeight:700,
+                  cursor:"pointer", display:"flex",
+                  alignItems:"center", justifyContent:"center",
+                  lineHeight:1, padding:0, zIndex:2,
+                }}
+              >✕</button>
               {/* Status-Badge unten */}
               <div style={{
                 position:"absolute", bottom:0, left:0, right:0,
@@ -2042,13 +2110,13 @@ function ErlebnisseSection({ experiences, onErlebnisWizard }) {
                 <div style={{
                   position:"absolute", top:0, left:0, right:0,
                   background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
-                  padding:"3px 5px", whiteSpace:"nowrap",
+                  padding:"3px 22px 3px 5px", whiteSpace:"nowrap",
                   overflow:"hidden", textOverflow:"ellipsis",
                 }}>
                   {exp.title}
                 </div>
               )}
-              {/* Ablehnungsgrund Tooltip */}
+              {/* Ablehnungsgrund Overlay */}
               {isRejected && exp.rejection_reason && (
                 <div style={{
                   position:"absolute", top:0, left:0, right:0, bottom:0,
