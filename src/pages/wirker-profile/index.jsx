@@ -19,6 +19,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 
 import { ExperiencesSection } from "../../components/profile/sections/ExperiencesSection.jsx";
+import { MomentsSection } from "../../components/profile/sections/MomentsSection.jsx";
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
 const R  = HUI.RADIUS;
@@ -648,83 +649,6 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 5. MOMENTS — "Momente aus meinem Raum"
-// ═══════════════════════════════════════════════════════════════
-const SEED_MOMENTS = [
-  {id:"m1",caption:"Neues Werk in\nEntstehung",time:"Vor 2 Std.",
-   img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&q=75"},
-  {id:"m2",caption:"Heute am See.\nDankbar.",time:"Vor 1 Tag",
-   img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=300&q=75"},
-  {id:"m3",caption:"Abendlicht.\nMagisch.",time:"Vor 2 Tagen",
-   img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=75"},
-  {id:"m4",caption:"Atelier Session.\nSo viel Energie!",time:"Vor 3 Tagen",
-   img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&q=75"},
-];
-
-function MomentCard({ m }) {
-  const { pressed, bind } = usePress();
-  return (
-    <div {...bind} style={{
-      flexShrink:0,width:145,height:190,
-      borderRadius:R.md,overflow:"hidden",position:"relative",
-      cursor:"pointer",touchAction:"manipulation",background:C.creamDeep,
-      opacity:pressed?0.78:1,
-      transition:"transform .15s ease",
-    }}>
-      <img src={m.img} alt=""
-        style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
-        onError={e=>{e.target.style.display="none";}}/>
-      <div style={{
-        position:"absolute",inset:0,
-        background:"linear-gradient(to top,rgba(0,0,0,.68) 0%,rgba(0,0,0,.10) 60%)",
-      }}/>
-      <div style={{
-        position:"absolute",bottom:12,left:11,right:11,
-      }}>
-        <div style={{fontSize:11,fontWeight:700,color:"white",lineHeight:1.35,whiteSpace:"pre-line"}}>
-          {m.caption}
-        </div>
-        <div style={{fontSize:9,color:"rgba(255,255,255,.6)",marginTop:4}}>{m.time}</div>
-      </div>
-    </div>
-  );
-}
-
-function MomentsSection({ moments }) {
-  const momentActions = useHuiActions();
-  const { ref, style } = useEntry(60);
-  const items = safeArr(moments).length ? safeArr(moments) : SEED_MOMENTS;
-  return (
-    <div ref={ref} style={{ ...style, width:"100%", background:"white", padding:"22px 0 18px" }}>
-      <div style={{
-        padding:"0 18px 14px",
-        display:"flex",justifyContent:"space-between",alignItems:"baseline",
-      }}>
-        <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
-          Momente aus meinem Raum
-        </div>
-        <button
-          onClick={() => momentActions[A.OPEN_MOMENT]?.({ view: "alle" })}
-          style={{
-            background:"none",border:"none",padding:0,
-            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
-            touchAction:"manipulation",fontFamily:"inherit",
-          }}>
-          Alle Momente ansehen →
-        </button>
-      </div>
-      <div style={{
-        display:"flex",gap:9,overflowX:"auto",scrollbarWidth:"none",
-        padding:"3px 18px 6px",WebkitOverflowScrolling:"touch",
-      }}>
-        {items.map(m=><MomentCard key={m.id} m={m}/>)}
-        <div style={{flexShrink:0,width:6}}/>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
 // 6. COMMUNITY / RESONANCE — "Menschen in Resonanz"
 // ═══════════════════════════════════════════════════════════════
 const SEED_COMMUNITY = [
@@ -988,7 +912,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
       <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
       <ExperiencesSection experiences={experiences || []} isOwner={false} loading={loading}/>
       <WirkungSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
-      <MomentsSection moments={moments || []}/>
+      <MomentsSection moments={moments || []} loading={loading} isOwner={false}/>
       <ResonanceCommunity community={null}/>
       <FooterValues/>
       <FloatingBookCTA onBook={handleBook} profileName={name}/>
