@@ -584,6 +584,137 @@ function FreigabenTab({ onPendingChange }) {
   );
 }
 
+
+// ─────────────────────────────────────────────────────────────────
+// ErlebnisseProjekteTab — Struktur bereit, Supabase-Anbindung folgt
+// Tabellen: experiences, projects, initiatives (später)
+// ─────────────────────────────────────────────────────────────────
+function ErlebnisseProjekteTab() {
+  const [filter, setFilter] = useState("alle");
+
+  const FILTERS = [
+    { key:"alle",       label:"Alle"       },
+    { key:"published",  label:"Published"  },
+    { key:"draft",      label:"Draft"      },
+    { key:"gemeldet",   label:"Gemeldet"   },
+    { key:"geloescht",  label:"Gelöscht"   },
+    { key:"sensitiv",   label:"Sensitiv"   },
+  ];
+
+  const STATS = [
+    { label:"Gesamt",    value:"—", icon:"📊", color:C.teal   },
+    { label:"Published", value:"—", icon:"✅", color:C.green  },
+    { label:"Draft",     value:"—", icon:"✏️", color:C.sub    },
+    { label:"Gemeldet",  value:"—", icon:"⚠️", color:C.yellow },
+    { label:"Gelöscht",  value:"—", icon:"🗑️", color:C.coral  },
+  ];
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{
+        background:C.card, borderRadius:16, padding:20,
+        border:`1px solid ${C.border}`, marginBottom:12,
+      }}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+          <span style={{fontSize:22}}>🌿</span>
+          <div>
+            <div style={{fontSize:16,fontWeight:800,color:C.text}}>
+              Erlebnisse & Projekte
+            </div>
+            <div style={{fontSize:12,color:C.sub,marginTop:2}}>
+              Erlebnisse · Projekte · Initiativen — Supabase-Anbindung folgt
+            </div>
+          </div>
+          <div style={{
+            marginLeft:"auto", padding:"4px 10px", borderRadius:99,
+            background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.30)",
+            color:C.yellow, fontSize:10, fontWeight:800, letterSpacing:"0.08em",
+          }}>COMING SOON</div>
+        </div>
+      </div>
+
+      {/* Statistik-Kacheln */}
+      <div style={{
+        display:"grid", gridTemplateColumns:"repeat(5,1fr)",
+        gap:10, marginBottom:12,
+      }}>
+        {STATS.map(s => (
+          <div key={s.label} style={{
+            background:C.card, borderRadius:12, padding:"14px 12px",
+            border:`1px solid ${C.border}`, textAlign:"center",
+          }}>
+            <div style={{fontSize:20,marginBottom:4}}>{s.icon}</div>
+            <div style={{fontSize:20,fontWeight:800,color:s.color}}>{s.value}</div>
+            <div style={{fontSize:11,color:C.sub,marginTop:2}}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filterleiste */}
+      <div style={{
+        background:C.card, borderRadius:14, padding:"12px 16px",
+        border:`1px solid ${C.border}`, marginBottom:12,
+        display:"flex", alignItems:"center", gap:8, flexWrap:"wrap",
+      }}>
+        {FILTERS.map(f => (
+          <button key={f.key} onClick={() => setFilter(f.key)} style={{
+            padding:"5px 14px", borderRadius:99, border:`1px solid ${C.border}`,
+            cursor:"pointer",
+            background: filter===f.key ? C.teal : C.card2,
+            color:       filter===f.key ? "#fff" : C.sub,
+            fontSize:12, fontWeight:600,
+          }}>{f.label}</button>
+        ))}
+      </div>
+
+      {/* Tabelle */}
+      <div style={{
+        background:C.card, borderRadius:14,
+        border:`1px solid ${C.border}`, overflow:"hidden",
+      }}>
+        {/* Tabellen-Header */}
+        <div style={{
+          display:"grid",
+          gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr",
+          gap:0, padding:"10px 16px",
+          borderBottom:`1px solid ${C.border}`,
+          background:C.card2,
+        }}>
+          {["Titel","Kategorie","Status","Preis / Wert","Engagement","Erstellt","Aktionen"].map(h => (
+            <div key={h} style={{fontSize:11,fontWeight:700,color:C.sub,
+              letterSpacing:"0.06em",textTransform:"uppercase"}}>{h}</div>
+          ))}
+        </div>
+
+        {/* Leerer Zustand */}
+        <div style={{textAlign:"center",padding:"60px 20px",color:C.sub}}>
+          <div style={{fontSize:40,marginBottom:12}}>🌿</div>
+          <div style={{fontSize:15,fontWeight:700,color:C.text,marginBottom:6}}>
+            Noch keine Daten
+          </div>
+          <div style={{fontSize:12,color:C.sub,maxWidth:320,margin:"0 auto",lineHeight:1.6}}>
+            Dieser Bereich wird bald mit Erlebnissen, Projekten und Initiativen aus Supabase befüllt.
+          </div>
+          <div style={{
+            marginTop:16, display:"inline-flex", gap:8, flexWrap:"wrap",
+            justifyContent:"center",
+          }}>
+            {["experiences","projects","initiatives"].map(t => (
+              <span key={t} style={{
+                padding:"4px 12px", borderRadius:99,
+                background:"rgba(42,191,172,0.10)",
+                border:"1px solid rgba(42,191,172,0.25)",
+                color:C.teal, fontSize:11, fontWeight:600,
+              }}>{t}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────
 // Haupt-Admin
 // ─────────────────────────────────────────────────────────────────
@@ -665,6 +796,7 @@ export default function Admin() {
         {[
           {key:"dashboard",label:"Dashboard"},
           {key:"content",  label:"Freigaben", badge:pending},
+          {key:"erl_proj", label:"Erlebnisse & Projekte"},
           {key:"wirker",   label:"Wirker"},
           {key:"payments", label:"Payments"},
           {key:"projekte", label:"Projekte"},
@@ -716,7 +848,10 @@ export default function Admin() {
         </>
       )}
 
-      {tab==="content"  && <FreigabenTab onPendingChange={setPending}/>}
+      {tab==="content"  && <FreigabenTab onPendingChange={setPending}/>
+
+      }
+      {tab==="erl_proj" && <ErlebnisseProjekteTab />}
 
       {tab==="wirker" && (
         <div style={card}>
