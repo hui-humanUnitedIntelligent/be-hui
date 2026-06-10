@@ -22,7 +22,7 @@ const PROFILE_SELECT =
   "id,username,display_name,bio,avatar_url,header_img," +
   "location,skills,dna_tags,is_available," +
   "membership_type,role,has_talent_profile,focus_type," +
-  "blocked,profile_modules,created_at,updated_at";
+  "blocked,profile_modules,is_ambassador,created_at,updated_at";
 
 const WIRKER_SELECT =
   // Sprint F.4D.1: avatar_url + header_img ENTFERNT
