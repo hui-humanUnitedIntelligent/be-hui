@@ -7,9 +7,14 @@ import React, {
 } from "react";
 import { S } from "../../core/hui.sources.js";
 import { HUI } from "../../design/hui.design.js";
-import { createProfileItem } from "../../lib/factories/createProfileItem.js";
+// Sprint F.7B: createProfileItem nicht mehr für Root-Profil nötig
+// Kommentiert — Phase 4 prüft Restnutzung
+// import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
-import { useWirkerProfile } from "./hooks/useWirkerProfile.js";
+// Sprint F.7B: useWirkerProfile → useProfileData + useProfileId
+// import { useWirkerProfile } from "./hooks/useWirkerProfile.js"; // LEGACY — nicht löschen vor F.8
+import { useProfileData } from "../../hooks/useProfileData.js";
+import { useProfileId } from "../../hooks/useProfileId.js";
 import SupportFlow from "../../components/economy/SupportFlow.jsx";
 
 const C  = HUI.COLOR;
@@ -409,10 +414,10 @@ function AnimCounter({ target, prefix="", suffix="" }) {
   return <span ref={el}>{prefix}{typeof v === "number" && v % 1 !== 0 ? v.toFixed(1) : Math.round(v)}{suffix}</span>;
 }
 
-function StatsStrip({ profile }) {
+function StatsStrip({ profile, followerCount = 0 }) {
   const vals = {
     bookings:   safeNum(profile?.bookings, 24),
-    followers:  safeNum(profile?.followers, 189),
+    followers:  followerCount > 0 ? followerCount : safeNum(profile?.follower_count || profile?.followers, 0),
     rating:     safeNum(profile?.rating || profile?.resonance_rating, 4.8),
     traces:     safeNum(profile?.traces, 2),
     impact_eur: safeNum(profile?.impact_eur, 8950),
@@ -602,14 +607,14 @@ function Sparkline({ vals = [], color = C.teal }) {
   );
 }
 
-function AboutSection({ profile }) {
+function AboutSection({ profile, followerCount = 0 }) {
   const aboutActions = useHuiActions();
   const { ref, style } = useEntry(40);
   const name      = safeStr(profile?.display_name || profile?.name || profile?.username);
   const bio       = safeStr(profile?.bio);
   const impact    = safeNum(profile?.impact_eur, 8950);
   const projects  = safeNum(profile?.bookings, 24);
-  const humans    = safeNum(profile?.followers, 189);
+  const humans    = followerCount > 0 ? followerCount : safeNum(profile?.follower_count || profile?.followers, 0);
   const rating    = safeNum(profile?.resonance_rating, 4.8);
   const spark     = [300,520,440,810,700,980,760,1200,940,1350,1100,impact];
   const vidImg    = safeStr(profile?.header_img);
@@ -923,34 +928,41 @@ function FloatingBookCTA({ onBook, profileName }) {
 // ═══════════════════════════════════════════════════════════════
 // ROOT — WirkerProfilePage (VISITOR)
 // ═══════════════════════════════════════════════════════════════
-export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClose, onBook, onChat, _zIndex = 9500 }) {
+// ── Sprint F.7B: Einheitliche Datenpipeline ────────────────────────────────
+// ALT: useWirkerProfile(rawWirker)  → eigener Hook, 4 Queries, 2 davon ignoriert
+// NEU: useProfileId(rawId)  → profileId auflösen
+//      useProfileData(profileId) → eine Datenquelle für alle Profile
+// ────────────────────────────────────────────────────────────────────────────
+export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profileIdProp, onClose, onBook, onChat, _zIndex = 9500 }) {
   // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
   const [showSupport, setShowSupport] = React.useState(false);
 
-  console.log("🔷 STEP 6 — WirkerProfilePage gemountet/updated", { profileId, wirkerProp_id: wirkerProp?.id });
+  // ── SCHRITT 1: rawId bestimmen ────────────────────────────────
+  // Priorität: profileIdProp (UUID direkt) > wirkerProp.id > wirkerProp.username
+  const rawId = profileIdProp || wirkerProp?.id || wirkerProp?.user_id || wirkerProp?.username || null;
 
-  // ── profileId-Modus: direkter, stabiler Einstieg aus Feed ─────
-  // profileId überschreibt wirkerProp immer — lädt alles selbst via useWirkerProfile
-  const rawWirker = React.useMemo(() => {
-    if (profileId) return { id: profileId, user_id: profileId };
-    return wirkerProp || null;
-  }, [profileId, wirkerProp?.id, wirkerProp?.user_id]); // eslint-disable-line
+  // ── SCHRITT 2: profileId auflösen (UUID garantiert) ──────────
+  // useProfileId: wenn rawId bereits UUID → kein DB-Lookup; sonst username→id
+  const { profileId, loading: idLoading, error: idError } = useProfileId(rawId);
 
-  const safe    = useMemo(() => createProfileItem(rawWirker), [
-    rawWirker?.id, rawWirker?.user_id,
-  ]);
   const actions = useHuiActions();
 
-  // Phase 3: echte Profil-Daten + Experiences aus Supabase
-  const { profile: liveProfile, exps: liveExps, works: liveWorks } = useWirkerProfile(rawWirker);
+  // ── SCHRITT 3: Daten laden via useProfileData ─────────────────
+  // isOwner=false: WirkerProfilePage zeigt immer fremde Profile (VISITOR VIEW)
+  const {
+    profile,
+    works,
+    experiences,
+    recommendations,
+    moments,
+    followCounts,
+    loading: dataLoading,
+  } = useProfileData(profileId);
 
-  // PUBLIC VIEW ONLY — kein _isOwnerView mehr.
-  // WirkerProfilePage zeigt immer fremde Profile.
-  // Eigenes Profil → MyCreatorDashboard (eigene Seite, eigener Tab)
-  const profile = liveProfile?._raw || liveProfile || safe?._raw || rawWirker || {};
-  // Experiences: echte Supabase-Daten bevorzugt, SEED als Fallback (im Component)
-  const experiences = liveExps?.length > 0 ? liveExps : null;
+  // Kombiniertes Loading-State
+  const loading = idLoading || dataLoading;
 
+  // Profil-Felder mit Fallbacks für UI-Stabilität
   const name = safeStr(profile?.display_name || profile?.name || profile?.username);
 
   const handleClose = useCallback(() => { onClose?.(); }, [onClose]);
@@ -987,15 +999,8 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
     setShowSupport(true);
   }, []);
 
-  // Guard: WirkerProfilePage braucht id, user_id ODER username
-  // Ohne irgendeine Kennung: "Profil nicht gefunden"
-  const wirkerHasId = !!(
-    rawWirker?.id?.trim?.() ||
-    rawWirker?.user_id?.trim?.() ||
-    rawWirker?.username?.trim?.()
-  );
-  if (!wirkerHasId) {
-    console.warn("[WirkerProfilePage] kein id/username — render abgebrochen", rawWirker);
+  // Guard: kein rawId oder profileId-Fehler → "Profil nicht gefunden"
+  if (!rawId || (!loading && !profile?.id && idError)) {
     return (
       <div style={{
         position:"fixed",inset:0,zIndex:_zIndex,
@@ -1039,10 +1044,10 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId, onClo
       `}</style>
 
       <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport}/>
-      <StatsStrip    profile={profile}/>
+      <StatsStrip    profile={profile} followerCount={followCounts?.followers ?? 0}/>
       <VisitorExperiences experiences={experiences} onBook={handleBook}/>
-      <AboutSection  profile={profile}/>
-      <MomentsSection moments={null}/>
+      <AboutSection  profile={profile} followerCount={followCounts?.followers ?? 0}/>
+      <MomentsSection moments={moments || []}/>
       <ResonanceCommunity community={null}/>
       <FooterValues/>
       <FloatingBookCTA onBook={handleBook} profileName={name}/>
