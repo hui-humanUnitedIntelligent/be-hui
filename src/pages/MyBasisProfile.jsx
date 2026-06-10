@@ -1263,12 +1263,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <VerfuegbarkeitStandortRow
               profile={profile}
               onSave={(upd) => {
+                // Sprint F.3A.1: is_available + location beide über diesen Handler
                 setProfile(p => ({ ...p, ...upd }));
+                setAuthProfile(p => p ? { ...p, ...upd } : p);
                 const uid = profile?.id;
                 if (uid) supabase.from("profiles")
                   .update({ ...upd, updated_at: new Date().toISOString() })
                   .eq("id", uid).then(({error}) => {
-                    if (error) console.error("Standort save:", error.message);
+                    if (error) console.error("VerfügbarkeitStandort save:", error.message);
                   });
               }}
             />
@@ -2107,42 +2109,101 @@ function KundenstimmenSection({ recommendations, onEdit }) {
 }
 
 function VerfuegbarkeitStandortRow({ profile, onSave }) {
-  const [editLoc, setEditLoc] = React.useState(false);
-  const [locDraft, setLocDraft] = React.useState(profile?.location || "");
-  const isOpen = profile?.focus_type !== "private";
+  const [editLoc,   setEditLoc]   = React.useState(false);
+  const [editAvail, setEditAvail] = React.useState(false);   // Sprint F.3A.1 — war fehlendes State
+  const [locDraft,  setLocDraft]  = React.useState(profile?.location || "");
+
+  // WAHRHEIT: profiles.is_available (Sprint F.3A)
+  // focus_type ist Sichtbarkeit, NICHT Verfügbarkeit
+  const isOpen = profile?.is_available !== false;
+
   const saveLocation = async () => {
     onSave?.({ location: locDraft });
     setEditLoc(false);
   };
+
+  // Sprint F.3A.1: Verfügbarkeit speichern
+  const saveAvailability = async (val) => {
+    onSave?.({ is_available: val });
+    setEditAvail(false);
+  };
+
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+        {/* ── Verfügbarkeit ── */}
         <div style={{ background:T.bgCard, borderRadius:T.r16,
-          border:`1px solid ${T.border}`, padding:"14px", boxShadow:T.card }}>
+          border:`1px solid ${editAvail ? "rgba(14,196,184,0.35)" : T.border}`,
+          padding:"14px", boxShadow:T.card,
+          transition:"border-color .2s ease" }}>
           <div style={{ display:"flex", justifyContent:"space-between",
             alignItems:"flex-start", marginBottom:6 }}>
             <div style={{ fontSize:13, fontWeight:800, color:T.ink }}>Verfügbarkeit</div>
-            <button className="mbp-press-light" style={{
-              background:"none", border:"none", padding:0,
-              fontSize:11, color:T.teal, fontWeight:700,
-              cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-            }} onClick={() => {}}>Bearbeiten ›</button>
+            {!editAvail && (
+              <button className="mbp-press-light" style={{
+                background:"none", border:"none", padding:0,
+                fontSize:11, color:T.teal, fontWeight:700,
+                cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+              }} onClick={() => setEditAvail(true)}>Bearbeiten ›</button>
+            )}
           </div>
           <div style={{ fontSize:10.5, color:T.inkFaint, marginBottom:8 }}>
             Wann du für neue Anfragen offen bist.
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:6,
-            padding:"7px 10px", borderRadius:T.r12,
-            background:T.tealSoft, border:`1px solid ${T.tealMid}` }}>
-            <span style={{ width:7, height:7, borderRadius:"50%",
-              background:T.teal, display:"inline-block", flexShrink:0 }}/>
+          {editAvail ? (
+            /* ── Editor: zwei Optionen + Buttons ── */
             <div>
-              <div style={{ fontSize:11, fontWeight:700, color:T.teal }}>
-                {isOpen ? "Offen für neue Anfragen" : "Momentan ausgelastet"}
-              </div>
-              <div style={{ fontSize:10, color:T.inkFaint }}>Antwortzeit: innerhalb von 24h</div>
+              {[
+                { val: true,  label:"Offen für neue Anfragen", dot: T.teal,    bg: "rgba(14,196,184,0.08)", bord: "rgba(14,196,184,0.22)" },
+                { val: false, label:"Momentan ausgelastet",    dot: T.inkFaint, bg: "rgba(26,26,24,0.04)",   bord: T.border },
+              ].map(opt => (
+                <button key={String(opt.val)} className="mbp-press-light"
+                  onClick={() => saveAvailability(opt.val)}
+                  style={{
+                    display:"flex", alignItems:"center", gap:8,
+                    width:"100%", padding:"8px 10px", borderRadius:12,
+                    background: isOpen === opt.val ? opt.bg : "transparent",
+                    border:`1.5px solid ${isOpen === opt.val ? opt.bord : T.border}`,
+                    marginBottom:6, cursor:"pointer",
+                    touchAction:"manipulation", fontFamily:"inherit",
+                    transition:"all .15s ease",
+                  }}>
+                  <span style={{ width:7, height:7, borderRadius:"50%",
+                    background: opt.dot, display:"inline-block", flexShrink:0 }}/>
+                  <span style={{ fontSize:11, fontWeight:700,
+                    color: isOpen === opt.val ? opt.dot : T.inkSoft }}>
+                    {opt.label}
+                  </span>
+                  {isOpen === opt.val && (
+                    <span style={{ marginLeft:"auto", fontSize:11, color: opt.dot }}>✓</span>
+                  )}
+                </button>
+              ))}
+              <button onClick={() => setEditAvail(false)} style={{
+                width:"100%", padding:"5px", marginTop:2,
+                borderRadius:99, border:`1px solid ${T.border}`,
+                background:"none", fontSize:10, color:T.inkSoft,
+                cursor:"pointer", fontFamily:"inherit",
+              }}>Abbrechen</button>
             </div>
-          </div>
+          ) : (
+            /* ── Anzeige ── */
+            <div style={{ display:"flex", alignItems:"center", gap:6,
+              padding:"7px 10px", borderRadius:T.r12,
+              background: isOpen ? T.tealSoft : "rgba(26,26,24,0.04)",
+              border:`1px solid ${isOpen ? T.tealMid : T.border}` }}>
+              <span style={{ width:7, height:7, borderRadius:"50%",
+                background: isOpen ? T.teal : T.inkFaint,
+                display:"inline-block", flexShrink:0 }}/>
+              <div>
+                <div style={{ fontSize:11, fontWeight:700,
+                  color: isOpen ? T.teal : T.inkSoft }}>
+                  {isOpen ? "Offen für neue Anfragen" : "Momentan ausgelastet"}
+                </div>
+                <div style={{ fontSize:10, color:T.inkFaint }}>Antwortzeit: innerhalb von 24h</div>
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ background:T.bgCard, borderRadius:T.r16,
           border:`1px solid ${T.border}`, padding:"14px", boxShadow:T.card }}>
