@@ -11,8 +11,7 @@ import { HUI } from "../../design/hui.design.js";
 // Kommentiert — Phase 4 prüft Restnutzung
 // import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
-// Sprint F.7B: useWirkerProfile → useProfileData + useProfileId
-// import { useWirkerProfile } from "./hooks/useWirkerProfile.js"; // LEGACY — nicht löschen vor F.8
+// Sprint F.7B: useWirkerProfile → useProfileData + useProfileId (F.8A: Hook gelöscht)
 import { useProfileData } from "../../hooks/useProfileData.js";
 import { useProfileId } from "../../hooks/useProfileId.js";
 import SupportFlow from "../../components/economy/SupportFlow.jsx";
@@ -929,7 +928,6 @@ function FloatingBookCTA({ onBook, profileName }) {
 // ROOT — WirkerProfilePage (VISITOR)
 // ═══════════════════════════════════════════════════════════════
 // ── Sprint F.7B: Einheitliche Datenpipeline ────────────────────────────────
-// ALT: useWirkerProfile(rawWirker)  → eigener Hook, 4 Queries, 2 davon ignoriert
 // NEU: useProfileId(rawId)  → profileId auflösen
 //      useProfileData(profileId) → eine Datenquelle für alle Profile
 // ────────────────────────────────────────────────────────────────────────────

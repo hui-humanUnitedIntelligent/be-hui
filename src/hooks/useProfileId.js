@@ -4,7 +4,6 @@
 //
 // PROBLEM:
 //   /profile/:username  ->  WirkerProfilePage braucht UUID fuer useProfileData
-//   Frueher: useWirkerProfile machte den Lookup intern
 //   Jetzt:  Resolver ist explizit + wiederverwendbar
 //
 // AUFLOESUNGS-REIHENFOLGE:

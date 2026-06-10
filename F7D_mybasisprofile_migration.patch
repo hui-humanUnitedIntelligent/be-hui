@@ -1,0 +1,715 @@
+From bd24901a7e180d45b4f81fb60a560295c1e1cd5e Mon Sep 17 00:00:00 2001
+From: HUI Agent <agent@hui.app>
+Date: Wed, 10 Jun 2026 19:39:12 +0000
+Subject: [PATCH 1/5] =?UTF-8?q?feat(F.7D-P1):=20MyBasisProfile=20=E2=86=92?=
+ =?UTF-8?q?=20useProfileData=20integriert=20(Phase=201)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/pages/MyBasisProfile.jsx | 126 +++++++++++------------------------
+ 1 file changed, 38 insertions(+), 88 deletions(-)
+
+diff --git a/src/pages/MyBasisProfile.jsx b/src/pages/MyBasisProfile.jsx
+index 1d3e9b6..deda127 100644
+--- a/src/pages/MyBasisProfile.jsx
++++ b/src/pages/MyBasisProfile.jsx
+@@ -15,6 +15,7 @@ import NotificationPanel from "../components/notifications/NotificationPanel.jsx
+ import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
+ import SettingsModal  from "../components/settings/SettingsModal.jsx";
+ import { useAmbassador } from "../hooks/useAmbassador.js";
++import { useProfileData } from "../hooks/useProfileData.js";
+ import HuiStudio       from "../components/studio/HuiStudio.jsx";
+ import WerkWizard      from "../components/works/WerkWizard.jsx";
+ import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+@@ -847,10 +848,14 @@ function BioEditModal({ bio = "", onClose = () => {}, onSave = () => {} }) {
+ export default function MyBasisProfile({ onClose, profileId }) {
+   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
+   const _auth = useAuth() || {};
+-  const setAuthProfile = _auth.setProfile ?? null;
++  const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
++  const setAuthProfile  = _auth.setProfile ?? null;
+   const refreshProfile  = _auth.refreshProfile ?? null;
+-  const [profile,    setProfile]    = useState(null);
+-  const [loading,    setLoading]    = useState(true);
++  // Sprint F.7D Phase 1: profile + loading aus useProfileData (Hook oben)
++  // const [profile, setProfile] — ENTFERNT: kommt aus useProfileData
++  // const [loading, setLoading] — ENTFERNT: kommt aus useProfileData
++  // Für Kompatibilität mit setProfile-Calls die noch existieren:
++  const [_profileOverride, _setProfileOverride] = useState(null); // Phase 2: alle setProfile-Calls → reload()
+   const [bio,        setBio]        = useState("");
+   const [showBioEdit, setShowBioEdit] = useState(false);
+ 
+@@ -959,110 +964,55 @@ export default function MyBasisProfile({ onClose, profileId }) {
+   const [editingWerk,   setEditingWerk]   = useState(null);
+   const [editingExp,    setEditingExp]    = useState(null);
+ 
+-
+-  useEffect(()=>{
+-    (async () => {
+-      try {
+-        const { data:{ user } } = await supabase.auth.getUser();
+-
+-        if (!user) { setLoading(false); return; }
+-        const { data, error: loadErr } = await supabase.from("profiles")
+-          .select("id,display_name,username,avatar_url,bio,has_talent_profile,is_ambassador,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,is_available,created_at,updated_at")
+-          .eq("id", user.id).single();
+-        if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
+-        if (data) {
+-          setProfile({ ...data, is_talent: data.has_talent_profile === true, is_ambassador: data.is_ambassador === true }); // fix: is_talent + is_ambassador normalisieren
+-          setBio(s(data.bio));
+-          // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
+-          const nextInterests = Array.isArray(data.skills) ? data.skills : [];
+-          setInterests(nextInterests);
+-          // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
+-          // dna_tags kann als JS Array ODER als Postgres-String '{url1,url2}' kommen
+-          let rawTags = data.dna_tags;
+-          if (typeof rawTags === "string" && rawTags.startsWith("{")) {
+-            // Postgres array literal parsen: '{a,b,c}' → ['a','b','c']
+-            rawTags = rawTags.slice(1, -1).split(",").map(s => s.trim()).filter(Boolean);
+-          }
+-          const tagArr = Array.isArray(rawTags) ? rawTags : [];
+-          if (tagArr.length) {
+-            const mapped = tagArr.map((url, i) => ({ id: `db_${i}`, img: url }));
+-            setMoments(mapped);
+-          } else {
+-          }
+-          // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
+-          if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
+-            setVisibility(data.focus_type);
+-          }
+-          // Verfügbarkeit aus DB laden (profiles.is_available — Sprint F.3A)
+-          // true = offen, false = ausgelastet, null/undefined = default true
+-          setOpenFor(data.is_available !== false ? ["verfügbar"] : []);
+-        }
+-      } catch(e) { console.warn("MyBasisProfile load:", e); }
+-      setLoading(false);
+-    })();
+-  },[]);
+-
+-  // ── Eigene Werke + Experiences aus Supabase laden (mit Realtime) ──────────
++  // ── Sprint F.7D: Einheitliche Datenpipeline via useProfileData ──────────
++  // Ersetzt: eigenen Profil-Loader useEffect (Zeilen ~962-1003)
++  // Beibehaltung: Realtime-Listener für works+experiences (Regel 1)
++  const {
++    profile,
++    works:      hooksWorks,
++    experiences: hooksExps,
++    recommendations: hooksRecs,
++    moments:    hooksMoments,
++    loading:    hookLoading,  // Phase 2: lokale [loading] States werden danach entfernt
++    reload,
++  } = useProfileData(user?.id);
++
++
++  // Sprint F.7D: Profil-Loader entfernt — useProfileData(user?.id) übernimmt
++  // Alte lokale States (profile, loading) werden durch Hook-Werte ersetzt (Phase 2)
++  // dna_tags → hooksMoments bereits normalisiert durch useProfileData
++  // skills → profile.skills direkt aus useProfileData
++  // is_available → profile.is_available direkt aus useProfileData
++
++  // ── Sprint F.7D: Realtime-Listener (Regel 1: beibehalten, nutzt reload()) ──
++  // loadWorksAndExps() entfernt — useProfileData lädt works+experiences
++  // reload() triggert useProfileData neu → Realtime-Events bleiben wirksam
+   useEffect(() => {
+     if (!profile?.id) return;
+     let channel;
+ 
+-    async function loadWorksAndExps() {
+-      const { data: worksData } = await supabase
+-        .from("works")
+-        .select("id,title,cover_url,category,status,approval_status,rejection_reason,price,for_sale,created_at,images")
+-        .eq("user_id", profile.id)
+-        .not("status", "eq", "deleted")
+-        .order("created_at", { ascending: false });
+-      if (worksData) setWorks(worksData);
+-
+-      const { data: expsData } = await supabase
+-        .from("experiences")
+-        .select("id,title,cover_url,category,status,approval_status,rejection_reason,price,duration,format,date,created_at")
+-        .eq("user_id", profile.id)
+-        .not("status", "eq", "deleted")
+-        .order("created_at", { ascending: false });
+-      if (expsData) setExperiences(expsData);
+-    }
+-
+-    // Initial laden
+-    loadWorksAndExps();
+-
+-    // Realtime: wenn Admin Status ändert → sofort neu laden
++    // Realtime: wenn Admin Status ändert → useProfileData neu laden
+     channel = supabase
+       .channel("mbp:works-exps:" + profile.id)
+       .on("postgres_changes", {
+         event: "UPDATE", schema: "public", table: "works",
+         filter: "user_id=eq." + profile.id,
+-      }, () => loadWorksAndExps())
++      }, () => reload())
+       .on("postgres_changes", {
+         event: "UPDATE", schema: "public", table: "experiences",
+         filter: "user_id=eq." + profile.id,
+-      }, () => loadWorksAndExps())
+-      // Admin Hard-Delete → sofort aus Profil entfernen
++      }, () => reload())
++      // Admin Hard-Delete → sofort neu laden
+       .on("postgres_changes", {
+         event: "DELETE", schema: "public", table: "experiences",
+-      }, (payload) => {
+-        // Entferne die gelöschte Zeile sofort aus dem lokalen State
+-        if (payload?.old?.id) {
+-          setExperiences(prev => prev.filter(e => e.id !== payload.old.id));
+-        } else {
+-          loadWorksAndExps(); // Fallback: neu laden
+-        }
+-      })
++      }, () => reload())
+       .on("postgres_changes", {
+         event: "DELETE", schema: "public", table: "projects",
+-      }, (payload) => {
+-        if (payload?.old?.id) {
+-          setExperiences(prev => prev.filter(e => e.id !== payload.old.id));
+-        } else {
+-          loadWorksAndExps();
+-        }
+-      })
++      }, () => reload())
+       .subscribe();
+ 
+     return () => { if (channel) supabase.removeChannel(channel); };
+-  }, [profile?.id]);
++  }, [profile?.id, reload]);
+ 
+   // Auto-save on bio/interests/visibility change (debounced 1.2s)
+   const saveTimer = useRef(null);
+-- 
+2.39.5
+
+
+From 3afa1f11b1e932f595e93b56deab8c9fced228cc Mon Sep 17 00:00:00 2001
+From: HUI Agent <agent@hui.app>
+Date: Wed, 10 Jun 2026 19:40:16 +0000
+Subject: [PATCH 2/5] =?UTF-8?q?feat(F.7D-P2):=20lokale=20profile/loading?=
+ =?UTF-8?q?=20States=20entfernt=20=E2=86=92=20useProfileData?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/pages/MyBasisProfile.jsx | 43 +++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 23 deletions(-)
+
+diff --git a/src/pages/MyBasisProfile.jsx b/src/pages/MyBasisProfile.jsx
+index deda127..09b6470 100644
+--- a/src/pages/MyBasisProfile.jsx
++++ b/src/pages/MyBasisProfile.jsx
+@@ -851,11 +851,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
+   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
+   const setAuthProfile  = _auth.setProfile ?? null;
+   const refreshProfile  = _auth.refreshProfile ?? null;
+-  // Sprint F.7D Phase 1: profile + loading aus useProfileData (Hook oben)
+-  // const [profile, setProfile] — ENTFERNT: kommt aus useProfileData
+-  // const [loading, setLoading] — ENTFERNT: kommt aus useProfileData
+-  // Für Kompatibilität mit setProfile-Calls die noch existieren:
+-  const [_profileOverride, _setProfileOverride] = useState(null); // Phase 2: alle setProfile-Calls → reload()
++  // Sprint F.7D: profile + loading aus useProfileData — lokale States entfernt
+   const [bio,        setBio]        = useState("");
+   const [showBioEdit, setShowBioEdit] = useState(false);
+ 
+@@ -1080,17 +1076,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
+   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
+   const handleAvatarChange = useCallback((url) => {
+     setLocalAvatar(url);
+-    // Lokaler State
+-    setProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+-    // Globaler AuthContext → alle Komponenten die authProfile.avatar_url nutzen
++    // Sprint F.7D P2: setProfile entfernt → AuthContext + reload()
+     setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+-  }, [setAuthProfile]);
++    reload();
++  }, [setAuthProfile, reload]);
+ 
+   const handleCoverChange = useCallback((url) => {
+     setLocalCover(url);
+-    setProfile(prev => prev ? { ...prev, header_img: url } : prev);
++    // Sprint F.7D P2: setProfile entfernt → AuthContext + reload()
+     setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+-  }, [setAuthProfile]);
++    reload();
++  }, [setAuthProfile, reload]);
+ 
+   // CSS sofort in <head> injizieren — Safari-safe, kein Blink beim Lazy-Load
+   useEffect(() => {
+@@ -1108,7 +1104,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
+ 
+ 
+   // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
+-  if (loading) {
++  if (hookLoading) {
+     return (
+       <div style={{
+         position:"fixed", inset:0, zIndex:9500,
+@@ -1253,16 +1249,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
+             {/* T6. Verfügbarkeit + Standort */}
+             <VerfuegbarkeitStandortRow
+               profile={profile}
+-              onSave={(upd) => {
+-                // Sprint F.3A.1: is_available + location beide über diesen Handler
+-                setProfile(p => ({ ...p, ...upd }));
++              onSave={async (upd) => {
++                // Sprint F.7D P2: setProfile → reload() nach DB-Write
+                 setAuthProfile(p => p ? { ...p, ...upd } : p);
+                 const uid = profile?.id;
+-                if (uid) supabase.from("profiles")
+-                  .update({ ...upd, updated_at: new Date().toISOString() })
+-                  .eq("id", uid).then(({error}) => {
+-                    if (error) console.error("VerfügbarkeitStandort save:", error.message);
+-                  });
++                if (uid) {
++                  await supabase.from("profiles")
++                    .update({ ...upd, updated_at: new Date().toISOString() })
++                    .eq("id", uid);
++                  reload();
++                }
+               }}
+             />
+             <Gap h={24}/>
+@@ -1311,9 +1307,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
+           onClose={() => setShowGemeinschaft(false)}
+           onComplete={() => {
+             setShowGemeinschaft(false);
+-            // Lokalen State sofort patchen → TalentErweiterung erscheint ohne Reload
+-            setProfile(p => p ? { ...p, is_talent: true, talent_since: new Date().toISOString() } : p);
++            // Sprint F.7D P2: reload() übernimmt is_talent-Aktualisierung
+             refreshProfile?.().catch(() => {});
++            reload();
+           }}
+         />
+       )}
+@@ -1344,9 +1340,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
+           profile={profile}
+           onClose={() => setShowStudio(false)}
+           onProfileUpdate={(upd) => {
+-            setProfile(p => ({ ...p, ...upd }));
++            // Sprint F.7D P2: setProfile → reload()
+             setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
+             refreshProfile?.().catch(() => {});
++            reload();
+           }}
+         />
+       )}
+-- 
+2.39.5
+
+
+From 483b3dc016f7f66b164269ecf88617872e90a577 Mon Sep 17 00:00:00 2001
+From: HUI Agent <agent@hui.app>
+Date: Wed, 10 Jun 2026 19:41:06 +0000
+Subject: [PATCH 3/5] =?UTF-8?q?feat(F.7D-P3):=20autoSave=20entfernt=20?=
+ =?UTF-8?q?=E2=86=92=20explizite=20handleBioSave/Skills/Moments/Visibility?=
+ =?UTF-8?q?/Availability=20Handler?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/pages/MyBasisProfile.jsx | 77 +++++++++++++++++++-----------------
+ 1 file changed, 40 insertions(+), 37 deletions(-)
+
+diff --git a/src/pages/MyBasisProfile.jsx b/src/pages/MyBasisProfile.jsx
+index 09b6470..43768d6 100644
+--- a/src/pages/MyBasisProfile.jsx
++++ b/src/pages/MyBasisProfile.jsx
+@@ -1011,67 +1011,70 @@ export default function MyBasisProfile({ onClose, profileId }) {
+   }, [profile?.id, reload]);
+ 
+   // Auto-save on bio/interests/visibility change (debounced 1.2s)
++  // ── Sprint F.7D Phase 3: Explizite Save-Handler (autoSave entfernt) ─────
+   const saveTimer = useRef(null);
+-  const autoSave = useCallback(async (field, value) => {
+-    // FIX BUG 1: userId direkt aus Auth holen wenn profile?.id noch null
+-    let uid = profile?.id;
+-    if (!uid) {
+-      const { data: { user: au } } = await supabase.auth.getUser();
+-      uid = au?.id;
+-    }
+-    if (!uid) { console.warn("autoSave: kein userId für Feld", field); return; }
++
++  // Gemeinsame Save-Funktion (intern, kein Debounce)
++  const _save = useCallback(async (fields) => {
++    const uid = profile?.id ?? user?.id;
++    if (!uid) return;
+     setSaving(true);
+     try {
+       const { error: saveErr } = await supabase.from("profiles")
+-        .update({ [field]: value, updated_at: new Date().toISOString() })
++        .update({ ...fields, updated_at: new Date().toISOString() })
+         .eq("id", uid);
+       if (saveErr) {
+-        console.error("AUTO_SAVE ERROR:", field, saveErr.message, saveErr.code, JSON.stringify(saveErr));
+-        setSaveErrMsg(field + ": " + saveErr.message + " [" + saveErr.code + "]");
++        setSaveErrMsg(Object.keys(fields).join(",") + ": " + saveErr.message);
+         setTimeout(() => setSaveErrMsg(""), 8000);
+       } else {
+-        console.log("AUTO_SAVE OK:", field, value);
+-        setSaveOk(true); setTimeout(()=>setSaveOk(false), 2000);
+-        // AuthContext-Cache sofort mitaktualisieren
+-        setAuthProfile(prev => prev ? { ...prev, [field]: value } : prev);
++        setSaveOk(true); setTimeout(() => setSaveOk(false), 2000);
++        setAuthProfile(prev => prev ? { ...prev, ...fields } : prev);
++        reload();
+       }
+-    } catch(e) {
+-      console.error("AUTO_SAVE EXCEPTION:", field, e?.message);
++    } catch (e) {
++      console.error("SAVE ERROR:", e?.message);
+     }
+     setSaving(false);
+-  },[profile?.id, setAuthProfile]);
++  }, [profile?.id, user?.id, setAuthProfile, reload]);
+ 
+-  const handleBioChange = (v) => {
++  const handleBioSave = useCallback((v) => {
+     setBio(v);
+     clearTimeout(saveTimer.current);
+-    saveTimer.current = setTimeout(()=>autoSave("bio", v), 1200);
+-  };
++    saveTimer.current = setTimeout(() => _save({ bio: v }), 1200);
++  }, [_save]);
+ 
+-  const handleInterestsChange = (v) => {
++  // Alias für inline onChange (debounced)
++  const handleBioChange = handleBioSave;
++
++  const handleSkillsSave = useCallback((v) => {
+     setInterests(v);
+-    // Persistenz via skills-Spalte (ARRAY, existiert in profiles)
+-    autoSave("skills", v);
+-  };
++    _save({ skills: v });
++  }, [_save]);
++  const handleInterestsChange = handleSkillsSave; // Alias
+ 
+-  const handleMomentsChange = (newItems) => {
++  const handleMomentsSave = useCallback((newItems) => {
+     setMoments(newItems);
+-    // Persistenz via dna_tags-Spalte (ARRAY von URL-Strings, existiert in profiles)
+     const urls = newItems.map(m => m.img).filter(Boolean);
+-    autoSave("dna_tags", urls);
+-  };
++    _save({ dna_tags: urls });
++  }, [_save]);
++  const handleMomentsChange = handleMomentsSave; // Alias
+ 
+-  const handleVisibilityChange = (v) => {
++  const handleVisibilitySave = useCallback((v) => {
+     setVisibility(v);
+-    // Persistenz via focus_type-Spalte (TEXT, existiert in profiles)
+-    autoSave("focus_type", v);
+-  };
++    _save({ focus_type: v });
++  }, [_save]);
++  const handleVisibilityChange = handleVisibilitySave; // Alias
+ 
+-  const handleOpenForChange = (v) => {
++  const handleAvailabilitySave = useCallback((v) => {
+     setOpenFor(v);
+-    // Sprint F.3A: Verfügbarkeit in profiles.is_available persistieren
+     // v.length > 0 = verfügbar (true), [] = ausgelastet (false)
+-    autoSave("is_available", v.length > 0);
+-  };
++    _save({ is_available: v.length > 0 });
++  }, [_save]);
++  const handleOpenForChange = handleAvailabilitySave; // Alias
++
++  const handleLocationSave = useCallback((locationStr) => {
++    _save({ location: locationStr });
++  }, [_save]);
+ 
+   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
+   const handleAvatarChange = useCallback((url) => {
+-- 
+2.39.5
+
+
+From d1a98f6b4aa075f5f6d468581bed7ab49e6f380b Mon Sep 17 00:00:00 2001
+From: HUI Agent <agent@hui.app>
+Date: Wed, 10 Jun 2026 19:42:43 +0000
+Subject: [PATCH 4/5] feat(F.7D-P4): kanonische Sections eingebaut
+ (About/Talent/Moments/Recs/Avail/Location/Visibility)
+
+---
+ src/pages/MyBasisProfile.jsx | 114 ++++++++++++++++++++++-------------
+ 1 file changed, 73 insertions(+), 41 deletions(-)
+
+diff --git a/src/pages/MyBasisProfile.jsx b/src/pages/MyBasisProfile.jsx
+index 43768d6..69424ce 100644
+--- a/src/pages/MyBasisProfile.jsx
++++ b/src/pages/MyBasisProfile.jsx
+@@ -17,6 +17,14 @@ import SettingsModal  from "../components/settings/SettingsModal.jsx";
+ import { useAmbassador } from "../hooks/useAmbassador.js";
+ import { useProfileData } from "../hooks/useProfileData.js";
+ import HuiStudio       from "../components/studio/HuiStudio.jsx";
++// Sprint F.7D Phase 4: Kanonische Sections
++import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
++import { TalentSection }         from "../components/profile/sections/TalentSection.jsx";
++import { MomentsSection }        from "../components/profile/sections/MomentsSection.jsx";
++import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
++import { AvailabilitySection }   from "../components/profile/sections/AvailabilitySection.jsx";
++import { LocationSection }       from "../components/profile/sections/LocationSection.jsx";
++import { VisibilitySection }     from "../components/profile/sections/VisibilitySection.jsx";
+ import WerkWizard      from "../components/works/WerkWizard.jsx";
+ import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+ 
+@@ -952,9 +960,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
+   };
+   const [unreadCount,       setUnreadCount]       = useState(0);
+   const ambState = useAmbassador(profile);
+-  const [works,       setWorks]       = useState([]);
+-  const [experiences, setExperiences] = useState([]);
+-  const [recommendations, setRecommendations] = useState([]);
++  // Sprint F.7D P4: works/experiences/recommendations aus useProfileData
++  // Lokale States als Overrides für Wizard-Optimistic-Updates
++  const [localWorks,       setLocalWorks]       = useState(null); // null = nutze hooksWorks
++  const [localExperiences, setLocalExperiences] = useState(null); // null = nutze hooksExps
++  const works          = localWorks       ?? hooksWorks       ?? [];
++  const experiences    = localExperiences ?? hooksExps        ?? [];
++  const recommendations = hooksRecs ?? [];
+   const [showWerkWizard, setShowWerkWizard] = useState(false);
+   const [showExpWizard,  setShowExpWizard]  = useState(false);
+   const [editingWerk,   setEditingWerk]   = useState(null);
+@@ -1214,83 +1226,103 @@ export default function MyBasisProfile({ onClose, profileId }) {
+         {/* ══ TALENT-PROFIL-LAYOUT (is_talent === true) ══════════ */}
+         {profile?.is_talent ? (
+           <>
+-            {/* T1. Über mich */}
+-            <UeberDich bio={bio} onChange={handleBioChange}/>
++            {/* T1. Über mich — kanonisch: AboutSection */}
++            <AboutSection
++              profile={profile}
++              isOwner={true}
++              onSave={(bio) => handleBioSave(bio)}
++            />
+             <Gap h={24}/>
+ 
+-            {/* T2. Meine Talente & Angebote */}
+-            <MeineTalenteSection
+-              skills={interests}
+-              onChange={handleInterestsChange}
++            {/* T2. Talente — kanonisch: TalentSection */}
++            <TalentSection
++              profile={profile}
++              isOwner={true}
++              onChange={handleSkillsSave}
+             />
+             <Gap h={24}/>
+ 
+-            {/* T3. Meine Werke */}
++            {/* T3. Meine Werke — MeineWerkeSection bleibt (Owner-only, kein Public-Duplikat) */}
+             <MeineWerkeSection
+               userId={profile?.id}
+               works={works}
+               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
+-              onDeleteWerk={(id) => setWorks(prev => prev.filter(w => w.id !== id))}
++              onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
+             />
+             <Gap h={24}/>
+ 
+-            {/* T4. Erlebnisse & Projekte */}
++            {/* T4. Erlebnisse — ErlebnisseSection bleibt (Owner-only) */}
+             <ErlebnisseSection
+               experiences={experiences}
+               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
+-              onDeleteErlebnis={(id) => setExperiences(prev => prev.filter(e => e.id !== id))}
++              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+             />
+             <Gap h={24}/>
+ 
+-            {/* T5. Kundenstimmen */}
+-            <KundenstimmenSection
++            {/* T5. Kundenstimmen — kanonisch: RecommendationsSection */}
++            <RecommendationsSection
+               recommendations={recommendations}
+-              onEdit={() => {}}
++              isOwner={true}
+             />
+             <Gap h={24}/>
+ 
+-            {/* T6. Verfügbarkeit + Standort */}
+-            <VerfuegbarkeitStandortRow
++            {/* T6a. Verfügbarkeit — kanonisch: AvailabilitySection */}
++            <AvailabilitySection
+               profile={profile}
+-              onSave={async (upd) => {
+-                // Sprint F.7D P2: setProfile → reload() nach DB-Write
+-                setAuthProfile(p => p ? { ...p, ...upd } : p);
+-                const uid = profile?.id;
+-                if (uid) {
+-                  await supabase.from("profiles")
+-                    .update({ ...upd, updated_at: new Date().toISOString() })
+-                    .eq("id", uid);
+-                  reload();
+-                }
+-              }}
++              isOwner={true}
++              onSave={handleAvailabilitySave}
++            />
++            <Gap h={16}/>
++
++            {/* T6b. Standort — kanonisch: LocationSection */}
++            <LocationSection
++              profile={profile}
++              isOwner={true}
++              onSave={handleLocationSave}
+             />
+             <Gap h={24}/>
+ 
+-            {/* T7. Sichtbarkeit */}
+-            <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
++            {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
++            <VisibilitySection
++              profile={profile}
++              isOwner={true}
++              onSave={handleVisibilitySave}
++            />
+             <Gap h={40}/>
+           </>
+         ) : (
+           <>
+             {/* ══ BASIS-PROFIL-LAYOUT ══════════════════════════════ */}
+-            {/* B1. Über dich */}
+-            <UeberDich bio={bio} onChange={handleBioChange}/>
++            {/* B1. Über mich — kanonisch: AboutSection */}
++            <AboutSection
++              profile={profile}
++              isOwner={true}
++              onSave={(bio) => handleBioSave(bio)}
++            />
+             <Gap h={24}/>
+ 
+-            {/* B2. Interessen & Werte */}
++            {/* B2. Interessen & Werte — InteressenSection bleibt (Basis-spezifisch) */}
+             <InteressenSection interests={interests} onChange={handleInterestsChange}/>
+             <Gap h={24}/>
+ 
+-            {/* B3. Momente */}
+-            <MomenteSection moments={moments} onChange={handleMomentsChange}/>
++            {/* B3. Momente — kanonisch: MomentsSection */}
++            <MomentsSection
++              moments={moments}
++              isOwner={true}
++              onAddMoment={(newMoments) => handleMomentsSave(newMoments)}
++            />
+             <Gap h={24}/>
+ 
+-            {/* B4. Offen für Begegnungen */}
++            {/* B4. Offen für Begegnungen — OffenFuerSection bleibt (Basis-spezifisch) */}
+             <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
+             <Gap h={24}/>
+ 
+-            {/* B5. Sichtbarkeit */}
+-            <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
++            {/* B5. Sichtbarkeit — kanonisch: VisibilitySection */}
++            <VisibilitySection
++              profile={profile}
++              isOwner={true}
++              onSave={handleVisibilitySave}
++            />
+             <Gap h={28}/>
+ 
+             {/* B6. Ambassador-Banner */}
+@@ -1399,7 +1431,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
+           onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
+           onSaved={(werk) => {
+             setShowWerkWizard(false); setEditingWerk(null);
+-            setWorks(prev => {
++            setLocalWorks(prev => {
+               const idx = prev.findIndex(w => w.id === werk.id);
+               if (idx >= 0) { const n=[...prev]; n[idx]=werk; return n; }
+               return [werk, ...prev];
+@@ -1416,7 +1448,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
+           onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
+           onSaved={(exp) => {
+             setShowExpWizard(false); setEditingExp(null);
+-            setExperiences(prev => {
++            setLocalExperiences(prev => {
+               const idx = prev.findIndex(e => e.id === exp.id);
+               if (idx >= 0) { const n=[...prev]; n[idx]=exp; return n; }
+               return [exp, ...prev];
+-- 
+2.39.5
+
+
+From 04aa9efa806c7e48f77c674d0b0b49e82235d005 Mon Sep 17 00:00:00 2001
+From: HUI Agent <agent@hui.app>
+Date: Wed, 10 Jun 2026 19:43:24 +0000
+Subject: [PATCH 5/5] feat(F.7D-P5+6): Render-Audit abgeschlossen,
+ Legacy-Sections markiert
+
+---
+ src/pages/MyBasisProfile.jsx | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/pages/MyBasisProfile.jsx b/src/pages/MyBasisProfile.jsx
+index 69424ce..84e4143 100644
+--- a/src/pages/MyBasisProfile.jsx
++++ b/src/pages/MyBasisProfile.jsx
+@@ -390,6 +390,7 @@ function MeinProfilHeader({ profile, isTalentView = false, onSettings, onBell =
+ // ══════════════════════════════════════════════════════════════
+ // ÜBER DICH — Inline text editor with char counter
+ // ══════════════════════════════════════════════════════════════
++// @LEGACY F.7D: ersetzt durch AboutSection (kanonisch)
+ function UeberDich({ bio, onChange }) {
+   const [editing, setEditing] = useState(false);
+   const [draft,   setDraft]   = useState(bio || "");
+@@ -535,6 +536,7 @@ function InteressenSection({ interests, onChange }) {
+ // ══════════════════════════════════════════════════════════════
+ // MOMENTE — Editable cinematic thumbnails
+ // ══════════════════════════════════════════════════════════════
++// @LEGACY F.7D: ersetzt durch MomentsSection (kanonisch)
+ function MomenteSection({ moments, onChange }) {
+   const [uploading, setUploading] = useState(false);
+   const fileInputRef = useRef(null);
+@@ -732,6 +734,7 @@ function OffenFuerSection({ openFor, onChange }) {
+ // ══════════════════════════════════════════════════════════════
+ // SICHTBARKEIT — 3-option toggle
+ // ══════════════════════════════════════════════════════════════
++// @LEGACY F.7D: ersetzt durch VisibilitySection (kanonisch)
+ function SichtbarkeitSection({ visibility, onChange }) {
+   return (
+     <div style={{ padding:`0 ${T.px}px` }}>
+@@ -771,6 +774,7 @@ function SichtbarkeitSection({ visibility, onChange }) {
+ // BIO EDIT MODAL — "Über mich" bearbeiten
+ // ══════════════════════════════════════════════════════════════
+ const MAX_BIO = 500;
++// @LEGACY F.7D: Bio-Bearbeitung jetzt in AboutSection
+ function BioEditModal({ bio = "", onClose = () => {}, onSave = () => {} }) {
+   const [draft,  setDraft]  = useState(bio);
+   const [saving, setSaving] = useState(false);
+@@ -1772,6 +1776,7 @@ const TALENT_KATEGORIEN = [
+   {icon:"🖼️", label:"Auftragskunst"},{icon:"🎁", label:"Weitere Angebote"},
+ ];
+ 
++// @LEGACY F.7D: ersetzt durch TalentSection (kanonisch)
+ function MeineTalenteSection({ skills, onChange }) {
+   const [showEdit, setShowEdit] = React.useState(false);
+   const current = Array.isArray(skills) ? skills : [];
+@@ -2176,6 +2181,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
+   );
+ }
+ 
++// @LEGACY F.7D: ersetzt durch RecommendationsSection (kanonisch)
+ function KundenstimmenSection({ recommendations, onEdit }) {
+   return (
+     <div style={{ padding:`0 ${T.px}px` }}>
+@@ -2228,6 +2234,7 @@ function KundenstimmenSection({ recommendations, onEdit }) {
+   );
+ }
+ 
++// @LEGACY F.7D: ersetzt durch AvailabilitySection + LocationSection (kanonisch)
+ function VerfuegbarkeitStandortRow({ profile, onSave }) {
+   const [editLoc,   setEditLoc]   = React.useState(false);
+   const [editAvail, setEditAvail] = React.useState(false);   // Sprint F.3A.1 — war fehlendes State
+-- 
+2.39.5
+
