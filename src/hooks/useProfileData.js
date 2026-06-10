@@ -10,7 +10,7 @@
 //   Avatar  → profiles.avatar_url        (wirker_profiles.avatar_url  REDUNDANT)
 //   Cover   → profiles.header_img        (wirker_profiles.header_img  REDUNDANT)
 //   Skills  → profiles.skills            (PRIMARY)
-//   Cats    → wirker_profiles.categories (MERGE-QUELLE, nicht Ersatz)
+//   Cats    → wirker_profiles.categories (Wirker-Feature — NICHT in skills_final)
 //   Standort→ wirker_profiles.location_label > profiles.location
 // ══════════════════════════════════════════════════════════════════════
 
@@ -82,7 +82,7 @@ function normalizeSkills(skills) {
  *
  * Lädt alle Profildaten zentral. Gibt normalisierte Daten zurück inkl.:
  *   profile.location_final  — wirker_profiles.location_label > profiles.location
- *   profile.skills_final    — Merge aus wirker_profiles.categories + profiles.skills
+ *   profile.skills_final    — normalizeSkills(profiles.skills) — einzige Wahrheitsquelle
  *   profile.avatar_url      — immer aus profiles (Single Source of Truth)
  *   profile.header_img      — immer aus profiles (Single Source of Truth)
  *
@@ -210,11 +210,10 @@ export function useProfileData(profileId) {
       // wirker_profiles.location_label ist Legacy und wird NICHT mehr bevorzugt
       const location_final = (raw.location || "").trim();
 
-      // skills_final: Merge aus wirker_profiles.categories + profiles.skills
-      // Duplikate werden entfernt (case-insensitive)
-      const cats_normalized   = normalizeCats(wp?.categories);
-      const skills_normalized = normalizeSkills(raw.skills);
-      const skills_final      = mergeUnique(cats_normalized, skills_normalized);
+      // skills_final: profiles.skills (einzige Wahrheitsquelle — Sprint F.3C)
+      // wirker_profiles.categories ist ein separates Wirker-Feature und fließt
+      // NICHT mehr in skills_final ein — kein categories-Merge
+      const skills_final = normalizeSkills(raw.skills);
 
       // Normalisiertes Profil-Objekt
       // HINWEIS: avatar_url + header_img kommen AUSSCHLIESSLICH aus profiles

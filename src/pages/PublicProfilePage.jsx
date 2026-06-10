@@ -1144,7 +1144,7 @@ export default function PublicProfilePage({ profileId, onClose }) {
         <Gap h={20}/>
 
         {/* 6. Werte & Interessen */}
-        <WerteSection interests={profile?.skills}/>
+        <WerteSection interests={profile?.skills_final ?? profile?.skills}/> {/* Sprint F.3C */}
 
         <Gap h={52}/>
       </div>

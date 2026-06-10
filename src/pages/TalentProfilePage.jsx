@@ -1913,6 +1913,23 @@ export default function TalentProfilePage({ profileId, onClose }) {
     reload();
   }, [user?.id, reload]);
 
+  // Talente/Skills — schreibt direkt in profiles.skills (Sprint F.3C — einzige Wahrheitsquelle)
+  // labels: string[] — z.B. ["Malerei", "Fotografie"]
+  // Debounced reload: mehrere schnelle Toggle-Klicks = nur ein reload am Ende
+  const _skillsReloadTimer = React.useRef(null);
+  const handleSkillsChange = useCallback(async (labels) => {
+    if (!user?.id) return;
+    // Optimistisches Update — sofort sichtbar ohne Warten auf reload
+    // (Profile-Objekt im Hook wird beim reload() aktualisiert)
+    const { error } = await supabase.from("profiles")
+      .update({ skills: labels, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleSkillsChange:", error.message); return; }
+    // Reload debounced: 400ms nach letztem Toggle
+    clearTimeout(_skillsReloadTimer.current);
+    _skillsReloadTimer.current = setTimeout(() => reload(), 400);
+  }, [user?.id, reload]);
+
   return (
     <div className="tpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -1985,6 +2002,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           profile={profile}
           isOwner={isOwner}
           loading={loading}
+          onChange={handleSkillsChange}
         />
         <Gap h={28}/>
 
