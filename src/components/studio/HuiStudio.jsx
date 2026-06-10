@@ -9,7 +9,8 @@ import { createPortal } from "react-dom";
 import { useHome } from "../home/HomeShell.jsx";
 import { supabase }    from "../../lib/supabaseClient.js";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
-import ImpactStimmenModal from "./ImpactStimmenModal.jsx";
+import ImpactStimmenModal  from "./ImpactStimmenModal.jsx";
+import MeineProjekteModal  from "./MeineProjekteModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1056,6 +1057,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showAmbPanel, setShowAmbPanel] = useState(false);
   const [showMyRec,   setShowMyRec]   = useState(false);
   const [showImpact,  setShowImpact]  = useState(false); // Impact-Stimmen Modal
+  const [showMeineProjekte, setShowMeineProjekte] = useState(false); // Meine unterstützten Projekte
 
   const isTalent   = profile?.is_talent === true;
   const isVerified = profile?.verified  === true;
@@ -1182,7 +1184,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <StudioSection label="Impact & Stimmen">
           <StudioRow icon="🗳️" label="Impact-Stimmen"
             badge={isTalent ? "2 / Monat" : "1 / Monat"} onPress={() => setShowImpact(true)} />
-          <StudioRow icon="❤️" label="Meine unterstützten Projekte" onPress={() => {}} last />
+          <StudioRow icon="❤️" label="Meine unterstützten Projekte" onPress={() => setShowMeineProjekte(true)} last />
         </StudioSection>
         <Gap h={20}/>
 
@@ -1237,6 +1239,13 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <ImpactStimmenModal
           profile={profile}
           onClose={() => setShowImpact(false)}
+          switchTab={switchTab}
+        />
+      )}
+      {showMeineProjekte && (
+        <MeineProjekteModal
+          profile={profile}
+          onClose={() => setShowMeineProjekte(false)}
           switchTab={switchTab}
         />
       )}
