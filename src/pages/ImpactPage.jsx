@@ -1010,7 +1010,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote }) {
   const AVTS = ["https://i.pravatar.cc/28?img=1","https://i.pravatar.cc/28?img=5","https://i.pravatar.cc/28?img=12"];
 
   return (
-    <div style={{
+    <div id={`project-${p.id}`} style={{
       background:T.surfaceHi, borderRadius:24, overflow:"hidden",
       boxShadow:S.card, border:`1px solid ${T.line}`,
       animation:"ipFade 0.38s ease both", animationDelay:`${rank*0.08}s`,
