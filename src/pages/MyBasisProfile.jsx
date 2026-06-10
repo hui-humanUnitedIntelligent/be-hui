@@ -1269,6 +1269,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <ErlebnisseSection
               experiences={experiences}
               onErlebnisWizard={() => { setEditingExp(null); setShowExpWizard(true); }}
+              onDeleteErlebnis={(id) => setExperiences(prev => prev.filter(e => e.id !== id))}
             />
             <Gap h={24}/>
 
