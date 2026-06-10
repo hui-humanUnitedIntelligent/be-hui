@@ -15,6 +15,8 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 import { useProfileData } from "../../hooks/useProfileData.js";
 import { useProfileId } from "../../hooks/useProfileId.js";
 import SupportFlow from "../../components/economy/SupportFlow.jsx";
+import { supabase } from "../../lib/supabaseClient.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
 
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
@@ -114,6 +116,62 @@ function MsgBtn({ onChat }) {
     </button>
   );
 }
+// ── useWatchlist: echte DB-Persistenz (Sprint F.9A) ─────────────────
+function useWatchlist(profileId, currentUserId) {
+  const [watching,    setWatching]    = React.useState(false);
+  const [loading,     setLoading]     = React.useState(true);
+  const [running,     setRunning]     = React.useState(false);
+
+  React.useEffect(() => {
+    if (!profileId || !currentUserId || profileId === currentUserId) {
+      setWatching(false); setLoading(false); return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("profile_watchlist")
+          .select("id")
+          .eq("watcher_id", currentUserId)
+          .eq("profile_id", profileId)
+          .maybeSingle();
+        if (!cancelled) setWatching(!!data);
+      } catch (e) {
+        console.warn("[useWatchlist] load error:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [profileId, currentUserId]);
+
+  const toggle = React.useCallback(async () => {
+    if (!profileId || !currentUserId || running) return;
+    setRunning(true);
+    const next = !watching;
+    setWatching(next);
+    try {
+      if (next) {
+        await supabase.from("profile_watchlist")
+          .insert({ watcher_id: currentUserId, profile_id: profileId });
+      } else {
+        await supabase.from("profile_watchlist")
+          .delete()
+          .eq("watcher_id", currentUserId)
+          .eq("profile_id", profileId);
+      }
+    } catch (e) {
+      console.warn("[useWatchlist] toggle error:", e);
+      setWatching(!next);
+    } finally {
+      setRunning(false);
+    }
+  }, [profileId, currentUserId, watching, running]);
+
+  return { watching, loading, toggle };
+}
+
 function FollowBtn({ followed, onFollow }) {
   const { pressed, bind } = usePress();
   return (
@@ -150,10 +208,11 @@ function SupportBtn({ onSupport }) {
   );
 }
 
-function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
+function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserId }) {
   const heroActions = useHuiActions();
   const [mounted, setMounted] = useState(false);
-  const [followed, setFollowed] = useState(false);
+  // Sprint F.9A: useWatchlist ersetzt useState(false)
+  const { watching: followed, toggle: toggleFollow } = useWatchlist(profile?.id, currentUserId);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
 
   const heroImg  = safeStr(profile?.header_img, HERO_IMG_FB);
@@ -322,7 +381,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport }) {
               <BookBtn onBook={onBook}/>
               <MsgBtn onChat={onChat}/>
               <SupportBtn onSupport={onSupport}/>
-              <FollowBtn followed={followed} onFollow={()=>setFollowed(f=>!f)}/>
+              <FollowBtn followed={followed} onFollow={toggleFollow}/>
             </div>
           </div>
 
@@ -413,13 +472,14 @@ function AnimCounter({ target, prefix="", suffix="" }) {
   return <span ref={el}>{prefix}{typeof v === "number" && v % 1 !== 0 ? v.toFixed(1) : Math.round(v)}{suffix}</span>;
 }
 
-function StatsStrip({ profile, followerCount = 0 }) {
+function StatsStrip({ profile, wirkerProfile, followerCount = 0 }) {
+  // Sprint F.9A: echte Daten statt Hardcoded Fallbacks (24, 4.8, 8950)
   const vals = {
-    bookings:   safeNum(profile?.bookings, 24),
+    bookings:   safeNum(wirkerProfile?.booking_count, 0),
     followers:  followerCount > 0 ? followerCount : safeNum(profile?.follower_count || profile?.followers, 0),
-    rating:     safeNum(profile?.rating || profile?.resonance_rating, 4.8),
-    traces:     safeNum(profile?.traces, 2),
-    impact_eur: safeNum(profile?.impact_eur, 8950),
+    rating:     safeNum(wirkerProfile?.rating_avg, 0),
+    traces:     0,
+    impact_eur: safeNum(profile?.impact_eur, 0),
   };
   const { ref, style } = useEntry(0);
   return (
@@ -606,15 +666,16 @@ function Sparkline({ vals = [], color = C.teal }) {
   );
 }
 
-function AboutSection({ profile, followerCount = 0 }) {
+function AboutSection({ profile, wirkerProfile, followerCount = 0 }) {
   const aboutActions = useHuiActions();
   const { ref, style } = useEntry(40);
   const name      = safeStr(profile?.display_name || profile?.name || profile?.username);
   const bio       = safeStr(profile?.bio);
-  const impact    = safeNum(profile?.impact_eur, 8950);
-  const projects  = safeNum(profile?.bookings, 24);
+  // Sprint F.9A: echte Felder statt Hardcoded Fallbacks
+  const impact    = safeNum(profile?.impact_eur, 0);
+  const projects  = safeNum(wirkerProfile?.booking_count, 0);
   const humans    = followerCount > 0 ? followerCount : safeNum(profile?.follower_count || profile?.followers, 0);
-  const rating    = safeNum(profile?.resonance_rating, 4.8);
+  const rating    = safeNum(wirkerProfile?.rating_avg, 0);
   const spark     = [300,520,440,810,700,980,760,1200,940,1350,1100,impact];
   const vidImg    = safeStr(profile?.header_img);
 
@@ -944,11 +1005,15 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
   const { profileId, loading: idLoading, error: idError } = useProfileId(rawId);
 
   const actions = useHuiActions();
+  // Sprint F.9A: currentUserId für echtes Follow-System
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.id ?? null;
 
   // ── SCHRITT 3: Daten laden via useProfileData ─────────────────
   // isOwner=false: WirkerProfilePage zeigt immer fremde Profile (VISITOR VIEW)
   const {
     profile,
+    wirkerProfile,
     works,
     experiences,
     recommendations,
@@ -1041,10 +1106,10 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
         ::-webkit-scrollbar{display:none}
       `}</style>
 
-      <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport}/>
-      <StatsStrip    profile={profile} followerCount={followCounts?.followers ?? 0}/>
+      <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport} currentUserId={currentUserId}/>
+      <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
       <VisitorExperiences experiences={experiences} onBook={handleBook}/>
-      <AboutSection  profile={profile} followerCount={followCounts?.followers ?? 0}/>
+      <AboutSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
       <MomentsSection moments={moments || []}/>
       <ResonanceCommunity community={null}/>
       <FooterValues/>

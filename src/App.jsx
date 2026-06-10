@@ -26,7 +26,6 @@ const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
 import ImpactPage from './pages/ImpactPage'
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
-const ProfileDebugPage  = lazy(() => import('./pages/ProfileDebugPage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
@@ -43,7 +42,7 @@ export const APP_ROUTES = filterValidPages([
   createTabPage({ key:'work',      route:'/work/:id',       component:WorkDetailPage,    title:'Werk',        protectedRoute:true,  preload:false }),
   createTabPage({ key:'profile',   route:'/profile/:username', component:WirkerProfilePage, title:'Profil',  protectedRoute:true,  preload:false }),
   createTabPage({ key:'admin',     route:'/Admin',          component:Admin,             title:'Admin',       protectedRoute:true,  preload:false }),
-  createTabPage({ key:'diagnose',  route:'/diagnose',       component:DiagnosePage,      title:'Diagnose',    protectedRoute:false, preload:false }),
+  createTabPage({ key:'diagnose',  route:'/diagnose',       component:DiagnosePage,      title:'Diagnose',    protectedRoute:true,  preload:false }),
   createTabPage({ key:'dashboard', route:'/dashboard',      component:PlatformDashboard, title:'Dashboard',   protectedRoute:true,  preload:false }),
   createTabPage({ key:'studio',    route:'/studio',         component:CreatorStudio,     title:'Studio',      protectedRoute:true,  preload:false }),
 ])
@@ -558,10 +557,7 @@ function AppRoutes() {
         }/>
 
         {/* Diagnose — LAZY (nur Dev) */}
-        <Route path="/diagnose" element={<DiagnosePage />} />
-
-        {/* Profile Debug — SPRINT D.3, temporär, READ-ONLY */}
-        <Route path="/profile-debug" element={<ProfileDebugPage />} />
+        <Route path="/diagnose" element={<ProtectedRoute><DiagnosePage /></ProtectedRoute>} />
 
         {/* Platform Dashboard — intern, Admin-only */}
         <Route path="/dashboard" element={

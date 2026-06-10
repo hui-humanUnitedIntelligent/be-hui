@@ -120,37 +120,3 @@ export const filterValidProfiles = (items = []) =>
     .map(createProfileItem)
     .filter(Boolean);
 
-/**
- * Kompatibilitäts-Bridge: ProfileItem → Legacy normalizeProfileInput Format.
- * Nur für Übergangsphase bis alle Consumer ProfileItems direkt konsumieren.
- */
-export const profileItemToLegacy = (item) => {
-  if (!item || !item.id) return null;
-  return {
-    id:                   item.id,
-    user_id:              item.id,
-    username:             item.username,
-    display_name:         item.displayName,
-    avatar_url:           item.avatar,
-    header_img:           item.banner,
-    bio:                  item.bio,
-    talent:               item.talent,
-    location_label:       item.location,
-    current_mood:         item.currentMood,
-    focus_type:           item.talent,
-    is_wirker:            item.memberType === 'wirker',
-    has_talent_profile:   item.memberType === 'wirker',
-    is_available:         item.isAvailable,
-    is_live:              item.isLive,
-    dna_tags:             item.skills,
-    hourly_rate:          item.hourlyRate,
-    followers_count:      item.stats.followers,
-    following_count:      item.stats.following,
-    works_count:          item.stats.works,
-    experiences_count:    item.stats.experiences,
-    impact_eur:           item.stats.resonance,
-    connections_count:    item.stats.connections,
-    created_at:           item.createdAt,
-    updated_at:           item.updatedAt,
-  };
-};
