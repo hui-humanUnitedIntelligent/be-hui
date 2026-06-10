@@ -5,6 +5,7 @@ import React, {
   useState, useCallback, useEffect, useMemo, useRef, createContext, useContext,
 } from "react";
 import { useAuth }        from "../../lib/AuthContext";
+import { isProfileTalent } from '../../lib/profileUtils.js';
 import { NavigatorProvider, SCREENS, useNavigateTo } from "../../core/hui.navigator.jsx";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 import { useNotifCount }  from "../../lib/AppStateContext";
@@ -74,30 +75,12 @@ export default function HomeShell({ children }) {
   useOwnPresence(user?.id);
 
   /* Talent / Membership — single source of truth from AuthContext
-   * RULE: isTalent === true ONLY when profile.is_member===true OR profile.role==="talent"
-   * OR profile.has_talent_profile===true.
-   * localStorage is ONLY a performance cache — always overridden by live profile.
+   * RULE: isProfileTalent(authProfile) — einzige Wahrheitsquelle (Sprint F.4C)
+   * Entfernt: localStorage.hui_talent, is_member, role==="creator", useMemo-Logik.
    */
-  // Phase 4C: isTalent — erweitert um membership_type + membership_active
-  const isTalent = React.useMemo(() => {
-    if (!authProfile) return localStorage.getItem("hui_talent") === "1";
-    // Phase 4C: primäre Prüfung via neue Felder
-    if (authProfile.membership_type === "talent" && authProfile.membership_active === true) return true;
-    if (authProfile.membership_type === "guardian" || authProfile.membership_type === "team") return true;
-    // Legacy Kompatibilität (bestehende Nutzer ohne Migration)
-    if (authProfile.is_member === true) return true;
-    if (authProfile.role === "talent" || authProfile.role === "wirker" || authProfile.role === "creator") return true;
-    if (authProfile.has_talent_profile === true) return true;
-    if (isMember) return true;
-    return localStorage.getItem("hui_talent") === "1";
-  }, [
-    authProfile?.membership_type,
-    authProfile?.membership_active,
-    authProfile?.is_member,
-    authProfile?.role,
-    authProfile?.has_talent_profile,
-    isMember,
-  ]);
+  // Sprint F.4C: isTalent — einzige Wahrheitsquelle: isProfileTalent()
+  // Kein useMemo mehr: isProfileTalent() ist eine pure Funktion (kein Re-render-Risk)
+  const isTalent = isProfileTalent(authProfile);
 
   // Phase 4C: Derived states — direkt aus isTalent abgeleitet
   const isBaseUser = !isTalent;

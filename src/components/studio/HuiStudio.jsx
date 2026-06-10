@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback } from "react";
+import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
 import { useHome } from "../home/HomeShell.jsx";
 import { supabase }    from "../../lib/supabaseClient.js";
@@ -1073,7 +1074,8 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showMitgliedschaftCS,  setShowMitgliedschaftCS]  = useState(false); // Mitgliedschaft Coming Soon
   const [loggingOut,            setLoggingOut]            = useState(false);
 
-  const isTalent   = profile?.is_talent === true;
+  // Sprint F.4C: einzige Wahrheitsquelle
+  const isTalent   = isProfileTalent(profile);
   const isVerified = profile?.verified  === true;
 
   useEffect(() => {

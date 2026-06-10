@@ -16,6 +16,7 @@ import React, {
   useState, useEffect, useRef, useCallback, useMemo,
 } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { isProfileTalent } from "../lib/profileUtils.js";
 import { useConnectionEngine } from "../core/HuiConnectionEngine.jsx";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
@@ -279,9 +280,8 @@ function ProfileHero({ profile, loading, onClose, onFollow, followed, onChat, on
   const uname    = s(profile?.username, "");
   const bio      = s(profile?.bio, "");
   const loc      = s(profile?.location_final || profile?.location, ""); // Sprint F.3B
-  const isTalent = !!(profile?.has_talent_profile||profile?.is_member||
-                      profile?.role==="talent"||profile?.role==="wirker"||
-                      profile?.membership_type==="talent");
+  // Sprint F.4C: einzige Wahrheitsquelle
+  const isTalent = isProfileTalent(profile);
 
   // Emotional tagline
   const tagline = useMemo(()=>{

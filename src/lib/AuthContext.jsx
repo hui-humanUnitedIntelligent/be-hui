@@ -1,5 +1,6 @@
 import React, { useMemo, createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import { isProfileTalent } from './profileUtils.js';
 import { clearMemoryStore } from "./intelligence/persistence/interactionMemoryStore.js";
 import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 
@@ -395,10 +396,11 @@ export function AuthProvider({ children }) {
                            membershipType === "creator" || membershipType === "guide" || false;
   const profileModules   = profile?.profile_modules || {};
 
-  // ── Phase 4C: Membership derived states (pre-memo, vor ctxValue berechnet) ────
-  // Single source of truth — diese States werden VOR useMemo berechnet
-  // damit sie im Memo-Value als echte Werte (nicht Getter) referenziert werden
-  const _isTalentCalc = profile?.is_talent === true;
+  // ── Phase 4C / Sprint F.4C: Membership derived states ───────────────────────
+  // EINZIGE Wahrheitsquelle: isProfileTalent() aus src/lib/profileUtils.js
+  // Entfernt: profile?.is_talent === true (direkte Prüfung), localStorage.hui_talent,
+  //           is_member, membership_type==="member", role==="creator"
+  const _isTalentCalc   = isProfileTalent(profile);
   const _isBaseUserCalc = !_isTalentCalc;
   const _canCreateCalc  = _isTalentCalc;
 

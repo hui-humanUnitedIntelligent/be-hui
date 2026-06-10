@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback } from "react";
+import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 
@@ -88,7 +89,8 @@ function VoteButton({ index, used, loading, onClick }) {
 
 // ── Haupt-Modal ─────────────────────────────────────────────────────────────
 export default function ImpactStimmenModal({ profile, onClose, switchTab = null }) {
-  const isTalent  = profile?.is_talent === true;
+  // Sprint F.4C: einzige Wahrheitsquelle
+  const isTalent  = isProfileTalent(profile);
   const maxVotes  = isTalent ? 2 : 1;
   const monthKey  = currentMonthKey();
 

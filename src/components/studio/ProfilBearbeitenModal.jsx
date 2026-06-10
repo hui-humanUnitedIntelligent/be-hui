@@ -13,6 +13,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { isProfileTalent } from "../../lib/profileUtils.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 
 // ── Design Tokens ──────────────────────────────────────────────────
@@ -54,7 +55,8 @@ const SKILLS_OPTS  = ["Gitarre","Klavier","Gesang","Fotografie","Videoschnitt","
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate }) {
   const { saveProfile, refreshProfile, user } = useAuth() || {};
-  const isTalent = profile?.is_talent === true || profile?.has_talent_profile === true;
+  // Sprint F.4C: einzige Wahrheitsquelle
+  const isTalent = isProfileTalent(profile);
 
   // ── State: Basis-Felder ──────────────────────────────────────────
   const [fullName,      setFullName]      = useState(profile?.full_name      || "");

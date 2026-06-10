@@ -1,3 +1,4 @@
+import { isProfileTalent } from "../../lib/profileUtils.js";
 // src/system/feed/unifiedNormalizer.js — HUI UNIFIED NORMALIZER (Phase 1)
 const safeStr=(v,fb)=>{if(v==null||v==="")return fb!==undefined?fb:"";return String(v).trim();};
 const safeNum=(v,fb)=>{const n=Number(v);return isNaN(n)?(fb!==undefined?fb:0):n;};
@@ -37,8 +38,7 @@ function extractAuthor(raw){
     membershipType:   safeStr(p.membership_type||p.role)||"base",
     membershipActive: safeBool(p.membership_active),
     membershipActive: !!(p.membership_active),
-    isTalent: (p.membership_type==="talent" && p.membership_active===true)
-              || p.is_wirker===true || p.has_talent_profile===true || false,
+    isTalent: isProfileTalent(p), // Sprint F.4C: einzige Wahrheitsquelle
   };
 }
 

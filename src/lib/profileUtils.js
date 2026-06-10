@@ -23,18 +23,28 @@
  */
 export function isProfileTalent(profile) {
   if (!profile) return false;
-  // 1. Primäre Wahrheit: membership_type
-  if (profile.membership_type === "talent"    ) return true;
-  if (profile.membership_type === "guardian"  ) return true;
-  if (profile.membership_type === "team"      ) return true;
-  // 2. Rollen-basiert (bestehende Nutzer)
-  if (profile.role === "talent"  ) return true;
-  if (profile.role === "wirker"  ) return true;
-  if (profile.role === "admin"   ) return true;
-  // 3. Boolean-Flag (neue Nutzer via Membership-Flow)
-  if (profile.is_talent === true ) return true;
-  // 4. Legacy-Kompatibilität
+
+  // 1. PRIMARY — membership_type + membership_active (Sprint F.4C Wahrheit)
+  //    talent / guardian / team mit aktivem membership → Talent
+  if (profile.membership_active === true) {
+    if (profile.membership_type === "talent"  ) return true;
+    if (profile.membership_type === "guardian") return true;
+    if (profile.membership_type === "team"    ) return true;
+  }
+
+  // 2. LEGACY — Rollen-basiert (bestehende Nutzer ohne Migration)
+  //    role: creator NICHT enthalten (creator ist kein Talent in HUI)
+  if (profile.role === "talent") return true;
+  if (profile.role === "wirker") return true;
+
+  // 3. LEGACY — Boolean-Flag (Nutzer über TalentOnboarding aktiviert)
+  if (profile.is_talent === true) return true;
+
+  // 4. LEGACY — has_talent_profile (ältestes Schema)
   if (profile.has_talent_profile === true) return true;
+
+  // NICHT mehr: is_member, membership_type==="member", membership_type==="guide",
+  //             localStorage.getItem("hui_talent"), role==="admin"
   return false;
 }
 

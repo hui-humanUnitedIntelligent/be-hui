@@ -180,16 +180,8 @@ function useProfileType(profileId) {
           return;
         }
 
-        // P2: Konsolidierte Talent-Erkennung — konsistent mit isProfileTalent()
-        const isTalent = !!(
-          data?.is_talent === true ||
-          data?.membership_type === "talent" ||
-          data?.membership_type === "guardian" ||
-          data?.membership_type === "team" ||
-          data?.role === "talent" ||
-          data?.role === "wirker" ||
-          data?.has_talent_profile === true
-        );
+        // Sprint F.4C: isProfileTalent() ist die einzige Wahrheitsquelle
+        const isTalent = isProfileTalent(data);
 
 
         setState({ resolved: true, isTalent, role: data?.role ?? null });
