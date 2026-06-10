@@ -718,7 +718,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           }}
           isOwner={true}
           isTalent={!!profile?.is_talent}
-          loading={loading}
+          loading={hookLoading}
           followCounts={followCounts}
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
