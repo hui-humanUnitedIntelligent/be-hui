@@ -1002,10 +1002,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
     })();
   },[]);
 
-  // ── Eigene Werke + Experiences aus Supabase laden ────────────────────────
+  // ── Eigene Werke + Experiences aus Supabase laden (mit Realtime) ──────────
   useEffect(() => {
     if (!profile?.id) return;
-    (async () => {
+    let channel;
+
+    async function loadWorksAndExps() {
       const { data: worksData } = await supabase
         .from("works")
         .select("id,title,cover_url,category,status,approval_status,rejection_reason,price,for_sale,created_at,images")
@@ -1021,7 +1023,25 @@ export default function MyBasisProfile({ onClose, profileId }) {
         .not("status", "eq", "deleted")
         .order("created_at", { ascending: false });
       if (expsData) setExperiences(expsData);
-    })();
+    }
+
+    // Initial laden
+    loadWorksAndExps();
+
+    // Realtime: wenn Admin Status ändert → sofort neu laden
+    channel = supabase
+      .channel("mbp:works-exps:" + profile.id)
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "works",
+        filter: "user_id=eq." + profile.id,
+      }, () => loadWorksAndExps())
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "experiences",
+        filter: "user_id=eq." + profile.id,
+      }, () => loadWorksAndExps())
+      .subscribe();
+
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, [profile?.id]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
