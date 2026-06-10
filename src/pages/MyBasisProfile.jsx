@@ -1011,67 +1011,70 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, [profile?.id, reload]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
+  // ── Sprint F.7D Phase 3: Explizite Save-Handler (autoSave entfernt) ─────
   const saveTimer = useRef(null);
-  const autoSave = useCallback(async (field, value) => {
-    // FIX BUG 1: userId direkt aus Auth holen wenn profile?.id noch null
-    let uid = profile?.id;
-    if (!uid) {
-      const { data: { user: au } } = await supabase.auth.getUser();
-      uid = au?.id;
-    }
-    if (!uid) { console.warn("autoSave: kein userId für Feld", field); return; }
+
+  // Gemeinsame Save-Funktion (intern, kein Debounce)
+  const _save = useCallback(async (fields) => {
+    const uid = profile?.id ?? user?.id;
+    if (!uid) return;
     setSaving(true);
     try {
       const { error: saveErr } = await supabase.from("profiles")
-        .update({ [field]: value, updated_at: new Date().toISOString() })
+        .update({ ...fields, updated_at: new Date().toISOString() })
         .eq("id", uid);
       if (saveErr) {
-        console.error("AUTO_SAVE ERROR:", field, saveErr.message, saveErr.code, JSON.stringify(saveErr));
-        setSaveErrMsg(field + ": " + saveErr.message + " [" + saveErr.code + "]");
+        setSaveErrMsg(Object.keys(fields).join(",") + ": " + saveErr.message);
         setTimeout(() => setSaveErrMsg(""), 8000);
       } else {
-        console.log("AUTO_SAVE OK:", field, value);
-        setSaveOk(true); setTimeout(()=>setSaveOk(false), 2000);
-        // AuthContext-Cache sofort mitaktualisieren
-        setAuthProfile(prev => prev ? { ...prev, [field]: value } : prev);
+        setSaveOk(true); setTimeout(() => setSaveOk(false), 2000);
+        setAuthProfile(prev => prev ? { ...prev, ...fields } : prev);
+        reload();
       }
-    } catch(e) {
-      console.error("AUTO_SAVE EXCEPTION:", field, e?.message);
+    } catch (e) {
+      console.error("SAVE ERROR:", e?.message);
     }
     setSaving(false);
-  },[profile?.id, setAuthProfile]);
+  }, [profile?.id, user?.id, setAuthProfile, reload]);
 
-  const handleBioChange = (v) => {
+  const handleBioSave = useCallback((v) => {
     setBio(v);
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(()=>autoSave("bio", v), 1200);
-  };
+    saveTimer.current = setTimeout(() => _save({ bio: v }), 1200);
+  }, [_save]);
 
-  const handleInterestsChange = (v) => {
+  // Alias für inline onChange (debounced)
+  const handleBioChange = handleBioSave;
+
+  const handleSkillsSave = useCallback((v) => {
     setInterests(v);
-    // Persistenz via skills-Spalte (ARRAY, existiert in profiles)
-    autoSave("skills", v);
-  };
+    _save({ skills: v });
+  }, [_save]);
+  const handleInterestsChange = handleSkillsSave; // Alias
 
-  const handleMomentsChange = (newItems) => {
+  const handleMomentsSave = useCallback((newItems) => {
     setMoments(newItems);
-    // Persistenz via dna_tags-Spalte (ARRAY von URL-Strings, existiert in profiles)
     const urls = newItems.map(m => m.img).filter(Boolean);
-    autoSave("dna_tags", urls);
-  };
+    _save({ dna_tags: urls });
+  }, [_save]);
+  const handleMomentsChange = handleMomentsSave; // Alias
 
-  const handleVisibilityChange = (v) => {
+  const handleVisibilitySave = useCallback((v) => {
     setVisibility(v);
-    // Persistenz via focus_type-Spalte (TEXT, existiert in profiles)
-    autoSave("focus_type", v);
-  };
+    _save({ focus_type: v });
+  }, [_save]);
+  const handleVisibilityChange = handleVisibilitySave; // Alias
 
-  const handleOpenForChange = (v) => {
+  const handleAvailabilitySave = useCallback((v) => {
     setOpenFor(v);
-    // Sprint F.3A: Verfügbarkeit in profiles.is_available persistieren
     // v.length > 0 = verfügbar (true), [] = ausgelastet (false)
-    autoSave("is_available", v.length > 0);
-  };
+    _save({ is_available: v.length > 0 });
+  }, [_save]);
+  const handleOpenForChange = handleAvailabilitySave; // Alias
+
+  const handleLocationSave = useCallback((locationStr) => {
+    _save({ location: locationStr });
+  }, [_save]);
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
