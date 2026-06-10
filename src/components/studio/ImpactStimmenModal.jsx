@@ -108,7 +108,7 @@ export default function ImpactStimmenModal({ profile, onClose }) {
     try {
       const [projRes, votesRes] = await Promise.all([
         supabase.from("impact_projects")
-          .select("id,name,icon,color,votes,status")
+          .select("id,name,icon,color,votes,status,description,website,tags,category,contact_name")
           .in("status", ["active", "voting"])
           .order("votes", { ascending: false }),
         supabase.from("impact_votes")
@@ -168,11 +168,17 @@ export default function ImpactStimmenModal({ profile, onClose }) {
     }
   };
 
-  // Zum Projekt navigieren
+  // Zum Projekt navigieren — navigiert zu /impact und scrollt via hash zum Projekt
   const goToProject = (project) => {
     if (!project?.id) return;
-    window.history.pushState({}, "", `/impact`);
+    // Hash setzen → ImpactPage kann darauf reagieren (scroll to #project-{id})
+    window.history.pushState({}, "", `/impact#project-${project.id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
+    // Kurze Verzögerung damit ImpactPage gemountet ist, dann scrollen
+    setTimeout(() => {
+      const el = document.getElementById(`project-${project.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 400);
     onClose?.();
   };
 
@@ -432,14 +438,16 @@ export default function ImpactStimmenModal({ profile, onClose }) {
                 }}>{detailProj.icon || "🌱"}</span>
               </div>
 
-              {/* Beschreibung */}
+              {/* Kurzzusammenfassung — max 500 Zeichen */}
               {detailProj.description && (
                 <div style={{
                   fontSize: 14, color: T.ink, lineHeight: 1.55,
                   marginBottom: 14, padding: "12px 14px",
                   background: "rgba(26,26,24,0.03)", borderRadius: T.r12,
                 }}>
-                  {detailProj.description}
+                  {detailProj.description.length > 500
+                    ? detailProj.description.slice(0, 497) + "…"
+                    : detailProj.description}
                 </div>
               )}
 
@@ -454,6 +462,24 @@ export default function ImpactStimmenModal({ profile, onClose }) {
                     }}>{tag}</span>
                   ))}
                 </div>
+              )}
+
+              {/* Website-Link */}
+              {detailProj.website && (
+                <a
+                  href={detailProj.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    fontSize: 12, fontWeight: 600, color: T.teal,
+                    textDecoration: "none", marginBottom: 14,
+                    padding: "8px 12px", borderRadius: T.r12,
+                    background: T.tealSoft, border: `1px solid ${T.tealMid}`,
+                  }}
+                >
+                  🔗 {detailProj.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </a>
               )}
 
               {/* Stats */}
@@ -485,7 +511,7 @@ export default function ImpactStimmenModal({ profile, onClose }) {
               {/* Buttons: Zum Projekt + Wählen */}
               <div style={{ display: "flex", gap: 10 }}>
                 <button
-                  onClick={() => { goToPool(); }}
+                  onClick={() => goToProject(detailProj)}
                   style={{
                     flex: 1, padding: "12px 10px", borderRadius: T.r12,
                     background: "rgba(26,26,24,0.06)",
