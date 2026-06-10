@@ -13,7 +13,8 @@ import ImpactStimmenModal  from "./ImpactStimmenModal.jsx";
 import MeineProjekteModal  from "./MeineProjekteModal.jsx";
 import EinAusgabenModal    from "./EinAusgabenModal.jsx";
 import StatistikenModal      from "./StatistikenModal.jsx";
-import ProfilBearbeitenModal from "./ProfilBearbeitenModal.jsx";
+import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
+import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1065,6 +1066,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showStatistiken,     setShowStatistiken]     = useState(false); // Statistiken
   const [showProfilBearbeiten, setShowProfilBearbeiten]= useState(false); // Profil bearbeiten
   const [showVerifCS,          setShowVerifCS]          = useState(false); // Verifizierung Coming Soon
+  const [showSicherheit,        setShowSicherheit]        = useState(false); // Sicherheit & Passwort
 
   const isTalent   = profile?.is_talent === true;
   const isVerified = profile?.verified  === true;
@@ -1208,6 +1210,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           <StudioRow icon="👤" label="Profil bearbeiten"  onPress={handleEditProfile} />
           <StudioRow icon="🛡️" label="Verifizierung"
             badge={isVerified ? "✓ Aktiv" : undefined} onPress={() => setShowVerifCS(true)} />
+          <StudioRow icon="🔒" label="Sicherheit & Passwort" onPress={() => setShowSicherheit(true)} />
           <StudioRow icon="👑" label="Mitgliedschaft"
             badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
             onPress={() => setShowSettings(true)} />
@@ -1378,6 +1381,12 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           </div>
         </div>,
         document.body
+      )}
+      {showSicherheit && (
+        <SicherheitPasswortModal
+          profile={profile}
+          onClose={() => setShowSicherheit(false)}
+        />
       )}
 
       {/* Settings Modal */}
