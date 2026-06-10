@@ -168,25 +168,48 @@ export default function ImpactStimmenModal({ profile, onClose }) {
     }
   };
 
-  // Zum Projekt navigieren — navigiert zu /impact und scrollt via hash zum Projekt
+  // Hilfsfunktion: navigiert zum Impact-Tab und gibt Scroll frei
+  const _navigateToImpact = (projectId = null) => {
+    // 1. Modal schließen
+    onClose?.();
+    // 2. overflow:hidden cleanup (falls irgendein Modal das gesetzt hat)
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    // 3. Route wechseln
+    const hash = projectId ? `#project-${projectId}` : "";
+    window.history.pushState({}, "", `/impact${hash}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    // 4. Scroll-Container nach Tab-Wechsel reset + zu Projekt scrollen
+    setTimeout(() => {
+      // Alle möglichen Scroll-Container resetten
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      // Scroll ganz oben starten, dann zum Projekt springen
+      window.scrollTo({ top: 0, behavior: "instant" });
+      // Alle overflow:hidden Elemente die vom Studio kommen könnten freigeben
+      document.querySelectorAll('[style*="overflow"]').forEach(el => {
+        if (el.style.overflow === "hidden" && el !== document.body) {
+          // Nicht alle anfassen — nur body-level Locks
+        }
+      });
+      if (projectId) {
+        setTimeout(() => {
+          const el = document.getElementById(`project-${projectId}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 350);
+      }
+    }, 80);
+  };
+
+  // Zum Projekt navigieren
   const goToProject = (project) => {
     if (!project?.id) return;
-    // Hash setzen → ImpactPage kann darauf reagieren (scroll to #project-{id})
-    window.history.pushState({}, "", `/impact#project-${project.id}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-    // Kurze Verzögerung damit ImpactPage gemountet ist, dann scrollen
-    setTimeout(() => {
-      const el = document.getElementById(`project-${project.id}`);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 400);
-    onClose?.();
+    _navigateToImpact(project.id);
   };
 
   // Zum Impact Pool
   const goToPool = () => {
-    window.history.pushState({}, "", `/impact`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-    onClose?.();
+    _navigateToImpact(null);
   };
 
   const usedCount   = myVotes.length;
