@@ -224,11 +224,19 @@ function useWeekStats(userId) {
 
 // ── Rejection Modal ───────────────────────────────────────────
 function RejectionDetailModal({ n, onClose }) {
-  const meta     = n.metadata || n.data || {};
-  // Admin sendet: content_title, rejection_reason (Admin.jsx rejectConfirm)
-  // Fallbacks für ältere / andere Felder
-  const werkTitle = meta.content_title || meta.werk_title || meta.title || n.title || "Dein Werk";
-  const reason    = meta.rejection_reason || meta.admin_comment || meta.review_note || n.body || "(Kein Grund angegeben)";
+  const meta  = n.metadata || n.data || {};
+  // Dynamisch je nach Typ: Werk / Erlebnis / Projekt
+  const typeMap = {
+    work_rejected:       { label:"Werk",     emoji:"🎨", hint:"Du kannst dein Werk überarbeiten und erneut einreichen." },
+    content_rejected:    { label:"Inhalt",   emoji:"📝", hint:"Du kannst den Inhalt überarbeiten und erneut einreichen." },
+    experience_rejected: { label:"Erlebnis", emoji:"🌿", hint:"Du kannst dein Erlebnis überarbeiten und erneut einreichen." },
+    project_rejected:    { label:"Projekt",  emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
+  };
+  const tm      = typeMap[n.type] || { label:"Eintrag", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
+  // Admin sendet: entry_title (Erlebnis/Projekt), werk_title (Werk), content_title (alt)
+  const entryTitle = meta.entry_title || meta.content_title || meta.werk_title || meta.title || n.title || `Dein ${tm.label}`;
+  // Admin sendet: reason (Erlebnis/Projekt), rejection_reason (Werk/alt)
+  const reason     = meta.rejection_reason || meta.reason || meta.admin_comment || meta.review_note || n.body || "(Kein Grund angegeben)";
   return (
     <div
       onClick={onClose}
@@ -246,16 +254,16 @@ function RejectionDetailModal({ n, onClose }) {
           boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
         }}
       >
-        <div style={{fontSize:28, textAlign:"center", marginBottom:8}}>🎨</div>
+        <div style={{fontSize:28, textAlign:"center", marginBottom:8}}>{tm.emoji}</div>
         <div style={{
           fontSize:16, fontWeight:700, color:"#1a1a18",
           textAlign:"center", marginBottom:4,
-        }}>{werkTitle}</div>
+        }}>{entryTitle}</div>
         <div style={{
           fontSize:11, fontWeight:700, letterSpacing:1,
           color:"rgba(26,26,24,0.35)", textAlign:"center",
           marginBottom:16, textTransform:"uppercase",
-        }}>NACHRICHT VOM ADMIN</div>
+        }}>NACHRICHT VOM ADMIN — {tm.label} ABGELEHNT</div>
         <div style={{
           background:"rgba(239,68,68,0.06)",
           border:"1.5px solid rgba(239,68,68,0.18)",
@@ -267,7 +275,7 @@ function RejectionDetailModal({ n, onClose }) {
           fontSize:12, color:"rgba(26,26,24,0.45)",
           textAlign:"center", marginBottom:20, lineHeight:1.5,
         }}>
-          Du kannst dein Werk überarbeiten und erneut einreichen.
+          {tm.hint}
         </div>
         <button
           onClick={onClose}
@@ -289,7 +297,8 @@ function NotifItem({ n, onRead }) {
   const [hov, setHov] = useState(false);
   const [showRejection, setShowRejection] = useState(false);
 
-  const isRejection = n.type === "work_rejected" || n.type === "content_rejected";
+  const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
+    || n.type === "experience_rejected" || n.type === "project_rejected";
 
   const handleClick = () => {
     if (!n.read) onRead(n.id);
