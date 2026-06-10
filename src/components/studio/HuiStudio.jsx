@@ -1050,6 +1050,7 @@ function MyRecommendationsModal({ userId, onClose }) {
 }
 
 export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
+  const { switchTab } = useHome();
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAmbPanel, setShowAmbPanel] = useState(false);
