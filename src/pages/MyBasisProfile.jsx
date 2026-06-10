@@ -1015,7 +1015,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       const { data: expsData } = await supabase
         .from("experiences")
-        .select("id,title,cover_url,category,status,price,duration,format,created_at")
+        .select("id,title,cover_url,category,status,approval_status,rejection_reason,price,duration,format,date,created_at")
         .eq("user_id", profile.id)
         .not("status", "eq", "deleted")
         .order("created_at", { ascending: false });
@@ -1966,43 +1966,87 @@ function ErlebnisseSection({ experiences, onErlebnisWizard }) {
       <SectionRow title="Erlebnisse & Projekte"
         sub="Momente, die mein Wirken zeigen."
         onEdit={() => onErlebnisWizard?.()}/>
-      <div style={{ display:"flex", gap:12, overflowX:"auto",
+      <div style={{ display:"flex", gap:10, overflowX:"auto",
         WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4 }}>
-        {experiences.map((exp, i) => (
-          <div key={exp.id || i} style={{ flexShrink:0, width:100 }}>
-            <div style={{ width:100, height:90, borderRadius:T.r12,
-              overflow:"hidden", background:"#e8e4de", marginBottom:6 }}>
+        {experiences.map((exp, i) => {
+          // ── Badge-System identisch zu Meine Werke ──────────────
+          const isApproved = exp.approval_status === "approved";
+          const isPending  = exp.approval_status === "pending" || exp.status === "pending_review";
+          const isRejected = exp.approval_status === "rejected" || exp.status === "rejected";
+          const badgeBg    = isApproved
+            ? "rgba(14,196,184,0.92)"
+            : isPending
+              ? "rgba(234,179,8,0.92)"
+              : isRejected
+                ? "rgba(255,80,80,0.92)"
+                : "rgba(14,196,184,0.92)";
+          const badgeText  = isApproved
+            ? "✅ Live"
+            : isPending
+              ? "⏳ Prüfung"
+              : isRejected
+                ? "❌ Abgelehnt"
+                : "✅ Live";
+          const borderCol  = isApproved ? "#0EC4B8" : isPending ? "#D4A800" : isRejected ? "#ff5050" : "#0EC4B8";
+          return (
+            <div key={exp.id || i}
+              onClick={() => onErlebnisWizard?.(exp)}
+              style={{
+                flexShrink:0, width:110, height:110,
+                borderRadius:T.r12, overflow:"hidden",
+                background:"#e8e4de", position:"relative", cursor:"pointer",
+                boxShadow: `0 0 0 2px ${borderCol}`,
+              }}>
               {exp.cover_url
                 ? <img src={exp.cover_url} alt={exp.title||""}
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 : <div style={{ width:"100%", height:"100%", display:"flex",
-                    alignItems:"center", justifyContent:"center", fontSize:22 }}>🎟</div>
+                    alignItems:"center", justifyContent:"center", fontSize:24 }}>🎟</div>
               }
+              {/* Status-Badge unten */}
+              <div style={{
+                position:"absolute", bottom:0, left:0, right:0,
+                background: badgeBg, backdropFilter:"blur(4px)",
+                fontSize:9, fontWeight:700, color:"#fff",
+                padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
+              }}>
+                {badgeText}
+              </div>
+              {/* Titel oben */}
+              {exp.title && (
+                <div style={{
+                  position:"absolute", top:0, left:0, right:0,
+                  background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
+                  padding:"3px 5px", whiteSpace:"nowrap",
+                  overflow:"hidden", textOverflow:"ellipsis",
+                }}>
+                  {exp.title}
+                </div>
+              )}
+              {/* Ablehnungsgrund Tooltip */}
+              {isRejected && exp.rejection_reason && (
+                <div style={{
+                  position:"absolute", top:0, left:0, right:0, bottom:0,
+                  background:"rgba(255,80,80,0.08)",
+                  pointerEvents:"none",
+                }}/>
+              )}
             </div>
-            <div style={{ fontSize:11.5, fontWeight:700, color:T.ink,
-              overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-              {exp.title || "Erlebnis"}
-            </div>
-            <div style={{ fontSize:10.5, color:T.inkFaint, marginTop:1 }}>
-              {exp.category || ""}
-            </div>
-            <div style={{ fontSize:10.5, color:T.inkFaint }}>
-              {fmtDate(exp.date || exp.created_at)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
+        {/* Hinzufügen Button */}
         <div style={{ flexShrink:0, width:80 }}>
           <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
-            width:80, height:90, borderRadius:T.r12,
+            width:80, height:110, borderRadius:T.r12,
             background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
             display:"flex", flexDirection:"column",
             alignItems:"center", justifyContent:"center", gap:4,
             cursor:"pointer", touchAction:"manipulation",
-            marginBottom:6, fontFamily:"inherit",
+            fontFamily:"inherit",
           }}>
             <span style={{ fontSize:20, color:T.inkFaint }}>+</span>
           </button>
-          <div style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", lineHeight:1.3 }}>
+          <div style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", lineHeight:1.3, marginTop:6 }}>
             Erlebnis<br/>hinzufügen
           </div>
         </div>
