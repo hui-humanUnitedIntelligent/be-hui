@@ -2051,9 +2051,9 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4 }}>
         {experiences.map((exp, i) => {
           // ── Badge-System identisch zu Meine Werke ──────────────
-          const isApproved = exp.approval_status === "approved";
-          const isPending  = exp.approval_status === "pending" || exp.status === "pending_review";
-          const isRejected = exp.approval_status === "rejected" || exp.status === "rejected";
+          const isApproved = exp.approval_status === "approved" || exp.status === "published";
+          const isPending  = !isApproved && (exp.approval_status === "pending" || exp.status === "pending_review" || exp.status === "pending");
+          const isRejected = !isApproved && !isPending && (exp.approval_status === "rejected" || exp.status === "rejected");
           const badgeBg    = isApproved
             ? "rgba(14,196,184,0.92)"
             : isPending
@@ -2117,13 +2117,28 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
                   {exp.title}
                 </div>
               )}
-              {/* Ablehnungsgrund Overlay */}
-              {isRejected && exp.rejection_reason && (
+              {/* Ablehnungsgrund Overlay + "Anpassen"-CTA */}
+              {isRejected && (
                 <div style={{
                   position:"absolute", top:0, left:0, right:0, bottom:0,
                   background:"rgba(255,80,80,0.08)",
                   pointerEvents:"none",
                 }}/>
+              )}
+              {/* Anpassen-Hinweis bei abgelehnten Erlebnissen */}
+              {isRejected && (
+                <div style={{
+                  position:"absolute", top:"50%", left:0, right:0,
+                  transform:"translateY(-50%)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  pointerEvents:"none",
+                }}>
+                  <span style={{
+                    background:"rgba(0,0,0,0.72)", color:"#fff",
+                    fontSize:8, fontWeight:700, padding:"2px 7px",
+                    borderRadius:20, letterSpacing:"0.3px",
+                  }}>✏️ Anpassen</span>
+                </div>
               )}
             </div>
           );
