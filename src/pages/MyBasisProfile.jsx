@@ -473,6 +473,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     moments:         hooksMoments,
     loading:         hookLoading,
     reload,
+    followCounts,
   } = useProfileData(user?.id);
 
   // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
