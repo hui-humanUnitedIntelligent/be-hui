@@ -12,7 +12,8 @@ import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
 import ImpactStimmenModal  from "./ImpactStimmenModal.jsx";
 import MeineProjekteModal  from "./MeineProjekteModal.jsx";
 import EinAusgabenModal    from "./EinAusgabenModal.jsx";
-import StatistikenModal    from "./StatistikenModal.jsx";
+import StatistikenModal      from "./StatistikenModal.jsx";
+import ProfilBearbeitenModal from "./ProfilBearbeitenModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1061,7 +1062,8 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showImpact,  setShowImpact]  = useState(false); // Impact-Stimmen Modal
   const [showMeineProjekte, setShowMeineProjekte] = useState(false); // Meine unterstützten Projekte
   const [showEinAusgaben,  setShowEinAusgaben]  = useState(false); // Ein-/Ausgaben Übersicht
-  const [showStatistiken,  setShowStatistiken]  = useState(false); // Statistiken
+  const [showStatistiken,     setShowStatistiken]     = useState(false); // Statistiken
+  const [showProfilBearbeiten, setShowProfilBearbeiten]= useState(false); // Profil bearbeiten
 
   const isTalent   = profile?.is_talent === true;
   const isVerified = profile?.verified  === true;
@@ -1072,8 +1074,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   }, []);
 
   const handleEditProfile = useCallback(() => {
-    if (typeof window !== "undefined")
-      window.dispatchEvent(new CustomEvent("hui:open-profile-editor"));
+    setShowProfilBearbeiten(true);
   }, []);
 
   if (!profile) return null;
@@ -1263,6 +1264,13 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <StatistikenModal
           profile={profile}
           onClose={() => setShowStatistiken(false)}
+        />
+      )}
+      {showProfilBearbeiten && (
+        <ProfilBearbeitenModal
+          profile={profile}
+          onClose={() => setShowProfilBearbeiten(false)}
+          onProfileUpdate={onProfileUpdate}
         />
       )}
 
