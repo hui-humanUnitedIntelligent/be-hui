@@ -20,6 +20,14 @@ import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
+import { supabase }   from "../lib/supabaseClient.js";
+// Sprint F.5.3: kanonische Sections
+import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
+import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
+import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
+import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
+import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
@@ -84,13 +92,6 @@ const DEFAULT_OPEN_FOR = [
   { icon:"🧘", label:"Achtsamkeit"      },
 ];
 
-const MOMENT_SEEDS = [
-  { id:"m1", img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=70" },
-  { id:"m2", img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&q=70" },
-  { id:"m3", img:"https://images.unsplash.com/photo-1490750967868-88df5691cc38?w=300&q=70" },
-  { id:"m4", img:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=300&q=70" },
-  { id:"m5", img:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=70" },
-];
 
 // ── Atoms ────────────────────────────────────────────────────────
 function Gap({ h=16 }) { return <div style={{ height:h }}/>; }
@@ -348,76 +349,7 @@ function InterestsGrid({ profile, loading }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// MOMENTE — horizontal cinematic thumbnails
-// ══════════════════════════════════════════════════════════════════
-function MomentThumb({ src, i }) {
-  const [loaded, setLoaded] = useState(false);
-  return (
-    <div className="bpp-in" style={{ ...delay(50, i),
-      flexShrink:0, width:100, height:100, borderRadius:T.r12,
-      overflow:"hidden", background:"rgba(26,26,24,0.07)", position:"relative",
-    }}>
-      {!loaded && <div className="bpp-skeleton" style={{ position:"absolute", inset:0 }}/>}
-      <img src={src} alt="" onLoad={()=>setLoaded(true)} onError={()=>setLoaded(true)}
-        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
-          opacity:loaded?1:0, transition:"opacity .5s ease" }}/>
-    </div>
-  );
-}
 
-function MomenteSection({ profile, moments = [], loading }) {
-  const [showAll, setShowAll] = useState(false);
-  // Sprint F.5.2: echte moments aus useProfileData (beitraege-Tabelle)
-  // Fallback auf MOMENT_SEEDS wenn keine echten Daten vorhanden
-  const displayMoments = moments.length > 0
-    ? moments.map((m, i) => ({ id: m.id || `m${i}`, img: m.src || m.img || "" }))
-    : MOMENT_SEEDS;
-
-  return (
-    <div style={{ padding:`0 ${T.px}px` }}>
-      {/* Section header */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Momente</div>
-        <button className="bpp-press-light" onClick={()=>setShowAll(true)} style={{
-          background:"none", border:"none", padding:0,
-          fontSize:12, color:T.teal, fontWeight:700,
-          cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-          display:"flex", alignItems:"center", gap:3,
-        }}>Alle anzeigen ›</button>
-      </div>
-
-      {/* Horizontal scroll */}
-      {loading ? (
-        <div style={{ display:"flex", gap:8 }}>
-          {[0,1,2,3,4].map(i=><Skeleton key={i} w={100} h={100} r={T.r12}/>)}
-        </div>
-      ) : (
-        <div className="bpp-hscroll" style={{ display:"flex", gap:8, paddingBottom:4 }}>
-          {displayMoments.map((m, i) => <MomentThumb key={m.id} src={m.img} i={i}/>)}
-        </div>
-      )}
-
-      {/* All moments sheet */}
-      {showAll && (
-        <Sheet onClose={()=>setShowAll(false)}>
-          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:16 }}>📸 Alle Momente</div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
-            {displayMoments.map((m, i) => (
-              <div key={m.id} style={{ aspectRatio:"1", borderRadius:T.r12, overflow:"hidden" }}>
-                <img src={m.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
-              </div>
-            ))}
-          </div>
-        </Sheet>
-      )}
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// OFFEN FÜR BEGEGNUNGEN — soft capsule row
-// ══════════════════════════════════════════════════════════════════
 function OffenFuerSection({ profile, loading }) {
   const [showMore, setShowMore] = useState(false);
   const tags = DEFAULT_OPEN_FOR;
@@ -490,65 +422,6 @@ function OffenFuerSection({ profile, loading }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// SICHTBARKEIT — lock icon + subtle text + "Mehr erfahren" pill
-// ══════════════════════════════════════════════════════════════════
-function SichtbarkeitSection({ profile, loading }) {
-  const [showSheet, setShowSheet] = useState(false);
-  const vis = s(profile?.visibility, "connections");
-  const visText = {
-    public:      "Dieses Profil ist öffentlich sichtbar.",
-    connections: "Dieses Profil ist für deine Verbindungen sichtbar.",
-    private:     "Dieses Profil ist privat.",
-  }[vis] || "Dieses Profil ist für deine Verbindungen sichtbar.";
-
-  return (
-    <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em", marginBottom:10 }}>Sichtbarkeit</div>
-      <div style={{
-        display:"flex", alignItems:"center", justifyContent:"space-between", gap:12,
-        background:T.bgCard, borderRadius:T.r16,
-        border:`1px solid ${T.border}`, padding:"14px 16px",
-        boxShadow:T.card,
-      }}>
-        {/* Left: lock + text */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0, flex:1 }}>
-          <span style={{ fontSize:15, flexShrink:0 }}>🔒</span>
-          <span style={{ fontSize:12.5, color:T.inkSoft, fontWeight:400, lineHeight:1.45 }}>
-            {visText}
-          </span>
-        </div>
-        {/* Right: "Mehr erfahren" pill */}
-        <button className="bpp-press-light" onClick={()=>setShowSheet(true)} style={{
-          display:"flex", alignItems:"center", gap:6,
-          padding:"9px 14px", borderRadius:T.r99, border:`1px solid ${T.border}`,
-          background:T.bg, fontSize:12, fontWeight:600, color:T.ink,
-          cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-          flexShrink:0, boxShadow:T.card,
-        }}>
-          <span style={{fontSize:13}}>👥</span> Mehr erfahren
-        </button>
-      </div>
-
-      {showSheet && (
-        <Sheet onClose={()=>setShowSheet(false)}>
-          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:6 }}>🔒 Sichtbarkeit</div>
-          <p style={{ fontSize:14, lineHeight:1.68, color:T.inkSoft, margin:"0 0 16px",
-            fontFamily:"-apple-system,'Georgia',serif", fontStyle:"italic" }}>
-            {visText} Du kannst die Sichtbarkeit in deinen Einstellungen anpassen.
-          </p>
-          <button className="bpp-press" onClick={()=>setShowSheet(false)} style={{
-            width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
-            background:`linear-gradient(135deg,#0EC4B8,#0DBBAF)`,
-            color:"white", fontSize:15, fontWeight:700,
-            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-            boxShadow:"0 4px 18px rgba(14,196,184,0.26)",
-          }}>Verstanden</button>
-        </Sheet>
-      )}
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════════
 // SOCIAL CONTEXT BAR — 3 soft columns: Verbindungen · Begegnungen · Momente
@@ -635,6 +508,31 @@ export default function BasisProfilePage({ profileId, onClose }) {
     setShowChat(true);
   }, [profile, setChatRecipient, setShowChat]);
 
+  // ── Sprint F.5.3: onSave-Handler (identisch zu TalentProfilePage) ──
+  const handleBioSave = useCallback(async (bio) => {
+    if (!user?.id) return;
+    await supabase.from("profiles")
+      .update({ bio, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    reload();
+  }, [user?.id, reload]);
+
+  const handleLocationSave = useCallback(async (locationStr) => {
+    if (!user?.id) return;
+    await supabase.from("profiles")
+      .update({ location: locationStr, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    reload();
+  }, [user?.id, reload]);
+
+  const handleAvailabilitySave = useCallback(async (isAvailable) => {
+    if (!user?.id) return;
+    await supabase.from("profiles")
+      .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    reload();
+  }, [user?.id, reload]);
+
   return (
     <div className="bpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -673,27 +571,72 @@ export default function BasisProfilePage({ profileId, onClose }) {
         <CinematicHero profile={profile} loading={loading}/>
         <Gap h={52}/>  {/* space for avatar overhang */}
 
-        {/* 2. Identity */}
+        {/* 2. Identity — Name, Badge, Location inline (Basis-spezifisch) */}
         <IdentitySection profile={profile} loading={loading}/>
+        <Gap h={20}/>
+
+        {/* 3. Über dich — kanonisch (Sprint F.5.3) */}
+        <AboutSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleBioSave}
+        />
         <Gap h={24}/>
 
-        {/* 3. Interests grid */}
+        {/* 4. Interessen-Grid (Basis-spezifisch, skills als Display-Tags) */}
         <InterestsGrid profile={profile} loading={loading}/>
         <Gap h={28}/>
 
-        {/* 4. Momente */}
-        <MomenteSection profile={profile} moments={moments} loading={loading}/>
+        {/* 5. Momente — kanonisch MomentsSection (Sprint F.5.3) */}
+        <MomentsSection
+          moments={moments}
+          isOwner={isOwner}
+          loading={loading}
+        />
         <Gap h={28}/>
 
-        {/* 5. Offen für Begegnungen */}
+        {/* 6. Offen für Begegnungen (Basis-spezifisch, hardcoded Tags) */}
         <OffenFuerSection profile={profile} loading={loading}/>
         <Gap h={28}/>
 
-        {/* 6. Sichtbarkeit */}
-        <SichtbarkeitSection profile={profile} loading={loading}/>
+        {/* 7. Verfügbarkeit — kanonisch (Sprint F.5.3) */}
+        <AvailabilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleAvailabilitySave}
+        />
+        <Gap h={20}/>
+
+        {/* 8. Standort — kanonisch (Sprint F.5.3) */}
+        <LocationSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleLocationSave}
+        />
+        <Gap h={20}/>
+
+        {/* 9. Sichtbarkeit — kanonisch VisibilitySection (Sprint F.5.3) */}
+        <VisibilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+        />
         <Gap h={24}/>
 
-        {/* 7. Social context bar */}
+        {/* 10. Kundenstimmen — kanonisch (Sprint F.5.3) */}
+        <RecommendationsSection
+          recommendations={recommendations}
+          isOwner={isOwner}
+          loading={loading}
+          onAddRec={null}
+          onShowAll={null}
+        />
+        <Gap h={24}/>
+
+        {/* 11. Social context bar (Basis-spezifisch, followCounts) */}
         <SocialContextBar loading={loading} followCounts={followCounts}/>
         <Gap h={24}/>
 
