@@ -4,7 +4,7 @@
 // ──────────────────────────────────────────────────────────────────────
 // Single Source of Truth für alle Profilseiten:
 //   MyBasisProfile · TalentProfilePage · BasisProfilePage
-//   WirkerProfilePage · PublicProfilePage
+//   WirkerProfilePage · TalentProfilePage · BasisProfilePage
 //
 // SINGLE SOURCE OF TRUTH (dokumentiert, noch keine Migration):
 //   Avatar  → profiles.avatar_url        (wirker_profiles.avatar_url  REDUNDANT)

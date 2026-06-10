@@ -1,7 +1,7 @@
 // src/components/home/profile/ProfileLauncher.jsx v8 — DB-basiertes Routing
 // ROUTING:
 //   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | BasisProfilePage
-//   showCreatorDashboard → MyTalentProfile | MyBasisProfile (eigenes Profil)
+//   showCreatorDashboard → MyBasisProfile (eigenes Profil — Talent-UI via isTalent)
 // ROUTING-ENTSCHEIDUNG: aus Datenbank, NICHT aus flow.state (war immer undefined)
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -128,7 +128,6 @@ function lazyWithRetry(importFn) {
 const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
-const MyTalentProfile    = lazyWithRetry(() => import("../../../pages/MyTalentProfile.jsx"));
 const MyCreatorDashboard = lazyWithRetry(() => import("../../../pages/MyCreatorDashboard.jsx"));
 
 // ── Spinner Fallback ─────────────────────────────────────────────
@@ -253,7 +252,6 @@ export default function ProfileLauncher() {
 
   // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
   // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
-  // MyTalentProfile wird NICHT mehr verwendet — verhindert Profil-Duplikate.
   if (showCreatorDashboard) {
     return (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>

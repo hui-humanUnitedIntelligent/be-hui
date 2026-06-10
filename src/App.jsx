@@ -31,7 +31,6 @@ const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
-const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
@@ -535,7 +534,7 @@ function AppRoutes() {
           <ProtectedRoute><WorkDetailPage /></ProtectedRoute>
         }/>
 
-        {/* Public Profile — LAZY (~140KB WirkerProfilePage nur bei Bedarf) */}
+        {/* /profile/:username → WirkerProfileRouteWrapper */}
         <Route path="/profile/:username" element={
           <ProtectedRoute><WirkerProfileRouteWrapper /></ProtectedRoute>
         }/>

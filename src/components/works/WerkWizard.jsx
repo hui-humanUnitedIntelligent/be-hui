@@ -517,7 +517,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     }
     console.log("[SAVE WERK] success:", saved?.id, "status:", status);
     onSaved?.(saved);
-    onSave?.(saved);   // Alias für MyBasisProfile/MyTalentProfile reload
+    onSave?.(saved);   // Alias für MyBasisProfile reload
     // Bei pending_review: kurze Bestätigung zeigen, dann schließen
     if (status === "pending_review") {
       setSaveError(null);

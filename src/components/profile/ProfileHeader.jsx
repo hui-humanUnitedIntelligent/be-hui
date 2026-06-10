@@ -9,7 +9,7 @@
 //   • ProfileHeader (lokal)   (BasisProfilePage.jsx)
 //   • ProfileHeader (extern)  (wirker-profile/components/ProfileHeader.jsx)
 //   • HeroSection             (wirker-profile/sections/HeroSection.jsx)
-//   • ProfileHero             (PublicProfilePage.jsx)
+//   • ProfileHero             (TalentProfilePage.jsx, BasisProfilePage.jsx)
 //
 // NOCH NICHT INTEGRIERT — wird in Sprint C in die Seiten eingebunden.
 // ══════════════════════════════════════════════════════════════════════
