@@ -1070,6 +1070,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showVerifCS,          setShowVerifCS]          = useState(false); // Verifizierung Coming Soon
   const [showSicherheit,        setShowSicherheit]        = useState(false); // Sicherheit & Passwort
   const [showLogoutConfirm,     setShowLogoutConfirm]     = useState(false); // Abmelden Bestätigung
+  const [showMitgliedschaftCS,  setShowMitgliedschaftCS]  = useState(false); // Mitgliedschaft Coming Soon
   const [loggingOut,            setLoggingOut]            = useState(false);
 
   const isTalent   = profile?.is_talent === true;
@@ -1396,6 +1397,86 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
               >
                 Schließen
               </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+      {showMitgliedschaftCS && createPortal(
+        <div
+          onClick={() => setShowMitgliedschaftCS(false)}
+          style={{
+            position:"fixed", inset:0, zIndex:10600,
+            background:"rgba(26,26,24,0.55)",
+            display:"flex", alignItems:"flex-end", justifyContent:"center",
+            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width:"100%", maxWidth:480,
+              background:"#F7F5F0", borderRadius:"24px 24px 0 0",
+              padding:"0 0 48px",
+              boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
+              overflow:"hidden",
+            }}
+          >
+            <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
+              <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+            </div>
+            <div style={{
+              margin:"24px 20px 0",
+              background:"linear-gradient(135deg,#1A1A18 0%,#2D2D2B 100%)",
+              borderRadius:20, padding:"36px 24px 32px",
+              textAlign:"center", position:"relative", overflow:"hidden",
+            }}>
+              <div style={{
+                position:"absolute", inset:0,
+                background:"repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(245,158,11,0.07) 18px,rgba(245,158,11,0.07) 36px)",
+                borderRadius:20,
+              }} />
+              <div style={{
+                position:"absolute", top:0, left:0, right:0, height:8,
+                background:"repeating-linear-gradient(90deg,#F59E0B 0px,#F59E0B 20px,#1A1A18 20px,#1A1A18 40px)",
+                borderRadius:"20px 20px 0 0",
+              }} />
+              <div style={{
+                width:72, height:72, borderRadius:"50%", margin:"0 auto 16px",
+                background:"rgba(245,158,11,0.15)",
+                border:"2px solid rgba(245,158,11,0.35)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:36, position:"relative",
+              }}>🚧</div>
+              <div style={{
+                fontSize:11, fontWeight:800, letterSpacing:"0.18em",
+                color:"#F59E0B", marginBottom:10, position:"relative",
+              }}>COMING SOON</div>
+              <div style={{
+                fontSize:22, fontWeight:800, color:"#FFFFFF",
+                letterSpacing:"-0.02em", marginBottom:8, position:"relative",
+              }}>Mitgliedschaft</div>
+              <div style={{
+                fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.55,
+                maxWidth:260, margin:"0 auto", position:"relative",
+              }}>
+                Hier kannst du bald deine Mitgliedschaft verwalten und upgraden. Wir arbeiten mit Hochdruck daran.
+              </div>
+              <div style={{
+                position:"absolute", bottom:0, left:0, right:0, height:8,
+                background:"repeating-linear-gradient(90deg,#1A1A18 0px,#1A1A18 20px,#F59E0B 20px,#F59E0B 40px)",
+              }} />
+            </div>
+            <div style={{ padding:"20px 20px 0" }}>
+              <button
+                onClick={() => setShowMitgliedschaftCS(false)}
+                style={{
+                  width:"100%", padding:"13px", borderRadius:14, border:"none",
+                  cursor:"pointer", background:"rgba(26,26,24,0.08)",
+                  color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight:700,
+                  fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
+                }}
+              >Schließen</button>
             </div>
           </div>
         </div>,
