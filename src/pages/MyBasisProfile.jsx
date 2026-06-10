@@ -15,6 +15,7 @@ import NotificationPanel from "../components/notifications/NotificationPanel.jsx
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
+import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio       from "../components/studio/HuiStudio.jsx";
 import WerkWizard      from "../components/works/WerkWizard.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
@@ -847,10 +848,14 @@ function BioEditModal({ bio = "", onClose = () => {}, onSave = () => {} }) {
 export default function MyBasisProfile({ onClose, profileId }) {
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
-  const setAuthProfile = _auth.setProfile ?? null;
+  const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
+  const setAuthProfile  = _auth.setProfile ?? null;
   const refreshProfile  = _auth.refreshProfile ?? null;
-  const [profile,    setProfile]    = useState(null);
-  const [loading,    setLoading]    = useState(true);
+  // Sprint F.7D Phase 1: profile + loading aus useProfileData (Hook oben)
+  // const [profile, setProfile] — ENTFERNT: kommt aus useProfileData
+  // const [loading, setLoading] — ENTFERNT: kommt aus useProfileData
+  // Für Kompatibilität mit setProfile-Calls die noch existieren:
+  const [_profileOverride, _setProfileOverride] = useState(null); // Phase 2: alle setProfile-Calls → reload()
   const [bio,        setBio]        = useState("");
   const [showBioEdit, setShowBioEdit] = useState(false);
 
@@ -959,110 +964,55 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [editingWerk,   setEditingWerk]   = useState(null);
   const [editingExp,    setEditingExp]    = useState(null);
 
+  // ── Sprint F.7D: Einheitliche Datenpipeline via useProfileData ──────────
+  // Ersetzt: eigenen Profil-Loader useEffect (Zeilen ~962-1003)
+  // Beibehaltung: Realtime-Listener für works+experiences (Regel 1)
+  const {
+    profile,
+    works:      hooksWorks,
+    experiences: hooksExps,
+    recommendations: hooksRecs,
+    moments:    hooksMoments,
+    loading:    hookLoading,  // Phase 2: lokale [loading] States werden danach entfernt
+    reload,
+  } = useProfileData(user?.id);
 
-  useEffect(()=>{
-    (async () => {
-      try {
-        const { data:{ user } } = await supabase.auth.getUser();
 
-        if (!user) { setLoading(false); return; }
-        const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,display_name,username,avatar_url,bio,has_talent_profile,is_ambassador,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,is_available,created_at,updated_at")
-          .eq("id", user.id).single();
-        if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
-        if (data) {
-          setProfile({ ...data, is_talent: data.has_talent_profile === true, is_ambassador: data.is_ambassador === true }); // fix: is_talent + is_ambassador normalisieren
-          setBio(s(data.bio));
-          // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
-          const nextInterests = Array.isArray(data.skills) ? data.skills : [];
-          setInterests(nextInterests);
-          // Momente aus dna_tags laden (ARRAY von URL-Strings, existiert in DB)
-          // dna_tags kann als JS Array ODER als Postgres-String '{url1,url2}' kommen
-          let rawTags = data.dna_tags;
-          if (typeof rawTags === "string" && rawTags.startsWith("{")) {
-            // Postgres array literal parsen: '{a,b,c}' → ['a','b','c']
-            rawTags = rawTags.slice(1, -1).split(",").map(s => s.trim()).filter(Boolean);
-          }
-          const tagArr = Array.isArray(rawTags) ? rawTags : [];
-          if (tagArr.length) {
-            const mapped = tagArr.map((url, i) => ({ id: `db_${i}`, img: url }));
-            setMoments(mapped);
-          } else {
-          }
-          // Sichtbarkeit aus focus_type laden (TEXT, existiert in DB)
-          if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
-            setVisibility(data.focus_type);
-          }
-          // Verfügbarkeit aus DB laden (profiles.is_available — Sprint F.3A)
-          // true = offen, false = ausgelastet, null/undefined = default true
-          setOpenFor(data.is_available !== false ? ["verfügbar"] : []);
-        }
-      } catch(e) { console.warn("MyBasisProfile load:", e); }
-      setLoading(false);
-    })();
-  },[]);
+  // Sprint F.7D: Profil-Loader entfernt — useProfileData(user?.id) übernimmt
+  // Alte lokale States (profile, loading) werden durch Hook-Werte ersetzt (Phase 2)
+  // dna_tags → hooksMoments bereits normalisiert durch useProfileData
+  // skills → profile.skills direkt aus useProfileData
+  // is_available → profile.is_available direkt aus useProfileData
 
-  // ── Eigene Werke + Experiences aus Supabase laden (mit Realtime) ──────────
+  // ── Sprint F.7D: Realtime-Listener (Regel 1: beibehalten, nutzt reload()) ──
+  // loadWorksAndExps() entfernt — useProfileData lädt works+experiences
+  // reload() triggert useProfileData neu → Realtime-Events bleiben wirksam
   useEffect(() => {
     if (!profile?.id) return;
     let channel;
 
-    async function loadWorksAndExps() {
-      const { data: worksData } = await supabase
-        .from("works")
-        .select("id,title,cover_url,category,status,approval_status,rejection_reason,price,for_sale,created_at,images")
-        .eq("user_id", profile.id)
-        .not("status", "eq", "deleted")
-        .order("created_at", { ascending: false });
-      if (worksData) setWorks(worksData);
-
-      const { data: expsData } = await supabase
-        .from("experiences")
-        .select("id,title,cover_url,category,status,approval_status,rejection_reason,price,duration,format,date,created_at")
-        .eq("user_id", profile.id)
-        .not("status", "eq", "deleted")
-        .order("created_at", { ascending: false });
-      if (expsData) setExperiences(expsData);
-    }
-
-    // Initial laden
-    loadWorksAndExps();
-
-    // Realtime: wenn Admin Status ändert → sofort neu laden
+    // Realtime: wenn Admin Status ändert → useProfileData neu laden
     channel = supabase
       .channel("mbp:works-exps:" + profile.id)
       .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "works",
         filter: "user_id=eq." + profile.id,
-      }, () => loadWorksAndExps())
+      }, () => reload())
       .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "experiences",
         filter: "user_id=eq." + profile.id,
-      }, () => loadWorksAndExps())
-      // Admin Hard-Delete → sofort aus Profil entfernen
+      }, () => reload())
+      // Admin Hard-Delete → sofort neu laden
       .on("postgres_changes", {
         event: "DELETE", schema: "public", table: "experiences",
-      }, (payload) => {
-        // Entferne die gelöschte Zeile sofort aus dem lokalen State
-        if (payload?.old?.id) {
-          setExperiences(prev => prev.filter(e => e.id !== payload.old.id));
-        } else {
-          loadWorksAndExps(); // Fallback: neu laden
-        }
-      })
+      }, () => reload())
       .on("postgres_changes", {
         event: "DELETE", schema: "public", table: "projects",
-      }, (payload) => {
-        if (payload?.old?.id) {
-          setExperiences(prev => prev.filter(e => e.id !== payload.old.id));
-        } else {
-          loadWorksAndExps();
-        }
-      })
+      }, () => reload())
       .subscribe();
 
     return () => { if (channel) supabase.removeChannel(channel); };
-  }, [profile?.id]);
+  }, [profile?.id, reload]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   const saveTimer = useRef(null);
