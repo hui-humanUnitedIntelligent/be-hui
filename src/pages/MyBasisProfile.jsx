@@ -390,6 +390,7 @@ function MeinProfilHeader({ profile, isTalentView = false, onSettings, onBell = 
 // ══════════════════════════════════════════════════════════════
 // ÜBER DICH — Inline text editor with char counter
 // ══════════════════════════════════════════════════════════════
+// @LEGACY F.7D: ersetzt durch AboutSection (kanonisch)
 function UeberDich({ bio, onChange }) {
   const [editing, setEditing] = useState(false);
   const [draft,   setDraft]   = useState(bio || "");
@@ -535,6 +536,7 @@ function InteressenSection({ interests, onChange }) {
 // ══════════════════════════════════════════════════════════════
 // MOMENTE — Editable cinematic thumbnails
 // ══════════════════════════════════════════════════════════════
+// @LEGACY F.7D: ersetzt durch MomentsSection (kanonisch)
 function MomenteSection({ moments, onChange }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -732,6 +734,7 @@ function OffenFuerSection({ openFor, onChange }) {
 // ══════════════════════════════════════════════════════════════
 // SICHTBARKEIT — 3-option toggle
 // ══════════════════════════════════════════════════════════════
+// @LEGACY F.7D: ersetzt durch VisibilitySection (kanonisch)
 function SichtbarkeitSection({ visibility, onChange }) {
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
@@ -771,6 +774,7 @@ function SichtbarkeitSection({ visibility, onChange }) {
 // BIO EDIT MODAL — "Über mich" bearbeiten
 // ══════════════════════════════════════════════════════════════
 const MAX_BIO = 500;
+// @LEGACY F.7D: Bio-Bearbeitung jetzt in AboutSection
 function BioEditModal({ bio = "", onClose = () => {}, onSave = () => {} }) {
   const [draft,  setDraft]  = useState(bio);
   const [saving, setSaving] = useState(false);
@@ -1772,6 +1776,7 @@ const TALENT_KATEGORIEN = [
   {icon:"🖼️", label:"Auftragskunst"},{icon:"🎁", label:"Weitere Angebote"},
 ];
 
+// @LEGACY F.7D: ersetzt durch TalentSection (kanonisch)
 function MeineTalenteSection({ skills, onChange }) {
   const [showEdit, setShowEdit] = React.useState(false);
   const current = Array.isArray(skills) ? skills : [];
@@ -2176,6 +2181,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
   );
 }
 
+// @LEGACY F.7D: ersetzt durch RecommendationsSection (kanonisch)
 function KundenstimmenSection({ recommendations, onEdit }) {
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
@@ -2228,6 +2234,7 @@ function KundenstimmenSection({ recommendations, onEdit }) {
   );
 }
 
+// @LEGACY F.7D: ersetzt durch AvailabilitySection + LocationSection (kanonisch)
 function VerfuegbarkeitStandortRow({ profile, onSave }) {
   const [editLoc,   setEditLoc]   = React.useState(false);
   const [editAvail, setEditAvail] = React.useState(false);   // Sprint F.3A.1 — war fehlendes State
