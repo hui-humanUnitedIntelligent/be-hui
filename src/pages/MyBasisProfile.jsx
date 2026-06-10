@@ -7,6 +7,11 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import {
+  FB_AVATAR,
+  resolveDisplayName, resolveLocation,
+  handleAvatarUpload, handleCoverUpload,
+} from "../lib/profileMedia.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
@@ -79,7 +84,7 @@ const a = (v) => Array.isArray(v) ? v : [];
 
 // ── Fallbacks ─────────────────────────────────────────────────
 const FB_COVER = "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80";
-const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
+const FB_AVT = FB_AVATAR; // Alias fuer FB_AVATAR aus profileMedia.js
 
 // MOMENT_SEEDS entfernt — keine Placeholder-Bilder mehr
 
@@ -158,16 +163,7 @@ function Sheet({ onClose, children, zIndex=9800 }) {
 // HEADER — "Mein Profil 🌿" + cinematic cover + floating avatar
 // ══════════════════════════════════════════════════════════════
 // ── Upload Helper ────────────────────────────────────────────────
-async function uploadProfileImage(file, userId, folder) {
-  const ext  = file.name.split(".").pop() || "jpg";
-  const path = `${folder}/${userId}/${Date.now()}.${ext}`;
-  const { error } = await supabase.storage
-    .from("media")
-    .upload(path, file, { contentType: file.type, upsert: true });
-  if (error) throw error;
-  const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
-  return publicUrl;
-}
+// uploadProfileImage(), FB_COVER, FB_AVATAR, handleAvatarUpload, handleCoverUpload aus ../lib/profileMedia.js
 
 function MeinProfilHeader({ profile, isTalentView = false, onSettings, onBell = () => {}, onStudio = () => {}, unreadCount = 0, onAvatarChange, onCoverChange }) {
   const [imgLoaded,       setImgLoaded]       = useState(false);
@@ -181,52 +177,12 @@ function MeinProfilHeader({ profile, isTalentView = false, onSettings, onBell = 
   const avatar = s(profile?.avatar_url,  FB_AVT);
   const name   = s(profile?.display_name || profile?.username);
 
-  async function handleAvatarFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarUploading(true);
-    try {
-      // Fallback: userId direkt aus Auth holen wenn profile?.id noch null
-      let uid = profile?.id;
-      if (!uid) {
-        const { data: { user: au } } = await supabase.auth.getUser();
-        uid = au?.id;
-      }
-      if (!uid) { console.warn("Avatar upload: kein userId"); setAvatarUploading(false); return; }
-      const url = await uploadProfileImage(file, uid, "avatars");
-      await supabase.from("profiles")
-        .update({ avatar_url: url, updated_at: new Date().toISOString() })
-        .eq("id", uid);
-      onAvatarChange?.(url);
-    } catch(err) {
-      // Vollständige Fehlerausgabe statt silent suppression
-      console.error("Avatar upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
-    }
-    setAvatarUploading(false);
-    e.target.value = "";
+  function handleAvatarFile(e) {
+    return handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onAvatarChange, setUploading: setAvatarUploading });
   }
 
-  async function handleCoverFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setCoverUploading(true);
-    try {
-      let uid = profile?.id;
-      if (!uid) {
-        const { data: { user: au } } = await supabase.auth.getUser();
-        uid = au?.id;
-      }
-      if (!uid) { console.warn("Cover upload: kein userId"); setCoverUploading(false); return; }
-      const url = await uploadProfileImage(file, uid, "covers");
-      await supabase.from("profiles")
-        .update({ header_img: url, updated_at: new Date().toISOString() })
-        .eq("id", uid);
-      onCoverChange?.(url);
-    } catch(err) {
-      console.error("Cover upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
-    }
-    setCoverUploading(false);
-    e.target.value = "";
+  function handleCoverFile(e) {
+    return handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onCoverChange, setUploading: setCoverUploading });
   }
 
   // Avatar: 90px Durchmesser → Hälfte = 45px überlappt die Unterkante

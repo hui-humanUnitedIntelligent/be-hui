@@ -16,10 +16,16 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import {
+  FB_COVER, FB_AVATAR,
+  sv,
+  resolveDisplayName, resolveLocation,
+  uploadProfileImage, handleAvatarUpload, handleCoverUpload,
+} from "../../lib/profileMedia.js";
 
-// Fallback-Assets
-const FB_COVER = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
-const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
+// Fallback-Assets: FB_COVER, FB_AVATAR aus profileMedia.js
+// FB_AVT-Alias fuer Rueckwaertskompatibilitaet im JSX unten
+const FB_AVT = FB_AVATAR;
 
 // Design-Tokens (inline)
 const T = {
@@ -41,20 +47,9 @@ function Sk({ w, h, r = 8 }) {
   );
 }
 
-function sv(val, fallback) {
-  return (val != null && String(val).trim() !== "") ? String(val).trim() : (fallback || "");
-}
+// sv() aus profileMedia.js importiert
 
-async function uploadProfileImage(file, userId, folder) {
-  const ext  = file.name.split(".").pop() || "jpg";
-  const path = `${folder}/${userId}/${Date.now()}.${ext}`;
-  const { error } = await supabase.storage
-    .from("media")
-    .upload(path, file, { contentType: file.type, upsert: true });
-  if (error) throw error;
-  const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
-  return publicUrl;
-}
+// uploadProfileImage() aus profileMedia.js importiert
 
 // ══════════════════════════════════════════════════════════════════════
 // ProfileHeader
@@ -86,53 +81,13 @@ export function ProfileHeader({
 
   const isTalentResolved = isTalent || profile?.is_talent === true;
 
-  const handleAvatarFile = useCallback(async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarUploading(true);
-    try {
-      let uid = profile?.id;
-      if (!uid) {
-        const { data: { user } } = await supabase.auth.getUser();
-        uid = user?.id;
-      }
-      if (!uid) return;
-      const url = await uploadProfileImage(file, uid, "avatars");
-      await supabase.from("profiles")
-        .update({ avatar_url: url, updated_at: new Date().toISOString() })
-        .eq("id", uid);
-      onEditAvatar?.(url);
-    } catch (err) {
-      console.error("[ProfileHeader] Avatar upload error:", err?.message);
-    } finally {
-      setAvatarUploading(false);
-      e.target.value = "";
-    }
-  }, [profile?.id, onEditAvatar]);
+  const handleAvatarFile = useCallback((e) =>
+    handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onEditAvatar, setUploading: setAvatarUploading }),
+  [profile?.id, onEditAvatar]);
 
-  const handleCoverFile = useCallback(async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setCoverUploading(true);
-    try {
-      let uid = profile?.id;
-      if (!uid) {
-        const { data: { user } } = await supabase.auth.getUser();
-        uid = user?.id;
-      }
-      if (!uid) return;
-      const url = await uploadProfileImage(file, uid, "covers");
-      await supabase.from("profiles")
-        .update({ header_img: url, updated_at: new Date().toISOString() })
-        .eq("id", uid);
-      onEditCover?.(url);
-    } catch (err) {
-      console.error("[ProfileHeader] Cover upload error:", err?.message);
-    } finally {
-      setCoverUploading(false);
-      e.target.value = "";
-    }
-  }, [profile?.id, onEditCover]);
+  const handleCoverFile = useCallback((e) =>
+    handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onEditCover, setUploading: setCoverUploading }),
+  [profile?.id, onEditCover]);
 
   return (
     <>
