@@ -75,7 +75,7 @@ function StudioSection({ label, children }) {
   );
 }
 
-function StudioRow({ icon, label, badge, onPress, last = false }) {
+function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
   return (
     <button className="studio-row-btn" onClick={onPress} style={{
       width:"100%", display:"flex", alignItems:"center", gap:14,
@@ -1407,6 +1407,81 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           profile={profile}
           onClose={() => setShowSicherheit(false)}
         />
+      )}
+      {showLogoutConfirm && createPortal(
+        <div
+          onClick={() => !loggingOut && setShowLogoutConfirm(false)}
+          style={{
+            position:"fixed", inset:0, zIndex:10800,
+            background:"rgba(26,26,24,0.60)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            padding:"0 24px",
+            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width:"100%", maxWidth:340,
+              background:"#FFFFFF", borderRadius:20,
+              padding:"28px 24px 20px",
+              boxShadow:"0 8px 40px rgba(26,26,24,0.22)",
+              textAlign:"center",
+            }}
+          >
+            {/* Icon */}
+            <div style={{
+              width:60, height:60, borderRadius:"50%", margin:"0 auto 16px",
+              background:"rgba(220,38,38,0.08)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:28,
+            }}>🚪</div>
+
+            <div style={{
+              fontSize:17, fontWeight:800, color:"#1A1A18",
+              letterSpacing:"-0.02em", marginBottom:8,
+            }}>
+              Abmelden?
+            </div>
+            <div style={{ fontSize:13, color:"rgba(26,26,24,0.52)", lineHeight:1.55, marginBottom:24 }}>
+              Du wirst aus deinem HUI-Account abgemeldet. Deine Daten bleiben sicher gespeichert.
+            </div>
+
+            {/* Buttons */}
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              style={{
+                width:"100%", padding:"13px", borderRadius:12, border:"none",
+                cursor: loggingOut ? "wait" : "pointer",
+                background: loggingOut ? "rgba(220,38,38,0.4)" : "#DC2626",
+                color:"#fff", fontSize:14, fontWeight:800,
+                fontFamily:"inherit", marginBottom:10,
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                transition:"background .15s",
+              }}
+            >
+              {loggingOut
+                ? <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> Wird abgemeldet…</>
+                : "🚪 Ja, abmelden"
+              }
+            </button>
+            <button
+              onClick={() => setShowLogoutConfirm(false)}
+              disabled={loggingOut}
+              style={{
+                width:"100%", padding:"13px", borderRadius:12,
+                border:"1px solid rgba(26,26,24,0.10)", cursor:"pointer",
+                background:"rgba(26,26,24,0.04)",
+                color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight:700,
+                fontFamily:"inherit",
+              }}
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Settings Modal */}
