@@ -1,8 +1,12 @@
 // src/components/profile/sections/AvailabilitySection.jsx
 // ══════════════════════════════════════════════════════════════════════
 // AVAILABILITY SECTION — Verfügbarkeit
-// Owner: Bearbeiten-Button (schaltet focus_type um)
-// Visitor: Read-only Status-Badge
+// Sprint F.3A: is_available (boolean) als einzige Wahrheitsquelle
+//   true  = offen für neue Anfragen
+//   false = momentan ausgelastet
+// Owner: Toggle — schreibt sofort in profiles.is_available via onSave(boolean)
+// Visitor: Read-only Badge
+// Daten: profile.is_available (aus useProfileData, field: profiles.is_available)
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState } from "react";
 
@@ -17,13 +21,15 @@ export function AvailabilitySection({
   profile    = null,
   isOwner    = false,
   loading    = false,
-  onSave     = null,   // (focus_type: string) => void
+  onSave     = null,   // (isAvailable: boolean) => Promise<void>
 }) {
-  const isOpen = profile?.focus_type !== "private";
+  // WAHRHEIT: profiles.is_available (boolean, default true)
+  // focus_type ist NICHT die Wahrheitsquelle für Verfügbarkeit
+  const isOpen = profile?.is_available !== false; // default true wenn nicht gesetzt
   const [saving, setSaving] = useState(false);
 
   const handleToggle = async () => {
-    const next = isOpen ? "private" : "open";
+    const next = !isOpen; // toggle
     setSaving(true);
     await onSave?.(next);
     setSaving(false);
@@ -31,8 +37,8 @@ export function AvailabilitySection({
 
   if (loading) return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{ background:T.bgCard, borderRadius:T.r16, height:80,
-        border:`1px solid ${T.border}`, boxShadow:T.card,
+      <div style={{ borderRadius:T.r16, height:80,
+        border:`1px solid ${T.border}`,
         background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
         backgroundSize:"200% 100%", animation:"ps-shimmer 1.4s ease-in-out infinite" }}/>
       <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>

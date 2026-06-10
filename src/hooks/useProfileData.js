@@ -20,7 +20,7 @@ import { supabase } from "../lib/supabaseClient.js";
 // ── Felder ────────────────────────────────────────────────────────────
 const PROFILE_SELECT =
   "id,username,display_name,bio,avatar_url,header_img," +
-  "location,skills,dna_tags," +
+  "location,skills,dna_tags,is_available," +
   "membership_type,role,has_talent_profile,focus_type," +
   "blocked,profile_modules,created_at,updated_at";
 

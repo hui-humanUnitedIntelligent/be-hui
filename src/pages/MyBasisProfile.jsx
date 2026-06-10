@@ -967,7 +967,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,display_name,username,avatar_url,bio,has_talent_profile,is_ambassador,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,created_at,updated_at")
+          .select("id,display_name,username,avatar_url,bio,has_talent_profile,is_ambassador,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,is_available,created_at,updated_at")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
         if (data) {
@@ -993,8 +993,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           if (data.focus_type && ["public","connections","private"].includes(data.focus_type)) {
             setVisibility(data.focus_type);
           }
-          // Offen für Begegnungen — interests-Spalte existiert nicht in DB, lokal verwaltet
-          setOpenFor([]);
+          // Verfügbarkeit aus DB laden (profiles.is_available — Sprint F.3A)
+          // true = offen, false = ausgelastet, null/undefined = default true
+          setOpenFor(data.is_available !== false ? ["verfügbar"] : []);
         }
       } catch(e) { console.warn("MyBasisProfile load:", e); }
       setLoading(false);
@@ -1081,7 +1082,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   const handleOpenForChange = (v) => {
     setOpenFor(v);
-    // interests-Spalte nicht sicher in DB — kein autoSave (nur lokal)
+    // Sprint F.3A: Verfügbarkeit in profiles.is_available persistieren
+    // v.length > 0 = verfügbar (true), [] = ausgelastet (false)
+    autoSave("is_available", v.length > 0);
   };
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload

@@ -1894,6 +1894,15 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const handleAvatarChange = useCallback(() => reload(), [reload]);
   const handleCoverChange  = useCallback(() => reload(), [reload]);
 
+  // Verfügbarkeit — schreibt direkt in profiles.is_available (Sprint F.3A)
+  const handleAvailabilityChange = useCallback(async (isAvailable) => {
+    if (!user?.id) return;
+    await supabase.from("profiles")
+      .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    reload(); // Profile neu laden damit UI den neuen Wert zeigt
+  }, [user?.id, reload]);
+
   return (
     <div className="tpp-root" style={{
       position:"fixed", inset:0, zIndex:9500,
@@ -2002,6 +2011,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           profile={profile}
           isOwner={isOwner}
           loading={loading}
+          onSave={handleAvailabilityChange}
         />
         <Gap h={12}/>
 
