@@ -88,7 +88,7 @@ function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
         background:"rgba(26,26,24,0.05)",
         display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
       }}>{icon}</span>
-      <span style={{ flex:1, fontSize:14, fontWeight:500, color:T.ink }}>{label}</span>
+      <span style={{ flex:1, fontSize:14, fontWeight:500, color: labelColor || T.ink }}>{label}</span>
       {badge && (
         <span style={{
           padding:"2px 9px", borderRadius:99,
