@@ -1231,6 +1231,14 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         />
       )}
 
+      {/* Impact-Stimmen Modal */}
+      {showImpact && (
+        <ImpactStimmenModal
+          profile={profile}
+          onClose={() => setShowImpact(false)}
+        />
+      )}
+
       {/* Settings Modal */}
       {showSettings && (
         <SettingsModal
