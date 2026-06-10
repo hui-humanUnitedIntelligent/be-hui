@@ -1,6 +1,6 @@
 // src/pages/wirker-profile/index.jsx — Phase 24 VISITOR VIEW
 // "Entering another human's creative universe"
-// Layout: Hero → Stats Strip → Experiences → About+Wirkung → Moments → Community → Footer Values
+// Layout: Hero → Stats Strip → ExperiencesSection → WirkungSection → MomentsSection → Community → Footer Values
 
 import React, {
   useState, useEffect, useRef, useCallback, useMemo,
@@ -18,6 +18,7 @@ import SupportFlow from "../../components/economy/SupportFlow.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 
+import { ExperiencesSection } from "../../components/profile/sections/ExperiencesSection.jsx";
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
 const R  = HUI.RADIUS;
@@ -519,130 +520,7 @@ function StatsStrip({ profile, wirkerProfile, followerCount = 0 }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 3. EXPERIENCES — Airbnb editorial
-// ═══════════════════════════════════════════════════════════════
-const SEED_EXP = [
-  {
-    id:"e1",tag:"Beliebt",tagColor:"#6366F1",
-    title:"Atelier Workshop",sub:"Kreative Natur erleben",
-    dur:"4 Std.",spots:"6 Plätze",price:129,
-    img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&q=80",
-  },
-  {
-    id:"e2",tag:"Nur 2 frei",tagColor:C.coral,
-    title:"1:1 Mentoring",sub:"Dein kreativer Flow",
-    dur:"60 Min.",spots:"1:1 Session",price:149,
-    img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500&q=80",
-  },
-  {
-    id:"e3",tag:"Beliebt",tagColor:"#6366F1",
-    title:"Natur Retreat",sub:"Wald. Stille. Verbundenheit.",
-    dur:"3 Tage",spots:"8 Plätze",price:499,
-    img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=500&q=80",
-  },
-  {
-    id:"e4",tag:"Community",tagColor:C.teal,
-    title:"Musikabend",sub:"Klang & Verbindung",
-    dur:"2,5 Std.",spots:"30 Plätze",price:39,
-    img:"https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&q=80",
-  },
-  {
-    id:"e5",tag:"Neu",tagColor:"#F59E0B",
-    title:"Community Dinner",sub:"Echte Begegnungen",
-    dur:"3 Std.",spots:"12 Plätze",price:59,
-    img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=500&q=80",
-  },
-];
-
-function ExpCard({ exp, onBook }) {
-  const { pressed, bind } = usePress();
-  return (
-    <div {...bind} style={{
-      flexShrink:0,width:164,
-      borderRadius:R.md,overflow:"hidden",
-      background:"white",
-      boxShadow: pressed ? Sh.xs : Sh.sm,
-      border:"1px solid rgba(0,0,0,.05)",
-      cursor:"pointer",touchAction:"manipulation",
-      opacity:pressed?0.78:1,
-      transition:"transform .15s ease,box-shadow .15s ease",
-    }}>
-      <div style={{height:120,overflow:"hidden",position:"relative",background:C.creamWarm}}>
-        <img src={exp.img} alt={exp.title}
-          style={{width:"100%",height:"100%",objectFit:"cover"}}
-          onError={e=>{e.target.style.display="none";}}/>
-        <div style={{
-          position:"absolute",inset:0,
-          background:"linear-gradient(to top,rgba(0,0,0,.32) 0%,transparent 55%)",
-        }}/>
-        <div style={{
-          position:"absolute",top:8,left:8,
-          background:exp.tagColor,color:"white",
-          fontSize:7.5,fontWeight:800,borderRadius:99,padding:"3px 7px",letterSpacing:".03em",
-        }}>{exp.tag}</div>
-      </div>
-      <div style={{padding:"10px 11px 12px"}}>
-        <div style={{fontSize:12,fontWeight:800,color:C.ink,letterSpacing:"-.02em",marginBottom:2}}>
-          {exp.title}
-        </div>
-        <div style={{fontSize:9.5,color:C.muted,marginBottom:7,fontWeight:500,lineHeight:1.3}}>
-          {exp.sub}
-        </div>
-        <div style={{display:"flex",gap:8,marginBottom:8,fontSize:8.5,color:C.muted}}>
-          <span>⏱ {exp.dur}</span>
-          <span>👤 {exp.spots}</span>
-        </div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <span style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.03em"}}>
-            €{exp.price}
-          </span>
-          <button onClick={()=>onBook?.(exp)} style={{
-            background:"none",border:"none",padding:0,
-            fontSize:9.5,fontWeight:700,color:C.teal,cursor:"pointer",
-            touchAction:"manipulation",
-          }}>Mehr erfahren →</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function VisitorExperiences({ experiences, onBook }) {
-  const expActions = useHuiActions();
-  const { ref, style } = useEntry(60);
-  const items = safeArr(experiences).length ? safeArr(experiences) : SEED_EXP;
-  return (
-    <div ref={ref} style={{ ...style, width:"100%", background:"white", padding:"22px 0 18px" }}>
-      <div style={{
-        padding:"0 18px 14px",
-        display:"flex",justifyContent:"space-between",alignItems:"baseline",
-      }}>
-        <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
-          Erlebnisse & Angebote
-        </div>
-        <button
-          onClick={() => expActions[A.OPEN_EXPERIENCE]?.({ view: "alle", creatorId: null })}
-          style={{
-            background:"none",border:"none",padding:0,
-            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
-            whiteSpace:"nowrap",touchAction:"manipulation",fontFamily:"inherit",
-          }}>
-          Alle Erlebnisse anzeigen →
-        </button>
-      </div>
-      <div style={{
-        display:"flex",gap:10,overflowX:"auto",scrollbarWidth:"none",
-        padding:"3px 18px 6px",WebkitOverflowScrolling:"touch",
-      }}>
-        {items.map(e=><ExpCard key={e.id} exp={e} onBook={onBook}/>)}
-        <div style={{flexShrink:0,width:6}}/>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 4. ABOUT + WIRKUNG — editorial two-column
+// 4. WIRKUNG — Creator Impact + Bio (WirkungSection)
 // ═══════════════════════════════════════════════════════════════
 function Sparkline({ vals = [], color = C.teal }) {
   const safe = vals.filter(n => typeof n === "number" && isFinite(n));
@@ -666,7 +544,7 @@ function Sparkline({ vals = [], color = C.teal }) {
   );
 }
 
-function AboutSection({ profile, wirkerProfile, followerCount = 0 }) {
+function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
   const aboutActions = useHuiActions();
   const { ref, style } = useEntry(40);
   const name      = safeStr(profile?.display_name || profile?.name || profile?.username);
@@ -1108,8 +986,8 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
 
       <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport} currentUserId={currentUserId}/>
       <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
-      <VisitorExperiences experiences={experiences} onBook={handleBook}/>
-      <AboutSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
+      <ExperiencesSection experiences={experiences || []} isOwner={false} loading={loading}/>
+      <WirkungSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
       <MomentsSection moments={moments || []}/>
       <ResonanceCommunity community={null}/>
       <FooterValues/>
