@@ -103,8 +103,10 @@ export function useWirkerProfile(rawWirker) {
           ),
           safeQuery(
             supabase.from("recommendations")
-              .select("*")
-              .eq("wirker_user_id", uid)
+              .select(`id,from_user_id,to_user_id,text,result_images,is_public,created_at,
+                from_profile:profiles!recommendations_from_user_id_fkey(display_name,avatar_url)`)
+              .eq("to_user_id", uid)
+              .eq("is_public", true)
               .order("created_at", { ascending: false })
               .limit(20)
           ),

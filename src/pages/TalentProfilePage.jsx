@@ -1640,32 +1640,31 @@ function KundenstimmenPublicSection({ recommendations, loading, isOwner, onShowA
             Noch keine Empfehlungen.
           </div>
         ) : (
-                    recommendations.slice(0,4).map((rec,i) => (
+                    recommendations.slice(0,4).map((rec,i) => {
+                      const authorName   = rec.from_profile?.display_name || "Mitglied";
+                      const authorAvatar = rec.from_profile?.avatar_url   || null;
+                      return (
                       <div key={rec.id||i} style={{
                         flexShrink:0,width:210,
                         background:T.bgCard,borderRadius:T.r16,
                         border:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:T.card,
                       }}>
-                        {rec.rating > 0 && (
-                          <div style={{fontSize:11,color:"#F59E0B",marginBottom:4,letterSpacing:"1px"}}>
-                            {"★".repeat(Math.min(5,Math.round(rec.rating)))}
-                            {"☆".repeat(Math.max(0,5-Math.round(rec.rating)))}
-                          </div>
-                        )}
                         <div style={{fontSize:22,color:T.teal,marginBottom:6}}>❝</div>
                         <div style={{fontSize:13,color:T.ink,lineHeight:1.55,fontStyle:"italic",marginBottom:10}}>
                           {rec.text || ""}
                         </div>
-                        {rec.work_title && (
-                          <div style={{fontSize:10.5,color:T.inkFaint,marginBottom:6}}>
-                            zum Werk: {rec.work_title}
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          {authorAvatar && (
+                            <img src={authorAvatar} alt={authorName}
+                              style={{width:24,height:24,borderRadius:"50%",objectFit:"cover"}}/>
+                          )}
+                          <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:600}}>
+                            — {authorName}
                           </div>
-                        )}
-                        <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:600}}>
-                          — {rec.reviewer_name || "Mitglied"}
                         </div>
                       </div>
-                    ))
+                      );
+                    })
         )}
         {isOwner && (
           <div className="tpp-press" style={{

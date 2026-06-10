@@ -217,20 +217,21 @@ function RecsGrid({ recommendations }) {
           }}
         >
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-            <img
-              src={rec.recommender_avatar || `https://i.pravatar.cc/32?img=${i+1}`}
-              alt={rec.recommender_name}
-              style={{ width:28, height:28, borderRadius:"50%", objectFit:"cover" }}
-            />
+            {rec.from_profile?.avatar_url ? (
+              <img
+                src={rec.from_profile.avatar_url}
+                alt={rec.from_profile.display_name || "Mitglied"}
+                style={{ width:28, height:28, borderRadius:"50%", objectFit:"cover" }}
+              />
+            ) : (
+              <div style={{ width:28, height:28, borderRadius:"50%",
+                background:"#E5E7EB", display:"flex", alignItems:"center",
+                justifyContent:"center", fontSize:13 }}>👤</div>
+            )}
             <div>
               <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>
-                {rec.recommender_name || "Anonym"}
+                {rec.from_profile?.display_name || "Mitglied"}
               </div>
-              {rec.quality && (
-                <div style={{ fontSize:11, color:C.teal, fontWeight:600 }}>
-                  {rec.quality}
-                </div>
-              )}
             </div>
           </div>
           {rec.text && (

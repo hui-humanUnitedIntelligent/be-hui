@@ -40,7 +40,8 @@ const EXPERIENCES_SELECT =
   "visibility,format,location_text,price,duration,created_at";
 
 const RECOMMENDATIONS_SELECT =
-  "id,wirker_id,reviewer_id,reviewer_name,rating,text,work_title,created_at";
+  `id,from_user_id,to_user_id,text,result_images,is_public,created_at,
+   from_profile:profiles!recommendations_from_user_id_fkey(display_name,avatar_url)`;
 
 const MOMENTS_SELECT =
   "id,user_id,src,type,caption,created_at";
@@ -164,11 +165,12 @@ export function useProfileData(profileId) {
           .then(r => r)
           .catch(() => ({ data: [] })),
 
-        // 5. recommendations — FK: wirker_id
+        // 5. recommendations — FK: to_user_id (Sprint F.4B.2 — einzige Wahrheitsquelle)
         supabase
           .from("recommendations")
           .select(RECOMMENDATIONS_SELECT)
-          .eq("wirker_id", profileId)
+          .eq("to_user_id", profileId)
+          .eq("is_public", true)
           .order("created_at", { ascending: false })
           .limit(20)
           .then(r => r)
@@ -240,6 +242,9 @@ export function useProfileData(profileId) {
       }
       setWorks(Array.isArray(worksRes.data) ? worksRes.data : []);
       setExperiences(expsRes.data   || []);
+      if (recsRes.error) {
+        console.error("[RECOMMENDATIONS QUERY FAILED]", recsRes.error);
+      }
       setRecommendations(recsRes.data || []);
       setMoments(momentsRes.data    || []);
       setFollowCounts({

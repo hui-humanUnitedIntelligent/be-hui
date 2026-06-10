@@ -408,10 +408,8 @@ function WeiterempfehlungenCard({ recs, loading, onOpen }) {
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {preview.map((rec, i) => {
-            const author = rec.from_profile?.display_name
-              || rec.from_display_name || rec.author_name || "Unbekannt";
-            const type   = rec.collab_type || rec.type || "experience";
-            const text   = rec.text || rec.empfehlung || "";
+            const author = rec.from_profile?.display_name || "Mitglied";
+            const text   = rec.text || "";
             return (
               <div key={rec.id || i} style={{
                 padding:"12px 14px", borderRadius:T.r2,
@@ -419,7 +417,7 @@ function WeiterempfehlungenCard({ recs, loading, onOpen }) {
                 border:`1px solid ${T.teal}15`,
               }}>
                 <div style={{ fontSize:11, fontWeight:700, color:T.teal, marginBottom:4 }}>
-                  💚 {COLLAB_LABELS[type] || "Empfohlen"}
+                  💚 Empfohlen
                 </div>
                 {text && (
                   <div style={{ fontSize:13, color:T.ink2, lineHeight:1.5,
@@ -707,9 +705,10 @@ export default function MyCreatorDashboard({ onClose }) {
             .order("created_at", { ascending:false }).limit(50),
           // Empfehlungen
           supabase.from("recommendations")
-            .select(`id,text,collab_type,type,empfehlung,author_name,created_at,
-              from_profile:profiles!recommendations_from_user_id_fkey(id,display_name,avatar_url)`)
+            .select(`id,text,is_public,created_at,
+              from_profile:profiles!recommendations_from_user_id_fkey(display_name,avatar_url)`)
             .eq("to_user_id", authId)
+            .eq("is_public", true)
             .order("created_at", { ascending:false }).limit(20),
           // Verbindungen (gegenseitige Follows)
           supabase.rpc("get_follow_counts", { target_id: authId }),

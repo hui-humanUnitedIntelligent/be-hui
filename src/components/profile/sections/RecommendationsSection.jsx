@@ -94,31 +94,30 @@ export function RecommendationsSection({
         )
       ) : (
         <div className="rs-hscroll" style={{ display:"flex", gap:12, padding:`0 ${T.px}px 4px` }}>
-          {recommendations.slice(0,5).map((rec,i) => (
+          {recommendations.slice(0,5).map((rec,i) => {
+            // from_profile kommt via JOIN: profiles!recommendations_from_user_id_fkey
+            const authorName   = rec.from_profile?.display_name || "Mitglied";
+            const authorAvatar = rec.from_profile?.avatar_url   || null;
+            return (
             <div key={rec.id||i} style={{ flexShrink:0, width:210,
               background:T.bgCard, borderRadius:T.r16,
               border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card }}>
-              {rec.rating > 0 && <Stars rating={rec.rating}/>}
               <div style={{ fontSize:22, color:T.teal, marginBottom:6 }}>❝</div>
               <div style={{ fontSize:13, color:T.ink, lineHeight:1.55, fontStyle:"italic", marginBottom:10 }}>
-                {rec.text || rec.message || ""}
+                {rec.text || ""}
               </div>
-              {rec.work_title && (
-                <div style={{ fontSize:10.5, color:T.inkFaint, marginBottom:6 }}>
-                  zum Werk: {rec.work_title}
-                </div>
-              )}
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                {rec.avatar_url && (
-                  <img src={rec.avatar_url} alt="" style={{ width:24, height:24,
+                {authorAvatar && (
+                  <img src={authorAvatar} alt={authorName} style={{ width:24, height:24,
                     borderRadius:"50%", objectFit:"cover" }}/>
                 )}
                 <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:600 }}>
-                  — {rec.reviewer_name || rec.recommender_name || "Mitglied"}
+                  — {authorName}
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {/* Hinzufügen — Owner */}
           {isOwner && (

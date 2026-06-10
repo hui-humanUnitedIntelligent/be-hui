@@ -28,7 +28,7 @@ const F = {
   impactProject:'id,name,category,description,icon,color,votes,status,goal_eur,awarded_eur,month,website,tags,contact_name',
   impactRound:  'id,month,status,pool_eur,winner_project_id,voting_ends_at,distributed_at',
   impactVote:   'id,user_id,project_id,round_id,weight,created_at',
-  recommendation:'id,wirker_id,reviewer_id,reviewer_name,rating,text,work_title,booking_id,created_at',
+  recommendation:'id,from_user_id,to_user_id,text,result_images,is_public,created_at',
   membership:   'id,user_id,membership_type,status,vote_weight,started_at,expires_at',
   matchScore:   'id,user_id,target_user_id,score,categories,updated_at',
 };
@@ -539,17 +539,29 @@ export const MatchService = {
 
 // ─── RECOMMENDATIONS ─────────────────────────────────────────
 export const RecommendationService = {
-  async getByWirker(wirkerId, page = 0) {
+  // Sprint F.4B.2: wirker_id → to_user_id (einzige Wahrheitsquelle)
+  async getByUser(userId, page = 0) {
     return safeQuery(buildPage(
-      supabase.from('recommendations').select(F.recommendation)
-        .eq('wirker_id', wirkerId).order('created_at', { ascending: false }),
+      supabase.from('recommendations')
+        .select(`${F.recommendation},from_profile:profiles!recommendations_from_user_id_fkey(display_name,avatar_url)`)
+        .eq('to_user_id', userId)
+        .eq('is_public', true)
+        .order('created_at', { ascending: false }),
       page, 10
     ));
   },
 
-  async create(data) {
+  // Legacy-Alias für bestehende Aufrufer — leitet auf getByUser weiter
+  async getByWirker(userId, page = 0) {
+    return this.getByUser(userId, page);
+  },
+
+  async create(fromUserId, toUserId, text, bookingId = null) {
     return safeQuery(
-      supabase.from('recommendations').insert(data).select(F.recommendation).single()
+      supabase.from('recommendations')
+        .insert({ from_user_id: fromUserId, to_user_id: toUserId, text, booking_id: bookingId, is_public: true })
+        .select(F.recommendation)
+        .single()
     );
   },
 };

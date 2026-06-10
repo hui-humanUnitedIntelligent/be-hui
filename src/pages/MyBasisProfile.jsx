@@ -2071,7 +2071,10 @@ function KundenstimmenSection({ recommendations, onEdit }) {
             Noch keine Empfehlungen.
           </div>
         ) : (
-          recommendations.slice(0,5).map((rec, i) => (
+          recommendations.slice(0,5).map((rec, i) => {
+            const authorName   = rec.from_profile?.display_name || "Mitglied";
+            const authorAvatar = rec.from_profile?.avatar_url   || null;
+            return (
             <div key={rec.id || i} style={{
               flexShrink:0, width:200,
               background:T.bgCard, borderRadius:T.r16,
@@ -2079,19 +2082,20 @@ function KundenstimmenSection({ recommendations, onEdit }) {
             }}>
               <div style={{ fontSize:22, color:T.teal, marginBottom:6 }}>❝</div>
               <div style={{ fontSize:13, color:T.ink, lineHeight:1.55, fontStyle:"italic", marginBottom:10 }}>
-                {rec.text || rec.message || ""}
+                {rec.text || ""}
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                {rec.avatar_url && (
-                  <img src={rec.avatar_url} alt=""
+                {authorAvatar && (
+                  <img src={authorAvatar} alt={authorName}
                     style={{ width:28, height:28, borderRadius:"50%", objectFit:"cover" }}/>
                 )}
                 <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:600 }}>
-                  — {rec.recommender_name || "Mitglied"}
+                  — {authorName}
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
         <button className="mbp-press-light" onClick={onEdit} style={{
           flexShrink:0, display:"flex", alignItems:"center", gap:6,
