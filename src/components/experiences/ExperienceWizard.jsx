@@ -818,6 +818,11 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       visibility:            form.visibility          || "public",
       status,
       updated_at:            new Date().toISOString(),
+      // ── Freigabe-System (identisch zu WerkWizard) ──────────
+      last_submitted_at:     status === "pending_review" ? new Date().toISOString() : undefined,
+      is_update:             status === "pending_review" ? !!existingExp?.id : undefined,
+      approval_status:       status === "pending_review" ? "pending" : undefined,
+      rejection_reason:      status === "pending_review" ? null : undefined,
     };
 
     console.log("[EXPERIENCE PUBLISH PAYLOAD]", JSON.stringify(payload, null, 2));
