@@ -967,11 +967,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         if (!user) { setLoading(false); return; }
         const { data, error: loadErr } = await supabase.from("profiles")
-          .select("id,display_name,username,avatar_url,bio,has_talent_profile,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,created_at,updated_at")
+          .select("id,display_name,username,avatar_url,bio,has_talent_profile,is_ambassador,blocked,profile_modules,skills,dna_tags,location,header_img,focus_type,created_at,updated_at")
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
         if (data) {
-          setProfile({ ...data, is_talent: data.has_talent_profile === true }); // fix: is_talent aus has_talent_profile normalisieren
+          setProfile({ ...data, is_talent: data.has_talent_profile === true, is_ambassador: data.is_ambassador === true }); // fix: is_talent + is_ambassador normalisieren
           setBio(s(data.bio));
           // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
           const nextInterests = Array.isArray(data.skills) ? data.skills : [];
