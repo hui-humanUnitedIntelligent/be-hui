@@ -32,8 +32,12 @@ const TYPE_META = {
   content_approved:   { emoji:"✅", label:"Freigegeben" },
   content_rejected:   { emoji:"❌", label:"Abgelehnt" },
   content_pending:    { emoji:"🔍", label:"In Prüfung" },
-  work_approved:      { emoji:"✅", label:"Werk freigegeben" },
-  work_rejected:      { emoji:"❌", label:"Werk abgelehnt" },
+  work_approved:        { emoji:"✅", label:"Werk freigegeben" },
+  work_rejected:        { emoji:"❌", label:"Werk abgelehnt" },
+  experience_approved:  { emoji:"✅", label:"Erlebnis freigegeben" },
+  experience_rejected:  { emoji:"❌", label:"Erlebnis abgelehnt" },
+  project_approved:     { emoji:"✅", label:"Projekt freigegeben" },
+  project_rejected:     { emoji:"❌", label:"Projekt abgelehnt" },
   admin_broadcast:    { emoji:"📣", label:"HUI Team" },
   default:            { emoji:"🔔", label:"Benachrichtigung" },
 };
@@ -145,7 +149,8 @@ return (
 function NotifCard({ n, meta, onRead, onAction = () => {} }) {
 const [showModal, setShowModal] = React.useState(false);
 
-const isRejection = n.type === "work_rejected" || n.type === "content_rejected";
+const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
+  || n.type === "experience_rejected" || n.type === "project_rejected";
 
 const handleCardClick = () => {
   if (!n.is_read) onRead?.(n.id);
