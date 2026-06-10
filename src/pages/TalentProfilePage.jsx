@@ -445,7 +445,7 @@ function CinematicHero({ profile, loading }) {
   const cover  = s(profile?.header_img, FB_COVER);
   const avatar = s(profile?.avatar_url, FB_AVT);
   const name   = s(profile?.display_name || profile?.username, "Kreative·r");
-  const loc    = s(profile?.location, "");
+  const loc    = s(profile?.location_final || profile?.location, ""); // Sprint F.3B — location_final bevorzugt
   const bio    = s(profile?.bio, "");
 
   return (
@@ -1690,8 +1690,9 @@ function KundenstimmenPublicSection({ recommendations, loading, isOwner, onShowA
 function VerfuegbarkeitStandortPublic({ profile, wirkerProfile, loading }) {
   if (loading) return null;
   const isOpen = profile?.focus_type !== "private";
-  // wirker_profiles.location_label PRIMARY — profiles.location FALLBACK
-  const loc = wirkerProfile?.location_label || profile?.location || "";
+  // Sprint F.3B: profiles.location ist einzige Wahrheitsquelle
+  // wirker_profiles.location_label ist Legacy — wird nicht mehr bevorzugt
+  const loc = (profile?.location_final || profile?.location || "");
   return (
     <div style={{padding:`0 ${T.px}px`}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -1900,7 +1901,16 @@ export default function TalentProfilePage({ profileId, onClose }) {
     await supabase.from("profiles")
       .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
       .eq("id", user.id);
-    reload(); // Profile neu laden damit UI den neuen Wert zeigt
+    reload();
+  }, [user?.id, reload]);
+
+  // Standort — schreibt direkt in profiles.location (Sprint F.3B — einzige Wahrheitsquelle)
+  const handleLocationChange = useCallback(async (locationStr) => {
+    if (!user?.id) return;
+    await supabase.from("profiles")
+      .update({ location: locationStr, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    reload();
   }, [user?.id, reload]);
 
   return (
@@ -2020,6 +2030,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           profile={profile}
           isOwner={isOwner}
           loading={loading}
+          onSave={handleLocationChange}
         />
         <Gap h={12}/>
 

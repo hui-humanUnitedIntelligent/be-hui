@@ -278,7 +278,7 @@ function ProfileHero({ profile, loading, onClose, onFollow, followed, onChat, on
   const name     = s(profile?.display_name||profile?.username, "Unbekannt");
   const uname    = s(profile?.username, "");
   const bio      = s(profile?.bio, "");
-  const loc      = s(profile?.location, "");
+  const loc      = s(profile?.location_final || profile?.location, ""); // Sprint F.3B
   const isTalent = !!(profile?.has_talent_profile||profile?.is_member||
                       profile?.role==="talent"||profile?.role==="wirker"||
                       profile?.membership_type==="talent");

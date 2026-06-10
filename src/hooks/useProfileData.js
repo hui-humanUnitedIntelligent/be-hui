@@ -206,11 +206,9 @@ export function useProfileData(profileId) {
 
       // ── Normalisierung ────────────────────────────────────────────
 
-      // location_final: wirker_profiles.location_label > profiles.location
-      const location_final =
-        (wp?.location_label && wp.location_label.trim())
-          ? wp.location_label.trim()
-          : (raw.location || "");
+      // location_final: profiles.location (einzige Wahrheitsquelle — Sprint F.3B)
+      // wirker_profiles.location_label ist Legacy und wird NICHT mehr bevorzugt
+      const location_final = (raw.location || "").trim();
 
       // skills_final: Merge aus wirker_profiles.categories + profiles.skills
       // Duplikate werden entfernt (case-insensitive)

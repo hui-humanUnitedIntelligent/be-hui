@@ -63,7 +63,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [bio,           setBio]           = useState(profile?.bio             || "");
   const [tagline,       setTagline]       = useState(profile?.tagline         || "");
   const [focusType,     setFocusType]     = useState(profile?.focus_type      || "");
-  const [locationLabel, setLocationLabel] = useState(profile?.location_label  || "");
+  // Sprint F.3B: location aus profiles.location (location_label existiert nicht in profiles-Tabelle)
+  const [locationLabel, setLocationLabel] = useState(profile?.location || profile?.location_label || "");
   const [website,       setWebsite]       = useState(profile?.website         || "");
   const [skills,        setSkills]        = useState(profile?.skills          || []);
   const [dnaTags,       setDnaTags]       = useState(profile?.dna_tags        || []);
@@ -161,7 +162,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         bio:            bio.trim(),
         tagline:        tagline.trim(),
         focus_type:     focusType,
-        location_label: locationLabel.trim(),
+        location:       locationLabel.trim(), // Sprint F.3B: schreibt profiles.location (Wahrheitsquelle)
         website:        website.trim(),
         skills:         skills,
         dna_tags:       dnaTags,

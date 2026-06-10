@@ -243,7 +243,7 @@ function CinematicHero({ profile, loading }) {
 // ══════════════════════════════════════════════════════════════════
 function IdentitySection({ profile, loading }) {
   const name     = s(profile?.display_name || profile?.username, "Unbekannt");
-  const location = s(profile?.location, "");
+  const location = s(profile?.location_final || profile?.location, ""); // Sprint F.3B
   const bio      = s(profile?.bio,
     "Liebe die Natur, Musik und gute Gespräche.\nSuche echte Begegnungen und Orte,\nan denen man gemeinsam wachsen kann.");
 
@@ -624,7 +624,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
       try {
         const [profRes, fcRes] = await Promise.all([
           supabase.from("profiles")
-            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags")
+            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags,is_available,focus_type")
             .eq("id", resolvedId).single(),
           supabase.rpc("get_follow_counts", { target_id: resolvedId })
             .then(r => r).catch(() => ({ data: null })),
