@@ -1236,6 +1236,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <ImpactStimmenModal
           profile={profile}
           onClose={() => setShowImpact(false)}
+          switchTab={switchTab}
         />
       )}
 
