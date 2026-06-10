@@ -10,7 +10,6 @@ import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
-import AmbassadorSection, { AmbassadorCTA } from "../components/ambassador/AmbassadorSection.jsx";
 import NotificationPanel from "../components/notifications/NotificationPanel.jsx";
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";

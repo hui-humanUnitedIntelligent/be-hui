@@ -14,7 +14,7 @@
 //   Social context bar (Verbindungen · Begegnungen · Momente)
 // ════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
