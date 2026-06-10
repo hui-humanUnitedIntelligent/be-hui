@@ -971,7 +971,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           .eq("id", user.id).single();
         if (loadErr) console.error("Profile load error:", loadErr.message, loadErr.code, JSON.stringify(loadErr));
         if (data) {
-          setProfile(data);
+          setProfile({ ...data, is_talent: data.has_talent_profile === true }); // fix: is_talent aus has_talent_profile normalisieren
           setBio(s(data.bio));
           // Interessen aus skills-Spalte laden (ARRAY, existiert in DB)
           const nextInterests = Array.isArray(data.skills) ? data.skills : [];
