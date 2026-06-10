@@ -22,6 +22,7 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio       from "../components/studio/HuiStudio.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
 import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
+import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 import { TalentSection }         from "../components/profile/sections/TalentSection.jsx";
 import { MomentsSection }        from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
@@ -164,182 +165,6 @@ function Sheet({ onClose, children, zIndex=9800 }) {
 // ── Upload Helper ────────────────────────────────────────────────
 // uploadProfileImage(), FB_COVER, FB_AVATAR, handleAvatarUpload, handleCoverUpload aus ../lib/profileMedia.js
 
-function MeinProfilHeader({ profile, isTalentView = false, onSettings, onBell = () => {}, onStudio = () => {}, unreadCount = 0, onAvatarChange, onCoverChange }) {
-  const [imgLoaded,       setImgLoaded]       = useState(false);
-  const [avLoaded,        setAvLoaded]         = useState(false);
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [coverUploading,  setCoverUploading]  = useState(false);
-  const avatarInputRef = useRef(null);
-  const coverInputRef  = useRef(null);
-
-  const cover  = s(profile?.header_img,  FB_COVER);
-  const avatar = s(profile?.avatar_url,  FB_AVT);
-  const name   = s(profile?.display_name || profile?.username);
-
-  function handleAvatarFile(e) {
-    return handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onAvatarChange, setUploading: setAvatarUploading });
-  }
-
-  function handleCoverFile(e) {
-    return handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onCoverChange, setUploading: setCoverUploading });
-  }
-
-  // Avatar: 90px Durchmesser → Hälfte = 45px überlappt die Unterkante
-  // Cover-Wrapper hat overflow:visible damit Avatar rausragen kann
-  const AVT_SIZE = 90;
-
-  return (
-    <div style={{ width:"100%" }}>
-
-      {/* Hidden file inputs */}
-      <input ref={coverInputRef} type="file" accept="image/*"
-        style={{ display:"none" }} onChange={handleCoverFile} />
-      <input ref={avatarInputRef} type="file" accept="image/*"
-        style={{ display:"none" }} onChange={handleAvatarFile} />
-
-      {/* ── COVER + Avatar-Overlap ─────────────────────────── */}
-      {/* Cover hat overflow:visible — Avatar ragt unten raus */}
-      <div style={{
-        margin:`0 ${T.px}px`,
-        borderRadius:T.r20,
-        height:165,
-        position:"relative",
-        overflow:"visible",
-        background:"linear-gradient(160deg,#1a2e3b,#5a7a6e)",
-      }}>
-        {/* Cover-Bild (overflow:hidden nur auf dem Bild selbst) */}
-        <div style={{
-          position:"absolute", inset:0,
-          borderRadius:T.r20, overflow:"hidden",
-        }}>
-          <img
-            src={cover} alt=""
-            onLoad={()=>setImgLoaded(true)}
-            onError={()=>setImgLoaded(true)}
-            style={{
-              width:"100%", height:"100%", objectFit:"cover",
-              opacity:imgLoaded ? 1 : 0, transition:"opacity 1.1s ease",
-            }}
-          />
-          {/* sanfter Gradient unten */}
-          <div style={{
-            position:"absolute", inset:0,
-            background:"linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.18) 100%)",
-          }}/>
-        </div>
-
-
-
-        {/* Cover-Kamera oben links */}
-        <button
-          onClick={() => coverInputRef.current?.click()}
-          style={{
-            position:"absolute", top:12, left:12, zIndex:20,
-            width:30, height:30, borderRadius:"50%",
-            background:"rgba(0,0,0,0.38)", backdropFilter:"blur(6px)",
-            border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:13, cursor:"pointer", touchAction:"manipulation",
-          }}
-        >
-          {coverUploading ? "⏳" : "📷"}
-        </button>
-
-        {/* Avatar — zentriert, Hälfte überlappt Unterkante */}
-        <div style={{
-          position:"absolute",
-          bottom: -(AVT_SIZE / 2),   /* 45px unter Cover-Unterkante */
-          left:"50%",
-          transform:"translateX(-50%)",
-          zIndex:30,
-        }}>
-          <div style={{ position:"relative", width:AVT_SIZE, height:AVT_SIZE }}>
-            {/* Weißer Ring */}
-            <div style={{
-              position:"absolute", inset:-4, borderRadius:"50%",
-              background:"white",
-              boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
-            }}/>
-            {/* Teal-Ring innen */}
-            <div style={{
-              position:"absolute", inset:-2, borderRadius:"50%",
-              background:`conic-gradient(from 0deg,${T.teal},rgba(14,196,184,0.4),${T.teal})`,
-              opacity:0.9,
-            }}/>
-            {/* Avatar-Bild */}
-            <div style={{
-              position:"relative", width:AVT_SIZE, height:AVT_SIZE,
-              borderRadius:"50%", overflow:"hidden",
-              border:"3px solid white",
-              background:T.bg,
-            }}>
-              {!avLoaded && (
-                <div className="mbp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>
-              )}
-              <img
-                src={avatar} alt={name}
-                onLoad={()=>setAvLoaded(true)}
-                onError={()=>setAvLoaded(true)}
-                style={{
-                  width:"100%", height:"100%", objectFit:"cover",
-                  opacity:avLoaded ? 1 : 0, transition:"opacity .5s ease",
-                }}
-              />
-            </div>
-            {/* Kamera-Icon auf Avatar */}
-            <label style={{
-              position:"absolute", bottom:2, right:2,
-              width:26, height:26, borderRadius:"50%",
-              background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
-              border:"2px solid white",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:12, cursor:"pointer", touchAction:"manipulation",
-              boxShadow:"0 2px 8px rgba(14,196,184,0.35)",
-              zIndex:40,
-            }}>
-              <input ref={avatarInputRef} type="file" accept="image/*"
-                style={{ display:"none" }} onChange={handleAvatarFile} />
-              {avatarUploading ? "⏳" : "📷"}
-            </label>
-          </div>
-        </div>
-
-      </div>{/* /cover */}
-
-      {/* ── Name + Badge — zentriert, unterhalb Avatar ──────── */}
-      {/* paddingTop = Avatar-Hälfte (45px) + 12px Luft */}
-      <div style={{
-        paddingTop: (AVT_SIZE / 2) + 14,
-        textAlign:"center",
-        paddingBottom:4,
-      }}>
-        <div style={{
-          fontSize:22, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.03em", lineHeight:1.2,
-        }}>
-          {profile?.display_name || profile?.username || "–"}
-        </div>
-        {profile?.username && (
-          <div style={{ fontSize:12, color:T.inkFaint, marginTop:3, fontWeight:400 }}>
-            @{profile.username}
-          </div>
-        )}
-        {/* Badge */}
-        <div style={{
-          display:"inline-flex", alignItems:"center", gap:5,
-          marginTop:8,
-          background: profile?.is_talent ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
-          border:`1px solid ${profile?.is_talent ? "rgba(14,196,184,0.25)" : "rgba(14,196,184,0.15)"}`,
-          borderRadius:99, padding:"4px 12px",
-          fontSize:11, fontWeight:700, color:"#0AADA3",
-        }}>
-          <span>{profile?.is_talent ? "✨" : "🌿"}</span>
-          <span>{profile?.is_talent ? "HUI-Talent" : "HUI-Mitglied"}</span>
-        </div>
-      </div>
-
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // ÜBER DICH — Inline text editor with char counter
@@ -885,19 +710,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={12}/>
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
-        <MeinProfilHeader
+        <CanonicalProfileHeader
           profile={{
             ...profile,
             avatar_url: localAvatar || profile?.avatar_url,
             header_img: localCover  || profile?.header_img,
           }}
-          isTalentView={!!profile?.is_talent}
-          onSettings={() => setShowSettings(true)}
-          onBell={() => setShowNotifications(v => !v)}
-          onStudio={() => setShowStudio(true)}
-          unreadCount={unreadCount}
-          onAvatarChange={handleAvatarChange}
-          onCoverChange={handleCoverChange}
+          isOwner={true}
+          isTalent={!!profile?.is_talent}
+          loading={loading}
+          followCounts={followCounts}
+          onEditAvatar={handleAvatarChange}
+          onEditCover={handleCoverChange}
         />
         <Gap h={28}/>
 

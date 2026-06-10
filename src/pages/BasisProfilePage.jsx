@@ -28,6 +28,7 @@ import { AvailabilitySection }    from "../components/profile/sections/Availabil
 import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
@@ -126,7 +127,7 @@ function Sheet({ onClose, children }) {
 // ══════════════════════════════════════════════════════════════════
 // HEADER — sticky nav bar: ‹ · "Öffentliches Profil 🌿" · ···
 // ══════════════════════════════════════════════════════════════════
-function ProfileHeader({ onBack, isOwner = false, onSettings }) {
+function NavBar({ onBack, isOwner = false, onSettings }) {
   return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -178,142 +179,10 @@ function ProfileHeader({ onBack, isOwner = false, onSettings }) {
 // ══════════════════════════════════════════════════════════════════
 // CINEMATIC HERO — full-width cover + floating centered avatar
 // ══════════════════════════════════════════════════════════════════
-function CinematicHero({ profile, loading }) {
-  const [coverLoaded, setCoverLoaded] = useState(false);
-  const [avLoaded,    setAvLoaded]    = useState(false);
-  const cover  = s(profile?.header_img, FB_COVER);
-  const avatar = s(profile?.avatar_url, FB_AVT);
-
-  return (
-    <div style={{ position:"relative", width:"100%" }}>
-      {/* Cover — full width, 220px tall */}
-      <div style={{
-        width:"100%", height:220, overflow:"hidden", position:"relative",
-        background:"linear-gradient(160deg,#2C3B2D 0%,#4A6741 40%,#8B7355 100%)",
-      }}>
-        {loading ? (
-          <div className="bpp-skeleton" style={{ width:"100%", height:"100%" }}/>
-        ) : (
-          <img
-            src={cover} alt=""
-            onLoad={()=>setCoverLoaded(true)} onError={()=>setCoverLoaded(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
-              opacity:coverLoaded ? 0.92 : 0, transition:"opacity 1.1s ease" }}
-          />
-        )}
-        {/* Soft bottom fade into cream */}
-        <div style={{
-          position:"absolute", bottom:0, left:0, right:0, height:80,
-          background:"linear-gradient(to bottom, transparent, rgba(247,245,240,0.6))",
-        }}/>
-      </div>
-
-      {/* Floating avatar — centered, overlapping cover bottom */}
-      <div style={{
-        position:"absolute", bottom:-44, left:"50%", transform:"translateX(-50%)",
-        display:"flex", flexDirection:"column", alignItems:"center",
-      }}>
-        <div style={{
-          width:90, height:90, borderRadius:"50%",
-          border:"4px solid white",
-          boxShadow:"0 4px 24px rgba(0,0,0,0.16), 0 0 0 1px rgba(26,26,24,0.06)",
-          overflow:"hidden", background:T.bg, flexShrink:0,
-          position:"relative",
-        }}>
-          {loading ? (
-            <div className="bpp-skeleton" style={{ position:"absolute", inset:0, borderRadius:"50%" }}/>
-          ) : (
-            <>
-              {!avLoaded && <div className="bpp-skeleton" style={{ position:"absolute", inset:0, borderRadius:"50%" }}/>}
-              <img
-                src={avatar} alt=""
-                onLoad={()=>setAvLoaded(true)} onError={()=>setAvLoaded(true)}
-                style={{ width:"100%", height:"100%", objectFit:"cover",
-                  opacity:avLoaded?1:0, transition:"opacity .5s ease" }}
-              />
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════════
 // IDENTITY — name + location + openness + bio
 // ══════════════════════════════════════════════════════════════════
-function IdentitySection({ profile, loading }) {
-  const name     = s(profile?.display_name || profile?.username, "Unbekannt");
-  const location = s(profile?.location_final || profile?.location, ""); // Sprint F.3B
-  const bio      = s(profile?.bio,
-    "Liebe die Natur, Musik und gute Gespräche.\nSuche echte Begegnungen und Orte,\nan denen man gemeinsam wachsen kann.");
-
-  return (
-    <div style={{ textAlign:"center", padding:`0 ${T.px}px` }}>
-      {/* Name */}
-      {loading ? (
-        <Skeleton w={140} h={32} r={8} style={{ margin:"0 auto 8px" }}/>
-      ) : (
-        <div style={{ fontSize:28, fontWeight:800, color:T.ink, letterSpacing:"-0.04em",
-          lineHeight:1.15, marginBottom:8,
-          display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-          {name} <span style={{fontSize:20}}>🌿</span>
-        </div>
-      )}
-
-      {/* A1: Mitglieds-Badge */}
-      {!loading && (
-        <div style={{
-          display:"inline-flex", alignItems:"center", gap:5,
-          marginBottom:10,
-          background:"rgba(14,196,184,0.07)",
-          border:"1px solid rgba(14,196,184,0.18)",
-          borderRadius:99, padding:"3px 10px",
-          fontSize:11, fontWeight:700, color:"#0AADA3",
-        }}>
-          <span style={{fontSize:11}}>🌿</span>
-          <span>HUI-Mitglied</span>
-          <span style={{fontWeight:400,color:"rgba(10,173,163,0.6)",fontSize:10}}>· Teil der Gemeinschaft</span>
-        </div>
-      )}
-
-      {/* Location + openness */}
-      {loading ? (
-        <Skeleton w={200} h={16} r={6} style={{ margin:"0 auto 14px" }}/>
-      ) : (
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-          fontSize:12.5, color:T.inkSoft, marginBottom:14, fontWeight:400 }}>
-          {location && (
-            <>
-              <span style={{fontSize:13}}>📍</span>
-              <span>{location}</span>
-              <span style={{ color:T.borderMid }}>•</span>
-            </>
-          )}
-          <span style={{ color:T.teal, fontWeight:600 }}>Offen für Begegnungen</span>
-        </div>
-      )}
-
-      {/* Bio */}
-      {loading ? (
-        <>
-          <Skeleton w="100%" h={14} r={6} style={{ marginBottom:6 }}/>
-          <Skeleton w="85%" h={14} r={6} style={{ margin:"0 auto 6px" }}/>
-          <Skeleton w="70%" h={14} r={6} style={{ margin:"0 auto" }}/>
-        </>
-      ) : (
-        <p style={{
-          fontSize:14.5, lineHeight:1.72, color:T.inkSoft, margin:0,
-          fontFamily:"-apple-system,'Georgia',serif",
-          fontStyle:"italic", whiteSpace:"pre-line",
-          maxWidth:320, marginLeft:"auto", marginRight:"auto",
-        }}>
-          {bio}
-        </p>
-      )}
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════════
 // INTERESTS — 2-row, 3-col soft pill grid (exact to screenshot)
@@ -545,7 +414,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
       <style>{CSS}</style>
 
       {/* Sticky header */}
-      <ProfileHeader onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
+      <NavBar onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
       {/* P3: Chat-Button — nur für Besucher (nicht für Owner selbst) */}
       {profile && !loading && !isOwner && (
@@ -568,13 +437,15 @@ export default function BasisProfilePage({ profileId, onClose }) {
       <div className="bpp-scroll" style={{ flex:1, overflowY:"auto",
         paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))" }}>
 
-        {/* 1. Cinematic hero + floating avatar */}
-        <CinematicHero profile={profile} loading={loading}/>
-        <Gap h={52}/>  {/* space for avatar overhang */}
-
-        {/* 2. Identity — Name, Badge, Location inline (Basis-spezifisch) */}
-        <IdentitySection profile={profile} loading={loading}/>
-        <Gap h={20}/>
+        {/* 1. Kanonischer ProfileHeader (Sprint F.9D) */}
+        <CanonicalProfileHeader
+          profile={profile}
+          isOwner={isOwner}
+          isTalent={!!profile?.is_talent}
+          loading={loading}
+          followCounts={followCounts}
+        />
+        <Gap h={16}/>
 
         {/* 3. Über dich — kanonisch (Sprint F.5.3) */}
         <AboutSection
