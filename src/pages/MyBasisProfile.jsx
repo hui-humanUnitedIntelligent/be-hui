@@ -17,6 +17,14 @@ import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio       from "../components/studio/HuiStudio.jsx";
+// Sprint F.7D Phase 4: Kanonische Sections
+import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
+import { TalentSection }         from "../components/profile/sections/TalentSection.jsx";
+import { MomentsSection }        from "../components/profile/sections/MomentsSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { AvailabilitySection }   from "../components/profile/sections/AvailabilitySection.jsx";
+import { LocationSection }       from "../components/profile/sections/LocationSection.jsx";
+import { VisibilitySection }     from "../components/profile/sections/VisibilitySection.jsx";
 import WerkWizard      from "../components/works/WerkWizard.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
@@ -952,9 +960,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
   };
   const [unreadCount,       setUnreadCount]       = useState(0);
   const ambState = useAmbassador(profile);
-  const [works,       setWorks]       = useState([]);
-  const [experiences, setExperiences] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
+  // Sprint F.7D P4: works/experiences/recommendations aus useProfileData
+  // Lokale States als Overrides für Wizard-Optimistic-Updates
+  const [localWorks,       setLocalWorks]       = useState(null); // null = nutze hooksWorks
+  const [localExperiences, setLocalExperiences] = useState(null); // null = nutze hooksExps
+  const works          = localWorks       ?? hooksWorks       ?? [];
+  const experiences    = localExperiences ?? hooksExps        ?? [];
+  const recommendations = hooksRecs ?? [];
   const [showWerkWizard, setShowWerkWizard] = useState(false);
   const [showExpWizard,  setShowExpWizard]  = useState(false);
   const [editingWerk,   setEditingWerk]   = useState(null);
@@ -1214,83 +1226,103 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {/* ══ TALENT-PROFIL-LAYOUT (is_talent === true) ══════════ */}
         {profile?.is_talent ? (
           <>
-            {/* T1. Über mich */}
-            <UeberDich bio={bio} onChange={handleBioChange}/>
-            <Gap h={24}/>
-
-            {/* T2. Meine Talente & Angebote */}
-            <MeineTalenteSection
-              skills={interests}
-              onChange={handleInterestsChange}
+            {/* T1. Über mich — kanonisch: AboutSection */}
+            <AboutSection
+              profile={profile}
+              isOwner={true}
+              onSave={(bio) => handleBioSave(bio)}
             />
             <Gap h={24}/>
 
-            {/* T3. Meine Werke */}
+            {/* T2. Talente — kanonisch: TalentSection */}
+            <TalentSection
+              profile={profile}
+              isOwner={true}
+              onChange={handleSkillsSave}
+            />
+            <Gap h={24}/>
+
+            {/* T3. Meine Werke — MeineWerkeSection bleibt (Owner-only, kein Public-Duplikat) */}
             <MeineWerkeSection
               userId={profile?.id}
               works={works}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
-              onDeleteWerk={(id) => setWorks(prev => prev.filter(w => w.id !== id))}
+              onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
             />
             <Gap h={24}/>
 
-            {/* T4. Erlebnisse & Projekte */}
+            {/* T4. Erlebnisse — ErlebnisseSection bleibt (Owner-only) */}
             <ErlebnisseSection
               experiences={experiences}
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
-              onDeleteErlebnis={(id) => setExperiences(prev => prev.filter(e => e.id !== id))}
+              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
             />
             <Gap h={24}/>
 
-            {/* T5. Kundenstimmen */}
-            <KundenstimmenSection
+            {/* T5. Kundenstimmen — kanonisch: RecommendationsSection */}
+            <RecommendationsSection
               recommendations={recommendations}
-              onEdit={() => {}}
+              isOwner={true}
             />
             <Gap h={24}/>
 
-            {/* T6. Verfügbarkeit + Standort */}
-            <VerfuegbarkeitStandortRow
+            {/* T6a. Verfügbarkeit — kanonisch: AvailabilitySection */}
+            <AvailabilitySection
               profile={profile}
-              onSave={async (upd) => {
-                // Sprint F.7D P2: setProfile → reload() nach DB-Write
-                setAuthProfile(p => p ? { ...p, ...upd } : p);
-                const uid = profile?.id;
-                if (uid) {
-                  await supabase.from("profiles")
-                    .update({ ...upd, updated_at: new Date().toISOString() })
-                    .eq("id", uid);
-                  reload();
-                }
-              }}
+              isOwner={true}
+              onSave={handleAvailabilitySave}
+            />
+            <Gap h={16}/>
+
+            {/* T6b. Standort — kanonisch: LocationSection */}
+            <LocationSection
+              profile={profile}
+              isOwner={true}
+              onSave={handleLocationSave}
             />
             <Gap h={24}/>
 
-            {/* T7. Sichtbarkeit */}
-            <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+            {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
+            <VisibilitySection
+              profile={profile}
+              isOwner={true}
+              onSave={handleVisibilitySave}
+            />
             <Gap h={40}/>
           </>
         ) : (
           <>
             {/* ══ BASIS-PROFIL-LAYOUT ══════════════════════════════ */}
-            {/* B1. Über dich */}
-            <UeberDich bio={bio} onChange={handleBioChange}/>
+            {/* B1. Über mich — kanonisch: AboutSection */}
+            <AboutSection
+              profile={profile}
+              isOwner={true}
+              onSave={(bio) => handleBioSave(bio)}
+            />
             <Gap h={24}/>
 
-            {/* B2. Interessen & Werte */}
+            {/* B2. Interessen & Werte — InteressenSection bleibt (Basis-spezifisch) */}
             <InteressenSection interests={interests} onChange={handleInterestsChange}/>
             <Gap h={24}/>
 
-            {/* B3. Momente */}
-            <MomenteSection moments={moments} onChange={handleMomentsChange}/>
+            {/* B3. Momente — kanonisch: MomentsSection */}
+            <MomentsSection
+              moments={moments}
+              isOwner={true}
+              onAddMoment={(newMoments) => handleMomentsSave(newMoments)}
+            />
             <Gap h={24}/>
 
-            {/* B4. Offen für Begegnungen */}
+            {/* B4. Offen für Begegnungen — OffenFuerSection bleibt (Basis-spezifisch) */}
             <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
             <Gap h={24}/>
 
-            {/* B5. Sichtbarkeit */}
-            <SichtbarkeitSection visibility={visibility} onChange={handleVisibilityChange}/>
+            {/* B5. Sichtbarkeit — kanonisch: VisibilitySection */}
+            <VisibilitySection
+              profile={profile}
+              isOwner={true}
+              onSave={handleVisibilitySave}
+            />
             <Gap h={28}/>
 
             {/* B6. Ambassador-Banner */}
@@ -1399,7 +1431,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
           onSaved={(werk) => {
             setShowWerkWizard(false); setEditingWerk(null);
-            setWorks(prev => {
+            setLocalWorks(prev => {
               const idx = prev.findIndex(w => w.id === werk.id);
               if (idx >= 0) { const n=[...prev]; n[idx]=werk; return n; }
               return [werk, ...prev];
@@ -1416,7 +1448,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
           onSaved={(exp) => {
             setShowExpWizard(false); setEditingExp(null);
-            setExperiences(prev => {
+            setLocalExperiences(prev => {
               const idx = prev.findIndex(e => e.id === exp.id);
               if (idx >= 0) { const n=[...prev]; n[idx]=exp; return n; }
               return [exp, ...prev];
