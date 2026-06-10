@@ -1060,7 +1060,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const { switchTab } = useHome();
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showAmbPanel, setShowAmbPanel] = useState(false);
+  const [showAmbModal, setShowAmbModal] = useState(false);
   const [showMyRec,   setShowMyRec]   = useState(false);
   const [showImpact,  setShowImpact]  = useState(false); // Impact-Stimmen Modal
   const [showMeineProjekte, setShowMeineProjekte] = useState(false); // Meine unterstützten Projekte
@@ -1167,36 +1167,8 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             background:T.bgCard, borderRadius:T.r16,
             border:`1px solid ${T.border}`, overflow:"hidden", boxShadow:T.card,
           }}>
-            {/* Ambassador-Bereich Row — toggle */}
-            <button className="studio-row-btn" onClick={() => setShowAmbPanel(v => !v)} style={{
-              width:"100%", display:"flex", alignItems:"center", gap:14,
-              padding:"15px 18px", background:"none", border:"none", cursor:"pointer",
-              fontFamily:"inherit", textAlign:"left",
-              borderBottom: showAmbPanel ? `1.5px solid ${T.tealMid}` : `1px solid ${T.border}`,
-            }}>
-              <span style={{
-                width:34, height:34, borderRadius:10, flexShrink:0,
-                background: showAmbPanel ? T.tealSoft : "rgba(26,26,24,0.05)",
-                display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
-              }}>👥</span>
-              <span style={{ flex:1, fontSize:14, fontWeight:500, color: showAmbPanel ? T.teal : T.ink }}>
-                Ambassador-Bereich
-              </span>
-              <span style={{
-                fontSize:14, color:T.inkFaint, flexShrink:0,
-                transition:"transform .2s",
-                display:"inline-block",
-                transform: showAmbPanel ? "rotate(90deg)" : "rotate(0deg)",
-              }}>›</span>
-            </button>
-
-            {/* Ambassador-Panel — inline expandierbar */}
-            {showAmbPanel && (
-              <div style={{ borderBottom:`1px solid ${T.border}` }}>
-                <AmbassadorStudioSection profile={profile} />
-                <div style={{ height:8 }}/>
-              </div>
-            )}
+            {/* Ambassador-Bereich Row — öffnet Modal */}
+            <StudioRow icon="👥" label="Ambassador-Bereich" onPress={() => setShowAmbModal(true)} />
 
             <StudioRow icon="⭐" label="Meine Empfehlungen"   onPress={() => setShowMyRec(true)} />
           </div>
@@ -1487,6 +1459,65 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           profile={profile}
           onClose={() => setShowSicherheit(false)}
         />
+      )}
+      {showAmbModal && createPortal(
+        <div
+          onClick={() => setShowAmbModal(false)}
+          style={{
+            position:"fixed", inset:0, zIndex:10700,
+            background:"rgba(26,26,24,0.55)",
+            display:"flex", alignItems:"flex-end", justifyContent:"center",
+            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width:"100%", maxWidth:480,
+              background:"#F7F5F0", borderRadius:"24px 24px 0 0",
+              maxHeight:"90vh", display:"flex", flexDirection:"column",
+              boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
+            }}
+          >
+            {/* Handle */}
+            <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px", flexShrink:0 }}>
+              <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+            </div>
+            {/* Header */}
+            <div style={{
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              padding:"8px 20px 14px", flexShrink:0,
+              borderBottom:"1px solid rgba(26,26,24,0.08)",
+            }}>
+              <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>
+                👥 Ambassador-Bereich
+              </div>
+              <button onClick={() => setShowAmbModal(false)} style={{
+                background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer",
+                borderRadius:"50%", width:32, height:32,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:16, color:"rgba(26,26,24,0.52)",
+              }}>✕</button>
+            </div>
+            {/* Inhalt scrollbar */}
+            <div style={{
+              flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
+              scrollbarWidth:"none",
+            }}>
+              <AmbassadorStudioSection profile={profile} />
+            </div>
+            {/* Footer */}
+            <div style={{ padding:"12px 20px 36px", borderTop:"1px solid rgba(26,26,24,0.08)", flexShrink:0 }}>
+              <button onClick={() => setShowAmbModal(false)} style={{
+                width:"100%", padding:"13px", borderRadius:14, border:"none",
+                cursor:"pointer", background:"rgba(26,26,24,0.08)",
+                color:"rgba(26,26,24,0.52)", fontSize:14, fontWeight:700,
+                fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
+              }}>Schließen</button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
       {showLogoutConfirm && createPortal(
         <div
