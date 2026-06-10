@@ -479,6 +479,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
   const {
     profile,
     moments,
+    recommendations,
     followCounts,
     loading,
     reload,
