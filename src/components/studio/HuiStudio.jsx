@@ -11,6 +11,7 @@ import { supabase }    from "../../lib/supabaseClient.js";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
 import ImpactStimmenModal  from "./ImpactStimmenModal.jsx";
 import MeineProjekteModal  from "./MeineProjekteModal.jsx";
+import EinAusgabenModal    from "./EinAusgabenModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1058,6 +1059,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showMyRec,   setShowMyRec]   = useState(false);
   const [showImpact,  setShowImpact]  = useState(false); // Impact-Stimmen Modal
   const [showMeineProjekte, setShowMeineProjekte] = useState(false); // Meine unterstützten Projekte
+  const [showEinAusgaben,  setShowEinAusgaben]  = useState(false); // Ein-/Ausgaben Übersicht
 
   const isTalent   = profile?.is_talent === true;
   const isVerified = profile?.verified  === true;
@@ -1190,7 +1192,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
         {/* ── 3. Einnahmen & Statistiken ────────────────────── */}
         <StudioSection label="Einnahmen & Statistiken">
-          <StudioRow icon="💶" label="Einnahmen Übersicht" onPress={() => {}} />
+          <StudioRow icon="💶" label="Ein-/Ausgaben Übersicht" onPress={() => setShowEinAusgaben(true)} />
           <StudioRow icon="📊" label="Statistiken"         onPress={() => {}} last />
         </StudioSection>
         <Gap h={20}/>
@@ -1247,6 +1249,12 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           profile={profile}
           onClose={() => setShowMeineProjekte(false)}
           switchTab={switchTab}
+        />
+      )}
+      {showEinAusgaben && (
+        <EinAusgabenModal
+          profile={profile}
+          onClose={() => setShowEinAusgaben(false)}
         />
       )}
 
