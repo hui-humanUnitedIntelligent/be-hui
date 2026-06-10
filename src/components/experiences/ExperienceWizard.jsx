@@ -844,12 +844,14 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     onSaved?.(saved);
     // pending_review: kurze Bestätigung, dann schließen
     if (saved?.status === "pending_review") {
-      setSaveError("✅ Eingereicht! Das Erlebnis wird geprüft und dann freigegeben.");
+      setSaveError(isRejectedUpdate ? "✅ Update eingereicht! Der Admin wird deine Änderung prüfen." : "✅ Eingereicht! Das Erlebnis wird geprüft und dann freigegeben.");
       setTimeout(() => { setSaveError(null); onClose?.(); }, 2500);
     } else {
       onClose?.();
     }
   }
+
+  const isRejectedUpdate = existingExp?.approval_status === "rejected" || existingExp?.status === "rejected";
 
   return (
     <div style={{
@@ -860,6 +862,29 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     }}>
       {/* Header */}
       <TopBar onClose={onClose} step={step} total={TOTAL} isEdit={!!existingExp}/>
+
+      {/* Abgelehnt-Banner */}
+      {isRejectedUpdate && (
+        <div style={{
+          background: "rgba(239,68,68,0.08)", borderBottom: "1px solid rgba(239,68,68,0.18)",
+          padding: "10px 20px", display: "flex", alignItems: "flex-start", gap: 10,
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>✏️</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#DC2626", marginBottom: 2 }}>
+              Du passt ein abgelehntes Erlebnis an
+            </div>
+            {existingExp.rejection_reason && (
+              <div style={{ fontSize: 12, color: "rgba(220,38,38,0.75)", lineHeight: 1.4 }}>
+                Ablehnungsgrund: {existingExp.rejection_reason}
+              </div>
+            )}
+            <div style={{ fontSize: 11, color: "rgba(26,26,24,0.50)", marginTop: 2 }}>
+              Gehe alle Schritte durch und reiche es erneut ein — der Admin sieht, dass es ein Update ist.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Scrollbarer Content */}
       <div style={{
@@ -961,7 +986,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
                 letterSpacing: 0.2,
               }}
             >
-              {saving ? "Wird eingereicht…" : "Zur Prüfung einreichen ✨"}
+              {saving ? "Wird eingereicht…" : (existingExp?.approval_status === "rejected" ? "Anpassen & erneut einreichen ✨" : "Zur Prüfung einreichen ✨")}
             </button>
           </>
         )}
