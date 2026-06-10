@@ -1844,7 +1844,7 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 // Sections: gemeinsame Sprint-C-Komponenten
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose }) {
-  const { user } = useAuth();
+  const { user, setProfile: setAuthProfile } = useAuth();
 
   // ── Sprint D: Datenlayer via useProfileData ─────────────────
   const {
@@ -1890,9 +1890,21 @@ export default function TalentProfilePage({ profileId, onClose }) {
     setShowChat(true);
   }, [profile, setChatRecipient, setShowChat]);
 
-  // Avatar/Cover-Update → reload damit ProfileHeader aktuell ist
-  const handleAvatarChange = useCallback(() => reload(), [reload]);
-  const handleCoverChange  = useCallback(() => reload(), [reload]);
+  // Avatar/Cover-Update → sofortiger AuthContext-Update + reload
+  // Sprint F.4D.1: setAuthProfile sofort aufrufen — kein Reload nötig
+  const handleAvatarChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
+
+  const handleCoverChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
 
   // Verfügbarkeit — schreibt direkt in profiles.is_available (Sprint F.3A)
   const handleAvailabilityChange = useCallback(async (isAvailable) => {

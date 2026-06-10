@@ -25,9 +25,11 @@ const PROFILE_SELECT =
   "blocked,profile_modules,created_at,updated_at";
 
 const WIRKER_SELECT =
+  // Sprint F.4D.1: avatar_url + header_img ENTFERNT
+  // Wahrheitsquelle: profiles.avatar_url + profiles.header_img
+  // wirker_profiles.avatar_url/.header_img werden nie geschrieben → Legacy
   "id,user_id,slug,talent,categories,location_label," +
-  "hourly_rate,is_verified,rating_avg,booking_count," +
-  "avatar_url,header_img";
+  "hourly_rate,is_verified,rating_avg,booking_count";
 
 // WORKS_SELECT — geprüfte Felder (Sprint E.11)
 // NICHT hinzufügen: medium (existiert nicht in der works-Tabelle)

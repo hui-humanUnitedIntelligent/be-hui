@@ -17,7 +17,12 @@ import { safeQuery, cachedQuery, clearQueryCache, FIELDS, PAGE_SIZE, buildPage }
 const F = {
   profile:      'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,location,availability,skills,dna_tags,impact_eur,role,membership_type,membership_active,created_at',
   profileMin:   'id,display_name,username,avatar_url,is_wirker,has_talent_profile,location',
+  // DEPRECATED (Sprint F.4D.1): avatar_url + header_img in wirker_profiles
+  // werden nie geschrieben — Wahrheitsquelle ist profiles.avatar_url / .header_img
+  // TODO F.4E: avatar_url,header_img aus diesem String entfernen, wenn WirkerService migriert
   wirker:       'id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count',
+  // DEPRECATED (Sprint F.4D.1): avatar_url in wirkerMin — nur noch für Legacy-Ansichten
+  // Wenn WirkerService vollständig migriert, entfernen
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',
