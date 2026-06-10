@@ -1509,8 +1509,9 @@ export default function DiscoverPage({ onView, onMap }) {
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,date,duration,location_text,max_participants,status,category,experience_type,created_at")
+          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,created_at")
           .eq("status", "published")
+          .eq("approval_status", "approved")
           .order("created_at", { ascending:false })
           .limit(8);
 
