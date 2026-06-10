@@ -55,12 +55,20 @@ function fmtTime(iso) {
 }
 
 
-// ── NotifCard — einzelne Notification mit aufklappbarem Detail ─────────────
-// ── RejectionModal — Popup mit Admin-Nachricht ──────────────────────────────
+// ── RejectionModal — dynamisch für Werk / Erlebnis / Projekt ───────────────
 function RejectionModal({ n, onClose }) {
-const meta      = n.metadata || {};
-const werkTitle = meta.werk_title || meta.werk_id || "Dein Werk";
-const reason    = meta.rejection_reason || "(Kein Grund angegeben)";
+const meta   = n.metadata || {};
+const reason = meta.rejection_reason || meta.reason || "(Kein Grund angegeben)";
+
+// Typ-spezifische Labels
+const typeMap = {
+  work_rejected:       { label:"Werk",     emoji:"🎨", hint:"Du kannst dein Werk überarbeiten und erneut einreichen." },
+  content_rejected:    { label:"Inhalt",   emoji:"📝", hint:"Du kannst den Inhalt überarbeiten und erneut einreichen." },
+  experience_rejected: { label:"Erlebnis", emoji:"🌿", hint:"Du kannst dein Erlebnis überarbeiten und erneut einreichen." },
+  project_rejected:    { label:"Projekt",  emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
+};
+const tm      = typeMap[n.type] || { label:"Eintrag", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
+const entryTitle = meta.entry_title || meta.werk_title || meta.werk_id || `Dein ${tm.label}`;
 
 return (
   <div
@@ -83,22 +91,22 @@ return (
       <div style={{ textAlign:"center", marginBottom:16 }}>
         <div style={{ fontSize:36, marginBottom:6 }}>❌</div>
         <div style={{ fontSize:16, fontWeight:800, color:"#1a1a18" }}>
-          Werk abgelehnt
+          {tm.label} abgelehnt
         </div>
       </div>
 
-      {/* Werk-Name */}
+      {/* Eintrag-Name */}
       <div style={{
         background:"#f5f4f1", borderRadius:10, padding:"10px 14px",
         marginBottom:12, display:"flex", alignItems:"center", gap:8,
       }}>
-        <span style={{ fontSize:18 }}>🎨</span>
+        <span style={{ fontSize:18 }}>{tm.emoji}</span>
         <div>
           <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.5px" }}>
-            Werk
+            {tm.label}
           </div>
           <div style={{ fontSize:14, fontWeight:700, color:"#1a1a18" }}>
-            „{werkTitle}"
+            „{entryTitle}"
           </div>
         </div>
       </div>
@@ -126,7 +134,7 @@ return (
         fontSize:12, color:"#888", textAlign:"center",
         lineHeight:1.5, marginBottom:16,
       }}>
-        Du kannst dein Werk überarbeiten und erneut einreichen.
+        {tm.hint}
       </div>
 
       {/* Schließen */}
