@@ -87,7 +87,7 @@ function VoteButton({ index, used, loading, onClick }) {
 }
 
 // ── Haupt-Modal ─────────────────────────────────────────────────────────────
-export default function ImpactStimmenModal({ profile, onClose }) {
+export default function ImpactStimmenModal({ profile, onClose, switchTab = null }) {
   const isTalent  = profile?.is_talent === true;
   const maxVotes  = isTalent ? 2 : 1;
   const monthKey  = currentMonthKey();
@@ -168,37 +168,32 @@ export default function ImpactStimmenModal({ profile, onClose }) {
     }
   };
 
-  // Hilfsfunktion: navigiert zum Impact-Tab und gibt Scroll frei
+  // Hilfsfunktion: navigiert zum Impact-Tab sauber via switchTab (HomeShell) oder Fallback
   const _navigateToImpact = (projectId = null) => {
-    // 1. Modal schließen
-    onClose?.();
-    // 2. overflow:hidden cleanup (falls irgendein Modal das gesetzt hat)
+    // 1. Overlay cleanup: overflow:hidden freigeben
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
-    // 3. Route wechseln
-    const hash = projectId ? `#project-${projectId}` : "";
-    window.history.pushState({}, "", `/impact${hash}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-    // 4. Scroll-Container nach Tab-Wechsel reset + zu Projekt scrollen
-    setTimeout(() => {
-      // Alle möglichen Scroll-Container resetten
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-      // Scroll ganz oben starten, dann zum Projekt springen
-      window.scrollTo({ top: 0, behavior: "instant" });
-      // Alle overflow:hidden Elemente die vom Studio kommen könnten freigeben
-      document.querySelectorAll('[style*="overflow"]').forEach(el => {
-        if (el.style.overflow === "hidden" && el !== document.body) {
-          // Nicht alle anfassen — nur body-level Locks
-        }
-      });
-      if (projectId) {
-        setTimeout(() => {
-          const el = document.getElementById(`project-${projectId}`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 350);
-      }
-    }, 80);
+
+    // 2. Modal schließen
+    onClose?.();
+
+    // 3. Tab wechseln — bevorzugt via switchTab (HomeShell), sonst via popstate
+    if (typeof switchTab === "function") {
+      switchTab("impact");
+    } else {
+      const hash = projectId ? `#project-${projectId}` : "";
+      window.history.pushState({}, "", `/impact${hash}`);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+
+    // 4. Scroll zum Projekt nach kurzer Verzögerung (Tab-Mount abwarten)
+    if (projectId) {
+      setTimeout(() => {
+        document.body.style.overflow = "";
+        const el = document.getElementById(`project-${projectId}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 450);
+    }
   };
 
   // Zum Projekt navigieren
