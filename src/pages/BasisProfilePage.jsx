@@ -15,7 +15,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient.js";
+import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
@@ -366,9 +366,13 @@ function MomentThumb({ src, i }) {
   );
 }
 
-function MomenteSection({ profile, loading }) {
+function MomenteSection({ profile, moments = [], loading }) {
   const [showAll, setShowAll] = useState(false);
-  const moments = MOMENT_SEEDS; // seed until real data
+  // Sprint F.5.2: echte moments aus useProfileData (beitraege-Tabelle)
+  // Fallback auf MOMENT_SEEDS wenn keine echten Daten vorhanden
+  const displayMoments = moments.length > 0
+    ? moments.map((m, i) => ({ id: m.id || `m${i}`, img: m.src || m.img || "" }))
+    : MOMENT_SEEDS;
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
@@ -390,7 +394,7 @@ function MomenteSection({ profile, loading }) {
         </div>
       ) : (
         <div className="bpp-hscroll" style={{ display:"flex", gap:8, paddingBottom:4 }}>
-          {moments.map((m, i) => <MomentThumb key={m.id} src={m.img} i={i}/>)}
+          {displayMoments.map((m, i) => <MomentThumb key={m.id} src={m.img} i={i}/>)}
         </div>
       )}
 
@@ -399,7 +403,7 @@ function MomenteSection({ profile, loading }) {
         <Sheet onClose={()=>setShowAll(false)}>
           <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:16 }}>📸 Alle Momente</div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
-            {moments.map((m, i) => (
+            {displayMoments.map((m, i) => (
               <div key={m.id} style={{ aspectRatio:"1", borderRadius:T.r12, overflow:"hidden" }}>
                 <img src={m.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
               </div>
@@ -595,16 +599,20 @@ function SocialContextBar({ loading, followCounts }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function BasisProfilePage({ profileId, onClose }) {
-  // Wenn kein profileId übergeben → eigenes Profil des eingeloggten Users anzeigen
-  const { user, profile: authProfile } = useAuth();
+  // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
+  const { user } = useAuth();
   const resolvedId = profileId || user?.id;
 
-  const [profile, setProfile]         = useState(null);
-  const [loading, setLoading]         = useState(true);
-  const [mounted, setMounted]         = useState(false);
-  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
+  const {
+    profile,
+    moments,
+    followCounts,
+    loading,
+    reload,
+  } = useProfileData(resolvedId);
 
   // Owner-spezifische States
+  const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showStudio,   setShowStudio]   = useState(false);
 
@@ -612,43 +620,6 @@ export default function BasisProfilePage({ profileId, onClose }) {
   const isOwner = !!user?.id && (resolvedId === user.id);
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
-
-  useEffect(()=>{
-    // Wenn kein User und kein profileId → AuthContext noch nicht bereit, kurz warten
-    if (!resolvedId) {
-      // Zeige AuthContext-Profil direkt wenn vorhanden (schnellster Weg)
-      if (authProfile) { setProfile(authProfile); setLoading(false); }
-      return;
-    }
-    (async()=>{
-      try {
-        const [profRes, fcRes] = await Promise.all([
-          supabase.from("profiles")
-            .select("id,username,display_name,bio,avatar_url,header_img,location,has_talent_profile,role,membership_type,skills,dna_tags,is_available,focus_type")
-            .eq("id", resolvedId).single(),
-          supabase.rpc("get_follow_counts", { target_id: resolvedId })
-            .then(r => r).catch(() => ({ data: null })),
-        ]);
-        const data = profRes.data;
-        if (data) {
-          // Eigenes Profil: AuthContext-Felder haben Vorrang (sind frischer)
-          const isOwnProfile = user?.id && data.id === user.id;
-          if (isOwnProfile && authProfile) {
-            setProfile({ ...data, ...authProfile, id: data.id });
-          } else {
-            setProfile(data);
-          }
-        } else {
-          setProfile(null);
-        }
-        setFollowCounts({
-          followers: fcRes.data?.[0]?.followers ?? fcRes.data?.followers ?? 0,
-          following: fcRes.data?.[0]?.following ?? fcRes.data?.following ?? 0,
-        });
-      } catch(e) { console.warn("BasisProfilePage load:", e); }
-      setLoading(false);
-    })();
-  }, [resolvedId]);
 
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
@@ -711,7 +682,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
         <Gap h={28}/>
 
         {/* 4. Momente */}
-        <MomenteSection profile={profile} loading={loading}/>
+        <MomenteSection profile={profile} moments={moments} loading={loading}/>
         <Gap h={28}/>
 
         {/* 5. Offen für Begegnungen */}
@@ -807,7 +778,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
           profile={profile}
           onClose={() => setShowSettings(false)}
           onSave={(updated) => {
-            setProfile(prev => ({ ...prev, ...updated }));
+            reload();           // Sprint F.5.2: reload statt lokales setProfile
             setShowSettings(false);
           }}
         />
