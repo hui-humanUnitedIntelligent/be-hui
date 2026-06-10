@@ -97,6 +97,7 @@ export default function ImpactStimmenModal({ profile, onClose }) {
   const [loading,     setLoading]     = useState(true);
   const [voting,      setVoting]      = useState(false); // Stimme wird gerade abgegeben
   const [showPicker,  setShowPicker]  = useState(false); // Projekt-Auswahl
+  const [detailProj,  setDetailProj]  = useState(null);  // Projekt-Detail Panel
   const [errorMsg,    setErrorMsg]    = useState("");
   const [successMsg,  setSuccessMsg]  = useState("");
 
@@ -402,7 +403,122 @@ export default function ImpactStimmenModal({ profile, onClose }) {
           )}
 
           {/* ── Projekt-Picker (wenn Stimme geklickt) ── */}
-          {showPicker && (
+          {/* ── Projekt-Detail-Panel ── */}
+          {detailProj && (
+            <div style={{
+              background: T.bgCard, borderRadius: T.r16,
+              border: `2px solid ${T.tealMid}`, padding: "20px",
+              marginBottom: 16, boxShadow: "0 4px 20px rgba(14,196,184,0.15)",
+            }}>
+              {/* Header mit Zurück */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                <button onClick={() => setDetailProj(null)} style={{
+                  background: "rgba(26,26,24,0.07)", border: "none", cursor: "pointer",
+                  borderRadius: "50%", width: 32, height: 32,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 16, color: T.inkSoft, flexShrink: 0,
+                }}>‹</button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: T.ink }}>{detailProj.name}</div>
+                  {detailProj.category && (
+                    <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 1 }}>{detailProj.category}</div>
+                  )}
+                </div>
+                <span style={{
+                  width: 44, height: 44, borderRadius: "50%",
+                  background: detailProj.color || T.teal,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 22, flexShrink: 0,
+                }}>{detailProj.icon || "🌱"}</span>
+              </div>
+
+              {/* Beschreibung */}
+              {detailProj.description && (
+                <div style={{
+                  fontSize: 14, color: T.ink, lineHeight: 1.55,
+                  marginBottom: 14, padding: "12px 14px",
+                  background: "rgba(26,26,24,0.03)", borderRadius: T.r12,
+                }}>
+                  {detailProj.description}
+                </div>
+              )}
+
+              {/* Tags */}
+              {detailProj.tags?.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+                  {detailProj.tags.map(tag => (
+                    <span key={tag} style={{
+                      fontSize: 11, fontWeight: 600, color: T.teal,
+                      background: T.tealSoft, border: `1px solid ${T.tealMid}`,
+                      padding: "3px 10px", borderRadius: 99,
+                    }}>{tag}</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Stats */}
+              <div style={{
+                display: "flex", gap: 10, marginBottom: 16,
+              }}>
+                <div style={{
+                  flex: 1, background: T.tealSoft, borderRadius: T.r12,
+                  border: `1px solid ${T.tealMid}`, padding: "10px 12px", textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: T.teal }}>
+                    {detailProj.votes ?? 0}
+                  </div>
+                  <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>Stimmen</div>
+                </div>
+                {detailProj.contact_name && (
+                  <div style={{
+                    flex: 2, background: "rgba(26,26,24,0.04)", borderRadius: T.r12,
+                    border: `1px solid ${T.border}`, padding: "10px 12px",
+                  }}>
+                    <div style={{ fontSize: 11, color: T.inkFaint, marginBottom: 2 }}>Kontakt</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
+                      {detailProj.contact_name}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Buttons: Zum Projekt + Wählen */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => { goToPool(); }}
+                  style={{
+                    flex: 1, padding: "12px 10px", borderRadius: T.r12,
+                    background: "rgba(26,26,24,0.06)",
+                    border: `1px solid ${T.border}`,
+                    cursor: "pointer", fontSize: 13, fontWeight: 700,
+                    color: T.ink, fontFamily: "inherit",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  Zum Projekt →
+                </button>
+                <button
+                  onClick={() => { castVote(detailProj.id); setDetailProj(null); }}
+                  disabled={voting}
+                  style={{
+                    flex: 1, padding: "12px 10px", borderRadius: T.r12,
+                    background: `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
+                    border: "none", cursor: voting ? "not-allowed" : "pointer",
+                    fontSize: 13, fontWeight: 800, color: "#fff",
+                    fontFamily: "inherit",
+                    boxShadow: "0 3px 10px rgba(14,196,184,0.30)",
+                    WebkitTapHighlightColor: "transparent",
+                    opacity: voting ? 0.65 : 1,
+                  }}
+                >
+                  🗳️ Jetzt wählen
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Projekt-Picker Liste ── */}
+          {showPicker && !detailProj && (
             <div style={{
               background: T.bgCard, borderRadius: T.r16,
               border: `2px solid ${T.tealMid}`, padding: "18px",
@@ -424,44 +540,66 @@ export default function ImpactStimmenModal({ profile, onClose }) {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {availableProjects.map(proj => (
-                  <button
+                  <div
                     key={proj.id}
-                    onClick={() => castVote(proj.id)}
-                    disabled={voting}
                     style={{
-                      display: "flex", alignItems: "center", gap: 14,
+                      display: "flex", alignItems: "center", gap: 12,
                       background: "none", border: `1px solid ${T.border}`,
                       borderRadius: T.r12, padding: "12px 14px",
-                      cursor: voting ? "not-allowed" : "pointer",
-                      textAlign: "left", fontFamily: "inherit",
-                      transition: "all .15s",
-                      WebkitTapHighlightColor: "transparent",
                     }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = T.teal}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = T.border}
                   >
+                    {/* Icon */}
                     <span style={{
                       width: 42, height: 42, borderRadius: "50%",
                       background: proj.color || T.teal,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 20, flexShrink: 0,
                     }}>{proj.icon || "🌱"}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>
+
+                    {/* Name + Stimmen */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: T.ink,
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {proj.name}
                       </div>
                       <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
                         {proj.votes ?? 0} Stimmen bisher
                       </div>
                     </div>
-                    <span style={{
-                      fontSize: 12, fontWeight: 700, color: T.teal,
-                      background: T.tealSoft, padding: "4px 10px",
-                      borderRadius: 99, flexShrink: 0,
-                    }}>
+
+                    {/* Details-Button */}
+                    <button
+                      onClick={() => { setDetailProj(proj); }}
+                      style={{
+                        padding: "5px 11px", borderRadius: 99,
+                        background: "rgba(26,26,24,0.06)",
+                        border: `1px solid ${T.border}`,
+                        fontSize: 12, fontWeight: 600, color: T.inkSoft,
+                        cursor: "pointer", fontFamily: "inherit",
+                        flexShrink: 0,
+                        WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
+                      Details
+                    </button>
+
+                    {/* Wählen-Button */}
+                    <button
+                      onClick={() => castVote(proj.id)}
+                      disabled={voting}
+                      style={{
+                        padding: "5px 12px", borderRadius: 99,
+                        background: T.tealSoft,
+                        border: `1px solid ${T.tealMid}`,
+                        fontSize: 12, fontWeight: 700, color: T.teal,
+                        cursor: voting ? "not-allowed" : "pointer",
+                        fontFamily: "inherit", flexShrink: 0,
+                        WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
                       Wählen
-                    </span>
-                  </button>
+                    </button>
+                  </div>
                 ))}
                 {availableProjects.length === 0 && (
                   <div style={{ fontSize: 13, color: T.inkSoft, textAlign: "center", padding: "10px 0" }}>
