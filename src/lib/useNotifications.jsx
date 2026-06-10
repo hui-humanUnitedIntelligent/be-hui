@@ -49,6 +49,19 @@ const TYPE_META = {
   share:          { tab:"info", icon:"🎨", color:"#8B5CF6", label:"Werk geteilt" },
   connection_new: { tab:"info", icon:"🤝", color:T.teal,   label:"Neue Verbindung" },
   achievement:    { tab:"info", icon:"🏆", color:"#F59E0B", label:"Meilenstein" },
+  admin_broadcast:{ tab:"info", icon:"📣", color:"#8B5CF6", label:"HUI Team" },
+  referral_joined:{ tab:"info", icon:"🎉", color:"#22C55E", label:"Empfehlung" },
+  // FREIGABEN — Werke
+  work_approved:       { tab:"info", icon:"✅", color:"#22C55E", label:"Werk freigegeben" },
+  work_rejected:       { tab:"info", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },
+  content_approved:    { tab:"info", icon:"✅", color:"#22C55E", label:"Inhalt freigegeben" },
+  content_rejected:    { tab:"info", icon:"❌", color:"#EF4444", label:"Inhalt abgelehnt" },
+  // FREIGABEN — Erlebnisse
+  experience_approved: { tab:"info", icon:"✅", color:"#22C55E", label:"Erlebnis freigegeben" },
+  experience_rejected: { tab:"info", icon:"❌", color:"#EF4444", label:"Erlebnis abgelehnt" },
+  // FREIGABEN — Projekte
+  project_approved:    { tab:"info", icon:"✅", color:"#22C55E", label:"Projekt freigegeben" },
+  project_rejected:    { tab:"info", icon:"❌", color:"#EF4444", label:"Projekt abgelehnt" },
   // Default
   default:        { tab:"info", icon:"✦",  color:T.teal,   label:"Aktivität" },
 };
