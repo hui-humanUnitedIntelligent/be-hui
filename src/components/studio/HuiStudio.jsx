@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { useHome } from "../home/HomeShell.jsx";
 import { supabase }    from "../../lib/supabaseClient.js";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
+import ImpactStimmenModal from "./ImpactStimmenModal.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1053,6 +1054,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showAmbPanel, setShowAmbPanel] = useState(false);
   const [showMyRec,   setShowMyRec]   = useState(false);
+  const [showImpact,  setShowImpact]  = useState(false); // Impact-Stimmen Modal
 
   const isTalent   = profile?.is_talent === true;
   const isVerified = profile?.verified  === true;
@@ -1178,7 +1180,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         {/* ── 2. Impact & Stimmen ───────────────────────────── */}
         <StudioSection label="Impact & Stimmen">
           <StudioRow icon="🗳️" label="Impact-Stimmen"
-            badge={isTalent ? "2 / Monat" : undefined} onPress={() => {}} />
+            badge={isTalent ? "2 / Monat" : "1 / Monat"} onPress={() => setShowImpact(true)} />
           <StudioRow icon="❤️" label="Meine unterstützten Projekte" onPress={() => {}} last />
         </StudioSection>
         <Gap h={20}/>
