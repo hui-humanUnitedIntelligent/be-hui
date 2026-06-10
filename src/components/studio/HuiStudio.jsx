@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useHome } from "../home/HomeShell.jsx";
 import { supabase }    from "../../lib/supabaseClient.js";
+import { useAuth }     from "../../lib/AuthContext.jsx";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
 import ImpactStimmenModal  from "./ImpactStimmenModal.jsx";
 import MeineProjekteModal  from "./MeineProjekteModal.jsx";
@@ -1055,6 +1056,7 @@ function MyRecommendationsModal({ userId, onClose }) {
 }
 
 export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
+  const { signOut } = useAuth() || {};
   const { switchTab } = useHome();
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -1067,6 +1069,8 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showProfilBearbeiten, setShowProfilBearbeiten]= useState(false); // Profil bearbeiten
   const [showVerifCS,          setShowVerifCS]          = useState(false); // Verifizierung Coming Soon
   const [showSicherheit,        setShowSicherheit]        = useState(false); // Sicherheit & Passwort
+  const [showLogoutConfirm,     setShowLogoutConfirm]     = useState(false); // Abmelden Bestätigung
+  const [loggingOut,            setLoggingOut]            = useState(false);
 
   const isTalent   = profile?.is_talent === true;
   const isVerified = profile?.verified  === true;
@@ -1079,6 +1083,16 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const handleEditProfile = useCallback(() => {
     setShowProfilBearbeiten(true);
   }, []);
+
+  const handleLogout = useCallback(async () => {
+    setLoggingOut(true);
+    try {
+      await signOut?.();
+    } catch(e) { console.warn("[HuiStudio] signOut:", e); }
+    setLoggingOut(false);
+    setShowLogoutConfirm(false);
+    onClose?.();
+  }, [signOut, onClose]);
 
   if (!profile) return null;
 
@@ -1214,7 +1228,13 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           <StudioRow icon="👑" label="Mitgliedschaft"
             badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
             onPress={() => setShowSettings(true)} />
-          <StudioRow icon="⚙️" label="Einstellungen" onPress={() => setShowSettings(true)} last />
+          <StudioRow icon="⚙️" label="Einstellungen" onPress={() => setShowSettings(true)} />
+          <StudioRow
+            icon="🚪" label="Abmelden"
+            labelColor="#DC2626"
+            onPress={() => setShowLogoutConfirm(true)}
+            last
+          />
         </StudioSection>
         <Gap h={20}/>
 
