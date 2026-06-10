@@ -638,31 +638,31 @@ export default function MyBasisProfile({ onClose, profileId }) {
     }
   };
   const [unreadCount,       setUnreadCount]       = useState(0);
-  const ambState = useAmbassador(profile);
-  // Sprint F.7D P4: works/experiences/recommendations aus useProfileData
-  // Lokale States als Overrides für Wizard-Optimistic-Updates
-  const [localWorks,       setLocalWorks]       = useState(null); // null = nutze hooksWorks
-  const [localExperiences, setLocalExperiences] = useState(null); // null = nutze hooksExps
-  const works          = localWorks       ?? hooksWorks       ?? [];
-  const experiences    = localExperiences ?? hooksExps        ?? [];
-  const recommendations = hooksRecs ?? [];
-  const [showWerkWizard, setShowWerkWizard] = useState(false);
-  const [showExpWizard,  setShowExpWizard]  = useState(false);
-  const [editingWerk,   setEditingWerk]   = useState(null);
-  const [editingExp,    setEditingExp]    = useState(null);
-
   // ── Sprint F.7D: Einheitliche Datenpipeline via useProfileData ──────────
   // Ersetzt: eigenen Profil-Loader useEffect (Zeilen ~962-1003)
   // Beibehaltung: Realtime-Listener für works+experiences (Regel 1)
   const {
     profile,
-    works:      hooksWorks,
-    experiences: hooksExps,
+    works:           hooksWorks,
+    experiences:     hooksExps,
     recommendations: hooksRecs,
-    moments:    hooksMoments,
-    loading:    hookLoading,  // Phase 2: lokale [loading] States werden danach entfernt
+    moments:         hooksMoments,
+    loading:         hookLoading,
     reload,
   } = useProfileData(user?.id);
+
+  // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
+  // (hooksWorks/hooksExps/hooksRecs/profile sind jetzt deklariert)
+  const ambState = useAmbassador(profile);
+  const [localWorks,       setLocalWorks]       = useState(null);
+  const [localExperiences, setLocalExperiences] = useState(null);
+  const works          = localWorks       ?? hooksWorks ?? [];
+  const experiences    = localExperiences ?? hooksExps  ?? [];
+  const recommendations = hooksRecs ?? [];
+  const [showWerkWizard, setShowWerkWizard] = useState(false);
+  const [showExpWizard,  setShowExpWizard]  = useState(false);
+  const [editingWerk,   setEditingWerk]   = useState(null);
+  const [editingExp,    setEditingExp]    = useState(null);
 
 
   // Sprint F.7D: Profil-Loader entfernt — useProfileData(user?.id) übernimmt
