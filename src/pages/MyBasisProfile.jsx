@@ -2146,6 +2146,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         </div>
       </div>
     </div>
+    </>
   );
 }
 
