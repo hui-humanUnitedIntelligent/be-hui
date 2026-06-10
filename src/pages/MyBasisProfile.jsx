@@ -1994,8 +1994,17 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
     if (!exp?.id) return;
     try {
       const table = exp._source === "projects" ? "projects" : "experiences";
-      await supabase.from(table).update({ status: "deleted" }).eq("id", exp.id);
-      onDeleteErlebnis(exp.id);
+      // Hard-Delete: Zeile vollständig aus DB entfernen
+      // → Realtime triggert Admin-Dashboard, Zeile verschwindet dort sofort
+      const { error } = await supabase.from(table).delete().eq("id", exp.id);
+      if (!error) {
+        onDeleteErlebnis(exp.id);
+      } else {
+        console.error("Erlebnis löschen:", error);
+        // Fallback: soft-delete wenn Hard-Delete nicht erlaubt (RLS)
+        await supabase.from(table).update({ status: "deleted" }).eq("id", exp.id);
+        onDeleteErlebnis(exp.id);
+      }
     } catch(e) { console.error("Erlebnis löschen:", e); }
   };
 
