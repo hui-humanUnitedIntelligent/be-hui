@@ -15,12 +15,10 @@
 // ══════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useCallback } from "react";
-import { supabase } from "../../lib/supabaseClient.js";
 import {
   FB_COVER, FB_AVATAR,
   sv,
-  resolveDisplayName, resolveLocation,
-  uploadProfileImage, handleAvatarUpload, handleCoverUpload,
+  handleAvatarUpload, handleCoverUpload,
 } from "../../lib/profileMedia.js";
 
 // Fallback-Assets: FB_COVER, FB_AVATAR aus profileMedia.js

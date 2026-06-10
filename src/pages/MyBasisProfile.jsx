@@ -9,7 +9,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import {
   FB_AVATAR,
-  resolveDisplayName, resolveLocation,
   handleAvatarUpload, handleCoverUpload,
 } from "../lib/profileMedia.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
