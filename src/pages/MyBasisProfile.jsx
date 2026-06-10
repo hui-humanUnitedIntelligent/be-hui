@@ -1039,6 +1039,26 @@ export default function MyBasisProfile({ onClose, profileId }) {
         event: "UPDATE", schema: "public", table: "experiences",
         filter: "user_id=eq." + profile.id,
       }, () => loadWorksAndExps())
+      // Admin Hard-Delete → sofort aus Profil entfernen
+      .on("postgres_changes", {
+        event: "DELETE", schema: "public", table: "experiences",
+      }, (payload) => {
+        // Entferne die gelöschte Zeile sofort aus dem lokalen State
+        if (payload?.old?.id) {
+          setExperiences(prev => prev.filter(e => e.id !== payload.old.id));
+        } else {
+          loadWorksAndExps(); // Fallback: neu laden
+        }
+      })
+      .on("postgres_changes", {
+        event: "DELETE", schema: "public", table: "projects",
+      }, (payload) => {
+        if (payload?.old?.id) {
+          setExperiences(prev => prev.filter(e => e.id !== payload.old.id));
+        } else {
+          loadWorksAndExps();
+        }
+      })
       .subscribe();
 
     return () => { if (channel) supabase.removeChannel(channel); };
