@@ -1200,7 +1200,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           <StudioRow icon="🔒" label="Sicherheit & Passwort" onPress={() => setShowSicherheit(true)} />
           <StudioRow icon="👑" label="Mitgliedschaft"
             badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
-            onPress={() => setShowSettings(true)} />
+            onPress={() => setShowMitgliedschaftCS(true)} />
           <StudioRow
             icon="🚪" label="Abmelden"
             labelColor="#DC2626"
