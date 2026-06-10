@@ -851,11 +851,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
   const setAuthProfile  = _auth.setProfile ?? null;
   const refreshProfile  = _auth.refreshProfile ?? null;
-  // Sprint F.7D Phase 1: profile + loading aus useProfileData (Hook oben)
-  // const [profile, setProfile] — ENTFERNT: kommt aus useProfileData
-  // const [loading, setLoading] — ENTFERNT: kommt aus useProfileData
-  // Für Kompatibilität mit setProfile-Calls die noch existieren:
-  const [_profileOverride, _setProfileOverride] = useState(null); // Phase 2: alle setProfile-Calls → reload()
+  // Sprint F.7D: profile + loading aus useProfileData — lokale States entfernt
   const [bio,        setBio]        = useState("");
   const [showBioEdit, setShowBioEdit] = useState(false);
 
@@ -1080,17 +1076,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
     setLocalAvatar(url);
-    // Lokaler State
-    setProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
-    // Globaler AuthContext → alle Komponenten die authProfile.avatar_url nutzen
+    // Sprint F.7D P2: setProfile entfernt → AuthContext + reload()
     setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
-  }, [setAuthProfile]);
+    reload();
+  }, [setAuthProfile, reload]);
 
   const handleCoverChange = useCallback((url) => {
     setLocalCover(url);
-    setProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    // Sprint F.7D P2: setProfile entfernt → AuthContext + reload()
     setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
-  }, [setAuthProfile]);
+    reload();
+  }, [setAuthProfile, reload]);
 
   // CSS sofort in <head> injizieren — Safari-safe, kein Blink beim Lazy-Load
   useEffect(() => {
@@ -1108,7 +1104,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
 
   // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
-  if (loading) {
+  if (hookLoading) {
     return (
       <div style={{
         position:"fixed", inset:0, zIndex:9500,
@@ -1253,16 +1249,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
             {/* T6. Verfügbarkeit + Standort */}
             <VerfuegbarkeitStandortRow
               profile={profile}
-              onSave={(upd) => {
-                // Sprint F.3A.1: is_available + location beide über diesen Handler
-                setProfile(p => ({ ...p, ...upd }));
+              onSave={async (upd) => {
+                // Sprint F.7D P2: setProfile → reload() nach DB-Write
                 setAuthProfile(p => p ? { ...p, ...upd } : p);
                 const uid = profile?.id;
-                if (uid) supabase.from("profiles")
-                  .update({ ...upd, updated_at: new Date().toISOString() })
-                  .eq("id", uid).then(({error}) => {
-                    if (error) console.error("VerfügbarkeitStandort save:", error.message);
-                  });
+                if (uid) {
+                  await supabase.from("profiles")
+                    .update({ ...upd, updated_at: new Date().toISOString() })
+                    .eq("id", uid);
+                  reload();
+                }
               }}
             />
             <Gap h={24}/>
@@ -1311,9 +1307,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => setShowGemeinschaft(false)}
           onComplete={() => {
             setShowGemeinschaft(false);
-            // Lokalen State sofort patchen → TalentErweiterung erscheint ohne Reload
-            setProfile(p => p ? { ...p, is_talent: true, talent_since: new Date().toISOString() } : p);
+            // Sprint F.7D P2: reload() übernimmt is_talent-Aktualisierung
             refreshProfile?.().catch(() => {});
+            reload();
           }}
         />
       )}
@@ -1344,9 +1340,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
           profile={profile}
           onClose={() => setShowStudio(false)}
           onProfileUpdate={(upd) => {
-            setProfile(p => ({ ...p, ...upd }));
+            // Sprint F.7D P2: setProfile → reload()
             setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
             refreshProfile?.().catch(() => {});
+            reload();
           }}
         />
       )}
