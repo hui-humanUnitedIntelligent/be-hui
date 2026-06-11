@@ -124,6 +124,7 @@ export function useProfileData(profileId) {
         wpRes,
         worksRes,
         expsRes,
+        projsRes,
         recsRes,
         momentsRes,
         fcRes,
@@ -158,9 +159,20 @@ export function useProfileData(profileId) {
           .then(r => r)
           .catch(() => ({ data: [] })),
 
-        // 4. experiences — kein Status-Filter
+        // 4. experiences — kein Status-Filter (approval_status für Live-Badge erforderlich)
         supabase
           .from("experiences")
+          .select(EXPERIENCES_SELECT)
+          .eq("user_id", profileId)
+          .not("status", "eq", "deleted")
+          .order("created_at", { ascending: false })
+          .limit(30)
+          .then(r => r)
+          .catch(() => ({ data: [] })),
+
+        // 4b. projects — approval_status für Live-Badge erforderlich
+        supabase
+          .from("projects")
           .select(EXPERIENCES_SELECT)
           .eq("user_id", profileId)
           .not("status", "eq", "deleted")
@@ -245,7 +257,12 @@ export function useProfileData(profileId) {
         console.error('[WORKS QUERY FAILED]', worksRes.error);
       }
       setWorks(Array.isArray(worksRes.data) ? worksRes.data : []);
-      setExperiences(expsRes.data   || []);
+      // Merge experiences + projects (beide mit _source Tag versehen)
+      const expsTagged  = (expsRes.data  || []).map(e => ({ ...e, _source: "experiences" }));
+      const projsTagged = (projsRes.data || []).map(p => ({ ...p, _source: "projects" }));
+      const merged = [...expsTagged, ...projsTagged]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setExperiences(merged);
       if (recsRes.error) {
         console.error("[RECOMMENDATIONS QUERY FAILED]", recsRes.error);
       }
