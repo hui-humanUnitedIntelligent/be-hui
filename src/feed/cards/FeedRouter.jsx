@@ -87,21 +87,10 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
   const authorId   = (_rawAuthorId && _rawAuthorId.trim().length > 8) ? _rawAuthorId.trim() : null;
   const hasValidId = !!authorId;
 
-  console.log("[HUI_ROUTE]", {
-    id: item.id, type,
-    authorId: authorId || "MISSING",
-    hasValidId,
-    authorName,
-    avatar: item?.author?.avatar || null,
-  });
-
   const shared = {
     item,
     onProfile: hasValidId
-      ? () => {
-          console.log("🟢 STEP 2 — FeedRouter onProfile aufgerufen", { authorId, itemId: item.id });
-          onProfile?.(authorId);
-        }
+      ? () => onProfile?.(authorId)
       : (() => {
           console.warn("🔴 STEP 2 — FeedRouter: kein authorId", {
             "item.author": item?.author,

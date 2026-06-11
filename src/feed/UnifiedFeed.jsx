@@ -262,12 +262,6 @@ export default function UnifiedFeed({
 }) {
   useEffect(() => {
     injectFeedCSS();
-    console.log("[ACTIVE_FEED_SYSTEM]", {
-      unified:       true,
-      events:        showEvents,
-      router:        "FeedRouter",
-      legacyBlocked: true,
-    });
   }, []); // eslint-disable-line
 
   // ── OWN FEED STREAM — läuft immer, liefert Items aus DB ──────────
@@ -340,15 +334,6 @@ export default function UnifiedFeed({
     // Nur null-Items und Items ohne id rausfiltern — nie mehr
     const safe = normalized.filter(i => i?.id);
 
-    console.log("[FEED_DEBUG]", {
-      raw:        (src||[]).length,
-      normalized: normalized.length,
-      safe:       safe.length,
-      first:      safe[0]
-        ? { id: safe[0].id, type: safe[0].type, author: safe[0].author?.name }
-        : null,
-      loading:    streamLoading,
-    });
 
     return safe;
   }, [itemsProp, streamItems, streamLoading]);

@@ -15,14 +15,6 @@ function formatPrice(val) {
 export default function WorkContent({ item, onProfile, onReaction, onShare }) {
   if (!item) return null;
 
-  console.log("[FEED WORK CARD]", {
-    id:    item.id,
-    title: item.title,
-    price: item._raw?.price,
-    cover: item.media?.length > 0,
-    category: item._raw?.category,
-  });
-
   const title    = item.title || item.text || "";
   const price    = item._raw?.price ?? item.price ?? null;
   const category = item._raw?.category || null;

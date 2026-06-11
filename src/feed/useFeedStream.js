@@ -61,7 +61,6 @@ export function getFeedScrollPos()   { return _scrollPos.y; }
 // ─── Batch-Query: eine Seite laden ───────────────────────────────────────────
 // FEED.2E — Multi-Cursor: cursors = { works, exps, beitr } | null
 async function fetchFeedPage(userId = null, cursors = null) {
-  console.log("[FEED] START");
   /**
    * Phase 4H — NO PROFILE JOINS
    * Alle Queries ohne relational join zu profiles.
@@ -79,7 +78,6 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const filterBeitr = (q) => beitrCursor ? q.lt("created_at", beitrCursor) : q;
 
   // ── Step 1: Plain queries — kein JOIN ──────────────────────────────────
-  console.log("[FEED] QUERY START");
   const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
     filterWorks(
       supabase.from("works")
@@ -112,7 +110,6 @@ async function fetchFeedPage(userId = null, cursors = null) {
       .order("created_at", { ascending: false })
       .limit(2),
   ]);
-  console.log("[FEED] QUERY DONE");
 
   const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
   const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
@@ -129,12 +126,6 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ? expsRes.reason?.message
     : (expsRes.value?.error?.message || null);
 
-  console.log("[HUI_STREAM_RAW]", {
-    works: works.length, worksErr,
-    exps: exps.length, expsErr,
-    beitraege: beitr.length, beitrErr,
-    invitations: invs.length,
-  });
 
   if (typeof window !== "undefined") {
     window.__HUI_STREAM_DEBUG__ = {
@@ -154,7 +145,6 @@ async function fetchFeedPage(userId = null, cursors = null) {
         .from("profiles")
         .select("id,display_name,username,avatar_url,talent,location_label,membership_type,membership_active,is_verified")
         .in("id", userIds);
-      console.log("[HUI_STREAM_PROFILES]", profileRows?.length ?? 0);
       if (profileRows) {
         profileRows.forEach(p => { profileMap[p.id] = p; });
       }
@@ -179,10 +169,6 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
   ];
 
-  console.log("[HUI_STREAM_NORMALIZED]", {
-    total: normalized.length,
-    beitraege_normalized: normalizedBeitr.length,
-  });
 
   // Zeitsortiert
   normalized.sort((a, b) => {
@@ -270,10 +256,8 @@ export function useFeedStream() {
     } catch (err) {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] initial load error:", err.message);
-      console.error("[FEED] ERROR", err);
       setError(err.message);
     } finally {
-      console.log("[FEED] FINALLY");
       if (mountedRef.current) setLoading(false);
     }
   }, [user?.id]);
@@ -330,7 +314,6 @@ export function useFeedStream() {
       setHasMore(more);
     } catch (err) {
       console.error("[HUI_STREAM] loadMore error:", err.message);
-      console.error("[FEED] ERROR", err);
     } finally {
       if (mountedRef.current) setLoadingMore(false);
     }
@@ -479,7 +462,6 @@ export function useFeedStream() {
 
   // ── Hard Refresh (pull-to-refresh, manuell) ────────────────────────────────
   const refresh = useCallback(async () => {
-    console.log("[HUI_STREAM] refresh() aufgerufen — Cache clearing + reload");
     clearCache();
     cursorRef.current = null;
     prefetchedRef.current = null;

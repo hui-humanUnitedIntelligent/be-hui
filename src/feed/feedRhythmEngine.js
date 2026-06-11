@@ -286,18 +286,6 @@ export function rhythmizeFeed(rawItems) {
     };
   });
 
-  // Debug-Log (tree-shaken in prod via NODE_ENV)
-  if (import.meta.env.DEV) {
-    const sequence = result.map(i => i._rhythm.contentType[0].toUpperCase()).join(" · ");
-    console.log("[HUI_RHYTHM]", sequence);
-    console.log("[HUI_RHYTHM] stats:", {
-      total:       result.length,
-      moments:     result.filter(i => i._rhythm.contentType === "moment").length,
-      experiences: result.filter(i => i._rhythm.contentType === "experience").length,
-      works:       result.filter(i => i._rhythm.contentType === "work").length,
-      invitations: result.filter(i => i._rhythm.contentType === "invitation").length,
-    });
-  }
 
   // ── POST-PROCESSING: Harte Garantie — nie Invitation direkt nach Invitation ──
   // Falls Safety-Valve-Fallback es trotzdem erzwingt → Ghost-Separator einschleusen
@@ -318,15 +306,6 @@ export function rhythmizeFeed(rawItems) {
     }
   }
 
-  const momentCount_out = result.filter(i => resolveContentType(i) === "moment").length;
-  const ghostCount_out  = result.filter(i => i._isGhost).length;
-  console.log("[HUI_RHYTHM_OUTPUT]", {
-    input: rawItems.length,
-    output: result.length,
-    moments: momentCount_out,
-    ghosts: ghostCount_out,
-    types: result.map(i => resolveContentType(i)).join(",").slice(0, 80),
-  });
   return result;
 }
 
