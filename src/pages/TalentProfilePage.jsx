@@ -316,20 +316,6 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
 const s  = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
 const a  = (v) => Array.isArray(v) ? v : [];
 const dl = (i) => ({ animationDelay:`${i*60}ms` });
-
-const FB_COVER = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
-const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
-const FB_WORK  = "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=75";
-const FB_EXP   = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=75";
-
-// Typ-Badge Farben
-const TYPE_STYLE = {
-  werk:       { bg:"rgba(14,196,184,0.90)",   label:"Werk" },
-  erlebnis:   { bg:"rgba(255,107,82,0.90)",   label:"Erlebnis" },
-  projekt:    { bg:"rgba(52,168,83,0.90)",    label:"Projekt" },
-  initiative: { bg:"rgba(251,188,5,0.90)",    label:"Initiative" },
-};
-
 // ── Schwerpunkt-Logik ──────────────────────────────────────────
 function detectSchwerpunkt(profile, works, experiences) {
   const interests = a(profile?.dna_tags || profile?.skills); // interests nicht in DB → dna_tags/skills
@@ -750,169 +736,6 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
     </div>
   );
 }
-
-// ══════════════════════════════════════════════════════════════
-// 5. MEIN WIRKEN — gemischte Karten mit Filter-Pills
-// ══════════════════════════════════════════════════════════════
-function WirkenCard({ item }) {
-  const [imgOk, setImgOk] = useState(false);
-  const ts = TYPE_STYLE[item._type] || TYPE_STYLE.werk;
-  const img = s(item.cover_url || item.img, item._type === "erlebnis" ? FB_EXP : FB_WORK);
-
-  return (
-    <div className="tpp-wirken-card" style={{width:172}}>
-      {/* Bild */}
-      <div style={{position:"relative",width:"100%",height:130,background:"#E8E4DC",overflow:"hidden"}}>
-        <img src={img} alt="" onLoad={()=>setImgOk(true)} onError={()=>setImgOk(true)}
-          style={{width:"100%",height:"100%",objectFit:"cover",display:"block",opacity:imgOk?1:0,transition:"opacity .4s ease"}}/>
-        {!imgOk && <div className="tpp-skeleton" style={{position:"absolute",inset:0,borderRadius:0}}/>}
-        {/* Typ-Badge */}
-        <div style={{
-          position:"absolute",top:8,left:8,
-          background:ts.bg,
-          color:"#fff",
-          padding:"3px 9px",
-          borderRadius:99,
-          fontSize:10.5,
-          fontWeight:800,
-          backdropFilter:"blur(4px)",
-        }}>
-          {ts.label}
-        </div>
-      </div>
-      {/* Info */}
-      <div style={{padding:"10px 12px 12px"}}>
-        <div style={{fontSize:13,fontWeight:800,color:T.ink,letterSpacing:"-0.02em",lineHeight:1.25,marginBottom:5,
-          overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
-          {s(item.title, "Ohne Titel")}
-        </div>
-        <div style={{fontSize:11,color:T.inkFaint,marginBottom:7}}>
-          {s(item.subtitle || item.category || item.format, "")}
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:4}}>
-          <span style={{fontSize:12}}>❤️</span>
-          <span style={{fontSize:11.5,color:T.inkSoft,fontWeight:600}}>{item._likes ?? Math.floor(Math.random()*60+8)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const FILTERS = [
-  { key:"alle",       label:"Alle",         icon:"⊞" },
-  { key:"werk",       label:"Werke",        icon:"🎨" },
-  { key:"erlebnis",   label:"Erlebnisse",   icon:"📅" },
-  { key:"projekt",    label:"Projekte",     icon:"🌱" },
-  { key:"initiative", label:"Initiativen",  icon:"🤝" },
-];
-
-function MeinWirkenSection({ works, experiences, loading }) {
-  const [activeFilter, setActiveFilter] = useState("alle");
-
-  // Mische works + experiences zu einem sortierten Array
-  const allItems = useMemo(() => {
-    const w = works.map(x => ({ ...x, _type:"werk",     _likes: Math.floor(Math.random()*80+10) }));
-    const e = experiences.map(x => ({ ...x, _type:"erlebnis", _likes: Math.floor(Math.random()*55+8),
-      subtitle: x.format || x.category }));
-
-    // Intelligent mischen: wenn mehr Werke → Werke zuerst, sonst Erlebnisse zuerst
-    const combined = [];
-    if (w.length >= e.length) {
-      // Werke-dominant: w, e, w, w, e, w...
-      let wi=0, ei=0;
-      while (wi < w.length || ei < e.length) {
-        if (wi < w.length) combined.push(w[wi++]);
-        if (wi < w.length) combined.push(w[wi++]);
-        if (ei < e.length) combined.push(e[ei++]);
-      }
-    } else {
-      // Erlebnisse-dominant
-      let wi=0, ei=0;
-      while (wi < w.length || ei < e.length) {
-        if (ei < e.length) combined.push(e[ei++]);
-        if (ei < e.length) combined.push(e[ei++]);
-        if (wi < w.length) combined.push(w[wi++]);
-      }
-    }
-    return combined;
-  }, [works, experiences]);
-
-  const visibleItems = useMemo(() => {
-    if (activeFilter === "alle") return allItems;
-    return allItems.filter(x => x._type === activeFilter);
-  }, [allItems, activeFilter]);
-
-  // Filter-Pills nur anzeigen wenn Daten für die Kategorie existieren
-  const visibleFilters = useMemo(() => {
-    const types = new Set(allItems.map(x => x._type));
-    return FILTERS.filter(f => f.key === "alle" || types.has(f.key));
-  }, [allItems]);
-
-  const showSection = loading || allItems.length > 0;
-  // Aufgabe 2: Empty-State statt null — leeres Talent-Profil bleibt sichtbar
-
-  return (
-    <div>
-      <SectionHead
-        icon="✨"
-        title="Mein Wirken"
-        subtitle="Werke, Erlebnisse und Projekte, die meine Vision in die Welt bringen."
-        cta="Alle anzeigen"
-        onCta={() => {}}
-      />
-
-      {/* Filter-Pills */}
-      <div className="tpp-hscroll" style={{padding:`0 ${T.px}px`,display:"flex",gap:8,marginBottom:16}}>
-        {visibleFilters.map(f => (
-          <button key={f.key}
-            className={`tpp-filter-pill${activeFilter===f.key?" active":""}`}
-            onClick={() => setActiveFilter(f.key)}>
-            <span style={{marginRight:4}}>{f.icon}</span>{f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Karten */}
-      <div className="tpp-hscroll" style={{display:"flex",gap:12,padding:`0 ${T.px}px`}}>
-        {loading
-          ? Array.from({length:4}).map((_,i) => (
-              <div key={i} style={{width:172,flexShrink:0}}>
-                <Sk w={172} h={130} r={16} style={{marginBottom:8}}/>
-                <Sk w={140} h={14} r={5} style={{marginBottom:5}}/>
-                <Sk w={90}  h={11} r={4}/>
-              </div>
-            ))
-          : visibleItems.length > 0
-            ? visibleItems.map((item, i) => (
-                <div key={item.id || i} className="tpp-in" style={{flexShrink:0,...dl(i)}}>
-                  <WirkenCard item={item}/>
-                </div>
-              ))
-            : (
-                <div style={{
-                  padding:"28px 16px",
-                  display:"flex", flexDirection:"column", gap:8, minWidth:260,
-                }}>
-                  <div style={{fontSize:12,fontWeight:700,color:T.teal,marginBottom:2}}>✨ HUI-Talent</div>
-                  <div style={{fontSize:12.5,color:T.inkFaint,lineHeight:1.6}}>Dieses Talent baut sein Profil gerade auf.</div>
-                  {[
-                    {icon:"🎨",text:"Noch keine Werke veröffentlicht"},
-                    {icon:"📅",text:"Noch keine Erlebnisse erstellt"},
-                    {icon:"🌱",text:"Noch keine Projekte veröffentlicht"},
-                  ].map((item,idx)=>(
-                    <div key={idx} style={{display:"flex",alignItems:"center",gap:7,fontSize:12,color:T.inkFaint}}>
-                      <span style={{fontSize:13}}>{item.icon}</span>
-                      <span>{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-              )
-        }
-      </div>
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════
 // 6. NÄCHSTE ERLEBNISSE — nur wenn zukünftige Termine vorhanden
 // ══════════════════════════════════════════════════════════════
@@ -1502,10 +1325,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
           profile={profile} works={works} experiences={experiences}
           moments={moments} loading={loading} followCounts={followCounts}
         />
-        <Gap h={28}/>
-
-        {/* ── 4. Mein Wirken — gemischt (unverändert) ──────── */}
-        <MeinWirkenSection works={works} experiences={experiences} loading={loading}/>
         <Gap h={28}/>
 
         {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
