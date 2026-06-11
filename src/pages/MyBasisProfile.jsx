@@ -918,7 +918,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onSaved={(werk) => {
             setShowWerkWizard(false); setEditingWerk(null);
             setLocalWorks(prev => {
-              const list = prev ?? hooksWorks ?? [];
+              const list = Array.isArray(prev) ? prev : (Array.isArray(hooksWorks) ? hooksWorks : []);
               const idx = list.findIndex(w => w.id === werk.id);
               if (idx >= 0) { const n=[...list]; n[idx]=werk; return n; }
               return [werk, ...list];
@@ -936,7 +936,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onSaved={(exp) => {
             setShowExpWizard(false); setEditingExp(null);
             setLocalExperiences(prev => {
-              const list = prev ?? hooksExps ?? [];
+              const list = Array.isArray(prev) ? prev : (Array.isArray(hooksExps) ? hooksExps : []);
               const idx = list.findIndex(e => e.id === exp.id);
               if (idx >= 0) { const n=[...list]; n[idx]=exp; return n; }
               return [exp, ...list];
