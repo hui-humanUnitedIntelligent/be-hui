@@ -3,7 +3,6 @@
 // ════════════════════════════════════════════════════════════════
 // Architektur:
 //   1. Header (Nav: Zurück, Öffentliches Profil, Teilen)
-//   2. CinematicHero (Banner, Avatar, Name, Bio, Location, Status)
 //   3. ActionButtons (Verbinden, Nachricht)
 //   4. SchwerpunktKarte (auto-ermittelt aus works/experiences/interests)
 //   5. QuickStats (Verbindungen, Begegnungen, Momente, Projekte, Menschen)
@@ -375,7 +374,6 @@ function detectSchwerpunkt(profile, works, experiences) {
 
 // ── Atoms ─────────────────────────────────────────────────────
 function Gap({ h=16 }) { return <div style={{height:h}}/>; }
-function Divider() { return <div style={{height:1,background:T.border,margin:`0 ${T.px}px`}}/>; }
 function Sk({ w, h, r=8, style={} }) {
   return <div className="tpp-skeleton" style={{width:w,height:h,borderRadius:r,flexShrink:0,...style}}/>;
 }
@@ -439,95 +437,6 @@ function Header({ onBack, isOwner, onSettings }) {
 // ══════════════════════════════════════════════════════════════
 // 2. CINEMATIC HERO — Banner + Avatar + Identity
 // ══════════════════════════════════════════════════════════════
-function CinematicHero({ profile, loading }) {
-  const [coverOk, setCoverOk] = useState(false);
-  const [avOk,    setAvOk]    = useState(false);
-  const cover  = s(profile?.header_img, FB_COVER);
-  const avatar = s(profile?.avatar_url, FB_AVT);
-  const name   = s(profile?.display_name || profile?.username, "Kreative·r");
-  const loc    = s(profile?.location_final || profile?.location, ""); // Sprint F.3B — location_final bevorzugt
-  const bio    = s(profile?.bio, "");
-
-  return (
-    <div style={{position:"relative",width:"100%"}}>
-      {/* Banner */}
-      <div style={{width:"100%",height:180,overflow:"hidden",position:"relative",background:"linear-gradient(160deg,#1A3530 0%,#2A5548 50%,#0EC4B8 100%)"}}>
-        {loading
-          ? <div className="tpp-skeleton" style={{width:"100%",height:"100%"}}/>
-          : <img src={cover} alt="" onLoad={()=>setCoverOk(true)} onError={()=>setCoverOk(true)}
-              style={{width:"100%",height:"100%",objectFit:"cover",display:"block",opacity:coverOk?0.85:0,transition:"opacity 1.1s ease"}}/>
-        }
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 40%,rgba(247,245,240,0.7) 100%)"}}/>
-      </div>
-
-      {/* Identity Block — überlagert Banner-Unterkante */}
-      <div style={{background:T.bg,padding:`0 ${T.px}px 20px`}}>
-        {/* Avatar + Name + Buttons in einer Zeile */}
-        <div style={{display:"flex",alignItems:"flex-end",gap:14,marginTop:-40,marginBottom:14}}>
-          {/* Avatar */}
-          <div style={{width:88,height:88,borderRadius:"50%",border:"3.5px solid white",boxShadow:"0 4px 20px rgba(0,0,0,0.15)",overflow:"hidden",background:T.bg,flexShrink:0,position:"relative"}}>
-            {loading
-              ? <div className="tpp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>
-              : <>
-                  {!avOk && <div className="tpp-skeleton" style={{position:"absolute",inset:0,borderRadius:"50%"}}/>}
-                  <img src={avatar} alt="" onLoad={()=>setAvOk(true)} onError={()=>setAvOk(true)}
-                    style={{width:"100%",height:"100%",objectFit:"cover",opacity:avOk?1:0,transition:"opacity .5s ease"}}/>
-                </>
-            }
-          </div>
-          {/* Name + Location */}
-          <div style={{flex:1,paddingBottom:4,minWidth:0}}>
-            {loading
-              ? <Sk w={140} h={24} r={6} style={{marginBottom:6}}/>
-              : <div style={{fontSize:22,fontWeight:800,color:T.ink,letterSpacing:"-0.04em",lineHeight:1.1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                  {name}
-                </div>
-            }
-            {/* A1: Talent-Badge direkt unter Name */}
-            {!loading && (
-              <div style={{
-                display:"inline-flex", alignItems:"center", gap:5,
-                marginTop:4, marginBottom:2,
-                background:"rgba(14,196,184,0.09)",
-                border:"1px solid rgba(14,196,184,0.22)",
-                borderRadius:99, padding:"3px 10px",
-                fontSize:11, fontWeight:700, color:"#0AADA3",
-              }}>
-                <span style={{fontSize:11}}>✨</span>
-                <span>HUI-Talent</span>
-                <span style={{fontWeight:400,color:"rgba(10,173,163,0.6)",fontSize:10}}>· Aktiver Gestalter</span>
-              </div>
-            )}
-            {loading
-              ? <Sk w={100} h={14} r={5}/>
-              : loc && (
-                <div style={{display:"flex",alignItems:"center",gap:4,marginTop:4,fontSize:12,color:T.inkSoft}}>
-                  <span style={{fontSize:12}}>📍</span>
-                  <span>{loc}</span>
-                  <span style={{color:T.borderMid}}>·</span>
-                  <span style={{color:T.teal,fontWeight:600}}>Offen für Begegnungen</span>
-                </div>
-              )
-            }
-          </div>
-        </div>
-
-        {/* Bio */}
-        {!loading && bio && (
-          <p style={{fontSize:14,lineHeight:1.7,color:T.inkSoft,margin:"0 0 0",fontStyle:"italic",textAlign:"center"}}>
-            {bio}
-          </p>
-        )}
-        {loading && (
-          <>
-            <Sk w="100%" h={13} r={5} style={{marginBottom:5}}/>
-            <Sk w="80%"  h={13} r={5}/>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // KOMPASS ACTION SHEET
@@ -1191,54 +1100,6 @@ function WirkungSection({ works, experiences, moments, loading }) {
 // ══════════════════════════════════════════════════════════════
 // 8. MOMENTE — beitraege
 // ══════════════════════════════════════════════════════════════
-function MomenteSection({ moments, loading }) {
-  const [showAll, setShowAll] = useState(false);
-  const visible = showAll ? moments : moments.slice(0, 7);
-
-  return (
-    <div>
-      <SectionHead
-        icon="✨"
-        title="Momente"
-        subtitle="Einblicke in unseren Alltag, Gedanken und Inspirationen."
-        cta={moments.length > 7 && !showAll ? "Alle anzeigen" : undefined}
-        onCta={() => setShowAll(true)}
-      />
-      <div style={{padding:`0 ${T.px}px`}}>
-        {loading
-          ? (
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
-              {Array.from({length:7}).map((_,i)=><Sk key={i} w="100%" h={82} r={12}/>)}
-            </div>
-          )
-          : moments.length === 0
-            ? <div style={{fontSize:13,color:T.inkFaint,textAlign:"center",padding:"20px 0"}}>Noch keine Momente geteilt</div>
-            : (
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
-                {visible.map((m, i) => (
-                  <div key={m.id||i} className="tpp-press-light" style={{...dl(i),cursor:"pointer"}}>
-                    {m.src
-                      ? <img src={m.src} alt="" className="tpp-moment-img"
-                          style={{objectFit:"cover",borderRadius:12,width:"100%",aspectRatio:"1",display:"block"}}/>
-                      : <div style={{
-                          borderRadius:12, aspectRatio:"1", background:T.tealSoft,
-                          display:"flex", alignItems:"center", justifyContent:"center",
-                          padding:8,
-                        }}>
-                          <span style={{fontSize:10,color:T.inkSoft,textAlign:"center",lineHeight:1.3}}>
-                            {(m.caption||"").slice(0,40)}
-                          </span>
-                        </div>
-                    }
-                  </div>
-                ))}
-              </div>
-            )
-        }
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // 9. ABSCHLUSS-BAR
@@ -1417,103 +1278,11 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
 // MEINE TALENTE & ANGEBOTE — Skill-Pills aus profile.skills
 // ══════════════════════════════════════════════════════════════
 // LEGACY — Ersetzt durch gemeinsame TalentSection (src/components/profile/sections/TalentSection.jsx)
-function TalentAngeboteSection({ profile, wirkerProfile, loading, isOwner }) {
-  // wirker_profiles.categories PRIMARY — profiles.skills FALLBACK
-  const rawCats   = Array.isArray(wirkerProfile?.categories) ? wirkerProfile.categories : [];
-  const rawSkills = Array.isArray(profile?.skills) ? profile.skills : [];
-  // Kategorien mergen: wirker_profiles zuerst, dann skills-Felder die noch nicht drin sind
-  const skills = rawCats.length > 0
-    ? rawCats.map(c => typeof c === "string" ? { icon: "✨", label: c } : c)
-    : rawSkills;
-  if (!loading && skills.length === 0 && !isOwner) return null;
-  return (
-    <div style={{padding:`0 ${T.px}px`}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>
-          Meine Talente & Angebote
-        </div>
-      </div>
-      {loading ? (
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {[100,80,110,90,70].map((w,i)=><Sk key={i} w={w} h={32} r={99}/>)}
-        </div>
-      ) : (
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {skills.slice(0,8).map((sk,i) => {
-            const label = typeof sk === "string" ? sk : (sk.label || "");
-            const icon  = typeof sk === "object" && sk.icon ? sk.icon : "✨";
-            return (
-              <div key={i} style={{
-                display:"flex",alignItems:"center",gap:5,
-                padding:"7px 14px",borderRadius:T.r99,
-                background:T.bgCard,border:`1px solid ${T.border}`,
-                fontSize:13,fontWeight:600,color:T.ink,
-                boxShadow:T.card,
-              }}>
-                <span style={{fontSize:13}}>{icon}</span>{label}
-              </div>
-            );
-          })}
-          {isOwner && (
-            <div style={{
-              display:"flex",alignItems:"center",gap:5,
-              padding:"7px 14px",borderRadius:T.r99,
-              background:T.bgCard,border:`1.5px dashed ${T.borderMid}`,
-              fontSize:12.5,fontWeight:600,color:T.inkSoft,
-            }}>
-              <span style={{fontSize:14}}>+</span> Weitere hinzufügen
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // MEINE WERKE — horizontaler Scroller, Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
 // LEGACY — Ersetzt durch gemeinsame WorksSection (src/components/profile/sections/WorksSection.jsx)
-function MeineWerkeSection({ works, loading, onShowAll }) {
-  if (!loading && works.length === 0) return null;
-  return (
-    <div>
-      <div style={{
-        display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:`0 ${T.px}px`,marginBottom:12,
-      }}>
-        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>Meine Werke</div>
-        {works.length > 0 && (
-          <button onClick={onShowAll} style={{background:"none",border:"none",padding:0,
-            fontSize:12,fontWeight:600,color:T.teal,cursor:"pointer",
-            display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}}>
-            Alle Werke ansehen <span style={{fontSize:11}}>›</span>
-          </button>
-        )}
-      </div>
-      <div className="tpp-hscroll" style={{
-        display:"flex",gap:10,
-        padding:`0 ${T.px}px 4px`,
-      }}>
-        {loading
-          ? [1,2,3,4,5].map(i=><Sk key={i} w={100} h={100} r={T.r16} style={{flexShrink:0}}/>)
-          : works.slice(0,7).map((w,i) => (
-            <div key={w.id} className="tpp-press" style={{
-              flexShrink:0,width:100,height:100,
-              borderRadius:T.r16,overflow:"hidden",
-              background:"linear-gradient(135deg,#2C3B2D,#4A6741)",
-              boxShadow:T.card,
-            }}>
-              {w.cover_url
-                ? <img src={w.cover_url} alt={w.title||""} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>e.target.style.display="none"}/>
-                : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🎨</div>}
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // ERLEBNISSE & PROJEKTE — Screenshot-exakt mit Labels
@@ -1524,283 +1293,22 @@ const CAT_MAP = {
   ausstellung:"Ausstellung", galerie:"Ausstellung",
   projekt:"Projekt", community:"Projekt",
 };
-function catLabel(cat) {
-  if (!cat) return "Projekt";
-  const k = cat.toLowerCase();
-  for (const [key,val] of Object.entries(CAT_MAP)) { if (k.includes(key)) return val; }
-  return "Projekt";
-}
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("de-DE",{month:"short",year:"numeric"});
-  } catch { return ""; }
-}
-
 // LEGACY — Ersetzt durch gemeinsame ExperiencesSection (src/components/profile/sections/ExperiencesSection.jsx)
-function ErlebnisseProjekteSection({ experiences, loading, isOwner, onShowAll }) {
-  if (!loading && experiences.length === 0 && !isOwner) return null;
-  const items = experiences.slice(0, 4);
-  return (
-    <div>
-      <div style={{
-        display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:`0 ${T.px}px`,marginBottom:12,
-      }}>
-        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>Erlebnisse & Projekte</div>
-        {experiences.length > 0 && (
-          <button onClick={onShowAll} style={{background:"none",border:"none",padding:0,
-            fontSize:12,fontWeight:600,color:T.teal,cursor:"pointer",
-            display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}}>
-            Alle anzeigen <span style={{fontSize:11}}>›</span>
-          </button>
-        )}
-      </div>
-      <div className="tpp-hscroll" style={{
-        display:"flex",gap:10,padding:`0 ${T.px}px 4px`,
-      }}>
-        {loading
-          ? [1,2,3,4].map(i=><Sk key={i} w={110} h={130} r={T.r16} style={{flexShrink:0}}/>)
-          : <>
-              {items.map((ex,i) => (
-                <div key={ex.id} className="tpp-press" style={{
-                  flexShrink:0,width:110,
-                  display:"flex",flexDirection:"column",gap:0,
-                }}>
-                  <div style={{
-                    width:110,height:100,borderRadius:T.r16,overflow:"hidden",
-                    background:"linear-gradient(135deg,#2C3B2D,#8B7355)",
-                    marginBottom:6,
-                  }}>
-                    {ex.cover_url
-                      ? <img src={ex.cover_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>e.target.style.display="none"}/>
-                      : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🎭</div>}
-                  </div>
-                  <div style={{fontSize:11.5,fontWeight:700,color:T.ink,lineHeight:1.3,marginBottom:2,
-                    overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
-                    {ex.title || "Erlebnis"}
-                  </div>
-                  <div style={{fontSize:10.5,color:T.inkFaint}}>
-                    {catLabel(ex.category)}
-                  </div>
-                  <div style={{fontSize:10,color:T.inkFaint}}>
-                    {formatDate(ex.date || ex.created_at)}
-                  </div>
-                </div>
-              ))}
-              {/* Neues Projekt CTA — nur für Owner */}
-              {isOwner && (
-                <div className="tpp-press" style={{
-                  flexShrink:0,width:80,height:100,
-                  borderRadius:T.r16,border:`1.5px dashed ${T.borderMid}`,
-                  background:T.bgCard,
-                  display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                  gap:4,cursor:"pointer",
-                }}>
-                  <span style={{fontSize:22,color:T.inkFaint}}>+</span>
-                  <span style={{fontSize:10,fontWeight:600,color:T.inkFaint,textAlign:"center",lineHeight:1.3}}>Neues Projekt</span>
-                </div>
-              )}
-            </>
-        }
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // KUNDENSTIMMEN — horizontaler Scroller, Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
 // LEGACY — Ersetzt durch gemeinsame RecommendationsSection (src/components/profile/sections/RecommendationsSection.jsx)
-function KundenstimmenPublicSection({ recommendations, loading, isOwner, onShowAll }) {
-  if (!loading && recommendations.length === 0 && !isOwner) return null;
-  return (
-    <div>
-      <div style={{
-        display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:`0 ${T.px}px`,marginBottom:12,
-      }}>
-        <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em"}}>Kundenstimmen</div>
-        {recommendations.length > 0 && (
-          <button onClick={onShowAll} style={{background:"none",border:"none",padding:0,
-            fontSize:12,fontWeight:600,color:T.teal,cursor:"pointer",
-            display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}}>
-            Alle anzeigen <span style={{fontSize:11}}>›</span>
-          </button>
-        )}
-      </div>
-      <div className="tpp-hscroll" style={{
-        display:"flex",gap:12,padding:`0 ${T.px}px 4px`,
-      }}>
-        {loading ? (
-          <Sk w={200} h={100} r={T.r16}/>
-        ) : recommendations.length === 0 ? (
-          <div style={{fontSize:13,color:T.inkFaint,fontStyle:"italic",paddingLeft:0,paddingBottom:4}}>
-            Noch keine Empfehlungen.
-          </div>
-        ) : (
-                    recommendations.slice(0,4).map((rec,i) => {
-                      const authorName   = rec.from_profile?.display_name || "Mitglied";
-                      const authorAvatar = rec.from_profile?.avatar_url   || null;
-                      return (
-                      <div key={rec.id||i} style={{
-                        flexShrink:0,width:210,
-                        background:T.bgCard,borderRadius:T.r16,
-                        border:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:T.card,
-                      }}>
-                        <div style={{fontSize:22,color:T.teal,marginBottom:6}}>❝</div>
-                        <div style={{fontSize:13,color:T.ink,lineHeight:1.55,fontStyle:"italic",marginBottom:10}}>
-                          {rec.text || ""}
-                        </div>
-                        <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          {authorAvatar && (
-                            <img src={authorAvatar} alt={authorName}
-                              style={{width:24,height:24,borderRadius:"50%",objectFit:"cover"}}/>
-                          )}
-                          <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:600}}>
-                            — {authorName}
-                          </div>
-                        </div>
-                      </div>
-                      );
-                    })
-        )}
-        {isOwner && (
-          <div className="tpp-press" style={{
-            flexShrink:0,display:"flex",alignItems:"center",gap:6,
-            padding:"10px 16px",borderRadius:T.r16,
-            background:T.bgCard,border:`1.5px dashed ${T.borderMid}`,
-            fontSize:12.5,fontWeight:600,color:T.inkSoft,
-            cursor:"pointer",touchAction:"manipulation",alignSelf:"flex-start",
-          }}>
-            <span style={{fontSize:16}}>+</span> Weitere hinzufügen
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // VERFÜGBARKEIT + STANDORT — 2-Spalten, Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
 // LEGACY — Ersetzt durch AvailabilitySection + LocationSection (src/components/profile/sections/)
-function VerfuegbarkeitStandortPublic({ profile, wirkerProfile, loading }) {
-  if (loading) return null;
-  const isOpen = profile?.focus_type !== "private";
-  // Sprint F.3B: profiles.location ist einzige Wahrheitsquelle
-  // wirker_profiles.location_label ist Legacy — wird nicht mehr bevorzugt
-  const loc = (profile?.location_final || profile?.location || "");
-  return (
-    <div style={{padding:`0 ${T.px}px`}}>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-        {/* Verfügbarkeit */}
-        <div style={{background:T.bgCard,borderRadius:T.r16,border:`1px solid ${T.border}`,padding:"14px",boxShadow:T.card}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-            <div style={{fontSize:13,fontWeight:800,color:T.ink}}>Verfügbarkeit</div>
-            <button style={{background:"none",border:"none",padding:0,fontSize:11,color:T.teal,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-              Mehr erfahren ›
-            </button>
-          </div>
-          <div style={{fontSize:10.5,color:T.inkFaint,marginBottom:8}}>
-            Wann du für neue Anfragen offen bist.
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 10px",borderRadius:T.r12,
-            background:T.tealSoft,border:`1px solid ${T.tealMid}`}}>
-            <span style={{width:7,height:7,borderRadius:"50%",background:T.teal,display:"inline-block",flexShrink:0}}/>
-            <div>
-              <div style={{fontSize:11,fontWeight:700,color:T.teal}}>
-                {isOpen ? "Offen für neue Anfragen" : "Momentan ausgelastet"}
-              </div>
-              <div style={{fontSize:10,color:T.inkFaint}}>Antwortzeit: innerhalb von 24h</div>
-            </div>
-          </div>
-        </div>
-        {/* Standort */}
-        <div style={{background:T.bgCard,borderRadius:T.r16,border:`1px solid ${T.border}`,padding:"14px",boxShadow:T.card}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-            <div style={{fontSize:13,fontWeight:800,color:T.ink}}>Standort</div>
-            <button style={{background:"none",border:"none",padding:0,fontSize:11,color:T.teal,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-              Mehr erfahren ›
-            </button>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 8px",borderRadius:T.r12,
-            background:"rgba(26,26,24,0.03)",border:`1px solid ${T.border}`,
-            marginTop:8,
-          }}>
-            <span style={{fontSize:14}}>📍</span>
-            <span style={{fontSize:11.5,color:T.ink,fontWeight:500}}>
-              {loc || "Standort nicht angegeben"}
-            </span>
-            <span style={{marginLeft:"auto",fontSize:13,color:T.inkFaint}}>›</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // SICHTBARKEIT — Screenshot-exakt
 // ══════════════════════════════════════════════════════════════
 // LEGACY — Ersetzt durch gemeinsame VisibilitySection (src/components/profile/sections/VisibilitySection.jsx)
-function SichtbarkeitPublicSection({ profile, loading }) {
-  const [showSheet, setShowSheet] = useState(false);
-  if (loading) return null;
-  const visText = "Dieses Profil ist für deine Verbindungen sichtbar.";
-  return (
-    <div style={{padding:`0 ${T.px}px`}}>
-      <div style={{
-        display:"flex",alignItems:"center",justifyContent:"space-between",
-        background:T.bgCard,borderRadius:T.r20,
-        border:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:T.card,
-      }}>
-        <div style={{display:"flex",alignItems:"flex-start",gap:8,flex:1,minWidth:0}}>
-          <span style={{fontSize:15,flexShrink:0}}>🔒</span>
-          <span style={{fontSize:12.5,color:T.inkSoft,fontWeight:400,lineHeight:1.45}}>
-            {visText}
-          </span>
-        </div>
-        <button className="tpp-press-light" onClick={()=>setShowSheet(true)} style={{
-          display:"flex",alignItems:"center",gap:6,
-          padding:"9px 14px",borderRadius:T.r99,border:`1px solid ${T.border}`,
-          background:T.bg,fontSize:12,fontWeight:600,color:T.ink,
-          cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
-          flexShrink:0,boxShadow:T.card,
-        }}>
-          <span style={{fontSize:13}}>👥</span> Mehr erfahren
-        </button>
-      </div>
-      {showSheet && createPortal(
-        <div onClick={()=>setShowSheet(false)} style={{
-          position:"fixed",inset:0,zIndex:9900,
-          background:"rgba(26,26,24,0.4)",display:"flex",alignItems:"flex-end",
-        }}>
-          <div onClick={e=>e.stopPropagation()} style={{
-            width:"100%",background:T.bgSheet,
-            borderRadius:`${T.r24}px ${T.r24}px 0 0`,
-            padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
-            boxShadow:T.sheet,
-          }}>
-            <div style={{width:36,height:4,borderRadius:99,background:T.borderMid,margin:"0 auto 20px"}}/>
-            <div style={{fontSize:16,fontWeight:800,color:T.ink,marginBottom:6}}>🔒 Sichtbarkeit</div>
-            <p style={{fontSize:14,lineHeight:1.68,color:T.inkSoft,margin:"0 0 16px",fontStyle:"italic"}}>
-              {visText} Du kannst die Sichtbarkeit in deinen Einstellungen anpassen.
-            </p>
-            <button className="tpp-press" onClick={()=>setShowSheet(false)} style={{
-              width:"100%",padding:"14px",borderRadius:T.r99,border:"none",
-              background:`linear-gradient(135deg,#0EC4B8,#0DBBAF)`,
-              color:"white",fontSize:15,fontWeight:700,cursor:"pointer",
-              fontFamily:"inherit",boxShadow:"0 4px 18px rgba(14,196,184,0.26)",
-            }}>Verstanden</button>
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // SOCIAL CONTEXT BAR — 3 Spalten: Verbindungen · Begegnungen · Momente

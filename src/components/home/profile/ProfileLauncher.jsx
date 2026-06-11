@@ -129,7 +129,6 @@ function lazyWithRetry(importFn) {
 const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
-const MyCreatorDashboard = lazyWithRetry(() => import("../../../pages/MyCreatorDashboard.jsx"));
 
 // ── Spinner Fallback ─────────────────────────────────────────────
 function Spinner() {
@@ -182,7 +181,6 @@ function useProfileType(profileId) {
 
         // Sprint F.4C: isProfileTalent() ist die einzige Wahrheitsquelle
         const isTalent = isProfileTalent(data);
-
 
         setState({ resolved: true, isTalent, role: data?.role ?? null });
 

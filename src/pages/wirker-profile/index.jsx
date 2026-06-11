@@ -3,7 +3,7 @@
 // Layout: Hero → Stats Strip → ExperiencesSection → WirkungSection → MomentsSection → Community → Footer Values
 
 import React, {
-  useState, useEffect, useRef, useCallback, useMemo,
+  useState, useEffect, useRef, useCallback,
 } from "react";
 import { S } from "../../core/hui.sources.js";
 import { HUI } from "../../design/hui.design.js";
