@@ -436,7 +436,21 @@ export function useFeedStream() {
         filter: "status=eq.published",
       }, (payload) => {
         if (!mountedRef.current) return;
+        // FEED.3B FIX-3 — approval_status Guard (Query: status=published AND approval_status=approved)
+        if (payload.new?.approval_status !== "approved") return;
         _receiveLiveItem(payload.new, normalizeExperienceRow);
+      })
+      // FEED.3B FIX-2 — works INSERT (vorher fehlend, RT-1)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "works",
+        filter: "status=eq.published",
+      }, (payload) => {
+        if (!mountedRef.current) return;
+        // JS-Guard: approval_status analog zur Feed-Query prüfen
+        if (payload.new?.approval_status !== "approved") return;
+        _receiveLiveItem(payload.new, normalizeWorkRow);
       })
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {

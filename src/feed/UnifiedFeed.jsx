@@ -12,6 +12,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
+import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
 import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
@@ -277,6 +278,8 @@ export default function UnifiedFeed({
     loadMore,
     hasMore,
     loadingMore,
+    pendingCount,
+    flushPendingItems,
   } = useFeedStream();
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
@@ -373,6 +376,13 @@ export default function UnifiedFeed({
       )}
 
       {/* ── MAIN FEED — vertical timeline, stable, always renders ── */}
+
+      {/* FEED.3B FIX-1 — Soft Hydration Badge */}
+      <FeedSoftHydrationBadge
+        count={pendingCount}
+        onFlush={flushPendingItems}
+      />
+
       <SectionBoundary name="feedList">
         {/* Loading state — shimmer skeletons */}
         {streamLoading && resolvedItems.length === 0 && (
