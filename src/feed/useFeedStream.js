@@ -59,7 +59,8 @@ export function saveFeedScrollPos(y) { _scrollPos.y = y; }
 export function getFeedScrollPos()   { return _scrollPos.y; }
 
 // ─── Batch-Query: eine Seite laden ───────────────────────────────────────────
-async function fetchFeedPage(userId = null, cursor = null) {
+// FEED.2E — Multi-Cursor: cursors = { works, exps, beitr } | null
+async function fetchFeedPage(userId = null, cursors = null) {
   console.log("[FEED] START");
   /**
    * Phase 4H — NO PROFILE JOINS
@@ -68,12 +69,19 @@ async function fetchFeedPage(userId = null, cursor = null) {
    */
   const limit = Math.ceil(PAGE_SIZE / 2); // 10 pro Quelle
 
-  const rangeFilter = (q) => cursor ? q.lt("created_at", cursor) : q;
+  // FEED.2E — eigene Cursor pro Quelle statt eines globalen Timestamps
+  const worksCursor = cursors?.works || null;
+  const expsCursor  = cursors?.exps  || null;
+  const beitrCursor = cursors?.beitr || null;
+  // invitations: kein Cursor — immer neueste 2 aktive, nicht-abgelaufene
+  const filterWorks = (q) => worksCursor ? q.lt("created_at", worksCursor) : q;
+  const filterExps  = (q) => expsCursor  ? q.lt("created_at", expsCursor)  : q;
+  const filterBeitr = (q) => beitrCursor ? q.lt("created_at", beitrCursor) : q;
 
   // ── Step 1: Plain queries — kein JOIN ──────────────────────────────────
   console.log("[FEED] QUERY START");
   const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
-    rangeFilter(
+    filterWorks(
       supabase.from("works")
         .select("id,title,cover_url,media_url,category,description,caption,tags,price,status,approval_status,user_id,creator_id,created_at")
         .eq("status", "published")
@@ -81,7 +89,7 @@ async function fetchFeedPage(userId = null, cursor = null) {
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
-    rangeFilter(
+    filterExps(
       supabase.from("experiences")
         .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
         .eq("status", "published")
@@ -89,12 +97,13 @@ async function fetchFeedPage(userId = null, cursor = null) {
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
-    rangeFilter(
+    filterBeitr(
       supabase.from("beitraege")
         .select("id,user_id,src,type,caption,created_at")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
+    // invitations: kein rangeFilter — immer neueste 2 aktive Einladungen
     supabase.from("invitations")
       .select("id,user_id,text,title,vibe,mood,energy,location,city,time_label,starts_at,expires_at,visibility,status,max_participants,content_type,created_at")
       .eq("status", "active")
@@ -182,13 +191,18 @@ async function fetchFeedPage(userId = null, cursor = null) {
     return tb - ta;
   });
 
-  const nextCursor = normalized.length > 0
-    ? normalized[normalized.length - 1]._raw?.created_at || null
-    : null;
+  // FEED.2E — Cursor pro Quelle: letztes Item jeder Quelle (vor Normalisierung verfügbar)
+  // works/exps/beitr existieren bereits aus Step 1 (Z.107-112)
+  const nextCursors = {
+    works: works.length >= limit ? (works[works.length - 1]?.created_at || null) : null,
+    exps:  exps.length  >= limit ? (exps[exps.length   - 1]?.created_at || null) : null,
+    beitr: beitr.length >= limit ? (beitr[beitr.length - 1]?.created_at || null) : null,
+  };
 
-  const hasMore = normalized.length >= PAGE_SIZE;
+  // FEED.2E — hasMore: true wenn mind. eine Quelle weitere Items hat
+  const hasMore = works.length >= limit || exps.length >= limit || beitr.length >= limit;
 
-  return { items: normalized, nextCursor, hasMore };
+  return { items: normalized, nextCursors, hasMore };
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -206,7 +220,7 @@ export function useFeedStream() {
   const [pendingCount,   setPendingCount]   = useState(0);   // Badge "N neue"
 
   // ── Refs ───────────────────────────────────────────────────────────────────
-  const cursorRef         = useRef(null);     // Letzter Paginierungs-Cursor
+  const cursorRef         = useRef(null);     // FEED.2E: null | { works, exps, beitr } — Cursor pro Quelle
   const prefetchedRef     = useRef(null);     // Vorgeladene nächste Seite
   const prefetchingRef    = useRef(false);    // Prefetch läuft gerade
   const realtimeRef       = useRef(null);     // Supabase Realtime Channel
@@ -225,7 +239,7 @@ export function useFeedStream() {
     if (items.length === 0) { setRhythmicItems([]); return; }
     const rhythmic = rhythmizeFeed([...items]);
     setRhythmicItems(rhythmic);
-    saveCache(items, cursorRef.current);
+    saveCache(items, cursorRef.current); // FEED.2E: cursorRef.current ist { works, exps, beitr } | null
   }, [items]);
 
   // ── Initial Load (mit Cache) ───────────────────────────────────────────────
@@ -239,7 +253,7 @@ export function useFeedStream() {
     const cached = loadCache();
     if (cached?.items?.length > 0) {
       setItems(cached.items);
-      cursorRef.current = cached.cursor;
+      cursorRef.current = cached.cursors || null; // FEED.2E: cursors-Objekt (Cache aktuell disabled)
       setLoading(false);
       // Trotzdem im Hintergrund refreshen (silent)
       _silentRefresh(user.id);
@@ -248,9 +262,9 @@ export function useFeedStream() {
 
     setLoading(true);
     try {
-      const { items: newItems, nextCursor, hasMore: more } = await fetchFeedPage(userId);
+      const { items: newItems, nextCursors, hasMore: more } = await fetchFeedPage(userId);
       if (!mountedRef.current) return;
-      cursorRef.current = nextCursor;
+      cursorRef.current = nextCursors;
       setHasMore(more);
       setItems(newItems);
     } catch (err) {
@@ -269,13 +283,13 @@ export function useFeedStream() {
   // ── Silent Refresh (Cache war fresh — update im Hintergrund) ──────────────
   async function _silentRefresh(userId) {
     try {
-      const { items: fresh, nextCursor } = await fetchFeedPage(userId);
+      const { items: fresh, nextCursors } = await fetchFeedPage(userId);
       if (!mountedRef.current) return;
       // Nur aktualisieren wenn sich was geändert hat
       const freshIds  = fresh.map(i => i.id).join(",");
       const currentIds = items.map(i => i.id).join(",");  // closure, okay hier
       if (freshIds !== currentIds) {
-        cursorRef.current = nextCursor;
+        cursorRef.current = nextCursors;
         setItems(fresh);
       }
     } catch (_) { /* silent */ }
@@ -287,7 +301,7 @@ export function useFeedStream() {
 
     // Prefetch bereits vorhanden? → sofort einfügen
     if (prefetchedRef.current) {
-      const { items: nextItems, nextCursor, hasMore: more } = prefetchedRef.current;
+      const { items: nextItems, nextCursors, hasMore: more } = prefetchedRef.current;
       prefetchedRef.current = null;
       if (!mountedRef.current) return;
       setItems(prev => {
@@ -295,7 +309,7 @@ export function useFeedStream() {
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
         return [...prev, ...deduped];
       });
-      cursorRef.current = nextCursor;
+      cursorRef.current = nextCursors;
       setHasMore(more);
       // Neuen Prefetch anstoßen
       _schedulePrefetch(user.id);
@@ -304,7 +318,7 @@ export function useFeedStream() {
 
     setLoadingMore(true);
     try {
-      const { items: nextItems, nextCursor, hasMore: more } =
+      const { items: nextItems, nextCursors, hasMore: more } =
         await fetchFeedPage(user.id, cursorRef.current);
       if (!mountedRef.current) return;
       setItems(prev => {
@@ -312,7 +326,7 @@ export function useFeedStream() {
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
         return [...prev, ...deduped];
       });
-      cursorRef.current = nextCursor;
+      cursorRef.current = nextCursors;
       setHasMore(more);
     } catch (err) {
       console.error("[HUI_STREAM] loadMore error:", err.message);
@@ -324,7 +338,9 @@ export function useFeedStream() {
 
   // ── Prefetch (Idle) ───────────────────────────────────────────────────────
   const _schedulePrefetch = useCallback((userId) => {
-    if (prefetchingRef.current || !hasMore || !cursorRef.current) return;
+    // FEED.2E: !cursorRef.current entfernt — cursorRef.current ist jetzt Objekt (immer truthy)
+    // hasMore allein entscheidet ob Prefetch sinnvoll ist
+    if (prefetchingRef.current || !hasMore) return;
     prefetchingRef.current = true;
 
     const run = async () => {
