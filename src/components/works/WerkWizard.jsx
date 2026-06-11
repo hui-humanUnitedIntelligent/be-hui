@@ -446,6 +446,33 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     if (!userId) return;
     setSaving(true);
     const cover_url=form.images?.[0]?.url||null;
+
+    // ── DIFF-SNAPSHOT: Beim Update eines approved Werks, alten Stand speichern ──
+    // Wird in admin_comment als "__snapshot__:{...}" gespeichert (nur lesend vom Admin genutzt)
+    let snapshotPayload = {};
+    if (status === "pending_review" && existingWork?.id && existingWork?.approval_status === "approved") {
+      try {
+        const snap = {
+          title:         existingWork.title         || null,
+          description:   existingWork.description   || null,
+          category:      existingWork.category      || null,
+          price:         existingWork.price         || null,
+          caption:       existingWork.caption       || null,
+          file_format:   existingWork.file_format   || null,
+          materials:     existingWork.materials     || null,
+          location_text: existingWork.location_text || null,
+          tags:          existingWork.tags          || [],
+          images:        existingWork.images        || [],
+          cover_url:     existingWork.cover_url     || null,
+          visibility:    existingWork.visibility    || null,
+          for_sale:      existingWork.for_sale      || false,
+        };
+        snapshotPayload = { admin_comment: "__snapshot__:" + JSON.stringify(snap) };
+      } catch (_) { /* Snapshot nicht kritisch */ }
+    } else if (status === "pending_review") {
+      // Neue Einreichung (kein Update): admin_comment zurücksetzen
+      snapshotPayload = { admin_comment: null };
+    }
     // ── Payload: nur Spalten die in public.works existieren (045) ──
     // images als JSONB Array (kein JSON.stringify → kein 22P02)
     const imagesArr = (form.images||[]).map(img =>
@@ -493,6 +520,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       approval_status: status === "pending_review" ? "pending" : undefined,
       // Bei Update: rejection_reason zurücksetzen (neue Prüfung)
       rejection_reason: status === "pending_review" ? null : undefined,
+      // Snapshot der alten Version für Admin-Diff (nur wenn is_update=true)
+      ...snapshotPayload,
     };
 
     console.log("[SAVE WERK] PRE-INSERT payload:", JSON.stringify({
