@@ -14,6 +14,7 @@ import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
+import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
 import { toast }               from "../lib/useToast.jsx";
 
@@ -171,7 +172,7 @@ function ReactionCard({ item, onProfile, onBook, onShare }) {
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
+function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, hasMore, loadingMore }) {
   // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -207,6 +208,12 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare }) {
           </div>
         );
       })}
+      {/* ── Pagination Sentinel ── */}
+      <FeedLoadMoreSpinner loading={!!loadingMore} />
+      <FeedBottomSentinel
+        enabled={!!hasMore && !loadingMore}
+        onVisible={loadMore}
+      />
     </div>
   );
 }
@@ -267,6 +274,9 @@ export default function UnifiedFeed({
     items: streamItems,
     loading: streamLoading,
     refresh: streamRefresh,
+    loadMore,
+    hasMore,
+    loadingMore,
   } = useFeedStream();
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
@@ -404,6 +414,9 @@ export default function UnifiedFeed({
             onProfile={onProfile}
             onBook={onBook}
             onShare={onShare}
+            loadMore={loadMore}
+            hasMore={hasMore}
+            loadingMore={loadingMore}
           />
         )}
       </SectionBoundary>
