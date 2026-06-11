@@ -41,7 +41,7 @@ const WORKS_SELECT =
 
 const EXPERIENCES_SELECT =
   "id,user_id,title,cover_url,category,date,status," +
-  "visibility,format,location_text,price,duration,created_at";
+  "approval_status,visibility,format,location_text,price,duration,created_at";
 
 const RECOMMENDATIONS_SELECT =
   `id,from_user_id,to_user_id,text,result_images,is_public,created_at,
