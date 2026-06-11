@@ -682,7 +682,7 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
     { emoji:"🤝", value: loading ? "–" : String(Math.max(experiences.length * 3, 8)), label:"Begegnungen" },
     { emoji:"💬", value: loading ? "–" : String(moments.length || 6), label:"Momente" },
     { emoji:"⭐", value: loading ? "–" : String(works.length + experiences.length || 12), label:"Projekte &\nInitiativen" },
-    { emoji:"❤️", value: loading ? "–" : String((works.length + experiences.length) * 18 + 40) + "+", label:"Menschen\nerreicht" },
+    { emoji:"🌿", value: loading ? "–" : (profile?.impact_eur ?? 0) > 0 ? "€\u202f" + Math.round(profile.impact_eur) : "–", label:"Gemeinsame\nWirkung" },
   ];
 
   return (
@@ -1105,6 +1105,24 @@ export default function TalentProfilePage({ profileId, onClose }) {
     const t = setTimeout(() => setMounted(true), 30);
     return () => clearTimeout(t);
   }, []);
+  // ── Sprint F.9G.4: Realtime — Admin-Freigabe (works + experiences) ──
+  // Nur UPDATE: wenn Admin status → published/approved setzt, sofort sichtbar.
+  // DELETE bewusst ausgelassen (Skalierungsrisiko, kein primärer UX-Flow).
+  useEffect(() => {
+    if (!profileId) return;
+    const ch = supabase
+      .channel("ttp:works-exps:" + profileId)
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "works",
+        filter: "user_id=eq." + profileId,
+      }, () => reload())
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "experiences",
+        filter: "user_id=eq." + profileId,
+      }, () => reload())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [profileId, reload]);
 
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
 
