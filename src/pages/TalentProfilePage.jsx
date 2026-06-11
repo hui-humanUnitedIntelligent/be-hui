@@ -71,9 +71,6 @@ const CSS = `
   .tpp-press-light{transition:transform .14s ease,opacity .14s ease;}
   .tpp-press-light:active{transform:scale(0.97);opacity:0.82;}
   .tpp-in{animation:tpp-fade-up .45s ease both;}
-  .tpp-sheet{animation:tpp-slide-up .28s cubic-bezier(.22,1,.36,1) both;}
-  .tpp-filter-pill{padding:7px 16px;border-radius:99px;border:1.5px solid ${T.borderMid};background:transparent;font-size:13px;font-weight:600;color:${T.inkSoft};cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .18s ease;touch-action:manipulation;}
-  .tpp-filter-pill.active{background:linear-gradient(135deg,${T.teal},${T.tealDeep});color:#fff;border-color:transparent;box-shadow:0 2px 10px rgba(14,196,184,0.28);}
   .tpp-wirken-card{background:${T.bgCard};border-radius:16px;overflow:hidden;box-shadow:${T.card};flex-shrink:0;cursor:pointer;}
   .tpp-wirken-card:active{transform:scale(0.97);opacity:0.88;transition:transform .12s ease,opacity .12s ease;}
   .tpp-stat-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
@@ -741,7 +738,7 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
   const upcoming = useMemo(() => {
     const now = new Date();
     return experiences
-      .filter(e => e.date && new Date(e.date) > now)
+      .filter(e => e.date && new Date(e.date) > now && ["published","active","approved"].includes(e.status))
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(0, 4);
   }, [experiences]);
@@ -766,8 +763,6 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
         icon="📅"
         title="Nächste Erlebnisse"
         subtitle="Offene Begegnungen und Veranstaltungen, zu denen du herzlich eingeladen bist."
-        cta="Alle anzeigen"
-        onCta={() => {}}
       />
 
       <div style={{padding:`0 ${T.px}px`,display:"flex",flexDirection:"column",gap:10}}>
@@ -819,24 +814,6 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
               );
             })
         }
-
-        {/* CTA-Karte: "Gemeinsam mehr bewirken" */}
-        <div style={{
-          background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-          borderRadius:T.r16,
-          padding:"16px 18px",
-          display:"flex",
-          gap:14,
-          alignItems:"center",
-        }}>
-          <div style={{width:44,height:44,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>👥</div>
-          <div style={{flex:1}}>
-            <div style={{fontSize:13,fontWeight:800,color:"#fff",marginBottom:4}}>Gemeinsam mehr bewirken</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.82)",lineHeight:1.4}}>
-              Komm vorbei, teile deine Ideen und lass uns gemeinsam etwas Großes erschaffen.
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
