@@ -89,7 +89,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ),
     filterExps(
       supabase.from("experiences")
-        .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
+        .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
         .eq("status", "published")
         .eq("approval_status", "approved")
         .order("created_at", { ascending: false })

@@ -84,6 +84,8 @@ export function toFeedItem(raw){
       price:raw.price!=null?safeNum(raw.price):null,
       tags:Array.isArray(raw.tags)?raw.tags.filter(Boolean):[],
       isLive:safeBool(raw.isLive||raw.is_live),
+      timeStart:safeStr(raw.time_start||raw.timeStart)||null,
+      timeEnd:safeStr(raw.time_end||raw.timeEnd)||null,
       status:safeStr(raw.status)||null,
       duration:safeStr(raw.duration)||null,
       format:safeStr(raw.format)||null,

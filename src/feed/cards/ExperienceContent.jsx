@@ -4,7 +4,8 @@ const TEAL="#16D7C5";
 export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
   if (!item) return null;
   const title = item.title||item.text||"";
-  const meta  = [item.location,item.duration,item.format].filter(Boolean).join(" · ");
+  const timeDisplay = item.timeStart ? item.timeStart.slice(0,5) + " Uhr" : (item.duration || null);
+  const meta  = [item.location,timeDisplay,item.format].filter(Boolean).join(" · ");
   const badge = {label:"Erlebnis",bg:"rgba(22,215,197,0.10)",border:"rgba(22,215,197,0.25)",color:TEAL};
   const bookBtn = onBook ? (
     <button onClick={()=>onBook(item)} style={{background:"linear-gradient(135deg,#16D7C5,#0AB8B2)",
