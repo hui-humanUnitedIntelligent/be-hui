@@ -791,6 +791,32 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     }
     setSaving(true);
 
+    // ── DIFF-SNAPSHOT: Beim Update eines approved Erlebnisses, alten Stand speichern ──
+    let snapshotPayload = {};
+    if (status === "pending_review" && existingExp?.id && existingExp?.approval_status === "approved") {
+      try {
+        const snap = {
+          title:           existingExp.title           || null,
+          description:     existingExp.description     || null,
+          category:        existingExp.category        || null,
+          experience_type: existingExp.experience_type || null,
+          price:           existingExp.price           || null,
+          date:            existingExp.date            || null,
+          time_start:      existingExp.time_start      || null,
+          time_end:        existingExp.time_end        || null,
+          location_text:   existingExp.location_text   || null,
+          format:          existingExp.format          || null,
+          caption:         existingExp.caption         || null,
+          max_participants: existingExp.max_participants || null,
+          images:          existingExp.images          || [],
+          cover_url:       existingExp.cover_url       || null,
+        };
+        snapshotPayload = { admin_comment: "__snapshot__:" + JSON.stringify(snap) };
+      } catch (_) { /* Snapshot nicht kritisch */ }
+    } else if (status === "pending_review") {
+      snapshotPayload = { admin_comment: null };
+    }
+
     const cover_url = form.images?.[0]?.url || null;
     const imagesArr = (form.images || []).map(img =>
       typeof img === "object" ? img : { url: img }
@@ -823,6 +849,8 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       is_update:             status === "pending_review" ? !!existingExp?.id : undefined,
       approval_status:       status === "pending_review" ? "pending" : undefined,
       rejection_reason:      status === "pending_review" ? null : undefined,
+      // Diff-Snapshot für Admin-Dashboard
+      ...snapshotPayload,
     };
 
     console.log("[EXPERIENCE PUBLISH PAYLOAD]", JSON.stringify(payload, null, 2));
