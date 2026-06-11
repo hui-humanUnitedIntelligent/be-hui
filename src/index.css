@@ -179,6 +179,7 @@ button, a, [role="button"] {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;          /* kein Scrollen über letzten Eintrag hinaus */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
