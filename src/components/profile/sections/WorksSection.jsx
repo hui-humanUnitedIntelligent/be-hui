@@ -61,7 +61,7 @@ export function WorksSection({
   // Visitor: nur freigegebene Werke
   const visible = isOwner
     ? works
-    : works.filter(w => w.approval_status === "approved" || w.status === "published" || w.status === "approved");
+    : works.filter(w => w.approval_status === "approved");
 
   const handleConfirmDelete = async () => {
     const w = confirmWork;
@@ -140,11 +140,20 @@ export function WorksSection({
         ) : (
           <div className="ws-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
             {visible.slice(0,8).map((w, i) => {
-              const isApproved = w.approval_status === "approved";
-              const isPending  = w.approval_status === "pending" || w.status === "pending_review";
-              const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending
-                ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
-              const badgeLabel = isApproved ? "✓ Freigegeben" : isPending ? "⏳ Prüfung" : "⚠️";
+              const isApproved  = w.approval_status === "approved";
+              const isUpdate   = w.is_update === true && (w.approval_status === "pending" || w.status === "pending_review");
+              const isPending  = !isUpdate && (w.approval_status === "pending" || w.status === "pending_review");
+              const isRejected = w.approval_status === "rejected" || w.status === "rejected";
+              const badgeBg    = isApproved ? "rgba(14,196,184,0.92)"
+                : isUpdate   ? "rgba(99,102,241,0.92)"
+                : isPending  ? "rgba(234,179,8,0.92)"
+                : isRejected ? "rgba(255,80,80,0.92)"
+                : "rgba(120,120,120,0.92)";
+              const badgeLabel = isApproved ? "✅ Live"
+                : isUpdate   ? "🔄 Update"
+                : isPending  ? "⏳ Prüfung"
+                : isRejected ? "❌ Abgelehnt"
+                : "📝 Entwurf";
 
               return (
                 <div key={w.id || i} className="ws-press" style={{
