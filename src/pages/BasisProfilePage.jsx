@@ -342,7 +342,7 @@ function SocialContextBar({ loading, followCounts }) {
 // ══════════════════════════════════════════════════════════════════
 export default function BasisProfilePage({ profileId, onClose }) {
   // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
-  const { user } = useAuth();
+  const { user, setProfile: setAuthProfile } = useAuth();
   const resolvedId = profileId || user?.id;
 
   const {
@@ -360,6 +360,22 @@ export default function BasisProfilePage({ profileId, onClose }) {
   const [showStudio,   setShowStudio]   = useState(false);
 
   // isOwner: true wenn das eigene Profil angesehen wird
+
+  // Avatar/Cover-Update → AuthContext sofort + reload
+  const handleAvatarChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
+
+  const handleCoverChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
+
   const isOwner = !!user?.id && (resolvedId === user.id);
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
@@ -444,6 +460,8 @@ export default function BasisProfilePage({ profileId, onClose }) {
           isTalent={!!profile?.is_talent}
           loading={loading}
           followCounts={followCounts}
+          onEditAvatar={handleAvatarChange}
+          onEditCover={handleCoverChange}
         />
         <Gap h={16}/>
 

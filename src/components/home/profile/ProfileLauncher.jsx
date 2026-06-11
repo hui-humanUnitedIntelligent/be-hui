@@ -9,6 +9,7 @@ import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
 import { supabase } from "../../../lib/supabaseClient.js";
+import { isProfileTalent } from "../../../lib/profileUtils.js";
 
 // ── Inline ErrorBoundary ─────────────────────────────────────────
 class ProfileErrorBoundary extends React.Component {
