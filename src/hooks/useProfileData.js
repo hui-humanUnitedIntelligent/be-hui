@@ -307,10 +307,12 @@ export function useProfileData(profileId) {
  * Fremdprofil: nur approved; Creator: alle außer deleted (bereits in Query)
  */
 export function filterWorksForPublic(works = []) {
+  // Nur wirklich freigegebene Werke sind öffentlich sichtbar.
+  // Ein bereits veröffentlichtes Werk das bearbeitet wurde hat:
+  //   status="pending_review", approval_status="pending" → NICHT sichtbar
+  // Erst nach Admin-Freigabe: approval_status="approved" → sichtbar
   return works.filter(w =>
-    w.approval_status === "approved" ||
-    w.status === "published" ||
-    w.status === "approved"
+    w.approval_status === "approved"
   );
 }
 
@@ -319,7 +321,9 @@ export function filterWorksForPublic(works = []) {
  * Fremdprofil: nur published/active/approved
  */
 export function filterExperiencesForPublic(exps = []) {
+  // Nur freigegebene Erlebnisse/Projekte sind öffentlich sichtbar.
+  // approval_status="approved" ist Pflicht — sonst pending/rejected nicht anzeigen.
   return exps.filter(e =>
-    ["published", "active", "approved"].includes(e.status)
+    e.approval_status === "approved"
   );
 }
