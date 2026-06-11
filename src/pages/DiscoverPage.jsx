@@ -1669,9 +1669,10 @@ export default function DiscoverPage({ onView, onMap }) {
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="dp-root" style={{
-      width:"100%", minHeight:"100%", background:T.bg,
+      width:"100%", background:T.bg,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
       color:T.ink,
+      overscrollBehavior:"none",
     }}>
       <style>{CSS}</style>
 
@@ -1737,8 +1738,8 @@ export default function DiscoverPage({ onView, onMap }) {
       {/* ── 8. Orte entdecken ── */}
       <OrteSection onMap={onMap} delay={160} view={view} />
 
-      {/* Bottom padding für BottomNav */}
-      <div style={{ height:100 }}/>
+      {/* Bottom padding für BottomNav — genau 72px (Navbar) + safe-area */}
+      <div style={{ height:"calc(72px + env(safe-area-inset-bottom, 0px))" }}/>
     </div>
   );
 }
