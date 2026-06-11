@@ -12,18 +12,6 @@ import { supabase } from "../lib/supabaseClient.js";
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
 
-/* ── Fallback mock für leere DB ───────────────────────────────── */
-const MOCK_EVENTS = [
-  { id:"ev1", title:"Stille Morgenrunde", time:"08:30",
-    location:"Prenzlauer Berg", img: null,
-    badge:"Heute", badgeColor: TEAL },
-  { id:"ev2", title:"Werke & Wirkung",    time:"18:00",
-    location:"Mitte",           img: null,
-    badge:"Abend", badgeColor: CORAL },
-  { id:"ev3", title:"Resonanz Session",  time:"14:00",
-    location:"Kreuzberg",        img: null,
-    badge:"Live",  badgeColor: "#EF4444" },
-];
 
 /* ── Event Card ───────────────────────────────────────────────── */
 function EventCard({ event, onPress, delay }) {
@@ -136,10 +124,13 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
       const { data, error } = await supabase
         .from("experiences")
         .select(`
-          id, title, location, price, format, duration,
+          id, title, location_text, price, format, duration,
           cover_url, media_url, is_live, created_at,
           profile:user_id(display_name, avatar_url)
         `)
+        // FEED.4B FIX-1 — Moderation-konforme Filter (identisch zu fetchFeedPage)
+        .eq("status", "published")
+        .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
         .limit(12);
 
@@ -149,16 +140,16 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
         id:          String(r.id),
         title:       r.title   || "Erlebnis",
         time:        r.duration || "Offen",
-        location:    r.location || "Berlin",
+        location:    r.location_text || null,  // FEED.4B FIX-2 — kein 'Berlin'-Fallback
         img:         r.cover_url || r.media_url || null,
         badge:       r.is_live ? "Live" : "Heute",
         badgeColor:  r.is_live ? "#EF4444" : TEAL,
       }));
 
-      setEvents(rows.length > 0 ? rows : MOCK_EVENTS);
+      setEvents(rows);  // FEED.4B FIX-3 — leere DB → Section rendert nicht (Z.169)
     } catch (err) {
       console.warn("[HUI_EVENTS_LOAD_ERR]", err?.message);
-      setEvents(MOCK_EVENTS); // Graceful fallback
+      setEvents([]); // FEED.4B FIX-3 — DB-Fehler → Section rendert nicht
     } finally {
       setLoading(false);
     }
