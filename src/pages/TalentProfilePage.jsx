@@ -1136,21 +1136,24 @@ export default function TalentProfilePage({ profileId, onClose }) {
     reload();
   }, [reload, setAuthProfile]);
 
-  // Verfügbarkeit — schreibt direkt in profiles.is_available (Sprint F.3A)
+  // Verfügbarkeit — schreibt direkt in profiles.is_available (Sprint F.3A / F.9G.1: error-check)
   const handleAvailabilityChange = useCallback(async (isAvailable) => {
     if (!user?.id) return;
-    await supabase.from("profiles")
+    const { error } = await supabase.from("profiles")
       .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
       .eq("id", user.id);
+    if (error) { console.error("handleAvailabilityChange:", error.message); return; }
     reload();
   }, [user?.id, reload]);
 
   // Standort — schreibt direkt in profiles.location (Sprint F.3B — einzige Wahrheitsquelle)
+  // Standort error-check (Sprint F.9G.1)
   const handleLocationChange = useCallback(async (locationStr) => {
     if (!user?.id) return;
-    await supabase.from("profiles")
+    const { error } = await supabase.from("profiles")
       .update({ location: locationStr, updated_at: new Date().toISOString() })
       .eq("id", user.id);
+    if (error) { console.error("handleLocationChange:", error.message); return; }
     reload();
   }, [user?.id, reload]);
 
@@ -1169,6 +1172,16 @@ export default function TalentProfilePage({ profileId, onClose }) {
     // Reload debounced: 400ms nach letztem Toggle
     clearTimeout(_skillsReloadTimer.current);
     _skillsReloadTimer.current = setTimeout(() => reload(), 400);
+  }, [user?.id, reload]);
+
+  // Sichtbarkeit — schreibt direkt in profiles.focus_type (Sprint F.9G.1)
+  const handleVisibilityChange = useCallback(async (visibility) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ focus_type: visibility, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleVisibilityChange:", error.message); return; }
+    reload();
   }, [user?.id, reload]);
 
   return (
@@ -1289,6 +1302,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
           profile={profile}
           isOwner={isOwner}
           loading={loading}
+          onSave={handleVisibilityChange}
         />
         <Gap h={24}/>
 

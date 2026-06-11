@@ -812,7 +812,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
   const currentUserId = authUser?.id ?? null;
 
   // ── SCHRITT 3: Daten laden via useProfileData ─────────────────
-  // isOwner=false: WirkerProfilePage zeigt immer fremde Profile (VISITOR VIEW)
+  // Sprint F.9G.1: Profil-Daten laden — isOwner wird danach berechnet
   const {
     profile,
     wirkerProfile,
@@ -826,6 +826,9 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
 
   // Kombiniertes Loading-State
   const loading = idLoading || dataLoading;
+
+  // Sprint F.9G.1: isOwner korrekt berechnen — authUser vs. geladenes Profil
+  const isOwner = !!authUser?.id && !!profile?.id && authUser.id === profile.id;
 
   // Profil-Felder mit Fallbacks für UI-Stabilität
   const name = safeStr(profile?.display_name || profile?.name || profile?.username);
@@ -910,9 +913,9 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
 
       <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport} currentUserId={currentUserId}/>
       <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
-      <ExperiencesSection experiences={experiences || []} isOwner={false} loading={loading}/>
+      <ExperiencesSection experiences={experiences || []} isOwner={isOwner} loading={loading}/>
       <WirkungSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
-      <MomentsSection moments={moments || []} loading={loading} isOwner={false}/>
+      <MomentsSection moments={moments || []} loading={loading} isOwner={isOwner}/>
       <ResonanceCommunity community={null}/>
       <FooterValues/>
       <FloatingBookCTA onBook={handleBook} profileName={name}/>

@@ -394,28 +394,41 @@ export default function BasisProfilePage({ profileId, onClose }) {
     setShowChat(true);
   }, [profile, setChatRecipient, setShowChat]);
 
-  // ── Sprint F.5.3: onSave-Handler (identisch zu TalentProfilePage) ──
+  // ── Sprint F.5.3 / F.9G.1: onSave-Handler + error-check ──
   const handleBioSave = useCallback(async (bio) => {
     if (!user?.id) return;
-    await supabase.from("profiles")
+    const { error } = await supabase.from("profiles")
       .update({ bio, updated_at: new Date().toISOString() })
       .eq("id", user.id);
+    if (error) { console.error("handleBioSave:", error.message); return; }
     reload();
   }, [user?.id, reload]);
 
   const handleLocationSave = useCallback(async (locationStr) => {
     if (!user?.id) return;
-    await supabase.from("profiles")
+    const { error } = await supabase.from("profiles")
       .update({ location: locationStr, updated_at: new Date().toISOString() })
       .eq("id", user.id);
+    if (error) { console.error("handleLocationSave:", error.message); return; }
     reload();
   }, [user?.id, reload]);
 
   const handleAvailabilitySave = useCallback(async (isAvailable) => {
     if (!user?.id) return;
-    await supabase.from("profiles")
+    const { error } = await supabase.from("profiles")
       .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
       .eq("id", user.id);
+    if (error) { console.error("handleAvailabilitySave:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  // Sichtbarkeit — schreibt direkt in profiles.focus_type (Sprint F.9G.1)
+  const handleVisibilitySave = useCallback(async (visibility) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ focus_type: visibility, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleVisibilitySave:", error.message); return; }
     reload();
   }, [user?.id, reload]);
 
@@ -508,11 +521,12 @@ export default function BasisProfilePage({ profileId, onClose }) {
         />
         <Gap h={20}/>
 
-        {/* 9. Sichtbarkeit — kanonisch VisibilitySection (Sprint F.5.3) */}
+        {/* 9. Sichtbarkeit — kanonisch VisibilitySection (Sprint F.9G.1: onSave) */}
         <VisibilitySection
           profile={profile}
           isOwner={isOwner}
           loading={loading}
+          onSave={handleVisibilitySave}
         />
         <Gap h={24}/>
 
