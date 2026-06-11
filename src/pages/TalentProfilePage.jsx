@@ -6,9 +6,7 @@
 //   3. ActionButtons (Verbinden, Nachricht)
 //   4. SchwerpunktKarte (auto-ermittelt aus works/experiences/interests)
 //   5. QuickStats (Verbindungen, Begegnungen, Momente, Projekte, Menschen)
-//   6. MeinWirken (gemischte Karten: Werke + Erlebnisse, Filter-Pills)
 //   7. NaechsteErlebnisse (nur wenn zukünftige Termine vorhanden)
-//   8. Wirkung (echte Counts aus DB)
 //   9. Momente (beitraege)
 //  10. AbschlussBar (Verbinden, Nachricht, Einladung)
 // ════════════════════════════════════════════════════════════════
@@ -845,82 +843,6 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// 7. WIRKUNG — echte Counts aus DB
-// ══════════════════════════════════════════════════════════════
-function WirkungSection({ works, experiences, moments, loading }) {
-  const stats = [
-    { emoji:"🌱", value: loading ? "–" : String(experiences.filter(e => e.category?.toLowerCase().includes("projekt") || e.format?.toLowerCase().includes("projekt")).length || Math.max(works.length, 1)), label:"Projekte &\nInitiativen" },
-    { emoji:"🤝", value: loading ? "–" : String(experiences.length * 4 + 12), label:"Begegnungen\nermöglicht" },
-    { emoji:"🎨", value: loading ? "–" : String(works.length || 0), label:"Werke\nveröffentlicht" },
-    { emoji:"📅", value: loading ? "–" : String(experiences.length || 0), label:"Erlebnisse\norganisiert" },
-    { emoji:"❤️", value: loading ? "–" : String((works.length + experiences.length) * 18 + 40) + "+", label:"Menschen\nerreicht" },
-  ];
-
-  return (
-    <div>
-      <SectionHead
-        icon="🌿"
-        title="Wirkung"
-        subtitle="Gemeinsam schaffen wir echte Veränderung."
-      />
-      {/* Aufgabe 4: Talent-Info für Besucher */}
-      {!loading && (
-        <div style={{
-          margin:`0 ${T.px}px 16px`,
-          background:T.tealSoft,
-          border:`1px solid ${T.tealMid}`,
-          borderRadius:T.r16,
-          padding:"12px 16px",
-          display:"flex", flexDirection:"column", gap:6,
-        }}>
-          <div style={{fontSize:11.5,fontWeight:700,color:T.teal,letterSpacing:"0.01em"}}>
-            ✨ HUI-Talent
-          </div>
-          <div style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.55}}>
-            Dieses Mitglied veröffentlicht Werke, veranstaltet Erlebnisse
-            und gestaltet die Gemeinschaft aktiv mit.
-          </div>
-          {/* Aufgabe 5: Impact-Stimmen */}
-          <div style={{
-            display:"flex", alignItems:"center", gap:6,
-            marginTop:2, padding:"8px 10px",
-            background:"rgba(14,196,184,0.06)",
-            borderRadius:T.r12,
-            border:`1px solid rgba(14,196,184,0.15)`,
-          }}>
-            <span style={{fontSize:16}}>🗳️</span>
-            <div>
-              <div style={{fontSize:11.5,fontWeight:700,color:T.teal}}>2 Stimmen pro Monat</div>
-              <div style={{fontSize:11,color:T.inkFaint,lineHeight:1.4}}>
-                Als HUI-Talent entscheidest du mit, welche Impact-Projekte unterstützt werden.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <div style={{
-        margin:`0 ${T.px}px`,
-        background:T.bgCard,
-        borderRadius:T.r20,
-        boxShadow:T.cardMd,
-        display:"grid",
-        gridTemplateColumns:"repeat(5,1fr)",
-        padding:"16px 8px",
-        gap:0,
-      }}>
-        {stats.map((st, i) => (
-          <div key={i} className="tpp-stat-item" style={{padding:"4px 2px"}}>
-            <div style={{fontSize:20,marginBottom:4}}>{st.emoji}</div>
-            <div style={{fontSize:17,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</div>
-            <div style={{fontSize:9.5,color:T.inkFaint,textAlign:"center",lineHeight:1.35,textAlign:"center",marginTop:3}}>{st.label}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════
 // 8. MOMENTE — beitraege
 // ══════════════════════════════════════════════════════════════
 
@@ -1330,11 +1252,6 @@ export default function TalentProfilePage({ profileId, onClose }) {
         {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
         <NaechsteErlebnisseSection experiences={experiences} loading={loading}/>
         <Gap h={28}/>
-
-        {/* ── 6. Wirkung (unverändert) ─────────────────────── */}
-        <WirkungSection works={works} experiences={experiences} moments={moments} loading={loading}/>
-        <Gap h={28}/>
-
         {/* ── 7. Talente & Angebote → TalentSection ────────── */}
         <TalentSection
           profile={profile}
