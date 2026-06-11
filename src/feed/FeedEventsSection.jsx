@@ -114,6 +114,26 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
   const [events,  setEvents]  = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // FEED.4D FIX-6 — Badge-Logik: echtes Datum statt immer "Heute"
+  function computeBadge(dateStr) {
+    if (!dateStr) return "Geplant";
+    const evDate  = new Date(dateStr);
+    const now     = new Date();
+    // Mitternacht local → sauberer Tagesvergleich
+    const today   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow= new Date(today); tomorrow.setDate(today.getDate() + 1);
+    const in7days = new Date(today); in7days.setDate(today.getDate() + 7);
+    const evDay   = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate());
+    if (evDay.getTime() === today.getTime())    return "Heute";
+    if (evDay.getTime() === tomorrow.getTime()) return "Morgen";
+    if (evDay < in7days) {
+      // z.B. "Mi 18 Jun"
+      return evDate.toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"short" });
+    }
+    // z.B. "21 Aug"
+    return evDate.toLocaleDateString("de-DE", { day:"numeric", month:"short" });
+  }
+
   useEffect(() => { loadEvents(); }, []);
 
   async function loadEvents() {
@@ -125,26 +145,50 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
         .from("experiences")
         .select(`
           id, title, location_text, price, format, duration,
-          cover_url, media_url, is_live, created_at,
-          profile:user_id(display_name, avatar_url)
+          date, time_start, time_end,
+          cover_url, media_url, is_live,
+          creator_id, user_id
         `)
+        // FEED.4D FIX-1 — date/time_start/time_end/creator_id/user_id ergänzt, toter JOIN entfernt
         // FEED.4B FIX-1 — Moderation-konforme Filter (identisch zu fetchFeedPage)
         .eq("status", "published")
         .eq("approval_status", "approved")
-        .order("created_at", { ascending: false })
+        // FEED.4D FIX-2 — nur zukünftige/heutige Events (date >= heute)
+        .gte("date", todayStr)
+        .order("date", { ascending: true })  // FEED.4D FIX-3 — chronologisch statt Erstellungsdatum
         .limit(12);
 
       if (error) throw error;
 
-      const rows = (data || []).map(r => ({
-        id:          String(r.id),
-        title:       r.title   || "Erlebnis",
-        time:        r.duration || "Offen",
-        location:    r.location_text || null,  // FEED.4B FIX-2 — kein 'Berlin'-Fallback
-        img:         r.cover_url || r.media_url || null,
-        badge:       r.is_live ? "Live" : "Heute",
-        badgeColor:  r.is_live ? "#EF4444" : TEAL,
-      }));
+      const rows = (data || []).map(r => {
+        // FEED.4D FIX-4 — time_start als echte Uhrzeit, duration als Fallback
+        const timeStr = r.time_start
+          ? r.time_start.slice(0, 5) + " Uhr"
+          : (r.duration || null);
+        // FEED.4D FIX-6b — Badge aus echtem Datum
+        const badge = computeBadge(r.date);
+        return {
+          id:         String(r.id),
+          title:      r.title        || "Erlebnis",
+          // FIX-4: echte Startzeit statt Dauer-Freitext
+          time:       timeStr,
+          location:   r.location_text || null,
+          img:        r.cover_url || r.media_url || null,
+          // FIX-5: Datumsdaten für spätere Nutzung verfügbar
+          date:       r.date       || null,
+          time_start: r.time_start || null,
+          time_end:   r.time_end   || null,
+          // FIX-6: echte Badge-Logik
+          badge,
+          badgeColor: badge === "Heute" ? TEAL
+                    : badge === "Morgen" ? CORAL
+                    : badge === "Geplant" ? "rgba(26,26,46,0.35)"
+                    : "#8B6FE8",  // Datum: Violett
+          // FIX-7: Creator-Navigation
+          user_id:    r.user_id    || null,
+          creator_id: r.creator_id || null,
+        };
+      });
 
       setEvents(rows);  // FEED.4B FIX-3 — leere DB → Section rendert nicht (Z.169)
     } catch (err) {
