@@ -556,7 +556,7 @@ function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }
         background:"#FDFAF5",
         borderRadius:"24px 24px 0 0",
         boxShadow:"0 -12px 60px rgba(0,0,0,0.22)",
-        maxHeight:"62vh",
+        maxHeight:"calc(100vh - 15px)",
         overflowY:"auto",
         overscrollBehavior:"contain",
         WebkitOverflowScrolling:"touch",
