@@ -1328,7 +1328,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Meine Werke" onEdit={() => onWerkWizard?.()}/>
+      <SectionRow title="Meine Werke"/>
       {works.length > 0 && (
         <div style={{ display:"flex", gap:10, overflowX:"auto",
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
@@ -1579,24 +1579,20 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
             </div>
           );
         })}
-        {/* Hinzufügen Button */}
-        <div style={{ flexShrink:0, width:80 }}>
-          <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
-            width:80, height:110, borderRadius:T.r12,
-            background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
-            display:"flex", flexDirection:"column",
-            alignItems:"center", justifyContent:"center", gap:4,
-            cursor:"pointer", touchAction:"manipulation",
-            fontFamily:"inherit",
-          }}>
-            <span style={{ fontSize:20, color:T.inkFaint }}>+</span>
-          </button>
-          <div style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", lineHeight:1.3, marginTop:6 }}>
-            Erlebnis<br/>hinzufügen
-          </div>
-        </div>
       </div>
     </div>
+    {/* ── Großer Add-Button — identisch zu "+ Werk hinzufügen" ── */}
+    <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
+      display:"flex", alignItems:"center", gap:8,
+      padding:"10px 16px", borderRadius:T.r12,
+      background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
+      fontSize:13, fontWeight:600, color:T.inkSoft,
+      cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+      width:"100%", marginTop:12,
+    }}>
+      <span style={{fontSize:16}}>+</span>
+      Erlebnis &amp; Projekte hinzufügen
+    </button>
     </>
   );
 }
