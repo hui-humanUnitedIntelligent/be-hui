@@ -177,9 +177,9 @@ function bewerteProjekt(form) {
     return { geeignet: false, grund: "zu_kurz", score };
   }
 
-  // Schwelle: 40 — private/vage Projekte sind bereits auf 8–22 gecappt
-  // echte Projekte mit mehreren relevanten Keywords kommen ab 40 durch
-  if (score >= 40) {
+  // Schwelle: 35 — private/vage Projekte sind bereits auf 8–22 gecappt (nie erreichbar)
+  // echte Projekte mit mehreren relevanten Keywords kommen ab 35 durch
+  if (score >= 35) {
     return {
       geeignet: true,
       score,
