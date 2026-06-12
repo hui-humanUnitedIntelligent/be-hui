@@ -942,14 +942,35 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       try {
         const { data:round } = await ImpactService.getCurrentRound();
         if (dead) return;
-        if (round?.id) {
-          setActiveRound(round);
-          const { data:votes } = await ImpactService.getUserVotesThisRound(currentUser.id, round.id);
-          if (!dead) setUserVotes(safeArr(votes));
-        }
+        if (round?.id) setActiveRound(round);
+        // Single Source of Truth: voter_id + pool_month
+        const { data:votes } = await ImpactService.getUserVotesThisMonth(currentUser.id);
+        if (!dead) setUserVotes(safeArr(votes));
       } catch { /* silent */ }
     })();
     return () => { dead = true; };
+  }, [currentUser?.id]);
+
+  // ── Realtime: impact_votes → Stimmen sofort aktualisieren ──
+  React.useEffect(() => {
+    if (!currentUser?.id) return;
+    const month = new Date().toISOString().slice(0,7);
+    const sub = supabase.channel("votes_rt_main")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
+        (payload) => {
+          const v = payload.new;
+          if (!v) return;
+          // Eigene Stimme → userVotes aktualisieren
+          if (v.voter_id === currentUser.id && v.pool_month === month) {
+            setUserVotes(prev => [...prev, v]);
+          }
+          // Projektstimmen in Echtzeit hochzählen
+          setProjects(prev => prev.map(p =>
+            p.id === v.project_id ? { ...p, votes: (p.votes || 0) + 1 } : p
+          ));
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(sub); };
   }, [currentUser?.id]);
 
   // ── Persönliche Wirkung des Nutzers ──
@@ -962,7 +983,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           supabase.from("hui_payments")
             .select("impact_eur").eq("user_id", currentUser.id).eq("payment_status","paid"),
           supabase.from("impact_votes")
-            .select("id,project_id").eq("user_id", currentUser.id),
+            .select("id,project_id").eq("voter_id", currentUser.id),
         ]);
         if (dead) return;
         const pays  = payRes.status  === "fulfilled" ? (payRes.value.data  || []) : [];
@@ -987,10 +1008,10 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     setProjects(prev => prev.map(p =>
       p.id === projectId ? { ...p, votes:(p.votes||0)+1 } : p));
 
-    if (!activeRound?.id) return;
     setVoteLoading(true);
     try {
-      const { error } = await ImpactService.castVote(currentUser.id, projectId, activeRound.id, maxV);
+      // Single Source of Truth: voter_id + pool_month (kein round_id)
+      const { error } = await ImpactService.castVote(currentUser.id, projectId, null, maxV);
       if (error) {
         setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
         setProjects(prev => prev.map(p =>
