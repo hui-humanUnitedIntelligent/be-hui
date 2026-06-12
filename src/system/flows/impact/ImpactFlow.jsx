@@ -71,14 +71,16 @@ function calcHuiFitScore(form) {
   if (satzWords.length > 0) {
     const nonsenseCount = satzWords.filter(isNonsenseWord).length;
     const nonsenseRatio = nonsenseCount / satzWords.length;
-    if (nonsenseRatio >= 0.5 || nonsenseCount >= 2) return 5; // Score 5 = Nonsense-Text
+    // Nur ablehnen wenn der GROSSTEIL des Textes unlesbarer Zeichenmüll ist
+    // Einzelne Kunstwörter/Eigennamen (Lichtpfad, etc.) dürfen nicht treffen
+    if (nonsenseRatio >= 0.8 || (satzWords.length <= 3 && nonsenseCount >= 1)) return 5;
   }
 
   // Beleidigungen / Test-Strings im Projektnamen
   const BELEIDIGUNGEN = [
-    "trottel","idiot","depp","blöd","dumm","scheiß","bescheuert","blödmann",
-    "vollidiot","test","asdf","qwer","xyz","abc","aaaa","bbbb","1234",
-    "hallo test","lorem ipsum","foo bar","dummy","fake","unsinn",
+    "trottel","idiot","depp","blödmann","vollidiot",
+    "asdf","qwerty","xxxxxx","aaaa","bbbb","cccc","dddd",
+    "lorem ipsum","foo bar",
   ];
   const nameText = (form.name || "").toLowerCase();
   if (BELEIDIGUNGEN.some(b => nameText.includes(b))) return 5;
@@ -112,10 +114,10 @@ function calcHuiFitScore(form) {
     "für mich allein","für mich selbst","für mich persönlich",
     "meinen alltag","meinem alltag","in meinem alltag","meinen eigenen alltag",
     "mein alltag","meines alltags",
-    "meinem leben","mein leben schöner","mein leben besser",
+    "mein leben schöner","mein leben besser",
     "mein eigenes","nur für mich","gehört mir",
-    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
-    "meinen alltag zu","in meinen alltag","bunte akzente","farbtupfer",
+    "mehr farbe in meinen","mehr farbe in meinem",
+    "bunte akzente","farbtupfer",
     "meinen alltag fröhlicher","meinem alltag farbe","meinen alltag bunter",
   ];
   // Kommerziell / nicht gemeinnützig
@@ -252,7 +254,7 @@ function bewerteProjekt(form) {
     "mein fenster","meinem fenster",
     "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
     "meinen alltag","meinem alltag","in meinem alltag","mein alltag",
-    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
+    "mehr farbe in meinen","mehr farbe in meinem",
     "bunte akzente","farbtupfer","meinen alltag fröhlicher","meinen alltag bunter",
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     "für mich allein","für mich selbst","für mich persönlich","nur für mich",
