@@ -550,25 +550,31 @@ function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }
         background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)",
         animation:"ipFadeIn 0.22s ease both",
       }} />
-      {/* Bottom-Sheet — kleinstmöglicher Platz oben */}
+      {/* Bottom-Sheet: top=15px → minimale Luft oben, Navbar-sicher */}
       <div onClick={e => e.stopPropagation()} style={{
-        position:"fixed", left:0, right:0, bottom:0, zIndex:9999,
+        position:"fixed", left:0, right:0, top:15, bottom:0, zIndex:9999,
         background:"#FDFAF5",
         borderRadius:"24px 24px 0 0",
         boxShadow:"0 -12px 60px rgba(0,0,0,0.22)",
-        maxHeight:"calc(100vh - 15px)",
-        overflowY:"auto",
-        overscrollBehavior:"contain",
-        WebkitOverflowScrolling:"touch",
-        paddingBottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+        display:"flex", flexDirection:"column",
+        overflow:"hidden",
         animation:"ipSlideUp 0.30s cubic-bezier(0.22,1,0.36,1) both",
       }}>
-        {/* Drag-Handle */}
+        {/* Drag-Handle — fixiert oben */}
+        <div style={{ flexShrink:0, paddingTop:10, paddingBottom:4 }}>
+          <div style={{
+            width:40, height:4, borderRadius:99,
+            background:"rgba(20,20,34,0.15)",
+            margin:"0 auto",
+          }} />
+        </div>
+        {/* Scrollbarer Inhalt — nimmt restliche Höhe, Navbar-Abstand innen */}
         <div style={{
-          width:40, height:4, borderRadius:99,
-          background:"rgba(20,20,34,0.15)",
-          margin:"10px auto 0", flexShrink:0,
-        }} />
+          flex:1, overflowY:"auto",
+          overscrollBehavior:"contain",
+          WebkitOverflowScrolling:"touch",
+          paddingBottom:"calc(88px + env(safe-area-inset-bottom, 0px))",
+        }}>
         {/* Bild */}
         <div style={{ position:"relative", height:220, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
           <img src={img} alt={app.project_name}
@@ -796,7 +802,8 @@ function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }
             )}
           </div>
         </div>
-      </div>
+        </div>{/* /Scroll-Wrapper */}
+      </div>{/* /Sheet */}
     </>
   );
 }
