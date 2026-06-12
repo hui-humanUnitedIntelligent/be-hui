@@ -1307,6 +1307,9 @@ export default function ImpactFlow({ onClose }) {
   const [kontakt, setKontakt] = useState({
     standort:"", email:"", name:"", telefon:"",
   });
+  // Medien-Upload State (Step 10)
+  const [coverUrl,     setCoverUrl]     = useState("");
+  const [attachments,  setAttachments]  = useState([]);
   const update = useCallback(patch => setForm(f => ({...f,...patch})), []);
 
   const goNext = useCallback(() => setStep(s => s+1), []);
@@ -1314,7 +1317,8 @@ export default function ImpactFlow({ onClose }) {
     if (step === 0) onClose?.();
     else if (step === 6 || step === 7) setStep(5);
     else if (step === 9) setStep(7);
-    else if (step === 8) setStep(9);
+    else if (step === 10) setStep(9);   // Medien → zurück zu Persönliche Angaben
+    else if (step === 8) setStep(10);  // Wirkungsnetz → zurück zu Medien
     else setStep(s => s-1);
   }, [step, onClose]);
 
@@ -1339,10 +1343,13 @@ export default function ImpactFlow({ onClose }) {
         contact_email:  kontakt.email.trim() || user.email || "",
         status:         "pending",
         submitted_at:   new Date().toISOString(),
-        // Persönliche Angaben (neue Felder)
+        // Persönliche Angaben
         contact_name:   kontakt.name.trim(),
         contact_phone:  kontakt.telefon.trim(),
         location:       kontakt.standort.trim(),
+        // Medien-Upload
+        cover_url:      coverUrl || null,
+        media_urls:     attachments.length ? attachments.map(a => a.url) : null,
       });
       if (dbErr) throw dbErr;
 
@@ -1371,7 +1378,7 @@ export default function ImpactFlow({ onClose }) {
       setError(e.message || "Fehler beim Absenden");
       setSaving(false);
     }
-  }, [user, form, aiRes, kontakt]);
+  }, [user, form, aiRes, kontakt, coverUrl, attachments]);
 
   // ── Escape ────────────────────────────────────────────────────
   useEffect(() => {
@@ -1424,8 +1431,21 @@ export default function ImpactFlow({ onClose }) {
           <PersoenlicheAngaben
             kontakt={kontakt}
             setKontakt={setKontakt}
+            onWeiter={() => setStep(10)}
+            onClose={onClose}
+          />
+        )}
+
+        {/* Step 10 — Medien & Dateien */}
+        {!done && step === 10 && (
+          <MedienUploadStep
+            coverUrl={coverUrl}
+            setCoverUrl={setCoverUrl}
+            attachments={attachments}
+            setAttachments={setAttachments}
             onWeiter={() => setStep(8)}
             onClose={onClose}
+            userId={user?.id}
           />
         )}
 
@@ -1439,7 +1459,7 @@ export default function ImpactFlow({ onClose }) {
         )}
 
         {/* Error-Banner (bei Supabase-Fehler im Netzwerk-Screen) */}
-        {error && (step === 8 || step === 9) && (
+        {error && (step === 8 || step === 9 || step === 10) && (
           <div style={{
             position:"absolute", bottom:80, left:16, right:16,
             background:`${T.coral}15`, border:`1px solid ${T.coral}30`,
