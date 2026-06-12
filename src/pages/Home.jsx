@@ -337,6 +337,7 @@ function HomeInner() {
                     if (creatorId) openProfileById(creatorId);
                   }}
                   onMoreEvents={() => handleTab("discover")}
+                  onDiscover={() => handleTab("discover")}
                 />
               </SafeRender>
             ) : (

@@ -200,7 +200,7 @@ function ReactionCard({ item, onProfile, onBook, onShare }) {
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, hasMore, loadingMore }) {
+function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, hasMore, loadingMore, onDiscover }) {
   // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -236,12 +236,76 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, has
           </div>
         );
       })}
-      {/* ── Pagination Sentinel ── */}
+      {/* ── Pagination: Sentinel + Spinner (solange hasMore) ── */}
       <FeedLoadMoreSpinner loading={!!loadingMore} />
       <FeedBottomSentinel
         enabled={!!hasMore && !loadingMore}
         onVisible={loadMore}
       />
+
+      {/* ── FEED.11B — Feed-Ende State ── */}
+      {!hasMore && arr.length > 0 && (
+        <div style={{
+          display:        "flex",
+          flexDirection:  "column",
+          alignItems:     "center",
+          textAlign:      "center",
+          padding:        "32px 24px 48px",
+          gap:            12,
+        }}>
+          {/* Dekoratives Symbol */}
+          <div style={{
+            fontSize:    18,
+            color:       "rgba(13,196,181,0.55)",
+            marginBottom: 4,
+            letterSpacing: 2,
+          }}>
+            ✦
+          </div>
+
+          {/* Haupttext */}
+          <div style={{
+            fontSize:   14,
+            fontWeight: 600,
+            color:      "rgba(26,53,48,0.70)",
+            letterSpacing: -0.2,
+          }}>
+            Das war dein aktueller Feed
+          </div>
+
+          {/* Subtext */}
+          <div style={{
+            fontSize:   12.5,
+            color:      "rgba(26,53,48,0.40)",
+            fontWeight: 400,
+            maxWidth:   220,
+            lineHeight: 1.5,
+          }}>
+            Neue Talente und Erlebnisse warten auf dich.
+          </div>
+
+          {/* Discovery CTA */}
+          <button
+            onClick={() => onDiscover?.()}
+            style={{
+              marginTop:    8,
+              padding:      "10px 22px",
+              borderRadius: 20,
+              border:       "1.5px solid rgba(13,196,181,0.35)",
+              background:   "rgba(13,196,181,0.06)",
+              color:        "#0DC4B5",
+              fontSize:     13,
+              fontWeight:   600,
+              cursor:       "pointer",
+              letterSpacing: -0.1,
+              touchAction:  "manipulation",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            Neue Talente entdecken →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -284,6 +348,8 @@ export default function UnifiedFeed({
   onMoreEvents = null,
   // Refresh binding — parent can register for feed refresh fn
   onRefreshBind = null,
+  // Navigation
+  onDiscover   = null,
   // User context
   currentUser  = null,
 }) {
@@ -439,6 +505,7 @@ export default function UnifiedFeed({
             loadMore={loadMore}
             hasMore={hasMore}
             loadingMore={loadingMore}
+            onDiscover={onDiscover}
           />
         )}
       </SectionBoundary>
