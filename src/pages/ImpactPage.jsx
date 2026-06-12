@@ -430,8 +430,16 @@ function useApprovedApplications() {
     let dead = false;
     loadApps().then(s => { if (!dead) { setApps(s); setLoading(false); } });
     const sub = supabase.channel("imp_apps_rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "impact_votes" },
-        () => loadApps().then(s => { if (!dead) setApps(s); }))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
+        (payload) => {
+          // Optimistic update: vote_count sofort hochzählen ohne reload
+          const pid = payload.new?.project_id;
+          if (pid) {
+            setApps(prev => prev.map(a =>
+              a.id === pid ? { ...a, vote_count: (a.vote_count || 0) + 1 } : a
+            ));
+          }
+        })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "impact_applications" },
         () => loadApps().then(s => { if (!dead) setApps(s); }))
       .subscribe();
@@ -934,17 +942,22 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     return () => { dead = true; };
   }, []);
 
-  // ── ActiveRound + UserVotes ──
+  // ── ActiveRound + UserVotes (live aus impact_votes) ──
   React.useEffect(() => {
     if (!currentUser?.id) return;
     let dead = false;
+    const month = new Date().toISOString().slice(0,7);
     (async () => {
       try {
         const { data:round } = await ImpactService.getCurrentRound();
         if (dead) return;
         if (round?.id) setActiveRound(round);
         // Single Source of Truth: voter_id + pool_month
-        const { data:votes } = await ImpactService.getUserVotesThisMonth(currentUser.id);
+        const { data: votes } = await supabase
+          .from("impact_votes")
+          .select("id,project_id,pool_month,weight,created_at")
+          .eq("voter_id", currentUser.id)
+          .eq("pool_month", month);
         if (!dead) setUserVotes(safeArr(votes));
       } catch { /* silent */ }
     })();
@@ -1113,6 +1126,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         seedData={weitereHP.data}
         seedLoading={weitereHP.loading}
         onOpen={setDetailApp}
+        allApps={approvedApps.apps}
       />
 
       {/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
@@ -2091,7 +2105,10 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
           <span style={{ fontSize:10, fontWeight:700, color:"#22c55e",
             background:"rgba(34,197,94,0.10)", borderRadius:99, padding:"2px 8px",
             border:"1px solid rgba(34,197,94,0.20)" }}>✅ Bewilligt</span>
-          <span style={{ fontSize:11, color:T.teal, fontWeight:700 }}>🗳 {app.vote_count || 0}</span>
+          <span style={{ fontSize:11, color: app.vote_count > 0 ? T.teal : "#aaa", fontWeight:700,
+            transition:"color 0.3s ease" }}>
+            🗳 {app.vote_count || 0} {app.vote_count === 1 ? "Stimme" : "Stimmen"}
+          </span>
         </div>
       </div>
       <div style={{ flexShrink:0, textAlign:"right" }}>
