@@ -146,15 +146,15 @@ function calcHuiFitScore(form) {
     { kws:["veränderung","entwicklung","wachstum","orientierung","klarheit","entscheidung","stärke","selbstwirksamkeit"], pts:9 },
   ];
 
-  let baseScore = 8; // Sehr niedriger Basis
+  let baseScore = 20; // Solider Basis für alle die Stufe 3 bestehen
 
   for (const group of HUI_MISSION) {
     const hits = group.kws.filter(kw => allText.includes(kw)).length;
-    // Strenge Staffelung: 1 Keyword = kaum Punkte, 3+ = volle Punkte
+    // Faire Staffelung: 1 Keyword = 30%, 2 = 55%, 3 = 80%, 4+ = 100%
     if (hits >= 4)       baseScore += group.pts;
-    else if (hits === 3) baseScore += Math.round(group.pts * 0.75);
-    else if (hits === 2) baseScore += Math.round(group.pts * 0.4);
-    else if (hits === 1) baseScore += Math.round(group.pts * 0.15); // 1 Keyword = sehr wenig
+    else if (hits === 3) baseScore += Math.round(group.pts * 0.80);
+    else if (hits === 2) baseScore += Math.round(group.pts * 0.55);
+    else if (hits === 1) baseScore += Math.round(group.pts * 0.30);
   }
 
   // ── Vagheits-Abzug ────────────────────────────────────────────
