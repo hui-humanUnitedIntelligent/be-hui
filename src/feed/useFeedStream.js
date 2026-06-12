@@ -170,19 +170,37 @@ async function fetchFeedPage(userId = null, cursors = null) {
   ];
 
 
-  // FEED.10C — Upcoming Experience Boost
-  // Nur Experiences mit Termin in den nächsten 7 Tagen erhalten einen _sortKey-Boost.
-  // created_at und Cursor bleiben vollständig unverändert.
-  const _now        = Date.now();
-  const _BOOST_MS   = 4 * 60 * 60 * 1000;        // +4 Stunden
-  const _WINDOW_MS  = 7 * 24 * 60 * 60 * 1000;   // 7 Tage
+  // FEED.13B — Upcoming Experience Relevance Ranking
+  // Ersetzt FEED.10C (+4h Boost) durch zeitliche Relevanz-Verankerung.
+  //
+  // Regel: Experience mit Termin innerhalb von 7 Tagen erhält
+  //   _sortKey = max(created_at, event_date - 48h)
+  //
+  // Effekte:
+  //   Termin morgen (24h)  → visibilityAnchor = heute       → max(base, heute)
+  //   Termin in 3 Tagen    → visibilityAnchor = übermorgen  → max(base, übermorgen)
+  //   Termin in 6 Monaten  → CAP greift        → base (created_at, kein Vorteil)
+  //   Vergangene Termine   → kein Vorteil      → base
+  //   Works / Moments      → base (unverändert)
+  //
+  // Cursor, Pagination und Analytics bleiben vollständig unberührt.
+  const _now                     = Date.now();
+  const EVENT_VISIBILITY_WINDOW_MS = 48 * 60 * 60 * 1000;  // 48 Stunden Vorlauf
+  const _WINDOW_MS                = 7  * 24 * 60 * 60 * 1000; // 7 Tage CAP (unverändert)
 
   normalized.forEach(item => {
     const base = item._raw?.created_at ? new Date(item._raw.created_at).getTime() : 0;
     if (item.type === "experience" && item._raw?.date) {
       const eventMs = new Date(item._raw.date).getTime();
       const delta   = eventMs - _now;
-      item._sortKey = (delta >= 0 && delta < _WINDOW_MS) ? base + _BOOST_MS : base;
+      if (delta >= 0 && delta < _WINDOW_MS) {
+        // Termin in 0–7 Tagen → zeitliche Relevanz-Verankerung
+        const visibilityAnchor = eventMs - EVENT_VISIBILITY_WINDOW_MS;
+        item._sortKey = Math.max(base, visibilityAnchor);
+      } else {
+        // Vergangen oder > 7 Tage → kein Vorteil
+        item._sortKey = base;
+      }
     } else {
       item._sortKey = base;
     }
