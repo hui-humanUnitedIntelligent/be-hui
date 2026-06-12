@@ -40,6 +40,8 @@ export function getTabStyle(tabId, activeTab, activeSurface) {
       top:           0,
       left:          0,
       width:         "100%",
+      height:        0,           // ← KEY FIX: kein Platz im Scroll-Container
+      overflow:      "hidden",    // ← KEY FIX: kein sichtbarer Inhalt
       opacity:       0,
       transform:     "translateY(4px) scale(0.999)",
       pointerEvents: "none",
