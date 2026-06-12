@@ -947,8 +947,93 @@ function SuccessScreen({ onClose }) {
   );
 }
 
+
+// ═══ PERSÖNLICHE ANGABEN (Step 7.5) ══════════════════════════
+function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
+  const T = useTheme();
+  const S = useStyles(T);
+  const [errors, setErrors] = useState({});
+
+  const fields = [
+    { key:"standort",  label:"Standort",        placeholder:"z. B. Berlin, Bayern, Österreich", type:"text" },
+    { key:"email",     label:"Kontakt E-Mail",   placeholder:"deine@email.de",                   type:"email" },
+    { key:"name",      label:"Kontakt Name",     placeholder:"Vor- und Nachname",                type:"text" },
+    { key:"telefon",   label:"Kontakt Telefon",  placeholder:"z. B. +49 170 1234567",            type:"tel" },
+  ];
+
+  const validate = () => {
+    const e = {};
+    if (!(kontakt.standort||"").trim()) e.standort = true;
+    if (!(kontakt.email||"").trim())    e.email    = true;
+    if (!(kontakt.name||"").trim())     e.name     = true;
+    if (!(kontakt.telefon||"").trim())  e.telefon  = true;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleWeiter = () => {
+    if (validate()) onWeiter();
+  };
+
+  return (
+    <div style={{ overflowY:"auto", flex:1, padding:"28px 24px 32px" }}>
+      {/* Header */}
+      <div style={{ textAlign:"center", marginBottom:24 }}>
+        <div style={{ fontSize:36, marginBottom:8 }}>📋</div>
+        <div style={{ fontSize:20, fontWeight:800, color:T.ink, marginBottom:6 }}>
+          Persönliche Angaben
+        </div>
+        <div style={{ fontSize:13, color:T.ink3, lineHeight:1.5 }}>
+          Damit das HUI-Team dich kontaktieren kann, benötigen wir noch ein paar Angaben.
+          Alle Felder sind Pflichtfelder.
+        </div>
+      </div>
+
+      {/* Felder */}
+      <div style={{ display:"flex", flexDirection:"column", gap:14, marginBottom:28 }}>
+        {fields.map(f => (
+          <div key={f.key}>
+            <div style={{
+              fontSize:11, fontWeight:700, color:T.teal,
+              letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6,
+            }}>{f.label}</div>
+            <input
+              className="hui-input"
+              type={f.type}
+              placeholder={f.placeholder}
+              value={kontakt[f.key] || ""}
+              onChange={e => setKontakt(prev => ({...prev, [f.key]: e.target.value}))}
+              style={{
+                border: errors[f.key]
+                  ? "2px solid #FF6B6B"
+                  : "2px solid rgba(20,20,34,0.10)",
+              }}
+            />
+            {errors[f.key] && (
+              <div style={{ fontSize:11, color:"#FF6B6B", marginTop:4 }}>
+                Dieses Feld ist erforderlich.
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Weiter-Button */}
+      <button onClick={handleWeiter} className="hui-next" style={{
+        width:"100%", height:54, borderRadius:18, border:"none",
+        background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
+        color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
+        boxShadow:`0 6px 24px ${T.teal}40`, marginBottom:8,
+      }}>Weiter → Wirkungsnetzwerk</button>
+      <button onClick={onClose} style={{ background:"none", border:"none",
+        fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px",
+        display:"block", width:"100%", textAlign:"center" }}>Abbrechen</button>
+    </div>
+  );
+}
+
 // ═══ HAUPT-ORCHESTRATOR ═══════════════════════════════════════
-// Steps: 0–5 = Wizard, 6 = KI, 7 = Ergebnis, 8 = Wirkungsnetzwerk
+// Steps: 0–5 = Wizard, 6 = KI, 7 = Ergebnis, 7.5(=9) = Persönliche Angaben, 8 = Wirkungsnetzwerk
 export default function ImpactFlow({ onClose }) {
   const { user } = useAuth();
   const [step,    setStep]    = useState(0);
@@ -963,12 +1048,17 @@ export default function ImpactFlow({ onClose }) {
   const [form, setForm] = useState({
     name:"", satz:"", problem:"", kategorie:"", umsetzung:"", foerder:"",
   });
+  const [kontakt, setKontakt] = useState({
+    standort:"", email:"", name:"", telefon:"",
+  });
   const update = useCallback(patch => setForm(f => ({...f,...patch})), []);
 
   const goNext = useCallback(() => setStep(s => s+1), []);
   const goBack = useCallback(() => {
     if (step === 0) onClose?.();
-    else if (step === 6 || step === 7 || step === 8) setStep(5);
+    else if (step === 6 || step === 7) setStep(5);
+    else if (step === 9) setStep(7);
+    else if (step === 8) setStep(9);
     else setStep(s => s-1);
   }, [step, onClose]);
 
@@ -982,7 +1072,7 @@ export default function ImpactFlow({ onClose }) {
     setSaving(true); setError(null);
     try {
       const { error: dbErr } = await supabase.from("impact_applications").insert({
-        // Kern-Felder (nur Spalten die in der DB existieren)
+        // Kern-Felder
         user_id:        user.id,
         project_name:   form.name.trim(),
         short_desc:     form.satz.trim(),
@@ -990,11 +1080,13 @@ export default function ImpactFlow({ onClose }) {
         vision:         form.umsetzung.trim(),
         funding_goal:   form.foerder ? parseInt(form.foerder, 10) : null,
         funding_use:    form.umsetzung.trim(),
-        contact_email:  user.email || "",
+        contact_email:  kontakt.email.trim() || user.email || "",
         status:         "pending",
         submitted_at:   new Date().toISOString(),
-        // Hinweis: ai_fit_score, ai_score, category etc. existieren noch
-        // nicht in der DB — werden ergänzt wenn Migration erfolgt ist
+        // Persönliche Angaben (neue Felder)
+        contact_name:   kontakt.name.trim(),
+        contact_phone:  kontakt.telefon.trim(),
+        location:       kontakt.standort.trim(),
       });
       if (dbErr) throw dbErr;
 
@@ -1023,7 +1115,7 @@ export default function ImpactFlow({ onClose }) {
       setError(e.message || "Fehler beim Absenden");
       setSaving(false);
     }
-  }, [user, form, aiRes]);
+  }, [user, form, aiRes, kontakt]);
 
   // ── Escape ────────────────────────────────────────────────────
   useEffect(() => {
@@ -1065,11 +1157,20 @@ export default function ImpactFlow({ onClose }) {
 
         {!done && step === 7 && aiRes?.geeignet && (
           <ErgebnisGeeignet form={form} aiRes={aiRes}
-            onNetworkConfirm={() => setStep(8)} onClose={onClose} />
+            onNetworkConfirm={() => setStep(9)} onClose={onClose} />
         )}
         {!done && step === 7 && aiRes && !aiRes.geeignet && (
           <ErgebnisNichtGeeignet form={form} aiRes={aiRes} user={user} onClose={onClose}
             onRetry={() => { setStep(0); setAiRes(null); }} />
+        )}
+
+        {!done && step === 9 && (
+          <PersoenlicheAngaben
+            kontakt={kontakt}
+            setKontakt={setKontakt}
+            onWeiter={() => setStep(8)}
+            onClose={onClose}
+          />
         )}
 
         {!done && step === 8 && (
@@ -1082,7 +1183,7 @@ export default function ImpactFlow({ onClose }) {
         )}
 
         {/* Error-Banner (bei Supabase-Fehler im Netzwerk-Screen) */}
-        {error && step === 8 && (
+        {error && (step === 8 || step === 9) && (
           <div style={{
             position:"absolute", bottom:80, left:16, right:16,
             background:`${T.coral}15`, border:`1px solid ${T.coral}30`,
