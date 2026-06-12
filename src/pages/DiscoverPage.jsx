@@ -29,7 +29,7 @@ const T = {
 // ── Global CSS ───────────────────────────────────────────────────
 const CSS = `
   .dp-root * { box-sizing:border-box; }
-  .dp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .dp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; overscroll-behavior-x:none; }
   .dp-hscroll::-webkit-scrollbar { display:none; }
   .dp-press { transition:transform .14s cubic-bezier(.22,1,.36,1),opacity .14s ease; cursor:pointer; }
   .dp-press:active { transform:scale(0.94); opacity:0.80; }
@@ -1672,6 +1672,7 @@ export default function DiscoverPage({ onView, onMap }) {
       width:"100%", background:T.bg,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
       color:T.ink,
+      overscrollBehavior:"none",
     }}>
       <style>{CSS}</style>
 
