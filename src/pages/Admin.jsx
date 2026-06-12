@@ -718,6 +718,263 @@ function ErlebnisseProjekteTab() {
 // ─────────────────────────────────────────────────────────────────
 // Haupt-Admin
 // ─────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────
+// FEED.12D — FeedAnalyticsTab
+// Zeigt Feed-Impressions (creator_analytics) +
+// Scroll-Tiefe (platform_events) für den eingeloggten Admin.
+// Kein Service-Role nötig — nutzt bestehende RLS-Policies.
+// ─────────────────────────────────────────────────────────────────
+function FeedAnalyticsTab() {
+  const [loading,   setLoading]   = useState(true);
+  const [impress,   setImpress]   = useState({ total:0, works:0, exps:0, topWorks:[], topExps:[] });
+  const [depth,     setDepth]     = useState({ d5:0, d10:0, d20:0, end:0, sessions:0 });
+  const [invisible, setInvisible] = useState({ works:[], exps:[] });
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const [
+        analyticsRes,
+        depthRes,
+        worksRes,
+        expsRes,
+      ] = await Promise.all([
+        // creator_analytics: alle work_view + experience_view die dieser Creator erhalten hat
+        supabase.from("creator_analytics")
+          .select("event_type, source_id, created_at")
+          .in("event_type", ["work_view","experience_view"])
+          .order("created_at", { ascending: false })
+          .limit(1000),
+        // platform_events: eigene Scroll-Tiefe (als Test des eigenen Accounts)
+        supabase.from("platform_events")
+          .select("event_type, metadata, created_at")
+          .in("event_type", ["feed_depth_5","feed_depth_10","feed_depth_20","feed_end_reached"])
+          .order("created_at", { ascending: false })
+          .limit(500),
+        // Works ohne Views ermitteln (öffentlich lesbar)
+        supabase.from("works")
+          .select("id, title, media_url")
+          .eq("status","published")
+          .limit(100),
+        // Experiences ohne Views ermitteln (öffentlich lesbar)
+        supabase.from("experiences")
+          .select("id, title, cover_url")
+          .eq("status","published")
+          .limit(100),
+      ]);
+
+      const analytics = analyticsRes.data || [];
+      const wViews = analytics.filter(a => a.event_type === "work_view");
+      const eViews = analytics.filter(a => a.event_type === "experience_view");
+
+      // Top Works nach Impression-Häufigkeit
+      const workCounts = {};
+      wViews.forEach(a => { workCounts[a.source_id] = (workCounts[a.source_id]||0)+1; });
+      const topWorks = Object.entries(workCounts)
+        .sort((a,b)=>b[1]-a[1]).slice(0,5)
+        .map(([id,count]) => ({ id, count }));
+
+      // Top Experiences
+      const expCounts = {};
+      eViews.forEach(a => { expCounts[a.source_id] = (expCounts[a.source_id]||0)+1; });
+      const topExps = Object.entries(expCounts)
+        .sort((a,b)=>b[1]-a[1]).slice(0,5)
+        .map(([id,count]) => ({ id, count }));
+
+      setImpress({
+        total: analytics.length,
+        works: wViews.length,
+        exps:  eViews.length,
+        topWorks,
+        topExps,
+      });
+
+      // Scroll-Tiefe
+      const depthData = depthRes.data || [];
+      const d5   = depthData.filter(d => d.event_type === "feed_depth_5").length;
+      const d10  = depthData.filter(d => d.event_type === "feed_depth_10").length;
+      const d20  = depthData.filter(d => d.event_type === "feed_depth_20").length;
+      const end  = depthData.filter(d => d.event_type === "feed_end_reached").length;
+      const sessions = Math.max(d5, d10, d20, end, 1);
+      setDepth({ d5, d10, d20, end, sessions });
+
+      // Unsichtbare Inhalte
+      const seenWorkIds  = new Set(Object.keys(workCounts));
+      const seenExpIds   = new Set(Object.keys(expCounts));
+      const invisWorks = (worksRes.data||[]).filter(w => !seenWorkIds.has(w.id));
+      const invisExps  = (expsRes.data||[]).filter(e => !seenExpIds.has(e.id));
+      setInvisible({ works: invisWorks, exps: invisExps });
+
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const card = { background:C.card, borderRadius:16, padding:20,
+                 border:`1px solid ${C.border}`, marginBottom:16 };
+  const kpiGrid = { display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:12, marginBottom:16 };
+
+  const pct = (n, base) => base > 0 ? Math.round((n/base)*100) : 0;
+
+  if (loading) return (
+    <div style={{textAlign:"center",padding:40}}>
+      <div style={{fontSize:32,marginBottom:8}}>📊</div>
+      <div style={{color:C.sub}}>Lade Feed-Analytics…</div>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* ── Impressions ── */}
+      <div style={{...card}}>
+        <div style={{fontWeight:700,marginBottom:14,fontSize:15}}>📡 Feed-Impressions</div>
+        <div style={kpiGrid}>
+          {[
+            { label:"Gesamt",             value: impress.total, color: C.teal,   icon:"👁" },
+            { label:"Work-Impressions",   value: impress.works, color: C.purple, icon:"🎨" },
+            { label:"Experience-Views",   value: impress.exps,  color: C.orange, icon:"🗓" },
+            { label:"Unsichtbare Works",  value: invisible.works.length, color: invisible.works.length > 0 ? C.coral : C.green, icon:"⚠️" },
+          ].map(kpi => (
+            <div key={kpi.label} style={{background:C.card2,borderRadius:12,padding:14,
+              border:`1px solid ${C.border}`}}>
+              <div style={{fontSize:20,marginBottom:4}}>{kpi.icon}</div>
+              <div style={{fontSize:22,fontWeight:800,color:kpi.color}}>{kpi.value}</div>
+              <div style={{fontSize:11,color:C.sub,marginTop:2}}>{kpi.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{fontSize:11,color:C.muted,marginTop:4}}>
+          ℹ️ Zeigt Feed-Impressions für deinen Creator-Account (RLS-begrenzt).
+          Plattform-weite Aggregation erfordert RPC-Erweiterung.
+        </div>
+      </div>
+
+      {/* ── Scroll-Tiefe / Feed-Funnel ── */}
+      <div style={card}>
+        <div style={{fontWeight:700,marginBottom:14,fontSize:15}}>📉 Scroll-Tiefe (eigener Account)</div>
+        {depth.sessions === 1 && depth.d5 === 0 ? (
+          <div style={{color:C.sub,fontSize:13,padding:"12px 0"}}>
+            Noch keine Scroll-Tiefe-Daten vorhanden.
+            Scrolle durch den Feed um erste Daten zu erzeugen.
+          </div>
+        ) : (
+          <>
+            {[
+              { label:"Karte 5 erreicht",    value:depth.d5,  base:depth.sessions, color:C.green  },
+              { label:"Karte 10 erreicht",   value:depth.d10, base:depth.sessions, color:C.teal   },
+              { label:"Karte 20 erreicht",   value:depth.d20, base:depth.sessions, color:C.gold   },
+              { label:"Feed-Ende erreicht",  value:depth.end, base:depth.sessions, color:C.purple },
+            ].map(row => (
+              <div key={row.label} style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",
+                  fontSize:12,marginBottom:4}}>
+                  <span style={{color:C.sub}}>{row.label}</span>
+                  <span style={{color:row.color,fontWeight:700}}>
+                    {row.value}× ({pct(row.value, row.base)}%)
+                  </span>
+                </div>
+                <div style={{height:6,borderRadius:99,background:C.card2,overflow:"hidden"}}>
+                  <div style={{height:"100%",borderRadius:99,background:row.color,
+                    width:`${pct(row.value, row.base)}%`,
+                    transition:"width 0.6s ease"}} />
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+
+      {/* ── Top Works ── */}
+      {impress.topWorks.length > 0 && (
+        <div style={card}>
+          <div style={{fontWeight:700,marginBottom:12,fontSize:15}}>🎨 Top Works (nach Impressions)</div>
+          {impress.topWorks.map((w,i) => (
+            <div key={w.id} style={{display:"flex",justifyContent:"space-between",
+              padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
+              <span style={{color:C.sub,fontSize:12}}>#{i+1} {w.id.slice(0,8)}…</span>
+              <span style={{color:C.teal,fontWeight:700,fontSize:13}}>{w.count}×</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Top Experiences ── */}
+      {impress.topExps.length > 0 && (
+        <div style={card}>
+          <div style={{fontWeight:700,marginBottom:12,fontSize:15}}>🗓 Top Experiences (nach Impressions)</div>
+          {impress.topExps.map((e,i) => (
+            <div key={e.id} style={{display:"flex",justifyContent:"space-between",
+              padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
+              <span style={{color:C.sub,fontSize:12}}>#{i+1} {e.id.slice(0,8)}…</span>
+              <span style={{color:C.orange,fontWeight:700,fontSize:13}}>{e.count}×</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Unsichtbare Inhalte ── */}
+      {(invisible.works.length > 0 || invisible.exps.length > 0) && (
+        <div style={card}>
+          <div style={{fontWeight:700,marginBottom:12,fontSize:15}}>
+            👻 Unsichtbare Inhalte ({invisible.works.length + invisible.exps.length})
+          </div>
+          <div style={{fontSize:12,color:C.muted,marginBottom:12}}>
+            Published, aber 0 Feed-Impressions erhalten
+          </div>
+          {invisible.works.slice(0,5).map(w => (
+            <div key={w.id} style={{padding:"6px 0",borderBottom:`1px solid ${C.border}`,
+              fontSize:12}}>
+              <span style={{color:C.coral}}>🎨 Work</span>
+              <span style={{color:C.sub,marginLeft:8}}>{w.title || w.id.slice(0,12)}</span>
+            </div>
+          ))}
+          {invisible.exps.slice(0,5).map(e => (
+            <div key={e.id} style={{padding:"6px 0",borderBottom:`1px solid ${C.border}`,
+              fontSize:12}}>
+              <span style={{color:C.gold}}>🗓 Experience</span>
+              <span style={{color:C.sub,marginLeft:8}}>{e.title || e.id.slice(0,12)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── SQL-Referenz ── */}
+      <div style={{...card,background:C.bg}}>
+        <div style={{fontWeight:700,marginBottom:10,fontSize:13,color:C.sub}}>
+          📋 SQL-Referenz (für Service-Role RPC)
+        </div>
+        {[
+          ["Feed-Impressions gesamt",
+           `SELECT COUNT(*) FROM creator_analytics
+WHERE event_type IN ('work_view','experience_view')`],
+          ["Nutzer bis Karte 5",
+           `SELECT COUNT(DISTINCT actor_id) FROM platform_events
+WHERE event_type = 'feed_depth_5'`],
+          ["Feed-Ende-Rate",
+           `SELECT
+  COUNT(DISTINCT CASE WHEN event_type='feed_depth_5' THEN actor_id END) as d5,
+  COUNT(DISTINCT CASE WHEN event_type='feed_end_reached' THEN actor_id END) as end_reached
+FROM platform_events`],
+          ["Unsichtbare Works",
+           `SELECT w.id, w.title FROM works w
+LEFT JOIN creator_analytics ca
+  ON ca.source_id = w.id AND ca.event_type='work_view'
+WHERE w.status='published' AND ca.id IS NULL`],
+        ].map(([label, sql]) => (
+          <div key={label} style={{marginBottom:12}}>
+            <div style={{color:C.teal,fontSize:11,fontWeight:700,marginBottom:4}}>{label}</div>
+            <pre style={{background:C.card2,borderRadius:8,padding:"8px 12px",
+              fontSize:10,color:C.sub,overflowX:"auto",margin:0,whiteSpace:"pre-wrap"}}>
+              {sql}
+            </pre>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const [wirker,   setWirker]   = useState([]);
   const [payments, setPayments] = useState([]);
@@ -796,6 +1053,7 @@ export default function Admin() {
         {[
           {key:"dashboard",label:"Dashboard"},
           {key:"content",  label:"Freigaben", badge:pending},
+          {key:"feed",     label:"Feed Analytics"},
           {key:"erl_proj", label:"Erlebnisse & Projekte"},
           {key:"wirker",   label:"Wirker"},
           {key:"payments", label:"Payments"},
@@ -851,6 +1109,7 @@ export default function Admin() {
       {tab==="content"  && <FreigabenTab onPendingChange={setPending}/>
 
       }
+      {tab==="feed" && <FeedAnalyticsTab />}
       {tab==="erl_proj" && <ErlebnisseProjekteTab />}
 
       {tab==="wirker" && (
