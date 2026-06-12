@@ -43,6 +43,52 @@ function calcHuiFitScore(form) {
   ].join(" ").toLowerCase();
 
   // ════════════════════════════════════════════════════════════════
+  // STUFE 0 — TEXTQUALITÄT: Nonsense / unlesbarer Text
+  // Erkennt: zufällige Buchstabenfolgen, zu kurze Texte, 
+  //          Beleidigungen, Test-Strings
+  // ════════════════════════════════════════════════════════════════
+
+  // Hilfsfunktion: erkennt ob ein Wort eine unleserliche Buchstabenfolge ist
+  // Kriterien: keine Vokale oder >60% Konsonanten in Folge → Nonsense
+  function isNonsenseWord(word) {
+    if (word.length < 4) return false; // Kurze Wörter überspringen
+    const vowels = (word.match(/[aeiouäöüy]/g) || []).length;
+    const ratio  = vowels / word.length;
+    // Kein einziger Vokal → Nonsense
+    if (vowels === 0) return true;
+    // Extremes Konsonant-zu-Vokal-Verhältnis (z.B. "ashalleupsodfdd")
+    if (ratio < 0.15) return true;
+    // Dreifach-Konsonantenhäufung ohne Vokal (z.B. "bxkt", "dfdd", "sdf")
+    if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(word)) return true;
+    return false;
+  }
+
+  // Jedes Feld einzeln prüfen
+  const satzWords   = (form.satz || "").trim().split(/\s+/).filter(w => w.length >= 4);
+  const nameWords   = (form.name || "").trim().split(/\s+/).filter(w => w.length >= 4);
+
+  // Wenn der Satz (Kernbeschreibung) mehrheitlich Nonsense → sofort ablehnen
+  if (satzWords.length > 0) {
+    const nonsenseCount = satzWords.filter(isNonsenseWord).length;
+    const nonsenseRatio = nonsenseCount / satzWords.length;
+    if (nonsenseRatio >= 0.5 || nonsenseCount >= 2) return 5; // Score 5 = Nonsense-Text
+  }
+
+  // Beleidigungen / Test-Strings im Projektnamen
+  const BELEIDIGUNGEN = [
+    "trottel","idiot","depp","blöd","dumm","scheiß","bescheuert","blödmann",
+    "vollidiot","test","asdf","qwer","xyz","abc","aaaa","bbbb","1234",
+    "hallo test","lorem ipsum","foo bar","dummy","fake","unsinn",
+  ];
+  const nameText = (form.name || "").toLowerCase();
+  if (BELEIDIGUNGEN.some(b => nameText.includes(b))) return 5;
+
+  // Zu wenig sinnvoller Text: Beschreibung kürzer als 20 Zeichen = leer
+  if ((form.satz || "").trim().length < 20) return 5;
+  if ((form.problem || "").trim().length < 20) return 5;
+  if ((form.umsetzung || "").trim().length < 20) return 5;
+
+  // ════════════════════════════════════════════════════════════════
   // STUFE 1 — SOFORT-ABBRUCH: Klare Ausschlusskriterien
   // ════════════════════════════════════════════════════════════════
 
@@ -176,9 +222,13 @@ function bewerteProjekt(form) {
   const umsetzung = (form.umsetzung || "").trim();
   const allText   = [form.name, satz, problem, umsetzung].join(" ").toLowerCase();
 
-  // Mindestlänge
-  if (satz.length < 10 || problem.length < 10 || umsetzung.length < 10) {
+  // Mindestlänge & Textqualität — strenger
+  if (satz.length < 20 || problem.length < 20 || umsetzung.length < 20) {
     return { geeignet: false, grund: "zu_kurz", score };
+  }
+  // Score 5 = Nonsense / Beleidigung / leerer Text
+  if (score <= 5) {
+    return { geeignet: false, grund: "ungueltig", score };
   }
 
   // Schwelle: 35 — private/vage Projekte sind bereits auf 8–22 gecappt (nie erreichbar)
@@ -210,6 +260,7 @@ function bewerteProjekt(form) {
   const RED_COMMERCIAL = ["rendite","investor gesucht","startup kapital","kryptowährung","mlm"];
   const VAGUE_CHECK    = ["irgendwie","irgendwas","nicht genau weiß","einfach ausprobieren","hoffe dass","mal schauen"];
 
+  if (score <= 5)                                                  return { geeignet: false, grund: "ungueltig",    score };
   if (RED_PERSONAL.some(kw => allText.includes(kw)))              return { geeignet: false, grund: "persoenlich",   score };
   if (RED_COMMERCIAL.some(kw => allText.includes(kw)))            return { geeignet: false, grund: "kommerziell",   score };
   if (VAGUE_CHECK.filter(kw => allText.includes(kw)).length >= 2) return { geeignet: false, grund: "zu_vage",       score };
@@ -802,6 +853,15 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
     saveFailure();
   }, []); // eslint-disable-line
   const TEXTE = {
+    // Ungültiger / unlesbarer Text / Beleidigung
+    ungueltig: {
+      emoji:   "🚫",
+      badge:   "UNGÜLTIGE EINREICHUNG",
+      titel:   "Deine Einreichung enthält keine verwertbaren Informationen.",
+      erkl:    "Der HUI Impact Pool erfordert eine klare, lesbare Beschreibung deines Projekts. Zufällige Zeichenfolgen, Beleidigungen oder leere Felder werden automatisch abgelehnt.",
+      hinweis: "Bitte beschreibe dein Projekt sorgfältig und vollständig. Nur echte Herzensprojekte mit gesellschaftlichem Mehrwert werden berücksichtigt.",
+      tipp:    "Möchtest du es erneut versuchen? Nimm dir Zeit und beschreibe dein Projekt ehrlich und konkret.",
+    },
     // Persönlicher Nutzen / private Anschaffung
     persoenlich: {
       emoji:   "🚫",
