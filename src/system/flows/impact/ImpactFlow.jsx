@@ -807,38 +807,19 @@ export default function ImpactFlow({ onClose }) {
     setSaving(true); setError(null);
     try {
       const { error: dbErr } = await supabase.from("impact_applications").insert({
-        // Kern-Felder
-        user_id:            user.id,
-        project_name:       form.name.trim(),
-        short_desc:         form.satz.trim(),
-        problem:            form.problem.trim(),
-        vision:             form.umsetzung.trim(),
-        funding_goal:       form.foerder ? parseInt(form.foerder, 10) : null,
-        funding_use:        form.umsetzung.trim(),
-        contact_email:      user.email || "",
-        status:             "pending",
-        submitted_at:       new Date().toISOString(),
-        category:           form.kategorie,
-
-        // KI-Score Felder
-        ai_score:           aiRes?.wirkung || 0,
-        ai_fit_score:       aiRes?.score   || 0,
-        ai_geeignet:        aiRes?.geeignet ?? false,
-        ai_routing:         aiRes?.routing  || "manuell",
-
-        // Wirkungsnetzwerk-Zustimmung
-        network_consent:    true,
-        network_consent_at: new Date().toISOString(),
-
-        // Hall-of-Impact Felder (für spätere Nutzung)
-        hall_of_impact:         false,   // wird nach Auszahlung auf true gesetzt
-        impact_reports:         [],      // [{date, text, photos:[]}]
-        project_updates:        [],      // [{date, text, author}]
-        gallery_urls:           [],      // string[]
-        success_metrics:        {},      // {beneficiaries, events, reach, ...}
-        funding_history:        [],      // [{month, amount, type}]
-        impact_status:          "beworben", // beworben|nominiert|gewählt|gefördert|abgeschlossen
-        impact_visible:         false,   // öffentlich sichtbar im Hall of Impact
+        // Kern-Felder (nur Spalten die in der DB existieren)
+        user_id:        user.id,
+        project_name:   form.name.trim(),
+        short_desc:     form.satz.trim(),
+        problem:        form.problem.trim(),
+        vision:         form.umsetzung.trim(),
+        funding_goal:   form.foerder ? parseInt(form.foerder, 10) : null,
+        funding_use:    form.umsetzung.trim(),
+        contact_email:  user.email || "",
+        status:         "pending",
+        submitted_at:   new Date().toISOString(),
+        // Hinweis: ai_fit_score, ai_score, category etc. existieren noch
+        // nicht in der DB — werden ergänzt wenn Migration erfolgt ist
       });
       if (dbErr) throw dbErr;
       setDone(true);
