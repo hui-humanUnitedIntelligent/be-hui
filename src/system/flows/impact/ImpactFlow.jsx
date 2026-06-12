@@ -39,83 +39,101 @@ const KATEGORIEN = [
 function calcHuiFitScore(form) {
   const allText = [
     form.name, form.satz, form.problem, form.umsetzung,
+    form.foerder_verwendung || '', form.warum || '',
   ].join(" ").toLowerCase();
 
-  // Red Flags → Score fällt sofort unter 40
-  const RED_FLAGS = [
-    "auto","urlaub","reise","fernseher","handy","smartphone","laptop","kleidung",
-    "schulden","kredit","miete","wohnung kaufen","haus kaufen","hochzeit",
-    "gehalt","lohn","eigene firma","startup kapital","investition","rendite",
-    "luxus","persönlich","privat","mein traum","mein wunsch","für mich",
-    "ich möchte","ich brauche","mein auto","meine schulden","werbung","marketing",
-    "partei","politisch","ideologisch",
+  // ── Harte Ausschlusskriterien — NUR bei eindeutigen Mehrfach-Treffern ────
+  // Nur wirklich private/kommerzielle Projekte herausfiltern
+  // KEIN einzelnes Keyword reicht — immer mindestens 2 Treffer nötig
+  const RED_PERSONAL = [
+    "mein auto","meine schulden","wohnung kaufen","haus kaufen",
+    "hochzeit finanzieren","urlaub finanzieren","für mich allein",
   ];
-  const redFlagCount = RED_FLAGS.filter(kw => allText.includes(kw)).length;
-  if (redFlagCount >= 2) return 15;
-  if (redFlagCount === 1) return 35;
+  const RED_COMMERCIAL = [
+    "rendite erzielen","investor gesucht","startup kapital",
+    "kryptowährung","mlm","network marketing","politische partei",
+  ];
 
-  // Positiv-Indikatoren nach HUI-Mission
+  const hitPersonal    = RED_PERSONAL.filter(kw => allText.includes(kw)).length;
+  const hitCommercial  = RED_COMMERCIAL.filter(kw => allText.includes(kw)).length;
+
+  // Nur bei ≥2 eindeutigen Treffern ablehnen — einzelne Wörter nie ausreichen
+  if (hitPersonal >= 2)   return 12;
+  if (hitCommercial >= 2) return 18;
+  if (hitPersonal + hitCommercial >= 3) return 20;
+
+  // ── Positiv-Indikatoren nach HUI-Kategorien ──────────────────────────────
+  // Großzügige Keyword-Listen — 1 Treffer reicht für halbe Punkte
   const HUI_MISSION = [
-    // Gemeinschaft fördern
-    { kws:["gemeinschaft","nachbarschaft","zusammen","gemeinsam","verein","quartier","dorf"], pts:15 },
-    // Bildung stärken
-    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler"], pts:15 },
-    // Nachhaltigkeit
-    { kws:["umwelt","natur","klima","solar","recycling","nachhaltig","ökologisch","pflanzen","müll"], pts:12 },
-    // Gesundheit
-    { kws:["gesundheit","heilung","pflege","therapie","sport","bewegung","ernährung","seele"], pts:12 },
-    // Kreativität
-    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk"], pts:10 },
-    // Menschen verbinden
-    { kws:["verbinden","begegnung","austausch","inklusion","barrierefreiheit","vielfalt","integration"], pts:12 },
-    // Gesellschaftlicher Mehrwert
-    { kws:["gesellschaft","sozial","öffentlich","kostenlos","frei","alle","jeder","viele","wirkung"], pts:12 },
+    { kws:["gemeinschaft","nachbarschaft","zusammen","gemeinsam","verein","quartier","dorf","ehrenamt","freiwillig","helfen","helfer","unterstütz"], pts:16 },
+    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","studierende","ausbildung","lesen","sprach","förder"], pts:16 },
+    { kws:["umwelt","natur","klima","solar","recycling","nachhaltig","ökologisch","pflanzen","müll","co2","artenvielfalt","meer","wald","wasser","energie"], pts:15 },
+    { kws:["gesundheit","heilung","pflege","therapie","sport","bewegung","ernährung","seele","mental","wohlbefinden","prävention","behinderung"], pts:14 },
+    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","film","ausstellung","festival"], pts:12 },
+    { kws:["verbinden","begegnung","austausch","inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberecht"], pts:13 },
+    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gratis","frei","alle","jeder","viele","wirkung","gemeinwohl","mehrwert","menschen"], pts:13 },
+    { kws:["tier","hund","katze","tierschutz","tierwohl","wildtier","tierheim","rettung","pflegestelle","fauna"], pts:11 },
+    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt","randgruppe","minderheit"], pts:12 },
   ];
 
-  let baseScore = 20;
+  let baseScore = 30; // Großzügiger Basis-Score — Projekte bekommen Vertrauensvorschuss
   for (const group of HUI_MISSION) {
     const hits = group.kws.filter(kw => allText.includes(kw)).length;
-    if (hits >= 2) baseScore += group.pts;
-    else if (hits === 1) baseScore += Math.floor(group.pts * 0.5);
+    if (hits >= 3)      baseScore += group.pts;
+    else if (hits >= 2) baseScore += Math.round(group.pts * 0.75);
+    else if (hits === 1) baseScore += Math.round(group.pts * 0.5); // Auch 1 Treffer zählt
   }
 
-  // Kategorie-Bonus
-  const KAT_BONUS = { bildung:8, umwelt:8, gesundheit:7, gemeinschaft:8, tiere:5, kultur:5, soziales:8 };
-  baseScore += KAT_BONUS[form.kategorie] || 0;
+  // ── Kategorie-Bonus (Nutzer hat explizit gewählt) ─────────────────────────
+  const KAT_BONUS = { bildung:10, umwelt:10, gesundheit:9, gemeinschaft:10, tiere:8, kultur:7, soziales:10 };
+  baseScore += KAT_BONUS[form.kategorie] || 5; // Auch unbekannte Kategorien +5
 
-  // Vollständigkeits-Bonus (alle Felder ausgefüllt)
-  const completeness = [form.name, form.satz, form.problem, form.umsetzung, form.foerder]
-    .filter(v => (v||"").trim().length > 20).length;
-  baseScore += completeness * 2;
+  // ── Vollständigkeits-Bonus ────────────────────────────────────────────────
+  const fields = [form.name, form.satz, form.problem, form.umsetzung, form.foerder];
+  const filled  = fields.filter(v => (v||"").trim().length > 15).length;
+  baseScore += filled * 3; // max +15
+
+  // ── Texttiefe-Bonus ───────────────────────────────────────────────────────
+  const wordCount = allText.split(/\s+/).filter(Boolean).length;
+  if (wordCount > 150) baseScore += 8;
+  else if (wordCount > 80) baseScore += 5;
+  else if (wordCount > 40) baseScore += 2;
 
   return Math.min(100, Math.max(0, baseScore));
 }
 
-// ── bewerteProjekt (inkl. HUI-Fit-Score) ─────────────────────
+// ── bewerteProjekt ────────────────────────────────────────────
 function bewerteProjekt(form) {
-  const score = calcHuiFitScore(form);
+  const score     = calcHuiFitScore(form);
   const satz      = (form.satz      || "").trim();
   const problem   = (form.problem   || "").trim();
   const umsetzung = (form.umsetzung || "").trim();
+  const allText   = [form.name, satz, problem, umsetzung].join(" ").toLowerCase();
 
-  // Mindestlängen
-  if (satz.length < 20 || problem.length < 20 || umsetzung.length < 20) {
+  // Mindestlänge — sehr niedrig, nur Totalausfälle filtern
+  if (satz.length < 10 || problem.length < 10 || umsetzung.length < 10) {
     return { geeignet: false, grund: "zu_kurz", score };
   }
 
-  if (score >= 60) {
+  // ── Schwelle: 45 statt 60 — mehr Projekte zur manuellen Prüfung durch Admin ──
+  // Alles ≥45 kommt zum Admin. Der Admin entscheidet letztlich.
+  if (score >= 45) {
     return {
       geeignet: true,
       score,
-      routing: score >= 80 ? "direkt" : "manuell",
-      wirkung: Math.round(score / 20), // 1–5 für Supabase
+      routing: score >= 75 ? "direkt" : "manuell",
+      wirkung: Math.round(score / 20),
     };
   }
 
-  const allText = [form.name, form.satz, form.problem, form.umsetzung].join(" ").toLowerCase();
-  const RED_FLAGS = ["auto","urlaub","schulden","kredit","luxus","werbung","marketing","partei","gehalt"];
-  const hasRedFlag = RED_FLAGS.some(kw => allText.includes(kw));
-  return { geeignet: false, grund: hasRedFlag ? "red_flag" : "zu_vage", score };
+  // Ablehnungsgrund bestimmen
+  const RED_PERSONAL   = ["mein auto","meine schulden","wohnung kaufen","haus kaufen","hochzeit finanzieren","urlaub finanzieren"];
+  const RED_COMMERCIAL = ["rendite erzielen","investor gesucht","startup kapital","kryptowährung","mlm"];
+
+  if (RED_PERSONAL.some(kw => allText.includes(kw)))   return { geeignet: false, grund: "persoenlich",  score };
+  if (RED_COMMERCIAL.some(kw => allText.includes(kw))) return { geeignet: false, grund: "kommerziell",  score };
+
+  return { geeignet: false, grund: "zu_vage", score };
 }
 
 // ── Animations-CSS ────────────────────────────────────────────
