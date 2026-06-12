@@ -1581,18 +1581,20 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         })}
       </div>
     </div>
-    {/* ── Großer Add-Button — identisch zu "+ Werk hinzufügen" ── */}
-    <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
-      display:"flex", alignItems:"center", gap:8,
-      padding:"10px 16px", borderRadius:T.r12,
-      background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
-      fontSize:13, fontWeight:600, color:T.inkSoft,
-      cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-      width:"100%", marginTop:12,
-    }}>
-      <span style={{fontSize:16}}>+</span>
-      Erlebnis &amp; Projekte hinzufügen
-    </button>
+    {/* ── Add-Button — EXAKT identisch zu "+ Werk hinzufügen" ── */}
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
+        display:"flex", alignItems:"center", gap:8,
+        padding:"10px 16px", borderRadius:T.r12,
+        background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
+        fontSize:13, fontWeight:600, color:T.inkSoft,
+        cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+        width:"100%",
+      }}>
+        <span style={{fontSize:16}}>+</span>
+        Erlebnis &amp; Projekte hinzufügen
+      </button>
+    </div>
     </>
   );
 }
