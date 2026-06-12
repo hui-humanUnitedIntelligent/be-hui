@@ -49,7 +49,7 @@ function calcHuiFitScore(form) {
   // Rein privat / persönlich
   const RED_PERSONAL = [
     // Fahrzeuge
-    "mein auto","mein fahrrad","mein motorrad","mein auto",
+    "mein auto","mein fahrrad","mein motorrad",
     // Immobilien
     "meine wohnung","mein haus","mein zimmer","mein apartment",
     "wohnung kaufen","haus kaufen",
@@ -62,11 +62,15 @@ function calcHuiFitScore(form) {
     "mein büro","mein keller","mein dachboden",
     // Schulden & Finanzen
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
-    // Reiner Ich-Fokus
+    // Reiner Ich-Fokus — ERWEITERT
     "für mich allein","für mich selbst","für mich persönlich",
-    "meinen alltag","in meinem alltag","meinen eigenen alltag",
+    "meinen alltag","meinem alltag","in meinem alltag","meinen eigenen alltag",
+    "mein alltag","meines alltags",
+    "meinem leben","mein leben schöner","mein leben besser",
     "mein eigenes","nur für mich","gehört mir",
-    "mehr freude in meinen","meinen alltag zu","in meinen alltag",
+    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
+    "meinen alltag zu","in meinen alltag","bunte akzente","farbtupfer",
+    "meinen alltag fröhlicher","meinem alltag farbe","meinen alltag bunter",
   ];
   // Kommerziell / nicht gemeinnützig
   const RED_COMMERCIAL = [
@@ -95,8 +99,8 @@ function calcHuiFitScore(form) {
   const vagueHits = VAGUE_PHRASES.filter(kw => allText.includes(kw)).length;
 
   // Bei massiver Vagheit → direkt ablehnen
-  if (vagueHits >= 4) return 10;
-  if (vagueHits >= 2) return 22;
+  if (vagueHits >= 3) return 10;  // strenger: schon ab 3 vagen Phrasen → Score 10
+  if (vagueHits >= 1) return 20;  // schon 1-2 vage Phrasen → Score 20
 
   // ════════════════════════════════════════════════════════════════
   // STUFE 3 — PFLICHT: Zielgruppe & Gemeinwohl nachweisen
@@ -197,7 +201,9 @@ function bewerteProjekt(form) {
     "meine terrasse","meiner terrasse",
     "mein fenster","meinem fenster",
     "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
-    "meinen alltag","in meinen alltag","mehr freude in meinen",
+    "meinen alltag","meinem alltag","in meinem alltag","mein alltag",
+    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
+    "bunte akzente","farbtupfer","meinen alltag fröhlicher","meinen alltag bunter",
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     "für mich allein","für mich selbst","für mich persönlich","nur für mich",
   ];
