@@ -177,12 +177,13 @@ function bewerteProjekt(form) {
     return { geeignet: false, grund: "zu_kurz", score };
   }
 
-  // Schwelle: 62 — nur wirklich starke Projekte kommen durch
-  if (score >= 62) {
+  // Schwelle: 40 — private/vage Projekte sind bereits auf 8–22 gecappt
+  // echte Projekte mit mehreren relevanten Keywords kommen ab 40 durch
+  if (score >= 40) {
     return {
       geeignet: true,
       score,
-      routing: score >= 82 ? "direkt" : "manuell",
+      routing: score >= 70 ? "direkt" : "manuell",
       wirkung: Math.round(score / 20),
     };
   }
