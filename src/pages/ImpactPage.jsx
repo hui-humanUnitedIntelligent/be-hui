@@ -80,20 +80,8 @@ const POOL_SLICES = [
   { pct:10, emoji:"🛡", label:"Kurationsbudget",       color:T.violet },
 ];
 
-const SEED_PROJECTS = [
-  { id:"s1", name:"Repair Café Hamburg", category:"Nachhaltigkeit",
-    description:"Dinge reparieren statt wegwerfen — eine offene Werkstatt, die Gemeinschaft schafft.",
-    icon:"🔧", color:T.teal, votes:94, goal_eur:3000, status:"nominated",
-    img:"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90" },
-  { id:"s2", name:"Foodsharing Hamburg", category:"Ernährung",
-    description:"Lebensmittel retten und fair verteilen — gegen Verschwendung, für Gemeinschaft.",
-    icon:"🥗", color:T.coral, votes:51, goal_eur:2500, status:"nominated",
-    img:"https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=90" },
-  { id:"s3", name:"Musik für Kinder e.V.", category:"Bildung",
-    description:"Kostenloser Musikunterricht für Kinder aus einkommensschwachen Familien.",
-    icon:"🎵", color:T.violet, votes:29, goal_eur:2000, status:"nominated",
-    img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=90" },
-];
+// SEED_PROJECTS deaktiviert — nur echte Projekte aus impact_applications (status=approved)
+const SEED_PROJECTS = [];
 
 // ════════════════════════════════════════════════════════════════
 // HOOKS — identisch zur Vorgängerversion, keine Änderungen
@@ -367,7 +355,7 @@ class ImpactErrorBoundary extends React.Component {
 // ════════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════
-// HOOK: useWeitereHerzensprojekte — alle Projekte ausser nominierte
+// HOOK: useWeitereHerzensprojekte — lädt aus impact_applications (Platz 2-N approved)
 // ════════════════════════════════════════════════════════════════
 function useWeitereHerzensprojekte(activeProjectIds) {
   const [data,    setData]    = React.useState([]);
@@ -379,15 +367,30 @@ function useWeitereHerzensprojekte(activeProjectIds) {
     (async () => {
       try {
         const { data: rows } = await supabase
-          .from("impact_projects")
-          .select("id,name,category,description,icon,color,votes,goal_eur,status,img_url,awarded_eur,created_at")
-          .in("status", ["submitted","pending","approved","in_progress","funded","finished","nominated"])
+          .from("impact_applications")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,status,created_at")
+          .eq("status", "approved")
           .order("created_at", { ascending: false })
           .limit(20);
         if (dead) return;
         const activeSet = new Set(activeProjectIds || []);
-        setData((rows || []).filter(p => !activeSet.has(p.id)).slice(0, 10));
-      } catch { /* silent */ }
+        // Normalisiere auf einheitliches Format für HerzensKarte
+        const normalized = (rows || [])
+          .filter(p => !activeSet.has(p.id))
+          .map(p => ({
+            id:          p.id,
+            name:        p.project_name,
+            category:    p.short_desc?.slice(0, 20) || "Herzensprojekt",
+            description: p.short_desc,
+            icon:        "💚",
+            color:       "#0DC4B5",
+            status:      "approved",
+            goal_eur:    p.funding_goal || 0,
+            img_url:     p.cover_url || (p.media_urls && p.media_urls[0]) || null,
+          }))
+          .slice(0, 10);
+        setData(normalized);
+      } catch(e) { console.warn("[WEITERE HP]", e?.message); }
       if (!dead) setLoading(false);
     })();
     return () => { dead = true; };
@@ -926,9 +929,9 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         const rows = (data || []).map((p, i) => ({
           ...p, img: p.img_url || IMGS[i % IMGS.length],
         }));
-        setProjects(rows.length ? rows : SEED_PROJECTS);
+        setProjects(rows);
       } catch {
-        if (!dead) setProjects(SEED_PROJECTS);
+        if (!dead) setProjects([]);
       } finally {
         if (!dead) setLoadingProj(false);
       }
@@ -1055,7 +1058,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
                 status: "approved",
                 img: a.cover_url || (a.media_urls && a.media_urls[0]) || null,
               }))
-            : SEED_PROJECTS
+            : []
         }
         userVotes={userVotes}
         daysLeft={daysLeft}
@@ -1761,33 +1764,8 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
 // ════════════════════════════════════════════════════════════════
 // 4b. WEITERE HERZENSPROJEKTE
 
-// Seed-Projekte für "Weitere Herzensprojekte" — werden angezeigt solange DB leer
-const SEED_WEITERE_PROJEKTE = [
-  { id:"s1", name:"Bücher für Kinder", category:"Bildung",
-    description:"Lesezugänge für Kinder aus einkommensschwachen Familien schaffen.",
-    icon:"📚", color:"#0DC4B5", status:"pending", goal_eur:1500,
-    img_url:"https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&q=80" },
-  { id:"s2", name:"Urban Gardening Rostock", category:"Umwelt",
-    description:"Gemeinsam gärtnern. Gemeinsam wachsen.",
-    icon:"🌱", color:"#16A34A", status:"pending", goal_eur:2000,
-    img_url:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=80" },
-  { id:"s3", name:"Sport für alle", category:"Soziales",
-    description:"Bewegung verbindet — kostenfreie Sportkurse für alle.",
-    icon:"⚽", color:"#F4714F", status:"approved", goal_eur:1700,
-    img_url:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&q=80" },
-  { id:"s4", name:"Umweltprojekt Küste", category:"Umwelt",
-    description:"Unsere Natur. Unsere Verantwortung.",
-    icon:"🌊", color:"#7264D6", status:"approved", goal_eur:2500,
-    img_url:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&q=80" },
-  { id:"s5", name:"Tierhilfe Nord", category:"Tierwohl",
-    description:"Tiere in Not — schnell und unbürokratisch helfen.",
-    icon:"🐶", color:"#D97706", status:"submitted", goal_eur:1100,
-    img_url:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&q=80" },
-  { id:"s6", name:"Lesecafé Ribnitz", category:"Soziales",
-    description:"Begegnung durch Bücher und Gespräche.",
-    icon:"☕", color:"#0DC4B5", status:"submitted", goal_eur:1200,
-    img_url:"https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&q=80" },
-];
+// SEED_WEITERE_PROJEKTE deaktiviert — nur echte Projekte aus impact_applications
+const SEED_WEITERE_PROJEKTE = [];
 
 // ════════════════════════════════════════════════════════════════
 const HP_STATUS = {
@@ -1863,7 +1841,7 @@ function WeitereHerzensprojekte({ data, loading }) {
   const [expanded, setExpanded] = React.useState(false);
   // Wenn DB leer → Seed-Projekte als Platzhalter zeigen
   const rawList = Array.isArray(data) ? data : [];
-  const list    = !loading && rawList.length === 0 ? SEED_WEITERE_PROJEKTE : rawList;
+  const list    = rawList;
   const isSeed  = !loading && rawList.length === 0;
   const visible = expanded ? list : list.slice(0, 4);
   const hasMore = list.length > 4;
@@ -2007,8 +1985,8 @@ function BewilligteTop1Section({ app, loading, onOpen }) {
 function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpen }) {
   const [expanded, setExpanded] = React.useState(false);
   const hasReal = !loadingApps && apps && apps.length > 0;
-  const rawList = hasReal ? apps : (!loadingApps ? SEED_WEITERE_PROJEKTE : []);
-  const isSeed  = !hasReal && !loadingApps;
+  const rawList = hasReal ? apps : [];
+  const isSeed  = false;
   const visible = expanded ? rawList : rawList.slice(0, 4);
   const hasMore = rawList.length > 4;
   const isLoading = loadingApps;
