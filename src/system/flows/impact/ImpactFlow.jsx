@@ -64,7 +64,7 @@ function calcHuiFitScore(form) {
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     // Reiner Ich-Fokus — ERWEITERT
     "für mich allein","für mich selbst","für mich persönlich",
-    "meinen alltag","meinem alltag","in meinem alltag","meinen eigenen alltag",
+    "meinen alltag","meinem alltag","meinen eigenen alltag",
     "mein alltag","meines alltags",
     "meinem leben","mein leben schöner","mein leben besser",
     "mein eigenes","nur für mich","gehört mir",
@@ -111,12 +111,14 @@ function calcHuiFitScore(form) {
     "alleinerziehende","menschen mit behinderung","schüler","studierende",
     "nachbarn","gemeinschaft","bevölkerung","öffentlichkeit","alle",
     "bedürftige","patienten","betroffene","familien","bewohner",
+    "menschen","personen","nutzer","teilnehmer","nutzerinnen","benutzer",
   ];
   const GEMEINWOHL = [
     "gemeinnützig","ehrenamtlich","kostenfrei","kostenlos","öffentlich",
     "gemeinsam","zusammen","füreinander","solidarisch","nachhaltig",
     "gesellschaft","sozial","wirkung","mehrwert","gemeinwohl",
     "verein","initiative","projekt für andere","anderen helfen",
+    "unterstützen","hilft","helfen","befähigen","stärken","ermöglichen","erleichtern",
   ];
 
   const hasZielgruppe = ZIELGRUPPE.some(kw => allText.includes(kw));
@@ -140,6 +142,8 @@ function calcHuiFitScore(form) {
     { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"],                               pts:9 },
     { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"],                                                     pts:9 },
     { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"],                        pts:10 },
+    { kws:["methode","tool","werkzeug","app","plattform","digital","programm","kurs","training","coaching","begleitung"], pts:9 },
+    { kws:["veränderung","entwicklung","wachstum","orientierung","klarheit","entscheidung","stärke","selbstwirksamkeit"], pts:9 },
   ];
 
   let baseScore = 8; // Sehr niedriger Basis
