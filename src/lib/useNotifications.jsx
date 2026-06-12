@@ -53,7 +53,8 @@ const TYPE_META = {
   referral_joined:{ tab:"info", icon:"🎉", color:"#22C55E", label:"Empfehlung" },
   // FREIGABEN — Werke
   work_approved:       { tab:"info", icon:"✅", color:"#22C55E", label:"Werk freigegeben" },
-  work_rejected:       { tab:"info", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },
+  work_rejected:            { tab:"info", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },
+  impact_project_rejected:  { tab:"info", icon:"📋", color:"#EF4444", label:"Herzensprojekt abgelehnt" },
   content_approved:    { tab:"info", icon:"✅", color:"#22C55E", label:"Inhalt freigegeben" },
   content_rejected:    { tab:"info", icon:"❌", color:"#EF4444", label:"Inhalt abgelehnt" },
   // FREIGABEN — Erlebnisse
@@ -237,17 +238,19 @@ function useWeekStats(userId) {
 
 // ── Rejection Modal ───────────────────────────────────────────
 function RejectionDetailModal({ n, onClose }) {
-  const meta  = n.metadata || n.data || {};
+  const rawMeta = n.metadata || n.data || {};
+  const meta = typeof rawMeta === "string" ? (() => { try { return JSON.parse(rawMeta); } catch { return {}; } })() : rawMeta;
   // Dynamisch je nach Typ: Werk / Erlebnis / Projekt
   const typeMap = {
-    work_rejected:       { label:"Werk",     emoji:"🎨", hint:"Du kannst dein Werk überarbeiten und erneut einreichen." },
-    content_rejected:    { label:"Inhalt",   emoji:"📝", hint:"Du kannst den Inhalt überarbeiten und erneut einreichen." },
-    experience_rejected: { label:"Erlebnis", emoji:"🌿", hint:"Du kannst dein Erlebnis überarbeiten und erneut einreichen." },
-    project_rejected:    { label:"Projekt",  emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
+    work_rejected:            { label:"Werk",             emoji:"🎨", hint:"Du kannst dein Werk überarbeiten und erneut einreichen." },
+    content_rejected:         { label:"Inhalt",           emoji:"📝", hint:"Du kannst den Inhalt überarbeiten und erneut einreichen." },
+    experience_rejected:      { label:"Erlebnis",         emoji:"🌿", hint:"Du kannst dein Erlebnis überarbeiten und erneut einreichen." },
+    project_rejected:         { label:"Projekt",          emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
+    impact_project_rejected:  { label:"Herzensprojekt",   emoji:"💚", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
   };
   const tm      = typeMap[n.type] || { label:"Eintrag", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
   // Admin sendet: entry_title (Erlebnis/Projekt), werk_title (Werk), content_title (alt)
-  const entryTitle = meta.entry_title || meta.content_title || meta.werk_title || meta.title || n.title || `Dein ${tm.label}`;
+  const entryTitle = meta.entry_title || meta.project_name || meta.content_title || meta.werk_title || meta.title || n.title || `Dein ${tm.label}`;
   // Admin sendet: reason (Erlebnis/Projekt), rejection_reason (Werk/alt)
   const reason     = meta.rejection_reason || meta.reason || meta.admin_comment || meta.review_note || n.body || "(Kein Grund angegeben)";
   return (
@@ -311,7 +314,8 @@ function NotifItem({ n, onRead }) {
   const [showRejection, setShowRejection] = useState(false);
 
   const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
-    || n.type === "experience_rejected" || n.type === "project_rejected";
+    || n.type === "experience_rejected" || n.type === "project_rejected"
+    || n.type === "impact_project_rejected";
 
   const handleClick = () => {
     if (!n.read) onRead(n.id);
