@@ -162,17 +162,15 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
 
       const rows = (data || []).map(r => {
         // FEED.4D FIX-4 — time_start als echte Uhrzeit, duration als Fallback
-        const timeStr = r.time_start
-          ? r.time_start.slice(0, 5) + " Uhr"
-          : (r.duration || null);
+        const timeStr = r.time_start ? r.time_start.slice(0, 5) : "";
         // FEED.4D FIX-6b — Badge aus echtem Datum
-        const badge = computeBadge(r.date);
+        const badge = r.is_live ? "Live" : computeBadge(r.date);
         return {
           id:         String(r.id),
           title:      r.title        || "Erlebnis",
           // FIX-4: echte Startzeit statt Dauer-Freitext
           time:       timeStr,
-          location:   r.location_text || null,
+          location:   r.location_text || "Online",
           img:        r.cover_url || r.media_url || null,
           // FIX-5: Datumsdaten für spätere Nutzung verfügbar
           date:       r.date       || null,
