@@ -99,8 +99,7 @@ function calcHuiFitScore(form) {
   const vagueHits = VAGUE_PHRASES.filter(kw => allText.includes(kw)).length;
 
   // Bei massiver Vagheit → direkt ablehnen
-  if (vagueHits >= 3) return 10;  // strenger: schon ab 3 vagen Phrasen → Score 10
-  if (vagueHits >= 1) return 20;  // schon 1-2 vage Phrasen → Score 20
+  if (vagueHits >= 5) return 10;  // erst bei sehr vielen vagen Phrasen ablehnen
 
   // ════════════════════════════════════════════════════════════════
   // STUFE 3 — PFLICHT: Zielgruppe & Gemeinwohl nachweisen
@@ -125,7 +124,7 @@ function calcHuiFitScore(form) {
   const hasGemeinwohl = GEMEINWOHL.some(kw => allText.includes(kw));
 
   // Kein Gemeinwohl UND keine Zielgruppe → rein privat → ablehnen
-  if (!hasZielgruppe && !hasGemeinwohl) return 15;
+  if (!hasZielgruppe && !hasGemeinwohl) return 22;
 
   // ════════════════════════════════════════════════════════════════
   // STUFE 4 — POSITIV-SCORING: HUI-Mission Keywords
@@ -146,19 +145,19 @@ function calcHuiFitScore(form) {
     { kws:["veränderung","entwicklung","wachstum","orientierung","klarheit","entscheidung","stärke","selbstwirksamkeit"], pts:9 },
   ];
 
-  let baseScore = 20; // Solider Basis für alle die Stufe 3 bestehen
+  let baseScore = 28; // Weicher Basis — gute Projekte kommen leichter durch
 
   for (const group of HUI_MISSION) {
     const hits = group.kws.filter(kw => allText.includes(kw)).length;
     // Faire Staffelung: 1 Keyword = 30%, 2 = 55%, 3 = 80%, 4+ = 100%
     if (hits >= 4)       baseScore += group.pts;
-    else if (hits === 3) baseScore += Math.round(group.pts * 0.80);
-    else if (hits === 2) baseScore += Math.round(group.pts * 0.55);
-    else if (hits === 1) baseScore += Math.round(group.pts * 0.30);
+    else if (hits === 3) baseScore += Math.round(group.pts * 0.85);
+    else if (hits === 2) baseScore += Math.round(group.pts * 0.65);
+    else if (hits === 1) baseScore += Math.round(group.pts * 0.40);
   }
 
   // ── Vagheits-Abzug ────────────────────────────────────────────
-  baseScore -= vagueHits * 8; // -8 pro vager Phrase
+  baseScore -= vagueHits * 5; // -5 pro vager Phrase (weicher)
 
   // ── Kategorie-Bonus ───────────────────────────────────────────
   const KAT_BONUS = { bildung:5, umwelt:5, gesundheit:4, gemeinschaft:4, tiere:4, kultur:3, soziales:5 };
@@ -167,7 +166,7 @@ function calcHuiFitScore(form) {
   // ── Vollständigkeits-Bonus — nur bei echter inhaltlicher Tiefe ──
   const fields = [form.name, form.satz, form.problem, form.umsetzung];
   const filled  = fields.filter(v => (v||"").trim().length > 60).length;
-  baseScore += filled * 1; // max +4, kaum Einfluss
+  baseScore += filled * 2; // max +8 bei vollständigen Feldern
 
   return Math.min(100, Math.max(0, baseScore));
 }
@@ -187,7 +186,7 @@ function bewerteProjekt(form) {
 
   // Schwelle: 35 — private/vage Projekte sind bereits auf 8–22 gecappt (nie erreichbar)
   // echte Projekte mit mehreren relevanten Keywords kommen ab 35 durch
-  if (score >= 35) {
+  if (score >= 28) {
     return {
       geeignet: true,
       score,
