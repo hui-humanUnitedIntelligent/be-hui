@@ -393,6 +393,283 @@ function useWeitereHerzensprojekte(activeProjectIds) {
   return { data, loading };
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// HOOK: useApprovedApplications — bewilligte Herzensprojekte aus impact_applications
+// ════════════════════════════════════════════════════════════════
+function useApprovedApplications() {
+  const [apps, setApps]       = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("impact_applications")
+          .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (!dead) setApps(data || []);
+      } catch (e) {
+        console.warn("[APPROVED APPS]", e?.message);
+      } finally {
+        if (!dead) setLoading(false);
+      }
+    })();
+    return () => { dead = true; };
+  }, []);
+  return { apps, loading };
+}
+
+// ── Detailseite für bewilligte Anträge ──────────────────────────
+function ApprovedProjectDetail({ app, onClose, currentUser }) {
+  const [voted,     setVoted]     = React.useState(false);
+  const [voteCount, setVoteCount] = React.useState(0);
+  const [loading,   setLoading]   = React.useState(false);
+  const [checking,  setChecking]  = React.useState(true);
+
+  const img = app.cover_url
+    || (app.media_urls && app.media_urls[0])
+    || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
+
+  React.useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        // Bereits abgestimmt?
+        if (currentUser?.id) {
+          const { data: existing } = await supabase
+            .from("impact_votes")
+            .select("id")
+            .eq("user_id", currentUser.id)
+            .eq("project_id", app.id)
+            .limit(1);
+          if (!dead && existing?.length) setVoted(true);
+        }
+        // Gesamtstimmen
+        const { count } = await supabase
+          .from("impact_votes")
+          .select("id", { count: "exact", head: true })
+          .eq("project_id", app.id);
+        if (!dead) setVoteCount(count || 0);
+      } catch { /* silent */ }
+      if (!dead) setChecking(false);
+    })();
+    return () => { dead = true; };
+  }, [app.id, currentUser?.id]);
+
+  const handleVote = async () => {
+    if (!currentUser?.id || voted || loading) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.from("impact_votes").insert({
+        user_id:    currentUser.id,
+        project_id: app.id,
+        created_at: new Date().toISOString(),
+      });
+      if (!error) {
+        setVoted(true);
+        setVoteCount(v => v + 1);
+      }
+    } catch { /* silent */ }
+    setLoading(false);
+  };
+
+  const fmtDate = (iso) => iso
+    ? new Date(iso).toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
+    : "";
+
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, zIndex:9999,
+      background:"rgba(0,0,0,0.60)", backdropFilter:"blur(6px)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:"16px", overflowY:"auto",
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"#FDFAF5", borderRadius:24, maxWidth:500, width:"100%",
+        maxHeight:"88vh", overflowY:"auto",
+        boxShadow:"0 24px 80px rgba(0,0,0,0.22)",
+      }}>
+        {/* Bild */}
+        <div style={{ position:"relative", height:200, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
+          <img src={img} alt={app.project_name}
+            style={{ width:"100%", height:"100%", objectFit:"cover" }}
+            onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
+          />
+          <button onClick={onClose} style={{
+            position:"absolute", top:12, right:12,
+            width:36, height:36, borderRadius:"50%",
+            background:"rgba(0,0,0,0.45)", border:"none",
+            color:"#fff", fontSize:18, cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>✕</button>
+          <div style={{
+            position:"absolute", bottom:12, left:12,
+            background:"rgba(13,196,181,0.92)", borderRadius:99,
+            padding:"4px 12px", fontSize:11, fontWeight:700, color:"#fff",
+          }}>✅ Bewilligt</div>
+        </div>
+
+        {/* Inhalt */}
+        <div style={{ padding:"20px 20px 28px" }}>
+          <h2 style={{ margin:"0 0 8px", fontSize:20, fontWeight:900, color:"#141422" }}>
+            {app.project_name}
+          </h2>
+          <p style={{ margin:"0 0 16px", fontSize:13.5, color:"#555", lineHeight:1.6 }}>
+            {app.short_desc}
+          </p>
+
+          {app.problem && (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Das Problem</div>
+              <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.problem}</p>
+            </div>
+          )}
+          {app.vision && (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Vision & Lösung</div>
+              <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.vision}</p>
+            </div>
+          )}
+          {app.why_support && (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Warum fördern?</div>
+              <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.why_support}</p>
+            </div>
+          )}
+
+          {/* Meta-Infos */}
+          <div style={{
+            display:"grid", gridTemplateColumns:"1fr 1fr",
+            gap:8, margin:"16px 0",
+            background:"rgba(13,196,181,0.07)", borderRadius:14, padding:14,
+          }}>
+            <div>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Förderbetrag</div>
+              <div style={{ fontSize:18, fontWeight:900, color:"#0DC4B5" }}>
+                € {(app.funding_goal || 0).toLocaleString("de-DE")}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Eingereicht</div>
+              <div style={{ fontSize:14, fontWeight:700, color:"#141422" }}>{fmtDate(app.created_at)}</div>
+            </div>
+            <div>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Stimmen</div>
+              <div style={{ fontSize:14, fontWeight:700, color:"#141422" }}>
+                {checking ? "…" : `${voteCount} 🗳`}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Status</div>
+              <div style={{ fontSize:12, fontWeight:700, color:"#22c55e" }}>✅ Bewilligt</div>
+            </div>
+          </div>
+
+          {/* Vote Button */}
+          {currentUser?.id ? (
+            voted ? (
+              <div style={{
+                textAlign:"center", padding:"14px",
+                background:"rgba(34,197,94,0.10)", borderRadius:14,
+                border:"1px solid rgba(34,197,94,0.25)",
+              }}>
+                <div style={{ fontSize:22, marginBottom:4 }}>💚</div>
+                <div style={{ fontSize:14, fontWeight:700, color:"#22c55e" }}>Danke für deine Stimme!</div>
+                <div style={{ fontSize:12, color:"#666", marginTop:2 }}>Du hast bereits für dieses Projekt gestimmt.</div>
+              </div>
+            ) : (
+              <button onClick={handleVote} disabled={loading || checking} style={{
+                width:"100%", padding:"14px",
+                background: loading ? "#ccc" : "linear-gradient(135deg,#0DC4B5,#22DDD0)",
+                border:"none", borderRadius:99, color:"#fff",
+                fontSize:15, fontWeight:800, cursor: loading ? "not-allowed" : "pointer",
+                boxShadow:"0 4px 18px rgba(13,196,181,0.35)",
+                transition:"opacity 0.2s",
+              }}>
+                {loading ? "Wird gespeichert…" : "🗳 Für dieses Projekt abstimmen"}
+              </button>
+            )
+          ) : (
+            <div style={{
+              textAlign:"center", padding:"14px",
+              background:"rgba(0,0,0,0.04)", borderRadius:14,
+            }}>
+              <div style={{ fontSize:13, color:"#666" }}>Melde dich an, um abstimmen zu können.</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Karte für bewilligte Anträge ────────────────────────────────
+function ApprovedAppCard({ app, onOpen }) {
+  const [hov, setHov] = React.useState(false);
+  const img = app.cover_url
+    || (app.media_urls && app.media_urls[0])
+    || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
+
+  return (
+    <div
+      onClick={() => onOpen(app)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        borderRadius:20, overflow:"hidden", cursor:"pointer",
+        background:"#fff",
+        boxShadow: hov
+          ? "0 8px 40px rgba(0,0,0,0.13)"
+          : "0 2px 16px rgba(0,0,0,0.07)",
+        transition:"box-shadow 0.2s, transform 0.2s",
+        transform: hov ? "translateY(-2px)" : "translateY(0)",
+        border:"1px solid rgba(13,196,181,0.12)",
+      }}
+    >
+      {/* Bild */}
+      <div style={{ height:160, overflow:"hidden", position:"relative" }}>
+        <img src={img} alt={app.project_name}
+          style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 0.3s",
+            transform: hov ? "scale(1.04)" : "scale(1)" }}
+          onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
+        />
+        <div style={{
+          position:"absolute", top:10, right:10,
+          background:"rgba(13,196,181,0.90)", borderRadius:99,
+          padding:"3px 10px", fontSize:10, fontWeight:700, color:"#fff",
+        }}>✅ Bewilligt</div>
+      </div>
+      {/* Text */}
+      <div style={{ padding:"14px 16px 16px" }}>
+        <h3 style={{ margin:"0 0 6px", fontSize:15, fontWeight:800, color:"#141422", lineHeight:1.3 }}>
+          💚 {app.project_name}
+        </h3>
+        <p style={{
+          margin:"0 0 12px", fontSize:12.5, color:"#666", lineHeight:1.5,
+          display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden",
+        }}>
+          {app.short_desc}
+        </p>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ fontSize:13, fontWeight:800, color:"#0DC4B5" }}>
+            🔥 € {(app.funding_goal || 0).toLocaleString("de-DE")}
+          </span>
+          <span style={{
+            fontSize:11, fontWeight:700, color:"#0DC4B5",
+            background:"rgba(13,196,181,0.10)", borderRadius:99, padding:"4px 10px",
+            border:"1px solid rgba(13,196,181,0.25)",
+          }}>
+            Mehr erfahren →
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImpactPageInner({ currentUser }) {
   // ── States ──
   const [projects,    setProjects]    = React.useState([]);
@@ -411,8 +688,10 @@ function ImpactPageInner({ currentUser }) {
   const payoutData = useLastPayout();
   const finanziert = useWeitereProjects();
   const activities = useImpactActivities();
-  const activeIds  = projects.map(p => p.id);
-  const weitereHP  = useWeitereHerzensprojekte(activeIds);
+  const activeIds     = projects.map(p => p.id);
+  const weitereHP     = useWeitereHerzensprojekte(activeIds);
+  const approvedApps  = useApprovedApplications();
+  const [detailApp, setDetailApp] = React.useState(null);
 
   // ── Projekte laden ──
   React.useEffect(() => {
