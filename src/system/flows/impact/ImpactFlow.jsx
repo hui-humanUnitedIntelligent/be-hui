@@ -36,626 +36,277 @@ const KATEGORIEN = [
 ];
 
 // ── HUI-Fit-Score Berechnung (0–100) ──────────────────────────
-function calcHuiFitScore(form) {
-  const allText = [
-    form.name, form.satz, form.problem, form.umsetzung,
-    form.foerder_verwendung || '', form.warum || '',
-  ].join(" ").toLowerCase();
+// ════════════════════════════════════════════════════════════════════════
+// HUI-FIT-SCORE — 6-KRITERIEN STANDARD-SCORING (max. 100 Punkte)
+// ════════════════════════════════════════════════════════════════════════
+//
+// Kriterium 1: Relevanz & Problemklarheit      (0–20 Pkt)
+// Kriterium 2: Lösungsqualität & Umsetzbarkeit (0–20 Pkt)
+// Kriterium 3: Impact-Potenzial                (0–20 Pkt)
+// Kriterium 4: Innovationsgrad                 (0–15 Pkt)
+// Kriterium 5: Realistische Kosten             (0–15 Pkt)
+// Kriterium 6: Motivation & Glaubwürdigkeit    (0–10 Pkt)
+//
+// Entscheidungslogik:
+//  0–39   → Automatische Ablehnung
+//  40–59  → Manuelle Prüfung (meist Ablehnung)
+//  60–74  → Manuelle Prüfung
+//  75–89  → Weiterleitung an Team
+//  90–100 → Sofortige Weiterleitung / Fast-Track
+// ════════════════════════════════════════════════════════════════════════
 
-  // ════════════════════════════════════════════════════════════════
-  // STUFE 0 — TEXTQUALITÄT: Nonsense / unlesbarer Text
-  // Erkennt: zufällige Buchstabenfolgen, zu kurze Texte, 
-  //          Beleidigungen, Test-Strings
-  // ════════════════════════════════════════════════════════════════
+// ── STUFE 0: Sofort-Disqualifikation (Nonsense / Missbrauch) ─────────────
+function isSofortAbgelehnt(form) {
+  const name     = (form.name     || "").trim().toLowerCase();
+  const satz     = (form.satz     || "").trim();
+  const problem  = (form.problem  || "").trim();
+  const umsetzung= (form.umsetzung|| "").trim();
 
-  // Hilfsfunktion: erkennt ob ein Wort eine unleserliche Buchstabenfolge ist
-  // Kriterien: keine Vokale oder >60% Konsonanten in Folge → Nonsense
-  function isNonsenseWord(word) {
-    if (word.length < 4) return false; // Kurze Wörter überspringen
-    const vowels = (word.match(/[aeiouäöüy]/g) || []).length;
-    const ratio  = vowels / word.length;
-    // Kein einziger Vokal → Nonsense
-    if (vowels === 0) return true;
-    // Extremes Konsonant-zu-Vokal-Verhältnis (z.B. "ashalleupsodfdd")
-    if (ratio < 0.15) return true;
-    // Dreifach-Konsonantenhäufung ohne Vokal (z.B. "bxkt", "dfdd", "sdf")
-    if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(word)) return true;
+  // Mindestlänge jedes Pflichtfeldes
+  if (satz.length < 20 || problem.length < 20 || umsetzung.length < 20) return "zu_kurz";
+
+  // Nonsense-Detektor: Wörter ohne Vokale oder >80% Konsonanten-Cluster
+  function isNonsenseWord(w) {
+    if (w.length < 4) return false;
+    const v = (w.match(/[aeiouäöüy]/g)||[]).length;
+    if (v === 0) return true;
+    if (v / w.length < 0.15) return true;
+    if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(w)) return true;
     return false;
   }
-
-  // Jedes Feld einzeln prüfen
-  const satzWords   = (form.satz || "").trim().split(/\s+/).filter(w => w.length >= 4);
-  const nameWords   = (form.name || "").trim().split(/\s+/).filter(w => w.length >= 4);
-
-  // Wenn der Satz (Kernbeschreibung) mehrheitlich Nonsense → sofort ablehnen
+  const satzWords = satz.toLowerCase().split(/\s+/).filter(w => w.length >= 4);
   if (satzWords.length > 0) {
-    const nonsenseCount = satzWords.filter(isNonsenseWord).length;
-    const nonsenseRatio = nonsenseCount / satzWords.length;
-    // Nur ablehnen wenn der GROSSTEIL des Textes unlesbarer Zeichenmüll ist
-    // Einzelne Kunstwörter/Eigennamen (Lichtpfad, etc.) dürfen nicht treffen
-    if (nonsenseRatio >= 0.8 || (satzWords.length <= 3 && nonsenseCount >= 1)) return 5;
+    const nc = satzWords.filter(isNonsenseWord).length;
+    if (nc / satzWords.length >= 0.8 || (satzWords.length <= 3 && nc >= 1)) return "ungueltig";
   }
 
-  // Beleidigungen / Test-Strings im Projektnamen
-  const BELEIDIGUNGEN = [
-    "trottel","idiot","depp","blödmann","vollidiot",
-    "asdf","qwerty","xxxxxx","aaaa","bbbb","cccc","dddd",
-    "lorem ipsum","foo bar",
-  ];
-  const nameText = (form.name || "").toLowerCase();
-  if (BELEIDIGUNGEN.some(b => nameText.includes(b))) return 5;
+  // Beleidigungen / Test-Strings im Namen
+  const BLACKLIST = ["trottel","idiot","depp","blödmann","vollidiot","asdf","qwerty","lorem ipsum","foo bar","xxxxxx"];
+  if (BLACKLIST.some(b => name.includes(b))) return "ungueltig";
 
-  // Zu wenig sinnvoller Text: Beschreibung kürzer als 20 Zeichen = leer
-  if ((form.satz || "").trim().length < 20) return 5;
-  if ((form.problem || "").trim().length < 20) return 5;
-  if ((form.umsetzung || "").trim().length < 20) return 5;
-
-  // ════════════════════════════════════════════════════════════════
-  // STUFE 1 — SOFORT-ABBRUCH: Klare Ausschlusskriterien
-  // ════════════════════════════════════════════════════════════════
-
-  // Rein privat / persönlich
-  const RED_PERSONAL = [
-    // Fahrzeuge
-    "mein auto","mein fahrrad","mein motorrad",
-    // Immobilien
-    "meine wohnung","mein haus","mein zimmer","mein apartment",
-    "wohnung kaufen","haus kaufen",
-    // Außenbereiche & Wohnobjekte privat
-    "mein garten","meinen garten","meiner garten","meinem garten",
-    "mein balkon","meinen balkon","meinem balkon",
-    "meine terrasse","meiner terrasse",
-    "mein fenster","meinem fenster","meines fensters","mein grundstück",
-    "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
-    "mein büro","mein keller","mein dachboden",
-    // Schulden & Finanzen
-    "meine schulden","hochzeit finanzieren","urlaub finanzieren",
-    // Reiner Ich-Fokus — ERWEITERT
-    "für mich allein","für mich selbst","für mich persönlich",
-    "meinen alltag","meinem alltag","in meinem alltag","meinen eigenen alltag",
-    "mein alltag","meines alltags",
-    "mein leben schöner","mein leben besser",
-    "mein eigenes","nur für mich","gehört mir",
-    "mehr farbe in meinen","mehr farbe in meinem",
-    "bunte akzente","farbtupfer",
-    "meinen alltag fröhlicher","meinem alltag farbe","meinen alltag bunter",
-  ];
-  // Kommerziell / nicht gemeinnützig
-  const RED_COMMERCIAL = [
-    "rendite","investor","startup kapital","kryptowährung","mlm",
-    "network marketing","politische partei","eigene firma gründen",
-  ];
-
-  const hitPersonal   = RED_PERSONAL.filter(kw => allText.includes(kw)).length;
-  const hitCommercial = RED_COMMERCIAL.filter(kw => allText.includes(kw)).length;
-
-  if (hitPersonal >= 1)   return 8;   // 1 Treffer reicht bei privaten Phrasen
-  if (hitCommercial >= 1) return 12;
-
-  // ════════════════════════════════════════════════════════════════
-  // STUFE 2 — VAGHEITS-STRAFE: Unklare / planlose Sprache
-  // ════════════════════════════════════════════════════════════════
-  const VAGUE_PHRASES = [
-    "irgendwie","irgendwas","irgendwann","irgendwo",
-    "ein bisschen","ein paar sachen","ein paar dinge",
-    "nicht genau weiß","weiß nicht genau","nicht sicher",
-    "einfach ausprobieren","mal schauen","schauen ob",
-    "hoffe dass","hoffe es","vielleicht","könnte sein",
-    "wäre schön","würde gern","so etwas","im großen und ganzen",
-    "irgendwie schöner","irgendwie besser","irgendwie helfen",
-  ];
-  const vagueHits = VAGUE_PHRASES.filter(kw => allText.includes(kw)).length;
-
-  // Bei massiver Vagheit → direkt ablehnen
-  if (vagueHits >= 3) return 10;  // strenger: schon ab 3 vagen Phrasen → Score 10
-  if (vagueHits >= 1) return 20;  // schon 1-2 vage Phrasen → Score 20
-
-  // ════════════════════════════════════════════════════════════════
-  // STUFE 3 — PFLICHT: Zielgruppe & Gemeinwohl nachweisen
-  // ════════════════════════════════════════════════════════════════
-  // Ohne klare Zielgruppe oder Gemeinwohl-Bezug max. Score 35
-  const ZIELGRUPPE = [
-    "kinder","jugendliche","senioren","obdachlose","geflüchtete",
-    "alleinerziehende","menschen mit behinderung","schüler","studierende",
-    "nachbarn","gemeinschaft","bevölkerung","öffentlichkeit","alle",
-    "bedürftige","patienten","betroffene","familien","bewohner",
-  ];
-  const GEMEINWOHL = [
-    "gemeinnützig","ehrenamtlich","kostenfrei","kostenlos","öffentlich",
-    "gemeinsam","zusammen","füreinander","solidarisch","nachhaltig",
-    "gesellschaft","sozial","wirkung","mehrwert","gemeinwohl",
-    "verein","initiative","projekt für andere","anderen helfen",
-  ];
-
-  const hasZielgruppe = ZIELGRUPPE.some(kw => allText.includes(kw));
-  const hasGemeinwohl = GEMEINWOHL.some(kw => allText.includes(kw));
-
-  // Kein Gemeinwohl UND keine Zielgruppe → rein privat → ablehnen
-  if (!hasZielgruppe && !hasGemeinwohl) return 15;
-
-  // ════════════════════════════════════════════════════════════════
-  // STUFE 4 — POSITIV-SCORING: HUI-Mission Keywords
-  // (nur wenn Grundbedingungen erfüllt)
-  // ════════════════════════════════════════════════════════════════
-  const HUI_MISSION = [
-    // Punkte reduziert — aber gute Projekte mit vielen echten Keywords kommen durch
-    { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:12 },
-    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"],     pts:12 },
-    { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"],     pts:11 },
-    { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"],             pts:10 },
-    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","festival"],               pts:9 },
-    { kws:["inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberechtigung"],                          pts:10 },
-    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"],                               pts:9 },
-    { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"],                                                     pts:9 },
-    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"],                        pts:10 },
-  ];
-
-  let baseScore = 8; // Sehr niedriger Basis
-
-  for (const group of HUI_MISSION) {
-    const hits = group.kws.filter(kw => allText.includes(kw)).length;
-    // Strenge Staffelung: 1 Keyword = kaum Punkte, 3+ = volle Punkte
-    if (hits >= 4)       baseScore += group.pts;
-    else if (hits === 3) baseScore += Math.round(group.pts * 0.75);
-    else if (hits === 2) baseScore += Math.round(group.pts * 0.4);
-    else if (hits === 1) baseScore += Math.round(group.pts * 0.15); // 1 Keyword = sehr wenig
-  }
-
-  // ── Vagheits-Abzug ────────────────────────────────────────────
-  baseScore -= vagueHits * 8; // -8 pro vager Phrase
-
-  // ── Kategorie-Bonus ───────────────────────────────────────────
-  const KAT_BONUS = { bildung:5, umwelt:5, gesundheit:4, gemeinschaft:4, tiere:4, kultur:3, soziales:5 };
-  baseScore += KAT_BONUS[form.kategorie] || 0;
-
-  // ── Vollständigkeits-Bonus — nur bei echter inhaltlicher Tiefe ──
-  const fields = [form.name, form.satz, form.problem, form.umsetzung];
-  const filled  = fields.filter(v => (v||"").trim().length > 60).length;
-  baseScore += filled * 1; // max +4, kaum Einfluss
-
-  return Math.min(100, Math.max(0, baseScore));
-}
-
-// ── bewerteProjekt ────────────────────────────────────────────
-function bewerteProjekt(form) {
-  const score     = calcHuiFitScore(form);
-  const satz      = (form.satz      || "").trim();
-  const problem   = (form.problem   || "").trim();
-  const umsetzung = (form.umsetzung || "").trim();
-  const allText   = [form.name, satz, problem, umsetzung].join(" ").toLowerCase();
-
-  // Mindestlänge & Textqualität — strenger
-  if (satz.length < 20 || problem.length < 20 || umsetzung.length < 20) {
-    return { geeignet: false, grund: "zu_kurz", score };
-  }
-  // Score 5 = Nonsense / Beleidigung / leerer Text
-  if (score <= 5) {
-    return { geeignet: false, grund: "ungueltig", score };
-  }
-
-  // Schwelle: 60 — nur wirklich starke Projekte kommen durch
-  // private/vage Projekte sind bereits auf 5–22 gecappt und erreichen 60 nie
-  if (score >= 60) {
-    return {
-      geeignet: true,
-      score,
-      routing: score >= 80 ? "direkt" : "manuell",
-      wirkung: Math.round(score / 20),
-    };
-  }
-
-  // Ablehnungsgrund bestimmen
-  const RED_PERSONAL = [
-    "mein auto","mein fahrrad","meine wohnung","mein haus","mein zimmer",
-    "wohnung kaufen","haus kaufen",
-    "mein garten","meinen garten","meinem garten",
-    "mein balkon","meinen balkon","meinem balkon",
-    "meine terrasse","meiner terrasse",
-    "mein fenster","meinem fenster",
-    "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
-    "meinen alltag","meinem alltag","in meinem alltag","mein alltag",
-    "mehr farbe in meinen","mehr farbe in meinem",
-    "bunte akzente","farbtupfer","meinen alltag fröhlicher","meinen alltag bunter",
+  // Klar private Anschaffungen (Possessiv + Objekt)
+  const PRIVAT = [
+    "mein auto","mein fahrrad","mein motorrad","meine wohnung","mein haus",
+    "mein zimmer","mein garten","meinen garten","meinem garten",
+    "mein balkon","meinen balkon","meiner balkon","meine terrasse",
+    "mein fenster","meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     "für mich allein","für mich selbst","für mich persönlich","nur für mich",
+    "meinen alltag","meinem alltag","mein alltag","bunte akzente","farbtupfer",
   ];
-  const RED_COMMERCIAL = ["rendite","investor gesucht","startup kapital","kryptowährung","mlm"];
-  const VAGUE_CHECK    = ["irgendwie","irgendwas","nicht genau weiß","einfach ausprobieren","hoffe dass","mal schauen"];
+  const allText = [name, satz, problem, umsetzung].join(" ").toLowerCase();
+  if (PRIVAT.some(kw => allText.includes(kw))) return "persoenlich";
 
-  if (score <= 5)                                                  return { geeignet: false, grund: "ungueltig",    score };
-  if (RED_PERSONAL.some(kw => allText.includes(kw)))              return { geeignet: false, grund: "persoenlich",   score };
-  if (RED_COMMERCIAL.some(kw => allText.includes(kw)))            return { geeignet: false, grund: "kommerziell",   score };
-  if (VAGUE_CHECK.filter(kw => allText.includes(kw)).length >= 2) return { geeignet: false, grund: "zu_vage",       score };
+  // Kommerziell / nicht förderbar
+  const KOMMERZ = ["rendite","investor","startup kapital","kryptowährung","mlm","network marketing"];
+  if (KOMMERZ.some(kw => allText.includes(kw))) return "kommerziell";
 
-  // Kein Gemeinwohl erkennbar
-  const GEMEINWOHL = ["gemeinnützig","ehrenamtlich","kostenlos","öffentlich","gesellschaft","sozial","gemeinwohl","wirkung","andere","anderen"];
-  if (!GEMEINWOHL.some(kw => allText.includes(kw))) return { geeignet: false, grund: "kein_hui_bezug", score };
-
-  return { geeignet: false, grund: "zu_vage", score };
+  return null; // alles OK
 }
 
-// ── Animations-CSS ────────────────────────────────────────────
-const CSS = `
-  @keyframes ifFadeIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-  @keyframes ifModalIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
-  @keyframes ifPulse   { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  @keyframes ifSpin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  @keyframes ifShake   { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
-  @keyframes ifGlow    { 0%,100%{box-shadow:0 0 0 0 rgba(13,196,181,0)} 50%{box-shadow:0 0 28px 6px rgba(13,196,181,0.18)} }
-  @keyframes ifScoreUp { from{width:0%} to{width:var(--w)} }
-  .hui-input  { width:100%; padding:16px 18px; border-radius:16px;
-    border:2px solid rgba(20,20,34,0.10); background:#FFFFFF;
-    font-size:16px; color:#141422; outline:none; font-family:inherit;
-    box-sizing:border-box; transition:border-color 0.18s,box-shadow 0.18s;
-    -webkit-appearance:none; }
-  .hui-input:focus { border-color:#0DC4B5; box-shadow:0 0 0 3px rgba(13,196,181,0.14); }
-  .hui-textarea { resize:none; line-height:1.65; min-height:110px; }
-  .hui-chip { cursor:pointer; transition:all 0.15s ease; -webkit-tap-highlight-color:transparent; }
-  .hui-chip:active { transform:scale(0.95); }
-  .hui-next { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-  .hui-cb input[type=checkbox] { width:20px; height:20px; accent-color:#0DC4B5;
-    cursor:pointer; flex-shrink:0; margin:0; }
-`;
+// ── 6-KRITERIEN SCORING ──────────────────────────────────────────────────────
+function calcHuiFitScore(form) {
+  const satz      = (form.satz      || "").toLowerCase();
+  const problem   = (form.problem   || "").toLowerCase();
+  const umsetzung = (form.umsetzung || "").toLowerCase();
+  const name      = (form.name      || "").toLowerCase();
+  const warum     = (form.warum     || "").toLowerCase();
+  const allText   = [name, satz, problem, umsetzung, warum].join(" ");
+  const funding   = parseFloat((form.foerder || "0").toString().replace(/[^\d.]/g, "")) || 0;
 
-// ── Progress Bar ──────────────────────────────────────────────
-function ProgressBar({ step, total }) {
-  return (
-    <div style={{ display:"flex", gap:4, flex:1 }}>
-      {Array.from({ length:total }).map((_,i) => (
-        <div key={i} style={{
-          flex:1, height:3, borderRadius:99,
-          background: i < step
-            ? `linear-gradient(90deg,${T.teal},${T.tealL})`
-            : i === step
-            ? `linear-gradient(90deg,${T.teal}88,${T.teal}33)`
-            : T.line,
-          transition:"background 0.35s ease",
-        }}/>
-      ))}
-    </div>
-  );
+  // Sofort-Ablehnung → Score 0
+  if (isSofortAbgelehnt(form)) return 0;
+
+  let total = 0;
+
+  // ── KRITERIUM 1: Relevanz & Problemklarheit (0–20) ────────────────────
+  // Problem muss klar, gesellschaftlich relevant und real sein
+  {
+    let k1 = 0;
+
+    // Ist das Problem gesellschaftlich? (nicht privat)
+    const GESELLSCH = [
+      "viele menschen","gesellschaft","gemeinschaft","bevölkerung","öffentlich",
+      "sozial","nachbarschaft","quartier","region","kommune","umwelt","natur",
+      "kinder","jugend","senioren","obdachlose","geflüchtete","betroffene",
+      "benachteiligt","armut","einsamkeit","klimawandel","artenvielfalt",
+    ];
+    const g_hits = GESELLSCH.filter(kw => problem.includes(kw) || satz.includes(kw)).length;
+    k1 += Math.min(8, g_hits * 2);
+
+    // Problem klar beschrieben? (Länge + konkrete Sprache)
+    if (problem.length > 200) k1 += 4;
+    else if (problem.length > 100) k1 += 2;
+
+    // Messbarkeit / Konkretheit
+    const KONKRET = ["prozent","studie","statistik","daten","zahlen","anzahl","betroffen","täglich","jährlich","monatlich"];
+    if (KONKRET.some(kw => problem.includes(kw))) k1 += 4;
+    else if (problem.length > 150) k1 += 2;
+
+    // Logischer Begründungszusammenhang
+    const BEGRUEND = ["weil","da ","deshalb","daher","denn","grund","ursache","folge","herausforderung"];
+    const b_hits = BEGRUEND.filter(kw => problem.includes(kw)).length;
+    k1 += Math.min(4, b_hits);
+
+    total += Math.min(20, k1);
+  }
+
+  // ── KRITERIUM 2: Lösungsqualität & Umsetzbarkeit (0–20) ──────────────
+  {
+    let k2 = 0;
+
+    // Konkrete Maßnahmen vorhanden?
+    const MASSNAHMEN = [
+      "workshop","veranstaltung","programm","kurs","plattform","app","tool",
+      "netzwerk","treffen","gruppe","initiative","projekt","aktion","kampagne",
+      "entwickle","baue","erstelle","organisiere","biete an","führe durch",
+      "kooperation","partnerschaft","zusammenarbeit",
+    ];
+    const m_hits = MASSNAHMEN.filter(kw => umsetzung.includes(kw)).length;
+    k2 += Math.min(10, m_hits * 2);
+
+    // Umsetzungstext ausreichend lang und konkret?
+    if (umsetzung.length > 300) k2 += 5;
+    else if (umsetzung.length > 150) k2 += 3;
+    else if (umsetzung.length > 80) k2 += 1;
+
+    // Schritte / Plan erkennbar?
+    const PLAN = ["schritt","phase","zuerst","zunächst","dann","anschließend","ziel","ergebnis","meilenstein"];
+    const p_hits = PLAN.filter(kw => umsetzung.includes(kw)).length;
+    k2 += Math.min(5, p_hits * 2);
+
+    total += Math.min(20, k2);
+  }
+
+  // ── KRITERIUM 3: Impact-Potenzial (0–20) ──────────────────────────────
+  {
+    let k3 = 0;
+
+    // Zielgruppe klar definiert?
+    const ZIELGRUPPE = [
+      "kinder","jugendliche","senioren","familien","schüler","studierende",
+      "obdachlose","geflüchtete","alleinerziehende","bedürftige","alle",
+      "bewohner","gemeinschaft","nachbarn","öffentlichkeit","bevölkerung",
+      "menschen","personen","betroffene","teilnehmer","nutzer",
+    ];
+    const z_hits = ZIELGRUPPE.filter(kw => allText.includes(kw)).length;
+    k3 += Math.min(8, z_hits * 2);
+
+    // Gesellschaftlicher Nutzen (nicht privat)
+    const NUTZEN = [
+      "gemeinnützig","kostenlos","kostenfrei","öffentlich","für andere",
+      "anderen helfen","gemeinwohl","sozial","wirkung","mehrwert",
+      "nachhaltig","langfristig","dauerhaft","strukturell",
+    ];
+    const n_hits = NUTZEN.filter(kw => allText.includes(kw)).length;
+    k3 += Math.min(8, n_hits * 2);
+
+    // Reichweite / Impact-Skala
+    const REICHWEITE = ["regional","überregional","national","international","skalierbar","viele","hunderte","tausende"];
+    if (REICHWEITE.some(kw => allText.includes(kw))) k3 += 4;
+
+    total += Math.min(20, k3);
+  }
+
+  // ── KRITERIUM 4: Innovationsgrad (0–15) ───────────────────────────────
+  {
+    let k4 = 0;
+
+    const INNOVATION = [
+      "neu","neuartig","erstmals","innovativ","einzigartig","anders","kreativ",
+      "digital","technologie","app","plattform","ki ","künstliche intelligenz",
+      "vernetzt","vernetzung","kombination","verbindet","integration",
+      "ungewöhnlich","visionär","zukunft","pionier",
+    ];
+    const i_hits = INNOVATION.filter(kw => allText.includes(kw)).length;
+    k4 += Math.min(10, i_hits * 2);
+
+    // Abgrenzung zu Bestehendem?
+    const ABGRENZ = ["bisher","bislang","noch nicht","fehlend","lücke","mangel","alternative","verbesserung"];
+    if (ABGRENZ.some(kw => allText.includes(kw))) k4 += 5;
+
+    total += Math.min(15, k4);
+  }
+
+  // ── KRITERIUM 5: Realistische Kosten & Förderlogik (0–15) ────────────
+  {
+    let k5 = 0;
+
+    // Förderwunsch vorhanden?
+    if (funding > 0) k5 += 3;
+
+    // Passende Größenordnung (500–50.000 EUR = realistisch)
+    if (funding >= 500 && funding <= 50000) k5 += 5;
+    else if (funding > 50000 && funding <= 150000) k5 += 2;
+    else if (funding > 0 && funding < 500) k5 += 1;
+
+    // Mittelverwendung erklärt?
+    const MITTEL = [
+      "kosten","euro","budget","finanzierung","ausgaben","material","miete",
+      "honorar","gehalt","förder","verwende","kaufe","bezahle","decke",
+    ];
+    const mv_hits = MITTEL.filter(kw => umsetzung.includes(kw) || warum.includes(kw)).length;
+    k5 += Math.min(7, mv_hits * 2);
+
+    total += Math.min(15, k5);
+  }
+
+  // ── KRITERIUM 6: Motivation & Glaubwürdigkeit (0–10) ─────────────────
+  {
+    let k6 = 0;
+
+    // Persönliche Motivation vorhanden?
+    const MOTIV = [
+      "weil ich","ich möchte","ich will","mein ziel","mein wunsch","ich glaube",
+      "mir liegt","mir ist wichtig","ich bin überzeugt","leidenschaft",
+      "erfahrung","erlebt","betroffen","selbst gesehen","ich kenne",
+    ];
+    const mo_hits = MOTIV.filter(kw => allText.includes(kw)).length;
+    k6 += Math.min(6, mo_hits * 2);
+
+    // Glaubwürdigkeit: Projektname nicht generisch
+    if (name.length > 5 && name !== "mein projekt" && name !== "projekt") k6 += 2;
+
+    // Gesamttext-Länge als Indikator für Ernsthaftigkeit
+    const totalLength = satz.length + problem.length + umsetzung.length;
+    if (totalLength > 600) k6 += 2;
+    else if (totalLength > 300) k6 += 1;
+
+    total += Math.min(10, k6);
+  }
+
+  return Math.min(100, Math.max(0, Math.round(total)));
 }
 
-// ── Step-Wrapper ──────────────────────────────────────────────
-function StepWrap({ step, total, onBack, onClose, label, children }) {
-  return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
-      <div style={{
-        display:"flex", alignItems:"center", gap:12,
-        padding:"16px 20px 14px", flexShrink:0,
-        borderBottom:`1px solid ${T.line}`,
-      }}>
-        <button onClick={onBack} style={{
-          width:34, height:34, borderRadius:"50%",
-          background:"rgba(20,20,34,0.06)", border:"none",
-          cursor:"pointer", fontSize:18, color:T.ink2,
-          display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-        }}>‹</button>
-        <div style={{ flex:1 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:T.teal,
-            letterSpacing:"0.07em", textTransform:"uppercase", marginBottom:5 }}>
-            {label}
-          </div>
-          <ProgressBar step={step} total={total} />
-        </div>
-        <button onClick={onClose} style={{
-          width:34, height:34, borderRadius:"50%",
-          background:"rgba(20,20,34,0.06)", border:"none",
-          cursor:"pointer", fontSize:15, color:T.ink3,
-          display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-        }}>✕</button>
-      </div>
-      <div style={{
-        flex:1, overflowY:"auto", padding:"28px 24px 24px",
-        WebkitOverflowScrolling:"touch", display:"flex", flexDirection:"column",
-      }}>
-        {children}
-      </div>
-    </div>
-  );
-}
+// ── BEWERTUNGS-ENTSCHEIDER ────────────────────────────────────────────────────
+function bewerteProjekt(form) {
+  const grund = isSofortAbgelehnt(form);
+  if (grund) {
+    return { geeignet: false, grund, score: grund === "zu_kurz" ? 0 : (grund === "persoenlich" ? 8 : (grund === "kommerziell" ? 12 : 5)) };
+  }
 
-// ── CTA Button ────────────────────────────────────────────────
-function NextBtn({ label="Weiter →", onClick, disabled, loading }) {
-  return (
-    <button className="hui-next" onClick={() => !disabled && !loading && onClick?.()}
-      style={{
-        width:"100%", height:56, borderRadius:18, border:"none",
-        background: disabled || loading ? "rgba(20,20,34,0.08)"
-          : `linear-gradient(135deg,${T.teal},${T.tealL})`,
-        color: disabled || loading ? T.ink4 : "#fff",
-        fontSize:16, fontWeight:800,
-        cursor: disabled || loading ? "default" : "pointer",
-        boxShadow: disabled || loading ? "none" : S.btn(T.teal),
-        transition:"all 0.2s ease",
-        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-        opacity: disabled ? 0.55 : 1, marginTop:"auto", flexShrink:0,
-      }}>
-      {loading
-        ? <span style={{ width:22, height:22, border:`3px solid rgba(255,255,255,0.3)`,
-            borderTopColor:"#fff", borderRadius:"50%",
-            animation:"ifSpin 0.7s linear infinite", display:"inline-block" }}/>
-        : label}
-    </button>
-  );
-}
+  const score = calcHuiFitScore(form);
 
-// ═══ STEP 1–6 (unverändert) ═══════════════════════════════════
-function Step1({ form, update, onNext, onBack, onClose }) {
-  const ok = (form.name || "").trim().length >= 3;
-  return (
-    <StepWrap step={0} total={6} onBack={onBack} onClose={onClose} label="Schritt 1 von 6">
-      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>🌱</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.025em", lineHeight:1.2 }}>Wie heißt dein Projekt?</h2>
-        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Gib deinem Herzensprojekt einen Namen. Der Name ist das Erste, was die Community sieht.
-        </p>
-        <input className="hui-input" type="text"
-          placeholder="z. B. Gemüsegarten für die Nachbarschaft"
-          value={form.name || ""} onChange={e => update({ name: e.target.value })}
-          maxLength={80} autoFocus />
-        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
-          {(form.name||"").length} / 80</div>
-        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
-      </div>
-    </StepWrap>
-  );
-}
+  // 0–39 → Automatische Ablehnung
+  if (score <= 39) {
+    // Ablehnungsgrund bestimmen
+    const allText = [form.name, form.satz, form.problem, form.umsetzung].join(" ").toLowerCase();
+    const VAGUE = ["irgendwie","irgendwas","vielleicht","nicht genau weiß","einfach ausprobieren","mal schauen","hoffe dass"];
+    const vagueHits = VAGUE.filter(kw => allText.includes(kw)).length;
+    const grund = vagueHits >= 2 ? "zu_vage" : "kein_hui_bezug";
+    return { geeignet: false, grund, score };
+  }
 
-function Step2({ form, update, onNext, onBack, onClose }) {
-  const ok = (form.satz || "").trim().length >= 15;
-  return (
-    <StepWrap step={1} total={6} onBack={onBack} onClose={onClose} label="Schritt 2 von 6">
-      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>💬</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>Beschreibe dein Projekt in einem Satz.</h2>
-        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Was ist die Kernidee? Klar und verständlich — als würdest du es einem Freund erklären.
-        </p>
-        <textarea className="hui-input hui-textarea"
-          placeholder="z. B. Wir legen einen kostenlosen Gemüsegarten für alle Bewohner unseres Viertels an."
-          value={form.satz || ""} onChange={e => update({ satz: e.target.value })}
-          maxLength={200} rows={4} />
-        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
-          {(form.satz||"").length} / 200</div>
-        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
-      </div>
-    </StepWrap>
-  );
-}
-
-function Step3({ form, update, onNext, onBack, onClose }) {
-  const ok = (form.problem || "").trim().length >= 20;
-  return (
-    <StepWrap step={2} total={6} onBack={onBack} onClose={onClose} label="Schritt 3 von 6">
-      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>🎯</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>Welches Problem löst dein Projekt?</h2>
-        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Was ist die eigentliche Herausforderung, die dein Projekt angeht?
-        </p>
-        <textarea className="hui-input hui-textarea"
-          placeholder="z. B. In unserem Viertel gibt es kaum Grünflächen. Kinder haben keinen Zugang zu Natur."
-          value={form.problem || ""} onChange={e => update({ problem: e.target.value })}
-          maxLength={400} rows={5} />
-        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
-          {(form.problem||"").length} / 400</div>
-        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
-      </div>
-    </StepWrap>
-  );
-}
-
-function Step4({ form, update, onNext, onBack, onClose }) {
-  const ok = !!form.kategorie;
-  return (
-    <StepWrap step={3} total={6} onBack={onBack} onClose={onClose} label="Schritt 4 von 6">
-      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>Wer profitiert davon?</h2>
-        <p style={{ margin:"0 0 24px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Wähle den Bereich, der am besten zu deinem Projekt passt.
-        </p>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:24 }}>
-          {KATEGORIEN.map(k => {
-            const sel = form.kategorie === k.id;
-            return (
-              <button key={k.id} className="hui-chip" onClick={() => update({ kategorie: k.id })}
-                style={{
-                  display:"flex", alignItems:"center", gap:10, padding:"13px 14px",
-                  background: sel ? `${T.teal}15` : T.surfaceHi,
-                  border: sel ? `2px solid ${T.teal}` : `2px solid ${T.line}`,
-                  borderRadius:16, cursor:"pointer",
-                  boxShadow: sel ? `0 0 0 3px ${T.teal}18` : S.card,
-                  transition:"all 0.15s ease",
-                }}>
-                <span style={{ fontSize:22 }}>{k.emoji}</span>
-                <span style={{ fontSize:14, fontWeight: sel ? 800 : 600,
-                  color: sel ? T.teal : T.ink, lineHeight:1.2 }}>{k.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
-      </div>
-    </StepWrap>
-  );
-}
-
-function Step5({ form, update, onNext, onBack, onClose }) {
-  const ok = (form.umsetzung || "").trim().length >= 20;
-  return (
-    <StepWrap step={4} total={6} onBack={onBack} onClose={onClose} label="Schritt 5 von 6">
-      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>🚀</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>Was wird konkret umgesetzt?</h2>
-        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Was würde konkret mit der Förderung passieren? Je konkreter, desto besser.
-        </p>
-        <textarea className="hui-input hui-textarea"
-          placeholder="z. B. Wir kaufen Hochbeete, Erde und Saatgut. Wir organisieren monatliche Gartentage."
-          value={form.umsetzung || ""} onChange={e => update({ umsetzung: e.target.value })}
-          maxLength={500} rows={5} />
-        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
-          {(form.umsetzung||"").length} / 500</div>
-        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
-      </div>
-    </StepWrap>
-  );
-}
-
-function Step6({ form, update, onNext, onBack, onClose }) {
-  const raw = (form.foerder || "").replace(/\D/g,"");
-  const val = raw ? parseInt(raw, 10) : 0;
-  const ok  = val >= 100 && val <= 50000;
-  const fmtDisplay = (str) => {
-    const n = str.replace(/\D/g,"");
-    return n ? parseInt(n,10).toLocaleString("de-DE") : "";
+  // 40–59 → Manuelle Prüfung (schwach, meist Ablehnung)
+  // 60–74 → Manuelle Prüfung (gut)
+  // 75–89 → Weiterleitung an Team
+  // 90+   → Fast-Track
+  return {
+    geeignet: true,
+    score,
+    routing:  score >= 75 ? "direkt" : "manuell",
+    wirkung:  Math.round(score / 20),
   };
-  return (
-    <StepWrap step={5} total={6} onBack={onBack} onClose={onClose} label="Schritt 6 von 6">
-      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>💶</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>Welche Fördersumme wünschst du dir?</h2>
-        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Wie viel Euro würde dein Projekt benötigen, um vollständig umgesetzt zu werden?
-        </p>
-        <div style={{ position:"relative", marginBottom:10 }}>
-          <span style={{ position:"absolute", left:18, top:"50%", transform:"translateY(-50%)",
-            fontSize:20, fontWeight:700, color:T.teal, pointerEvents:"none" }}>€</span>
-          <input className="hui-input" type="text" inputMode="numeric" placeholder="2.000"
-            value={fmtDisplay(form.foerder || "")}
-            onChange={e => update({ foerder: e.target.value.replace(/\D/g,"") })}
-            style={{ paddingLeft:38, fontSize:22, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }} />
-        </div>
-        {(form.foerder && !ok) && (
-          <div style={{ fontSize:12, color:T.coral, marginBottom:12 }}>
-            {val < 100 ? "Bitte mindestens €100 angeben." : "Maximal €50.000 pro Bewerbung möglich."}
-          </div>
-        )}
-        <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:28 }}>
-          {[500,1000,2000,5000,10000].map(v => (
-            <button key={v} className="hui-chip" onClick={() => update({ foerder: String(v) })}
-              style={{ padding:"7px 14px", borderRadius:99, border:"none",
-                background: val===v ? T.teal : `${T.teal}12`,
-                color: val===v ? "#fff" : T.teal, fontSize:13, fontWeight:700, cursor:"pointer" }}>
-              €{v.toLocaleString("de-DE")}</button>
-          ))}
-        </div>
-        <NextBtn label="KI-Prüfung starten →" onClick={onNext} disabled={!ok} />
-        <p style={{ margin:"10px 0 0", textAlign:"center", fontSize:11, color:T.ink3 }}>
-          ✓ Bewerbung kostenlos · ✓ Dauer ~2 Min. · ✓ Kein Projekt geht leer aus
-        </p>
-      </div>
-    </StepWrap>
-  );
-}
-
-// ═══ KI-PRÜFUNG — Ladescreen (erweitert: HUI-Fit-Score) ══════
-function AIPruefung({ form, onResult }) {
-  const [phase, setPhase] = useState(0);
-  const PHASEN = [
-    { icon:"🔍", text:"Wirkung analysieren …"        },
-    { icon:"🤝", text:"Gemeinwohl prüfen …"           },
-    { icon:"⚙️", text:"Umsetzbarkeit bewerten …"     },
-    { icon:"🛡️", text:"Vertrauenswürdigkeit prüfen …"},
-    { icon:"💚", text:"HUI-Fit-Score berechnen …"    },
-    { icon:"✨", text:"Ergebnis berechnen …"          },
-  ];
-  useEffect(() => {
-    let idx = 0;
-    const iv = setInterval(() => {
-      idx++;
-      setPhase(p => Math.min(p+1, PHASEN.length-1));
-      if (idx >= PHASEN.length) {
-        clearInterval(iv);
-        setTimeout(() => onResult(bewerteProjekt(form)), 500);
-      }
-    }, 560);
-    return () => clearInterval(iv);
-  }, []); // eslint-disable-line
-  const pct = Math.round((phase / (PHASEN.length - 1)) * 100);
-  return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center", padding:"40px 28px",
-      animation:"ifFadeIn 0.3s ease both" }}>
-      <div style={{ width:84, height:84, borderRadius:"50%",
-        border:`3px solid ${T.teal}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:32, marginBottom:28,
-        boxShadow:`0 0 0 12px ${T.teal}12`,
-        animation:"ifGlow 2s ease-in-out infinite" }}>🧠</div>
-      <h3 style={{ margin:"0 0 6px", fontSize:20, fontWeight:900, color:T.ink,
-        letterSpacing:"-0.02em" }}>HUI-KI prüft dein Projekt</h3>
-      <p style={{ margin:"0 0 28px", fontSize:13, color:T.ink2 }}>Einen Moment bitte …</p>
-      <div style={{ width:"100%", maxWidth:280, height:5, borderRadius:99,
-        background:T.line, marginBottom:16, overflow:"hidden" }}>
-        <div style={{ height:"100%", borderRadius:99, width:`${pct}%`,
-          background:`linear-gradient(90deg,${T.teal},${T.tealL})`,
-          transition:"width 0.5s ease" }}/>
-      </div>
-      <div style={{ display:"flex", alignItems:"center", gap:8,
-        fontSize:14, color:T.teal, fontWeight:700, minHeight:28 }}>
-        <span>{PHASEN[phase].icon}</span>
-        <span>{PHASEN[phase].text}</span>
-      </div>
-      <div style={{ marginTop:32, display:"flex", flexDirection:"column",
-        gap:10, width:"100%", maxWidth:280 }}>
-        {["Wirkung","Gemeinwohl","Umsetzbarkeit","Vertrauenswürdigkeit","HUI-Fit-Score"].map((k,i) => (
-          <div key={i} style={{ display:"flex", alignItems:"center", gap:10,
-            opacity: phase > i ? 1 : 0.28, transition:"opacity 0.4s ease" }}>
-            <div style={{ width:20, height:20, borderRadius:"50%",
-              background: phase > i ? T.teal : T.line,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:11, color:"#fff", fontWeight:800,
-              transition:"background 0.3s ease", flexShrink:0 }}>
-              {phase > i ? "✓" : i+1}</div>
-            <span style={{ fontSize:13, fontWeight: phase > i ? 700 : 400,
-              color: phase > i ? T.ink : T.ink3 }}>{k}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ═══ HUI-FIT-SCORE ANZEIGE ════════════════════════════════════
-function FitScoreBar({ score }) {
-  const color = score >= 80 ? T.teal : score >= 60 ? T.gold : T.coral;
-  const label = score >= 80 ? "Hervorragend" : score >= 60 ? "Gut geeignet" : "Zu gering";
-  return (
-    <div style={{ background:`${color}08`, border:`1px solid ${color}22`,
-      borderRadius:16, padding:"14px 16px", marginBottom:16 }}>
-      <div style={{ display:"flex", justifyContent:"space-between",
-        alignItems:"center", marginBottom:8 }}>
-        <span style={{ fontSize:12, fontWeight:700, color:T.ink }}>HUI-Fit-Score</span>
-        <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
-          <span style={{ fontSize:22, fontWeight:900, color }}>{score}</span>
-          <span style={{ fontSize:12, color:T.ink3 }}>/100</span>
-        </div>
-      </div>
-      <div style={{ height:6, borderRadius:99, background:T.line, overflow:"hidden", marginBottom:6 }}>
-        <div style={{
-          height:"100%", borderRadius:99,
-          background:`linear-gradient(90deg,${color}88,${color})`,
-          width:`${score}%`, transition:"width 1.2s cubic-bezier(0.22,1,0.36,1)",
-        }}/>
-      </div>
-      <div style={{ display:"flex", justifyContent:"space-between",
-        fontSize:11, color }}>
-        <span style={{ fontWeight:700 }}>{label}</span>
-        {score >= 80 && <span>→ Direkte Weiterleitung</span>}
-        {score >= 60 && score < 80 && <span>→ Manuelle Prüfung</span>}
-      </div>
-    </div>
-  );
 }
 
 // ═══ WIRKUNGSNETZWERK-ZUSTIMMUNG (Step 8) ════════════════════
