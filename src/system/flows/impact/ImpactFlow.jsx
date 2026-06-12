@@ -48,11 +48,20 @@ function calcHuiFitScore(form) {
 
   // Rein privat / persönlich
   const RED_PERSONAL = [
-    "mein auto","meine schulden","wohnung kaufen","haus kaufen",
-    "hochzeit finanzieren","urlaub finanzieren","für mich allein",
-    "mein garten","meinen garten","meiner garten",
-    "meine wohnung","mein haus","mein zimmer",
-    "mein eigenes","für mich selbst","für mich persönlich",
+    // Fahrzeuge & Anschaffungen
+    "mein auto","mein fahrrad","mein motorrad",
+    // Immobilien
+    "meine wohnung","mein haus","mein zimmer","mein apartment",
+    "wohnung kaufen","haus kaufen",
+    // Außenbereiche privat
+    "mein garten","meinen garten","meiner garten","meinem garten",
+    "mein balkon","meinen balkon","meinem balkon","meiner terrasse","meine terrasse",
+    "mein grundstück",
+    // Schulden & Finanzen
+    "meine schulden","hochzeit finanzieren","urlaub finanzieren",
+    // Ich-Fokus
+    "für mich allein","für mich selbst","für mich persönlich",
+    "mein eigenes","nur für mich","gehört mir",
   ];
   // Kommerziell / nicht gemeinnützig
   const RED_COMMERCIAL = [
@@ -171,8 +180,12 @@ function bewerteProjekt(form) {
 
   // Ablehnungsgrund bestimmen
   const RED_PERSONAL = [
-    "mein auto","meine schulden","wohnung kaufen","haus kaufen",
-    "mein garten","meinen garten","für mich selbst","für mich persönlich",
+    "mein auto","mein fahrrad","meine wohnung","mein haus","mein zimmer",
+    "wohnung kaufen","haus kaufen",
+    "mein garten","meinen garten","meinem garten",
+    "mein balkon","meinen balkon","meinem balkon","meine terrasse",
+    "meine schulden","hochzeit finanzieren","urlaub finanzieren",
+    "für mich allein","für mich selbst","für mich persönlich","nur für mich",
   ];
   const RED_COMMERCIAL = ["rendite","investor gesucht","startup kapital","kryptowährung","mlm"];
   const VAGUE_CHECK    = ["irgendwie","irgendwas","nicht genau weiß","einfach ausprobieren","hoffe dass","mal schauen"];
