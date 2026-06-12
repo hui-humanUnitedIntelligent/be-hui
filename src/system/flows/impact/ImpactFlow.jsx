@@ -954,8 +954,7 @@ function SuccessScreen({ onClose }) {
 
 // ═══ PERSÖNLICHE ANGABEN (Step 7.5) ══════════════════════════
 function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
-  const T = useTheme();
-  const S = useStyles(T);
+  // T ist global definiert (Design Tokens oben in der Datei)
   const [errors, setErrors] = useState({});
 
   const fields = [
