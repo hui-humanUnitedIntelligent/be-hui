@@ -2,6 +2,7 @@
 // Alle Hooks + Logik identisch — nur Reihenfolge + Präsentation neu
 // ═══════════════════════════════════════════════════════════════════
 
+import ReactDOM from 'react-dom';
 import React from "react";
 import { supabase } from "../lib/supabaseClient";
 import { ImpactService, FeedService } from "../services/db.js";
@@ -542,7 +543,8 @@ function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }
     ? new Date(iso).toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
     : "";
 
-  return (
+  // Portal: direkt in document.body mounten — kein Clipping durch Page-Flow
+  const content = (
     <>
       {/* Backdrop */}
       <div onClick={onClose} style={{
@@ -806,6 +808,9 @@ function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }
       </div>{/* /Sheet */}
     </>
   );
+  return typeof document !== "undefined"
+    ? ReactDOM.createPortal(content, document.body)
+    : content;
 }
 
 // ── Karte für bewilligte Anträge ────────────────────────────────
@@ -1070,16 +1075,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         projects={projects}
       />
 
-      {/* Detail-Modal für bewilligte Herzensprojekte */}
-      {detailApp && (
-        <ApprovedProjectDetail
-          app={detailApp}
-          onClose={() => setDetailApp(null)}
-          currentUser={currentUser}
-          onVoted={(pid) => setDetailApp(prev => prev ? { ...prev, vote_count:(prev.vote_count||0)+1 } : prev)}
-        />
-      )}
-
       {/* ══ 4b ── IMPACT TIMELINE "Impact auf einen Blick" ═══════ */}
       <ImpactTimeline transp={transp} />
 
@@ -1116,6 +1111,16 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {/* ══ LETZTE AUSZAHLUNG ════════════════════════════════════ */}
       {payoutData.payout && (
         <LetzteAuszahlung payout={payoutData.payout} others={payoutData.others} />
+      )}
+
+      {/* ══ DETAIL-MODAL via Portal — immer ganz oben ════════════ */}
+      {detailApp && (
+        <ApprovedProjectDetail
+          app={detailApp}
+          onClose={() => setDetailApp(null)}
+          currentUser={currentUser}
+          onVoted={(pid) => setDetailApp(prev => prev ? { ...prev, vote_count:(prev.vote_count||0)+1 } : prev)}
+        />
       )}
 
       {/* ══ FLOWS + MODALS ════════════════════════════════════════ */}
