@@ -61,7 +61,13 @@ function fmtTime(iso) {
 // ── RejectionModal — dynamisch für Werk / Erlebnis / Projekt ───────────────
 function RejectionModal({ n, onClose }) {
 const meta   = n.metadata || {};
-const reason = meta.rejection_reason || meta.reason || "(Kein Grund angegeben)";
+// Fallback: Grund aus body-Text extrahieren (altes Format: "...abgelehnt. Grund: <text>")
+const extractReasonFromBody = (body) => {
+  if (!body) return null;
+  const match = body.match(/Grund[:：]\s*(.+)/s);
+  return match ? match[1].trim() : null;
+};
+const reason = meta.rejection_reason || meta.reason || extractReasonFromBody(n.body) || "(Kein Grund angegeben)";
 
 // Typ-spezifische Labels
 const typeMap = {
@@ -308,9 +314,14 @@ return (
               {n.title}
             </div>
           )}
-          {n.body && (
+          {n.body && !isRejection && (
             <div style={{ fontSize:12, color:T.inkSoft, lineHeight:1.55 }}>
               {n.body}
+            </div>
+          )}
+          {n.body && isRejection && (
+            <div style={{ fontSize:12, color:"#DC2626", lineHeight:1.55, fontStyle:"italic" }}>
+              Tippe, um den vollständigen Ablehnungsgrund zu sehen.
             </div>
           )}
 
