@@ -36,170 +36,213 @@ const KATEGORIEN = [
 ];
 
 // ── HUI-Fit-Score Berechnung (0–100) ──────────────────────────
-// ── Nonsense-Detektor (global, für beide Funktionen verfügbar) ────────────
-function isNonsenseWord(w) {
-  if (w.length < 4) return false;
-  const v = (w.match(/[aeiouäöüy]/g)||[]).length;
-  if (v === 0) return true;
-  if (v / w.length < 0.15) return true;
-  if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(w)) return true;
-  return false;
+function calcHuiFitScore(form) {
+  const allText = [
+    form.name, form.satz, form.problem, form.umsetzung,
+    form.foerder_verwendung || '', form.warum || '',
+  ].join(" ").toLowerCase();
+
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 1 — SOFORT-ABBRUCH: Klare Ausschlusskriterien
+  // ════════════════════════════════════════════════════════════════
+
+  // Rein privat / persönlich
+  const RED_PERSONAL = [
+    // Fahrzeuge
+    "mein auto","mein fahrrad","mein motorrad",
+    // Immobilien
+    "meine wohnung","mein haus","mein zimmer","mein apartment",
+    "wohnung kaufen","haus kaufen",
+    // Außenbereiche & Wohnobjekte privat
+    "mein garten","meinen garten","meiner garten","meinem garten",
+    "mein balkon","meinen balkon","meinem balkon",
+    "meine terrasse","meiner terrasse",
+    "mein fenster","meinem fenster","meines fensters","mein grundstück",
+    "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
+    "mein büro","mein keller","mein dachboden",
+    // Schulden & Finanzen
+    "meine schulden","hochzeit finanzieren","urlaub finanzieren",
+    // Reiner Ich-Fokus — ERWEITERT
+    "für mich allein","für mich selbst","für mich persönlich",
+    "meinen alltag","meinem alltag","in meinem alltag","meinen eigenen alltag",
+    "mein alltag","meines alltags",
+    "meinem leben","mein leben schöner","mein leben besser",
+    "mein eigenes","nur für mich","gehört mir",
+    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
+    "meinen alltag zu","in meinen alltag","bunte akzente","farbtupfer",
+    "meinen alltag fröhlicher","meinem alltag farbe","meinen alltag bunter",
+  ];
+  // Kommerziell / nicht gemeinnützig
+  const RED_COMMERCIAL = [
+    "rendite","investor","startup kapital","kryptowährung","mlm",
+    "network marketing","politische partei","eigene firma gründen",
+  ];
+
+  const hitPersonal   = RED_PERSONAL.filter(kw => allText.includes(kw)).length;
+  const hitCommercial = RED_COMMERCIAL.filter(kw => allText.includes(kw)).length;
+
+  if (hitPersonal >= 1)   return 8;   // 1 Treffer reicht bei privaten Phrasen
+  if (hitCommercial >= 1) return 12;
+
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 2 — VAGHEITS-STRAFE: Unklare / planlose Sprache
+  // ════════════════════════════════════════════════════════════════
+  const VAGUE_PHRASES = [
+    "irgendwie","irgendwas","irgendwann","irgendwo",
+    "ein bisschen","ein paar sachen","ein paar dinge",
+    "nicht genau weiß","weiß nicht genau","nicht sicher",
+    "einfach ausprobieren","mal schauen","schauen ob",
+    "hoffe dass","hoffe es","vielleicht","könnte sein",
+    "wäre schön","würde gern","so etwas","im großen und ganzen",
+    "irgendwie schöner","irgendwie besser","irgendwie helfen",
+  ];
+  const vagueHits = VAGUE_PHRASES.filter(kw => allText.includes(kw)).length;
+
+  // Bei massiver Vagheit → direkt ablehnen
+  if (vagueHits >= 3) return 10;  // strenger: schon ab 3 vagen Phrasen → Score 10
+  if (vagueHits >= 1) return 20;  // schon 1-2 vage Phrasen → Score 20
+
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 3 — PFLICHT: Zielgruppe & Gemeinwohl nachweisen
+  // ════════════════════════════════════════════════════════════════
+  // Ohne klare Zielgruppe oder Gemeinwohl-Bezug max. Score 35
+  const ZIELGRUPPE = [
+    "kinder","jugendliche","senioren","obdachlose","geflüchtete",
+    "alleinerziehende","menschen mit behinderung","schüler","studierende",
+    "nachbarn","gemeinschaft","bevölkerung","öffentlichkeit","alle",
+    "bedürftige","patienten","betroffene","familien","bewohner",
+  ];
+  const GEMEINWOHL = [
+    "gemeinnützig","ehrenamtlich","kostenfrei","kostenlos","öffentlich",
+    "gemeinsam","zusammen","füreinander","solidarisch","nachhaltig",
+    "gesellschaft","sozial","wirkung","mehrwert","gemeinwohl",
+    "verein","initiative","projekt für andere","anderen helfen",
+  ];
+
+  const hasZielgruppe = ZIELGRUPPE.some(kw => allText.includes(kw));
+  const hasGemeinwohl = GEMEINWOHL.some(kw => allText.includes(kw));
+
+  // Kein Gemeinwohl UND keine Zielgruppe → rein privat → ablehnen
+  if (!hasZielgruppe && !hasGemeinwohl) return 15;
+
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 4 — POSITIV-SCORING: HUI-Mission Keywords
+  // (nur wenn Grundbedingungen erfüllt)
+  // ════════════════════════════════════════════════════════════════
+  const HUI_MISSION = [
+    // Punkte reduziert — aber gute Projekte mit vielen echten Keywords kommen durch
+    { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:12 },
+    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"],     pts:12 },
+    { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"],     pts:11 },
+    { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"],             pts:10 },
+    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","festival"],               pts:9 },
+    { kws:["inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberechtigung"],                          pts:10 },
+    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"],                               pts:9 },
+    { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"],                                                     pts:9 },
+    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"],                        pts:10 },
+  ];
+
+  let baseScore = 8; // Sehr niedriger Basis
+
+  for (const group of HUI_MISSION) {
+    const hits = group.kws.filter(kw => allText.includes(kw)).length;
+    // Strenge Staffelung: 1 Keyword = kaum Punkte, 3+ = volle Punkte
+    if (hits >= 4)       baseScore += group.pts;
+    else if (hits === 3) baseScore += Math.round(group.pts * 0.75);
+    else if (hits === 2) baseScore += Math.round(group.pts * 0.4);
+    else if (hits === 1) baseScore += Math.round(group.pts * 0.15); // 1 Keyword = sehr wenig
+  }
+
+  // ── Vagheits-Abzug ────────────────────────────────────────────
+  baseScore -= vagueHits * 8; // -8 pro vager Phrase
+
+  // ── Kategorie-Bonus ───────────────────────────────────────────
+  const KAT_BONUS = { bildung:5, umwelt:5, gesundheit:4, gemeinschaft:4, tiere:4, kultur:3, soziales:5 };
+  baseScore += KAT_BONUS[form.kategorie] || 0;
+
+  // ── Vollständigkeits-Bonus — nur bei echter inhaltlicher Tiefe ──
+  const fields = [form.name, form.satz, form.problem, form.umsetzung];
+  const filled  = fields.filter(v => (v||"").trim().length > 60).length;
+  baseScore += filled * 1; // max +4, kaum Einfluss
+
+  return Math.min(100, Math.max(0, baseScore));
 }
 
-// ── STUFE 0: Sofort-Disqualifikation ──────────────────────────────────────
-function isSofortAbgelehnt(form) {
-  const name      = (form.name      || "").trim().toLowerCase();
+// ── bewerteProjekt ────────────────────────────────────────────
+function bewerteProjekt(form) {
+  const score     = calcHuiFitScore(form);
   const satz      = (form.satz      || "").trim();
   const problem   = (form.problem   || "").trim();
   const umsetzung = (form.umsetzung || "").trim();
+  const allText   = [form.name, satz, problem, umsetzung].join(" ").toLowerCase();
 
-  if (satz.length < 20 || problem.length < 20 || umsetzung.length < 20) return "zu_kurz";
-
-  const satzWords = satz.toLowerCase().split(/\s+/).filter(w => w.length >= 4);
-  if (satzWords.length > 0) {
-    const nc = satzWords.filter(isNonsenseWord).length;
-    if (nc / satzWords.length >= 0.8 || (satzWords.length <= 3 && nc >= 1)) return "ungueltig";
+  // Mindestlänge
+  if (satz.length < 10 || problem.length < 10 || umsetzung.length < 10) {
+    return { geeignet: false, grund: "zu_kurz", score };
   }
 
-  const BLACKLIST = ["trottel","idiot","depp","blödmann","vollidiot","asdf","qwerty","lorem ipsum","foo bar","xxxxxx"];
-  if (BLACKLIST.some(b => name.includes(b))) return "ungueltig";
+  // Schwelle: 35 — private/vage Projekte sind bereits auf 8–22 gecappt (nie erreichbar)
+  // echte Projekte mit mehreren relevanten Keywords kommen ab 35 durch
+  if (score >= 35) {
+    return {
+      geeignet: true,
+      score,
+      routing: score >= 70 ? "direkt" : "manuell",
+      wirkung: Math.round(score / 20),
+    };
+  }
 
-  const PRIVAT = [
-    "mein auto","mein fahrrad","mein motorrad","meine wohnung","mein haus",
-    "mein zimmer","mein garten","meinen garten","meinem garten",
-    "mein balkon","meinen balkon","meine terrasse",
-    "mein fenster","meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
+  // Ablehnungsgrund bestimmen
+  const RED_PERSONAL = [
+    "mein auto","mein fahrrad","meine wohnung","mein haus","mein zimmer",
+    "wohnung kaufen","haus kaufen",
+    "mein garten","meinen garten","meinem garten",
+    "mein balkon","meinen balkon","meinem balkon",
+    "meine terrasse","meiner terrasse",
+    "mein fenster","meinem fenster",
+    "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
+    "meinen alltag","meinem alltag","in meinem alltag","mein alltag",
+    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
+    "bunte akzente","farbtupfer","meinen alltag fröhlicher","meinen alltag bunter",
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     "für mich allein","für mich selbst","für mich persönlich","nur für mich",
-    "meinen alltag","meinem alltag","mein alltag","bunte akzente","farbtupfer",
   ];
-  const allText = [name, satz, problem, umsetzung].join(" ").toLowerCase();
-  if (PRIVAT.some(kw => allText.includes(kw))) return "persoenlich";
+  const RED_COMMERCIAL = ["rendite","investor gesucht","startup kapital","kryptowährung","mlm"];
+  const VAGUE_CHECK    = ["irgendwie","irgendwas","nicht genau weiß","einfach ausprobieren","hoffe dass","mal schauen"];
 
-  const KOMMERZ = ["rendite","investor","startup kapital","kryptowährung","mlm","network marketing"];
-  if (KOMMERZ.some(kw => allText.includes(kw))) return "kommerziell";
+  if (RED_PERSONAL.some(kw => allText.includes(kw)))              return { geeignet: false, grund: "persoenlich",   score };
+  if (RED_COMMERCIAL.some(kw => allText.includes(kw)))            return { geeignet: false, grund: "kommerziell",   score };
+  if (VAGUE_CHECK.filter(kw => allText.includes(kw)).length >= 2) return { geeignet: false, grund: "zu_vage",       score };
 
-  return null;
+  // Kein Gemeinwohl erkennbar
+  const GEMEINWOHL = ["gemeinnützig","ehrenamtlich","kostenlos","öffentlich","gesellschaft","sozial","gemeinwohl","wirkung","andere","anderen"];
+  if (!GEMEINWOHL.some(kw => allText.includes(kw))) return { geeignet: false, grund: "kein_hui_bezug", score };
+
+  return { geeignet: false, grund: "zu_vage", score };
 }
 
-// ── 6-KRITERIEN SCORING (0–100 Punkte) ───────────────────────────────────
-//  K1: Relevanz & Problemklarheit      (0–20)
-//  K2: Lösungsqualität & Umsetzbarkeit (0–20)
-//  K3: Impact-Potenzial                (0–20)
-//  K4: Innovationsgrad                 (0–15)
-//  K5: Realistische Kosten             (0–15)
-//  K6: Motivation & Glaubwürdigkeit    (0–10)
-//
-//  0–39  → Automatische Ablehnung
-//  40–59 → Manuelle Prüfung
-//  60–74 → Manuelle Prüfung (gut)
-//  75–89 → Weiterleitung ans Team
-//  90+   → Fast-Track
-function calcHuiFitScore(form) {
-  if (isSofortAbgelehnt(form)) return 0;
-
-  const satz      = (form.satz      || "").toLowerCase();
-  const problem   = (form.problem   || "").toLowerCase();
-  const umsetzung = (form.umsetzung || "").toLowerCase();
-  const name      = (form.name      || "").toLowerCase();
-  const warum     = (form.warum     || "").toLowerCase();
-  const allText   = [name, satz, problem, umsetzung, warum].join(" ");
-  const funding   = parseFloat((form.foerder || "0").toString().replace(/[^\d.]/g, "")) || 0;
-
-  let total = 0;
-
-  // K1 — Relevanz & Problemklarheit (0–20)
-  {
-    let k = 0;
-    const GESELLSCH = ["viele menschen","gesellschaft","gemeinschaft","bevölkerung","öffentlich","sozial","nachbarschaft","quartier","kinder","jugend","senioren","obdachlose","einsamkeit","klimawandel","umwelt","natur"];
-    k += Math.min(8, GESELLSCH.filter(kw => problem.includes(kw) || satz.includes(kw)).length * 2);
-    if (problem.length > 200) k += 4; else if (problem.length > 100) k += 2;
-    const KONKRET = ["prozent","studie","statistik","täglich","jährlich","betroffen","herausforderung","weil","denn","deshalb","daher","ursache"];
-    k += Math.min(8, KONKRET.filter(kw => problem.includes(kw)).length * 2);
-    total += Math.min(20, k);
-  }
-
-  // K2 — Lösungsqualität & Umsetzbarkeit (0–20)
-  {
-    let k = 0;
-    const MASSN = ["workshop","veranstaltung","programm","kurs","plattform","app","tool","netzwerk","initiative","entwickle","baue","erstelle","organisiere","biete an","führe durch","kooperation","partnerschaft"];
-    k += Math.min(10, MASSN.filter(kw => umsetzung.includes(kw)).length * 2);
-    if (umsetzung.length > 300) k += 5; else if (umsetzung.length > 150) k += 3; else if (umsetzung.length > 80) k += 1;
-    const PLAN = ["schritt","phase","zuerst","zunächst","dann","anschließend","ziel","ergebnis","meilenstein"];
-    k += Math.min(5, PLAN.filter(kw => umsetzung.includes(kw)).length * 2);
-    total += Math.min(20, k);
-  }
-
-  // K3 — Impact-Potenzial (0–20)
-  {
-    let k = 0;
-    const ZIEL = ["kinder","jugendliche","senioren","familien","schüler","obdachlose","geflüchtete","alle","bewohner","gemeinschaft","nachbarn","öffentlichkeit","bevölkerung","menschen","betroffene","nutzer"];
-    k += Math.min(8, ZIEL.filter(kw => allText.includes(kw)).length * 2);
-    const NUTZ = ["gemeinnützig","kostenlos","kostenfrei","öffentlich","für andere","gemeinwohl","sozial","wirkung","mehrwert","nachhaltig","langfristig"];
-    k += Math.min(8, NUTZ.filter(kw => allText.includes(kw)).length * 2);
-    const REICH = ["regional","überregional","national","skalierbar","viele","hunderte","tausende"];
-    if (REICH.some(kw => allText.includes(kw))) k += 4;
-    total += Math.min(20, k);
-  }
-
-  // K4 — Innovationsgrad (0–15)
-  {
-    let k = 0;
-    const INNOV = ["neu","neuartig","erstmals","innovativ","einzigartig","anders","kreativ","digital","technologie","app","plattform","vernetzt","kombination","verbindet","zukunft","pionier"];
-    k += Math.min(10, INNOV.filter(kw => allText.includes(kw)).length * 2);
-    const ABGR = ["bisher","bislang","noch nicht","fehlend","lücke","mangel","alternative","verbesserung"];
-    if (ABGR.some(kw => allText.includes(kw))) k += 5;
-    total += Math.min(15, k);
-  }
-
-  // K5 — Realistische Kosten (0–15)
-  {
-    let k = 0;
-    if (funding > 0) k += 3;
-    if (funding >= 500 && funding <= 50000) k += 5; else if (funding > 50000 && funding <= 150000) k += 2;
-    const MITTEL = ["kosten","euro","budget","finanzierung","ausgaben","material","miete","honorar","verwende","kaufe","decke"];
-    k += Math.min(7, MITTEL.filter(kw => umsetzung.includes(kw) || warum.includes(kw)).length * 2);
-    total += Math.min(15, k);
-  }
-
-  // K6 — Motivation & Glaubwürdigkeit (0–10)
-  {
-    let k = 0;
-    const MOTIV = ["weil ich","ich möchte","ich will","mein ziel","mir liegt","mir ist wichtig","leidenschaft","erfahrung","erlebt","betroffen","ich kenne"];
-    k += Math.min(6, MOTIV.filter(kw => allText.includes(kw)).length * 2);
-    if (name.length > 5 && name !== "mein projekt" && name !== "projekt") k += 2;
-    const totalLen = satz.length + problem.length + umsetzung.length;
-    if (totalLen > 600) k += 2; else if (totalLen > 300) k += 1;
-    total += Math.min(10, k);
-  }
-
-  return Math.min(100, Math.max(0, Math.round(total)));
-}
-
-// ── Bewertungs-Entscheider ────────────────────────────────────────────────
-function bewerteProjekt(form) {
-  const disqualGrund = isSofortAbgelehnt(form);
-  if (disqualGrund) {
-    const scoreMap = { zu_kurz: 0, ungueltig: 5, persoenlich: 8, kommerziell: 12 };
-    return { geeignet: false, grund: disqualGrund, score: scoreMap[disqualGrund] || 5 };
-  }
-
-  const score = calcHuiFitScore(form);
-
-  if (score <= 39) {
-    const allText = [form.name, form.satz, form.problem, form.umsetzung].join(" ").toLowerCase();
-    const VAGUE   = ["irgendwie","irgendwas","vielleicht","nicht genau weiß","einfach ausprobieren","mal schauen","hoffe dass"];
-    const grund   = VAGUE.filter(kw => allText.includes(kw)).length >= 2 ? "zu_vage" : "kein_hui_bezug";
-    return { geeignet: false, grund, score };
-  }
-
-  return {
-    geeignet: true,
-    score,
-    routing: score >= 75 ? "direkt" : "manuell",
-    wirkung: Math.round(score / 20),
-  };
-}
+// ── Animations-CSS ────────────────────────────────────────────
+const CSS = `
+  @keyframes ifFadeIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+  @keyframes ifModalIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
+  @keyframes ifPulse   { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes ifSpin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes ifShake   { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+  @keyframes ifGlow    { 0%,100%{box-shadow:0 0 0 0 rgba(13,196,181,0)} 50%{box-shadow:0 0 28px 6px rgba(13,196,181,0.18)} }
+  @keyframes ifScoreUp { from{width:0%} to{width:var(--w)} }
+  .hui-input  { width:100%; padding:16px 18px; border-radius:16px;
+    border:2px solid rgba(20,20,34,0.10); background:#FFFFFF;
+    font-size:16px; color:#141422; outline:none; font-family:inherit;
+    box-sizing:border-box; transition:border-color 0.18s,box-shadow 0.18s;
+    -webkit-appearance:none; }
+  .hui-input:focus { border-color:#0DC4B5; box-shadow:0 0 0 3px rgba(13,196,181,0.14); }
+  .hui-textarea { resize:none; line-height:1.65; min-height:110px; }
+  .hui-chip { cursor:pointer; transition:all 0.15s ease; -webkit-tap-highlight-color:transparent; }
+  .hui-chip:active { transform:scale(0.95); }
+  .hui-next { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+  .hui-cb input[type=checkbox] { width:20px; height:20px; accent-color:#0DC4B5;
+    cursor:pointer; flex-shrink:0; margin:0; }
+`;
 
 // ── Progress Bar ──────────────────────────────────────────────
 function ProgressBar({ step, total }) {
@@ -723,7 +766,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
         boxShadow:S.btn(T.teal), marginBottom:8,
-      }}>Weiter → Kontaktangaben</button>
+      }}>Weiter → Wirkungsnetzwerk</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
         fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px" }}>Abbrechen</button>
     </div>
@@ -759,15 +802,6 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
     saveFailure();
   }, []); // eslint-disable-line
   const TEXTE = {
-    // Ungültiger / unlesbarer Text / Beleidigung
-    ungueltig: {
-      emoji:   "🚫",
-      badge:   "UNGÜLTIGE EINREICHUNG",
-      titel:   "Deine Einreichung enthält keine verwertbaren Informationen.",
-      erkl:    "Der HUI Impact Pool erfordert eine klare, lesbare Beschreibung deines Projekts. Zufällige Zeichenfolgen, Beleidigungen oder leere Felder werden automatisch abgelehnt.",
-      hinweis: "Bitte beschreibe dein Projekt sorgfältig und vollständig. Nur echte Herzensprojekte mit gesellschaftlichem Mehrwert werden berücksichtigt.",
-      tipp:    "Möchtest du es erneut versuchen? Nimm dir Zeit und beschreibe dein Projekt ehrlich und konkret.",
-    },
     // Persönlicher Nutzen / private Anschaffung
     persoenlich: {
       emoji:   "🚫",
@@ -964,21 +998,16 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6,
             }}>{f.label}</div>
             <input
+              className="hui-input"
               type={f.type}
               placeholder={f.placeholder}
               value={kontakt[f.key] || ""}
               onChange={e => setKontakt(prev => ({...prev, [f.key]: e.target.value}))}
               style={{
-                width:"100%", padding:"16px 18px", borderRadius:16,
                 border: errors[f.key]
                   ? "2px solid #FF6B6B"
                   : "2px solid rgba(20,20,34,0.10)",
-                background:"#FFFFFF", fontSize:16, color:"#141422",
-                outline:"none", fontFamily:"inherit", boxSizing:"border-box",
-                WebkitAppearance:"none", transition:"border-color 0.18s",
               }}
-              onFocus={e => e.target.style.borderColor="#0DC4B5"}
-              onBlur={e => e.target.style.borderColor = errors[f.key] ? "#FF6B6B" : "rgba(20,20,34,0.10)"}
             />
             {errors[f.key] && (
               <div style={{ fontSize:11, color:"#FF6B6B", marginTop:4 }}>
@@ -995,7 +1024,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
         boxShadow:`0 6px 24px ${T.teal}40`, marginBottom:8,
-      }}>Weiter → Kontaktangaben</button>
+      }}>Weiter → Wirkungsnetzwerk</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
         fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px",
         display:"block", width:"100%", textAlign:"center" }}>Abbrechen</button>
