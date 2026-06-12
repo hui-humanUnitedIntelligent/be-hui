@@ -1738,8 +1738,8 @@ export default function DiscoverPage({ onView, onMap }) {
       {/* ── 8. Orte entdecken ── */}
       <OrteSection onMap={onMap} delay={160} view={view} />
 
-      {/* Bottom padding für BottomNav — genau 72px (Navbar) + safe-area */}
-      <div style={{ height:"calc(72px + env(safe-area-inset-bottom, 0px))" }}/>
+      {/* Bottom padding für BottomNav — 88px (72px Navbar + 16px Luft) + safe-area */}
+      <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))" }}/>
     </div>
   );
 }
