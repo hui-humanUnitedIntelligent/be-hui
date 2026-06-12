@@ -170,12 +170,26 @@ async function fetchFeedPage(userId = null, cursors = null) {
   ];
 
 
-  // Zeitsortiert
-  normalized.sort((a, b) => {
-    const ta = a._raw?.created_at ? new Date(a._raw.created_at).getTime() : 0;
-    const tb = b._raw?.created_at ? new Date(b._raw.created_at).getTime() : 0;
-    return tb - ta;
+  // FEED.10C — Upcoming Experience Boost
+  // Nur Experiences mit Termin in den nächsten 7 Tagen erhalten einen _sortKey-Boost.
+  // created_at und Cursor bleiben vollständig unverändert.
+  const _now        = Date.now();
+  const _BOOST_MS   = 4 * 60 * 60 * 1000;        // +4 Stunden
+  const _WINDOW_MS  = 7 * 24 * 60 * 60 * 1000;   // 7 Tage
+
+  normalized.forEach(item => {
+    const base = item._raw?.created_at ? new Date(item._raw.created_at).getTime() : 0;
+    if (item.type === "experience" && item._raw?.date) {
+      const eventMs = new Date(item._raw.date).getTime();
+      const delta   = eventMs - _now;
+      item._sortKey = (delta >= 0 && delta < _WINDOW_MS) ? base + _BOOST_MS : base;
+    } else {
+      item._sortKey = base;
+    }
   });
+
+  // Zeitsortiert (via _sortKey — created_at bleibt unberührt)
+  normalized.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
 
   // FEED.2E — Cursor pro Quelle: letztes Item jeder Quelle (vor Normalisierung verfügbar)
   // works/exps/beitr existieren bereits aus Step 1 (Z.107-112)
