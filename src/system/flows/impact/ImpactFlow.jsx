@@ -817,7 +817,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
         boxShadow:S.btn(T.teal), marginBottom:8,
-      }}>Weiter → Wirkungsnetzwerk</button>
+      }}>Weiter → Kontaktangaben</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
         fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px" }}>Abbrechen</button>
     </div>
@@ -1058,16 +1058,21 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6,
             }}>{f.label}</div>
             <input
-              className="hui-input"
               type={f.type}
               placeholder={f.placeholder}
               value={kontakt[f.key] || ""}
               onChange={e => setKontakt(prev => ({...prev, [f.key]: e.target.value}))}
               style={{
+                width:"100%", padding:"16px 18px", borderRadius:16,
                 border: errors[f.key]
                   ? "2px solid #FF6B6B"
                   : "2px solid rgba(20,20,34,0.10)",
+                background:"#FFFFFF", fontSize:16, color:"#141422",
+                outline:"none", fontFamily:"inherit", boxSizing:"border-box",
+                WebkitAppearance:"none", transition:"border-color 0.18s",
               }}
+              onFocus={e => e.target.style.borderColor="#0DC4B5"}
+              onBlur={e => e.target.style.borderColor = errors[f.key] ? "#FF6B6B" : "rgba(20,20,34,0.10)"}
             />
             {errors[f.key] && (
               <div style={{ fontSize:11, color:"#FF6B6B", marginTop:4 }}>
@@ -1084,7 +1089,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
         boxShadow:`0 6px 24px ${T.teal}40`, marginBottom:8,
-      }}>Weiter → Wirkungsnetzwerk</button>
+      }}>Weiter → Kontaktangaben</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
         fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px",
         display:"block", width:"100%", textAlign:"center" }}>Abbrechen</button>
