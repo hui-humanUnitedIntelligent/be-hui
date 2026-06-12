@@ -1481,8 +1481,8 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
       <SectionRow title="Erlebnisse & Projekte"
-        sub="Momente, die mein Wirken zeigen."
-        onEdit={() => onErlebnisWizard?.()}/>
+        sub="Momente, die mein Wirken zeigen."/>
+
       <div style={{ display:"flex", gap:10, overflowX:"auto",
         WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4 }}>
         {experiences.map((exp, i) => {
