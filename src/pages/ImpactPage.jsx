@@ -424,30 +424,47 @@ function useApprovedApplications() {
 
 // ── Detailseite für bewilligte Anträge ──────────────────────────
 function ApprovedProjectDetail({ app, onClose, currentUser }) {
-  const [voted,     setVoted]     = React.useState(false);
-  const [voteCount, setVoteCount] = React.useState(0);
-  const [loading,   setLoading]   = React.useState(false);
-  const [checking,  setChecking]  = React.useState(true);
+  const [voted,        setVoted]        = React.useState(false);
+  const [voteCount,    setVoteCount]    = React.useState(0);
+  const [userVotesLeft, setUserVotesLeft] = React.useState(null); // null = lädt noch
+  const [loading,      setLoading]      = React.useState(false);
+  const [checking,     setChecking]     = React.useState(true);
+  const [voteError,    setVoteError]    = React.useState(null);
 
   const img = app.cover_url
     || (app.media_urls && app.media_urls[0])
     || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
 
+  // Pool-Monat: YYYY-MM des aktuellen Monats
+  const poolMonth = new Date().toISOString().slice(0, 7); // z.B. "2026-06"
+
   React.useEffect(() => {
     let dead = false;
     (async () => {
       try {
-        // Bereits abgestimmt?
+        // 1. Bereits für dieses Projekt abgestimmt?
         if (currentUser?.id) {
           const { data: existing } = await supabase
             .from("impact_votes")
             .select("id")
-            .eq("user_id", currentUser.id)
+            .eq("voter_id", currentUser.id)
             .eq("project_id", app.id)
             .limit(1);
           if (!dead && existing?.length) setVoted(true);
+
+          // 2. Wieviele Stimmen hat der User diesen Monat bereits vergeben?
+          const { count: usedThisMonth } = await supabase
+            .from("impact_votes")
+            .select("id", { count: "exact", head: true })
+            .eq("voter_id", currentUser.id)
+            .eq("pool_month", poolMonth);
+          const maxStimmen = currentUser?.is_talent || currentUser?.is_wirker
+            || ["talent","member","guardian","team"].includes(currentUser?.membership_type)
+            ? 2 : 1;
+          if (!dead) setUserVotesLeft(Math.max(0, maxStimmen - (usedThisMonth || 0)));
         }
-        // Gesamtstimmen
+
+        // 3. Gesamtstimmen für dieses Projekt
         const { count } = await supabase
           .from("impact_votes")
           .select("id", { count: "exact", head: true })
@@ -461,18 +478,28 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
 
   const handleVote = async () => {
     if (!currentUser?.id || voted || loading) return;
+    if (userVotesLeft !== null && userVotesLeft <= 0) {
+      setVoteError("Du hast diesen Monat keine Stimmen mehr.");
+      return;
+    }
     setLoading(true);
+    setVoteError(null);
     try {
       const { error } = await supabase.from("impact_votes").insert({
-        user_id:    currentUser.id,
+        voter_id:   currentUser.id,
         project_id: app.id,
+        pool_month: poolMonth,
+        weight:     1,
         created_at: new Date().toISOString(),
       });
       if (!error) {
         setVoted(true);
         setVoteCount(v => v + 1);
+        setUserVotesLeft(v => Math.max(0, (v || 1) - 1));
+      } else {
+        setVoteError("Abstimmung fehlgeschlagen. Bitte erneut versuchen.");
       }
-    } catch { /* silent */ }
+    } catch { setVoteError("Verbindungsfehler. Bitte erneut versuchen."); }
     setLoading(false);
   };
 
@@ -575,7 +602,7 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
             </div>
             <div>
               <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Stimmen</div>
-              <div style={{ fontSize:14, fontWeight:700, color:"#141422" }}>
+              <div style={{ fontSize:16, fontWeight:900, color:"#0DC4B5" }}>
                 {checking ? "…" : `${voteCount} 🗳`}
               </div>
             </div>
@@ -618,38 +645,121 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
             </div>
           )}
 
-          {/* Vote Button */}
-          {currentUser?.id ? (
-            voted ? (
+          {/* ── Stimmen-System ── */}
+          <div style={{ marginTop: 8 }}>
+
+            {/* Stimmen-Counter */}
+            <div style={{
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              marginBottom:12,
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                <span style={{ fontSize:20 }}>🗳</span>
+                <span style={{ fontSize:15, fontWeight:800, color:"#141422" }}>
+                  {checking ? "…" : voteCount}
+                </span>
+                <span style={{ fontSize:12, color:"#888" }}>
+                  {voteCount === 1 ? "Stimme" : "Stimmen"} bisher
+                </span>
+              </div>
+              {currentUser?.id && userVotesLeft !== null && !voted && (
+                <div style={{
+                  fontSize:11, fontWeight:700,
+                  background: userVotesLeft > 0 ? "rgba(13,196,181,0.10)" : "rgba(239,68,68,0.10)",
+                  color:      userVotesLeft > 0 ? "#0DC4B5" : "#ef4444",
+                  border:     `1px solid ${userVotesLeft > 0 ? "rgba(13,196,181,0.25)" : "rgba(239,68,68,0.25)"}`,
+                  borderRadius:99, padding:"4px 10px",
+                }}>
+                  {userVotesLeft > 0 ? `${userVotesLeft} Stimme${userVotesLeft !== 1 ? "n" : ""} übrig` : "Keine Stimmen mehr"}
+                </div>
+              )}
+            </div>
+
+            {/* Fortschrittsbalken */}
+            {voteCount > 0 && (
+              <div style={{
+                height:4, borderRadius:99, background:"rgba(13,196,181,0.12)", marginBottom:14,
+              }}>
+                <div style={{
+                  height:"100%", borderRadius:99,
+                  background:"linear-gradient(90deg,#0DC4B5,#22DDD0)",
+                  width:`${Math.min(100, (voteCount / Math.max(voteCount, 20)) * 100)}%`,
+                  transition:"width 0.5s ease",
+                }} />
+              </div>
+            )}
+
+            {/* Error */}
+            {voteError && (
+              <div style={{
+                fontSize:12, color:"#ef4444", marginBottom:10,
+                padding:"8px 12px", background:"rgba(239,68,68,0.08)",
+                borderRadius:10, border:"1px solid rgba(239,68,68,0.20)",
+              }}>
+                ⚠️ {voteError}
+              </div>
+            )}
+
+            {/* Vote-Button */}
+            {currentUser?.id ? (
+              voted ? (
+                <div style={{
+                  textAlign:"center", padding:"14px 16px",
+                  background:"rgba(34,197,94,0.10)", borderRadius:14,
+                  border:"1px solid rgba(34,197,94,0.25)",
+                }}>
+                  <div style={{ fontSize:22, marginBottom:4 }}>💚</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#22c55e" }}>Deine Stimme zählt!</div>
+                  <div style={{ fontSize:12, color:"#666", marginTop:2 }}>
+                    Du hast für „{app.project_name}" gestimmt.
+                  </div>
+                </div>
+              ) : userVotesLeft === 0 ? (
+                <div style={{
+                  textAlign:"center", padding:"14px 16px",
+                  background:"rgba(239,68,68,0.06)", borderRadius:14,
+                  border:"1px solid rgba(239,68,68,0.20)",
+                }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:"#ef4444" }}>
+                    🗳 Keine Stimmen mehr diesen Monat
+                  </div>
+                  <div style={{ fontSize:11, color:"#888", marginTop:4 }}>
+                    Deine Stimmen werden am 1. des nächsten Monats erneuert.
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={handleVote}
+                  disabled={loading || checking || userVotesLeft === 0}
+                  style={{
+                    width:"100%", padding:"15px",
+                    background: (loading || checking)
+                      ? "rgba(13,196,181,0.50)"
+                      : "linear-gradient(135deg,#0DC4B5,#22DDD0)",
+                    border:"none", borderRadius:99, color:"#fff",
+                    fontSize:15, fontWeight:800,
+                    cursor: (loading || checking) ? "not-allowed" : "pointer",
+                    boxShadow:"0 4px 18px rgba(13,196,181,0.35)",
+                    transition:"all 0.2s",
+                    display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                  }}
+                >
+                  {loading ? (
+                    <><span style={{ fontSize:16 }}>⏳</span> Wird gespeichert…</>
+                  ) : (
+                    <><span style={{ fontSize:16 }}>🗳</span> Für dieses Projekt abstimmen</>
+                  )}
+                </button>
+              )
+            ) : (
               <div style={{
                 textAlign:"center", padding:"14px",
-                background:"rgba(34,197,94,0.10)", borderRadius:14,
-                border:"1px solid rgba(34,197,94,0.25)",
+                background:"rgba(0,0,0,0.04)", borderRadius:14,
               }}>
-                <div style={{ fontSize:22, marginBottom:4 }}>💚</div>
-                <div style={{ fontSize:14, fontWeight:700, color:"#22c55e" }}>Danke für deine Stimme!</div>
-                <div style={{ fontSize:12, color:"#666", marginTop:2 }}>Du hast bereits für dieses Projekt gestimmt.</div>
+                <div style={{ fontSize:13, color:"#666" }}>Melde dich an, um abstimmen zu können.</div>
               </div>
-            ) : (
-              <button onClick={handleVote} disabled={loading || checking} style={{
-                width:"100%", padding:"14px",
-                background: loading ? "#ccc" : "linear-gradient(135deg,#0DC4B5,#22DDD0)",
-                border:"none", borderRadius:99, color:"#fff",
-                fontSize:15, fontWeight:800, cursor: loading ? "not-allowed" : "pointer",
-                boxShadow:"0 4px 18px rgba(13,196,181,0.35)",
-                transition:"opacity 0.2s",
-              }}>
-                {loading ? "Wird gespeichert…" : "🗳 Für dieses Projekt abstimmen"}
-              </button>
-            )
-          ) : (
-            <div style={{
-              textAlign:"center", padding:"14px",
-              background:"rgba(0,0,0,0.04)", borderRadius:14,
-            }}>
-              <div style={{ fontSize:13, color:"#666" }}>Melde dich an, um abstimmen zu können.</div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </>
