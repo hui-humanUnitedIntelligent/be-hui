@@ -48,20 +48,25 @@ function calcHuiFitScore(form) {
 
   // Rein privat / persönlich
   const RED_PERSONAL = [
-    // Fahrzeuge & Anschaffungen
-    "mein auto","mein fahrrad","mein motorrad",
+    // Fahrzeuge
+    "mein auto","mein fahrrad","mein motorrad","mein auto",
     // Immobilien
     "meine wohnung","mein haus","mein zimmer","mein apartment",
     "wohnung kaufen","haus kaufen",
-    // Außenbereiche privat
+    // Außenbereiche & Wohnobjekte privat
     "mein garten","meinen garten","meiner garten","meinem garten",
-    "mein balkon","meinen balkon","meinem balkon","meiner terrasse","meine terrasse",
-    "mein grundstück",
+    "mein balkon","meinen balkon","meinem balkon",
+    "meine terrasse","meiner terrasse",
+    "mein fenster","meinem fenster","meines fensters","mein grundstück",
+    "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
+    "mein büro","mein keller","mein dachboden",
     // Schulden & Finanzen
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
-    // Ich-Fokus
+    // Reiner Ich-Fokus
     "für mich allein","für mich selbst","für mich persönlich",
+    "meinen alltag","in meinem alltag","meinen eigenen alltag",
     "mein eigenes","nur für mich","gehört mir",
+    "mehr freude in meinen","meinen alltag zu","in meinen alltag",
   ];
   // Kommerziell / nicht gemeinnützig
   const RED_COMMERCIAL = [
@@ -121,7 +126,7 @@ function calcHuiFitScore(form) {
   // (nur wenn Grundbedingungen erfüllt)
   // ════════════════════════════════════════════════════════════════
   const HUI_MISSION = [
-    { kws:["gemeinschaft","nachbarschaft","zusammen","gemeinsam","verein","quartier","dorf","ehrenamt","freiwillig"], pts:14 },
+    { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:14 },
     { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"], pts:14 },
     { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"], pts:13 },
     { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"], pts:12 },
@@ -183,7 +188,11 @@ function bewerteProjekt(form) {
     "mein auto","mein fahrrad","meine wohnung","mein haus","mein zimmer",
     "wohnung kaufen","haus kaufen",
     "mein garten","meinen garten","meinem garten",
-    "mein balkon","meinen balkon","meinem balkon","meine terrasse",
+    "mein balkon","meinen balkon","meinem balkon",
+    "meine terrasse","meiner terrasse",
+    "mein fenster","meinem fenster",
+    "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
+    "meinen alltag","in meinen alltag","mehr freude in meinen",
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     "für mich allein","für mich selbst","für mich persönlich","nur für mich",
   ];
