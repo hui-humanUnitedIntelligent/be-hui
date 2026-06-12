@@ -481,19 +481,34 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
     : "";
 
   return (
-    <div onClick={onClose} style={{
-      position:"fixed", inset:0, zIndex:9999,
-      background:"rgba(0,0,0,0.60)", backdropFilter:"blur(6px)",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      padding:"16px", overflowY:"auto",
-    }}>
+    <>
+      {/* Backdrop */}
+      <div onClick={onClose} style={{
+        position:"fixed", inset:0, zIndex:9998,
+        background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)",
+        animation:"ipFadeIn 0.22s ease both",
+      }} />
+      {/* Bottom-Sheet — scrollt innerhalb der Page, nicht im Modal */}
       <div onClick={e => e.stopPropagation()} style={{
-        background:"#FDFAF5", borderRadius:24, maxWidth:500, width:"100%",
-        maxHeight:"88vh", overflowY:"auto",
-        boxShadow:"0 24px 80px rgba(0,0,0,0.22)",
+        position:"fixed", left:0, right:0, bottom:0, zIndex:9999,
+        background:"#FDFAF5",
+        borderRadius:"24px 24px 0 0",
+        boxShadow:"0 -12px 60px rgba(0,0,0,0.22)",
+        maxHeight:"94vh",
+        overflowY:"auto",
+        overscrollBehavior:"contain",
+        WebkitOverflowScrolling:"touch",
+        paddingBottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+        animation:"ipSlideUp 0.30s cubic-bezier(0.22,1,0.36,1) both",
       }}>
+        {/* Drag-Handle */}
+        <div style={{
+          width:40, height:4, borderRadius:99,
+          background:"rgba(20,20,34,0.15)",
+          margin:"10px auto 0", flexShrink:0,
+        }} />
         {/* Bild */}
-        <div style={{ position:"relative", height:200, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
+        <div style={{ position:"relative", height:220, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
           <img src={img} alt={app.project_name}
             style={{ width:"100%", height:"100%", objectFit:"cover" }}
             onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
@@ -501,9 +516,11 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
           <button onClick={onClose} style={{
             position:"absolute", top:12, right:12,
             width:36, height:36, borderRadius:"50%",
-            background:"rgba(0,0,0,0.45)", border:"none",
+            background:"rgba(0,0,0,0.50)", border:"none",
             color:"#fff", fontSize:18, cursor:"pointer",
             display:"flex", alignItems:"center", justifyContent:"center",
+            backdropFilter:"blur(4px)",
+            zIndex:2,
           }}>✕</button>
           <div style={{
             position:"absolute", bottom:12, left:12,
@@ -635,7 +652,7 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -851,6 +868,8 @@ function ImpactPageInner({ currentUser }) {
         @keyframes ipPulse   { 0%,100%{opacity:1} 50%{opacity:0.38} }
         @keyframes ipSlideUp  { from{transform:translateY(100%)} to{transform:translateY(0)} }
         @keyframes ipModalIn  { from{opacity:0;transform:scale(0.94) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        @keyframes ipSlideUp  { from{transform:translateY(100%)} to{transform:translateY(0)} }
+        @keyframes ipFadeIn   { from{opacity:0} to{opacity:1} }
         @keyframes ipBreath  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
         .ip-p { cursor:pointer; -webkit-tap-highlight-color:transparent; }
         .ip-p:active { opacity:0.78; transform:scale(0.972) !important; transition:all 0.11s !important; }
