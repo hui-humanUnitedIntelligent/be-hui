@@ -7,6 +7,8 @@ import { supabase } from "../lib/supabaseClient";
 import { ImpactService, FeedService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
+import { useAuth } from "../lib/AuthContext";
+import { isProfileTalent } from "../lib/profileUtils.js";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -458,9 +460,8 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
             .select("id", { count: "exact", head: true })
             .eq("voter_id", currentUser.id)
             .eq("pool_month", poolMonth);
-          const maxStimmen = currentUser?.is_talent || currentUser?.is_wirker
-            || ["talent","member","guardian","team"].includes(currentUser?.membership_type)
-            ? 2 : 1;
+          // Single Source of Truth: isProfileTalent
+          const maxStimmen = isProfileTalent(currentUser) ? 2 : 1;
           if (!dead) setUserVotesLeft(Math.max(0, maxStimmen - (usedThisMonth || 0)));
         }
 
@@ -830,7 +831,12 @@ function ApprovedAppCard({ app, onOpen }) {
   );
 }
 
-function ImpactPageInner({ currentUser }) {
+function ImpactPageInner({ currentUser: currentUserProp }) {
+  // ── Auth — immer aus AuthContext, Props als Fallback ──
+  const { user, profile } = useAuth();
+  // currentUser = echtes Supabase-Profil (Single Source of Truth)
+  const currentUser = profile || currentUserProp || null;
+
   // ── States ──
   const [projects,    setProjects]    = React.useState([]);
   const [loadingProj, setLoadingProj] = React.useState(true);
@@ -929,8 +935,7 @@ function ImpactPageInner({ currentUser }) {
   const castVote = async (projectId) => {
     if (!currentUser?.id || voteLoading) return;
     if (userVotes.some(v => v.project_id === projectId)) return;
-    const isMem = checkMember(currentUser);
-    const maxV  = isMem ? 2 : 1;
+    const maxV = isProfileTalent(currentUser) ? 2 : 1;
     const usedV = userVotes.reduce((s,v) => s + safeNum(v.weight || 1), 0);
     if (usedV >= maxV) return;
 
@@ -941,7 +946,7 @@ function ImpactPageInner({ currentUser }) {
     if (!activeRound?.id) return;
     setVoteLoading(true);
     try {
-      const { error } = await ImpactService.castVote(currentUser.id, projectId, activeRound.id, isMem ? 2 : 1);
+      const { error } = await ImpactService.castVote(currentUser.id, projectId, activeRound.id, maxV);
       if (error) {
         setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
         setProjects(prev => prev.map(p =>
@@ -954,11 +959,10 @@ function ImpactPageInner({ currentUser }) {
     } catch { /* silent */ } finally { setVoteLoading(false); }
   };
 
-  // ── Derived ──
-  const checkMember = (u) =>
-    u?.is_wirker || ["talent","member","guardian","team"].includes(u?.membership_type);
-  const isMem       = checkMember(currentUser);
-  const maxVotes    = isMem ? 2 : 1;
+  // ── Derived — Stimmen basieren auf echtem Profil-Status ──
+  // isProfileTalent = Single Source of Truth (profileUtils.js)
+  const isMem    = isProfileTalent(currentUser);
+  const maxVotes = isMem ? 2 : 1;
   const usedVotes   = userVotes.reduce((s,v) => s + safeNum(v.weight || 1), 0);
   const remainVotes = Math.max(0, maxVotes - usedVotes);
   const totalVotes  = projects.reduce((s,p) => s + safeNum(p.votes), 0);
