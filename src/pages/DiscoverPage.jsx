@@ -1672,7 +1672,6 @@ export default function DiscoverPage({ onView, onMap }) {
       width:"100%", background:T.bg,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
       color:T.ink,
-      overscrollBehavior:"none",
     }}>
       <style>{CSS}</style>
 
