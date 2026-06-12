@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 
 // ══════════════════════════════════════════════════════════════
@@ -80,11 +81,11 @@ const typeMap = {
 const tm      = typeMap[n.type] || { label:"Eintrag", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
 const entryTitle = meta.entry_title || meta.project_name || meta.werk_title || meta.werk_id || `Dein ${tm.label}`;
 
-return (
+const modalContent = (
   <div
     onClick={onClose}
     style={{
-      position:"fixed", inset:0, zIndex:99999,
+      position:"fixed", inset:0, zIndex:999999,
       background:"rgba(0,0,0,0.6)", display:"flex",
       alignItems:"center", justifyContent:"center", padding:20,
     }}
@@ -161,6 +162,7 @@ return (
     </div>
   </div>
 );
+return createPortal(modalContent, document.body);
 }
 
 // ── ApprovalModal — für Herzensprojekt-Annahme ────────────────────────────────
@@ -168,11 +170,11 @@ function ApprovalModal({ n, onClose }) {
 const meta       = n.metadata || {};
 const projectName = meta.project_name || meta.entry_title || "Dein Herzensprojekt";
 
-return (
+const modalContent = (
   <div
     onClick={onClose}
     style={{
-      position:"fixed", inset:0, zIndex:99999,
+      position:"fixed", inset:0, zIndex:999999,
       background:"rgba(0,0,0,0.6)", display:"flex",
       alignItems:"center", justifyContent:"center", padding:20,
     }}
