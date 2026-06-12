@@ -296,8 +296,9 @@ function HomeInner() {
             overflowY:    "auto",
             overflowX:    "hidden",
             position:     "relative",
-            // Kein Over-Scroll über letzten Eintrag hinaus (iOS + Android)
-            overscrollBehavior: "none",
+            // overscroll-behavior:contain = kein Bounce/Rubber-Band am Ende,
+            // Scrollen bleibt aber möglich (kein "none" → würde Scroll blockieren)
+            overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
             // Phase 22: Atmosphärische Kontinuität beim Tab-Wechsel
             // Sanfte background-transition — gibt das Gefühl von
