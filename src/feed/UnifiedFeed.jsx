@@ -19,6 +19,7 @@ import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.js
 import { useSingleReaction }   from "../lib/useReactions.jsx";
 import { useAuth }             from "../lib/AuthContext.jsx";
 import { analyticsService }    from "../services/creatorEconomy.js";
+import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
 
 /* ── CSS: fade-in + scroll-feel ───────────────────────────────── */
@@ -118,7 +119,7 @@ class ReactionErrorBoundary extends React.Component {
   }
 }
 
-function ReactionCardInner({ item, onProfile, onBook, onShare }) {
+function ReactionCardInner({ item, onProfile, onBook, onShare, itemIndex, onDepth }) {
   // Guard: item must be valid before calling any hook
   const postId   = item?.id    || "";
   const postType = item?.type  || "post";
@@ -148,6 +149,13 @@ function ReactionCardInner({ item, onProfile, onBook, onShare }) {
       viewerId:   user?.id || null,
     });
   }, [visible, item?.id, item?.type, item?.author?.id, user?.id]); // eslint-disable-line
+
+  // FEED.12C — Scroll Depth Signal (kein neuer Observer)
+  useEffect(() => {
+    if (!visible) return;
+    if (typeof itemIndex !== "number") return;
+    onDepth?.(itemIndex);
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const el = cardRef.current;
@@ -205,7 +213,7 @@ function ReactionCardInner({ item, onProfile, onBook, onShare }) {
   );
 }
 
-function ReactionCard({ item, onProfile, onBook, onShare }) {
+function ReactionCard({ item, onProfile, onBook, onShare, itemIndex, onDepth }) {
   // Absolute guard — no item = no render, log it
   if (!item?.id) {
     console.warn("[REACTION_CARD] invalid item — skipping", item);
@@ -218,6 +226,8 @@ function ReactionCard({ item, onProfile, onBook, onShare }) {
         onProfile={onProfile}
         onBook={onBook}
         onShare={onShare}
+        itemIndex={itemIndex}
+        onDepth={onDepth}
       />
     </ReactionErrorBoundary>
   );
@@ -234,6 +244,43 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, has
   }, [items]);
 
   const [reactions, setReactions] = useState({});
+
+  // FEED.12C — Scroll Depth Analytics
+  const { user: depthUser } = useAuth();
+  const depthRef    = useRef(0);           // max sichtbarer 1-basierter Index
+  const sentRef     = useRef(new Set());   // gesendete Schwellen {5,10,20}
+  const endSentRef  = useRef(false);       // feed_end_reached gesendet?
+
+  const DEPTH_THRESHOLDS = [5, 10, 20];
+
+  const onDepth = useCallback((zeroBasedIdx) => {
+    if (!depthUser?.id) return;
+    const reached = zeroBasedIdx + 1; // 1-basiert
+    if (reached <= depthRef.current) return; // schon gesehen
+    depthRef.current = reached;
+    for (const threshold of DEPTH_THRESHOLDS) {
+      if (reached >= threshold && !sentRef.current.has(threshold)) {
+        sentRef.current.add(threshold);
+        emit(`feed_depth_${threshold}`, {
+          actorId:    depthUser.id,
+          targetType: "feed",
+          metadata:   { depth_reached: reached, threshold },
+        });
+      }
+    }
+  }, [depthUser?.id]); // eslint-disable-line
+
+  // Feed-Ende: einmalig senden wenn !hasMore + Karten vorhanden
+  useEffect(() => {
+    if (!hasMore && arr.length > 0 && !endSentRef.current && depthUser?.id) {
+      endSentRef.current = true;
+      emit("feed_end_reached", {
+        actorId:    depthUser.id,
+        targetType: "feed",
+        metadata:   { total_items: arr.length },
+      });
+    }
+  }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
@@ -255,6 +302,8 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, has
                 onProfile={onProfile}
                 onBook={onBook}
                 onShare={() => onShare?.(item)}
+                itemIndex={idx}
+                onDepth={onDepth}
               />
           </div>
         );
