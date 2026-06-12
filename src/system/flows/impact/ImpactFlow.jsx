@@ -1034,6 +1034,260 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
   );
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 10 — Medien & Dateien (Titelbild Pflicht + Zusatzmaterial)
+// ═══════════════════════════════════════════════════════════════
+function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, onWeiter, onClose, userId }) {
+  const [coverUploading,  setCoverUploading]  = React.useState(false);
+  const [extrasUploading, setExtrasUploading] = React.useState(false);
+  const [coverErr,        setCoverErr]        = React.useState(null);
+
+  const coverRef  = React.useRef();
+  const extrasRef = React.useRef();
+
+  // ── Titelbild hochladen ──────────────────────────────────────
+  const uploadCover = async (file) => {
+    if (!file) return;
+    setCoverUploading(true); setCoverErr(null);
+    try {
+      const ext  = file.name.split(".").pop();
+      const path = `covers/${userId || "anon"}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("impact_projects")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage
+        .from("impact_projects")
+        .getPublicUrl(path);
+      setCoverUrl(urlData.publicUrl);
+    } catch (e) {
+      setCoverErr("Upload fehlgeschlagen: " + (e.message || "Unbekannter Fehler"));
+    }
+    setCoverUploading(false);
+  };
+
+  // ── Zusatzmaterial hochladen ─────────────────────────────────
+  const uploadExtras = async (files) => {
+    if (!files?.length) return;
+    setExtrasUploading(true);
+    const urls = [...attachments];
+    for (const file of Array.from(files)) {
+      try {
+        const ext  = file.name.split(".").pop();
+        const path = `extras/${userId || "anon"}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+        const { error } = await supabase.storage
+          .from("impact_projects")
+          .upload(path, file, { upsert: true, contentType: file.type });
+        if (!error) {
+          const { data: urlData } = supabase.storage
+            .from("impact_projects")
+            .getPublicUrl(path);
+          urls.push({ url: urlData.publicUrl, name: file.name, type: file.type });
+        }
+      } catch { /* einzelne Datei skippen */ }
+    }
+    setAttachments(urls);
+    setExtrasUploading(false);
+  };
+
+  const removeExtra = (idx) => setAttachments(prev => prev.filter((_, i) => i !== idx));
+  const canContinue = !!coverUrl && !coverUploading && !extrasUploading;
+
+  const getFileIcon = (type = "") => {
+    if (type.startsWith("image/")) return "🖼️";
+    if (type.startsWith("video/")) return "🎬";
+    if (type.includes("pdf"))      return "📄";
+    return "📎";
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", maxHeight:"92vh" }}>
+
+      {/* Header */}
+      <div style={{
+        padding:"22px 22px 0",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        flexShrink:0,
+      }}>
+        <div>
+          <div style={{ fontSize:22, fontWeight:900, color:T.ink, lineHeight:1.1 }}>
+            📸 Medien & Dateien
+          </div>
+          <div style={{ fontSize:12.5, color:T.ink3, marginTop:3 }}>
+            Zeig dein Projekt — Bilder sagen mehr als Worte.
+          </div>
+        </div>
+        <button onClick={onClose} style={{
+          width:32, height:32, borderRadius:"50%", border:"none",
+          background:"rgba(20,20,34,0.07)", cursor:"pointer",
+          fontSize:15, color:T.ink3, display:"flex", alignItems:"center", justifyContent:"center",
+        }}>✕</button>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex:1, overflowY:"auto", padding:"18px 22px 8px" }}>
+
+        {/* ── Titelbild ─────────────────────────────────── */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
+            TITELBILD <span style={{ color:T.coral }}>*</span>
+          </div>
+          <div style={{ fontSize:11.5, color:T.ink3, marginBottom:10, lineHeight:1.5 }}>
+            So wird dein Projekt später im Impact Pool angezeigt. (Pflichtfeld)
+          </div>
+
+          {coverUrl ? (
+            <div style={{ position:"relative", borderRadius:16, overflow:"hidden", marginBottom:8 }}>
+              <img src={coverUrl} alt="Titelbild"
+                style={{ width:"100%", height:180, objectFit:"cover", display:"block" }} />
+              <button onClick={() => setCoverUrl("")} style={{
+                position:"absolute", top:8, right:8,
+                background:"rgba(0,0,0,0.55)", border:"none", borderRadius:"50%",
+                width:30, height:30, color:"#fff", fontSize:14,
+                cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+              }}>✕</button>
+              <div style={{
+                position:"absolute", bottom:8, left:8,
+                background:"rgba(13,196,181,0.90)", borderRadius:99,
+                padding:"3px 10px", fontSize:11, fontWeight:700, color:"#fff",
+              }}>✅ Titelbild gespeichert</div>
+            </div>
+          ) : (
+            <div
+              onClick={() => !coverUploading && coverRef.current?.click()}
+              style={{
+                border:`2px dashed ${coverErr ? T.coral : "rgba(13,196,181,0.40)"}`,
+                borderRadius:16, padding:"28px 20px",
+                textAlign:"center", cursor: coverUploading ? "default" : "pointer",
+                background: coverUploading ? "rgba(13,196,181,0.04)" : "rgba(13,196,181,0.03)",
+                transition:"all 0.18s",
+              }}
+            >
+              <div style={{ fontSize:32, marginBottom:8 }}>
+                {coverUploading ? "⏳" : "🖼️"}
+              </div>
+              <div style={{ fontSize:13, fontWeight:700, color: coverUploading ? T.ink3 : T.teal }}>
+                {coverUploading ? "Wird hochgeladen…" : "Titelbild auswählen"}
+              </div>
+              <div style={{ fontSize:11, color:T.ink3, marginTop:4 }}>
+                JPG, PNG, WebP — empfohlen 1200×800px
+              </div>
+            </div>
+          )}
+          <input ref={coverRef} type="file" accept="image/*" style={{ display:"none" }}
+            onChange={e => uploadCover(e.target.files?.[0])} />
+          {coverErr && (
+            <div style={{ fontSize:11, color:T.coral, marginTop:6 }}>⚠️ {coverErr}</div>
+          )}
+        </div>
+
+        {/* ── Zusatzmaterial ────────────────────────────── */}
+        <div style={{ marginBottom:16 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
+            ZUSATZMATERIAL <span style={{ color:T.ink4, fontWeight:400 }}>(optional)</span>
+          </div>
+          <div style={{ fontSize:11.5, color:T.ink3, marginBottom:10, lineHeight:1.5 }}>
+            Bilder, Videos, Dokumente, PDFs — alles was dein Projekt unterstützt.
+          </div>
+
+          <button
+            onClick={() => !extrasUploading && extrasRef.current?.click()}
+            disabled={extrasUploading}
+            style={{
+              width:"100%", padding:"14px",
+              border:`1.5px dashed rgba(114,100,214,0.40)`,
+              borderRadius:14, background:"rgba(114,100,214,0.04)",
+              cursor: extrasUploading ? "default" : "pointer",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+              color:T.violet, fontSize:13, fontWeight:700, fontFamily:"inherit",
+            }}
+          >
+            {extrasUploading ? "⏳ Lädt hoch…" : "📎 Dateien hinzufügen (Mehrfach möglich)"}
+          </button>
+          <input ref={extrasRef} type="file" multiple style={{ display:"none" }}
+            accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+            onChange={e => uploadExtras(e.target.files)} />
+
+          {/* Vorschau */}
+          {attachments.length > 0 && (
+            <div style={{ marginTop:12, display:"flex", flexDirection:"column", gap:8 }}>
+              {attachments.map((att, idx) => (
+                <div key={idx} style={{
+                  display:"flex", alignItems:"center", gap:10,
+                  background:"rgba(114,100,214,0.06)",
+                  border:"1px solid rgba(114,100,214,0.18)",
+                  borderRadius:12, padding:"10px 12px",
+                }}>
+                  {att.type?.startsWith("image/") ? (
+                    <img src={att.url} alt={att.name}
+                      style={{ width:40, height:40, borderRadius:8, objectFit:"cover" }} />
+                  ) : (
+                    <div style={{
+                      width:40, height:40, borderRadius:8,
+                      background:"rgba(114,100,214,0.12)",
+                      display:"flex", alignItems:"center", justifyContent:"center", fontSize:20,
+                    }}>{getFileIcon(att.type)}</div>
+                  )}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:T.ink,
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {att.name}
+                    </div>
+                  </div>
+                  <button onClick={() => removeExtra(idx)} style={{
+                    background:"none", border:"none", cursor:"pointer",
+                    color:T.ink3, fontSize:16, padding:"0 4px",
+                  }}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        padding:"14px 22px 22px", flexShrink:0,
+        borderTop:"1px solid rgba(20,20,34,0.06)",
+      }}>
+        {!coverUrl && (
+          <div style={{
+            fontSize:11.5, color:T.coral, textAlign:"center",
+            marginBottom:10, fontWeight:600,
+          }}>
+            ⚠️ Bitte lade ein Titelbild hoch, um fortzufahren.
+          </div>
+        )}
+        <button
+          onClick={onWeiter}
+          disabled={!canContinue}
+          style={{
+            width:"100%", padding:"15px 0",
+            background: canContinue
+              ? `linear-gradient(135deg,${T.teal},${T.tealL})`
+              : "rgba(20,20,34,0.12)",
+            border:"none", borderRadius:99,
+            color: canContinue ? "#fff" : T.ink3,
+            fontSize:15, fontWeight:800, cursor: canContinue ? "pointer" : "not-allowed",
+            fontFamily:"inherit",
+            boxShadow: canContinue ? S.btn(T.teal) : "none",
+            transition:"all 0.2s",
+          }}
+        >
+          {canContinue ? "Weiter → Wirkungsnetzwerk" : "Titelbild fehlt"}
+        </button>
+        <div style={{ textAlign:"center", marginTop:10 }}>
+          <button onClick={onClose} style={{
+            background:"none", border:"none", color:T.ink3,
+            fontSize:12, cursor:"pointer", fontFamily:"inherit",
+          }}>Abbrechen</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ═══ HAUPT-ORCHESTRATOR ═══════════════════════════════════════
 // Steps: 0–5 = Wizard, 6 = KI, 7 = Ergebnis, 7.5(=9) = Persönliche Angaben, 8 = Wirkungsnetzwerk
 export default function ImpactFlow({ onClose }) {
