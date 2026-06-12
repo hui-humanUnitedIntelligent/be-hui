@@ -402,30 +402,63 @@ function useWeitereHerzensprojekte(activeProjectIds) {
 function useApprovedApplications() {
   const [apps, setApps]       = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const poolMonth = new Date().toISOString().slice(0, 7);
+
+  const loadApps = React.useCallback(async () => {
+    try {
+      const { data: rawApps } = await supabase
+        .from("impact_applications")
+        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
+        .eq("status", "approved").order("created_at", { ascending: false }).limit(50);
+      const appList = rawApps || [];
+      if (!appList.length) return [];
+      const appIds = appList.map(a => a.id);
+      const { data: votes } = await supabase
+        .from("impact_votes").select("project_id").in("project_id", appIds).eq("pool_month", poolMonth);
+      const vc = {};
+      (votes || []).forEach(v => { vc[v.project_id] = (vc[v.project_id] || 0) + 1; });
+      return appList.map(a => ({ ...a, vote_count: vc[a.id] || 0 }))
+        .sort((a, b) => b.vote_count - a.vote_count || new Date(b.created_at) - new Date(a.created_at));
+    } catch (e) { console.warn("[APPROVED APPS]", e?.message); return []; }
+  }, [poolMonth]);
+
   React.useEffect(() => {
     let dead = false;
-    (async () => {
-      try {
-        const { data } = await supabase
-          .from("impact_applications")
-          .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
-          .eq("status", "approved")
-          .order("created_at", { ascending: false })
-          .limit(20);
-        if (!dead) setApps(data || []);
-      } catch (e) {
-        console.warn("[APPROVED APPS]", e?.message);
-      } finally {
-        if (!dead) setLoading(false);
-      }
-    })();
-    return () => { dead = true; };
-  }, []);
-  return { apps, loading };
+    loadApps().then(s => { if (!dead) { setApps(s); setLoading(false); } });
+    const sub = supabase.channel("imp_apps_rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "impact_votes" },
+        () => loadApps().then(s => { if (!dead) setApps(s); }))
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "impact_applications" },
+        () => loadApps().then(s => { if (!dead) setApps(s); }))
+      .subscribe();
+    return () => { dead = true; supabase.removeChannel(sub); };
+  }, [loadApps]);
+
+  const top1    = apps[0]    || null;
+  const weitere = apps.slice(1, 5);
+  return { apps, top1, weitere, loading };
+}
+
+// ── useMonthlyVoteRanking — Top 3 für Aktuelle Abstimmung ───────
+function useMonthlyVoteRanking(approvedApps) {
+  const top3 = React.useMemo(() => (approvedApps || []).slice(0, 3), [approvedApps]);
+  React.useEffect(() => {
+    if (!top3.length) return;
+    const now = new Date();
+    if (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() !== now.getDate()) return;
+    const month = now.toISOString().slice(0, 7);
+    supabase.from("impact_monthly_results").upsert({
+      month, year: now.getFullYear(),
+      first_place_project_id:  top3[0]?.id || null,
+      second_place_project_id: top3[1]?.id || null,
+      third_place_project_id:  top3[2]?.id || null,
+    }, { onConflict: "month" }).catch(() => {});
+  }, [top3]);
+  return top3;
 }
 
 // ── Detailseite für bewilligte Anträge ──────────────────────────
-function ApprovedProjectDetail({ app, onClose, currentUser }) {
+function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }) {
   const [voted,        setVoted]        = React.useState(false);
   const [voteCount,    setVoteCount]    = React.useState(0);
   const [userVotesLeft, setUserVotesLeft] = React.useState(null); // null = lädt noch
@@ -497,6 +530,7 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
         setVoted(true);
         setVoteCount(v => v + 1);
         setUserVotesLeft(v => Math.max(0, (v || 1) - 1));
+        onVoted(app.id);
       } else {
         setVoteError("Abstimmung fehlgeschlagen. Bitte erneut versuchen.");
       }
@@ -966,6 +1000,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const usedVotes   = userVotes.reduce((s,v) => s + safeNum(v.weight || 1), 0);
   const remainVotes = Math.max(0, maxVotes - usedVotes);
   const totalVotes  = projects.reduce((s,p) => s + safeNum(p.votes), 0);
+  const monthlyTop3 = useMonthlyVoteRanking(approvedApps.apps);
   const daysLeft    = activeRound?.voting_ends_at
     ? Math.max(0, Math.ceil((new Date(activeRound.voting_ends_at) - Date.now()) / 86400000))
     : null;
@@ -995,14 +1030,26 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {/* ══ 2 ── POOL-KARTE mit Budget-Chips ════════════════════ */}
       <PoolCard pool={pool} stats={hero} userImpact={userImpact} />
 
-      {/* ══ 3 ── AKTUELLE ABSTIMMUNG (Herzstück) ════════════════ */}
+      {/* ══ 3 ── AKTUELLE ABSTIMMUNG ═══════════════════════════ */}
       <VotingSection
-        projects={projects}
+        projects={
+          projects.length > 0 ? projects
+          : monthlyTop3.length > 0
+            ? monthlyTop3.map(a => ({
+                id: a.id, name: a.project_name,
+                category: a.short_desc?.slice(0,20) || "Herzensprojekt",
+                description: a.short_desc, icon: "💚", color: "#0DC4B5",
+                votes: a.vote_count || 0, goal_eur: a.funding_goal || 0,
+                status: "approved",
+                img: a.cover_url || (a.media_urls && a.media_urls[0]) || null,
+              }))
+            : SEED_PROJECTS
+        }
         userVotes={userVotes}
         daysLeft={daysLeft}
         totalVotes={totalVotes}
         onVote={castVote}
-        loading={loadingProj}
+        loading={loadingProj && approvedApps.loading}
         onInfoClick={() => setInfoModal("leeraus")}
       />
 
@@ -1022,36 +1069,30 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           app={detailApp}
           onClose={() => setDetailApp(null)}
           currentUser={currentUser}
+          onVoted={(pid) => setDetailApp(prev => prev ? { ...prev, vote_count:(prev.vote_count||0)+1 } : prev)}
         />
       )}
 
       {/* ══ 4b ── IMPACT TIMELINE "Impact auf einen Blick" ═══════ */}
       <ImpactTimeline transp={transp} />
 
-      {/* ══ 4b.5 ── BEWILLIGTE HERZENSPROJEKTE (aus impact_applications) ══════ */}
-      {!approvedApps.loading && approvedApps.apps.length > 0 && (
-        <div style={{
-          padding:"28px 20px 8px",
-          maxWidth:600, margin:"0 auto",
-        }}>
-          <div style={{ marginBottom:16 }}>
-            <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:"#141422" }}>
-              💚 Bewilligte Herzensprojekte
-            </h2>
-            <p style={{ margin:0, fontSize:13, color:"#666" }}>
-              Diese Projekte wurden vom HUI-Team geprüft und bewilligt — jetzt abstimmen!
-            </p>
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-            {approvedApps.apps.map(app => (
-              <ApprovedAppCard key={app.id} app={app} onOpen={setDetailApp} />
-            ))}
-          </div>
-        </div>
+      {/* ══ 4b.5 ── BEWILLIGTE HERZENSPROJEKTE — TOP 1 ═══════════ */}
+      {(approvedApps.loading || approvedApps.top1) && (
+        <BewilligteTop1Section
+          app={approvedApps.top1}
+          loading={approvedApps.loading}
+          onOpen={setDetailApp}
+        />
       )}
 
-      {/* ══ 4c ── WEITERE HERZENSPROJEKTE ════════════════════════ */}
-      <WeitereHerzensprojekte data={weitereHP.data} loading={weitereHP.loading} />
+      {/* ══ 4c ── WEITERE HERZENSPROJEKTE — Platz 2-5 dynamisch ══ */}
+      <WeitereHerzensSection
+        apps={approvedApps.weitere}
+        loadingApps={approvedApps.loading}
+        seedData={weitereHP.data}
+        seedLoading={weitereHP.loading}
+        onOpen={setDetailApp}
+      />
 
       {/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
       <GemeinsamErmoegicht finanziert={finanziert} transp={transp} />
@@ -1877,6 +1918,134 @@ function WeitereHerzensprojekte({ data, loading }) {
 }
 
 
+
+
+// ════════════════════════════════════════════════════════════════
+// BewilligteTop1Section — Zeigt NUR das führende Projekt (Top 1)
+// ════════════════════════════════════════════════════════════════
+function BewilligteTop1Section({ app, loading, onOpen }) {
+  if (loading) return (
+    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
+      <h2 style={{ margin:"0 0 16px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
+      <SkeletonCards count={1} />
+    </div>
+  );
+  if (!app) return null;
+  return (
+    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
+      <div style={{ marginBottom:16 }}>
+        <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
+        <p style={{ margin:0, fontSize:13, color:"#666" }}>Diese Projekte wurden vom HUI-Team geprüft und bewilligt — jetzt abstimmen!</p>
+      </div>
+      <ApprovedAppCard app={app} onOpen={onOpen} />
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// WeitereHerzensSection — Platz 2-5 approved + Fallback Seed
+// ════════════════════════════════════════════════════════════════
+function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpen }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const hasReal = !loadingApps && apps && apps.length > 0;
+  const rawList = hasReal ? apps : (!loadingApps ? SEED_WEITERE_PROJEKTE : []);
+  const isSeed  = !hasReal && !loadingApps;
+  const visible = expanded ? rawList : rawList.slice(0, 4);
+  const hasMore = rawList.length > 4;
+  const isLoading = loadingApps;
+  return (
+    <div style={{ marginTop:24, padding:"0 16px" }}>
+      <div style={{ marginBottom:14 }}>
+        <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:4 }}>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:900, color:T.ink, letterSpacing:"-0.022em" }}>🌱 Weitere Herzensprojekte</h2>
+          {!isLoading && rawList.length > 4 && !expanded && (
+            <button onClick={() => setExpanded(true)} className="ip-p"
+              style={{ background:"none", border:"none", padding:0, cursor:"pointer", fontSize:11, fontWeight:700, color:T.teal, flexShrink:0, marginLeft:8 }}>
+              Alle {rawList.length} anzeigen →
+            </button>
+          )}
+        </div>
+        <p style={{ margin:0, fontSize:12.5, color:T.ink2, lineHeight:1.6 }}>
+          {isLoading ? "Wird geladen…" : isSeed
+            ? "Beispielprojekte — so sehen eingereichte Herzensprojekte aus."
+            : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — sortiert nach Community-Stimmen`}
+        </p>
+      </div>
+      {isLoading ? <SkeletonCards count={3} /> : (
+        <>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {visible.map((p, i) =>
+              hasReal
+                ? <ApprovedAppCardCompact key={p.id||i} app={p} rank={i+2} onOpen={onOpen} />
+                : <HerzensKarte key={p.id||i} p={p} idx={i} />
+            )}
+          </div>
+          {hasMore && (
+            <button onClick={() => setExpanded(e => !e)} className="ip-p"
+              style={{ width:"100%", marginTop:12, background:"none",
+                border:`1px solid ${T.teal}30`, borderRadius:14, padding:"11px 0",
+                fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+              {expanded ? <span>▲ Weniger</span> : <span>▼ Alle {rawList.length} Projekte</span>}
+            </button>
+          )}
+          <div style={{ marginTop:12, padding:"9px 13px", background:`${T.teal}07`, border:`1px solid ${T.teal}14`,
+            borderRadius:13, display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:14 }}>📨</span>
+            <span style={{ fontSize:11, color:T.ink2, lineHeight:1.5 }}>
+              Neue Herzensprojekte kommen jeden Monat hinzu. <b style={{ color:T.teal }}>Der Impact Pool lebt und wächst.</b>
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// ApprovedAppCardCompact — Kompaktkarte für "Weitere Herzensprojekte"
+// ════════════════════════════════════════════════════════════════
+function ApprovedAppCardCompact({ app, rank, onOpen }) {
+  const img = app.cover_url || (app.media_urls && app.media_urls[0])
+    || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
+  return (
+    <div onClick={() => onOpen && onOpen(app)} className="ip-p"
+      style={{ display:"flex", alignItems:"center", gap:12, background:"#fff",
+        borderRadius:16, padding:"12px 14px", boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
+        border:"1px solid rgba(13,196,181,0.10)", cursor:"pointer" }}>
+      <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0,
+        background:"rgba(13,196,181,0.12)", display:"flex", alignItems:"center",
+        justifyContent:"center", fontSize:11, fontWeight:900, color:T.teal }}>
+        {rank}
+      </div>
+      <div style={{ width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0 }}>
+        <img src={img} alt={app.project_name}
+          style={{ width:"100%", height:"100%", objectFit:"cover" }}
+          onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }} />
+      </div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:13, fontWeight:800, color:"#141422",
+          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          💚 {app.project_name}
+        </div>
+        <div style={{ fontSize:11, color:"#888", marginTop:2,
+          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          {app.short_desc}
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:4 }}>
+          <span style={{ fontSize:10, fontWeight:700, color:"#22c55e",
+            background:"rgba(34,197,94,0.10)", borderRadius:99, padding:"2px 8px",
+            border:"1px solid rgba(34,197,94,0.20)" }}>✅ Bewilligt</span>
+          <span style={{ fontSize:11, color:T.teal, fontWeight:700 }}>🗳 {app.vote_count || 0}</span>
+        </div>
+      </div>
+      <div style={{ flexShrink:0, textAlign:"right" }}>
+        <div style={{ fontSize:12, fontWeight:800, color:T.teal }}>€ {(app.funding_goal||0).toLocaleString("de-DE")}</div>
+        <div style={{ fontSize:10, color:"#999" }}>Ziel</div>
+      </div>
+    </div>
+  );
+}
 
 // ════════════════════════════════════════════════════════════════
 // IMPACT TIMELINE — "Impact auf einen Blick"
