@@ -42,62 +42,106 @@ function calcHuiFitScore(form) {
     form.foerder_verwendung || '', form.warum || '',
   ].join(" ").toLowerCase();
 
-  // ── Harte Ausschlusskriterien — NUR bei eindeutigen Mehrfach-Treffern ────
-  // Nur wirklich private/kommerzielle Projekte herausfiltern
-  // KEIN einzelnes Keyword reicht — immer mindestens 2 Treffer nötig
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 1 — SOFORT-ABBRUCH: Klare Ausschlusskriterien
+  // ════════════════════════════════════════════════════════════════
+
+  // Rein privat / persönlich
   const RED_PERSONAL = [
     "mein auto","meine schulden","wohnung kaufen","haus kaufen",
     "hochzeit finanzieren","urlaub finanzieren","für mich allein",
+    "mein garten","meinen garten","meiner garten",
+    "meine wohnung","mein haus","mein zimmer",
+    "mein eigenes","für mich selbst","für mich persönlich",
   ];
+  // Kommerziell / nicht gemeinnützig
   const RED_COMMERCIAL = [
-    "rendite erzielen","investor gesucht","startup kapital",
-    "kryptowährung","mlm","network marketing","politische partei",
+    "rendite","investor","startup kapital","kryptowährung","mlm",
+    "network marketing","politische partei","eigene firma gründen",
   ];
 
-  const hitPersonal    = RED_PERSONAL.filter(kw => allText.includes(kw)).length;
-  const hitCommercial  = RED_COMMERCIAL.filter(kw => allText.includes(kw)).length;
+  const hitPersonal   = RED_PERSONAL.filter(kw => allText.includes(kw)).length;
+  const hitCommercial = RED_COMMERCIAL.filter(kw => allText.includes(kw)).length;
 
-  // Nur bei ≥2 eindeutigen Treffern ablehnen — einzelne Wörter nie ausreichen
-  if (hitPersonal >= 2)   return 12;
-  if (hitCommercial >= 2) return 18;
-  if (hitPersonal + hitCommercial >= 3) return 20;
+  if (hitPersonal >= 1)   return 8;   // 1 Treffer reicht bei privaten Phrasen
+  if (hitCommercial >= 1) return 12;
 
-  // ── Positiv-Indikatoren nach HUI-Kategorien ──────────────────────────────
-  // Großzügige Keyword-Listen — 1 Treffer reicht für halbe Punkte
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 2 — VAGHEITS-STRAFE: Unklare / planlose Sprache
+  // ════════════════════════════════════════════════════════════════
+  const VAGUE_PHRASES = [
+    "irgendwie","irgendwas","irgendwann","irgendwo",
+    "ein bisschen","ein paar sachen","ein paar dinge",
+    "nicht genau weiß","weiß nicht genau","nicht sicher",
+    "einfach ausprobieren","mal schauen","schauen ob",
+    "hoffe dass","hoffe es","vielleicht","könnte sein",
+    "wäre schön","würde gern","so etwas","im großen und ganzen",
+    "irgendwie schöner","irgendwie besser","irgendwie helfen",
+  ];
+  const vagueHits = VAGUE_PHRASES.filter(kw => allText.includes(kw)).length;
+
+  // Bei massiver Vagheit → direkt ablehnen
+  if (vagueHits >= 4) return 10;
+  if (vagueHits >= 2) return 22;
+
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 3 — PFLICHT: Zielgruppe & Gemeinwohl nachweisen
+  // ════════════════════════════════════════════════════════════════
+  // Ohne klare Zielgruppe oder Gemeinwohl-Bezug max. Score 35
+  const ZIELGRUPPE = [
+    "kinder","jugendliche","senioren","obdachlose","geflüchtete",
+    "alleinerziehende","menschen mit behinderung","schüler","studierende",
+    "nachbarn","gemeinschaft","bevölkerung","öffentlichkeit","alle",
+    "bedürftige","patienten","betroffene","familien","bewohner",
+  ];
+  const GEMEINWOHL = [
+    "gemeinnützig","ehrenamtlich","kostenfrei","kostenlos","öffentlich",
+    "gemeinsam","zusammen","füreinander","solidarisch","nachhaltig",
+    "gesellschaft","sozial","wirkung","mehrwert","gemeinwohl",
+    "verein","initiative","projekt für andere","anderen helfen",
+  ];
+
+  const hasZielgruppe = ZIELGRUPPE.some(kw => allText.includes(kw));
+  const hasGemeinwohl = GEMEINWOHL.some(kw => allText.includes(kw));
+
+  // Kein Gemeinwohl UND keine Zielgruppe → rein privat → ablehnen
+  if (!hasZielgruppe && !hasGemeinwohl) return 15;
+
+  // ════════════════════════════════════════════════════════════════
+  // STUFE 4 — POSITIV-SCORING: HUI-Mission Keywords
+  // (nur wenn Grundbedingungen erfüllt)
+  // ════════════════════════════════════════════════════════════════
   const HUI_MISSION = [
-    { kws:["gemeinschaft","nachbarschaft","zusammen","gemeinsam","verein","quartier","dorf","ehrenamt","freiwillig","helfen","helfer","unterstütz"], pts:16 },
-    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","studierende","ausbildung","lesen","sprach","förder"], pts:16 },
-    { kws:["umwelt","natur","klima","solar","recycling","nachhaltig","ökologisch","pflanzen","müll","co2","artenvielfalt","meer","wald","wasser","energie"], pts:15 },
-    { kws:["gesundheit","heilung","pflege","therapie","sport","bewegung","ernährung","seele","mental","wohlbefinden","prävention","behinderung"], pts:14 },
-    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","film","ausstellung","festival"], pts:12 },
-    { kws:["verbinden","begegnung","austausch","inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberecht"], pts:13 },
-    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gratis","frei","alle","jeder","viele","wirkung","gemeinwohl","mehrwert","menschen"], pts:13 },
-    { kws:["tier","hund","katze","tierschutz","tierwohl","wildtier","tierheim","rettung","pflegestelle","fauna"], pts:11 },
-    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt","randgruppe","minderheit"], pts:12 },
+    { kws:["gemeinschaft","nachbarschaft","zusammen","gemeinsam","verein","quartier","dorf","ehrenamt","freiwillig"], pts:14 },
+    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"], pts:14 },
+    { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"], pts:13 },
+    { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"], pts:12 },
+    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","festival"], pts:10 },
+    { kws:["inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberechtigung"], pts:12 },
+    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"], pts:11 },
+    { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"], pts:10 },
+    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"], pts:11 },
   ];
 
-  let baseScore = 30; // Großzügiger Basis-Score — Projekte bekommen Vertrauensvorschuss
+  let baseScore = 10; // Niedriger Basis-Score — muss verdient werden
   for (const group of HUI_MISSION) {
     const hits = group.kws.filter(kw => allText.includes(kw)).length;
-    if (hits >= 3)      baseScore += group.pts;
-    else if (hits >= 2) baseScore += Math.round(group.pts * 0.75);
-    else if (hits === 1) baseScore += Math.round(group.pts * 0.5); // Auch 1 Treffer zählt
+    if (hits >= 3)       baseScore += group.pts;
+    else if (hits >= 2)  baseScore += Math.round(group.pts * 0.7);
+    else if (hits === 1) baseScore += Math.round(group.pts * 0.35);
   }
 
-  // ── Kategorie-Bonus (Nutzer hat explizit gewählt) ─────────────────────────
-  const KAT_BONUS = { bildung:10, umwelt:10, gesundheit:9, gemeinschaft:10, tiere:8, kultur:7, soziales:10 };
-  baseScore += KAT_BONUS[form.kategorie] || 5; // Auch unbekannte Kategorien +5
+  // ── Vagheits-Abzug (auch bei positiven Projekten) ────────────
+  baseScore -= vagueHits * 6;
 
-  // ── Vollständigkeits-Bonus ────────────────────────────────────────────────
-  const fields = [form.name, form.satz, form.problem, form.umsetzung, form.foerder];
-  const filled  = fields.filter(v => (v||"").trim().length > 15).length;
-  baseScore += filled * 3; // max +15
+  // ── Kategorie-Bonus (nur bei explizit sinnvollen Kategorien) ─
+  const KAT_BONUS = { bildung:8, umwelt:8, gesundheit:7, gemeinschaft:6, tiere:6, kultur:5, soziales:8 };
+  baseScore += KAT_BONUS[form.kategorie] || 0; // Keine Punkte für unbekannte Kategorien
 
-  // ── Texttiefe-Bonus ───────────────────────────────────────────────────────
-  const wordCount = allText.split(/\s+/).filter(Boolean).length;
-  if (wordCount > 150) baseScore += 8;
-  else if (wordCount > 80) baseScore += 5;
-  else if (wordCount > 40) baseScore += 2;
+  // ── Vollständigkeits-Bonus (nur inhaltlich gefüllte Felder) ──
+  const fields = [form.name, form.satz, form.problem, form.umsetzung];
+  const filled  = fields.filter(v => (v||"").trim().length > 40).length; // Mindest 40 Zeichen
+  baseScore += filled * 2; // max +8
 
   return Math.min(100, Math.max(0, baseScore));
 }
@@ -110,28 +154,36 @@ function bewerteProjekt(form) {
   const umsetzung = (form.umsetzung || "").trim();
   const allText   = [form.name, satz, problem, umsetzung].join(" ").toLowerCase();
 
-  // Mindestlänge — sehr niedrig, nur Totalausfälle filtern
+  // Mindestlänge
   if (satz.length < 10 || problem.length < 10 || umsetzung.length < 10) {
     return { geeignet: false, grund: "zu_kurz", score };
   }
 
-  // ── Schwelle: 45 statt 60 — mehr Projekte zur manuellen Prüfung durch Admin ──
-  // Alles ≥45 kommt zum Admin. Der Admin entscheidet letztlich.
-  if (score >= 45) {
+  // Schwelle: 55 — strenger als vorher, weicher als ursprünglich 60
+  if (score >= 55) {
     return {
       geeignet: true,
       score,
-      routing: score >= 75 ? "direkt" : "manuell",
+      routing: score >= 78 ? "direkt" : "manuell",
       wirkung: Math.round(score / 20),
     };
   }
 
   // Ablehnungsgrund bestimmen
-  const RED_PERSONAL   = ["mein auto","meine schulden","wohnung kaufen","haus kaufen","hochzeit finanzieren","urlaub finanzieren"];
-  const RED_COMMERCIAL = ["rendite erzielen","investor gesucht","startup kapital","kryptowährung","mlm"];
+  const RED_PERSONAL = [
+    "mein auto","meine schulden","wohnung kaufen","haus kaufen",
+    "mein garten","meinen garten","für mich selbst","für mich persönlich",
+  ];
+  const RED_COMMERCIAL = ["rendite","investor gesucht","startup kapital","kryptowährung","mlm"];
+  const VAGUE_CHECK    = ["irgendwie","irgendwas","nicht genau weiß","einfach ausprobieren","hoffe dass","mal schauen"];
 
-  if (RED_PERSONAL.some(kw => allText.includes(kw)))   return { geeignet: false, grund: "persoenlich",  score };
-  if (RED_COMMERCIAL.some(kw => allText.includes(kw))) return { geeignet: false, grund: "kommerziell",  score };
+  if (RED_PERSONAL.some(kw => allText.includes(kw)))              return { geeignet: false, grund: "persoenlich",   score };
+  if (RED_COMMERCIAL.some(kw => allText.includes(kw)))            return { geeignet: false, grund: "kommerziell",   score };
+  if (VAGUE_CHECK.filter(kw => allText.includes(kw)).length >= 2) return { geeignet: false, grund: "zu_vage",       score };
+
+  // Kein Gemeinwohl erkennbar
+  const GEMEINWOHL = ["gemeinnützig","ehrenamtlich","kostenlos","öffentlich","gesellschaft","sozial","gemeinwohl","wirkung","andere","anderen"];
+  if (!GEMEINWOHL.some(kw => allText.includes(kw))) return { geeignet: false, grund: "kein_hui_bezug", score };
 
   return { geeignet: false, grund: "zu_vage", score };
 }
