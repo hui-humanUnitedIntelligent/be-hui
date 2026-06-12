@@ -8,7 +8,7 @@
 // CSS KEYFRAMES werden nur einmal injiziert.
 // ═══════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
@@ -122,16 +122,41 @@ function ReactionCardInner({ item, onProfile, onBook, onShare }) {
   const postType = item?.type  || "post";
   const authorId = item?.author?.id || null;
 
-  const { toggle, myTypes } = useSingleReaction(postId, postType, authorId);
+  // FEED.9B — Lazy-Loading: nur laden wenn Karte sichtbar
+  const cardRef    = useRef(null);
+  const [visible, setVisible] = useState(false);
 
-  function handleReaction(type) {
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el || visible) return; // already visible — no new observer needed
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          obs.disconnect(); // once=true: nie wieder beobachten
+        }
+      },
+      { threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [visible]);
+
+  // Hook-Gating: kein RPC / kein SELECT solange nicht sichtbar
+  const { toggle, myTypes } = useSingleReaction(
+    visible ? postId : null,
+    postType,
+    authorId
+  );
+
+  const handleReaction = useCallback((type) => {
     if (!toggle) return;
     toggle(type);
     const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
     const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Entfernt" };
     const wasActive    = myTypes?.has?.(type);
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
-  }
+  }, [toggle, myTypes]);
 
   // Merge live reaction state into item
   const enriched = {
@@ -145,13 +170,15 @@ function ReactionCardInner({ item, onProfile, onBook, onShare }) {
   };
 
   return (
-    <FeedRouter
-      item={enriched}
-      onProfile={onProfile}
-      onReaction={handleReaction}
-      onBook={onBook}
-      onShare={onShare}
-    />
+    <div ref={cardRef}>
+      <FeedRouter
+        item={enriched}
+        onProfile={onProfile}
+        onReaction={handleReaction}
+        onBook={onBook}
+        onShare={onShare}
+      />
+    </div>
   );
 }
 
