@@ -675,20 +675,59 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes }) {
   const score = aiRes?.score || 0;
   const grund = aiRes?.grund || "zu_vage";
   const TEXTE = {
-    red_flag: {
-      titel: "Dieses Projekt passt leider nicht zu HUI.",
-      erkl:  "Der HUI Impact Pool ist ausschließlich für Projekte gedacht, die eine messbare positive Wirkung für Gemeinschaft, Umwelt, Bildung, Gesundheit oder ähnliche Bereiche haben.",
-      hinweis: "Eigennützige Projekte, Konsumwünsche oder private Anschaffungen können nicht berücksichtigt werden.",
+    // Persönlicher Nutzen / private Anschaffung
+    persoenlich: {
+      emoji:   "🚫",
+      badge:   "PERSÖNLICHER NUTZEN",
+      titel:   "Dieses Projekt ist nicht für den HUI Impact Pool geeignet.",
+      erkl:    "HUI fördert ausschließlich Projekte mit gemeinwohlorientierter Wirkung — für Gemeinschaft, Umwelt, Bildung, Gesundheit oder Kultur.",
+      hinweis: "Projekte, die überwiegend dem persönlichen Nutzen dienen (Anschaffungen, Schulden, Reisen etc.), können leider nicht berücksichtigt werden.",
+      tipp:    "Hast du ein Projektidee, die anderen Menschen hilft? Dann probiere es erneut!",
     },
+    // Kommerziell / nicht HUI-konform
+    kommerziell: {
+      emoji:   "💼",
+      badge:   "KOMMERZIELLES PROJEKT",
+      titel:   "Kommerzielle Projekte passen nicht zu HUI.",
+      erkl:    "Der HUI Impact Pool ist kein Investitions- oder Startup-Förderprogramm. Er ist für Herzensprojekte mit echtem gesellschaftlichem Mehrwert.",
+      hinweis: "Projekte mit Gewinnabsicht, Marketing-Zwecken oder politischem Charakter können nicht aufgenommen werden.",
+      tipp:    "Wenn dein Projekt einen echten sozialen Zweck hat, beschreibe diesen klar — dann ist ein neuer Versuch möglich.",
+    },
+    // Beschreibung zu kurz
     zu_kurz: {
-      titel: "Bitte beschreibe dein Projekt etwas ausführlicher.",
-      erkl:  "Das HUI-Team braucht genügend Informationen, um dein Projekt fair beurteilen zu können.",
-      hinweis: "Versuche insbesondere bei Problem, Umsetzung und Beschreibung mehr Details hinzuzufügen.",
+      emoji:   "✏️",
+      badge:   "ZU WENIG INFORMATIONEN",
+      titel:   "Bitte beschreibe dein Projekt ausführlicher.",
+      erkl:    "Das HUI-Team braucht genügend Details, um dein Projekt fair beurteilen zu können.",
+      hinweis: "Fülle besonders diese Felder ausführlicher aus: Kurzbeschreibung, Problem & Lösung, Umsetzung.",
+      tipp:    "Je konkreter du beschreibst, wer profitiert und wie — desto besser deine Chancen!",
     },
+    // Zu vage / allgemeine Formulierungen
     zu_vage: {
-      titel: "Dein Projekt braucht noch mehr Profil.",
-      erkl:  "Die Beschreibung ist noch zu allgemein für eine Wirkungsbeurteilung.",
+      emoji:   "🔍",
+      badge:   "NICHT GEEIGNET FÜR HUI",
+      titel:   "Dein Projekt braucht noch mehr Profil.",
+      erkl:    "Die Beschreibung ist noch zu allgemein für eine Wirkungsbeurteilung.",
       hinweis: "Beschreibe konkret: Wer profitiert? Was genau wird umgesetzt? Welche Wirkung entsteht?",
+      tipp:    "Vermeide vage Formulierungen. Echte Zahlen, Orte und Zielgruppen stärken deinen Score.",
+    },
+    // Kein HUI-Bezug erkennbar
+    kein_hui_bezug: {
+      emoji:   "🎯",
+      badge:   "KEIN HUI-BEZUG",
+      titel:   "Dein Projekt passt noch nicht zu HUI.",
+      erkl:    "Die Beschreibung lässt keinen klaren Bezug zu den HUI-Förderbereichen erkennen.",
+      hinweis: "HUI fördert: Bildung, Umwelt, Gemeinschaft, Gesundheit, Kultur, Tierschutz & soziale Projekte.",
+      tipp:    "Wenn dein Projekt in einen dieser Bereiche fällt — beschreibe das explizit und versuche es nochmal.",
+    },
+    // Legacy-Kompatibilität
+    red_flag: {
+      emoji:   "🚫",
+      badge:   "NICHT GEEIGNET FÜR HUI",
+      titel:   "Dieses Projekt passt leider nicht zu HUI.",
+      erkl:    "Der HUI Impact Pool ist ausschließlich für Projekte mit messbarer positiver Wirkung für Gemeinschaft, Umwelt, Bildung, Gesundheit oder Kultur.",
+      hinweis: "Eigennützige Projekte, Konsumwünsche oder private Anschaffungen können nicht berücksichtigt werden.",
+      tipp:    "Hast du eine Idee, die anderen Menschen hilft? Probiere es erneut!",
     },
   };
   const t = TEXTE[grund] || TEXTE.zu_vage;
@@ -697,17 +736,24 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes }) {
       padding:"28px 22px 22px", animation:"ifShake 0.4s ease both, ifFadeIn 0.3s ease both",
       overflowY:"auto" }}>
       <div style={{ textAlign:"center", marginBottom:20 }}>
-        <div style={{ fontSize:48, marginBottom:12 }}>🔍</div>
+        <div style={{ fontSize:48, marginBottom:12 }}>{t.emoji || "🔍"}</div>
         <div style={{ display:"inline-block", background:`${T.coral}12`,
           border:`1px solid ${T.coral}28`, borderRadius:99,
           padding:"5px 16px", fontSize:11, fontWeight:800,
           color:T.coral, letterSpacing:"0.07em", marginBottom:12 }}>
-          NICHT GEEIGNET FÜR HUI
+          {t.badge || "NICHT GEEIGNET FÜR HUI"}
         </div>
         <h2 style={{ margin:"0 0 10px", fontSize:19, fontWeight:900, color:T.ink,
           letterSpacing:"-0.02em", lineHeight:1.3 }}>{t.titel}</h2>
         <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{t.erkl}</p>
-        <p style={{ margin:0, fontSize:13, color:T.ink2, lineHeight:1.7 }}>{t.hinweis}</p>
+        <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{t.hinweis}</p>
+        {t.tipp && (
+          <div style={{ marginTop:10, padding:"10px 14px", background:`${T.teal}0A`,
+            border:`1px solid ${T.teal}20`, borderRadius:12,
+            fontSize:12, color:T.teal, lineHeight:1.6, textAlign:"left" }}>
+            💡 <strong>Tipp:</strong> {t.tipp}
+          </div>
+        )}
       </div>
 
       {/* Score auch bei Ablehnung zeigen */}
@@ -723,6 +769,8 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes }) {
           "🤝 Gemeinschafts- & Soziale Projekte",
           "💊 Gesundheits- & Pflegeprojekte",
           "🎨 Kulturelle & gesellschaftliche Initiativen",
+          "🐾 Tierschutz- & Tierwohlprojekte",
+          "🌍 Inklusion & gesellschaftliche Teilhabe",
         ].map((item,i) => (
           <div key={i} style={{ fontSize:13, color:T.ink2, padding:"3px 0", lineHeight:1.5 }}>{item}</div>
         ))}
