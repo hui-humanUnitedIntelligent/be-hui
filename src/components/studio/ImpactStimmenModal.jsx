@@ -108,17 +108,29 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
     if (!profile?.id) return;
     setLoading(true);
     try {
+      // Single Source of Truth: impact_applications (approved) + impact_votes
       const [projRes, votesRes] = await Promise.all([
-        supabase.from("impact_projects")
-          .select("id,name,icon,color,votes,status,description,website,tags,category,contact_name")
-          .in("status", ["active", "voting"])
-          .order("votes", { ascending: false }),
+        supabase.from("impact_applications")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,status,created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false }),
         supabase.from("impact_votes")
           .select("id,project_id,created_at")
           .eq("voter_id", profile.id)
           .eq("pool_month", monthKey),
       ]);
-      setProjects(projRes.data || []);
+      // Normalisiere auf einheitliches Format
+      const normalized = (projRes.data || []).map(a => ({
+        id:          a.id,
+        name:        a.project_name,
+        description: a.short_desc,
+        icon:        "💚",
+        color:       "#0DC4B5",
+        status:      "approved",
+        votes:       0, // wird live aus impact_votes gezählt
+        img_url:     a.cover_url || (a.media_urls && a.media_urls[0]) || null,
+      }));
+      setProjects(normalized);
       setMyVotes(votesRes.data || []);
     } catch (e) {
       console.warn("[ImpactStimmen] load:", e);
@@ -128,6 +140,23 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
   }, [profile?.id, monthKey]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Realtime: impact_votes → Studio sofort aktualisieren
+  useEffect(() => {
+    if (!profile?.id) return;
+    const sub = supabase.channel("studio_votes_rt")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
+        (payload) => {
+          const v = payload.new;
+          if (!v) return;
+          // Eigene neue Stimme → myVotes aktualisieren
+          if (v.voter_id === profile.id && v.pool_month === monthKey) {
+            setMyVotes(prev => [...prev, v]);
+          }
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(sub); };
+  }, [profile?.id, monthKey]);
 
   // Stimme abgeben
   const castVote = async (projectId) => {
@@ -146,14 +175,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         pool_month: monthKey,
       });
       if (error) throw error;
-
-      // votes-Zähler im Projekt hochzählen
-      const proj = projects.find(p => p.id === projectId);
-      if (proj) {
-        await supabase.from("impact_projects")
-          .update({ votes: (proj.votes || 0) + 1 })
-          .eq("id", projectId);
-      }
+      // Kein separates impact_projects Update — impact_votes ist SSOT
 
       setSuccessMsg("✅ Stimme abgegeben!");
       setTimeout(() => setSuccessMsg(""), 2500);
