@@ -689,9 +689,33 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
 }
 
 // ═══ ERGEBNIS: NICHT GEEIGNET ════════════════════════════════
-function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes }) {
+function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
   const score = aiRes?.score || 0;
   const grund = aiRes?.grund || "zu_vage";
+
+  // ── KI-Ablehnung in Supabase speichern (fire & forget) ──────────────────
+  useEffect(() => {
+    const saveFailure = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabaseClient');
+        await supabase.from('impact_score_failures').insert({
+          user_id:      user?.id || null,
+          project_name: (form.name || "").trim() || "Unbekannt",
+          short_desc:   (form.satz || "").trim() || null,
+          problem:      (form.problem || "").trim() || null,
+          umsetzung:    (form.umsetzung || "").trim() || null,
+          kategorie:    form.kategorie || null,
+          funding_goal: form.foerder ? parseFloat(form.foerder) : null,
+          ai_score:     score,
+          grund:        grund,
+        });
+      } catch (e) {
+        // Silent fail — KI-Tracking ist nicht kritisch
+        console.warn('[HUI_IMPACT] score failure tracking:', e);
+      }
+    };
+    saveFailure();
+  }, []); // eslint-disable-line
   const TEXTE = {
     // Persönlicher Nutzen / private Anschaffung
     persoenlich: {
@@ -959,7 +983,7 @@ export default function ImpactFlow({ onClose }) {
             onNetworkConfirm={() => setStep(8)} onClose={onClose} />
         )}
         {!done && step === 7 && aiRes && !aiRes.geeignet && (
-          <ErgebnisNichtGeeignet form={form} aiRes={aiRes} onClose={onClose}
+          <ErgebnisNichtGeeignet form={form} aiRes={aiRes} user={user} onClose={onClose}
             onRetry={() => { setStep(0); setAiRes(null); }} />
         )}
 
