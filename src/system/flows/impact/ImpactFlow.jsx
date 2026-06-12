@@ -822,6 +822,27 @@ export default function ImpactFlow({ onClose }) {
         // nicht in der DB — werden ergänzt wenn Migration erfolgt ist
       });
       if (dbErr) throw dbErr;
+
+      // ── Resonanzzentrum: Einreichungs-Bestätigung ────────────────
+      // Schreibt direkt in notifications-Tabelle (bestehende Architektur)
+      try {
+        await supabase.from("notifications").insert({
+          user_id:     user.id,
+          type:        "impact_project_submitted",
+          title:       "💚 Dein Herzensprojekt wurde eingereicht!",
+          body:        `Dein Projekt „${form.name.trim()}" wurde erfolgreich eingereicht. Ein Admin prüft es und meldet sich bei dir.`,
+          entity_type: "impact_project",
+          action_url:  "/impact",
+          is_read:     false,
+          read:        false,
+          created_at:  new Date().toISOString(),
+          metadata:    { project_name: form.name.trim() },
+        });
+      } catch (notifErr) {
+        console.warn("[HUI_IMPACT] Resonanzzentrum notification failed:", notifErr);
+        // Kein throw — Einreichung war erfolgreich, Notification-Fehler ist nicht kritisch
+      }
+
       setDone(true);
     } catch(e) {
       setError(e.message || "Fehler beim Absenden");
