@@ -36,59 +36,38 @@ const KATEGORIEN = [
 ];
 
 // ── HUI-Fit-Score Berechnung (0–100) ──────────────────────────
-// ════════════════════════════════════════════════════════════════════════
-// HUI-FIT-SCORE — 6-KRITERIEN STANDARD-SCORING (max. 100 Punkte)
-// ════════════════════════════════════════════════════════════════════════
-//
-// Kriterium 1: Relevanz & Problemklarheit      (0–20 Pkt)
-// Kriterium 2: Lösungsqualität & Umsetzbarkeit (0–20 Pkt)
-// Kriterium 3: Impact-Potenzial                (0–20 Pkt)
-// Kriterium 4: Innovationsgrad                 (0–15 Pkt)
-// Kriterium 5: Realistische Kosten             (0–15 Pkt)
-// Kriterium 6: Motivation & Glaubwürdigkeit    (0–10 Pkt)
-//
-// Entscheidungslogik:
-//  0–39   → Automatische Ablehnung
-//  40–59  → Manuelle Prüfung (meist Ablehnung)
-//  60–74  → Manuelle Prüfung
-//  75–89  → Weiterleitung an Team
-//  90–100 → Sofortige Weiterleitung / Fast-Track
-// ════════════════════════════════════════════════════════════════════════
+// ── Nonsense-Detektor (global, für beide Funktionen verfügbar) ────────────
+function isNonsenseWord(w) {
+  if (w.length < 4) return false;
+  const v = (w.match(/[aeiouäöüy]/g)||[]).length;
+  if (v === 0) return true;
+  if (v / w.length < 0.15) return true;
+  if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(w)) return true;
+  return false;
+}
 
-// ── STUFE 0: Sofort-Disqualifikation (Nonsense / Missbrauch) ─────────────
+// ── STUFE 0: Sofort-Disqualifikation ──────────────────────────────────────
 function isSofortAbgelehnt(form) {
-  const name     = (form.name     || "").trim().toLowerCase();
-  const satz     = (form.satz     || "").trim();
-  const problem  = (form.problem  || "").trim();
-  const umsetzung= (form.umsetzung|| "").trim();
+  const name      = (form.name      || "").trim().toLowerCase();
+  const satz      = (form.satz      || "").trim();
+  const problem   = (form.problem   || "").trim();
+  const umsetzung = (form.umsetzung || "").trim();
 
-  // Mindestlänge jedes Pflichtfeldes
   if (satz.length < 20 || problem.length < 20 || umsetzung.length < 20) return "zu_kurz";
 
-  // Nonsense-Detektor: Wörter ohne Vokale oder >80% Konsonanten-Cluster
-  function isNonsenseWord(w) {
-    if (w.length < 4) return false;
-    const v = (w.match(/[aeiouäöüy]/g)||[]).length;
-    if (v === 0) return true;
-    if (v / w.length < 0.15) return true;
-    if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(w)) return true;
-    return false;
-  }
   const satzWords = satz.toLowerCase().split(/\s+/).filter(w => w.length >= 4);
   if (satzWords.length > 0) {
     const nc = satzWords.filter(isNonsenseWord).length;
     if (nc / satzWords.length >= 0.8 || (satzWords.length <= 3 && nc >= 1)) return "ungueltig";
   }
 
-  // Beleidigungen / Test-Strings im Namen
   const BLACKLIST = ["trottel","idiot","depp","blödmann","vollidiot","asdf","qwerty","lorem ipsum","foo bar","xxxxxx"];
   if (BLACKLIST.some(b => name.includes(b))) return "ungueltig";
 
-  // Klar private Anschaffungen (Possessiv + Objekt)
   const PRIVAT = [
     "mein auto","mein fahrrad","mein motorrad","meine wohnung","mein haus",
     "mein zimmer","mein garten","meinen garten","meinem garten",
-    "mein balkon","meinen balkon","meiner balkon","meine terrasse",
+    "mein balkon","meinen balkon","meine terrasse",
     "mein fenster","meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     "für mich allein","für mich selbst","für mich persönlich","nur für mich",
@@ -97,15 +76,28 @@ function isSofortAbgelehnt(form) {
   const allText = [name, satz, problem, umsetzung].join(" ").toLowerCase();
   if (PRIVAT.some(kw => allText.includes(kw))) return "persoenlich";
 
-  // Kommerziell / nicht förderbar
   const KOMMERZ = ["rendite","investor","startup kapital","kryptowährung","mlm","network marketing"];
   if (KOMMERZ.some(kw => allText.includes(kw))) return "kommerziell";
 
-  return null; // alles OK
+  return null;
 }
 
-// ── 6-KRITERIEN SCORING ──────────────────────────────────────────────────────
+// ── 6-KRITERIEN SCORING (0–100 Punkte) ───────────────────────────────────
+//  K1: Relevanz & Problemklarheit      (0–20)
+//  K2: Lösungsqualität & Umsetzbarkeit (0–20)
+//  K3: Impact-Potenzial                (0–20)
+//  K4: Innovationsgrad                 (0–15)
+//  K5: Realistische Kosten             (0–15)
+//  K6: Motivation & Glaubwürdigkeit    (0–10)
+//
+//  0–39  → Automatische Ablehnung
+//  40–59 → Manuelle Prüfung
+//  60–74 → Manuelle Prüfung (gut)
+//  75–89 → Weiterleitung ans Team
+//  90+   → Fast-Track
 function calcHuiFitScore(form) {
+  if (isSofortAbgelehnt(form)) return 0;
+
   const satz      = (form.satz      || "").toLowerCase();
   const problem   = (form.problem   || "").toLowerCase();
   const umsetzung = (form.umsetzung || "").toLowerCase();
@@ -114,198 +106,98 @@ function calcHuiFitScore(form) {
   const allText   = [name, satz, problem, umsetzung, warum].join(" ");
   const funding   = parseFloat((form.foerder || "0").toString().replace(/[^\d.]/g, "")) || 0;
 
-  // Sofort-Ablehnung → Score 0
-  if (isSofortAbgelehnt(form)) return 0;
-
   let total = 0;
 
-  // ── KRITERIUM 1: Relevanz & Problemklarheit (0–20) ────────────────────
-  // Problem muss klar, gesellschaftlich relevant und real sein
+  // K1 — Relevanz & Problemklarheit (0–20)
   {
-    let k1 = 0;
-
-    // Ist das Problem gesellschaftlich? (nicht privat)
-    const GESELLSCH = [
-      "viele menschen","gesellschaft","gemeinschaft","bevölkerung","öffentlich",
-      "sozial","nachbarschaft","quartier","region","kommune","umwelt","natur",
-      "kinder","jugend","senioren","obdachlose","geflüchtete","betroffene",
-      "benachteiligt","armut","einsamkeit","klimawandel","artenvielfalt",
-    ];
-    const g_hits = GESELLSCH.filter(kw => problem.includes(kw) || satz.includes(kw)).length;
-    k1 += Math.min(8, g_hits * 2);
-
-    // Problem klar beschrieben? (Länge + konkrete Sprache)
-    if (problem.length > 200) k1 += 4;
-    else if (problem.length > 100) k1 += 2;
-
-    // Messbarkeit / Konkretheit
-    const KONKRET = ["prozent","studie","statistik","daten","zahlen","anzahl","betroffen","täglich","jährlich","monatlich"];
-    if (KONKRET.some(kw => problem.includes(kw))) k1 += 4;
-    else if (problem.length > 150) k1 += 2;
-
-    // Logischer Begründungszusammenhang
-    const BEGRUEND = ["weil","da ","deshalb","daher","denn","grund","ursache","folge","herausforderung"];
-    const b_hits = BEGRUEND.filter(kw => problem.includes(kw)).length;
-    k1 += Math.min(4, b_hits);
-
-    total += Math.min(20, k1);
+    let k = 0;
+    const GESELLSCH = ["viele menschen","gesellschaft","gemeinschaft","bevölkerung","öffentlich","sozial","nachbarschaft","quartier","kinder","jugend","senioren","obdachlose","einsamkeit","klimawandel","umwelt","natur"];
+    k += Math.min(8, GESELLSCH.filter(kw => problem.includes(kw) || satz.includes(kw)).length * 2);
+    if (problem.length > 200) k += 4; else if (problem.length > 100) k += 2;
+    const KONKRET = ["prozent","studie","statistik","täglich","jährlich","betroffen","herausforderung","weil","denn","deshalb","daher","ursache"];
+    k += Math.min(8, KONKRET.filter(kw => problem.includes(kw)).length * 2);
+    total += Math.min(20, k);
   }
 
-  // ── KRITERIUM 2: Lösungsqualität & Umsetzbarkeit (0–20) ──────────────
+  // K2 — Lösungsqualität & Umsetzbarkeit (0–20)
   {
-    let k2 = 0;
-
-    // Konkrete Maßnahmen vorhanden?
-    const MASSNAHMEN = [
-      "workshop","veranstaltung","programm","kurs","plattform","app","tool",
-      "netzwerk","treffen","gruppe","initiative","projekt","aktion","kampagne",
-      "entwickle","baue","erstelle","organisiere","biete an","führe durch",
-      "kooperation","partnerschaft","zusammenarbeit",
-    ];
-    const m_hits = MASSNAHMEN.filter(kw => umsetzung.includes(kw)).length;
-    k2 += Math.min(10, m_hits * 2);
-
-    // Umsetzungstext ausreichend lang und konkret?
-    if (umsetzung.length > 300) k2 += 5;
-    else if (umsetzung.length > 150) k2 += 3;
-    else if (umsetzung.length > 80) k2 += 1;
-
-    // Schritte / Plan erkennbar?
+    let k = 0;
+    const MASSN = ["workshop","veranstaltung","programm","kurs","plattform","app","tool","netzwerk","initiative","entwickle","baue","erstelle","organisiere","biete an","führe durch","kooperation","partnerschaft"];
+    k += Math.min(10, MASSN.filter(kw => umsetzung.includes(kw)).length * 2);
+    if (umsetzung.length > 300) k += 5; else if (umsetzung.length > 150) k += 3; else if (umsetzung.length > 80) k += 1;
     const PLAN = ["schritt","phase","zuerst","zunächst","dann","anschließend","ziel","ergebnis","meilenstein"];
-    const p_hits = PLAN.filter(kw => umsetzung.includes(kw)).length;
-    k2 += Math.min(5, p_hits * 2);
-
-    total += Math.min(20, k2);
+    k += Math.min(5, PLAN.filter(kw => umsetzung.includes(kw)).length * 2);
+    total += Math.min(20, k);
   }
 
-  // ── KRITERIUM 3: Impact-Potenzial (0–20) ──────────────────────────────
+  // K3 — Impact-Potenzial (0–20)
   {
-    let k3 = 0;
-
-    // Zielgruppe klar definiert?
-    const ZIELGRUPPE = [
-      "kinder","jugendliche","senioren","familien","schüler","studierende",
-      "obdachlose","geflüchtete","alleinerziehende","bedürftige","alle",
-      "bewohner","gemeinschaft","nachbarn","öffentlichkeit","bevölkerung",
-      "menschen","personen","betroffene","teilnehmer","nutzer",
-    ];
-    const z_hits = ZIELGRUPPE.filter(kw => allText.includes(kw)).length;
-    k3 += Math.min(8, z_hits * 2);
-
-    // Gesellschaftlicher Nutzen (nicht privat)
-    const NUTZEN = [
-      "gemeinnützig","kostenlos","kostenfrei","öffentlich","für andere",
-      "anderen helfen","gemeinwohl","sozial","wirkung","mehrwert",
-      "nachhaltig","langfristig","dauerhaft","strukturell",
-    ];
-    const n_hits = NUTZEN.filter(kw => allText.includes(kw)).length;
-    k3 += Math.min(8, n_hits * 2);
-
-    // Reichweite / Impact-Skala
-    const REICHWEITE = ["regional","überregional","national","international","skalierbar","viele","hunderte","tausende"];
-    if (REICHWEITE.some(kw => allText.includes(kw))) k3 += 4;
-
-    total += Math.min(20, k3);
+    let k = 0;
+    const ZIEL = ["kinder","jugendliche","senioren","familien","schüler","obdachlose","geflüchtete","alle","bewohner","gemeinschaft","nachbarn","öffentlichkeit","bevölkerung","menschen","betroffene","nutzer"];
+    k += Math.min(8, ZIEL.filter(kw => allText.includes(kw)).length * 2);
+    const NUTZ = ["gemeinnützig","kostenlos","kostenfrei","öffentlich","für andere","gemeinwohl","sozial","wirkung","mehrwert","nachhaltig","langfristig"];
+    k += Math.min(8, NUTZ.filter(kw => allText.includes(kw)).length * 2);
+    const REICH = ["regional","überregional","national","skalierbar","viele","hunderte","tausende"];
+    if (REICH.some(kw => allText.includes(kw))) k += 4;
+    total += Math.min(20, k);
   }
 
-  // ── KRITERIUM 4: Innovationsgrad (0–15) ───────────────────────────────
+  // K4 — Innovationsgrad (0–15)
   {
-    let k4 = 0;
-
-    const INNOVATION = [
-      "neu","neuartig","erstmals","innovativ","einzigartig","anders","kreativ",
-      "digital","technologie","app","plattform","ki ","künstliche intelligenz",
-      "vernetzt","vernetzung","kombination","verbindet","integration",
-      "ungewöhnlich","visionär","zukunft","pionier",
-    ];
-    const i_hits = INNOVATION.filter(kw => allText.includes(kw)).length;
-    k4 += Math.min(10, i_hits * 2);
-
-    // Abgrenzung zu Bestehendem?
-    const ABGRENZ = ["bisher","bislang","noch nicht","fehlend","lücke","mangel","alternative","verbesserung"];
-    if (ABGRENZ.some(kw => allText.includes(kw))) k4 += 5;
-
-    total += Math.min(15, k4);
+    let k = 0;
+    const INNOV = ["neu","neuartig","erstmals","innovativ","einzigartig","anders","kreativ","digital","technologie","app","plattform","vernetzt","kombination","verbindet","zukunft","pionier"];
+    k += Math.min(10, INNOV.filter(kw => allText.includes(kw)).length * 2);
+    const ABGR = ["bisher","bislang","noch nicht","fehlend","lücke","mangel","alternative","verbesserung"];
+    if (ABGR.some(kw => allText.includes(kw))) k += 5;
+    total += Math.min(15, k);
   }
 
-  // ── KRITERIUM 5: Realistische Kosten & Förderlogik (0–15) ────────────
+  // K5 — Realistische Kosten (0–15)
   {
-    let k5 = 0;
-
-    // Förderwunsch vorhanden?
-    if (funding > 0) k5 += 3;
-
-    // Passende Größenordnung (500–50.000 EUR = realistisch)
-    if (funding >= 500 && funding <= 50000) k5 += 5;
-    else if (funding > 50000 && funding <= 150000) k5 += 2;
-    else if (funding > 0 && funding < 500) k5 += 1;
-
-    // Mittelverwendung erklärt?
-    const MITTEL = [
-      "kosten","euro","budget","finanzierung","ausgaben","material","miete",
-      "honorar","gehalt","förder","verwende","kaufe","bezahle","decke",
-    ];
-    const mv_hits = MITTEL.filter(kw => umsetzung.includes(kw) || warum.includes(kw)).length;
-    k5 += Math.min(7, mv_hits * 2);
-
-    total += Math.min(15, k5);
+    let k = 0;
+    if (funding > 0) k += 3;
+    if (funding >= 500 && funding <= 50000) k += 5; else if (funding > 50000 && funding <= 150000) k += 2;
+    const MITTEL = ["kosten","euro","budget","finanzierung","ausgaben","material","miete","honorar","verwende","kaufe","decke"];
+    k += Math.min(7, MITTEL.filter(kw => umsetzung.includes(kw) || warum.includes(kw)).length * 2);
+    total += Math.min(15, k);
   }
 
-  // ── KRITERIUM 6: Motivation & Glaubwürdigkeit (0–10) ─────────────────
+  // K6 — Motivation & Glaubwürdigkeit (0–10)
   {
-    let k6 = 0;
-
-    // Persönliche Motivation vorhanden?
-    const MOTIV = [
-      "weil ich","ich möchte","ich will","mein ziel","mein wunsch","ich glaube",
-      "mir liegt","mir ist wichtig","ich bin überzeugt","leidenschaft",
-      "erfahrung","erlebt","betroffen","selbst gesehen","ich kenne",
-    ];
-    const mo_hits = MOTIV.filter(kw => allText.includes(kw)).length;
-    k6 += Math.min(6, mo_hits * 2);
-
-    // Glaubwürdigkeit: Projektname nicht generisch
-    if (name.length > 5 && name !== "mein projekt" && name !== "projekt") k6 += 2;
-
-    // Gesamttext-Länge als Indikator für Ernsthaftigkeit
-    const totalLength = satz.length + problem.length + umsetzung.length;
-    if (totalLength > 600) k6 += 2;
-    else if (totalLength > 300) k6 += 1;
-
-    total += Math.min(10, k6);
+    let k = 0;
+    const MOTIV = ["weil ich","ich möchte","ich will","mein ziel","mir liegt","mir ist wichtig","leidenschaft","erfahrung","erlebt","betroffen","ich kenne"];
+    k += Math.min(6, MOTIV.filter(kw => allText.includes(kw)).length * 2);
+    if (name.length > 5 && name !== "mein projekt" && name !== "projekt") k += 2;
+    const totalLen = satz.length + problem.length + umsetzung.length;
+    if (totalLen > 600) k += 2; else if (totalLen > 300) k += 1;
+    total += Math.min(10, k);
   }
 
   return Math.min(100, Math.max(0, Math.round(total)));
 }
 
-// ── BEWERTUNGS-ENTSCHEIDER ────────────────────────────────────────────────────
+// ── Bewertungs-Entscheider ────────────────────────────────────────────────
 function bewerteProjekt(form) {
-  const grund = isSofortAbgelehnt(form);
-  if (grund) {
-    return { geeignet: false, grund, score: grund === "zu_kurz" ? 0 : (grund === "persoenlich" ? 8 : (grund === "kommerziell" ? 12 : 5)) };
+  const disqualGrund = isSofortAbgelehnt(form);
+  if (disqualGrund) {
+    const scoreMap = { zu_kurz: 0, ungueltig: 5, persoenlich: 8, kommerziell: 12 };
+    return { geeignet: false, grund: disqualGrund, score: scoreMap[disqualGrund] || 5 };
   }
 
   const score = calcHuiFitScore(form);
 
-  // 0–39 → Automatische Ablehnung
   if (score <= 39) {
-    // Ablehnungsgrund bestimmen
     const allText = [form.name, form.satz, form.problem, form.umsetzung].join(" ").toLowerCase();
-    const VAGUE = ["irgendwie","irgendwas","vielleicht","nicht genau weiß","einfach ausprobieren","mal schauen","hoffe dass"];
-    const vagueHits = VAGUE.filter(kw => allText.includes(kw)).length;
-    const grund = vagueHits >= 2 ? "zu_vage" : "kein_hui_bezug";
+    const VAGUE   = ["irgendwie","irgendwas","vielleicht","nicht genau weiß","einfach ausprobieren","mal schauen","hoffe dass"];
+    const grund   = VAGUE.filter(kw => allText.includes(kw)).length >= 2 ? "zu_vage" : "kein_hui_bezug";
     return { geeignet: false, grund, score };
   }
 
-  // 40–59 → Manuelle Prüfung (schwach, meist Ablehnung)
-  // 60–74 → Manuelle Prüfung (gut)
-  // 75–89 → Weiterleitung an Team
-  // 90+   → Fast-Track
   return {
     geeignet: true,
     score,
-    routing:  score >= 75 ? "direkt" : "manuell",
-    wirkung:  Math.round(score / 20),
+    routing: score >= 75 ? "direkt" : "manuell",
+    wirkung: Math.round(score / 20),
   };
 }
 
