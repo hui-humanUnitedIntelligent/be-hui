@@ -32,12 +32,15 @@ const TYPE_META = {
   content_approved:   { emoji:"✅", label:"Freigegeben" },
   content_rejected:   { emoji:"❌", label:"Abgelehnt" },
   content_pending:    { emoji:"🔍", label:"In Prüfung" },
-  work_approved:        { emoji:"✅", label:"Werk freigegeben" },
-  work_rejected:        { emoji:"❌", label:"Werk abgelehnt" },
-  experience_approved:  { emoji:"✅", label:"Erlebnis freigegeben" },
-  experience_rejected:  { emoji:"❌", label:"Erlebnis abgelehnt" },
-  project_approved:     { emoji:"✅", label:"Projekt freigegeben" },
-  project_rejected:     { emoji:"❌", label:"Projekt abgelehnt" },
+  work_approved:             { emoji:"✅", label:"Werk freigegeben" },
+  work_rejected:             { emoji:"❌", label:"Werk abgelehnt" },
+  experience_approved:       { emoji:"✅", label:"Erlebnis freigegeben" },
+  experience_rejected:       { emoji:"❌", label:"Erlebnis abgelehnt" },
+  project_approved:          { emoji:"✅", label:"Projekt freigegeben" },
+  project_rejected:          { emoji:"❌", label:"Projekt abgelehnt" },
+  impact_project_approved:   { emoji:"💚", label:"Herzensprojekt angenommen" },
+  impact_project_rejected:   { emoji:"📋", label:"Herzensprojekt abgelehnt" },
+  impact_project_submitted:  { emoji:"💚", label:"Herzensprojekt eingereicht" },
   admin_broadcast:    { emoji:"📣", label:"HUI Team" },
   default:            { emoji:"🔔", label:"Benachrichtigung" },
 };
@@ -65,10 +68,11 @@ const typeMap = {
   work_rejected:       { label:"Werk",     emoji:"🎨", hint:"Du kannst dein Werk überarbeiten und erneut einreichen." },
   content_rejected:    { label:"Inhalt",   emoji:"📝", hint:"Du kannst den Inhalt überarbeiten und erneut einreichen." },
   experience_rejected: { label:"Erlebnis", emoji:"🌿", hint:"Du kannst dein Erlebnis überarbeiten und erneut einreichen." },
-  project_rejected:    { label:"Projekt",  emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
+  project_rejected:         { label:"Projekt",          emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
+  impact_project_rejected:  { label:"Herzensprojekt",   emoji:"💚", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
 };
 const tm      = typeMap[n.type] || { label:"Eintrag", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
-const entryTitle = meta.entry_title || meta.werk_title || meta.werk_id || `Dein ${tm.label}`;
+const entryTitle = meta.entry_title || meta.project_name || meta.werk_title || meta.werk_id || `Dein ${tm.label}`;
 
 return (
   <div
@@ -158,7 +162,8 @@ function NotifCard({ n, meta, onRead, onAction = () => {} }) {
 const [showModal, setShowModal] = React.useState(false);
 
 const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
-  || n.type === "experience_rejected" || n.type === "project_rejected";
+  || n.type === "experience_rejected" || n.type === "project_rejected"
+  || n.type === "impact_project_rejected";
 
 const handleCardClick = () => {
   if (!n.is_read) onRead?.(n.id);
