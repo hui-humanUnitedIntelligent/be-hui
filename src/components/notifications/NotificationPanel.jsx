@@ -158,18 +158,101 @@ return (
 }
 
 // ── NotifCard ─────────────────────────────────────────────────────────────────
+// ── ApprovalModal — für Herzensprojekt-Annahme ────────────────────────────────
+function ApprovalModal({ n, onClose }) {
+const meta       = n.metadata || {};
+const projectName = meta.project_name || meta.entry_title || "Dein Herzensprojekt";
+
+return (
+  <div
+    onClick={onClose}
+    style={{
+      position:"fixed", inset:0, zIndex:99999,
+      background:"rgba(0,0,0,0.6)", display:"flex",
+      alignItems:"center", justifyContent:"center", padding:20,
+    }}
+  >
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
+        background:"#fff", borderRadius:18, padding:"24px 20px 20px",
+        maxWidth:340, width:"100%",
+        boxShadow:"0 12px 50px rgba(0,0,0,0.22)",
+      }}
+    >
+      {/* Header */}
+      <div style={{ textAlign:"center", marginBottom:16 }}>
+        <div style={{ fontSize:36, marginBottom:6 }}>💚</div>
+        <div style={{ fontSize:16, fontWeight:800, color:"#1a1a18" }}>
+          Herzlichen Glückwunsch!
+        </div>
+      </div>
+
+      {/* Projekt-Name */}
+      <div style={{
+        background:"#f0fdf4", borderRadius:10, padding:"10px 14px",
+        marginBottom:12, display:"flex", alignItems:"center", gap:8,
+      }}>
+        <span style={{ fontSize:18 }}>💚</span>
+        <div>
+          <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.5px" }}>
+            Herzensprojekt
+          </div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#1a1a18" }}>
+            „{projectName}"
+          </div>
+        </div>
+      </div>
+
+      {/* Nachricht */}
+      <div style={{ marginBottom:20 }}>
+        <div style={{
+          fontSize:11, fontWeight:700, color:"#0EC4B8",
+          textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8,
+        }}>
+          Nachricht vom Admin
+        </div>
+        <div style={{
+          background:"rgba(14,196,184,0.07)",
+          border:"1px solid rgba(14,196,184,0.3)",
+          borderRadius:10, padding:"12px 14px",
+          fontSize:14, color:"#1a1a18", lineHeight:1.6,
+        }}>
+          Glückwunsch! 🎉 Dein Projekt wurde angenommen. Ein Admin wird sich innerhalb von
+          <strong> 14 Tagen</strong> persönlich bei dir melden — per E-Mail, Telefon oder persönlich.
+        </div>
+      </div>
+
+      {/* Schließen */}
+      <button
+        onClick={onClose}
+        style={{
+          width:"100%", padding:"13px", borderRadius:99,
+          background:"#0EC4B8", border:"none", color:"#fff",
+          fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+        }}
+      >
+        Super, danke!
+      </button>
+    </div>
+  </div>
+);
+}
+
 function NotifCard({ n, meta, onRead, onAction = () => {} }) {
-const [showModal, setShowModal] = React.useState(false);
+const [showModal,         setShowModal]         = React.useState(false);
+const [showApprovalModal, setShowApprovalModal] = React.useState(false);
 
 const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
   || n.type === "experience_rejected" || n.type === "project_rejected"
   || n.type === "impact_project_rejected";
 
+const isImpactApproval = n.type === "impact_project_approved";
+
 const handleCardClick = () => {
   if (!n.is_read) onRead?.(n.id);
-  // Ablehnungen: Modal öffnen
-  if (isRejection) { setShowModal(true); return; }
-  // Alle anderen: Action auslösen
+  if (isRejection)     { setShowModal(true);         return; }
+  if (isImpactApproval){ setShowApprovalModal(true);  return; }
   onAction(n);
 };
 
@@ -179,10 +262,19 @@ const handleDetailBtn = (e) => {
   setShowModal(true);
 };
 
+const handleApprovalBtn = (e) => {
+  e.stopPropagation();
+  if (!n.is_read) onRead?.(n.id);
+  setShowApprovalModal(true);
+};
+
 return (
   <>
     {showModal && isRejection && (
       <RejectionModal n={n} onClose={() => setShowModal(false)} />
+    )}
+    {showApprovalModal && isImpactApproval && (
+      <ApprovalModal n={n} onClose={() => setShowApprovalModal(false)} />
     )}
     <div
       onClick={handleCardClick}
@@ -237,6 +329,23 @@ return (
               }}
             >
               <span>📋</span> Grund lesen
+            </button>
+          )}
+
+          {/* Detail-Button für Impact-Annahmen */}
+          {isImpactApproval && (
+            <button
+              onClick={handleApprovalBtn}
+              style={{
+                marginTop:8, padding:"5px 12px",
+                background:"rgba(14,196,184,0.10)",
+                border:"1px solid rgba(14,196,184,0.4)",
+                borderRadius:99, cursor:"pointer",
+                fontSize:12, fontWeight:600, color:"#0EC4B8",
+                display:"flex", alignItems:"center", gap:5,
+              }}
+            >
+              <span>💚</span> Details lesen
             </button>
           )}
 
