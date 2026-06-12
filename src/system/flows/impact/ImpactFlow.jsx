@@ -126,36 +126,39 @@ function calcHuiFitScore(form) {
   // (nur wenn Grundbedingungen erfüllt)
   // ════════════════════════════════════════════════════════════════
   const HUI_MISSION = [
-    { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:14 },
-    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"], pts:14 },
-    { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"], pts:13 },
-    { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"], pts:12 },
-    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","festival"], pts:10 },
-    { kws:["inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberechtigung"], pts:12 },
-    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"], pts:11 },
-    { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"], pts:10 },
-    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"], pts:11 },
+    // Punkte HALBIERT — 1 Keyword reicht nicht mehr für nennenswerte Punkte
+    // MUSS mindestens 3 verschiedene Begriffe aus derselben Gruppe enthalten
+    { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:8 },
+    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"],     pts:8 },
+    { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"],     pts:7 },
+    { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"],             pts:7 },
+    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","festival"],               pts:6 },
+    { kws:["inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberechtigung"],                          pts:7 },
+    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"],                               pts:6 },
+    { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"],                                                     pts:6 },
+    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"],                        pts:7 },
   ];
 
-  let baseScore = 10; // Niedriger Basis-Score — muss verdient werden
+  let baseScore = 5; // Extrem niedriger Basis — jeder Punkt muss verdient werden
+
   for (const group of HUI_MISSION) {
     const hits = group.kws.filter(kw => allText.includes(kw)).length;
-    if (hits >= 3)       baseScore += group.pts;
-    else if (hits >= 2)  baseScore += Math.round(group.pts * 0.7);
-    else if (hits === 1) baseScore += Math.round(group.pts * 0.35);
+    // Strenge Staffelung: 1 Keyword = fast nichts, erst ab 3 zählt es wirklich
+    if (hits >= 4)       baseScore += group.pts;
+    else if (hits === 3) baseScore += Math.round(group.pts * 0.7);
+    else if (hits === 2) baseScore += Math.round(group.pts * 0.35);
+    else if (hits === 1) baseScore += Math.round(group.pts * 0.1); // 1 Keyword = kaum Punkte
   }
 
-  // ── Vagheits-Abzug (auch bei positiven Projekten) ────────────
-  baseScore -= vagueHits * 6;
+  // ── Vagheits-Abzug — härter als vorher ───────────────────────
+  baseScore -= vagueHits * 8; // vorher: 6 pro Vaguheit, jetzt: 8
 
-  // ── Kategorie-Bonus (nur bei explizit sinnvollen Kategorien) ─
-  const KAT_BONUS = { bildung:8, umwelt:8, gesundheit:7, gemeinschaft:6, tiere:6, kultur:5, soziales:8 };
-  baseScore += KAT_BONUS[form.kategorie] || 0; // Keine Punkte für unbekannte Kategorien
+  // ── Kategorie-Bonus — deutlich reduziert ─────────────────────
+  const KAT_BONUS = { bildung:4, umwelt:4, gesundheit:3, gemeinschaft:3, tiere:3, kultur:2, soziales:4 };
+  baseScore += KAT_BONUS[form.kategorie] || 0;
 
-  // ── Vollständigkeits-Bonus (nur inhaltlich gefüllte Felder) ──
-  const fields = [form.name, form.satz, form.problem, form.umsetzung];
-  const filled  = fields.filter(v => (v||"").trim().length > 40).length; // Mindest 40 Zeichen
-  baseScore += filled * 2; // max +8
+  // ── Vollständigkeits-Bonus — entfernt ────────────────────────
+  // Längere Texte geben keine Extrapunkte mehr — nur Inhalt zählt
 
   return Math.min(100, Math.max(0, baseScore));
 }
@@ -173,12 +176,12 @@ function bewerteProjekt(form) {
     return { geeignet: false, grund: "zu_kurz", score };
   }
 
-  // Schwelle: 55 — strenger als vorher, weicher als ursprünglich 60
-  if (score >= 55) {
+  // Schwelle: 62 — nur wirklich starke Projekte kommen durch
+  if (score >= 62) {
     return {
       geeignet: true,
       score,
-      routing: score >= 78 ? "direkt" : "manuell",
+      routing: score >= 82 ? "direkt" : "manuell",
       wirkung: Math.round(score / 20),
     };
   }
