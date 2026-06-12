@@ -157,7 +157,6 @@ return (
 );
 }
 
-// ── NotifCard ─────────────────────────────────────────────────────────────────
 // ── ApprovalModal — für Herzensprojekt-Annahme ────────────────────────────────
 function ApprovalModal({ n, onClose }) {
 const meta       = n.metadata || {};
