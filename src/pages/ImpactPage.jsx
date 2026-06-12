@@ -568,6 +568,39 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
             </div>
           </div>
 
+          {/* Zusatzmaterial */}
+          {app.media_urls && app.media_urls.length > 0 && (
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:8 }}>
+                Zusatzmaterial ({app.media_urls.length} Datei{app.media_urls.length !== 1 ? "en" : ""})
+              </div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                {app.media_urls.map((url, idx) => {
+                  const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+                  return isImg ? (
+                    <a key={idx} href={url} target="_blank" rel="noreferrer">
+                      <img src={url} alt={`Datei ${idx+1}`}
+                        style={{ width:72, height:72, objectFit:"cover", borderRadius:10,
+                          border:"1px solid rgba(0,0,0,0.10)" }} />
+                    </a>
+                  ) : (
+                    <a key={idx} href={url} target="_blank" rel="noreferrer"
+                      style={{
+                        display:"flex", alignItems:"center", gap:6,
+                        background:"rgba(114,100,214,0.08)",
+                        border:"1px solid rgba(114,100,214,0.20)",
+                        borderRadius:10, padding:"8px 12px",
+                        fontSize:12, color:"#7264D6", fontWeight:600,
+                        textDecoration:"none",
+                      }}>
+                      📎 Datei {idx+1}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Vote Button */}
           {currentUser?.id ? (
             voted ? (
