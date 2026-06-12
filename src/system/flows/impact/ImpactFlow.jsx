@@ -1054,11 +1054,11 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
       const ext  = file.name.split(".").pop();
       const path = `covers/${userId || "anon"}/${Date.now()}.${ext}`;
       const { error } = await supabase.storage
-        .from("impact_projects")
+        .from("media")
         .upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data: urlData } = supabase.storage
-        .from("impact_projects")
+        .from("media")
         .getPublicUrl(path);
       setCoverUrl(urlData.publicUrl);
     } catch (e) {
@@ -1077,11 +1077,11 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
         const ext  = file.name.split(".").pop();
         const path = `extras/${userId || "anon"}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
         const { error } = await supabase.storage
-          .from("impact_projects")
+          .from("media")
           .upload(path, file, { upsert: true, contentType: file.type });
         if (!error) {
           const { data: urlData } = supabase.storage
-            .from("impact_projects")
+            .from("media")
             .getPublicUrl(path);
           urls.push({ url: urlData.publicUrl, name: file.name, type: file.type });
         }
