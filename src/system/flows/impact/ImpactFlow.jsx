@@ -126,39 +126,40 @@ function calcHuiFitScore(form) {
   // (nur wenn Grundbedingungen erfüllt)
   // ════════════════════════════════════════════════════════════════
   const HUI_MISSION = [
-    // Punkte HALBIERT — 1 Keyword reicht nicht mehr für nennenswerte Punkte
-    // MUSS mindestens 3 verschiedene Begriffe aus derselben Gruppe enthalten
-    { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:8 },
-    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"],     pts:8 },
-    { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"],     pts:7 },
-    { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"],             pts:7 },
-    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","festival"],               pts:6 },
-    { kws:["inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberechtigung"],                          pts:7 },
-    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"],                               pts:6 },
-    { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"],                                                     pts:6 },
-    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"],                        pts:7 },
+    // Punkte reduziert — aber gute Projekte mit vielen echten Keywords kommen durch
+    { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:12 },
+    { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"],     pts:12 },
+    { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"],     pts:11 },
+    { kws:["gesundheit","pflege","therapie","sport","bewegung","ernährung","mental","wohlbefinden","prävention"],             pts:10 },
+    { kws:["kunst","musik","kultur","kreativität","theater","tanz","design","handwerk","literatur","festival"],               pts:9 },
+    { kws:["inklusion","barrierefreiheit","vielfalt","integration","teilhabe","gleichberechtigung"],                          pts:10 },
+    { kws:["gesellschaft","sozial","öffentlich","kostenlos","gemeinwohl","mehrwert","wirkung"],                               pts:9 },
+    { kws:["tier","tierschutz","tierwohl","tierheim","wildtier","fauna"],                                                     pts:9 },
+    { kws:["senioren","obdachlos","geflüchtet","alleinerziehend","armut","bedürftig","benachteiligt"],                        pts:10 },
   ];
 
-  let baseScore = 5; // Extrem niedriger Basis — jeder Punkt muss verdient werden
+  let baseScore = 8; // Sehr niedriger Basis
 
   for (const group of HUI_MISSION) {
     const hits = group.kws.filter(kw => allText.includes(kw)).length;
-    // Strenge Staffelung: 1 Keyword = fast nichts, erst ab 3 zählt es wirklich
+    // Strenge Staffelung: 1 Keyword = kaum Punkte, 3+ = volle Punkte
     if (hits >= 4)       baseScore += group.pts;
-    else if (hits === 3) baseScore += Math.round(group.pts * 0.7);
-    else if (hits === 2) baseScore += Math.round(group.pts * 0.35);
-    else if (hits === 1) baseScore += Math.round(group.pts * 0.1); // 1 Keyword = kaum Punkte
+    else if (hits === 3) baseScore += Math.round(group.pts * 0.75);
+    else if (hits === 2) baseScore += Math.round(group.pts * 0.4);
+    else if (hits === 1) baseScore += Math.round(group.pts * 0.15); // 1 Keyword = sehr wenig
   }
 
-  // ── Vagheits-Abzug — härter als vorher ───────────────────────
-  baseScore -= vagueHits * 8; // vorher: 6 pro Vaguheit, jetzt: 8
+  // ── Vagheits-Abzug ────────────────────────────────────────────
+  baseScore -= vagueHits * 8; // -8 pro vager Phrase
 
-  // ── Kategorie-Bonus — deutlich reduziert ─────────────────────
-  const KAT_BONUS = { bildung:4, umwelt:4, gesundheit:3, gemeinschaft:3, tiere:3, kultur:2, soziales:4 };
+  // ── Kategorie-Bonus ───────────────────────────────────────────
+  const KAT_BONUS = { bildung:5, umwelt:5, gesundheit:4, gemeinschaft:4, tiere:4, kultur:3, soziales:5 };
   baseScore += KAT_BONUS[form.kategorie] || 0;
 
-  // ── Vollständigkeits-Bonus — entfernt ────────────────────────
-  // Längere Texte geben keine Extrapunkte mehr — nur Inhalt zählt
+  // ── Vollständigkeits-Bonus — nur bei echter inhaltlicher Tiefe ──
+  const fields = [form.name, form.satz, form.problem, form.umsetzung];
+  const filled  = fields.filter(v => (v||"").trim().length > 60).length;
+  baseScore += filled * 1; // max +4, kaum Einfluss
 
   return Math.min(100, Math.max(0, baseScore));
 }
