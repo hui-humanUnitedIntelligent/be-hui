@@ -516,13 +516,13 @@ function ApprovedProjectDetail({ app, onClose, currentUser }) {
         background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)",
         animation:"ipFadeIn 0.22s ease both",
       }} />
-      {/* Bottom-Sheet — scrollt innerhalb der Page, nicht im Modal */}
+      {/* Bottom-Sheet — kompakt, kein übermäßiger Platz oben */}
       <div onClick={e => e.stopPropagation()} style={{
         position:"fixed", left:0, right:0, bottom:0, zIndex:9999,
         background:"#FDFAF5",
         borderRadius:"24px 24px 0 0",
         boxShadow:"0 -12px 60px rgba(0,0,0,0.22)",
-        maxHeight:"94vh",
+        maxHeight:"78vh",
         overflowY:"auto",
         overscrollBehavior:"contain",
         WebkitOverflowScrolling:"touch",
