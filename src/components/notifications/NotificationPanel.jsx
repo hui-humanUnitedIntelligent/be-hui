@@ -61,7 +61,13 @@ function fmtTime(iso) {
 
 // ── RejectionModal — dynamisch für Werk / Erlebnis / Projekt ───────────────
 function RejectionModal({ n, onClose }) {
-const meta   = n.metadata || {};
+// metadata kann Object oder JSON-String sein — sicher parsen
+const parseMeta = (raw) => {
+  if (!raw) return {};
+  if (typeof raw === "object") return raw;
+  try { return JSON.parse(raw); } catch { return {}; }
+};
+const meta = parseMeta(n.metadata);
 // Fallback: Grund aus body-Text extrahieren (altes Format: "...abgelehnt. Grund: <text>")
 const extractReasonFromBody = (body) => {
   if (!body) return null;
