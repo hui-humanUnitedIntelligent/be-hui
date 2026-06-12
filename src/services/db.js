@@ -407,6 +407,11 @@ export const ChatService = {
 
 // ─── IMPACT SYSTEM ───────────────────────────────────────────
 export const ImpactService = {
+  // ── Zentrale Hilfsfunktion: aktueller Monat YYYY-MM ─────────────
+  currentMonth() {
+    return new Date().toISOString().slice(0, 7);
+  },
+
   async getActiveProjects() {
     return cachedQuery('impact:active',
       () => safeQuery(
@@ -417,7 +422,7 @@ export const ImpactService = {
   },
 
   async getCurrentRound() {
-    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const month = this.currentMonth();
     return cachedQuery(`impact:round:${month}`,
       () => safeQuery(
         supabase.from('impact_rounds').select(F.impactRound)
@@ -426,19 +431,33 @@ export const ImpactService = {
     );
   },
 
-  async getUserVotesThisRound(userId, roundId) {
+  // ── Einheitlich: voter_id + pool_month (Single Source of Truth) ──
+  async getUserVotesThisMonth(userId) {
+    const month = this.currentMonth();
     return safeQuery(
-      supabase.from('impact_votes').select(F.impactVote)
-        .eq('user_id', userId).eq('round_id', roundId).limit(10)
+      supabase.from('impact_votes')
+        .select('id,project_id,pool_month,weight,created_at')
+        .eq('voter_id', userId)
+        .eq('pool_month', month)
+        .limit(10)
     );
   },
 
-  // Vote weight: Mitglieder = 2, Basisuser = 1 (max 2 Stimmen/Monat)
-  async castVote(userId, projectId, roundId, voteWeight = 1) {
-    // Check existing votes this round
+  // Legacy-Alias für Rückwärtskompatibilität
+  async getUserVotesThisRound(userId, _roundId) {
+    return this.getUserVotesThisMonth(userId);
+  },
+
+  // ── Stimme abgeben — voter_id + pool_month (kein round_id) ──────
+  async castVote(userId, projectId, _roundId, voteWeight = 1) {
+    const month = this.currentMonth();
+
+    // Bereits für dieses Projekt abgestimmt?
     const { data: existing } = await safeQuery(
-      supabase.from('impact_votes').select('id,weight')
-        .eq('user_id', userId).eq('round_id', roundId)
+      supabase.from('impact_votes')
+        .select('id,project_id,weight')
+        .eq('voter_id', userId)
+        .eq('pool_month', month)
     );
     const totalUsed = (existing || []).reduce((s, v) => s + (v.weight || 1), 0);
     const maxVotes  = voteWeight >= 2 ? 2 : 1;
@@ -446,8 +465,6 @@ export const ImpactService = {
     if (totalUsed >= maxVotes) {
       return { data: null, error: { message: `Maximale Stimmen für diesen Monat erreicht (${maxVotes})` } };
     }
-
-    // Already voted for THIS project?
     const alreadyVoted = (existing || []).some(v => v.project_id === projectId);
     if (alreadyVoted) {
       return { data: null, error: { message: 'Bereits für dieses Projekt abgestimmt' } };
@@ -455,12 +472,12 @@ export const ImpactService = {
 
     return safeQuery(
       supabase.from('impact_votes').insert({
-        user_id: userId,
+        voter_id:   userId,
         project_id: projectId,
-        round_id: roundId,
-        weight: 1, // each vote = 1 regardless of total weight
+        pool_month: month,
+        weight:     1,
         created_at: new Date().toISOString(),
-      }).select(F.impactVote).single()
+      }).select('id,project_id,pool_month,weight').single()
     );
   },
 
