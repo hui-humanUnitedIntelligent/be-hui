@@ -17,6 +17,8 @@ import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
 import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
+import { useAuth }             from "../lib/AuthContext.jsx";
+import { analyticsService }    from "../services/creatorEconomy.js";
 import { toast }               from "../lib/useToast.jsx";
 
 /* ── CSS: fade-in + scroll-feel ───────────────────────────────── */
@@ -125,6 +127,27 @@ function ReactionCardInner({ item, onProfile, onBook, onShare }) {
   // FEED.9B — Lazy-Loading: nur laden wenn Karte sichtbar
   const cardRef    = useRef(null);
   const [visible, setVisible] = useState(false);
+
+  // FEED.12B — Impression Tracking
+  const { user } = useAuth();
+  const trackedRef = useRef(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    if (trackedRef.current) return;
+    const creatorId = item?.author?.id;
+    const type = item?.type;
+    if (!creatorId) return;
+    if (type !== "work" && type !== "experience") return;
+    trackedRef.current = true;
+    analyticsService.track({
+      creatorId,
+      eventType:  type === "experience" ? "experience_view" : "work_view",
+      sourceType: "feed",
+      sourceId:   item.id,
+      viewerId:   user?.id || null,
+    });
+  }, [visible, item?.id, item?.type, item?.author?.id, user?.id]); // eslint-disable-line
 
   useEffect(() => {
     const el = cardRef.current;
