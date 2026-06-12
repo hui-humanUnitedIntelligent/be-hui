@@ -530,7 +530,7 @@ function ImpactPageInner({ currentUser }) {
 
   return (
     <div data-impact-page style={{ width:"100%", background:T.page,
-      fontFamily:T.ff, paddingBottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+      fontFamily:T.ff, paddingBottom:"calc(88px + env(safe-area-inset-bottom, 0px))",
       overflowX:"hidden" }}>
       <style>{`
         @keyframes ipFade    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
