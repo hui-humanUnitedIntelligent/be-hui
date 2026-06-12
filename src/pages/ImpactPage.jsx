@@ -1932,6 +1932,48 @@ function WeitereHerzensprojekte({ data, loading }) {
 
 
 
+
+// ════════════════════════════════════════════════════════════════
+// EmptyImpactState — kein Dummy, kein Fallback
+// Wird angezeigt wenn keine echten Projekte in Supabase existieren
+// ════════════════════════════════════════════════════════════════
+function EmptyImpactState({ type = "voting" }) {
+  const configs = {
+    voting: {
+      icon: "🗳",
+      title: "Noch keine Projekte in der Abstimmung",
+      text: "Sobald Herzensprojekte vom HUI-Team geprüft und nominiert wurden, erscheinen sie hier.",
+    },
+    weitere: {
+      icon: "🌱",
+      title: "Noch keine weiteren Herzensprojekte",
+      text: "Eingereichte Projekte erscheinen hier, sobald sie vom HUI-Team geprüft wurden.",
+    },
+    bewilligt: {
+      icon: "💚",
+      title: "Noch keine bewilligten Projekte",
+      text: "Sobald ein Herzensprojekt bewilligt wird, erscheint es hier.",
+    },
+  };
+  const cfg = configs[type] || configs.voting;
+  return (
+    <div style={{
+      textAlign:"center", padding:"36px 24px",
+      background:"rgba(13,196,181,0.04)",
+      border:"1px dashed rgba(13,196,181,0.25)",
+      borderRadius:20, margin:"0 16px",
+    }}>
+      <div style={{ fontSize:36, marginBottom:12 }}>{cfg.icon}</div>
+      <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:8 }}>
+        {cfg.title}
+      </div>
+      <div style={{ fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+        {cfg.text}
+      </div>
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 // BewilligteTop1Section — Zeigt NUR das führende Projekt (Top 1)
 // ════════════════════════════════════════════════════════════════
@@ -1942,7 +1984,12 @@ function BewilligteTop1Section({ app, loading, onOpen }) {
       <SkeletonCards count={1} />
     </div>
   );
-  if (!app) return null;
+  if (!app) return (
+    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
+      <h2 style={{ margin:"0 0 16px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
+      <EmptyImpactState type="bewilligt" />
+    </div>
+  );
   return (
     <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
       <div style={{ marginBottom:16 }}>
@@ -1983,7 +2030,9 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
             : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — sortiert nach Community-Stimmen`}
         </p>
       </div>
-      {isLoading ? <SkeletonCards count={3} /> : (
+      {isLoading ? <SkeletonCards count={3} /> : rawList.length === 0 ? (
+        <EmptyImpactState type="weitere" />
+      ) : (
         <>
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {visible.map((p, i) =>
