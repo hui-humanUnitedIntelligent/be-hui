@@ -921,13 +921,8 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           .limit(3);
         if (dead) return;
         if (error) throw error;
-        const IMGS = [
-          "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90",
-          "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=90",
-          "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=90",
-        ];
-        const rows = (data || []).map((p, i) => ({
-          ...p, img: p.img_url || IMGS[i % IMGS.length],
+        const rows = (data || []).map(p => ({
+          ...p, img: p.img_url || null,
         }));
         setProjects(rows);
       } catch {
