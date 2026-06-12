@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 
 // ══════════════════════════════════════════════════════════════
@@ -245,8 +245,8 @@ return (
 }
 
 function NotifCard({ n, meta, onRead, onAction = () => {} }) {
-const [showModal,         setShowModal]         = React.useState(false);
-const [showApprovalModal, setShowApprovalModal] = React.useState(false);
+const [showModal,         setShowModal]         = useState(false);
+const [showApprovalModal, setShowApprovalModal] = useState(false);
 
 const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
   || n.type === "experience_rejected" || n.type === "project_rejected"
