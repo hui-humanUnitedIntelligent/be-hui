@@ -850,8 +850,39 @@ function ImpactPageInner({ currentUser }) {
         projects={projects}
       />
 
+      {/* Detail-Modal für bewilligte Herzensprojekte */}
+      {detailApp && (
+        <ApprovedProjectDetail
+          app={detailApp}
+          onClose={() => setDetailApp(null)}
+          currentUser={currentUser}
+        />
+      )}
+
       {/* ══ 4b ── IMPACT TIMELINE "Impact auf einen Blick" ═══════ */}
       <ImpactTimeline transp={transp} />
+
+      {/* ══ 4b.5 ── BEWILLIGTE HERZENSPROJEKTE (aus impact_applications) ══════ */}
+      {!approvedApps.loading && approvedApps.apps.length > 0 && (
+        <div style={{
+          padding:"28px 20px 8px",
+          maxWidth:600, margin:"0 auto",
+        }}>
+          <div style={{ marginBottom:16 }}>
+            <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:"#141422" }}>
+              💚 Bewilligte Herzensprojekte
+            </h2>
+            <p style={{ margin:0, fontSize:13, color:"#666" }}>
+              Diese Projekte wurden vom HUI-Team geprüft und bewilligt — jetzt abstimmen!
+            </p>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {approvedApps.apps.map(app => (
+              <ApprovedAppCard key={app.id} app={app} onOpen={setDetailApp} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ══ 4c ── WEITERE HERZENSPROJEKTE ════════════════════════ */}
       <WeitereHerzensprojekte data={weitereHP.data} loading={weitereHP.loading} />
